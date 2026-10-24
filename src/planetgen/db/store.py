@@ -1543,6 +1543,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (135, _column_marker("planets", "ozone_column_du")),
     (134, _column_marker("system_configs", "max_stars")),
     (133, _column_marker("stars", "slot")),
     (132, _column_marker("stars", "snow_line_km")),

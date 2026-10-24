@@ -9,7 +9,7 @@ import xml.etree.ElementTree as ET
 import pytest
 
 from planetgen.web import ICON_NAMES, icon
-from planetgen.web.lib.habitability_symbols import SPRITE_IDS
+from planetgen.web.lib.habitability_symbols import LIFE_SPRITE_IDS, SPRITE_IDS
 from planetgen.web.app import create_app
 
 SPRITE = os.path.join(os.path.dirname(__file__), "..", "html", "static", "icons.svg")
@@ -18,7 +18,7 @@ SPRITE = os.path.join(os.path.dirname(__file__), "..", "html", "static", "icons.
 def test_the_sprite_holds_exactly_the_named_icons():
     root = ET.parse(SPRITE).getroot()
     symbols = root.findall("{http://www.w3.org/2000/svg}symbol")
-    assert {symbol.get("id") for symbol in symbols} == ICON_NAMES | set(SPRITE_IDS.values())
+    assert {symbol.get("id") for symbol in symbols} == ICON_NAMES | set(SPRITE_IDS.values()) | set(LIFE_SPRITE_IDS.values())
     assert all(symbol.get("viewBox") == "0 0 24 24" for symbol in symbols)
 
 

@@ -174,9 +174,9 @@
    "fallback": "none",
    "constants": {
     "c_j1": [
-     0.1,
+     0.0,
      1.0,
-     "log"
+     "uniform"
     ],
     "c_j5": [
      0.05,
@@ -235,16 +235,16 @@
     "R3"
    ],
    "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005",
+   "replacement": "GEN.513",
    "labels": [
     "READ",
     "COMPUTED",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.482"
+    "GEN.513"
    ],
    "classes": [
     "A",
@@ -291,12 +291,12 @@
     "R3"
    ],
    "notes": "far above meteoritic building blocks (part 05 s3.2) A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2): a flagged stand-in until GEN.482.",
-   "replacement": "GEN.482",
+   "replacement": "GEN.513",
    "labels": [],
    "state": "stand-in",
    "limit": "",
    "items": [
-    "GEN.482"
+    "GEN.513"
    ],
    "classes": [
     "A",
@@ -338,7 +338,7 @@
    "option": "Building-block redox (PARAM)",
    "gate_text": "AST, C, D, small bodies",
    "weight_text": "dIW ~ U[-1.4, 0]",
-   "source": "22 polluted white dwarf values: median -1.26, sample sd 0.45 (Doyle 2020 Table 1, Doyle 2023 Table 4, via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the meteoritic bracket -1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
+   "source": "22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians (Doyle 2020 Table 1, Doyle 2023 Table 4, via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the width 0.22 is the intrinsic spread of the 13 well-constrained stars (COMPUTED) and lies inside the 0 to 0.38 the detection model accepts (GEN.513, docs/design/composition/wd-redox-tuning.md); the meteoritic bracket -1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
    "status": "DESIGN",
    "research": [
     "R3"
@@ -348,12 +348,10 @@
     "READ",
     "COMPUTED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1; the width 0.22 is tuned with the detection model (GEN.513)",
    "replacement": "",
-   "items": [
-    "GEN.482"
-   ],
+   "items": [],
    "classes": [
     "asteroid",
     "C",
@@ -361,10 +359,11 @@
    ],
    "conditions": [],
    "sets": "redox_diw",
+   "tunable": true,
    "dist": {
     "kind": "normal",
-    "mu": -1.26,
-    "sigma": 0.45
+    "mu": -1.25,
+    "sigma": 0.22
    }
   },
   {
@@ -374,7 +373,7 @@
    "option": "White-dwarf debris (PARAM)",
    "gate_text": "host WD, rocky",
    "weight_text": "dIW ~ N(-1, 0.5), bracket [-1.37, -0.6]",
-   "source": "22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 (Doyle 2020, Doyle 2023; READ, COMPUTED)",
+   "source": "22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 of the reported medians (Doyle 2020, Doyle 2023; READ, COMPUTED); the width 0.22 is the intrinsic spread of the 13 well-constrained stars and lies inside the 0 to 0.38 the detection model accepts (GEN.513)",
    "status": "DESIGN",
    "research": [
     "R10"
@@ -384,12 +383,10 @@
     "READ",
     "COMPUTED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample; the width 0.22 is tuned with the detection model, the settling is not modelled (GEN.513)",
    "replacement": "",
-   "items": [
-    "GEN.489"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -416,10 +413,11 @@
     }
    ],
    "sets": "redox_diw",
+   "tunable": true,
    "dist": {
     "kind": "normal",
     "mu": -1.25,
-    "sigma": 0.45
+    "sigma": 0.22
    }
   },
   {
@@ -562,16 +560,16 @@
     "R2"
    ],
    "notes": "a_snow ranges 1.8 to 3.4 AU over the bracket",
+   "replacement": "GEN.510",
    "labels": [
     "READ",
     "COMPUTED",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481"
+    "GEN.510"
    ],
    "classes": [
     "A",
@@ -612,15 +610,15 @@
     "R2"
    ],
    "notes": "stored in mantle 0.015 and 0.0022 wt%",
+   "replacement": "GEN.510",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481"
+    "GEN.510"
    ],
    "classes": [
     "A",
@@ -661,15 +659,15 @@
     "R2"
    ],
    "notes": "stored 0.045 and 0.005 wt%; D_H2O 0.01",
+   "replacement": "GEN.510",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481"
+    "GEN.510"
    ],
    "classes": [
     "A",
@@ -711,16 +709,15 @@
     "R1"
    ],
    "notes": "feeds e3, e4",
+   "replacement": "GEN.510",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481",
-    "GEN.480"
+    "GEN.510"
    ],
    "classes": [
     "A",
@@ -767,15 +764,15 @@
     "R2"
    ],
    "notes": "bins low/high 50/50",
+   "replacement": "GEN.510",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481"
+    "GEN.510"
    ],
    "classes": [
     "A",
@@ -824,12 +821,12 @@
     "R2"
    ],
    "notes": "Earth oceans 2.3e-4",
+   "replacement": "GEN.510",
    "labels": [],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.481"
+    "GEN.510"
    ],
    "classes": [
     "C",
@@ -1386,14 +1383,14 @@
     "R4"
    ],
    "notes": "",
+   "replacement": "GEN.511",
    "labels": [
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.483"
+    "GEN.511"
    ],
    "classes": [
     "A",
@@ -1550,12 +1547,10 @@
    "labels": [
     "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)",
    "replacement": "",
-   "items": [
-    "GEN.480"
-   ],
+   "items": [],
    "classes": [
     "S",
     "V",
@@ -1588,12 +1583,10 @@
    "labels": [
     "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)",
    "replacement": "",
-   "items": [
-    "GEN.480"
-   ],
+   "items": [],
    "classes": [
     "S",
     "V",
@@ -1627,12 +1620,10 @@
     "READ",
     "NOT REACHED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "bracket edges from about 8 JWST retrievals and one 15-planet fit; no population mean exists (GEN.509)",
    "replacement": "",
-   "items": [
-    "GEN.480"
-   ],
+   "items": [],
    "classes": [
     "S",
     "V",
@@ -1822,16 +1813,16 @@
    "option": "Metallicity m (PARAM)",
    "gate_text": "GIANT",
    "weight_text": "log10 m ~ N(log10[9.7 (M/MJ)^-0.45], 0.3), range [-0.5, 2.0]",
-   "source": "centre: Thorngren 2016 Zpl/Zstar relation (READ); 0.26 dex scatter of the Mz fit (READ) is the bracket for 0.3 (0.3 RECALLED design)",
+   "source": "147 warm giants: Zp/Z* = 2.6/M + 3.3 (M in Jupiter masses; a +/- 0.3, b +/- 0.5), 0.03 to 12 Jupiter masses (Chachan 2025, arXiv 2509.20428; READ); intrinsic scatter of the heavy-element mass 0.26 dex, band 0.25 to 0.27 (Thorngren 2016, N=47; READ, COMPUTED)",
    "status": "DERIVED",
    "research": [],
-   "notes": "Chachan 2025 gives lower Z for sub-Saturns",
+   "notes": "Chachan 2025 gives lower Z for sub-Saturns Retuned 2026-10-23 (GEN.516): the centre 9.7 M^-0.45 (Thorngren 2016) is 1.6 times the 147-giant fit at one Jupiter mass (9.7 against 5.9) and the two meet at 0.1 and 10 Jupiter masses; the later, larger sample wins. The width 0.3 was a recalled design value, the fit gives 0.26 dex.",
    "labels": [
     "READ",
-    "RECALLED"
+    "COMPUTED"
    ],
-   "state": "partly verified",
-   "limit": "part of the weight source is RECALLED (its edge widths or constants are design choices)",
+   "state": "verified",
+   "limit": "",
    "replacement": "",
    "items": [],
    "classes": [
@@ -1841,11 +1832,12 @@
    ],
    "conditions": [],
    "sets": "metallicity",
+   "tunable": true,
    "dist": {
     "kind": "normal",
     "log10": true,
-    "mu": "log10(9.7*mass_jupiter**-0.45)",
-    "sigma": 0.3,
+    "mu": "log10(2.6/mass_jupiter + 3.3)",
+    "sigma": 0.26,
     "range": [
      -0.5,
      2.0
@@ -1865,10 +1857,10 @@
    "notes": "",
    "labels": [
     "READ",
-    "RECALLED"
+    "COMPUTED"
    ],
-   "state": "partly verified",
-   "limit": "part of the weight source is RECALLED (its edge widths or constants are design choices)",
+   "state": "verified",
+   "limit": "",
    "replacement": "",
    "items": [],
    "classes": [
@@ -1894,7 +1886,7 @@
    "option": "C/O (PARAM, mixture)",
    "gate_text": "GIANT, BD",
    "weight_text": "(1-f_tail) core + f_tail tail; core log10(C/O) ~ N(log10 0.55, 0.15) truncated to [0.2, 0.8]; tail U[0.8, 1.5]; f_tail = LU[0.0013, 0.34], default 0.03",
-   "source": "stellar C/O median 0.47 with no star above 0.8 (N=849); planets (LExACoM, 69): median 0.57, tail 0.043 to 0.087 above 0.8 (tunable-gaps 3.4, COMPUTED from READ tables); core width 0.15 dex (Line 2021 WASP-77Ab 0.59 +/- 0.08, READ; Asplund 2021 solar 0.589)",
+   "source": "stellar C/O median 0.47 with no star above 0.8 (N=849); planets (LExACoM, 69): median 0.57, tail 0.043 to 0.087 above 0.8 (tunable-gaps 3.4, COMPUTED from READ tables); core width 0.21 dex reproduces the 12 of 69 planets below 0.35 (GEN.516; the single planet WASP-77Ab 0.59 +/- 0.08, Line 2021, READ, gave 0.15)",
    "status": "DESIGN",
    "research": [
     "R5"
@@ -1904,12 +1896,10 @@
     "READ",
     "COMPUTED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "stellar C/O is measured (N=849); the planet tail is 6 of 69 (LExACoM) with a 0.2 to 0.3 method systematic (GEN.516)",
    "replacement": "",
-   "items": [
-    "GEN.484"
-   ],
+   "items": [],
    "classes": [
     "I",
     "J",
@@ -1925,6 +1915,7 @@
      "log"
     ]
    },
+   "tunable": true,
    "dist": {
     "kind": "mixture",
     "weight": "f_tail",
@@ -1932,7 +1923,7 @@
      "kind": "normal",
      "log10": true,
      "mu": "log10(0.57)",
-     "sigma": 0.15,
+     "sigma": 0.21,
      "range": [
       "log10(0.2)",
       "log10(0.8)"
@@ -1996,18 +1987,16 @@
    "labels": [
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "late M is the extension of the map above L0 (2238 K); the map has no M-type fit (Table 13) and the 2800 K cap is the repo's rogue maximum (GEN.517)",
    "replacement": "",
-   "items": [
-    "GEN.494"
-   ],
+   "items": [],
    "classes": [
     "brown-dwarf"
    ],
    "conditions": [],
    "group": "g",
-   "weight": "window(teff_k, 2200, 2800, 100)"
+   "weight": "phi((2800 - teff_k)/100) - phi((2238 - teff_k)/134)"
   },
   {
    "id": "g2",
@@ -2033,7 +2022,7 @@
    ],
    "conditions": [],
    "group": "g",
-   "weight": "window(teff_k, 1300, 2200, 100)"
+   "weight": "phi((2238 - teff_k)/134) - phi((1273 - teff_k)/79)"
   },
   {
    "id": "g3",
@@ -2059,7 +2048,7 @@
    ],
    "conditions": [],
    "group": "g",
-   "weight": "window(teff_k, 700, 1300, 100)"
+   "weight": "phi((1273 - teff_k)/79) - phi((686 - teff_k)/79)"
   },
   {
    "id": "g4",
@@ -2077,18 +2066,16 @@
    "labels": [
     "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "late T (T8 and later) is a subclass of T, not a type of its own; its edge at T8 (686 K) is a design choice on the map (GEN.517)",
    "replacement": "",
-   "items": [
-    "GEN.494"
-   ],
+   "items": [],
    "classes": [
     "brown-dwarf"
    ],
    "conditions": [],
    "group": "g",
-   "weight": "window(teff_k, 500, 700, 100)"
+   "weight": "phi((686 - teff_k)/79) - phi((460 - teff_k)/79)"
   },
   {
    "id": "g5",
@@ -2111,7 +2098,7 @@
    ],
    "conditions": [],
    "group": "g",
-   "weight": "window(teff_k, None, 500, 100)"
+   "weight": "phi((460 - teff_k)/79)"
   },
   {
    "id": "g6",
@@ -2151,8 +2138,8 @@
    "labels": [
     "READ"
    ],
-   "state": "verified",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the edge is the equilibrium line of methane and carbon monoxide at the photospheric pressure, computed with the NASA polynomials at solar metals and C/O 0.55; the softness of 100 K is DESIGN (GEN.518)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -2167,7 +2154,10 @@
     }
    ],
    "group": "h",
-   "weight": "window(tday_k, None, 1500, 100)"
+   "lets": {
+    "edge": "loglog(photosphere_bar, 0.001, 725, 0.01, 829, 0.1, 966, 1, 1156, 10, 1437)"
+   },
+   "weight": "window(tday_k, None, edge, 100)"
   },
   {
    "id": "h2",
@@ -2183,12 +2173,10 @@
    ],
    "notes": "",
    "labels": [],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the edges are computed equilibrium lines at the photospheric pressure (methane equal to carbon monoxide; water 10 percent destroyed) with the NASA polynomials at solar metals and C/O 0.55, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)",
    "replacement": "",
-   "items": [
-    "GEN.485"
-   ],
+   "items": [],
    "classes": [
     "I",
     "J",
@@ -2201,7 +2189,11 @@
     }
    ],
    "group": "h",
-   "weight": "window(tday_k, 1500, 2200, 100)"
+   "lets": {
+    "low_edge": "loglog(photosphere_bar, 0.001, 725, 0.01, 829, 0.1, 966, 1, 1156, 10, 1437)",
+    "high_edge": "loglog(photosphere_bar, 0.001, 2340, 0.01, 2553, 0.1, 2806, 1, 3111, 10, 3490)"
+   },
+   "weight": "window(tday_k, low_edge, high_edge, 100)"
   },
   {
    "id": "h3",
@@ -2220,12 +2212,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the edge is the computed temperature at which a tenth of the water is destroyed, at the photospheric pressure, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)",
    "replacement": "",
-   "items": [
-    "GEN.485"
-   ],
+   "items": [],
    "classes": [
     "I",
     "J",
@@ -2238,7 +2228,10 @@
     }
    ],
    "group": "h",
-   "weight": "window(tday_k, 2200, None, 100)"
+   "lets": {
+    "edge": "loglog(photosphere_bar, 0.001, 2340, 0.01, 2553, 0.1, 2806, 1, 3111, 10, 3490)"
+   },
+   "weight": "window(tday_k, edge, None, 100)"
   },
   {
    "id": "h4",
@@ -2257,12 +2250,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "a Ti threshold between 2350 and 2641 K from N=5 planets (TiO seen at 2641 K, not at 2210, 2250, 2260 and 2350 K); no population measures Kzz, so none is drawn (GEN.519)",
    "replacement": "",
-   "items": [
-    "GEN.485"
-   ],
+   "items": [],
    "classes": [
     "I",
     "J",
@@ -2281,7 +2272,14 @@
      ]
     }
    ],
-   "weight": "clamp((11 - (7.48 + 3.52*(log10(grain_um) + 1)/2))/4, 0, 1)"
+   "constants": {
+    "c_h4": [
+     2350.0,
+     2641.0,
+     "uniform"
+    ]
+   },
+   "weight": "1 if teq_k >= c_h4 else 0"
   },
   {
    "id": "h5",
@@ -2496,12 +2494,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511)",
    "replacement": "",
-   "items": [
-    "GEN.486"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -2521,8 +2517,8 @@
    ],
    "constants": {
     "c_i6": [
-     0.1,
-     0.9,
+     0.29,
+     0.99,
      "log"
     ]
    },
@@ -2548,12 +2544,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the runaway gate is Kopparapu 2013 (READ); the retained fraction is a design residual that must allow 0, since 0 of 2 bare M-dwarf planets (TRAPPIST-1 b, c) cannot be forbidden (GEN.511)",
    "replacement": "",
-   "items": [
-    "GEN.487"
-   ],
+   "items": [],
    "classes": [
     "N",
     "V",
@@ -2711,15 +2705,15 @@
     "R8"
    ],
    "notes": "",
+   "replacement": "GEN.511",
    "labels": [
     "READ",
     "2ND-HAND"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.487"
+    "GEN.511"
    ],
    "classes": [
     "Z"
@@ -2762,19 +2756,18 @@
    "labels": [
     "SNIPPET"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "13 of 25 comets (HP22 Table 2); the class depends on the heliocentric distance (every coma beyond about 3.5 AU is CO-dominated) and 9 of the 13 rest on an upper limit on CO, so the share is inflated by an amount that cannot be corrected (GEN.520)",
    "replacement": "",
-   "items": [
-    "GEN.488"
-   ],
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
    ],
    "conditions": [],
    "group": "k",
-   "weight": "0.5 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
+   "tunable": true,
+   "weight": "13/25 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
   },
   {
    "id": "k2",
@@ -2792,19 +2785,18 @@
    "labels": [
     "SNIPPET"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "9 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520)",
    "replacement": "",
-   "items": [
-    "GEN.488"
-   ],
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
    ],
    "conditions": [],
    "group": "k",
-   "weight": "1/3 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
+   "tunable": true,
+   "weight": "9/25 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
   },
   {
    "id": "k3",
@@ -2822,19 +2814,18 @@
    "labels": [
     "SNIPPET"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "3 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520)",
    "replacement": "",
-   "items": [
-    "GEN.488"
-   ],
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
    ],
    "conditions": [],
    "group": "k",
-   "weight": "0.1 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
+   "tunable": true,
+   "weight": "3/25 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"
   },
   {
    "id": "k4",
@@ -2853,12 +2844,10 @@
     "READ",
     "SNIPPET"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "geometric mean 10.9 percent and 0.51 dex of 21 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)",
    "replacement": "",
-   "items": [
-    "GEN.488"
-   ],
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
@@ -2869,11 +2858,12 @@
     0.1,
     0.3
    ],
+   "tunable": true,
    "dist": {
     "kind": "normal",
     "log10": true,
-    "mu": "log10(0.12)",
-    "sigma": 0.5
+    "mu": "log10(0.109)",
+    "sigma": 0.51
    }
   },
   {
@@ -2893,26 +2883,21 @@
     "READ",
     "SNIPPET"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "geometric mean 2.5 percent and 0.65 dex of 16 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)",
    "replacement": "",
-   "items": [
-    "GEN.488"
-   ],
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
    ],
    "conditions": [],
+   "tunable": true,
    "dist": {
     "kind": "normal",
     "log10": true,
-    "mu": "log10(0.03)",
-    "sigma": 0.6,
-    "range": [
-     "log10(0.005)",
-     "log10(0.23)"
-    ]
+    "mu": "log10(0.025)",
+    "sigma": 0.65
    }
   },
   {
@@ -2968,45 +2953,44 @@
    "research": [
     "R9"
    ],
-   "notes": "O2 presence probability unsourced Built from one measured comet (67P, Rubin 2019): a flagged stand-in until GEN.488. Ne is only an upper limit (below 5e-8) and is not drawn.",
-   "replacement": "GEN.488",
+   "notes": "O2 presence probability unsourced N2, O2, OCS, SO2, Ar, Kr and Xe are built from one measured comet (67P, Rubin 2019) and stay flagged stand-in values; O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) and is not drawn.",
    "labels": [
     "READ"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.488"
-   ],
+   "state": "partly verified",
+   "limit": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "comet",
     "asteroid"
    ],
    "conditions": [],
+   "tunable": true,
    "dists": {
     "CH4": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.0034)",
-     "sigma": 0.6
+     "mu": "log10(0.0068)",
+     "sigma": 0.33
     },
     "C2H6": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.0029)",
-     "sigma": 0.6
+     "mu": "log10(0.0041)",
+     "sigma": 0.33
     },
     "H2CO": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.0032)",
-     "sigma": 0.6
+     "mu": "log10(0.0025)",
+     "sigma": 0.35
     },
     "H2S": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.011)",
-     "sigma": 0.6
+     "mu": "log10(0.0071)",
+     "sigma": 0.39
     },
     "N2": {
      "kind": "normal",
@@ -3065,15 +3049,15 @@
     "R10"
    ],
    "notes": "composition via a4",
+   "replacement": "GEN.513",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.489"
+    "GEN.513"
    ],
    "classes": [
     "A",
@@ -3122,12 +3106,12 @@
     "R10"
    ],
    "notes": "fallback row",
+   "replacement": "GEN.513",
    "labels": [],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.489"
+    "GEN.513"
    ],
    "classes": [
     "A",
@@ -3173,14 +3157,14 @@
     "R10"
    ],
    "notes": "composition via tables f and g",
+   "replacement": "GEN.513",
    "labels": [
     "NOT REACHED"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.489"
+    "GEN.513"
    ],
    "classes": [
     "I",
@@ -3257,15 +3241,15 @@
     "R11"
    ],
    "notes": "",
+   "replacement": "GEN.524",
    "labels": [
     "READ",
     "2ND-HAND"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.490"
+    "GEN.524"
    ],
    "classes": [
     "A",
@@ -3314,12 +3298,10 @@
    "labels": [
     "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "design flag (decision D4): no exoplanet measures N2O, so the bracket is a labelled design range, never tuned (GEN.525)",
    "replacement": "",
-   "items": [
-    "GEN.490"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -3362,12 +3344,10 @@
    "labels": [
     "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "design flag (decision D4): no exoplanet measures PH3, and the Venus claim is contested, so the bracket is a labelled design range, never tuned (GEN.525)",
    "replacement": "",
-   "items": [
-    "GEN.490"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -3392,7 +3372,7 @@
      "uniform"
     ]
    },
-   "weight": "c_m4"
+   "weight": "c_m4 if life_chemical else 0"
   },
   {
    "id": "m5",
@@ -3407,14 +3387,14 @@
     "R11"
    ],
    "notes": "",
+   "replacement": "GEN.524",
    "labels": [
     "READ"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.490"
+    "GEN.524"
    ],
    "classes": [
     "A",
@@ -3468,14 +3448,14 @@
     "R11"
    ],
    "notes": "",
+   "replacement": "GEN.524",
    "labels": [
     "READ"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.490"
+    "GEN.524"
    ],
    "classes": [
     "A",
@@ -3684,12 +3664,10 @@
    "labels": [
     "NOT REACHED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "design flag (decision D4): no exoplanet measures NO2, so the bracket is a labelled design range, never tuned (GEN.525)",
    "replacement": "",
-   "items": [
-    "GEN.490"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -3970,12 +3948,10 @@
     "READ",
     "DESIGN"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "A_H against Teq is measured (Fu 2017, N=34); the crossover Teq is a model output, not a measurement (GEN.519)",
    "replacement": "",
-   "items": [
-    "GEN.491"
-   ],
+   "items": [],
    "classes": [
     "I",
     "J",
@@ -4002,14 +3978,14 @@
     "R12"
    ],
    "notes": "near zero for carbon-free gas, lower in H2 gas",
+   "replacement": "GEN.519",
    "labels": [
     "READ"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.491"
+    "GEN.519"
    ],
    "classes": [
     "A",
@@ -4183,22 +4159,20 @@
    "option": "Other populations (thick disc, halo, young, M host)",
    "gate_text": "not o1",
    "weight_text": "log10 f ~ U[-0.23, +0.40]",
-   "source": "Unterborn 2015: 59 to 251 % of solar (READ); shape DESIGN",
+   "source": "Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 (N=215), so no thick-thin offset in the planet-relevant ratio (DATA, COMPUTED; tunable-gaps 3.2)",
    "status": "DESIGN",
    "research": [
     "R13"
    ],
-   "notes": "",
+   "notes": "Retuned 2026-10-23 (GEN.514): the log-uniform bracket 59 to 251 percent was the range of 14 solar twins; the 32 thick-disc stars give a centre of 86 percent of the solar ratio and a spread of 0.19 dex, the widest of the intrinsic 0.056 (Botelho 2019) and the catalogue's 0.15 to 0.19.",
    "labels": [
-    "READ",
-    "DESIGN"
+    "DATA",
+    "COMPUTED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "thick-disc [Th/Mg] from Hypatia (N=32, scale of heterogeneous catalogues, 0.14 dex under the solar-twin scale of o1); halo, young and M hosts have no Th data (GEN.514)",
    "replacement": "",
-   "items": [
-    "GEN.492"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -4224,10 +4198,16 @@
      "equals": false
     }
    ],
+   "tunable": true,
    "dist": {
-    "kind": "loguniform",
-    "lo": "10**-0.23",
-    "hi": "10**0.40"
+    "kind": "normal",
+    "log10": true,
+    "mu": -0.063,
+    "sigma": 0.19,
+    "range": [
+     -0.64,
+     0.52
+    ]
    }
   },
   {
@@ -4243,15 +4223,15 @@
     "R13"
    ],
    "notes": "",
+   "replacement": "GEN.514",
    "labels": [
     "READ",
     "NOT REACHED"
    ],
-   "state": "open",
+   "state": "stand-in",
    "limit": "",
-   "replacement": "",
    "items": [
-    "GEN.492"
+    "GEN.514"
    ],
    "classes": [
     "A",
@@ -4286,22 +4266,20 @@
    "option": "Th/U",
    "gate_text": "ROCKY",
    "weight_text": "U[3.8, 4.5]",
-   "source": "BSE 3.77, crust 4.0 to 4.5 (READ); stellar Th/U vs cosmic age NOT REACHED",
+   "source": "Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 (Frebel 2007 Table 1, READ), F(T) = [(1 - exp(-l232 T))/l232] / [(1 - exp(-l238 T))/l238] with half-lives 14.05 and 4.468 Gyr; F(3 Gyr) = 1.16254 and F(13 Gyr) = 1.71724 bound the birth epoch (COMPUTED, tunable-gaps 2.6)",
    "status": "DESIGN",
    "research": [
     "R13"
    ],
-   "notes": "",
+   "notes": "Replaced 2026-10-23 (GEN.514): U[3.8, 4.5] was the Solar System value at 4.5 Gyr and did not grow with the planet's age (x1.17 over 1.5 Gyr). At 4.5 Gyr the formula gives 3.04 to 5.39.",
    "labels": [
     "READ",
-    "NOT REACHED"
+    "COMPUTED"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the production ratio 1.667 to 2.0 and the decay constants are published; the effective r-process duration T of the gas (3 to 13 Gyr, the widest bracket) is calibrated on one Solar System datum and waits for a chemical-evolution model (GEN.514)",
    "replacement": "",
-   "items": [
-    "GEN.492"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -4324,8 +4302,8 @@
    "conditions": [],
    "dist": {
     "kind": "uniform",
-    "lo": 3.8,
-    "hi": 4.5
+    "lo": "0.97483*1.667*1.16254*exp(0.105802*age_gy)",
+    "hi": "0.97483*2.0*1.71724*exp(0.105802*age_gy)"
    }
   },
   {
@@ -4387,12 +4365,10 @@
    "labels": [
     "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the enriched share spans 0.04 to 0.66 (clusters, white dwarf pollution); no single distribution, so the bracket is the widest and no target exists (GEN.514)",
    "replacement": "",
-   "items": [
-    "GEN.492"
-   ],
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -4420,8 +4396,8 @@
    ],
    "constants": {
     "c_o6": [
-     0.1,
-     1.0,
+     0.04,
+     0.66,
      "log"
     ]
    },
@@ -4598,26 +4574,23 @@
   {
    "id": "p6",
    "category": "p",
-   "kind": "choice",
+   "kind": "param",
    "option": "Rotation track (L2 on p4, p5, solar mass): slow / median / fast",
    "gate_text": "any",
    "weight_text": "0.25 / 0.5 / 0.25",
-   "source": "Tu 2015 percentile tracks 10th, 50th, 90th, t_sat 5.7, 23, 226 Myr (READ); weights DESIGN",
+   "source": "Tu et al. 2015 (arXiv:1504.04546, READ): the 10th, 50th and 90th percentile tracks of the initial rotation distribution with saturation times 5.7, 23 and 226 Myr; Johnstone et al. 2021 (READ): tracks at every integer percentile 2 to 98; the 150 Myr rotation distribution of the clusters is the observed one",
    "status": "DESIGN",
    "research": [
     "R14"
    ],
    "notes": "L_X at 100 Myr differs 200x",
    "labels": [
-    "READ",
-    "DESIGN"
+    "READ"
    ],
-   "state": "open",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the three percentile tracks of Tu 2015 (10, 50 and 90; saturation ends at 5.7, 23 and 226 Myr, solar mass only) interpolated in the logarithm of the saturation time between them; no paper weights the tracks, so the percentile is drawn uniform from 0.02 to 0.98 as Johnstone 2021 offers; the dependence on mass needs the Mors tracks (GEN.523)",
    "replacement": "",
-   "items": [
-    "GEN.493"
-   ],
+   "items": [],
    "classes": [
     "*"
    ],
@@ -4630,22 +4603,14 @@
      ]
     }
    ],
-   "options": {
-    "slow": {
-     "weight": 0.25,
-     "percentile": 10,
-     "t_sat_myr": 5.7
-    },
-    "median": {
-     "weight": 0.5,
-     "percentile": 50,
-     "t_sat_myr": 23
-    },
-    "fast": {
-     "weight": 0.25,
-     "percentile": 90,
-     "t_sat_myr": 226
-    }
+   "dist": {
+    "kind": "uniform",
+    "lo": 0.02,
+    "hi": 0.98
+   },
+   "sets": "rotation_percentile",
+   "values": {
+    "t_sat_myr": "5.7*(23/5.7)**((value - 0.1)/0.4) if value < 0.5 else 23*(226/23)**((value - 0.5)/0.4)"
    }
   }
  ]

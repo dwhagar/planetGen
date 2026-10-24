@@ -20,6 +20,7 @@ from planetgen.web.lib import classref  # noqa: E402
 from markupsafe import escape  # noqa: E402
 from planetgen.physics import constants  # noqa: E402
 from planetgen import tuning
+from planetgen.util import chem
 from planetgen.generation.comet import PERIOD_CLASS_LABELS  # noqa: E402
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS  # noqa: E402
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES  # noqa: E402
@@ -124,7 +125,7 @@ def test_class_pages_show_the_constants(client):
     nebula = tuning.NEBULA_CLASSES["D"]
     html = _html(client, "/classes/nebula/D")
     assert str(escape(nebula["name"])) in html
-    assert str(escape(nebula["species"])) in html
+    assert chem.mark_html(nebula["species"]) in html     # UX.149: its formulas written out
 
     remnant = tuning.NEBULA_CLASSES["T"]
     assert str(escape(remnant["name"])) in _html(client, "/classes/supernova-remnant/T")
@@ -370,6 +371,14 @@ def test_habitability_levels_page_draws_each_symbol_in_every_rating_colour(clien
         for tier, colour in enumerate(("Blue", "Green", "Yellow", "Red")):
             assert f'aria-label="{label}: {colour}"' in html, (name, tier)
             assert f'#hab-{name}"' in html
+
+
+def test_habitability_levels_page_draws_the_four_life_scores(client):
+    html = _html(client, "/classes/habitability")
+    for label in ("Microbial life", "Flora", "Fauna", "Sentient life"):
+        assert f'aria-label="{label}: none"' in html and f'aria-label="{label}: 9 of 9"' in html
+    for name in ("microbial", "flora", "fauna", "sentient"):
+        assert f'#life-{name}"' in html
 
 
 def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client):

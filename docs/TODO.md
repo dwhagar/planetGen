@@ -969,30 +969,13 @@ with `clamp()`.
   Generate job log, the Queue page log and the admin log pages show
   fixed-width text, and a test pins it. Owner: Bug Hunt (Boss, 5:14 PM
   EDT 2026-10-23).
+  Update (2026-10-09): Bug Hunt (2026-10-23, 9:52 PM EDT as the lane
+  reported): not reproduced in Chromium on main; the terminal and the
+  plain log both use the monospace stack, running and finished. Needs
+  Boss's browser and OS or a screenshot. One hypothesis: his Apache adds
+  its own Content-Security-Policy header, which would block Xterm's
+  injected style and drop the font (the same cause as UX.157).
   Prerequisites: none. Related: UX.102, UX.123, UX.125.
-
-- [ ] **UX.149 Chemical names and formulas in the HTML output use subscripts and superscripts, as water (H2O) with a subscript 2 (bug)**
-  Boss's live observation (relayed 5:30 PM EDT 2026-10-23, typed in the
-  project chat): chemical names in HTML such as water (H2O) should
-  properly use subscripts and superscripts in the output. Kind:
-  formatting bug. Wanted: a formula in any page prints its counts as
-  subscripts (H2O with a subscript 2), its ion charges as superscripts
-  (the plus of Na+ and the 2- of sulfate raised) and its isotope mass
-  numbers as superscripts before the symbol (the 14 in 14C). Do: one
-  shared formatter, a Jinja filter and its plain-text twin for the
-  command line, that turns a formula string into marked-up HTML
-  (escaping everything else), and use it in every template and generated
-  text that prints a species, an atmosphere or ocean composition, a
-  mineral or ice, or a gas, plus the help and design pages that quote
-  formulas; do not edit page by page with hand-typed tags. The formatter
-  takes the formula (never free text, so a word such as CO2 in a
-  sentence is handled by the caller, not guessed). Add tests for counts,
-  charges, isotopes, hydrates and brackets, and a test that no template
-  prints a bare formula. Done: the formatter and its tests exist, every
-  page that prints a chemical formula goes through it, and a browser or
-  HTML test shows the water entry with a subscript 2. Owner: Bug Hunt
-  (Boss, 5:30 PM EDT 2026-10-23).
-  Prerequisites: none. Related: UX.148, DOC.13.
 
 - [ ] **UX.150 Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -1015,24 +998,6 @@ with `clamp()`.
   test filters by class and by colour.
   Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
 
-- [ ] **UX.151 Icons for Microbial, Flora, Fauna and Sentient life, with a 0 to 9 digit, drawn as a small cluster next to the PHI-6 icons, both themes**
-  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
-  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
-  replace this with: Microbial, Flora, Fauna, Sentient and let's add
-  that to the icon design so that the # scores for these (based on the
-  evolutionary path and surface conditions), each icon goes with a small
-  number in a small cluster next to the PHI-6 icons. These will be a
-  score from 0 (none) to 9 (abundant) for each based on surface
-  conditions and current evolutionary stage.' Human operability goes
-  away. Extends the icon library of UX.101: four vector shapes (one per
-  kind) and the cluster layout: each icon with a small digit 0 to 9
-  beside the PHI-6 symbols, readable at the list size, both themes, with
-  an accessible text label and a 0 state that reads as none. Owner:
-  Habitability lane A. Done: the shapes in the library, the cluster
-  component with a visual test at three sizes, and the colour rule for
-  the digit (or none) written down.
-  Prerequisites: none. Related: UX.101, UX.100.
-
 - [ ] **UX.152 Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes**
   Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
   'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
@@ -1048,7 +1013,7 @@ with `clamp()`.
   shim. Owner: Habitability lane B. Done: every page shows the cluster,
   no page shows human operability, and a browser test (TEST.300) checks
   the cluster on a list and a page.
-  Prerequisites: UX.151, DB.91, GEN.649. Related: UX.151, UX.100,
+  Prerequisites: DB.91, GEN.649. Related: UX.151, UX.100,
   TEST.300.
 
 - [ ] **UX.153 Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none**
@@ -1099,6 +1064,21 @@ with `clamp()`.
   in place of the notes. Done: the pages show the symbols, with a test.
   Owner: Habitability lane B (planet and moon lists).
   Prerequisites: none. Related: UX.100, UX.101.
+
+- [ ] **UX.157 Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug)**
+  Boss live observation (relayed 2026-10-23, 9:07 and 9:10 PM EDT),
+  found by the Composition-first stars lane (lane A): the symbols from
+  UX.101 drew as solid black shapes on every page, because the icon
+  sprite carries its own style element, which the
+  Content-Security-Policy refuses. Done: the outline is in the .icon CSS
+  rule and not in the sprite, the PHI-6 symbols are solid borderless
+  shapes at 0.8 opacity, the radiation symbol is a trefoil, the four
+  life icons (UX.151) get the same treatment, and a browser test checks
+  that a sprite icon renders its fill under the site's policy in both
+  themes. Fix is committed on branch habfix-contrast and rides one PR
+  with UX.151. Owner: the Composition-first stars lane (lane A). Found
+  in UX.101.
+  Prerequisites: none. Related: UX.101, UX.151.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2836,6 +2816,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage, and a browser test covers both. Owner: Core 2 (maps).
   Prerequisites: MAP.263, MAP.264, MAP.265. Related: MAP.257, MAP.146,
   MAP.249.
+
+- [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
+  Boss live observation (8:51 PM EDT 2026-10-23, relayed by the
+  coordinator, found by Bug Hunt): stars on the map should glow, with
+  brightness and colour from the star's own luminosity and temperature,
+  but they do not. Cause found: since MAP.208 a star further than about
+  3 sectors is drawn as a 1.5 px point with no halo and a mostly white
+  core. Done: every star on the Galaxy Map and the sector map shows a
+  glow whose size and brightness follow its luminosity and whose colour
+  follows its temperature, a browser test checks a hot blue star and a
+  cool red star differ in colour and a luminous star glows larger than a
+  dim one, and the glow can be switched off (MAP.266 owns the soft
+  switchable glow design). Owner: Bug Hunt (fixing now in starpoint.js,
+  galaxymap3d.js and sectorscene.js).
+  Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -5045,6 +5040,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 3
   held it before; this replaces any earlier owner line).
+  Update (2026-10-09): Habitability lane F (2026-10-23, GEN.413 merged
+  as #2761): the ozone code carries a helio_multiplier (the star-wind
+  scaling of the ozone destruction) that has no source; this item
+  decides its law, or a labelled stand-in stays.
   Prerequisites: none. Related: GEN.113, GEN.436, GEN.444.
   Design: [docs/design/systems/phenomena-catalogue-and-fill.md](design/systems/phenomena-catalogue-and-fill.md)
 
@@ -7496,134 +7495,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane D (model).
-- [ ] **GEN.413 Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): "Build the ozone figures into the
-  system, using real world research, let me know if you need web access
-  or for me to research. If we don't have it, build it to generate it."
-  Today only a proxy exists (`physics/radiation.py` `ozone_ratio` from
-  the O2 partial) and activity events that strip it (GEN.189). Do: put
-  ozone in the gas table and compute its column and partial pressure
-  from the oxygen, the star's UV at the planet and the photochemical
-  balance (Chapman, with the real cross sections of the sources check) so it joins
-  the mixture and the other gases keep summing to the pressure; the
-  ozone-loss events of GEN.189 reduce it. Where the research is missing,
-  the item says what Boss should look up and builds a generator from the
-  oxygen and UV instead. Done: Earth's oxygen and the Sun's UV give an
-  ozone column near the measured 300 Dobson units within a stated
-  tolerance, a world with no oxygen has none, and the habitability UV
-  index reads the same number.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Sources check (GEN.408, section 4 of the report): the column does not
-  follow a power of the oxygen (the Chapman balance gives a local density
-  of the square-root form, the column flattens or peaks for hot stars), so
-  use the checked polynomial fit of Kozakis et al. 2022 (Table 3: column
-  from the log of the oxygen mixing ratio, one row each for G0V, the Sun,
-  K2V, K5V and M5V, valid for 0.01 to 150 percent of today's oxygen,
-  clamped outside), interpolate between the hosts in T_eff, and draw a
-  seeded spread of about 30 percent (the models differ by a factor of
-  about 2 at low oxygen). The ozone is a Beer-Lambert absorber of the
-  Chappuis band (410 to 760 nm) along the sun path, with the Hartley band
-  kept for the UV index; the cross sections ship as a small fitted table,
-  because the licence of the Malicet/Brion, Serdyuchenko and Burkholder
-  files was not found (Boss to settle). The Earth figure is a test value,
-  279 to 300 Dobson units, not a constant. Prerequisites: GEN.411,
-  GEN.478.
-  Merged research (2026-10-17): part 04 section 3 gives the ozone column
-  against oxygen and host star (the Kozakis fit stays, valid only for
-  0.01 to 150 percent of the present level), the Chapman layer depth and
-  peak pressure against O2, the abiotic O2 and O3 channels and the
-  shielding by other gases on anoxic worlds; part 02 gives the cross
-  sections.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. Ozone reads the host-star UV regime of part 09
-  category p and the trace-gas rows of m through GEN.478.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the JPL 19-5 Troe falloff
-  form, the chlorine catalytic cycles and the phosphine photolysis cross
-  sections.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): Troe falloff with Fc 0.6 and
-  N 1 (JPL; the note's exponent gives -0.238); JPL 19-5 did not update
-  the ClO reactions; no new PH3 cross sections; Harman 2015, Zahnle 2006
-  and Hunten 1973 are not shown to be updated by new cross sections.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/research/gap-filling-plan.md section 8): AD3 correlated-k tables
-  (HITRAN, ExoMol). Data from HITRAN, ExoMol, Brewer 2016 or Hypatia is
-  downloaded at build time and no derived table is stored in the
-  repository, so builds need the network; the design states how tests
-  run offline (fixtures built by the test or a cache of earlier
-  downloads kept outside the repository, plan 6.5), and the data work of
-  group X9 waits on that design, not on the licence read.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/research/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): AD3: Myhre et al. 1998 (greenhouse
-  forcing law, GRL 25, 2715) is on list B.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AD3 filled: Myhre 1998 Table 3, dF in
-  W m^-2: CO2 5.35 ln(C/C0) (C in ppmv), CH4 0.036 (sqrt M - sqrt M0) -
-  (f(M,N0) - f(M0,N0)), N2O 0.12 (sqrt N - sqrt N0) - (f(M0,N) -
-  f(M0,N0)), CFC-11 0.25 (X - X0), CFC-12 0.33 (X - X0), f(M,N) = 0.47
-  ln[1 + 2.01e-5 (MN)^0.75 + 5.31e-15 M (MN)^1.52]; assumed
-  uncertainties 1 percent CO2, 10 CH4, 5 N2O and CFC-11, 3 CFC-12; a CO2
-  doubling gives 3.71 W m^-2 [V, R]. Label correction for the lane that
-  owns the parts file: the values 5.35 and 0.12 are Myhre 1998 and not
-  'IPCC 1990' (IPCC 1990 had 6.3 and 0.14, printed in the same table).
-  The paper states no validity range; its Table 2 total 2.247 does not
-  equal its 15 rows (2.2537). The infrared opacity grids (correlated-k)
-  stay a build-time download job from the line lists.
-  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
-  coordinator relayed): a download this item makes is a static file
-  fetched at setup by the shared step that GEN.548 builds first
-  (User-Agent, sha256, cache outside the repository, labelled stand-in,
-  offline fixtures), never at run time; a run-time fetch would have to
-  say why the data needs constant updates.
-  Download policy note (Blocker 1, reported 9:46 AM EDT 2026-10-18;
-  Boss's 'Require the data' answer, 9:38 AM EDT, covers star composition
-  only, GEN.590): the shared download catalogue now treats every dataset
-  as required, so this item's design should say whether a missing file
-  refuses to start or falls back to a labelled stand-in, and why.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the
-  licence reason "(Boss to settle)" for shipping a fitted table is
-  closed by Boss's 2026-10-17, 2:35 PM EDT answer (GEN.410): every paper
-  and dataset he acquired is usable and no licence audit gates the
-  table; the fitted table may stand only for another stated reason
-  (size, fit quality).
-  Decided (Boss, contradiction sweep card, tapped 7:22 AM EDT 2026-10-21
-  and "Fetch at setup only", as the coordinator reported it): line-list
-  grids are fetched at setup (update.sh) and nothing from them is stored
-  in the repository; Boss's 2:35 PM EDT 2026-10-17 "fine to publish" is
-  about licence only, not about committing the grids.
-  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
-  this replaces the download policy note above): a missing file refuses
-  the run by default, naming the file, its URL and the setup command;
-  with the explicit disregard option (GEN.599) the run uses this
-  dataset's best possible fallback and prints it in the run header;
-  never a silent fallback. See GEN.594.
-  Related: GEN.87, GEN.189, DB.68.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane F (radiation constants and ozone).
 - [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/composition/sky-colour-analysis.md): "I also want you to build into
@@ -7780,7 +7651,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.413. Related: GEN.208,
+  Prerequisites: GEN.411. Related: GEN.208,
   GEN.218,
   TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -7811,10 +7682,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   white-cyan with an orange sun, a 9 MPa CO2 world is white;
   deterministic and free of NaN for every class; the label says when
   aerosols dominate the answer.
-  Prerequisites: GEN.413, GEN.414, DB.67, DB.68,
+  Prerequisites: GEN.414, DB.67, DB.68,
   GEN.441, GEN.462.
   The ground's bounce reads the surface composition of GEN.441 (the
   ground's colour and reflectance) where it is stored.
+  Update (2026-10-09): Habitability lane F (2026-10-23, GEN.413 merged
+  as #2761): the Chappuis ozone cross-section table (the visible band
+  that colours the sky) is left for this item; the UV cross sections are
+  in AD9 (GEN.443).
   Related: GEN.419, GEN.420.
 
 - [ ] **GEN.419 Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops**
@@ -8748,7 +8623,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.413, GEN.414. Related: GEN.444,
+  Prerequisites: GEN.414. Related: GEN.444,
   GEN.445, GEN.423, GEN.412, GEN.418.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
@@ -8775,6 +8650,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane G (bands).
+  Update (2026-10-09): Lane G (2026-10-23, PR 2757 merged about 9:03 PM
+  EDT, no epoch, no migration): the kernel is on main
+  (physics/atmospheric_radiation.py, two_stream.py, stellar_spectrum.py,
+  uv_cross_sections.py; direct UVI at 0, 100, 200, 300, 500 DU is 133.1,
+  22.6, 11.1, 7.0, 4.0 against research 133.6, 23.4, 11.5, 7.3, 4.1; new
+  setup download AD9 ozone_uv, Zenodo 6951). The wiring into
+  radiation.generate_dose and the greenhouse part are not done, so the
+  item stays open.
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8882,7 +8765,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   done as best as you can, new epochs, DB versions, API versions, etc'.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane H (surface dose).
+  Owner: Habitability lane H (surface dose), except slice 1, the pure surface-dose kernels (physics/surface_dose.py: stopping-column cutoff, GCR and SEP shielding by composition, muon floor, dose quantities; the gamma and radon ground dose is lane H's, already in physics/radiation.py on the GEN.459 branch (gamma_dose_msv_yr, radon_dose_msv_yr, ground_dose_msv_yr fed by physics/radiogenic.py), and lane E calls it; tests against Earth, Mars, Moon and Titan; no stored value, no epoch), which Habitability lane E took at 8:55 PM EDT 2026-10-23 on Boss's word that lane E must not idle. Slice 2 (wiring into generate_dose, epoch, migration, deleting the proxy) waits on GEN.443, GEN.441 and GEN.459; lane H and lane E decide who wires it.
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -11094,159 +10977,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   check the year on the item's citation.
   Prerequisites: none. Related: GEN.496, GEN.455, GEN.410.
 
-- [ ] **GEN.503 The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One build used by every builder group: a target table
-  with the columns row id, statistic, value, sigma, source, label,
-  validity range and selection-model id; a simulate-and-compare function
-  per target (chi-square within 2 sigma, or a binomial or Wilson
-  interval for counts); and a check in the loader (extends TEST.214)
-  that refuses a tunable row with no target-table entry. The knob scope
-  is the validity range of the data (for example [Fe/H] -0.5 to +0.5 for
-  the Kepler metallicity null, 20 pc for brown dwarfs, FGK for the
-  radius valley); outside it a draw is a flagged extrapolation. The
-  tuned seeded draw keeps its knobs tunable and a retune is a table
-  version change and so a generator epoch bump. Do: build the table
-  format, the comparison function and the loader check, with one worked
-  example row. Done: a test draws a tunable row at many seeds and
-  compares it with its target within the stated sigma, the loader
-  refuses a tunable row without a target, and the harness holds no Solar
-  System value as a target without the flag. Owner: Core 4 (proposed,
-  with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.472, GEN.478, TEST.214,
-  GEN.480, GEN.494.
-  Registry hook (2026-10-17, gap-filling plan,
-  docs/design/research/gap-filling-plan.md, group X1): the target table gets the
-  fill id and the falsifier test of each stand-in, so a replaced
-  stand-in is checked against the same target (plan section 6.3). Each
-  filled value in the docs carries one line `Fill <id> (<kind>,
-  <evidence>): ...`.
-  Boss's general rules (typed in the project chat at 12:39 PM EDT on
-  2026-10-17, relayed by the coordinator): when in doubt, verified wins;
-  when two verified sources are in doubt, the newest wins; when two
-  sources are both in question, the one that takes the most permission
-  wins (his words 'most permission take wins'; Boss confirmed by card at
-  1:12 PM EDT, relayed in words, that it means the widest range of the
-  two sources: Decided). At 12:40 PM EDT,
-  by card (relayed in words), his six earlier 'widen and keep both'
-  answers stand; the newest-wins rule applies to every conflict after
-  them. The stand-in registry's conflict rule is the one in the gap plan
-  section 6.4 as updated.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.504 The Kepler transit-plus-recovery selection model**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One of the five shared selection models of section 4:
-  a model of which planets Kepler would detect: the transit geometry,
-  the detection threshold of the Kepler pipeline and the DR25
-  injection-recovery curve (public injections and a fitted recovery
-  curve), so that a tuned radius-valley width is compared with what
-  Kepler could see and not with the whole population. Shared by B1
-  (radius valley) and used for the period, radius and mass cuts. Data:
-  Kepler DR25 injection tables, the Petigura detection model. Needs the
-  CKS tables and the DR25 efficiency tables of the research list. Do:
-  build the model as a function from a simulated population to the
-  observed-sample statistic, with its data and its validity range named.
-  Done: a test applies the model to a known mock population and recovers
-  the published selection within its stated tolerance, and the model is
-  registered in the harness under an id the target table refers to.
-  Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.505 The mass-radius sample selection model**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One of the five shared selection models of section 4:
-  the sample cut of the precisely measured planets, mass better than 25
-  percent and radius better than 8 percent, so that a density
-  distribution (water-rich share, iron branch) is compared with the
-  planets that could be measured. Shared by B2 (water-rich share) and B4
-  (iron branch, with mass and radius error injection). Do: build the
-  model as a function from a simulated population to the observed-sample
-  statistic, with its data and its validity range named. Done: a test
-  applies the model to a known mock population and recovers the
-  published selection within its stated tolerance, and the model is
-  registered in the harness under an id the target table refers to.
-  Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.506 The JWST atmosphere target-selection model**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One of the five shared selection models of section 4:
-  which planets JWST observes (chosen for signal: nearby, hot, large
-  scale height, bright host), so that a tuned fraction of retained or
-  clear atmospheres is compared with the observed list and not the
-  population. Shared by B3 (retention and lava), B8 (giants) and B11
-  (aerosols). Data: the JWST rocky-planet list, the ExoAtmospheres
-  export. Do: build the model as a function from a simulated population
-  to the observed-sample statistic, with its data and its validity range
-  named. Done: a test applies the model to a known mock population and
-  recovers the published selection within its stated tolerance, and the
-  model is registered in the harness under an id the target table refers
-  to. Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.507 The comet admission model by heliocentric distance**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One of the five shared selection models of section 4:
-  which comets are measured at which heliocentric distance (the
-  production-rate and abundance samples are biased to bright comets near
-  the Sun), so that the comet volatile ratios and their r_h term are
-  compared with admitted comets. Shared by B12 (comet sampler). Data:
-  the Robinson database (CC BY 4.0), the three review papers. Do: build
-  the model as a function from a simulated population to the
-  observed-sample statistic, with its data and its validity range named.
-  Done: a test applies the model to a known mock population and recovers
-  the published selection within its stated tolerance, and the model is
-  registered in the harness under an id the target table refers to.
-  Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.508 The white-dwarf pollution detection and settling model**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One of the five shared selection models of section 4:
-  which polluted white dwarfs are detected, with the settling timescales
-  of DA and DB stars (the detection truncation near delta-IW -0.9, the
-  settling bias, no lower bound for 7 of 24), so that the redox and
-  composition draws are compared with the 24 polluted white dwarfs of
-  Doyle 2020 and 2023. Data: Koester 2014, Buchan 2022, Harrison 2021.
-  Shared by B5 (redox and white-dwarf debris). Do: build the model as a
-  function from a simulated population to the observed-sample statistic,
-  with its data and its validity range named. Done: a test applies the
-  model to a known mock population and recovers the published selection
-  within its stated tolerance, and the model is registered in the
-  harness under an id the target table refers to. Owner: Core 4
-  (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
 - [ ] **GEN.509 Tuned draw builder B1: the radius valley and the envelope**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
@@ -11278,7 +11008,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.504. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.504. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.510 Tuned draw builder B2: delivery and water worlds**
@@ -11305,38 +11035,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.505. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.511 Tuned draw builder B3: retention and lava worlds**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B3 of section 4 (one worker). Rows: d1
-  to d6, j1, j5, i6. Shared data and fit: Berta-Thompson label table,
-  Meni-Gallardo database, JWST rocky-planet list. Needs: JWST
-  target-selection module; Berta-Thompson code and labels. Bracket
-  correction: the cosmic-shoreline K window LU[3.0e-4, 6.6e-4] with
-  slope 4 is contradicted by exoplanet fits and by 55 Cnc e and TOI-561
-  b (K 12 to 190 times higher); use the Meni-Gallardo and Palle slope
-  5.77, intercept -4.35 and the Berta-Thompson 2025 logistic (log10 f0 =
-  2.62, p = 5.9, q = 1.17, width 0.247 dex); 'TRAPPIST-1 b and c under
-  0.1 bar' is in no paper read. Do: replace the seeded bracket of each
-  DESIGN row of GEN.478 in these rows by a seeded draw whose knobs are
-  tuned through the harness to the published statistics of section 3 of
-  the report (knob, statistic, target with N, uncertainty, source and
-  label), inside the validity range of the data and flagged outside it;
-  rows of class P become formulas of their inputs and rows of class S or
-  X are not tuned. Solar System values are test points only (NO FIXED
-  CONTENT). Done: every tuned row has a target-table entry the loader
-  checks, the simulate-and-compare test passes within the stated sigma,
-  no value rests on a Solar System body alone, and the part 09 row
-  carries its state (Decided 3:02 AM EDT rule). A retune changes the
-  table version and is a generator epoch bump. Owner: Core 4 (proposed,
-  with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.512 Tuned draw builder B4: the iron branch**
@@ -11369,69 +11068,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.505. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.513 Tuned draw builder B5: redox and white-dwarf debris**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B5 of section 4 (one worker). Rows: a1
-  to a4, T8, l1 to l3. Shared data and fit: Doyle 2020 and 2023 tables
-  (transcribe 24 rows), Koester 2014, Buchan 2022, Harrison 2021. Needs:
-  WD detection and settling model; decision D3. Bracket correction: the
-  white-dwarf redox centre of -1.0 (six stars) becomes -1.25 +/- 0.10
-  (22 values, sd 0.45, intrinsic about 0.22); a3's U[-1.4, 0] has mean
-  -0.7, 0.55 dex above it. Decision D3: the white-dwarf delta-IW is the
-  core-formation scale and a1 and a2 the surface magma-ocean scale, with
-  the conversion test of GEN.498. Do: replace the seeded bracket of each
-  DESIGN row of GEN.478 in these rows by a seeded draw whose knobs are
-  tuned through the harness to the published statistics of section 3 of
-  the report (knob, statistic, target with N, uncertainty, source and
-  label), inside the validity range of the data and flagged outside it;
-  rows of class P become formulas of their inputs and rows of class S or
-  X are not tuned. Solar System values are test points only (NO FIXED
-  CONTENT). Done: every tuned row has a target-table entry the loader
-  checks, the simulate-and-compare test passes within the stated sigma,
-  no value rests on a Solar System body alone, and the part 09 row
-  carries its state (Decided 3:02 AM EDT rule). A retune changes the
-  table version and is a generator epoch bump. Owner: Core 4 (proposed,
-  with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.508. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.514 Tuned draw builder B6: radioisotopes**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B6 of section 4 (one worker). Rows: o2,
-  o3, o4, o6, T23. Shared data and fit: Hypatia API (Th, Eu, K),
-  Botelho, Mors-style cluster results (Lichtenberg 2016), Th/U formula.
-  Needs: record the Hypatia licence, no audit; a chemical-evolution r-process history.
-  Findings: the o6 Al-26 range is a mixture (enriched flag) and not
-  log-uniform around the Solar System value (arXiv 2206.09675,
-  1608.01435); o4 Th/U U[3.8, 4.5] is an age-4.5 Gyr value, derive it
-  from the production ratio, the birth epoch and the decay. Do: replace
-  the seeded bracket of each DESIGN row of GEN.478 in these rows by a
-  seeded draw whose knobs are tuned through the harness to the published
-  statistics of section 3 of the report (knob, statistic, target with N,
-  uncertainty, source and label), inside the validity range of the data
-  and flagged outside it; rows of class P become formulas of their
-  inputs and rows of class S or X are not tuned. Solar System values are
-  test points only (NO FIXED CONTENT). Done: every tuned row has a
-  target-table entry the loader checks, the simulate-and-compare test
-  passes within the stated sigma, no value rests on a Solar System body
-  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
-  rule). A retune changes the table version and is a generator epoch
-  bump. Owner: Core 4 (proposed, with the composition chain).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the "Needs: Hypatia
-  licence" blocker becomes "record the licence, no audit" (no licence audit gates the data, Boss, 2026-10-17, 2:35 PM EDT, as GEN.410 records it).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.515 Tuned draw builder B7: ground and petrology**
@@ -11453,61 +11090,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   state (Decided 3:02 AM EDT rule). A retune changes the table version
   and is a generator epoch bump. Owner: Core 4 (proposed, with the
   composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.516 Tuned draw builder B8: giant planets**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B8 of section 4 (one worker). Rows: f5
-  to f7, T12. Shared data and fit: Thorngren 2016, Chachan 2025, LExACoM
-  CSV, Brewer and Fischer, Suarez-Andres. Needs: machine-readable T&F
-  2019 and Chachan tables. Bracket correction: the giant C/O tail f_tail
-  LU[0.0013, 0.34] with core 0.55 is outside the data (stellar tail zero
-  above 0.8, planet tail 0.043 to 0.087, core centre 0.57); 'Chachan
-  gives lower Z for sub-Saturns' is opposite (1.4 to 1.6 times lower
-  than Thorngren from 0.3 to 3 Jupiter masses). Do: replace the seeded
-  bracket of each DESIGN row of GEN.478 in these rows by a seeded draw
-  whose knobs are tuned through the harness to the published statistics
-  of section 3 of the report (knob, statistic, target with N,
-  uncertainty, source and label), inside the validity range of the data
-  and flagged outside it; rows of class P become formulas of their
-  inputs and rows of class S or X are not tuned. Solar System values are
-  test points only (NO FIXED CONTENT). Done: every tuned row has a
-  target-table entry the loader checks, the simulate-and-compare test
-  passes within the stated sigma, no value rests on a Solar System body
-  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
-  rule). A retune changes the table version and is a generator epoch
-  bump. Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.517 Tuned draw builder B9: brown dwarfs**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B9 of section 4 (one worker). Rows: g1,
-  g4. Shared data and fit: Kirkpatrick 2021 Tables 13 to 15, Beiler
-  2024, Filippazzo 2015. Needs: Tables 11, 14, 15 machine-readable.
-  Finding: the 500 to 700 K 'gap' is T8 to T9 (Y0 at 371 to 510 K,
-  Kirkpatrick 2021 Table 13); g1 to g5 are one Teff map. Do: replace the
-  seeded bracket of each DESIGN row of GEN.478 in these rows by a seeded
-  draw whose knobs are tuned through the harness to the published
-  statistics of section 3 of the report (knob, statistic, target with N,
-  uncertainty, source and label), inside the validity range of the data
-  and flagged outside it; rows of class P become formulas of their
-  inputs and rows of class S or X are not tuned. Solar System values are
-  test points only (NO FIXED CONTENT). Done: every tuned row has a
-  target-table entry the loader checks, the simulate-and-compare test
-  passes within the stated sigma, no value rests on a Solar System body
-  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
-  rule). A retune changes the table version and is a generator epoch
-  bump. Owner: Core 4 (proposed, with the composition chain).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
@@ -11580,7 +11162,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.506. Related: GEN.503, GEN.478, GEN.472.
+  Update (2026-10-09): Lane M (2026-10-23, PR 2756): the h4 titanium
+  step is built; n6 (the crossover equilibrium temperature) needs the
+  chemistry module GEN.518 and n7 (the haze yield) needs a haze
+  amplitude model, so the item stays open for those two.
+  Prerequisites: GEN.506. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.520 Tuned draw builder B12: the comet sampler**
@@ -11620,7 +11206,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503, GEN.507. Related: GEN.503, GEN.478, GEN.472.
+  Prerequisites: GEN.507. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.521 Tuned draw builder B13: belts**
@@ -11728,36 +11314,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   carries its state (Decided 3:02 AM EDT rule). A retune changes the
   table version and is a generator epoch bump. Owner: Core 4 (proposed,
   with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.525 Tuned draw builder B17: the design-flag registry**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B17 of section 4 (one worker). Rows: j2
-  to j4, m3, m4, m11, k7 rest, E3, T17, T18. Needs: decision D4.
-  Decision D4 (default): a flagged design bracket, default off unless
-  the life-stage flag allows, never tuned: the six rows j2, j3, j4, m3,
-  m4, m11 (no exoplanet measurement exists, or the quantity is whether
-  life makes the gas). Do: a registry of the rows no ensemble can
-  define, each a labelled bracket with its flag and its reason, shown in
-  the loader report, never tuned and never silently filled. Done: every
-  design-flag row of GEN.478 is in the registry with its default state,
-  the loader reports them, and no knob of these rows is tuned to a Solar
-  System value. Owner: Core 4 (proposed, with the composition chain).
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 7, "Derived from
-  physics": AT.j2 to j4 (Mars-, Titan-, Pluto-like occurrence) are
-  outputs of the escape and retention physics, not design flags; the
-  design-flag rows left in B17 are m3, m4 and m11.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): each row belongs to
-  one builder: E3, T17 and T18 (stand-in-only rows) are held here and
-  are removed from B13 (GEN.521) and B14 (GEN.522); j2 to j4 are assigned once, here
-  (the fork 7 note above makes them physics outputs, not design flags).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
@@ -13464,7 +13020,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   done as best as you can, new epochs, DB versions, API versions, etc'.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane I (the spine, to be started).
+   Owner: Habitability lane E (radiation link, help, tests), moved from lane I at 9:10 PM EDT 2026-10-23 on Boss's word that this blocker starts now: it has no open prerequisites and lane J's object-model chain waits behind it from about Saturday evening; lane I keeps GEN.557 (lane I was asked to reply only if it already has a branch).
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
   docs/design/architecture/mass-object-class.md, decided: Boss's cards, as the
@@ -15193,7 +14749,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.553. Related: GEN.553, GEN.467, GEN.502, GEN.440,
   GEN.464.
   Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1:
-  composition-first stars). Owner: Habitability lane A (moved from
+  composition-first stars). Owner: the Composition-first stars lane (moved from
   Core 4 at 7:53 PM EDT 2026-10-23), built with GEN.553 in one epoch (a
   rescatter of every star).
 
@@ -15215,7 +14771,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.553. Related: GEN.553, GEN.440, GEN.467.
   Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1):
   MIST is the single main-sequence table and the piecewise laws are
-  removed, no shim. Owner: Habitability lane A (moved from Core 4 at
+  removed, no shim. Owner: the Composition-first stars lane (moved from Core 4 at
   7:53 PM EDT 2026-10-23), with GEN.553 and GEN.651 in one epoch.
 
 - [ ] **GEN.653 Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life**
@@ -15358,7 +14914,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.427, GEN.442.
 
 - [ ] **GEN.661 Bright-star counts still use the reference-composition fraction (stand-in, bug)**
-  Found by Habitability lane A (relayed 2026-10-23, 8:34 PM EDT): the
+  Found by the Composition-first stars lane (relayed 2026-10-23, 8:34 PM EDT): the
   bright-star count draw still uses the reference-composition fraction
   instead of the star's own birth [Fe/H], so metal-poor and metal-rich
   regions hold the same bright fraction. Done: the count draw reads the
@@ -15369,14 +14925,81 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.651. Related: GEN.553, GEN.652.
 
 - [ ] **GEN.662 Cluster and satellite stars draw a halo [Fe/H] for their lifetimes (stand-in, bug)**
-  Found by Habitability lane A (relayed 2026-10-23, 8:34 PM EDT): stars
+  Found by the Composition-first stars lane (relayed 2026-10-23, 8:34 PM EDT): stars
   in clusters and satellite galaxies draw a halo [Fe/H] when their
   lifetimes are computed, until their component's own value is wired.
   Done: each cluster and satellite component supplies its own [Fe/H]
   distribution to the composition-first star draw, and the halo value is
   gone from those paths. Label the halo draw a stand-in in the gap plan
-  registry until then. Owner: Habitability lane A, after GEN.651.
+  registry until then. Owner: the Composition-first stars lane, after GEN.651.
   Prerequisites: GEN.651. Related: GEN.553, GEN.652.
+
+- [ ] **GEN.663 A chemical-evolution birth-epoch model for thorium and uranium: row o4 draws the formation time from 3 to 13 Gyr**
+  Found by Composition lane M (relayed 2026-10-23, 9:02 PM EDT): the
+  tuned draw for the thorium and uranium abundance (row o4) draws the
+  star's formation time T uniformly between 3 and 13 Gyr, which is a
+  stand-in. Done: the birth epoch comes from a chemical-evolution model
+  of the disc (star formation history and r-process enrichment), the o4
+  row reads it, its target is checked by the GEN.503 harness, and the
+  uniform draw is gone. Label the draw a stand-in in the gap plan
+  registry until then. Owner: Composition lane M (after its builders).
+  Prerequisites: none. Related: GEN.514, GEN.553.
+
+- [ ] **GEN.664 The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044)**
+  Found by Composition lane M (relayed 2026-10-23, 9:02 PM EDT): the
+  thin-disc row o1 uses +0.08 dex from the Botelho solar twins, and the
+  Hypatia catalogue's thin-disc statistic is -0.044; they differ by 0.12
+  dex because they are on different abundance scales. Done: one scale is
+  chosen and written down (the differences between catalogues are named
+  in the target table), row o1 and its target use it, and the choice is
+  recorded in docs/design/composition. Owner: Composition lane M.
+  Prerequisites: none. Related: GEN.514.
+
+- [ ] **GEN.665 Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters**
+  Found by Composition lane M (relayed 2026-10-23, 9:02 PM EDT): (1) the
+  white-dwarf redox sample has 7 stars with both bounds, not 8 of 24;
+  the whole-sample error model over-disperses and the intrinsic width is
+  not identified (0 to about 0.38 accepted), so the recipe sigma of 0.45
+  was too wide and is now 0.22; (2) the mass-radius cut (GEN.505) is a
+  weak filter, because the relative error is nearly independent of
+  signal. Done: each target's power is measured by a test that fails a
+  wrong value, the 0.22 width is kept or replaced with the reasoning
+  recorded, and GEN.505's cut is either strengthened or its weakness is
+  written into the tuning notes. Owner: Composition lane M.
+  Prerequisites: none. Related: GEN.505, GEN.508.
+
+- [ ] **GEN.666 The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug)**
+  Boss live observation (relayed 2026-10-23, 9:11 PM EDT): on a planet
+  page paragraph 1 said melanin life 'would evolve at a normal pace' and
+  paragraph 2 said 'hyper-accelerated pace', for an 80 Myr civilization
+  in a 13.8 Gyr system. Cause found by the Habitability text consistency
+  thread: the pace is drawn twice (life.get_evolutionary_speed and
+  evolution.get_evolutionary_state), stored in two columns and written
+  by two text writers. Done: the pace is drawn once, planets and moons
+  lose the evolutionary_speed column (migration, no shim), one LifeFacts
+  object feeds every life sentence on every page, and a consistency test
+  fails when two sentences about the same planet disagree. Owner:
+  Habitability text consistency thread (2026-10-23).
+  Prerequisites: none. Related: GEN.649, GEN.653.
+
+- [ ] **GEN.667 Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands**
+  Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
+  GEN.413 merged as #2761): the ozone column is computed from an oxygen
+  pressure the lane derives itself. Done: the ozone kernel takes O2 from
+  mixture.partial_pressures_pa (lane I's accessor) once the atmosphere
+  child table is stored, the local p_o2_kpa derivation is deleted, and a
+  test shows the two agree on the reference worlds before the swap.
+  Owner: lane I's PR 4 successor or the lane that finishes GEN.411.
+  Prerequisites: GEN.411. Related: GEN.413, GEN.411.
+
+- [ ] **GEN.668 Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column**
+  Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
+  GEN.413 merged as #2761): the loss events of GEN.189 set a flag only;
+  the stored ozone_column_du is not reduced by a stripping or loss
+  event. Done: a loss event scales the stored ozone column (and the UV
+  index that reads it) by the retained fraction, with a test of a planet
+  that loses half its air. Owner: none yet (pool).
+  Prerequisites: none. Related: GEN.413, GEN.189.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16254,19 +15877,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.98, PERF.99, PERF.100,
   PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
-- [ ] **PERF.161 bright_stars._reach_spots still calls tier_at for every candidate: batch it like the component pass**
-  Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
-  2026-10-22 as the lane's clock reads), measured at release 8.0.1930
-  with 'planetgen benchmark --suite --size small' on a galaxy of 3.1M
-  phenomena; filed by the TODO thread. Reproducer: that command, or the
-  single step with --steps; fails on main, every run. Kind: cost,
-  value-neutral. The component pass is batched in PERF.146; _reach_spots
-  in bright_stars still calls tier_at once per candidate. Do: batch it
-  the same way. Done: identical output and a time drop on the benchmark.
-  Owner: Performance (proposed by the TODO thread, because the lane
-  found it and PERF.146 lives there; the coordinator can move it).
-  Prerequisites: none. Related: PERF.146.
-
 - [ ] **PERF.162 Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word**
   Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
   2026-10-22 as the lane's clock reads), measured at release 8.0.1930
@@ -16313,23 +15923,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to the version 'later' page, phase 3, and is built only if a later
   measurement after PERF.165 shows the saving is worth an epoch.
   Prerequisites: none. Related: PERF.163, PERF.165.
-
-- [ ] **PERF.171 The bright-star scatter keeps its cell and due-time indexes on while its rows go in: drop and rebuild them as PERF.167 did for the phenomenon scatter**
-  Candidate follow-up from the Performance lane (relayed 12:54 PM EDT
-  2026-10-23 as the lane reported, PERF.167 merged as #2679, not
-  measured); filed by the TODO thread, low rank. PERF.167 found that the
-  phenomenon scatter dropped only the address and class indexes, so with
-  the cell and due-time indexes on every insert read pages once the
-  table passed the 128 MB buffer pool; dropping and rebuilding them took
-  4.2M rows from 266 s to 145 s (+22 s rebuild) and the large galaxy
-  from over 90 minutes to 72.7. The bright-star scatter may do the same.
-  Do: measure the bright-star scatter's insert rate with and without its
-  cell and due-time indexes, and if the saving is worth it add them to
-  its drop-and-rebuild list. Value-neutral (no epoch). Done: the
-  measured times are on this item and the indexes are dropped and
-  rebuilt where it pays, or the item records that it does not. Owner:
-  none (pool, Performance if it has room).
-  Prerequisites: none. Related: PERF.167, PERF.164.
 
 - [ ] **PERF.172 The galaxy as one wrapper run: the population pass and the phenomenon work are units of the step list (the D2 slice of PERF.123)**
   Split from PERF.123 (Core 5's suggestion, relayed 2:50 PM EDT
@@ -16754,7 +16347,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.413, GEN.414, DB.67. Related: DB.67.
+  Prerequisites: GEN.414, DB.67. Related: DB.67.
 
 - [ ] **DB.69 Planets and moons store the composition fractions**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
@@ -19570,7 +19163,7 @@ clears each one.
   mixture. Runs in the `changed` gate for the files involved. Done: it
   passes on a generated galaxy and fails when any one rule is broken (a
   test that breaks each rule in turn).
-  Prerequisites: GEN.411, GEN.412, GEN.413, GEN.414, GEN.415, DB.67,
+  Prerequisites: GEN.411, GEN.412, GEN.414, GEN.415, DB.67,
   DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): one shared fixture: a generated galaxy holding every
@@ -20747,6 +20340,11 @@ clears each one.
   killer is scoped (preferred) with a test that a foreign worker
   survives a benchmark run, and the four queue tests pass beside it.
   Owner: none (pool); Bug Hunt proposed.
+  Update (2026-10-09): Lane M (2026-10-23): under load (another test job
+  running) test_api_job_runs, test_parallel_generation,
+  test_phenomenon_scatter, test_order_independence and
+  test_update_database_step can fail; all pass alone. Treat them with
+  the same isolation fix.
   Prerequisites: none.
 
 - [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
@@ -20802,6 +20400,17 @@ clears each one.
   or deleted with Boss's OK together with its tests. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: GEN.372, GEN.427, GEN.428.
+
+- [ ] **TEST.307 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug)**
+  Found by Habitability lane F (relayed 2026-10-23, 9:25 PM EDT): this
+  test fails about 1 run in 5 to 8 when run alone, unrelated to
+  radiation or ozone. Done: the cause is found by reproducing it with
+  the seed printed (the forced belt and the forced habitable world
+  competing for the same slot or a draw that sometimes cannot place
+  both), fixed in the generator or the test's expectation with the
+  reasoning recorded, and 50 repeated runs pass. Owner: Bug Hunt
+  (proposed).
+  Prerequisites: none. Related: GEN.413.
 
 ## USR: User accounts
 
@@ -21533,6 +21142,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it was installed by hand. The setup script should install from the
   lock file, so a fresh machine has every package main needs. Core 3 and
   Core 2 hit the same on 2026-10-23.
+  Update (2026-10-09): Lane M (2026-10-23): two more gotchas on lane
+  machines: the test MySQL user needs GRANT OPTION (Boss authorised it
+  per lane, 8:07 PM EDT), and the NLTK words corpus must be installed
+  with NLTK_ALLOW_PROXIED_URLOPEN=1. Add both to the environment script.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**

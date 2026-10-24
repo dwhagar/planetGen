@@ -100,28 +100,35 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 36, "partly verified": 23, "open": 43, "stand-in": 2}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 49, "open": 0, "stand-in": 18}
 
 
-def test_the_open_rows_name_the_research_item_that_replaces_them_gen_480_to_494():
+def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
+    """The research found no measurement for some rows: they ship as labelled stand-ins that name their builder."""
     assert RECIPES.research == {f"R{n}": f"GEN.{479 + n}" for n in range(1, 16)}
-    for entry, research, items in RECIPES.open_rows():
-        assert items == tuple(RECIPES.research[r] for r in research), entry.id
-    waiting = {item for _e, _r, items in RECIPES.open_rows() for item in items}
-    waiting |= {e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
-    assert waiting == {f"GEN.{n}" for n in range(480, 495)}, "every research item replaces at least one row"
+    assert RECIPES.open_rows() == [], "no row waits on research any more"
+    researched = {r for entry in RECIPES.entries for r in entry.research}
+    assert researched == set(RECIPES.research), "every research item concerns at least one row"
+    builders = {f"GEN.{n}" for n in range(509, 526)} | {"GEN.595"}
+    for entry in RECIPES.entries:
+        if entry.state == pt.STAND_IN:
+            assert entry.replacement in builders, (entry.id, entry.replacement)
 
 
-def test_the_stand_ins_are_the_rows_built_from_measured_solar_system_bodies():
+def test_the_stand_ins_are_rows_with_no_measurement_or_built_from_solar_system_bodies():
     stand_ins = {e.id: e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
-    assert stand_ins == {"a2": "GEN.482", "k7": "GEN.488"}
+    assert stand_ins["a2"] == "GEN.513"
+    assert {"a1", "b5", "n7", "o3"} <= set(stand_ins)
+    assert not {"k1", "k2", "k3", "k4", "k5", "k7"} & set(stand_ins), "the comet rows follow the Robinson database (GEN.520)"
+    assert not {"m3", "m4", "m11"} & set(stand_ins), "the life-linked gases are design flags (GEN.525)"
+    assert not {"a3", "a4", "f7", "p6"} & set(stand_ins), "rows with a published statistic are not stand-ins"
 
 
-def test_the_registered_tables_report_the_open_rows_and_stand_ins():
+def test_the_registered_tables_report_the_stand_ins_and_limits():
     report = pt.REGISTRY.report()
     assert "atmosphere-a (version 1)" in report
-    assert "atmosphere-b: b1 " in report                      # an open row of table b
-    assert "atmosphere-a: a2 " in report and "replaced by GEN.482" in report
+    assert "atmosphere-b: b1 " in report                      # a stand-in row of table b
+    assert "atmosphere-a: a2 " in report and "replaced by GEN.513" in report
     assert "limit:" in report
 
 
@@ -238,7 +245,7 @@ def test_example_f_the_giant_regimes_the_metallicity_bins_and_the_carbon_to_oxyg
     s = Subject("J", dict(mass_jupiter=0.3, teq_k=950.0, zone="h"))
     p = main(RECIPES.probabilities("f", s))
     assert p == pytest.approx({"f2": 0.0062, "f3": 0.9936, "f4": 0.0002}, abs=1e-4)
-    assert [round(b[2], 3) for b in RECIPES.bins("f6", s)] == [0.0, 0.008, 0.223, 0.596, 0.173]
+    assert [round(b[2], 3) for b in RECIPES.bins("f6", s)] == [0.0, 0.013, 0.369, 0.566, 0.052]
     carbon = RECIPES.bins("f7", s)
     assert sum(b[2] for b in carbon) == pytest.approx(1.0, abs=1e-12)
     assert [(b[0], b[1]) for b in carbon] == [(0.2, 0.35), (0.35, 0.7), (0.7, 0.8), (0.8, 1.0), (1.0, 1.5)]
@@ -268,14 +275,15 @@ def test_the_giants_carbon_to_oxygen_correction_the_tail_is_explicit_and_not_a_l
 
 def test_example_g_h_and_i_the_brown_dwarf_the_hot_jupiter_and_the_lava_windows():
     g = Subject("brown-dwarf", {"teff_k": 848.4})
-    assert main(RECIPES.probabilities("g", g)) == pytest.approx({"g3": 0.9310, "g4": 0.0687, "g5": 0.0002}, abs=1e-3)
+    assert main(RECIPES.probabilities("g", g)) == pytest.approx({"g3": 0.9801, "g4": 0.0199}, abs=1e-3)
     assert RECIPES.probability("g6", g) == pytest.approx(0.994, abs=1e-3)
-    assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 2500.0, "zone": "h"}))) == pytest.approx(
-        {"h2": 0.0013, "h3": 0.9987}, abs=1e-4)
-    assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 2150.0, "zone": "h"}))) == pytest.approx(
-        {"h2": 0.6915, "h3": 0.3085}, abs=1e-4)
-    s = Subject("J", {"tday_k": 2150.0, "zone": "h", "grain_um": 1.0, "drawn.h": "h2"})
-    assert RECIPES.probability("h4", s) == pytest.approx(0.44)
+    assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 2500.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
+        {"h2": 0.9989, "h3": 0.0011}, abs=1e-4)
+    assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 900.0, "zone": "h", "photosphere_bar": 0.1}))) == pytest.approx(
+        {"h1": 0.7454, "h2": 0.2546}, abs=1e-4), "the methane line at 0.1 bar is 966 K, not 1500 K"
+    s = Subject("J", {"tday_k": 2150.0, "zone": "h", "teq_k": 2350.0, "drawn.h": "h2"})
+    assert RECIPES.probability("h4", s) == 0.0, "TiO is not seen at 2350 K and below"
+    assert RECIPES.probability("h4", Subject("J", dict(s.quantities, teq_k=2641.0))) == 1.0, "and is seen at 2641 K"
     lava = lambda t: dict(RECIPES.probabilities("i", Subject("A", {"tp_k": t, "zone": "h"})))  # noqa: E731
     assert main(lava(2060.0)) == pytest.approx({"i1": 0.326, "i2": 0.674}, abs=1e-3)
     assert main(lava(2500.0)) == pytest.approx({"i2": 0.929, "i3": 0.071}, abs=1e-3)
@@ -307,8 +315,8 @@ def test_example_j_the_frost_and_evolved_atmospheres_are_outputs_of_the_retentio
 
 def test_example_k_the_coma_classes_and_the_carbon_dioxide_to_water_bins():
     comet = Subject("comet", {"perihelion_au": 1.0, "family": "x"})
-    assert dict(RECIPES.probabilities("k", comet)) == pytest.approx({"k1": 0.536, "k2": 0.357, "k3": 0.107}, abs=1e-3)
-    assert [round(b[2], 3) for b in RECIPES.bins("k4", comet)] == [0.114, 0.323, 0.350, 0.213]
+    assert dict(RECIPES.probabilities("k", comet)) == pytest.approx({"k1": 0.52, "k2": 0.36, "k3": 0.12}, abs=1e-3)
+    assert [round(b[2], 3) for b in RECIPES.bins("k4", comet)] == [0.136, 0.335, 0.335, 0.194]
     quiet = Subject("comet", {"perihelion_au": 5.0, "family": "x"})
     with draw.bound(2):
         assert RECIPES.draw_group("k", quiet).name == "none"
@@ -355,7 +363,7 @@ def test_example_p_the_uv_regime_depends_on_the_stellar_mass_through_the_saturat
 def test_the_corrected_white_dwarf_redox_ensemble_replaces_the_six_star_centre():
     d4 = RECIPES._dist_of(RECIPES.entry("a4"), Subject("E", {}))
     d3 = RECIPES._dist_of(RECIPES.entry("a3"), Subject("E", {}))
-    assert d4["mu"] == -1.25 and d4["sigma"] == 0.45 and d3["mu"] == -1.26
+    assert d4["mu"] == -1.25 and d4["sigma"] == 0.22 and d3["mu"] == -1.25 and d3["sigma"] == 0.22
     assert "Corrected 2026-10-18" in RECIPES.entry("a3").notes and "0.55 dex" in RECIPES.entry("a3").notes
 
 
@@ -433,13 +441,13 @@ def test_a_binary_row_is_present_with_its_probability_and_carries_a_value_when_i
     assert RECIPES.draw_binary("b6", full("E", zone="e")) == (False, None)
 
 
-def test_the_choice_of_the_rotation_track_follows_its_weights():
+def test_the_rotation_percentile_is_uniform_and_only_drawn_for_a_host_in_the_saturated_or_young_branch():
     s = full("E", **{"drawn.p": "p4"})
     with draw.bound(6):
-        picks = [RECIPES.draw_choice("p6", s) for _ in range(4000)]
-    assert {p: picks.count(p) / 4000 for p in ("slow", "median", "fast")} == pytest.approx(
-        {"slow": 0.25, "median": 0.5, "fast": 0.25}, abs=0.03)
-    assert RECIPES.draw_choice("p6", full("E", **{"drawn.p": "p1"})) is None
+        picks = [RECIPES.draw_value("p6", s) for _ in range(4000)]
+    assert min(picks) >= 0.02 and max(picks) <= 0.98
+    assert sum(picks) / 4000 == pytest.approx(0.5, abs=0.01)
+    assert RECIPES.draw_value("p6", full("E", **{"drawn.p": "p1"})) is None
 
 
 def test_draw_all_draws_the_tables_in_order_and_the_joint_probability_is_parent_times_conditional():

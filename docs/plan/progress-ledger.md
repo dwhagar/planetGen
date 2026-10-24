@@ -1153,3 +1153,20 @@ Baseline: PR #1817.
 | GEN.622 | 8.1 | Bulk composition |
 | GEN.629 | 8.1 | Surface and small bodies |
 | PERF.159 | 8.1 | The headline closes |
+| GEN.503 | 8.1 | Tuned draws and selection models |
+| GEN.504 | 8.1 | Tuned draws and selection models |
+| GEN.505 | 8.1 | Tuned draws and selection models |
+| GEN.506 | 8.1 | Tuned draws and selection models |
+| GEN.507 | 8.1 | Tuned draws and selection models |
+| GEN.508 | 8.1 | Tuned draws and selection models |
+| GEN.511 | 8.1 | Tuned draws and selection models |
+| GEN.513 | 8.1 | Tuned draws and selection models |
+| GEN.514 | 8.1 | Tuned draws and selection models |
+| GEN.516 | 8.1 | Tuned draws and selection models |
+| GEN.517 | 8.1 | Tuned draws and selection models |
+| GEN.525 | 8.1 | Tuned draws and selection models |
+| GEN.413 | 8.1 | Radiation chain for habitability (GEN.445) |
+| PERF.161 | 8.1 | The headline closes |
+| PERF.171 | 8.1 | The headline closes |
+| UX.151 | 8.1 | Habitability system |
+| UX.149 | 8.1 | Generate page and directives |

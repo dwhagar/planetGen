@@ -1421,6 +1421,8 @@
 --   A pair already stored gets its slots from its roles. Nothing else changes.
 -- v134 (GEN.267): `system_configs` also keeps the star count a system was forced to (`stars`), the cap on it (`max_stars`, 12 unless raised) and the prevalence of five or more stars
 --   (`prevalence_multi_star`), so a stored config regenerates with the same count.
+-- v135 (GEN.413): `planets.ozone_column_du` and `moons.ozone_column_du`, the ozone column in Dobson units (NULL for a gas giant and for a row made before v135; 0 with no oxygen),
+--   drawn from the oxygen and the star's temperature (`physics/ozone.py`); the UV index reads it.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2242,6 +2244,7 @@ CREATE TABLE IF NOT EXISTS planets (
     dynamical_state             VARCHAR(8) NOT NULL DEFAULT 'bound',  -- v102 (DB.55)
     host_node_id                SMALLINT NULL,  -- v104 (DB.53): the orbit node the planet orbits (NULL: its star)
     born_beyond_snow_line       BOOLEAN NULL,  -- v132 (GEN.458): formed beyond its star's snow line, NULL when the host has none to compare
+    ozone_column_du             DOUBLE NULL,  -- v135 (GEN.413): the ozone column, Dobson units
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2423,6 +2426,7 @@ CREATE TABLE IF NOT EXISTS moons (
     parent_id                   BIGINT UNSIGNED NULL,  -- v102 (DB.55)
     dynamical_state             VARCHAR(8) NOT NULL DEFAULT 'bound',  -- v102 (DB.55)
     born_beyond_snow_line       BOOLEAN NULL,  -- v132 (GEN.458): the parent planet's flag
+    ozone_column_du             DOUBLE NULL,  -- v135 (GEN.413): the ozone column, Dobson units
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

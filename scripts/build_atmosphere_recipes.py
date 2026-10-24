@@ -74,6 +74,8 @@ def state_of(entry):
     status, labels = entry["status"], entry["labels"]
     if entry.get("state_override") == "stand-in":
         return "stand-in", "", entry["replacement"], entry["research"]
+    if entry.get("state_override") == "partly verified":
+        return "partly verified", entry["override_limit"], "", []
     if status == "DESIGN":
         return "open", "", "", entry["research"]
     weak = [label for label in labels if label not in STRONG]
@@ -119,6 +121,9 @@ def build():
         if status_word == "stand-in":
             entry["state_override"] = "stand-in"
             entry["replacement"] = machine.pop("replacement")
+        elif status_word == "partly verified":
+            entry["state_override"] = "partly verified"
+            entry["override_limit"] = machine.pop("limit")
         correction = machine.pop("correction", "")
         if correction:
             entry["notes"] = (notes + " " + correction).strip()
@@ -130,6 +135,7 @@ def build():
         entry["labels"] = labels_of(text)
         state, limit, replacement, items = state_of(entry)
         entry.pop("state_override", None)
+        entry.pop("override_limit", None)
         entry["state"] = state
         entry["limit"] = limit
         entry["replacement"] = replacement

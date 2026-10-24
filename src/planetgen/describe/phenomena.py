@@ -51,7 +51,7 @@ def _orbit_fact(obj):
 def _gas_facts(obj):
     """The class, gas and light rows a nebula and a supernova remnant share."""
     return [
-        fact("species", "Dominant Gas", obj.dominant_species),
+        fact("species", "Dominant Gas", model.chem_text(obj.dominant_species)),
         fact("density", "Density", _density(obj.density_cm3)),
         fact("temperature", "Temperature", build._kelvin(obj.temperature_k, companions=False)),
         fact("extinction", "Extinction", qty("ratio", obj.extinction_av), " magnitudes"),
