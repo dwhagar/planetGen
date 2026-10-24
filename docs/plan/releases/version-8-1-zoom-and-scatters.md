@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 12:08 AM EDT 2026-10-24: 816 of 1218 items finished (67.0 percent), 402 open, 24 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 116, phase 2 45, phase 3 26, phase 4 13, phase 5 81, phase 6 28, phase 7 24, phase 8 4, phase 9 17, phase 10 2, phase 11 33, phase 12 13 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 12:10 AM EDT 2026-10-24: 821 of 1233 items finished (66.6 percent), 412 open, 24 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 115, phase 2 44, phase 3 26, phase 4 13, phase 5 81, phase 6 28, phase 7 24, phase 8 4, phase 9 29, phase 10 2, phase 11 33, phase 12 13 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -105,7 +105,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 |---|---|---|---|
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws, and refusal of impossible requests up front |  | Left over from GEN.96. |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
-| UX.148 | Log output from Generate is no longer in a fixed-width font (bug) |  |  |
 
 ### Bugs and flaky tests
 
@@ -213,7 +212,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.269 | Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug) |  | Boss bug 8:51 PM EDT |
 | MAP.287 | The 3D system view takes the body look record: systemscene.py still colours by class_color |  | Body rendering follow-up; lane report. |
 | MAP.286 | Supernova remnant shells drawn by age on the maps |  | Body rendering follow-up (R9a rest); lane report. |
-| MAP.270 | Far stars on the maps: use the blackbody colour and a luminosity halo (bug) |  | Body rendering R0; proposed 8.1. |
 | MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | MAP.261, MAP.263 |  |
 | MAP.268 | S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales | MAP.263, MAP.264, MAP.265 |  |
 | MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.263, MAP.264, MAP.265, MAP.266, MAP.267, MAP.268 |  |
@@ -618,6 +616,18 @@ Moved into 8.1 from 8.4 phase 4 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | GEN.414, DB.67 | Boss 11:24 PM EDT; migration only. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.646 | Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter | GEN.645, GEN.428, GEN.429, GEN.411, GEN.412, GEN.442, GEN.461, GEN.466, DB.67, DB.69, DB.70, GEN.650 |  |
 | GEN.647 | The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons | GEN.646 |  |
+| TEST.315 | TEST.210 reports the class shares and ranges as outputs; TEST.209 adds that the class agrees with the conditions | GEN.689, TEST.209, TEST.210 | Class design step C16. |
+| GEN.690 | Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs | GEN.689 | Class design step C15. |
+| GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | GEN.681, GEN.682, GEN.683, GEN.684, GEN.685, GEN.686, GEN.687, DB.67, DB.69, DB.70 | Class design step C14. |
+| GEN.688 | Generation requests name conditions, not class letters: slots and the admin class change take conditions, +habitable_world steers on the PHI-6, the directive counts is_habitable | GEN.681, GEN.682, GEN.683, GEN.684, GEN.685 | Class design step C13. |
+| GEN.687 | Rogue planets get their class from classify; delete choose_rogue_planet_class | GEN.558, GEN.428, GEN.682, GEN.683 | Class design step C12. |
+| GEN.686 | Age needs come from the processes; delete age_ranges | GEN.428 | Class design step C11. |
+| GEN.685 | Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class] | GEN.442, GEN.466, GEN.461 | Class design step C10. |
+| GEN.684 | Albedo and greenhouse come from the composition; delete the two class ranges | GEN.412, GEN.462, GEN.414, GEN.422 | Class design step C9. |
+| GEN.683 | Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range | GEN.411, GEN.479, GEN.452, GEN.681 | Class design step C8. |
+| GEN.682 | Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range | GEN.428, GEN.429, GEN.460, GEN.681 | Class design step C7. |
+| GEN.681 | The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw | GEN.556, GEN.428, GEN.429 | Class design step C6. |
+| TEST.314 | Only classify writes the class column, and the class is recomputed when an input is edited |  | Class design step C5. |
 | GEN.648 | The generation request for a habitable world (+habitable_world) runs an ordered ladder of nine adaptations before it gives up: redraw the surface, restrict the planet, more starting water, aquifers, regenerate the planet, adapt the system, add a brighter primary, regenerate the star, then the best result | GEN.646, GEN.643 |  |
 | TEST.301 | Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism | GEN.647, DB.90, GEN.648 |  |
 | DB.90 | Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild | GEN.647 |  |

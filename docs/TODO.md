@@ -887,37 +887,6 @@ with `clamp()`.
   held it before; this replaces any earlier owner line).
   Prerequisites: UX.143. Related: MAP.172, MAP.173, UX.143.
 
-- [ ] **UX.148 Log output from Generate is no longer in a fixed-width font (bug)**
-  Boss's live observation (relayed 5:14 PM EDT 2026-10-23, typed in the
-  project chat): the log output from generate is no longer in a
-  fixed-width (monospace) font. Kind: regression, cause not found.
-  Possibly from the admin shell and Generate redesign (Core 2's area) or
-  the logging standard and log layer work (UX.102, UX.123), but this is
-  a guess; the TODO thread did not run it. Where to look:
-  src/html/static/joblog.js and src/html/static/style.css (both name
-  monospace), the job log on the Generate job page and the Queue page.
-  Fails on main: yes, as Boss sees it. Reproducer: start any Generate
-  job and read the log panel; columns and progress lines no longer line
-  up. Do: find the commit that dropped the monospace font from the log
-  panel (git log on joblog.js and style.css), restore it for every job
-  log view (Generate job page, Queue page, admin log pages), and add a
-  test that the log element carries the monospace rule. Done: the
-  Generate job log, the Queue page log and the admin log pages show
-  fixed-width text, and a test pins it. Owner: Bug Hunt (Boss, 5:14 PM
-  EDT 2026-10-23).
-  Update (2026-10-09): Bug Hunt (2026-10-23, 9:52 PM EDT as the lane
-  reported): not reproduced in Chromium on main; the terminal and the
-  plain log both use the monospace stack, running and finished. Needs
-  Boss's browser and OS or a screenshot. One hypothesis: his Apache adds
-  its own Content-Security-Policy header, which would block Xterm's
-  injected style and drop the font (the same cause as UX.157).
-  Update (2026-10-09): Boss (2026-10-23, 9:54 PM EDT): he uses Firefox
-  and his Apache does set its own Content-Security-Policy header, so the
-  CSP hypothesis is the leading cause; the terminal's injected style is
-  probably refused. Fix like UX.157: no injected style elements, the
-  rules live in the site's own stylesheet.
-  Prerequisites: none. Related: UX.102, UX.123, UX.125.
-
 - [ ] **UX.150 Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
   then D', relayed by the coordinator): 'Let's go with 3, since we're
@@ -2826,16 +2795,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   switchable glow design). Owner: Bug Hunt (fixing now in starpoint.js,
   galaxymap3d.js and sectorscene.js).
   Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
-
-- [ ] **MAP.270 Far stars on the maps: use the blackbody colour and a luminosity halo (bug)**
-  A star seen from afar should take its colour from its blackbody
-  temperature and show a halo that scales with luminosity. It extends
-  MAP.269. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  1, 6), filed by the body-rendering design thread, 10:18 PM EDT
-  2026-10-23 as the thread reported. Version placement is a proposal
-  until Boss answers the choices in section 11 of the draft.
-  Prerequisites: none.
 
 - [ ] **MAP.274 Land colour from the bulk composition: oxidation and rock type**
   Land colour follows the bulk fractions instead of the temperature and
@@ -13974,6 +13933,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   temperature and composition; the class lane builds them as rule inputs
   plus a size tier in the class code (S and V become tiers, not
   letters).
+  Merged part (2026-10-09): Found 12:12 AM EDT 2026-10-24 by the TODO
+  thread, which had not recorded it: the design note
+  docs/design/habitability/condition-based-planet-classes.md and the
+  rule table planet_classes.json merged in #2781 (10:27 PM EDT
+  2026-10-23 on the merge commit clock, no epoch). The class lane confirms
+  whether the replaced-items list is complete before this item is
+  retired.
 
 - [ ] **GEN.646 Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -14059,6 +14025,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   took generator epoch 65. The cut-over steps C13 to C15 (classes
   assigned after generation, once lanes I, J, K and L land) are still
   open here.
+  Steps C1, C2, C4 (2026-10-09): Found 12:12 AM EDT 2026-10-24 by the
+  TODO thread, which had not recorded it: #2781 merged classify(body)
+  (physics/planet_classes.py with planet_classes.json), the shadow sweep
+  (tests/class_shadow_cli.py) and the class pages from the rules
+  (web/lib/classref.py). Steps C1, C2 and C4 are done; C5 is
+  unconfirmed; C3 merged as #2833; C6 to C16 are filed as GEN.681 to
+  GEN.690, TEST.314 and TEST.315 below.
 
 - [ ] **GEN.648 The generation request for a habitable world (+habitable_world) runs an ordered ladder of nine adaptations before it gives up: redraw the surface, restrict the planet, more starting water, aquifers, regenerate the planet, adapt the system, add a brighter primary, regenerate the star, then the best result**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -14513,6 +14486,126 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   counts of a bright-star unit. Owner: none for now (pool; Core 4
   proposed). It changes generated values, so it needs a generator epoch.
   Prerequisites: none.
+
+- [ ] **GEN.681 The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw**
+  Step C6 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: replace the class draw with the kind from
+  formation; the class shares become sweep outputs, not inputs. Done: no
+  class draw is left in the planet stage and a sweep reports the kinds.
+  Owner: Composition J (quantities and bulk composition).
+  Prerequisites: GEN.556, GEN.428, GEN.429.
+
+- [ ] **GEN.682 Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range**
+  Step C7 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: radius, density and gravity from GEN.428 and
+  GEN.429 fractions; delete the three class ranges with no shim. Done:
+  nothing reads the deleted names and the golden outputs are updated.
+  Owner: Composition J.
+  Prerequisites: GEN.428, GEN.429, GEN.460, GEN.681.
+
+- [ ] **GEN.683 Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range**
+  Step C8 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: the gates of the recipe tables read the kind
+  and the regime; delete CLASS_MIXES and the two density ranges. Done:
+  no class gate is left in the recipes. Owner: Composition L (atmosphere
+  mixture).
+  Prerequisites: GEN.411, GEN.479, GEN.452, GEN.681.
+
+- [ ] **GEN.684 Albedo and greenhouse come from the composition; delete the two class ranges**
+  Step C9 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: the albedo and greenhouse multiplier come
+  from the ground and air composition (GEN.412, GEN.462, GEN.414);
+  delete the two class ranges. Done: no class range for albedo or
+  greenhouse is left. Owner: Composition K and L.
+  Prerequisites: GEN.412, GEN.462, GEN.414, GEN.422.
+
+- [ ] **GEN.685 Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class]**
+  Step C10 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: the water mass fraction from the origin and
+  the composition (GEN.442, GEN.466, GEN.461); delete the class table.
+  Done: nothing reads WATER_MASS_FRACTION. Owner: Composition J and K.
+  Prerequisites: GEN.442, GEN.466, GEN.461.
+
+- [ ] **GEN.686 Age needs come from the processes; delete age_ranges**
+  Step C11 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: the age a body needs follows its formation
+  and decay processes (GEN.428); delete age_ranges. Done: nothing reads
+  age_ranges. Owner: Composition spine lane I.
+  Prerequisites: GEN.428.
+
+- [ ] **GEN.687 Rogue planets get their class from classify; delete choose_rogue_planet_class**
+  Step C12 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: rogue planets are classified like any body;
+  delete choose_rogue_planet_class. Done: a rogue planet's class equals
+  classify of its stored values. Owner: Composition J.
+  Prerequisites: GEN.558, GEN.428, GEN.682, GEN.683.
+
+- [ ] **GEN.688 Generation requests name conditions, not class letters: slots and the admin class change take conditions, +habitable_world steers on the PHI-6, the directive counts is_habitable**
+  Step C13 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: the request slots and the admin class change
+  name conditions; +habitable_world steers on the PHI-6 (GEN.648
+  ladder); the directive counts is_habitable. Done: no request names a
+  class letter. The admin part waits on the 8.6 edit chain. Owner:
+  Condition-based classes lane.
+  Prerequisites: GEN.681, GEN.682, GEN.683, GEN.684, GEN.685.
+
+- [ ] **GEN.689 The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column**
+  Step C14 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: classify runs at the end of generation, the
+  validation becomes total and derived, one generator epoch (numbered at
+  merge), and a migration backfills the stored class from stored values
+  where enough exist. Done: every body has exactly one class that agrees
+  with its conditions at any worker count. Owner: Condition-based
+  classes lane with the TODO thread for the epoch.
+  Prerequisites: GEN.681, GEN.682, GEN.683, GEN.684, GEN.685, GEN.686,
+  GEN.687, DB.67, DB.69, DB.70.
+
+- [ ] **GEN.690 Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs**
+  Step C15 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: delete the five generation tables with no
+  shim and update the golden outputs. Done: no reader of the deleted
+  names is left. Owner: Condition-based classes lane.
+  Prerequisites: GEN.689.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19906,6 +19999,29 @@ clears each one.
   reason stated; never skip it. Done: 200 runs of the test pass. Owner:
   none for now (pool; the Flaky test fixes lane is proposed).
   Prerequisites: none.
+
+- [ ] **TEST.314 Only classify writes the class column, and the class is recomputed when an input is edited**
+  Step C5 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: a test that no code other than classify
+  writes the class, and that editing a stored input recomputes it. Done:
+  both tests pass. Owner: Condition-based classes lane.
+  Prerequisites: GEN.679.
+
+- [ ] **TEST.315 TEST.210 reports the class shares and ranges as outputs; TEST.209 adds that the class agrees with the conditions**
+  Step C16 of the condition-based classes build (design draft
+  design-drafts/condition-based-classes-2026-10-23.md section 7, from
+  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
+  after generation from the finished body). Filed by the TODO thread at
+  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
+  GEN.647 and GEN.646. Do: extend the two sweeps so the class shares and
+  ranges are reported as outputs and every body's class agrees with its
+  conditions. Done: both sweeps carry the new checks. Owner: Composition
+  L.
+  Prerequisites: GEN.689, TEST.209, TEST.210.
 
 ## USR: User accounts
 
