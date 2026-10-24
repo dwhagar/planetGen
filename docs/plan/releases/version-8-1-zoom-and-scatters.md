@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 10:25 PM EDT 2026-10-23: 775 of 1184 items finished (65.5 percent), 409 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 114, phase 2 42, phase 3 26, phase 4 13, phase 5 83, phase 6 35, phase 7 22, phase 8 6, phase 9 17, phase 10 4, phase 11 39, phase 12 8 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 10:35 PM EDT 2026-10-23: 777 of 1184 items finished (65.6 percent), 407 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 114, phase 2 42, phase 3 26, phase 4 13, phase 5 83, phase 6 35, phase 7 22, phase 8 6, phase 9 17, phase 10 2, phase 11 39, phase 12 8 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -647,10 +647,8 @@ Moved into 8.1 from 9.0 phase 1 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.418 | Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce | GEN.414, DB.67, DB.68, GEN.441, GEN.462 | Boss 11:24 PM EDT; absolute colour, not eye-adapted. |
 | GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column |  | Follow-up of GEN.413 |
 | GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | GEN.411 | Follow-up of GEN.413 |
-| GEN.419 | Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops | GEN.418 | Boss 11:24 PM EDT; reference level chosen in the design. |
 
 ## Phase 11: Composition and colour in the product
 
@@ -662,7 +660,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.420 | The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output | GEN.418, GEN.419 | Boss 11:24 PM EDT; one place serves every output. |
+| GEN.420 | The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output |  | Boss 11:24 PM EDT; one place serves every output. |
 | MAP.244 | The maps and pages use the atmosphere colour where they showed the planet colour | GEN.420 | Boss 11:24 PM EDT; replaces the temperature gesture. |
 | GEN.446 | The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface | GEN.441, GEN.442, GEN.444, GEN.445 | Boss 11:58 PM EDT; stars, surfaces, small bodies and radiation in the text. |
 | DOC.64 | Docs: the atmosphere colour, its method and its sources | GEN.420, MAP.244 | Boss 11:24 PM EDT; docs only. |

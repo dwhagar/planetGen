@@ -1140,8 +1140,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | none | open |
 | GEN.416 | Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library | none | done, PR #2566 |
 | GEN.417 | Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity | none | done, PR #2724 |
-| GEN.418 | Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce | none | open |
-| GEN.419 | Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops | none | open |
+| GEN.418 | Atmosphere colour of a solid world: the absolute colour of the air with ozone, haze, dust, cloud and the ground's bounce | none | done, PR #2768 |
+| GEN.419 | Atmosphere colour of gas and ice giants, read at a reference level in the cloud tops | none | done, PR #2773 |
 | GEN.420 | The descriptions show the atmosphere colour: a swatch and a word in the planet and moon facts, in every output | none | open |
 | GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | none | open |
 | GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | none | open |

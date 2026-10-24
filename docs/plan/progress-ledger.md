@@ -1171,3 +1171,5 @@ Baseline: PR #1817.
 | UX.151 | 8.1 | Habitability system |
 | UX.149 | 8.1 | Generate page and directives |
 | GEN.450 | 8.1 | Components and wanderers |
+| GEN.418 | 8.1 | Atmosphere colour |
+| GEN.419 | 8.1 | Atmosphere colour |
