@@ -2781,6 +2781,64 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: TEST.368. Related: MAP.303, MAP.304, MAP.220, MAP.299,
   MAP.298.
 
+- [ ] **MAP.306 The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug)**
+  Boss, 7:37 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiWkyk1uvowuCjYSiP92Pofq, relayed by the
+  coordinator), live observation, so a bug: "Also, add filters to the
+  map
+  menu so that we can pull forward points of interest that are
+  habitable,
+  gas giants, or other things. We'll add stations and facilities later,
+  let's put that for 8.3." Do: in the map menu add a Points of interest
+  group with one row per interest reason of the registry of MAP.305
+  (habitable worlds, MAP.303, gas giants, and every reason added later,
+  the
+  rows built from the registry so a new reason needs no menu code). Each
+  row has a state: shown, pulled forward (drawn on top of the other
+  marks,
+  named first by the label engine, MAP.299, and kept when names are cut)
+  or
+  hidden; one control sets all rows at once, and the choice is
+  remembered
+  per viewer. A merged mark (MAP.305) takes the strongest state of the
+  reasons it holds. Stations and facilities are not reasons yet: they
+  come
+  as reasons in 8.3 (MAP.307). Done: a browser test on the fixture
+  galaxy
+  (TEST.368) sets gas giants to pulled forward and finds their marks on
+  top
+  and named in a crowd, sets habitable to hidden and finds none of those
+  marks, and reloads with the choices kept. Part of the Boss map UX
+  chain:
+  TEST.368, MAP.295 to MAP.306. Owner: Aux 10 (labels and marks); the
+  map
+  menu code belongs to Core 2 as the interface lane, so the two lanes
+  agree who edits the menu file before starting.
+  Prerequisites: MAP.305. Related: MAP.303, MAP.305, MAP.299, MAP.304,
+  MAP.220.
+
+- [ ] **MAP.307 Stations and facilities become points of interest: interest reasons for the map mark and its menu filter**
+  Boss, 7:37 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiWkyk1uvowuCjYSiP92Pofq, relayed by the
+  coordinator): "We'll add stations and facilities later, let's put that
+  for 8.3." Do: add two interest reasons to the registry of the
+  point-of-interest mark (MAP.305), a system holding a station and a
+  system
+  holding a facility, each listing the station or facility by name with
+  a
+  link in the mark's infobox, and each with its own row in the menu
+  filter
+  of MAP.306 (pull forward, shown or hidden). The stations and
+  facilities
+  data is what the facility tables and the placement form already store;
+  the
+  vessel and station icons of MAP.221 (9.3) stay a separate, later item.
+  Done: a browser test on a fixture system with a facility finds the
+  mark,
+  the reason in its infobox and the menu row. Owner: none yet (pool,
+  8.3).
+  Prerequisites: MAP.305, MAP.306. Related: MAP.305, MAP.306, MAP.221.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
