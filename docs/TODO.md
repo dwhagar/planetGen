@@ -8530,6 +8530,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Blocker 4 lane (build lane for the top blockers, 2026-10-24), moved from lane H at 10:08 PM EDT 2026-10-23: lane H had not started it and gave it up (it keeps GEN.461, which it starts right after GEN.459 merges, gate ending about 11:10 PM EDT). It replaces the basalt and felsic stand-in in physics/radiogenic.py (SURFACE_RESERVOIRS, surface_content); it needs GEN.428, GEN.429, GEN.459 and GEN.461 merged, so Blocker 4 builds ahead and merges last. Lane H messages Blocker 4 when GEN.459 lands.
+  Slice 1 (2026-10-09): Slice 1 merged as #2783 (about 10:30 PM EDT
+  2026-10-23 as the lane reported, no stored value, epoch or migration):
+  physics/surface_composition.py (draw_surface, ice_stable, band_albedo,
+  crust_reservoir; K, Th and U reservoirs for ultramafic, basaltic and
+  felsic crust that lane H can use in place of its stand-ins), the
+  tables surface-ground-types and surface-dominant-ground, and
+  docs/design/composition/surface-composition.md. GEN.441 stays open:
+  slice 2 (the generator call, columns, migration and API) waits on
+  #2751, GEN.459 and GEN.461.
 - [ ] **GEN.442 Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
