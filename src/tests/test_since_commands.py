@@ -137,3 +137,39 @@ def test_a_settle_that_names_no_sector_is_one_empty_unit(monkeypatch):
         {"database": {}, "sector_ids": [9, 3, 5, 1, 7, 5], "expand": False, "workers": 3})
     assert [args["sector_ids"] for args, _cost in expansion.units] == [[1, 3], [5, 7], [9]]
     assert [cost for _args, cost in expansion.units] == [2.0, 2.0, 1.0]
+
+
+def _link_rows(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        return [tuple(row.values()) for row in conn.execute(
+            "SELECT sector_id, object_table, object_id, neighbor_rank, neighbor_system_id, distance_pc FROM nearest_systems"
+            " ORDER BY sector_id, object_table, object_id, neighbor_rank").fetchall()]
+    finally:
+        conn.close()
+
+
+def test_the_link_stage_is_cut_into_static_chunks_that_store_the_same_links(mysql_config, monkeypatch, redis_server):
+    from planetgen.generation import run_galaxy
+
+    for wedge in (700, 701, 702, 703):
+        monkeypatch.setattr(helper, "ADDRESS", (1500, 2, wedge))
+        helper._save(mysql_config, systems=2)
+    saved = _link_rows(mysql_config)
+    assert saved, "saving a sector links it"
+    params = {"database": wrapper.database_args(mysql_config), "since": LONG_AGO, "workers": 4}
+    assert len(run_galaxy.expand_link_neighbours(params).units) == 1, "a short stage is one unit"
+
+    monkeypatch.setattr(run_galaxy, "LINK_UNIT_SECTORS", 1)
+    cut = run_galaxy.expand_link_neighbours(params)
+    assert len(cut.units) == cut.plan["sectors"] == 4
+    assert [unit["chunk"] for unit, _cost in cut.units] == [unit["chunk"] for unit, _cost in
+                                                           run_galaxy.expand_link_neighbours(params).units]
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM nearest_systems")
+        conn.commit()
+    finally:
+        conn.close()
+    _run(monkeypatch, mysql_config, "link", "--since", LONG_AGO)
+    assert _link_rows(mysql_config) == saved, "the links are those of the one-unit stage"
