@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2189] - 2026-10-24
+
+**Headline:** The Galaxy Map now names sectors, stars, planets and nebulae, and what you pick stays picked as you zoom.
+
+### Changed
+- **Names on the Galaxy Map (MAP.268).** A new label engine places names by priority with no overlaps, fading in and out, and never takes a click or hover. The Galaxy Map uses it for generated sectors close enough to read, the named stars of the open sector (brightest first), the planets and moons of an open system once they are a few pixels across (so a planet is named all the way down from the sector), and nebulae large enough to read. The Menu has a new **Labels** group with a switch for each kind (Sector names, System names, Body names, Nebula names); the address keeps the choice.
+- **What you pick stays picked across scales (MAP.268).** The sector a click on the galaxy picked is kept when the wheel carries the zoom into the next window and back, instead of being dropped at each hand-over.
+
+TODO items resolved: MAP.229, MAP.230, MAP.233, MAP.268. Added: none (MAP.231 and MAP.232 stay open).
+
 ## [8.0.2188] - 2026-10-24
 
 **Headline:** The size and time estimate for a generation run is no longer inflated by the scatter's tables, the progress bars keep their elapsed and remaining times in a job log, and the wipe line no longer quotes a stale row count (PERF.178, PERF.179, UX.164).
