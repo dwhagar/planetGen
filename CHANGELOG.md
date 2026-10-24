@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2173] - 2026-10-24
+
+**Headline:** The planet mass law without a class letter is built: a planet's mass comes from the disc's solids at its formation distance, giant impacts and core accretion.
+
+### Added
+- **The planet mass law (GEN.650).** `physics/planet_mass.py` draws a planet's mass from the isolation mass at its formation distance (scaled for the star's mass and [Fe/H], boosted beyond the snow line), the giant-impact assembly that merges a feeding zone's oligarchs, and a core-accretion runaway to a gas giant for cores of 10 Earth masses or more beyond the snow line. Its stand-ins are `PLANET_DISC_SOLIDS_ENHANCEMENT`, `PLANET_ASSEMBLY_SCATTER_DEX` and `GIANT_GAS_SURVIVAL_SHARE` in `tuning.py`, to be tuned with GEN.509 and GEN.510. Nothing calls it yet: generation still draws a planet's mass from its class until the class cut-over (GEN.646), so no generated world changes. The design note is `docs/design/composition/planet-mass-law.md`, and `python -m tests.planet_mass_sweep_cli` compares the law with today's masses.
+
 ## [8.0.2172] - 2026-10-24
 
 **Headline:** The species tech filter test no longer fails when the population pass makes a species above tech 6.
