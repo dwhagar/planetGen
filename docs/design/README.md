@@ -183,6 +183,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [admin-control-suite.md](interface/admin-control-suite.md) | The admin control suite: research on packing many options into a quiet interface, the Settings and Generate redesign, the shell, job strip and palette, Boss's 13 answers and the items ADM.101 to ADM.123 | designed (in 8.1 phase 1, goal #2350) |
 | [galaxy-drilldown-navigation.md](interface/galaxy-drilldown-navigation.md) | The Galaxy Map's drill-down | built (partly replaced by the fly-through) |
 | [drilldown-region-sizes.md](interface/drilldown-region-sizes.md) | Step sizes and region shapes for the drill-down | built (MAP.151) |
+| [body-rendering.md](interface/body-rendering.md) | Rendering bodies from composition: the look record, the shared painter, solid worlds, giants, stars and phenomena, items by version | approved (R1, R3, R4a built in 8.1) |
 | [edit-everything.md](interface/edit-everything.md) | The 8.6 headline: every admin change is a plan the admin approves; aspects, locks, regions, the rearranger | plan |
 | [roles-and-requests.md](interface/roles-and-requests.md) | The 10.0 headline: user, moderator and admin roles; edit requests are change plans that the role above approves | plan |
 | [fly-through-view-distance.md](interface/fly-through-view-distance.md) | The fly-through map: view distance, near field, free camera | partly built |
