@@ -335,6 +335,8 @@ class ResponseCache:
             with self._lock:
                 if generation == self._generation:
                     self._entries[(db, target)] = Entry("", {}, body, now, cost)
+                    while len(self._entries) > self._max_entries:
+                        self._entries.popitem()
             return
         tags = pagetags.read_tags(_path_of(target), body)
         try:
