@@ -175,13 +175,14 @@ local added = redis.call('SADD', KEYS[1], ARGV[1])
 if added == 0 then return {0, 0, redis.call('SCARD', KEYS[1])} end
 local cost, secs, now, workers = tonumber(ARGV[2]), tonumber(ARGV[3]), tonumber(ARGV[4]), tonumber(ARGV[5])
 local d = redis.call('HMGET', KEYS[2], 'units', 'done', 'cost_done', 'seconds', 'last', 'u', 't', 'share',
-                     'pending', 'longest_gap')
+                     'pending', 'longest_gap', 'longest_unit')
 local units = tonumber(d[1])
 local done = tonumber(d[2] or 0) + 1
 local seconds = tonumber(d[4] or 0) + secs
 local last = tonumber(d[5] or now)
 local u, t = tonumber(d[6] or 0), tonumber(d[7] or 0)
 local share, pending, gap = tonumber(d[8] or 0), tonumber(d[9] or 0), tonumber(d[10] or 0)
+local longest = math.max(tonumber(d[11] or 0), secs)
 local tau = math.max(60, 20 * (seconds / done) / math.max(workers, 1))
 if now > last then
   local interval = now - last
@@ -199,7 +200,8 @@ else
   u = u + cost * share
 end
 redis.call('HSET', KEYS[2], 'done', done, 'cost_done', tonumber(d[3] or 0) + cost, 'seconds', seconds,
-           'last', last, 'last_end', now, 'u', u, 't', t, 'share', share, 'pending', pending, 'longest_gap', gap)
+           'last', last, 'last_end', now, 'u', u, 't', t, 'share', share, 'pending', pending, 'longest_gap', gap,
+           'longest_unit', longest)
 redis.call('HSETNX', KEYS[2], 'first_end', now)
 redis.call('HSET', KEYS[4], 'updated', now)
 local advance = 0
@@ -481,7 +483,7 @@ def write_log_file(conn, run_id, directory, keep=20):
 
 
 _STAGE_NUMBERS = ("units", "done", "cost_total", "cost_done", "seconds", "started", "ended", "last", "last_end",
-                  "first_end", "u", "t", "longest_gap")
+                  "first_end", "u", "t", "longest_gap", "longest_unit")
 
 
 def read_run(conn, run_id):

@@ -983,6 +983,26 @@
           "x-summary": "How many workers keep the caches and checks going while a generation run is live.",
           "x-unit": "workers"
         },
+        "unit_ceiling_seconds": {
+          "default": 300,
+          "description": "The longest a unit of a generation stage is expected to run. A stage is cut into units no longer than this at the default galaxy size; a unit that runs longer is written to the run's log, naming the stage. A stage that is one unit by nature is not held to it. A unit this long is also the most a worker waits to hand its place to a lane that needs it.",
+          "exclusiveMinimum": 0,
+          "title": "Unit Ceiling Seconds",
+          "type": "number",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": "duration",
+          "x-editable": true,
+          "x-group": "speed",
+          "x-label": "Unit length ceiling",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "The longest one unit of a generation stage is meant to run; a longer one is logged.",
+          "x-unit": "seconds"
+        },
         "wait_minutes": {
           "default": 60,
           "description": "How long a generation run, or an API job that generates sectors, waits in line when another generation run holds the machine, before it fails naming that run (0 does not wait).",
@@ -2103,6 +2123,7 @@
         "long_job_seconds": 60.0,
         "long_workers": 1,
         "maintenance_workers": 1,
+        "unit_ceiling_seconds": 300.0,
         "wait_minutes": 60.0
       }
     },

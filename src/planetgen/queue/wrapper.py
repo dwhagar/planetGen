@@ -111,6 +111,7 @@ def finish_stage(conn, run_id, index):
                     if item["key"] == declared["key"])
         record = {runrecord._s(name): runrecord._s(value)
                   for name, value in conn.hgetall(runrecord.stage_key(run_id, index)).items()}
+        _log_long_unit(conn, run_id, index, step, declared, float(record.get("longest_unit") or 0.0))
         seconds = max(float(record["ended"]) - float(record["started"]), 0.0)
         hook = commands.finish_function(step.kind)
         metrics = {}
@@ -125,6 +126,20 @@ def finish_stage(conn, run_id, index):
     except Exception as exc:  # noqa: BLE001 -- statistics are a nicety, never a reason to fail a run
         from planetgen.util import log
         log.debug(f"Stage statistics: not recorded ({exc}).")
+
+
+def _log_long_unit(conn, run_id, index, step, declared, longest):
+    """
+    PERF.155: writes a warning to the run's log when the longest unit of the stage that just ended ran longer than
+    `queue.unit_ceiling_seconds`, naming the stage, the unit's seconds and how many units the stage was cut into. A
+    command that is one unit by nature (`CommandSpec.whole`) is not held to the ceiling.
+    """
+    ceiling = get_settings().queue.unit_ceiling_seconds
+    if commands.spec(step.kind).whole or longest <= ceiling:
+        return
+    runrecord.log(conn, run_id, f"stage {declared['label']}: its longest unit ran {longest:,.0f} s, over the "
+                  f"{ceiling:,.0f} s unit ceiling; the stage was cut into {declared.get('units', 1):,} units",
+                  level="warning", kind="unit.long", stage=index)
 
 
 def _mysql_config(named):
