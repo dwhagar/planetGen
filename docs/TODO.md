@@ -7998,6 +7998,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
   EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 7, 14
   wait; Blocker I after PR 4 (Lane K keeps GEN.714 and then DB.70).
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 5: moon
+  ice fraction f_ice = 0.50 x 0.5 (1 + tanh(ln(r / r_s) / 0.23)) with
+  the circumplanetary ice line r_s; the Galilean anchors are recalled,
+  not read. Each row carries its source tier and tweak level in the
+  report; record both in the registry (GEN.725) in the same PR that uses
+  the value. Nothing changes a generated world until the owning item
+  uses it.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -8515,6 +8523,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for this line; labelled stand-in at the widest bracket under the
   widest-range rule, replaced when a measurement exists. AT.b5, the
   sub-percent water fraction.
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 8
+  (water-rich share 0.20 for 1.5 to 4 Earth radii, 0.05 for rocky below
+  1.5) and the shared nebular-temperature driver a_eff = a_form /
+  sqrt(L_star / L_sun) of finding 2, so water, redox and potassium
+  cannot contradict each other. Each row carries its source tier and
+  tweak level in the report; record both in the registry (GEN.725) in
+  the same PR that uses the value. Nothing changes a generated world
+  until the owning item uses it.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.482 Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3)**
@@ -8574,6 +8591,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   activity coefficients of FeO, NiO, CoO and Mo oxides. The white-dwarf
   (core formation) scale differs from the surface magma-ocean scale and
   needs a conversion test.
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 1: FeO
+  (wt percent) = 8 (a_eff / 1 AU)^2.1, clipped 0.5 to 35, and the core
+  iron offset from it. The exponents still need the primary fO2 papers
+  (Hirschmann, Gaillard), which sit behind closed publishers, so they
+  stay unverified. Each row carries its source tier and tweak level in
+  the report; record both in the registry (GEN.725) in the same PR that
+  uses the value. Nothing changes a generated world until the owning
+  item uses it.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
@@ -8749,6 +8775,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physics": AT.j2 to j4 (Mars-, Titan-, Pluto-like occurrence) are
   outputs of the escape and retention physics, not design flags; the
   design-flag rows left in B17 are m3, m4 and m11.
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 12:
+  Mars-, Titan- and Pluto-like occurrence has no stored frequency, so it
+  is an output of stated criteria (tier T6, tweak L0), not a drawn
+  share. Each row carries its source tier and tweak level in the report;
+  record both in the registry (GEN.725) in the same PR that uses the
+  value. Nothing changes a generated world until the owning item uses
+  it.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.488 Source the comet coma classes and their volatile ratios (AR9)**
@@ -8810,6 +8844,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for this line; labelled stand-in at the widest bracket under the
   widest-range rule, replaced when a measurement exists. AT.k7, the
   single-comet species (67P alone for N2, O2, Ar, Kr and Xe).
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 11:
+  single-comet species (O2 per H2O 3.8 percent from two comets, N2 per
+  CO log-uniform 5.7e-3 to 0.15, Ar, Kr, Xe per H2O); Halley adds a
+  second O2 comet (Rubin et al. 2015). Each row carries its source tier
+  and tweak level in the report; record both in the registry (GEN.725)
+  in the same PR that uses the value. Nothing changes a generated world
+  until the owning item uses it.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.489 Source the white-dwarf and pulsar planet options (AR10)**
@@ -8870,6 +8912,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   widest-range rule, replaced when a measurement exists. AT.m3, m4 and
   m11, the N2O, PH3, NO2 and CH3Cl presence: no detection on any
   exoplanet; flagged bracket, default off, never tuned.
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 9:
+  abiotic trace gases N2O 1e-10, NO2 2e-11, PH3 1e-13 and CH3Cl, as
+  mixing-ratio stand-ins. Each row carries its source tier and tweak
+  level in the report; record both in the registry (GEN.725) in the same
+  PR that uses the value. Nothing changes a generated world until the
+  owning item uses it.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.491 Source the cloud and haze windows and yields (AR12)**
@@ -8934,6 +8983,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for this line; labelled stand-in at the widest bracket under the
   widest-range rule, replaced when a measurement exists. AT.n7, the haze
   yield (laboratory rates span 250 times).
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 10: haze
+  yield y = 0.5 for CH4/CO2 >= 1, falling 25-fold to 0.02 at the 0.1
+  threshold, scatter 0.3 dex; the photon limit narrows the old 0.01 to 1
+  range to 0.02 to 0.5. Each row carries its source tier and tweak level
+  in the report; record both in the registry (GEN.725) in the same PR
+  that uses the value. Nothing changes a generated world until the
+  owning item uses it.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.492 Source the ground radioisotope abundances by host and the potassium depletion by body class (AR13)**
@@ -8972,6 +9029,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   uranium depletion row keeps its stand-in (no sodium proxy from white
   dwarfs, Harrison 2021, for now); the stand-in stays labelled in the
   gap plan registry until a verified source exists.
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 13:
+  potassium depletion K/U against CI, d_K = 0.18 (a_eff / 1 AU)^1.2 (cap
+  1) for bodies of 0.05 Earth masses or more, times 0.2 below; anchors
+  are recalled, not read. Each row carries its source tier and tweak
+  level in the report; record both in the registry (GEN.725) in the same
+  PR that uses the value. Nothing changes a generated world until the
+  owning item uses it.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
@@ -9077,6 +9142,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bracket 0 to 1; no epoch (recipes are not read by the generator yet).
   Still open: the Luque and Palle density-mode comparison; rows b1 to
   b3, b5 and b6 stay stand-ins.
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 8: the
+  water-rich share and the sub-percent water fraction, to use in the
+  delivery draws until GEN.481 sources them. Each row carries its source
+  tier and tweak level in the report; record both in the registry
+  (GEN.725) in the same PR that uses the value. Nothing changes a
+  generated world until the owning item uses it.
   Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
@@ -12532,6 +12604,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   5, 10), filed by the body-rendering design thread, 10:18 PM EDT
   2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): sections 18 and
+  19: visible water absorption in giants (none above the cloud for Teq
+  under 250 K, band-averaged cross sections for warm giants) and visible
+  ammonia (keep the four read equivalent widths). The real ammonia
+  source is the ExoMol CoYuTe line list, which reaches the 6450 and 5520
+  A bands: a data job for the sources thread, not a stand-in. Each row
+  carries its source tier and tweak level in the report; record both in
+  the registry (GEN.725) in the same PR that uses the value. Nothing
+  changes a generated world until the owning item uses it.
 
 - [ ] **GEN.673 Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on**
   Found by lane L (atmosphere mixture), report
@@ -13247,6 +13329,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-in it touches records its source tier and tweak level in the gap
   plan registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes
   do not take it before 8.1 closes).
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 7: giant
+  dense-core share (lognormal, median 0.30), compact-core odds and
+  inflation; the Juno core numbers are from memory (Wahl et al. 2017)
+  and unread. Each row carries its source tier and tweak level in the
+  report; record both in the registry (GEN.725) in the same PR that uses
+  the value. Nothing changes a generated world until the owning item
+  uses it.
   Prerequisites: none. Related: GEN.642, GEN.460.
 
 - [ ] **GEN.734 Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance**
@@ -13265,6 +13355,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replacing item. Each stand-in it touches records its source tier and
   tweak level in the gap plan registry (GEN.725). Owner: pool (first
   free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): sections 2, 3 and
+  4: planet-minus-star Fe/Mg scatter (core population N(0, 0.10 dex),
+  super-Mercury tail 12 percent), rogue-planet volatile loss
+  (log-uniform 1e-5 to 1e-1, median 1e-3) and core light elements (total
+  0.08 of core mass, Dirichlet split over S, Si, O, H). Each row carries
+  its source tier and tweak level in the report; record both in the
+  registry (GEN.725) in the same PR that uses the value. Nothing changes
+  a generated world until the owning item uses it.
   Prerequisites: none. Related: GEN.725, GEN.711.
 
 - [ ] **GEN.735 Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate**
@@ -13397,6 +13496,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   synthetic cluster. Each stand-in it touches records its source tier
   and tweak level in the gap plan registry (GEN.725). Owner: pool (first
   free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): sections 15 and
+  16: the horizontal and asymptotic branch durations are now Verified
+  from MIST v1.2 phase durations by mass and [Fe/H] (derived table
+  best-guess-standins-2026-10-24-files/mist_post_main_sequence_durations.csv,
+  not raw data), replacing the flat 0.100 Gyr and 0.002 of the main
+  sequence; the 0.1 dex per Gyr horizontal-branch colour shift stays at
+  0.1, bracket 0.05 to 0.2. Each row carries its source tier and tweak
+  level in the report; record both in the registry (GEN.725) in the same
+  PR that uses the value. Nothing changes a generated world until the
+  owning item uses it.
   Prerequisites: none. Related: GEN.652, GEN.553.
 
 - [ ] **GEN.742 White dwarf cooling sequences by mass and atmosphere, including crystallisation and spectral type against temperature**
@@ -13503,6 +13613,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   published distribution. Each stand-in it touches records its source
   tier and tweak level in the gap plan registry (GEN.725). Owner: pool
   (first free lane; 8.1 core lanes do not take it before 8.1 closes).
+  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
+  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 17: event
+  rate and peak-flux slope from 255 NOAA SWPC proton events above 10
+  MeV, 1976 to 2017 (derived table
+  best-guess-standins-2026-10-24-files/noaa_swpc_proton_events_gt10MeV_1976_2017.csv),
+  tail steepened above 1e4 pfu; Verified for 10 to 1e4 pfu. Each row
+  carries its source tier and tweak level in the report; record both in
+  the registry (GEN.725) in the same PR that uses the value. Nothing
+  changes a generated world until the owning item uses it.
   Prerequisites: none. Related: GEN.436, GEN.444.
 
 - [ ] **GEN.748 Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's**
@@ -13561,6 +13680,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the Earth only as a test point; no Earth-history preset. The
   ruling is recorded, so the item is ready for code. Stays in 8.4 with
   GEN.727 to GEN.749 (Boss, same time, option 1: leave them in 8.4).
+  Spec (2026-10-09): Spec (Update 4:12 PM EDT 2026-10-24, section 14 of
+  reports/best-guess-standins-2026-10-24.md): five hard steps
+  (abiogenesis, oxygenic photosynthesis, complex cells, multicellular
+  animals, civilisation); waiting times exponential with means 0.5, 1.5,
+  5, 10 and 20 Gyr, conditioned on finishing inside the habitable window
+  (hard-step statistics, Carter 1983, Watson 2008). No Earth preset, and
+  the presets option is dropped. Tier T7 as a model; tweak L3, since the
+  means are tunable to target odds. Emergent chance of civilisation is
+  about 0.7 percent of 5.4 Gyr windows; Boss can retune the means.
   Prerequisites: none. Related: GEN.649, GEN.740.
 
 ## PERF: Speed, caching, bulk generation and parallel work
