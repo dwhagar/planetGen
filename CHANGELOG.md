@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2209] - 2026-10-24
+
+**Headline:** Each update now says whether it changed the generated output.
+
+### Changed
+- **The update's version-key step reports it (OPS.15).** After it records the galaxy's row, `update.sh` prints `Generated output unchanged.`, or `Generated output CHANGED since the update of <time> UTC; the first case that differs is <case>.`, by comparing the generator battery's per-case digests (OPS.57) with the newest history row before it is replaced. The first update of a galaxy, and a galaxy whose last row recorded no battery, say they have nothing to compare. A new lock file or release alone does not count as a change of output. The live galaxy is not touched. `version_history.record` now returns the key and that sentence (`Recorded`).
+
 ## [8.0.2208] - 2026-10-24
 
 **Headline:** Every phenomenon page lists all of its stored properties, the same way a planet's page does.
