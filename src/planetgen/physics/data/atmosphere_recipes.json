@@ -2138,8 +2138,8 @@
    "labels": [
     "READ"
    ],
-   "state": "verified",
-   "limit": "",
+   "state": "partly verified",
+   "limit": "the edge is the equilibrium line of methane and carbon monoxide at the photospheric pressure, computed with the NASA polynomials at solar metals and C/O 0.55; the softness of 100 K is DESIGN (GEN.518)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -2154,7 +2154,10 @@
     }
    ],
    "group": "h",
-   "weight": "window(tday_k, None, 1500, 100)"
+   "lets": {
+    "edge": "loglog(photosphere_bar, 0.001, 725, 0.01, 829, 0.1, 966, 1, 1156, 10, 1437)"
+   },
+   "weight": "window(tday_k, None, edge, 100)"
   },
   {
    "id": "h2",
@@ -2169,13 +2172,11 @@
     "R6"
    ],
    "notes": "",
-   "replacement": "GEN.518",
    "labels": [],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.518"
-   ],
+   "state": "partly verified",
+   "limit": "the edges are computed equilibrium lines at the photospheric pressure (methane equal to carbon monoxide; water 10 percent destroyed) with the NASA polynomials at solar metals and C/O 0.55, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "I",
     "J",
@@ -2188,7 +2189,11 @@
     }
    ],
    "group": "h",
-   "weight": "window(tday_k, 1500, 2200, 100)"
+   "lets": {
+    "low_edge": "loglog(photosphere_bar, 0.001, 725, 0.01, 829, 0.1, 966, 1, 1156, 10, 1437)",
+    "high_edge": "loglog(photosphere_bar, 0.001, 2340, 0.01, 2553, 0.1, 2806, 1, 3111, 10, 3490)"
+   },
+   "weight": "window(tday_k, low_edge, high_edge, 100)"
   },
   {
    "id": "h3",
@@ -2203,16 +2208,14 @@
     "R6"
    ],
    "notes": "no mole fractions without FastChem or GGchem",
-   "replacement": "GEN.518",
    "labels": [
     "READ",
     "DESIGN"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.518"
-   ],
+   "state": "partly verified",
+   "limit": "the edge is the computed temperature at which a tenth of the water is destroyed, at the photospheric pressure, gas only and no ions; the softness of 100 K is DESIGN (GEN.518)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "I",
     "J",
@@ -2225,7 +2228,10 @@
     }
    ],
    "group": "h",
-   "weight": "window(tday_k, 2200, None, 100)"
+   "lets": {
+    "edge": "loglog(photosphere_bar, 0.001, 2340, 0.01, 2553, 0.1, 2806, 1, 3111, 10, 3490)"
+   },
+   "weight": "window(tday_k, edge, None, 100)"
   },
   {
    "id": "h4",

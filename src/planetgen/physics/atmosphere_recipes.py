@@ -94,6 +94,7 @@ INPUTS = {
     "rotation_percentile": "initial rotation percentile of the host star (0.02 to 0.98), drawn by row p6",
     "teq_k": "equilibrium temperature (K)",
     "ts_k": "surface temperature (K)",
+    "photosphere_bar": "pressure of the layer a giant planet's regime is read at (bar); about 0.1 for the dayside emission",
     "tday_k": "dayside temperature (K)",
     "tp_k": "dayside surface temperature of a lava world (K)",
     "t_layer_k": "temperature in the 0.1 to 1 bar layer (K)",
