@@ -940,6 +940,75 @@ with `clamp()`.
   Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
   GEN.430, GEN.445.
 
+- [ ] **UX.195 Every page has a proper heading outline: one h1 for the title, then h2 and below for each section and table, with no skipped level (bug)**
+  Boss, 7:41 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9LcRMXpJUGS2PLuWn5phzu, relayed by the
+  coordinator): "info pages, system pages, planet pages, star pages, all
+  pages need to get a TOC build based on headings, all sections and
+  tables should carry headings from 1 (title / main) and descending.
+  Also change the habitability icon links to go to the habitability
+  section of of the planet information page." Do: sweep every page
+  template (the object pages for every kind, the system, planet, star,
+  sector, phenomenon and galaxy pages, the info and help pages, the
+  lists and search) so the title is the one h1, every section and every
+  table has a heading as its caption or title one level below its
+  parent, and no level is skipped; where a template has a styled div
+  that acts as a heading, make it a real heading. Done: a page-walk test
+  over one page of every kind fails on a second h1, a skipped level, or
+  a table without a heading, and passes; the At a glance panel (UX.188
+  to UX.194) is a section with its own heading. This is the base of the
+  table of contents (UX.196). Owner: Aux 11 (it wrote the object pages
+  and the At a glance panels).
+  Prerequisites: none. Related: UX.196, UX.188, UX.173, UX.177.
+
+- [ ] **UX.196 Every page gets an automatic table of contents built from its headings (bug)**
+  Boss, 7:41 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9LcRMXpJUGS2PLuWn5phzu, relayed by the
+  coordinator): "info pages, system pages, planet pages, star pages, all
+  pages need to get a TOC build based on headings, all sections and
+  tables should carry headings from 1 (title / main) and descending.
+  Also change the habitability icon links to go to the habitability
+  section of of the planet information page." Do: one shared component
+  that reads a page's h2 to h4 headings (UX.195 makes them right) and
+  builds a table of contents of links to their anchors, with stable
+  heading ids; shown at the top of the page after the At a glance panel
+  as a compact list, collapsible, and on a phone as a menu; on every
+  object page (system, planet, star, sector, phenomenon, belt, comet,
+  facility, cluster, superbubble, galaxy) and the other info pages, with
+  the current section highlighted as you scroll; works without script
+  (the list is built on the server from the same headings) and is
+  keyboard and screen-reader usable. Done: a browser test opens a planet
+  page, sees its contents list, follows a link to a section and finds
+  the section in view, and the page-walk test checks each entry points
+  at an existing heading id. Owner: Aux 11, after UX.195.
+  Prerequisites: UX.195. Related: UX.195, UX.172, UX.188.
+
+- [ ] **UX.197 The habitability icons link to the habitability section of the planet information page, not to the help page (bug)**
+  Boss, 7:41 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9LcRMXpJUGS2PLuWn5phzu, relayed by the
+  coordinator): "info pages, system pages, planet pages, star pages, all
+  pages need to get a TOC build based on headings, all sections and
+  tables should carry headings from 1 (title / main) and descending.
+  Also change the habitability icon links to go to the habitability
+  section of of the planet information page." Today every habitability
+  symbol, life score and equipment or Habitable chip links straight to
+  its section of the habitability help page (UX.181). Change the
+  destination: an icon in a list, search row, sector or system table,
+  map infobox or a page's own basics line goes to that planet's own
+  information page at its habitability section
+  (/object/<ref>#habitability, the section anchor of the planet page,
+  which the owner adds with a heading id if the section has none), and
+  on the planet's own page the icon scrolls to that section. The help
+  page stays one click away: the section's heading carries a help link
+  (the existing help-link markup) to the matching part of the
+  habitability help page. Done: a browser test clicks a habitability
+  icon in a sector list and in a search row and lands on the planet page
+  at the habitability section, and clicks the help link there and lands
+  on the help page; the help-link coverage test (TEST.331, DOC.6) is
+  updated to the new rule. Owner: Aux 11 (UX.181 was the lane's
+  help-link work).
+  Prerequisites: none. Related: UX.181, UX.195, TEST.331, DOC.6, UX.189.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
