@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2263] - 2026-10-24
+
+**Headline:** The cache warm-up no longer fails on a galaxy with more chunks than one stage can queue as units.
+
+### Fixed
+- **A warm-up stage failed with "a stage queues at most 4000 units, not 4051".** The warm stages cut their keys into
+  fixed chunks, so a galaxy with more than 4000 chunks was refused by the queue. A stage now makes its units a whole
+  multiple of the chunk when the chunks would pass the cap (`units.coarsen`), and a unit builds its keys 64 nodes per
+  request, stopping part way when the cache fills. The habitability and map-luminosity fills cut their id ranges the
+  same way.
+
 ## [8.0.2262] - 2026-10-24
 
 **Headline:** The object page walk test reads the bodies it opens from the database, not from a loop of API calls that could run out of the API's rate limit.
