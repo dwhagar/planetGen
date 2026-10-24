@@ -17,7 +17,7 @@ from planetgen import tuning
 from planetgen.db import store
 from planetgen.describe import describe, model
 from planetgen.describe import build
-from planetgen.describe.quantity import inline_text
+from planetgen.describe.quantity import display_value, inline_text
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
@@ -60,7 +60,7 @@ def _plain(inline):
         if isinstance(item, str):
             out.append(item)
         elif "qty" in item:
-            out.append(format_quantity(_LADDER_BY_KIND[item["qty"]["kind"]], item["qty"]["si"]))
+            out.append(format_quantity(_LADDER_BY_KIND[item["qty"]["kind"]], display_value(item["qty"])))
         elif "strong" in item:
             out.append(item["strong"])
         elif "swatch" in item:
@@ -249,7 +249,7 @@ def test_an_airless_body_has_a_zero_pressure_fact_and_no_atmosphere_block():
             rows = {row["key"]: row for block in section["blocks"] if block["type"] == "facts" for row in block["rows"]}
             if "pressure" not in rows:
                 continue
-            pressure = rows["pressure"]["value"][0]["qty"]["si"]
+            pressure = display_value(rows["pressure"]["value"][0]["qty"])
             has_air = any(block["type"] == "composition" and block["label"] == "Atmosphere" for block in section["blocks"])
             assert (pressure > 0) == has_air
             found |= pressure == 0

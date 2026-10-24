@@ -9,6 +9,8 @@ how a power of ten and emphasis are marked.
 
 import re
 
+from planetgen.describe.model import DISPLAY_UNITS
+from planetgen.physics import unit_registry
 from planetgen.physics.quantity import Quantity
 from planetgen.util import chem, ladders
 from planetgen.util.format import format_number, format_quantity, scientific_text
@@ -23,9 +25,18 @@ FORMATS = ("text", "markdown", "wikitext")
 """tuple: The plain-string formats an inline list is written in."""
 
 
+def display_value(quantity):
+    """A quantity item's number in the unit its kind is written from (`model.DISPLAY_UNITS`); `None` when it has none."""
+    value, unit = quantity["value"], quantity["unit"]
+    shown = DISPLAY_UNITS[quantity["kind"]]
+    if value is None or unit == shown:
+        return value
+    return unit_registry.convert(value, unit, shown)
+
+
 def quantity_text(quantity):
-    """The plain text of a quantity (`{"kind", "si", ...}`), with Unicode superscripts for a power of ten."""
-    kind, value = quantity["kind"], quantity["si"]
+    """The plain text of a quantity (`{"kind", "value", "unit", ...}`), with Unicode superscripts for a power of ten."""
+    kind, value = quantity["kind"], display_value(quantity)
     if kind in LADDER_BY_KIND:
         return format_quantity(LADDER_BY_KIND[kind], value, companions=quantity.get("companions", True))
     if value is None:

@@ -187,7 +187,7 @@ Provisional labels UN1 to UN12, in this order. Lanes as in the unified plan (Cor
 - **UN6 Display reads the registry.** Ladder rungs take symbol and factor from the registry; the 21 `format_*` wrappers (about 230 lines) become one `format_quantity(Quantity)` entry plus thin names where the call sites need them; UX.107 call sites move with it. Depends on UN2.
 - **UN7 Browser table.** The registry generated to JS beside `unitladders.js`; the three `AU_KM` and the `KM_PER_PC` declarations removed. Core 2.
 - **UN8 Position class on the registry.** `length_unit` by key, the bare 1000 and the copy of c removed, `mass`/`mu` a declared relation. Depends on UN1 and UN2.
-- **UN9 Describe and API.** `qty()` builds a `Quantity`; the `{"kind","si"}` shape becomes `{"kind","value","unit"}` with `si` kept only where an API consumer needs it (no backward shims otherwise). Ties to UX.107 and UX.119.
+- **UN9 Describe and API.** `qty()` builds a `Quantity`; the `{"kind","si"}` shape becomes `{"kind","value","unit"}` (done, GEN.574: the describe model holds the stored unit, `data-si` stays on the HTML span for `units.js`). Ties to UX.107 and UX.119.
 - **UN10 Precision table.** Each length column declares its reference frame and the largest distance at which a 10 m body keeps a metre; a test reads it. Depends on UN4.
 - **UN11 Docs.** `units-and-number-formatting.md` and `database-schema.md` updated; the unit rules go in the file header of the registry.
 - **UN12 Sweep the mass-object classes.** The 35 unit-suffixed attributes in the 8 class files, and the same quantity under two units (mass kg and solar, angle deg and rad), unified by the hybrid, one declared native unit and the other form derived. Part of U4a; Core 4.
