@@ -1241,3 +1241,5 @@ Baseline: PR #1817.
 | UX.159 | 8.1 | Admin control suite |
 | GEN.412 | 8.1 | Radiation chain for habitability (GEN.445) |
 | MAP.288 | 8.1 | Fly-through map |
+| PERF.176 | 8.1 | The headline closes |
+| UX.162 | 8.1 | The headline closes |

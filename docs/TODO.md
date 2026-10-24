@@ -992,22 +992,6 @@ with `clamp()`.
   Hunt.
   Prerequisites: none.
 
-- [ ] **UX.162 The plan prints a "Where the plan's time went" table in every galaxy plan; it should show only in debug mode or with a --timing flag (bug)**
-  Boss's live observation, 11:12 PM EDT 2026-10-23: the generation text
-  for a galaxy plan ends with a step table headed "Where the plan's time
-  went (38.63s)" with a percent per step. It came from PERF.163 (#2576,
-  Performance lane), where it was meant for the lanes to find slow
-  steps, but it has no switch, so every plan prints it. Boss decided
-  (11:14 PM EDT, relayed by the coordinator): show it only in debug mode
-  or with a --timing flag. Do: the plan prints the table only when debug
-  mode is on or --timing is given (in the command and on the Generate
-  page directive if it has one), and the normal text is unchanged
-  otherwise; the tests that read the table
-  (src/tests/test_plan_outline.py) pass the flag. Done: a plan without
-  the flag prints no table, a plan with it prints the same table, with a
-  test for both. Owner: Performance lane.
-  Prerequisites: none.
-
 - [ ] **UX.163 Every planet and moon page and the descriptions carry a Required line and a Recommended line for the equipment, on every run**
   Boss, 11:25 PM EDT 2026-10-23: a Required line and a Recommended line
   on every run (every planet and moon page and every description
@@ -15407,22 +15391,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   successful run with --keep and go without it. Owner: Performance
   (proposed by the TODO thread, because the lane found it).
   Prerequisites: none. Related: PERF.146.
-
-- [ ] **PERF.176 Storing the galaxy shape takes 52 percent of the plan (20 s of 38.6 s): find why and speed it up**
-  Boss's plan log of 11:12 PM EDT 2026-10-23 (via the PERF.163 step
-  table): "storing the shape" took 19.99 s, 51.8 percent of a 38.63 s
-  plan; the component field took 5.85 s (15.1 percent), storing the
-  clusters and satellites 2.71 s, the young open clusters 2.23 s,
-  storing the containers 1.98 s. Boss asked for this item (11:14 PM EDT,
-  relayed by the coordinator). Do: profile store.save_galaxy_shape (the
-  rows it writes, their indexes, the commit pattern, any per-row round
-  trip) and speed it up with no change to the stored values, so no
-  generator epoch; then look at the next steps in the table (the
-  component field, storing clusters and satellites, containers). Done:
-  the plan's storing-the-shape step falls to a small share with the
-  measured before and after on this item, and the golden outputs are
-  unchanged. Owner: Performance lane.
-  Prerequisites: none.
 
 - [ ] **PERF.178 The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug)**
   From the generation-log analysis of Boss's run
