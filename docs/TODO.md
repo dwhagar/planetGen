@@ -972,16 +972,6 @@ with `clamp()`.
   2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: none.
 
-- [ ] **UX.159 Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests**
-  About 190 tests go with them. In progress in the regression-test
-  cleanup lane (PR to follow). docs/generated/architecture-map.html and
-  docs/design/architecture/architecture.html still list web/old_urls.py
-  and are regenerated after the PR merges. Source:
-  reports/regression-test-review-2026-10-23.md (Boss approved A1, B1,
-  C1, D1, E1), relayed by the regression-test cleanup lane at 10:24 PM
-  EDT 2026-10-23 as the lane reported.
-  Prerequisites: none.
-
 - [ ] **UX.160 The search icon button opens a box over the page: it should go straight to the search page (bug)**
   Boss's live observation, 10:35 PM EDT 2026-10-23. The search icon
   button in the header pulls up a search box instead of going to the
