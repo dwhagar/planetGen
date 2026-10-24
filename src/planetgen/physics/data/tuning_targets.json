@@ -785,6 +785,52 @@
     25
    ],
    "category": "k3"
+  },
+  {
+   "id": "e1-valley-slope",
+   "row": "atmosphere-e:e1",
+   "statistic": "mean over simulated Kepler surveys of the slope d log10 R / d log10 P of the radius valley between bare cores and envelope planets, periods 2 to 64 d",
+   "kind": "mean",
+   "value": -0.11,
+   "sigma": 0.02,
+   "source": "Petigura et al. 2022 (arXiv:2201.10020): m = dlogRp/dlogP = -0.11 +- 0.02, P 1 to 100 d, M* 0.5 to 1.4 (tunable-gaps-sources/group1-subneptunes.md, READ); the other published slopes -0.09 (+0.02/-0.04) Van Eylen and -0.096 (+0.023/-0.027) Ho and Van Eylen lie inside 1 sigma",
+   "label": "READ",
+   "validity": {
+    "period_d": [
+     2.0,
+     100.0
+    ],
+    "host_mass_solar": [
+     0.8,
+     1.3
+    ]
+   },
+   "fill_id": "GEN.509",
+   "falsifier": "a mean simulated valley slope more than 2 sigma from -0.11 over 24 surveys of 4000 planets (physics/radius_valley.py)",
+   "role": "target"
+  },
+  {
+   "id": "e1-valley-radius",
+   "row": "atmosphere-e:e1",
+   "statistic": "mean over simulated Kepler surveys of the radius of the valley at a period of 10 d, in units of 6371 km (R_E)",
+   "kind": "mean",
+   "value": 1.84,
+   "sigma": 0.03,
+   "source": "Petigura et al. 2022 (arXiv:2201.10020): Rp,0 = 1.84 +- 0.03 R_E (6371 km) at P = 10 d (tunable-gaps-sources/group1-subneptunes.md, READ)",
+   "label": "READ",
+   "validity": {
+    "period_d": [
+     2.0,
+     100.0
+    ],
+    "host_mass_solar": [
+     0.8,
+     1.3
+    ]
+   },
+   "fill_id": "GEN.509",
+   "falsifier": "a mean simulated valley radius at 10 d more than 2 sigma from 1.84 over 24 surveys of 4000 planets",
+   "role": "target"
   }
  ]
 }

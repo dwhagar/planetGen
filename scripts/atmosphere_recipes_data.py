@@ -56,7 +56,7 @@ GROUPS = {
     "c-after": {"rows": ["c5", "c6"], "fallback": "c6"},
     "d": {"rows": ["d1", "d2", "d3", "d4", "d5"], "fallback": "d1"},
     "e": {"rows": ["e1", "e2", "e3", "e4"], "fallback": "e1",
-          "constants": {"f_env0": [0.005, 0.10, "log"], "eta": [0.1, 0.5, "log"]}},
+          "constants": {"f_env0": [0.035, 0.08, "log"], "eta": [0.1, 0.5, "log"]}},
     "f": {"rows": ["f1", "f2", "f3", "f4"], "fallback": None},
     "g": {"rows": ["g1", "g2", "g3", "g4", "g5"], "fallback": None},
     "h": {"rows": ["h1", "h2", "h3"], "fallback": None},
@@ -161,11 +161,11 @@ MACHINE = {
                weight="1 if 2.016*AMU_KG*(v_esc_kms*1000)**2/(2*K_B*(teq_k + min(1500, 750*sqrt(xuv_index)))) >= 30 else 0"),
 
     # ---- e. sub-Neptune and super-Earth envelope ----
-    "e1": dict(kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
-               weight="(1 - p('b4'))*min(1, f_lost/f_env0)", lets={"f_lost": "0.1*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"}),
+    "e1": dict(state="partly verified", limit="f_env0 and the loss efficiency are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d) along a degenerate ridge eta = 10 f_env0; the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509)", tunable=True, kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
+               weight="(1 - p('b4'))*min(1, f_lost/f_env0)", lets={"f_lost": "10*f_env0*(15/v_esc_kms)**2*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"}),
     "e2": dict(kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
                weight="(1 - p('b4'))*(1 - min(1, f_lost/f_env0))",
-               lets={"f_lost": "0.1*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"}),
+               lets={"f_lost": "10*f_env0*(15/v_esc_kms)**2*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"}),
     "e3": dict(state="partly verified", limit="the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
                weight="p('b4')*(1 - eta)"),
     "e4": dict(state="partly verified", limit="the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=["S", "V", "I", "T"], when=[c("mass_earth", minimum=1, maximum=30)],
