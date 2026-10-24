@@ -3,11 +3,13 @@
 """
 Bumps the generator epoch after the golden files were changed on purpose (OPS.56):
 
-    python -m tests.golden_update --reason "what changed in the generated output and why"
+    python -m tests.golden_update --reason "what changed in the generated output and why" --affects fill
 
 A PR that changes what the generator produces for a seed changes the golden files under `src/tests/golden/`, and
 `scripts/bump_version.py --check-pr` then requires three things together: those files, the epoch bumped by one, and
-a line `generation-output: changed` in the PR's `changes/` note. This tool does the first two: it rewrites the golden
+a line `generation-output: changed` in the PR's `changes/` note. `--affects` names the stages the change altered
+(`plan`, `scatter`, `fill`, `population`, comma separated, the deepest ones: GEN.764 redoes exactly those in a galaxy made
+under the epoch before; `plan` means such a galaxy needs a full regeneration); it is required for a new epoch. This tool does the first two: it rewrites the golden
 files (TEST.77: `tests/test_golden_seed.py` run with `PLANETGEN_WRITE_GOLDEN=1`, about ten minutes, it needs the test
 database) and appends the next epoch to `src/tests/golden/epochs.json`, with the reason and no release yet (stamping
 the release names it). After a merge conflict in the golden files, take main's files and run it again: it writes the
@@ -24,6 +26,8 @@ import json
 import os
 import subprocess
 import sys
+
+from planetgen.util import generator_epoch
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 GOLDEN_DIR = "src/tests/golden"
@@ -56,7 +60,19 @@ def _golden_files_exist(root):
     return any(os.path.basename(name) != "epochs.json" for name in names)
 
 
-def bump(reason, root=ROOT, environ=None):
+_SAY_AFFECTS = ("say which stages the change altered: --affects {stages} (any of them, comma separated; `plan` means a "
+                "galaxy made under the epoch before needs a full regeneration)")
+
+
+def check_affects_given(affects, root=ROOT):
+    """Refuses at once, before the long rewrite of the golden files, when a new epoch is due and `affects` is not given."""
+    with open(os.path.join(root, EPOCHS_FILE), encoding="utf-8") as handle:
+        data = json.load(handle)
+    if data.get("stages") is not None and affects is None and not data["epochs"][-1].get("pending"):
+        raise Refused(_SAY_AFFECTS.format(stages=",".join(data["stages"])))
+
+
+def bump(reason, root=ROOT, environ=None, affects=None):
     """
     Appends the next epoch.
 
@@ -78,14 +94,27 @@ def bump(reason, root=ROOT, environ=None):
     with open(path, encoding="utf-8") as handle:
         data = json.load(handle)
     epochs = data["epochs"]
+    stages = data.get("stages")
+    if affects is not None and stages is not None and (not affects or any(s not in stages for s in affects)):
+        raise Refused(f"--affects names one or more of {', '.join(stages)}, got {','.join(affects) or 'nothing'}")
     if epochs[-1].get("pending"):
+        if affects is not None:
+            epochs[-1]["affects"] = list(affects)
+            _write_epochs(path, data)
         return epochs[-1]["epoch"]
-    epochs.append({"epoch": epochs[-1]["epoch"] + 1, "first_release": None, "pending": True,
-                   "reason": reason.strip()})
-    with open(path, "w", encoding="utf-8") as handle:
-        json.dump(data, handle, indent=2)
-        handle.write("\n")
+    if stages is not None and affects is None:
+        raise Refused(_SAY_AFFECTS.format(stages=",".join(stages)))
+    entry = {"epoch": epochs[-1]["epoch"] + 1, "first_release": None, "pending": True, "reason": reason.strip()}
+    if affects is not None:
+        entry["affects"] = list(affects)
+    epochs.append(entry)
+    _write_epochs(path, data)
     return epochs[-1]["epoch"]
+
+
+def _write_epochs(path, data):
+    with open(path, "w", encoding="utf-8") as handle:
+        handle.write(generator_epoch.format_epochs(data))
 
 
 def write_golden(root=ROOT, environ=None):
@@ -110,12 +139,16 @@ def write_golden(root=ROOT, environ=None):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("--reason", required=True, help="what changed in the generated output, and why")
+    parser.add_argument("--affects", help="the stages the change altered, comma separated: plan, scatter, fill, "
+                                          "population (required for a new epoch)")
     parser.add_argument("--no-write", action="store_true", help="the golden files were already rewritten")
     args = parser.parse_args(argv)
+    affects = [part.strip() for part in args.affects.split(",") if part.strip()] if args.affects else None
     try:
+        check_affects_given(affects)
         if not args.no_write:
             write_golden()
-        epoch = bump(args.reason)
+        epoch = bump(args.reason, affects=affects)
     except Refused as exc:
         print(f"golden_update: {exc}", file=sys.stderr)
         return 1

@@ -1,480 +1,578 @@
 {
+  "stages": ["plan", "scatter", "fill", "population"],
+  "stage_note": "Each epoch's `affects` lists the deepest stages of generation whose output it changed: plan (the galaxy's shape and its stored totals), scatter (the bright, massive and phenomenon scatter and the stars it draws), fill (what a sector holds), population (species, polities). Links, sector paths, block totals and nebula blocks follow the fill and are redone with it. `plan` means a full regeneration (GEN.764). Epochs 1 to 96 were classified by reading their reasons, conservatively: when in doubt a stage is listed.",
   "epochs": [
     {
       "epoch": 1,
       "first_release": null,
-      "reason": "The first epoch: every release up to and including the one that added this counter (OPS.56)."
+      "reason": "The first epoch: every release up to and including the one that added this counter (OPS.56).",
+      "affects": []
     },
     {
       "epoch": 2,
       "first_release": "8.0.1620",
-      "reason": "Stored distances and radii use planetgen.util.detmath (sqrt of the squares added left to right) in place of math.hypot and math.dist, and the nebula shape's rotation uses detmath.matmul in place of @, so the last bit of many positions differs (GEN.135)."
+      "reason": "Stored distances and radii use planetgen.util.detmath (sqrt of the squares added left to right) in place of math.hypot and math.dist, and the nebula shape's rotation uses detmath.matmul in place of @, so the last bit of many positions differs (GEN.135).",
+      "affects": ["plan", "scatter", "fill"]
     },
     {
       "epoch": 3,
       "first_release": "8.0.1635",
-      "reason": "The population pass draws species, civilization ages, technology levels, governments and polity colors from the homeworld's unique ID instead of a row id, so the same galaxy no longer differs between worker counts (GEN.306)."
+      "reason": "The population pass draws species, civilization ages, technology levels, governments and polity colors from the homeworld's unique ID instead of a row id, so the same galaxy no longer differs between worker counts (GEN.306).",
+      "affects": ["population"]
     },
     {
       "epoch": 4,
       "first_release": "8.0.1679",
-      "reason": "Stars leaving the main sequence follow the real phases and tables: a horizontal branch (35 to 50 solar luminosities, colour from [Fe/H] and age) and an asymptotic giant branch for stars under 2.2 solar masses, a red giant branch whose time per unit of ln L falls as L^-0.78 instead of an even spread, and the corrected horizontal-branch temperature ranges and colour shares, so a giant or horizontal-branch star's luminosity, temperature and type differ (GEN.286, GEN.287, GEN.407). GEN.103's close-pair and wide-pair rules and GEN.134's star-formation factor were merged before this epoch without a bump of their own (#1953, #1971); releases 8.0.1636 to 8.0.1678 carry them under epoch 3."
+      "reason": "Stars leaving the main sequence follow the real phases and tables: a horizontal branch (35 to 50 solar luminosities, colour from [Fe/H] and age) and an asymptotic giant branch for stars under 2.2 solar masses, a red giant branch whose time per unit of ln L falls as L^-0.78 instead of an even spread, and the corrected horizontal-branch temperature ranges and colour shares, so a giant or horizontal-branch star's luminosity, temperature and type differ (GEN.286, GEN.287, GEN.407). GEN.103's close-pair and wide-pair rules and GEN.134's star-formation factor were merged before this epoch without a bump of their own (#1953, #1971); releases 8.0.1636 to 8.0.1678 carry them under epoch 3.",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 5,
       "first_release": "8.0.1685",
-      "reason": "The bright-star and mass passes cover the 262 kpc reach in groups of 64 bands, drawing stars beyond the outline from new streams (GEN.322)."
+      "reason": "The bright-star and mass passes cover the 262 kpc reach in groups of 64 bands, drawing stars beyond the outline from new streams (GEN.322).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 6,
       "first_release": "8.0.1686",
-      "reason": "The phenomena pass covers the 262 kpc reach in groups of bands, drawing black holes, neutron stars, planetary nebulae, supernova remnants and magnetars beyond the outline from new streams (GEN.323)."
+      "reason": "The phenomena pass covers the 262 kpc reach in groups of bands, drawing black holes, neutron stars, planetary nebulae, supernova remnants and magnetars beyond the outline from new streams (GEN.323).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 7,
       "first_release": "8.0.1687",
-      "reason": "The clusters and the satellite galaxies place their own bright and massive stars and phenomena from their profiles, and bright stars take the satellite population (GEN.324)."
+      "reason": "The clusters and the satellite galaxies place their own bright and massive stars and phenomena from their profiles, and bright stars take the satellite population (GEN.324).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 8,
       "first_release": "8.0.1697",
-      "reason": "A sector's supernova remnants are Type Ia with the share of their place (the profile's type_ia_share) instead of the constant, and the planetary nebula factor follows the old-star share (GEN.319)."
+      "reason": "A sector's supernova remnants are Type Ia with the share of their place (the profile's type_ia_share) instead of the constant, and the planetary nebula factor follows the old-star share (GEN.319).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 9,
       "first_release": "8.0.1703",
-      "reason": "A star younger than 10 Myr and under 8 solar masses is a protostar (Class 0 and I) or a pre-main-sequence star drawn from a derived contraction track with a disk descriptor, protostars take Perseus' companion share, and the companions of young systems follow the same track (GEN.242)."
+      "reason": "A star younger than 10 Myr and under 8 solar masses is a protostar (Class 0 and I) or a pre-main-sequence star drawn from a derived contraction track with a disk descriptor, protostars take Perseus' companion share, and the companions of young systems follow the same track (GEN.242).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 10,
       "first_release": "8.0.1705",
-      "reason": "Every Hill sphere (a star's, a pair's and a compact object's system perimeter and keep-out radius) reads the drawn galaxy's virial mass from its mass chain in place of the fixed Milky Way mass, so the stored perimeters differ per galaxy seed (GEN.400)."
+      "reason": "Every Hill sphere (a star's, a pair's and a compact object's system perimeter and keep-out radius) reads the drawn galaxy's virial mass from its mass chain in place of the fixed Milky Way mass, so the stored perimeters differ per galaxy seed (GEN.400).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 11,
       "first_release": "8.0.1708",
-      "reason": "A Bok globule holds a protostar in 30% of clouds and a star-forming core one to four, built by the sectors the cloud reaches; a planetary nebula's central star has a close companion in 20%; a star's hosted-nebula roll comes from its own seed (GEN.320)."
+      "reason": "A Bok globule holds a protostar in 30% of clouds and a star-forming core one to four, built by the sectors the cloud reaches; a planetary nebula's central star has a close companion in 20%; a star's hosted-nebula roll comes from its own seed (GEN.320).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 12,
       "first_release": "8.0.1726",
-      "reason": "A satellite galaxy's stars are split by a history derived from its stellar mass, size and mean age into young, intermediate and old populations (the Magellanic Clouds now place massive stars), the satellite's old window is 3 to 13 Gy, and the satellite scatter rows change with it (GEN.526)."
+      "reason": "A satellite galaxy's stars are split by a history derived from its stellar mass, size and mean age into young, intermediate and old populations (the Magellanic Clouds now place massive stars), the satellite's old window is 3 to 13 Gy, and the satellite scatter rows change with it (GEN.526).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 13,
       "first_release": "8.0.1740",
-      "reason": "A satellite galaxy's young stars give it gas, so the Magellanic Clouds hold molecular clouds, nebulae and supernova remnants and place magnetars and remnants in the component pass, a satellite's planetary nebulae follow its old-star share, and the shell scatter weighs planetary nebulae by the old stars' share against the solar circle's (GEN.528)."
+      "reason": "A satellite galaxy's young stars give it gas, so the Magellanic Clouds hold molecular clouds, nebulae and supernova remnants and place magnetars and remnants in the component pass, a satellite's planetary nebulae follow its old-star share, and the shell scatter weighs planetary nebulae by the old stars' share against the solar circle's (GEN.528).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 14,
       "first_release": "8.0.1745",
-      "reason": "The widest axis a wide pair keeps follows the relative-velocity dispersion (root 2 times a population's own) and the mass-weighted mean mass of the stars and remnants that pass it, from the generator's own mass function, so the widest axis a wide pair keeps is about 2.5 times narrower than before in every place (GEN.447)."
+      "reason": "The widest axis a wide pair keeps follows the relative-velocity dispersion (root 2 times a population's own) and the mass-weighted mean mass of the stars and remnants that pass it, from the generator's own mass function, so the widest axis a wide pair keeps is about 2.5 times narrower than before in every place (GEN.447).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 15,
       "first_release": "8.0.1746",
-      "reason": "A star's companion chance is shared between close (0.05 to 0.25 AU), inner (0.25 to 10 AU) and outer (10 AU and out) pairs by the companions per decade of period of Moe and Di Stefano's Table 13, wide pairs start at 0.25 AU and draw their axis from the same lines, and the metallicity trend moves the close and inner odds together, so which stars have a companion, of what kind and how far differ (GEN.448)."
+      "reason": "A star's companion chance is shared between close (0.05 to 0.25 AU), inner (0.25 to 10 AU) and outer (10 AU and out) pairs by the companions per decade of period of Moe and Di Stefano's Table 13, wide pairs start at 0.25 AU and draw their axis from the same lines, and the metallicity trend moves the close and inner odds together, so which stars have a companion, of what kind and how far differ (GEN.448).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 16,
       "first_release": "8.0.1746",
-      "reason": "Mid-B stars (5 to 9 solar masses at birth) have a companion with chance 0.76 and early-B stars (9 to 16) 0.84, against 0.65 for every B star, and their star counts follow Moe and Di Stefano's Table 13 single, binary and multiple fractions, so which massive stars have companions, and how many, differ (GEN.449)."
+      "reason": "Mid-B stars (5 to 9 solar masses at birth) have a companion with chance 0.76 and early-B stars (9 to 16) 0.84, against 0.65 for every B star, and their star counts follow Moe and Di Stefano's Table 13 single, binary and multiple fractions, so which massive stars have companions, and how many, differ (GEN.449).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 17,
       "first_release": "8.0.1750",
-      "reason": "A star younger than its contraction time and under 8 solar masses is a pre-main-sequence star at any age (the 10 Myr cap is gone) on the BHAC15 track (GEN.529), a star lives its main sequence by the Hurley, Pols and Tout lifetime (GEN.467), a neutron star's radius follows its mass in the Miller et al. band (GEN.463), and a star lighter than 2.2 solar masses has the Hurley giant branch and a 100 Myr horizontal branch (GEN.502), and an intermediate-mass black hole is 3e-6 of black holes in place of 0.1% (GEN.259), so the ages, phases and luminosities of stars and the scatter rows change."
+      "reason": "A star younger than its contraction time and under 8 solar masses is a pre-main-sequence star at any age (the 10 Myr cap is gone) on the BHAC15 track (GEN.529), a star lives its main sequence by the Hurley, Pols and Tout lifetime (GEN.467), a neutron star's radius follows its mass in the Miller et al. band (GEN.463), and a star lighter than 2.2 solar masses has the Hurley giant branch and a 100 Myr horizontal branch (GEN.502), and an intermediate-mass black hole is 3e-6 of black holes in place of 0.1% (GEN.259), so the ages, phases and luminosities of stars and the scatter rows change.",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 18,
       "first_release": "8.0.1757",
-      "reason": "Hypervelocity stars are placed out to the grid's reach with no outline test and their count scales with the reach, neutron stars and black holes the galaxy ejected stream through every sector as their own stage on straight lines, and a supernova remnant in a superbubble is sized by the cavity's interior density (GEN.238, GEN.298), so the scatter rows and the sector fills change."
+      "reason": "Hypervelocity stars are placed out to the grid's reach with no outline test and their count scales with the reach, neutron stars and black holes the galaxy ejected stream through every sector as their own stage on straight lines, and a supernova remnant in a superbubble is sized by the cavity's interior density (GEN.238, GEN.298), so the scatter rows and the sector fills change.",
+      "affects": ["scatter"]
     },
     {
       "epoch": 19,
       "first_release": "8.0.1758",
-      "reason": "The disk's young, intermediate and old star shares come from its own gas history (the Kennicutt-Schmidt law fed by the stars its halo builds), so a light galaxy holds more young stars and a heavy one fewer than the flat ten-billion-year history, and the magnetar rate reads the new young share (GEN.469)."
+      "reason": "The disk's young, intermediate and old star shares come from its own gas history (the Kennicutt-Schmidt law fed by the stars its halo builds), so a light galaxy holds more young stars and a heavy one fewer than the flat ten-billion-year history, and the magnetar rate reads the new young share (GEN.469).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 20,
       "first_release": "8.0.1759",
-      "reason": "The ionizing members of a class D or E emission region are real stars placed in a Plummer sphere about its seed star, and a star's hosted-nebula roll reads its mass, age and temperature as floats, so some stars roll a different nebula (GEN.321)."
+      "reason": "The ionizing members of a class D or E emission region are real stars placed in a Plummer sphere about its seed star, and a star's hosted-nebula roll reads its mass, age and temperature as floats, so some stars roll a different nebula (GEN.321).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 21,
       "first_release": "8.0.1771",
-      "reason": "A free-floating brown dwarf's mass follows the 20 pc census's mass function and its radius the cooling laws' (0.07 to 0.14 solar radii), so its temperature, flux and surface change, and a brown dwarf member of a multi-star tree has a spectral type as its state and the radius the laws give at the system's age (GEN.252)."
+      "reason": "A free-floating brown dwarf's mass follows the 20 pc census's mass function and its radius the cooling laws' (0.07 to 0.14 solar radii), so its temperature, flux and surface change, and a brown dwarf member of a multi-star tree has a spectral type as its state and the radius the laws give at the system's age (GEN.252).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 22,
       "first_release": "8.0.1774",
-      "reason": "A star of 25 solar masses or more (more at low metallicity) is a Wolf-Rayet star for the last 0.3 Myr of its life in place of the end of its supergiant phase, with a WN, WC or WO type, a luminosity and temperature of its own and a companion in 52% (WN) or 90% (WC, WO) of systems, and a Wolf-Rayet star lights a class X ring nebula in 40% of cases (GEN.243)."
+      "reason": "A star of 25 solar masses or more (more at low metallicity) is a Wolf-Rayet star for the last 0.3 Myr of its life in place of the end of its supergiant phase, with a WN, WC or WO type, a luminosity and temperature of its own and a companion in 52% (WN) or 90% (WC, WO) of systems, and a Wolf-Rayet star lights a class X ring nebula in 40% of cases (GEN.243).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 23,
       "first_release": "8.0.1776",
-      "reason": "The thick disk, bar and stellar halo are drawn from the galaxy seed (thick-disk mass, length and height from the circular speed, the bar's presence, axis ratios and angle, the halo's share of the stars), and the young, intermediate and old heights and every population's velocity dispersion come from one heating law with a molecular birth-gas stand-in, so a seed places different stars, motions and bar-gap star formation (GEN.532, GEN.533)."
+      "reason": "The thick disk, bar and stellar halo are drawn from the galaxy seed (thick-disk mass, length and height from the circular speed, the bar's presence, axis ratios and angle, the halo's share of the stars), and the young, intermediate and old heights and every population's velocity dispersion come from one heating law with a molecular birth-gas stand-in, so a seed places different stars, motions and bar-gap star formation (GEN.532, GEN.533).",
+      "affects": ["plan", "scatter", "fill"]
     },
     {
       "epoch": 24,
       "first_release": "8.0.1783",
-      "reason": "A body stores its life stage, pace, exact ages and flavour key as data instead of paragraphs and a habitability note, and the class texts the generator writes no longer claim life, so the stored description and life columns change (DB.51, GEN.221)."
+      "reason": "A body stores its life stage, pace, exact ages and flavour key as data instead of paragraphs and a habitability note, and the class texts the generator writes no longer claim life, so the stored description and life columns change (DB.51, GEN.221).",
+      "affects": ["fill"]
     },
     {
       "epoch": 25,
       "first_release": "8.0.1801",
-      "reason": "The central black hole's mass follows the galaxy (the bulge relation for a classical bulge, else the stellar-mass relation, each with its own seeded deviation) and the nuclear star cluster's mass follows its stellar mass with a drawn slope, so a seed places a different nucleus, quasar and hypervelocity-star source (GEN.402)."
+      "reason": "The central black hole's mass follows the galaxy (the bulge relation for a classical bulge, else the stellar-mass relation, each with its own seeded deviation) and the nuclear star cluster's mass follows its stellar mass with a drawn slope, so a seed places a different nucleus, quasar and hypervelocity-star source (GEN.402).",
+      "affects": ["plan", "scatter"]
     },
     {
       "epoch": 26,
       "first_release": "8.0.1810",
-      "reason": "The kit a human visitor needs is an environment suit past the Green heat or cold edge or with oxygen above the chronic limit, as the description says, so the stored equipment tier of such a world rises from a mask or none (TEST.155)."
+      "reason": "The kit a human visitor needs is an environment suit past the Green heat or cold edge or with oxygen above the chronic limit, as the description says, so the stored equipment tier of such a world rises from a mask or none (TEST.155).",
+      "affects": ["fill"]
     },
     {
       "epoch": 27,
       "first_release": "8.0.1812",
-      "reason": "The three rounded unit factors become the exact ones: a light-year is 63241.0770843 AU (was 63241.077) and a parsec is 3.2615637772 light-years (was 3.26156), so an H II region's stored radius in light-years changes in its last digits and an asteroid field's size digit can change at its floor boundary (GEN.572)."
+      "reason": "The three rounded unit factors become the exact ones: a light-year is 63241.0770843 AU (was 63241.077) and a parsec is 3.2615637772 light-years (was 3.26156), so an H II region's stored radius in light-years changes in its last digits and an asteroid field's size digit can change at its floor boundary (GEN.572).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 28,
       "first_release": "8.0.1813",
-      "reason": "A brown dwarf's temperature, radius and luminosity follow the cooling track of Baraffe et al. (2015) in place of a single old-age power law, so the heaviest brown dwarfs stay as hot L dwarfs and a free-floating brown dwarf's radius, flux and surface change with its drawn age (GEN.549)."
+      "reason": "A brown dwarf's temperature, radius and luminosity follow the cooling track of Baraffe et al. (2015) in place of a single old-age power law, so the heaviest brown dwarfs stay as hot L dwarfs and a free-floating brown dwarf's radius, flux and surface change with its drawn age (GEN.549).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 29,
       "first_release": "8.0.1819",
-      "reason": "A generated galaxy draws its young open clusters from its disk's star formation history (GEN.244): they are stored with the globular clusters, add their density to their cell in one of twelve age-bin populations, and the component pass draws their bright and massive stars, so a new galaxy's stars, systems and sector profiles differ near them."
+      "reason": "A generated galaxy draws its young open clusters from its disk's star formation history (GEN.244): they are stored with the globular clusters, add their density to their cell in one of twelve age-bin populations, and the component pass draws their bright and massive stars, so a new galaxy's stars, systems and sector profiles differ near them.",
+      "affects": ["scatter"]
     },
     {
       "epoch": 30,
       "first_release": "8.0.1820",
-      "reason": "A barred galaxy's centre has a gas ring fed by its bar that forms young stars and clusters (GEN.282)."
+      "reason": "A barred galaxy's centre has a gas ring fed by its bar that forms young stars and clusters (GEN.282).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 31,
       "first_release": "8.0.1821",
-      "reason": "The black holes follow the stars' metals with a share of failed supernovae drawn from the seed, every scattered class on a stream of its own (GEN.563)."
+      "reason": "The black holes follow the stars' metals with a share of failed supernovae drawn from the seed, every scattered class on a stream of its own (GEN.563).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 32,
       "first_release": "8.0.1828",
-      "reason": "A millisecond pulsar's planets are the fallback disc of a disrupted white dwarf, one to three carbon-rich airless planets near low-order period ratios; the other origins give it none until their kinds exist (GEN.317)."
+      "reason": "A millisecond pulsar's planets are the fallback disc of a disrupted white dwarf, one to three carbon-rich airless planets near low-order period ratios; the other origins give it none until their kinds exist (GEN.317).",
+      "affects": ["fill"]
     },
     {
       "epoch": 33,
       "first_release": "8.0.1830",
-      "reason": "A young, intermediate or old disk star's age is drawn from the galaxy's star formation rate inside its window instead of evenly, so a seed places stars of different ages and the share of bright stars of each population, and the local B-star share, change (GEN.546)."
+      "reason": "A young, intermediate or old disk star's age is drawn from the galaxy's star formation rate inside its window instead of evenly, so a seed places stars of different ages and the share of bright stars of each population, and the local B-star share, change (GEN.546).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 34,
       "first_release": "8.0.1831",
-      "reason": "The galaxy's star count and density follow from its stellar mass (the model is normalised to hold the mass, with no density pinned at a Sun-radius point), and the places the generator took from the Milky Way (the Sun's radius, the default galactocentric distance, the hypervelocity reference radius) come from the galaxy's own disk scale length, so a seed holds a different number of stars and places them differently (GEN.404)."
+      "reason": "The galaxy's star count and density follow from its stellar mass (the model is normalised to hold the mass, with no density pinned at a Sun-radius point), and the places the generator took from the Milky Way (the Sun's radius, the default galactocentric distance, the hypervelocity reference radius) come from the galaxy's own disk scale length, so a seed holds a different number of stars and places them differently (GEN.404).",
+      "affects": ["plan", "scatter", "fill"]
     },
     {
       "epoch": 35,
       "first_release": "8.0.1842",
-      "reason": "A reach group beyond the outline bounds the nuclear cluster and disc where the group really is (its inner spherical radius, not the pole's central density), so the candidate stream of the shells beyond the outline is drawn differently and the rows a seed places in them change (PERF.138)."
+      "reason": "A reach group beyond the outline bounds the nuclear cluster and disc where the group really is (its inner spherical radius, not the pole's central density), so the candidate stream of the shells beyond the outline is drawn differently and the rows a seed places in them change (PERF.138).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 36,
       "first_release": "8.0.1843",
-      "reason": "A free-floating brown dwarf's age is a star's: the age window of the population its place gives it, spread by that population's star formation rate, instead of an even draw over 0.1 to 10 Gy, so a seed gives its brown dwarfs different ages, radii and temperatures (GEN.553)."
+      "reason": "A free-floating brown dwarf's age is a star's: the age window of the population its place gives it, spread by that population's star formation rate, instead of an even draw over 0.1 to 10 Gy, so a seed gives its brown dwarfs different ages, radii and temperatures (GEN.553).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 37,
       "first_release": "8.0.1848",
-      "reason": "An elliptical comet's eccentricity is cut so its aphelion stays inside its star's Hill sphere (GEN.182), so a long-period comet of a light star in a tight galactic place gets a different eccentricity, period and orbit (GEN.591)."
+      "reason": "An elliptical comet's eccentricity is cut so its aphelion stays inside its star's Hill sphere (GEN.182), so a long-period comet of a light star in a tight galactic place gets a different eccentricity, period and orbit (GEN.591).",
+      "affects": ["fill"]
     },
     {
       "epoch": 38,
       "first_release": "8.0.1849",
-      "reason": "A white dwarf's planets are the survivors of its progenitor's engulfment radius, which grows with the progenitor's mass, and their orbits widen by the mass the star lost; a planetary nebula's close pair holds a circumbinary disk and no planets (GEN.318)."
+      "reason": "A white dwarf's planets are the survivors of its progenitor's engulfment radius, which grows with the progenitor's mass, and their orbits widen by the mass the star lost; a planetary nebula's close pair holds a circumbinary disk and no planets (GEN.318).",
+      "affects": ["fill"]
     },
     {
       "epoch": 39,
       "first_release": "8.0.1850",
-      "reason": "A neutron star's or stellar black hole's age follows its population: the star's birth age from the population's window and age law, less the progenitor's time to collapse (GEN.553)"
+      "reason": "A neutron star's or stellar black hole's age follows its population: the star's birth age from the population's window and age law, less the progenitor's time to collapse (GEN.553)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 40,
       "reason": "A galaxy's neutron star count is what its massive stars leave when they do not become black holes: the black hole sum with the survivors of the failed share and the bound share, replacing the fixed rate per star (GEN.554)",
+      "affects": ["scatter"],
       "first_release": "8.0.1854"
     },
     {
       "epoch": 41,
       "first_release": "8.0.1855",
-      "reason": "The thin and thick disks' vertical profile is the exponential the scale heights are fitted with, not the isothermal sheet: for one mass the midplane is twice as dense, so a seed places its stars, their populations, open clusters and remnants at different densities and heights (GEN.544)."
+      "reason": "The thin and thick disks' vertical profile is the exponential the scale heights are fitted with, not the isothermal sheet: for one mass the midplane is twice as dense, so a seed places its stars, their populations, open clusters and remnants at different densities and heights (GEN.544).",
+      "affects": ["plan", "scatter", "fill"]
     },
     {
       "epoch": 42,
       "first_release": "8.0.1872",
-      "reason": "A satellite or cluster expected to draw more than 25,000 stars (or 1,000,000 phenomena) is drawn in slices, each from a stream of its own with its share of the Poisson mean, so the Magellanic Clouds and any other large component place different stars; a component below the limit keeps its stars (Bug Hunt, the stalled components unit)."
+      "reason": "A satellite or cluster expected to draw more than 25,000 stars (or 1,000,000 phenomena) is drawn in slices, each from a stream of its own with its share of the Poisson mean, so the Magellanic Clouds and any other large component place different stars; a component below the limit keeps its stars (Bug Hunt, the stalled components unit).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 43,
-      "reason": "A neutron star's or black hole's progenitor is drawn from the windows of initial mass where massive stars explode or fail (the verified islands, widened to the failed share), so remnants' progenitors, ages and the direct-collapse flag change, the perturber mass of the placement limits follows the failed share, and the share of neutron stars a galaxy ejects follows its escape speed (GEN.554); a wide pair's swing of light is capped at 1 where a dim host sat beside a bright companion (GEN.597)"
+      "reason": "A neutron star's or black hole's progenitor is drawn from the windows of initial mass where massive stars explode or fail (the verified islands, widened to the failed share), so remnants' progenitors, ages and the direct-collapse flag change, the perturber mass of the placement limits follows the failed share, and the share of neutron stars a galaxy ejects follows its escape speed (GEN.554); a wide pair's swing of light is capped at 1 where a dim host sat beside a bright companion (GEN.597)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 44,
       "first_release": "8.0.1886",
-      "reason": "A galaxy with no pinned mass is drawn from 3e9 to 6e9 solar masses of stars (a small spiral, scale length about 1.3 to 1.5 kpc), not 3e9 to 2e11 (GEN.603; Boss, 10-21)."
+      "reason": "A galaxy with no pinned mass is drawn from 3e9 to 6e9 solar masses of stars (a small spiral, scale length about 1.3 to 1.5 kpc), not 3e9 to 2e11 (GEN.603; Boss, 10-21).",
+      "affects": ["plan", "scatter", "fill"]
     },
     {
       "epoch": 45,
-      "reason": "A star of a multi-star tree drawn beside a primary under 0.124 solar masses takes a mass ratio no lower than leaves it over the deuterium limit, so the other members of such a tree (once a crash below the cooling tracks' 0.01 solar masses) get different masses (GEN.596)"
+      "reason": "A star of a multi-star tree drawn beside a primary under 0.124 solar masses takes a mass ratio no lower than leaves it over the deuterium limit, so the other members of such a tree (once a crash below the cooling tracks' 0.01 solar masses) get different masses (GEN.596)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 46,
       "first_release": "8.0.1893",
-      "reason": "A galaxy's number of systems is its stellar mass over a mean system mass worked out from the generator's own mass function, remnants and multiplicity (about 0.48 solar masses for the reference galaxy, not the recalled 0.4), so every seed's galaxy holds about a sixth fewer systems and places its stars at that density (GEN.545)."
+      "reason": "A galaxy's number of systems is its stellar mass over a mean system mass worked out from the generator's own mass function, remnants and multiplicity (about 0.48 solar masses for the reference galaxy, not the recalled 0.4), so every seed's galaxy holds about a sixth fewer systems and places its stars at that density (GEN.545).",
+      "affects": ["plan", "scatter", "fill"]
     },
     {
       "epoch": 47,
-      "reason": "An ejected neutron star's far speed follows its natal kick above the escape speed (a galaxy's own quantiles, mean about 390 km/s for a Milky Way-like one) instead of a uniform 300 to 500 km/s, so the velocities of the ejected neutron stars a seed places and where their population ends change (GEN.554)"
+      "reason": "An ejected neutron star's far speed follows its natal kick above the escape speed (a galaxy's own quantiles, mean about 390 km/s for a Milky Way-like one) instead of a uniform 300 to 500 km/s, so the velocities of the ejected neutron stars a seed places and where their population ends change (GEN.554)",
+      "affects": ["scatter"]
     },
     {
       "epoch": 48,
       "first_release": "8.0.1902",
-      "reason": "A star's, pair's and compact object's Hill sphere takes the galaxy's own mass inside its own distance from the centre (stars, central black hole and NFW dark halo), not the whole halo mass, so every system perimeter is several times larger inside the halo, and with it a wide pair's widest axis, a long-period comet's orbit and how many systems a dense cell can place (GEN.370)."
+      "reason": "A star's, pair's and compact object's Hill sphere takes the galaxy's own mass inside its own distance from the centre (stars, central black hole and NFW dark halo), not the whole halo mass, so every system perimeter is several times larger inside the halo, and with it a wide pair's widest axis, a long-period comet's orbit and how many systems a dense cell can place (GEN.370).",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 49,
-      "reason": "A globular cluster's, an open cluster's or a satellite galaxy's number of systems is its mass over a mean system mass worked out from its own age with the generator's mass function, remnants and multiplicity (0.47 solar masses at 11 Gy, 0.49 for the Large Cloud, about 0.9 for a cluster a few Myr old), not the recalled 0.4, so every seed's clusters and satellites hold about a sixth fewer systems and the open clusters read the galaxy's own mean for the density around them (GEN.598)."
+      "reason": "A globular cluster's, an open cluster's or a satellite galaxy's number of systems is its mass over a mean system mass worked out from its own age with the generator's mass function, remnants and multiplicity (0.47 solar masses at 11 Gy, 0.49 for the Large Cloud, about 0.9 for a cluster a few Myr old), not the recalled 0.4, so every seed's clusters and satellites hold about a sixth fewer systems and the open clusters read the galaxy's own mean for the density around them (GEN.598).",
+      "affects": ["scatter"]
     },
     {
       "epoch": 50,
       "first_release": "8.0.1915",
-      "reason": "A saved binary system stores its tree of orbits: one orbit_nodes row for the pair, its Roche interaction, and the parent node and offset of each star, so a seed's stored rows differ from before (GEN.311, GEN.269)"
+      "reason": "A saved binary system stores its tree of orbits: one orbit_nodes row for the pair, its Roche interaction, and the parent node and offset of each star, so a seed's stored rows differ from before (GEN.311, GEN.269)",
+      "affects": ["fill"]
     },
     {
       "epoch": 51,
       "first_release": "8.0.1984",
-      "reason": "Objects named by their position ID that share an ID take the collision numbers 0, 1, 2 in the order of their sectors' addresses instead of the order the sectors were saved in, so two sectors that share an ID get the same names in either save order (GEN.307)"
+      "reason": "Objects named by their position ID that share an ID take the collision numbers 0, 1, 2 in the order of their sectors' addresses instead of the order the sectors were saved in, so two sectors that share an ID get the same names in either save order (GEN.307)",
+      "affects": ["fill"]
     },
     {
       "epoch": 52,
       "first_release": "8.0.1991",
-      "reason": "A scattered star's system is the tree its scatter row stored: a star with one companion star is that pair on the stored orbit (its second star from the stored seed and birth mass, the pair's separation, eccentricity, plane, phase and period the stored node's), and a scattered star draws no companion of its own, so a seed's pre-placed systems differ from before (GEN.315)"
+      "reason": "A scattered star's system is the tree its scatter row stored: a star with one companion star is that pair on the stored orbit (its second star from the stored seed and birth mass, the pair's separation, eccentricity, plane, phase and period the stored node's), and a scattered star draws no companion of its own, so a seed's pre-placed systems differ from before (GEN.315)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 53,
       "first_release": "8.0.1998",
-      "reason": "A galaxy's nuclear stellar disc is drawn from its stellar mass by the two fits of Gadotti and de Sa-Freitas 2025 (only for a barred galaxy, no longer 61 times the nuclear cluster), so the nuclear terms of every seed's density, its outline, its sectors and its plan figures differ (GEN.628)"
+      "reason": "A galaxy's nuclear stellar disc is drawn from its stellar mass by the two fits of Gadotti and de Sa-Freitas 2025 (only for a barred galaxy, no longer 61 times the nuclear cluster), so the nuclear terms of every seed's density, its outline, its sectors and its plan figures differ (GEN.628)",
+      "affects": ["plan", "scatter", "fill"]
     },
     {
       "epoch": 54,
       "first_release": "8.0.2000",
-      "reason": "A planet or belt is placed only inside the orbit where a place's passing systems have not stripped it over the star's age (at most 12 Gy): the largest axis with one expected ionising pass, from the place's systems per volume and dispersion, so a system in a dense core keeps close-in planets only and one in the Sun's neighbourhood loses planets beyond a few hundred AU (GEN.325)"
+      "reason": "A planet or belt is placed only inside the orbit where a place's passing systems have not stripped it over the star's age (at most 12 Gy): the largest axis with one expected ionising pass, from the place's systems per volume and dispersion, so a system in a dense core keeps close-in planets only and one in the Sun's neighbourhood loses planets beyond a few hundred AU (GEN.325)",
+      "affects": ["fill"]
     },
     {
       "epoch": 55,
       "first_release": "8.0.2002",
-      "reason": "An all-Auto galaxy draws its disc size and flatness again until the shape raises none of the plan's grid warnings (the disc's crest under 20 times the one-star density, a scale height under 8 pc, a bulge under 4 pc) and the flatness is inside the Structure dial's range, so about one seed in five gets another size and flatness, and the average default galaxy is smaller (GEN.625)"
+      "reason": "An all-Auto galaxy draws its disc size and flatness again until the shape raises none of the plan's grid warnings (the disc's crest under 20 times the one-star density, a scale height under 8 pc, a bulge under 4 pc) and the flatness is inside the Structure dial's range, so about one seed in five gets another size and flatness, and the average default galaxy is smaller (GEN.625)",
+      "affects": ["plan", "scatter", "fill"]
     },
     {
       "epoch": 56,
       "first_release": "8.0.2007",
-      "reason": "A pre-placed O or B star is a runaway at the observed rates (20% and 7.5%), two thirds by the supernova channel, with a bound compact companion at the 17% the collapse leaves, and every runaway the fill rolls draws an origin, so a seed's runaways, their stored trees and the draws after them differ from before (GEN.329)"
+      "reason": "A pre-placed O or B star is a runaway at the observed rates (20% and 7.5%), two thirds by the supernova channel, with a bound compact companion at the 17% the collapse leaves, and every runaway the fill rolls draws an origin, so a seed's runaways, their stored trees and the draws after them differ from before (GEN.329)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 57,
       "first_release": "8.0.2009",
-      "reason": "A galaxy's satellites are drawn from its halo (a Poisson count of subhalos, an occupation draw, stellar masses from the stellar-to-halo relation, sizes, metallicities and ages from laws, an Einasto radial distribution inside the virial radius) instead of the Milky Way's eleven rows (GEN.369, GEN.624); its globular cluster count follows its halo mass instead of a fixed 157 (GEN.403); the outline takes components in by density reach and a random start is redrawn until its sector expects a system (GEN.627). Every seed's components, outline and random starts differ."
+      "reason": "A galaxy's satellites are drawn from its halo (a Poisson count of subhalos, an occupation draw, stellar masses from the stellar-to-halo relation, sizes, metallicities and ages from laws, an Einasto radial distribution inside the virial radius) instead of the Milky Way's eleven rows (GEN.369, GEN.624); its globular cluster count follows its halo mass instead of a fixed 157 (GEN.403); the outline takes components in by density reach and a random start is redrawn until its sector expects a system (GEN.627). Every seed's components, outline and random starts differ.",
+      "affects": ["plan", "scatter", "fill"]
     },
     {
       "epoch": 58,
       "first_release": "8.0.2012",
-      "reason": "The velocity dispersion the wide-pair and planet limits read is the profile's one-axis value (the three-axis total over root 3), so the thin disc's, bulge's and halo's limits use a dispersion root 3 smaller than before and the cluster, satellite and nuclear populations (whose constants are one-axis) keep theirs: a wide pair's widest axis and a planet's outermost orbit change in every galaxy-placed system (GEN.284)"
+      "reason": "The velocity dispersion the wide-pair and planet limits read is the profile's one-axis value (the three-axis total over root 3), so the thin disc's, bulge's and halo's limits use a dispersion root 3 smaller than before and the cluster, satellite and nuclear populations (whose constants are one-axis) keep theirs: a wide pair's widest axis and a planet's outermost orbit change in every galaxy-placed system (GEN.284)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 59,
       "first_release": "8.0.2017",
-      "reason": "The population pass no longer makes a species on a homeworld whose own limits cannot hold it (undrinkable water), so those planets keep no species, civilization, polity or territory (POP.14)"
+      "reason": "The population pass no longer makes a species on a homeworld whose own limits cannot hold it (undrinkable water), so those planets keep no species, civilization, polity or territory (POP.14)",
+      "affects": ["population"]
     },
     {
       "epoch": 60,
       "first_release": "8.0.2033",
-      "reason": "A star's habitable zone follows its temperature (the Kopparapu runaway and maximum greenhouse edges in place of the fixed fluxes 1.1 and 0.53), so every star's zone moves and with it where planets are placed and which classes they take (GEN.146)"
+      "reason": "A star's habitable zone follows its temperature (the Kopparapu runaway and maximum greenhouse edges in place of the fixed fluxes 1.1 and 0.53), so every star's zone moves and with it where planets are placed and which classes they take (GEN.146)",
+      "affects": ["fill"]
     },
     {
       "epoch": 61,
       "first_release": "8.0.2038",
-      "reason": "A planet or belt past the survival ceiling of its star's final age is trimmed after the age is settled (about 1 system in 250), so those systems lose their outermost body (GEN.325)"
+      "reason": "A planet or belt past the survival ceiling of its star's final age is trimmed after the age is settled (about 1 system in 250), so those systems lose their outermost body (GEN.325)",
+      "affects": ["fill"]
     },
     {
       "epoch": 62,
       "first_release": "8.0.2046",
-      "reason": "A planet's cosmic-ray dose follows the read shower curve and the column-dependent field factor (the Stormer cutoff scales with moment over radius squared, 14.34 GV for Earth), the proton range behind the stellar-particle cutoff comes from NIST PSTAR, and each body draws a solar-modulation factor of 0.5 to 1.64, so every rocky body's stored dose changes and a draw is added to the dose stream (GEN.453)"
+      "reason": "A planet's cosmic-ray dose follows the read shower curve and the column-dependent field factor (the Stormer cutoff scales with moment over radius squared, 14.34 GV for Earth), the proton range behind the stellar-particle cutoff comes from NIST PSTAR, and each body draws a solar-modulation factor of 0.5 to 1.64, so every rocky body's stored dose changes and a draw is added to the dose stream (GEN.453)",
+      "affects": ["fill"]
     },
     {
       "epoch": 63,
       "first_release": "8.0.2071",
-      "reason": "Every rocky world with oxygen draws an ozone column (a Kozakis fit by oxygen and star temperature times a structure factor), which sets its UV index and ozone-loss flag in place of the square-root proxy, and adds one draw to the dose stream (GEN.413)"
+      "reason": "Every rocky world with oxygen draws an ozone column (a Kozakis fit by oxygen and star temperature times a structure factor), which sets its UV index and ozone-loss flag in place of the square-root proxy, and adds one draw to the dose stream (GEN.413)",
+      "affects": ["fill"]
     },
     {
       "epoch": 64,
       "first_release": "8.0.2079",
-      "reason": "The disc's recent star formation falls faster in its thin outer gas, so the density of young stars at large radius and every young star's place in the outer disc move, and with them the systems generated there (GEN.450)"
+      "reason": "The disc's recent star formation falls faster in its thin outer gas, so the density of young stars at large radius and every young star's place in the outer disc move, and with them the systems generated there (GEN.450)",
+      "affects": ["plan", "scatter", "fill"]
     },
     {
       "epoch": 65,
       "first_release": "8.0.2109",
-      "reason": "A body's life no longer depends on its class letter: the light-harvesting pigment a world may carry comes from its stored air, ocean and temperature (each chemical's requires) and its star's spectrum, a gas giant carries none, and the most advanced life stage is capped only by the habitability index, so small icy bodies with an ocean under the ice and a few volcanic or super-Earth worlds now carry microbial life and the worlds once capped by their letter (E, F, G, L, Q) reach as far as the index allows (GEN.92, GEN.647)"
+      "reason": "A body's life no longer depends on its class letter: the light-harvesting pigment a world may carry comes from its stored air, ocean and temperature (each chemical's requires) and its star's spectrum, a gas giant carries none, and the most advanced life stage is capped only by the habitability index, so small icy bodies with an ocean under the ice and a few volcanic or super-Earth worlds now carry microbial life and the worlds once capped by their letter (E, F, G, L, Q) reach as far as the index allows (GEN.92, GEN.647)",
+      "affects": ["fill"]
     },
     {
       "epoch": 66,
       "first_release": "8.0.2122",
-      "reason": "Every planet and moon with air draws a cloud, haze and dust optical depth, the cloud cover and an optics number on its own stream (five stored values, schema 138), so each such body's stored record gains those values (GEN.414)"
+      "reason": "Every planet and moon with air draws a cloud, haze and dust optical depth, the cloud cover and an optics number on its own stream (five stored values, schema 138), so each such body's stored record gains those values (GEN.414)",
+      "affects": ["fill"]
     },
     {
       "epoch": 67,
       "first_release": "8.0.2129",
-      "reason": "A rocky body draws its potassium, thorium, uranium and aluminium-26 content from its host star's abundances and a potassium depletion, a Urey ratio and an Al-26 ratio, and its interior heat and ground dose read that one content; the old Turcotte and Schubert mantle values, the 0.67 Urey ratio and the a_rad draw are gone, so every rocky body's heat flux, ground dose and the draws after them move (GEN.459)"
+      "reason": "A rocky body draws its potassium, thorium, uranium and aluminium-26 content from its host star's abundances and a potassium depletion, a Urey ratio and an Al-26 ratio, and its interior heat and ground dose read that one content; the old Turcotte and Schubert mantle values, the 0.67 Urey ratio and the a_rad draw are gone, so every rocky body's heat flux, ground dose and the draws after them move (GEN.459)",
+      "affects": ["fill"]
     },
     {
       "epoch": 68,
       "first_release": "8.0.2135",
-      "reason": "Close-binary types: contact binaries, Algols, blue stragglers, merger products, Be stars with a stripped companion, R Coronae Borealis, FK Comae and Thorne-Zytkow stars are drawn inside the member tree, and the tight tail of the period law is weighted for solar-type pairs, so star systems and their companions change (GEN.270)"
+      "reason": "Close-binary types: contact binaries, Algols, blue stragglers, merger products, Be stars with a stripped companion, R Coronae Borealis, FK Comae and Thorne-Zytkow stars are drawn inside the member tree, and the tight tail of the period law is weighted for solar-type pairs, so star systems and their companions change (GEN.270)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 69,
       "first_release": "8.0.2146",
-      "reason": "A world's evolutionary pace is drawn once, from what the star and its life chemistry allow, instead of twice (the second draw sat inside the timeline), a body with no viable chemistry draws no pace, so the stream after the life draw moves (GEN.666)"
+      "reason": "A world's evolutionary pace is drawn once, from what the star and its life chemistry allow, instead of twice (the second draw sat inside the timeline), a body with no viable chemistry draws no pace, so the stream after the life draw moves (GEN.666)",
+      "affects": ["fill"]
     },
     {
       "epoch": 70,
       "first_release": "8.0.2150",
-      "reason": "A planet's or moon's mass, density and gravity follow from a drawn bulk composition (the iron, rock, water, ice and envelope shares, set by its star's own Fe, Mg, Si, Al, Ca, Ni and C/O ratios) instead of a density drawn from the class's range, a water share is drawn with it, and the planet draws change in every system (GEN.428, GEN.429, DB.69)"
+      "reason": "A planet's or moon's mass, density and gravity follow from a drawn bulk composition (the iron, rock, water, ice and envelope shares, set by its star's own Fe, Mg, Si, Al, Ca, Ni and C/O ratios) instead of a density drawn from the class's range, a water share is drawn with it, and the planet draws change in every system (GEN.428, GEN.429, DB.69)",
+      "affects": ["fill"]
     },
     {
       "epoch": 71,
       "first_release": "8.0.2152",
-      "reason": "Each ordinary star draws a UV-C share of its blackbody (log-uniform 0.1 to 1) on its own stream and stores it (schema 145), so every stored star gains a value (GEN.443)"
+      "reason": "Each ordinary star draws a UV-C share of its blackbody (log-uniform 0.1 to 1) on its own stream and stores it (schema 145), so every stored star gains a value (GEN.443)",
+      "affects": ["fill"]
     },
     {
       "epoch": 72,
       "first_release": "8.0.2154",
-      "reason": "A system draws its stars as a tree at the odds of the star-count table in place of one companion at a per-class chance, so triples and larger systems exist and the companion stream moves (GEN.631)"
+      "reason": "A system draws its stars as a tree at the odds of the star-count table in place of one companion at a per-class chance, so triples and larger systems exist and the companion stream moves (GEN.631)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 73,
       "first_release": "8.0.2162",
-      "reason": "White dwarf binary types: close double white dwarfs, post-common-envelope pairs with hot subdwarfs, cataclysmic variables, AM CVn binaries, double white dwarf merger products, and barium and symbiotic giants are drawn inside the member tree, and a white dwarf's companion odds are 20.5% star and 9.5% white dwarf, so star systems and their companions change (GEN.271)"
+      "reason": "White dwarf binary types: close double white dwarfs, post-common-envelope pairs with hot subdwarfs, cataclysmic variables, AM CVn binaries, double white dwarf merger products, and barium and symbiotic giants are drawn inside the member tree, and a white dwarf's companion odds are 20.5% star and 9.5% white dwarf, so star systems and their companions change (GEN.271)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 74,
       "first_release": "8.0.2164",
-      "reason": "A planet's or moon's UV index (uv_surface_index) is the DNA-damage dose of the two-stream spectrum below its own air, ozone, haze and cloud, as a multiple of Earth's, instead of a ratio to the Sun with an ozone exponent, so the stored UV and the equipment and habitability read from it change (GEN.445, GEN.444)"
+      "reason": "A planet's or moon's UV index (uv_surface_index) is the DNA-damage dose of the two-stream spectrum below its own air, ozone, haze and cloud, as a multiple of Earth's, instead of a ratio to the Sun with an ozone exponent, so the stored UV and the equipment and habitability read from it change (GEN.445, GEN.444)",
+      "affects": ["fill"]
     },
     {
       "epoch": 75,
       "first_release": "8.0.2165",
-      "reason": "The bright-star backfill draws the stars of a block of cells where a band is sparse (a largest per-cell rate under 0.05) block first, one count and a stream per kept candidate, instead of a draw in every cell, so the stars the backfill places in the outer disk, the halo and the far edge are different draws (GEN.309)"
+      "reason": "The bright-star backfill draws the stars of a block of cells where a band is sparse (a largest per-cell rate under 0.05) block first, one count and a stream per kept candidate, instead of a draw in every cell, so the stars the backfill places in the outer disk, the halo and the far edge are different draws (GEN.309)",
+      "affects": ["scatter"]
     },
     {
       "epoch": 76,
       "first_release": "8.0.2166",
-      "reason": "A rogue planet's frozen nitrogen air follows the one saturation curve and a world's water boils where the one water curve says, instead of each holding its own Clausius-Clapeyron constants (GEN.632)"
+      "reason": "A rogue planet's frozen nitrogen air follows the one saturation curve and a world's water boils where the one water curve says, instead of each holding its own Clausius-Clapeyron constants (GEN.632)",
+      "affects": ["fill"]
     },
     {
       "epoch": 77,
       "first_release": "8.0.2175",
-      "reason": "Every star draws its birth [Fe/H] first, from its population at its place, and its main-sequence lifetime, subgiant and giant branch and horizontal-branch colour follow that composition; the bright-star sampler draws a place's compositions in proportion to the stars each can make, so every star's mass, age, type and companions change and a composition draw moves ahead of the star's other draws (GEN.651)"
+      "reason": "Every star draws its birth [Fe/H] first, from its population at its place, and its main-sequence lifetime, subgiant and giant branch and horizontal-branch colour follow that composition; the bright-star sampler draws a place's compositions in proportion to the stars each can make, so every star's mass, age, type and companions change and a composition draw moves ahead of the star's other draws (GEN.651)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 78,
       "first_release": "8.0.2176",
-      "reason": "The Radiation domain of a world's habitability is the lower of its dose's score and its ground ultraviolet's, so the stored habitability scores and the tiers, kit and habitable counts that follow from them change for worlds with strong ultraviolet (GEN.445)"
+      "reason": "The Radiation domain of a world's habitability is the lower of its dose's score and its ground ultraviolet's, so the stored habitability scores and the tiers, kit and habitable counts that follow from them change for worlds with strong ultraviolet (GEN.445)",
+      "affects": ["fill"]
     },
     {
       "epoch": 79,
       "first_release": "8.0.2177",
-      "reason": "Belts, comets and interstellar comets are drawn from their materials: a belt's taxa follow its distance in units of its star's snow line, a comet's nucleus has its ices, refractories and porosity and a stored mass in place of the fixed 533 kg/m3, so every belt's composition text and every comet's composition, mass and later draws change (GEN.442)"
+      "reason": "Belts, comets and interstellar comets are drawn from their materials: a belt's taxa follow its distance in units of its star's snow line, a comet's nucleus has its ices, refractories and porosity and a stored mass in place of the fixed 533 kg/m3, so every belt's composition text and every comet's composition, mass and later draws change (GEN.442)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 80,
       "first_release": "8.0.2180",
-      "reason": "A giant planet's radius comes from the Fortney, Marley and Barnes 2007 tables for its mass, heavy-element core, starlight and age (plus hot-giant inflation) and its heavy elements and layered interior are drawn together (Chachan et al. 2025 for class J), replacing the anchored mass-radius relation and the stand-in envelope shares, so every giant's radius and composition and the stream after it move (GEN.460, GEN.642)"
+      "reason": "A giant planet's radius comes from the Fortney, Marley and Barnes 2007 tables for its mass, heavy-element core, starlight and age (plus hot-giant inflation) and its heavy elements and layered interior are drawn together (Chachan et al. 2025 for class J), replacing the anchored mass-radius relation and the stand-in envelope shares, so every giant's radius and composition and the stream after it move (GEN.460, GEN.642)",
+      "affects": ["fill"]
     },
     {
       "epoch": 81,
       "first_release": "8.0.2190",
-      "reason": "The stars beyond the pair of a system of three or more stars draw planets of their own in their S-type windows, and a close pair among other stars keeps its planets inside its P-type window, so those systems change (GEN.332)"
+      "reason": "The stars beyond the pair of a system of three or more stars draw planets of their own in their S-type windows, and a close pair among other stars keeps its planets inside its P-type window, so those systems change (GEN.332)",
+      "affects": ["fill"]
     },
     {
       "epoch": 82,
       "first_release": "8.0.2192",
-      "reason": "Every planet and moon with a life chemistry now has an evolutionary path (moons and cold-zone worlds too), and the Suitability food rung is made from the Flora and Fauna life scores, so the Suitability and overall score of every world with life move (GEN.649)"
+      "reason": "Every planet and moon with a life chemistry now has an evolutionary path (moons and cold-zone worlds too), and the Suitability food rung is made from the Flora and Fauna life scores, so the Suitability and overall score of every world with life move (GEN.649)",
+      "affects": ["fill"]
     },
     {
       "epoch": 83,
       "first_release": "8.0.2197",
-      "reason": "A comet nucleus' organic material takes the density of the shared materials table (1.5 g/cm3, the middle of the measured 1.0 to 2.0) in place of a separate 2.0, so every comet's grain density, bulk density and stored mass change (GEN.712)"
+      "reason": "A comet nucleus' organic material takes the density of the shared materials table (1.5 g/cm3, the middle of the measured 1.0 to 2.0) in place of a separate 2.0, so every comet's grain density, bulk density and stored mass change (GEN.712)",
+      "affects": ["fill"]
     },
     {
       "epoch": 84,
       "first_release": "8.0.2200",
-      "reason": "The depth of every ocean and ice lid and the high-pressure ice under it come from integrating the compressed water layer (the density of water rises with pressure and the gravity at depth follows the mass below it) instead of a fixed 1000 kg/m3, so the ocean class and the pH and water-activity draws that follow change for watery planets and moons; a base pressure is stored (GEN.461)"
+      "reason": "The depth of every ocean and ice lid and the high-pressure ice under it come from integrating the compressed water layer (the density of water rises with pressure and the gravity at depth follows the mass below it) instead of a fixed 1000 kg/m3, so the ocean class and the pH and water-activity draws that follow change for watery planets and moons; a base pressure is stored (GEN.461)",
+      "affects": ["fill"]
     },
     {
       "epoch": 85,
       "first_release": "8.0.2210",
-      "reason": "The two stars of a pair start where the orbit tree puts them: a close pair's phase includes the node's argument of periapsis and a wide pair starts on its ellipse, so binary systems give different phases (GEN.709)"
+      "reason": "The two stars of a pair start where the orbit tree puts them: a close pair's phase includes the node's argument of periapsis and a wide pair starts on its ellipse, so binary systems give different phases (GEN.709)",
+      "affects": ["fill"]
     },
     {
       "epoch": 86,
       "first_release": "8.0.2211",
-      "reason": "The tide heat flow of an icy moon with a frozen surface counts in the chemical energy of its ocean's life, so the energy flux and the habitability score of such a moon change, and each moon of a planet moved by orbit spacing is spun, dosed and scored again at its parent's new distance from the star instead of keeping the values drawn at the old one (GEN.700, GEN.704)"
+      "reason": "The tide heat flow of an icy moon with a frozen surface counts in the chemical energy of its ocean's life, so the energy flux and the habitability score of such a moon change, and each moon of a planet moved by orbit spacing is spun, dosed and scored again at its parent's new distance from the star instead of keeping the values drawn at the old one (GEN.700, GEN.704)",
+      "affects": ["fill"]
     },
     {
       "epoch": 87,
       "first_release": "8.0.2217",
-      "reason": "A hot star's nebula is rolled from the star the place drew, not the system's heaviest star, so a hot star with a heavier companion lights a different nebula or none (GEN.710)"
+      "reason": "A hot star's nebula is rolled from the star the place drew, not the system's heaviest star, so a hot star with a heavier companion lights a different nebula or none (GEN.710)",
+      "affects": ["fill"]
     },
     {
       "epoch": 88,
       "first_release": "8.0.2221",
-      "reason": "Where an atmosphere freezes out is now worked out from the checked saturation curves instead of a two-point table, so the stored partial pressures and total surface pressure of cold bodies change (GEN.452)"
+      "reason": "Where an atmosphere freezes out is now worked out from the checked saturation curves instead of a two-point table, so the stored partial pressures and total surface pressure of cold bodies change (GEN.452)",
+      "affects": ["fill"]
     },
     {
       "epoch": 89,
       "first_release": "8.0.2222",
-      "reason": "A galaxy run's first fill of a sector takes it to the bright-star backfill's deepest floor itself, so a sector generated before the backfill reached it holds the same bright stars and systems as one the backfill reached first, in whichever order sectors are generated (GEN.633, GEN.57)"
+      "reason": "A galaxy run's first fill of a sector takes it to the bright-star backfill's deepest floor itself, so a sector generated before the backfill reached it holds the same bright stars and systems as one the backfill reached first, in whichever order sectors are generated (GEN.633, GEN.57)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 90,
       "first_release": "8.0.2224",
-      "reason": "A rocky planet's or moon's internal heat flux comes from a thermal history of its mantle (primordial heat from its assembly plus the radiogenic heat, cooled by stagnant-lid convection with a drawn viscosity), the Urey ratio is an output of that history instead of a draw, so a young body's heat is much higher and every habitability score that reads the heat (magnetism, hydrosphere, volcanic activity) can change."
+      "reason": "A rocky planet's or moon's internal heat flux comes from a thermal history of its mantle (primordial heat from its assembly plus the radiogenic heat, cooled by stagnant-lid convection with a drawn viscosity), the Urey ratio is an output of that history instead of a draw, so a young body's heat is much higher and every habitability score that reads the heat (magnetism, hydrosphere, volcanic activity) can change.",
+      "affects": ["fill"]
     },
     {
       "epoch": 91,
       "first_release": "8.0.2230",
-      "reason": "A neutron star or black hole pair accretes only through the X-ray binary draws, the recycled pulsar's companions follow the spider, white dwarf and other classes, the third member of a compact binary applies to neutron stars too, and every placed star draws three more uniforms, so the stars, companions and compact objects of the stellar scatter and the fill change (GEN.272)"
+      "reason": "A neutron star or black hole pair accretes only through the X-ray binary draws, the recycled pulsar's companions follow the spider, white dwarf and other classes, the third member of a compact binary applies to neutron stars too, and every placed star draws three more uniforms, so the stars, companions and compact objects of the stellar scatter and the fill change (GEN.272)",
+      "affects": ["scatter", "fill"]
     },
     {
       "epoch": 92,
       "first_release": "8.0.2243",
-      "reason": "A star's minimum age for its planets is read from each planet's stored conditions (physics/age_needs.py) instead of its class letter: about 0.6 percent of bodies need a different age tier than the class table gave"
+      "reason": "A star's minimum age for its planets is read from each planet's stored conditions (physics/age_needs.py) instead of its class letter: about 0.6 percent of bodies need a different age tier than the class table gave",
+      "affects": ["fill"]
     },
     {
       "epoch": 93,
       "first_release": "8.0.2245",
-      "reason": "A moon draws how it came to orbit its parent first (a disk or impact moon, or a captured body, with equal open weights) and its orbit's inclination follows from that: a regular moon within 25 degrees of the equator, a captured one anywhere outside the Kozai-unstable band of 55 to 130 degrees, so moons can now be retrograde, and every moon's later draws move (GEN.714)"
+      "reason": "A moon draws how it came to orbit its parent first (a disk or impact moon, or a captured body, with equal open weights) and its orbit's inclination follows from that: a regular moon within 25 degrees of the equator, a captured one anywhere outside the Kozai-unstable band of 55 to 130 degrees, so moons can now be retrograde, and every moon's later draws move (GEN.714)",
+      "affects": ["fill"]
     },
     {
       "epoch": 94,
       "first_release": "8.0.2255",
-      "reason": "A rocky planet or moon past its star's runaway greenhouse limit while the star was young and bright loses water (energy-limited escape of the steam, from 30 Myr to the star's age), so the water mass fraction of planets in the zone of cool stars falls, to nothing for most (GEN.639)"
+      "reason": "A rocky planet or moon past its star's runaway greenhouse limit while the star was young and bright loses water (energy-limited escape of the steam, from 30 Myr to the star's age), so the water mass fraction of planets in the zone of cool stars falls, to nothing for most (GEN.639)",
+      "affects": ["fill"]
     },
     {
       "epoch": 95,
       "first_release": "8.0.2258",
-      "reason": "A planet's or moon's air is stored gas by gas, the class's balance gas (helium, sodium, ammonia) included, so every stored atmosphere gains its balance-gas row and the air column and the colour that read it change (DB.71, GEN.424)"
+      "reason": "A planet's or moon's air is stored gas by gas, the class's balance gas (helium, sodium, ammonia) included, so every stored atmosphere gains its balance-gas row and the air column and the colour that read it change (DB.71, GEN.424)",
+      "affects": ["fill"]
     },
     {
       "epoch": 96,
       "first_release": "8.0.2269",
-      "reason": "A cold icy body holds CO2, CO, N2, CH4 and H2S above their clathrate dissociation pressure in the water cages of a drawn ice skin, so its air is thinner, and a cold body with very little surface water melts its ice at a drawn perchlorate eutectic, so its lid is thinner or absent and its brine ocean takes that salt's water activity (GEN.762)"
+      "reason": "A cold icy body holds CO2, CO, N2, CH4 and H2S above their clathrate dissociation pressure in the water cages of a drawn ice skin, so its air is thinner, and a cold body with very little surface water melts its ice at a drawn perchlorate eutectic, so its lid is thinner or absent and its brine ocean takes that salt's water activity (GEN.762)",
+      "affects": ["fill"]
     }
   ]
 }

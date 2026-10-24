@@ -271,7 +271,7 @@ with worlds thousands of AU out; edit those by hand before using them.
 Every pull request adds a release note under [`changes/`](changes/README.md)
 instead of bumping the version; a workflow stamps the version after
 merge. A change that alters what a seed generates also bumps the generator epoch
-(`python -m tests.golden_update --reason "..."`, [`changes/README.md`](changes/README.md)). Run the tests with `scripts/test.py changed` while you work and `scripts/test.py full --check` before
+(`python -m tests.golden_update --reason "..." --affects fill`, [`changes/README.md`](changes/README.md)). Run the tests with `scripts/test.py changed` while you work and `scripts/test.py full --check` before
 merging a finished piece of work; both need MySQL and Redis ([`docs/reference/testing.md`](docs/reference/testing.md)).
 Plain `pytest -n auto` still works.
 

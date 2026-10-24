@@ -479,3 +479,35 @@ def test_the_real_epoch_file_is_well_formed_and_the_accessor_reads_it():
     assert generator_epoch.first_release(1) is None
     with pytest.raises(ValueError):
         generator_epoch.first_release(0)
+
+
+# -- the stages an epoch changed (GEN.764) ------------------------------------------------------
+
+def _epochs_with_stages(root, affects):
+    """Epoch 2 pending, as a change would leave it, in a file that lists the stages."""
+    entries = [{"epoch": 1, "first_release": None, "reason": "r", "affects": []},
+               {"epoch": 2, "first_release": None, "pending": True, "reason": "r"}]
+    if affects is not None:
+        entries[1]["affects"] = affects
+    with open(os.path.join(root, bump_version.EPOCHS_FILE), "w") as f:
+        json.dump({"stages": ["plan", "scatter", "fill", "population"], "epochs": entries}, f, indent=2)
+
+
+@needs_git
+def test_an_epoch_names_the_stages_it_changed(tmp_path):
+    root = _epoch_repo(tmp_path)
+    _epochs_with_stages(root, ["fill"])
+    _golden(root, "two")
+    _commit(root, GENERATION_NOTE)
+    assert bump_version.check_pr(root, "main") == []
+
+
+@needs_git
+@pytest.mark.parametrize("affects", [None, [], ["nonsense"], ["fill", "sky"]])
+def test_an_epoch_without_a_valid_affects_list_is_refused(tmp_path, affects):
+    root = _epoch_repo(tmp_path)
+    _epochs_with_stages(root, affects)
+    _golden(root, "two")
+    _commit(root, GENERATION_NOTE)
+    problems = bump_version.check_pr(root, "main")
+    assert len(problems) == 1 and "epoch 2" in problems[0] and "affects" in problems[0], problems
