@@ -30,8 +30,21 @@ from .schemas import SettingsChanges, parse_body
 
 bp = Blueprint("settings", __name__, url_prefix="/api/admin/settings")
 
-ROLE = "admin"
-"""str: The writer role of a signed-in admin (`settings_writer.allowed`); the Owner's comes with accounts (8.2)."""
+def writer_role():
+    """
+    The writer role (`settings_writer.allowed`) of the caller: `"owner"` for the Owner signed in with a session whose
+    password was typed within the last `adminAuth.RECENT_PASSWORD_MINUTES` (ADM.86), else `"admin"`. An API key is
+    never more than an admin, whoever owns it. Needs `g.admin_user`, so a route under `require_admin`.
+    """
+    admin = g.admin_user
+    if g.api_key_id is None and adminAuth.is_owner(admin) and admin["password_recent"]:
+        return "owner"
+    return "admin"
+
+
+def owner_needs_password():
+    """Whether the caller is the Owner and only the typed password is missing: the page asks for it (ADM.86)."""
+    return g.api_key_id is None and adminAuth.is_owner(g.admin_user) and writer_role() != "owner"
 
 
 def _changes(body):
@@ -73,7 +86,7 @@ def _audit(action, target, detail):
 @require_admin(fresh=True)
 def get_settings():
     """`GET /api/admin/settings` -- see the module docstring."""
-    view = settings_view.describe(role=ROLE)
+    view = settings_view.describe(role=writer_role(), reauth=owner_needs_password())
     view["pending_restart"] = [{"path": path, "title": title} for path, title in settings_view.pending_restart()]
     return jsonify(view)
 
@@ -83,7 +96,7 @@ def get_settings():
 def plan_settings():
     """`POST /api/admin/settings/plan` -- the diff a save would make; nothing is written."""
     body = parse_body(SettingsChanges, require_json_body())
-    return jsonify(_view(settings_writer.plan(_changes(body), role=ROLE)))
+    return jsonify(_view(settings_writer.plan(_changes(body), role=writer_role())))
 
 
 @bp.route("", methods=["POST"])
@@ -92,7 +105,7 @@ def save_settings():
     """`POST /api/admin/settings` -- checks and saves; see the module docstring."""
     body = parse_body(SettingsChanges, require_json_body())
     try:
-        result = settings_writer.save(_changes(body), actor=g.admin_user["username"], role=ROLE, audit=_audit,
+        result = settings_writer.save(_changes(body), actor=g.admin_user["username"], role=writer_role(), audit=_audit,
                                       expect_hash=body.expect_hash)
     except settings_writer.StaleSettingsError as exc:
         raise ApiError(str(exc), status_code=409) from exc

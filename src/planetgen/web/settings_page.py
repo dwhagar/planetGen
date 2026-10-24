@@ -323,6 +323,8 @@ def admin_settings():
         return _form_page(view, error=flashed.get("error"), message=flashed.get("message"))
 
     action = request.form.get("action") or "review"
+    if action == "confirm-password":
+        return _confirm_password(cookie_header, view)
     if action == "save":
         return _save(cookie_header, view)
     changes, submitted = collect(view["options"], request.form)
@@ -343,6 +345,16 @@ def admin_settings():
         return _form_page(view, submitted=submitted, message="Nothing to change: every value is as it was.")
     return _review_page(view, plan, [("action", "save"), ("expect_hash", view["file_hash"]),
                                      ("changes", json.dumps(changes, sort_keys=True))])
+
+
+def _confirm_password(cookie_header, view):
+    """The Owner typed the password again to open the Owner-tier settings (ADM.86)."""
+    try:
+        done = apiclient.auth_confirm_password(cookie_header, request.form.get("current_password", ""))
+    except apiclient.ApiError as exc:
+        return _form_page(view, error=_api_message(exc), status=429 if getattr(exc, "status_code", 0) == 429 else 400)
+    return _flash(_see_other(url_for("web.admin_settings")),
+                  message=f"Thank you. The Owner's settings are open for {done['minutes']} minutes.")
 
 
 def _save(cookie_header, view):

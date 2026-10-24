@@ -65,7 +65,7 @@ def server(mysql_config, config):
     auth.bootstrap_control_schema(mysql_config)
     conn = store.get_control_connection(mysql_config)
     try:
-        conn.execute("UPDATE admin_users SET must_change_credentials = 0")
+        conn.execute("UPDATE admin_users SET must_change_credentials = 0, role = 'admin'")   # the seeded Owner is one (USR.31)
         conn.commit()
         admin_id = conn.execute("SELECT id FROM admin_users ORDER BY id LIMIT 1").fetchone()["id"]
         session = auth.create_session(conn, admin_id)
@@ -79,7 +79,7 @@ def server(mysql_config, config):
 
 @pytest.fixture(params=["admin", "host"])
 def role(request, monkeypatch):
-    monkeypatch.setattr(settings_api, "ROLE", request.param)
+    monkeypatch.setattr(settings_api, "writer_role", lambda: request.param)
     return request.param
 
 

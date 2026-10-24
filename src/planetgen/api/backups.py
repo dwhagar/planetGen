@@ -56,7 +56,7 @@ def _archive_view(archive):
 
 
 def _can_download():
-    return config_routes.ROLE in ("owner", "host")
+    return config_routes.writer_role() in ("owner", "host")
 
 
 def _find(name):
@@ -109,7 +109,7 @@ def show_backup(name):
     diff = None
     if checked.ok and settings_writer.PART in archive.part_names:
         try:
-            diff = config_routes._view(settings_writer.plan_restore(name, role=config_routes.ROLE))
+            diff = config_routes._view(settings_writer.plan_restore(name, role=config_routes.writer_role()))
         except settings_writer.SettingsWriteError as exc:
             diff = {"ok": False, "changes": [], "errors": {"": str(exc)}, "shadowed": {}, "restart": [],
                     "file_hash": settings_writer.file_hash(), "saved": False, "backup": None, "audit_errors": []}
@@ -130,7 +130,7 @@ def restore_backup(name):
             and body.expect_hash != settings_writer.file_hash():
         raise ApiError("The settings were changed by someone else since this page was opened; reload it and "
                        "try again.", status_code=409)
-    context = backup.RestoreContext(who=g.admin_user["username"], role=config_routes.ROLE,
+    context = backup.RestoreContext(who=g.admin_user["username"], role=config_routes.writer_role(),
                                     audit=config_routes._audit)
     try:
         report = backup.restore(name, body.parts, context)
@@ -161,7 +161,7 @@ def download_backup(name):
 def export_settings():
     """`GET /api/admin/settings/export` -- the settings an admin may change, without secrets."""
     try:
-        document = settings_writer.export_document(role=config_routes.ROLE)
+        document = settings_writer.export_document(role=config_routes.writer_role())
     except settings_writer.SettingsWriteError as exc:
         raise ApiError(str(exc), status_code=409) from exc
     return jsonify(document)
@@ -172,16 +172,16 @@ def export_settings():
 def import_settings():
     """`POST /api/admin/settings/import` -- checks (and, unless `check_only`, saves) an export."""
     body = parse_body(SettingsImport, require_json_body())
-    changes, errors = settings_writer.import_changes(body.document, role=config_routes.ROLE)
+    changes, errors = settings_writer.import_changes(body.document, role=config_routes.writer_role())
     if errors:
         return jsonify({"ok": False, "changes": [], "errors": errors, "shadowed": {}, "restart": [],
                         "file_hash": settings_writer.file_hash(), "saved": False, "backup": None,
                         "audit_errors": [], "request": {}})
     try:
         if body.check_only:
-            result = settings_writer.plan(changes, role=config_routes.ROLE)
+            result = settings_writer.plan(changes, role=config_routes.writer_role())
         else:
-            result = settings_writer.save(changes, actor=g.admin_user["username"], role=config_routes.ROLE,
+            result = settings_writer.save(changes, actor=g.admin_user["username"], role=config_routes.writer_role(),
                                           audit=config_routes._audit, expect_hash=body.expect_hash,
                                           action="config.import")
     except settings_writer.SettingsWriteError as exc:

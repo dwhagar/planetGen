@@ -153,6 +153,19 @@
 </ul>
 {%- endif %}
 <div class="settings" data-settings data-show-fixed="{{ 'true' if show_fixed else 'false' }}" data-fixed-count="{{ view.fixed_count }}">
+{%- if view.reauth %}
+<section class="panel settings-owner" aria-labelledby="owner-unlock-heading">
+  <h2 id="owner-unlock-heading">Owner settings are locked</h2>
+  <p>The mail server, the site's address and the From address can be read to take over the Owner account, so they open only after you type your password again, and for ten minutes.</p>
+  <form method="post" action="{{ url_for('web.admin_settings') }}{{ '?show=fixed' if show_fixed else '' }}" class="settings-unlock">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="confirm-password">
+    <label for="owner-password">Your password</label>
+    <input type="password" id="owner-password" name="current_password" autocomplete="current-password" required>
+    <button type="submit" class="btn">Open the Owner settings</button>
+  </form>
+</section>
+{%- endif %}
 <section class="panel settings-top" aria-label="Find a setting">
   <form method="get" action="{{ url_for('web.admin_settings') }}" class="settings-filter" role="search">
     <label class="sr-only" for="settings-q">Search settings</label>

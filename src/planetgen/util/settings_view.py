@@ -43,6 +43,9 @@ GROUPS = {
 works in; the rest hold what only the server's file can change (or the Owner), listed after them. Every option's
 group must be named here (a test checks it)."""
 
+REAUTH_REASON = "Type your password again to change this (Owner only)"
+"""str: Why an Owner-tier option is locked for the Owner whose password was not typed lately (ADM.86)."""
+
 KINDS = ("bool", "int", "float", "text", "list", "choice")
 
 CONTROLS = {"bool": "switch", "int": "number", "float": "number", "text": "text", "list": "chips", "choice": "choice"}
@@ -86,19 +89,21 @@ def _source(path, meta, document, environ):
     return "config.json" if settings_writer._get(document, path)[0] else "default"
 
 
-def describe(role="admin", environ=None):
+def describe(role="admin", environ=None, reauth=False):
     """
     Every option as the page lists it.
 
     Args:
         role (str): The caller's role (`settings_writer.allowed`).
         environ (Mapping): Where to look for overriding variables (default `os.environ`).
+        reauth (bool): The caller is the Owner and has only to type the password again (ADM.86): an Owner-tier option
+            it may not change yet says so (`fixed_kind` `"reauth"`) instead of "can only be changed by the Owner".
 
     Returns:
         dict: `file_hash` (what a save sends back as `expect_hash`), `problem` (why the page can't save, or
             `""`), `file_error` (why config.json can't be read, or `""`), `groups` (`[{"key", "title",
             "options"}]`, in page order) and `options`, the same options in one flat list, and `fixed_count`, how many the caller's role may not change (each
-            group has its own `fixed_count`; `fixed_kind` says why: `"owner"` or `"server"`). Each option is
+            group has its own `fixed_count`; `fixed_kind` says why: `"owner"`, `"reauth"` or `"server"`). Each option is
             `{"path", "section", "name", "title", "summary", "description", "group", "control", "advanced", "kind", "choices",
             "limits", "choice_labels", "slider", "unit", "multiline", "fixed_kind", "overridden",
             "default", "value", "effective", "is_set", "source", "env", "restart", "secret", "editable",
@@ -145,7 +150,7 @@ def describe(role="admin", environ=None):
             "advanced": bool(meta["x-advanced"]),
             "choice_labels": dict(meta.get("x-choice-labels") or {}),
             "slider": list(meta["x-slider"]) if meta.get("x-slider") else None,
-            "fixed_kind": "" if permitted else ("server" if not meta["x-editable"] else "owner"),
+            "fixed_kind": "" if permitted else ("server" if not meta["x-editable"] else "reauth" if reauth else "owner"),
             "kind": kind,
             "choices": list(get_args(annotation)) if kind == "choice" else [],
             "limits": _limits(info),
@@ -163,7 +168,7 @@ def describe(role="admin", environ=None):
             "editable": bool(meta["x-editable"]),
             "min_role": meta["x-min_role"],
             "allowed": permitted,
-            "reason": "" if permitted else why,
+            "reason": "" if permitted else (REAUTH_REASON if reauth and meta["x-editable"] else why),
         })
     order = list(GROUPS)
     present = sorted({option["group"] for option in options}, key=order.index)
@@ -172,7 +177,7 @@ def describe(role="admin", environ=None):
     for group in groups:
         group["fixed_count"] = sum(1 for o in group["options"] if not o["allowed"])
     return {"file_hash": file_hash, "problem": problem, "file_error": file_error, "groups": groups,
-            "options": options, "fixed_count": sum(1 for o in options if not o["allowed"])}
+            "options": options, "fixed_count": sum(1 for o in options if not o["allowed"]), "reauth": reauth}
 
 
 # ---------------------------------------------------------------------

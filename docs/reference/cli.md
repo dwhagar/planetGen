@@ -728,7 +728,7 @@ The warm-up runs in five phases (PERF.141): `opening` (`object-index`, `galaxy-m
 
 ## Helper tools
 
-Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `planetgen warm`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `forget_devices` and `reset_two_factor` take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `worker`, `config`, `lockouts` and `lift_lockout` take no database options. `orbits` and `query` also take `--version`.
+Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them as the account that owns the install (the web server's user for `planetgen warm`, so Apache can read what it writes). `orbits`, `query`, `migrate`, `reset`, `forget_devices`, `reset_two_factor` and `accounts` take the same five database options: `--mysql-host`, `--mysql-port`, `--mysql-user`, `--mysql-password` and `--mysql-database`, each defaulting to its `PLANETGEN_MYSQL_*` variable (see [config.md](config.md)). `worker`, `config`, `lockouts` and `lift_lockout` take no database options. `orbits` and `query` also take `--version`.
 
 | Command | What it is for |
 |---|---|
@@ -742,6 +742,7 @@ Besides `planetgen`, a few modules run on their own with `python3 -m`. Run them 
 | `python3 -m planetgen.cli.lift_lockout` | Lifts a login lockout. |
 | `python3 -m planetgen.cli.forget_devices` | Revokes an admin's trusted-device cookies. |
 | `python3 -m planetgen.cli.reset_two_factor` | Turns off an admin's two-factor sign-in. |
+| `python3 -m planetgen.cli.accounts` | Makes an account the Owner (`--set-owner USER`). |
 | `python3 -m planetgen.cli.config` | Checks, documents and edits the settings. |
 | `python3 -m planetgen.cli.backup` | Takes, lists, verifies and restores backup archives. |
 
@@ -830,6 +831,10 @@ python3 -m planetgen.cli.lift_lockout --ip 203.0.113.5
 ### forget_devices
 
 `forget_devices USER`: that admin's browsers lose their trusted-device cookies, so the next sign-in asks for the two-factor code again. Written to the activity log as `DB devices.revoke`.
+
+### accounts
+
+`accounts --set-owner USER`: makes that account the one Owner (USR.31), the old Owner becoming an admin. The Owner changes the Owner-tier settings (the mail server, the site's address, the From address) from the Settings page after typing the password again; this is the way back when that account is lost. Written to the activity log as `DB owner.set`. The rest of the accounts commands come with USR.26.
 
 ### reset_two_factor
 

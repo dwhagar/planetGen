@@ -86,6 +86,9 @@ CREATE TABLE IF NOT EXISTS admin_sessions (
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     expires_at       TIMESTAMP NOT NULL,
     last_seen_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- v19 (USR.31): when the password was last typed for this session (the sign-in sets it, `POST
+    -- /api/auth/confirm-password` renews it); the Owner-tier settings need it within the last 10 minutes.
+    password_confirmed_at DATETIME NULL,
 
     CONSTRAINT fk_admin_sessions_admin_user
         FOREIGN KEY (admin_user_id) REFERENCES admin_users(id) ON DELETE CASCADE,

@@ -241,7 +241,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 18
+CONTROL_SCHEMA_VERSION = 19
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -252,7 +252,7 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -282,6 +282,9 @@ _CONTROL_COLUMNS = {
         ("battery_cases", "JSON NULL"),
         ("environment", "JSON NULL"),
         ("last_seen_at", "DATETIME(6) NULL"),
+    ],
+    "admin_sessions": [
+        ("password_confirmed_at", "DATETIME NULL"),
     ],
     "admin_users": [
         ("email", "VARCHAR(254) NULL"),

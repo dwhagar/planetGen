@@ -414,6 +414,16 @@ def authenticate(conn, username, password):
     return conn.execute("SELECT * FROM admin_users WHERE id = ?", (row["id"],)).fetchone()
 
 
+RECENT_PASSWORD_MINUTES = 10
+"""int: How long after the password was typed (at sign-in, or `confirm_password`) the Owner-tier settings stay open
+(ADM.86)."""
+
+
+def is_owner(admin):
+    """Whether the account `admin` (an `admin_users` row, or what `validate_session` gives) is the Owner (USR.31)."""
+    return admin is not None and admin["role"] == "owner"
+
+
 def create_session(conn, admin_user_id):
     """
     Creates a new session row for `admin_user_id`.
@@ -424,8 +434,8 @@ def create_session(conn, admin_user_id):
     """
     raw_token = _new_token()
     conn.execute(
-        "INSERT INTO admin_sessions (admin_user_id, token_hash, expires_at) "
-        "VALUES (?, ?, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL ? HOUR))",
+        "INSERT INTO admin_sessions (admin_user_id, token_hash, expires_at, password_confirmed_at) "
+        "VALUES (?, ?, DATE_ADD(CURRENT_TIMESTAMP, INTERVAL ? HOUR), CURRENT_TIMESTAMP)",
         (admin_user_id, _hash_token(raw_token), SESSION_TTL_HOURS),
     )
     conn.commit()
@@ -441,14 +451,17 @@ def validate_session(conn, raw_token):
             expired/unknown token -- never raises, since "not logged in"
             is an ordinary outcome here, not an error. Refreshes
             `last_seen_at` on success (informational only; does not
-            extend `expires_at` -- see `SESSION_TTL_HOURS`).
+            extend `expires_at` -- see `SESSION_TTL_HOURS`). Adds `password_recent`: whether the password was typed
+            for this session within `RECENT_PASSWORD_MINUTES` (USR.31).
     """
     if not raw_token:
         return None
     token_hash = _hash_token(raw_token)
     row = conn.execute(
-        """
-        SELECT au.* FROM admin_sessions s
+        f"""
+        SELECT au.*, COALESCE(s.password_confirmed_at > CURRENT_TIMESTAMP - INTERVAL {int(RECENT_PASSWORD_MINUTES)} MINUTE,
+                              0) AS password_recent
+        FROM admin_sessions s
         JOIN admin_users au ON au.id = s.admin_user_id
         WHERE s.token_hash = ? AND s.expires_at > CURRENT_TIMESTAMP
         """,
@@ -462,6 +475,47 @@ def validate_session(conn, raw_token):
               " AND (last_seen_at IS NULL OR last_seen_at < CURRENT_TIMESTAMP - INTERVAL ? SECOND)",
         (token_hash, LAST_SEEN_REFRESH_SECONDS))
     return row
+
+
+def confirm_password(conn, raw_token, admin_user_id, password):
+    """
+    Marks the session `raw_token` as having had the password typed just now (USR.31), when `password` is the account's:
+    the Owner-tier settings (ADM.86) stay open for `RECENT_PASSWORD_MINUTES` after it.
+
+    Raises:
+        WrongPasswordError: When `password` is not the account's password.
+    """
+    row = conn.execute("SELECT password_hash FROM admin_users WHERE id = ?", (admin_user_id,)).fetchone()
+    if row is None or not isinstance(password, str) or not verify_password(password, row["password_hash"]):
+        raise WrongPasswordError("current password is incorrect")
+    conn.execute("UPDATE admin_sessions SET password_confirmed_at = CURRENT_TIMESTAMP "
+                 "WHERE token_hash = ? AND admin_user_id = ?", (_hash_token(raw_token), admin_user_id))
+    conn.commit()
+
+
+def set_owner(conn, username):
+    """
+    Makes the account `username` the one Owner (USR.31; the recovery path `planetgen.cli.accounts --set-owner`): the
+    old Owner becomes an admin, in the one transaction the unique `owner_flag` key needs. A role is read from the
+    account at each request, so open sessions follow at once.
+
+    Returns:
+        str or None: The old Owner's username, or `None` when there was none (or it was `username` already).
+
+    Raises:
+        AuthError: When there is no account `username`.
+    """
+    new = conn.execute("SELECT id, role FROM admin_users WHERE username = ?", (username,)).fetchone()
+    if new is None:
+        raise AuthError(f"no account named {username!r}")
+    old = conn.execute("SELECT id, username FROM admin_users WHERE role = 'owner'").fetchone()
+    if old is not None and old["id"] == new["id"]:
+        return None
+    if old is not None:
+        conn.execute("UPDATE admin_users SET role = 'admin' WHERE id = ?", (old["id"],))
+    conn.execute("UPDATE admin_users SET role = 'owner' WHERE id = ?", (new["id"],))
+    conn.commit()
+    return old["username"] if old is not None else None
 
 
 def end_session(conn, raw_token):
