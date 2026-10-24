@@ -7730,6 +7730,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stays open: toxicity reads (wait GEN.411 child table),
   habitability_explain, GEN.444 slice 2 with H, GEN.703, DOC.77,
   TEST.300.
+  Research (2026-10-09, Radiation terms in part): Update 3:20 PM EDT
+  2026-10-24 (Lane E, relayed as the lane reported; #3052): the
+  radiation terms in the planet details are merged (a Radiation table
+  naming total dose, whether dose or UV sets the rating, cosmic rays,
+  stellar particles, ground K/Th/U and UV through ozone). Nothing
+  generated changes. Still open: toxicity read through the mixture
+  accessors, which waits on GEN.411 (Lane I). Owner: Lane E.
 - [ ] **GEN.446 The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -18215,6 +18222,19 @@ clears each one.
   Hunt. Related: TEST.344, TEST.343.
   Prerequisites: none. Related: TEST.344, TEST.343.
 
+- [ ] **TEST.350 Tests red on clean main: test_web_facilities (18 tests), test_web_population (test_system_page_names_species_and_territory, test_real_population) and test_web_browser_controls test_every_plain_button_does_something[web.system] (bug)**
+  Found by Lane E (relayed 3:19 PM EDT 2026-10-24 as the lane reported,
+  on clean origin/main; filed by the TODO thread). Kind: failing tests
+  on main, not reproduced by the TODO thread. The test_class_pages cases
+  Lane E also listed are TEST.348, already fixed in #3050, and the
+  web.system contrast part may overlap TEST.346. Do: find which merge
+  changed the facility and population sections of the system page (the
+  planet admin menu move of UX.173 and the life cluster of UX.152 are
+  the likely causes) and fix the page or the stale tests without
+  weakening them. Done: all pass on main, alone and in the suite. Owner:
+  Bug Hunt (main-green rule). Related: TEST.347, TEST.346.
+  Prerequisites: none. Related: TEST.346, TEST.347, TEST.348.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -19640,36 +19660,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: none. Related: TEST.265.
-
-- [ ] **DOC.75 Help and docs text for the whole habitability system: the score, the symbols, the lists, the sector colouring and the map markers**
-  Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
-  before 8.1 is ready. Lane E writes the help and design text for it
-  once lanes A to D have built their parts: what the habitability score
-  and its categories mean (the PHI-6 symbols, UX.101), how planet and
-  moon lists show it (UX.100), what the sector colouring counts
-  (MAP.143), the habitable-world markers and their toggle (MAP.219,
-  MAP.220), and the planet-mass habitable zone limits (GEN.639), plus
-  the Kopparapu zone from GEN.146. Do: one help page and the matching
-  design-doc section, linked from the symbol legend, the map legend and
-  the planet pages, in the repo's help style (DOC.13 is the Generate
-  page example). Done: the help page and design section exist, every
-  symbol and layer links to them, and the docs link check passes. Owner:
-  Habitability lane E (Boss, 5:38 PM EDT 2026-10-23).
-  Prerequisites: MAP.220, GEN.639. Related: UX.101,
-  DOC.13.
-  Boss, 6:14 PM EDT 2026-10-23: the help describes the four life scores
-  0 to 9 and no longer a human operability score; DOC.77 does this part.
-  Research (2026-10-09, Update): Update 12:33 AM EDT 2026-10-24: part 1
-  merged as #2850 (lane E, no epoch): the habitability help page
-  (/classes/habitability) says where the rating symbols show up (lists,
-  planet pages, system page, Search) and what the habitable zone is,
-  with the Sun's 0.95 to 1.68 AU read from the generator; it also fixed
-  the bare CO2 in the equipment table (TEST.316). Still open: sector
-  colouring, markers, radiation terms, GEN.639 zone limits.
-  Research (2026-10-09, Update): Lane 'Habitable rule and life scores'
-  (9:56 AM EDT 2026-10-24, as the lane reported) merged #2970: the map,
-  temperature and chips help sections. Still open: radiation terms and
-  the GEN.639 zone limits (lane D).
 
 - [ ] **DOC.76 Docs for the condition-based classes: the rule table, the planet class pages and the help**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
