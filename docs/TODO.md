@@ -18827,6 +18827,12 @@ clears each one.
   the likely causes) and fix the page or the stale tests without
   weakening them. Done: all pass on main, alone and in the suite. Owner:
   Bug Hunt (main-green rule). Related: TEST.347, TEST.346.
+  Progress (2026-10-09): Update 4:26 PM EDT 2026-10-24: Bug Hunt merged
+  #3075 (as the coordinator relayed): the Python half, 20 facility and
+  population page tests, with test fixes only. One browser test is still
+  open
+  (test_web_browser_controls::test_every_plain_button_does_something[web.system]);
+  the item stays open until it passes on main.
   Prerequisites: none. Related: TEST.346, TEST.347, TEST.348.
 
 - [ ] **TEST.352 test_db_column_round_trip::test_every_column_is_written fails on main: the star columns disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au are now written, so they must leave NULL_IN_THIS_GALAXY (bug)**
