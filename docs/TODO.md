@@ -2464,6 +2464,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the body-rendering build lane's retirement report (10:52 PM EDT
   2026-10-23 as the lane reported); design doc
   docs/design/interface/body-rendering.md.
+  Research (2026-10-09, Owner): Owner (TODO, 2026-10-24 5:36 PM EDT,
+  wiring request from Boss via the coordinator): Lane Map nodes after
+  MAP.289, or the rendering lane when the coordinator starts it; whoever
+  takes it confirms with TODO that nobody started it. Needs the body
+  look record (MAP.274 and the stored colour DB.99 chain).
   Prerequisites: none.
 
 - [ ] **MAP.289 The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug)**
@@ -8119,6 +8124,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
   lane reported): the clathrate and brine curves merged in #2956 but are
   UNWIRED (no draw uses them yet). Do not mark done.
+  Research (2026-10-09, Wiring): The module physics/clathrate_brine.py
+  is built (merged earlier) and is imported only by atmosphere_recipes;
+  its wiring into the icy body draws is GEN.762 (TODO, 2026-10-24 5:36
+  PM EDT). This item stays open for the constants still marked open and
+  the source check.
 
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -12682,6 +12692,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.429 fractions; delete the three class ranges with no shim. Done:
   nothing reads the deleted names and the golden outputs are updated.
   Owner: Composition J.
+  Research (2026-10-09, Wiring): Wiring question for Lane J (physics fix
+  plan section 16, 2026-10-24; TODO 5:37 PM EDT): does the giant
+  interior composition (GEN.642, merged #2912) feed the giant radius and
+  density, or is the radius still drawn separately? Lane J answers in
+  its next report; if not wired, this item covers it.
   Prerequisites: GEN.681.
 
 - [ ] **GEN.683 Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range**
@@ -13531,7 +13546,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Prerequisites: none. Related: GEN.699, GEN.444, GEN.731.
 
-- [ ] **GEN.737 Tidal heating from the orbit, stored and counted for moons and planets**
+- [ ] **GEN.737 Tidal heating from the orbit's real eccentricity for rocky bodies and planets, with the random 1 to 50 boost removed**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   H4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
   TODO thread). Kind: realism. Source tier of today's value: T9
@@ -13564,6 +13579,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
   keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
   nobody started it.
+  Research (2026-10-09, Trimmed): Trimmed (physics fix plan thread,
+  2026-10-24; GEN.700 already stores and counts the icy-moon tide and
+  the GEN.699 heat is read by habitability_world): do only the real
+  eccentricity (GEN.727), tidal heating for rocky bodies and planets,
+  and removal of the random 1 to 50 resonance boost; do not redo the
+  icy-moon storage.
   Prerequisites: none. Related: GEN.699, GEN.727, GEN.639.
 
 - [ ] **GEN.738 Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss**
@@ -14053,6 +14074,73 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane picks it up (nobody else has started it; unstarted until 4b
   merges).
   Prerequisites: none. Related: GEN.411, GEN.452.
+
+- [ ] **GEN.759 Wire the r-process Th/U enrichment (rprocess_enrichment, GEN.663) into the radiogenic heat module**
+  rprocess_enrichment.py draws the thorium and uranium birth abundance
+  from a chemical-evolution epoch (GEN.663, merged) but nothing imports
+  it; radiogenic.py still uses its own thorium and uranium values. Make
+  radiogenic.py read the enrichment, planets and moons both. Found by
+  the physics fix plan thread (reports/physics-fix-plan-2026-10-24.md
+  section 16: built, merged and never imported by the generator). No
+  shim: the generator calls the module, the old path is deleted, and a
+  test fails if the module has no caller (the wiring guard GEN.754).
+  Takes a generator epoch in merge order (next free is 95). Each
+  stand-in it touches records its source tier and tweak level in the
+  registry (GEN.725). Requested by Boss through the coordinator, 5:34 PM
+  EDT 2026-10-24: wire it as fast as possible. Owner: Lane H after
+  GEN.735 (heat owner); nobody has started it.
+  Prerequisites: none. Related: GEN.663, GEN.699, GEN.735, GEN.754.
+
+- [ ] **GEN.760 Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw**
+  brown_dwarf_types.py (the tuned brown-dwarf draw of GEN.517, merged)
+  maps mass, age and temperature to the L, T and Y spectral types, and
+  nothing imports it. Make the star and brown dwarf generator draw the
+  type through it and store it. Found by the physics fix plan thread
+  (reports/physics-fix-plan-2026-10-24.md section 16: built, merged and
+  never imported by the generator). No shim: the generator calls the
+  module, the old path is deleted, and a test fails if the module has no
+  caller (the wiring guard GEN.754). Takes a generator epoch in merge
+  order (next free is 95). Each stand-in it touches records its source
+  tier and tweak level in the registry (GEN.725). Requested by Boss
+  through the coordinator, 5:34 PM EDT 2026-10-24: wire it as fast as
+  possible. Owner: Lane A after GEN.652; nobody has started it.
+  Prerequisites: GEN.652. Related: GEN.517, GEN.652, GEN.741, GEN.754.
+
+- [ ] **GEN.761 Wire the satellite hosting gate (hosting_gate, GEN.579) into the moon draw**
+  hosting_gate.py (can_host(body) in three parts and the gated satellite
+  share by size class, GEN.579, merged) is never imported; moon counts
+  are still drawn without it. Make the moon draw ask can_host first and
+  take the satellite share from the gated table. It touches the shared
+  system-draw code, so the owner confirms with the lane that holds that
+  code before starting. Found by the physics fix plan thread
+  (reports/physics-fix-plan-2026-10-24.md section 16: built, merged and
+  never imported by the generator). No shim: the generator calls the
+  module, the old path is deleted, and a test fails if the module has no
+  caller (the wiring guard GEN.754). Takes a generator epoch in merge
+  order (next free is 95). Each stand-in it touches records its source
+  tier and tweak level in the registry (GEN.725). Requested by Boss
+  through the coordinator, 5:34 PM EDT 2026-10-24: wire it as fast as
+  possible. Owner: Core 3 (system and moon draw area; to confirm);
+  nobody has started it.
+  Prerequisites: none. Related: GEN.579, GEN.466, GEN.754.
+
+- [ ] **GEN.762 Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw**
+  clathrate_brine.py (dissociation pressures and the liquid range of
+  eutectic brines for icy crusts and ocean moons, GEN.471) is only
+  imported by atmosphere_recipes. Make the icy-body atmosphere and ocean
+  draws read it: gas trapped in clathrate, and brines liquid below 273
+  K. It touches the atmosphere draw, so the owner confirms with Lane L
+  first. Found by the physics fix plan thread
+  (reports/physics-fix-plan-2026-10-24.md section 16: built, merged and
+  never imported by the generator). No shim: the generator calls the
+  module, the old path is deleted, and a test fails if the module has no
+  caller (the wiring guard GEN.754). Takes a generator epoch in merge
+  order (next free is 95). Each stand-in it touches records its source
+  tier and tweak level in the registry (GEN.725). Requested by Boss
+  through the coordinator, 5:34 PM EDT 2026-10-24: wire it as fast as
+  possible. Owner: Lane Draws (atmosphere draw tables) after its current
+  list; confirm with Lane L; nobody has started it.
+  Prerequisites: none. Related: GEN.471, GEN.423, GEN.479, GEN.754.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15563,6 +15651,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Research (2026-10-09, Owner): Owner (TODO, 2026-10-24 5:36 PM EDT,
+  wiring request from Boss via the coordinator): Lane 4 (database lane)
+  takes it when its current item merges; the migration and epoch number
+  is taken in merge order at merge (next migration 0155 is queued behind
+  Lane I 4b, DB.100 and GEN.701). Confirm with TODO that nobody started
+  it.
   Prerequisites: GEN.418, GEN.419.
 
 - [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
