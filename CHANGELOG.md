@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2262] - 2026-10-24
+
+**Headline:** The object page walk test reads the bodies it opens from the database, not from a loop of API calls that could run out of the API's rate limit.
+
+### Fixed
+- **The `test_object_page_walk.py` fixtures errored with a system detail that had no `"stars"` (TEST.359).** The fixture asked the API about each system (two calls a system, up to every system of the sample galaxy); on a machine where the per-IP limit of 50 an hour was already spent, the 429 answer was read as a system and had no `stars`. The fixture now selects the first six rows of each kind (star, planet, moon, belt, comet, facility) from the tables and prints their IDs, makes no API call, and fails with a plain message if the galaxy holds no star or planet. The module passes in 57 s.
+TODO items resolved: TEST.359. Added: none.
+
 ## [8.0.2261] - 2026-10-24
 
 **Headline:** Planet and moon pages now open with an "At a glance" table of what a captain needs first, and leave out properties that hold nothing.
