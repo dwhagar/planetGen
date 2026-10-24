@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2065] - 2026-10-24
+
+**Headline:** The heavy-element enrichment and the C/O of giant planets are retuned to the 147-giant fit and the 69 retrieved planets.
+
+### Changed
+- Atmosphere recipe row f5 draws the enrichment of a giant from the 147-giant fit (Chachan 2025) with a spread of 0.26 dex, and row f7 draws the C/O core with a width of 0.21 dex. Seven targets compare them with the published values; the tuning-target table gained a logarithmic scale, a threshold, a below flag and a subject. The recipes are not yet read by the generator, so no generated value changes.
+
 ## [8.0.2064] - 2026-10-24
 
 **Headline:** The thorium scale, the thorium-to-uranium ratio and the aluminium-26 share of rocky bodies are retuned to the stars and the cluster models that were measured.
