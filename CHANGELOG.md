@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2067] - 2026-10-24
+
+**Headline:** The titanium oxide presence on hot Jupiters is a step in temperature between the last non-detection and the detection.
+
+### Changed
+- Atmosphere recipe row h4 (TiO and VO on a hot Jupiter) is present above a threshold in the equilibrium temperature drawn between 2350 and 2641 K, in place of a function of the grain size. The recipes are not yet read by the generator, so no generated value changes.
+
 ## [8.0.2066] - 2026-10-24
 
 **Headline:** The brown dwarf type windows take their edges and softness from the measured temperature of each spectral type.
