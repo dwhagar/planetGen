@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2272] - 2026-10-24
+
+**Headline:** The habitability help page now says that a heavier planet's habitable zone starts nearer its star, and that cool stars' planets may have lost water early.
+
+### Changed
+- **DOC.75: the zone text follows GEN.639.** The habitable zone section of the habitability help page gives the Sun's inner edge for the lightest and heaviest planets the fit covers (1.01 AU at 0.1 Earth masses, 0.92 AU at 5), says the star's own zone is for one Earth mass, and says a planet of a cool star may have crossed the runaway limit while the star was young and lost water. Nothing generated changes.
+
 ## [8.0.2271] - 2026-10-24
 
 **Headline:** The 3D system view draws every star, planet and moon from its look record, the same one the System Map paints from, instead of colouring it by class letter.
