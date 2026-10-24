@@ -10879,6 +10879,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
   held it before; this replaces any earlier owner line).
+  Research (2026-10-09, Update 7:08 PM EDT): Update 7:08 PM EDT
+  2026-10-24: Boss asked for the general form (bring a galaxy to the
+  current epoch with a stage-level epoch record); filed as the item that
+  builds on this refill, see GEN.764. This item stays the fill-level
+  mechanism.
   Prerequisites: DB.75. Related: GEN.550, GEN.315, DB.73.
 
 - [ ] **GEN.565 The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes**
@@ -14001,6 +14006,61 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-in records its source tier and tweak level (GEN.725). Owner: Aux
   5 (Lane H, GEN.699 heat owner).
   Prerequisites: none. Related: GEN.699, GEN.721, GEN.735.
+
+- [ ] **GEN.764 Bring a galaxy to the current generator epoch without a full regeneration: record the epoch each stored result was made under and redo only what an epoch bump changed**
+  Boss, 7:06 PM EDT 2026-10-24 (as Core 5 relayed it): can an existing
+  galaxy be brought to the current epoch (his example: epoch 94 to 96)
+  without a full regeneration? Today nothing does it: update.sh only
+  records the new epoch in the version history and prints that the
+  generated output changed, and the only redo is the migration y/N
+  prompt
+  that wipes all galaxy data (Core 5's reading of the code; the owner
+  verifies). Do: (1) record the generator epoch each stored result was
+  made
+  under, per sector and per stage of the run (a sector already records
+  `version_key` and `planetgen_version`; DB.102 puts the epoch into the
+  version key, so build on that and add a stage-level record where the
+  key
+  is too coarse; the epoch is never compared at runtime today, gap (E)
+  of
+  GEN.564); (2) give every epoch in src/tests/golden/epochs.json a
+  machine-readable list of the stages and tables it changed (`affects`),
+  so
+  a bump says what it invalidates, and make the epoch bump check refuse
+  an
+  entry without one; (3) a command and a queue run, `planetgen
+  bring-to-epoch` (and an admin button like ADM.129), that compares each
+  sector's recorded epochs against the current ones, takes the union of
+  the
+  `affects` lists in between, and redoes only those stages per sector or
+  per body from the seeds: fill-level changes through the GEN.564
+  refill,
+  scatter-level changes through a rescatter of the affected scatters
+  only,
+  a changed per-body draw through the regenerate-planet path (the IDs
+  stay
+  stable, DB.75); (4) say per sector what it did and what it left;
+  refuse a
+  sector that is already current; resume an interrupted run (PERF.182);
+  (5) keep admin edits across the redo (ADM.61 replay). Where an epoch
+  changed something the lists cannot redo in part, the run says the
+  galaxy
+  needs the full regeneration and why, and does not guess. GEN.229 (wide
+  binaries re-rolled) is the same idea for one case and becomes the
+  first
+  user of the record. Done: a test galaxy generated under an older
+  epoch,
+  whose bump changed one stage, is brought to the rows a fresh
+  generation
+  of the same seed gives, without touching the stages the bump did not
+  list, and the run reports each sector. Crosses generation design and
+  the
+  identity chain: owner Core 1 (it held GEN.564 and owns the regenerate
+  and
+  repair path), after GEN.55 and TEST.77, unless the coordinator names a
+  pool lane; nobody has started it.
+  Prerequisites: GEN.564. Related: GEN.564, GEN.229, DB.102, PERF.182,
+  ADM.61, ADM.129, DB.17, OPS.56.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
