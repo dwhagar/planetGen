@@ -14607,6 +14607,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   names is left. Owner: Condition-based classes lane.
   Prerequisites: GEN.689.
 
+- [ ] **GEN.691 The Suitability sentence says "no food readily available, but there is water and shelter available" while the Water row is Red and "undrinkable without heavy treatment" (bug)**
+  Found by the Habitability text consistency lane from Boss's pasted
+  class B planet page (his message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiDs1DawrZoMKQtWYK4tvujG, relayed 12:11 AM
+  EDT 2026-10-24 as the lane reported). The Suitability water rung (is
+  water accessible) and the Water row (the chemistry, drinkable or not)
+  are different tests but are worded as if they were one, so the page
+  contradicts itself. Do: reword the Suitability clause
+  (physics/protection.py _suitability_clause) so water access and water
+  quality read consistently with the Water row, e.g. name the treatment
+  needed; add a test that the sentence never says water is available
+  without the Water row's treatment note. Done: the class B page reads
+  consistently and the test passes. Owner: Habitability lane D
+  (habitability model).
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
