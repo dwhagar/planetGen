@@ -2654,7 +2654,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the toolbar and search stay visible without page scroll, and a test
   checks the container fills the available width and height. Owner: Core
   2 after MAP.290.
+  Research (2026-10-09, 10-24 Boss): Related UX.142 (8.2 phase 2: the
+  viewing windows scale to the browser window so the controls are always
+  in view). MAP.291 is the live fix for the Galaxy view now; UX.142
+  covers every viewer later, so build MAP.291 so UX.142 can reuse the
+  same sizing.
   Prerequisites: none. Related: MAP.290.
+
+- [ ] **MAP.292 Galaxy Map scroll zoom gets stuck and never reaches a sector, a system or a star (bug)**
+  Boss live observation (1:52 PM EDT 2026-10-24). Zooming in with the
+  scroll wheel on the Galaxy Map gets stuck: it will not go in far
+  enough to see an individual sector, find a star system, or even find a
+  star. Do: reproduce first on a freshly generated galaxy (the zoom
+  limit, the zoom step per wheel tick, and the hand-over from the
+  sector-block nodes to individual sectors and then to stars are the
+  suspects), then fix so the wheel zooms continuously from the whole
+  galaxy down to a single star, with each level showing what lives
+  there. Done: on a generated galaxy the wheel alone takes you from the
+  galaxy view to one sector, one system and one star, and a browser test
+  drives the wheel to the deepest level. Higher priority than MAP.291.
+  Owner: Core 2 (MAP.258 to MAP.262 in the same files belong to the map
+  nodes lane, so check with it).
+  Prerequisites: none. Related: MAP.291, MAP.258, MAP.261, MAP.262.
 
 ## NAV: Navigation and courses
 
@@ -14183,6 +14204,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   out-of-memory thread owns it. Related: MAP.258, MAP.259, MAP.260,
   GEN.631, PERF.35.
   Prerequisites: none. Related: MAP.258, MAP.259, MAP.260, GEN.631.
+
+- [ ] **PERF.182 Finish an incomplete run: resume a New galaxy run that died partway from the stage it stopped in**
+  Boss, 1:53 PM EDT 2026-10-24, for version 8.2: "We need to find a way
+  to finish an incomplete run." Cause: Boss's New galaxy run died in
+  Stage 7 (MySQL out of memory, PERF.181) and the only way forward was
+  to wipe and start over. Today a single fill stage can resume after an
+  interruption (TEST.23, test_gen_resume), but the New galaxy run as a
+  whole cannot. Do: record per stage what a run finished (stage, command
+  and arguments, the galaxy seed and the build), and add a Finish run
+  action (command, Generate page button and console line) that takes the
+  last incomplete run, checks the galaxy seed and build still match, and
+  carries on from the first stage that did not finish, with each stage
+  able to skip work it already saved (stages already resumable keep
+  their way, the scatter stages need one). Done: a New galaxy run killed
+  in any stage, then Finish run, ends with the same galaxy as an
+  uninterrupted run (same seed, same sectors, same scatter), and a test
+  kills a run in two different stages and compares. Related: GEN.633
+  (storage repair, Core 1) is a different thing (it repairs stored data,
+  it does not continue a run); PERF.181, TEST.23. Phase: 8.2 phase 2.
+  Owner: none yet.
+  Prerequisites: none. Related: PERF.181, GEN.633, PERF.98, PERF.99.
 
 ## DB: Database and schema
 
