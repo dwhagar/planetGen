@@ -651,6 +651,17 @@ tbody tr:last-child td {
 .flag-tier-2 { color: var(--tier-yellow); border-color: var(--tier-yellow); }
 .flag-tier-3 { color: var(--tier-red); border-color: var(--tier-red); }
 
+/* UX.154: the equipment chips of a body, one per item: solid for a required item, outlined for a recommended one, in the
+   colour of the PHI-6 domain the item comes from (the words carry the same information, "recommended" is read aloud). */
+.eq-chips { display: inline-flex; flex-wrap: wrap; gap: 0.2rem 0.3rem; }
+.flag-eq { white-space: nowrap; }
+.flag-eq-required { color: var(--bg); }
+.flag-eq-required.flag-tier-0 { background: var(--tier-blue); }
+.flag-eq-required.flag-tier-1 { background: var(--tier-green); }
+.flag-eq-required.flag-tier-2 { background: var(--tier-yellow); }
+.flag-eq-required.flag-tier-3 { background: var(--tier-red); }
+.flag-eq-recommended { background: transparent; border-style: dashed; font-weight: 400; }
+
 /* UX.119: a Document written as HTML (planetgen/describe/html.py). Colours come from the tokens above, so both themes
    and the data-theme override follow them; the row headers read as labels, not as column headings. */
 .doc-section { margin: 0 0 1.25rem; }

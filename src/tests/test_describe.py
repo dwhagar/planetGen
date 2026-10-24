@@ -21,7 +21,7 @@ from planetgen.describe.quantity import inline_text
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
-from planetgen.physics import habitability, protection
+from planetgen.physics import habitability, protection, regional_temperature
 from planetgen.util import draw, ladders
 from planetgen.util.format import format_quantity
 
@@ -311,7 +311,8 @@ def test_a_scored_rocky_body_carries_its_six_ratings_as_the_paragraph_says_them(
                     continue
                 block = blocks[0]
                 assert [row["domain"] for row in block["rows"]] == list(habitability.DOMAINS)
-                result = protection.rating(*scored)
+                regions = {field: getattr(part, field, None) for field in regional_temperature.FIELDS}
+                result = protection.rating(*scored, regions=regions)
                 assert [(row["domain"], row["tier"], row["score"]) for row in block["rows"]] == [
                     (row["domain"], row["tier"], row["score"]) for row in result["rows"]]
                 assert [_plain(row["text"]) for row in block["rows"]] == [row["text"] for row in result["rows"]]

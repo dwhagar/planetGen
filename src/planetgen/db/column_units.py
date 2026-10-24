@@ -96,6 +96,12 @@ EQUIPMENT_LEVELS = (
 )
 """tuple: The survival equipment levels on `planets` and `moons` (GEN.655): small whole numbers, like the tiers."""
 
+REGIONAL_TEMPERATURES = (
+    "temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k", "temp_day_side_k", "temp_terminator_k",
+    "temp_night_side_k",
+)
+"""tuple: The regional temperatures and the day and night swing on `planets` and `moons` (GEN.656), kelvin."""
+
 TABLES = {
     "asteroid_belt_composition": {
         "id": ("id", "belt_id"),
@@ -340,7 +346,7 @@ TABLES = {
         "km3": ("volume_km3",),
         "yr": ("period_years", "min_update_interval_years"),
         "g0": ("gravity_g",),
-        "K": ("surface_temperature_k",),
+        "K": ("surface_temperature_k", *REGIONAL_TEMPERATURES),
         "g_cm3": ("density_g_cm3",),
         "kg_m3": ("atm_density",),
         "kg/mol": ("atm_molar_density",),
@@ -547,7 +553,7 @@ TABLES = {
         "km3": ("volume_km3",),
         "yr": ("period_years", "min_update_interval_years"),
         "g0": ("gravity_g",),
-        "K": ("surface_temperature_k",),
+        "K": ("surface_temperature_k", *REGIONAL_TEMPERATURES),
         "g_cm3": ("density_g_cm3",),
         "kg_m3": ("atm_density",),
         "kg/mol": ("atm_molar_density",),

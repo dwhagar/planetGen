@@ -209,7 +209,7 @@ connectivity to that specific schema rather than the default one.
   "Wiki publishing" below), `stars`, `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable`,
   `life_stage` — the furthest evolutionary milestone its timeline reached,
-  or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 [R2]`, the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2` and `outside_hours` — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
+  or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 [R2]`, the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
   `{component, concentration}` largest share first), `comets`, `sector_siblings`
   (`{id, name}` for every system in the same sector), and
   `nearest_neighbors` (`{id, name, distance_ly}` for the up-to-3 closest

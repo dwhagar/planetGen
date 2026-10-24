@@ -84,6 +84,20 @@ function symbolRow(symbols, iconUrl) {
   return row;
 }
 
+// The equipment chips of a `chips` cell: `[{text, severity, tier}]`, the same markup `partials/datatable.html` draws.
+function chipRow(chips) {
+  const row = el("span", "eq-chips");
+  chips.forEach((chip) => {
+    const node = el("span", `flag flag-eq flag-eq-${chip.severity} flag-tier-${chip.tier}`,
+      chip.text.charAt(0).toUpperCase() + chip.text.slice(1));
+    if (chip.severity === "recommended") {
+      node.append(" ", el("span", "sr-only", "(recommended)"));
+    }
+    row.append(node);
+  });
+  return row;
+}
+
 // One table cell from a served cell: `{text, href?, muted?, swatch?, symbols?, parts?, map_target?, form?}`.
 function cellNode(cell, iconUrl) {
   const td = el("td");
@@ -126,6 +140,10 @@ function cellNode(cell, iconUrl) {
   } else if (cell.symbols) {
     // The habitability symbols (UX.100), drawn from the icon sprite as the page draws them with no scripts.
     td.append(symbolRow(cell.symbols, iconUrl));
+  } else if (cell.chips) {
+    // The equipment chips (UX.154): solid for a required item, outlined for a recommended one, in the colour of the
+    // PHI-6 domain it comes from.
+    td.append(chipRow(cell.chips));
   } else if (cell.parts) {
     // Text and links, as a Location cell lists its nearest systems.
     cell.parts.forEach((part) => {
