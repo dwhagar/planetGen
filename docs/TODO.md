@@ -1246,7 +1246,7 @@ with `clamp()`.
   A1): View opens the object's new page; the button code is Core 2's,
   D9 only changes the target. Done: no link to a system anchor remains
   and the old code is deleted.
-  Prerequisites: UX.170, MAP.288. Related: MAP.288.
+  Prerequisites: UX.170. Related: MAP.288.
 
 - [ ] **UX.177 Tests for the object pages: a page-walk for every kind, tree browser tests, accessibility, no-script, a huge sector, a moon of a moon-less planet and an unknown ID**
   Boss's ask, 12:43 AM EDT 2026-10-24 (message
@@ -3085,46 +3085,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/interface/body-rendering.md.
   Prerequisites: none.
 
-- [ ] **MAP.288 Do away with the info panel at the side of the galaxy and sector views: the popup alone, in a map window that takes the full width**
-  Boss, 12:00 AM EDT 2026-10-24 (a change, not strictly a bug): 'do away
-  with the info panel on the side of the galaxy / sector view and
-  instead just have the popup in an expanded map viewing window'. Core 2
-  reports that most of this is already inside MAP.256 (in its gate): the
-  Galaxy Map's side panel becomes the popup over the map and the map
-  window takes the full width. Do: finish it for the galaxy and sector
-  views (Galaxy Map and Sector Map, on every page and theme), and remove
-  the dead side-panel code and styles with no shim. The system maps (the
-  old box code) are not part of Boss's words; Core 2 may do them if it
-  is the same removal, else they stay separate. Done: the galaxy and
-  sector views show no side panel, the popup carries everything the
-  panel showed, and the map window is full width, with a browser test.
-  Owner: Core 2.
-  Research (2026-10-09, Update): Update 12:41 AM EDT 2026-10-24 (as Core
-  2 reported): the panel code for the galaxy view is done by MAP.256
-  (#2852: one info panel over the map, in the corner away from the last
-  click, with a Close button, map at full width, under 600 px wide the
-  panel sits under the map; system maps unchanged). Remaining for
-  MAP.288: delete the dead side-panel code and cover the sector view.
-  Owner: Core 2.
-  Research (2026-10-09, Decided): Update (Boss, 12:39 AM EDT 2026-10-24
-  (his message cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva,
-  relayed by the coordinator)): answer 6, option 1: system maps follow
-  the same rule, no side info panel, the popup alone; and the popup (the
-  little info box on the map) must carry a button that jumps to the
-  matching item in the list. Owner: Core 2. Added to scope: system maps
-  and the jump button.
-  Research (2026-10-09, Decided): Update 12:41 AM EDT 2026-10-24 (Boss,
-  message cmsg_01RuNTFUNB92A8cm5CbojQAi15aEAgwC9hSYKAw7e4zGHq, 'Jump =
-  View Button'): the jump button in the map popup is the View button, so
-  the popup's View button jumps to the matching item in the list. Owner:
-  Core 2.
-  Decided (2026-10-09): Update (Boss, 1:30 AM EDT 2026-10-24, card A1 of
-  the object detail pages): the popup View button opens the object's new
-  page (/object/<ref>), replacing the earlier wording that it jumps to
-  the matching row in the list. Core 2 keeps the button code; UX.176
-  changes the target when the page exists, and until then the button
-  keeps the list-row jump. Owner: Core 2.
-  Prerequisites: none.
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
