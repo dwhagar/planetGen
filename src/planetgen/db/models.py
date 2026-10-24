@@ -546,7 +546,7 @@ facility_types = sa.Table(
 galaxy_block_stats = sa.Table(
     'galaxy_block_stats',
     metadata,
-    sa.Column('m', mysql.SMALLINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('m', mysql.INTEGER(unsigned=True), primary_key=True, nullable=False),
     sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
     sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
     sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),

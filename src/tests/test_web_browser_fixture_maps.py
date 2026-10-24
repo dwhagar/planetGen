@@ -2068,6 +2068,9 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")
     assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Maw"
     page.keyboard.press("Escape")
+    close = page.locator("#galaxymap3d-info .map-info-close")
+    if close.is_visible():   # MAP.256: the card over the map covers the points under it until it is closed
+        close.click()
     # A click on the glyph names the black hole.
     maw = holes["Fixture Maw"]
     page.locator("#galaxymap3d-menu > summary").click()

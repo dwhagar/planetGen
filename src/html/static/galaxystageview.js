@@ -2404,7 +2404,7 @@ export function createStageView(host) {
     const halo = front && front.layer !== choiceLayer ? front : null;
     const point = halo ? [halo.entry.x, halo.entry.y, halo.entry.z] : found ? null : anchorUnder(x, y);
     if (!point) return null;
-    const block = P.cellAt(P.DRILL_LEVELS[0], point[0], point[1], point[2], edgePc);
+    const block = P.cellAt(P.STAGE_TOP, point[0], point[1], point[2], edgePc);
     return P.drillBlockHolds(block, P.REACH_OUTLINE) ? S.windowInto(stage, block, { x: point[0], y: point[1], z: point[2] }, edgePc) : null;
   }
 
@@ -2818,7 +2818,7 @@ export function createStageView(host) {
   // coarsest, and the whole galaxy when that is no smaller either. Null when the middle is outside the galaxy.
   function stageForCamera(camera) {
     const quat = new THREE.Quaternion().fromArray(camera.quat);
-    const levels = P.DRILL_LEVELS.slice().reverse();
+    const levels = P.STAGE_LEVELS.slice().reverse();
     const outline = getOutline();
     let coarsest = null;
     let coarsestFit = 0;

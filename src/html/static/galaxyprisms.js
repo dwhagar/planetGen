@@ -509,8 +509,10 @@ export function cellExists(shell, band, wedge) {
 // --- Drill-down ladder ------------------------------------------------------
 //
 // The drill-down's nested blocks (docs/design/galaxy/spherical-block-ladder.md):
-// 243, 81, 27, 9 and 3 shells deep and a sector (1), each block wholly inside
-// one block of the next size up by counts. A block is {m, shell, band, wedge}:
+// 177147 down to 3 shells deep (every size three times its child) and a sector
+// (1), each block wholly inside one block of the next size up by counts. The
+// top, 177147 shells (708 kpc, past the grid's last shell), is a root of three
+// blocks: the nodes of the single-space map (MAP.257). A block is {m, shell, band, wedge}:
 // block shell `shell` holds the sector shells shell*m .. shell*m + m - 1 (its
 // centreline radius is shell*m + (m - 1)/2 edges), `band` is a signed row of
 // blocks (0 the equatorial row) and `wedge` one of the row's equal longitude
@@ -518,11 +520,16 @@ export function cellExists(shell, band, wedge) {
 // level-3 block holding its centre. planetgen/galaxy/drill.py is the same
 // rules for the server, and tests/test_galaxyprisms.py checks the two agree.
 
-export var DRILL_LEVELS = [243, 81, 27, 9, 3, 1];
+export var DRILL_LEVELS = [177147, 59049, 19683, 6561, 2187, 729, 243, 81, 27, 9, 3, 1];
 
 // How many child block shells deep one block is, at every level.
 var DRILL_STEP = 3;
-var DRILL_TOP = 243;
+var DRILL_TOP = 177147;
+
+// The levels the drill-down stages and map windows show (drill.STAGE_LEVELS), the level-243 blocks of the galaxy's
+// own view down to a sector; the levels above are only for the map's nodes.
+export var STAGE_LEVELS = [243, 81, 27, 9, 3, 1];
+export var STAGE_TOP = 243;
 
 function jsRound(x) {
   return Math.floor(x + 0.5);
@@ -538,10 +545,22 @@ export function blockRadius(m, shell) {
   return shell * m + (m - 1) / 2;
 }
 
-var LEVEL_INDEX = { 243: 0, 81: 1, 27: 2, 9: 3, 3: 4 };
+var LEVEL_INDEX = {};
+DRILL_LEVELS.forEach(function (m, i) { LEVEL_INDEX[m] = i; });
+
+// Cache keys: the level, the block shell (under 32768) and the signed row (within 65536 of the plane) in one number;
+// -1 for a block too far out to key, which is worked out each time.
+var SHELL_KEY_SPAN = 32768;
+var BAND_KEY_SPAN = 65536;
+
+function shellKey(m, shell) {
+  return shell >= 0 && shell < SHELL_KEY_SPAN ? LEVEL_INDEX[m] * SHELL_KEY_SPAN + shell : -1;
+}
 
 function ladderKey(m, shell, band) {
-  return ((LEVEL_INDEX[m] * 8192 + shell) * 16384) + band + 8192;
+  var key = shellKey(m, shell);
+  if (key < 0 || band < -BAND_KEY_SPAN || band >= BAND_KEY_SPAN) return -1;
+  return key * (2 * BAND_KEY_SPAN) + band + BAND_KEY_SPAN;
 }
 
 var bandCounts = new Map();
@@ -549,15 +568,17 @@ var wedgeCounts = new Map();
 var LADDER_CACHE_MAX = 600000;
 
 function checkLevel(m) {
-  if (LEVEL_INDEX[m] === undefined) throw new Error("block size must be one of 243, 81, 27, 9, 3, got " + m);
+  if (LEVEL_INDEX[m] === undefined || m === 1) {
+    throw new Error("block size must be one of " + DRILL_LEVELS.slice(0, -1).join(", ") + ", got " + m);
+  }
 }
 
-// Rows of blocks in block shell `shell` at size m (always odd): 243 takes the odd integer nearest
+// Rows of blocks in block shell `shell` at size m (always odd): the root takes the odd integer nearest
 // pi * R / m; the others the parent block shell's count times the odd integer nearest that over the parent's.
 export function drillBandCount(m, shell) {
   checkLevel(m);
-  var key = LEVEL_INDEX[m] * 8192 + shell;
-  var cached = bandCounts.get(key);
+  var key = shellKey(m, shell);
+  var cached = key < 0 ? undefined : bandCounts.get(key);
   if (cached !== undefined) return cached;
   var target = Math.PI * blockRadius(m, shell) / m;
   var count;
@@ -567,7 +588,7 @@ export function drillBandCount(m, shell) {
     var parent = drillBandCount(m * DRILL_STEP, Math.floor(shell / DRILL_STEP));
     count = parent * oddRound(target / parent);
   }
-  bandCounts.set(key, count);
+  if (key >= 0) bandCounts.set(key, count);
   return count;
 }
 
@@ -590,14 +611,14 @@ function rowOf(m, shell, band) {
   return row;
 }
 
-// Wedges in row `band` of block shell `shell` at size m: 243 takes round(2 pi R sin(theta) / m), theta the
+// Wedges in row `band` of block shell `shell` at size m: the root takes round(2 pi R sin(theta) / m), theta the
 // row's centre colatitude; the others the parent row's count times max(1, round(that over the parent's)).
 export function drillWedgeCount(m, shell, band) {
   if (m === 1) return wedgeCount(shell, band);
   checkLevel(m);
   if (wedgeCounts.size > LADDER_CACHE_MAX) wedgeCounts.clear();
   var key = ladderKey(m, shell, band);
-  var cached = wedgeCounts.get(key);
+  var cached = key < 0 ? undefined : wedgeCounts.get(key);
   if (cached !== undefined) return cached;
   var count = drillBandCount(m, shell);
   var row = rowOf(m, shell, band);
@@ -610,7 +631,7 @@ export function drillWedgeCount(m, shell, band) {
     var parent = drillWedgeCount(m * DRILL_STEP, Math.floor(shell / DRILL_STEP), parentBandOf(m, shell, band));
     wedges = parent * Math.max(1, jsRound(target / parent));
   }
-  wedgeCounts.set(key, wedges);
+  if (key >= 0) wedgeCounts.set(key, wedges);
   return wedges;
 }
 
@@ -637,7 +658,7 @@ function cellWedgeIn(cellWedges, cellWedge, blockWedges) {
   return Math.floor(((2 * cellWedge + 1) * blockWedges) / (2 * cellWedges));
 }
 
-// The block one size up holding `block` ({m, shell, band, wedge}, or a sector at m = 1), or null at 243.
+// The block one size up holding `block` ({m, shell, band, wedge}, or a sector at m = 1), or null at the root.
 export function drillParent(block) {
   var m = block.m;
   if (m === 1) {
@@ -660,11 +681,22 @@ export function drillParent(block) {
   return { m: m * DRILL_STEP, shell: shell, band: band, wedge: Math.floor(block.wedge / q) };
 }
 
-// Sector (shell, band, wedge)'s blocks from the top: [243, 81, 27, 9, 3, sector].
+// `drillParent`, but null for a level-243 block, the top of the stages: the parent a stage names, null for the
+// galaxy's own view (drill.stage_parent).
+export function stageParent(block) {
+  return block.m === STAGE_TOP ? null : drillParent(block);
+}
+
+// Sector (shell, band, wedge)'s blocks from the root: [177147, 59049, ... 9, 3, sector], one per DRILL_LEVELS.
 export function drillChainOf(shell, band, wedge) {
   var chain = [{ m: 1, shell: shell, band: band, wedge: wedge }];
   while (chain[chain.length - 1].m !== DRILL_TOP) chain.push(drillParent(chain[chain.length - 1]));
   return chain.reverse();
+}
+
+// The part of `drillChainOf` the stages use: [243, 81, 27, 9, 3, sector].
+export function stageChainOf(shell, band, wedge) {
+  return drillChainOf(shell, band, wedge).filter(function (block) { return block.m <= STAGE_TOP; });
 }
 
 // "m.shell.band.wedge", a stage URL's `at`.
@@ -702,7 +734,7 @@ export function isBlock(block) {
   if (!Number.isSafeInteger(block.shell) || !Number.isSafeInteger(block.band) || !Number.isSafeInteger(block.wedge)) return false;
   if (block.shell < 0 || block.wedge < 0) return false;
   if (m === 1) return cellExists(block.shell, block.band, block.wedge);
-  if (block.shell >= 8192) return false;
+  if (block.shell * m > DESIGNATION_MAX_SHELL) return false;
   var rows = drillBandCount(m, block.shell);
   if (Math.abs(block.band) > (rows - 1) / 2) return false;
   return block.wedge < drillWedgeCount(m, block.shell, block.band);
@@ -995,11 +1027,14 @@ function wedgeRun(n, a, b, w3) {
   return Math.max(0, last - first + 1);
 }
 
+// (Stage levels only, 243 and below: the walk is by level-3 rows, which a block of the levels above would make
+// millions of.)
 // How many sectors block `block` (level 3 or more) can hold under `outline`: the sectors of its sector shells whose centre
 // joins it, held back to the bands the outline allows (drill.block_addresses). With `stopAtOne`, only whether there
 // is any: 1 or 0, quickly.
 function countSectors(block, outline, stopAtOne) {
   var m = block.m;
+  if (m > STAGE_TOP) throw new Error("sector counts are for the stage levels (" + STAGE_LEVELS.join(", ") + "), got " + m);
   var rows = drillBandCount(m, block.shell);
   var row = rowOf(m, block.shell, block.band);
   var blockWedges = drillWedgeCount(m, block.shell, block.band);
@@ -1055,6 +1090,76 @@ export function drillBlockTotal(block, outline) {
 export function drillBlockHolds(block, outline) {
   if (block.m === 1) return sectorInOutline(block.shell, block.band, block.wedge, outline);
   return countSectors(block, outline, true) > 0;
+}
+
+// The sectors of level-3 block `block`, as {m: 1, shell, band, wedge}: in each of its three sector shells, the bands
+// whose centre lies in its row and, in each, the wedges whose centre lies in its wedge, in shell, then band north
+// to south, then wedge order (drill.drill_block_sectors). The outline is not consulted: these are every sector the
+// grid puts in the block.
+export function drillBlockSectors(block) {
+  if (block.m !== DRILL_STEP) throw new Error("only level-3 blocks hold sectors, got m=" + block.m);
+  var rows = drillBandCount(block.m, block.shell);
+  var row = rowOf(block.m, block.shell, block.band);
+  var blockWedges = drillWedgeCount(block.m, block.shell, block.band);
+  var sectors = [];
+  for (var k = block.shell * DRILL_STEP; k < block.shell * DRILL_STEP + DRILL_STEP; k++) {
+    if (k === 0) {
+      if (block.band === 0 && block.wedge === 0) sectors.push({ m: 1, shell: 0, band: 0, wedge: 0 });
+      continue;
+    }
+    var cached = shellBands(k);
+    var start = row === 0 ? 0 : bisectLeft(cached.centres, row * Math.PI / rows);
+    var stop = row === rows - 1 ? cached.centres.length : bisectLeft(cached.centres, (row + 1) * Math.PI / rows);
+    for (var i = start; i < stop; i++) {
+      var band = cached.bands[i];
+      if (isCap(k, band)) {
+        if (block.wedge === 0) sectors.push({ m: 1, shell: k, band: band, wedge: 0 });
+        continue;
+      }
+      var n = wedgeCount(k, band);
+      var first = Math.max(0, Math.ceil((2 * block.wedge * n - blockWedges) / (2 * blockWedges)));
+      var last = Math.min(n - 1, Math.ceil((2 * (block.wedge + 1) * n - blockWedges) / (2 * blockWedges)) - 1);
+      for (var w = first; w <= last; w++) sectors.push({ m: 1, shell: k, band: band, wedge: w });
+    }
+  }
+  return sectors;
+}
+
+// `block`'s children, grouped by child shell, innermost first: [{shell, blocks: [{m, shell, band, wedge}, ...]}].
+// A level-3 block's children are its sectors, grouped by sector shell (shells it holds none of are left out)
+// (drill.drill_children).
+export function drillChildren(block) {
+  var m = block.m;
+  checkLevel(m);
+  if (m === DRILL_STEP) {
+    var byShell = new Map();
+    drillBlockSectors(block).forEach(function (sector) {
+      if (!byShell.has(sector.shell)) byShell.set(sector.shell, []);
+      byShell.get(sector.shell).push(sector);
+    });
+    return Array.from(byShell.keys()).sort(function (p, q) { return p - q; }).map(function (shell) {
+      return { shell: shell, blocks: byShell.get(shell) };
+    });
+  }
+  var childM = m / DRILL_STEP;
+  var parentRows = drillBandCount(m, block.shell);
+  var parentWedges = drillWedgeCount(m, block.shell, block.band);
+  var row = rowOf(m, block.shell, block.band);
+  var groups = [];
+  for (var childShell = block.shell * DRILL_STEP; childShell < block.shell * DRILL_STEP + DRILL_STEP; childShell++) {
+    var childRows = drillBandCount(childM, childShell);
+    var step = childRows / parentRows;
+    var blocks = [];
+    for (var childRow = row * step; childRow < row * step + step; childRow++) {
+      var childBand = (childRows - 1) / 2 - childRow;
+      var q = drillWedgeCount(childM, childShell, childBand) / parentWedges;
+      for (var w = block.wedge * q; w < block.wedge * q + q; w++) {
+        blocks.push({ m: childM, shell: childShell, band: childBand, wedge: w });
+      }
+    }
+    groups.push({ shell: childShell, blocks: blocks });
+  }
+  return groups;
 }
 
 // A cell's mean density and its azimuthal mean ({density, mean}) over a few

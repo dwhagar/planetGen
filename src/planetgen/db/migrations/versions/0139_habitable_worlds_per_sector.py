@@ -68,6 +68,8 @@ def _rebuild_blocks(connection):
     insert = sa.text(
         "INSERT INTO galaxy_block_stats (" + ", ".join(block_stats.COLUMNS) + ") VALUES ("
         + ", ".join(":" + column for column in block_stats.COLUMNS) + ")")
-    rows = [dict(zip(block_stats.COLUMNS, row)) for row in block_stats.cell_rows(cells)]
+    # `m` is SMALLINT UNSIGNED here; the levels above 243 of the ladder as it is now (MAP.258) do not fit, and
+    # migration 0146 widens the column and fills the table again, with every level.
+    rows = [dict(zip(block_stats.COLUMNS, row)) for row in block_stats.cell_rows(cells) if row[0] <= 65535]
     for start in range(0, len(rows), BATCH):
         connection.execute(insert, rows[start:start + BATCH])
