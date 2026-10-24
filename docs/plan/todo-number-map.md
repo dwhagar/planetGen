@@ -21,7 +21,7 @@ release is stamped.
 | DB | DB.103 |
 | API | API.33 |
 | ADM | ADM.130 |
-| SEC | SEC.36 |
+| SEC | SEC.37 |
 | TEST | TEST.368 |
 | USR | USR.32 |
 | OPS | OPS.72 |
@@ -2166,6 +2166,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) | none | open |
 | SEC.34 | Upgrade Pillow from 12.3.0 to 13.0.0 in both lock files (37 advisories fixed in 13.0.0) | none | done, PR #3141 |
 | SEC.35 | The picture upload opens the file with every format Pillow knows before refusing all but PNG, JPEG and ICO: restrict the formats on open | none | done, PR #3141 |
+| SEC.36 | Avatars may be GIFs, animated GIFs included: a new avatar picture kind with its own format list and decoder limits | none | open |
 | USR.1 | User accounts | none | open |
 | USR.2 | Accounts with roles: user, moderator, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings in the admin config | 65 (2026-10-01 02:13Z to 05:29Z) | open |
