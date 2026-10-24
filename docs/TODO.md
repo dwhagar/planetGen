@@ -12199,60 +12199,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposal item is done when GEN.645 is filed as the design (close it
   with GEN.645).
 
-- [ ] **GEN.645 Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91**
-  Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
-  then D', relayed by the coordinator): 'Let's go with 3, since we're
-  doing compositions, let's leave out the class designation until planet
-  generation is completed, then fill in the classes based on the
-  atmosphere (even no atmosphere) composition / pressure, average
-  surface temperature, terrestrial composition (i.e. a rocky planet
-  composition), gas composition (for gas giants), same for moons. The
-  reason I did classes the way they are now is because I didn't know how
-  to get the compositions correct.' Proposal and options:
-  /mnt/project-files/reports/phi6-and-planet-classes-proposal-2026-10-23.md
-  (options A, B, C are retired). Part of GEN.644 (design) and GEN.643
-  (the habitable rule). Owner: Habitability lane D unless stated. Write
-  the design note (docs/design) and the rule table: a class is a
-  function of the finished body, never an input to its draw. Inputs: the
-  atmosphere (composition from the stored mixture, and pressure,
-  including no atmosphere at all), the average surface temperature, the
-  terrestrial composition (the rocky fractions and the surface
-  composition), the gas composition for giants and ice giants (GEN.642
-  layers, GEN.454 mixture), the same for moons; plus mass and the PHI-6
-  overall colour (GEN.643) as a separate label, not a class. Settle: the
-  class names and boundaries from physics (no Solar System shape as a
-  law), what the legacy letters become (kept as names where a rule
-  reproduces them, dropped otherwise, no shim), how a class changes when
-  conditions change (it follows, never the reverse), the sub-items of
-  GEN.90 (GEN.91, GEN.28, GEN.350 class R and the retirement of T,
-  GEN.355, GEN.356, GEN.27): which stand, which the new rules replace,
-  which become inputs (the retention module GEN.355 is an input). Done:
-  the note, the rule table with test cases per rule, and a list of
-  replaced items with Boss's card if any is not obvious.
-  Prerequisites: GEN.644. Related: GEN.644, GEN.643, GEN.90,
-  GEN.28, GEN.350, GEN.355, GEN.356.
-  Owner: Habitability lane D keeps the design, with the class lane
-  (design draft condition-based-classes-2026-10-23.md, C1 to C5 and C13
-  to C15). Boss, 6:23 PM EDT 2026-10-23: 'oh planet classes will also be
-  classed by their physical properties (size, gravity, etc)'. The rule
-  table takes size and surface gravity as inputs beside the atmosphere,
-  temperature and composition; the class lane builds them as rule inputs
-  plus a size tier in the class code (S and V become tiers, not
-  letters).
-  Merged part (2026-10-09): Found 12:12 AM EDT 2026-10-24 by the TODO
-  thread, which had not recorded it: the design note
-  docs/design/habitability/condition-based-planet-classes.md and the
-  rule table planet_classes.json merged in #2781 (10:27 PM EDT
-  2026-10-23 on the merge commit clock, no epoch). The class lane confirms
-  whether the replaced-items list is complete before this item is
-  retired.
-  Research (2026-10-09, Decided): Decided (Boss, 12:39 AM EDT 2026-10-24
-  (his message cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva,
-  relayed by the coordinator)), answer 8, option 1: keep all 20 class
-  letters (A to V), redefined from the stored conditions; no letter is
-  retired. The core letters H P O J M I C D N stay core. Never retire a
-  letter without asking Boss.
-
 - [ ] **GEN.646 Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
   then D', relayed by the coordinator): 'Let's go with 3, since we're
@@ -12278,7 +12224,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worker counts, and the galaxy statistics test shows the mix of
   conditions is unchanged within the stated bands or the change is
   explained.
-  Prerequisites: GEN.645, GEN.411, GEN.412,
+  Prerequisites: GEN.411, GEN.412,
   GEN.442, GEN.454, GEN.461, DB.69. Related: GEN.645,
   GEN.428, GEN.90, GEN.466, DB.67, DB.70 (class lane, 2:10 PM EDT
   2026-10-24 as the lane reported: classify needs none of the three, they
@@ -12686,20 +12632,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the composition (GEN.442, GEN.466, GEN.461); delete the class table.
   Done: nothing reads WATER_MASS_FRACTION. Owner: Composition J and K.
   Prerequisites: GEN.466.
-
-- [ ] **GEN.686 Age needs come from the processes; delete age_ranges**
-  Step C11 of the condition-based classes build (design draft
-  design-drafts/condition-based-classes-2026-10-23.md section 7, from
-  Boss's 6:09 PM EDT 2026-10-23 decision that the class is assigned
-  after generation from the finished body). Filed by the TODO thread at
-  12:12 AM EDT 2026-10-24 because the steps had no item numbers. Part of
-  GEN.647 and GEN.646. Do: the age a body needs follows its formation
-  and decay processes (GEN.428); delete age_ranges. Done: nothing reads
-  age_ranges. Owner: Composition spine lane I.
-  Research (2026-10-09, 10-24 class lane): Owner changed to the class
-  lane (lane I confirmed free 2:02 PM EDT 2026-10-24 as the lane
-  reported), to feed GEN.646.
-  Prerequisites: none.
 
 - [ ] **GEN.687 Rogue planets get their class from classify; delete choose_rogue_planet_class**
   Step C12 of the condition-based classes build (design draft
@@ -18884,6 +18816,25 @@ clears each one.
   TEST.350 and TEST.344).
   Prerequisites: none. Related: UX.184, TEST.351.
 
+- [ ] **TEST.355 test_class_pages: the phenomenon link (nebula D) is red on clean main (bug)**
+  Found by the class lane (relayed about 4:20 PM EDT 2026-10-24 as the
+  lane reported, on clean origin/main; filed by the TODO thread). Not
+  reproduced by the TODO thread. Do: find which merge changed the
+  phenomenon link on the class page (the object pages of UX.184 and the
+  nebula pages are the likely causes) and fix the page or the stale test
+  without weakening it. Done: the test passes on main. Owner: Bug Hunt
+  (main-green rule).
+  Prerequisites: none. Related: TEST.348, UX.184.
+
+- [ ] **TEST.356 test_web_search: the star result link is red on clean main (bug)**
+  Found by the class lane (relayed about 4:20 PM EDT 2026-10-24 as the
+  lane reported, on clean origin/main; filed by the TODO thread). Not
+  reproduced by the TODO thread. Do: find which merge changed the star
+  search result link (the object pages of UX.184 are the likely cause)
+  and fix the page or the stale test without weakening it. Done: the
+  test passes on main. Owner: Bug Hunt (main-green rule).
+  Prerequisites: none. Related: UX.184.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20333,7 +20284,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   help (DOC.75 area) and the database schema document. Done: the docs
   state the rules, the derived class column and the PHI-6 relation, and
   the old letter tables are gone.
-  Prerequisites: GEN.645, DB.90. Related: GEN.645, DOC.75.
+  Prerequisites: DB.90. Related: GEN.645, DOC.75.
   Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
   the TODO thread): the Condition-based planet classes lane builds this
   item (its design draft:

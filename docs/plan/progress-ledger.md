@@ -1374,3 +1374,5 @@ Baseline: PR #1817.
 | GEN.674 | 8.1 | Mixture and stored values |
 | PERF.183 | 8.1 | The headline closes |
 | PERF.186 | 8.1 | The headline closes |
+| GEN.645 | 8.1 | Habitability system |
+| GEN.686 | 8.1 | Consistency |
