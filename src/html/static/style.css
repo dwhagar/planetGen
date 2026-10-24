@@ -2057,14 +2057,27 @@ a.btn.btn-secondary.btn-active:visited {
   height: 1.1em;
   vertical-align: -0.15em;
   flex: none;
+  /* The outline every symbol of the sprite is drawn with. It is set here and not in the sprite's own <style>:
+     the Content-Security-Policy (default-src 'self') the sprite is served under refuses that inline style, which left
+     every icon a solid black shape. The values are inherited into the <use> content. */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* UX.101: a PHI-6 symbol (`habitability_symbol(name, tier)`), drawn in the tier-blue .. tier-red color of its
    rating; the rating is also in its words, so the color is never the only sign. */
 .hab-symbol {
-  width: 1.25em;
-  height: 1.25em;
-  vertical-align: -0.25em;
+  width: 1.45em;
+  height: 1.45em;
+  vertical-align: -0.35em;
+  /* Boss, 9:10 PM EDT 2026-10-23: a coloured symbol is a solid shape in its rating colour with no border (what is
+     inside it is cut out of it), a little transparent so the page behind it shades the colour in both themes. */
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.8;
 }
 
 .hab-symbols {
@@ -2087,6 +2100,13 @@ a.btn.btn-secondary.btn-active:visited {
   display: inline-flex;
   align-items: center;
   gap: 0.1em;
+}
+
+.hab-life-shape {
+  /* Solid like the PHI-6 symbols (Boss, 9:10 PM EDT 2026-10-23): no border, a little transparent over the page. */
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.8;
 }
 
 .hab-life-score {
