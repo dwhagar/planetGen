@@ -8,13 +8,15 @@ traffic), and covers the rest of a healthy install too.
 Replace `HOST` with your site's hostname, `DB_NAME` with your database,
 and `/var/lib/planetGen` with your checkout if it lives elsewhere.
 
+`update.sh` does the reload row itself when the web server is running (OPS.29): the configuration test, the reload (a restart only when it just installed mod_wsgi), then a check that `/api/health` answers; a failed step ends the update non-zero and prints the commands. A reload aborts a request a mod_wsgi daemon is still serving after about 4 seconds; `touch src/html/wsgi.py` does not, but also does not load new modules.
+
 ## Commands for your platform
 
 The steps below name these by their row:
 
 | | Apache + mod_wsgi | nginx or Caddy + gunicorn (Linux) | macOS (launchd) |
 |---|---|---|---|
-| **reload the app** | `sudo systemctl reload apache2` | `sudo systemctl reload planetgen-gunicorn` | `sudo launchctl kill SIGHUP system/org.planetgen.gunicorn` |
+| **reload the app** | `sudo apache2ctl configtest && sudo systemctl reload apache2` | `sudo systemctl reload planetgen-gunicorn` | `sudo launchctl kill SIGHUP system/org.planetgen.gunicorn` |
 | **app error log** | `/var/log/apache2/planetgen_error.log` | `journalctl -u planetgen-gunicorn` | `/usr/local/planetgen/log/gunicorn.log` |
 | **app processes** | `ps -o rss,cmd -C apache2` | `ps -o rss,cmd -u www-data` | `ps -o rss,command -U _www` |
 | **web user** | `www-data` | `www-data` | `_www` |
