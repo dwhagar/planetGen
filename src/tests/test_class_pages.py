@@ -402,6 +402,22 @@ def test_habitability_levels_page_draws_the_four_life_scores(client):
         assert f'#life-{name}"' in html
 
 
+def test_habitability_levels_page_says_what_sets_each_life_score_with_the_numbers_from_the_tuning(client):
+    from html import unescape
+
+    from planetgen import tuning
+    from planetgen.web.lib import habitability_ref, habitability_symbols
+
+    html = _html(client, "/help/habitability")
+    assert "What sets it" in html
+    for _name, needs in habitability_ref.LIFE_NEEDS:
+        assert needs in unescape(html)
+    assert f"stays at {tuning.LIFE_SCORE_SIMPLE_FLORA_MAX} or less" in html
+    assert f"in full after {tuning.LIFE_SCORE_SENTIENT_FULL_GYR * 1000:g} million years" in html
+    assert "Flora together with Fauna is better" in html
+    assert [name for name, _ in habitability_ref.LIFE_NEEDS] == list(habitability_symbols.LIFE_NAMES)
+
+
 def test_habitability_levels_page_says_where_the_symbols_appear(client):
     from planetgen.web.lib import habitability_ref
 
