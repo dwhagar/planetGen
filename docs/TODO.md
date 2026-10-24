@@ -16832,6 +16832,66 @@ Design: [docs/design/operations/login-brute-force-protection.md](design/operatio
   specifically authorizes an exception.
   Prerequisites: none. Related: TEST.261.
 
+- [ ] **SEC.36 Avatars may be GIFs, animated GIFs included: a new avatar picture kind with its own format list and decoder limits**
+  Boss, 7:16 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiFrLn1Ci8KEw4bDYQeEqheq, relayed by the
+  coordinator): "I want to allow GIF's and animated GIF's for avatars."
+  SEC.35 (#3141) had just limited every picture upload to PNG, JPEG and
+  ICO
+  (`PICTURE_FORMATS` in web/assets.py); this adds GIF back for avatars
+  only,
+  on purpose. No avatar exists in the code or the item list today (the
+  `KINDS` of web/assets.py are the site pictures), so this item builds
+  the
+  smallest avatar there is and the user accounts of 8.2 (USR.1) reuse
+  it:
+  (1) a new `avatar` kind in the asset checker whose own format list is
+  PNG,
+  JPEG, ICO and GIF, while `PICTURE_FORMATS` and the site pictures keep
+  the
+  SEC.35 rule (a GIF is still refused for a logo or favicon unless Boss
+  says
+  otherwise, and the TIFF/PPM refusal tests stay); (2) an avatar upload
+  for
+  the signed-in admin account, shown beside the name where the page
+  shows
+  who is signed in and on the Users page; the stored file belongs to the
+  account, replacing it removes the old file, and deleting the account
+  removes it. Safety conditions (Boss's coordinator, for the owner):
+  Pillow is asked for the GIF decoder only (`formats=[...]`), checks the
+  header size before decoding, and the check refuses a file over a pixel
+  cap (width times height), a frame cap, a total decoded pixel cap
+  (width
+  times height times frames, so a small many-frame GIF cannot exhaust
+  memory) and the byte cap (MAX_BYTES); set `Image.MAX_IMAGE_PIXELS` and
+  treat Pillow's DecompressionBombWarning as an error. Decode each frame
+  by
+  iterating it with the caps applied, never `.convert` or `.load` the
+  whole
+  sequence first. Keep the animation (all frames, durations and loop
+  count) but strip all metadata (comments, XMP, application extensions
+  other than the loop block, EXIF, ICC profile): re-encode the frames
+  with
+  Pillow and store that output, never the uploaded bytes. Serve the
+  avatar
+  with its own content type, `X-Content-Type-Options: nosniff`, the CSP
+  of
+  the other pictures, and a long-cache name from a hash of the bytes.
+  Done:
+  tests show a normal GIF and an animated GIF are accepted and stay
+  animated, a GIF with too many frames, too many pixels or a bomb header
+  is
+  refused with a plain sentence, the stored file carries no comment or
+  XMP
+  block, a GIF is refused for the site logo, and the docs name the
+  avatar
+  rules. Owner: Bug 1 (it wrote SEC.35 and has the decoder and test
+  files
+  open), after TEST.365 and TEST.366; nobody has started it. Related to
+  the
+  SEC.33 audit, which should see it merged first.
+  Prerequisites: none. Related: SEC.35, SEC.34, SEC.33, USR.1.
+
 ## TEST: The test suite
 
 From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
