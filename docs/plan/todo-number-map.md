@@ -2410,7 +2410,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.194 | Captain-first object pages, step C6: galaxy page | none | done, PR #3134 |
 | UX.195 | Every page has a proper heading outline: one h1 for the title, then h2 and below for each section and table, with no skipped level (bug) | none | open |
 | UX.196 | Every page gets an automatic table of contents built from its headings (bug) | none | open |
-| UX.197 | The habitability icons link to the habitability section of the planet information page, not to the help page (bug) | none | open |
+| UX.197 | The habitability icons link to the habitability section of the planet information page, not to the help page (bug) | none | done, PR #3150 |
 | UX.198 | The Atmosphere section of the planet property sheet shows 14 empty rows (bug) | none | open |
 | UX.199 | Pages show raw or placeholder values: "not stored" rows in At a glance, and a raw key such as Technological_civilization (bug) | none | open |
 | UX.200 | The Location block lists a system and its star separately when they share a name, shows "not inside any nebula" style lines, and links the Galaxy (bug) | none | open |

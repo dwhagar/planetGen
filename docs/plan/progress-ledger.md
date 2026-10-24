@@ -1425,3 +1425,4 @@ Baseline: PR #1817.
 | TEST.365 | 8.1 | The headline closes |
 | TEST.366 | 8.1 | The headline closes |
 | GEN.564 | 8.1 | Bulk composition |
+| UX.197 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

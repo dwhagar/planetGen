@@ -421,3 +421,5 @@ Update 7:48 PM EDT 2026-10-24: filed from Boss's 7:45 PM EDT planet page report 
 Update 7:49 PM EDT 2026-10-24: filed from Boss's 7:48 PM EDT Location block note (Aux 11): UX.200 (one line for a system and star that share a name, no "not inside any nebula" style lines, no Galaxy link) and UX.201 (one Nav button on object pages opening a menu: navigate from here, navigate to here, nearby locations). 1015 of 1422 8.1 items finished (71.4 percent), 407 open, 35 dropped.
 
 Update 7:50 PM EDT 2026-10-24: filed UX.202 (Aux 11) from Boss's 7:49 PM EDT note: the "How the composition was found" row (describe/sheet.py, composition_origin) is removed from object pages; the stored column and Aux 6's composition text stay. 1015 of 1423 8.1 items finished (71.3 percent), 408 open, 35 dropped.
+
+Update 7:53 PM EDT 2026-10-24: UX.197 done (#3150, Aux 11: the habitability icons link to the habitability section of the planet page). 1016 of 1423 8.1 items finished (71.4 percent), 407 open, 35 dropped.
