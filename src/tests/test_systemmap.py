@@ -827,3 +827,23 @@ def test_the_buttons_sit_under_the_map_with_map_help_and_no_caption_over_it():
     assert column.index('class="starmap-viewport') < column.index('id="sysmap-controls"')
     assert 'id="sysmap-measure-btn"' in column and 'data-dialog-open="sysmap-help"' in column
     assert 'id="sysmap-help"' in html and "Measure distance, then click two bodies" in html
+
+
+# --- MAP.244: the glow is the atmosphere colour of the stored air under the body's own star ----------------------
+
+def _look_of(html, kind, body_id):
+    return json.loads(html_lib.unescape(_marker_attrs(html, kind, body_id)["data-look"]))
+
+
+def test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star():
+    air = dict(atmosphere="Nitrogen-Oxygen", atmospheric_pressure_pa=101_325.0)
+    partials = dict(p_n2_kpa=79.1, p_o2_kpa=21.2, p_ar_kpa=0.95)
+    moon = dict(_moon(7, 4e5, 0.0), atmosphere="Nitrogen-Oxygen", atmospheric_pressure_pa=60_000.0, gravity_g=0.5,
+                p_n2_kpa=47.0, p_o2_kpa=12.5, p_ar_kpa=0.5)
+    first = dict(_planet(1, 10, AU_KM, 0.0, moons=[moon], **air), **partials)
+    second = dict(_planet(2, 11, 2 * AU_KM, 0.0, **air), **partials)
+    stars = [_star(10), _star(11, temperature_k=3300.0, star_type="M3V", luminosity_w=1e24)]
+    html = sm.render_system_map_panel({"name": "Pair", "binary_configuration": "wide"}, stars, [first, second], [])
+    sun, dwarf = _look_of(html, "planet", 1)["glow"], _look_of(html, "planet", 2)["glow"]
+    assert sun != dwarf and int(sun[5:7], 16) > int(dwarf[5:7], 16)
+    assert _look_of(html, "moon", 7)["glow"].startswith("#")
