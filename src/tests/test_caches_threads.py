@@ -85,6 +85,16 @@ def _stored_bytes(cache):
     return sum(len(entry[2]) for entry in cache._entries.values())
 
 
+def test_page_cache_without_a_database_stays_within_max_entries():
+    """PERF.111: a put with no database used to store without trimming, so the entries grew past `max_entries` and
+    the thread test below failed when its last put was one of those."""
+    cache = pagecache.ResponseCache(lambda db, since: {"stamp": "s", "state": None},
+                                    dict(pagecache.DEFAULTS, max_entries=5, stamp_seconds=0))
+    for n in range(20):
+        cache.put(None, f"/sectors/{n}", _body(None, f"/sectors/{n}"), cache.begin(None))
+    assert len(cache) <= 5
+
+
 def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often, redis_server):
     stamp_calls = []
     stamp_lock = threading.Lock()
