@@ -5037,7 +5037,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites become the cataclysmic and symbiotic rows (GEN.271,
   GEN.272): the Type Ia progenitor share is read from them, and if it
   can be read without a new field this item closes (2026-10-16 review).
-  Prerequisites: GEN.271, GEN.272. Related: GEN.241.
+  Prerequisites: GEN.272. Related: GEN.241.
   Design: [docs/design/galaxy/intergalactic-and-halo-contents.md](design/galaxy/intergalactic-and-halo-contents.md)
 
 - [ ] **GEN.248 Tidal streams as placed components of the halo (later)**
@@ -5199,55 +5199,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-18, as the coordinator relayed;
   docs/design/architecture/unified-system-barycentre.md): see the note on GEN.315
   (heaviest first at every node, no new copy of the swap).
-  Design: [docs/design/systems/multi-star-systems.md](design/systems/multi-star-systems.md)
-
-- [ ] **GEN.271 White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars**
-  Step 15 (design note section 13.3); extends GEN.253. A white dwarf
-  with a companion 30% (22% of them wide); a close double white dwarf
-  9.5% of white dwarfs (axis log-uniform 0.001 to 4 AU, the Peters
-  rule); double white dwarf merger products (10% of white dwarfs, mass
-  0.8 to 1.1 solar masses, flagged); post-common-envelope pairs (axis
-  0.005 to 2 AU); cataclysmic variables (6.5e-4 of white dwarfs, periods
-  1.3 to 10 h, 36% magnetic); AM CVn binaries (7.5e-5 of white dwarfs,
-  periods 5 to 65 min, a helium donor of kind `stripped-helium`); barium
-  and CH stars (1% of G and K giants) and symbiotic stars (5e-6 of
-  giants); white dwarf plus brown dwarf. A Type Ia explosion is an event
-  and out of scope. Done: counts within four Poisson sigma of the
-  defaults (close double white dwarf 9.5% of white dwarfs, cataclysmic
-  variable 3.4e-5 of systems, AM CVn 3.9e-6), and every accreting pair
-  has `interaction` accreting. Owner: Interface (2026-10-15; moved off
-  Core by the lane queue, Core owns the star model or the key it builds
-  on). Boss (2026-10-15 6:08 PM EDT) widened the multi-star plan to
-  "every observed and theoretical type of multi-star/star-like-object
-  system", built "into our generator throughout to match as close as
-  possible to observed and theoretical probabilities (observed are best,
-  theoretical are good too)".
-  Related to GEN.253, not dependent on it: the table here is
-  self-contained and GEN.253's pollution flag and cool white-dwarf
-  presets stay independent (2026-10-16 review).
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.269 merged as #2481;
-  GEN.253 is related, not a prerequisite). Core 4 asks Core 3
-  before touching stellar evolution constants in tuning.py. A line here
-  that named Core 3 or Core 4 earlier is replaced by this one.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): the stale prerequisite on GEN.253 is dropped: the
-  2026-10-16 review line (self-contained table, GEN.253 independent) was
-  the newer decision. Core 4 can build it now (GEN.269 merged as #2481).
-  Research (2026-10-09, Update): Update 2:44 AM EDT 2026-10-24 (as Core
-  4 reported on GEN.270, #2879): residuals to keep in view: the Algol
-  share is 0.09% of a constant-star-formation disk against the 0.1 to
-  0.2% lower limit; stand-ins in tuning.py to label in the gap plan
-  registry: the stripped-pair period range 30 to 1000 d, the Be
-  progenitor mass ratio 1.2 to 2.0, the old giant share 0.5% and the
-  massive merger edge 9 solar masses. The planet-zones P-type shares for
-  5 and 7 stars were re-measured (0.40 and 0.33) by that merge. Owner:
-  Core 4.
-  Prerequisites: none. Related: GEN.253, GEN.130, GEN.268.
   Design: [docs/design/systems/multi-star-systems.md](design/systems/multi-star-systems.md)
 
 - [ ] **GEN.272 Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples**
@@ -13955,6 +13906,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   report.
   Prerequisites: none. Related: GEN.631, GEN.267, GEN.332.
 
+- [ ] **GEN.707 Register the white dwarf binary stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each**
+  Found by Core 4 while merging GEN.271 (#2928, epoch 73), report
+  /mnt/project-files/reports/core4-gen271-report-2026-10-24.md, relayed
+  6:24 AM EDT 2026-10-24 (as the lane reported). The stand-ins, all in
+  tuning.py, are CATACLYSMIC_DONOR_MASS_RANGE_SOL (0.08 to 0.7),
+  AM_CVN_DONOR_MASS_RANGE_SOL, AM_CVN_DONOR_RADIUS_SOL_AT_0_05,
+  ACCRETING_FILL_FACTOR (1.05), HOT_SUBDWARF_POST_CE_SHARE (0.05),
+  BARIUM_GIANT_MAX_INITIAL_MASS_SOL (3.0, a G and K proxy),
+  BARIUM_PERIOD_DAYS and SYMBIOTIC_PERIOD_DAYS. Do: add each to the
+  stand-in registry of docs/design/research/gap-filling-plan.md with
+  fill id, kind (D, B, T, P), evidence label, assumptions, knobs,
+  validity range and falsifier test, so none is silent. Done: every
+  constant above has a registry row. Owner: Core 4 (it knows the
+  values).
+  Prerequisites: none. Related: GEN.271, GEN.675.
+
+- [ ] **GEN.708 White dwarf merger products draw their 0.8 to 1.1 solar mass bump: the star model gives the white dwarf its mass before the member tree, so the tree only flags 10 percent as merger products**
+  Residual of GEN.271 (#2928), reported by Core 4 at 6:24 AM EDT
+  2026-10-24 (as the lane reported); report
+  /mnt/project-files/reports/core4-gen271-report-2026-10-24.md. The
+  merger products are flagged in the member tree (10 percent of old
+  white dwarfs, with a rejuvenated age) but the mass bump of 0.8 to 1.1
+  solar masses that observed merger products show is not drawn, because
+  a white dwarf's mass comes from the star model before the tree and
+  member 0 keeps it. Do: let the star model draw the merger-product mass
+  (a mass-biased draw for the flagged share) or give the tree the right
+  to replace member 0's mass for a merger product, keeping one draw
+  order. Done: the mass distribution of the flagged white dwarfs shows
+  the bump at the observed share, tested against the cited sample, and
+  unflagged white dwarfs are unchanged. Changes generated values, so it
+  takes the next free generator epoch. Owner: Core 4 (proposed).
+  Prerequisites: none. Related: GEN.271.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -17334,7 +17318,7 @@ clears each one.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.271, GEN.272, GEN.275, GEN.327. Related: TEST.162, DOC.50, TEST.160.
+  Prerequisites: GEN.272, GEN.275, GEN.327. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
@@ -19137,6 +19121,23 @@ clears each one.
   Done: the files pass in a full run on a lane machine. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: TEST.302, PERF.155, OPS.65.
+
+- [ ] **TEST.335 test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug)**
+  Found by Core 4 at 6:24 AM EDT 2026-10-24 (as the lane reported);
+  report /mnt/project-files/reports/core4-gen271-report-2026-10-24.md.
+  Fails on a clean origin/main worktree in 3 of 8 runs (about 40 percent
+  on its branch), so it is not a load flake: loop the single test (about
+  35 s a run). In a failing run one order leaves bright_stars rows in
+  sectors 1 0 5, 1 0 11 and 1 1 0 that the other order consumed, and the
+  sectors then differ in star_systems count (6 against 4); the stars'
+  member trees were identical in both orders. The lane's reading: a
+  time-dependent backfill (the run's --since second boundary). It also
+  failed once in a parallel pass for Habitability lane B (see TEST.302).
+  Do: reproduce by looping the test, find what the backfill reads of the
+  clock, and make the order of backfill and consumption independent of
+  time (or pass the time in). Done: the test passes 50 runs in a row on
+  main. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.302.
 
 ## USR: User accounts
 
