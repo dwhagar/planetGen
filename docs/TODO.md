@@ -13780,6 +13780,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   more, lane L's research note
   reports/stripped-core-envelope-2026-10-24.md (stand-in envelope
   fraction 1e-4 to 4e-2) is the start.
+  Research (2026-10-09, Update): Update 4:07 AM EDT 2026-10-24: GEN.692
+  (#2799) made a class B page's atmosphere table list the class's
+  balance gases, so it shows helium and sodium until the class cut-over.
+  Boss's answer on the class B card (12:22 AM EDT: class B never has
+  hydrogen or helium) means the class lane must drop helium from the
+  class B phrase, the table and the stripped-core line at the cut-over;
+  nothing to change before then.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -14108,20 +14115,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry until then. Owner: the Composition-first stars lane, after GEN.651.
   Prerequisites: GEN.651. Related: GEN.553, GEN.652.
 
-- [ ] **GEN.666 The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug)**
-  Boss live observation (relayed 2026-10-23, 9:11 PM EDT): on a planet
-  page paragraph 1 said melanin life 'would evolve at a normal pace' and
-  paragraph 2 said 'hyper-accelerated pace', for an 80 Myr civilization
-  in a 13.8 Gyr system. Cause found by the Habitability text consistency
-  thread: the pace is drawn twice (life.get_evolutionary_speed and
-  evolution.get_evolutionary_state), stored in two columns and written
-  by two text writers. Done: the pace is drawn once, planets and moons
-  lose the evolutionary_speed column (migration, no shim), one LifeFacts
-  object feeds every life sentence on every page, and a consistency test
-  fails when two sentences about the same planet disagree. Owner:
-  Habitability text consistency thread (2026-10-23).
-  Prerequisites: none. Related: GEN.649, GEN.653.
-
 - [ ] **GEN.667 Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands**
   Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
   GEN.413 merged as #2761): the ozone column is computed from an oxygen
@@ -14393,27 +14386,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the combination Green with a mask is valid. Owner: Habitability text
   lane / lane D.
   Prerequisites: none.
-
-- [ ] **GEN.692 The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug)**
-  Boss's live observation on a class B page (0.346 AU, 310 K, 19.8 kPa)
-  at 12:12 AM EDT 2026-10-24, reported by lane L. The table in
-  describe/build.py _atmosphere_composition adds up only the ten stored
-  partial pressures and divides each by that sum, so unstored balance
-  gases (helium, sodium; class B, E, F, I, J, T, V all have a balance)
-  vanish and oxygen shows 100% when the real share is about 6%. Do
-  (interim, before GEN.411): divide by the real total pressure and show
-  the unstored balance gases as named rows or an Other row, so the table
-  sums to the real total and never shows 100% for a mixture. Permanent
-  fix is GEN.411 plus GEN.415. Done: the class B page shows helium,
-  sodium and oxygen shares that sum to 100% of the total, and a test
-  covers a class with an unstored balance. Details:
-  reports/pure-oxygen-atmosphere-2026-10-24.md.
-  Research (2026-10-09, Decided): Related decision (Boss, 12:39 AM EDT
-  2026-10-24 (his message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
-  coordinator)): answers 1 and 2 are GEN.694 (oxygen caps) and the class
-  B hydrogen and helium item (the second new item above, GEN.695).
-  Prerequisites: none. Related: GEN.411, GEN.415.
 
 - [ ] **GEN.699 Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9**
   Boss, 1:28 AM EDT 2026-10-24 (message
@@ -19507,6 +19479,13 @@ clears each one.
   in code if the test is right, or make the test deterministic with the
   reason stated; never skip it. Done: 200 runs of the test pass. Owner:
   none for now (pool; the Flaky test fixes lane is proposed).
+  Research (2026-10-09, Update): Update 4:07 AM EDT 2026-10-24 (as Core
+  4 reported on GEN.270, 2:44 AM EDT): same failure seen again, about 1
+  run in 12 on main (reproduced on a GEN.450 tree, 1 of 12 loops with
+  `pytest -k M5V` alone; over 15 trials in the test one makes no belt
+  although ASTEROID_BELT and HABITABLE_WORLD are both forced). TEST.326
+  was filed for it by mistake and is dropped as a duplicate of this
+  item. Owner: lane 4 (Flaky test fixes), which listed TEST.313 next.
   Prerequisites: none.
 
 - [ ] **TEST.314 Only classify writes the class column, and the class is recomputed when an input is edited**
@@ -19616,20 +19595,6 @@ clears each one.
   repeated gates. Note: UX.180 changes the header menus (the Help menu),
   so the fix should land with or after it. Owner: Bug Hunt.
   Prerequisites: none. Related: UX.180, TEST.317.
-
-- [ ] **TEST.326 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug)**
-  Found by Core 4 at 2:44 AM EDT 2026-10-24 (as the lane reported). It
-  fails about 1 run in 12 on main too (reproduced on a GEN.450 tree: 1
-  of 12 loops with `pytest -k M5V` alone; over 15 trials in the test,
-  one makes no belt although ASTEROID_BELT and HABITABLE_WORLD are both
-  forced). So a forced belt is not always honoured. Do: find why the
-  belt is dropped for an M5V star with both flags forced (a failed
-  placement that gives up, or the habitable-world rebuild removing the
-  belt), fix the generator so a forced belt is always made or the test
-  states the real rule, and run the test 50 times. Done: 50 loops of the
-  test pass. Owner: Bug Hunt, unless Core 4 prefers it, since the flag
-  handling is generation code.
-  Prerequisites: none.
 
 - [ ] **TEST.328 Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists**
   Finding of lane B at 2:52 AM EDT 2026-10-24 (as the lane reported):

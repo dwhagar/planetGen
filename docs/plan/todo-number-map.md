@@ -1391,7 +1391,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.663 | A chemical-evolution birth-epoch model for thorium and uranium: row o4 draws the formation time from 3 to 13 Gyr | none | done, PR #2822 |
 | GEN.664 | The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044) | none | done, PR #2815 |
 | GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | done, PR #2815 |
-| GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | open |
+| GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | done, PR #2799 |
 | GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | none | open |
 | GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | open |
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows | none | open |
@@ -1417,7 +1417,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | none | open |
 | GEN.690 | Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs | none | open |
 | GEN.691 | The Suitability sentence says "no food readily available, but there is water and shelter available" while the Water row is Red and "undrinkable without heavy treatment" (bug) | none | open |
-| GEN.692 | The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug) | none | open |
+| GEN.692 | The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug) | none | done, PR #2799 |
 | GEN.693 | Light-gas escape filter after outgassing: the mixture draw gives a small warm body hydrogen as its main gas | none | done, PR #2862 |
 | GEN.694 | Oxygen caps in the atmosphere draw: biotic oxygen at most 35 percent, abiotic at most 95 percent with a nitrogen and argon floor, and no mixture shown as 100 percent | none | done, PR #2862 |
 | GEN.695 | Class B keeps some hydrogen and helium in its atmosphere mix next to the sodium and oxygen of a molten world | none | dropped (Boss, 1:22 AM EDT 2026-10-24, card option 3: class B never has hydrogen or helium; a stripped core is at least 5 Earth masses) |
@@ -2717,7 +2717,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.323 | test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug) | none | open |
 | TEST.324 | test_web_header_menus top-bar [1280x720-light] times out under load (bug) | none | open |
 | TEST.325 | test_migration_habitable_worlds: the v135 galaxy count test fails on main because it downgrades to v138 while the DB.73 v140 marker still reads 140 (bug) | none | done, PR #2881 |
-| TEST.326 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug) | none | open |
+| TEST.326 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug) | none | dropped (duplicate of TEST.313, TODO 4:07 AM EDT 2026-10-24) |
 | TEST.327 | test_web_browser_tables::test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts fails on main: it counts 0 a.help-link elements and expects 7 since UX.180 to UX.182 (bug) | none | done, PR #2892 |
 | TEST.328 | Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists | none | open |
 | TEST.329 | test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug) | none | open |
