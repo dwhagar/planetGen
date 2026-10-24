@@ -235,8 +235,12 @@ connectivity to that specific schema rather than the default one.
   `overall`, the `gear` a visitor needs and a row per category), `composition`
   or `prose` (sentences). Text is a list of strings and typed items: a
   quantity `{"qty": {"kind", "si", ...}}` (`si` in the kind's base unit, never
-  formatted), a link `{"ref", "name"}` or `{"strong"}`. Built from the
-  database rows on each request.
+  formatted), a link `{"ref", "name"}`, `{"strong"}`, a chemical formula
+  `{"chem"}` or a colour `{"swatch": {"hex": "#99bfff", "word": "pale blue"}}`.
+  A planet or moon with a solid surface and air has an `atmosphere_colour`
+  fact whose value is a swatch (the clear-sky colour of its air under its
+  star, [atmosphere-colour.md](atmosphere-colour.md); absent for an airless
+  body and for a giant). Built from the database rows on each request.
 - `GET /api/systems/<id>/text?format=wikitext|markdown|text` — the same
   description written out on request, `{"id", "format", "content"}`
   (`planetgen/db/render.py`; no page text is stored since schema v29).
