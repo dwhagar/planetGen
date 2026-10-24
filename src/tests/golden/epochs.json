@@ -383,8 +383,7 @@
     },
     {
       "epoch": 78,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2176",
       "reason": "The Radiation domain of a world's habitability is the lower of its dose's score and its ground ultraviolet's, so the stored habitability scores and the tiers, kit and habitable counts that follow from them change for worlds with strong ultraviolet (GEN.445)"
     }
   ]
