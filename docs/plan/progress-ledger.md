@@ -1357,3 +1357,5 @@ Baseline: PR #1817.
 | API.26 | 8.1 | Admin and API housekeeping |
 | API.31 | 8.1 | Admin and API housekeeping |
 | UX.121 | 8.1 | Admin and API housekeeping |
+| TEST.347 | 8.1 | Bugs and flaky tests |
+| TEST.348 | 8.1 | Bugs and flaky tests |

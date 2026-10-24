@@ -18201,29 +18201,6 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
-- [ ] **TEST.347 test_admin_edits::test_system_page_regenerates_a_planet and ::test_system_page_changes_a_class fail alone on main: the system page lacks the 'Regenerated ...' and 'Change class' text (bug)**
-  Found by Lane D (relayed 2:47 PM EDT 2026-10-24 as the lane reported,
-  on origin/main 35a7961; filed by the TODO thread). Kind: failing test
-  on main, not reproduced by the TODO thread. Both tests fail when run
-  alone: the rendered system page does not contain the text 'Regenerated
-  ...' after a planet regenerate nor the 'Change class' control. Do:
-  find whether a recent merge removed or renamed that text and the
-  controls (the class lane's work and the map or system page changes are
-  the likely causes) or whether the tests are stale; fix the page or the
-  tests without weakening them. Done: both pass on main, alone and in
-  the suite. Owner: Bug Hunt (main-green rule), who may hand it to the
-  admin lane.
-  Prerequisites: none. Related: TEST.343.
-
-- [ ] **TEST.348 test_class_pages: test_phenomenon_page_links_its_class (5 cases) and test_phenomenon_unknown_class_stays_text fail on clean main (bug)**
-  Found by Lane 3 (relayed 2:47 PM EDT 2026-10-24 as the lane reported,
-  while merging UX.152 as #3038; filed by the TODO thread). Kind:
-  failing test on main, not reproduced by the TODO thread. Do: find
-  which merge changed the phenomenon page's class link and fix the page
-  or the stale test without weakening it. Done: all six pass on main,
-  alone and in the suite. Owner: Bug Hunt (main-green rule).
-  Prerequisites: none. Related: TEST.347, UX.152.
-
 - [ ] **TEST.349 The browser phase of scripts/test.py changed fails in fixture setup with KeyError 'planets' before any test body runs, on every lane and on main (bug)**
   Found by Core 1 (relayed 3:06 PM EDT 2026-10-24 as the lane reported;
   Lane H and others saw browser tests fail the same way; filed by the
