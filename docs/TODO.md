@@ -2642,6 +2642,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (#3001).
   Prerequisites: none. Related: GEN.332, MAP.231.
 
+- [ ] **MAP.291 Galaxy view map window does not use the full page width or the page height (bug)**
+  Boss live observation (1:50 PM EDT 2026-10-24). The Galaxy view map
+  window does not use the full page width; it should. Its height should
+  scale to the page height, leaving room for the toolbar, the search and
+  the view window, and the aspect ratio of the map should match the
+  viewing window. Do: size the map container to the full width of the
+  page and to the page height minus the toolbar, search and view window,
+  and set the render aspect ratio from the container so nothing is
+  stretched. Done: at desktop and phone widths the map fills the width,
+  the toolbar and search stay visible without page scroll, and a test
+  checks the container fills the available width and height. Owner: Core
+  2 after MAP.290.
+  Prerequisites: none. Related: MAP.290.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -13196,39 +13210,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   takes the next free generator epoch. Owner: Core 4 (proposed).
   Prerequisites: none. Related: GEN.271.
 
-- [ ] **GEN.709 Stored close-pair star positions disagree with the orbit_nodes tree after the multi-star work: a circular pair keeps a random arg_periapsis, and deeper trees are far off (bug)**
-  Found by Lane 4 while stress-running TEST.130
-  (test_the_scene_positions_at_the_epoch_match_the_stored_ones) on main,
-  as the lane reported at 6:57 AM EDT 2026-10-24; report
-  /mnt/project-files/reports/lane4/test-130-finding-2026-10-24.md with a
-  replay script in
-  /mnt/project-files/reports/lane4/test130-scan-repro.py. The test fails
-  2 runs in 15 at the star assertion because it picks a multi-star
-  system at random. Cause: for a circular close pair the stored phase
-  (binary_secondary_position_* from the pair's phase_deg) is measured
-  from the ascending node, but the orbit_nodes row holds
-  mean_anomaly_deg = phase AND a random non-zero arg_periapsis_deg, so
-  the tree places the star at omega plus phase (seed 1: 2.965 degrees
-  off, exactly that angle). In deeper trees the pair-position columns
-  and the tree disagree far more (seed 8, 5 stars: about 90 times
-  different for the star the scene calls around barycenter). Do: make
-  the node's omega and mean anomaly agree with the stored phase (a
-  circular orbit takes omega 0, or the stored position is taken from the
-  tree), in db/orbit_trees.py star_places and the multistar node build,
-  and one source for the position. Done: the scene positions at the
-  epoch equal the stored positions for every star of a seeded sample
-  that includes pairs and trees of 3 or more stars, and TEST.130 passes
-  50 runs in a row. This may change generator output, so it takes the
-  next free generator epoch. Owner: Core 3 (it owns GEN.630 and GEN.631;
-  proposed).
-  Research (2026-10-09, Update): Core 3 accepted this (6:58 AM EDT
-  2026-10-24, as the lane reported): it takes GEN.709 right after
-  GEN.332 slice 1 merges and takes the next free generator epoch at
-  merge.
-  Research (2026-10-09, 10-24 Core 3): Started by Core 3 at 10:22 AM EDT
-  2026-10-24 (as the lane reported).
-  Prerequisites: none. Related: TEST.130, GEN.630, GEN.631.
-
 - [ ] **GEN.710 A pre-placed row with a stored tree can have a member heavier than the row star at stars[0], so the nebula it lights and the star page disagree with the built sector (bug)**
   Found by Bug Hunt while fixing TEST.311 (#2945), as the lane reported
   at 7:22 AM EDT 2026-10-24. Pre-placed rows with stored trees
@@ -14179,6 +14160,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Performance lane (proposed; it is retiring, so the pool or Core 5 if
   it has already gone).
   Prerequisites: none. Related: PERF.155, PERF.167, PERF.171, PERF.123.
+
+- [ ] **PERF.181 CRITICAL (bug): MySQL is killed out of memory during New galaxy Stage 7 (scatter --mass), 65,536 shells and 19,795 components (bug)**
+  Boss live observation (1:49 PM EDT 2026-10-24, log
+  /mnt/project-files/reports/new-galaxy-oom-log-2026-10-24.log, run
+  started about 12:58 PM EDT on his server, PlanetGen 8.0.2205). Stage 7
+  "Scatter the massive stars" (scatter --mass --phenomenon-min-mass 14
+  --bright-star-min-luminosity 9000) printed "about 32,731 stars
+  expected in 65,536 shells, 65,535 shells being the grid's reach, and
+  19,795 components", then lost its connection ("Lost connection to
+  MySQL server during query", beat_nodes in queue/work.py committing)
+  and exited with status -9 after 550 s. Boss reports mysqld hit the
+  out-of-memory killer and shut down; status -9 means the process was
+  killed, so the kernel log (dmesg or journalctl -k) says which process.
+  Stages 1 to 6 passed (stages 4 to 5 took 601 s). Do: find what holds
+  memory in this stage (a table or result set sized by shells or
+  components read whole, an unbounded batch or a very large transaction,
+  the InnoDB buffer pool size against the host RAM), fix it so the stage
+  runs in bounded memory, and add a test or a size guard that fails if
+  the stage reads everything at once. Done: Boss repeats New galaxy and
+  Stage 7 finishes with MySQL alive. Top priority; the Fix MySQL
+  out-of-memory thread owns it. Related: MAP.258, MAP.259, MAP.260,
+  GEN.631, PERF.35.
+  Prerequisites: none. Related: MAP.258, MAP.259, MAP.260, GEN.631.
 
 ## DB: Database and schema
 
@@ -16515,49 +16519,6 @@ clears each one.
   is in reports/8-1-core-queues-2026-10-22.md; this replaces any
   earlier owner line).
   Prerequisites: none. Related: TEST.111, TEST.123.
-
-- [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
-  Reported by Foundations lane 1 (2026-10-10 20:55Z), from the CI
-  run on main after PR #1161:
-  tests/test_body_positions.py::test_the_scene_positions_at_the_epoch_match_the_stored_ones
-  fails because a comet's position at its epoch differs from the stored
-  one by about 1e10 km, for a random system that has comets. It is
-  intermittent because the system is random. Likely a real disagreement
-  between the comet path in positions_at and the position stored for the
-  comet. Done: the cause is found (the stored position or the scene path
-  is wrong for comets, or the test compares different epochs or frames),
-  the product or test is fixed so scene and stored positions agree for
-  comets, and the test draws a system with a comet every time so it
-  cannot pass by luck. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
-  implement, one small PR, number 5 in the thread's order; the test
-  draws a system with a comet every time. Owner: Quality (2026-10-15, took over from the Test Suite Rebuild thread).
-  Status (2026-10-09): Test Suite Rebuild thread (2026-10-14, #1313):
-  not reproducible; the test now builds comets by construction so it
-  exercises the comet path every time. Stays open until the cause is
-  found or five clean full runs pass.
-  Owner: Bug Hunt (proposed; Boss started the lane at 10:20 PM EDT with
-  "most important first, favoring anything that blocks something"; it
-  takes over the bug phase Core 1 had not started). Fix the cause; no skipping or quarantine.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the owner
-  is Bug Hunt (Boss started the lane at 10:20 PM EDT, 2026-10-16); the
-  earlier "Owner: Quality" line (2026-10-15) is superseded, and Quality
-  has been idle since 12:40 AM EDT on 2026-10-16.
-  Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-  is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Research (2026-10-09, Update): Lane 4 (6:57 AM EDT 2026-10-24, as the
-  lane reported): this is a product disagreement, not test luck; the
-  failing assertion is the star one, not the comet one, and the cause is
-  filed as GEN.709 (report
-  /mnt/project-files/reports/lane4/test-130-finding-2026-10-24.md). The
-  test stays open on it and was not weakened. TEST.111 and TEST.254 did
-  not reproduce (12 and 120 repeats under load) and stay open.
-  Research (2026-10-09, 10-24 lane D): Lane D (10:27 AM EDT as the lane
-  reported) saw it fail only under load at the #2930 gate and pass
-  alone, 3 times.
-  Prerequisites: none. Related: TEST.123, GEN.122, GEN.709.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
