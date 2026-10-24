@@ -13489,6 +13489,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane reported): lane E takes this after the GEN.444/GEN.445 wiring
   merges; nobody has started it, so it stays lane E's unless lane H or
   GEN.423 asks.
+  Research (2026-10-09, In progress): Lane E started it (9:58 AM EDT
+  2026-10-24, as the lane reported; branch claude/project-thread-y7s6g7,
+  nothing pushed yet): a new physics/infrared_opacity.py
+  (Planck-weighted band saturation per gas from the gas table's band
+  centres, the water continuum, collision-induced pairs);
+  atmosphere_state.greenhouse_warming (GEN.423, #2966) will call it and
+  INFRARED_MASS_ABSORPTION_M2_KG is deleted with its tests updated.
+  Lanes L and I must not edit atmosphere_state.py or its tests until it
+  merges. Band strengths are labelled stand-ins; real tables are filed
+  as GEN.715.
   Prerequisites: none. Related: GEN.443, GEN.423, GEN.412, GEN.436.
 
 - [ ] **GEN.704 Moons of a moved planet keep the dose, solar particle exposure, UV and habitability of their old distance from the star (bug)**
@@ -13700,6 +13710,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite of the GEN.466 wiring. Owner: none (pool); Lane K
   proposed after the class cut-over.
   Prerequisites: none. Related: GEN.466, GEN.646.
+
+- [ ] **GEN.715 Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703**
+  Lane E (9:58 AM EDT 2026-10-24, as the lane reported): GEN.703 builds
+  physics/infrared_opacity.py (Planck-weighted band saturation per gas
+  from the gas table's band centres, the water continuum,
+  collision-induced pairs) with band strengths labelled stand-ins
+  because the repository holds no line lists. Do: choose the source (for
+  example HITRAN or ExoMol line lists reduced to k-tables, or published
+  k-distribution tables), download it at setup under the standing rules
+  (static downloads at setup, raw datasets never in the repository,
+  licence information only in DATA-LICENSE.md, which Boss manages),
+  build the tables, and replace the stand-in band strengths, labelling
+  anything still unsourced in the gap plan registry. Done: the
+  greenhouse opacity reads sourced tables, the stand-ins are gone or
+  labelled, and the epoch is taken. Owner: none (pool). Needs Boss's
+  word on the data source and licence.
+  Prerequisites: none. Related: GEN.703, GEN.423.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
