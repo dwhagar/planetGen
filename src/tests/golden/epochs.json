@@ -318,8 +318,7 @@
     },
     {
       "epoch": 65,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2109",
       "reason": "A body's life no longer depends on its class letter: the light-harvesting pigment a world may carry comes from its stored air, ocean and temperature (each chemical's requires) and its star's spectrum, a gas giant carries none, and the most advanced life stage is capped only by the habitability index, so small icy bodies with an ocean under the ice and a few volcanic or super-Earth worlds now carry microbial life and the worlds once capped by their letter (E, F, G, L, Q) reach as far as the index allows (GEN.92, GEN.647)"
     }
   ]

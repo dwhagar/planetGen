@@ -1,6 +1,0 @@
-**Headline:** Life no longer depends on a planet's class letter: a world carries life when its stored conditions and its star allow it.
-
-### Changed
-- **Life follows the conditions (GEN.92, GEN.647).** `LIFE_CHEMICALS` entries now state what a body must store (`requires`: free oxygen for chlorophyll a and the blue porphyrins, none for retinal's and the bacteriochlorophylls' reducing air, an acidic ocean for zinc-bacteriochlorophyll, air for every light-harvesting pigment), and `get_viable_life_chemicals` offers a body the chemicals it satisfies that its star's spectrum supports. A gas giant carries none. The per-class `life_chemical` lists and `PLANET_CLASS_MAX_LIFE_STAGE` are deleted: the most advanced life stage is capped only by the habitability index (`life.stage_ceiling`), and the timeline paragraph and flavour line no longer read the class letter. `get_evolutionary_state` and `get_evolutionary_timeline` lose their `planet_class` argument.
-- **More worlds carry life.** Any rocky body the index gives microbial life can now carry it: small icy bodies with an ocean under the ice, and a few volcanic or super-Earth worlds, where the class list once allowed only eleven classes. Worlds that were capped by their letter (E, F, G, L and Q) reach as far as the index allows.
-generation-output: changed
