@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2151] - 2026-10-24
+
+**Headline:** A body's radius, density and gravity can be worked out from its mass and bulk composition: a reference solver and the fast fits for dry rock, water worlds and sub-Neptunes.
+
+### Added
+- **Bulk structure kernels (GEN.429).** `planetgen.physics.bulk_structure` gives `structure(bulk, mass_kg)`: the radius at the 1 bar level, mean density, surface gravity and escape speed of a body from its `BulkFractions`. The reference solver `layered_structure` integrates an iron core, a silicate mantle and a water layer (liquid water from IAPWS-95, the ice VI, VII and X points of the materials table and the Seager polytrope above 1 TPa) and reproduces part B's check numbers (Earth-sized planet 0.9996 Earth radii, moment of inertia 0.331) and part C's water-world radii within 1 percent. The fast forms are part B's fit for dry rock (0.1 to 20 Earth masses), part C's closed form for water-bearing bodies (0.3 to 20) and Lopez and Fortney's core and envelope laws (1 to 20); outside them the solver runs, below 1e21 kg the zero-pressure mixing rule gives a heap of grains, and a giant is refused (GEN.460). Inverses give the core fraction or water fraction from a mass and radius (route 1).
+- Pure functions with no draws: nothing is generated or stored differently, so no generator epoch. `DATA-LICENSE.md` records the NIST WebBook water isotherm.
+
 ## [8.0.2150] - 2026-10-24
 
 **Headline:** Every planet and moon now has a bulk composition (iron, rock, water, other ices, envelope) drawn from its star's own abundances, and its mass, density and gravity follow from it.
