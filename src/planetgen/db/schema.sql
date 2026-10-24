@@ -1457,6 +1457,7 @@
 -- v148 (MAP.220): `habitable_systems`, one row per star system with a habitable world (its planets and moons that are Blue or Green overall),
 --   with its count and position, so the Galaxy Map's marker layer finds the systems with one in a box. (`star_systems` has a FULLTEXT key,
 --   so a column could only be added by copying the whole table.)
+-- v149 (OPS.69): `sectors.wiki_url`, `star_systems.wikijs_url` and `star_systems.mediawiki_url` are gone with the wiki upload.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1559,10 +1560,6 @@ CREATE TABLE IF NOT EXISTS sectors (
     shell_index         INT,
     band_index          INT,
     wedge_index         INT,
-
-    -- v23: manually-set-or-uploaded wiki page link -- see this file's
-    -- header comment's "v23" note. NULL means no page yet.
-    wiki_url            VARCHAR(2048),
 
     -- v27: row timestamps -- see the header comment's "v27" note.
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -2011,16 +2008,8 @@ CREATE TABLE IF NOT EXISTS star_systems (
     next_update_due      DOUBLE,
     schema_version       INT NOT NULL DEFAULT 1,
 
-    -- No stored page text since v29: wikitext/Markdown are rendered on
+    -- No stored page text since v29: Markdown and plain text are rendered on
     -- demand from the rows above -- see the header comment's "v29" note.
-
-    -- One system = one wiki page (stars/planets/moons are sections within
-    -- it, per StarSystem.__str__), so exactly one URL per wiki target --
-    -- NULL means never uploaded to that wiki (see this file's header
-    -- comment's "v23" note; `_migrate_v22_to_v23` adds these two columns
-    -- for a database created before v23).
-    mediawiki_url        VARCHAR(2048),
-    wikijs_url           VARCHAR(2048),
 
     -- v39: the innermost nebula or supernova remnant this sits inside
     -- (at most one set; _db.refresh_containment).

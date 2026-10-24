@@ -17,7 +17,7 @@ module is imported or run. The page is one self-contained file with no network a
 The levels, each reached by clicking down from the one above (every view has a stable `#/...` anchor):
 
 1. **The project map** (`#/`): the areas (web, api, queue, generation, galaxy, population, physics, describe, db,
-   admin, backup, wiki, cli, names, util, tuning and the tests) as boxes, with the imports between them and the
+   admin, backup, cli, names, util, tuning and the tests) as boxes, with the imports between them and the
    purpose line of each package (the first line of its `__init__.py` docstring, which `architecture.md` repeats).
 2. **An area** (`#/area/<area>`): its modules, what each imports and what imports it.
 3. **A module** (`#/mod/<module>`): its classes and functions with the first line of each docstring, and for each
@@ -69,7 +69,7 @@ PACKAGE = "planetgen"
 PAGE = os.path.join(ROOT, "docs", "generated", "architecture-map.html")
 
 AREA_ORDER = ("web", "api", "queue", "generation", "galaxy", "population", "physics", "describe", "db", "admin",
-              "backup", "wiki", "cli", "datasets", "names", "util", "tuning", "package", "tests")
+              "backup", "cli", "datasets", "names", "util", "tuning", "package", "tests")
 """tuple[str]: The areas, in the order the project map and the lists show them. An area is the first folder under
 `src/planetgen`; `tuning.py` is its own area and so are the package's two root files (`package`); `src/tests` is
 `tests`."""

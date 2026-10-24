@@ -10,11 +10,6 @@ def text(system):
     return describe.render(describe.describe(system), "text")
 
 
-def wikitext(system):
-    """The system's wikitext."""
-    return describe.render(describe.describe(system), "wikitext")
-
-
 def prose_text(section):
     """All the sentences of a Document section's prose blocks, in one string."""
     return " ".join(describe.quantity.inline_text(sentence) for block in section["blocks"] if block["type"] == "prose"

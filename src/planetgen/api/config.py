@@ -37,31 +37,6 @@ import secrets
 from planetgen.db.store import MySQLConfig, control_mysql_config
 from planetgen.util.settings import get_settings
 
-def _wiki_config(wiki):
-    """
-    The resolved wiki-publishing config from the settings model's `wiki`
-    section (`planetgen.util.settings.Wiki`; the `PLANETGEN_WIKIJS_*`/
-    `PLANETGEN_MEDIAWIKI_*` variables are applied there).
-
-    Neither backend has a separate on/off flag: a backend counts as
-    configured -- and so is offered as an "Upload to Wiki" target by
-    `routes.py`'s `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki`
-    -- purely by having a non-empty `base_url` plus every credential field
-    its own `planetgen.wiki` backend requires (see `_configured` below); an
-    empty `base_url` alone already means "don't offer this one", so a
-    separate flag would only ever duplicate that check.
-
-    Returns:
-        dict: `{"wikijs": {"base_url", "api_token", "configured"},
-            "mediawiki": {"base_url", "username", "password", "configured"}}`.
-    """
-    wikijs = wiki.wikijs.model_dump()
-    wikijs["configured"] = bool(wikijs["base_url"] and wikijs["api_token"])
-    mediawiki = wiki.mediawiki.model_dump()
-    mediawiki["configured"] = bool(mediawiki["base_url"] and mediawiki["username"] and mediawiki["password"])
-    return {"wikijs": wikijs, "mediawiki": mediawiki}
-
-
 _settings = get_settings()
 
 
@@ -126,13 +101,6 @@ class Config:
     # `config.json`'s `login_allowlist`, or PLANETGEN_LOGIN_ALLOWLIST
     # (comma- or space-separated).
     LOGIN_ALLOWLIST = list(_settings.login_allowlist)
-
-    # See `_wiki_config` above -- read by `routes.py`'s
-    # `POST /api/systems/<id>/wiki`/`POST /api/sectors/<id>/wiki` to build
-    # a `planetgen.wiki.WikiClient(backend=..., base_url=..., ...)` per
-    # request, and by `GET /api/wiki-config` so the CGI browser knows
-    # which backend(s) to offer without duplicating this resolution.
-    WIKI_CONFIG = _wiki_config(_settings.wiki)
 
     # The admin session cookie (auth.py) is Secure by default -- never
     # sent over plain HTTP -- matching this project's documented

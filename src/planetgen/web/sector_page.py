@@ -12,12 +12,6 @@ open space and those on its asteroid fields.
 Admin actions are POST forms to the same URL, each carrying
 `csrf_field()` and an `action` field:
 
-- `upload_wiki` (any logged-in admin, while the sector has no wiki page
-  yet): `POST /api/sectors/<id>/wiki` with the chosen `backend` and
-  optional `path`.
-- `set_wiki_url` (any logged-in admin): sets the sector's wiki link, or
-  clears it when the URL is blank (UX.73; for a hand-written page from
-  outside this app, or to fix a link an upload set).
 - `generate_neighborhood` (an admin whose credentials are current, on a
   galaxy-placed sector): the size and time first (`POST
   /api/sectors/<id>/generate-neighborhood` with `estimate_only`), then,
@@ -57,7 +51,6 @@ from planetgen.web.maps.starmap import map_scene_data
 from planetgen.web.lib.tilecache import fetch_tiles
 from planetgen.web.lib.systempage import facility_kind_label
 
-from planetgen.api.common import is_http_url
 from planetgen.api.limiter import page_limit
 from planetgen.admin import activity_log
 from planetgen import tuning
@@ -81,8 +74,6 @@ PHENOMENON_TYPE_LABELS = {
 }
 """dict: Display labels for `db.query.phenomena_near_sector`'s `type`
 values (the same ones the phenomena list uses)."""
-
-_WIKI_BACKENDS = (("wikijs", "Wiki.js"), ("mediawiki", "MediaWiki"))
 
 _FLASH_CATEGORY = "sector"
 
@@ -400,37 +391,6 @@ def _handle_post(sector_id, admin):
     action = request.form.get("action", "")
     cookie_header = request.headers.get("Cookie")
 
-    if action == "upload_wiki":
-        backend = request.form.get("backend", "")
-        path = request.form.get("path", "").strip() or None
-        try:
-            result = apiclient.upload_sector_to_wiki(cookie_header, db_name(), sector_id, backend, path)
-        except apiclient.NotFoundError as exc:
-            return "wiki", str(exc)
-        except apiclient.ApiError as exc:
-            if exc.status_code == 409:
-                return "wiki", "A page already exists at that location."
-            return "wiki", _api_message(exc)
-        if result.get("url"):
-            flash(f"Uploaded to the wiki: {result['url']}", _FLASH_CATEGORY)
-        else:
-            flash(f"The wiki upload is queued (job {result['job_id']}); reload in a minute to see the link.",
-                  _FLASH_CATEGORY)
-        return page_again
-
-    if action == "set_wiki_url":
-        wiki_url = request.form.get("wiki_url", "").strip() or None
-        try:
-            apiclient.admin_set_sector_wiki_url(cookie_header, db_name(), sector_id, wiki_url)
-        except apiclient.NotFoundError as exc:
-            return "wiki_link", str(exc) or "Not found."
-        except apiclient.ApiError as exc:
-            if exc.status_code is None or exc.status_code >= 500:
-                raise
-            return "wiki_link", _api_message(exc)
-        flash("Wiki link cleared." if wiki_url is None else f"Wiki link set to {wiki_url}.", _FLASH_CATEGORY)
-        return page_again
-
     if action == "generate_neighborhood" and not admin["must_change_credentials"]:
         if not request.form.get("estimate_ok"):
             # PERF.3: the size and time first, confirmed on the page.
@@ -703,10 +663,6 @@ def sector(sector_id):
     g.setdefault("sector_data", {}).pop(sector_id, None)  # a POST above may have changed it
     detail, facilities = _sector_data(sector_id)
     pick = _pick_mode(request.args)
-    if detail.get("wiki_url") and not is_http_url(detail["wiki_url"]):
-        # Saved before the API checked it: never link to a javascript:/
-        # data: URL.
-        detail["wiki_url"] = None
     _rows, map_systems = _contents(detail, facilities)
     contents = tables.render(CONTENTS_TABLE, request.path, anchor="sector-contents", sector=sector_id)
 
@@ -715,11 +671,6 @@ def sector(sector_id):
     quadrant = sector_quadrant(detail["center_x_pc"], detail["center_y_pc"]) if detail["placed"] else None
     system_count = len(detail["systems"])
     phenomenon_count = len(detail.get("phenomena") or [])
-
-    wiki_backends = []
-    if admin is not None and not detail["wiki_url"]:
-        wiki_config = apiclient.get_wiki_config()
-        wiki_backends = [(name, label) for name, label in _WIKI_BACKENDS if wiki_config.get(name)]
 
     return render_page(
         "sector.html",
@@ -744,7 +695,6 @@ def sector(sector_id):
         admin=admin,
         can_generate=admin is not None and not admin["must_change_credentials"],
         can_edit=edit_actions.can_edit(admin),
-        wiki_backends=wiki_backends,
         errors=errors,
         estimate=estimate,
         far_run_sectors=FAR_RUN_SECTORS,

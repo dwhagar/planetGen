@@ -1,8 +1,8 @@
 # planetgen/describe/html.py
 
 """
-A Document as HTML for the web page (docs/design/architecture/system-description.md, section 4, UX.119): the fourth renderer beside
-text, markdown and wikitext.
+A Document as HTML for the web page (docs/design/architecture/system-description.md, section 4, UX.119): the third renderer beside
+text and markdown.
 
 Every number is a `<span class="qty" data-q="length" data-si="...">` (the markup `web/lib/fmt.quantity_html` writes), so
 `static/units.js` shows it in the reader's unit system; a quantity with no ladder (a radius, a dose, a count) is plain

@@ -22,7 +22,7 @@ from pydantic import (
 
 from planetgen import tuning
 from planetgen.admin import throttle
-from planetgen.api.common import ApiError, is_http_url
+from planetgen.api.common import ApiError
 from planetgen.db import store
 from planetgen.generation import limits as generationLimits
 from planetgen.population import facilities as facility_rules
@@ -30,8 +30,6 @@ from planetgen.population import facilities as facility_rules
 MAX_NAME_LENGTH = 255
 """int: `sectors.name`/`star_systems.name` are VARCHAR(255)."""
 
-MAX_WIKI_URL_LENGTH = 2048
-"""int: `sectors.wiki_url` is VARCHAR(2048)."""
 
 MAX_SECTOR_EDGE_LY = 1e9
 """float: An upper bound on a sector's `edge_ly` -- far beyond any real
@@ -107,12 +105,6 @@ def _name(value):
     return value
 
 
-def _wiki_url(value):
-    if value is not None and not (len(value) <= MAX_WIKI_URL_LENGTH and is_http_url(value)):
-        raise ValueError("'wiki_url' must be an http or https URL or null")
-    return value
-
-
 class SectorCreate(Body):
     """`POST /api/sectors`."""
 
@@ -127,10 +119,8 @@ class SectorUpdate(Body):
 
     name: StrictStr = None
     edge_ly: Number = Field(default=None, gt=0, le=MAX_SECTOR_EDGE_LY)
-    wiki_url: Optional[StrictStr] = None
 
     _check_name = field_validator("name")(_name)
-    _check_wiki = field_validator("wiki_url")(_wiki_url)
 
     @model_validator(mode="after")
     def _something(self):
@@ -414,24 +404,6 @@ class FacilityTypeUpdate(Body):
     def _something(self):
         if not self.model_fields_set:
             raise ValueError("send at least one field to change")
-        return self
-
-
-class WikiUpload(Body):
-    """`POST /api/{systems,sectors}/<id>/wiki`."""
-
-    backend: Literal["wikijs", "mediawiki"]
-    path: Optional[StrictStr] = None
-
-    @field_validator("path")
-    @classmethod
-    def _strip(cls, value):
-        return value.strip() if value else None
-
-    @model_validator(mode="after")
-    def _wikijs_needs_a_path(self):
-        if self.backend == "wikijs" and not self.path:
-            raise ValueError("'path' is required for the 'wikijs' backend")
         return self
 
 

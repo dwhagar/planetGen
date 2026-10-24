@@ -100,7 +100,6 @@ def test_a_secret_is_never_in_the_view(config):
         if option["secret"]:
             assert option["value"] is None and option["default"] is None and option["effective"] is None
     assert options["secret_key"]["is_set"] is True and options["mysql.password"]["is_set"] is True
-    assert options["wiki.wikijs.api_token"]["is_set"] is False
     text = json.dumps(settings_view.describe("host"))
     assert "csrf-secret" not in text and "db-secret" not in text
 

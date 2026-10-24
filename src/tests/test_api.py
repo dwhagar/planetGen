@@ -38,7 +38,6 @@ from planetgen.galaxy.viewport import (
 )
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
-from planetgen.wiki import WikiClientPageExistsError, WikiPage
 from planetgen.db import edits as db_edits
 from planetgen.db import query
 
@@ -159,110 +158,6 @@ def admin_client(default_admin_client, first_admin_password):
     assert response.status_code == 200
     assert response.get_json()["must_change_credentials"] is False
     return default_admin_client
-
-
-FAKE_WIKI_CONFIG = {
-    "wikijs": {"base_url": "http://wiki.invalid/wikijs", "api_token": "test-token", "configured": True},
-    "mediawiki": {
-        "base_url": "http://wiki.invalid/mediawiki", "username": "Bot@pg", "password": "pw", "configured": True,
-    },
-}
-"""dict: A `Config.WIKI_CONFIG`-shaped value with both backends
-"configured" -- an unreachable `http://wiki.invalid/...` `base_url` on
-purpose, so a test that forgets to install `fake_wiki_client` fails loudly
-(a real connection attempt/timeout) rather than silently passing."""
-
-
-@pytest.fixture
-def client_with_wiki(mysql_config):
-    """Same as `client` above, but with both wiki backends reporting as
-    configured (see `FAKE_WIKI_CONFIG`) -- for tests that exercise the
-    `POST .../wiki` routes' happy path, which `client`'s own unconfigured
-    `WIKI_CONFIG` (nothing set in this test run's environment/config.json)
-    would otherwise always reject with 501 before ever reaching
-    `planetgen.wiki.WikiClient` at all."""
-    class TestConfig(Config):
-        MYSQL_CONFIG = mysql_config
-        WRITE_MYSQL_CONFIG = mysql_config
-        CONTROL_MYSQL_CONFIG = mysql_config
-        WIKI_CONFIG = FAKE_WIKI_CONFIG
-
-    app = create_app(TestConfig)
-    app.testing = True
-    return app.test_client()
-
-
-@pytest.fixture
-def admin_client_with_wiki(mysql_config, client_with_wiki):
-    """`admin_client`'s own login/credential-change flow, replayed against
-    `client_with_wiki` instead of `client` -- duplicated rather than
-    parameterizing `admin_client` itself, since fixtures can't take
-    runtime arguments; kept to these two extra lines beyond what
-    `default_admin_client`/`admin_client` already do."""
-    _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
-    _db.get_connection(mysql_config).close()
-    response = client_with_wiki.post("/api/auth/login", json={
-        "username": adminAuth.DEFAULT_ADMIN_USERNAME, "password": first_password,
-    })
-    assert response.status_code == 200
-    response = client_with_wiki.post("/api/auth/change-credentials", json={
-        "current_password": first_password,
-        "new_username": "test-admin-wiki",
-        "new_password": TEST_ADMIN_PASSWORD,
-    })
-    assert response.status_code == 200
-    return client_with_wiki
-
-
-class _FakeWikiClient:
-    """Stand-in for `planetgen.wiki.WikiClient` (monkeypatched over
-    `api.routes.WikiClient`) so these tests never make a real network call
-    against a wiki instance -- records every `create_page` call (backend/
-    path/title/content) on the class itself and returns a canned
-    `WikiPage`, matching the real `WikiClient.create_page` contract."""
-
-    calls = []
-
-    def __init__(self, backend, **kwargs):
-        self.backend = backend
-
-    def create_page(self, path, title, content, **kwargs):
-        _FakeWikiClient.calls.append({"backend": self.backend, "path": path, "title": title, "content": content})
-        return WikiPage(id=1, path=path, title=title, url=f"http://wiki.invalid/{self.backend}/{path}")
-
-
-@pytest.fixture
-def inline_wiki_queue(monkeypatch):
-    """Runs queued wiki uploads in this process, where the fake wiki client
-    is installed (a worker process would reach for the real wiki), with the
-    fake wiki settings."""
-    from planetgen.queue import api_jobs
-    jobs = {}
-
-    def submit(function, *args, **options):
-        job_id = "%016x" % len(jobs)
-        jobs[job_id] = api_jobs.execute(api_jobs.function_reference(function),
-                                        [api_jobs.encode_argument(arg) for arg in args])
-        return job_id
-
-    def wait(job_id, seconds=0):
-        outcome = jobs[job_id]
-        if "refused" in outcome:
-            return {"id": job_id, "state": "failed", "error": outcome["refused"], "error_status": outcome["status"]}
-        return {"id": job_id, "state": "succeeded", "result": outcome["result"]}
-
-    monkeypatch.setattr(api_jobs, "submit", submit)
-    monkeypatch.setattr(api_jobs, "wait", wait)
-    monkeypatch.setattr("planetgen.api.routes.wiki_settings", lambda backend: FAKE_WIKI_CONFIG[backend])
-
-
-@pytest.fixture
-def fake_wiki_client(monkeypatch, inline_wiki_queue):
-    """Installs `_FakeWikiClient` in place of `api.routes.WikiClient` for
-    one test, resetting its recorded calls first."""
-    _FakeWikiClient.calls = []
-    monkeypatch.setattr("planetgen.api.routes.WikiClient", _FakeWikiClient)
-    return _FakeWikiClient
 
 
 def test_health_ok(mysql_config, client):
@@ -438,6 +333,7 @@ def test_system_detail_found_and_not_found(client, seeded_sector):
     assert "stars" in body and body["stars"]
     # No stored page text since schema v28 -- see /text and /sections.
     assert "markdown_content" not in body and "wikitext_content" not in body
+    assert "wikijs_url" not in body and "mediawiki_url" not in body
     assert {s["id"] for s in body["sector_siblings"]} == set(pids("system", system_ids))
     # Nearest same-sector systems come from live rows (ids, current
     # names), never the system itself, nearest first.
@@ -458,15 +354,18 @@ def test_system_text_renders_both_formats_from_the_database(client, seeded_secto
     _config, _sector_id, system_ids = seeded_sector
     name = client.get(f"/api/systems/{pid('system', system_ids[0])}").get_json()["name"]
 
-    wikitext = client.get(f"/api/systems/{pid('system', system_ids[0])}/text").get_json()
-    assert wikitext["format"] == "wikitext"
-    assert wikitext["content"].startswith(f"= {name} =")
-    assert "[[Category:Star Systems]]" in wikitext["content"]
+    default = client.get(f"/api/systems/{pid('system', system_ids[0])}/text").get_json()
+    assert default["format"] == "markdown"
+    assert default["content"].startswith(f"# {name}")
 
     markdown = client.get(f"/api/systems/{pid('system', system_ids[0])}/text?format=markdown").get_json()
-    assert markdown["content"].startswith(f"# {name}")
+    assert markdown["content"] == default["content"]
+
+    plain = client.get(f"/api/systems/{pid('system', system_ids[0])}/text?format=text").get_json()
+    assert plain["content"].startswith(name) and "# " not in plain["content"].splitlines()[0]
 
     assert client.get(f"/api/systems/{pid('system', system_ids[0])}/text?format=html").status_code == 400
+    assert client.get(f"/api/systems/{pid('system', system_ids[0])}/text?format=wikitext").status_code == 400
     assert client.get("/api/systems/999999999/text").status_code == 404
 
 
@@ -2474,178 +2373,22 @@ def test_write_endpoints_are_rate_limited_more_tightly_than_the_default(admin_cl
 
 
 # ---------------------------------------------------------------------
-# Wiki publishing (schema.sql's "v22" header note) -- POST .../wiki, the
-# GET /api/wiki-config it's gated on, and PATCH /api/sectors/<id>'s own
-# manual `wiki_url` field (html/admin.py's manual-link admin section).
+# The wiki upload is gone (OPS.69): no routes, no sector `wiki_url`.
 # ---------------------------------------------------------------------
 
-def test_wiki_config_reports_unconfigured_by_default(client):
-    # Neither backend has any PLANETGEN_WIKIJS_*/PLANETGEN_MEDIAWIKI_*
-    # env var or config.json section set in this test run.
-    response = client.get("/api/wiki-config")
-    assert response.status_code == 200
-    assert response.get_json() == {"wikijs": False, "mediawiki": False}
+def test_the_wiki_routes_are_gone(admin_client, seeded_sector):
+    _config, sector_id, system_ids = seeded_sector
+    assert admin_client.get("/api/wiki-config").status_code == 404
+    system_path = f"/api/systems/{pid('system', system_ids[0])}/wiki"
+    sector_path = f"/api/sectors/{pid('sector', sector_id)}/wiki"
+    for path in (system_path, sector_path):
+        assert admin_client.post(path, json={"backend": "wikijs", "path": "x"}).status_code in (404, 405)
 
 
-def test_wiki_config_reports_configured_backends(client_with_wiki):
-    response = client_with_wiki.get("/api/wiki-config")
-    assert response.status_code == 200
-    assert response.get_json() == {"wikijs": True, "mediawiki": True}
-
-
-def test_upload_system_wiki_requires_auth(seeded_sector, client):
-    _config, _sector_id, system_ids = seeded_sector
-    response = client.post(f"/api/systems/{pid('system', system_ids[0])}/wiki", json={"backend": "wikijs", "path": "x"})
-    assert response.status_code == 401
-
-
-def test_upload_system_wiki_returns_501_when_backend_not_configured(admin_client, seeded_sector):
-    _config, _sector_id, system_ids = seeded_sector
-    response = admin_client.post(f"/api/systems/{pid('system', system_ids[0])}/wiki", json={"backend": "wikijs", "path": "x"})
-    assert response.status_code == 501
-
-
-def test_upload_system_wiki_rejects_invalid_body(admin_client_with_wiki, seeded_sector):
-    _config, _sector_id, system_ids = seeded_sector
-    system_id = system_ids[0]
-
-    response = admin_client_with_wiki.post(f"/api/systems/{pid('system', system_id)}/wiki", json={"backend": "confluence"})
-    assert response.status_code == 400
-
-    # wikijs requires a path (it addresses a page separately from its title)
-    response = admin_client_with_wiki.post(f"/api/systems/{pid('system', system_id)}/wiki", json={"backend": "wikijs"})
-    assert response.status_code == 400
-
-    response = admin_client_with_wiki.post(
-        f"/api/systems/{pid('system', system_id)}/wiki", json={"backend": "wikijs", "path": "x", "bogus": 1}
-    )
-    assert response.status_code == 400
-
-
-def test_upload_system_wiki_wikijs_persists_url_on_the_matching_column(
-    admin_client_with_wiki, seeded_sector, fake_wiki_client
-):
-    _config, _sector_id, system_ids = seeded_sector
-    system_id = system_ids[0]
-
-    response = admin_client_with_wiki.post(
-        f"/api/systems/{pid('system', system_id)}/wiki", json={"backend": "wikijs", "path": "systems/test-system"},
-    )
-    assert response.status_code == 201
-    page = response.get_json()
-    assert page["url"] == "http://wiki.invalid/wikijs/systems/test-system"
-
-    call = fake_wiki_client.calls[0]
-    assert call["backend"] == "wikijs"
-    assert call["path"] == "systems/test-system"
-
-    detail = admin_client_with_wiki.get(f"/api/systems/{pid('system', system_id)}").get_json()
-    assert detail["wikijs_url"] == page["url"]
-    assert detail["mediawiki_url"] is None
-    # Markdown, not wikitext, is what wikijs got -- rendered fresh
-    markdown = admin_client_with_wiki.get(f"/api/systems/{pid('system', system_id)}/text?format=markdown").get_json()
-    assert call["content"] == markdown["content"]
-
-
-def test_upload_system_wiki_mediawiki_uses_the_system_name_as_the_page_path(
-    admin_client_with_wiki, seeded_sector, fake_wiki_client
-):
-    _config, _sector_id, system_ids = seeded_sector
-    system_id = system_ids[0]
-    name = admin_client_with_wiki.get(f"/api/systems/{pid('system', system_id)}").get_json()["name"]
-
-    response = admin_client_with_wiki.post(f"/api/systems/{pid('system', system_id)}/wiki", json={"backend": "mediawiki"})
-    assert response.status_code == 201
-
-    call = fake_wiki_client.calls[0]
-    assert call["backend"] == "mediawiki"
-    assert call["path"] == name  # no path given -- mediawiki addresses by title/name, not a separate path
-
-    detail = admin_client_with_wiki.get(f"/api/systems/{pid('system', system_id)}").get_json()
-    assert detail["mediawiki_url"] is not None
-    assert detail["wikijs_url"] is None
-    wikitext = admin_client_with_wiki.get(f"/api/systems/{pid('system', system_id)}/text?format=wikitext").get_json()
-    assert call["content"] == wikitext["content"]
-
-
-def test_upload_system_wiki_page_exists_maps_to_409(admin_client_with_wiki, seeded_sector, monkeypatch,
-                                                    inline_wiki_queue):
-    class RaisingClient:
-        def __init__(self, backend, **kwargs):
-            pass
-
-        def create_page(self, **kwargs):
-            raise WikiClientPageExistsError("a page already exists there")
-
-    monkeypatch.setattr("planetgen.api.routes.WikiClient", RaisingClient)
-    _config, _sector_id, system_ids = seeded_sector
-
-    response = admin_client_with_wiki.post(
-        f"/api/systems/{pid('system', system_ids[0])}/wiki", json={"backend": "wikijs", "path": "x"},
-    )
-    assert response.status_code == 409
-
-
-def test_upload_system_wiki_returns_404_for_unknown_system(admin_client_with_wiki, fake_wiki_client):
-    response = admin_client_with_wiki.post(
-        "/api/systems/999999999/wiki", json={"backend": "wikijs", "path": "x"},
-    )
-    assert response.status_code == 404
-    assert fake_wiki_client.calls == []
-
-
-def test_upload_sector_wiki_persists_url_and_uses_generated_content(
-    admin_client_with_wiki, seeded_sector, fake_wiki_client
-):
+def test_a_sector_has_no_wiki_url(admin_client, seeded_sector):
     _config, sector_id, _system_ids = seeded_sector
-
-    response = admin_client_with_wiki.post(f"/api/sectors/{pid('sector', sector_id)}/wiki", json={"backend": "mediawiki"})
-    assert response.status_code == 201
-    page = response.get_json()
-
-    call = fake_wiki_client.calls[0]
-    assert call["backend"] == "mediawiki"
-    assert "Test Sector" in call["content"]  # seeded_sector's own sector name
-
-    detail = admin_client_with_wiki.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()
-    assert detail["wiki_url"] == page["url"]
-
-
-def test_update_sector_wiki_url_manually_sets_and_clears(admin_client, seeded_sector):
-    """The admin "manually set the wiki link" affordance (`html/admin.py`)
-    -- no upload, no wiki reachability required at all."""
-    _config, sector_id, _system_ids = seeded_sector
-
+    assert "wiki_url" not in admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()
     response = admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": "https://wiki.example.com/Sector"})
-    assert response.status_code == 200
-    assert admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()["wiki_url"] == "https://wiki.example.com/Sector"
-
-    response = admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": None})
-    assert response.status_code == 200
-    assert admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()["wiki_url"] is None
-
-
-@pytest.mark.parametrize("wiki_url", [
-    "javascript:alert(document.cookie)", "data:text/html,<script>alert(1)</script>", "ftp://wiki.example.com/x",
-    "//wiki.example.com/x", "https://", "wiki.example.com/Sector",
-])
-def test_update_sector_refuses_a_wiki_url_that_is_not_http(admin_client, seeded_sector, wiki_url):
-    """The sector page links to `wiki_url`, so only an http(s) URL with a
-    host is stored; the /admin form's manual link goes through this same
-    PATCH, so it's refused there too."""
-    _config, sector_id, _system_ids = seeded_sector
-    response = admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": wiki_url})
-    assert response.status_code == 400
-    assert "wiki_url" in response.get_json()["error"]
-    assert admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()["wiki_url"] is None
-
-
-def test_create_sector_rejects_wiki_url(admin_client):
-    # A brand-new sector has never been uploaded anywhere -- wiki_url is
-    # an update-only field (SECTOR_UPDATE_FIELDS), not accepted at create.
-    response = admin_client.post(
-        "/api/sectors", json={"name": "Test", "edge_ly": 10.0, "wiki_url": "https://wiki.example.com/x"}
-    )
     assert response.status_code == 400
 
 

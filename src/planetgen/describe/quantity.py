@@ -21,7 +21,7 @@ LADDER_BY_KIND = {ladder.quantity: ladder for ladder in ladders.LADDERS}
 _SUPERSCRIPT_TO_DIGIT = str.maketrans("⁻⁰¹²³⁴⁵⁶⁷⁸⁹", "-0123456789")
 _POWER_OF_TEN = re.compile(r"(\d+(?:\.\d+)?) × 10([⁻⁰¹²³⁴-⁹]+)")
 
-FORMATS = ("text", "markdown", "wikitext")
+FORMATS = ("text", "markdown")
 """tuple: The plain-string formats an inline list is written in."""
 
 
@@ -64,9 +64,7 @@ def _powers(text, fmt):
 
     def replace(match):
         exponent = match.group(2).translate(_SUPERSCRIPT_TO_DIGIT)
-        if fmt == "markdown":
-            return f"{match.group(1)} × 10<sup>{exponent}</sup>"
-        return "{{Exp|%s|%s}}" % (match.group(1), exponent)
+        return f"{match.group(1)} × 10<sup>{exponent}</sup>"
 
     return _POWER_OF_TEN.sub(replace, text)
 
@@ -82,13 +80,12 @@ def inline_text(items, fmt="text"):
         elif "qty" in item:
             out.append(_powers(quantity_text(item["qty"]), fmt))
         elif "strong" in item:
-            out.append({"text": "{}", "markdown": "**{}**", "wikitext": "'''{}'''"}[fmt].format(item["strong"]))
+            out.append({"text": "{}", "markdown": "**{}**"}[fmt].format(item["strong"]))
         elif "swatch" in item:
             colour = item["swatch"]
-            out.append(f'<span style="background:{colour["hex"]}">&emsp;</span> {colour["word"]}' if fmt == "wikitext"
-                       else f'{colour["word"]} ({colour["hex"]})')
+            out.append(f'{colour["word"]} ({colour["hex"]})')
         elif "chem" in item:
-            # Markdown and MediaWiki both take <sub> and <sup>; a terminal gets Unicode.
+            # Markdown takes <sub> and <sup>; a terminal gets Unicode.
             out.append(chem.text(item["chem"]) if fmt == "text" else chem.html(item["chem"]))
         else:
             out.append(item["name"])

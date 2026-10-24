@@ -334,9 +334,9 @@ json_value = st.recursive(json_scalar, lambda inner: st.one_of(st.lists(inner, m
                                                               st.dictionaries(st.text(max_size=8), inner,
                                                                               max_size=3)),
                           max_leaves=10)
-config_keys = st.sampled_from(sorted(settings_model.Settings.model_fields) + ["unknown", "mysql", "wiki"])
+config_keys = st.sampled_from(sorted(settings_model.Settings.model_fields) + ["unknown", "mysql", "jobs"])
 config_object = st.dictionaries(config_keys, st.one_of(json_value, st.dictionaries(
-    st.sampled_from(["host", "port", "password", "wikijs", "dir", "x"]), json_value, max_size=3)), max_size=6)
+    st.sampled_from(["host", "port", "password", "keep", "dir", "x"]), json_value, max_size=3)), max_size=6)
 
 
 def _load_from(tmp_dir, raw_text):

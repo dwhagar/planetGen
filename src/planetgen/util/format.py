@@ -5,7 +5,7 @@ Format
 ======
 
 The text every number, distance, speed, duration, temperature, pressure
-and age is shown in, for the generator's wikitext and Markdown and for the
+and age is shown in, for the generator's Markdown and for the
 web pages (`planetgen.web.lib.fmt` wraps these with its HTML dash for a
 missing value), and the property table every body writes.
 """
@@ -39,7 +39,7 @@ def scientific_text(value, significant=SCIENTIFIC_SIGNIFICANT_FIGURES):
     """
     `value` in scientific notation as plain text with Unicode superscripts,
     "1.23 × 10⁶", which reads right in HTML, in a `data-*` attribute read
-    back with `.textContent`, in Markdown and in wikitext alike.
+    back with `.textContent`, in Markdown alike.
     """
     mantissa, exponent = f"{value:.{significant - 1}e}".split("e")
     return f"{mantissa} \u00d7 10{str(int(exponent)).translate(_SUPERSCRIPT_DIGITS)}"

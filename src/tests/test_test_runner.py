@@ -37,7 +37,6 @@ def _progress_logs_in_a_throwaway_directory(tmp_path, monkeypatch):
     ("test_api_auth_sweep.py", "api"),
     ("test_bughunt_api_gaps.py", "api"),
     ("test_db_old_schemas.py", "db"),
-    ("test_wikiclient_wikijs.py", "wiki"),
     ("test_name_generation.py", "names"),
     ("test_orbital_motion.py", "physics"),
     ("test_galaxy_gen.py", "generation"),

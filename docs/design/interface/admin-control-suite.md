@@ -153,7 +153,7 @@ Of the 58 in class A, 13 need a web server restart to apply (the rate limits, th
 
 ### Class B (Owner only, 7): hidden by default
 
-`base_url`, `login_allowlist`, `wiki.wikijs.base_url`, `wiki.wikijs.api_token`, `wiki.mediawiki.base_url`, `username`, `password`. They appear in the "cannot be changed" list with "Only the Owner can change this" until USR.31 and ADM.86 land, then in an Owner section.
+`base_url`, `login_allowlist`. They appear in the "cannot be changed" list with "Only the Owner can change this" until USR.31 and ADM.86 land, then in an Owner section.
 
 ### Class C (server only, 24): hidden by default
 

@@ -1,7 +1,7 @@
 """
 ASCII-printable regression tests for planetgen/names/wordlists.py.
 
-Every generated name ultimately gets pasted into a wiki page and stored as
+Every generated name ultimately gets pasted into a document and stored as
 TEXT in the database -- it should never depend on non-ASCII characters
 rendering correctly somewhere downstream. This walks every public
 list-of-strings constant in wordlists.py and asserts each string is 7-bit

@@ -372,7 +372,7 @@ class Jobs(_Section):
 
 class Queue(_Section):
     interactive_workers: int = opt(
-        1, "How many workers are kept for short jobs: edits, estimates, wiki uploads and slow page answers. They "
+        1, "How many workers are kept for short jobs: edits, estimates and slow page answers. They "
         "are never counted in the bulk worker count, so a generation run on every core leaves them be, and they run "
         "at a higher priority than the bulk workers.", unit="workers", group="speed", ge=1, le=64,
         label="Workers for short jobs",
@@ -411,40 +411,6 @@ class Queue(_Section):
         label="Longest wait for a run",
         summary="How long a run waits in line for the one in front of it before it gives up (0 means it "
                 "does not wait).")
-
-
-class WikiJs(_Section):
-    base_url: str = opt("", "The Wiki.js instance's root URL. Empty means it isn't offered as an upload target.",
-                        env="PLANETGEN_WIKIJS_BASE_URL", role="owner", group="wiki",
-                        label="Wiki.js address",
-                        summary="The Wiki.js site's root address; empty means it is not offered as "
-                                "an upload target.")
-    api_token: str = opt("", "A Wiki.js Personal API Token (Admin, API Access).", env="PLANETGEN_WIKIJS_API_TOKEN",
-                         secret=True, role="owner", group="wiki",
-                         label="Wiki.js API token",
-                         summary="A Wiki.js personal API token; it is never shown.")
-
-
-class MediaWiki(_Section):
-    base_url: str = opt("", "The MediaWiki API entry point's directory (everything up to, not including, api.php). "
-                        "Empty means it isn't offered as an upload target.", env="PLANETGEN_MEDIAWIKI_BASE_URL",
-                        role="owner", group="wiki",
-                        label="MediaWiki address",
-                        summary="The MediaWiki API folder, up to but not including api.php; empty "
-                                "means it is not offered.")
-    username: str = opt("", "A Bot Password user name, in User@BotName form.", env="PLANETGEN_MEDIAWIKI_USERNAME",
-                        role="owner", group="wiki",
-                        label="MediaWiki bot user",
-                        summary="A bot password user name, in User@BotName form.")
-    password: str = opt("", "That Bot Password.", env="PLANETGEN_MEDIAWIKI_PASSWORD", secret=True, role="owner",
-                        group="wiki",
-                        label="MediaWiki bot password",
-                        summary="That bot password; it is never shown.")
-
-
-class Wiki(_Section):
-    wikijs: WikiJs = WikiJs()
-    mediawiki: MediaWiki = MediaWiki()
 
 
 class SettingsFile(_Section):
@@ -840,7 +806,6 @@ class Settings(_Section):
     tile_cache: TileCache = TileCache()
     page_cache: PageCache = PageCache()
     jobs: Jobs = Jobs()
-    wiki: Wiki = Wiki()
 
     _loose = field_validator("debug", "admin_cookie_insecure", mode="before")(_loose_bool)
 

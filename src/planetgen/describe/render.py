@@ -3,7 +3,7 @@
 """
 The walk the plain-string renderers share (docs/design/architecture/system-description.md, section 4): a
 Document's sections in order, each as a heading, its blocks and its child sections. A style
-(`text`, `markdown`, `wikitext`) says how a heading, a table, a composition and a rating look.
+(`text`, `markdown`) says how a heading, a table, a composition and a rating look.
 """
 
 from planetgen.describe.quantity import inline_text

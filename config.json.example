@@ -126,16 +126,5 @@
     "dir": "",
     "keep": 20,
     "python": ""
-  },
-  "wiki": {
-    "wikijs": {
-      "base_url": "",
-      "api_token": ""
-    },
-    "mediawiki": {
-      "base_url": "",
-      "username": "",
-      "password": ""
-    }
   }
 }

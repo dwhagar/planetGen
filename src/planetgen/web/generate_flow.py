@@ -58,7 +58,7 @@ TASKS = (
          "Plan again, redo some scatters, or add a dimmer step of bright stars. Sectors already generated are left alone.",
          "rewrites", ("plan", "redo_scatters", "bright_band")),
     Task("one-off-system", "Make one system (not saved)",
-         "Generate a single star system with any command-line option and get it as Markdown or wikitext.", "safe", (),
+         "Generate a single star system with any command-line option and get it as Markdown or plain text.", "safe", (),
          endpoint="generate_system"),
     Task("check", "Check the database", "Look for damage. It changes nothing.", "safe", ("check_db",)),
     Task("wipe", "Wipe the galaxy",

@@ -4,8 +4,7 @@
 Chemical formulas (UX.149)
 ==========================
 
-The one way a chemical formula is written out: `html` gives `H<sub>2</sub>O` for a page (and for Markdown and
-wikitext, which take the same tags), `text` its plain-text twin `H₂O` for a terminal. Counts are subscripts, ion
+The one way a chemical formula is written out: `html` gives `H<sub>2</sub>O` for a page (and for Markdown, which takes the same tags), `text` its plain-text twin `H₂O` for a terminal. Counts are subscripts, ion
 charges superscripts after the formula and isotope mass numbers superscripts before their symbol:
 
 - `H2O`, `C2H6`, `(CH3)2S`, `Ca5(PO4)3F`, `(Mg0.88,Fe0.12)SiO3`, `CxHy`: counts, brackets, decimal and variable counts.
@@ -181,7 +180,7 @@ def _joined(runs):
 
 def html(formula):
     """`formula` as escaped HTML with `<sub>` and `<sup>` (a str; the web's `formula` filter makes it Markup). The same
-    tags are what Markdown and wikitext are given."""
+    tags are what Markdown is given."""
     out = []
     for kind, text in parse(formula):
         text = _html.escape(text)

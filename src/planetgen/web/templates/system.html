@@ -9,23 +9,6 @@
     action bar (subhead) and the dialogs (content) share them. -#}
 {%- set here = page_url('system', system_id=system.id) %}
 {%- set groups = [] %}
-{%- if admin and wiki_options %}
-{%- set wiki_fields %}
-    <div class="search-fields">
-      <fieldset class="search-field wiki-backends">
-        <legend>Wiki</legend>
-        {%- for option in wiki_options %}
-        <label><input type="radio" name="backend" value="{{ option.value }}"{% if loop.first %} checked{% endif %}> {{ option.label }}</label>
-        {%- endfor %}
-      </fieldset>
-      <label class="search-field">Path (Wiki.js only; MediaWiki uses this system's name)
-        <input type="text" name="path" placeholder="e.g. systems/{{ system.name }}">
-      </label>
-    </div>
-{%- endset %}
-{%- set _ = groups.append({'id': 'wiki', 'actions': [{'key': 'upload', 'label': 'Upload to Wiki', 'title': 'Upload to Wiki',
-    'note': '', 'fields': wiki_fields, 'hidden': {'action': 'upload_wiki'}, 'button': 'Upload'}]}) %}
-{%- endif %}
 {%- if can_edit %}
 {%- set system_actions = [] %}
 {%- set star_actions = [] %}
@@ -263,11 +246,8 @@
 {{ stars_html }}
 {#- ADM.34: every admin action of this page sits behind the one Admin menu
     (partials/admin_menu.html): the whole system's (regenerate, change the
-    star, delete, upload to a wiki), a submenu per body (regenerate, change
+    star, delete), a submenu per body (regenerate, change
     class, delete) and the facilities' (place one, remove one). #}
-{%- if wiki_status %}
-<p class="{{ 'error' if wiki_status[0] else 'hint' }}" role="status">{{ wiki_status[1] }}</p>
-{%- endif %}
 {{ admin_dialogs(groups, here) }}
 <section class="panel" id="system-panel" aria-labelledby="system-heading">
   <div class="panel-header">
@@ -282,13 +262,6 @@
       </ul>
     </details>
   </div>
-  {%- if system.wikijs_url or system.mediawiki_url %}
-  <p class="hint">Published on the wiki:
-    {%- if system.wikijs_url %} <a href="{{ system.wikijs_url }}" target="_blank" rel="noopener noreferrer">View on Wiki.js</a>{% endif %}
-    {%- if system.wikijs_url and system.mediawiki_url %} &middot;{% endif %}
-    {%- if system.mediawiki_url %} <a href="{{ system.mediawiki_url }}" target="_blank" rel="noopener noreferrer">View on MediaWiki</a>{% endif %}
-  </p>
-  {%- endif %}
   {%- if code_fmt %}
   <div class="code-view">
     <div class="code-view-header">

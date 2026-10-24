@@ -12,10 +12,7 @@ scientific-notation/Sol-relative math; only the small per-quantity branching
 (which unit to show, at what threshold) is mirrored here, operating on plain
 numbers instead of a live `Star`/`Planet` object's attributes.
 
-Those formatters emit the HTML "coeff &times; 10<sup>exp</sup>" form, not the
-wikitext "{{Exp|coeff|exp}}" template form -- the wrong one for embedding directly
-into an HTML page, which was the whole bug: the interactive HTML viewer used
-to read the wikitext form straight out of the database.
+Those formatters emit the HTML "coeff &times; 10<sup>exp</sup>" form.
 
 That HTML `<sup>` form is only safe to embed where it's actually parsed as
 markup (`system.py`'s static table cells, inserted unescaped -- see its own

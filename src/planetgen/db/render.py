@@ -4,8 +4,8 @@
 On-demand rendering of a stored star system's text.
 
 No page text is stored (schema v29): `describe.describe` builds the system's Document from the
-database rows (`load_star_system`) and `describe.render` writes it as text, Markdown or wikitext
-when someone asks, for the code views, the downloads, the command line and the wiki upload.
+database rows (`load_star_system`) and `describe.render` writes it as text or Markdown
+when someone asks, for the code views, the downloads and the command line.
 `describe_system` is the Document itself, for the web page, which writes it as HTML.
 """
 

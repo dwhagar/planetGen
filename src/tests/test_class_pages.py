@@ -284,7 +284,7 @@ class _Fake:
         self.phenomenon = None
         self.system = {
             "id": 5, "name": "Sol", "sector_id": None, "quadrant": None, "location": None, "is_binary": 0,
-            "binary_type": None, "binary_configuration": None, "wikijs_url": None, "mediawiki_url": None,
+            "binary_type": None, "binary_configuration": None,
             **{key: value for key, value in _system().items() if key != "binary_configuration"},
         }
 

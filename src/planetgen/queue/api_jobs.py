@@ -46,7 +46,7 @@ RESULT_TTL_SECONDS = 86400
 """int: How long a finished job's result or error is kept."""
 
 UNESTIMATED_SECONDS = 3600
-"""int: The time limit of a job with no estimate (PERF.144): a one-system edit, a wiki page upload, a settle of
+"""int: The time limit of a job with no estimate (PERF.144): a one-system edit, a settle of
 the sectors around a change. A fixed ceiling, not an estimate."""
 
 ESTIMATED_CEILING_SECONDS = 7 * 86400

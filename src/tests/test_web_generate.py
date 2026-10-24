@@ -1288,7 +1288,6 @@ def test_system_page_generates_the_page_without_a_database(site, client):
     assert 'class="qty"' in html and "# Webtest Vesta" in html  # quantities, and the Markdown in a download form
     assert "<textarea readonly name=\"text\"" not in html
     assert 'title="Save as Webtest-Vesta.md">Download Markdown</button>' in html
-    assert 'title="Save as Webtest-Vesta.wiki">Download Wikitext</button>' in html
     assert 'title="Save as Webtest-Vesta.txt">Download Plain text</button>' in html
     assert "Debug log" in html
 
@@ -1331,17 +1330,13 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
     assert proc.returncode == 0, proc.stdout + proc.stderr
     assert out.read_text(encoding="utf-8").startswith("# Output Test\n")
     assert "not saved to the database" in proc.stdout
-    wiki = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--output", "-", "--quiet", "--name=Wiki Out"],
-                          cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
-    assert wiki.returncode == 0 and wiki.stdout.startswith("Wiki Out\n========")
-    wikitext = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--format", "wikitext", "--output", "-", "--quiet",
-                               "--name=Wiki Out"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120,
-                              env=env)
-    assert wikitext.returncode == 0 and wikitext.stdout.startswith("= Wiki Out =")
+    plain = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--output", "-", "--quiet", "--name=Plain Out"],
+                           cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120, env=env)
+    assert plain.returncode == 0 and plain.stdout.startswith("Plain Out\n========")
     document = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--format", "document", "--output", "-", "--quiet",
-                               "--name=Wiki Out"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120,
+                               "--name=Doc Out"], cwd=jobs.REPO_DIR, capture_output=True, encoding="utf-8", timeout=120,
                               env=env)
-    assert document.returncode == 0 and json.loads(document.stdout)["title"] == "Wiki Out"
+    assert document.returncode == 0 and json.loads(document.stdout)["title"] == "Doc Out"
 
 
 # --- Upper bounds (SEC.18) ----------------------------------

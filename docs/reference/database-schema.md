@@ -149,7 +149,7 @@ from the raw columns (`planetgen/web/lib/tabledisplay.py`). The belt columns in
 the second paragraph remain.*
 
 Every `*Data`/`*_properties` dict that the generator's old text builder (`to_paragraph_list()`, gone with UX.109) built in the
-generator — the exact values that appear in each object's rendered wiki
+generator — the exact values that appear in each object's rendered
 table — gets its own set of `table_*` columns (one column per dict key),
 rather than being reconstructed from the raw scalar columns at query time.
 This matters because the raw scalar columns don't always match the display
@@ -429,7 +429,7 @@ the v91 entry at the end of this document describe.
 **v19 to v26, in brief.** v19 added star-bound comets (`comets`,
 `comet_composition`; see that table below). v22 added the search-facing
 indexes above. v23 wired up wiki publishing (`sectors.wiki_url`, and
-`star_systems.wikijs_url`/`mediawiki_url` for existing databases). v24
+`star_systems.wikijs_url`/`mediawiki_url`; all three were dropped again in v149, OPS.69). v24
 added the name-uniqueness registries (`sector_name_registry`,
 `system_name_registry` and a planet/moon `body_name_registry` that v34
 later dropped), so no two sectors or systems share a display name. v25
@@ -467,8 +467,7 @@ id. Rows with no placed sector stay unplaced. The full reasoning is in
 `schema.sql`'s "v28" header note.
 
 **Page text rendered on demand (v29).** `_migrate_v28_to_v29` drops
-`star_systems.wikitext_content`/`markdown_content`; see "Rendered wiki
-text and URLs" below.
+`star_systems.wikitext_content`/`markdown_content`; see "Rendered page text" below.
 
 **Data cleanup (v30).** No shape change. `_migrate_v29_to_v30` clears the
 atmosphere-only columns on planets and moons reclassified into an
@@ -987,27 +986,18 @@ MySQL has no dedicated boolean type either. Plain booleans are `TINYINT(1)`
 `False`/`None` in Python — force-on / force-off / random) are nullable
 `INTEGER` `0`/`1`/`NULL`.
 
-### Rendered wiki text and URLs
+### Rendered page text
 
 No rendered page text is stored (v29 dropped `star_systems.wikitext_content`/
 `markdown_content`). Every value the page shows has its own column, so
 `_db.load_star_system` rebuilds the generation object graph and
-`planetgen/db/render.py` renders either format on demand — the
+`planetgen/db/render.py` renders Markdown or plain text on demand — the
 same `StarSystem.__str__` generation used to run once before saving, so
 the text is identical, except that it now follows later changes (renames,
 names made unique, orbit ticks' current wobble and comet positions).
 (`planetgen.cli.render_parity`, since removed, compared the two on a database still at v28.)
-`mediawiki_url`/`wikijs_url` (v23 — see `schema.sql`'s header comment)
-record where that page lives on each wiki, once `POST
-/api/systems/<id>/wiki` (`src/planetgen/wiki/`, `web/system_pages.py`'s "Upload to
-Wiki" form) has actually uploaded it there — one system is one wiki page;
-individual stars/planets/moons are sections within that one page, not
-separate pages. Existence on a given wiki is never a separate stored
-flag — it's exactly "the matching URL column is not NULL"; `web/system_pages.py`
-links to that page (opening in a new tab) whenever either is set. `sectors.wiki_url` is the
-per-sector equivalent (see that table's own column doc above) — a single
-column, since a sector's page is generated fresh at upload time rather
-than persisted the way a system's is.
+
+The wiki links (`sectors.wiki_url`, `star_systems.wikijs_url`/`mediawiki_url`) went in v149 with the wiki upload (OPS.69).
 
 ## Planned changes (not built)
 
@@ -1071,7 +1061,6 @@ One row per generated sector.
 | `center_x_pc`, `center_y_pc`, `center_z_pc` | DOUBLE | nullable | The sector's center, in a galaxy-frame Cartesian coordinate system whose origin is the galactic center (parsecs — see `docs/design/galaxy/galaxy-coordinate-system.md`). NULL together iff this sector has never been placed in a galaxy (`planetgen sector`'s own standalone CLI, or a sector migrated from a pre-v4 database). |
 | `galactic_radius_pc` | DOUBLE | nullable | `sqrt(x^2+y^2+z^2)`, persisted (not just derivable) so "sectors within radius R of the core" is a plain indexed range scan — same treatment `star_systems.quadrant` gets. NULL iff the center columns are NULL. |
 | `shell_index`, `band_index`, `wedge_index` | INT | nullable | This sector's address on the spherical grid (v91, DB.32, `planetgen/galaxy/spherical.py`; see `docs/design/galaxy/spherical-sector-coordinates.md`): the shell (distance from the galactic centre in 4 pc steps; shell 0 is the core ball), the band (latitude; band 0 holds the plane and a shell's end bands are its polar caps) and the wedge (longitude, counted from the +X meridian). Named `ring_index`, `layer_index` and `ring_slot_index` on the cylindrical grid until v90. Independently nullable from the center/radius columns above (not part of the same CHECK) — a sector could in principle have a hand-authored galaxy position without this particular placement algorithm's own addressing. |
-| `wiki_url` | VARCHAR(2048) | nullable | Where this sector's summary page lives on a wiki (v23) — set either by `POST /api/sectors/<id>/wiki` (uploading `planetgen/api/routes.py`'s `_sector_wiki_content`) or directly via `PATCH /api/sectors/<id>` (the `/admin` page's manual-link form, `web/admin_pages.py`). A single column, not one per backend the way `star_systems.mediawiki_url`/`wikijs_url` are — a sector has no persisted rendered page of its own to independently re-upload to a second backend, so only one link is ever tracked at a time. NULL means no page yet. |
 | `generator_epoch`, `run_id` | SMALLINT UNSIGNED, BIGINT UNSIGNED | nullable, `run_id` indexed, foreign key to `generation_runs.id` | Added in v117 (DB.16), replacing the four text columns of v67 (DB.7: `version_key`, `planetgen_version`, `python_version`, `platform`, dropped). `generator_epoch` is the epoch of `util/generator_epoch.py` the code ran under (NULL on a sector saved before v117, when it was not recorded); `run_id` is the `generation_runs` row of the run that saved the sector, which holds the packed version key (`planetgen/galaxy/version_key.py`) and the release, Python and platform strings. A sector saved outside a run points at one shared run row (command `save`) per version of the code. NULL `run_id` on a sector generated before v67. The Generate page and `planetgen galaxy` warn when the running version differs from a sector's (`galaxy/version_check.py`, `store.sector_versions`). |
 | `created_at` | TIMESTAMP | NOT NULL | Added in v27. See "Row timestamps (v27)" above. |
 | `modified_at` | TIMESTAMP(3) | NOT NULL, `ON UPDATE CURRENT_TIMESTAMP(3)` | Added in v27. Indexed. |
@@ -1309,8 +1298,6 @@ One row per generated system (single-star or binary).
 | `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v61 (GEN.121). The system's velocity, km/s on the galactic axes: the rotation curve's tangent at its place plus its runaway motion. `advance_galactic_positions` turns it with the position (a hypervelocity star instead flies a straight line, `p0 + v (t − t0)`, and keeps its velocity; GEN.137, `galaxy/straight_line.py`). 0 while the system has no place in the galaxy. |
 | `epoch_unix`, `next_update_due` | DOUBLE | nullable, `next_update_due` indexed | Added in v66 (GEN.106). The galactic orbit's clock (see `orbit_simulation_state`): the system, its stars' `galactic_orbital_phase_deg` and a close pair's `binary_galactic_orbital_phase_deg` move together when it is due. `binary_epoch_unix`/`binary_next_update_due` are the same for a pair's mutual orbit. |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
-| `mediawiki_url` | TEXT | nullable | Where this system's page lives (or should live) on MediaWiki. |
-| `wikijs_url` | TEXT | nullable | Where this system's page lives (or should live) on Wiki.js. |
 | `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | FK -> `nebulae.id` / `supernova_remnants.id`, `ON DELETE SET NULL`, nullable | Added in v39. The innermost nebula or supernova remnant whose sphere holds this system; at most one is set. See "Containment (v39)" above. |
 | `created_at` | TIMESTAMP | NOT NULL, default `CURRENT_TIMESTAMP` | |
 | `modified_at` | TIMESTAMP(3) | NOT NULL, `ON UPDATE CURRENT_TIMESTAMP(3)` | Added in v27. Also bumped when a child row (star, planet, moon, belt, comet) changes. |
@@ -2183,6 +2170,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v149 (OPS.69): the wiki links are gone
+
+Migration 0149 drops `sectors.wiki_url`, `star_systems.wikijs_url` and `star_systems.mediawiki_url`. The wiki upload that wrote them was taken out of the site, and nothing read them any more.
 
 ### v148 (MAP.220): the `habitable_systems` table
 

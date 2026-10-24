@@ -181,8 +181,7 @@ def test_home_security_headers(client, fake):
 
 
 def test_api_keeps_its_own_csp(client):
-    resp = client.get("/api/wiki-config")
-    assert resp.status_code == 200
+    resp = client.get("/api/health")
     assert resp.headers["Content-Security-Policy"] == "default-src 'none'"
 
 
@@ -467,7 +466,7 @@ def test_in_process_transport_skips_http_inside_a_request(app, monkeypatch):
         raise AssertionError("HTTP transport used inside a Flask request")
     monkeypatch.setattr(apiclient, "_http_transport", no_http)
     with app.test_request_context("/"):
-        assert set(apiclient.get_wiki_config()) == {"wikijs", "mediawiki"}
+        assert "items" in apiclient._request("/databases")
         with pytest.raises(apiclient.NotFoundError):
             apiclient._request("/no-such-endpoint")
 
@@ -477,7 +476,7 @@ def test_in_process_transport_declines_outside_a_request(app, monkeypatch):
         raise apiclient.TransportUnreachable("no server in tests")
     monkeypatch.setattr(apiclient, "_http_transport", unreachable)
     with pytest.raises(apiclient.ApiError, match="Could not reach"):
-        apiclient.get_wiki_config()
+        apiclient._request("/databases")
 
 
 # --- Real database, in-process ----------------------------------------------------------

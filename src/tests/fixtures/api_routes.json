@@ -126,7 +126,6 @@
   "/api/sectors/<uid:sector_id>/facilities GET",
   "/api/sectors/<uid:sector_id>/generate-neighborhood POST",
   "/api/sectors/<uid:sector_id>/regenerate POST",
-  "/api/sectors/<uid:sector_id>/wiki POST",
   "/api/species GET",
   "/api/species/<int:species_id> GET",
   "/api/species/<int:species_id>/habitable-worlds/sectors/<uid:sector_id> GET",
@@ -145,13 +144,11 @@
   "/api/systems/<uid:system_id>/scene GET",
   "/api/systems/<uid:system_id>/star POST",
   "/api/systems/<uid:system_id>/text GET",
-  "/api/systems/<uid:system_id>/wiki POST",
   "/api/table-estimates GET",
   "/api/territories GET",
   "/api/uncharted-phenomena/<int:scatter_id> GET",
   "/api/uncharted-systems GET",
   "/api/uncharted-systems/<int:bright_star_id> GET",
-  "/api/uncharted-systems/<int:bright_star_id>/generate POST",
-  "/api/wiki-config GET"
+  "/api/uncharted-systems/<int:bright_star_id>/generate POST"
  ]
 }

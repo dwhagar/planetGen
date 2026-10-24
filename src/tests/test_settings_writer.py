@@ -122,7 +122,7 @@ def test_reset_removes_the_key_and_the_empty_section(config):
     ({"mysql.password": "x"}, "mysql.password", "on the server"),
     ({"jobs.python": "/bin/sh"}, "jobs.python", "on the server"),
     ({"secret_key": "x"}, "secret_key", "on the server"),
-    ({"wiki.wikijs.base_url": "http://w"}, "wiki.wikijs.base_url", "Owner"),
+    ({"base_url": "http://w/"}, "base_url", "Owner"),
     ({"jobs.keep": "many"}, "jobs.keep", "integer"),
     ({"jobs.keep": 0}, "jobs.keep", "greater than or equal"),
     ({"settings.backups_kept": 201}, "settings.backups_kept", "less than or equal"),
@@ -145,9 +145,9 @@ def test_one_bad_value_refuses_the_whole_save_and_changes_nothing(config):
 
 
 def test_the_command_line_role_may_change_anything_the_web_may_not(config):
-    assert not _save({"wiki.wikijs.base_url": "http://w"}).ok
-    assert not _save({"wiki.wikijs.base_url": "http://w"}, role="owner").errors.get("wiki.wikijs.base_url")
-    assert _save({"mysql.host": "db2", "wiki.wikijs.base_url": "http://w"}, role="host").saved
+    assert not _save({"base_url": "http://w/"}).ok
+    assert not _save({"base_url": "http://w/"}, role="owner").errors.get("base_url")
+    assert _save({"mysql.host": "db2", "base_url": "http://w/"}, role="host").saved
     assert _doc(config)["mysql"]["host"] == "db2" and _doc(config)["mysql"]["password"] == "db-secret"
 
 
@@ -250,13 +250,12 @@ def test_one_audit_row_per_changed_option(config):
 
 def test_a_secret_is_never_written_to_an_audit_row_a_diff_or_the_redacted_copy(config):
     audit = Audit()
-    result = _save({"mysql.password": "new-db-secret", "wiki.wikijs.api_token": "wiki-tok-123"}, role="host", audit=audit)
+    result = _save({"mysql.password": "new-db-secret"}, role="host", audit=audit)
     assert sorted(audit.rows) == [
-        ("config.update", "config:mysql.password", {"old": "(changed)", "new": "(changed)"}),
-        ("config.update", "config:wiki.wikijs.api_token", {"old": "(changed)", "new": "(changed)"})]
+        ("config.update", "config:mysql.password", {"old": "(changed)", "new": "(changed)"})]
     assert all(c.shown("old") == "(changed)" == c.shown("new") for c in result.changes)
     shown = json.dumps(settings_writer.redacted(_doc(config)))
-    for secret in ("new-db-secret", "csrf-secret", "wiki-tok-123"):
+    for secret in ("new-db-secret", "csrf-secret"):
         assert secret not in shown
     assert settings_writer.redacted(_doc(config))["secret_key"] == "(set)"
 
@@ -459,11 +458,9 @@ def test_cli_values_are_json_or_text_by_the_options_type(config):
 def test_cli_secret_values_come_from_standard_input_and_get_hides_them(config, cli, capsys, monkeypatch):
     import io
     monkeypatch.setattr("sys.stdin", io.StringIO("s3cret\n"))
-    assert config_cli.main(["set", "wiki.wikijs.api_token=-"]) == 0
+    assert config_cli.main(["set", "mysql.password=-"]) == 0
     assert "s3cret" not in capsys.readouterr().out
-    assert settings.get_settings().wiki.wikijs.api_token == "s3cret"
-    assert config_cli.main(["get", "wiki.wikijs.api_token"]) == 0
-    assert "s3cret" not in capsys.readouterr().out
+    assert settings.get_settings().mysql.password == "s3cret"
     assert config_cli.main(["get", "mysql.password"]) == 0
-    assert "db-secret" not in capsys.readouterr().out
+    assert "s3cret" not in capsys.readouterr().out
     assert all("s3cret" not in json.dumps(row) for row in cli.rows)

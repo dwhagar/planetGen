@@ -159,8 +159,7 @@ def test_edit_save_and_put_back_each_kind_of_option(browser, server, role, confi
         if role == "host":
             page.fill("#opt-login_allowlist", "10.0.0.0/8\n192.168.1.5")        # list
             page.check("input[name='opt.log_rotation'][value='app']")      # choice
-            page.fill("#opt-wiki-wikijs-api_token", "wiki-token-123")           # secret
-            rows += 3
+            rows += 2
         _save(page, base_url, rows)
 
         saved = _document(config)
@@ -168,11 +167,9 @@ def test_edit_save_and_put_back_each_kind_of_option(browser, server, role, confi
         assert saved["cache"] == {"max_mb": 300.0} and saved["page_cache"] == {"stored_counts": False}
         if role == "host":
             assert saved["login_allowlist"] == ["10.0.0.0/8", "192.168.1.5"] and saved["log_rotation"] == "app"
-            assert saved["wiki"]["wikijs"]["api_token"] == "wiki-token-123"
         # What was entered is shown back, a secret is not, and nothing was left unsaved.
         assert page.input_value("#opt-site_name") == "Home" and page.input_value("#opt-jobs-keep") == "7"
         assert not page.is_checked("#opt-page_cache-stored_counts")
-        assert "wiki-token-123" not in page.content()
 
         # Put every one of them back to its default (the keys leave the file).
         page.check("input[name='reset.cache.max_mb']")
@@ -183,12 +180,11 @@ def test_edit_save_and_put_back_each_kind_of_option(browser, server, role, confi
         if role == "host":
             page.check("input[name='reset.login_allowlist']")
             page.check("input[name='reset.log_rotation']")
-            page.check("input[name='clear.wiki.wikijs.api_token']")
-            rows += 3
+            rows += 2
         _save(page, base_url, rows)
         restored = _document(config)
         assert restored["mysql"] == START["mysql"] and restored["secret_key"] == "csrf-secret"
-        for path in ("site_name", "jobs", "tile_cache", "page_cache", "login_allowlist", "log_rotation", "wiki"):
+        for path in ("site_name", "jobs", "tile_cache", "page_cache", "login_allowlist", "log_rotation"):
             assert path not in restored, path
         assert page.input_value("#opt-site_name") == "planetGen"
     finally:

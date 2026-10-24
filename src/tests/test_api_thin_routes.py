@@ -8,7 +8,7 @@ paging/limit parameters and ids that name the wrong kind of row -- for
 `/api/facilities` (POST and DELETE; there is no PATCH),
 `/api/admin/login-failures`, `/api/population`, `/api/species/<id>` and
 `/api/systems/<id>/owner`, plus what deleting a sector does to the
-facilities and wiki links hanging off it.
+facilities hanging off it.
 
 Every refusal must be a clean `{"error": ...}` JSON 4xx (400 for bad
 parameters or bodies, 404 for an unknown id, 405 for a method a route
@@ -348,16 +348,15 @@ def test_system_owner_unknown_unowned_and_deleted(admin_client, seeded_sector):
     _assert_json_error(admin_client.get(f"/api/systems/{pid('system', system_ids[0])}/owner"), 404)
 
 
-# --- Deleting a sector with facilities and wiki links ---------------------------------
+# --- Deleting a sector with facilities ---------------------------------
 
-def test_deleting_a_sector_with_facilities_and_wiki_links(admin_client, mysql_config):
+def test_deleting_a_sector_with_facilities(admin_client, mysql_config):
     """Pins what `DELETE /api/sectors/<id>` does to what hangs off it:
 
     - a stand-alone facility parked in the sector goes with it
       (`facilities.sector_id` is `ON DELETE CASCADE`);
     - its systems stay, detached (`sector_id` set to NULL), and keep
-      their own facilities and wiki links;
-    - the sector's own `wiki_url` goes with its row;
+      their own facilities;
     - the sector's reads are then 404s, and so is a second delete.
     """
     sector_id = _place_sector(mysql_config, "Doomed Sector", (60.0, 10.0, 0.0), address=(17, 0, 3))
@@ -372,15 +371,6 @@ def test_deleting_a_sector_with_facilities_and_wiki_links(admin_client, mysql_co
     assert orbital.status_code == 201, orbital.get_json()
     orbital_id = orbital.get_json()["id"]
 
-    assert admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}",
-                              json={"wiki_url": "https://wiki.example.com/Doomed"}).status_code == 200
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            conn.execute("UPDATE star_systems SET wikijs_url = ? WHERE id = ?",
-                         ("https://wiki.example.com/Doomed/System", system_id))
-    finally:
-        conn.close()
     assert [f["id"] for f in admin_client.get(f"/api/sectors/{pid('sector', sector_id)}/facilities").get_json()["items"]] == [
         standalone_id]
 
@@ -389,14 +379,13 @@ def test_deleting_a_sector_with_facilities_and_wiki_links(admin_client, mysql_co
     _assert_json_error(admin_client.get(f"/api/sectors/{pid('sector', sector_id)}"), 404)
     _assert_json_error(admin_client.get(f"/api/sectors/{pid('sector', sector_id)}/facilities"), 404)
     _assert_json_error(admin_client.delete(f"/api/sectors/{pid('sector', sector_id)}"), 404)
-    _assert_json_error(admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": None}), 404)
+    _assert_json_error(admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"name": "Renamed"}), 404)
 
     _assert_json_error(admin_client.get(f"/api/facilities/{pid('facility', standalone_id)}"), 404)
     assert _one(mysql_config, "SELECT COUNT(*) AS n FROM facilities WHERE sector_id = ?", (sector_id,))["n"] == 0
 
     system = admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()
     assert system["sector_id"] is None
-    assert system["wikijs_url"] == "https://wiki.example.com/Doomed/System"
     assert admin_client.get(f"/api/facilities/{pid('facility', orbital_id)}").get_json()["name"] == "Sun Watch"
     assert [f["id"] for f in admin_client.get(f"/api/systems/{pid('system', system_id)}/facilities").get_json()["items"]] == [
         orbital_id]

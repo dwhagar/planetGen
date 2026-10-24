@@ -22,7 +22,6 @@ recorded dependency map (`depmap.py`, `pytest --changed`), not by this table.
 import re
 
 AREA_RULES = (
-    ("wiki", r"wikiclient"),
     ("names", r"names?($|_)|naming|lazy_names|dedupe_names|gated_phoneme|body_names|parallel_names"),
     ("db", r"db_|database|sql_|schema|migrate|update_database|spatial_position_db|sector_paths_db|count_cache|"
            r"bughunt_db|settings|alembic|id_blocks|tilecache|caches|slow_read|query_db"),

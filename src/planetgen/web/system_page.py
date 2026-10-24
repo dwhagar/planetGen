@@ -53,7 +53,7 @@ TRISTATE_FIELDS = (
 
 TRISTATE_CHOICES = (("", "Generator decides"), ("yes", "Yes"), ("no", "No"))
 
-FORMATS = (("markdown", "Markdown", "md", "text/markdown"), ("wikitext", "Wikitext", "wiki", "text/plain"),
+FORMATS = (("markdown", "Markdown", "md", "text/markdown"),
            ("text", "Plain text", "txt", "text/plain"))
 """tuple: The text formats offered for download: `(format, label, file extension, mimetype)`."""
 
@@ -204,7 +204,7 @@ def run_generator(spec):
 
 
 def download_name(title, fmt):
-    """`"Ilkone.md"` / `"Ilkone.wiki"` / `"Ilkone.txt"`, keeping only safe characters."""
+    """`"Ilkone.md"` / `"Ilkone.txt"`, keeping only safe characters."""
     stem = re.sub(r"[^A-Za-z0-9._-]+", "-", title).strip("-.") or "system"
     return f"{stem[:80]}.{_FORMAT_EXTENSIONS[fmt]}"
 

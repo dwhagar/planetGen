@@ -284,8 +284,7 @@ def _system_document():
 
 def test_a_generated_planet_or_moon_description_carries_the_ratings_in_each_format():
     document = _system_document()
-    for fmt, header in (("text", "Category     Rating"), ("markdown", "| Category | Rating | Score | Notes |"),
-                        ("wikitext", "! Category !! Rating !! Score !! Notes")):
+    for fmt, header in (("text", "Category     Rating"), ("markdown", "| Category | Rating | Score | Notes |")):
         rendered = describe.render(document, fmt)
         assert "PHI-6 habitability is" in rendered and header in rendered
         for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):

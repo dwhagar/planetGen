@@ -60,7 +60,7 @@ def test_every_area_is_named_and_every_package_module_is_in_one(data):
     light, _heavy = data
     keys = {area["key"] for area in light["areas"]}
     assert {"web", "api", "queue", "generation", "galaxy", "population", "physics", "describe", "db", "admin",
-            "backup", "wiki", "cli", "names", "util", "tuning", "tests"} <= keys
+            "backup", "cli", "names", "util", "tuning", "tests"} <= keys
     placed = sorted(i for area in light["areas"] for i in area["modules"])
     assert placed == list(range(len(light["modules"])))
     assert all(area["purpose"] for area in light["areas"]), "an area has no purpose line"

@@ -37,7 +37,6 @@ GROUPS = {
     "proxy": "Reverse proxy",
     "security": "Security",
     "paths": "Folders and addresses",
-    "wiki": "Wiki upload",
     "file": "Settings file",
 }
 """dict: Each `x-group` and its heading, in the order the page lists them. The first seven are the groups an admin

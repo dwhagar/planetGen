@@ -21,8 +21,7 @@ the same conclusion at the function level, in case a phase boundary
 placed by hand hides an internal hotspot.
 
 Skipped by default (opt-in via `PLANETGEN_RUN_PERF_BENCHMARK=1`), the
-same "opt-in real work" treatment `conftest.py`'s `wikijs_config`/
-`mediawiki_config` give a real external service: this deliberately
+same "opt-in real work" treatment a real external service gets: this deliberately
 generates dozens of sectors purely to gather timing statistics, which
 would slow down every ordinary `pytest` run for no benefit to a
 correctness check. No database is involved -- `generate_sector` itself
