@@ -224,3 +224,43 @@ def test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases(mysql_co
     finally:
         admin.close()
     assert result["ranking"][0]["share"] == pytest.approx(1.0)
+
+
+class _Admin:
+    """A stand-in for the admin connection that remembers the statements run on it."""
+
+    def __init__(self):
+        self.statements = []
+
+    def cursor(self):
+        return self
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def execute(self, statement):
+        self.statements.append(statement)
+
+
+def _done(exit_code=0):
+    return [[{"timed_out": False, "exit_code": exit_code}]]
+
+
+@pytest.mark.parametrize("keep, exit_code, dropped", [(False, 0, True), (True, 0, False), (False, 1, False),
+                                                      (True, 1, False)])
+def test_the_scratch_databases_go_only_after_a_run_that_finished_without_keep(keep, exit_code, dropped, capsys):
+    """PERF.175: `--keep` leaves the databases on success too; a step that failed always leaves them."""
+    admin = _Admin()
+    args = argparse.Namespace(keep=keep, repeats=1)
+    benchmark_suite._drop_scratch(admin, args, _done(exit_code), ["planetgen_suite_ab12cd34_r0"],
+                                  "planetgen_suite_control_ab12cd34", "ab12cd34")
+    assert admin.statements == (["DROP DATABASE IF EXISTS `planetgen_suite_ab12cd34_r0`",
+                                 "DROP DATABASE IF EXISTS `planetgen_suite_control_ab12cd34`"] if dropped else [])
+    assert ("kept" in capsys.readouterr().out) is (not dropped)
+
+
+def test_keep_is_a_flag_of_the_suite_too():
+    assert _parse("--suite", "--keep").keep is True and _parse("--suite").keep is False
