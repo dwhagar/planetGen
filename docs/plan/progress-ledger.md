@@ -1389,3 +1389,4 @@ Baseline: PR #1817.
 | TEST.355 | 8.1 | Radiation chain for habitability (GEN.445) |
 | TEST.354 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.639 | 8.1 | Habitability system |
+| MAP.292 | 8.1 | Fly-through map |
