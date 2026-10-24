@@ -398,8 +398,7 @@
     },
     {
       "epoch": 81,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2190",
       "reason": "The stars beyond the pair of a system of three or more stars draw planets of their own in their S-type windows, and a close pair among other stars keeps its planets inside its P-type window, so those systems change (GEN.332)"
     }
   ]
