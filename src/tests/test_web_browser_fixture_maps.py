@@ -2225,6 +2225,35 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     assert "hide" not in page.url
 
 
+GLOW = "() => { const g = document.querySelector('#galaxymap3d-canvas').__mapGlow; return g && {count: g.count(), drawn: g.drawn(), visible: g.isVisible()}; }"
+
+
+def test_galaxy_map_glow_shows_the_unlisted_light_and_the_menu_switches_it(page, map_site):
+    """MAP.266: a node's light beyond the stars it lists is a soft glow, drawn from the first view, a layer of the Menu
+    that is on until the visitor turns it off (and `hide=glow` in the address says so)."""
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapGlow; return g && g.drawn() > 0; }",
+                           timeout=20000)
+    state = page.evaluate(GLOW)
+    assert state["count"] > 0 and state["visible"], state
+    button = page.locator('#galaxymap3d-kinds button[data-layer="glow"]')
+    _open_menu(page)
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    button.click()
+    assert "hide=glow" in page.url
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.isVisible() === false")
+    _open_menu(page)
+    button.click()
+    assert "hide=glow" not in page.url
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.isVisible() === true")
+
+
+def test_galaxy_map_opens_with_the_glow_off_when_the_address_says_so(page, map_site):
+    _open_galaxy(page, map_site, "?hide=glow")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow !== undefined")
+    assert page.evaluate(GLOW)["visible"] is False
+
+
 def test_galaxy_map_habitable_world_markers_are_opt_in_and_name_the_system(page, map_site):
     """MAP.220: systems with a habitable world get a marker of their own kind, off until the Menu turns it on (and
     `show=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds."""

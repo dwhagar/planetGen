@@ -81,6 +81,8 @@ const {
   unchartedKeep, phenomenonLuminositySol, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
 const { nodeCut, parseNodeKey, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
+const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
+const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode } = await import(`./tilepack.js${VERSION_QUERY}`);
 const {
   STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
@@ -1660,6 +1662,8 @@ function initGalaxyMap3d(canvasEl, data) {
   starPoints.renderOrder = 5;
   starPoints.frustumCulled = false;
   scene.add(starPoints);
+  // MAP.266: the unresolved glow, under the stars (the Sector Map has none: its sector is all resolved).
+  var glow = data.pinned ? null : createGlowLayer(scene, camera, canvasEl, { light: isLightBackground() });
   var starList = [];
   // Where the stars' positions are measured from (setStars).
   var starFrame = [0, 0, 0];
@@ -2106,6 +2110,11 @@ function initGalaxyMap3d(canvasEl, data) {
     noteLuminosityRange(drawn);
     starSignature = nodesDrawn;
     setStars(Array.from(stars.values()));
+    if (glow) {
+      glow.setBlobs(blobsOf(drawn.map(function (key) {
+        return { key: key, block: parseNodeKey(key), node: getNode(key) };
+      }), NODE_EDGE_PC), [target.x, target.y, target.z]);
+    }
     var cloudKeys = Array.from(clouds.keys()).sort().join(",");
     if (cloudKeys !== cloudSignature) {
       cloudSignature = cloudKeys;
@@ -3105,6 +3114,20 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.onChange(function (id) { if (markerKinds.get(id)) markersDirty = true; });
     canvasEl.__mapMarkers = markerLayer;    // the browser tests read what is drawn
   }
+  // MAP.266: the glow is a layer of the Menu like the markers, on until the visitor says otherwise.
+  if (glow) {
+    stageView.layers.register({
+      id: "glow", label: "Unresolved glow", modes: ["galaxy"], group: "Show on the map", data: { glow: "unresolved" },
+      defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+      title: "Show or hide the soft light of the stars too far away to tell apart",
+      legend: null,
+    });
+    stageView.readLayersFromLocation();
+    stageView.layers.refresh();
+    glow.setVisible(stageView.layers.isOn("glow"));
+    stageView.layers.onChange(function (id, on) { if (id === "glow") glow.setVisible(on); });
+    canvasEl.__mapGlow = glow;    // the browser tests read what is drawn
+  }
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
   function chooseMarker(entry) {
     highlightPosition(entry.x, entry.y, entry.z);
@@ -3458,6 +3481,11 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     starMaterial.uniforms.now.value = starClock();
     updateStarShares();
+    if (glow) {
+      glow.update(drawnSettled ? function () {
+        return weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled);
+      } : null, focalPixels(), starSetVersion);
+    }
     updateMagnitudeLimit(now);
     updateClouds();
     selectionRing.update();
