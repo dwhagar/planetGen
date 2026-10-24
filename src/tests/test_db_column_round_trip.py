@@ -131,7 +131,7 @@ NULL_IN_THIS_GALAXY = {
        for column in ("formed_at", "origin_event_id")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
-        "decay_age_yr", "disk_inner_au", "disk_kind", "disk_mass_solar", "disk_outer_au", "epoch_unix",
+        "decay_age_yr", "epoch_unix",
         "state", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
     ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
