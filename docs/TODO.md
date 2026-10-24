@@ -8775,6 +8775,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane G (bands).
+  Update (2026-10-09): Lane G (2026-10-23, PR 2757 merged about 9:03 PM
+  EDT, no epoch, no migration): the kernel is on main
+  (physics/atmospheric_radiation.py, two_stream.py, stellar_spectrum.py,
+  uv_cross_sections.py; direct UVI at 0, 100, 200, 300, 500 DU is 133.1,
+  22.6, 11.1, 7.0, 4.0 against research 133.6, 23.4, 11.5, 7.3, 4.1; new
+  setup download AD9 ozone_uv, Zenodo 6951). The wiring into
+  radiation.generate_dose and the greenhouse part are not done, so the
+  item stays open.
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -11094,115 +11102,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   check the year on the item's citation.
   Prerequisites: none. Related: GEN.496, GEN.455, GEN.410.
 
-- [ ] **GEN.504 The Kepler transit-plus-recovery selection model**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One of the five shared selection models of section 4:
-  a model of which planets Kepler would detect: the transit geometry,
-  the detection threshold of the Kepler pipeline and the DR25
-  injection-recovery curve (public injections and a fitted recovery
-  curve), so that a tuned radius-valley width is compared with what
-  Kepler could see and not with the whole population. Shared by B1
-  (radius valley) and used for the period, radius and mass cuts. Data:
-  Kepler DR25 injection tables, the Petigura detection model. Needs the
-  CKS tables and the DR25 efficiency tables of the research list. Do:
-  build the model as a function from a simulated population to the
-  observed-sample statistic, with its data and its validity range named.
-  Done: a test applies the model to a known mock population and recovers
-  the published selection within its stated tolerance, and the model is
-  registered in the harness under an id the target table refers to.
-  Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.505 The mass-radius sample selection model**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One of the five shared selection models of section 4:
-  the sample cut of the precisely measured planets, mass better than 25
-  percent and radius better than 8 percent, so that a density
-  distribution (water-rich share, iron branch) is compared with the
-  planets that could be measured. Shared by B2 (water-rich share) and B4
-  (iron branch, with mass and radius error injection). Do: build the
-  model as a function from a simulated population to the observed-sample
-  statistic, with its data and its validity range named. Done: a test
-  applies the model to a known mock population and recovers the
-  published selection within its stated tolerance, and the model is
-  registered in the harness under an id the target table refers to.
-  Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.506 The JWST atmosphere target-selection model**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One of the five shared selection models of section 4:
-  which planets JWST observes (chosen for signal: nearby, hot, large
-  scale height, bright host), so that a tuned fraction of retained or
-  clear atmospheres is compared with the observed list and not the
-  population. Shared by B3 (retention and lava), B8 (giants) and B11
-  (aerosols). Data: the JWST rocky-planet list, the ExoAtmospheres
-  export. Do: build the model as a function from a simulated population
-  to the observed-sample statistic, with its data and its validity range
-  named. Done: a test applies the model to a known mock population and
-  recovers the published selection within its stated tolerance, and the
-  model is registered in the harness under an id the target table refers
-  to. Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.507 The comet admission model by heliocentric distance**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One of the five shared selection models of section 4:
-  which comets are measured at which heliocentric distance (the
-  production-rate and abundance samples are biased to bright comets near
-  the Sun), so that the comet volatile ratios and their r_h term are
-  compared with admitted comets. Shared by B12 (comet sampler). Data:
-  the Robinson database (CC BY 4.0), the three review papers. Do: build
-  the model as a function from a simulated population to the
-  observed-sample statistic, with its data and its validity range named.
-  Done: a test applies the model to a known mock population and recovers
-  the published selection within its stated tolerance, and the model is
-  registered in the harness under an id the target table refers to.
-  Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.508 The white-dwarf pollution detection and settling model**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. One of the five shared selection models of section 4:
-  which polluted white dwarfs are detected, with the settling timescales
-  of DA and DB stars (the detection truncation near delta-IW -0.9, the
-  settling bias, no lower bound for 7 of 24), so that the redox and
-  composition draws are compared with the 24 polluted white dwarfs of
-  Doyle 2020 and 2023. Data: Koester 2014, Buchan 2022, Harrison 2021.
-  Shared by B5 (redox and white-dwarf debris). Do: build the model as a
-  function from a simulated population to the observed-sample statistic,
-  with its data and its validity range named. Done: a test applies the
-  model to a known mock population and recovers the published selection
-  within its stated tolerance, and the model is registered in the
-  harness under an id the target table refers to. Owner: Core 4
-  (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
 - [ ] **GEN.509 Tuned draw builder B1: the radius valley and the envelope**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
@@ -11264,37 +11163,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
-- [ ] **GEN.511 Tuned draw builder B3: retention and lava worlds**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B3 of section 4 (one worker). Rows: d1
-  to d6, j1, j5, i6. Shared data and fit: Berta-Thompson label table,
-  Meni-Gallardo database, JWST rocky-planet list. Needs: JWST
-  target-selection module; Berta-Thompson code and labels. Bracket
-  correction: the cosmic-shoreline K window LU[3.0e-4, 6.6e-4] with
-  slope 4 is contradicted by exoplanet fits and by 55 Cnc e and TOI-561
-  b (K 12 to 190 times higher); use the Meni-Gallardo and Palle slope
-  5.77, intercept -4.35 and the Berta-Thompson 2025 logistic (log10 f0 =
-  2.62, p = 5.9, q = 1.17, width 0.247 dex); 'TRAPPIST-1 b and c under
-  0.1 bar' is in no paper read. Do: replace the seeded bracket of each
-  DESIGN row of GEN.478 in these rows by a seeded draw whose knobs are
-  tuned through the harness to the published statistics of section 3 of
-  the report (knob, statistic, target with N, uncertainty, source and
-  label), inside the validity range of the data and flagged outside it;
-  rows of class P become formulas of their inputs and rows of class S or
-  X are not tuned. Solar System values are test points only (NO FIXED
-  CONTENT). Done: every tuned row has a target-table entry the loader
-  checks, the simulate-and-compare test passes within the stated sigma,
-  no value rests on a Solar System body alone, and the part 09 row
-  carries its state (Decided 3:02 AM EDT rule). A retune changes the
-  table version and is a generator epoch bump. Owner: Core 4 (proposed,
-  with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.506. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
 - [ ] **GEN.512 Tuned draw builder B4: the iron branch**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
@@ -11328,68 +11196,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
-- [ ] **GEN.513 Tuned draw builder B5: redox and white-dwarf debris**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B5 of section 4 (one worker). Rows: a1
-  to a4, T8, l1 to l3. Shared data and fit: Doyle 2020 and 2023 tables
-  (transcribe 24 rows), Koester 2014, Buchan 2022, Harrison 2021. Needs:
-  WD detection and settling model; decision D3. Bracket correction: the
-  white-dwarf redox centre of -1.0 (six stars) becomes -1.25 +/- 0.10
-  (22 values, sd 0.45, intrinsic about 0.22); a3's U[-1.4, 0] has mean
-  -0.7, 0.55 dex above it. Decision D3: the white-dwarf delta-IW is the
-  core-formation scale and a1 and a2 the surface magma-ocean scale, with
-  the conversion test of GEN.498. Do: replace the seeded bracket of each
-  DESIGN row of GEN.478 in these rows by a seeded draw whose knobs are
-  tuned through the harness to the published statistics of section 3 of
-  the report (knob, statistic, target with N, uncertainty, source and
-  label), inside the validity range of the data and flagged outside it;
-  rows of class P become formulas of their inputs and rows of class S or
-  X are not tuned. Solar System values are test points only (NO FIXED
-  CONTENT). Done: every tuned row has a target-table entry the loader
-  checks, the simulate-and-compare test passes within the stated sigma,
-  no value rests on a Solar System body alone, and the part 09 row
-  carries its state (Decided 3:02 AM EDT rule). A retune changes the
-  table version and is a generator epoch bump. Owner: Core 4 (proposed,
-  with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.508. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.514 Tuned draw builder B6: radioisotopes**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B6 of section 4 (one worker). Rows: o2,
-  o3, o4, o6, T23. Shared data and fit: Hypatia API (Th, Eu, K),
-  Botelho, Mors-style cluster results (Lichtenberg 2016), Th/U formula.
-  Needs: record the Hypatia licence, no audit; a chemical-evolution r-process history.
-  Findings: the o6 Al-26 range is a mixture (enriched flag) and not
-  log-uniform around the Solar System value (arXiv 2206.09675,
-  1608.01435); o4 Th/U U[3.8, 4.5] is an age-4.5 Gyr value, derive it
-  from the production ratio, the birth epoch and the decay. Do: replace
-  the seeded bracket of each DESIGN row of GEN.478 in these rows by a
-  seeded draw whose knobs are tuned through the harness to the published
-  statistics of section 3 of the report (knob, statistic, target with N,
-  uncertainty, source and label), inside the validity range of the data
-  and flagged outside it; rows of class P become formulas of their
-  inputs and rows of class S or X are not tuned. Solar System values are
-  test points only (NO FIXED CONTENT). Done: every tuned row has a
-  target-table entry the loader checks, the simulate-and-compare test
-  passes within the stated sigma, no value rests on a Solar System body
-  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
-  rule). A retune changes the table version and is a generator epoch
-  bump. Owner: Core 4 (proposed, with the composition chain).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the "Needs: Hypatia
-  licence" blocker becomes "record the licence, no audit" (no licence audit gates the data, Boss, 2026-10-17, 2:35 PM EDT, as GEN.410 records it).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
 - [ ] **GEN.515 Tuned draw builder B7: ground and petrology**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
@@ -11409,61 +11215,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   state (Decided 3:02 AM EDT rule). A retune changes the table version
   and is a generator epoch bump. Owner: Core 4 (proposed, with the
   composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.516 Tuned draw builder B8: giant planets**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B8 of section 4 (one worker). Rows: f5
-  to f7, T12. Shared data and fit: Thorngren 2016, Chachan 2025, LExACoM
-  CSV, Brewer and Fischer, Suarez-Andres. Needs: machine-readable T&F
-  2019 and Chachan tables. Bracket correction: the giant C/O tail f_tail
-  LU[0.0013, 0.34] with core 0.55 is outside the data (stellar tail zero
-  above 0.8, planet tail 0.043 to 0.087, core centre 0.57); 'Chachan
-  gives lower Z for sub-Saturns' is opposite (1.4 to 1.6 times lower
-  than Thorngren from 0.3 to 3 Jupiter masses). Do: replace the seeded
-  bracket of each DESIGN row of GEN.478 in these rows by a seeded draw
-  whose knobs are tuned through the harness to the published statistics
-  of section 3 of the report (knob, statistic, target with N,
-  uncertainty, source and label), inside the validity range of the data
-  and flagged outside it; rows of class P become formulas of their
-  inputs and rows of class S or X are not tuned. Solar System values are
-  test points only (NO FIXED CONTENT). Done: every tuned row has a
-  target-table entry the loader checks, the simulate-and-compare test
-  passes within the stated sigma, no value rests on a Solar System body
-  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
-  rule). A retune changes the table version and is a generator epoch
-  bump. Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.506. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.517 Tuned draw builder B9: brown dwarfs**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B9 of section 4 (one worker). Rows: g1,
-  g4. Shared data and fit: Kirkpatrick 2021 Tables 13 to 15, Beiler
-  2024, Filippazzo 2015. Needs: Tables 11, 14, 15 machine-readable.
-  Finding: the 500 to 700 K 'gap' is T8 to T9 (Y0 at 371 to 510 K,
-  Kirkpatrick 2021 Table 13); g1 to g5 are one Teff map. Do: replace the
-  seeded bracket of each DESIGN row of GEN.478 in these rows by a seeded
-  draw whose knobs are tuned through the harness to the published
-  statistics of section 3 of the report (knob, statistic, target with N,
-  uncertainty, source and label), inside the validity range of the data
-  and flagged outside it; rows of class P become formulas of their
-  inputs and rows of class S or X are not tuned. Solar System values are
-  test points only (NO FIXED CONTENT). Done: every tuned row has a
-  target-table entry the loader checks, the simulate-and-compare test
-  passes within the stated sigma, no value rests on a Solar System body
-  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
-  rule). A retune changes the table version and is a generator epoch
-  bump. Owner: Core 4 (proposed, with the composition chain).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
@@ -11536,6 +11287,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
+  Update (2026-10-09): Lane M (2026-10-23, PR 2756): the h4 titanium
+  step is built; n6 (the crossover equilibrium temperature) needs the
+  chemistry module GEN.518 and n7 (the haze yield) needs a haze
+  amplitude model, so the item stays open for those two.
   Prerequisites: GEN.506. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
@@ -11684,36 +11439,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   carries its state (Decided 3:02 AM EDT rule). A retune changes the
   table version and is a generator epoch bump. Owner: Core 4 (proposed,
   with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.525 Tuned draw builder B17: the design-flag registry**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B17 of section 4 (one worker). Rows: j2
-  to j4, m3, m4, m11, k7 rest, E3, T17, T18. Needs: decision D4.
-  Decision D4 (default): a flagged design bracket, default off unless
-  the life-stage flag allows, never tuned: the six rows j2, j3, j4, m3,
-  m4, m11 (no exoplanet measurement exists, or the quantity is whether
-  life makes the gas). Do: a registry of the rows no ensemble can
-  define, each a labelled bracket with its flag and its reason, shown in
-  the loader report, never tuned and never silently filled. Done: every
-  design-flag row of GEN.478 is in the registry with its default state,
-  the loader reports them, and no knob of these rows is tuned to a Solar
-  System value. Owner: Core 4 (proposed, with the composition chain).
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 7, "Derived from
-  physics": AT.j2 to j4 (Mars-, Titan-, Pluto-like occurrence) are
-  outputs of the escape and retention physics, not design flags; the
-  design-flag rows left in B17 are m3, m4 and m11.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): each row belongs to
-  one builder: E3, T17 and T18 (stand-in-only rows) are held here and
-  are removed from B13 (GEN.521) and B14 (GEN.522); j2 to j4 are assigned once, here
-  (the fork 7 note above makes them physics outputs, not design flags).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
@@ -13420,7 +13145,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   done as best as you can, new epochs, DB versions, API versions, etc'.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane I (the spine, to be started).
+   Owner: Habitability lane E (radiation link, help, tests), moved from lane I at 9:10 PM EDT 2026-10-23 on Boss's word that this blocker starts now: it has no open prerequisites and lane J's object-model chain waits behind it from about Saturday evening; lane I keeps GEN.557 (lane I was asked to reply only if it already has a branch).
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
   docs/design/architecture/mass-object-class.md, decided: Boss's cards, as the
@@ -15333,6 +15058,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gone from those paths. Label the halo draw a stand-in in the gap plan
   registry until then. Owner: the Composition-first stars lane, after GEN.651.
   Prerequisites: GEN.651. Related: GEN.553, GEN.652.
+
+- [ ] **GEN.663 A chemical-evolution birth-epoch model for thorium and uranium: row o4 draws the formation time from 3 to 13 Gyr**
+  Found by Composition lane M (relayed 2026-10-23, 9:02 PM EDT): the
+  tuned draw for the thorium and uranium abundance (row o4) draws the
+  star's formation time T uniformly between 3 and 13 Gyr, which is a
+  stand-in. Done: the birth epoch comes from a chemical-evolution model
+  of the disc (star formation history and r-process enrichment), the o4
+  row reads it, its target is checked by the GEN.503 harness, and the
+  uniform draw is gone. Label the draw a stand-in in the gap plan
+  registry until then. Owner: Composition lane M (after its builders).
+  Prerequisites: none. Related: GEN.514, GEN.553.
+
+- [ ] **GEN.664 The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044)**
+  Found by Composition lane M (relayed 2026-10-23, 9:02 PM EDT): the
+  thin-disc row o1 uses +0.08 dex from the Botelho solar twins, and the
+  Hypatia catalogue's thin-disc statistic is -0.044; they differ by 0.12
+  dex because they are on different abundance scales. Done: one scale is
+  chosen and written down (the differences between catalogues are named
+  in the target table), row o1 and its target use it, and the choice is
+  recorded in docs/design/composition. Owner: Composition lane M.
+  Prerequisites: none. Related: GEN.514.
+
+- [ ] **GEN.665 Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters**
+  Found by Composition lane M (relayed 2026-10-23, 9:02 PM EDT): (1) the
+  white-dwarf redox sample has 7 stars with both bounds, not 8 of 24;
+  the whole-sample error model over-disperses and the intrinsic width is
+  not identified (0 to about 0.38 accepted), so the recipe sigma of 0.45
+  was too wide and is now 0.22; (2) the mass-radius cut (GEN.505) is a
+  weak filter, because the relative error is nearly independent of
+  signal. Done: each target's power is measured by a test that fails a
+  wrong value, the 0.22 width is kept or replaced with the reasoning
+  recorded, and GEN.505's cut is either strengthened or its weakness is
+  written into the tuning notes. Owner: Composition lane M.
+  Prerequisites: none. Related: GEN.505, GEN.508.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20703,6 +20462,11 @@ clears each one.
   killer is scoped (preferred) with a test that a foreign worker
   survives a benchmark run, and the four queue tests pass beside it.
   Owner: none (pool); Bug Hunt proposed.
+  Update (2026-10-09): Lane M (2026-10-23): under load (another test job
+  running) test_api_job_runs, test_parallel_generation,
+  test_phenomenon_scatter, test_order_independence and
+  test_update_database_step can fail; all pass alone. Treat them with
+  the same isolation fix.
   Prerequisites: none.
 
 - [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
@@ -21489,6 +21253,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it was installed by hand. The setup script should install from the
   lock file, so a fresh machine has every package main needs. Core 3 and
   Core 2 hit the same on 2026-10-23.
+  Update (2026-10-09): Lane M (2026-10-23): two more gotchas on lane
+  machines: the test MySQL user needs GRANT OPTION (Boss authorised it
+  per lane, 8:07 PM EDT), and the NLTK words corpus must be installed
+  with NLTK_ALLOW_PROXIED_URLOPEN=1. Add both to the environment script.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**

@@ -2,6 +2,122 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2069] - 2026-10-24
+
+**Headline:** The light that reaches a planet's ground can now be worked out band by band from its stored gases, ozone and star, including a UV index that matches the research table.
+
+### Added
+- **GEN.443: atmospheric radiation kernel.** `physics/atmospheric_radiation.py` returns the star's light at the ground from 100 to 1100 nm and beyond as a `SurfaceSpectrum`, through delta-Eddington two-stream layers (`physics/two_stream.py`: upper air, an ozone absorber at the Chapman peak, lower air with haze, cloud or dust, and the ground with its bounce). `physics/stellar_spectrum.py` gives the star a blackbody with an open UV-C share (seeded log-uniform 0.1 to 1, the UV-B and UV-A shares following the Sun-fitted family), and the CIE erythemal and Setlow DNA action spectra give the UV index and the DNA dose. With 0, 100, 200, 300 and 500 DU of ozone the direct UV index is 133.1, 22.6, 11.1, 7.0 and 4.0 against the research table's 133.6, 23.4, 11.5, 7.3 and 4.1. Pure functions of stored values: no column, no migration, no generator epoch yet; the wiring into `radiation.generate_dose` follows in a later change.
+- **AD9: ozone cross sections at high resolution.** A new setup download (`ozone_uv`, four files of the MPI-Mainz UV/VIS Spectral Atlas, Zenodo 6951, CC BY 4.0) holds the Hartley, Huggins and Chappuis bands at 218, 243 and 295 K; `physics/uv_cross_sections.py` reads cell means on the radiation grid. The 35 coarse bins of the gas table remain the labelled fallback for a run told to disregard missing data. `update.sh` fetches it with the other datasets, and bulk generation now requires it.
+
+## [8.0.2068] - 2026-10-24
+
+**Headline:** The life-linked trace gases of the atmosphere recipes are labelled design flags, off unless the life stage allows them.
+
+### Changed
+- Rows m3 (N2O), m4 (PH3) and m11 (NO2) of the atmosphere recipes are registered as design flags: a labelled bracket that is zero unless the life stage or the named process allows it, never tuned to a Solar System value. Phosphine is now off unless the life stage is chemical or later. The recipes are not yet read by the generator, so no generated value changes.
+
+## [8.0.2067] - 2026-10-24
+
+**Headline:** The titanium oxide presence on hot Jupiters is a step in temperature between the last non-detection and the detection.
+
+### Changed
+- Atmosphere recipe row h4 (TiO and VO on a hot Jupiter) is present above a threshold in the equilibrium temperature drawn between 2350 and 2641 K, in place of a function of the grain size. The recipes are not yet read by the generator, so no generated value changes.
+
+## [8.0.2066] - 2026-10-24
+
+**Headline:** The brown dwarf type windows take their edges and softness from the measured temperature of each spectral type.
+
+### Changed
+- Atmosphere recipe rows g1 to g5 use the type boundaries of the Kirkpatrick et al. 2021 temperature map (2238, 1273, 686 and 460 K with a scatter of 134 or 79 K) in place of the design edges. A new module `brown_dwarf_types` gives the temperature of a spectral type and the chance of each class at a temperature. The recipes are not yet read by the generator, so no generated value changes.
+
+## [8.0.2065] - 2026-10-24
+
+**Headline:** The heavy-element enrichment and the C/O of giant planets are retuned to the 147-giant fit and the 69 retrieved planets.
+
+### Changed
+- Atmosphere recipe row f5 draws the enrichment of a giant from the 147-giant fit (Chachan 2025) with a spread of 0.26 dex, and row f7 draws the C/O core with a width of 0.21 dex. Seven targets compare them with the published values; the tuning-target table gained a logarithmic scale, a threshold, a below flag and a subject. The recipes are not yet read by the generator, so no generated value changes.
+
+## [8.0.2064] - 2026-10-24
+
+**Headline:** The thorium scale, the thorium-to-uranium ratio and the aluminium-26 share of rocky bodies are retuned to the stars and the cluster models that were measured.
+
+### Changed
+- Atmosphere recipe row o2 draws the thorium scale of thick-disc and other non-thin-disc hosts from the 32-star statistic (centre -0.063 dex, spread 0.19) in place of a 14-star bracket; row o4 gives Th/U by the published formula, growing with the planet's age, in place of a fixed range; row o6's enriched share bracket is 0.04 to 0.66 in place of 0.1 to 1. The recipes are not yet read by the generator, so no generated value changes.
+
+## [8.0.2063] - 2026-10-24
+
+**Headline:** The redox of rocky debris (rows a3 and a4) is now tuned through the white-dwarf detection model: the width is 0.22 and not the 0.45 that counted the measurement error twice.
+
+### Changed
+- Atmosphere recipe rows a3 and a4 draw dIW from a normal with centre -1.25 and width 0.22 (was -1.26 or -1.25 and 0.45). Their four tuning targets compare the reported medians through the `wd-pollution-detection` selection model. The recipes are not yet read by the generator, so no generated value changes.
+
+## [8.0.2062] - 2026-10-24
+
+**Headline:** The retention rows of the atmosphere recipes now allow a bare planet and a molten dayside that keeps volatiles at the published interval.
+
+### Changed
+- Atmosphere recipe row i6 draws the molten-dayside volatile share from 0.29 to 0.99 (the 95 percent interval for 2 of 2) and row j1 draws the retained fraction uniform from 0 to 1, so a bare planet is possible. Row d1, the cosmic shoreline, is pinned to its published logistic by a test. The recipes are not yet read by the generator, so no generated value changes.
+
+## [8.0.2061] - 2026-10-24
+
+**Headline:** A tuned white-dwarf redox width is now compared with what the polluted white dwarfs would show, not with the bodies, and the model says the shipped width is too wide.
+
+### Added
+- **The white-dwarf pollution detection model (GEN.508).** `planetgen/physics/wd_pollution.py` holds the 24 polluted white dwarfs with a measured oxygen fugacity (Doyle 2020 and 2023), the papers' rule for what is reported (both bounds, an upper bound only, or an upper limit only), an absolute abundance error fitted to them, and `expected_sample`, the sample a population would show. It is registered in the tuning harness as the selection model `wd-pollution-detection`; the harness imports it when a target names it. The spread of the 22 reported medians is explained by the measurement, so the intrinsic width of the redox rows a3 and a4 is not identified (0 to about 0.15) and their shipped 0.45 is too wide; the retune is left to GEN.513.
+
+### Changed
+- The tuning harness imports the module that builds a selection model on first use (`tuning_harness.selection_model`). No draw changes.
+
+## [8.0.2060] - 2026-10-24
+
+**Headline:** A drawn comet is now tested against the chance it would have a published coma composition and the heliocentric distance it would be measured at.
+
+### Added
+- **The comet admission selection model (GEN.507).** `planetgen/physics/comet_admission.py` holds the share of known comets with a measured composition by group and perihelion distance, and a distance model (parent molecules and radicals separately, truncated at the perihelion), fitted to the Robinson et al. 2024 database joined to the JPL Small-Body Database orbits (`scripts/fit_comet_admission.py`). It is registered in the tuning harness as `comet-admission`. It conditions on a known comet and does not use nucleus size or activity.
+
+### Changed
+- The tuning harness imports the module that builds the comet selection model on first use. No draw changes.
+
+## [8.0.2059] - 2026-10-24
+
+**Headline:** A tuned atmosphere share is now compared with the planets JWST has observed, with a model of which planets those are.
+
+### Added
+- **The JWST target-selection model (GEN.506).** `planetgen/physics/jwst_selection.py` holds a logistic regression of "has a published JWST spectrum" on the transmission and emission spectroscopy metrics of Kempton et al. 2018 and a radius-class offset, fitted to the NASA Exoplanet Archive (`scripts/fit_jwst_selection.py`), host magnitudes for a generated planet, and the chance a planet is on the list. It is registered in the tuning harness as `jwst-target-selection`. It reproduces the number observed in each radius class; it conditions on a known transiting planet with a mass.
+
+### Changed
+- The tuning harness imports the module that builds the JWST selection model on first use. No draw changes.
+
+## [8.0.2058] - 2026-10-24
+
+**Headline:** A drawn planet is now tested against the chance it would have been measured to mass 25 percent and radius 8 percent, the cut of the published density samples.
+
+### Added
+- **The mass-radius sample selection model (GEN.505).** `planetgen/physics/mass_radius_sample.py` holds an error model of the radial-velocity amplitude and the transit depth fitted to the NASA Exoplanet Archive's transiting planets with a measured mass (`scripts/fit_mass_radius_sample.py`), the chance a planet passes the cut, and one planet measured with its errors. It is registered in the tuning harness as `mass-radius-sample`. The cut is a weak filter on mass, radius and period because observers follow a planet up until it is precise; it conditions on a published mass and radius, and detection is GEN.504.
+
+### Changed
+- The tuning harness imports the module that builds the mass-radius selection model on first use. No draw changes.
+
+## [8.0.2057] - 2026-10-24
+
+**Headline:** A drawn planet is now tested against the chance the Kepler pipeline would have found it: the orbit's geometry, its signal against the host's noise, and a recovery curve fitted to the DR25 injections.
+
+### Added
+- **The Kepler transit-plus-recovery selection model (GEN.504).** `planetgen/physics/kepler_recovery.py` holds the geometry and duration of a circular transit, the multiple event statistic against a host's noise (a noise level from the host's Kepler magnitude and radius, fitted to the DR25 stars), and a recovery curve fitted by maximum likelihood to the 146,257 DR25 on-target injections (`scripts/fit_kepler_recovery.py`). It is registered in the tuning harness as `kepler-recovery`. It is the detection step only (the vetting removes more) and holds for periods of 0.5 to 500 days.
+
+### Changed
+- The tuning harness imports the module that builds the Kepler selection model on first use. No draw changes.
+
+## [8.0.2056] - 2026-10-24
+
+**Headline:** Every atmosphere recipe row that waited on research now says whether it is partly verified or a labelled stand-in, and which builder replaces it.
+
+### Changed
+- The 43 `open` rows of the atmosphere recipe tables (GEN.480 to GEN.494) are now 15 partly verified rows with a stated limit and 28 stand-ins that name the builder item (GEN.509 to GEN.525) that replaces them; no row is open. The recipes are not yet read by the generator, so no draw changes.
+- The NH3 activity factor stays the flagged bracket 1.05 to 1.10 (GEN.501): the Huebner and Mukherjee 2015 rate table could not be reached.
+- The disposition of every row and the reason are in `docs/design/composition/weight-research-dispositions.md`.
+
 ## [8.0.2055] - 2026-10-24
 
 **Headline:** A tunable composition draw is now tested against the published statistic it is tuned to, and a tunable row with no target is refused.

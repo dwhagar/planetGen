@@ -62,6 +62,7 @@ sought. The raw pages are never in the repository.
 | `neutron_star_matter` | CC BY 4.0 |
 | `white_dwarf_models` | Open; cite Bedard et al. 2020 |
 | `white_dwarf_mass_radius.json` | Computed here from physical constants; no third-party data |
+| `ozone_uv` (AD9, GEN.443; MPI-Mainz UV/VIS Spectral Atlas snapshot of 2013-06-24, Zenodo record 6951) | CC BY 4.0; cite Keller-Rudek et al. 2013 (Earth Syst. Sci. Data 5, 365); the cross sections read are those of Daumont et al. 1992, Malicet et al. 1995 and Brion et al. 1998; the archive is downloaded at setup and removed after the four tables are kept |
 
 ## The comet volatile population (`src/planetgen/physics/data/comet_population.json`, GEN.495)
 

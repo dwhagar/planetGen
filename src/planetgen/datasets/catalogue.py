@@ -5,14 +5,14 @@ The datasets the setup step downloads (GEN.548): one `Dataset` per source, each 
 every file, the citation and the stand-in it replaced (named in the message when the files are missing). Each module named
 here holds its dataset and the functions that read it: the MIST main sequence (`isochrones`), the white-dwarf cooling
 sequences with their layers (`white_dwarf_models`) and the neutron-star equations of state with the outer-crust
-compositions (`neutron_star_matter`). The data of the atmosphere group (AD1 to AD8) is added the same way, each by the
+compositions (`neutron_star_matter`) and the ozone absorption cross sections of the radiation model (`ozone_uv`). The data of the atmosphere group (AD1 to AD8) is added the same way, each by the
 item that reads it; every entry needs its verified source (docs/design/research/gap-filling-plan.md 6.5) and a stand-in row
 (section 6.6). The generator requires every dataset here (GEN.590): `missing` is the check bulk generation starts with.
 """
 
-from planetgen.datasets import fetch, isochrones, neutron_star_matter, white_dwarf_models
+from planetgen.datasets import fetch, isochrones, neutron_star_matter, ozone_uv, white_dwarf_models
 
-ALL = (isochrones.DATASET, white_dwarf_models.DATASET, neutron_star_matter.DATASET)
+ALL = (isochrones.DATASET, white_dwarf_models.DATASET, neutron_star_matter.DATASET, ozone_uv.DATASET)
 """tuple: Every `fetch.Dataset` the setup step downloads, in the order it downloads them."""
 
 
