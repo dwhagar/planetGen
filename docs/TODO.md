@@ -3917,45 +3917,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisites: GEN.355, GEN.356.
     Design: [docs/design/habitability/habitability-index.md](design/habitability/habitability-index.md)
 
-  - [ ] **GEN.92 Life and its highest stage follow the habitability score**
-    Done: whether a world has life, and how far it gets, comes from its
-    scores instead of its class alone; life chemistry follows the
-    atmosphere, radiation and solvent rather than the star's letter
-    only; existing galaxies are unchanged until regenerated.
-    Research (2026-10-09, atmospheres-retention-and-classes.md): life
-    stage is the latest stage reached on the pace and gated by the score
-    (rule table in design doc 7.2); add `t_hab` (needs the
-    pre-main-sequence rule and optionally main-sequence brightening,
-    which `stellar_evolution.py` lacks); flag the `fast` and `slow`
-    scales as fiction (open question for Boss, default: keep them and
-    cap `fast` at stage 3); add planetary tidal locking (needs GEN.104).
-    Decided (Boss, 2026-10-10 18:44Z, defaults approved; default yes):
-    dose above 0.1 Sv/yr forces
-    equipment tier 3 and above 1 Sv/yr tier 4.
-  Atmosphere lane part 09 (conflicts 1, 2, 9 and 12 of section 5; 2:00
-  AM EDT as the lane reported): PlanetClasses has 20 classes (A B C D E
-  F G H I J K L M N O P Q S T V); R and W were removed (tuning.py near
-  line 1601) and U, X, Y, Z are absent; I (15,000 to 50,000 km, 2.4 to
-  7.8 R_E) and T (15,000 to 55,000 km) cover the same sizes, the
-  sub-Neptune regime (1.6 to 3.2 R_E) is only the low end of I, and V
-  (10,000 to 15,000 km, 1.6 to 2.4 R_E) straddles the radius valley
-  while the repo calls it rocky (the design doc's rocky test is R <=
-  1.12 M^0.27); brown dwarfs have no class letter (planet_class is NULL
-  and the rogue-eligible letters are C D I J S T), so their type comes
-  from Teff (part 09 category g); HABITABLE_PLANET_CLASSES (E F G H K L
-  M O P Q V) is a life flag and not an atmosphere regime; moons draw any
-  letter except Q, S, V, so a Titan-like moon has no letter before Y.
-  The atmosphere recipes of GEN.478 use regimes and conditions, not
-  letters, so these items are free to change the letters.
-    Prerequisites: GEN.350, GEN.351, GEN.352, GEN.353.
-    Design: [docs/design/habitability/habitability-index.md](design/habitability/habitability-index.md)
-  Decided (Boss, 6:09 PM EDT 2026-10-23, GEN.644 option 3): classes
-  become conditions-based and are assigned after generation (GEN.645 to
-  GEN.648). GEN.645 says which sub-items of this one stand, which the
-  new rules replace and which become inputs; do not build new letters
-  before it lands. The reason Boss gave for the current lettering: he
-  did not know how to get the compositions right.
-
 - [ ] **GEN.93 Nebula conditions in planet generation**
   Boss (2026-10-03 05:38Z): "Account for nebula temperature and
   conditions when generating planets and calculating surface conditions.
@@ -14075,6 +14036,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by their physical properties (size, gravity, etc)'. classify(body)
   also reads size and surface gravity; the class code carries a size
   tier (S and V become tiers, not letters, as the class lane reported).
+  Life part (2026-10-09): 11:58 PM EDT 2026-10-23 (as the class lane
+  reported): #2833 merged GEN.92 and the life part of this item: life
+  and pigments now come from stored conditions, the letter life tables
+  are deleted, and more small icy and volcanic worlds can carry life; it
+  took generator epoch 65. The cut-over steps C13 to C15 (classes
+  assigned after generation, once lanes I, J, K and L land) are still
+  open here.
 
 - [ ] **GEN.648 The generation request for a habitable world (+habitable_world) runs an ordered ladder of nine adaptations before it gives up: redraw the surface, restrict the planet, more starting water, aquifers, regenerate the planet, adapt the system, add a brighter primary, regenerate the star, then the best result**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -19918,6 +19886,18 @@ clears each one.
   2026-10-23 as the lane reported); not caused by its changes. Do:
   reproduce it on a machine with MySQL and Redis, find the cause, fix it
   or make it deterministic, no skip. Owner: Bug Hunt.
+  Prerequisites: none.
+
+- [ ] **TEST.313 test_systems.py test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] is a random flake: about 2 in 12 runs the belt is missing (bug)**
+  Found by the Condition-based classes lane while gating #2833 (11:58 PM
+  EDT 2026-10-23 as the lane reported); it fails on origin/main too.
+  With ASTEROID_BELT and HABITABLE_WORLD forced together on an M5V star
+  the belt is sometimes missing, about 2 runs in 12. Do: find the draw
+  path where the forced belt can be dropped (a gate that depends on the
+  habitable world's orbit, or a reject-and-redraw that gives up), fix it
+  in code if the test is right, or make the test deterministic with the
+  reason stated; never skip it. Done: 200 runs of the test pass. Owner:
+  none for now (pool; the Flaky test fixes lane is proposed).
   Prerequisites: none.
 
 ## USR: User accounts
