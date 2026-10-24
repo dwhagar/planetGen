@@ -8,7 +8,7 @@ TEST.74).
 two or more workers does its sectors and layers in spawned processes
 that import everything afresh. `patch_everywhere` patches this process
 and also records the patch in the environment, where every worker that
-starts while it is in place picks it up (`workQueue._run_worker_hooks`
+starts while it is in place picks it up (`units.run_worker_hooks`
 calls `install`). `monkeypatch.undo()` takes both back.
 
 A replacement is made by a module-level factory, named as
@@ -22,7 +22,7 @@ import importlib
 import json
 import os
 
-from planetgen.queue import work as workQueue
+from planetgen.queue import units, work as workQueue
 
 import fcntl
 
@@ -58,13 +58,13 @@ def patch_everywhere(monkeypatch, owner, name, factory, **params):
     `undo()` is called (which takes back only this patch)."""
     spec = {"owner": owner.__name__, "name": name, "factory": factory, "params": params}
     real = getattr(owner, name)
-    saved = {key: os.environ.get(key) for key in (PATCHES_ENV, workQueue.WORKER_HOOKS_ENV)}
+    saved = {key: os.environ.get(key) for key in (PATCHES_ENV, units.WORKER_HOOKS_ENV)}
     monkeypatch.setattr(owner, name, _resolve(factory)(real, **params))
     specs = json.loads(os.environ.get(PATCHES_ENV) or "[]") + [spec]
     monkeypatch.setenv(PATCHES_ENV, json.dumps(specs))
-    hooks = [hook for hook in (os.environ.get(workQueue.WORKER_HOOKS_ENV) or "").split(",") if hook]
+    hooks = [hook for hook in (os.environ.get(units.WORKER_HOOKS_ENV) or "").split(",") if hook]
     if HOOK not in hooks:
-        monkeypatch.setenv(workQueue.WORKER_HOOKS_ENV, ",".join(hooks + [HOOK]))
+        monkeypatch.setenv(units.WORKER_HOOKS_ENV, ",".join(hooks + [HOOK]))
 
     def undo():
         setattr(owner, name, real)

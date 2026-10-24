@@ -26,6 +26,7 @@ The unit that completes the last stage finishes the run; the unit that completes
 the next (`wrapper.advance`).
 """
 
+import importlib
 import json
 import os
 import time
@@ -154,6 +155,29 @@ class _Reporter:
             self.conn.hset(self.key, self.unit, f"{float(done)},{float(estimate)}")
 
 
+WORKER_HOOKS_ENV = "PLANETGEN_WORKER_HOOKS"
+"""str: Environment variable naming `module:function` hooks (comma separated) a worker calls before its first unit."""
+
+_hooks_run = None
+
+
+def run_worker_hooks():
+    """
+    Calls each `module:function` named in `$PLANETGEN_WORKER_HOOKS` once per set of hooks in this process, before a
+    unit runs. The tests use it to patch the workers the way they patch their own process
+    (`tests/worker_patches.py`), so a fault they inject reaches every worker (PERF.21, TEST.74); a real run never sets it.
+    """
+    global _hooks_run
+    hooks = os.environ.get(WORKER_HOOKS_ENV)
+    if not hooks or hooks == _hooks_run:
+        return
+    _hooks_run = hooks
+    for ref in hooks.split(","):
+        module_name, _, function = ref.strip().partition(":")
+        if module_name and function:
+            getattr(importlib.import_module(module_name), function)()
+
+
 def run_unit(run_id, stage, unit, kind, args, cost=None):
     """
     The RQ job of one unit: does it, stores its result, joins the done set, and, when it completes its stage, has the
@@ -163,6 +187,7 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
     Returns:
         dict: `seconds` the unit took, or `skipped`.
     """
+    run_worker_hooks()
     conn = rq.get_current_job().connection
     state, disregard, debug = conn.hmget(runrecord.run_key(run_id), "state", "disregard_missing_data", "debug")
     if runrecord._s(state) != "running":

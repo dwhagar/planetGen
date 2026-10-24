@@ -5,14 +5,12 @@ failure puts its traceback in the job's log.
 """
 
 import io
-import pickle
 import sys
 
 import pytest
 
 from planetgen.cli import generate as generate_cli
 from planetgen.admin import activity_log
-from planetgen.queue import work
 from planetgen.web import job_runner
 
 
@@ -89,30 +87,6 @@ def test_a_database_error_at_a_terminal_waits_after_showing_the_error(monkeypatc
     shown = capsys.readouterr()
     assert "Traceback (most recent call last)" in shown.out + shown.err
     assert waited == [True]
-
-
-def test_a_workers_traceback_rides_along_with_its_exception():
-    try:
-        raise ValueError("bad payload")
-    except ValueError as caught:
-        exc = work._picklable_error(caught)
-    again = pickle.loads(pickle.dumps(exc))
-    assert isinstance(again, ValueError)
-    assert any("Traceback in the worker" in note and "bad payload" in note for note in again.__notes__)
-
-
-def test_a_worker_exception_that_cannot_be_pickled_keeps_its_traceback_text():
-    class Unpicklable(Exception):
-        def __init__(self):
-            super().__init__("local")
-            self.handle = lambda: None
-
-    try:
-        raise Unpicklable()
-    except Unpicklable as caught:
-        exc = work._picklable_error(caught)
-    assert isinstance(exc, RuntimeError)
-    assert "Unpicklable: local" in str(exc) and "Traceback in the worker" in str(exc)
 
 
 def test_the_job_runner_logs_its_own_traceback(tmp_path):

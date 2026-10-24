@@ -1,80 +1,42 @@
 # planetgen/queue/work.py
 
 """
-The generation work queue (PERF.8): runs independent units of work (a
-sector to fill, a run of shells of bright stars to scatter) on a pool of worker
-processes, at most about 80% of the machine's cores and at a lower
-scheduling priority than everything else on it.
+The job tree of a run and the machine's worker count.
 
-A `WorkQueue` belongs to the run that queues the work -- a `planetgen`
-run, started from the command line or by the Generate page's job
-runner. That run is the supervisor for as long as it has work: there is
-no daemon, service or scheduler to install, and nothing runs once the
-work is done. The run hands tasks to the pool as fast as the pool takes
-them, and each finished task comes back to it as a signal (`on_done`,
-with the time the task took) it uses for its progress bars and ETA.
-
-    with WorkQueue("Sectors (shell 12)", workers=6, control_config=cfg) as queue:
-        for address in addresses:
-            queue.submit("sector", key, fill_sector, payload, on_done=report)
-
-Only one run's pool uses the machine at a time. The control database's
-`work_lease` row says which (see `control_schema.sql`, v5): a run holds
-it while its pool runs, refreshes it every `HEARTBEAT_SECONDS`, and frees
-it when it finishes; a second run started meanwhile waits for it, so two
-runs never use 160% of the CPUs between them. A lease not refreshed for
-`STALE_SECONDS` belongs to a run that died, and the next run takes it.
-`work_jobs`/`work_tasks` keep one row per run and per task (state,
-timings, a short result), which is what the Generate page and later
-runs can read back. Without the control database (not created yet, or
-no grant on it) the queue still runs, just without the lease or the
-rows.
-
-One worker means no pool at all: every task runs in this process, in
-order, seeded the same way a worker would seed it (still recorded in
-the control database, without the lease, when the run passes one).
-
-Every job is a tree (ADM.12, control schema v7). `job_node` opens a
-node under the one this process has open (a `planetgen` run is the
-root; its phases, such as the bright stars, are nodes under it), and a
-`WorkQueue` is a node whose leaves are its tasks. A process started by
-the Generate page's job runner hangs its root under the runner's step
+Every job is a tree (ADM.12, control schema v7). `job_node` opens a node
+under the one this process has open (a `planetgen` run is the root; its
+phases, such as the bright stars, are nodes under it). A process started
+by the Generate page's job runner hangs its root under the runner's step
 node (`PARENT_ENV_VAR`). Each node keeps its state, start, end and
 duration; `load_tree` reads a whole tree back with every parent's
-totals, timings and ETA added up from its children.
+totals, timings and ETA added up from its children. The nodes are what
+the admin queue page and the API show, pause, resume and cancel.
 
-Workers are separate processes because generation is pure Python and
-threads would share one core. Since PERF.24 they are RQ workers on
-Redis (`planetgen.queue.redisqueue`): a parallel run queues its tasks
-on a queue of its own and starts that many burst workers for it, which
-inherit its environment and exit once the queue is empty. A task whose
-worker dies is run once more on a fresh one (`redisqueue.WorkerDied`
-when that dies too). With no Redis server to reach, the run says so and
-runs every task in this process instead. Each task seeds `random` from
-the run's seed and its own key (`task_seed`), so what a task generates
-doesn't depend on how many workers there are or which finished first.
+The units of work themselves are RQ jobs on Redis (`planetgen.queue.units`,
+`planetgen.queue.wrapper`); this file keeps `worker_count` (at most about
+80% of the machine's cores), `task_seed` (a task's `random` seed from the
+run's seed and its own key, so what it generates doesn't depend on how many
+workers there are or which finished first) and the control database's
+`work_lease`, which says which run the machine is working for: a run holds it
+while its workers run, refreshes it every `HEARTBEAT_SECONDS`, and frees it
+when it finishes; a lease not refreshed for `STALE_SECONDS` belongs to a run
+that died, and the next run takes it.
 """
 
 import contextlib
 import hashlib
-import importlib
 import ipaddress
 import math
 import os
-import pickle
 import re
 import secrets
-import signal
 import socket
 import threading
 import time
-import traceback
 
 from planetgen.admin import updateguard
-from planetgen.generation import stats as generationStats
-from planetgen.queue import pause, progress_rate, redisqueue
+from planetgen.queue import pause, progress_rate
 from planetgen.util import log
-from planetgen.util import draw
 
 CPU_SHARE = 0.8
 """float: The share of the machine's cores the pool may use."""
@@ -89,23 +51,15 @@ WORKER_NICENESS = 10
 macOS."""
 
 CHUNKS_PER_WORKER = 8
-"""int: Most items one `WorkQueue.submit_each` chunk holds is `1 / (workers * CHUNKS_PER_WORKER)` of them. Every
+"""int: Most items one chunk of a bulk stage holds is `1 / (workers * CHUNKS_PER_WORKER)` of them. Every
 task a pool runs costs about 60 database statements and a fork, which is more than a bright-star shell costs to
 draw, so thousands of tiny shells go out in few chunks (PERF.79)."""
 
-CHUNK_SECONDS = 2.0
-"""float: How long a `WorkQueue.submit_each` chunk is meant to run, so a progress line is never more than a few
-seconds behind (PERF.83: 16 chunks of 128 default-scale phenomenon shells each stayed silent for over 3 minutes)."""
-
 HEARTBEAT_SECONDS = 5
 STALE_SECONDS = 30
-WAIT_POLL_SECONDS = 2
 KEEP_DAYS = 7
 ARGV_LENGTH = 1024
 """int: The longest command-line argument a job node keeps."""
-CONTROL_POLL_SECONDS = 1.0
-"""float: How often a run reads its nodes' pause and cancel requests
-(ADM.10) between tasks."""
 
 CANCELLED_EXIT_CODE = 130
 """int: The exit status of a run cancelled from the admin queue page
@@ -182,14 +136,6 @@ def lower_priority(niceness=WORKER_NICENESS):
         pass
 
 
-def run_chunk(payload):
-    """A `WorkQueue.submit_each` task: runs `payload["fn"]` on each of `payload["payloads"]` in this process, in
-    order. Returns `[(result, seconds)]`, one per payload."""
-    results = []
-    for item in payload["payloads"]:
-        started = time.monotonic()
-        results.append((payload["fn"](item), time.monotonic() - started))
-    return results
 
 
 def task_seed(run_seed, key):
@@ -213,68 +159,13 @@ class Cancelled(SystemExit):
         return f"{self.title} was cancelled from the admin queue page."
 
 
-WORKER_HOOKS_ENV = "PLANETGEN_WORKER_HOOKS"
-
-def _run_worker_hooks():
-    """
-    Calls each `module:function` named in `$PLANETGEN_WORKER_HOOKS`
-    (comma separated) as a worker starts. The tests use it to patch the
-    workers the way they patch their own process (`tests/worker_patches.py`),
-    so a fault they inject reaches every worker count (PERF.21, TEST.74);
-    a real run never sets it.
-    """
-    hooks = os.environ.get(WORKER_HOOKS_ENV)
-    if not hooks:
-        return
-    for ref in hooks.split(","):
-        module_name, _, function = ref.strip().partition(":")
-        if module_name and function:
-            getattr(importlib.import_module(module_name), function)()
 
 
-def _run_task(fn, payload, seed):
-    started = time.monotonic()
-    with draw.bound(seed):
-        result = fn(payload)
-    return result, time.monotonic() - started
 
 
-def _picklable_error(exc):
-    """
-    The exception being handled in a worker, ready to cross to the run
-    (ADM.25). Its traceback doesn't survive pickling, so its text rides
-    along as a note, which the run's own report shows under the error.
-    An exception that can't be pickled becomes a `RuntimeError` of its text.
-    """
-    exc.add_note("Traceback in the worker:\n" + traceback.format_exc().rstrip())
-    try:
-        pickle.dumps(exc)
-    except Exception:  # noqa: BLE001
-        exc = RuntimeError(f"{type(exc).__name__}: {exc}\n" + "\n".join(getattr(exc, "__notes__", [])))
-    return exc
 
 
-def _rq_task(fn, payload, seed, log_level, debug_file):
-    """
-    One task in an RQ worker (`redisqueue.RQExecutor`): logs as a worker,
-    runs the test hooks, then the task, seeded from `seed`. The task's
-    own exception comes back as the result (`("error", exc, 0)`), so the
-    run raises that exception, not RQ's text of it; RQ only fails the job
-    when the worker itself dies, and then retries it.
-    """
-    os.environ.pop("PLANETGEN_PROGRESS_FILE", None)
-    log.set_component("worker")
-    try:
-        log.configure(log_level, debug_file=debug_file, console=False)
-    except OSError:
-        log.configure(log_level, console=False)
-    _run_worker_hooks()
-    try:
-        result, seconds = _run_task(fn, payload, seed)
-        pickle.dumps(result)
-    except Exception as exc:  # noqa: BLE001 -- handed back to the run
-        return ("error", _picklable_error(exc), 0)
-    return ("ok", result, seconds)
+
 
 
 STATS_KIND = {"sector": "sector", "mass-stars": "scatter-mass", "bright-stars": "scatter-bright",
@@ -292,8 +183,7 @@ class _Task:
 
 
 class _NoStore:
-    """Bookkeeping when there is no control database: nothing kept, no
-    lease, so the run never waits."""
+    """Bookkeeping when there is no control database: nothing kept."""
 
     available = False
 
@@ -306,9 +196,6 @@ class _NoStore:
     def beat_nodes(self, ids):
         pass
 
-    def set_total(self, job_id, count):
-        pass
-
     def finish_node(self, node_id, state):
         pass
 
@@ -317,12 +204,6 @@ class _NoStore:
 
     def set_state(self, job_id, state):
         pass
-
-    def release_lease(self, holder):
-        pass
-
-    def take_lease(self, job_id, holder):
-        return True, None
 
     def heartbeat(self, job_id, holder):
         pass
@@ -334,9 +215,6 @@ class _NoStore:
         pass
 
     def finish_task(self, job_id, task, state, seconds=None, error=None):
-        pass
-
-    def finish_job(self, job_id, holder, state):
         pass
 
 
@@ -421,15 +299,6 @@ class _ControlStore:
         finally:
             conn.close()
 
-    def set_total(self, job_id, count):
-        conn = self._connect()
-        try:
-            with conn:
-                conn.execute("UPDATE work_jobs SET tasks_total = COALESCE(tasks_total, 0) + ? WHERE id = ?",
-                             (int(count), job_id))
-        finally:
-            conn.close()
-
     def finish_node(self, node_id, state):
         conn = self._connect()
         try:
@@ -469,63 +338,6 @@ class _ControlStore:
         try:
             with conn:
                 conn.execute("UPDATE work_jobs SET state = ?, heartbeat_at = NOW(6) WHERE id = ?", (state, job_id))
-        finally:
-            conn.close()
-
-    def release_lease(self, holder):
-        conn = self._connect()
-        try:
-            with conn:
-                conn.execute("UPDATE work_lease SET holder = NULL, job_id = NULL, heartbeat_at = NULL"
-                             " WHERE id = 1 AND holder = ?", (holder,))
-        finally:
-            conn.close()
-
-    def take_lease(self, job_id, holder):
-        """Takes the lease when it's free, already this run's, or stale,
-        and the queue isn't paused. Returns `(taken, lease_row)`."""
-        conn = self._connect()
-        try:
-            with conn:
-                conn.execute("INSERT IGNORE INTO work_lease (id) VALUES (1)")
-                row = conn.execute(
-                    "SELECT holder, job_id, heartbeat_at < NOW(6) - INTERVAL ? SECOND AS stale"
-                    " FROM work_lease WHERE id = 1 FOR UPDATE",
-                    (STALE_SECONDS,),
-                ).fetchone()
-                paused = pause.state()
-                if paused["paused"] or (row["holder"] not in (None, holder) and not row["stale"]):
-                    conn.execute("UPDATE work_jobs SET heartbeat_at = NOW(6) WHERE id = ?", (job_id,))
-                    return False, {**dict(row), "paused": paused["paused"], "paused_by": paused["by"]}
-                conn.execute(
-                    "UPDATE work_lease SET holder = ?, job_id = ?, heartbeat_at = NOW(6) WHERE id = 1",
-                    (holder, job_id),
-                )
-                # Runs that died without finishing: their unfinished tasks
-                # were rolled back with them.
-                dead = [r["id"] for r in conn.execute(
-                    "SELECT id FROM work_jobs WHERE state IN ('waiting', 'running', 'paused') AND id <> ?"
-                    " AND heartbeat_at < NOW(6) - INTERVAL ? SECOND",
-                    (job_id, STALE_SECONDS),
-                ).fetchall()]
-                for dead_id in dead:
-                    conn.execute(
-                        "UPDATE work_tasks SET state = 'cancelled', finished_at = NOW(6)"
-                        " WHERE job_id = ? AND state IN ('queued', 'running')",
-                        (dead_id,),
-                    )
-                    conn.execute(
-                        "UPDATE work_jobs SET state = 'cancelled', finished_at = NOW(6),"
-                        " seconds = TIMESTAMPDIFF(MICROSECOND, COALESCE(started_at, created_at), heartbeat_at) / 1e6"
-                        " WHERE id = ?",
-                        (dead_id,),
-                    )
-                conn.execute(
-                    "UPDATE work_jobs SET state = 'running', started_at = COALESCE(started_at, NOW(6)),"
-                    " heartbeat_at = NOW(6) WHERE id = ?",
-                    (job_id,),
-                )
-                return True, None
         finally:
             conn.close()
 
@@ -589,29 +401,6 @@ class _ControlStore:
                         f"UPDATE work_jobs SET {column} = {column} + 1, heartbeat_at = NOW(6) WHERE id = ?",
                         (job_id,),
                     )
-        finally:
-            conn.close()
-
-    def finish_job(self, job_id, holder, state):
-        conn = self._connect()
-        try:
-            with conn:
-                conn.execute(
-                    "UPDATE work_tasks SET state = 'cancelled', finished_at = NOW(6)"
-                    " WHERE job_id = ? AND state IN ('queued', 'running')",
-                    (job_id,),
-                )
-                conn.execute(
-                    "UPDATE work_jobs SET state = ?, finished_at = NOW(6), heartbeat_at = NOW(6),"
-                    " seconds = TIMESTAMPDIFF(MICROSECOND, COALESCE(started_at, created_at), NOW(6)) / 1e6"
-                    " WHERE id = ?",
-                    (state, job_id),
-                )
-                conn.execute(
-                    "UPDATE work_lease SET holder = NULL, job_id = NULL, heartbeat_at = NULL"
-                    " WHERE id = 1 AND holder = ?",
-                    (holder,),
-                )
         finally:
             conn.close()
 
@@ -1140,7 +929,7 @@ def get_node(conn, node_id):
 def request_control(conn, node_id, action):
     """
     Asks a live node and its subtree to pause, resume or cancel (ADM.10);
-    the run reads it between tasks (`WorkQueue._obey`). Resume clears a
+    the run reads it between its units. Resume clears a
     pause; a cancel stays.
 
     Returns:
@@ -1244,499 +1033,3 @@ def clear_finished(conn):
         return cur.rowcount
 
 
-class WorkQueue:
-    """
-    One run's tasks and the worker pool that runs them; see this module's
-    docstring. Use as a context manager: entering takes the lease
-    (waiting for another run's pool to finish first), leaving waits for
-    every submitted task, then frees the lease.
-
-    Args:
-        title (str): What the run is doing, for `work_jobs` and the
-            "waiting" message.
-        workers (int): Worker processes (`worker_count`); 1 runs every
-            task in this process, in order, with no pool and no lease.
-        control_config (MySQLConfig, optional): The control database
-            holding the lease and task rows; `None` runs without them.
-        run_seed (int, optional): Seeds every task (`task_seed`); drawn
-            from `random` when not given.
-        log_level (str): Workers' log severity (`log.NORMAL` etc.); they
-            never write to the console, only the debug log/file.
-        debug_file (str, optional): `--debug FILE`, appended to by the
-            workers too.
-        on_wait (callable, optional): Called once with the lease
-            holder's row when this run has to wait for another one.
-    """
-
-    def __init__(self, title, workers=1, control_config=None, run_seed=None, log_level=log.NORMAL,
-                 debug_file=None, on_wait=None):
-        self.title = title
-        self.workers = max(1, int(workers))
-        self.control_config = control_config
-        self.run_seed = draw.getrandbits(128) if run_seed is None else run_seed
-        self.log_level = log_level
-        self.debug_file = debug_file
-        self.on_wait = on_wait
-        self.job_id = None
-        self.node = None
-        self.holder = f"{socket.gethostname()}:{os.getpid()}:{secrets.token_hex(4)}"
-        self._store = _NoStore()
-        self._executor = None
-        self._waiting = []
-        self._running = set()
-        self._stop = threading.Event()
-        self._controls_read = float("-inf")
-        self._cancelled = False
-        self._beat = None
-        self._failure = None
-        self._stats = None
-        self._old_handlers = {}
-        self._signalled = None
-        self.submitted = 0
-        self.finished = 0
-
-    @property
-    def parallel(self):
-        return self.workers > 1
-
-    def channel(self, name):
-        """A `redisqueue.Channel` the run's workers can report through
-        (a parallel queue only)."""
-        return self._executor.channel(name)
-
-    def __enter__(self):
-        if self.parallel:
-            try:
-                self._executor = redisqueue.RQExecutor(self.workers, _rq_task,
-                                                       f"planetgen-run-{secrets.token_hex(8)}")
-            except redisqueue.Unavailable as exc:
-                log.normal(f"{self.title}: {exc}; running every task in this process instead of "
-                           f"{self.workers} workers.")
-                self.workers = 1
-        self.node = open_node("queue", self.title, self.control_config,
-                              state="waiting" if self.parallel else "running", workers=self.workers,
-                              holder=self.holder)
-        self._store = self.node.store
-        self.job_id = self.node.id
-        if not self.parallel:
-            try:
-                self._obey(force=True)
-            except BaseException as exc:
-                self._close(end_state(type(exc)))
-                raise
-            return self
-        try:
-            self._take_lease()
-        except BaseException as exc:
-            self._close(end_state(type(exc)))
-            raise
-        self._catch_sigterm()
-        self._beat = threading.Thread(target=self._heartbeat, name="work-queue-heartbeat", daemon=True)
-        self._beat.start()
-        return self
-
-    def _take_lease(self):
-        """Waits for the lease (another run's pool, or the queue paused
-        from the admin page), then holds it."""
-        waited = False
-        while True:
-            taken, current = self._store.take_lease(self.job_id, self.holder)
-            if taken:
-                return
-            if not waited:
-                waited = True
-                if current.get("paused"):
-                    log.normal(f"{self.title}: the work queue is paused"
-                               + (f" (by {current['paused_by']})" if current.get("paused_by") else "")
-                               + "; waiting until an admin resumes it.")
-                else:
-                    log.normal(f"Waiting for another generation run to finish ({current['holder']}, job "
-                               f"{current['job_id']}): only one run's workers use the machine at a time.")
-                if self.on_wait:
-                    self.on_wait(current)
-            time.sleep(WAIT_POLL_SECONDS)
-            cancel = self._read_controls(force=True).get("cancel")
-            if cancel:
-                if set(cancel) == {self.job_id}:
-                    self._cancelled = True
-                    return
-                raise Cancelled(self.title)
-
-    def _read_controls(self, force=False):
-        """The admin's requests for this queue's node and those above it
-        (`_ControlStore.controls`), read at most every
-        `CONTROL_POLL_SECONDS` unless `force`; `{}` between reads or
-        without a control database."""
-        if self.node is None or not self._store.available:
-            return {}
-        now = time.monotonic()
-        if not force and now - self._controls_read < CONTROL_POLL_SECONDS:
-            return {}
-        self._controls_read = now
-        try:
-            return self._store.controls(self.node.chain) or {}
-        except Exception as exc:  # noqa: BLE001 -- carry on; read again next time
-            log.debug(f"Work queue: could not read the admin's requests for job {self.job_id}: {exc}")
-            return {}
-
-    def _obey(self, force=False):
-        """
-        Acts on a pause or cancel asked from the admin queue page
-        (ADM.10), between tasks. Cancel lets the tasks already running
-        finish and hands out nothing more: when only this queue's own
-        node was cancelled the run goes on past it, otherwise `Cancelled`
-        ends the run. Pause (this node, one above it, or the whole queue)
-        lets the running tasks finish, then waits in standby, with the
-        lease given up so other runs can go, until it's resumed.
-        """
-        controls = self._read_controls(force)
-        if controls.get("cancel"):
-            self._cancel(controls["cancel"])
-        elif controls.get("pause"):
-            self._standby()
-
-    def _cancel(self, cancelled_ids):
-        self._waiting.clear()
-        while self._running:
-            self._collect(block=True)
-        if set(cancelled_ids) == {self.job_id}:
-            log.normal(f"{self.title}: cancelled from the admin queue page; going on without its other tasks.")
-            self._cancelled = True
-            return
-        raise Cancelled(self.title)
-
-    def _standby(self):
-        while self._running:
-            self._collect(block=True)
-        # The lease goes first: a node that says "paused" has already let the other runs go (TEST.288 saw the state
-        # paused while the lease was still held).
-        if self.parallel:
-            self._book("release_lease", self.holder)
-        self._book("set_state", self.job_id, "paused")
-        log.normal(f"{self.title}: paused from the admin queue page; waiting until it is resumed.")
-        while True:
-            time.sleep(WAIT_POLL_SECONDS)
-            controls = self._read_controls(force=True)
-            if controls.get("cancel"):
-                self._book("set_state", self.job_id, "running")
-                self._cancel(controls["cancel"])
-                return
-            if not controls.get("pause"):
-                break
-        if self.parallel:
-            self._take_lease()
-        else:
-            self._book("set_state", self.job_id, "running")
-        log.normal(f"{self.title}: resumed.")
-
-    def _book(self, method, *args, **kwargs):
-        """Calls a bookkeeping method of the store (task rows, state,
-        lease release). The rows are only a record: when the control
-        database drops mid-run, the run goes on and the lease goes stale
-        on its own (TEST.20)."""
-        try:
-            return getattr(self._store, method)(*args, **kwargs)
-        except Exception as exc:  # noqa: BLE001 -- bookkeeping only
-            log.debug(f"Work queue: could not {method.replace('_', ' ')} for job {self.job_id}: {exc}")
-            return None
-
-    def expect(self, count):
-        """Says `count` more tasks are coming, so the job tree can show
-        how many are still to go and an ETA before they're queued."""
-        if count and self.node is not None:
-            try:
-                self._store.set_total(self.job_id, count)
-            except Exception as exc:  # noqa: BLE001 -- bookkeeping only
-                log.debug(f"Work queue: could not record the task count of job {self.job_id}: {exc}")
-
-    def _catch_sigterm(self):
-        """A SIGTERM (Cancel on the Generate page, `kill`) ends the run
-        through `__exit__`, so the lease is freed and the job marked
-        cancelled at once rather than after `STALE_SECONDS`. Ctrl+C
-        (SIGINT) does the same with `KeyboardInterrupt`.
-
-        The signal is also remembered (TEST.73): its exception can land
-        inside a database call that turns it into a database error
-        (pymysql, DBUtils), which bookkeeping then logs and carries on
-        past. `_check_signal` raises it again at the next step, and a
-        task failure the stop itself caused (a worker that got the same
-        signal) never wins over it."""
-        self._old_handlers = {}
-        self._signalled = None
-        if threading.current_thread() is not threading.main_thread():
-            return
-
-        def _on_signal(signum, _frame):
-            self._signalled = signum
-            self._raise_signal()
-
-        for name in ("SIGTERM", "SIGINT"):
-            signum = getattr(signal, name, None)
-            if signum is None:
-                continue
-            if signum == getattr(signal, "SIGINT", None) and signal.getsignal(signum) is not signal.default_int_handler:
-                continue  # someone else handles Ctrl+C here
-            try:
-                self._old_handlers[signum] = signal.signal(signum, _on_signal)
-            except (ValueError, OSError):
-                pass
-
-    def _raise_signal(self):
-        if self._signalled == getattr(signal, "SIGINT", None):
-            raise KeyboardInterrupt
-        raise SystemExit(128 + self._signalled)
-
-    def _check_signal(self):
-        """Raises the stop signal again if one came in (`_catch_sigterm`)."""
-        if self._signalled is not None:
-            self._raise_signal()
-
-    def _restore_sigterm(self):
-        for signum, handler in self._old_handlers.items():
-            try:
-                signal.signal(signum, handler)
-            except (ValueError, OSError, TypeError):
-                pass
-        self._old_handlers = {}
-
-    def _heartbeat(self):
-        while not self._stop.wait(HEARTBEAT_SECONDS):
-            try:
-                self._store.heartbeat(self.job_id, self.holder)
-            except Exception as exc:  # noqa: BLE001 -- retried next beat
-                log.debug(f"Work queue heartbeat failed: {exc}")
-
-    def submit(self, kind, key, fn, payload, weight=1.0, on_done=None, expected_seconds=None):
-        """
-        Queues one task. `fn(payload)` runs in a worker (`fn` must be a
-        module-level function, and `payload` picklable); `on_done(result,
-        seconds, weight)` then runs in this process, from `submit` or
-        `drain`, never at the same time as another `on_done`. With one
-        worker, both run right here before `submit` returns. With a pool RQ
-        ends the task after a multiple of `expected_seconds` (default: the
-        seconds a task of `kind` took in earlier runs; `redisqueue.job_timeout`).
-
-        Raises:
-            Exception: The first task's own exception, once every task
-                already running has finished (the rest are cancelled).
-        """
-        if self._cancelled:
-            return
-        task = _Task(kind, key, fn, payload, weight, on_done, expected_seconds)
-        self.submitted += 1
-        if not self.parallel:
-            self._obey()
-            if not self._cancelled:
-                self._run_here(task)
-            return
-        self._check_signal()
-        self._raise_failure()
-        self._obey()
-        if self._cancelled:
-            return
-        task.seed = task_seed(self.run_seed, key)
-        self._waiting.append(task)
-        # Keep every worker busy with one more task ready behind it;
-        # anything beyond that waits here, not in the pool.
-        while len(self._waiting) + len(self._running) > 2 * self.workers:
-            self._dispatch()
-            self._collect(block=True)
-            self._check_signal()
-            self._obey()
-        self._dispatch()
-        self._collect(block=False)
-        self._check_signal()
-
-    def submit_each(self, kind, items, fn):
-        """
-        Queues many small tasks of one kind (a run of shells of the scatter each) as fewer, sized by how long they
-        take: with a pool the `items` -- `(key, payload, weight, on_done)` -- go out in chunks, one task
-        each, that run `fn(payload)` for their items in order and then `on_done(result, seconds, weight)`
-        for each of them. The first chunk is one item; later ones hold as many as take about
-        `CHUNK_SECONDS` at the rate the finished items showed, at most `1 / (workers * CHUNKS_PER_WORKER)`
-        of the items, so thousands of millisecond items pay the task cost a few dozen times while a
-        shell that takes seconds is a task of its own and shows its progress when it ends (PERF.79,
-        PERF.83). Items are dealt out in a stride order, so a chunk mixes dense and thin ones. With one
-        worker it is `submit` per item. A task's result does not depend on its chunk: nothing in `fn` may
-        read the task seed.
-        """
-        items = list(items)
-        if not self.parallel:
-            self.expect(len(items))
-            for key, payload, weight, on_done in items:
-                self.submit(kind, key, fn, payload, weight=weight, on_done=on_done)
-            return
-        ways = self.workers * CHUNKS_PER_WORKER
-        order = [item for start in range(ways) for item in items[start::ways]]
-        largest = max(1, -(-len(order) // ways))
-        seen = {"items": 0, "seconds": 0.0}
-        position = 0
-        while position < len(order):
-            if seen["items"]:
-                size = max(1, min(largest, int(CHUNK_SECONDS * seen["items"] / max(seen["seconds"], 1e-9))))
-            else:
-                size = 1
-            chunk = order[position:position + size]
-            position += size
-
-            def finished(results, _seconds, _weight, chunk=chunk):
-                for (_key, _payload, weight, on_done), (result, seconds) in zip(chunk, results):
-                    seen["items"] += 1
-                    seen["seconds"] += seconds
-                    if on_done:
-                        on_done(result, seconds, weight)
-
-            self.expect(1)
-            self.submit(kind, f"{kind} chunk {position}", run_chunk,
-                        {"fn": fn, "payloads": [payload for _key, payload, _weight, _done in chunk]},
-                        weight=sum(weight for _key, _payload, weight, _done in chunk), on_done=finished,
-                        expected_seconds=len(chunk) * seen["seconds"] / seen["items"] if seen["items"] else None)
-
-    def _run_here(self, task):
-        """One worker: runs `task` in this process, recording its row
-        when there's a control database."""
-        recorded = self._store.available and self.node is not None
-        if recorded:
-            self._book("add_tasks", self.job_id, [task])
-            self._book("start_tasks", [task])
-        # Seeded exactly as a worker would be, so one worker generates
-        # what many would (TEST.19); this process's own run stream
-        # carries on afterwards as if the task had run elsewhere, as it
-        # does with a pool.
-        started = time.monotonic()
-        try:
-            with draw.bound(task_seed(self.run_seed, task.key)):
-                result = task.fn(task.payload)
-        except BaseException as exc:
-            if recorded:
-                state = "failed" if isinstance(exc, Exception) else "cancelled"
-                self._book("finish_task", self.job_id, task, state, error=f"{type(exc).__name__}: {exc}")
-            raise
-        seconds = time.monotonic() - started
-        self.finished += 1
-        if recorded:
-            self._book("finish_task", self.job_id, task, "done", seconds=round(seconds, 3))
-        if task.on_done:
-            task.on_done(result, seconds, task.weight)
-
-    def _expected_seconds(self, task):
-        """How long `task` is expected to take a worker (PERF.144): what its submitter said, else the mean of the
-        tasks of its kind in earlier runs (`generation.stats`, read once), else `None`."""
-        if task.expected:
-            return task.expected
-        if task.kind not in STATS_KIND:
-            return None
-        if self._stats is None:
-            disabled = os.environ.get(generationStats.STATS_ENV_VAR, "1").strip().lower() in ("0", "off", "no", "false")
-            self._stats = generationStats.GenerationStats(None if disabled else self.control_config)
-        return self._stats.seconds_per_task(STATS_KIND[task.kind], self.workers)
-
-    def _dispatch(self):
-        room = 2 * self.workers - len(self._running)
-        batch, self._waiting = self._waiting[:max(room, 0)], self._waiting[max(room, 0):]
-        if not batch:
-            return
-        self._book("add_tasks", self.job_id, batch)
-        self._book("start_tasks", batch)
-        for task in batch:
-            task.future = self._executor.submit(task.fn, task.payload, task.seed, self.log_level, self.debug_file,
-                                                expected_seconds=self._expected_seconds(task))
-            self._running.add(task)
-
-    def _collect(self, block):
-        if not self._running:
-            return
-        by_future = {id(task.future): task for task in self._running}
-        done = self._executor.wait([task.future for task in self._running], block)
-        for future in done:
-            task = by_future[id(future)]
-            self._running.discard(task)
-            self.finished += 1
-            try:
-                result, seconds = future.result()
-            except BaseException as exc:  # noqa: BLE001 -- re-raised by _raise_failure
-                self._book("finish_task", self.job_id, task, "failed", error=f"{type(exc).__name__}: {exc}")
-                if self._failure is None:
-                    self._failure = exc
-                    self._waiting.clear()
-                continue
-            self._book("finish_task", self.job_id, task, "done", seconds=round(seconds, 3))
-            if task.on_done:
-                task.on_done(result, seconds, task.weight)
-
-    def _raise_failure(self):
-        """After a task failed: lets the tasks already running finish
-        (each one's sector is its own transaction), then raises the
-        first failure."""
-        self._check_signal()
-        if self._failure is None:
-            return
-        failure = self._failure
-        self._waiting.clear()
-        while self._running:
-            self._collect(block=True)
-        self._failure = None
-        # A worker stopped by the same signal fails its task; the run was
-        # still stopped, not broken.
-        self._check_signal()
-        raise failure
-
-    def drain(self):
-        """Waits for every submitted task (running each `on_done`)."""
-        if not self.parallel:
-            return
-        while self._waiting or self._running:
-            self._raise_failure()
-            self._obey()
-            self._dispatch()
-            self._collect(block=True)
-            self._check_signal()
-        self._raise_failure()
-
-    def __exit__(self, exc_type, exc, tb):
-        if not self.parallel:
-            self._close("cancelled" if self._cancelled and exc_type is None else end_state(exc_type))
-            return False
-        state = "done"
-        try:
-            if exc_type is None:
-                self.drain()
-                self._check_signal()
-                if self._cancelled:
-                    state = "cancelled"
-            else:
-                state = end_state(exc_type)
-                if self._signalled is not None:
-                    state = "cancelled"
-                self._waiting.clear()
-        except BaseException as raised:
-            state = "cancelled" if self._signalled is not None else end_state(type(raised))
-            raise
-        finally:
-            if self._executor is not None:
-                # A stop (SIGTERM, Ctrl+C, an exit) takes the workers down with the run; a failed task lets the
-                # ones running finish first.
-                stopped = self._signalled is not None or (
-                    exc_type is not None and issubclass(exc_type, (KeyboardInterrupt, SystemExit)))
-                self._executor.shutdown([task.future for task in self._running], stop=stopped)
-            self._stop.set()
-            self._restore_sigterm()
-            self._close(state)
-        if self._signalled is not None and not issubclass(exc_type, (KeyboardInterrupt, SystemExit)):
-            # The stop signal turned into another error on its way out (a
-            # database error from inside pymysql, say): the run was still
-            # stopped, and ends that way.
-            self._raise_signal()
-        return False
-
-    def _close(self, state):
-        """Records the job's end (and frees the lease) and closes its
-        node."""
-        if self.node is None:
-            return
-        try:
-            self._store.finish_job(self.job_id, self.holder, state)
-        except Exception as store_exc:  # noqa: BLE001 -- the lease goes stale on its own
-            log.debug(f"Work queue: could not record the end of job {self.job_id}: {store_exc}")
-        self.node.closed = True
-        close_node(self.node, state)

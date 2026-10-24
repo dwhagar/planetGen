@@ -3,9 +3,7 @@
 """
 TEST.19 and TEST.22: parallel generation (`--workers`, PERF.7/PERF.8).
 
-- TEST.19: one run seed gives the same tasks' draws with one worker, two
-  or several -- the one-worker path seeds each task exactly as a worker
-  would.
+- TEST.19: one run seed gives the same sectors at any worker count.
 - GEN.39: one galaxy seed gives the same sectors, contents and all, at
   any worker count, and every one of its 128 bits counts.
 - TEST.22: every bulk mode (`--shell`, `--band`, a span,
@@ -22,77 +20,16 @@ import uuid
 import pymysql
 import pytest
 
-from planetgen.util import draw
 from planetgen.cli import generate as generate_cli
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import wedge_count
 from planetgen.generation import run_common
-from planetgen.queue import work
 from planetgen.db import fingerprint, store
 from planetgen.names import uniqueness
 from planetgen.db.store import MySQLConfig
 
 from tests.conftest import _test_server_kwargs
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
-
-
-def _draws(payload):
-    return [draw.random() for _ in range(payload)]
-
-
-def _run_queue(workers, run_seed=99, keys=8):
-    drawn = {}
-    with work.WorkQueue("seeds", workers=workers, run_seed=run_seed) as queue:
-        for n in range(keys):
-            queue.submit("draw", f"sector-{n}", _draws, 3,
-                         on_done=lambda result, _s, _w, n=n: drawn.__setitem__(n, result))
-    return drawn
-
-
-# ---------------------------------------------------------------------------
-# TEST.19: the queue itself
-# ---------------------------------------------------------------------------
-
-def test_one_worker_draws_what_two_and_four_workers_draw():
-    one = _run_queue(1)
-    assert one == _run_queue(2) == _run_queue(4)
-    assert len({tuple(values) for values in one.values()}) == len(one)
-
-
-def test_one_worker_seeds_each_task_from_the_run_seed_and_its_key():
-    one = _run_queue(1, run_seed=5)
-    for n, values in one.items():
-        draw.set_run_seed(work.task_seed(5, f"sector-{n}"))
-        assert values == [draw.random() for _ in range(3)]
-    assert _run_queue(1, run_seed=6) != one
-
-
-def test_one_worker_leaves_the_runs_own_random_stream_alone():
-    """Tasks don't consume or reseed the calling process's stream, just as
-    when they run in a pool, so whatever the run draws after a batch is
-    the same at any worker count."""
-    def after(workers):
-        draw.set_run_seed(2024)
-        queue_seed = draw.getrandbits(32)
-        _run_queue(workers, run_seed=queue_seed)
-        return draw.random()
-
-    assert after(1) == after(2)
-
-
-def test_a_failing_task_on_one_worker_still_restores_the_stream():
-    draw.set_run_seed(7)
-    expected = draw.random()
-    draw.set_run_seed(7)
-    with pytest.raises(ZeroDivisionError):
-        with work.WorkQueue("fails", workers=1, run_seed=1) as queue:
-            queue.submit("boom", "k", _divide_by_zero, None)
-    assert draw.random() == expected
-
-
-def _divide_by_zero(_payload):
-    draw.random()
-    return 1 / 0
 
 
 # ---------------------------------------------------------------------------

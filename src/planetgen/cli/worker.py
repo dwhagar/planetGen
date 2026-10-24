@@ -21,7 +21,7 @@ import rq
 
 from planetgen import _version
 from planetgen.admin import updateguard
-from planetgen.queue import pause, redisqueue, stopall, units, work, workers
+from planetgen.queue import pause, progress_file, redisqueue, stopall, units, work, workers
 from planetgen.util import log
 
 WARM_MODULES = (
@@ -144,6 +144,7 @@ def main(argv=None):
     log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
     log.set_component("worker")
+    os.environ.pop(progress_file.ENV_VAR, None)     # a worker serves many runs; the progress file is its starter's
     log.apply_debug_arguments(args, parser)
     try:
         updateguard.refuse_while_updating("A worker")     # OPS.53: the workers take no job during an update
