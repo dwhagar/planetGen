@@ -281,6 +281,7 @@ with `clamp()`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   UX.125 and UX.126 moved out of this item (Boss, 2026-10-21, 6:01 PM EDT: the admin pages and the Generate suite are redesigned in their own thread; the Generate page conversion rides ADM.99 and the admin pages ADM.56 and ADM.93), so this item converts the public pages and closes with UX.124.
+  Research (2026-10-09, 10-24 lane 4): Stays with Core 2 (12:20 PM EDT 2026-10-24: Lane 4 looked at it and left it; UX.49 closes with UX.125 and UX.126).
   Prerequisites: none.
   Design: [docs/design/architecture/library-migration.md](design/architecture/library-migration.md)
 
@@ -555,6 +556,7 @@ with `clamp()`.
   Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Research (2026-10-09, 10-24 lane 4): Stays with Core 2 (12:20 PM EDT 2026-10-24: Lane 4 looked at it and left it; UX.49 closes with UX.125 and UX.126).
   Prerequisites: none. Related: UX.49.
 
 - [ ] **UX.126 The admin pages and the edit dialogs on the field macro**
@@ -583,6 +585,7 @@ with `clamp()`.
   Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Research (2026-10-09, 10-24 lane 4): Stays with Core 2 (12:20 PM EDT 2026-10-24: Lane 4 looked at it and left it; UX.49 closes with UX.125 and UX.126).
   Prerequisites: none. Related: UX.49.
 
 - [ ] **UX.127 The Galaxy Map block menu offers Generate again**
@@ -686,19 +689,6 @@ with `clamp()`.
   galaxy.
   Prerequisites: none. Related: UX.134, MAP.242, UX.101, GEN.608.
   Design: [docs/design/galaxy/galaxy-types.md](design/galaxy/galaxy-types.md)
-
-- [ ] **UX.136 The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do**
-  Follow-up from Core 2 (2026-10-17, 4:10 PM EDT as the lane reported,
-  UX.118 merged as #2089): the search and phenomena pages show a
-  progress bar while a slow answer builds (`@slow_route`,
-  static/slowload.js), but the data table's own row fetches (scroll and
-  sort: datatable.js asking its JSON data route) are not marked slow.
-  Done: datatable.js waits on a page job when its data route answers 202
-  (polls /api/page-jobs/<id>, then asks again), shows the same progress
-  bar and estimate text, and the Stop waiting and Try again actions work
-  in the table; browser test for a slow scroll and a slow sort, in both
-  themes and at phone width. Owner: Lane 4 (taken 10:02 AM EDT 2026-10-24 as the lane reported, after OPS.35; this replaces the proposed Core 2 owner).
-  Prerequisites: none. Related: PERF.105, UX.118.
 
 - [ ] **UX.137 The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
@@ -3614,6 +3604,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
     is in reports/8-1-core-queues-2026-10-22.md; this replaces any
     earlier owner line).
+    Research (2026-10-09, 10-24 lane 4): Lane 4 takes this next (12:21
+    PM EDT 2026-10-24 as the lane asked; nobody had reported starting
+    it).
     Prerequisites: none.
 
   - [ ] **OPS.16 A daily maintenance script for Linux and macOS, with its lock helper**
@@ -7750,7 +7743,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.461. Related:
+  Prerequisites: none. Related:
   DB.70,
   GEN.444, GEN.418,
   GEN.412.
@@ -8274,66 +8267,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
 
-- [ ] **GEN.461 The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug)**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/composition/body-composition-research.md, parts in
-  docs/design/composition/body-composition-parts/), filed by the TODO thread.
-  Finding F4 and part C sections 2.3 and 2.4:
-  `hydrosphere.water_layer_depth_km` (incompressible, 1000 kg/m3, radius
-  fixed) is right to 2 percent at a water fraction of 0.01 but about 40
-  percent too deep at 0.1 (1047 km against 746 km for 1 Earth mass), the
-  base pressure `g x M / (4 pi R^2)` is 20 percent low at 0.1,
-  `HP_ICE_DENSITY_KG_M3 = 1300` is below ice VI (1327 to 1422) and ice
-  VII (1476 and up) so `hp_ice_km` is 4 to 10 percent too deep, and
-  `DEEP_WATER_DENSITY_KG_M3 = 1050` is the mean at about 0.2 GPa while
-  the column down to the 280 K liquidus is denser. Do: one rewrite of
-  `hydrosphere.py` against `water_mass_fraction` (stored from GEN.428):
-  the compressed layer depth above a water fraction of about 0.03, the
-  stored base pressure, the ice phases and constants from the ice and
-  water table of GEN.427, the liquidus from the recomputed phase
-  boundaries, the sealed high-pressure-ice threshold from the water
-  fraction (about 6e-3) and the base pressure, and for water worlds the
-  class label chosen from the water fraction, the surface temperature
-  and the pressure instead of a class range; ocean moons read the same
-  module (part D). The steam-atmosphere radius of irradiated water
-  worlds (Turbet 2020) is part of the structure solver of GEN.429.
-  Changes stored values, so it ships with a generator epoch bump. Done:
-  a test checks the depth and the base pressure at water fractions of
-  0.001, 0.01 and 0.1 against the compressed integration within 3
-  percent, the ice densities against the table, the threshold, and
-  determinism. Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.427, GEN.428,
-  GEN.429, GEN.441, GEN.466, DB.70, GEN.471.
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): brines and clathrates for icy crusts:
-  perchlorate and sulfate eutectics keeping brines liquid below 200 K,
-  H2SO4-H2O vapour pressure by weight percent 70 to 98 (Tabazadeh 1997,
-  Zeleznik 1991, Ayers 1980) and clathrate dissociation ln(P/P0) = A +
-  B/T (Sloan and Koh 2007, Choukroun 2010); the Venus acid part belongs
-  to GEN.414. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/composition/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): no table of its own: the hydrosphere reads the water
-  fraction of the drawn bulk recipe (GEN.428) and the surface rows of
-  GEN.441.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane H (surface dose).
 - [ ] **GEN.462 Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -8556,7 +8489,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.461. Related: GEN.427, GEN.441, GEN.461,
+  Prerequisites: none. Related: GEN.427, GEN.441, GEN.461,
   GEN.466, GEN.456.
   Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
   in the project chat; routed by the coordinator to the Atmosphere and
@@ -12839,6 +12772,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.411, GEN.454 remainder, DB.67, DB.70). Boss's 1:22 AM EDT class B
   answer (option 3) is in the design note: class B never has hydrogen or
   helium, a stripped core of at least 5 Earth masses.
+  Research (2026-10-09, 10-24 lane H): Lane H (12:19 PM EDT 2026-10-24
+  as the lane reported): GEN.461's clause "ocean class label chosen from
+  water share, temperature and pressure" is not built; it belongs to the
+  class cut-over here. GEN.461 itself integrates the water column and
+  stores water_base_pressure_pa (migration 0151, epoch 84).
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -13214,7 +13152,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.647 and GEN.646. Do: the water mass fraction from the origin and
   the composition (GEN.442, GEN.466, GEN.461); delete the class table.
   Done: nothing reads WATER_MASS_FRACTION. Owner: Composition J and K.
-  Prerequisites: GEN.466, GEN.461.
+  Prerequisites: GEN.466.
 
 - [ ] **GEN.686 Age needs come from the processes; delete age_ranges**
   Step C11 of the condition-based classes build (design draft
@@ -13317,7 +13255,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stored columns of GEN.459 stay consistent (a new column takes the next
   migration). Owner: lane H, after GEN.461; check nobody started it
   first.
-  Prerequisites: GEN.461. Related: GEN.459, GEN.461.
+  Research (2026-10-09, 10-24 lane H): Lane H (12:19 PM EDT 2026-10-24
+  as the lane reported): next after GEN.461, stacking on it. Stand-ins
+  for the gap registry: 3500 K start-temperature ceiling, 273 K surface,
+  stagnant lid only (the tectonic-mode switch is the new item that
+  follows).
+  Prerequisites: none. Related: GEN.459, GEN.461.
 
 - [ ] **GEN.700 Tidal heating of moons counts in the energy term of the habitability score: keep the tidal flux on the moon and add it to the heat flow**
   Source: reports/habitability-model-gaps-2026-10-23.md item 4 (build
@@ -13633,6 +13576,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   none (the star scatter lane, Core 3 or Core 1, is the nearest owner).
   Prerequisites: none. Related: GEN.631, GEN.332.
 
+- [ ] **GEN.720 star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug)**
+  Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
+  #2993). A pre-existing quirk: adjust_age_for_planets changes the star
+  age after the planets of a system have been generated, so any planet
+  value that depends on the star age (primordial heat, radiogenic heat,
+  tidal or cooling terms) was computed with the old age and is stale.
+  GEN.699 recomputes heat lazily and so avoids it for heat only. Do:
+  decide one order (adjust the age first, or recompute the age-dependent
+  values after the adjustment), apply it to every age-dependent planet
+  and moon value, and say so in the generation docs. Done: a test that
+  builds systems whose age is adjusted and finds every age-dependent
+  value equal to a fresh computation at the final age; the epoch is
+  bumped if a drawn value changes (next free at merge). Owner: none
+  (pool); lane H is the nearest owner after GEN.699.
+  Prerequisites: none. Related: GEN.699, GEN.461.
+
+- [ ] **GEN.721 A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model**
+  Idea from lane H (12:19 PM EDT 2026-10-24 as the lane reported,
+  GEN.461 #2993). The heat model of GEN.699 and its neighbours assumes a
+  stagnant lid only, which is a labelled stand-in. Do: add a
+  tectonic-mode switch (mobile lid, stagnant lid, and the episodic case
+  if the research supports it) chosen from mass, water, temperature and
+  age, so the cooling history and the heat flux depend on it. Done: the
+  switch is drawn or derived from stored conditions, the heat model
+  reads it, a test shows an Earth-like world in mobile-lid mode cooling
+  faster than the same world in stagnant-lid mode, and the design note
+  names the sources. Needs a research pass first (settle the sources
+  before building). Owner: none (pool); lane H is the nearest owner
+  after GEN.699.
+  Prerequisites: GEN.699. Related: GEN.699, GEN.461.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -13645,31 +13619,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.309.
   Design: [docs/design/generation/sampling-backfill-and-resume.md](design/generation/sampling-backfill-and-resume.md)
-
-- [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
-  A `TILE_FORMAT` constant in the stamp base in place of `__version__`,
-  with a golden test that fails when the tile or page structure changes
-  without a bump. Releases are 26 to 123 a day, so a development server
-  never keeps a cache. Decided (Boss, 2026-10-10 18:44Z, defaults
-  approved; default): decide after
-  PERF.31 shows the cold rebuild cost; switch if a full rebuild takes
-  more than a minute.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Core 5 (reported 12:50 PM EDT as the lane clock read, relayed by the
-  coordinator): waits on Boss's cold-rebuild time before it can be done.
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 11, "Required
-  prerequisite": this item is no longer optional; it is a prerequisite
-  of PERF.133 (keeping a tile until the data changes cannot work with a
-  per-version stamp). The condition "decide after PERF.31 shows the cold
-  rebuild cost" no longer applies.
-  Decided (Boss, 9:04 PM EDT 2026-10-21, tapped "Skip it, build
-  PERF.41", card cmsg_01RuNTFUNB92A8cm5CbojQAi6fWhrKGtqtN7aYG1tmJwTs):
-  no cold-rebuild time is needed; the item is built as a required
-  prerequisite of PERF.133 (fork 11). The wait on Boss's number is gone.
-  Design: [docs/design/operations/performance-eta-queue-and-caching.md](design/operations/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
   Done: a note (docs/design/orbits/gravity-map.md, section 'How it is
@@ -14654,6 +14603,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this next (12:21 PM
+  EDT 2026-10-24 as the lane asked; nobody had reported starting it).
   Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.46 The parity file: groups, records, a delta update on every save and the stale-record rule**
@@ -14790,7 +14741,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.461, GEN.462, GEN.466. Related:
+  Prerequisites: GEN.441, GEN.462, GEN.466. Related:
   DB.69, DB.67, DB.68.
   Finding F11 of the Body composition research lane (section 14.5 of
   docs/design/composition/body-composition-research.md, tables E1 to E4; 2026-10-17,
@@ -16210,6 +16161,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this (12:21 PM EDT
+  2026-10-24 as the lane asked; moved from Core 2, who had not reported
+  starting it).
   Prerequisites: USR.31. Related: ADM.43, USR.3, USR.26.
 
 - [ ] **ADM.88 Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive**
@@ -18694,6 +18648,13 @@ clears each one.
   as the lane reported): it still fails on main at the #2992 gate, four
   test_web_a11y web.system cases (class links in the planet summary fail
   axe contrast 1.06:1, plus nested-interactive). Not from #2992.
+  Research (2026-10-09, 10-24 lane 4): Lane 4 (12:18 PM EDT 2026-10-24
+  as the lane reported): another cause for the four test_web_a11y
+  web.system variants on unmodified main: the fixture's galaxy run loses
+  its Redis run record (TypeError in runrecord, stage json is None).
+  Also a lane-machine gap: Playwright expected
+  chromium_headless_shell-1194 but 1243 was installed; the lane linked
+  it locally.
   Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
 
 - [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
@@ -19448,6 +19409,9 @@ clears each one.
   Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this (12:21 PM EDT
+  2026-10-24 as the lane asked; moved from Core 2, who had not reported
+  starting it).
   Prerequisites: none.
 
 ## OPS: Installers, hosting, CI, releases
@@ -19474,6 +19438,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
+  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this next (12:21 PM
+  EDT 2026-10-24 as the lane asked; nobody had reported starting it).
   Prerequisites: none.
   Design: [docs/design/operations/ops-scheduling-and-rotation.md](design/operations/ops-scheduling-and-rotation.md)
 
@@ -19560,6 +19526,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (add it to the requirements the script installs). Same lane saw
   test_plan_scatter_stores_stars_and_fill_builds_their_systems fail
   (TEST.338, built mass 3.44e30 vs stored 4.98e30).
+  Research (2026-10-09, 10-24 lane H): Lane H (12:19 PM EDT 2026-10-24
+  as the lane reported): test_update_database_step fails on a lane
+  machine because the test MySQL user lacks GRANT OPTION (Boss
+  authorised it per lane, 8:07 PM EDT 10-23); add it to the environment
+  script with the other items.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
@@ -20274,6 +20245,18 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Habitability lane E. Done: the help (DOC.75) and the design and schema
   docs state it and no text names human operability as a score.
   Prerequisites: UX.152. Related: DOC.75, GEN.649.
+
+- [ ] **DOC.79 The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C**
+  Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
+  #2993). Part C of the design document for the compressed water layer
+  lists reference rows at a water share of x=0.2 that do not agree with
+  each other. Do: recompute the reference rows from the built code
+  (physics for the integrated water column, for example 0.1 Earth mass
+  of water on 1 Earth mass is 746 km deep) and make the rows consistent.
+  Done: every x=0.2 row in part C matches the code to the stated
+  rounding, and a test or script check pins the numbers. Owner: none
+  (pool); lane H wrote the document.
+  Prerequisites: none. Related: GEN.461, DOC.77.
 
 ## VIEW: The view from a planet
 

@@ -1317,3 +1317,6 @@ Baseline: PR #1817.
 | GEN.703 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.712 | 8.1 | Stored surface composition |
 | GEN.678 | 8.1 | Mixture and stored values |
+| UX.136 | 8.1 | Admin and API housekeeping |
+| PERF.41 | 8.1 | Queue, caches and performance |
+| GEN.461 | 8.1 | Radiation chain for habitability (GEN.445) |

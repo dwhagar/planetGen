@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.183 |
 | MAP | MAP.291 |
 | NAV | NAV.63 |
-| GEN | GEN.720 |
+| GEN | GEN.722 |
 | PERF | PERF.181 |
 | DB | DB.101 |
 | API | API.33 |
@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.343 |
 | USR | USR.32 |
 | OPS | OPS.70 |
-| DOC | DOC.79 |
+| DOC | DOC.80 |
 | VIEW | VIEW.19 |
 | POP | POP.16 |
 
@@ -727,6 +727,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.76 | Docs for the condition-based classes: the rule table, the planet class pages and the help | none | open |
 | DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document | none | open |
 | DOC.78 | One end-to-end draw-order table from the star to the PHI-6 for the contracts file: blocks, streams and the reproducibility rule | none | done, PR #2813 |
+| DOC.79 | The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1187,7 +1188,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.458 | Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes | none | done, PR #2655 |
 | GEN.459 | One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug) | none | done, PR #2868 |
 | GEN.460 | Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug) | none | done, PR #2912 |
-| GEN.461 | The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug) | none | open |
+| GEN.461 | The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug) | none | done, PR #2993 |
 | GEN.462 | Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once | none | open |
 | GEN.463 | The neutron star's radius is derived from sourced mass-radius relations instead of the fixed range of 10 to 13 km (bug) | none | done, PR #2112 |
 | GEN.464 | The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars | none | open |
@@ -1446,6 +1447,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.717 | The greenhouse opacity has no water-vapour vertical profile, so the 15 micron CO2 band is not masked by water and a CO2 doubling warms 0.3 to 0.6 K instead of about 1.1 K | none | open |
 | GEN.718 | Cold haze worlds like Titan come out about twice too warm in the spectral greenhouse opacity | none | open |
 | GEN.719 | A white dwarf primary makes draw_member_tree ignore n_stars=1, so a binary_system prevalence of -100 still yields a wide double white dwarf (bug) | none | open |
+| GEN.720 | star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug) | none | open |
+| GEN.721 | A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1907,7 +1910,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) | none | done, PR #1144 |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | done, PR #1151 |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | none | done, PR #1506 |
-| PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | none | open |
+| PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | none | done, PR #2316 |
 | PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once | none | done, PR #841 |
 | PERF.43 | Lazy word-salad names for phenomena named by object ID | none | done, PR #861 |
 | PERF.44 | Compute object uids in Python and write them with the row | none | done, PR #863 |
@@ -2262,7 +2265,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.133 | `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug) | none | done, PR #2124 |
 | UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | none | open |
 | UX.135 | One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid | none | open |
-| UX.136 | The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do | none | open |
+| UX.136 | The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do | none | done, PR #2999 |
 | UX.137 | The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are | none | open |
 | UX.138 | Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets | none | open |
 | UX.139 | Display reads the registry: ladder rungs take their symbol and factor from it, and the 21 format wrappers become one format_quantity entry | none | done, PR #2490 |
