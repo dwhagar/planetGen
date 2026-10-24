@@ -11151,6 +11151,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galactic_orbit, ejecta_field and similar) convert AU, km, light-years,
   parsecs, days and years through the unit registry; every number is
   bit-for-bit the same. Item stays open for the remaining groups.
+  Progress (2026-10-09): Update 4:57 PM EDT 2026-10-24: group 5 merged
+  (#3085, Lane Units, as the lane reported): the population model, the
+  tuning table and the body-look pressure convert mpc, Myr and Pa
+  through the unit registry, same numbers, no epoch. It is the last
+  no-change group; the item stays open until the lane confirms every
+  group is in.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
 
@@ -12819,24 +12825,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   records a source tier (Verified down to Educated guess based on needed
   output) and a tweak level; see GEN.725. Record both here when
   registering.
-
-- [ ] **GEN.714 Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug)**
-  Found by Habitability lane K (8:56 AM EDT 2026-10-24, as the lane
-  reported; details in
-  /mnt/project-files/reports/lane-k-contracts-2026-10-23.md) while
-  wiring GEN.466 (moon origin and disk composition): the moon
-  inclination draw spans 0 to 25 degrees, so a captured (irregular)
-  moon, which can be highly inclined or retrograde, can never be drawn,
-  and an origin type of captured contradicts the orbit. Do: draw the
-  inclination from the moon's origin type (regular moons near the
-  planet's equator, captured moons over the full range including
-  retrograde) with the source for each range, labelling any stand-in in
-  the gap plan registry. Changes drawn values: a generator epoch.
-  Prerequisite of the GEN.466 wiring. Owner: none (pool); Lane K
-  proposed after the class cut-over.
-  Research (2026-10-09, 10-24 Lane K): Owner: Lane K (took it 2:01 PM
-  EDT 2026-10-24 as the lane reported; nobody had started it).
-  Prerequisites: none. Related: GEN.466, GEN.646.
 
 - [ ] **GEN.715 Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703**
   Lane E (9:58 AM EDT 2026-10-24, as the lane reported): GEN.703 builds
@@ -16196,32 +16184,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.57, ADM.60, API.8.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
-- [ ] **ADM.86 Owner-tier settings: Owner-only options behind a recent-password prompt**
-  Boss (2026-10-16, 1:43 PM EDT): "I know there's a config page set
-  somewhere, that needs to get bumped up because we're starting to
-  desperately need that." Part of the configuration page of ADM.43
-  (GitHub issue
-  [#515](https://github.com/dwhagar/planetGen/issues/515)), moved from
-  8.2 to 8.1 phase 1. Options marked `x-min_role` owner (SMTP,
-  `web.base_url`, the From address) are editable only by the Owner, and
-  only after the Owner re-entered their password within the last 10
-  minutes; admins see them disabled with the reason. This needs the
-  Owner account that USR.2 creates, so it belongs to 8.2 and not to the
-  umbrella ADM.43. Done: the prompt, the tier check in the writer, and
-  tests that an admin and a stale-password Owner are both refused.
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 9, "Stay in 8.1":
-  this item stays in 8.1 phase 1 with only the Owner account stub USR.31
-  pulled in; the full accounts (USR.2, USR.26) stay in 8.2 and replace
-  the stub. Where the text above says it "belongs to 8.2", this wins.
-  Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this (12:21 PM EDT
-  2026-10-24 as the lane asked; moved from Core 2, who had not reported
-  starting it).
-  Prerequisites: USR.31. Related: ADM.43, USR.3, USR.26.
-
 - [ ] **ADM.88 Control database backup part: a dump of the planetgen_control schema (admin logins, API keys, run records) in the backup archive**
   Boss (2026-10-16, 1:59 PM and 2:00 PM EDT): "let's add backups of the
   control DB and backups of the parity data for DB repair." and "All
@@ -18950,7 +18912,7 @@ clears each one.
     and builds the mail module and the "send test email" action; the
     form is the generated settings page (ADM.84 and ADM.86), not a
     second form.
-    Prerequisites: ADM.86, USR.26.
+    Prerequisites: USR.26.
 
   - [ ] **USR.4 Invite-only sign-up by unique link**
     Boss: "only an admin can
@@ -19432,27 +19394,6 @@ clears each one.
   grow after an orbital update.
   Prerequisites: USR.29. Related: USR.10.
 
-- [ ] **USR.31 The Owner account stub: one Owner row and a role check, enough for the Owner-tier settings of ADM.86 in 8.1**
-  Filed from Boss's sweep answer on fork 9, "Stay in 8.1" (6:10 PM EDT
-  2026-10-18, as the coordinator reported it): ADM.86 stays in 8.1 and
-  the Owner account it needs is pulled in as a stub before the full
-  accounts of 8.2 (USR.2, USR.26). Do: one Owner row in the control
-  database (created by the accounts CLI recovery path `--set-owner`), a
-  role check the settings writer can call (owner or not), and the
-  recent-password re-entry state; nothing of the sign-up, invitations,
-  Users page or session roles. Done: ADM.86's prompt and tier check run
-  against this stub, a test that a non-Owner and a stale-password Owner
-  are both refused, and USR.26 replaces the stub with the full roles
-  without changing ADM.86's call. Suggested owner: the lane that owns
-  ADM.43 (Core 5 proposed); version 8.1.
-  Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this (12:21 PM EDT
-  2026-10-24 as the lane asked; moved from Core 2, who had not reported
-  starting it).
-  Prerequisites: none.
-
 ## OPS: Installers, hosting, CI, releases
 
 OPS.1 shipped with the version scheme in `changes/README.md`.
@@ -19589,6 +19530,15 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   fails with DatabaseLoginError on lane machines, the same missing-GRANT
   cause as test_update_database_step. The setup script should give the
   lane user the grants the tests need.
+  Lane setup (2026-10-09): Update 4:57 PM EDT 2026-10-24: the TODO
+  thread reproduced a class of false reds on lane machines: tests such
+  as test_prevalence fail with DataMissing for ozone_uv (AD9) and some
+  with a missing NLTK words resource, because a lane machine has not run
+  the dataset fetch that update.sh runs at setup. Several 'red on clean
+  main' reports this afternoon may be this. Lanes run `python3 -m
+  planetgen.cli.datasets fetch ozone_uv` (and the other fetches) before
+  reporting a test red on main; the lane setup script should do it too.
+  Noted in status/README.md.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
