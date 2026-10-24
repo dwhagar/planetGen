@@ -19888,15 +19888,6 @@ clears each one.
   (proposed).
   Prerequisites: none. Related: GEN.413.
 
-- [ ] **TEST.310 Re-run the 16 tests that failed in the Blocker 5 gate on current main in an environment with MySQL and Redis, and report**
-  The Blocker 5 lane had no MySQL or Redis (connection refused), so its
-  scripts/test.py changed run showed 17,619 passed and 16 failed or
-  errored, never confirmed as environmental
-  (reports/blocker-5-status-2026-10-24.md, PR #2778). Do: run the
-  affected tests on current main with a working environment and report
-  which, if any, are real failures. Also confirm the ops tests behind PR #2786 (update.sh download fix, OPS.68), which merged without a full green run because MySQL died on the bands lane's machine (159 of 160 errors pass alone). Owner: the Blocker 6 lane (Boss, 10:41 PM EDT 2026-10-23).
-  Prerequisites: none.
-
 - [ ] **TEST.311 test_hosted_nebula_rows::test_a_pre_placed_star_rolls_the_nebula_its_sector_builds fails on main (bug)**
   Seen failing on main by the body-rendering build lane (10:52 PM EDT
   2026-10-23 as the lane reported); not caused by its changes. Do:
