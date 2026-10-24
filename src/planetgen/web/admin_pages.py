@@ -969,6 +969,7 @@ def admin_stats():
             ],
             db_rows=[
                 ("Schema", _schema_text(database)),
+                ("Generator version", str(database["generator_version"]) if "generator_version" in database else "unknown"),
                 ("Last system change", _time_or(systems_stamp.get("last_modified_at"), "never")),
                 ("Newest system", _time_or(systems_stamp.get("newest_created_at"), "none")),
                 ("Last sector change", _time_or(stamps.get("sectors", {}).get("last_modified_at"), "never")),

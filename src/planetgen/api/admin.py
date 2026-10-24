@@ -25,6 +25,7 @@ from planetgen.admin import auth, throttle
 from planetgen.generation import stats as generationStats
 from planetgen.api import naming
 from planetgen.names import naming_key
+from planetgen.util import generator_epoch
 from planetgen.web.lib import xfetch
 from planetgen._version import __version__
 
@@ -124,6 +125,7 @@ def _database_figures(conn, config, db_name):
         "schema_version": version,
         "schema_expected": _db.SCHEMA_VERSION,
         "schema_current": version == _db.SCHEMA_VERSION,
+        "generator_version": generator_epoch.generator_epoch(),
         "size_bytes": sum(t["data_bytes"] + t["index_bytes"] for t in tables),
         "disk": _database_disk(conn, config),
         "counts": adminStats.exact_counts(conn),
