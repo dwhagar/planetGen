@@ -254,7 +254,7 @@ def test_a_numeric_validity_range_has_open_ends():
 
 def test_a_target_that_names_a_selection_model_nobody_built_refuses_to_simulate():
     t = one(selection_model="kepler-recovery")
-    with pytest.raises(TargetError, match="GEN.504"):
+    with pytest.raises(TargetError, match="not registered"):
         th.simulate(t, lambda i: 1.0, 5)
 
 

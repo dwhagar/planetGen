@@ -25,7 +25,7 @@ stay tunable. This module is the one build every tuned draw (builders B1 to B16,
   with the `solar_system` flag stating why, reported and never tuned to (`Comparison.tunes` is false). The loader refuses a
   `target` whose statistic or source names a Solar System body, or any entry with the flag but not the role `test-point`.
 * **Selection models.** A statistic of an observed sample needs the same cut on the simulated side. `SELECTION_MODELS` holds the
-  five of tunable-gaps.md section 4 by id (built by GEN.504 to GEN.508); a model nobody has registered yet makes
+  five of tunable-gaps.md section 4 by id (each built in its own module); a model nobody has registered yet makes
   `simulate_and_compare` refuse (`TargetError`), so a tuned width is never reported as a match without its cut.
 
 A retune changes a table's draws, so it is a table version change and a generator epoch bump (possibility_table.py); adding
@@ -47,7 +47,7 @@ from dataclasses import dataclass
 
 from planetgen.physics import elements
 from planetgen.physics.elements import DataError
-from planetgen.util import draw
+from planetgen.util import detmath, draw
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "tuning_targets.json")
 """str: The data file."""
@@ -68,13 +68,13 @@ SIGMAS = 2.0
 """float: The comparison passes within this many sigma."""
 
 SELECTION_MODEL_ITEMS = {
-    "kepler-recovery": "GEN.504",
-    "mass-radius-sample": "GEN.505",
-    "jwst-target-selection": "GEN.506",
-    "comet-admission": "GEN.507",
-    "wd-pollution-detection": "GEN.508",
+    "kepler-recovery": "the Kepler recovery model",
+    "mass-radius-sample": "the mass-radius sample model",
+    "jwst-target-selection": "the JWST target-selection model",
+    "comet-admission": "the comet-admission model",
+    "wd-pollution-detection": "the white-dwarf pollution-detection model",
 }
-"""dict: The five selection models and the item that builds each (tunable-gaps.md section 4)."""
+"""dict: The five selection models and a phrase naming each (tunable-gaps.md section 4)."""
 
 SOLAR_SYSTEM_WORDS = ("sun", "solar system", "earth", "venus", "mars", "mercury", "moon", "luna", "jupiter", "saturn", "uranus",
                       "neptune", "titan", "pluto", "triton", "io", "europa", "ganymede", "callisto", "enceladus", "ceres",
@@ -348,7 +348,7 @@ class TargetTable:
 # --- selection models -------------------------------------------------------------------------------------------------
 
 SELECTION_MODELS = {}
-"""dict: id -> function `item -> probability` of the selection models built so far (GEN.504 to GEN.508)."""
+"""dict: id -> function `item -> probability` of the selection models built so far (five)."""
 
 
 def register_selection_model(model_id, function):
@@ -449,9 +449,9 @@ def compare(target, values, *, quantities=None, count=None):
         k_obs, n_obs = target.counts
         lo_t, hi_t = wilson_interval(k_obs, n_obs)
         if simulated >= target.value:
-            sigma = math.hypot(hi_t - target.value, simulated - lo_s)
+            sigma = detmath.hypot(hi_t - target.value, simulated - lo_s)
         else:
-            sigma = math.hypot(target.value - lo_t, hi_s - simulated)
+            sigma = detmath.hypot(target.value - lo_t, hi_s - simulated)
         z = (simulated - target.value) / sigma if sigma > 0 else math.inf
         draws = n
     else:
@@ -459,7 +459,7 @@ def compare(target, values, *, quantities=None, count=None):
         if len(values) < 2:
             raise TargetError(f"target {target.id}: needs at least 2 simulated draws")
         simulated, sampling = _statistic(target.kind, values)
-        sigma = math.hypot(target.sigma, sampling)
+        sigma = detmath.hypot(target.sigma, sampling)
         z = (simulated - target.value) / sigma
         draws = len(values)
     outside = tuple(target.outside(quantities)) if quantities is not None else ()
@@ -481,7 +481,7 @@ def simulate(target, sampler, n=2000):
         model = SELECTION_MODELS.get(target.selection_model)
         if model is None:
             raise TargetError(f"target {target.id} needs the selection model {target.selection_model!r}, which "
-                              f"{SELECTION_MODEL_ITEMS[target.selection_model]} builds; it is not registered")
+                              f"is {SELECTION_MODEL_ITEMS[target.selection_model]}; it is not registered")
     values = []
     for i in range(n):
         stream = draw.Stream(f"tuning:{target.id}:{i}")
