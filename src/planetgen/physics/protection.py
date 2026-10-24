@@ -207,11 +207,12 @@ def rating(world, compact_host=None, regions=None):
     needs = requirements(world)
     levels = equipment.compute(world)
     listed = equipment.items(levels)
+    colours = {name: scores[name][1] for name in habitability.DOMAINS}
     rows = []
     for name in habitability.DOMAINS:
         value, colour = scores[name]
         sentence = _suitability_clause(world) if name == "Suitability" else _clause(
-            name, world, needs[name], compact_host, [item for item in listed if item.domain == name])
+            name, world, needs[name], compact_host, [item for item in listed if name in item.rows(colours)])
         if name == "Temperature" and regions:
             sentence = " ".join(part for part in (sentence, regional_sentence(world, regions)) if part)
         rows.append({"domain": name, "tier": colour, "score": value, "text": sentence})

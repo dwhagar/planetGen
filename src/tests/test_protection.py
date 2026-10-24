@@ -140,8 +140,9 @@ def test_the_lines_of_an_airless_frozen_world_read_like_the_examples_boss_gave()
     text = _paragraph(world)
     for line in (
             "**PHI-6 habitability** is 0.00. Required: hardened pressure suit + dust-tight seals. Recommended: hardened habitat.",
-            "**Pressure: Red** (0.00). The air pressure is 0 kPa. **Temperature: Red** (0.00). The air temperature is -227 C. "
-            "**Air: Red** (0.00). There is no atmosphere (0 kPa). Required: dust-tight seals.",
+            "**Pressure: Red** (0.00). The air pressure is 0 kPa. Required: hardened pressure suit. "
+            "**Temperature: Red** (0.00). The air temperature is -227 C. Required: hardened pressure suit. "
+            "**Air: Red** (0.00). There is no atmosphere (0 kPa). Required: hardened pressure suit + dust-tight seals.",
             "**Water: Red** (0.00). There is no liquid water to support life.",
             "**Radiation: Yellow** (0.45). The radiation dose is a mean of 742 mSv a year, inside the Yellow band "
             "(up to 1 Sv a year). Required: hardened pressure suit. Recommended: hardened habitat."):
@@ -299,3 +300,19 @@ def test_there_is_one_describer_of_the_six_categories():
 def test_a_small_dose_prints_in_the_ladders_scientific_form_not_as_a_python_exponent():
     text = protection.radiation_need(_world(surface_dose_sv_yr=2.0e-7))[2]
     assert "e-" not in text and "10" in text
+
+
+def _rows(world):
+    return {row["domain"]: row for row in protection.rating(world)["rows"]}
+
+
+def test_an_item_sits_under_the_rows_that_ask_for_it_not_under_a_blue_one():
+    """GEN.702: a cold world's own air is for the cold (Air is Blue), a hardened pressure suit is for the pressure and the
+    radiation, and a suit that seals keeps out the cold and the thin air as well."""
+    cold = _rows(_world(temperature_c=-80.0))
+    assert "self-contained air" in cold["Temperature"]["text"] and "Required" not in cold["Air"]["text"]
+    mars = _rows(World(pressure_kpa=0.6, temperature_c=-60.0, gases={"CO2": 0.95}, surface_dose_sv_yr=0.236,
+                       dose_gcr_sv_yr=0.236, dose_sep_sv_yr=0.0, dose_ground_sv_yr=0.001, gravity_ms2=3.7))
+    for domain in ("Pressure", "Temperature", "Radiation"):
+        assert "hardened pressure suit" in mars[domain]["text"], domain
+    assert "hardened habitat" in mars["Radiation"]["text"] and "hardened habitat" not in mars["Pressure"]["text"]

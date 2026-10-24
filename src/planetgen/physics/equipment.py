@@ -71,7 +71,29 @@ RAD_STEP_KEYS = tuple(step.key for step in RADIATION_STEPS)
 REQUIRED, RECOMMENDED = "required", "recommended"
 SEVERITIES = (REQUIRED, RECOMMENDED)
 
-Item = namedtuple("Item", "slot name severity domain")
+_Item = namedtuple("_Item", "slot name severity domains")
+
+
+class Item(_Item):
+    """An item of the equipment line: its `slot`, `name`, `severity` and the PHI-6 `domains` it can come from, the likeliest
+    first (GEN.702: a self-contained air supply may be for the air, the pressure or the cold; a hardened pressure suit is for
+    the pressure and the radiation). `domain` is the first."""
+
+    __slots__ = ()
+
+    @property
+    def domain(self):
+        return self.domains[0]
+
+    def rows(self, colours):
+        """The PHI-6 rows the item is listed under: those of its domains whose colour (`colours`, domain to Blue, Green, Yellow
+        or Red) is not Blue, since a Blue row asks for nothing; the first domain when all of them are Blue."""
+        shown = [domain for domain in self.domains if colours.get(domain) != "Blue"]
+        return shown or [self.domain]
+
+
+def _item(slot, name, severity, *domains):
+    return Item(slot, name, severity, tuple(domains))
 """An item of the equipment line: its `slot` (body, filter, supply, radiation), `name`, `severity` and the PHI-6
 `domain` it comes from."""
 
@@ -446,31 +468,38 @@ def _list(levels, severity):
     worn_kind = kind if body else _get(levels, "eq_body_kind")
     word = _body_word(worn, worn_kind) if worn else None
     domain = KIND_DOMAIN.get(BODY_KINDS[worn_kind], "Pressure") if worn_kind else "Pressure"
+    domains = (domain,)
+    if worn >= 4:  # a suit that holds a pressure round the wearer also keeps out the cold, the heat and the air
+        domains = tuple(dict.fromkeys((domain, "Pressure", "Temperature", "Air")))
+    elif worn == 3:
+        domains = (domain, "Air")
     if suit == 3:
-        word = "hardened " + word if worn >= 3 and worn < 6 else "hardened suit"
-        domain = "Radiation"
+        hardened = worn >= 3 and worn < 6
+        word = "hardened " + word if hardened else "hardened suit"
+        domains = (*domains, "Radiation") if hardened else ("Radiation",)
     if word and (body or suit == 3):
-        out.append(Item("body", word, severity, domain))
+        out.append(_item("body", word, severity, *domains))
     elif suit == 3:
-        out.append(Item("body", "hardened suit", severity, "Radiation"))
+        out.append(_item("body", "hardened suit", severity, "Radiation"))
     if _get(levels, "eq_mobility") == (2 if required else 1):
-        out.append(Item("body", "powered frame", severity, "Pressure"))
+        out.append(_item("body", "powered frame", severity, "Pressure"))
     if suit in (1, 2):
-        out.append(Item("body", RAD_SUIT_NAMES[suit], severity, "Radiation"))
+        out.append(_item("body", RAD_SUIT_NAMES[suit], severity, "Radiation"))
     if required:
         sealed = _get(levels, "eq_supply") >= 2 or _get(levels, "eq_body") >= 4
         if _get(levels, "eq_dust"):
-            out.append(Item("filter", "dust-tight seals" if sealed else "dust filter", severity, "Air"))
+            out.append(_item("filter", "dust-tight seals" if sealed else "dust filter", severity, "Air"))
         grade = _get(levels, "eq_gas_filter")
         if grade:
-            out.append(Item("filter", GAS_FILTER_NAMES[grade], severity, "Air"))
+            out.append(_item("filter", GAS_FILTER_NAMES[grade], severity, "Air"))
         if _get(levels, "eq_co2_scrub"):
-            out.append(Item("filter", "CO2 scrubber", severity, "Air"))
+            out.append(_item("filter", "CO2 scrubber", severity, "Air"))
     carried = _get(levels, "eq_body")
     if supply and not (carried >= 4 and supply <= 2) and not (carried >= 5 and supply == 4):
-        out.append(Item("supply", SUPPLY_NAMES[supply], severity, "Air" if supply < 3 else "Pressure"))
+        out.append(_item("supply", SUPPLY_NAMES[supply], severity,
+                         *(("Air", "Pressure", "Temperature") if supply < 3 else ("Pressure",))))
     if shelter:
-        out.append(Item("radiation", SHELTER_NAMES[shelter], severity, "Radiation"))
+        out.append(_item("radiation", SHELTER_NAMES[shelter], severity, "Radiation"))
     return out
 
 
@@ -555,7 +584,8 @@ def summary(levels):
         return None
     return {
         "required": required_names(levels), "recommended": recommended_names(levels), "code": code(levels),
-        "items": [{"slot": item.slot, "item": item.name, "severity": item.severity, "domain": item.domain}
+        "items": [{"slot": item.slot, "item": item.name, "severity": item.severity, "domain": item.domain,
+                   "domains": list(item.domains)}
                   for item in items(levels)],
         "line": line(levels), "required_line": lines(levels)[0], "recommended_line": lines(levels)[1],
         "shelter_column_g_cm2": levels.get("shelter_column_g_cm2"),
