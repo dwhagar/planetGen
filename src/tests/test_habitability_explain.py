@@ -93,7 +93,7 @@ def test_more_potassium_in_the_ground_moves_the_ground_term_and_the_dose_and_nev
     assert rich.gcr_msv_yr == base.gcr_msv_yr and rich.sep_msv_yr == base.sep_msv_yr
     # the gamma law is linear in the element: ten times the potassium adds ten times its own part
     def only_k(ppm):
-        return radiation.gamma_dose_msv_yr(radiogenic.surface_content(radiogenic.Content(ppm, 0.0, 0.0, 0.0, 0.5), FELSIC), AGE_GY)
+        return radiation.gamma_dose_msv_yr(radiogenic.surface_content(radiogenic.Content(ppm, 0.0, 0.0, 0.0), FELSIC), AGE_GY)
 
     assert rich.ground_msv_yr - base.ground_msv_yr == pytest.approx(only_k(10.0 * k) - only_k(k), rel=1e-6)
     # enough potassium turns the dose rating down
