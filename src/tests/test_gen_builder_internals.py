@@ -13,6 +13,7 @@ import pytest
 
 from planetgen.generation import system as systemData
 from planetgen import tuning
+from planetgen.physics import planets as planetPhysics
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
@@ -290,6 +291,19 @@ def test_reconcile_carries_moons_into_the_parents_new_zone(system):
     for moon in planet.moons:
         assert moon.zone == planet.zone == 'c'
         assert tuning.PLANET_CLASSES[moon.planet_class]['c']
+
+
+def test_reconcile_reruns_spin_dose_and_score_for_each_moon_of_a_moved_planet(system, monkeypatch):
+    """GEN.704: a moon keeps its class when its parent only moves within a zone, but its dose, UV and score were drawn
+    at the old distance, so `generate_spin` (which ends with them) runs again for each moon."""
+    planet = planet_at(system, system.star.habitable_zone[1] * 3, "J", moon_count=3)
+    assert planet.moons
+    reran = []
+    real = planetPhysics.generate_spin
+    monkeypatch.setattr(planetPhysics, "generate_spin", lambda body, mass: (reran.append(body), real(body, mass))[1])
+    planet.distance *= 2
+    assert system._reconcile_moved_planet(planet) is False
+    assert all(any(body is moon for body in reran) for moon in planet.moons)
 
 
 # --- _clear_circumbinary_floor --------------------------------------------

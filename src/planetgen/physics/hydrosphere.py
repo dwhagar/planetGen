@@ -59,10 +59,10 @@ _au_to_m = units.converter("au", "m")
 HYDROSPHERE_FIELDS = (
     "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction",
     "ocean_depth_km", "ice_shell_km", "hp_ice_km", "water_base_pressure_pa",
-    "ocean_class", "ocean_ph", "water_activity", "phosphorus",
+    "ocean_class", "ocean_ph", "water_activity", "phosphorus", "tidal_flux_w_m2",
 )
 """tuple: What `generate_hydrosphere` sets on a planet or moon, as stored in
-`planets` and `moons`."""
+`planets` and `moons` (`tidal_flux_w_m2` is set on an icy moon under ice only)."""
 
 HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocean", "hycean")
 OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutral")
@@ -252,7 +252,9 @@ def generate_hydrosphere(body, internal_flux_w_m2):
         h2 = getattr(body, "p_h2_kpa", None) or 0.0
         state = "hycean" if h2 > HYCEAN_MIN_H2_SHARE * pressure / 1000.0 else "surface ocean"
     else:
-        flux = internal_flux_w_m2 + moon_tidal_flux_w_m2(body, getattr(body, "primary_mass_kg", None), w)
+        tide = moon_tidal_flux_w_m2(body, getattr(body, "primary_mass_kg", None), w)
+        body.tidal_flux_w_m2 = tide or None  # GEN.700: kept, the heat the life of an ice-covered ocean can use
+        flux = internal_flux_w_m2 + tide
         shell = pressure_melted_shell_km(max(flux, 1e-6), max(temperature, 1.0), gravity)
         column = water_layer.column(body.mass, body.radius, water_kg, covered=covered, shell_km=shell,
                                     bottom_temperature_k=WATER_MELTING_K, pressure_pa=pressure)

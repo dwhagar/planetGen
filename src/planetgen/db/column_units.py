@@ -399,7 +399,7 @@ TABLES = {
         "DU": ("ozone_column_du",),
         "flag": ("ozone_loss_flag", "born_beyond_snow_line", "carbon_rock"),
         "rad": ("l_rad",),
-        "W_m2": ("energy_flux_w_m2",),
+        "W_m2": ("energy_flux_w_m2", "tidal_flux_w_m2"),
     },
     "nearest_systems": {
         "id": ("id", "sector_id", "object_id", "star_system_id", "neighbor_system_id"),
@@ -613,7 +613,7 @@ TABLES = {
         "DU": ("ozone_column_du",),
         "flag": ("ozone_loss_flag", "born_beyond_snow_line", "carbon_rock"),
         "rad": ("l_rad",),
-        "W_m2": ("energy_flux_w_m2",),
+        "W_m2": ("energy_flux_w_m2", "tidal_flux_w_m2"),
     },
     "polities": {
         "id": ("id", "species_id", "capital_system_id"),
