@@ -335,10 +335,11 @@ MACHINE = {
     # ---- o. ground radioisotopes ----
     "o1": dict(kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=True)], bins=[0.7, 1.4],
                dist={"kind": "normal", "log10": True, "mu": 0.08, "sigma": 0.058}),
-    "o2": dict(state="partly verified", limit="thick-disc [Th/Mg] from Hypatia (N=32, scale of heterogeneous catalogues, 0.14 dex under the solar-twin scale of o1); halo, young and M hosts have no Th data (GEN.514)", kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=False)], tunable=True,
-               dist={"kind": "normal", "log10": True, "mu": -0.063, "sigma": 0.19, "range": [-0.64, 0.52]},
+    "o2": dict(state="partly verified", limit="thick-disc [Th/Mg] from Hypatia (N=32, moved onto the solar-twin scale of o1 by the Hypatia thick-thin offset of -0.019 dex, GEN.664); halo, young and M hosts have no Th data (GEN.514)", kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=False)], tunable=True,
+               dist={"kind": "normal", "log10": True, "mu": 0.061, "sigma": 0.19, "range": [-0.56, 0.60]},
                source="Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 "
-                      "(N=215), so no thick-thin offset in the planet-relevant ratio (DATA, COMPUTED; tunable-gaps 3.2)",
+                      "(N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, Botelho 2019) "
+                      "as 0.08 - 0.019 = 0.061 (DATA, COMPUTED; tunable-gaps 3.2; docs/design/composition/radioisotope-tuning.md section 1)",
                correction="Retuned 2026-10-23 (GEN.514): the log-uniform bracket 59 to 251 percent was the range of 14 solar twins; "
                           "the 32 thick-disc stars give a centre of 86 percent of the solar ratio and a spread of 0.19 dex, the widest "
                           "of the intrinsic 0.056 (Botelho 2019) and the catalogue's 0.15 to 0.19."),

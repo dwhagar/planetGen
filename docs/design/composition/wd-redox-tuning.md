@@ -26,3 +26,7 @@ The published spread is 0.447 (sigma 0.069), so the accepted width is 0 to about
 - The scale conversion between the white-dwarf core-formation dIW and the surface magma-ocean dIW of row a1 is not tested. Row a1 keeps its floor and slope (flagged stand-ins); a3 and a4 are on the white-dwarf scale.
 - The settling of elements out of a white dwarf atmosphere is not modelled; a tuned width is an upper bound for a sample that holds stars observed after the pollution waned.
 - The recipes are not yet read by the generator, so this changes no generated value and takes no generator epoch.
+
+## 4. The power of the targets (GEN.665)
+
+The sample behind the spread has 7 stars with both bounds (16 with both bounds in the error fit, of which the redox values come from 22), not 8 of 24. The tests now say what the four targets can and cannot refuse (`test_wd_pollution.py`, last test): a centre 0.3 dex off and a spread of 0.9 or 0.22 against 0.447 are refused (more than 2 sigma of 0.10 and 0.069), the earlier width 0.45 is refused, and a width of 0.01 is not. The width 0.22 is kept: it is the intrinsic spread of the well-constrained stars and the only value of the accepted range 0 to about 0.38 with an independent estimate behind it. The data cannot tell it from a width of zero, and a better target needs more stars with both bounds.

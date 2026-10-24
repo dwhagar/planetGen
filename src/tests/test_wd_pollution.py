@@ -306,3 +306,19 @@ def test_the_spread_is_tuned_with_the_error_of_the_stars_with_both_bounds_and_th
     assert not _compare("a4-sd", 0.01, wd.ERROR_MODEL).passed
     assert not _compare("a4-sd", 0.45, bounded).passed, "the earlier width"
     assert _compare("a4-mean", 0.22, wd.ERROR_MODEL).passed and _compare("a4-mean", 0.22, bounded).passed
+
+
+# --- the power of the redox targets (GEN.665) --------------------------------------------------------------------------------
+
+
+def test_the_redox_targets_refuse_a_centre_wrong_by_0_3_dex_and_a_spread_wrong_by_a_factor_of_two_but_not_a_zero_width():
+    bounded = wd.fit_error_model(flagged=False)
+    mean = th.TARGETS.get("a4-mean")
+    assert _compare("a4-mean", 0.22, bounded).passed
+    for shift in (-0.3, 0.3):
+        assert abs((mean.value + shift) - mean.value) > th.SIGMAS * mean.sigma, "a centre 0.3 dex off is more than 2 sigma of the 22 values"
+    sd = th.TARGETS.get("a4-sd")
+    for wrong in (sd.value * 2, sd.value / 2):
+        assert abs(wrong - sd.value) > th.SIGMAS * sd.sigma
+    assert _compare("a4-sd", 0.01, bounded).passed, "the spread does not tell a near-zero intrinsic width from 0.22: the sample of 7 does not identify it"
+    assert not _compare("a4-sd", 0.45, bounded).passed

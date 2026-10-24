@@ -93,11 +93,12 @@ def test_the_table_refuses_a_malformed_scale_threshold_or_subject():
 # --- radioisotopes (GEN.514) -------------------------------------------------------------------------------------------------
 
 
-def test_the_thorium_scale_of_non_thin_disc_hosts_is_the_thick_disc_statistic_and_not_a_fourteen_star_bracket():
+def test_the_thorium_scale_of_non_thin_disc_hosts_is_the_thick_disc_offset_on_the_solar_twin_scale_of_row_o1():
     spec = RECIPES.entry("o2").spec["dist"]
-    assert spec["kind"] == "normal" and spec["log10"] and spec["mu"] == -0.063 and spec["sigma"] == 0.19
-    old = retuned("o2", lambda e: e.update(dist={"kind": "loguniform", "lo": "10**-0.23", "hi": "10**0.40"}))
-    assert not th.check_target(th.TARGETS.get("o2-mean"), recipes=old, n=3000).passed, "the bracket's log-mean is +0.085"
+    assert spec["kind"] == "normal" and spec["log10"] and spec["mu"] == 0.061 and spec["sigma"] == 0.19
+    assert RECIPES.entry("o1").spec["dist"]["mu"] == 0.08 and 0.08 - 0.019 == pytest.approx(0.061)
+    shifted = retuned("o2", lambda e: e["dist"].update(mu=-0.063))
+    assert not th.check_target(th.TARGETS.get("o2-mean"), recipes=shifted, n=3000).passed, "the Hypatia scale is 0.12 dex under row o1"
 
 
 def test_the_thorium_to_uranium_ratio_grows_with_the_planets_age_and_follows_the_published_formula():
@@ -206,3 +207,30 @@ def test_the_m_dwarf_saturation_time_passes_through_the_three_measured_masses():
         return RECIPES.derive("p4", Subject("E", {"host_type": "M", "host_mass_solar": mass, "age_gy": 1.0}))["tau_sat_gy"]
     assert (tau(0.55), tau(0.25), tau(0.15)) == pytest.approx((0.162, 0.6, 2.3)), "Jackson 2012 and Medina 2022"
     assert tau(0.55) < tau(0.4) < tau(0.25) < tau(0.2) < tau(0.15), "later saturation end for lower masses"
+
+
+# --- the power of the targets (GEN.665) ---------------------------------------------------------------------------------------
+
+WEAK_TARGETS = {"k5-mean": "the CO/CO2 ratio of 3 comets is a 0.16 dex mean: a factor-2 error in either direction passes",
+                "k7-H2S-sd": "half the published spread (0.195 against 0.39, sigma 0.10) passes; the doubled spread is refused"}
+
+
+def test_a_target_refuses_a_value_wrong_by_a_factor_of_two_unless_it_is_listed_as_weak():
+    weak = {}
+    for target_id in CHECKED:
+        target = th.TARGETS.get(target_id)
+        refused = th.power(target, th.check_target(target, n=2000))
+        assert refused, target_id
+        if not all(refused.values()):
+            weak[target_id] = refused
+    assert set(weak) == set(WEAK_TARGETS), "a target lost or gained its power: say so in WEAK_TARGETS and the tuning notes"
+    assert not any(weak["k5-mean"].values()) and any(weak["k7-H2S-sd"].values())
+
+
+def test_the_power_of_a_target_is_the_distance_of_the_wrong_value_in_its_combined_sigma():
+    target = th.TARGETS.get("f5-z-1p0")
+    result = th.check_target(target, n=2000)
+    assert th.wrong_values(target) == [11.8, 2.95]
+    assert all(th.power(target, result).values())
+    proportion = th.TARGETS.get("f7-tail")
+    assert th.wrong_values(proportion) == [pytest.approx(0.0869565 + 0.25)], "the lower side would be negative"
