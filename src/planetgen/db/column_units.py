@@ -28,6 +28,7 @@ Rules (docs/design/architecture/unified-unit-quantity.md, Boss's cards Q3 and Q4
 
 import dataclasses
 
+from planetgen import tuning
 from planetgen.physics import constants, unit_registry
 
 _yr_to_s = unit_registry.converter("yr", "s")
@@ -378,7 +379,7 @@ TABLES = {
         "kg/mol": ("atm_molar_density",),
         "Pa": ("atmospheric_pressure_pa", "water_base_pressure_pa"),
         "count": ("flavor_text_count",),
-        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr"),
+        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS),
         "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg"),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
@@ -604,7 +605,7 @@ TABLES = {
         "kg/mol": ("atm_molar_density",),
         "Pa": ("atmospheric_pressure_pa", "water_base_pressure_pa"),
         "count": ("flavor_text_count",),
-        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr"),
+        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS),
         "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg"),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),

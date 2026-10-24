@@ -181,6 +181,9 @@ class Planet(PlanetaryObject):
                                          `normal`, `slow`), drawn once by `life.apply_life_data`; `None` when the
                                          body has no life chemistry. Every sentence about the pace reads it.
         life_milestone_age_gyr, life_system_age_gyr (float or None): The milestone's age and the system's, Gy.
+        life_age_abiogenesis_gyr ... life_age_technological_civilization_gyr (float or None): The age at which the
+                                  world's pace reaches each milestone (`tuning.LIFE_SCHEDULE_FIELDS`, Gy; set by
+                                  `life.apply_life_data` with the pace, `None` without one).
         flavor_key (str or None): The flavour line `life.decide_flavor_text` drew, as `category:index` into the
                                   `tuning` flavour lists (`flavor_text` reads it).
         flavor_text_count (int): The number of flavor texts added to this planet.
@@ -193,7 +196,7 @@ class Planet(PlanetaryObject):
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
         "life_chemical", "reflection_spectrum_visible",
         "reflection_spectrum_non_visible", "life_stage", "evolutionary_pace",
-        "life_milestone_age_gyr", "life_system_age_gyr", "flavor_key",
+        "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS, "flavor_key",
         "flavor_text_count", "habitable_zone", "volume", "period",
         "orbital_inclination_deg", "orbital_ascending_node_deg",
         "position_x", "position_y", "position_z", "orbital_speed_kms",
@@ -337,6 +340,8 @@ class Planet(PlanetaryObject):
         self.evolutionary_pace = None
         self.life_milestone_age_gyr = None
         self.life_system_age_gyr = None
+        for field in tuning.LIFE_SCHEDULE_FIELDS:
+            setattr(self, field, None) # The pace's milestone ages, set with the pace
         self.flavor_key = None # Set later by life.decide_flavor_text
         self.flavor_text_count = 0 # Initialize flavor text count for this planet
         self.orbital_inclination_deg = None

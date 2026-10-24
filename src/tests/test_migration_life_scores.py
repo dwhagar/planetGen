@@ -89,7 +89,7 @@ def test_a_v149_galaxy_gets_its_scores_from_the_stored_likelihoods_and_path(mysq
         with conn:
             # a world with a civilization, one with microbes only and one without life, as a v149 row would hold them
             conn.execute("UPDATE planets SET phi_bio = 0.8, phi_cpx = 0.6, life_chemical = 'chlorophyll-a',"
-                         " life_stage = 'technological_civilization', evolutionary_pace = 'Earth Norm',"
+                         " life_stage = 'technological_civilization', evolutionary_pace = 'normal',"
                          " life_milestone_age_gyr = 4.0, life_system_age_gyr = 4.6 WHERE id = ?", (ids[0],))
             conn.execute("UPDATE planets SET phi_bio = 0.4, phi_cpx = 0.0, life_chemical = 'chlorophyll-a',"
                          " life_stage = NULL, evolutionary_pace = NULL, life_milestone_age_gyr = NULL,"

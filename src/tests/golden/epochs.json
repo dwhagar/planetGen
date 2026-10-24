@@ -466,6 +466,12 @@
       "first_release": null,
       "pending": true,
       "reason": "A rocky planet or moon past its star's runaway greenhouse limit while the star was young and bright loses water (energy-limited escape of the steam, from 30 Myr to the star's age), so the water mass fraction of planets in the zone of cool stars falls, to nothing for most (GEN.639)"
+    },
+    {
+      "epoch": 95,
+      "first_release": null,
+      "pending": true,
+      "reason": "A rocky planet or moon past its star's runaway greenhouse limit while the star was young and bright loses water (energy-limited escape of the steam, from 30 Myr to the star's age), so the water mass fraction of planets in the zone of cool stars falls, to nothing for most (GEN.639)"
     }
   ]
 }
