@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.36 |
-| TEST | TEST.367 |
+| TEST | TEST.368 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -531,7 +531,7 @@ Parents marked "new parent" had no old number of their own.
 | API.12 | The download: seed, skeleton and name state | none | open |
 | API.13 | Generation without a database | none | open |
 | API.14 | Upload routes, compressed, in batches | none | open |
-| API.15 | Log every API call with its user, how it came in, and its HTTP response code | none | open |
+| API.15 | Log every API call with its user, how it came in, and its HTTP response code | none | done, PR #3136 |
 | API.16 | The API reports the galaxy's seed, version and run history | none | dropped (Boss, 2026-10-09 20:42Z) |
 | API.17 | Remote generation reproduces what the server would make | none | open |
 | API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | none | open |
@@ -2861,6 +2861,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.364 | Clean up the unused imports, unused variables and redefinitions that ruff and vulture report (82 ruff F findings, 12 vulture hits) | none | open |
 | TEST.365 | Six phenomenon-page tests in test_class_pages.py fail on clean main (bug) | none | open |
 | TEST.366 | test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug) | none | open |
+| TEST.367 | Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
