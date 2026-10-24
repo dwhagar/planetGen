@@ -1028,7 +1028,7 @@ with `clamp()`.
   kind) and the cluster layout: each icon with a small digit 0 to 9
   beside the PHI-6 symbols, readable at the list size, both themes, with
   an accessible text label and a 0 state that reads as none. Owner:
-  Habitability lane A. Done: the shapes in the library, the cluster
+  the Composition-first stars lane. Done: the shapes in the library, the cluster
   component with a visual test at three sizes, and the colour rule for
   the digit (or none) written down.
   Prerequisites: none. Related: UX.101, UX.100.
@@ -15193,7 +15193,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.553. Related: GEN.553, GEN.467, GEN.502, GEN.440,
   GEN.464.
   Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1:
-  composition-first stars). Owner: Habitability lane A (moved from
+  composition-first stars). Owner: the Composition-first stars lane (moved from
   Core 4 at 7:53 PM EDT 2026-10-23), built with GEN.553 in one epoch (a
   rescatter of every star).
 
@@ -15215,7 +15215,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.553. Related: GEN.553, GEN.440, GEN.467.
   Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1):
   MIST is the single main-sequence table and the piecewise laws are
-  removed, no shim. Owner: Habitability lane A (moved from Core 4 at
+  removed, no shim. Owner: the Composition-first stars lane (moved from Core 4 at
   7:53 PM EDT 2026-10-23), with GEN.553 and GEN.651 in one epoch.
 
 - [ ] **GEN.653 Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life**
@@ -15358,7 +15358,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.427, GEN.442.
 
 - [ ] **GEN.661 Bright-star counts still use the reference-composition fraction (stand-in, bug)**
-  Found by Habitability lane A (relayed 2026-10-23, 8:34 PM EDT): the
+  Found by the Composition-first stars lane (relayed 2026-10-23, 8:34 PM EDT): the
   bright-star count draw still uses the reference-composition fraction
   instead of the star's own birth [Fe/H], so metal-poor and metal-rich
   regions hold the same bright fraction. Done: the count draw reads the
@@ -15369,13 +15369,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.651. Related: GEN.553, GEN.652.
 
 - [ ] **GEN.662 Cluster and satellite stars draw a halo [Fe/H] for their lifetimes (stand-in, bug)**
-  Found by Habitability lane A (relayed 2026-10-23, 8:34 PM EDT): stars
+  Found by the Composition-first stars lane (relayed 2026-10-23, 8:34 PM EDT): stars
   in clusters and satellite galaxies draw a halo [Fe/H] when their
   lifetimes are computed, until their component's own value is wired.
   Done: each cluster and satellite component supplies its own [Fe/H]
   distribution to the composition-first star draw, and the halo value is
   gone from those paths. Label the halo draw a stand-in in the gap plan
-  registry until then. Owner: Habitability lane A, after GEN.651.
+  registry until then. Owner: the Composition-first stars lane, after GEN.651.
   Prerequisites: GEN.651. Related: GEN.553, GEN.652.
 
 ## PERF: Speed, caching, bulk generation and parallel work
