@@ -450,6 +450,12 @@
       "epoch": 91,
       "first_release": "8.0.2230",
       "reason": "A neutron star or black hole pair accretes only through the X-ray binary draws, the recycled pulsar's companions follow the spider, white dwarf and other classes, the third member of a compact binary applies to neutron stars too, and every placed star draws three more uniforms, so the stars, companions and compact objects of the stellar scatter and the fill change (GEN.272)"
+    },
+    {
+      "epoch": 92,
+      "first_release": null,
+      "pending": true,
+      "reason": "A star's minimum age for its planets is read from each planet's stored conditions (physics/age_needs.py) instead of its class letter: about 0.6 percent of bodies need a different age tier than the class table gave"
     }
   ]
 }

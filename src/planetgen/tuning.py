@@ -1677,11 +1677,6 @@ PLANET_CLASSES = {
         "h": True, "e": False, "c": False, "r": False,
         "atmosphere": "a mix of sulfur dioxide and carbon dioxide",
         "type": "t",
-        "age_ranges": {
-            "fast": (0.0, 0.005),
-            "normal": (0.0, 0.5),
-            "slow": (0.0, 3.0)
-        }
     },
     "B": {
         # "with a thin atmosphere" moved off the description and onto the
@@ -1710,11 +1705,6 @@ PLANET_CLASSES = {
         "h": True, "e": False, "c": False, "r": False,
         "atmosphere": "a thin mix of helium, sodium, and oxygen",
         "type": "t",
-        "age_ranges": {
-            "fast": (0.0, 0.005),
-            "normal": (0.0, 0.5),
-            "slow": (0.0, 3.0)
-        }
     },
     "C": {
         "description": "a dead world",
@@ -1727,11 +1717,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
-        "age_ranges": {
-            "fast": (0.0, 0.1),
-            "normal": (0.0, 10.0),
-            "slow": (0.0, 100.0)
-        }
     },
     "D": {
         "description": "a small icy body",
@@ -1744,11 +1729,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
-        "age_ranges": {
-            "fast": (0.0, 0.1),
-            "normal": (0.0, 10.0),
-            "slow": (0.0, 100.0)
-        }
     },
     "E": {
         # "and a thin atmosphere" moved off the description and onto the
@@ -1785,11 +1765,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0290, 0.0310),
         "atm_density_range": (0.3, 1.2),
         "greenhouse_multiplier_range": (4.5, 7.5),
-        "age_ranges": {
-            "fast": (0.005, 0.015),
-            "normal": (0.5, 1.5),
-            "slow": (3.0, 8.0)
-        }
     },
     "F": {
         "description": "a volcanic world with shallow seas",
@@ -1811,11 +1786,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0295, 0.0315),
         "atm_density_range": (0.3, 1.0),
         "greenhouse_multiplier_range": (2.5, 4.0),
-        "age_ranges": {
-            "fast": (0.005, 0.015),
-            "normal": (0.5, 1.5),
-            "slow": (3.0, 8.0)
-        }
     },
     "G": {
         "description": "a rocky, barren world",
@@ -1838,11 +1808,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0300, 0.0320),
         "atm_density_range": (0.2, 0.8),
         "greenhouse_multiplier_range": (1.3, 2.0),
-        "age_ranges": {
-            "fast": (0.015, 0.05),
-            "normal": (1.5, 4.0),
-            "slow": (8.0, 25.0)
-        }
     },
     "H": {
         "description": "a desert world with little liquid water",
@@ -1871,11 +1836,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0325, 0.0345),
         "atm_density_range": (0.5, 0.9),
         "greenhouse_multiplier_range": (2.6, 3.2),
-        "age_ranges": {
-            "fast": (0.05, 0.1),
-            "normal": (4.0, 9.0),
-            "slow": (25.0, 50.0)
-        }
     },
     "I": {
         "description": "an ice giant with a tilted magnetic field",
@@ -1896,11 +1856,6 @@ PLANET_CLASSES = {
         "h": False, "e": True, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
-        "age_ranges": {
-            "fast": (0.0, 0.1),
-            "normal": (0.0, 10.0),
-            "slow": (0.0, 100.0)
-        }
     },
     "J": {
         "description": "a gas giant with a turbulent atmosphere and rings",
@@ -1922,11 +1877,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
-        "age_ranges": {
-            "fast": (0.0, 0.1),
-            "normal": (0.0, 10.0),
-            "slow": (0.0, 100.0)
-        }
     },
     "K": {
         # "with a thin atmosphere" dropped -- already collided with the
@@ -1970,11 +1920,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0420, 0.0433),
         "atm_density_range": (0.022, 0.042),
         "greenhouse_multiplier_range": (0.02, 0.05),
-        "age_ranges": {
-            "fast": (0.015, 0.05),
-            "normal": (1.5, 4.0),
-            "slow": (8.0, 25.0)
-        }
     },
     "L": {
         "description": "a marginally habitable world",
@@ -2002,11 +1947,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0400, 0.0430),
         "atm_density_range": (0.03, 0.08),
         "greenhouse_multiplier_range": (0.25, 0.45),
-        "age_ranges": {
-            "fast": (0.05, 0.1),
-            "normal": (4.0, 9.0),
-            "slow": (25.0, 50.0)
-        }
     },
     "M": {
         "description": "a temperate terrestrial world",
@@ -2038,11 +1978,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0288, 0.0292),
         "atm_density_range": (1.3, 1.55),
         "greenhouse_multiplier_range": (1.65, 1.85),
-        "age_ranges": {
-            "fast": (0.05, 0.1),
-            "normal": (4.0, 9.0),
-            "slow": (25.0, 50.0)
-        }
     },
     "N": {
         # "dense, reducing atmosphere" moved onto the atmosphere field
@@ -2089,11 +2024,6 @@ PLANET_CLASSES = {
         "greenhouse_multiplier_range": (260, 295),
         # No life_chemical (GEN.147): at Venus's 737 K and 9 MPa nothing lives on the
         # surface, and the class is not on HABITABLE_PLANET_CLASSES.
-        "age_ranges": {
-            "fast": (0.005, 0.015),
-            "normal": (0.5, 1.5),
-            "slow": (3.0, 8.0)
-        }
     },
     "O": {
         "description": "an ocean world with most of its surface covered in liquid water",
@@ -2125,11 +2055,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0270, 0.0285),
         "atm_density_range": (1.2, 1.5),
         "greenhouse_multiplier_range": (2.1, 2.4),
-        "age_ranges": {
-            "fast": (0.05, 0.1),
-            "normal": (4.0, 9.0),
-            "slow": (25.0, 50.0)
-        }
     },
     "P": {
         "description": "a cold, glaciated world",
@@ -2176,11 +2101,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0285, 0.0300),
         "atm_density_range": (0.05, 0.35),
         "greenhouse_multiplier_range": (0.3, 0.6),
-        "age_ranges": {
-            "fast": (0.08, 0.1),
-            "normal": (8.0, 10.0),
-            "slow": (45.0, 100.0)
-        }
     },
     "Q": {
         "description": "a world with an eccentric orbit and extreme temperature variations",
@@ -2200,11 +2120,6 @@ PLANET_CLASSES = {
         "h": False, "e": True, "c": False, "r": False,
         "atmosphere": "a variable mix (thin to dense) of nitrogen, oxygen, and argon",
         "type": "t",
-        "age_ranges": {
-            "fast": (0.05, 0.1),
-            "normal": (4.0, 9.0),
-            "slow": (25.0, 50.0)
-        }
     },
     "S": {
         # Rocky super-Earth (GEN.28's first class, built with GEN.38): 1.2-1.8
@@ -2225,11 +2140,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
-        "age_ranges": {
-            "fast": (0.0, 0.1),
-            "normal": (0.0, 10.0),
-            "slow": (0.0, 100.0)
-        }
     },
     "T": {
         # Radius corrected 250,000-25,000,000km -> 15,000-55,000km -- real
@@ -2247,11 +2157,6 @@ PLANET_CLASSES = {
         "h": False, "e": False, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen, helium, and hydrocarbons",
         "type": "g",
-        "age_ranges": {
-            "fast": (0.0, 0.1),
-            "normal": (0.0, 10.0),
-            "slow": (0.0, 100.0)
-        }
     },
     "V": {
         "description": "a Super-Earth with high gravity",
@@ -2287,11 +2192,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0380, 0.0420),
         "atm_density_range": (2.0, 5.0),
         "greenhouse_multiplier_range": (3.5, 6.0),
-        "age_ranges": {
-            "fast": (0.015, 0.1),
-            "normal": (1.5, 9.0),
-            "slow": (8.0, 50.0)
-        }
     },
 }
 

@@ -22,7 +22,7 @@ from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS, MassObject
 from planetgen.galaxy import enclosed_mass, scales
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.physics import activity, constants, pre_main_sequence, spin
+from planetgen.physics import activity, age_needs, constants, pre_main_sequence, spin
 from planetgen.physics.orbits import calculate_hill_sphere
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -156,9 +156,9 @@ class StellarObject(LazySaladName, MassObject):
     def planet_age_requirement_gy(self, planets):
         """
         The youngest age (Gy) this star can have and still host `planets`:
-        the highest minimum age any planet's `planet_class` needs on one of
-        this star's `supported_evolutionary_scales`. 0.0 when none needs
-        any. See `adjust_age_for_planets`.
+        the highest minimum age any planet's stored conditions need on one of
+        this star's `supported_evolutionary_scales` (`physics.age_needs`, GEN.686).
+        0.0 when none needs any. See `adjust_age_for_planets`.
         """
         # Uses get_star_evolutionary_profile rather than a raw
         # STAR_EVOLUTION[spectral_class] lookup so giants/supergiants/white
@@ -167,11 +167,8 @@ class StellarObject(LazySaladName, MassObject):
         supported_scales = get_star_evolutionary_profile(self).get("supported_evolutionary_scales", [])
         required = 0.0
         for planet in planets:
-            if hasattr(planet, 'planet_class') and planet.planet_class in tuning.PLANET_CLASSES:
-                age_ranges = tuning.PLANET_CLASSES[planet.planet_class].get("age_ranges", {})
-                for scale in supported_scales:
-                    if scale in age_ranges:
-                        required = max(required, age_ranges[scale][0])
+            if hasattr(planet, 'planet_class'):
+                required = max(required, age_needs.minimum_age_gy(planet, supported_scales))
         return required
 
     def age_ceiling_gy(self):
