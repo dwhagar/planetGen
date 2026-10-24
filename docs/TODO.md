@@ -2356,19 +2356,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.389, UX.135. Related: MAP.232, MAP.234, MAP.235.
   Design: [docs/design/galaxy/galaxy-types.md](design/galaxy/galaxy-types.md)
 
-- [ ] **MAP.244 The maps and pages use the atmosphere colour where they showed the planet colour**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): "Sky color should definitely
-  replace the planet color and such, if that's what you mean." Replace
-  the temperature-based glow of a planet on the System Map
-  (`glowColorForTemp` in the map script) and any other stand-in for a
-  planet's colour with its atmosphere colour, with the airless bodies
-  keeping a neutral rock colour from the stored surface words. Done: a
-  planet with air is drawn in its atmosphere colour on the System Map
-  and the planet page, in both themes, and the old three-colour gesture
-  is gone (no shim).
-  Prerequisites: none. Related: GEN.420.
-
 - [ ] **MAP.248 The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
@@ -7790,7 +7777,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star and atmosphere is made of, from real science, and the colour of
   the air and the radiation that follow). A major version needs Boss's
   word.
-  Prerequisites: MAP.244, DOC.64, GEN.446, TEST.209, TEST.210,
+  Prerequisites: DOC.64, GEN.446, TEST.209, TEST.210,
   TEST.211, TEST.212, DOC.66. Related: GEN.416,
   GEN.417, GEN.418, GEN.419, DOC.63.
 
