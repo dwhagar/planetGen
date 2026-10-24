@@ -2691,8 +2691,8 @@ def resolve_object(conn, kind, object_id):
         table = object_ref.TABLES[kind]
         columns = {
             "star": "name, star_system_id",
-            "planet": "name, star_system_id, star_id, position_x_km, position_y_km, position_z_km",
-            "moon": "name, star_system_id, planet_id, star_id, position_x_km, position_y_km, position_z_km",
+            "planet": f"name, star_system_id, star_id, position_x_km, position_y_km, position_z_km, {_tiers('')}",
+            "moon": f"name, star_system_id, planet_id, star_id, position_x_km, position_y_km, position_z_km, {_tiers('')}",
             "belt": "star_system_id, orbital_index",
             "comet": "name, star_system_id, star_id, position_x_km, position_y_km, position_z_km",
         }[kind]
@@ -2713,12 +2713,15 @@ def resolve_object(conn, kind, object_id):
         else:
             siblings, truncated = _sibling_refs(
                 conn, kind, table, "star_system_id = ?", (row["star_system_id"],), object_id)
-    return {
+    found = {
         "ref": object_ref.format(kind, object_id), "kind": kind, "id": object_id, "name": name,
         "parents": parents, "siblings": siblings, "siblings_truncated": truncated,
         "positions": positions,
         "keep_out": keep_out_radius_dict(conn, kind, object_id),
     }
+    if kind in ("planet", "moon"):
+        found.update({column: row[column] for column in _tier_columns()})
+    return found
 
 
 def nebula_shape(conn, nebula_id):
@@ -6328,11 +6331,15 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
     return {"rows": _with_refs(conn, [dict(r) for r in rows], "star"), **page}
 
 
+def _tier_columns():
+    """The stored habitability of a planet or moon (UX.100): `phi4` and the six `tier_<domain>` columns."""
+    return ("phi4", *(f"tier_{domain}" for domain in habitability_world.DOMAINS))
+
+
 def _tiers(alias):
-    """The select list of a planet's or moon's habitability (UX.100): `phi4` and the six `tier_<domain>` columns of
-    table alias `alias`."""
-    columns = ("phi4", *(f"tier_{domain}" for domain in habitability_world.DOMAINS))
-    return ", ".join(f"{alias}.{column}" for column in columns)
+    """`_tier_columns` as a select list of table alias `alias` (none: bare column names)."""
+    prefix = f"{alias}." if alias else ""
+    return ", ".join(f"{prefix}{column}" for column in _tier_columns())
 
 
 def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,

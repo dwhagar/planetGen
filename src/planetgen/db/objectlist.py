@@ -46,6 +46,29 @@ def _item(row):
             "placed": bool(row["placed"])}
 
 
+HABITABILITY_KINDS = {"planet": "planets", "moon": "moons"}
+"""dict: The kinds whose items carry their PHI-6 rating (UX.100), and the table that stores it."""
+
+HABITABILITY_COLUMNS = query._tier_columns()
+"""tuple: The stored overall score and the six domain tiers (0 Blue to 3 Red) a planet or moon item carries."""
+
+
+def _with_habitability(conn, kind, items):
+    """Adds `HABITABILITY_COLUMNS` to each planet or moon item (`None` for a body that was not scored), read from the
+    kind's table by `source_id` in one query for the page."""
+    table = HABITABILITY_KINDS.get(kind)
+    if table is None or not items:
+        return items
+    ids = [item["source_id"] for item in items]
+    rows = conn.execute(f"SELECT id, {', '.join(HABITABILITY_COLUMNS)} FROM {table} WHERE id IN ({','.join('?' * len(ids))})",
+                        ids).fetchall()
+    found = {row["id"]: row for row in rows}
+    for item in items:
+        row = found.get(item["source_id"])
+        item.update({column: row[column] if row is not None else None for column in HABITABILITY_COLUMNS})
+    return items
+
+
 def _like_prefix(text):
     """`text` as the pattern of a `LIKE` that matches names starting with it."""
     return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
@@ -102,7 +125,7 @@ def list_objects(conn, kind, limit=DEFAULT_LIMIT, sort="name", descending=False,
             `past_end` true. `total` still counts the whole list.
 
     Returns:
-        dict: `items` (as `_item`), `next` (the printed ID to pass as `after`, `None` at the end), `total` (a
+        dict: `items` (as `_item`; a planet's or moon's also with `phi4` and the six `tier_<domain>` ratings, UX.100), `next` (the printed ID to pass as `after`, `None` at the end), `total` (a
         `CappedCount` past `query.COUNT_FALLBACK_CAP`) and, with a `start`, `past_end`.
 
     Raises:
@@ -138,7 +161,7 @@ def list_objects(conn, kind, limit=DEFAULT_LIMIT, sort="name", descending=False,
         last["items"].reverse()
         return {**last, "next": None, "total": total, "past_end": True}
     more = len(rows) > limit
-    items = [_item(row) for row in rows[:limit]]
+    items = _with_habitability(conn, kind, [_item(row) for row in rows[:limit]])
     page = {"items": items, "next": items[-1]["id"] if more and items else None, "total": total}
     if start:
         page["past_end"] = False
