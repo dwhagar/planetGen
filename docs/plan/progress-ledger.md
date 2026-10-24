@@ -1174,3 +1174,21 @@ Baseline: PR #1817.
 | GEN.418 | 8.1 | Atmosphere colour |
 | GEN.419 | 8.1 | Atmosphere colour |
 | TEST.309 | 8.1 | Bugs and flaky tests |
+| MAP.271 | 8.1 | Fly-through map |
+| MAP.272 | 8.1 | Fly-through map |
+| MAP.273 | 8.1 | Fly-through map |
+| GEN.420 | 8.1 | Descriptions and maps |
+| PERF.115 | 8.1 | Queue, caches and performance |
+| PERF.116 | 8.1 | Queue, caches and performance |
+| PERF.117 | 8.1 | Queue, caches and performance |
+| MAP.276 | 8.1 | Fly-through map |
+| OPS.68 | 8.1 | Bugs and flaky tests |
+| MAP.278 | 8.1 | Fly-through map |
+| GEN.566 | 8.1 | Bulk composition |
+| GEN.580 | 8.1 | Bulk composition |
+| GEN.579 | 8.1 | Bulk composition |
+| DOC.70 | 8.1 | Bulk composition |
+| GEN.641 | 8.1 | Bulk composition |
+| GEN.659 | 8.1 | Bulk composition |
+| DB.86 | 8.1 | Bulk composition |
+| UX.128 | 8.1 | The Quantity call-site sweep |

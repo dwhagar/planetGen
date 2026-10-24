@@ -105,3 +105,41 @@ test("a dry airless world shows craters; the same world with air does not", () =
   const dry = { ...EARTHLIKE, hydro: "dry", ocean: 0, atm: false, tempK: 300 };
   assert.notEqual(P.solidFingerprint(dry, 128, 64), P.solidFingerprint({ ...dry, atm: true }, 128, 64));
 });
+
+// --- Stars (MAP.276) ---------------------------------------------------------
+
+const S = await importPage("starpaint.js");
+const SUN = { v: 1, kind: "star", body: "star", seed: 99, color: "#fff4ea", spec: "G2V", yerkes: "V", lumSolar: 1 };
+
+test("a star's class picks its recipe", () => {
+  assert.equal(S.starKind({ yerkes: "VII" }), "white dwarf");
+  assert.equal(S.starKind({ yerkes: "III" }), "giant");
+  assert.equal(S.starKind({}), "dwarf");
+  assert.equal(S.surfaceRecipe({ ...SUN, yerkes: "VII" }).contrast, 0);
+  assert.ok(S.surfaceRecipe({ ...SUN, spec: "M3V" }).spots > S.surfaceRecipe(SUN).spots);
+  assert.equal(S.surfaceRecipe({ ...SUN, spec: "A0V" }).spots, 0);
+  assert.ok(S.surfaceRecipe({ ...SUN, yerkes: "III", spec: "K5III" }).cells < S.surfaceRecipe(SUN).cells);
+});
+
+test("brighter stars get a wider, stronger glow, within the caps", () => {
+  const sun = S.glowFor(1);
+  assert.equal(sun.scale, 1.4);
+  assert.ok(S.glowFor(1e5).scale > sun.scale && S.glowFor(1e5).scale <= 1.9);
+  assert.ok(S.glowFor(1e-3).scale >= 1.2 && S.glowFor(1e-3).scale < sun.scale);
+  assert.ok(S.glowFor(1e9).strength <= 1 && S.glowFor(1e-9).strength >= 0.5);
+});
+
+test("a white dwarf is one flat colour; a sun-like star is mottled and never darker than 0.7", () => {
+  const wd = S.paintStar({ ...SUN, yerkes: "VII" }, 32, 16);
+  for (let i = 1; i < 32 * 16; i++) assert.equal(wd[i * 4], wd[0]);
+  const px = S.paintStar(SUN, 64, 32);
+  let min = 255, max = 0;
+  for (let i = 0; i < 64 * 32; i++) { min = Math.min(min, px[i * 4]); max = Math.max(max, px[i * 4]); }
+  assert.ok(max - min > 10);
+  assert.ok(min >= Math.round(0xff * 0.7) - 1);
+});
+
+test("the same star paints the same pixels", () => {
+  assert.equal(S.starFingerprint(SUN, 128, 64), S.starFingerprint(SUN, 128, 64));
+  assert.notEqual(S.starFingerprint(SUN, 128, 64), S.starFingerprint({ ...SUN, seed: 100 }, 128, 64));
+});

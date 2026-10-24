@@ -13,6 +13,25 @@ Status: research, 2026-10-09; decisions marked "Boss" are his, everything else i
 
 **Update (2026-10-15).** Astropy is no longer a runtime dependency (GEN.211, #1310): `physics/constants.py` is a literal table, so "the ladder module imports from `physics/constants.py`, which reads astropy" is out of date and the lock-file reproducibility gap in finding 3 is closed. The recommendation (a custom table) stands and is easier. The project floor is Python 3.12 (OPS.42), so the Python 3.9 rows and the "Python 3.9 compatible" module header are history.
 
+**Update (DOC.70, 2026-10-23): where the units live now.** This note was written before the unit registry existed; its
+ladders and the migration order below are still the display design, but a unit's number is no longer stated here or
+anywhere else a second time. One list of units exists, and everything else reads it
+(design: `docs/design/unified-unit-quantity.md`):
+
+| What | Where | Rule |
+|---|---|---|
+| **The unit registry** | `physics/unit_registry.py` (GEN.568) | One row per unit: its kind, the factor to the kind's base unit (SI), the offset of its zero, a symbol, an ASCII key and names. Exact numbers come from `physics/constants.py`; the registry states only definitions (SI prefixes, 60 s in a minute). A kind has a dimension (five exponents of length, mass, time, temperature, angle) and the bounds a value may take. Unit systems (`au-yr-msun`) and physical constants in a system (`constant_in`) are worked out from dimensions, never typed. No astropy. |
+| **`Quantity`** | `physics/quantity.py` (GEN.569) | A number in one registry unit, kept as given, answered in any other unit of its kind on demand; for the edges (store, load, show, API), never in a kernel loop. A conversion between units a power of ten apart is one correctly rounded step. |
+| **Relations** | `physics/relations.py` (GEN.586) | Named laws (surface gravity, Hill radius, fluid Roche limit, a period and its frequency) declared once as SI kernels with a `Quantity` form; a dimension test checks each formula's output dimension. |
+| **Field declarations** | `MassObject.FIELD_UNITS` (GEN.570) | Each persisted attribute of a body family with the unit its instance holds it in; `SERIALIZABLE_FIELDS` is its names. |
+| **The column registry** | `db/column_units.py` (DB.76) | Each numeric database column with the unit it is stored in, chosen for precision and not forced to SI; the suffix in a column's name must equal it (`tests/test_column_units.py`). See `docs/database-schema.md`, "Units of a column". |
+| **The display ladders** | `util/ladders.py`, `scripts/build_unit_ladders.py` | A ladder rung is built from its registry row (`rung`, `companion`): the factor, offset and name are the registry's; the ladder adds only display data (a different symbol, the start threshold, the singular form, the unit systems). |
+| **The browser** | `html/static/unitregistry.js`, written by `scripts/build_unit_registry.py` | The registry in JavaScript, tested to give bit-identical conversions; a browser script that declares its own unit factor fails `tests/test_unit_registry_js.py`. |
+
+So the `Rung` structure of section 5 below is the display record, not a place that owns a factor: its `factor` is read from
+the registry row of the same unit. No other page of the project describes a second table of units; a new unit is one new
+row in `unit_registry.py`.
+
 Evidence tags: [S] seen in a search result or a fetched primary file (URL in
 Sources), [C] computed or measured in the research sandbox, [R] recalled and
 unconfirmed. The research environment could only read search-result text and
@@ -177,7 +196,7 @@ from typing import Optional, Tuple
 @dataclass(frozen=True)
 class Rung:
     symbol: str                      # "AU"
-    factor: float                    # base units per one of this unit (from constants.py / astropy)
+    factor: float                    # base units per one of this unit (read from its unit_registry row)
     start: Optional[float] = None    # smallest |value| in base units shown in this rung; default = factor
     singular: Optional[str] = None   # label when the shown number is exactly 1 ("year")
     name: Optional[str] = None       # spelled out, for aria and tooltips ("astronomical units")

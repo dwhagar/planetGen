@@ -163,3 +163,6 @@ export const LADDERS = {
     ],
   },
 };
+
+// The ladder a registry kind (unitregistry.js) is shown on.
+export const LADDER_OF_KIND = {"length": "length", "speed": "speed", "duration": "time", "temperature": "temperature", "pressure": "pressure", "acceleration": "gravity", "mass": "mass", "power": "power", "flux": "flux", "number_density": "number density", "magnetic_field": "magnetic field"};

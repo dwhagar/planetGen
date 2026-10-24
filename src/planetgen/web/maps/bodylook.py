@@ -15,7 +15,7 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     body        "star", "solid" or "gas"
     seed        32 bits from the body's id and kind (`seed_for`); display noise only, never generation
     cls         planet class letter
-    color       the base colour as `#rrggbb`: a star's colour, a solid world's land colour, a giant's cloud top
+    color       the base colour as `#rrggbb`: a star's blackbody colour, a solid world's land colour, a giant's cloud top
     quality     "estimate" while `color` comes from temperature and body family alone (MAP.274 replaces it with
                 the composition colour), absent for a star
     glow        atmosphere limb colour (`#rrggbb`): the atmosphere colour of the body's air under its star (MAP.244,
@@ -34,6 +34,7 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     iceKm       ice shell thickness, km
     lumSolar    a star's luminosity in solar units
     spec        a star's `star_type`
+    yerkes      a star's Yerkes luminosity class (V dwarf, III giant, VII white dwarf, ...)
 
 The colour tables are stand-ins for hue only (the gap plan registry lists them): the colours are picked to read as
 the thing they are, and they are deliberately not photographs of any one world.
@@ -44,7 +45,7 @@ import json
 import math
 from types import SimpleNamespace
 
-from planetgen.physics import atmosphere, atmosphere_colour, giant_colour
+from planetgen.physics import atmosphere, atmosphere_colour, giant_colour, photometry
 from planetgen.web.maps.starmap import star_color
 
 LOOK_VERSION = 1
@@ -166,10 +167,23 @@ def planet_look(planet, kind="planet"):
     return look
 
 
+def star_surface_color(star):
+    """The colour of a star's disc: the blackbody-based `photometry.star_colour` of its effective temperature (the
+    same function the sky colour assumes for the star, so the two agree), else the spectral-letter colour."""
+    temperature_k = star.get("temperature_k")
+    if temperature_k and temperature_k > 0:
+        try:
+            return photometry.star_colour(float(temperature_k)).hex
+        except ValueError:
+            pass
+    return star_color(star["star_type"], temperature_k, star["luminosity_w"])[0]
+
+
 def star_look(star):
     """The look record of a star row."""
-    fill, _stroke = star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
-    look = {"v": LOOK_VERSION, "kind": "star", "body": "star", "seed": seed_for("star", star["id"]), "color": fill}
+    look = {"v": LOOK_VERSION, "kind": "star", "body": "star", "seed": seed_for("star", star["id"]),
+            "color": star_surface_color(star)}
+    _put(look, "yerkes", star.get("yerkes_class"))
     _put(look, "tempK", _rounded(star.get("temperature_k"), 1))
     luminosity_w = star.get("luminosity_w")
     _put(look, "lumSolar", None if luminosity_w is None else float(f"{luminosity_w / _SOLAR_LUMINOSITY_W:.4g}"))
@@ -192,3 +206,71 @@ def look_note(look):
     if look.get("quality") == "estimate":
         return "Estimate from temperature and stored water fractions; not yet from composition"
     return None
+
+
+# --- Phenomena (MAP.278) ----------------------------------------------------
+
+# Grain colour of an asteroid field by composition family (stand-ins for hue only): carbonaceous dark, stony tan,
+# metallic grey, icy pale blue-grey, basaltic dark brown, mixed and collisional between, dust beige.
+ASTEROID_GRAIN_COLORS = {
+    "carbonaceous": "#4a4540",
+    "stony": "#a89878",
+    "metallic": "#8c9096",
+    "icy": "#b8c8d4",
+    "basaltic": "#6b5a4e",
+    "mixed": "#8a7a66",
+    "dust": "#9c8f7c",
+    "collisional": "#8a8480",
+}
+_DEFAULT_GRAIN_COLOR = "#b89a6e"
+
+
+def asteroid_grain_color(class_code):
+    """The grain colour of an asteroid field from its class code (`B3`: the letter names the composition family)."""
+    from planetgen.generation.phenomena.asteroid_field import composition_family_for_letter
+    letter = (class_code or "")[:1].upper()
+    try:
+        return ASTEROID_GRAIN_COLORS.get(composition_family_for_letter(letter), _DEFAULT_GRAIN_COLOR)
+    except ValueError:
+        return _DEFAULT_GRAIN_COLOR
+
+
+def blackbody_hex(temperature_k):
+    """The `#rrggbb` blackbody colour of `temperature_k`, `None` when it is not a usable temperature."""
+    if not temperature_k or temperature_k <= 0:
+        return None
+    try:
+        return photometry.star_colour(float(temperature_k)).hex
+    except ValueError:
+        return None
+
+
+def rogue_planet_look(rogue):
+    """The look record of a rogue planet row: the same painters as a planet, lit only by distant starlight, so
+    no sea unless it is stored as liquid under ice, and ice where the surface is cold."""
+    temp_k = rogue.get("surface_temperature_k")
+    if temp_k is None:
+        temp_k = rogue.get("effective_temperature_k")
+    gas = rogue.get("planet_type") == "g"
+    pressure_pa = rogue.get("surface_pressure_pa")
+    row = {
+        "id": rogue.get("id"), "planet_class": rogue.get("planet_class"), "body_type": "g" if gas else "t",
+        "surface_temperature_k": temp_k, "radius_km": rogue.get("radius_km"),
+        "atmosphere": "yes" if pressure_pa else None, "atmospheric_pressure_pa": pressure_pa,
+    }
+    if not gas:
+        if rogue.get("has_liquid_water") and rogue.get("ice_shell_thickness_km"):
+            row["hydrosphere"] = "ice-covered ocean"
+        elif temp_k is not None and temp_k < 200.0:
+            row["hydrosphere"] = "ice"
+        else:
+            row["hydrosphere"] = "dry"
+    look = planet_look(row, "rogue_planet")
+    look.pop("glow", None)
+    return look
+
+
+def comet_nucleus_color(comet):
+    """The nucleus colour of an interstellar comet: grey-white when it is active (volatile-rich, shedding ice),
+    dark red-brown when it is inactive (a crust of dark organics)."""
+    return "#9ea4ac" if comet.get("is_active") else "#4a3a32"

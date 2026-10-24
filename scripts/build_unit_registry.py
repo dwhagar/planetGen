@@ -55,6 +55,18 @@ export function scale(value, sourceFactor, targetFactor) {
   return (value * sourceFactor) / targetFactor;
 }
 
+// `value` of the unit `key`, returned when it is finite and inside its kind's bounds; an Error otherwise (`check`).
+export function check(value, key) {
+  const row = unit(key);
+  if (!Number.isFinite(value)) throw new Error(`a ${row.kind} must be finite, not ${value}`);
+  const bounds = KINDS[row.kind];
+  const base = toBase(value, key);
+  const below = bounds.low !== null && (bounds.lowOpen ? base <= bounds.low : base < bounds.low);
+  const above = bounds.high !== null && (bounds.highOpen ? base >= bounds.high : base > bounds.high);
+  if (below || above) throw new Error(`a ${row.kind} of ${value} ${row.symbol} is outside its range`);
+  return value;
+}
+
 // `value` of the unit `from` in the unit `to`, both of one kind (`convert`).
 export function convert(value, from, to) {
   const source = unit(from);

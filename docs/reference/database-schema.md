@@ -115,6 +115,29 @@ The `table_*` columns that once held copies of already-formatted display
 text (e.g. `"1.2 R☉"`) were the one exception to both conventions; v5
 dropped them (see "The searchable-field principle" below).
 
+### Units of a column
+
+Every numeric column declares the unit it is stored in, in one list: `db/column_units.py` (DB.76). `TABLES` gives, for each
+table, the columns of each unit; `COLUMNS` is the same list by `(table, column)`. A unit is a key of the unit registry
+(`physics/unit_registry.py`, GEN.568), which holds the kind of each unit and its factor to the base unit of its kind, or of
+`LOCAL_UNITS` for the few the registry does not hold yet. The registry is the only table of units (see
+`docs/design/units-and-number-formatting.md`); this page states no factor.
+
+Rules (Boss's cards Q3 and Q4 of `docs/design/unified-unit-quantity.md`):
+
+- **The stored unit is chosen for precision, not forced to SI.** A position keeps its frame's unit (galaxy parsec, sector
+  milliparsec, system kilometres or AU) because a double's spacing grows with the number.
+- **The suffix stays in the name and equals the declaration.** `SUFFIXES` maps each suffix to its unit, and
+  `tests/test_column_units.py` fails when a column's suffix and declaration disagree, when a numeric column has no
+  declaration, or when a declaration names no column. A new table cannot ship without declaring its numeric columns in the
+  same change.
+- **A column with no unit of its own is declared by what it is:** `ratio`, `count`, `index`, `id`, `key`, `seed`, `flag`,
+  `unit-vector`, `row-defined` or `unspecified` (a quantity whose code states no unit; it waits for a source, DB.86).
+- **Values are not converted on write.** The object classes hold each field in the unit its `FIELD_UNITS` declares
+  (`generation/mass_object.py`, for the families declared so far); a value reaches a column in that unit, and a `Quantity` (`physics/quantity.py`) is how it is
+  read in any other unit at the edges (the describer, the API, the page).
+- The point columns of an object (`point_columns.PointLayout`) read their position and mass units from this list.
+
 ### The searchable-field principle
 
 *Historical: v5 dropped every `table_*`/`binary_table_*` column described

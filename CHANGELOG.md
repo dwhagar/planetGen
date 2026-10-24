@@ -2,6 +2,117 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2096] - 2026-10-24
+
+**Headline:** The radius, inflation and heavy-element mass of a giant planet now have their checked kernels, ready to replace the old anchored relation.
+
+### Added
+- **`physics/giant_radius.py` and `giant_radius_tables.py`** (GEN.460, first part, no behaviour change yet): the Fortney, Marley and Barnes 2007 giant radius tables (Tables 2 to 4, three ages, five distances, five core masses, 17 to 3,594 Earth masses) interpolated in mass, flux, age and core mass, with three misprinted cells corrected by their neighbours; the hot-giant inflation of Sestovic, Demory and Queloz 2018 (a stand-in for the physical efficiency of Thorngren and Fortney 2018); and the heavy-element mass law of Chachan et al. 2025 with its 66 percent scatter. A planet that is mostly heavy elements is outside the tables and `covers` says so.
+
+## [8.0.2095] - 2026-10-24
+
+**Headline:** The browser holds measured values in a Quantity and reads every unit factor from the registry.
+
+### Added
+- **The browser's Quantity** (UX.128). `static/quantity.js` mirrors the Python `Quantity`: a number in one registry unit, answered in any other unit of its kind, with the same bounds checks. `unitladder.js` shows one with `formatMeasure`.
+
+### Changed
+- The unit formatter's `format*` names read the registry unit they are for, and the factors it exported (`KM_M`, `AU_M`, `LIGHTYEAR_M`, `PARSEC_M`, `SECONDS_PER_YEAR`, `STANDARD_GRAVITY` and the rest) are removed.
+- The light-year to parsec conversion of the galaxy map and the generate buttons, the speed steps of the orbit clock, the time estimate of the limit sliders, the duration words of the settings page and the Sun's radius in the system scale go through the registry.
+
+## [8.0.2094] - 2026-10-24
+
+**Headline:** A sector's count of interstellar comets and planetesimals is now about a thousand times larger, matching the measured density.
+
+### Changed
+- `INTERSTELLAR_DEBRIS_DENSITY_PC3` moves from 1e12 to 1e15 per pc³: Do, Tucker and Tonry (2018) and Jewitt and Seligman (2023) put the density of interstellar objects like 'Oumuamua at 0.1 to 0.2 per AU³, which is 7e14 to 1.8e15 per pc³; the old 1e11 to 1e14 range was three orders too low. The figure on a sector page ("about 10^16 interstellar comets and planetesimals") is the only output that changes; no row and no generator output moves (GEN.659). The three design notes that quoted 1e12 are corrected.
+
+## [8.0.2093] - 2026-10-24
+
+**Headline:** Ten more places that wrote a physical law by hand now call the one declared law, with the same numbers.
+
+### Changed
+- The Schwarzschild radius (black holes, quasars, the phenomena plausibility check), surface gravity (planets, rogue planets, the plausibility range, the planet query), escape speed and mean density (collision outcomes) and the volume of a sphere (comet nuclei, gas clouds, pulsar planets) come from `physics/relations.py` instead of a typed formula (GEN.587, first file group). Every replaced expression gives the same float bit for bit; the sites whose operation order would change the last digit (`multistar._schwarzschild_au`, the `mathcheck` Schwarzschild helper, `lensing`) are left for the epoch-changing pass.
+
+## [8.0.2092] - 2026-10-24
+
+**Headline:** The last six columns without a declared unit now have one, read from the code that uses them.
+
+### Changed
+- `atm_density` on planets and moons is kg/m³, `atm_molar_density` kg/mol, `asteroid_fields.formed_at` a Unix time and `comets.parabolic_mean_anomaly` a plain number (DB.86); the `unspecified` marker is removed from the column registry and a test fails if a column goes without a unit. No stored value changes.
+
+## [8.0.2091] - 2026-10-24
+
+**Headline:** Gas giants, ice giants and brown dwarfs can now be given full layered interiors, from molecular and metallic hydrogen to helium rain, dilute cores and rocky cores, and any body can be asked whether it can have satellites.
+
+### Added
+- **`planetgen.physics.hosting_gate` (GEN.579).** `can_host(host)` runs the three parts of the hosting gate in order (a 10 m
+  satellite must fit under the mass-ratio limit; a stable orbit must exist between the host's radius or fluid Roche limit and
+  0.4895 of its Hill radius, with the hierarchical stability screen for a comparable satellite; the body must reach the 1 km
+  size cut and its population and size must have a satellite share), names the first part that fails, and carries the gated
+  `satellite-share` table with every row's source state. A moon holds nothing until a sourced row exists, and
+  `tidal_survival_radius_m` is the submoon tidal gate of Kollmeier and Raymond 2019. Nothing calls it yet.
+- **`planetgen.physics.giant_interior` (GEN.642).** Places the layers of a gas giant (molecular and metallic hydrogen
+  envelope, a helium-enriched zone and shell where helium has rained out of a cold giant, a dilute core, a compact core
+  of rock and iron), an ice giant (molecular envelope over an ionic or superionic water, ammonia and methane mantle over a
+  rock and iron core) and a brown dwarf (no solid core), each with its pressures, mass, state and the mass of every material
+  in it, and describes them in words. The layers hold exactly the heavy elements and natal helium the caller fixed. Nothing
+  calls it yet: the planet draw wires it in with GEN.428 and the layers are stored by DB.89.
+- **Three research notes.** `docs/design/composition/giant-interiors.md` (GEN.641: layers, metallization, helium rain, dilute and compact
+  cores, ice giants and brown dwarfs, with each source's state); `docs/design/composition/giant-heavy-element-law.md` (the heavy-element
+  mass law of Chachan et al. 2025, now read: GEN.460's input); `docs/design/composition/small-body-size-laws.md` (GEN.566 and GEN.580:
+  size-frequency laws of belts, comets, Kuiper belt objects and interstellar objects, and binary and satellite fractions by
+  size, with the numbers read in each paper). The size-law note corrects the interstellar object density in
+  `unified-star-like-objects.md`: 0.1 to 0.2 per au3 is 7e14 to 1.8e15 per pc3, not 1e12.
+- **The unit docs describe the registry (DOC.70).** `docs/design/units-and-number-formatting.md` now says where the units live
+  (the unit registry, `Quantity`, the relations, the field declarations, the column registry, the display ladders, the
+  browser copy) and that the registry is the only unit table; `docs/database-schema.md` has a "Units of a column" section.
+
+## [8.0.2090] - 2026-10-24
+
+**Headline:** Rogue planets, comets, black holes, neutron stars and asteroid fields are now drawn from their own stored data instead of one fixed look each.
+
+### Changed
+- **Rogue planets use the planet painters (MAP.278).** A rogue planet's View is painted from a look record built from its stored row (`bodylook.rogue_planet_look`): a rocky one by the solid-world painter (ice where its surface is cold, ice over an ocean when it is stored as liquid under an ice shell, no sea otherwise), a giant as bands of its temperature colour. It replaces the fixed blue-grey.
+- **Comet nuclei take a colour from activity.** An active comet's nucleus is grey-white, an inactive one dark red-brown, and its lumpy shape is the same on every visit.
+- **Black hole disks and neutron star surfaces take their temperature colour.** The accretion disk's hot colour and the neutron star's surface are the blackbody colour of the stored temperature, in place of one blue-white or yellow-white for each class.
+- **Asteroid field grains follow the composition.** On the Sector Map an asteroid field's cloud and glow are tinted by its composition family (carbonaceous dark, stony tan, metallic grey, icy pale, basaltic brown), from the field's class letter.
+- **Each phenomenon View has its own stars.** The background starfield is seeded from the object, not one fixed seed for every View.
+
+Nebula tints by type already existed; supernova remnant shells by age are not in this change (they need the remnant's age on the sector scene).
+
+## [8.0.2089] - 2026-10-24
+
+**Headline:** `update.sh` no longer looks hung on a big or slow data set download: each file shows a progress bar, and a stalled download is retried from where it stopped.
+
+### Changed
+- **Data set downloads (GEN.548).** `python3 -m planetgen.cli.datasets fetch` (the update and install step) now shows one bar per file with the bytes done of the total, the speed and the time left, in the style of the generation bar, and plain lines every 10 seconds where the output is not a terminal. A host that trickles bytes (fewer than 128 kB in 60 seconds) is given up as stalled, and every retry (four attempts, was three) asks for the rest of the file with a `Range` request, starting over only when the host does not honour it. A file that still cannot be had is reported with its URL and the update goes on, as before.
+
+## [8.0.2088] - 2026-10-24
+
+**Headline:** Stars on the System Map are painted from their class: their true blackbody colour, a surface that matches the kind of star, and a glow that grows with luminosity.
+
+### Added
+- **The star painter (MAP.276).** `static/starpaint.js` paints a star's disc from its look record: O, B and A stars are nearly featureless, F and G stars finely granulated with a few dark spots, K and M stars coarser with more and larger spots (an M dwarf can show a bright flare patch), giants and supergiants show a few huge convection cells, and a white dwarf is one smooth disc. The colour is the blackbody colour of the star's effective temperature (`photometry.star_colour`, the one the sky-colour model assumes), so a Sun-like star now reads white with a faint warm tint rather than the spectral-letter yellow. The glow around a star is sized and strengthened by its luminosity (capped), where every star used to get the same one.
+
+### Changed
+- **The star look record carries the Yerkes class.** The system query (`get_system_detail`) now reads `stars.yerkes_class`, and `bodylook.star_look` puts it in `data-look` as `yerkes`.
+
+## [8.0.2087] - 2026-10-24
+
+**Headline:** Saving the sector paths of a large run is spread over the workers.
+
+### Changed
+- **The settle stage is cut into units of 100 sectors (PERF.115).** A run saved the paths of every sector it made, and of the sectors around them, one after the other in a single process (182 ms a sector at the default galaxy size). The sectors are found once and saved by the workers in chunks, each path as before: the same rows are stored, and on 100 sectors the stage took 11 s on three workers instead of 18 s.
+
+## [8.0.2086] - 2026-10-24
+
+**Headline:** Planet and moon descriptions now show the colour of their air.
+
+### Changed
+- A planet or moon with a solid surface and an atmosphere gets an "Atmosphere Colour" row in its facts, with a colour chip and a word such as "pale blue", in the text, Markdown, wiki and web outputs and in the description JSON; an airless body and a gas or ice giant show none (a giant waits for its stored cloud). The colour is the clear-sky colour from the body's air, its star's temperature and its ozone column over a stand-in ground, until the stored haze, dust, cloud and ground colour arrive.
+- The ozone's visible absorption (the Chappuis band) is now a small table in the repository, so working out a colour needs no download.
+
 ## [8.0.2085] - 2026-10-24
 
 **Headline:** Planets and moons on the System Map now show their ocean, land and ice, drawn from the stored water fractions and temperature.

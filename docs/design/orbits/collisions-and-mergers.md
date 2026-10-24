@@ -603,7 +603,7 @@ https://arxiv.org/html/1302.2549]: 1.2e17 yr for n = 0.14 and sigma = 25 km/s;
 this formula gives 1.26e17 yr [C]. Inputs are the project's densities
 (`tuning.PHENOMENON_DENSITY_PC3`, `tuning.ROGUE_PLANET_MASS_BINS`): terrestrial
 0.78, sub-Neptune 0.10, Saturn-class 0.024, Jupiter-bin 0.0039, brown dwarf 0.03,
-neutron star 7e-4, star 0.14 per pc^3, and 1e12 pc^-3 for comets and debris
+neutron star 7e-4, star 0.14 per pc^3, and 1e15 pc^-3 for comets and debris
 (`INTERSTELLAR_DEBRIS_DENSITY_PC3`). The thin disc has (sigma_U, sigma_V,
 sigma_W) about (33, 28, 23) km/s overall [S: https://arxiv.org/pdf/1710.08479;
 https://www.aanda.org/articles/aa/full_html/2024/08/aa49445-24/aa49445-24.html,
@@ -620,7 +620,7 @@ Default 25 km/s per axis per body (mean relative speed 56 km/s).
 | rogue (Earth-like) + star | 0.14 | 615 | 2.0e-18 | 5e17 | 1.4e-8 (all 6.5 rogues per star) |
 | terrestrial rogue + neutron star | 7e-4 | 7,600 | 1.3e-22 | 8e21 | 7.5e-13 |
 | star + star (reference) | 0.14 | 618 | 7.9e-18 | 1.3e17 | n/a |
-| terrestrial rogue + 1 km comet (harmless hit) | 1e12 | 11 | 8e-12 | 1.2e11 | 0.05 |
+| terrestrial rogue + 1 km comet (harmless hit) | 1e15 | 11 | 8e-9 | 1.2e8 | 50 |
 
 The galaxy-wide column is N1 x per-object rate x 3.9 (the density weighting of
 an exponential disc, exp(R0/L)/6 with L = 2.6 kpc, R0 = 8.2 kpc, no bulge), with
