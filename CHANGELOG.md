@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2168] - 2026-10-24
+
+**Headline:** The Galaxy Map no longer draws translucent blocks; cells show only when you ask, and a click selects the sector under it.
+
+### Changed
+- **No translucent prisms (MAP.265).** The blocks the Galaxy Map used to draw over the galaxy and every window are still what the pointer picks, but they are no longer drawn. They appear only through the new **Cell grid** button in the Menu, a **Color by** fill, or **Charted only**; hovering a block still outlines the one a click would open.
+- **Any sector can be selected from any distance (MAP.265).** A click on a block now also selects the sector holding the middle of what you clicked through, found by arithmetic rather than from drawn cells. When the next window arrives that sector is outlined, and named in the info popup (its own record is fetched on demand).
+
+TODO items resolved: MAP.265. Added: none.
+
 ## [8.0.2167] - 2026-10-24
 
 **Headline:** The Galaxy Map's data can now be read as sector-block nodes, with the light of every block stored, the first step to one continuous map that has no zoom stages.
