@@ -1330,6 +1330,18 @@ def get_sector_facilities(db, sector_id):
     return _request(f"/sectors/{sector_id}/facilities", {"db": db})["items"]
 
 
+def get_container(db, printed_id):
+    """Returns `GET /api/containers/<ID>`'s dict -- one globular cluster or superbubble (`db.containers.get`'s shape)."""
+    _require_db(db)
+    return _request(f"/containers/{printed_id}", {"db": db})
+
+
+def get_container_contents(db, printed_id, limit=None):
+    """Returns `GET /api/containers/<ID>/contents`'s dict: `counts` by kind, `total` and the first `items`."""
+    _require_db(db)
+    return _request(f"/containers/{printed_id}/contents", {"db": db, "limit": limit})
+
+
 def get_facility(db, facility_id):
     """Returns `GET /api/facilities/<id>`'s dict -- one facility (`db.query._facility_dict`'s shape)."""
     _require_db(db)

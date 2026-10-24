@@ -44,7 +44,8 @@ def test_a_row_has_a_label_a_known_group_and_one_place(kind):
 def test_the_kinds_are_the_bodies_phenomena_and_facilities_a_page_exists_for():
     from planetgen.galaxy import objectref
 
-    assert sorted(sheet.SPECS) == sorted(objectref.BODY_KINDS + objectref.PHENOMENON_KINDS + objectref.FACILITY_KINDS) \
+    assert sorted(sheet.SPECS) == sorted(objectref.BODY_KINDS + objectref.PHENOMENON_KINDS + objectref.FACILITY_KINDS
+                                      + objectref.CONTAINER_KINDS) \
         == sorted(sheet.TABLES)
 
 

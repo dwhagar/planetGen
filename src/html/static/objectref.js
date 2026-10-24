@@ -13,7 +13,7 @@ export const GALAXY = "galaxy";
 export const KINDS = [
   "sector", "system", "star", "planet", "moon", "belt", "comet",
   "nebula", "asteroid_field", "black_hole", "neutron_star",
-  "supernova_remnant", "rogue_planet", "interstellar_comet", "quasar", "facility",
+  "supernova_remnant", "rogue_planet", "interstellar_comet", "quasar", "facility", "globular_cluster", "superbubble",
 ];
 
 const ID = /^[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}$/;

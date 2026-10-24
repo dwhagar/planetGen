@@ -1470,6 +1470,8 @@ def _nav_endpoint(conn, ref):
     kind, object_id = object_ref.parse(ref)
     if kind == "sector":
         raise NavUnavailable("a sector is not an endpoint; pick a system or something in one")
+    if kind in object_ref.CONTAINER_KINDS:
+        raise NavUnavailable("a cluster or a superbubble is not an endpoint; pick a system or something in one")
     obj = resolve_object(conn, kind, object_id)
     if kind in object_ref.PHENOMENON_KINDS:
         anchor = ("phenomenon", object_id, kind)
@@ -2583,6 +2585,9 @@ def keep_out_radius(conn, kind, object_id):
     if kind in ("belt", "comet", "interstellar_comet", "facility"):
         row(object_ref.TABLES.get(kind) or _PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.NO_KEEP_OUT
+    if kind in object_ref.CONTAINER_KINDS:     # a place in the galaxy, not a body: nothing to keep out of
+        row("galaxy_containers", "id")
+        return keepout.NO_KEEP_OUT
     raise ValueError(f"no keep-out radius for a {kind}")
 
 
@@ -2696,6 +2701,13 @@ def resolve_object(conn, kind, object_id):
         if row["center_x_pc"] is not None:
             positions["galaxy_pc"] = [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
         siblings, truncated = [], False
+    elif kind in object_ref.CONTAINER_KINDS:    # UX.184
+        row = one("galaxy_containers", object_id, "name, kind, center_x_pc, center_y_pc, center_z_pc")
+        if row["kind"] != kind:
+            raise ValueError(f"no {kind} with id {object_id}")
+        name, parents = row["name"], [galaxy]
+        positions["galaxy_pc"] = [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
+        siblings, truncated = _sibling_refs(conn, kind, "galaxy_containers", "kind = ?", (kind,), object_id)
     elif kind == "facility":    # UX.183
         row = one("facilities", object_id,
                   "name, host_type, star_system_id, star_id, planet_id, moon_id, asteroid_belt_id, asteroid_field_id, "
