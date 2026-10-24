@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.157 |
+| UX | UX.158 |
 | MAP | MAP.269 |
 | NAV | NAV.63 |
 | GEN | GEN.667 |
@@ -2196,6 +2196,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | open |
 | UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) | none | open |
 | UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | open |
+| UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

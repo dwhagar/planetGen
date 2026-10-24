@@ -1100,6 +1100,21 @@ with `clamp()`.
   Owner: Habitability lane B (planet and moon lists).
   Prerequisites: none. Related: UX.100, UX.101.
 
+- [ ] **UX.157 Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug)**
+  Boss live observation (relayed 2026-10-23, 9:07 and 9:10 PM EDT),
+  found by the Composition-first stars lane (lane A): the symbols from
+  UX.101 drew as solid black shapes on every page, because the icon
+  sprite carries its own style element, which the
+  Content-Security-Policy refuses. Done: the outline is in the .icon CSS
+  rule and not in the sprite, the PHI-6 symbols are solid borderless
+  shapes at 0.8 opacity, the radiation symbol is a trefoil, the four
+  life icons (UX.151) get the same treatment, and a browser test checks
+  that a sprite icon renders its fill under the site's policy in both
+  themes. Fix is committed on branch habfix-contrast and rides one PR
+  with UX.151. Owner: the Composition-first stars lane (lane A). Found
+  in UX.101.
+  Prerequisites: none. Related: UX.101, UX.151.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
