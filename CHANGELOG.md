@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2054] - 2026-10-24
+
+**Headline:** The mass and luminosity scatters start their workers sooner on a large galaxy.
+
+### Changed
+- **The scatters weigh their shells in several processes (PERF.159).** Before the first unit could start, the supervisor weighed the outline's 2,600 shells one after the other (21 to 40 seconds a pass at the default galaxy size, with the workers idle). The shells are weighed by up to 8 processes now, in 11 seconds on four cores, and the units are the same.
+
 ## [8.0.2053] - 2026-10-24
 
 **Headline:** The comet volatile draw now scatters its carbon oxides as single comets do, so a comet like 67P is a normal draw.
