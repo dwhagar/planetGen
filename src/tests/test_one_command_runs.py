@@ -103,17 +103,3 @@ def test_a_system_run_with_output_writes_nothing_and_is_a_maintenance_run(mysql_
     generate.main()
     assert seen == [runrecord.MAINTENANCE]
     assert "Wrapped Star" in capsys.readouterr().out
-
-
-def test_every_stage_of_the_command_line_is_started_by_the_wrapper():
-    """Nothing in `planetgen.generation` or `planetgen.cli` queues a unit or starts a work queue of its own."""
-    import pathlib
-    import planetgen
-    root = pathlib.Path(planetgen.__file__).parent
-    offenders = []
-    for folder in ("generation", "cli"):
-        for path in sorted((root / folder).glob("*.py")):
-            text = path.read_text(encoding="utf-8")
-            if "WorkQueue(" in text:
-                offenders.append(path.name)
-    assert offenders == [], f"stages started outside the wrapper: {offenders}"

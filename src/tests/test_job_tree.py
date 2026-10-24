@@ -26,15 +26,6 @@ from planetgen.db import store as _db
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
 
 
-def _square(payload):
-    return payload * payload
-
-
-def _slow(payload):
-    time.sleep(0.05)
-    return payload
-
-
 @pytest.fixture
 def control_config(mysql_config, monkeypatch):
     conn = _db.get_control_connection(mysql_config, ensure_schema=True)
@@ -133,10 +124,9 @@ def test_nodes_nest_and_every_node_is_timed(control_config, redis_server):
         with work.job_node("skeleton", "Galaxy skeleton") as skeleton:
             time.sleep(0.02)
         with work.job_node("bright-stars", "Bright stars"):
-            with work.WorkQueue("Layers", workers=2, control_config=control_config) as queue:
-                queue.expect(4)
+            with work.job_node("queue", "Layers", workers=2) as queue:
                 for n in range(4):
-                    queue.submit("bright-stars", f"layer {n}", _slow, n)
+                    work.record_task(queue, "bright-stars", f"layer {n}", seconds=0.06)
     tree = _tree(control_config, root.id)
     shape = [(depth, node["kind"], node["title"]) for depth, node in _walk(tree)]
     assert shape == [
@@ -162,11 +152,11 @@ def test_nodes_nest_and_every_node_is_timed(control_config, redis_server):
     assert tree["totals"]["finished_at"] >= layers["finished_at"]
 
 
-def test_one_worker_records_its_tasks_without_the_lease(control_config):
+def test_a_queue_node_records_its_tasks_without_the_lease(control_config):
     with work.job_node("galaxy", "Serial run", control_config) as root:
-        with work.WorkQueue("Sectors", workers=1, control_config=control_config) as queue:
+        with work.job_node("queue", "Sectors", workers=1) as queue:
             for n in range(3):
-                queue.submit("sector", f"0,0,{n}", _square, n)
+                work.record_task(queue, "sector", f"0,0,{n}", seconds=0.01)
     queue_node = _tree(control_config, root.id)["children"][0]
     assert queue_node["totals"]["done"] == 3 and queue_node["workers"] == 1
     assert all(task["seconds"] is not None for task in queue_node["tasks"])
@@ -210,10 +200,9 @@ def test_a_process_hangs_its_root_under_the_parent_it_is_given(control_config, m
 
 def test_without_a_control_database_nodes_cost_nothing(mysql_config):
     with work.job_node("galaxy", "Nowhere", mysql_config) as root:
-        with work.WorkQueue("Sectors", workers=1, control_config=mysql_config) as queue:
-            queue.submit("sector", "k", _square, 3)
-    assert not root.store.available
-    assert queue.finished == 1
+        with work.job_node("queue", "Sectors", workers=1) as queue:
+            work.record_task(queue, "sector", "k", seconds=0.01)
+    assert not root.store.available and not queue.store.available
 
 
 def test_a_dead_run_reads_as_interrupted_and_a_live_one_has_an_eta(control_config):
@@ -266,9 +255,9 @@ def test_old_finished_trees_are_pruned_with_their_subtrees(control_config):
 
 def test_timing_by_kind(control_config):
     with work.job_node("galaxy", "Timed", control_config):
-        with work.WorkQueue("Sectors", workers=1, control_config=control_config) as queue:
+        with work.job_node("queue", "Sectors", workers=1) as queue:
             for n in range(3):
-                queue.submit("sector", str(n), _slow, n)
+                work.record_task(queue, "sector", str(n), seconds=0.06)
     conn = _conn(control_config)
     try:
         timing = work.timing_by_kind(conn)

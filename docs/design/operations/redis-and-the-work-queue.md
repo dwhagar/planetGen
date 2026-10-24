@@ -25,6 +25,8 @@ Evidence tags: [C] computed or measured for this note (scripts in `/mnt/project-
 
 ### 1.1 Every use
 
+Update 9:25 AM EDT 2026-10-24 (OPS.66, as the lane reported): `WorkQueue`, `RQExecutor`, `RQFuture` and `Channel` are gone. A run's units are RQ jobs queued by `queue/units.py` and `queue/wrapper.py` on the shared queues; the rows and steps below that name the removed classes describe the design before that change.
+
 | Use | Code | Redis data | Lifetime | If Redis is down |
 |---|---|---|---|---|
 | Per-run task queue | `queue/redisqueue.py` `RQExecutor`, `queue/work.py` | RQ queue `planetgen-run-<16 hex>`, one job per task, pickled arguments | deleted when the run ends | `WorkQueue` logs it and runs every task in the supervising process, one at a time |

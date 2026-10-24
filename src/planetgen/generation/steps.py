@@ -22,8 +22,7 @@ a maintenance command that has no display asks for one of its own for as long
 as it draws (`own=True`).
 
 A step can also run inside a worker: `worker_step` there sends its progress
-down a channel (`planetgen.queue.redisqueue.Channel`, or any object with
-`put`), and a `Relay` in the parent turns those reports into steps drawn
+down a channel (any object with `put`), and a `Relay` in the parent turns those reports into steps drawn
 in the parent's display (PERF.50 is the first application).
 
 ```

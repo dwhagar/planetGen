@@ -5,8 +5,6 @@ Every job queued to RQ has a finite time limit taken from the best estimate of h
 expires the entry of a job whose worker was killed, and ends a job that hangs. The sites that queue:
 
 * a run's units (`units.enqueue_units`): the stage's expected seconds;
-* a work queue task (`redisqueue.RQExecutor.submit`, from `work.WorkQueue`): the submitter's estimate, else the task
-  kind's recorded seconds;
 * the Generate page's job (`jobs._spawn`): the sum of its steps' recorded times;
 * an API job (`api_jobs.submit`): the route's estimate, else a fixed limit;
 * the node prefetch and rebuild (`tileprefetch._enqueue_chunks`): the size of the chunk.
@@ -27,7 +25,7 @@ import time
 import pytest
 import rq
 
-from planetgen.queue import api_jobs, redisqueue, units, work as workQueue, workers
+from planetgen.queue import api_jobs, redisqueue, units, workers
 from planetgen.web import job_runner, jobs
 from planetgen.web.lib import tileprefetch
 
@@ -172,42 +170,6 @@ def test_the_units_of_a_stage_get_a_multiple_of_its_expected_time_or_the_ceiling
     finally:
         redisqueue.queue(redisqueue.BULK_QUEUE, connection).empty()
     assert [timeout for _name, _func, timeout in limits] == [20_000, redisqueue.MAX_TIMEOUT_SECONDS]
-
-
-def test_a_work_queue_task_gets_its_submitters_estimate_else_its_kinds_recorded_seconds(redis_server, limits,
-                                                                                        monkeypatch):
-    class Stats:
-        def seconds_per_task(self, kind, workers):
-            return {"sector": 600.0}.get(kind)
-
-    queue = workQueue.WorkQueue("Timed", workers=2)
-    queue._stats = Stats()
-    task = lambda kind, expected=None: workQueue._Task(kind, "k", math.sqrt, 4, 1.0, None, expected)   # noqa: E731
-    assert queue._expected_seconds(task("sector")) == 600.0
-    assert queue._expected_seconds(task("sector", 50.0)) == 50.0
-    assert queue._expected_seconds(task("mass-stars")) is None
-    assert queue._expected_seconds(task("unlisted")) is None
-
-    executor = redisqueue.RQExecutor(2, math.sqrt, f"test-timeout-{secrets.token_hex(6)}", url=redis_server)
-    monkeypatch.setattr(executor, "_fill_workers", lambda: None)
-    try:
-        for expected in (None, 600.0, 1.0):
-            executor.submit(4, expected_seconds=expected)
-    finally:
-        executor.queue.delete(delete_jobs=True)
-    assert [timeout for _name, _func, timeout in limits] == [
-        redisqueue.MAX_TIMEOUT_SECONDS, 6000, redisqueue.MIN_TIMEOUT_SECONDS]
-
-
-def test_a_dispatched_task_carries_its_expected_seconds_to_the_executor(monkeypatch):
-    asked = []
-    queue = workQueue.WorkQueue("Dispatch", workers=2)
-    queue._executor = type("Executor", (), {"submit": lambda self, *args, expected_seconds=None: asked.append(
-        expected_seconds)})()
-    monkeypatch.setattr(queue, "_book", lambda *args, **kwargs: None)
-    queue._waiting = [workQueue._Task("unlisted", "a", math.sqrt, 4, 1.0, None, 75.0)]
-    queue._dispatch()
-    assert asked == [75.0]
 
 
 @pytest.fixture

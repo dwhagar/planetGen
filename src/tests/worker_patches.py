@@ -1,34 +1,21 @@
 # tests/worker_patches.py
 
 """
-Patches that reach the work queue's worker processes too (PERF.21,
-TEST.74).
+Patches that reach the units of a run (PERF.21, TEST.74).
 
-`monkeypatch.setattr` only changes the test's own process; a run with
-two or more workers does its sectors and layers in spawned processes
-that import everything afresh. `patch_everywhere` patches this process
-and also records the patch in the environment, where every worker that
-starts while it is in place picks it up (`workQueue._run_worker_hooks`
-calls `install`). `monkeypatch.undo()` takes both back.
-
-A replacement is made by a module-level factory, named as
-`"module:function"` and called as `factory(real, **params)`, so a worker
-can build it as well; `params` must be JSON. Shared state (call counts,
-captured calls) lives in files under the test's `tmp_path`, so every
-process sees the same count.
+A run's units run in this process under the inline queue (`tests/inline_queue.py`), so
+`monkeypatch.setattr` reaches them. `patch_everywhere` keeps the call sites of the tests that were written for
+worker processes: it replaces `owner.name` here, by a module-level factory named as `"module:function"` and called as
+`factory(real, **params)`; `params` must be JSON. Shared state (call counts, captured calls) lives in files under the
+test's `tmp_path`.
 """
 
 import importlib
 import json
-import os
 
 from planetgen.queue import work as workQueue
 
 import fcntl
-
-PATCHES_ENV = "PLANETGEN_TEST_WORKER_PATCHES"
-HOOK = "tests.worker_patches:install"
-
 
 class Interrupted(RuntimeError):
     """The fault the patches below inject."""
@@ -39,40 +26,14 @@ def _resolve(ref):
     return getattr(importlib.import_module(module_name), name)
 
 
-def _apply(spec):
-    owner = importlib.import_module(spec["owner"])
-    real = getattr(owner, spec["name"])
-    setattr(owner, spec["name"], _resolve(spec["factory"])(real, **spec["params"]))
-
-
-def install():
-    """Applies every recorded patch (a worker's start, through
-    `$PLANETGEN_WORKER_HOOKS`)."""
-    for spec in json.loads(os.environ.get(PATCHES_ENV) or "[]"):
-        _apply(spec)
-
-
 def patch_everywhere(monkeypatch, owner, name, factory, **params):
-    """Replaces `owner.name` (owner a module) here and in every worker
-    started from now until `monkeypatch.undo()` or until the returned
-    `undo()` is called (which takes back only this patch)."""
-    spec = {"owner": owner.__name__, "name": name, "factory": factory, "params": params}
+    """Replaces `owner.name` (owner a module) by the factory's replacement until `monkeypatch.undo()` or until the
+    returned `undo()` is called (which takes back only this patch)."""
     real = getattr(owner, name)
-    saved = {key: os.environ.get(key) for key in (PATCHES_ENV, workQueue.WORKER_HOOKS_ENV)}
     monkeypatch.setattr(owner, name, _resolve(factory)(real, **params))
-    specs = json.loads(os.environ.get(PATCHES_ENV) or "[]") + [spec]
-    monkeypatch.setenv(PATCHES_ENV, json.dumps(specs))
-    hooks = [hook for hook in (os.environ.get(workQueue.WORKER_HOOKS_ENV) or "").split(",") if hook]
-    if HOOK not in hooks:
-        monkeypatch.setenv(workQueue.WORKER_HOOKS_ENV, ",".join(hooks + [HOOK]))
 
     def undo():
         setattr(owner, name, real)
-        for key, value in saved.items():
-            if value is None:
-                os.environ.pop(key, None)
-            else:
-                os.environ[key] = value
 
     return undo
 

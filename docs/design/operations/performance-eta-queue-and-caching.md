@@ -191,7 +191,7 @@ RQ here is a process launcher more than a shared queue [S, code]:
 | Use | Queue | Worker | Admission |
 |---|---|---|---|
 | Web job (Generate page) | one per job, `web/jobs.py` | one detached burst worker | the `active` file lock admits one job |
-| A run's tasks | one per run, `RQExecutor` | up to `worker_count()` burst workers started by the run | the `work_lease` row admits one run's pool at a time |
+| A run's tasks (before OPS.66, 2026-10-24: `RQExecutor` is removed; units are RQ jobs, `queue/units.py`) | one per run, `RQExecutor` | up to `worker_count()` burst workers started by the run | the `work_lease` row admits one run's pool at a time |
 | API job (`api_jobs.submit`) | one per job, `planetgen-api-<id>` | one detached burst worker | none |
 
 With a queue per job, RQ's ordering features are unused and nothing bounds the number
