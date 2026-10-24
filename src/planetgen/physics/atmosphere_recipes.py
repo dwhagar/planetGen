@@ -20,7 +20,9 @@ Rows and kinds
 
 - `option`: one of the rows of a *group* that compete for 100 percent (a5 to a7, b1 to b4, ...). The rows that pass the gate
   are weighted, normalised and one is drawn; if every weight is zero the group's stored `fallback` row wins (the airless,
-  bare or absent row; `"none"` is the explicit outcome that no row applies). A row drawn under a parent row is gated on
+  bare or absent row; `"none"` is the explicit outcome that no row applies). In a group whose fallback is `"none"` (j, k) the
+  weights are probabilities of occurrence, not shares: they are divided by their sum only when it exceeds 1, and what is left of
+  1 is the explicit none (a lone row of weight 0.1 is drawn one time in ten). A row drawn under a parent row is gated on
   `drawn.<group>`: the draw of a group stores `drawn.<group>` in the subject, so the level-2 rows (c, e5, e6, h4, m5 ...) pass
   only after their parent won and the joint probability is parent times conditional.
 - `binary`: present with probability `weight`, absent with the rest (the trace gases, the cloud classes by temperature).
@@ -777,7 +779,8 @@ class Recipes:
 
     def group_probabilities(self, name, subject, stack=()):
         """
-        `[(row, probability)]` of the rows of group `name` that pass `subject`, in the file's order, adding up to 1. Where no row
+        `[(row, probability)]` of the rows of group `name` that pass `subject`, in the file's order, adding up to 1 (in a group whose
+        fallback is `"none"` the weights are absolute and the shortfall to 1 is a `(None, p)` entry). Where no row
         has a weight above zero (or the conditions of every row fail) the group's fallback row takes the whole (`None` for the
         explicit "none applies" outcome); `[]` where the class is not one the group supports at all, or where it has no fallback
         and nothing has a weight.
@@ -790,6 +793,14 @@ class Recipes:
         weights = [(r, self.raw_weight(r, subject, gated=False, stack=stack)) for r in passing]
         weights = [(r, w) for r, w in weights if w > 0.0]
         total = math.fsum(w for _r, w in weights)
+        if weights and total > 0.0 and group.fallback == "none":
+            # The weights of a group whose fallback is "none applies" are probabilities of occurrence: a lone row of weight 0.1 is
+            # drawn one time in ten, and the rest is the explicit none (GEN.674: it used to be normalised to 1).
+            scale = max(total, 1.0)
+            table = [(r, w / scale) for r, w in weights]
+            if total < 1.0:
+                table.append((None, 1.0 - total))
+            return table
         if weights and total > 0.0:
             return [(r, w / total) for r, w in weights]
         if group.fallback is None:
@@ -842,8 +853,9 @@ class Recipes:
             row = table[0][0]
             return GroupDraw(group, row, 1.0, ((row.id if row else "none", 1.0),), drawn, True)
         chosen = draw.choices([r for r, _p in table], weights=[p for _r, p in table], k=1)[0]
-        probability = dict((r.id, p) for r, p in table)[chosen.id]
-        return GroupDraw(group, chosen, probability, tuple((r.id, p) for r, p in table), drawn)
+        listed = tuple((r.id if r else "none", p) for r, p in table)
+        probability = dict(listed)[chosen.id if chosen else "none"]
+        return GroupDraw(group, chosen, probability, listed, drawn)
 
     # -- continuous rows -------------------------------------------------------------------------------------------
 

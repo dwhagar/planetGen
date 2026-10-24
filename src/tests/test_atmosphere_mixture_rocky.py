@@ -89,8 +89,8 @@ def test_the_inventory_follows_the_delivered_water_class():
     seen = {}
     for seed in range(60):
         with draw.bound(seed):
-            recipe = RECIPES.draw_all(subject(), categories=md.ROCKY_CATEGORIES)
-            inventory = md.rocky_inventory(subject(), recipe, {})
+            recipe = RECIPES.draw_all(subject(ocean_present=False), categories=md.ROCKY_CATEGORIES)    # a world with an ocean also weathers (GEN.674)
+            inventory = md.rocky_inventory(subject(ocean_present=False), recipe, {})
         seen.setdefault(recipe.groups["b"].name, []).append(inventory)
     assert {"b1", "b2"} <= set(seen)
     dry_h = max(i["H"] for i in seen["b1"])
