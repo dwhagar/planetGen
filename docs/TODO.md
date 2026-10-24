@@ -14431,6 +14431,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   change; a generator epoch only if a stored value moves. Owner: none
   (pool; the survival equipment lane has retired, the habitability text
   lane too).
+  Research (2026-10-09, Update): Update 4:34 AM EDT 2026-10-24: the
+  survival equipment lane (still running, it wrote to TODO at 4:33 AM
+  EDT as its clock read) takes it; TODO checked nobody else had started
+  it. Owner: survival equipment lane.
   Prerequisites: none. Related: UX.167, UX.163, GEN.671.
 
 ## PERF: Speed, caching, bulk generation and parallel work
