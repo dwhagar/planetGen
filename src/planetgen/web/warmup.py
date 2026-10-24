@@ -28,6 +28,7 @@ from planetgen.db import nodes, objectindex, store
 from planetgen.galaxy.nodecut import node_cut
 from planetgen.physics.units import ly_to_pc
 from planetgen.queue import commands
+from planetgen.queue import units as units_module
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.util.settings import get_settings
 from planetgen.web.lib import apiclient, tilecache
@@ -553,6 +554,28 @@ expand_warm_galaxy_map = expand_warm_lists = expand_warm_sectors = _expand_famil
 expand_warm_systems = expand_warm_phenomena = expand_warm_search = _expand_family
 
 
+def _fetch_in_requests(app, args, report):
+    """
+    Builds the unit's `args["keys"]` with `fetch_nodes`, `NODE_CHUNK` keys per call, the most one request holds. A unit
+    holds more keys than that on a big galaxy, when the stage's cut is made coarser to stay within `units.MAX_UNITS`
+    (`units.coarsen`). The cache is looked at before each call after the first: once it is full the rest of the unit is
+    left out, as a unit that finds it full at the start leaves out all of its keys.
+
+    Returns:
+        tuple: `(cached, left_out)`: how many keys were already stored and how many were not built.
+    """
+    keys = args["keys"]
+    cached = 0
+    for start in range(0, len(keys), NODE_CHUNK):
+        if start and tilecache.cache_is_full():
+            report(start, len(keys))
+            return cached, len(keys) - start
+        with app.test_request_context("/"):
+            cached += fetch_nodes(args["database"], keys[start:start + NODE_CHUNK], ahead=True)["cached"]
+        report(min(start + NODE_CHUNK, len(keys)), len(keys))
+    return cached, 0
+
+
 def _warm_node_chunk(args, report, family):
     """
     The unit of the `warm-galaxy-nodes` and `warm-galaxy-deep-nodes` commands (MAP.260): builds one chunk of the nodes
@@ -560,7 +583,8 @@ def _warm_node_chunk(args, report, family):
     a visitor is served. A node that is already stored and current is not built again.
 
     Args:
-        args (dict): `database` (the site's) and `keys` (the chunk, at most `NODE_CHUNK` node keys).
+        args (dict): `database` (the site's) and `keys` (the chunk: `NODE_CHUNK` node keys, or a whole multiple of that on a galaxy too big for
+            the stage's unit cap, see `units.coarsen`).
         report (callable): Called with `(done, estimate)` when the chunk is built.
         family (str): The family the chunk belongs to, for its line.
     """
@@ -579,15 +603,14 @@ def _warm_node_chunk(args, report, family):
                     "the disk cache is off (cache.max_mb is 0)" if tilecache.max_cache_bytes() <= 0 else
                     f"the cache is full ({tilecache.max_cache_bytes() / 1048576:.0f} MB, cache.max_mb)")}
     app = build_app()
-    with app.test_request_context("/"):
-        result = fetch_nodes(args["database"], args["keys"], ahead=True)
-    report(count, count)
+    cached, left_out = _fetch_in_requests(app, args, report)
     seconds = time.monotonic() - started
-    built = count - result["cached"]
-    return {"family": family, "warmed": count, "noun": "nodes", "cached": result["cached"], "built": built,
-            "left_out": 0, "seconds": seconds,
-            "line": f"{family}: {count} nodes warmed ({built} built, {result['cached']} already stored) in "
-                    f"{seconds:.1f} s"}
+    warmed = count - left_out
+    built = warmed - cached
+    return {"family": family, "warmed": warmed, "noun": "nodes", "cached": cached, "built": built,
+            "left_out": left_out, "seconds": seconds,
+            "line": f"{family}: {warmed} nodes warmed ({built} built, {cached} already stored) in {seconds:.1f} s"
+                    + (f", {left_out} left out as the cache filled" if left_out else "")}
 
 
 def warm_galaxy_nodes_unit(args, report):
@@ -602,11 +625,12 @@ def warm_galaxy_deep_nodes_unit(args, report):
 
 def expand_warm_galaxy_nodes(params):
     """The units of the `warm-galaxy-nodes` stage: the populated blocks of `NODE_WARM_FLOOR` and above, in chunks of
-    `NODE_CHUNK`, coarsest first."""
+    `NODE_CHUNK` (a whole multiple of it past `units.MAX_UNITS` chunks), coarsest first."""
     database = params["database"]
     keys = _populated_nodes(database)
-    units = [({"database": database, "keys": keys[start:start + NODE_CHUNK]},
-              NODE_SECONDS * len(keys[start:start + NODE_CHUNK])) for start in range(0, len(keys), NODE_CHUNK)]
+    size = units_module.coarsen(len(keys), NODE_CHUNK)
+    units = [({"database": database, "keys": keys[start:start + size]},
+              NODE_SECONDS * len(keys[start:start + size])) for start in range(0, len(keys), size)]
     if not units:       # nothing is stored yet: one unit with no nodes, so the stage still runs and says so
         units = [({"database": database, "keys": []}, NODE_SECONDS)]
     return commands.Expansion(units, {"nodes": len(keys), "floor": NODE_WARM_FLOOR})
@@ -619,15 +643,16 @@ def finish_warm_galaxy_nodes(params, plan, results, seconds):
 
 def expand_warm_galaxy_deep_nodes(params):
     """The units of the `warm-galaxy-deep-nodes` stage: `deep_nodes_to_warm` for the galaxy's shape and
-    `tile_cache.warm_zoom_floor`, in chunks of `NODE_CHUNK`, coarsest first."""
+    `tile_cache.warm_zoom_floor`, in chunks of `NODE_CHUNK` (a whole multiple of it past `units.MAX_UNITS` chunks), coarsest first."""
     database = params["database"]
     floor = get_settings().tile_cache.warm_zoom_floor
     app = build_app()
     with app.test_request_context("/"):
         shape = apiclient.get_galaxy_shape(database)
     keys = deep_nodes_to_warm(shape, floor)
-    units = [({"database": database, "keys": keys[start:start + NODE_CHUNK]},
-              NODE_SECONDS * len(keys[start:start + NODE_CHUNK])) for start in range(0, len(keys), NODE_CHUNK)]
+    size = units_module.coarsen(len(keys), NODE_CHUNK)
+    units = [({"database": database, "keys": keys[start:start + size]},
+              NODE_SECONDS * len(keys[start:start + size])) for start in range(0, len(keys), size)]
     if not units:
         units = [({"database": database, "keys": []}, NODE_SECONDS)]
     return commands.Expansion(units, {"nodes": len(keys), "zoom_floor": floor})

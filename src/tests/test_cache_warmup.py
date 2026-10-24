@@ -295,6 +295,36 @@ def test_the_warm_up_stops_when_the_cache_is_full_and_what_it_built_stays(galaxy
     assert sorted(path for path, _size, _mtime, _ahead in tilecache.cache_files(root)) == before, "built ahead, kept"
 
 
+def test_a_stage_with_more_chunks_than_the_unit_cap_is_cut_into_bigger_units_and_still_warms_every_node(
+        galaxy, node_levels, monkeypatch):
+    """Boss, 2026-10-24: "unit 0 of stage 3 failed: a stage queues at most 4000 units, not 4051"."""
+    monkeypatch.setattr(warmup, "NODE_CHUNK", 4)
+    plain = commands.expand_function("warm-galaxy-deep-nodes")({"database": galaxy.config.database, "cap": None})
+    keys = [key for args, _cost in plain.units for key in args["keys"]]
+    assert len(plain.units) > 6
+    monkeypatch.setattr(units, "MAX_UNITS", 6)
+    capped = commands.expand_function("warm-galaxy-deep-nodes")({"database": galaxy.config.database, "cap": None})
+    assert len(capped.units) <= 6 and [key for args, _cost in capped.units for key in args["keys"]] == keys
+    assert all(len(args["keys"]) % 4 == 0 for args, _cost in capped.units[:-1])
+    asked = []
+    real = warmup.fetch_nodes
+    monkeypatch.setattr(warmup, "fetch_nodes",
+                        lambda db, wanted, **kwargs: asked.append(len(wanted)) or real(db, wanted, **kwargs))
+    results = [commands.run_alone("warm-galaxy-deep-nodes", args) for args, _cost in capped.units]
+    assert sum(result["warmed"] for result in results) == len(keys) and sum(result["left_out"] for result in results) == 0
+    assert max(asked) <= 4, "a request never holds more than NODE_CHUNK nodes, however big the unit"
+    assert sum(asked) == len(keys)
+
+
+def test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out(galaxy, node_levels, monkeypatch):
+    monkeypatch.setattr(warmup, "NODE_CHUNK", 2)
+    monkeypatch.setenv("PLANETGEN_CACHE_MAX_MB", "0.0004")
+    keys = warmup.deep_nodes_to_warm(None, 81)[:8]
+    result = commands.run_alone("warm-galaxy-deep-nodes", {"database": galaxy.config.database, "keys": keys})
+    assert 0 < result["warmed"] < len(keys) and result["warmed"] + result["left_out"] == len(keys)
+    assert result["warmed"] % 2 == 0 and "left out as the cache filled" in result["line"]
+
+
 def test_a_cache_with_room_warms_everything_and_says_nothing_was_left_out(galaxy, node_levels):
     expansion, results = _run_deep_units(galaxy)
     assert sum(result["left_out"] for result in results) == 0
