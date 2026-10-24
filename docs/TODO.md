@@ -13364,39 +13364,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nobody started it first.
   Prerequisites: none. Related: GEN.557, GEN.687.
 
-- [ ] **GEN.703 The greenhouse optical depth (tau0) comes from the stored mixture and the band opacities, replacing the per-gas strengths**
-  Split off GEN.443 when its last part merged (#2910, as lane G reported
-  at 4:41 AM EDT 2026-10-24). GEN.443 delivered the band transmission
-  and the ground light of a stored body (physics/body_radiation.py:
-  surface_spectrum, uv_index, dna_dose_w_m2) and stars.uv_c_share. Not
-  done there: the greenhouse warming still uses the stored multiplier of
-  GEN.412 and the per-gas strengths of GEN.423. Do: derive the infrared
-  optical depth tau0 of the atmosphere from the stored mixture and the
-  gas table's infrared band data (the two-stream kernel of GEN.443
-  already in physics/two_stream.py), check the stored multiplier against
-  it, and replace the per-gas strengths where the design (GEN.436) says
-  so, agreeing the split with GEN.423 and lane H. Done: Earth's air
-  gives the measured greenhouse warming within a stated tolerance, a
-  thin dry world gives almost none, a thick CO2 world a runaway-like
-  value, doubling a gas moves the warming as the physics says, no NaN
-  for any class. Owner: lane E (as lane G handed it over, to be
-  confirmed).
-  Research (2026-10-09, Update): Lane E (4:51 AM EDT 2026-10-24 as the
-  lane reported): lane E takes this after the GEN.444/GEN.445 wiring
-  merges; nobody has started it, so it stays lane E's unless lane H or
-  GEN.423 asks.
-  Research (2026-10-09, In progress): Lane E started it (9:58 AM EDT
-  2026-10-24, as the lane reported; branch claude/project-thread-y7s6g7,
-  nothing pushed yet): a new physics/infrared_opacity.py
-  (Planck-weighted band saturation per gas from the gas table's band
-  centres, the water continuum, collision-induced pairs);
-  atmosphere_state.greenhouse_warming (GEN.423, #2966) will call it and
-  INFRARED_MASS_ABSORPTION_M2_KG is deleted with its tests updated.
-  Lanes L and I must not edit atmosphere_state.py or its tests until it
-  merges. Band strengths are labelled stand-ins; real tables are filed
-  as GEN.715.
-  Prerequisites: none. Related: GEN.443, GEN.423, GEN.412, GEN.436.
-
 - [ ] **GEN.704 Moons of a moved planet keep the dose, solar particle exposure, UV and habitability of their old distance from the star (bug)**
   Found by lane E while wiring GEN.445 (reported 4:51 AM EDT
   2026-10-24). validation.reconcile_moved_planet re-runs
@@ -13648,6 +13615,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   question. Owner: not assigned (Bug Hunt found it; the star scatter
   lane, Core 3 or Core 1, is the nearest owner).
   Prerequisites: none. Related: GEN.530, GEN.631, TEST.338.
+
+- [ ] **GEN.717 The greenhouse opacity has no water-vapour vertical profile, so the 15 micron CO2 band is not masked by water and a CO2 doubling warms 0.3 to 0.6 K instead of about 1.1 K**
+  Filed from lane E's GEN.703 report (10:12 AM EDT 2026-10-24 as the
+  lane reported, #2992). The spectral greenhouse opacity
+  (physics/infrared_opacity.py) treats the gases as well mixed, so water
+  vapour masks the 15 micron CO2 band too much. Do: a water vapour
+  vertical profile (humidity falling with height), so the band is
+  exposed as in the real atmosphere. Done: a CO2 doubling on an
+  Earth-like mixture warms about 1.1 K (within 25 percent), Earth, Venus
+  and Mars checks still pass, and the design note
+  docs/design/composition/infrared-opacity.md says so. Not wired into
+  generation yet, so no epoch until GEN.411 calls it. Owner: none
+  (pool); lane E proposed.
+  Prerequisites: none. Related: GEN.703, GEN.715, GEN.423, GEN.411.
+
+- [ ] **GEN.718 Cold haze worlds like Titan come out about twice too warm in the spectral greenhouse opacity**
+  Filed from lane E's GEN.703 report (10:12 AM EDT 2026-10-24 as the
+  lane reported, #2992). The spectral greenhouse model gives Titan-like
+  cold haze worlds (thick N2 and CH4 atmospheres with organic haze)
+  about twice their measured warming. Do: find which term is too strong
+  (the collision-induced N2 and CH4 pairs or the haze opacity) and fix
+  it against the Titan measurement. Done: a Titan-like mixture comes out
+  within 25 percent of the measured greenhouse warming and the Earth,
+  Venus and Mars checks still pass. Stand-in band strengths are part of
+  the cause; real tables are GEN.715. Owner: none (pool); lane E
+  proposed.
+  Prerequisites: none. Related: GEN.703, GEN.715, GEN.423.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17485,7 +17479,7 @@ clears each one.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.444, GEN.445, GEN.446, GEN.703. Related:
+  Prerequisites: GEN.444, GEN.445, GEN.446. Related:
   TEST.209,
   TEST.210, TEST.211.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -18706,6 +18700,10 @@ clears each one.
   lane's clock reads) saw the same four system page a11y failures on
   main (link-in-text-block and nested-interactive on planet class links
   inside summary.body-stats).
+  Research (2026-10-09, 10-24 lane E): Lane E (10:12 AM EDT 2026-10-24
+  as the lane reported): it still fails on main at the #2992 gate, four
+  test_web_a11y web.system cases (class links in the planet summary fail
+  axe contrast 1.06:1, plus nested-interactive). Not from #2992.
   Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
 
 - [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
