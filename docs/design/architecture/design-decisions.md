@@ -125,8 +125,7 @@ hand). If WebGL runs out, three's own `InstancedMesh`, `BatchedMesh` and
 
 **Chosen:** every page is served by the same Flask app as the API
 (`src/planetgen/web/`, Jinja2 templates, mounted at `/` through mod_wsgi or
-gunicorn). Old `/<name>.py` URLs answer with a 301 to their
-replacement (`web/old_urls.py`).
+gunicorn). The old `/<name>.py` CGI URLs were retired and answer with the 404 page.
 
 **When:**
 - 5.2.1 (2026-09-06): the first web interface, plain Python CGI scripts

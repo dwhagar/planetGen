@@ -789,18 +789,6 @@ def test_nav_bad_parameters_are_404(client, fake, query):
     assert "Traceback" not in resp.get_data(as_text=True)
 
 
-@pytest.mark.parametrize("query,location", [
-    ("from_id=1001", "/nav"),
-    ("from_id=1001&to_id=1002", "/nav"),
-    ("from=3&from_kind=phenomenon&from_type=nebula&to=1002&to_kind=system", "/nav"),
-    ("to=3&to_kind=phenomenon&to_type=black_hole&from_sector=5", "/nav?from_sector=5"),
-])
-def test_nav_old_parameter_style_redirects(client, fake, query, location):
-    resp = client.get(f"/nav?{query}")
-    assert resp.status_code == 301
-    assert resp.headers["Location"] == location
-
-
 def test_nav_url_helpers(app):
     with app.test_request_context("/"):
         assert page_url("nav") == "/nav"
@@ -808,35 +796,6 @@ def test_nav_url_helpers(app):
         assert nav_url(None, endpoint("black_hole", 3)) == "/nav?to=black_hole:3"
         assert page_url("nav", **{"from": "system:1", "to": "nebula:2"}) == \
             "/nav?from=system:1&to=nebula:2"
-
-
-# --- Old CGI URLs ---------------------------------------------------------------------------
-
-def test_old_sector_url_redirects(client):
-    result = client.get("/sector.py?db=x&id=5&contents_page=2")
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/sectors"
-
-
-@pytest.mark.parametrize("sector_id", ["", "abc", "0"])
-def test_old_sector_url_without_valid_id_goes_to_sectors(client, sector_id):
-    result = client.get(f"/sector.py?db=x&id={sector_id}")
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/sectors"
-
-
-@pytest.mark.parametrize("params,location", [
-    ({"db": "x"}, "/nav"),
-    ({"db": "x", "from": "12"}, "/nav"),
-    ({"db": "x", "from": "12", "to": "3", "to_kind": "phenomenon", "to_type": "neutron_star"}, "/nav"),
-    ({"db": "x", "to": "4", "from_sector": "9"}, "/nav"),
-    ({"db": "x", "from": "12", "to_sector": "9"}, "/nav"),
-    ({"db": "x", "from": "junk", "from_sector": "<x>"}, "/nav"),
-])
-def test_old_nav_url_translates_parameters(client, params, location):
-    result = client.get("/nav.py", query_string=params)
-    assert result.status_code == 301
-    assert result.headers["Location"] == location
 
 
 # --- Real database, in-process ------------------------------------------------------------

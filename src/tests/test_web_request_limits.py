@@ -165,7 +165,7 @@ def test_a_failed_csrf_check_carries_the_page_headers(app):
     _assert_headers(response, _PAGE_HEADERS)
 
 
-@pytest.mark.parametrize("path", ["/system.py", "/admin", "/account", "/admin/generate", "/adminstats.py"])
+@pytest.mark.parametrize("path", ["/admin", "/account", "/admin/generate"])
 def test_redirects_carry_the_page_headers(app, path):
     response = app.test_client().get(path)
     assert response.status_code in (301, 302, 303)

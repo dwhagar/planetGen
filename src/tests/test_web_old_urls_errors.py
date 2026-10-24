@@ -4,13 +4,9 @@
 TEST.52: old URLs and error codes on the HTML pages, against a real seeded
 database (`test_fuzz_web_routes`' fixtures):
 
-- an unknown `/<name>.py` (`web/old_urls.py`) is the 404 page, and so is a
-  case variant of a real page or old URL (`/Systems.py`, `/SYSTEMS`,
-  `/INDEX.py`): URLs are case-sensitive, never a redirect guess;
-- every old URL redirects exactly once, with a 301 straight to the page
-  that replaced it -- the target is never another old URL or redirect
-  (an admin page's own bounce to `/login` aside), so there are no chains
-  or loops;
+- a `/<name>.py` URL (the retired CGI pages) is the 404 page, and so is a
+  case variant of a real page (`/Systems.py`, `/SYSTEMS`, `/INDEX.py`):
+  URLs are case-sensitive, never a redirect guess;
 - a form POST with a malformed body (bad percent-encoding, non-UTF-8
   bytes, the wrong content type, a broken multipart body) is a 4xx or the
   page's own answer, never a 500 -- without a CSRF token a 400, with one
@@ -25,18 +21,14 @@ The request size limit (413) and the admin-auth sweep are covered
 elsewhere. Skipped, not failed, without a reachable MySQL test server.
 """
 
-from urllib.parse import urlsplit
-
 import pytest
-
-from planetgen.web.old_urls import OLD_PAGES
 
 from tests.test_fuzz_web_routes import (  # noqa: F401 -- fixtures
     admin_client, app, build_path, check_response, fuzz_db, login_api, with_csrf,
 )
 
 # ---------------------------------------------------------------------
-# Old /<name>.py URLs
+# Retired /<name>.py URLs
 # ---------------------------------------------------------------------
 
 UNKNOWN_OLD = ["/nope.py", "/systems.py", "/sectors.py", "/x.py.py", "/index.py.bak", "/admin_stats.py",
@@ -52,75 +44,6 @@ def test_unknown_or_miscased_url_is_the_404_page(app, path):
     assert response.status_code == 404, path
     assert response.mimetype == "text/html" and "Not found" in body
     assert "Location" not in response.headers
-
-
-def _old_urls(ids):
-    """`(path, expected target path)` for every old page name, plus the
-    detail pages, which all go to their list."""
-    plain = {
-        "web.index": "/", "web.galaxy": "/galaxy", "web.galaxy_tiles": "/galaxy/tiles", "web.sectors": "/sectors",
-        "web.systems": "/systems", "web.phenomena": "/phenomena", "web.nav": "/nav", "web.search": "/search",
-        "web.login": "/login", "web.logout": "/logout", "web.account": "/account", "web.admin": "/admin",
-        "web.admin_stats": "/admin/stats",
-    }
-    urls = [(f"/{name}.py", plain[endpoint]) for name, endpoint in sorted(OLD_PAGES.items())]
-    return urls + [
-        # Their old row numbers name nothing since objects have IDs (API.23): the bare list page.
-        (f"/sector.py?id={ids['sector_id']}&db=x", "/sectors"),
-        (f"/system.py?id={ids['system_ids'][0]}", "/systems"),
-        (f"/phenomenon.py?id={ids['nebula_id']}&type=nebula", "/phenomena"),
-        ("/sector.py?id=abc", "/sectors"), ("/system.py?id=-1", "/systems"), ("/phenomenon.py?id=1", "/phenomena"),
-        ("/index.py?db=x&sectors_page=2&standalone_page=", "/"), ("/search.py?q=a&x=", "/search"),
-        (f"/nav.py?from={ids['system_pids'][0]}&to={ids['system_pids'][1]}", "/nav"),
-    ]
-
-
-def test_every_old_page_name_is_swept():
-    assert len(OLD_PAGES) == 17  # a new old name needs its target in `_old_urls`' table
-
-
-@pytest.mark.parametrize("anonymous", [True, False], ids=["anonymous", "admin"])
-def test_old_url_redirects_once_straight_to_the_final_page(app, fuzz_db, anonymous):
-    for path, target in _old_urls(fuzz_db):
-        client = app.test_client()
-        if not anonymous:
-            login_api(client)
-        response = client.get(path)
-        check_response(response, path)
-        assert response.status_code == 301, path
-        location = response.headers["Location"]
-        parts = urlsplit(location)
-        assert not parts.netloc and parts.path == target, (path, location)
-        assert not parts.path.endswith(".py") and "db=" not in parts.query
-        final = client.get(location)
-        check_response(final, location)
-        if parts.path == "/logout":
-            assert final.status_code == 200  # GET only asks to confirm
-        elif anonymous and parts.path in ("/admin", "/admin/stats", "/account"):
-            # The admin pages' own bounce to the login page, not a second old-URL hop.
-            assert final.status_code == 302 and final.headers["Location"].startswith("/login?next=")
-        elif not anonymous and parts.path == "/login":
-            assert final.status_code == 302 and final.headers["Location"] == "/admin"  # already logged in
-        else:
-            assert final.status_code == 200, (path, location, final.status_code)
-
-
-def test_old_url_keeps_its_query_but_drops_db_and_empties(app):
-    response = app.test_client().get("/index.py?db=other&sectors_page=2&standalone_page=&q=%zz")
-    assert response.status_code == 301
-    assert response.headers["Location"].startswith("/?sectors_page=2&q=")
-    assert "db=" not in response.headers["Location"] and "standalone_page" not in response.headers["Location"]
-
-
-def test_old_url_head_and_post(app):
-    client = app.test_client()
-    head = client.head("/index.py?sectors_page=2")
-    assert head.status_code == 301 and head.headers["Location"] == "/?sectors_page=2" and head.data == b""
-    assert client.post("/index.py").status_code == 400  # the CSRF check, like any stale form
-    token = with_csrf(client)
-    posted = client.post("/index.py", headers={"X-CSRF-Token": token})
-    check_response(posted, "/index.py")
-    assert posted.status_code == 405
 
 
 # ---------------------------------------------------------------------
