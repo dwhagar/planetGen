@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2131] - 2026-10-24
+
+**Headline:** A planet or moon keeps the Bond albedo and the greenhouse quantity its surface temperature is made of, so the temperature can be read back from them exactly.
+
+### Changed
+- **The generator records its albedo and greenhouse draws (GEN.412).** `calculate_atmospheric_conditions` drew an albedo from the class range and a greenhouse quantity from the air and the class multiplier, and kept only the temperature. It now keeps both on the body (`bond_albedo`, `greenhouse_factor`, with `albedo_basis` 0), and the temperature is `T_s = T_e (1 + G)^(1/4)` through the new `planetgen/physics/climate_draws.py`, floored at the cosmic microwave background as before. A body with no air records G as 0. Nothing is drawn differently, so there is no generator epoch.
+- **Migration 0142, schema v142.** `planets` and `moons` gain the three columns. A galaxy made earlier gets the draws back exactly from each body's stored scale height (`albedo_basis` 1); a row with no solution (no starlight, a temperature on the background floor, an albedo outside 0 to 1, an edited pressure) takes a seeded draw from the class range with the greenhouse quantity worked out from its stored temperature, which never moves (`albedo_basis` 2).
+
 ## [8.0.2130] - 2026-10-24
 
 **Headline:** The retired `/<name>.py` page addresses and the old NAV parameter style now answer 404 instead of redirecting.
