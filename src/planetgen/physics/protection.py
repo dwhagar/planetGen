@@ -166,8 +166,8 @@ def _short(gear):
 
 def gear_clause(levels):
     """The survival equipment as the two lines that follow a rating's headline, from its stored levels
-    (`equipment.compute`): "Required: a + b. Recommended: c.", each line given for every body ("nothing" when empty)."""
-    return " ".join(equipment.lines(levels))
+    (`equipment.compute`): "Required: a + b. Recommended: c."; a line with nothing in it is left off."""
+    return " ".join(line for line in equipment.lines(levels) if line)
 
 
 def rating(world, compact_host=None):

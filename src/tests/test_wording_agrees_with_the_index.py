@@ -57,8 +57,7 @@ def test_the_gear_clause_and_the_equipment_line_name_the_same_items():
         levels = equipment.compute(world)
         clause = protection.rating(world)["gear"]
         line = equipment.line(levels)
-        assert clause == " ".join(equipment.lines(levels))
-        assert clause.startswith("Required: ") and "Recommended: " in clause
+        assert clause == " ".join(line for line in equipment.lines(levels) if line)
         for name in equipment.required_names(levels) + equipment.recommended_names(levels):
             assert name in clause and name in line, (name, clause, line)
 
@@ -155,13 +154,13 @@ def test_every_scored_body_has_both_equipment_lines_and_its_per_item_specs_in_it
             blocks = by_name[body.name]["blocks"]
             ratings = next(block for block in blocks if block["type"] == "ratings")
             gear = describe.quantity.inline_text(ratings["gear"])
-            assert gear.startswith("Required: ") and "Recommended: " in gear, (body.name, gear)
+            assert gear == " ".join(line for line in equipment.lines(equipment.compute(body.habitability_world()[0])) if line)
             levels = equipment.compute(body.habitability_world()[0])
             table = next((block for block in blocks if block["type"] == "facts" and block["caption"] == "Survival equipment"), None)
             names = equipment.required_names(levels) + equipment.recommended_names(levels)
             if names:
-                rows = [describe.quantity.inline_text(row["label"]).lower() for row in table["rows"]]
-                assert all(name in rows for name in names), (body.name, names, rows)
+                rows = [describe.quantity.inline_text(row["value"]).lower() for row in table["rows"]]
+                assert all(any(row.startswith(name + ":") for row in rows) for name in names), (body.name, names, rows)
             else:
                 assert table is None
             seen += 1

@@ -145,7 +145,7 @@ SCORE_RULE = (
 EQUIPMENT_RULE = (
     "A planet's equipment line lists only what a visitor needs, never what is not needed. Each item is required "
     "(past the physical limit) or recommended (in the band before it, where a person is impaired or at risk, or "
-    "where only a region or the night asks for it); every body gives a Required line and a Recommended line, with \"nothing\" where one is empty. The line follows the "
+    "where only a region or the night asks for it); a body gives a Required line and a Recommended line, and leaves off one with nothing in it. The line follows the "
     "physics, so it can be stricter than a domain's colour: a gas past its immediate danger limit needs sealed "
     "air even where the score only says Yellow. Radiation goes up in steps: a shielded garment, a storm vest, a "
     "hardened suit, then a shielded shelter and a hardened habitat, each worked out from how much of the dose is "

@@ -139,10 +139,10 @@ def test_where_no_garment_stops_cosmic_rays_the_hardened_suit_is_required_and_th
         assert equipment.recommended_names(levels) == ["hardened habitat"], changes
 
 
-def test_every_scored_body_has_a_required_line_and_a_recommended_line():
+def test_the_required_and_recommended_lines_leave_an_empty_list_off():
     nothing = equipment.compute(_world())
-    assert equipment.lines(nothing) == ("Required: nothing.", "Recommended: nothing.")
-    assert equipment.summary(nothing)["required_line"] == "Required: nothing."
+    assert equipment.lines(nothing) == ("", "")  # a list with nothing in it is left off, never "none"
+    assert equipment.summary(nothing)["required_line"] == "" and equipment.summary(nothing)["recommended_line"] == ""
     mars = equipment.summary(equipment.compute(_world(**NAMED["Mars"][0])))
     assert mars["required_line"] == "Required: hardened pressure suit + dust-tight seals."
     assert mars["recommended_line"] == "Recommended: hardened habitat."

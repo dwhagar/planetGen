@@ -399,6 +399,10 @@ def _ratings_block(planet):
                          rows, model.chem_text(result["gear"]))
 
 
+SLOT_LABELS = {"body": "Body protection", "filter": "Air filter", "supply": "Air supply", "radiation": "Radiation shelter"}
+"""dict: The label of each slot of the survival equipment in a body's details."""
+
+
 def _equipment_block(planet):
     """UX.163: the survival equipment of a scored rocky body as a facts table, one row per item with how badly it is
     needed, the PHI-6 category it comes from and the tech level to make it, then the shelter's shielding and the hours
@@ -411,8 +415,9 @@ def _equipment_block(planet):
     for index, item in enumerate(equipment.items(levels)):
         tech = equipment.item_tech(item.name, tuning.SPECIES_EQUIPMENT_TECH)
         made = "no tech level makes it" if tech >= 99 else f"made at tech level {tech:g}"
-        rows.append(fact(f"equipment-{index}", model.chem_text(item.name[:1].upper() + item.name[1:]),
-                         f"{item.severity.capitalize()}; {item.domain.lower()}; {made}"))
+        rows.append(fact(f"equipment-{index}", SLOT_LABELS[item.slot],
+                         model.chem_text(item.name[:1].upper() + item.name[1:]),
+                         f": {item.severity}; {item.domain.lower()}; {made}"))
     if levels.get("shelter_column_g_cm2"):
         rows.append(fact("shelter-shielding", "Shelter shielding", f"{round(levels['shelter_column_g_cm2']):,} g/cm2"))
     if levels.get("outside_hours") is not None:

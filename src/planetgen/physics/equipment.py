@@ -16,8 +16,8 @@ Four slots, each a ladder of levels, and every item is **required** (past the ph
   air column and run through the dose curves of `radiation`, against the stored parts of the dose.
 
 The gear follows the physics wherever it is stricter than the score's bands (Boss, decision B): the PHI-6 scores are
-unchanged. Only what is needed is ever listed (decision E); a body's text and API give a Required line and a Recommended line for
-every scored body ("nothing" where a list is empty, Boss 2026-10-23), the search column and `line` leave an empty list out.
+unchanged. Only what is needed is ever listed (decision E); a body's text and API give a Required line and a Recommended line
+(`lines`), and a list with nothing in it is left off (Boss 2026-10-24).
 
 Everything here is a pure function of a `habitability.World` (`compute`, from which the stored levels come) or of
 the stored levels alone (`items`, `required_names`, `recommended_names`, `code`, `summary`).
@@ -506,11 +506,11 @@ def line(levels):
 
 
 def lines(levels):
-    """`(required line, recommended line)`, each always given (Boss, 2026-10-23): "Required: a + b." and "Recommended: c.",
-    or "Required: nothing." and "Recommended: nothing." where the list is empty."""
+    """`(required line, recommended line)`: "Required: a + b." and "Recommended: c.". A list with nothing in it is left off
+    (the empty string, never "none"; Boss, 2026-10-24), so a world that needs nothing has neither."""
     required, recommended = required_names(levels), recommended_names(levels)
-    return ("Required: " + (" + ".join(required) if required else "nothing") + ".",
-            "Recommended: " + (" + ".join(recommended) if recommended else "nothing") + ".")
+    return (("Required: " + " + ".join(required) + ".") if required else "",
+            ("Recommended: " + " + ".join(recommended) + ".") if recommended else "")
 
 
 def _tokens(levels, suffix):
