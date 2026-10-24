@@ -15610,10 +15610,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   that tree, a test reads all three from their sources and fails if the
   key
   ignores one, and the docs gate passes. Takes a generator epoch only if
-  the key changes what a seed generates (it should not). Owner: Aux 13
-  (Lane Draws, seed and draw helpers; no overlap with its files) unless
-  the
-  coordinator names another lane; nobody has started it.
+  the key changes what a seed generates (it should not). Owner: Aux 12
+  (Lane 4, the database lane that built the version key in DB.6 and owns
+  the migrations; takes it right after DB.100, ahead of DB.96 and DB.101);
+  nobody has started it.
   Prerequisites: none. Related: OPS.64, OPS.10, DB.6, PERF.32.
 
 ## API: The JSON API
