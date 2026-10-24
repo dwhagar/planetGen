@@ -544,7 +544,7 @@ Armstrong limit (6.3 kPa against 6.27) is the same number to the notes' rounding
 a visitor needs, and one row per category with its colour, score and one short sentence. The describer
 (`describe/build.py`) puts it in the body's Document and the renderers write it. It opens "PHI-6 habitability is 0.00 (Red),
 and a visitor needs a pressure suit + dust-tight seals." (the required items of the equipment line, then "and should add" the recommended ones; a world that needs nothing opens "PHI-6 habitability is 1.00 (Blue)." with no gear clause) The six categories follow, each as "Name: Colour (value)." and one short sentence with
-the number and its consequence ("The air pressure is 0 kPa, so a pressure suit is needed."). Air with no atmosphere reads
+the number and the gear its category asks for ("The air pressure is 0 kPa. Required: hardened pressure suit.", UX.153, UX.163). Air with no atmosphere reads
 "There is no atmosphere (0 kPa)." (GEN.215), Radiation names its band, and Suitability says which of food, water and shelter
 are readily available. Gear is named in short words (`SHORT_GEAR`); the first line is the equipment line itself (`protection.gear_clause`), so the
 headline and the stored levels cannot disagree. A planet of a pulsar, a neutron star or a black hole says its dose is rated lethal.

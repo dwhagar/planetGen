@@ -45,7 +45,7 @@ from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import equipment, habitability, habitability_world
+from planetgen.physics import equipment, habitability, habitability_world, life_scores
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types
 from planetgen.generation.star import compressed_heliosphere_radius
@@ -6390,8 +6390,9 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
 
 
 def _tier_columns():
-    """The stored habitability of a planet or moon (UX.100): `phi4` and the six `tier_<domain>` columns."""
-    return ("phi4", *(f"tier_{domain}" for domain in habitability_world.DOMAINS))
+    """The stored habitability of a planet or moon (UX.100, UX.152): `phi4`, the six `tier_<domain>` columns and the four
+    life scores."""
+    return ("phi4", *(f"tier_{domain}" for domain in habitability_world.DOMAINS), *life_scores.FIELDS)
 
 
 def _tiers(alias):

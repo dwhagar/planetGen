@@ -178,6 +178,7 @@ def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=N
         planets = [{"id": i, "name": f"World {i:03d}", "planet_class": "M", "body_type": "t", "life_chemical": None,
                     "radius_km": 6371.0, "star_system_id": 7, "system_name": "Kepler-42", "sector_id": None,
                     "equipment": "Required: gas-mix mask. Recommended: hardened habitat.", "phi4": 0.5,
+                    "life_microbial": 3, "life_flora": 0, "life_fauna": 1, "life_sentient": 0,
                     "equipment_items": [{"item": "gas-mix mask", "severity": "required", "domain": "Air"},
                                         {"item": "hardened habitat", "severity": "recommended", "domain": "Radiation"}],
                     **tiers} for i in range(120)]
@@ -690,7 +691,7 @@ def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scr
     first = page.locator("#search-planets tbody tr", has_text="World 000").first
     assert first.locator("svg.hab-symbol").count() == 7
     first_links = first.locator(".hab-symbols a.help-link[href*='/help/habitability#']")      # read now: scrolling drops the row
-    assert first_links.count() == 7
+    assert first_links.count() == 11    # the seven symbols and the four life scores (UX.152)
     first_hrefs = first_links.evaluate_all("els => els.map(e => e.getAttribute('href'))")
     page.locator("#search-planets .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
     last = page.locator("#search-planets tbody tr[data-index]", has_text="World 119")
@@ -702,7 +703,7 @@ def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scr
     assert last.locator("svg.hab-symbol.tier-red").count() >= 1
     # UX.181: each symbol, drawn by the page or by datatable.js, is a link to its section of the habitability page.
     last_links = last.locator(".hab-symbols a.help-link[href*='/help/habitability#']")
-    assert last_links.count() == 7
+    assert last_links.count() == 11
     for hrefs in (first_hrefs, last_links.evaluate_all("els => els.map(e => e.getAttribute('href'))")):
         assert hrefs[0].endswith("/help/habitability#overall")
         assert hrefs[1].endswith("/help/habitability#domain-pressure")
@@ -728,6 +729,27 @@ def test_search_planet_rows_draw_one_equipment_chip_per_item_with_and_without_sc
         assert "flag-eq-required" in drawn[0][0] and "flag-eq-recommended" in drawn[1][0]
         assert "flag-tier-" in drawn[0][0] and "flag-tier-" in drawn[1][0]
     assert last_row.locator(".eq-chips .flag-eq-recommended .sr-only").inner_text() == "(recommended)"
+
+
+def test_search_planet_rows_draw_the_four_life_scores_with_and_without_scripts(page, table_site):
+    """TEST.300, UX.152: the cluster of Microbial, Flora, Fauna and Sentient, each a shape with its 0 to 9 number, follows
+    the PHI-6 symbols, drawn the same by the page (the first rows) and by `datatable.js` (the rest)."""
+    assert page.goto(f"{table_site}/search?planet_q=World", wait_until="load").status == 200
+    page.locator("#search-planets [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+
+    def cluster(row):
+        return row.locator(".hab-life-cluster .hab-life").evaluate_all(
+            "els => els.map(e => [e.getAttribute('aria-label'), e.textContent.trim(), e.className])")
+
+    first = cluster(page.locator("#search-planets tbody tr", has_text="World 000").first)
+    page.locator("#search-planets .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
+    last_row = page.locator("#search-planets tbody tr[data-index]", has_text="World 119")
+    last_row.wait_for(state="attached", timeout=10000)
+    for drawn in (first, cluster(last_row)):
+        assert [(label, score) for label, score, _ in drawn] == [
+            ("Microbial life: 3 of 9", "3"), ("Flora: none", "0"), ("Fauna: 1 of 9", "1"), ("Sentient life: none", "0")]
+        assert "hab-life-none" in drawn[1][2] and "hab-life-none" in drawn[3][2] and "hab-life-none" not in drawn[0][2]
+    assert last_row.locator(".hab-life-cluster a.help-link[href$='#life-fauna']").count() == 1
 
 
 # --- UX.117: the Apply filters button never goes away ------------------------------------------------
