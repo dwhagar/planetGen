@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.358 |
+| TEST | TEST.360 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -1759,7 +1759,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.264 | S2: nothing is clipped when you zoom: drop setWedgeClip and markClippedStars | none | done, PR #2903 |
 | MAP.265 | S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick | none | done, PR #2941 |
 | MAP.266 | S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu | none | open |
-| MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | none | open |
+| MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | none | done, PR #3114 |
 | MAP.268 | S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales | none | done, PR #2980 |
 | MAP.269 | Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug) | none | open |
 | MAP.270 | Far stars on the maps: use the blackbody colour and a luminosity halo (bug) | none | done, PR #2838 |
@@ -2376,8 +2376,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.185 | Phenomenon pages: paragraph text and neighbour links from the stored row | none | done, PR #3045 |
 | UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary | none | open |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output | none | open |
-| UX.188 | Captain-first object pages, step C0: the GLANCE registry, the At a glance panel partial and its test (every key is in the sheet; the page renders the panel above the sheet) | none | open |
-| UX.189 | Captain-first object pages, step C1: planet and moon pages | none | open |
+| UX.188 | Captain-first object pages, step C0: the GLANCE registry, the At a glance panel partial and its test (every key is in the sheet; the page renders the panel above the sheet) | none | done, PR #3116 |
+| UX.189 | Captain-first object pages, step C1: planet and moon pages | none | done, PR #3116 |
 | UX.190 | Captain-first object pages, step C2: star and star system pages | none | open |
 | UX.191 | Captain-first object pages, step C3: sector pages | none | open |
 | UX.192 | Captain-first object pages, step C4: phenomenon pages | none | open |
@@ -2846,6 +2846,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.355 | test_class_pages: the phenomenon link (nebula D) is red on clean main (bug) | none | done, PR #3098 |
 | TEST.356 | test_web_search: the star result link is red on clean main (bug) | none | done, PR #3098 |
 | TEST.357 | changes/map-unresolved-glow.minor.md has a '### Tests' heading, so bump_version.py --check-pr fails on main (bug) | none | done, PR #3103 |
+| TEST.358 | test_property_sheet planet and moon "every column shown or excused" fails on main for the interior columns of GEN.642 and DB.89 (bug) | none | open |
+| TEST.359 | test_object_page_walk fixtures error on main: the system detail has no "stars" (bug) | none | done, PR #3118 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

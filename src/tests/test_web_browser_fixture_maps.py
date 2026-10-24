@@ -2330,17 +2330,48 @@ def test_galaxy_map_pick_mode_clicks_down_through_every_stage(page, map_site):
     assert len(seen) >= 3, seen
 
 
-def test_galaxy_map_stars_are_drawn_camera_relative(page, map_site):
-    """MAP.102: the stars' positions are offsets from where the camera
-    looks (the points object sits there), so zoomed in they stay small
-    and exact rather than hundreds or thousands of parsecs out."""
+def test_galaxy_map_stars_are_drawn_relative_to_the_eye(page, map_site):
+    """MAP.102, MAP.267: each star is a high and a low float32 and the shader subtracts the camera's own pair, so
+    zoomed in the offset the GPU works with is small and exact (to a float32 of the offset, not of the position)
+    rather than hundreds or thousands of parsecs out."""
     _open_window(page, map_site, 3, 250, 0, 0)
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count > 0")
     drawn = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame()")
-    assert drawn["at"] == drawn["frame"], drawn
-    assert all(float(v).is_integer() for v in drawn["frame"]), drawn
-    # Measured from the frame, no star is as far out as the galaxy's edge.
+    # Measured from the camera, no star is as far out as the galaxy's edge, and the pair puts each where it is.
     assert drawn["far"] < 20000, drawn
+    assert drawn["error"] < 1e-3 * max(drawn["far"], 1.0), drawn
+
+
+def test_galaxy_map_stars_are_filled_node_by_node_and_never_rebuilt(page, map_site):
+    """MAP.267: a node landing writes its own stars at the end of the one star buffer and a node leaving is cut out by
+    moving the tail into its place, so across a run of zoom steps the stars written are a small share of what a rebuild
+    at every step would have written, and a step that changes no node writes nothing."""
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count > 0")
+    fill = "() => document.querySelector('#galaxymap3d-canvas').galaxyStarFill()"
+    start = page.evaluate(fill)
+    assert start["capacity"] >= start["count"] > 0 and start["last"] is not None, start
+    rebuilt = 0
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    previous = start["syncs"]
+    for _ in range(14):
+        page.mouse.wheel(0, -300)
+        page.wait_for_timeout(250)
+        now = page.evaluate(fill)
+        if now["syncs"] > previous:
+            rebuilt += now["count"]
+            previous = now["syncs"]
+    end = page.evaluate(fill)
+    assert end["syncs"] > start["syncs"], "the zoom drew new nodes"
+    written = end["written"] - start["written"]
+    assert written < 0.75 * rebuilt, (written, rebuilt, end)
+    # A sync that keeps every node holds stars where they were: nothing written or moved.
+    page.wait_for_timeout(600)
+    settled = page.evaluate(fill)
+    page.wait_for_timeout(600)
+    again = page.evaluate(fill)
+    assert (again["written"], again["moved"]) == (settled["written"], settled["moved"])
 
 
 def test_galaxy_map_stars_fade_in_with_the_zoom(page, map_site):

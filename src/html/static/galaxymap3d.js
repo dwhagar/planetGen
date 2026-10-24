@@ -81,6 +81,7 @@ const {
   unchartedKeep, phenomenonLuminositySol, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
 const { nodeCut, parseNodeKey, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
+const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuffer.js${VERSION_QUERY}`);
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode } = await import(`./tilepack.js${VERSION_QUERY}`);
@@ -784,7 +785,8 @@ function initGalaxyMap3d(canvasEl, data) {
         "  vFill = prismFill;",
         "  vUv = faceUv;",
         "  vCenter = prismCenter;",
-        "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
+        "  vec3 relative = (position - camHigh) + (starLow - camLow);",
+      "  vec4 mvPosition = vec4(viewRotation * relative, 1.0);",
         "  vView = mvPosition.xyz;",
         "  gl_Position = projectionMatrix * mvPosition;",
         "  #include <logdepthbuf_vertex>",
@@ -1552,11 +1554,19 @@ function initGalaxyMap3d(canvasEl, data) {
       chartedOnly: { value: 0 }, unchartedFarKeep: { value: UNCHARTED_FAR_KEEP }, focusPc: { value: 0 },
       zoomFadeOn: { value: 1 },
       magLimit: { value: 1000 }, magOn: { value: 1 },
+      camHigh: { value: new THREE.Vector3() }, camLow: { value: new THREE.Vector3() },
+      viewRotation: { value: new THREE.Matrix3() },
     },
     vertexShader: [
       "#include <common>",
       "#include <logdepthbuf_pars_vertex>",
       "attribute float starBorn;",
+      // MAP.267: positions are relative-to-eye pairs: `position` the high float32, `starLow` the rest, and the camera
+      // has its own pair; the sum of the two differences is the star's place in the camera's frame.
+      "attribute vec3 starLow;",
+      "uniform vec3 camHigh;",
+      "uniform vec3 camLow;",
+      "uniform mat3 viewRotation;",
       "uniform float now;",
       "uniform float fadeIn;",
       // MAP.152: the share of the node that lists the star (static/starfade.js),
@@ -1664,12 +1674,29 @@ function initGalaxyMap3d(canvasEl, data) {
   scene.add(starPoints);
   // MAP.266: the unresolved glow, under the stars (the Sector Map has none: its sector is all resolved).
   var glow = data.pinned ? null : createGlowLayer(scene, camera, canvasEl, { light: isLightBackground() });
+  // MAP.267: the stars are one buffer filled node by node. Each drawn node's stars are a chunk at the end of the
+  // buffer (`starSlots`, starbuffer.js); a node that leaves is cut out by moving the tail into its place, so the
+  // buffer stays dense from 0 to `starList.length` and a node landing is a write at the end, not a rebuild. Positions
+  // are relative-to-eye pairs (starbuffer.js): `position` is the high float32 of each coordinate and `starLow` what
+  // that left over, and the shader subtracts the camera's own pair (`camHigh`, `camLow`), so a star keeps under a
+  // quarter pixel down to about 0.2 AU from the camera at any distance from the galaxy's origin.
   var starList = [];
-  // Where the stars' positions are measured from (setStars).
-  var starFrame = [0, 0, 0];
-  // When each drawn star first showed (seconds, performance.now's clock),
-  // by starKey, so a star already on screen never fades in again.
-  var starBornAt = new Map();
+  var starSlots = new SlotStore();
+  var STAR_ATTRIBUTES = [
+    ["position", 3], ["starLow", 3], ["starColor", 3], ["starSize", 1], ["starCore", 1], ["starGlow", 3],
+    ["starBright", 1], ["starPointBright", 1], ["starAbsMag", 1], ["starTierMag", 1], ["starBorn", 1],
+    ["starClipped", 1], ["starKeep", 1], ["starNode", 1],
+  ];
+  var STAR_CAPACITY_MIN = 4096;
+  var starCapacity = 0;
+  var starArrays = {};
+  // When each drawn star first showed (seconds, performance.now's clock) and how many chunks list it, by starKey, so
+  // a star already on screen never fades in again.
+  var starBornByKey = new Map();
+  // The brightest star drawn so far: a phenomenon is never drawn brighter (MAP.208). It only grows until the buffer empties.
+  var brightestSolSeen = 0;
+  // Slots to upload: `[start, count]` runs, or true for all of them.
+  var starDirty = [];
 
   function starClock() {
     return performance.now() / 1000;
@@ -1687,101 +1714,177 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // The node fade (static/starfade.js) of each drawn star, as the node's
-  // block (MAP.152), in the order of starList; and the
-  // drawn entries ({ id, star, fade }).
-  var starEntries = [];
+  // block (MAP.152), in the order of starList.
   // Counts the star sets drawn, so a new set is noticed by the magnitude limit (MAP.148).
   var starSetVersion = 0;
   var starFadeList = [];
 
-  // Draws exactly `entries` ({ id, star, fade }: one per star per node that
-  // lists it, so a star in a node and its child shows once from each, the
-  // two shares adding up to one), each with the node fade it carries.
-  function setStars(entries) {
-    starSetVersion += 1;
-    starEntries = entries;
-    var stars = entries.map(function (entry) { return entry.star; });
-    starList = stars;
-    starFadeList = entries.map(function (entry) { return entry.fade; });
-    var n = stars.length;
-    var now = starClock();
-    var born = new Float32Array(n);
-    var bornAt = new Map();
-    stars.forEach(function (star, i) {
-      var key = starKey(star);
-      var at = starBornAt.has(key) ? starBornAt.get(key) : now;
-      bornAt.set(key, at);
-      born[i] = at;
-    });
-    starBornAt = bornAt;
-    // Camera-relative (MAP.102): positions are stored as offsets from
-    // where the camera is looking, rounded to a whole parsec, and the
-    // points object sits there. A float32 holds a coordinate 15,000 pc
-    // out only to about 0.002 pc, a quarter of a pixel at sector zoom;
-    // an offset of a few hundred pc is exact to a thousandth of that.
-    var frame = starFrame = [Math.round(target.x), Math.round(target.y), Math.round(target.z)];
-    var positions = new Float32Array(3 * n);
-    var colors = new Float32Array(3 * n);
-    var sizes = new Float32Array(n);
-    var cores = new Float32Array(n);
-    var glows = new Float32Array(3 * n);
-    var brights = new Float32Array(n);
-    var absMags = new Float32Array(n);
-    var tierMags = new Float32Array(n);
-    var keeps = new Float32Array(n);
-    var nodeShares = new Float32Array(n);
-    var pointBrights = new Float32Array(n);
-    // MAP.208: a phenomenon is never drawn brighter than the brightest star here.
-    var brightestSol = 0;
-    stars.forEach(function (star) {
-      if (!star.phenomenon && star.luminosity_sol > brightestSol) {
-        brightestSol = star.luminosity_sol;
-      }
-    });
-    stars.forEach(function (star, i) {
-      // A phenomenon is drawn as the star of its mass: `map_luminosity_sol` is the
-      // server's (planetgen.physics.stellar_evolution.phenomenon_map_luminosity_sol).
-      var luminosity = star.phenomenon ? phenomenonLuminositySol(star.map_luminosity_sol, brightestSol) : star.luminosity_sol;
-      var t = logShare(luminosity, STAR_LOG_LUMINOSITY);
-      keeps[i] = unchartedKeep(star, star.phenomenon ? massRampShare(star.mass_solar) : t);
-      // Without a stored radius, guess one from the luminosity.
-      var r = logShare(star.radius_sol != null ? star.radius_sol : Math.pow(luminosity, 0.35), STAR_LOG_RADIUS);
-      absMags[i] = absoluteMagnitude(luminosity);
-      tierMags[i] = tierMagnitudePenalty(star.tier);
-      positions.set([star.x - frame[0], star.y - frame[1], star.z - frame[2]], 3 * i);
-      colors.set(star.phenomenon ? new THREE.Color(POINT_COLORS[star.type] || DEFAULT_POINT_COLOR).toArray()
-        : starColor(star.temperature_k), 3 * i);
-      cores[i] = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], r);
-      // MAP.87: the faint end drawn brighter (static/starlight.js).
-      var halo = boostLight({
-        sizePx: THREE.MathUtils.lerp(STAR_MIN_PX, STAR_MAX_PX, t * t),
-        glow: THREE.MathUtils.lerp(STAR_GLOW[0], STAR_GLOW[1], t),
-      }, starLightBoost(luminosity));
-      sizes[i] = Math.max(halo.sizePx, 2 * cores[i] + 2);
-      glows.set([halo.glow, pointHaloGlow(t), pointHaloPx(t)], 3 * i);
-      brights[i] = THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
-      pointBrights[i] = pointBrightness(t);
-    });
+  // Makes room for `n` stars: the buffers double (a new geometry, copied across) when they are full.
+  function ensureStarCapacity(n) {
+    if (n <= starCapacity) {
+      return;
+    }
+    var capacity = Math.max(STAR_CAPACITY_MIN, starCapacity);
+    while (capacity < n) {
+      capacity *= 2;
+    }
+    var used = starList.length;
     var geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-    geometry.setAttribute("starColor", new THREE.BufferAttribute(colors, 3));
-    geometry.setAttribute("starSize", new THREE.BufferAttribute(sizes, 1));
-    geometry.setAttribute("starCore", new THREE.BufferAttribute(cores, 1));
-    geometry.setAttribute("starGlow", new THREE.BufferAttribute(glows, 3));
-    geometry.setAttribute("starBright", new THREE.BufferAttribute(brights, 1));
-    geometry.setAttribute("starPointBright", new THREE.BufferAttribute(pointBrights, 1));
-    geometry.setAttribute("starAbsMag", new THREE.BufferAttribute(absMags, 1));
-    geometry.setAttribute("starTierMag", new THREE.BufferAttribute(tierMags, 1));
-    geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
-    geometry.setAttribute("starClipped", new THREE.BufferAttribute(new Float32Array(n), 1));
-    geometry.setAttribute("starKeep", new THREE.BufferAttribute(keeps, 1));
-    geometry.setAttribute("starNode", new THREE.BufferAttribute(nodeShares, 1));
-    starShareSignature = "";
+    var arrays = {};
+    STAR_ATTRIBUTES.forEach(function (pair) {
+      var array = new Float32Array(capacity * pair[1]);
+      if (starArrays[pair[0]]) {
+        array.set(starArrays[pair[0]].subarray(0, used * pair[1]));
+      }
+      arrays[pair[0]] = array;
+      geometry.setAttribute(pair[0], new THREE.BufferAttribute(array, pair[1]).setUsage(THREE.DynamicDrawUsage));
+    });
+    starArrays = arrays;
+    starCapacity = capacity;
     starPoints.geometry.dispose();
     starPoints.geometry = geometry;
-    starPoints.position.set(frame[0], frame[1], frame[2]);
-    starPoints.updateMatrixWorld();
-    markHiddenStars();
+    starDirty = true;
+  }
+
+  function markStarsDirty(start, count) {
+    if (starDirty !== true && count > 0) {
+      starDirty.push([start, count]);
+    }
+  }
+
+  // Sets the geometry's draw range and uploads what changed since the last call.
+  function flushStars() {
+    var geometry = starPoints.geometry;
+    var n = starList.length;
+    geometry.setDrawRange(0, n);
+    var runs = starDirty;
+    starDirty = [];
+    if (runs !== true && runs.length > 48) {
+      runs = true;
+    }
+    STAR_ATTRIBUTES.forEach(function (pair) {
+      var attribute = geometry.getAttribute(pair[0]);
+      if (!attribute) {
+        return;
+      }
+      if (runs === true) {
+        attribute.clearUpdateRanges();
+        attribute.needsUpdate = true;
+      } else if (runs.length) {
+        attribute.clearUpdateRanges();
+        runs.forEach(function (run) {
+          attribute.addUpdateRange(run[0] * pair[1], run[1] * pair[1]);
+        });
+        attribute.needsUpdate = true;
+      }
+    });
+  }
+
+  // Writes one star (an entry `{ star, fade }`) into slot `i`.
+  function writeStar(i, star, now) {
+    var a = starArrays;
+    // A phenomenon is drawn as the star of its mass: `map_luminosity_sol` is the
+    // server's (planetgen.physics.stellar_evolution.phenomenon_map_luminosity_sol).
+    var luminosity = star.phenomenon ? phenomenonLuminositySol(star.map_luminosity_sol, brightestSolSeen) : star.luminosity_sol;
+    var t = logShare(luminosity, STAR_LOG_LUMINOSITY);
+    a.starKeep[i] = unchartedKeep(star, star.phenomenon ? massRampShare(star.mass_solar) : t);
+    // Without a stored radius, guess one from the luminosity.
+    var r = logShare(star.radius_sol != null ? star.radius_sol : Math.pow(luminosity, 0.35), STAR_LOG_RADIUS);
+    a.starAbsMag[i] = absoluteMagnitude(luminosity);
+    a.starTierMag[i] = tierMagnitudePenalty(star.tier);
+    var x = splitPair(star.x);
+    var y = splitPair(star.y);
+    var z = splitPair(star.z);
+    a.position[3 * i] = x[0];
+    a.position[3 * i + 1] = y[0];
+    a.position[3 * i + 2] = z[0];
+    a.starLow[3 * i] = x[1];
+    a.starLow[3 * i + 1] = y[1];
+    a.starLow[3 * i + 2] = z[1];
+    var color = star.phenomenon ? new THREE.Color(POINT_COLORS[star.type] || DEFAULT_POINT_COLOR).toArray()
+      : starColor(star.temperature_k);
+    a.starColor[3 * i] = color[0];
+    a.starColor[3 * i + 1] = color[1];
+    a.starColor[3 * i + 2] = color[2];
+    var core = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], r);
+    a.starCore[i] = core;
+    // MAP.87: the faint end drawn brighter (static/starlight.js).
+    var halo = boostLight({
+      sizePx: THREE.MathUtils.lerp(STAR_MIN_PX, STAR_MAX_PX, t * t),
+      glow: THREE.MathUtils.lerp(STAR_GLOW[0], STAR_GLOW[1], t),
+    }, starLightBoost(luminosity));
+    a.starSize[i] = Math.max(halo.sizePx, 2 * core + 2);
+    a.starGlow[3 * i] = halo.glow;
+    a.starGlow[3 * i + 1] = pointHaloGlow(t);
+    a.starGlow[3 * i + 2] = pointHaloPx(t);
+    a.starBright[i] = THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
+    a.starPointBright[i] = pointBrightness(t);
+    a.starClipped[i] = drawnByTheGalaxy(star.x, star.y, star.z) ? 0 : 1;
+    a.starNode[i] = 0;
+    var key = starKey(star);
+    var born = starBornByKey.get(key);
+    if (born) {
+      born.count += 1;
+    } else {
+      born = { at: now, count: 1 };
+      starBornByKey.set(key, born);
+    }
+    a.starBorn[i] = born.at;
+  }
+
+  // Adds a node's stars (`entries`: `{ star, fade }` for each) as a chunk of the buffer, tagged with the node's revision.
+  function addStarChunk(key, tag, entries) {
+    var n = entries.length;
+    var start = starSlots.add(key, n, tag);
+    ensureStarCapacity(start + n);
+    var now = starClock();
+    entries.forEach(function (entry) {
+      if (!entry.star.phenomenon && entry.star.luminosity_sol > brightestSolSeen) {
+        brightestSolSeen = entry.star.luminosity_sol;
+      }
+    });
+    entries.forEach(function (entry, offset) {
+      writeStar(start + offset, entry.star, now);
+      starList[start + offset] = entry.star;
+      starFadeList[start + offset] = entry.fade;
+    });
+    markStarsDirty(start, n);
+    starSync.written += n;
+  }
+
+  // Takes a node's chunk out, moving the tail of the buffer into the holes.
+  function removeStarChunk(key) {
+    var slots = starSlots.slotsOf(key);
+    slots.forEach(function (slot) {
+      var id = starKey(starList[slot]);
+      var born = starBornByKey.get(id);
+      if (born && --born.count <= 0) {
+        starBornByKey.delete(id);
+      }
+    });
+    var moves = starSlots.remove(key);
+    var destinations = [];
+    moves.forEach(function (move) {
+      STAR_ATTRIBUTES.forEach(function (pair) {
+        var array = starArrays[pair[0]];
+        array.copyWithin(move.to * pair[1], move.from * pair[1], (move.from + 1) * pair[1]);
+      });
+      starList[move.to] = starList[move.from];
+      starFadeList[move.to] = starFadeList[move.from];
+      destinations.push(move.to);
+    });
+    starSync.moved += moves.length;
+    starList.length = starSlots.n;
+    starFadeList.length = starSlots.n;
+    destinations.sort(function (p, q) { return p - q; });
+    runsOf(destinations).forEach(function (run) { markStarsDirty(run[0], run[1]); });
+    if (!starSlots.n) {
+      brightestSolSeen = 0;
+    }
+  }
+
+  function clearStarChunks() {
+    starSlots.keys().forEach(removeStarChunk);
   }
 
   // --- The limiting magnitude (MAP.148, static/starmagnitude.js) ----------------
@@ -1821,8 +1924,23 @@ function initGalaxyMap3d(canvasEl, data) {
     var attribute = starPoints.geometry.getAttribute("starNode");
     if (attribute) {
       attribute.array.set(starShares);
+      attribute.clearUpdateRanges();
+      attribute.addUpdateRange(0, n);
       attribute.needsUpdate = true;
     }
+  }
+
+  // MAP.267: the camera as a relative-to-eye pair for the star shader, and the rotation of its view.
+  function updateStarEye() {
+    camera.updateMatrixWorld();
+    var uniforms = starMaterial.uniforms;
+    var p = camera.position;
+    var x = splitPair(p.x);
+    var y = splitPair(p.y);
+    var z = splitPair(p.z);
+    uniforms.camHigh.value.set(x[0], y[0], z[0]);
+    uniforms.camLow.value.set(x[1], y[1], z[1]);
+    uniforms.viewRotation.value.setFromMatrix4(camera.matrixWorldInverse);
   }
 
   var MAG_RECOMPUTE_MS = 150;
@@ -1873,7 +1991,7 @@ function initGalaxyMap3d(canvasEl, data) {
       var focus = nearUniforms.nearD.value;
       magGoal = limitingMagnitude(
         histogramLimit(magnitudes, onScreen, magTarget),
-        calibrationLimit(dimmestShown(absolute.array, zoomed), focus));
+        calibrationLimit(dimmestShown(absolute.array.subarray(0, n), zoomed), focus));
       if (!Number.isFinite(magGoal)) magGoal = 1000;
     }
     var current = uniforms.magLimit.value;
@@ -1954,15 +2072,33 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // For tests: the frame the stars are drawn from and the farthest star
   // from it, in the points' own (offset) coordinates.
+  // For tests (MAP.267): how the star buffer was filled: syncs so far, stars written and moved in all, and the last
+  // sync's own figures (chunks added and removed, stars kept untouched, written, moved, in all, and its milliseconds).
+  canvasEl.galaxyStarFill = function () {
+    return { syncs: starSync.syncs, written: starSync.written, moved: starSync.moved, last: starSync.last,
+      capacity: starCapacity, count: starList.length };
+  };
+
   canvasEl.galaxyStarFrame = function () {
-    var array = starPoints.geometry.getAttribute("position");
+    // MAP.267: the stars are relative-to-eye pairs. `far` is the farthest star from the camera, measured as the shader
+    // does (each difference in float32), and `error` the largest gap between that and the star's own double position.
+    var high = starArrays.position;
+    var low = starArrays.starLow;
+    var cam = camera.position.toArray().map(splitPair);
     var far = 0;
-    if (array) {
-      for (var i = 0; i < array.array.length; i++) {
-        far = Math.max(far, Math.abs(array.array[i]));
+    var error = 0;
+    for (var i = 0; i < starList.length; i++) {
+      var star = starList[i];
+      var truth = [star.x, star.y, star.z];
+      var length = 0;
+      for (var a = 0; a < 3; a++) {
+        var offset = relativeOffset(high[3 * i + a], low[3 * i + a], cam[a][0], cam[a][1]);
+        length += offset * offset;
+        error = Math.max(error, Math.abs(offset - (truth[a] - camera.position.toArray()[a])));
       }
+      far = Math.max(far, Math.sqrt(length));
     }
-    return { frame: starFrame.slice(), far: far, count: starList.length, at: starPoints.position.toArray() };
+    return { far: far, error: error, count: starList.length, camera: camera.position.toArray(), capacity: starCapacity };
   };
 
   // For tests (MAP.264): how many stars the galaxy has, and how many it leaves out of its own drawing (those in the
@@ -1987,6 +2123,8 @@ function initGalaxyMap3d(canvasEl, data) {
     starList.forEach(function (star, i) {
       attribute.array[i] = drawnByTheGalaxy(star.x, star.y, star.z) ? 0 : 1;
     });
+    attribute.clearUpdateRanges();
+    attribute.addUpdateRange(0, starList.length);
     attribute.needsUpdate = true;
   }
 
@@ -2063,6 +2201,57 @@ function initGalaxyMap3d(canvasEl, data) {
     if (lastNeed) renderFromCache(lastNeed);
   }
 
+  // MAP.267: brings the star buffer to the stars of the nodes `drawn`, node by node: a node no longer drawn (or read
+  // again, a new object) is cut out, a node new to the view is written at the end, and the nodes held already are not
+  // touched. A change of the star filters starts the buffer afresh (the filters decide which stars a chunk holds).
+  var starFilterStamp = "";
+  var starSync = { syncs: 0, written: 0, moved: 0, last: null };
+  function syncStars(drawn) {
+    var began = performance.now();
+    var filters = filterStamp();
+    var kept = 0;
+    var written0 = starSync.written;
+    var moved0 = starSync.moved;
+    var removed = 0;
+    var added = 0;
+    if (filters !== starFilterStamp) {
+      starFilterStamp = filters;
+      clearStarChunks();
+    }
+    var wanted = new Set(drawn);
+    starSlots.keys().forEach(function (key) {
+      var node = getNode(key);
+      if (!wanted.has(key) || node === undefined || starSlots.tagOf(key) !== nodeRevision(node)) {
+        removeStarChunk(key);
+        removed += 1;
+      } else {
+        kept += starSlots.slotsOf(key).length;
+      }
+    });
+    drawn.forEach(function (key) {
+      if (starSlots.has(key)) {
+        return;
+      }
+      var node = getNode(key);
+      var fade = { block: parseNodeKey(key) };
+      var entries = [];
+      nodeStars(node).forEach(function (star) {
+        if (starShown(star)) {
+          entries.push({ star: star, fade: fade });
+        }
+      });
+      addStarChunk(key, nodeRevision(node), entries);
+      added += 1;
+    });
+    starSetVersion += 1;
+    flushStars();
+    starSync.syncs += 1;
+    starSync.last = {
+      added: added, removed: removed, kept: kept, written: starSync.written - written0, moved: starSync.moved - moved0,
+      count: starList.length, ms: performance.now() - began,
+    };
+  }
+
   // Draws what is in hand of the cut `need` (neededNodes) and returns the keys of its nodes still to fetch. A node is
   // drawn for the share the cut gives it (galaxynodecut.weightCalculator): a block hands over to its children only
   // once they are all in hand (settledExpanded), so there is never a hole where the children are on their way; the
@@ -2092,24 +2281,14 @@ function initGalaxyMap3d(canvasEl, data) {
       return view.missing;
     }
     var clouds = new Map();
-    var stars = new Map();
     drawn.forEach(function (key) {
-      var node = getNode(key);
-      (node.clouds || []).forEach(function (cloud) {
+      (getNode(key).clouds || []).forEach(function (cloud) {
         clouds.set(cloudKey(cloud), cloud);
-      });
-      // MAP.152: each star takes its node's share, so a star listed in a node and in its children
-      // shows once from each as the shares trade places.
-      var fade = { block: parseNodeKey(key) };
-      nodeStars(node).forEach(function (star) {
-        if (!starShown(star)) return;
-        var id = starKey(star) + "@" + key;
-        stars.set(id, { id: id, star: star, fade: fade });
       });
     });
     noteLuminosityRange(drawn);
     starSignature = nodesDrawn;
-    setStars(Array.from(stars.values()));
+    syncStars(drawn);
     if (glow) {
       glow.setBlobs(blobsOf(drawn.map(function (key) {
         return { key: key, block: parseNodeKey(key), node: getNode(key) };
@@ -3480,6 +3659,7 @@ function initGalaxyMap3d(canvasEl, data) {
       }
     }
     starMaterial.uniforms.now.value = starClock();
+    updateStarEye();
     updateStarShares();
     if (glow) {
       glow.update(drawnSettled ? function () {

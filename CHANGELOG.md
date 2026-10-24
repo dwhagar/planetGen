@@ -2,6 +2,42 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2263] - 2026-10-24
+
+**Headline:** The cache warm-up no longer fails on a galaxy with more chunks than one stage can queue as units.
+
+### Fixed
+- **A warm-up stage failed with "a stage queues at most 4000 units, not 4051".** The warm stages cut their keys into
+  fixed chunks, so a galaxy with more than 4000 chunks was refused by the queue. A stage now makes its units a whole
+  multiple of the chunk when the chunks would pass the cap (`units.coarsen`), and a unit builds its keys 64 nodes per
+  request, stopping part way when the cache fills. The habitability and map-luminosity fills cut their id ranges the
+  same way.
+
+## [8.0.2262] - 2026-10-24
+
+**Headline:** The object page walk test reads the bodies it opens from the database, not from a loop of API calls that could run out of the API's rate limit.
+
+### Fixed
+- **The `test_object_page_walk.py` fixtures errored with a system detail that had no `"stars"` (TEST.359).** The fixture asked the API about each system (two calls a system, up to every system of the sample galaxy); on a machine where the per-IP limit of 50 an hour was already spent, the 429 answer was read as a system and had no `stars`. The fixture now selects the first six rows of each kind (star, planet, moon, belt, comet, facility) from the tables and prints their IDs, makes no API call, and fails with a plain message if the galaxy holds no star or planet. The module passes in 57 s.
+TODO items resolved: TEST.359. Added: none.
+
+## [8.0.2261] - 2026-10-24
+
+**Headline:** Planet and moon pages now open with an "At a glance" table of what a captain needs first, and leave out properties that hold nothing.
+
+### Changed
+- A planet's or moon's page has an "At a glance" table just under the render: its habitability symbols and life scores on a line of their own, then class, surface temperature, pressure, gravity, radiation, hours outside, day length, distance and year (UX.188). The full property sheet follows, as before.
+- Object pages no longer list a property whose value is none or 0, except where the absence matters (no atmosphere, no magnetic field, no surface water, a quiet star, the habitability, life and rating rows). A line under the sheet says how many are not listed.
+- `GET /api/objects/<ref>/sheet` rows carry `absent` and `show_absent`; the API still returns every row.
+
+## [8.0.2260] - 2026-10-24
+
+**Headline:** The Galaxy Map keeps its stars in one buffer that each node adds to as it arrives, and positions are exact however far from the galaxy's centre the camera is.
+
+### Changed
+- **One star buffer, filled node by node (MAP.267).** A node arriving writes its own stars at the end of the star buffer and a node leaving is cut out by moving the tail of the buffer into its place; the nodes already drawn are not touched, where every change of the view used to rebuild every star (`static/starbuffer.js`, `SlotStore`). The buffer doubles when it is full. A change of the star filters still starts it afresh.
+- **Stars are placed relative to the eye (MAP.267).** Each position is a high and a low float32 and the shader subtracts the camera's own pair, so a star keeps under a quarter pixel down to about 0.2 AU from the camera at any distance from the galaxy's centre (one float32 was a dozen pixels off a parsec away 260 kpc out). The old frame rounded to a whole parsec at the camera's target is gone. The other browser buffers (territory dots, superbubbles, rings, block prisms, the system view) are still absolute: they stay with MAP.240.
+
 ## [8.0.2259] - 2026-10-24
 
 **Headline:** The surface pressure of a rocky world now has a physical law behind it: how much gas its interior has delivered by its age and what the ocean and the carbonate-silicate cycle take back, calibrated on the Earth and checked on Venus.
