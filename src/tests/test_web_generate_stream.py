@@ -92,6 +92,27 @@ def test_the_log_downloads_whole_as_text(site, client, jobs_root):
     assert resp.get_data() == b"line\n" * 3
 
 
+def test_the_log_downloads_as_records_with_the_form_option(site, client, jobs_root):
+    job_id = _job(jobs_root, b"=== Stage 1 of 1: A ===\n")
+    records = 'ts=2026-10-24T18:40:00.123Z level=info component=job msg="Stage 1 of 1: A" event=stage.start stage=1 stages=1\n'
+    (__import__("pathlib").Path(jobs_root) / job_id / "records.log").write_text(records)
+    resp = client.get(f"/admin/generate/jobs/{job_id}/log?form=records")
+    assert resp.status_code == 200 and resp.mimetype == "text/plain"
+    assert f'filename=job-{job_id}.records.log' in resp.headers["Content-Disposition"]
+    assert resp.get_data() == records.encode()
+    assert client.get(f"/admin/generate/jobs/{job_id}/log").get_data() == b"=== Stage 1 of 1: A ===\n"
+
+
+def test_a_job_with_no_records_has_nothing_to_download_in_that_form(site, client, jobs_root):
+    job_id = _job(jobs_root, b"x\n")
+    assert client.get(f"/admin/generate/jobs/{job_id}/log?form=records").status_code == 404
+
+
+def test_the_job_runner_and_the_download_agree_on_the_records_file():
+    from planetgen.web import job_runner
+    assert job_runner.RECORDS_FILE == jobs.RECORDS_NAME
+
+
 def test_only_the_two_terminal_pages_allow_inline_styles(site, client, jobs_root):
     from planetgen import web
 

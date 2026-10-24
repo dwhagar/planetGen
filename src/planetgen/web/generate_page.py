@@ -1690,15 +1690,18 @@ generate_job_stream.json_only = True  # not a page: tests/test_web_a11y.py skips
 
 @bp.route("/admin/generate/jobs/<job_id>/log")
 def generate_job_log(job_id):
-    """A job's full output as a plain-text download."""
+    """A job's full output as a plain-text download; `?form=records` gives the same job as records instead (UX.122): one
+    log line per line with its time in UTC, severity and component (`jobs.RECORDS_NAME`)."""
     _admin_or_403()
     root = jobs.jobs_dir()
     if jobs.get_job(job_id, root) is None:
         abort(404, description="No such job.")
-    path = os.path.join(jobs._job_dir(root, job_id), "output.log")
+    records = request.args.get("form") == "records"
+    path = os.path.join(jobs._job_dir(root, job_id), jobs.RECORDS_NAME if records else "output.log")
     if not os.path.isfile(path):
         abort(404, description="This job has no output yet.")
-    return _no_store(send_file(path, mimetype="text/plain", as_attachment=True, download_name=f"job-{job_id}.log"))
+    name = f"job-{job_id}.records.log" if records else f"job-{job_id}.log"
+    return _no_store(send_file(path, mimetype="text/plain", as_attachment=True, download_name=name))
 
 
 generate_job_log.json_only = True  # not a page: tests/test_web_a11y.py skips it

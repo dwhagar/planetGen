@@ -137,16 +137,7 @@ def run_log(run_id):
     run_id = _run_id(run_id)
     connection = _connection()
     if connection is not None and runrecord.read_run(connection, run_id) is not None:
-        lines, after = [], "0"
-        while True:
-            rows = runrecord.read_events(connection, run_id, after)
-            if not rows:
-                break
-            for entry_id, fields in rows:
-                stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(float(fields.get("t", 0))))
-                lines.append(f"{stamp} {fields.get('level', 'info').upper():<5} {fields.get('message', '')}\n")
-                after = entry_id
-        text = "".join(lines)
+        text = runrecord.log_text(connection, run_id)
     else:
         path = runcontrol.log_path(run_id)
         try:

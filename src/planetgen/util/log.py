@@ -96,7 +96,7 @@ import threading
 import time
 from contextlib import contextmanager
 
-from planetgen.util import draw, logpaths
+from planetgen.util import draw, logpaths, logrecord
 
 SILENT = "silent"
 NORMAL = "normal"
@@ -107,8 +107,6 @@ _LEVELS = {
     NORMAL: logging.INFO,
     DEBUG: logging.DEBUG,
 }
-
-_PLAIN_FORMAT = "%(message)s"
 
 AREAS = {
     "decision": "narrated decisions and choices, stage timings",
@@ -312,6 +310,61 @@ class _ConsoleHandler(logging.Handler):
 _console_handler = _ConsoleHandler()
 
 
+class _PlainFormatter(logging.Formatter):
+    """The console's text outside debug mode (UX.122): a record drawn as the logging layer's plain line
+    (`logrecord.plain_line`), which for an ordinary line is its message, as the program has always printed it."""
+
+    def format(self, record):
+        text = logrecord.plain_line(logrecord.record_of(record))
+        if record.exc_info and not record.exc_text:
+            record.exc_text = self.formatException(record.exc_info)
+        return f"{text}\n{record.exc_text}" if record.exc_text else text
+
+
+_record_file = None
+"""tuple | None: `(path, as_json)` of the file every record is also written to (`set_record_file`), or `None`."""
+
+_record_handler = None
+
+
+def set_record_file(path, as_json=False):
+    """
+    Also writes every record this process logs to `path`, one per line, in the logging layer's file form
+    (`logrecord.file_line`, or `json_line` with `as_json`): the times in UTC, whatever the console shows. At the console's
+    own level, so a debug run's file holds the debug lines too. `None` stops. Call `configure` (or let the next
+    command's setup do it) to apply it.
+    """
+    global _record_file
+    _record_file = None if path is None else (path, bool(as_json))
+
+
+def apply_record_arguments(args):
+    """Sets the record file from `--record-file` and `--record-json` (`PLANETGEN_RECORD_FILE` and `PLANETGEN_RECORD_FORMAT=json`
+    when the command line gives none); the next `configure` applies it."""
+    path = getattr(args, "record_file", None) or os.environ.get("PLANETGEN_RECORD_FILE")
+    as_json = bool(getattr(args, "record_json", False)) or os.environ.get("PLANETGEN_RECORD_FORMAT") == "json"
+    set_record_file(path or None, as_json)
+
+
+def _attach_record_file(level):
+    global _record_handler
+    if _record_handler is not None:
+        _logger.removeHandler(_record_handler)
+        _record_handler.close()
+        _record_handler = None
+    if _record_file is None:
+        return
+    path, as_json = _record_file
+    handler = logging.FileHandler(path, encoding="utf-8")
+    handler.setFormatter(logrecord.JsonFormatter() if as_json else logrecord.FileFormatter())
+    handler.setLevel(level)
+    if level == logging.DEBUG:
+        handler.addFilter(_origin_filter)
+        handler.addFilter(_area_filter)
+    _logger.addHandler(handler)
+    _record_handler = handler
+
+
 def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, areas=None):
     """
     (Re)configures the shared logger for the given console severity `level`
@@ -346,7 +399,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
 
     set_areas(areas if areas is not None else _configured_areas())
     console_level = _LEVELS[level]
-    formatter = _debug_formatter() if level == DEBUG else logging.Formatter(_PLAIN_FORMAT)
+    formatter = _debug_formatter() if level == DEBUG else _PlainFormatter()
     _console_handler.setFormatter(formatter)
     _console_handler.setLevel(console_level)
     _console_handler.to_stderr = to_stderr
@@ -373,6 +426,7 @@ def configure(level=NORMAL, debug_file=None, console=True, to_stderr=False, area
 
     if _relay_handler is not None:
         _logger.addHandler(_relay_handler)
+    _attach_record_file(console_level)
     was_active = _debug_log_handler is not None
     debug_log = _configure_debug_log()
     _logger.setLevel(logging.DEBUG if (debug_log or _relay_handler is not None) else console_level)
@@ -420,11 +474,20 @@ def add_debug_arguments(parser):
         target.add_argument("--debug-areas", metavar="AREAS", default=None if default is False else default,
                             help="Limit --debug to some areas: " + ", ".join(AREAS) + " (a leading - leaves one out).")
 
+    def add_records(target, default):
+        target.add_argument("--record-file", metavar="FILE", default=default,
+                            help="Also write every log line to FILE as a record: one per line, the time in UTC "
+                                 "(UX.122; $PLANETGEN_RECORD_FILE does the same).")
+        target.add_argument("--record-json", action="store_true", default=default,
+                            help="Write the --record-file records as JSON lines.")
+
     add(parser, False)
+    add_records(parser, None)
     for action in parser._actions:
         if isinstance(action, argparse._SubParsersAction):
             for sub in action.choices.values():
                 add(sub, argparse.SUPPRESS)        # a value given before the subcommand is not reset by the subparser
+                add_records(sub, argparse.SUPPRESS)
 
 
 def apply_debug_arguments(args, parser=None):
@@ -441,6 +504,7 @@ def apply_debug_arguments(args, parser=None):
             if parser is None:
                 raise
             parser.error(f"--debug-areas: {exc}")
+    apply_record_arguments(args)
     configure(DEBUG if wanted else NORMAL, areas=areas)
 
 

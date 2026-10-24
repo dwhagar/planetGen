@@ -162,7 +162,7 @@ def test_the_log_is_written_where_the_download_link_finds_it_and_the_newest_twen
     logs = sorted(os.listdir(jobs_dir / "runs"))
     assert logs == sorted(f"{run_id}.log" for run_id in run_ids[2:])
     text = (jobs_dir / "runs" / f"{run_ids[-1]}.log").read_text()
-    assert "a line of run 21" in text and "run started: Log test" in text and text.rstrip().endswith("run done")
+    assert "a line of run 21" in text and "run started: Log test" in text and text.rstrip().endswith("event=run.done")
 
 
 def test_a_run_started_by_a_job_is_found_from_the_job(conn, jobs_dir):
@@ -207,4 +207,4 @@ def test_a_run_through_the_wrapper_records_its_job_logs_its_lines_and_leaves_a_l
     assert runrecord.job_runs(conn, "20261024-040506-beef") == [run_id]
     assert runrecord.read_run(conn, run_id)["state"] == "done"
     text = (jobs_dir / "runs" / f"{run_id}.log").read_text()
-    assert text.count("came back") == 3 and "stage done: A stage" in text
+    assert text.count("came back") == 3 and 'msg="Stage 1 of 1 finished after ' in text and "event=stage.finish" in text
