@@ -1,4 +1,0 @@
-**Headline:** `update.sh` no longer looks hung on a big or slow data set download: each file shows a progress bar, and a stalled download is retried from where it stopped.
-
-### Changed
-- **Data set downloads (GEN.548).** `python3 -m planetgen.cli.datasets fetch` (the update and install step) now shows one bar per file with the bytes done of the total, the speed and the time left, in the style of the generation bar, and plain lines every 10 seconds where the output is not a terminal. A host that trickles bytes (fewer than 128 kB in 60 seconds) is given up as stalled, and every retry (four attempts, was three) asks for the rest of the file with a `Range` request, starting over only when the host does not honour it. A file that still cannot be had is reported with its URL and the update goes on, as before.

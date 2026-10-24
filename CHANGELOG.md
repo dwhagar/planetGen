@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2089] - 2026-10-24
+
+**Headline:** `update.sh` no longer looks hung on a big or slow data set download: each file shows a progress bar, and a stalled download is retried from where it stopped.
+
+### Changed
+- **Data set downloads (GEN.548).** `python3 -m planetgen.cli.datasets fetch` (the update and install step) now shows one bar per file with the bytes done of the total, the speed and the time left, in the style of the generation bar, and plain lines every 10 seconds where the output is not a terminal. A host that trickles bytes (fewer than 128 kB in 60 seconds) is given up as stalled, and every retry (four attempts, was three) asks for the rest of the file with a `Range` request, starting over only when the host does not honour it. A file that still cannot be had is reported with its URL and the update goes on, as before.
+
 ## [8.0.2088] - 2026-10-24
 
 **Headline:** Stars on the System Map are painted from their class: their true blackbody colour, a surface that matches the kind of star, and a glow that grows with luminosity.
