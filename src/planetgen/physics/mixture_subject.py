@@ -1,0 +1,162 @@
+# planetgen/physics/mixture_subject.py
+
+"""
+The description of a planet or moon that the atmosphere mixture draw reads (GEN.756; docs/design/composition/mixture-draw.md)
+==============================================================================================================
+
+`mixture_draw.draw_mixture` takes a `Subject`: the body's class and the quantities the recipe tables and the chemistry read
+(`mixture_draw.required_inputs(class)`). This module builds that subject from a generated body and its star, so that the generator
+(GEN.411) calls the draw without writing the translation itself:
+
+    subject = subject_of_body(planet, ts_k=288.0, pressure_bar=1.0, ocean_present=True, long_lived_geology=True)
+    mixture_draw.draw_mixture(subject)
+
+What the builder derives, from the body's stored fields and its star: the mass, radius and escape speed, the age of the star, the
+starlight and the equilibrium temperature at the body's Bond albedo, the XUV exposure index, the position against the snow line, the
+runaway-greenhouse limit and the habitable zone of the host, and for a giant the temperature of its 1 bar layer, its dayside and its
+effective temperature. What it does not derive, and takes as arguments: the surface temperature and the surface pressure (the climate
+loop's, which the mixture feeds back into), whether an ocean can condense and whether the body keeps a long-lived geology (the surface
+pressure code's `can_weather` and the interior's), and whether the water was lost (the water-loss clock's).
+
+The subject holds exactly `required_inputs(class)`; a quantity that cannot be built (a rogue body with no star, a moon whose distance from
+its star is not given) is refused by name (`MixtureError`), never defaulted.
+"""
+
+import math
+
+from planetgen import tuning
+from planetgen.generation.possibility_table import Subject
+from planetgen.physics import activity, bulk_structure, climate_draws, constants, giant_draw, giant_interior, mixture_draw, orbits
+from planetgen.physics.mixture_base import MixtureError
+
+PHOTOSPHERE_BAR = 0.1
+"""float: The pressure of the layer a giant's regime is read at, bar: the dayside emission of a hot giant comes from about 0.1 bar (the
+recipe quantity's own definition, `atmosphere_recipes.INPUTS`). A stand-in (AM27)."""
+
+DAYSIDE_OVER_EQUILIBRIUM = (8.0 / 3.0) ** 0.25
+"""float: The dayside temperature of a body with no heat redistribution over its equilibrium temperature: the starlight is spread over
+the day hemisphere alone (`f = 2/3` against the `f = 1/4` of the whole surface), so `T` rises by `(f / (1/4))^(1/4) = (8/3)^(1/4)`.
+Derived; the generator has no redistribution model yet, so every body gets the hot end."""
+
+FILE_HOST_TYPES = {"F": "F", "G": "G", "K": "K", "M": "M"}
+"""dict: The spectral letters of the recipe tables' hosts. A hotter star (O, B, A) takes the F rows and a brown dwarf (L, T, Y) the M rows,
+the nearest the tables have; a white dwarf is `WD` and a pulsar `PSR`."""
+
+
+def host_type_of(star):
+    """
+    The recipe tables' host type (`F`, `G`, `K`, `M`, `WD`, `PSR`) of `star`.
+
+    Raises:
+        MixtureError: The star carries no spectral type.
+    """
+    kind = getattr(star, "type", None)
+    if not kind:
+        raise MixtureError("the star has no spectral type, so the host type of the mixture draw cannot be built")
+    letter = str(kind).strip()[:1].upper()
+    name = type(star).__name__.lower()
+    if "pulsar" in name or "neutron" in name:
+        return "PSR"
+    if letter == "D" or getattr(star, "yerkes_class", None) in ("VII", "D"):
+        return "WD"
+    if letter in FILE_HOST_TYPES:
+        return FILE_HOST_TYPES[letter]
+    if letter in "OBA":
+        return "F"
+    if letter in "LTY":
+        return "M"
+    raise MixtureError(f"the star's spectral type {kind!r} has no host type in the recipe tables")
+
+
+def runaway_ratio(insolation, star_temperature_k):
+    """The starlight over the runaway-greenhouse limit of the host (the inner edge of its habitable zone, Kopparapu et al. 2014), both
+    against the Earth's."""
+    low, high = orbits.KOPPARAPU_TEFF_RANGE_K
+    limit = orbits.kopparapu_flux(orbits.KOPPARAPU_RUNAWAY_GREENHOUSE, min(max(star_temperature_k, low), high))
+    return insolation / limit
+
+
+def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_lived_geology=False, water_lost=False,
+                       star_distance_au=None):
+    """
+    Every quantity of the mixture draw that can be built for `body`, as a dict (a quantity that cannot is absent).
+
+    Args:
+        body: A generated planet or moon (`generation.planet.Planet`): `mass` (kg), `radius` (km), `distance` (AU, from its primary),
+            `star`, `bond_albedo`, `is_moon`; a giant's `core_mass_earth`.
+        ts_k (float): The surface temperature, K.
+        pressure_bar (float): The surface pressure, bar.
+        ocean_present (bool): True when an ocean can condense (`surface_pressure.can_weather` of the climate loop).
+        long_lived_geology (bool): True for a tectonic or long-lived body.
+        water_lost (bool): True when the water was lost.
+        star_distance_au (float or None): The distance of the body (a moon: of its parent) from the star; the body's own `distance` when
+            it is a planet.
+    """
+    star = getattr(body, "star", None)
+    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    quantities = {
+        "mass_earth": mass_earth,
+        "mass_jupiter": mass_earth / giant_interior.EARTH_MASS_JUPITER,
+        "radius_km": body.radius,
+        "v_esc_kms": math.sqrt(2.0 * constants.G * body.mass / (body.radius * constants.KM_TO_M_FACTOR)) / 1000.0,
+        "ts_k": ts_k, "pressure_bar": pressure_bar,
+        "ocean_present": bool(ocean_present), "long_lived_geology": bool(long_lived_geology), "water_lost": bool(water_lost),
+        "is_moon": bool(getattr(body, "is_moon", False)),
+        "photosphere_bar": PHOTOSPHERE_BAR,
+    }
+    core = getattr(body, "core_mass_earth", None)
+    if core:
+        quantities["core_radius_earth"] = bulk_structure.core_radius_earth(core)
+    if star is None:
+        return quantities
+    quantities["age_gy"] = getattr(star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
+    quantities["host_type"] = host_type_of(star)
+    quantities["host_mass_solar"] = star.mass / constants.SOLAR_MASS_TO_KG
+    quantities["luminosity_solar"] = star.luminosity / constants.SOLAR_LUMINOSITY
+    distance_au = star_distance_au if star_distance_au is not None else (None if quantities["is_moon"] else body.distance)
+    if not distance_au:
+        return quantities
+    insolation = quantities["luminosity_solar"] / distance_au ** 2
+    quantities["insolation"] = insolation
+    quantities["runaway_ratio"] = runaway_ratio(insolation, star.temperature)
+    snow_line = getattr(star, "snow_line_au", None)
+    if snow_line:
+        quantities["snow_ratio"] = distance_au / snow_line
+    zone_edges = getattr(star, "habitable_zone", None)
+    if zone_edges:
+        inner, outer = zone_edges
+        quantities["zone"] = "h" if distance_au < inner else ("c" if distance_au > outer else "e")
+    index = activity.exposure_index(star, distance_au)
+    if index is not None:
+        quantities["xuv_index"] = index
+    flux = climate_draws.starlight_w_m2(star.luminosity, distance_au * constants.AU_TO_KM)
+    albedo = getattr(body, "bond_albedo", None)
+    if albedo is not None:
+        teq = climate_draws.equilibrium_temperature_k(albedo, flux)
+        quantities["teq_k"] = teq
+        quantities["tday_k"] = teq * DAYSIDE_OVER_EQUILIBRIUM
+        quantities["tp_k"] = teq * DAYSIDE_OVER_EQUILIBRIUM
+    effective = giant_draw.effective_temperature_k(flux, mass_earth)
+    quantities["teff_k"] = effective
+    quantities["t_layer_k"] = giant_draw.ONE_BAR_OVER_EFFECTIVE * effective
+    return quantities
+
+
+def subject_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_lived_geology=False, water_lost=False,
+                    star_distance_au=None):
+    """
+    The `Subject` of `body` for `mixture_draw.draw_mixture`: its class and exactly `mixture_draw.required_inputs(class)`. The arguments
+    are those of `quantities_of_body`.
+
+    Raises:
+        MixtureError: A quantity the class's rows read cannot be built for this body (named).
+    """
+    body_class = body.planet_class
+    built = quantities_of_body(body, ts_k=ts_k, pressure_bar=pressure_bar, ocean_present=ocean_present,
+                               long_lived_geology=long_lived_geology, water_lost=water_lost, star_distance_au=star_distance_au)
+    needed = mixture_draw.required_inputs(body_class)
+    missing = [name for name in needed if name not in built]
+    if missing:
+        raise MixtureError(f"the mixture draw of class {body_class!r} reads {', '.join(missing)}, which cannot be built for this body"
+                           f" (no star, no distance from the star, no Bond albedo or no stored interior)")
+    return Subject(body_class, {name: built[name] for name in needed})
