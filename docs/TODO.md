@@ -894,32 +894,6 @@ with `clamp()`.
   analysis lane (proposed by the lane).
   Prerequisites: none.
 
-- [ ] **UX.175 The same page anatomy for phenomena, facilities, clusters and regions (absorbs the UX.143 remainder)**
-  Boss's ask, 12:43 AM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
-  details move out of the dropdown into a dedicated page; the sector
-  contents become summary tree lists (stars, planets, moons) tree-linked
-  to their parents; every thing gets a dedicated details page that shows
-  its rendered example, property table and paragraph text. Filed from
-  the design draft design-drafts/object-detail-pages-2026-10-24.md
-  section 4 (label D8) at 12:47 AM EDT. Web, API and docs only: no
-  generator change, no epoch, no migration, no wipe. Version: 8.1,
-  Decided (Boss, 1:30 AM EDT 2026-10-24, card B1). Owner: the
-  Detail pages lane (a new lane, to be started; check nobody started it
-  first). Do: the same anatomy (header, Location, sheet, description,
-  children) for phenomena, facilities, clusters and regions; this
-  absorbs the open remainder of UX.143, so link and do not duplicate.
-  8.1 if capacity, else 8.2. Done: the page-walk test passes for every
-  kind in objectref.KINDS.
-  Research (2026-10-09, 10-24 detail pages): Progress (detail pages
-  lane, #3013, 1:29 PM EDT 2026-10-24 as the lane reported): every
-  phenomenon page has an All stored properties panel (grouped, Boss's
-  unit system, not stored for blanks) and /api/objects/<ref>/sheet
-  serves it, with a test that fails if a new phenomenon column is not on
-  the sheet. Remaining parts are split out: UX.183, UX.184, UX.185.
-  UX.175 itself closes when those three are done or dropped.
-  Prerequisites: none. Related: UX.143, UX.144.
-
 - [ ] **UX.179 Sitemap entries and an Open Graph image for object pages (optional, can wait)**
   Boss's ask, 12:43 AM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
@@ -936,18 +910,6 @@ with `clamp()`.
   Optional; belongs to 8.2. Done: the sitemap lists the object pages and
   a shared link shows the image.
   Prerequisites: none.
-
-- [ ] **UX.184 Star cluster and region pages: stored cluster and region objects and their object pages**
-  Split from UX.175 by the detail pages lane (1:29 PM EDT 2026-10-24 as
-  the lane reported, #3013). No stored cluster or region objects exist,
-  so there is nothing for an object page to show. Do: decide with the
-  object model what a stored cluster and a stored region are (they may
-  come from the unified objects work and the sector-block nodes), store
-  them, and give them object pages with the same anatomy as the other
-  kinds. Done: a cluster and a region each have a page with a property
-  sheet and links to what is inside them. Needs a short design note
-  first (what is stored and where). Owner: none (pool).
-  Prerequisites: none. Related: UX.175, MAP.258.
 
 - [ ] **UX.186 Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary**
   Residual of GEN.272 (relayed 3:37 PM EDT 2026-10-24 as the lane
@@ -18742,6 +18704,21 @@ clears each one.
   file, a database seed or an API payload that changed) and fix it.
   Done: the browser phase starts and its tests run on main. Owner: Bug
   Hunt. Related: TEST.344, TEST.343.
+  Root cause (Bug Hunt, 4:08 PM EDT 2026-10-24 as the lane reported;
+  reproduced with scripts/test.py browser on main 81f53f56: 20 errors
+  at setup in test_web_a11y.py): the shared sample_params fixture asks
+  /api/systems/<id> for each of 100 systems to find one with planets.
+  The API default limit is 50 requests per hour (RATELIMIT_DEFAULT
+  "200 per day;50 per hour") and the sample galaxy now has about 375
+  systems in a sector, most without planets, so after 50 calls every
+  answer is 429 and the fixture raises KeyError 'planets'. Fix in
+  progress: one SQL query finds the sample system and one API call
+  reads it. Until that merges, the browser phase of a gate errors on a
+  fresh machine.
+  Lane 3 also saw test_object_page_walk fixtures error (system detail
+  has no "stars" key, relayed 5:09 PM EDT 2026-10-24 as the lane
+  reported): the same 429 answer is the likely cause, so Bug Hunt
+  checks it after the fixture fix before filing it separately.
   Prerequisites: none. Related: TEST.344, TEST.343.
 
 - [ ] **TEST.350 Tests red on clean main: test_web_facilities (18 tests), test_web_population (test_system_page_names_species_and_territory, test_real_population) and test_web_browser_controls test_every_plain_button_does_something[web.system] (bug)**

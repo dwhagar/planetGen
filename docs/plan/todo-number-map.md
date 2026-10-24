@@ -2343,7 +2343,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.172 | Tree component: partial, script, keyboard and screen-reader behaviour, no-script fallback and narrow-screen layout | none | done, PR #3003 |
 | UX.173 | System page: stars table and body list become the tree; remove the dropdown rows and move species, facilities and the admin menu to the object page | none | done, PR #3011 |
 | UX.174 | Sector page: Contents rows expand into the tree, keeping facets, sort, jump and paging at the top level | none | done, PR #3011 |
-| UX.175 | The same page anatomy for phenomena, facilities, clusters and regions (absorbs the UX.143 remainder) | none | open |
+| UX.175 | The same page anatomy for phenomena, facilities, clusters and regions (absorbs the UX.143 remainder) | none | done, PR #3065 |
 | UX.176 | Link sweep: object_url, search, lists, describer references and the map popup View button all open /object/<ref>; delete body_anchor, bodyanchor.js and the row-highlight styles | none | done, PR #3011 |
 | UX.177 | Tests for the object pages: a page-walk for every kind, tree browser tests, accessibility, no-script, a huge sector, a moon of a moon-less planet and an unknown ID | none | done, PR #3011 |
 | UX.178 | Docs for the object pages: docs/design/interface/object-pages.md, the route list, body-rendering.md and the sheet registry rules | none | done, PR #3011 |
@@ -2352,7 +2352,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.181 | Every habitability symbol, life score and equipment or Habitable chip links straight to its section of the habitability page | none | done, PR #2867 |
 | UX.182 | The standalone Planet class, Spectral class and Luminosity class links go away and the class text itself links to its section | none | done, PR #2867 |
 | UX.183 | Facility pages: add the facility kind to the object index and resolver so /object/facility:<ID> works | none | done, PR #3060 |
-| UX.184 | Star cluster and region pages: stored cluster and region objects and their object pages | none | open |
+| UX.184 | Star cluster and region pages: stored cluster and region objects and their object pages | none | done, PR #3065 |
 | UX.185 | Phenomenon pages: paragraph text and neighbour links from the stored row | none | done, PR #3045 |
 | UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary | none | open |
 | VIEW.1 | View from a planet | none | open |
