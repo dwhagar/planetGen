@@ -34,6 +34,13 @@ from tests.test_work_queue import _rows, control_config  # noqa: F401 -- fixture
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+START_WAIT_SECONDS = 480
+"""How long a test waits for a run to start its tasks or save its first sector before it calls the run hung (TEST.141).
+It guards a hang, not a speed: a gate that saturates the machine (load 12.9, the first sector after 121 s) took longer
+than the 120 s it used to be, and the state is what is waited for, so a run that dies fails at once whatever this is.
+Kept under the 900 s limit of a test with the 300 s wait for the run to stop."""
+
+
 
 def _square(payload):
     return payload * payload
@@ -434,7 +441,7 @@ def test_a_sigterm_stops_the_workers_busy_with_a_long_task_and_leaves_no_process
                            preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL))
     try:
         job_id = run.stdout.readline().decode().strip()
-        deadline = time.time() + 120
+        deadline = time.time() + START_WAIT_SECONDS
         while len(_rows(control_config, "SELECT id FROM work_tasks WHERE job_id = ? AND state = 'running'",
                         (job_id,))) < 2:
             assert run.poll() is None, run.stderr.read().decode(errors="replace")[-2000:]
@@ -538,7 +545,7 @@ def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(contro
         # (TEST.101).
         preexec_fn=lambda: signal.signal(signal.SIGINT, signal.SIG_DFL))
     try:
-        deadline = time.time() + 120
+        deadline = time.time() + START_WAIT_SECONDS
         while _sector_counts(control_config)[0] < 1:
             assert run.poll() is None, run.stderr.read().decode(errors="replace")[-2000:]
             assert time.time() < deadline, "no sector was saved"
