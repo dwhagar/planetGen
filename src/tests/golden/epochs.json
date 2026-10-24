@@ -400,6 +400,12 @@
       "epoch": 81,
       "first_release": "8.0.2190",
       "reason": "The stars beyond the pair of a system of three or more stars draw planets of their own in their S-type windows, and a close pair among other stars keeps its planets inside its P-type window, so those systems change (GEN.332)"
+    },
+    {
+      "epoch": 82,
+      "first_release": null,
+      "pending": true,
+      "reason": "Every planet and moon with a life chemistry now has an evolutionary path (moons and cold-zone worlds too), and the Suitability food rung is made from the Flora and Fauna life scores, so the Suitability and overall score of every world with life move (GEN.649)"
     }
   ]
 }

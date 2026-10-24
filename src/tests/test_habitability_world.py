@@ -13,8 +13,10 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import NeutronStar
 from planetgen.generation.system import StarSystem
+from planetgen import tuning
 from planetgen.physics import atmosphere, body_radiation, constants, equipment
 from planetgen.physics import habitability_world as hw
+from planetgen.physics import life_scores
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -42,7 +44,7 @@ def test_earth_is_blue_everywhere_and_needs_no_kit():
     assert equipment.line(scored) == "" and equipment.code(scored) == ""
     assert [scored[f"tier_{domain}"] for domain in hw.DOMAINS] == [0] * 6
     assert scored["phi4"] == pytest.approx(1.0)
-    assert scored["phi_bio"] > 0.8 and scored["phi_cpx"] > 0.8 and scored["phi_tech"] > 0.95
+    assert scored["phi_bio"] > 0.8 and scored["phi_cpx"] > 0.8
 
 
 def test_the_air_decides_the_kit():
@@ -149,8 +151,10 @@ def test_every_generated_body_is_scored_consistently():
                 score, tier = getattr(body, f"phi4_{domain}"), getattr(body, f"tier_{domain}")
                 assert 0.0 <= score <= 1.0 and tier in (0, 1, 2, 3)
                 assert (tier == 0) == (score >= 1.0)
-            for name in ("phi4", "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "l_rad"):
+            for name in ("phi4", "phi_bio", "phi_cpx", "l_solv", "l_chem", "l_ener", "l_rad"):
                 assert 0.0 <= getattr(body, name) <= 1.0
+            for name in life_scores.FIELDS:
+                assert 0 <= getattr(body, name) <= tuning.LIFE_SCORE_MAX
             assert body.phi_cpx <= body.phi_bio + 1e-9
             if body.tier_radiation == 3:
                 assert body.eq_rad_suit or body.eq_shelter  # a Red dose needs radiation gear
@@ -285,7 +289,6 @@ def test_a_molten_or_deep_frozen_world_scores_without_overflowing():
     for kelvin in (3.0, 40.0, 1500.0, 4000.0, 20000.0):
         scored = hw.compute(_earth(surface_temperature_k=kelvin, hydrosphere="dry", p_h2o_kpa=0.0))
         assert scored["tier_temperature"] == 3
-        assert 0.0 <= scored["phi_tech"] <= 1.0
 
 
 def test_harshness_follows_the_worst_domain_and_defaults_to_the_middle():
@@ -312,11 +315,25 @@ def test_the_native_life_is_the_latest_milestone_the_timeline_reached():
 
 
 def test_suitability_follows_the_native_life_and_the_ocean_under_ice_has_no_food_to_reach():
-    for stage, expected in (("none", 0.2), ("microbial", 0.5), ("macroscopic", 0.85), ("biosphere", 1.0)):
+    for stage, expected in (("none", 0.2), ("microbial", 0.5), ("macroscopic", 1.0), ("biosphere", 1.0)):
         scored = hw.compute(_earth(native_life=stage))
         assert scored["phi4_suitability"] == pytest.approx(expected)
     buried = hw.compute(_earth(hydrosphere="ice-covered ocean", native_life="biosphere"))
     assert buried["phi4_suitability"] == pytest.approx(0.2) and buried["tier_suitability"] == 3
+
+
+def test_flora_is_always_good_food_and_flora_with_fauna_is_better():
+    """Boss, 2026-10-23: the food rung is made from the Flora and Fauna scores."""
+    mats = hw.compute(_earth(native_life="microbial", life_stage="photosynthesis", evolutionary_pace="Earth Norm"))
+    assert (mats["life_flora"] > 0, mats["life_fauna"]) == (True, 0)
+    assert mats["phi4_suitability"] == pytest.approx(0.85)  # flora alone: Green
+    microbes = hw.compute(_earth(native_life="microbial", life_stage="abiogenesis", evolutionary_pace="Earth Norm"))
+    assert (microbes["life_microbial"] > 0, microbes["life_flora"]) == (True, 0)
+    assert microbes["phi4_suitability"] == pytest.approx(0.5)
+    both = hw.compute(_earth(native_life="macroscopic", life_stage="multicellularity", evolutionary_pace="Earth Norm"))
+    assert both["life_flora"] > 0 and both["life_fauna"] > 0
+    assert both["phi4_suitability"] == pytest.approx(1.0)
+    assert life_scores.food_stage(0, 0, 3) == "macroscopic"  # fauna is all animal life: food on its own
 
 
 def test_a_dry_world_has_red_water_and_red_suitability_and_an_overall_at_most_yellow():
@@ -337,7 +354,7 @@ def test_life_is_drawn_after_the_score_and_the_score_is_redone_with_it():
         for body in _bodies(system):
             if body.body_type == "g":
                 continue
-            stage = hw.native_life(body.life_chemical, body.life_stage, body.life_system_age_gyr is not None)
+            stage = life_scores.food_stage(body.life_microbial, body.life_flora, body.life_fauna)
             stages.add(stage)
             food = hw.habitability.FOOD_SCORE[stage if body.hydrosphere != "ice-covered ocean" else "none"]
             assert body.phi4_suitability <= food + 1e-9, (body.name, stage)

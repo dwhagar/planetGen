@@ -1429,7 +1429,8 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `shelter_column_g_cm2`, `outside_hours` | DOUBLE | nullable | Added in v136 (GEN.655). The shielding in g/cm2 a shelter needs to bring the year's dose to the limit, and the hours outside a year the listed suit allows (NULL when unlimited or no shelter is needed). |
 | `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`, `temp_swing_k` | DOUBLE | nullable | Added in v137 (GEN.656). The mean surface temperature spread over a world that turns on its own: the annual mean of the polar (60 degrees and over), northern (20 to 60 N), equatorial and southern (20 to 60 S) bands in kelvin, from the annual insolation of the stored axial tilt and the air column's heat transport, and the day and night swing at the equator (`physics/regional_temperature.py`). NULL for a gas giant, an unscored body, a tidally locked world and a row not yet re-scored. |
 | `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` | DOUBLE | nullable | Added in v137 (GEN.656). The same for a tidally locked world (rotation period equal to the orbital period): the day side, the terminator ring and the night side, kelvin. NULL for any other body. |
-| `phi_bio`, `phi_cpx`, `phi_tech`, `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The Xenobiology numbers: microbial life (the product of the four likelihoods `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation), complex life (`phi_bio` times the metazoa's gas tolerance) and human operability with equipment (`phi_tech`, the geometric mean of the pressure, temperature, water and radiation mitigation factors). |
+| `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The four likelihoods behind microbial life: `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation, each 0 to 1. (v76 also stored `phi_bio`, `phi_cpx` and `phi_tech`; v136 dropped them for the four life scores below.) |
+| `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | Added in v150 (GEN.649). The four life scores, 0 (none) to 9 (abundant), from the evolutionary path the body reached and its surface conditions ([habitability-index.md](../design/habitability/habitability-index.md) section 11). NULL for a gas giant or a body with no score. |
 | `energy_flux_w_m2` | DOUBLE | nullable | Added in v76 (GEN.89). The light or chemical power life can use: 6% of the starlight, or 1% of the body's own heat flow, whichever is more (the heat only, under an ice lid). The one input the score keeps, so the dose refresh can re-score from the row. |
 | `flux_variation` | DOUBLE | nullable | Added in v87 (DB.26, GEN.148). The relative swing of the stellar flux over the orbit or pair cycle; 0 is steady. NULL until regenerated. |
 | `induced_moment_a_m2` | DOUBLE | nullable | Added in v87 (DB.26, GEN.178), placed after `dipole_class`. The induced magnetic moment in A m2; NULL when not computed or none. |
@@ -2171,6 +2172,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v150 (GEN.649): the four life scores
+
+Migration 0150 adds `life_microbial`, `life_flora`, `life_fauna` and `life_sentient` (TINYINT UNSIGNED, nullable) to `planets` and `moons`, fills them for every row that has a habitability score from the two likelihoods (`phi_bio`, `phi_cpx`) and the evolutionary path it stored (`life_chemical`, `life_stage`, `evolutionary_pace`, `life_milestone_age_gyr`, `life_system_age_gyr`) by `planetgen/physics/life_scores.py`, in pages of ids (a row with `life_microbial` set is done), and drops `phi_bio`, `phi_cpx` and `phi_tech`. The human operability score has no successor. A gas giant or an unscored body keeps NULL.
+
 ### v149 (OPS.69): the wiki links are gone
 
 Migration 0149 drops `sectors.wiki_url`, `star_systems.wikijs_url` and `star_systems.mediawiki_url`. The wiki upload that wrote them was taken out of the site, and nothing read them any more.
@@ -2232,6 +2237,7 @@ Migration 0139 adds `sector_stats.habitable_worlds` (INT, nullable: the planets 
 ### v142 (GEN.412): the albedo and the greenhouse quantity on a planet or moon
 
 Migration 0142 adds `bond_albedo`, `greenhouse_factor` (both DOUBLE, nullable) and `albedo_basis` (TINYINT UNSIGNED, nullable) to `planets` and `moons`, at the end of each table. The generator keeps the two numbers it draws for the temperature (`planetgen/physics/climate_draws.py`; [atmosphere-colour.md](../design/composition/atmosphere-colour.md) sections 5 and 8). A row saved before the revision gets them back with no draw: its stored scale height holds the temperature it would have with no air, so `1 - A = 4 sigma T_e^4 / S` and `G = (T_s / T_e)^4 - 1` follow (`albedo_basis` 1). Where there is no solution (no starlight, a temperature on the 2.725 K floor, an albedo outside 0 to 1, a pressure above the barometric law) the albedo is a seeded draw from the class range and G is worked out from the stored temperature, which never moves (`albedo_basis` 2). A stopped run can be started again; the version is detected from `planets.bond_albedo`.
+
 
 ### v134 (GEN.267): the star count, its cap and the multi-star prevalence on a stored config
 

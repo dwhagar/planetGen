@@ -19,45 +19,46 @@ from planetgen.physics.habitability import World, scores
 EARTH = World(101.3, 15, {"N2": 0.78, "O2": 0.21, "CO2": 0.0004}, ph=8.1, relative_humidity=0.7)
 
 EXAMPLES = {
-    "Earth": (EARTH, ("Blue",) * 6, 1.0, 0.969, 0.968, 1.0, ""),
+    "Earth": (EARTH, ("Blue",) * 6, 1.0, 0.969, 0.968, ""),
     "Dense CO2": (World(300, 40, {"CO2": 0.95, "N2": 0.05}, ph=6.5, relative_humidity=0.8, energy_flux_w_m2=40),
-                  ("Green", "Yellow", "Red", "Blue", "Blue", "Red"), 0.6905, 0.969, 0.0, 0.479, "B1h S2"),
+                  ("Green", "Yellow", "Red", "Blue", "Blue", "Red"), 0.6905, 0.969, 0.0, "B1h S2"),
     "Hycean": (World(2000, 60, {"H2": 0.9, "He": 0.1}, ph=7, relative_humidity=0.99, energy_flux_w_m2=20,
                      life_stage="microbial"),
-               ("Yellow", "Yellow", "Green", "Blue", "Blue", "Yellow"), 0.7265, 0.969, 0.0, 0.022, "B2d S3"),
+               ("Yellow", "Yellow", "Green", "Blue", "Blue", "Yellow"), 0.7265, 0.969, 0.0, "B2d S3"),
     "Photochemical CO": (World(100, 10, {"N2": 0.9, "CO2": 0.05, "CO": 0.05}, ph=7.5),
-                         ("Blue", "Blue", "Red", "Blue", "Blue", "Red"), 0.7368, 0.969, 0.0, 1.0, "S2"),
+                         ("Blue", "Blue", "Red", "Blue", "Blue", "Red"), 0.7368, 0.969, 0.0, "S2"),
     "Ice-sealed ocean": (World(1e-6, -170, {}, gravity_ms2=1.3, ph=8, energy_flux_w_m2=1e-3, surface_dose_sv_yr=0.05,
                                habitat_dose_sv_yr=0.002, water_source="ice", relative_humidity=0.05,
                                life_stage="microbial", life_on_surface=False),
-                         ("Red", "Red", "Red", "Blue", "Green", "Red"), 0.0, 0.533, 0.0, 0.468, "B4p F100 S2"),
+                         ("Red", "Red", "Red", "Blue", "Green", "Red"), 0.0, 0.533, 0.0, "B4p F100 S2"),
     "Mars-analog brine": (World(0.6, -60, {"CO2": 0.95, "N2": 0.03}, gravity_ms2=3.71, water_activity=0.5,
                                 chaotropicity_kj_kg=90, ph=8, inventories={"C": 0.05, "N": 0.01, "H": 0.05},
                                 phosphate_umol_l=0.5, energy_flux_w_m2=40, water_source="ice",
                                 relative_humidity=0.05),
-                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.3999, 0.006, 0.0, 0.460, "B4p F100 S2 H3 [R2]"),
+                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.3999, 0.006, 0.0, "B4p F100 S2 H3 [R2]"),
     "Dune world": (World(90, 45, {"N2": 0.78, "O2": 0.21, "CO2": 0.001}, relative_humidity=0.05, water_activity=0.7,
                          ph=8, water_source="vapour", inventories={"C": 0.5, "N": 0.5, "H": 0.05},
                          life_stage="macroscopic"),
-                   ("Blue", "Green", "Blue", "Yellow", "Blue", "Red"), 0.7499, 0.638, 0.637, 0.795, "B1h"),
+                   ("Blue", "Green", "Blue", "Yellow", "Blue", "Red"), 0.7499, 0.638, 0.637, "B1h"),
     "Europan ocean": (World(1e-9, -160, {}, gravity_ms2=1.31, ph=9, energy_flux_w_m2=1e-4, surface_dose_sv_yr=2000,
                             habitat_dose_sv_yr=0.002, water_source="ice", relative_humidity=0.05,
                             life_stage="microbial", life_on_surface=False),
-                      ("Red", "Red", "Red", "Green", "Red", "Red"), 0.0, 0.395, 0.0, 0.276,
+                      ("Red", "Red", "Red", "Green", "Red", "Red"), 0.0, 0.395, 0.0,
                       "B4p F100 S2 H3 R2"),
 }
-"""dict: `(world, the six tiers, PHI-4, PHI_bio, PHI_cpx, Phi_tech, the equipment code)`. The Earth world has a
+"""dict: `(world, the six tiers, PHI-4, PHI_bio, PHI_cpx, the equipment code)`. The Earth world has a
 biosphere (its `life_stage` is set below); the others carry the stage the example needs."""
 EARTH.life_stage = "biosphere"
 
 
 @pytest.mark.parametrize("name", list(EXAMPLES))
 def test_the_worked_examples_reproduce(name):
-    world, tiers, phi4, bio, cpx, tech, kit = EXAMPLES[name]
+    world, tiers, phi4, bio, cpx, kit = EXAMPLES[name]
     got = scores(world)
     assert tuple(got[d][1] for d in hab.DOMAINS) == tiers
     assert got["PHI-4"] == pytest.approx(phi4, abs=1e-3)
-    assert (got["PHI_bio"], got["PHI_cpx"], got["Phi_tech"]) == pytest.approx((bio, cpx, tech), abs=2e-3)
+    assert (got["PHI_bio"], got["PHI_cpx"]) == pytest.approx((bio, cpx), abs=2e-3)
+    assert "Phi_tech" not in got
     assert equipment.code(equipment.compute(world)) == kit
 
 

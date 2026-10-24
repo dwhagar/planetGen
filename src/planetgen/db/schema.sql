@@ -1429,6 +1429,8 @@
 --   drawn from the oxygen and the star's temperature (`physics/ozone.py`); the UV index reads it.
 -- v137 (GEN.412): `planets` and `moons` keep the Bond albedo (`bond_albedo`) and the greenhouse quantity (`greenhouse_factor`, G = (T_s / T_e)^4 - 1) their surface temperature is made of,
 --   and `albedo_basis` (0 recorded at generation, 1 the exact inverse of a row saved without them, 2 a seeded class draw where the inverse had no solution).
+-- v150 (GEN.649): `planets` and `moons` keep four life scores, `life_microbial`, `life_flora`, `life_fauna` and `life_sentient` (0 none to 9 abundant, NULL when the body has no score),
+--   in place of `phi_bio`, `phi_cpx` and `phi_tech`. A row saved before gets them from its two likelihoods and its evolutionary path.
 --
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
@@ -2280,9 +2282,10 @@ CREATE TABLE IF NOT EXISTS planets (
     tier_water                  TINYINT,
     tier_suitability            TINYINT,
     tier_radiation              TINYINT,
-    phi_bio                     DOUBLE,
-    phi_cpx                     DOUBLE,
-    phi_tech                    DOUBLE,
+    life_microbial              TINYINT UNSIGNED NULL,  -- v150 (GEN.649): 0 none to 9 abundant, from the evolutionary path and the surface
+    life_flora                  TINYINT UNSIGNED NULL,  -- v150
+    life_fauna                  TINYINT UNSIGNED NULL,  -- v150
+    life_sentient               TINYINT UNSIGNED NULL,  -- v150
     l_solv                      DOUBLE,
     l_chem                      DOUBLE,
     l_ener                      DOUBLE,
@@ -2516,9 +2519,10 @@ CREATE TABLE IF NOT EXISTS moons (
     tier_water                  TINYINT,
     tier_suitability            TINYINT,
     tier_radiation              TINYINT,
-    phi_bio                     DOUBLE,
-    phi_cpx                     DOUBLE,
-    phi_tech                    DOUBLE,
+    life_microbial              TINYINT UNSIGNED NULL,  -- v150 (GEN.649): 0 none to 9 abundant, from the evolutionary path and the surface
+    life_flora                  TINYINT UNSIGNED NULL,  -- v150
+    life_fauna                  TINYINT UNSIGNED NULL,  -- v150
+    life_sentient               TINYINT UNSIGNED NULL,  -- v150
     l_solv                      DOUBLE,
     l_chem                      DOUBLE,
     l_ener                      DOUBLE,

@@ -1,0 +1,10 @@
+**Headline:** Every scored planet and moon carries four life scores, Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), in place of the old habitability numbers.
+
+### Changed
+- **Four life scores (GEN.649).** `planetgen/physics/life_scores.py` rates the life on a world from the evolutionary path its timeline reached and its surface conditions: Microbial from abiogenesis on, Flora from photosynthesis (at most 3 until multicellular life), Fauna from multicellularity (never more than Flora), Sentient from a technological civilization (in proportion to its first 10 Myr). A body with a life chemistry always has a timeline now (see below). The system page prints them as whole numbers where it printed "Microbial 0.00 . Complex life 0.00 . Human operability 0.52".
+- **The old scores are gone.** `phi_bio`, `phi_cpx` and `phi_tech` are no longer stored or served; the human operability number (`Phi_tech`) and its four factors are removed from `planetgen/physics/habitability.py`. The two life likelihoods stay in memory for the life draw (`life.life_ceiling`).
+- **Migration 0150, schema v150.** `planets` and `moons` gain `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`; a galaxy made earlier gets them from the two likelihoods and the evolutionary path its rows stored, and the three old columns are dropped. The migration draws nothing; the generator epoch is for the two changes below.
+- **Every planet and moon with a life chemistry has an evolutionary path (Boss, 2026-10-23; GEN.649).** A moon or a cold-zone world that the class and the habitability index allow life on gets a timeline like a planet in the ecosphere, so it can reach Flora, Fauna and Sentient. (Species and civilizations are still stored for planets only.)
+- **Food is made from Flora and Fauna (Boss, 2026-10-23; GEN.653).** The Suitability food rung reads the scores: Flora is always good food (Green), Flora with Fauna is better (Blue), Fauna counts as food on its own, microbes alone are Yellow, no life Red. This moves Suitability, and so the overall score, of every world with life.
+
+generation-output: changed
