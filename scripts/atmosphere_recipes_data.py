@@ -17,7 +17,7 @@ row), `p('id')` (the probability of a row in its own table at this subject) and 
 continuous row's value lies in [lo, hi]).
 """
 
-ROCKY = list("ABCDEFGHKLMNOPQSV")
+ROCKY = list("ABCDEFGHKLMNOPQSV") + list("UYZ")   # the planned rocky classes (PLANNED_CLASSES) have the rocky tables' rows too
 AIR = list("ABEFGHKLMNOPQV")
 GIANT = list("IJT")
 HAB = list("EFGHKLMOPQV")
@@ -76,7 +76,9 @@ _SHORE = {"delta": _DELTA, "p_atm": _P_ATM}
 
 MACHINE = {
     # ---- a. mantle redox ----
-    "a1": dict(state="stand-in", replacement="GEN.513", kind="param", classes=ROCKY, when=[c("mass_earth", minimum=0.01)], sets="redox_diw",
+    "a1": dict(state="stand-in", replacement="GEN.513", kind="param", classes=ROCKY, sets="redox_diw",
+               correction="Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses (a class A to Q world of 500 to "
+                          "1500 km radius) with no redox row at all, and the mean's own clamp already holds -2 below 0.01.",
                dist={"kind": "normal", "mu": "clamp(-2 + 1.25*(log10(mass_earth) + 2), -2, 0.5)", "sigma": 0.5}),
     "a2": dict(kind="param", classes=AIR, when=[c("long_lived_geology", equals=True)], sets="redox_diw_later",
                state="stand-in", replacement="GEN.513",
@@ -335,21 +337,24 @@ MACHINE = {
     # ---- o. ground radioisotopes ----
     "o1": dict(kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=True)], bins=[0.7, 1.4],
                dist={"kind": "normal", "log10": True, "mu": 0.08, "sigma": 0.058}),
-    "o2": dict(state="partly verified", limit="thick-disc [Th/Mg] from Hypatia (N=32, scale of heterogeneous catalogues, 0.14 dex under the solar-twin scale of o1); halo, young and M hosts have no Th data (GEN.514)", kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=False)], tunable=True,
-               dist={"kind": "normal", "log10": True, "mu": -0.063, "sigma": 0.19, "range": [-0.64, 0.52]},
+    "o2": dict(state="partly verified", limit="thick-disc [Th/Mg] from Hypatia (N=32, moved onto the solar-twin scale of o1 by the Hypatia thick-thin offset of -0.019 dex, GEN.664); halo, young and M hosts have no Th data (GEN.514)", kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=False)], tunable=True,
+               dist={"kind": "normal", "log10": True, "mu": 0.061, "sigma": 0.19, "range": [-0.56, 0.60]},
                source="Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 "
-                      "(N=215), so no thick-thin offset in the planet-relevant ratio (DATA, COMPUTED; tunable-gaps 3.2)",
+                      "(N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, Botelho 2019) "
+                      "as 0.08 - 0.019 = 0.061 (DATA, COMPUTED; tunable-gaps 3.2; docs/design/composition/radioisotope-tuning.md section 1)",
                correction="Retuned 2026-10-23 (GEN.514): the log-uniform bracket 59 to 251 percent was the range of 14 solar twins; "
                           "the 32 thick-disc stars give a centre of 86 percent of the solar ratio and a spread of 0.19 dex, the widest "
                           "of the intrinsic 0.056 (Botelho 2019) and the catalogue's 0.15 to 0.19."),
     "o3": dict(state="stand-in", replacement="GEN.514", kind="param", classes=ROCKY, dist={"kind": "loguniform", "lo": 8.9e3, "hi": 1.4e4}),
-    "o4": dict(state="partly verified", limit="the production ratio 1.667 to 2.0 and the decay constants are published; the effective r-process duration T of the gas (3 to 13 Gyr, the widest bracket) is calibrated on one Solar System datum and waits for a chemical-evolution model (GEN.514)", kind="param", classes=ROCKY,
-               dist={"kind": "uniform", "lo": "0.97483*1.667*1.16254*exp(0.105802*age_gy)", "hi": "0.97483*2.0*1.71724*exp(0.105802*age_gy)"},
+    "o4": dict(state="partly verified", limit="the production ratio 1.667 to 2.0 and the decay constants are published; the enrichment factor F comes from the disc's star formation history and a 1/tau merger delay law whose 30 Myr floor is a RECALLED stand-in; the gas before the disc began is left out, so F is a lower bound for old stars (GEN.663)", kind="param", classes=ROCKY,
+               dist={"kind": "uniform", "lo": "0.97483*1.667*th_u_f*exp(0.105802*age_gy)", "hi": "0.97483*2.0*th_u_f*exp(0.105802*age_gy)"},
                source="Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 (Frebel 2007 Table 1, READ), "
-                      "F(T) = [(1 - exp(-l232 T))/l232] / [(1 - exp(-l238 T))/l238] with half-lives 14.05 and 4.468 Gyr; "
-                      "F(3 Gyr) = 1.16254 and F(13 Gyr) = 1.71724 bound the birth epoch (COMPUTED, tunable-gaps 2.6)",
+                      "F = th_u_f, the thorium-232 over uranium-238 left of the disc's r-process input at the star's birth: the disc's star formation "
+                      "(galaxy.disk_history) convolved with a 1/tau merger delay law, each ejecta decayed with half-lives 14.05 and 4.468 Gyr "
+                      "(physics/rprocess_enrichment.py, GEN.663; COMPUTED, tunable-gaps 2.6). A constant input of T Gyr gives F(3) = 1.16254 and F(13) = 1.71724",
                correction="Replaced 2026-10-23 (GEN.514): U[3.8, 4.5] was the Solar System value at 4.5 Gyr and did not grow with the planet's "
-                          "age (x1.17 over 1.5 Gyr). At 4.5 Gyr the formula gives 3.04 to 5.39."),
+                          "age (x1.17 over 1.5 Gyr). Replaced again 2026-10-24 (GEN.663): the birth epoch T drawn between 3 and 13 Gyr is gone, F is the quantity "
+                          "`th_u_f` that the star's galaxy supplies."),
     "o5": dict(kind="derived", classes=ROCKY,
                values={"heating_ratio": "0.384*exp(0.693147/4.468*(4.5 - age_gy)) + 0.016*exp(0.693147/0.7038*(4.5 - age_gy))"
                                         " + 0.402*exp(0.693147/14.05*(4.5 - age_gy)) + 0.193*exp(0.693147/1.248*(4.5 - age_gy))"}),

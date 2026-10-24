@@ -13,7 +13,7 @@ _spec = importlib.util.spec_from_file_location("check_redis_settings", os.path.j
 check = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(check)
 
-GOOD = {"appendonly": "yes", "appendfsync": "everysec", "maxmemory": "536870912", "maxmemory-policy": "noeviction",
+GOOD = {"appendonly": "yes", "appendfsync": "everysec", "maxmemory": "4294967296", "maxmemory-policy": "noeviction",
         "bind": "127.0.0.1 -::1"}
 
 
@@ -30,7 +30,7 @@ def test_redis_defaults_warn_about_each_setting_with_the_line_to_add():
                 "bind": "* -::*"}
     lines = [line for _what, line in check.problems(defaults)]
     assert "appendonly yes\nappendfsync everysec" in lines
-    assert "maxmemory 512mb" in lines
+    assert "maxmemory 4gb" in lines
     assert "bind 127.0.0.1 -::1\nprotected-mode yes" in lines
     assert len(lines) == 3
 
@@ -39,7 +39,7 @@ def test_each_setting_warns_alone():
     assert _lines(appendonly="no") == ["appendonly yes\nappendfsync everysec"]
     assert _lines(**{"maxmemory-policy": "allkeys-lru"}) == ["maxmemory-policy noeviction"]
     assert _lines(appendfsync="no") == ["appendfsync everysec"]
-    assert _lines(maxmemory="0") == ["maxmemory 512mb"]
+    assert _lines(maxmemory="0") == ["maxmemory 4gb"]
 
 
 def test_only_loopback_addresses_count_as_loopback():
@@ -53,10 +53,14 @@ def test_the_example_config_sets_what_the_check_wants():
     with open(os.path.join(ROOT, "examples", "redis", "planetgen.conf"), encoding="utf-8") as f:
         settings = dict(line.split(None, 1) for line in f.read().splitlines() if line and not line.startswith(("#", " ")))
     assert settings["appendonly"] == "yes" and settings["appendfsync"] == "everysec"
-    assert settings["maxmemory-policy"] == "noeviction" and settings["maxmemory"] == "512mb"
+    assert settings["maxmemory-policy"] == "noeviction" and settings["maxmemory"] == "4gb"
     assert not check.listens_beyond_loopback(settings["bind"])
 
 
 def test_an_unreachable_server_only_warns(capsys):
     assert check.main(["check", "redis://127.0.0.1:1/0"]) == 0
     assert "couldn't read the Redis settings" in capsys.readouterr().err
+
+
+def test_a_limit_under_two_gigabytes_is_called_too_small():
+    assert _lines(maxmemory="536870912") == ["maxmemory 4gb"]

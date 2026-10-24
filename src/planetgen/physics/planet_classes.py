@@ -12,12 +12,12 @@ drawn letter and this one are compared by the shadow sweep (`src/tests/class_sha
 The rules are the rows of `physics/data/planet_classes.json`, in order, one list for giants and one for terrestrial
 bodies. The first row whose conditions all hold names the class. The last row of each list has no conditions, so every body
 gets exactly one letter (`tests/test_planet_classes.py` also proves it over generated bodies). A row's conditions are
-`min` (at least) and `lt` (below) on a named quantity, or `equals` on a text one.
+`min` (at least) and `lt` (below) on a named quantity, or `equals` and `not_equals` on a text one.
 
 Quantities (all derived here from the stored columns, named as `db.models` names them):
 
 * `mass_earth`, `gravity_g`, `temperature_k`, `pressure_pa` (0 for no air), `ocean_fraction`, `water_mass_fraction`,
-  `hydrosphere`, `flux_variation`;
+  `hydrosphere`, `flux_variation`, `ocean_ph` (`None` without an ocean; no class reads it, the pigments of life do);
 * `share_o2` ... `share_so2`: a stored gas's partial pressure over the surface pressure;
 * `reducing_share`: the methane and hydrogen shares together.
 
@@ -62,6 +62,7 @@ def values_from_body(body):
         "ocean_fraction": getattr(body, "ocean_fraction", None),
         "water_mass_fraction": getattr(body, "water_mass_fraction", None),
         "flux_variation": getattr(body, "flux_variation", None),
+        "ocean_ph": getattr(body, "ocean_ph", None),
     }
     for field in atmosphere.PARTIAL_PRESSURE_FIELDS:
         values[field] = getattr(body, field, None)
@@ -87,6 +88,7 @@ def quantities(values):
         "ocean_fraction": values.get("ocean_fraction") or 0.0,
         "water_mass_fraction": values.get("water_mass_fraction") or 0.0,
         "flux_variation": values.get("flux_variation") or 0.0,
+        "ocean_ph": values.get("ocean_ph"),
     }
     for gas in GASES:
         partial_pa = (values.get(f"p_{gas}_kpa") or 0.0) * 1000.0
@@ -109,23 +111,34 @@ class Class:
         self.when = tuple(row["when"])
         self.core = self.letter in core
         for condition in self.when:
-            keys = set(condition) - {"quantity", "min", "lt", "equals"}
+            keys = set(condition) - {"quantity", "min", "lt", "equals", "not_equals"}
             if keys or "quantity" not in condition or len(condition) < 2:
                 raise ClassError(f"class {self.letter}: condition {condition!r} is not quantity plus min, lt or equals")
 
     def matches(self, found):
-        for condition in self.when:
-            name = condition["quantity"]
-            value = found.get(name)
-            if value is None:
-                raise ClassError(f"class {self.letter} reads {name!r}, which the body does not store")
-            if "min" in condition and value < condition["min"]:
+        return holds(self.when, found, owner=f"class {self.letter}")
+
+
+def holds(conditions, found, owner="a rule", missing=ClassError):
+    """Whether every condition (`quantity` with `min`, `lt` or `equals`) holds for the named quantities in `found`.
+    A quantity the body does not store raises `missing` (a rule that reads it is wrong for the body), or, with
+    `missing=None`, fails the condition (the body lacks what the rule asks for, e.g. an ocean's pH on a dry world)."""
+    for condition in conditions:
+        name = condition["quantity"]
+        value = found.get(name)
+        if value is None:
+            if missing is None:
                 return False
-            if "lt" in condition and value >= condition["lt"]:
-                return False
-            if "equals" in condition and value != condition["equals"]:
-                return False
-        return True
+            raise missing(f"{owner} reads {name!r}, which the body does not store")
+        if "min" in condition and value < condition["min"]:
+            return False
+        if "lt" in condition and value >= condition["lt"]:
+            return False
+        if "equals" in condition and value != condition["equals"]:
+            return False
+        if "not_equals" in condition and value == condition["not_equals"]:
+            return False
+    return True
 
 
 def _load():
@@ -210,6 +223,8 @@ def condition_words(condition):
         parts.append(f"{label} below {_number(condition['lt'], percent)}{suffix}")
     if "equals" in condition:
         parts.append(f"{label} is {condition['equals']}")
+    if "not_equals" in condition:
+        parts.append(f"{label} is not {condition['not_equals']}")
     return " and ".join(parts)
 
 

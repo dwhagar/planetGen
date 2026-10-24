@@ -25,6 +25,8 @@ PERF.128 give it units.
 import json
 import time
 
+import redis
+
 from planetgen.datasets import fetch
 from planetgen.queue import commands, progress_file, redisqueue, runrecord, runwait, units, workers
 from planetgen.util import log
@@ -281,7 +283,15 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     except BaseException as exc:
         stopped = isinstance(exc, KeyboardInterrupt) or (       # Ctrl+C, or a SIGTERM (`cli.generate._exit_on_sigterm`)
             isinstance(exc, SystemExit) and isinstance(exc.code, int) and exc.code >= 128)
-        runrecord.finish_run(conn, run_id, "cancelled" if stopped else "failed",
-                             error=str(exc) or type(exc).__name__)
+        full = isinstance(exc, redis.exceptions.OutOfMemoryError)
+        message = (f"Redis is full (used memory is over its maxmemory, {exc}); the run stopped. Raise maxmemory "
+                   f"in the Redis configuration or flush the page cache, then run again.") if full else \
+            (str(exc) or type(exc).__name__)
+        try:
+            runrecord.finish_run(conn, run_id, "cancelled" if stopped else "failed", error=message)
+        except redis.exceptions.RedisError:
+            pass        # a full Redis refuses this write too; the original error is the one to show
+        if full:
+            raise RuntimeError(message) from None
         raise
     return run_id

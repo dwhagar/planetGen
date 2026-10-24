@@ -1195,3 +1195,26 @@ Baseline: PR #1817.
 | MAP.244 | 8.1 | Descriptions and maps |
 | DOC.64 | 8.1 | Descriptions and maps |
 | TEST.312 | 8.1 | Bugs and flaky tests |
+| UX.100 | 8.1 | Habitability system |
+| UX.155 | 8.1 | Habitability system |
+| UX.156 | 8.1 | Habitability system |
+| DOC.78 | 8.1 | Habitability system |
+| GEN.655 | 8.1 | Habitability system |
+| DB.93 | 8.1 | Habitability system |
+| POP.15 | 8.1 | Habitability system |
+| GEN.665 | 8.1 | Tuned draws and selection models |
+| GEN.664 | 8.1 | Tuned draws and selection models |
+| DOC.74 | 8.1 | Mixture and stored values |
+| GEN.451 | 8.1 | Mixture and stored values |
+| GEN.454 | 8.1 | Mixture and stored values |
+| GEN.499 | 8.1 | Haze, dust and cloud |
+| GEN.456 | 8.1 | Haze, dust and cloud |
+| GEN.501 | 8.1 | Weight research (atmosphere) |
+| GEN.663 | 8.1 | Tuned draws and selection models |
+| GEN.92 | 8.4 | Planet classes |
+| TEST.310 | 8.1 | Bugs and flaky tests |
+| UX.165 | 8.1 | Consistency |
+| GEN.680 | 8.1 | Consistency |
+| GEN.679 | 8.1 | Consistency |
+| UX.148 | 8.1 | Generate page and directives |
+| MAP.270 | 8.1 | Fly-through map |

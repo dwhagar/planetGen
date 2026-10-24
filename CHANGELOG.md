@@ -2,6 +2,126 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2115] - 2026-10-24
+
+**Headline:** The greenhouse closure that checks a planet's stored warming against a physical opacity is in place (GEN.443, greenhouse kernel).
+
+### Changed
+
+- New `planetgen.physics.greenhouse`: the Robinson and Catling grey-atmosphere closure (surface temperature from an infrared optical depth, and the inverse), the greenhouse factor from the effective temperature, and the check of a stored multiplier. It reproduces Earth (optical depth 1.82, factor 0.625) and a Venus-like world. Nothing calls it yet and no stored value changes; the composition side of the check waits on the infrared opacity data and the stored multiplier.
+
+## [8.0.2114] - 2026-10-24
+
+**Headline:** The Generate log stays in a fixed-width font when the web server adds its own Content-Security-Policy.
+
+### Fixed
+- **The Generate log was no longer fixed width (UX.148).** Xterm.js sets the terminal rows' font in a `<style>` element it writes itself. A web server that sends its own Content-Security-Policy as well as the app's (Boss's Apache does) enforces both, and its policy, with no `'unsafe-inline'` for styles, blocked that element, so the log fell back to the page's proportional font and columns stopped lining up. `style.css` now gives `.job-terminal .xterm-rows` the monospace font, size and `white-space: pre` too. The deployment guide already says not to repeat the security headers in the web server; removing the server's own header is still the better setup. `test_the_log_stays_fixed_width_when_the_web_server_adds_a_stricter_policy` fails without the change.
+
+TODO items resolved: UX.148. Added: none.
+
+## [8.0.2113] - 2026-10-24
+
+**Headline:** Stars on the Galaxy Map glow at every distance, the glow's size and strength from the star's luminosity and its colour from the star's temperature.
+
+### Fixed
+- **Stars on the map did not glow (Boss's live observation).** Since MAP.208 a star farther than about three sectors from the camera was a 1.5 pixel point with no halo and a core whitened toward white, so only stars near the camera glowed and the rest read as white dots. A far point now keeps a halo of its own (`starpoint.js`: `POINT_HALO_PX` 3 to 12 pixels and `POINT_HALO_GLOW` 0.3 to 0.75, faint star to bright star by luminosity), which grows smoothly into the full halo near a sector, and its core is whitened less (`POINT_WHITEN`), so the star's blackbody colour shows. The Galaxy Map and the sector scene draw it the same way; the far halo shares one shader attribute with the grown glow, since a vertex shader holds 16 at most. Tests in `starpoint.test.mjs`.
+TODO items resolved: none (the stars-glow bug is being filed by the TODO thread). Added: none.
+
+## [8.0.2112] - 2026-10-24
+
+**Headline:** The solid-world and star painters load their shared helper with the release stamp, so a new release cannot serve a stale copy.
+
+### Changed
+
+- `solidpaint.js` and `starpaint.js` import `bodytexture.js` with the page's `?v=` stamp, as every other script does (TEST.310; the page-shell test caught it).
+
+## [8.0.2111] - 2026-10-24
+
+**Headline:** The page cache can no longer fill Redis and stop a galaxy run; the Redis memory limit is now 4 GB.
+
+### Changed
+
+- The shared page cache stops adding answers to Redis once Redis is 70 percent full, so the job queue and run records always have room. (A 512 MB Redis was full of cached pages, about 365 MB of them, when the phenomena scatter died.)
+- `./update.sh` now warns when the Redis `maxmemory` is under 2 GB and `examples/redis/planetgen.conf` ships `maxmemory 4gb`.
+- `planetgen reset` drops that database's cached pages from Redis.
+
+## [8.0.2110] - 2026-10-24
+
+**Headline:** A full Redis now stops a run with one plain message instead of a 70-line double traceback, and the "too big" estimate warning no longer says "Refused" and "Going ahead" in the same breath.
+
+### Changed
+
+- When Redis runs out of memory during a run, the run is marked failed with a message that says so and says to raise `maxmemory`; the second failure while recording the stop is no longer shown on top of it.
+- The disk-estimate warning for a run that goes ahead anyway now reads "This would take about ..." instead of "Refused: this would take about ...". Under `--strict` the refusal is unchanged.
+
+## [8.0.2109] - 2026-10-24
+
+**Headline:** Life no longer depends on a planet's class letter: a world carries life when its stored conditions and its star allow it.
+
+### Changed
+- **Life follows the conditions (GEN.92, GEN.647).** `LIFE_CHEMICALS` entries now state what a body must store (`requires`: free oxygen for chlorophyll a and the blue porphyrins, none for retinal's and the bacteriochlorophylls' reducing air, an acidic ocean for zinc-bacteriochlorophyll, air for every light-harvesting pigment), and `get_viable_life_chemicals` offers a body the chemicals it satisfies that its star's spectrum supports. A gas giant carries none. The per-class `life_chemical` lists and `PLANET_CLASS_MAX_LIFE_STAGE` are deleted: the most advanced life stage is capped only by the habitability index (`life.stage_ceiling`), and the timeline paragraph and flavour line no longer read the class letter. `get_evolutionary_state` and `get_evolutionary_timeline` lose their `planet_class` argument.
+- **More worlds carry life.** Any rocky body the index gives microbial life can now carry it: small icy bodies with an ocean under the ice, and a few volcanic or super-Earth worlds, where the class list once allowed only eleven classes. Worlds that were capped by their letter (E, F, G, L and Q) reach as far as the index allows.
+generation-output: changed
+
+## [8.0.2108] - 2026-10-24
+
+**Headline:** The stellar-particle shielding and radiation-weight kernels for the derived surface radiation are in place (GEN.444, slice 1).
+
+### Changed
+
+- New `planetgen.physics.surface_dose`: the Band spectrum of a stellar particle event with the share that gets past an atmospheric and a magnetic cutoff, the shielding of a mixed column by nuclear interaction length, and the ICRP 103 radiation weights. Nothing calls it yet and no stored value changes; the wiring, the epoch and the removal of the proxies are the second slice, after GEN.443, GEN.441 and GEN.459.
+
+## [8.0.2107] - 2026-10-24
+
+**Headline:** The ammonia activity factor is recorded as a labelled stand-in with its bracket and evidence limits.
+
+### Changed
+- **Gap plan registry (GEN.501).** Boss decided the NH3 gap cannot be filled; the factor 1.078 stays, registered as a stand-in with the bracket 1.05 to 1.10, the evidence limits and what would replace it. Docs only.
+
+## [8.0.2106] - 2026-10-24
+
+**Headline:** The ammonia activity factor's label now records that the evidence behind it was checked and is not verified.
+
+### Changed
+- **NH3 activity factor source text (GEN.501).** Notes the evidence check of 2026-10-24: supporting citations partly wrong, solar-cycle amplitude near 200 nm uncertain by up to five times, so the factor could exceed 1.10. The value 1.078 is unchanged.
+
+## [8.0.2105] - 2026-10-24
+
+**Headline:** The ammonia photolysis activity factor now carries the value Boss supplied, labelled as not yet checked against the published table.
+
+### Changed
+- **NH3 activity factor 1.075 to 1.078 (GEN.501).** From the quiet and active rates Boss supplied (1.80e-4 and 1.94e-4 per s at 1 AU); the Huebner tables are still NOT REACHED, so the row stays labelled unverified and the quiet lifetime 6.7e3 s (Heays 2017) is kept.
+
+## [8.0.2104] - 2026-10-24
+
+**Headline:** The thorium-to-uranium ratio of a planet's rock now follows the history of its galaxy's disc.
+
+### Changed
+- **Row o4 of the atmosphere recipes reads the disc's r-process enrichment (GEN.663).** The uniform birth epoch of 3 to 13 Gyr is gone; `physics/rprocess_enrichment.py` works out the enrichment factor from the disc's star formation history and a merger delay law (a labelled stand-in). The recipes are not read by the generator yet, so no generated value changes.
+
+## [8.0.2103] - 2026-10-24
+
+**Headline:** The atmosphere mixture draw covers every class: Venus-like and Mars-like air, abiotic oxygen, Titan-like and Pluto-like air, comet comae, and the vapour over a lava world.
+
+### Added
+- **`draw_mixture` families (GEN.479, GEN.456, GEN.499).** `physics/mixture_evolved.py` (a Venus-like or Mars-like body is the outgassed gas without its water and most of its sulfur over a crust that buffers the oxygen; an abiotic-oxygen world keeps the oxygen of its lost water; Titan-like air is nitrogen and methane at the methane's saturation; a Pluto-like air stands over its ices by Raoult's law), `physics/mixture_coma.py` (a comet's coma from the drawn ratios to water) and `physics/mixture_lava.py` (the vapour over an ideal-solution melt of the bulk silicate Earth's oxides at the held oxygen fugacity, from the melt's element potentials: 1.8e-4 bar at 2000 K and 1.1e-2 bar at 2500 K against Kite et al. 2016's 2e-4 and 8e-3, sodium and potassium first, SiO above O2 beyond about 2900 K). A white-dwarf planet with a vapour exosphere takes the lava chemistry; one without has no gas. Not called by the generator yet: no generator epoch.
+- **Trace gases after the life stage (`physics/mixture_trace.py`, GEN.479).** `draw_trace_gases(subject, mixture)` draws table m of the possibility tables from the quantities the life stage gives (`required_trace_inputs` names them) and adds N2O, PH3, HCl, HF, NO2 and CH3Cl at design-bracket amounts, with the ozone rows left in the result for the ozone code.
+- **Two alkali oxide liquids in the species table** (`Na2O(L)`, `K2O(L)`, from the same NASA Glenn database) and `Species.supercooled_g_over_rt`, the liquid's free energy below its melting point.
+
+### Changed
+- **The planned rocky classes U, Y and Z have the rocky rows of the possibility tables** (`ROCKY` in `scripts/atmosphere_recipes_data.py`, the data file rebuilt): the rows of table j are gated on them and table j3 and j4 need a retention row. No existing class changes, so no generated body changes.
+- **`mixture_draw.family_of(recipe, subject)` takes the subject**, because a hot-zone body is a lava world only where its surface is molten.
+
+## [8.0.2102] - 2026-10-24
+
+**Headline:** The tuning targets now state which wrong values they can refuse, and the thorium rows share one scale.
+
+### Changed
+- **The thick-disc thorium row o2 is on the solar-twin scale of row o1 (GEN.664).** Its centre moves from -0.063 to 0.061 dex (the Hypatia thick-minus-thin offset of -0.019 added to +0.08), its target with it. The recipes are not read by the generator yet, so no generated value changes.
+
+### Added
+- **A power check for every tuning target (GEN.665).** `tuning_harness.power` tells whether a factor-2 error is refused; two weak targets are named, and the white-dwarf redox and mass-radius notes record why the width 0.22 and the weak cut stay.
+
 ## [8.0.2101] - 2026-10-24
 
 **Headline:** A world's survival equipment is a list of what a visitor needs, item by item, from the physics, instead of one tier from 0 to 4.

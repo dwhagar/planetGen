@@ -319,10 +319,10 @@
    "statistic": "mean of log10 of the thorium-to-magnesium ratio over its solar value of thick-disc stars",
    "kind": "mean",
    "scale": "log10",
-   "value": -0.063,
-   "sigma": 0.034,
+   "value": 0.061,
+   "sigma": 0.037,
    "n": 32,
-   "source": "Hypatia Catalog (Hinkel et al. 2014, arXiv 1405.6719; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: mean -0.063, sd 0.193; sigma = 0.193 / sqrt(32); thin disc -0.044 (N=215), so no offset",
+   "source": "Hypatia Catalog (Hinkel et al. 2014, arXiv 1405.6719; open API retrieved 2026-10), [Th/Mg] of the 32 thick-disc stars with both elements: mean -0.063, sd 0.193; thin disc -0.044 (N=215); the thick-thin offset inside the catalogue is -0.019 (sigma 0.036 = sqrt(0.193^2/32 + 0.153^2/215)) and is added to the solar-twin thin-disc centre of row o1, +0.08 (Botelho 2019, 53 twins, sigma of the mean 0.008): 0.061 (GEN.664)",
    "label": "COMPUTED",
    "validity": {
     "thin_disc_fgk": false
@@ -334,7 +334,7 @@
     }
    },
    "fill_id": "GEN.514",
-   "falsifier": "a mean of the drawn log10 Th/Mg more than 2 sigma from -0.063 over 2000 seeds; the catalogue mixes many papers, so the scale is not the solar-twin scale of row o1 (0.14 dex apart)",
+   "falsifier": "a mean of the drawn log10 Th/Mg more than 2 sigma from 0.061 over 2000 seeds; the value is on the solar-twin scale of row o1, the Hypatia thin-disc statistic (-0.044) being 0.12 dex under it (GEN.664)",
    "role": "target"
   },
   {

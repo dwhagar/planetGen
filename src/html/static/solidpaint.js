@@ -16,7 +16,9 @@
 //
 // Same look, same size: same pixels. Do not change the noise without a changelog note.
 
-import { fbm, hashPixels, makeRandom, parseHex } from "./bodytexture.js";
+// Versioned like every sibling import (a static import would drop `?v=`).
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { fbm, hashPixels, makeRandom, parseHex } = await import(`./bodytexture.js${VERSION_QUERY}`);
 
 export var ICE_COLOR = "#f2f6fa";
 export var SEA_ICE_COLOR = "#dbe8f2";

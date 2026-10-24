@@ -28,7 +28,7 @@ Design requirement (project owner): for every composition category there is a ta
 
 | id | option | gate | weight w (symbols above) | weight source | status | notes |
 |---|---|---|---|---|---|---|
-| a1 | Magma-ocean-stage fO2 (PARAM) | ROCKY, MOON, ROGUE rocky; M>=0.01 | dIW ~ N(mu, 0.5); mu = clamp(-2+1.25(log10 M+2), -2, 0.5); floor on sigma 0.22 = 4 log10(1+0.005/0.037) | anchors Sossi 2020 via part 08 s2: +0.5 at about 1 Me, about -2 for core-formation-set small bodies (READ); floor COMPUTED; interpolation, 0.5 DESIGN | DESIGN R3 | sets the first atmosphere; Fe3+/sumFe 0.037+-0.005 |
+| a1 | Magma-ocean-stage fO2 (PARAM) | ROCKY, MOON, ROGUE rocky; any M (the clamp holds -2 below 0.01) | dIW ~ N(mu, 0.5); mu = clamp(-2+1.25(log10 M+2), -2, 0.5); floor on sigma 0.22 = 4 log10(1+0.005/0.037) | anchors Sossi 2020 via part 08 s2: +0.5 at about 1 Me, about -2 for core-formation-set small bodies (READ); floor COMPUTED; interpolation, 0.5 DESIGN | DESIGN R3 | sets the first atmosphere; Fe3+/sumFe 0.037+-0.005 |
 | a2 | Later upper mantle (PARAM) | ROCKY with air; tectonic or long-lived | dIW ~ N(3.5+2 log10 M, 1.0), clip [-6,6] | repo `atmosphere.py` REDOX_* ([D] fitted by eye to Moon, Mars, Earth) | DESIGN R3 | far above meteoritic building blocks (part 05 s3.2) |
 | a3 | Building-block redox (PARAM) | AST, C, D, small bodies | dIW ~ U[-1.4, 0] | Schaefer and Fegley 2017 Table 2 via part 05 s3.2: EH about -1, eucrite -1.4 to -0.8, ranking CI>CV>H>EH (READ); uniform shape DESIGN | DESIGN R3 | bracket sourced, shape not |
 | a4 | White-dwarf debris (PARAM) | host WD, rocky | dIW ~ N(-1, 0.5), bracket [-1.37, -0.6] | Doyle 2019 arXiv:1910.12989 data (READ); centre and width RECALLED design (part 05 s10) | DESIGN R10 | |

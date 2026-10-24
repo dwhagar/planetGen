@@ -530,6 +530,38 @@ def compare(target, values, *, quantities=None, count=None):
                       extrapolated=outside, tunes=target.tunes)
 
 
+def wrong_values(target):
+    """
+    The wrong values every target has to refuse (GEN.665): a power check is the question of whether a sample whose statistic is one
+    of these would fail `compare`. A mean or median is wrong by a factor of 2 (0.301 dex on a log10 scale), a standard deviation
+    by a factor of 2 either way, a proportion by 0.25 either way (kept inside 0 to 1).
+
+    Returns:
+        list: The wrong values of the statistic, on the scale the target is compared on.
+    """
+    value = target.value
+    if target.kind == "proportion":
+        return [v for v in (value - 0.25, value + 0.25) if 0.0 <= v <= 1.0]
+    if target.kind == "sd":
+        return [value * 2.0, value / 2.0]
+    if target.scale == "log10":
+        return [value - math.log10(2.0), value + math.log10(2.0)]
+    return [value * 2.0, value / 2.0]
+
+
+def power(target, comparison):
+    """
+    Which of the target's `wrong_values` its comparison refuses. `comparison` is the `compare` result of the shipped recipe
+    (its sigma combines the published uncertainty and the sampling error); a wrong value is refused when it lies more than
+    `SIGMAS` of that sigma from the published value.
+
+    Returns:
+        dict: Wrong value to whether it is refused. A target that refuses neither side has no power against a factor-of-2 error
+        and its weakness belongs in the tuning notes.
+    """
+    return {wrong: abs(wrong - target.value) > SIGMAS * comparison.sigma for wrong in wrong_values(target)}
+
+
 def simulate(target, sampler, n=2000):
     """
     Draws `n` items with `sampler(i)` (a number, or a mapping of the quantities a selection model reads), one per seed, each on a stream bound to `tuning:<target id>:<i>`, and applies the
