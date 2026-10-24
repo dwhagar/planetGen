@@ -107,6 +107,8 @@ const NEAREST_STAR_REACH = 0.35;
 // MAP.263: the wheel carries on from one stage to the next with no stop and no flight: the next window's data is
 // asked for once the zoom is within this many times its range's end, and its blocks cross-fade in over this long.
 const PREFETCH_ZOOM = 3;
+// MAP.292: how far past the end of its range (a share of the nearest zoom) the wheel carries the view while the next window arrives.
+const ARRIVING_OVERSHOOT = 0.25;
 const CROSS_FADE_MS = 350;
 
 // MAP.245: how near a star is to the pointer, in pixels, for the wheel to zoom toward it.
@@ -2268,13 +2270,17 @@ export function createStageView(host) {
     const origin = ray.ray.origin;
     const direction = ray.ray.direction;
     const found = picker.pick(clientX, clientY);
-    if (found && found.distance > 0 && !(entered && found.layer === choiceLayer)) {
-      return [origin.x + direction.x * found.distance, origin.y + direction.y * found.distance, origin.z + direction.z * found.distance];
-    }
     const forward = new THREE.Vector3(view.target[0], view.target[1], view.target[2]).sub(origin).normalize();
     const onPlane = MC.pointOnFocusPlane(origin.toArray(), direction.toArray(), view.target, forward.toArray());
     // A pointer on the cross zooms about the cross (MAP.199), whatever the column behind it holds.
     const onCross = Math.hypot(clientX - (rect.left + rect.width / 2), clientY - (rect.top + rect.height / 2)) <= CROSS_PX;
+    // MAP.292: the blocks are picking geometry unless they are drawn (MAP.265), and the first face of one nobody sees
+    // (the top of a column of them lies kiloparsecs above the disc the eye is looking at) is no place to zoom toward:
+    // the point is the focus plane's under the pointer, which a step in and a step out leave where it was.
+    if (found && found.layer === choiceLayer && !entered && !cellsShown() && onPlane) return onPlane;
+    if (found && found.distance > 0 && !(entered && found.layer === choiceLayer)) {
+      return [origin.x + direction.x * found.distance, origin.y + direction.y * found.distance, origin.z + direction.z * found.distance];
+    }
     return (!onCross && columnAnchor(origin, direction, forward, onPlane)) || onPlane;
   }
 
@@ -2296,9 +2302,17 @@ export function createStageView(host) {
 
   // Zooms by `factor` (under 1 comes closer) about the view's middle: the
   // one centre the view turns about too (MAP.199).
+  // MAP.292: while the next window's data is on its way (`arriving`, the camera kept where it is) the wheel is not held
+  // to the end of the range it carried the view to: the view goes on coming closer meanwhile, so a scroll is not stopped
+  // for as long as the data takes, and the next window takes the camera over where it has got to.
+  function wheelPolicy() {
+    const policy = zoomPolicyFor(resolved);
+    return arriving && MC.canZoom(policy) ? MC.zoomPolicy(policy.kind, policy.nearest * ARRIVING_OVERSHOOT, policy.farthest) : policy;
+  }
+
   function zoomBy(factor) {
     if (!view || animation || !MC.canZoom(zoomPolicyFor(resolved))) return;
-    view.zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * factor, 1);
+    view.zoom = MC.clampDistance(wheelPolicy(), view.zoom * factor, 1);
     reframe();
     applyView();
   }
@@ -2337,7 +2351,7 @@ export function createStageView(host) {
     }
     const asked = limitedStep(anchor, factor);
     const before = view.dist;
-    view.zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * asked, 1);
+    view.zoom = MC.clampDistance(wheelPolicy(), view.zoom * asked, 1);
     reframe();
     const taken = before > 0 ? view.dist / before : 1;
     view.target = MC.targetAboutAnchor(view.target, anchor, taken);
@@ -2452,18 +2466,19 @@ export function createStageView(host) {
 
   // The window stage the wheel opens from the whole galaxy round a point beyond the outline (MAP.243): there is no
   // block under the pointer, or only the disc's behind what is pointed at, so it opens round the cell holding the
-  // star or phenomenon in front, else the point the wheel has been zooming toward. Null otherwise.
+  // star or phenomenon in front, else the point the wheel has been zooming toward. In a window with no block under
+  // the pointer or the middle of the view either (the view has come to the edge of what the window holds, MAP.292) the
+  // next window opens round that point too, so the scroll goes on instead of stopping. Null otherwise.
   function windowAcrossFrom(event, found) {
-    if (stage.win) return null;
     const rect = canvasEl.getBoundingClientRect();
     const onMap = event && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     const x = onMap ? event.clientX : rect.left + rect.width / 2;
     const y = onMap ? event.clientY : rect.top + rect.height / 2;
     const front = picker.pick(x, y);
-    const halo = front && front.layer !== choiceLayer ? front : null;
+    const halo = !stage.win && front && front.layer !== choiceLayer ? front : null;
     const point = halo ? [halo.entry.x, halo.entry.y, halo.entry.z] : found ? null : anchorUnder(x, y);
     if (!point) return null;
-    const block = P.cellAt(P.STAGE_TOP, point[0], point[1], point[2], edgePc);
+    const block = P.cellAt(stage.win ? stage.win.centre.m : P.STAGE_TOP, point[0], point[1], point[2], edgePc);
     return P.drillBlockHolds(block, P.REACH_OUTLINE) ? S.windowInto(stage, block, { x: point[0], y: point[1], z: point[2] }, edgePc) : null;
   }
 
