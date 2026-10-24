@@ -47,9 +47,9 @@ GAS_GIANT_ZONE = next(z for z in "hec" if prog_c.PLANET_CLASSES[GAS_GIANT_CLASS]
 
 
 def test_gas_giant_density_is_its_mass_over_its_volume(host_star):
-    """A giant's mass comes from its class's mass range, its radius from the
-    mass-radius relation within 3 sigma of scatter, and its density is
-    whatever the two make (no separately drawn density)."""
+    """A giant's mass comes from its class's mass range, its radius stays in its class's radius range (the interior
+    tables of GEN.460 set it, and a hot young giant swells well past the median mass-radius relation, so no tight band
+    around that median holds), and its density is whatever the two make (no separately drawn density)."""
     cfg = SystemConfig()
     distance = plausibility.distance_for_zone(host_star, GAS_GIANT_ZONE)
     low_kg, high_kg = planets.giant_mass_range_kg(GAS_GIANT_CLASS)
@@ -59,11 +59,8 @@ def test_gas_giant_density_is_its_mass_over_its_volume(host_star):
         assert low_kg <= planet.mass <= high_kg
         volume_m3 = (4 / 3) * math.pi * (planet.radius * 1000) ** 3
         assert planet.density == pytest.approx(planet.mass / volume_m3 / 1000, rel=1e-9)
-        median_km = planets.giant_radius_km(planet.mass)
-        sigma = max(pc.GIANT_RADIUS_SCATTER.values())
         low_r, high_r = prog_c.PLANET_CLASSES[GAS_GIANT_CLASS]["radius_range"]
-        assert max(low_r, median_km * (1 - 3 * sigma)) * (1 - 1e-9) <= planet.radius
-        assert planet.radius <= min(high_r, median_km * (1 + 3 * sigma)) * (1 + 1e-9)
+        assert low_r <= planet.radius <= high_r
 
 
 def test_giant_with_a_given_mass_keeps_it(host_star):
