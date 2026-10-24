@@ -15488,14 +15488,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: GEN.418, GEN.419.
 
-- [ ] **DB.98 Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test**
-  Last in the regression-test cleanup lane, after the item that removes
-  detect_schema_version. Source:
-  reports/regression-test-review-2026-10-23.md (Boss approved A1, B1,
-  C1, D1, E1), relayed by the regression-test cleanup lane at 10:24 PM
-  EDT 2026-10-23 as the lane reported.
-  Prerequisites: none.
-
 - [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
   One migration, one generator epoch and the column_units.py entries.
   Design draft
@@ -19014,6 +19006,13 @@ clears each one.
   migration test that rewinds a database must record the rewound version
   itself (DELETE FROM schema_migrations, then INSERT the version). The
   shared helper of this item should do exactly that.
+  Research (2026-10-09, Update): Regression-test cleanup lane (6:33 AM
+  EDT 2026-10-24, as the lane reported): DB.98 merged (#2931):
+  BASELINE_VERSION is 130; revisions below 0130 and the old-schema
+  fixtures v61 to v129 are deleted; a migration PR adds only the
+  previous version's fixture (schema_v144 was missing on main and was
+  added). The shared downgrade helper of this item works within that
+  baseline.
   Prerequisites: none. Related: DB.98.
 
 - [ ] **TEST.329 test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug)**
