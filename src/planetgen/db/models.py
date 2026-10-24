@@ -2388,6 +2388,7 @@ stars = sa.Table(
     sa.Column('disk_outer_au', mysql.DOUBLE(), nullable=True),
     sa.Column('cluster_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('snow_line_km', mysql.DOUBLE(), nullable=False),
+    sa.Column('uv_c_share', mysql.DOUBLE(), nullable=True),
     sa.Column('parent_type', sa.String(16), server_default=sa.text("'system'"), nullable=False),
     sa.Column('parent_id', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Index('ft_stars_name', 'name', mysql_prefix='FULLTEXT'),

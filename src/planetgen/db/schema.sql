@@ -1420,7 +1420,7 @@
 -- v144 (DB.69, GEN.428): `planets` and `moons` gain the bulk composition: `metal_mass_fraction`, `rock_mass_fraction`, `ice_mass_fraction` and `envelope_mass_fraction`
 --   (with the existing `water_mass_fraction`, the five shares of the whole body's mass add up to 1), the rock's `rock_feo_fraction`, `rock_al2o3_fraction` and
 --   `rock_mg_si_ratio`, the envelope's `envelope_helium_fraction` and `envelope_z_fraction`, a small body's `porosity`, `carbon_rock` and `composition_origin`
---   ('drawn' or 'inverse'). The mass, radius and density of a rocky body follow from them (`physics/bulk_structure.py`). NULL on a row saved before v144.
+--   ('drawn' or 'inverse'). The mass, radius and density of a rocky body follow from them (`physics/bulk_structure.py`). NULL on a row saved before v145.
 -- v133 (GEN.630): `stars.role` also takes 'member' (a star of a system of more than two), and `stars.slot` says which child (0 or 1) of its parent node a star is.
 --   A pair already stored gets its slots from its roles. Nothing else changes.
 -- v134 (GEN.267): `system_configs` also keeps the star count a system was forced to (`stars`), the cap on it (`max_stars`, 12 unless raised) and the prevalence of five or more stars
@@ -1450,6 +1450,8 @@
 -- v141 (GEN.459): `planets` and `moons` keep the radiogenic content of the body (`c_k0_ppm`, `c_th0_ppm`, `c_u0_ppm`: potassium, thorium and uranium in the bulk silicate at
 --   formation, ppm by mass; `al26_ratio`: 26Al/27Al at formation; `urey_ratio`: the radiogenic share of the heat flowing out), the one set its interior heat and its ground dose read.
 --   Rows from before v141 have NULL there and keep the heat and the dose they were generated with.
+-- v145 (GEN.443): `stars.uv_c_share`, the share of its blackbody's UV-C a star gives off (the Sun's measured 0.256 is one value of the open bracket 0.1 to 1), drawn once from the star's own stream.
+--   A row saved before v145 has NULL, which the radiation model reads as the blackbody (1).
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2095,6 +2097,7 @@ CREATE TABLE IF NOT EXISTS stars (
     disk_outer_au               DOUBLE NULL,  -- v104 (DB.53)
     cluster_id                  BIGINT UNSIGNED NULL,  -- v127 (DB.61)
     snow_line_km                DOUBLE NOT NULL,  -- v132 (GEN.458): this star's own snow line, drawn once around the 170 K blackbody position
+    uv_c_share                  DOUBLE NULL,  -- v145 (GEN.443): the UV-C share of the star's blackbody, drawn once (log-uniform 0.1 to 1), NULL for a remnant and for a row saved before v145
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
