@@ -674,28 +674,86 @@ def _mysql_config_of(params):
     return run_plan._mysql_config_of(params)
 
 
+LINK_UNIT_SECTORS = 500
+"""int: Sectors in a unit of the `link-neighbours` stage (PERF.113). A sector links in about 70 ms at the default galaxy size,
+so a unit is about 35 s and a long link is many short units (PERF.155)."""
+
+LINK_UNITS_MAX = 1000
+"""int: Most units the `link-neighbours` stage is cut into; a larger stage has bigger units."""
+
+
 def expand_link_neighbours(params):
-    """The `link-neighbours` command's stage (PERF.107): one unit, the neighbour step for every sector saved since
-    `params["since"]`."""
-    return commands.Expansion([(params, float(len(_sectors_since(params)) * store.LINK_PHASES))], {})
+    """
+    The `link-neighbours` command's stage (PERF.107, PERF.113): the sectors saved since `params["since"]` (or named in
+    `params["sector_ids"]`) are found once, here, put in neighbourhood order (`store.link_order`) and cut into static
+    chunks of `LINK_UNIT_SECTORS` (at most `LINK_UNITS_MAX` chunks), the same at any worker count. Each unit links its
+    chunk and leaves the run's other sectors alone, as the batches of one call do: a sector's lists are computed whole from
+    the placed systems, and a system merged into the lists of the sectors around is the same whichever batch merges it, so
+    the stored links do not depend on the order the units run in. A stage with nothing to link is one empty unit.
+    The units take the neighbour lock one batch at a time (`store.link_sector_neighbors`), so they queue for it rather than
+    run side by side; the cut bounds a unit's length, it does not speed the stage up.
+    """
+    created = _sectors_since(params)
+    ordered = store.link_order(_mysql_config_of(params), created)
+    size = max(LINK_UNIT_SECTORS, -(-len(ordered) // LINK_UNITS_MAX))
+    run = {key: params[key] for key in ("since", "sector_ids") if params.get(key) is not None}
+    units = [({"database": params["database"], "chunk": ordered[start:start + size], **run},
+              float(len(ordered[start:start + size]) * store.LINK_PHASES)) for start in range(0, len(ordered), size)]
+    return commands.Expansion(units or [({"database": params["database"], "chunk": [], **run}, 1.0)],
+                              {"sectors": len(ordered)})
 
 
 def link_neighbours_unit(params, report):
     """
-    The `link-neighbours` command's unit (PERF.45, PERF.107): links the sectors a `galaxy` run created to their
-    neighbours (`store.link_sector_neighbors`): containment, nearest systems and quadrants, and the new systems merged
-    into the lists of the sectors around. Done once for the whole run, in place of one locked step per saved sector,
-    so the workers no longer queue for it; the stored result is the same.
+    The `link-neighbours` command's unit (PERF.45, PERF.107, PERF.113): links a chunk of the sectors a `galaxy` run created
+    to their neighbours (`store.link_sector_neighbors`): containment, nearest systems and quadrants, and the new systems
+    merged into the lists of the sectors around. Done once for the whole run, in place of one locked step per saved sector,
+    so the workers no longer queue for it; the stored result is the same. The run's other sectors (found again from
+    `params["since"]` or `params["sector_ids"]`) are left to their own units.
 
     Returns:
         dict: `linked`, how many sectors were linked.
     """
-    created = _sectors_since(params)
-
     def on_progress(done, total, step=""):
         report(done, total)
 
-    return {"linked": store.link_sector_neighbors(_mysql_config_of(params), created, on_progress)}
+    return {"linked": store.link_sector_neighbors(_mysql_config_of(params), params["chunk"], on_progress,
+                                                  skip=_sectors_since(params))}
+
+
+def _link_on_queue(args, started_at):
+    """
+    The link stage of a run on the new queue (PERF.113): the wrapper selects the `link-neighbours` command from this run's
+    steps, finds the sectors to link once and cuts them into units (`expand_link_neighbours`), this process follows the
+    units with a bar of the sectors they link, and the unit that completes the stage stores the stage's row.
+
+    Returns:
+        int: How many sectors were linked, summed over the units.
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    step, listing = wrapper.step_for(args, "link", "Neighbours", {
+        "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "), "workers": workers})
+    row = stages.hand_over_open_stage()
+    linked = [0]
+    with run_common._generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            with steps.Step("Neighbours", "link", 1, args=args, progress=progress, workers=workers) as bar:
+                def on_plan(_index, plan):
+                    bar.update(total=max(plan["detail"]["sectors"], 1))
+
+                def on_result(_index, _unit, result):
+                    linked[0] += result["linked"]
+                    bar.update(advance=result["linked"])
+
+                wrapper.run("Neighbours", [step], on_plan, on_result, workers_count=workers,
+                            who=getattr(args, "who", None), database=mysql_config.database,
+                            argv=getattr(args, "argv", None), seed=None, listing=listing,
+                            rows=None if row is None else {"link": row})
+        finally:
+            log.reset_console()
+    return linked[0]
 
 
 def link_after_run(args, started_at):
@@ -727,8 +785,7 @@ def link_after_run(args, started_at):
         stages.enter("link")
         stages.note(sectors=len(created))
         log.normal("Linking the new sectors to their neighbours...")
-        linked = _one_unit_stage(args, "link", "Neighbours", "link", len(created) * store.LINK_PHASES, started_at,
-                                 "linked")
+        linked = _link_on_queue(args, started_at)
     except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the links can be redone
         log.normal(f"Warning: linking the new sectors to their neighbours failed: {exc}")
         return 0
@@ -758,47 +815,6 @@ def nebula_blocks_after_run(args):
     if added:
         log.normal(f"Added {added:,} nebulae to the block totals.")
     return added or 0
-
-
-def _one_unit_stage(args, key, title, kind, total, started_at, result_key, extra=None):
-    """
-    A stage of one unit on the new queue with a bar of `total` (PERF.107), for the stages that follow the sectors (link
-    and settle): the wrapper selects the stage's command from this run's steps, the unit does the whole stage for the
-    sectors saved since `started_at` and reports as it goes, and the unit that completes it stores the stage's row.
-
-    Args:
-        key (str): The stage (`link` or `settle`).
-        kind (str): The bar's kind (`steps.STEP_KINDS`).
-        result_key (str): What the unit's result counts, the value returned.
-
-    Returns:
-        int: The unit's count.
-    """
-    mysql_config = store.mysql_config_from_args(args)
-    workers = run_common._worker_count(args)
-    step, listing = wrapper.step_for(args, key, title, {
-        "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "),
-        "workers": workers, **(extra or {})})
-    row = stages.hand_over_open_stage()
-    counted = [0]
-    with run_common._generation_progress() as progress:
-        log.set_console(progress.console)
-        try:
-            with steps.Step(title, kind, total, args=args, progress=progress) as bar:
-                def on_progress(_index, _unit, done, estimate):
-                    # Never back: a batch retried after a deadlock repeats its steps.
-                    bar.update(completed=max(done, bar.done), total=estimate)
-
-                def on_result(_index, _unit, result):
-                    counted[0] = result[result_key]
-
-                wrapper.run(title, [step], lambda _index, plan: None, on_result, on_progress, workers_count=workers,
-                            who=getattr(args, "who", None), database=mysql_config.database,
-                            argv=getattr(args, "argv", None), seed=None, listing=listing,
-                            rows=None if row is None else {key: row})
-        finally:
-            log.reset_console()
-    return counted[0]
 
 
 SETTLE_UNIT_SECTORS = 100
@@ -1093,7 +1109,7 @@ def run_link(args):
     stages.enter("link")
     stages.note(sectors=len(created))
     log.normal("Linking the sectors to their neighbours...")
-    linked = _one_unit_stage(args, "link", "Neighbours", "link", len(created) * store.LINK_PHASES, args.since, "linked")
+    linked = _link_on_queue(args, args.since)
     log.normal(f"Linked {linked:,} sectors to their neighbours.")
     stages.finish()
 

@@ -5038,7 +5038,7 @@ LINK_PHASES = 3
 """int: Steps `link_sector_neighbors` takes per sector (its progress units)."""
 
 
-def _in_neighbourhood_order(config, sector_ids):
+def link_order(config, sector_ids):
     """`sector_ids` ordered by the `LINK_CELL_PC` cell of their centers (then id), so consecutive sectors sit near
     each other: a batch of them loads the systems around one place, not around the whole run (PERF.84)."""
     conn = get_connection(config)
@@ -5056,7 +5056,7 @@ def _in_neighbourhood_order(config, sector_ids):
     return sorted(sector_ids, key=cell)
 
 
-def link_sector_neighbors(config, sector_ids, on_progress=None):
+def link_sector_neighbors(config, sector_ids, on_progress=None, skip=None):
     """
     PERF.45: the neighbour step of saving sectors, done once for many (a
     `galaxy` run saves its sectors with `link_neighbors=False` and links
@@ -5074,14 +5074,17 @@ def link_sector_neighbors(config, sector_ids, on_progress=None):
             in steps (`LINK_PHASES` per sector: containment, nearest
             systems, the neighbours' lists), `step` naming the one being
             done (UX.83).
+        skip (iterable, optional): The sectors of the run that are linked whole by their own call (PERF.113: a
+            unit of the link stage links a chunk of the run): systems are not merged into their lists. Defaults to
+            `sector_ids`.
 
     Returns:
         int: How many sectors were linked.
     """
     sector_ids = sorted(set(sector_ids))
-    skip = set(sector_ids)
+    skip = set(sector_ids) if skip is None else set(skip) | set(sector_ids)
     total = len(sector_ids) * LINK_PHASES
-    sector_ids = _in_neighbourhood_order(config, sector_ids)
+    sector_ids = link_order(config, sector_ids)
 
     def report(base, phase, label, size):
         if on_progress is not None:
