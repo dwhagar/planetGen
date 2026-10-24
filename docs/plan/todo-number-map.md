@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.157 |
 | MAP | MAP.269 |
 | NAV | NAV.63 |
-| GEN | GEN.663 |
+| GEN | GEN.666 |
 | PERF | PERF.176 |
 | DB | DB.96 |
 | API | API.33 |
@@ -1225,20 +1225,20 @@ Parents marked "new parent" had no old number of their own.
 | GEN.501 | Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables | none | open |
 | GEN.502 | The giant branch finishes the stellar tables check: the red giant time law as a function of core mass, the tip by metallicity and the branch duration against the observed horizontal-branch ratio | none | done, PR #2112 |
 | GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target | none | done, PR #2753 |
-| GEN.504 | The Kepler transit-plus-recovery selection model | none | open |
-| GEN.505 | The mass-radius sample selection model | none | open |
-| GEN.506 | The JWST atmosphere target-selection model | none | open |
-| GEN.507 | The comet admission model by heliocentric distance | none | open |
-| GEN.508 | The white-dwarf pollution detection and settling model | none | open |
+| GEN.504 | The Kepler transit-plus-recovery selection model | none | done, PR #2756 |
+| GEN.505 | The mass-radius sample selection model | none | done, PR #2756 |
+| GEN.506 | The JWST atmosphere target-selection model | none | done, PR #2756 |
+| GEN.507 | The comet admission model by heliocentric distance | none | done, PR #2756 |
+| GEN.508 | The white-dwarf pollution detection and settling model | none | done, PR #2756 |
 | GEN.509 | Tuned draw builder B1: the radius valley and the envelope | none | open |
 | GEN.510 | Tuned draw builder B2: delivery and water worlds | none | open |
-| GEN.511 | Tuned draw builder B3: retention and lava worlds | none | open |
+| GEN.511 | Tuned draw builder B3: retention and lava worlds | none | done, PR #2756 |
 | GEN.512 | Tuned draw builder B4: the iron branch | none | open |
-| GEN.513 | Tuned draw builder B5: redox and white-dwarf debris | none | open |
-| GEN.514 | Tuned draw builder B6: radioisotopes | none | open |
+| GEN.513 | Tuned draw builder B5: redox and white-dwarf debris | none | done, PR #2756 |
+| GEN.514 | Tuned draw builder B6: radioisotopes | none | done, PR #2756 |
 | GEN.515 | Tuned draw builder B7: ground and petrology | none | open |
-| GEN.516 | Tuned draw builder B8: giant planets | none | open |
-| GEN.517 | Tuned draw builder B9: brown dwarfs | none | open |
+| GEN.516 | Tuned draw builder B8: giant planets | none | done, PR #2756 |
+| GEN.517 | Tuned draw builder B9: brown dwarfs | none | done, PR #2756 |
 | GEN.518 | Tuned draw builder B10: the chemistry module | none | open |
 | GEN.519 | Tuned draw builder B11: aerosol amplitude | none | open |
 | GEN.520 | Tuned draw builder B12: the comet sampler | none | open |
@@ -1246,7 +1246,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects | none | open |
 | GEN.523 | Tuned draw builder B15: host-star activity | none | open |
 | GEN.524 | Tuned draw builder B16: halogens and trace gases | none | open |
-| GEN.525 | Tuned draw builder B17: the design-flag registry | none | open |
+| GEN.525 | Tuned draw builder B17: the design-flag registry | none | done, PR #2756 |
 | GEN.526 | Satellites with gas get young and intermediate populations derived from their age history and gas, so the Clouds hold massive stars | none | done, PR #2043 |
 | GEN.527 | The second star of a wide pair in a saved runaway system loads back 0.4 m/s off the system's velocity: find the cause instead of loosening the test (bug) | none | done, PR #2075 |
 | GEN.528 | The rest of GEN.319: a Magellanic cell shows every class, and the scatter's planetary nebulae are weighted by the old share | none | done, PR #2077 |
@@ -1384,6 +1384,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.660 | The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug) | none | open |
 | GEN.661 | Bright-star counts still use the reference-composition fraction (stand-in, bug) | none | open |
 | GEN.662 | Cluster and satellite stars draw a halo [Fe/H] for their lifetimes (stand-in, bug) | none | open |
+| GEN.663 | A chemical-evolution birth-epoch model for thorium and uranium: row o4 draws the formation time from 3 to 13 Gyr | none | open |
+| GEN.664 | The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044) | none | open |
+| GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

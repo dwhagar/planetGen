@@ -1154,3 +1154,14 @@ Baseline: PR #1817.
 | GEN.629 | 8.1 | Surface and small bodies |
 | PERF.159 | 8.1 | The headline closes |
 | GEN.503 | 8.1 | Tuned draws and selection models |
+| GEN.504 | 8.1 | Tuned draws and selection models |
+| GEN.505 | 8.1 | Tuned draws and selection models |
+| GEN.506 | 8.1 | Tuned draws and selection models |
+| GEN.507 | 8.1 | Tuned draws and selection models |
+| GEN.508 | 8.1 | Tuned draws and selection models |
+| GEN.511 | 8.1 | Tuned draws and selection models |
+| GEN.513 | 8.1 | Tuned draws and selection models |
+| GEN.514 | 8.1 | Tuned draws and selection models |
+| GEN.516 | 8.1 | Tuned draws and selection models |
+| GEN.517 | 8.1 | Tuned draws and selection models |
+| GEN.525 | 8.1 | Tuned draws and selection models |
