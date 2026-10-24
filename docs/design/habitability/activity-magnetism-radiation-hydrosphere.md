@@ -102,8 +102,8 @@ after `t_sat`. This model replaces the stand-in XUV history in
 
 ### 2.2 XUV flux at the planet
 
-`F_XUV = L_XUV / (4 pi d^2)`. With the project's mass-luminosity law
-(`tuning.MS_MASS_LUMINOSITY_PIECES`) and a planet at S = 1 (d = sqrt(L) AU),
+`F_XUV = L_XUV / (4 pi d^2)`. With a star's main-sequence luminosity (the table below was worked from the project's earlier piecewise
+mass-luminosity law, which GEN.652 replaced with the MIST isochrones; the figures are close enough for the scaling) and a planet at S = 1 (d = sqrt(L) AU),
 in units of Earth's present 4.6 erg/cm2/s [C]:
 
 | Star (Msun) | d (AU) | 0.1 Gyr | 0.5 Gyr | 1 Gyr | 2 Gyr | 4.5 Gyr | 8 Gyr |

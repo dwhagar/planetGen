@@ -17,10 +17,15 @@ They answer `None` when the star has left the main sequence at that age or is be
 `fetch.DataMissing` when the file has not been downloaded.
 """
 
+import bisect
 import functools
 import io
+import itertools
+import math
+import os
 import re
 import tarfile
+import time
 from dataclasses import dataclass
 
 import numpy as np
@@ -111,7 +116,15 @@ class _Isochrone:
         masses = block[:, 0]
         if mass < masses[0] or mass > masses[-1]:
             return None
-        return np.array([np.interp(mass, masses, block[:, column]) for column in (1, 2, 3)])
+        upper = int(masses.searchsorted(mass))
+        # The block is float32 and the mass a float64: a mass a hair past the last (or before the first) row compares
+        # equal to it in float32 and the search puts it just outside, so it takes that row.
+        if upper >= len(masses):
+            return block[-1, 1:4]
+        if upper == 0 or masses[upper] == mass:
+            return block[upper, 1:4]
+        weight = (mass - masses[upper - 1]) / (masses[upper] - masses[upper - 1])
+        return block[upper - 1, 1:4] * (1.0 - weight) + block[upper, 1:4] * weight
 
     def point(self, mass, log_age):
         """`(log L, log Teff, log R)` on this metallicity's isochrone at `log_age`, or None if off the main sequence."""
@@ -128,6 +141,45 @@ class _Isochrone:
         weight = (log_age - ages[upper - 1]) / (ages[upper] - ages[upper - 1])
         return tuple(younger * (1 - weight) + older * weight)
 
+    def span(self, mass):
+        """`(first, last)` log10 age (years) of the isochrones this mass has a main-sequence row on: from the age it
+        reaches the main sequence to the age it leaves it (the oldest isochrone for a mass that does not leave in
+        the grid); None when no isochrone holds it (lighter than the grid's lowest mass or heavier than its highest)."""
+        low, high = self._mass_limits()
+        held = np.nonzero((low <= mass) & (mass <= high))[0]
+        if not len(held):
+            return None
+        return float(self.log_ages[held[0]]), float(self.log_ages[held[-1]])
+
+    def clamped_point(self, mass, log_age):
+        """
+        `(log L, log Teff, log R)` of `mass` at `log_age`, held to the mass's own span (GEN.652): an age before the first
+        isochrone it is on takes that row, and one past the last takes that row carried on in age at the slope of the
+        two last rows, up to the age the mass leaves the main sequence between isochrones (`lifetime_log_age`), then
+        held. The isochrones come 0.05 dex of age apart, so the last row alone would step with the mass; carried on,
+        the end of the main sequence is as smooth in the mass as the rows are. None for a mass the grid does not hold.
+        """
+        span = self.span(mass)
+        if span is None:
+            return None
+        first, last = span
+        if log_age <= last:
+            return self.point(mass, max(log_age, first))
+        end = self.point(mass, last)
+        earlier = self.point(mass, last - _END_SLOPE_STEP_DEX) if last - _END_SLOPE_STEP_DEX >= first else None
+        leaves = self.lifetime_log_age(mass)
+        if earlier is None or leaves is None or leaves <= last:
+            return end
+        reach = min(log_age, leaves) - last
+        return tuple(float(e + (e - o) / _END_SLOPE_STEP_DEX * reach) for e, o in zip(end, earlier))
+
+    def _mass_limits(self):
+        cached = _LIMITS.get(id(self))
+        if cached is None:
+            cached = (np.array([block[0, 0] for block in self.blocks]), np.array([block[-1, 0] for block in self.blocks]))
+            _LIMITS[id(self)] = cached
+        return cached
+
     def lifetime_log_age(self, mass):
         """log10 of the age (years) at which a star of `mass` leaves the main sequence, or None outside the grid."""
         ends = np.array([block[-1, 0] for block in self.blocks])
@@ -135,6 +187,14 @@ class _Isochrone:
         if mass < ends[order][0] or mass > ends[order][-1]:
             return None
         return float(np.interp(mass, ends[order], self.log_ages[order]))
+
+
+_END_SLOPE_STEP_DEX = 0.05
+"""float: How far back in log age the second row is read for the slope the end of the main sequence is carried on at
+(the isochrones' own spacing)."""
+
+_LIMITS = {}
+"""dict: Each isochrone's lightest and heaviest main-sequence mass at each age (`_Isochrone._mass_limits`), by `id`."""
 
 
 @functools.lru_cache(maxsize=4)
@@ -149,9 +209,58 @@ def _load(path):
     return tuple(grid)
 
 
+_SEEN = {}
+"""dict: The grid last read (`_grid`): `{"stamp", "grid", "dataset", "env", "checked", "token"}`."""
+
+RECHECK_SECONDS = 2.0
+"""float: How long `_grid` trusts the file it read before it looks at the file's stamp again (a reader in a loop, GEN.652:
+every main-sequence star's state, asks millions of times, and the files change only when a download replaces them)."""
+
+_TOKENS = itertools.count(1)
+
+
+def forget():
+    """Drops the grid read so far; the next reader checks the dataset and reads it again."""
+    _SEEN.clear()
+
+
+def grid_token():
+    """A number that changes whenever `_grid` reads a different grid, for a caller that remembers what it worked out
+    from the grid (`physics.main_sequence`)."""
+    seen = _SEEN
+    if seen and seen["dataset"] is DATASET and time.monotonic() - seen["checked"] < RECHECK_SECONDS:
+        return seen["token"]
+    _grid()
+    return _SEEN["token"]
+
+
 def _grid():
+    """The grid. The dataset is checked against the catalogue (`fetch.locate`: sizes and hashes) when the derived file is
+    first read or has changed on disk; a reader in a loop only compares the dataset it read from and, every
+    `RECHECK_SECONDS`, looks at the cache folder and stats the file (a test that moves the folder calls `forget`)."""
+    seen = _SEEN
+    now = time.monotonic()
+    if seen and seen["dataset"] is DATASET:
+        if now - seen["checked"] < RECHECK_SECONDS:
+            return seen["grid"]
+        try:
+            stat = os.stat(seen["path"])
+        except OSError:
+            stat = None
+        if (stat is not None and seen["env"] == os.environ.get(fetch.CACHE_DIR_ENV)
+                and (stat.st_mtime_ns, stat.st_size) == seen["stamp"]):
+            seen["checked"] = now
+            return seen["grid"]
     located = fetch.locate(DATASET).require()
-    return _load(located.path(DERIVED))
+    path = located.path(DERIVED)
+    grid = _load(path)
+    stat = os.stat(path)
+    _SEEN.clear()
+    _EDGES.clear()
+    _LIMITS.clear()
+    _SEEN.update(grid=grid, dataset=DATASET, env=os.environ.get(fetch.CACHE_DIR_ENV), path=path, checked=now,
+                 stamp=(stat.st_mtime_ns, stat.st_size), token=next(_TOKENS))
+    return grid
 
 
 def metallicities():
@@ -162,7 +271,7 @@ def metallicities():
 def _bracket(grid, fe_h):
     values = [isochrone.fe_h for isochrone in grid]
     fe_h = min(max(fe_h, values[0]), values[-1])
-    upper = min(int(np.searchsorted(values, fe_h)), len(values) - 1)
+    upper = min(bisect.bisect_left(values, fe_h), len(values) - 1)
     lower = upper if values[upper] == fe_h else upper - 1
     if lower == upper:
         return grid[upper], grid[upper], 0.0
@@ -170,13 +279,76 @@ def _bracket(grid, fe_h):
     return grid[lower], grid[upper], weight
 
 
-def main_sequence_point(mass_sol, age_gy, fe_h):
+EDGE_MASS_RANGE_SOL = (0.1, 250.0)
+"""tuple: The masses (solar) `edge_point` tabulates its main-sequence arrival and departure rows over."""
+
+EDGE_MASS_STEPS = 3000
+"""int: How many log-spaced masses `edge_point`'s tables hold across `EDGE_MASS_RANGE_SOL` (0.3% of mass apart)."""
+
+_EDGE_LOW_LOG = math.log10(EDGE_MASS_RANGE_SOL[0])
+_EDGE_STEPS_PER_DEX = EDGE_MASS_STEPS / (math.log10(EDGE_MASS_RANGE_SOL[1]) - _EDGE_LOW_LOG)
+
+_EDGES = {}
+"""dict: Each isochrone's arrival and departure rows over the mass grid (`_edge_table`), by `id`."""
+
+
+def _edge_table(isochrone):
+    """`(arrival, departure)`, each a list over the mass grid of `(log L, log Teff, log R)` or None where the grid holds
+    no main-sequence row of that mass, of one isochrone (`_Isochrone.clamped_point` at its first and last age)."""
+    cached = _EDGES.get(id(isochrone))
+    if cached is None:
+        low, high = (np.log10(m) for m in EDGE_MASS_RANGE_SOL)
+        arrival, departure = [], []
+        for log_mass in np.linspace(low, high, EDGE_MASS_STEPS + 1):
+            mass = float(10.0 ** log_mass)
+            span = isochrone.span(mass)
+            arrival.append(None if span is None else tuple(float(v) for v in isochrone.clamped_point(mass, span[0])))
+            departure.append(None if span is None else tuple(float(v) for v in isochrone.clamped_point(mass, 99.0)))
+        cached = _EDGES[id(isochrone)] = (arrival, departure)
+    return cached
+
+
+def edge_point(mass_sol, fe_h, departure):
+    """
+    `(log10 L/Lsun, log10 Teff/K, log10 R/Rsun)` of a star of initial mass `mass_sol` and `fe_h` as it arrives on the
+    main sequence (`departure` False) or leaves it (True): `main_sequence_point(..., clamp=True)` at its first and last
+    age, read from a table of 3000 masses, interpolated in log mass and in [Fe/H] (GEN.652: a table build and every
+    star's record read these a million times; the rows themselves cost a few hundred microseconds each). None for a mass
+    off the table or between two the grid holds no row for.
+    """
+    low, high = EDGE_MASS_RANGE_SOL
+    if not low <= mass_sol <= high:
+        return None
+    position = (math.log10(mass_sol) - _EDGE_LOW_LOG) * _EDGE_STEPS_PER_DEX
+    index = min(int(position), EDGE_MASS_STEPS - 1)
+    along = position - index
+    below, above, weight = _bracket(_grid(), fe_h)
+    found = []
+    for isochrone in (below, above):
+        rows = _edge_table(isochrone)[1 if departure else 0]
+        near, far = rows[index], rows[index + 1]
+        if near is None or far is None:
+            return None
+        found.append((near[0] + (far[0] - near[0]) * along, near[1] + (far[1] - near[1]) * along,
+                      near[2] + (far[2] - near[2]) * along))
+    first, second = found
+    return (first[0] + (second[0] - first[0]) * weight, first[1] + (second[1] - first[1]) * weight,
+            first[2] + (second[2] - first[2]) * weight)
+
+
+def main_sequence_point(mass_sol, age_gy, fe_h, clamp=False):
     """`(log10 L/Lsun, log10 Teff/K, log10 R/Rsun)` of a main-sequence star of initial mass `mass_sol` solar masses
     and `age_gy` Gy at `fe_h`, or None when it has left the main sequence, is not yet on it, or its age is outside
-    the grid (10^5 to about 10^10.3 years)."""
-    log_age = float(np.log10(age_gy * 1e9))
+    the grid (10^5 to about 10^10.3 years). With `clamp` the age is held to the mass's own span on each isochrone, the
+    first row it has on the main sequence to the last (GEN.652): a star that the generator's phase times keep on the
+    main sequence a little past or before MIST's own edge of it takes the row at that edge; None then only for a
+    mass the grid does not hold."""
+    log_age = float(np.log10(max(age_gy, 1e-300) * 1e9))
     low, high, weight = _bracket(_grid(), fe_h)
-    first, second = low.point(mass_sol, log_age), high.point(mass_sol, log_age)
+    if clamp:
+        first, second = (isochrone.clamped_point(mass_sol, log_age) for isochrone in (low, high))
+    else:
+        first, second = low.point(mass_sol, log_age), high.point(mass_sol, log_age)
     if first is None or second is None:
         return None
     return tuple(float(a * (1 - weight) + b * weight) for a, b in zip(first, second))

@@ -25,10 +25,12 @@ Every constant lives in `program_constants`' "Star population model"
 section.
 """
 
+import functools
 import math
 
 from planetgen.galaxy import scales
-from planetgen.physics import constants, giant_branch, metallicity, ms_lifetime, remnant_mass, wolf_rayet
+from planetgen.physics import (
+    constants, giant_branch, main_sequence, metallicity, ms_lifetime, remnant_mass, wolf_rayet)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -168,9 +170,60 @@ def _piecewise_luminosity_sol(pieces, mass_sol):
             return piece["coeff"] * mass_sol ** piece["exponent"]
 
 
-def main_sequence_luminosity_sol(mass_sol):
-    """The piecewise mass-luminosity relation (`MS_MASS_LUMINOSITY_PIECES`)."""
-    return _piecewise_luminosity_sol(tuning.MS_MASS_LUMINOSITY_PIECES, mass_sol)
+def main_sequence_end_luminosity_sol(mass_sol, fe_h=0.0):
+    """The luminosity (Lsun) a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` has as it leaves the main
+    sequence, its brightest on it: the MIST row (`main_sequence.end_state`, GEN.652). A subgiant starts from it and a
+    supergiant brightens from it."""
+    return main_sequence.end_state(mass_sol, fe_h).luminosity_sol
+
+
+@functools.lru_cache(maxsize=1 << 19)
+def main_sequence_bright_from_gy(mass_sol, min_luminosity_sol, t_ms_gy, fe_h=0.0):
+    """
+    The age (Gy) a main-sequence star of initial mass `mass_sol` and birth [Fe/H] `fe_h` first shines at least
+    `min_luminosity_sol` bright, a main sequence that brightens with age (GEN.652): 0.0 when it is that bright on
+    arrival, `None` when it is not even as it leaves (`t_ms_gy`, the lifetime).
+    """
+    # The two edges are read from the tables (`main_sequence.zams_state`, `end_state`), which settles all but the few
+    # masses whose main sequence crosses the brightness; only those are searched.
+    if main_sequence.end_state(mass_sol, fe_h).luminosity_sol < min_luminosity_sol:
+        return None
+    if main_sequence.zams_state(mass_sol, fe_h).luminosity_sol >= min_luminosity_sol:
+        return 0.0
+    # Regula falsi with the Illinois step on log luminosity, which is smooth and rising in age: a few rows of the
+    # table, not sixteen halvings of it.
+    target = math.log(min_luminosity_sol)
+    low, high = 0.0, t_ms_gy
+    f_high = math.log(main_sequence.state(mass_sol, high, fe_h).luminosity_sol) - target
+    if f_high < 0.0:
+        return None
+    f_low = math.log(main_sequence.state(mass_sol, low, fe_h).luminosity_sol) - target
+    if f_low >= 0.0:
+        return 0.0
+    side = 0
+    for _ in range(MAIN_SEQUENCE_BRIGHT_ITERATIONS):
+        mid = (low * f_high - high * f_low) / (f_high - f_low)
+        f_mid = math.log(main_sequence.state(mass_sol, mid, fe_h).luminosity_sol) - target
+        if abs(f_mid) < MAIN_SEQUENCE_BRIGHT_TOLERANCE:
+            return mid
+        if f_mid < 0.0:
+            low, f_low = mid, f_mid
+            if side == -1:
+                f_high *= 0.5
+            side = -1
+        else:
+            high, f_high = mid, f_mid
+            if side == 1:
+                f_low *= 0.5
+            side = 1
+    return high
+
+
+MAIN_SEQUENCE_BRIGHT_ITERATIONS = 12
+"""int: Steps at most when the main sequence is searched for the age a star reaches a brightness."""
+
+MAIN_SEQUENCE_BRIGHT_TOLERANCE = 3.0e-4
+"""float: How close (in the natural log of the luminosity) the age found is to the brightness asked for."""
 
 
 def map_luminosity_sol(mass_sol):
@@ -180,7 +233,7 @@ def map_luminosity_sol(mass_sol):
     that gives a faint but massive object (a neutron star, a black hole) the
     visibility on the Galaxy Map of the star of its mass, so major
     gravitational places are always on the map. It is not the star
-    generators' relation (`main_sequence_luminosity_sol`): the two differ
+    generators' relation (`main_sequence.state`, GEN.652): the two differ
     above 2 Msun (1.5 M^3.5 against 1.4 M^3.5, and a linear law from 20 Msun
     against 55), by about 7% from 2 to 20 Msun and by a factor of 12 at 4 million Msun.
 
@@ -212,13 +265,6 @@ def phenomenon_map_luminosity_sol(map_type, mass_sol=None):
     mass = mass_sol if mass_sol and mass_sol > 0 else tuning.MASSLESS_MARKER_MASS_SOL
     share = tuning.BLACK_HOLE_MAP_BRIGHTNESS if map_type == "black_hole" else 1.0
     return map_luminosity_sol(mass) * share
-
-
-def main_sequence_radius_sol(mass_sol):
-    """R = M^0.8 below 1 Msun, M^0.57 above."""
-    exponent = (tuning.MS_RADIUS_EXPONENT_BELOW_1_SOL if mass_sol < 1.0
-                else tuning.MS_RADIUS_EXPONENT_ABOVE_1_SOL)
-    return mass_sol ** exponent
 
 
 def effective_temperature_k(luminosity_sol, radius_sol):
@@ -253,7 +299,7 @@ def spectral_letter_and_subclass(temperature_k):
 
 
 
-def giant_luminosity_law(mass_sol):
+def giant_luminosity_law(mass_sol, fe_h=0.0):
     """
     The luminosity law of an intermediate-mass or heavier giant of initial mass `mass_sol` as `(low, high, slope)`
     (Lsun): the time it spends per unit of ln L falls as L^-slope between `low` and `high` (GEN.287). Not used below
@@ -266,7 +312,7 @@ def giant_luminosity_law(mass_sol):
     if mass_sol >= pc.BRIGHT_GIANT_MIN_MASS_SOL:
         return (*pc.BRIGHT_GIANT_LUMINOSITY_RANGE_SOL, 0.0)
     tip = pc.GIANT_BRANCH_TIP_LUMINOSITY_SOL
-    base = pc.SUBGIANT_MAX_BRIGHTENING * main_sequence_luminosity_sol(mass_sol)
+    base = pc.SUBGIANT_MAX_BRIGHTENING * main_sequence_end_luminosity_sol(mass_sol, fe_h)
     return (min(base, tip / 2.0), tip, pc.GIANT_BRANCH_TIME_SLOPE)
 
 
@@ -298,7 +344,7 @@ def giant_bright_chance(mass_sol, min_luminosity_sol, fe_h=0.0):
     for a star lighter than `HELIUM_FLASH_MASS_SOL` (`giant_branch`, GEN.502), else of `giant_luminosity_law`."""
     if has_core_helium_phases(mass_sol):
         return giant_branch.branch(mass_sol, fe_h).share_above(min_luminosity_sol)
-    return luminosity_law_share_above(*giant_luminosity_law(mass_sol), min_luminosity_sol)
+    return luminosity_law_share_above(*giant_luminosity_law(mass_sol, fe_h), min_luminosity_sol)
 
 
 def sample_giant_luminosity_sol(mass_sol, rng=draw, min_luminosity_sol=None, fe_h=0.0):
@@ -309,14 +355,14 @@ def sample_giant_luminosity_sol(mass_sol, rng=draw, min_luminosity_sol=None, fe_
     """
     if has_core_helium_phases(mass_sol):
         return giant_branch.branch(mass_sol, fe_h).quantile(rng.random(), min_luminosity_sol)
-    return luminosity_law_quantile(*giant_luminosity_law(mass_sol), rng.random(), min_luminosity_sol)
+    return luminosity_law_quantile(*giant_luminosity_law(mass_sol, fe_h), rng.random(), min_luminosity_sol)
 
 
 def subgiant_end_luminosity_sol(mass_sol, fe_h=0.0):
     """The luminosity a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` reaches as its subgiant phase ends:
     the base of its red giant branch below `HELIUM_FLASH_MASS_SOL` (`giant_branch`, GEN.502), else
     `SUBGIANT_MAX_BRIGHTENING` times its main-sequence luminosity."""
-    l_ms = main_sequence_luminosity_sol(mass_sol)
+    l_ms = main_sequence_end_luminosity_sol(mass_sol, fe_h)
     if has_core_helium_phases(mass_sol):
         return max(giant_branch.base_luminosity_sol(mass_sol, fe_h), 1.01 * l_ms)
     return tuning.SUBGIANT_MAX_BRIGHTENING * l_ms
@@ -499,17 +545,19 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         t_horizontal = t_giant + pc.HORIZONTAL_BRANCH_DURATION_GY
         t_agb = t_horizontal + t_ms * pc.AGB_MS_FRACTION
     massive = mass_sol >= pc.SUPERGIANT_MIN_MASS_SOL
-    l_ms = main_sequence_luminosity_sol(mass_sol)
-    t_eff_ms = effective_temperature_k(l_ms, main_sequence_radius_sol(mass_sol))
+    end = main_sequence.end_state(mass_sol, fe_h)     # GEN.652: the MIST row it leaves the main sequence on
+    l_ms, t_eff_ms = end.luminosity_sol, end.temperature_k
     state = {"mass_sol": mass_sol, "radius_km": None, "lifespan_gy": t_agb, "metallicity_fe_h": fe_h}
 
     wr_start = wolf_rayet.start_gy(mass_sol, t_ms, t_giant, fe_h) if massive else None
-    young = pre_main_sequence.state(mass_sol, age_gy * 1.0e9)
+    young = pre_main_sequence.state(mass_sol, age_gy * 1.0e9, fe_h)
     if young is not None:
         # GEN.242: still contracting, a protostar (Class 0 and I) or a pre-main-sequence star.
         state.update(young)
     elif age_gy < t_ms:
-        state.update(yerkes_class="V", luminosity_sol=l_ms, temperature_k=t_eff_ms, phase_end_gy=t_ms)
+        on_sequence = main_sequence.state(mass_sol, age_gy, fe_h)
+        state.update(yerkes_class="V", luminosity_sol=on_sequence.luminosity_sol,
+                     temperature_k=on_sequence.temperature_k, phase_end_gy=t_ms)
     elif wr_start is not None and wr_start <= age_gy < t_giant:
         # GEN.243: the last stretch of a very massive star's life, in place of the end of its supergiant window.
         state.update(wolf_rayet.state(mass_sol, age_gy, wr_start, t_giant, rng, min_luminosity_sol))

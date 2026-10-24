@@ -47,6 +47,7 @@ _BISECTIONS = 50
 
 
 @functools.lru_cache(maxsize=4096)
+@functools.lru_cache(maxsize=1 << 14)
 def _terms(zeta):
     """`a1` to `a10` at this `zeta`, and the share `x` of the base-of-giant-branch time the main sequence takes."""
     terms = tuple(sum(c * zeta ** power for power, c in enumerate(_COEFFICIENTS[n])) for n in range(1, 11))
@@ -54,6 +55,7 @@ def _terms(zeta):
     return terms, x
 
 
+@functools.lru_cache(maxsize=1 << 14)
 def zeta(fe_h):
     """`log10(Z / 0.02)` of a star of this [Fe/H]: the metallicity argument of every formula of the paper, held to the
     range the paper's fits are made over (`tuning.MS_LIFETIME_Z_RANGE`): below Z = 1e-4 the polynomials in it run away

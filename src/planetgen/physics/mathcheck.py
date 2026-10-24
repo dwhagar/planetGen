@@ -53,7 +53,7 @@ from planetgen.physics import units
 from planetgen.util import draw
 from planetgen.util import random as sampling
 from planetgen.galaxy import density as galaxyDensity, sector as spaceSector, spherical
-from planetgen.physics import constants as pc, kepler, stellar_evolution
+from planetgen.physics import constants as pc, kepler, main_sequence, stellar_evolution
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.physics import interior_heat, planets, radiogenic
@@ -313,6 +313,8 @@ def _ci_chondrite():
 def _upper_crust():
     return _formation_content(*radiogenic.SURFACE_RESERVOIRS["felsic"].ppm)
 
+SUN_AGE_GY = 4.57
+"""float: The Sun's age (Gy, Bonanno et al. 2002), at which the main-sequence reference reads a 1 solar-mass star."""
 
 
 def _reference_checks():
@@ -320,9 +322,9 @@ def _reference_checks():
     period = planets.calculate_orbital_period_years
     gc_ly = units.pc_to_ly(SUN_REFERENCE_RADIUS_PC)
     return [
-        Check("sun_luminosity", "reference", "stellar_evolution.main_sequence_luminosity_sol(1)",
-              lambda: stellar_evolution.main_sequence_luminosity_sol(1.0), 1.0, 1e-9,
-              "definition: 1 M_sun on the main sequence gives 1 L_sun", unit="L_sun"),
+        Check("sun_luminosity", "reference", "main_sequence.state(1, 4.57)",
+              lambda: main_sequence.state(1.0, SUN_AGE_GY).luminosity_sol, 1.0, 0.15,
+              "a 1 M_sun star at the Sun's age on the MIST main sequence gives about 1 L_sun", unit="L_sun"),
         Check("sun_main_sequence_lifetime", "reference", "stellar_evolution.main_sequence_lifetime_gy(1)",
               lambda: stellar_evolution.main_sequence_lifetime_gy(1.0), 10.0, 0.1,
               "the Sun's main-sequence lifetime, about 10 Gyr (Sackmann et al. 1993)", unit="Gyr"),
@@ -509,17 +511,24 @@ def _relation_dimension_failures():
     return len(relations.check_dimensions())
 
 
+MIST_STEP_TOLERANCE = 0.02
+"""float: How far (a share) the luminosity or radius of the MIST table's first row may fall from one mass step to the
+next of the sweep: the table's own noise (up to 1.7% in radius at 1.7 and 6 to 13 solar masses, 0.5% in luminosity at 6.3)."""
+
+
 def _mass_monotonic_violations():
     """How many steps along a mass sweep break the expected direction:
-    luminosity and radius up, lifetime down."""
+    luminosity and radius up, lifetime down. The luminosity and radius of the table's first row may fall by up to
+    `MIST_STEP_TOLERANCE` between neighbouring masses (its interpolation, GEN.652)."""
     masses = _log_sweep(0.08, 150.0, 400)
     bad = 0
     for low, high in zip(masses, masses[1:]):
-        if not stellar_evolution.main_sequence_luminosity_sol(high) > stellar_evolution.main_sequence_luminosity_sol(low):
+        if not (main_sequence.zams_state(high).luminosity_sol
+                > (1.0 - MIST_STEP_TOLERANCE) * main_sequence.zams_state(low).luminosity_sol):
             bad += 1
         if not stellar_evolution.main_sequence_lifetime_gy(high) < stellar_evolution.main_sequence_lifetime_gy(low):
             bad += 1
-        if not stellar_evolution.main_sequence_radius_sol(high) > stellar_evolution.main_sequence_radius_sol(low):
+        if not main_sequence.zams_state(high).radius_sol > (1.0 - MIST_STEP_TOLERANCE) * main_sequence.zams_state(low).radius_sol:
             bad += 1
     return bad
 
@@ -775,8 +784,8 @@ def _non_finite_outputs():
     shape = _reference_galaxy_shape()
     outputs = []
     for m in _log_sweep(0.08, 150.0, 60):
-        lum = stellar_evolution.main_sequence_luminosity_sol(m)
-        rad = stellar_evolution.main_sequence_radius_sol(m)
+        row = main_sequence.zams_state(m)
+        lum, rad = row.luminosity_sol, row.radius_sol
         outputs += [lum, rad, stellar_evolution.main_sequence_lifetime_gy(m),
                     stellar_evolution.effective_temperature_k(lum, rad),
                     *orbits.calculate_habitable_zone(lum * pc.SOLAR_LUMINOSITY,
@@ -829,7 +838,7 @@ def _invariant_checks():
               _relation_dimension_failures, 0, 0.0, f"{exact}: a law's answer has the dimension of its declared kind",
               mode="max", unit="laws"),
         Check("mass_sequence_monotonic", "invariant",
-              "stellar_evolution.main_sequence_luminosity_sol/radius_sol/lifetime_gy",
+              "main_sequence.zams_state luminosity and radius, stellar_evolution.main_sequence_lifetime_gy",
               _mass_monotonic_violations, 0, 0.0,
               "on the main sequence, heavier stars are brighter, larger and shorter-lived",
               mode="max", unit="violations"),
