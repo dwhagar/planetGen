@@ -65,6 +65,18 @@
 </div></div>
 {%- endif %}
 {% include "partials/location.html" %}
+{%- if previous or following %}
+<nav class="item-neighbours" aria-label="Neighbouring {{ type_label|lower }}s">
+  {%- if previous %}<a class="item-previous" rel="prev" href="{{ previous.url }}"><span aria-hidden="true">&larr;</span> {{ previous.name }}</a>{% endif %}
+  {%- if following %}<a class="item-next" rel="next" href="{{ following.url }}">{{ following.name }} <span aria-hidden="true">&rarr;</span></a>{% endif %}
+</nav>
+{%- endif %}
+{%- if facts %}
+<section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
+  <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>
+  <div class="prose">{{ facts }}</div>
+</section>
+{%- endif %}
 {%- if sheet %}
 <section class="panel" id="item-properties" aria-labelledby="item-properties-heading">
   <div class="panel-header"><h2 id="item-properties-heading">All stored properties</h2></div>

@@ -2899,6 +2899,18 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     if table == "rogue_planets":
         detail["gravity_g"] = rogue_planet_gravity_g(detail.get("mass_kg"), detail.get("radius_km"))
     detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
+    free = " AND star_id IS NULL" if "star_id" in detail else ""    # a black hole or neutron star of a system is not a free one
+    for key, op, order in (("previous", "<", "DESC"), ("next", ">", "ASC")):
+        peer = conn.execute(f"SELECT uid, name FROM {table} WHERE id {op} ?{free} ORDER BY id {order} LIMIT 1",
+                            (phenomenon_id,)).fetchone()
+        detail[key] = None if peer is None else {"id": _with_printed_uid(peer)["uid"], "name": peer["name"]}
+    if table == "supernova_remnants":
+        centre = (("black_holes", detail.get("compact_remnant_black_hole_id")),
+                  ("neutron_stars", detail.get("compact_remnant_neutron_star_id")))
+        for centre_table, centre_id in centre:
+            if centre_id is not None:
+                found = conn.execute(f"SELECT name FROM {centre_table} WHERE id = ?", (centre_id,)).fetchone()
+                detail["compact_remnant_name"] = found["name"] if found else None
     if phenomenon_type in ("black_hole", "neutron_star", "rogue_planet"):
         # The Einstein radius (GEN.154) is seen from the galaxy's reference radius: no home position is stored (GEN.404).
         skeleton = get_galaxy_shape(conn)

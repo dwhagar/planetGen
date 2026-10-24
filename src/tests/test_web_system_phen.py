@@ -475,6 +475,19 @@ def test_phenomenon_page_lists_every_stored_property(client, fake):
     assert re.search(r'<th scope="row">Mass</th><td class="sheet-missing">not stored</td>', html)
 
 
+def test_phenomenon_page_has_its_paragraph_and_the_links_to_its_neighbours(client, fake):
+    """UX.185: a stored nebula's page says what the generator's description says, and links to the nebula before and after."""
+    fake.phenomenon = {"id": "FE81000A2B-0000004", "name": "Orion", "nebula_class": "D", "nebula_type": "emission",
+                       "radius_ly": 12.0, "composition": "hydrogen", "formation_cause": "a stellar nursery",
+                       "dominant_species": "H", "density_cm3": 100.0, "temperature_k": 8000.0, "extinction_av": 0.5,
+                       "galactic_orbital_period_gy": 0.2, "velocity_x_kms": 3.0, "velocity_y_kms": 4.0, "velocity_z_kms": 0.0,
+                       "sector_id": None, "previous": {"id": "FE81000A2B-0000003", "name": "Carina"}, "next": None}
+    html = client.get("/phenomenon/nebula/4").get_data(as_text=True)
+    assert 'id="item-facts"' in html and "Orion is an emission nebula about" in html and "It formed via a stellar nursery." in html
+    assert 'rel="prev" href="/phenomenon/nebula/FE81000A2B-0000003"' in html and "Carina" in html
+    assert 'rel="next"' not in html
+
+
 def test_rogue_planet_detail_shows_its_surface_gravity(client, fake):
     """UX.99: a rogue planet's page has a Surface Gravity row like any other planet."""
     fake.phenomenon = {"id": 1, "name": "Drifter", "planet_type": "t", "planet_class": "C", "mass_kg": 5.0e24,
