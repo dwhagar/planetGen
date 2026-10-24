@@ -1313,75 +1313,6 @@ with `clamp()`.
   a shared link shows the image.
   Prerequisites: UX.170.
 
-- [ ] **UX.180 A Help menu in the top bar on the search-icon side that holds Classes and Habitability; the separate Habitability levels links go away**
-  Boss, 12:47 AM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT, relayed by the
-  coordinator): instead of the habitability levels as a link, the icons
-  and chips link directly to the appropriate parts of the habitability
-  page; move that page from Classes to Help as a link, move Classes to
-  the same menu and put it near the search icon's side of the top menu
-  bar; the same for class links and other similar links: remove them and
-  make the class letter, class name or similar link directly to the
-  appropriate page and section. Filed 12:49 AM EDT from the thread 'Link
-  icons and chips to help sections' (root
-  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT). Web only: no
-  generator change, no epoch, no migration. Owner: the Link icons and
-  chips to help sections thread (it asked to take them). Do: add a Help
-  menu to the top bar next to the search icon holding the Classes page
-  and the Habitability page (moved from Classes); Classes leaves the
-  main section row; every standalone 'Habitability levels' link is
-  removed. Done: a test that the top bar has the Help menu with both
-  pages, no page keeps the old link, and the menu works in Chromium and
-  Firefox and on a narrow screen.
-  Prerequisites: none. Related: UX.153, DOC.6.
-
-- [ ] **UX.181 Every habitability symbol, life score and equipment or Habitable chip links straight to its section of the habitability page**
-  Boss, 12:47 AM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT, relayed by the
-  coordinator): instead of the habitability levels as a link, the icons
-  and chips link directly to the appropriate parts of the habitability
-  page; move that page from Classes to Help as a link, move Classes to
-  the same menu and put it near the search icon's side of the top menu
-  bar; the same for class links and other similar links: remove them and
-  make the class letter, class name or similar link directly to the
-  appropriate page and section. Filed 12:49 AM EDT from the thread 'Link
-  icons and chips to help sections' (root
-  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT). Web only: no
-  generator change, no epoch, no migration. Owner: the Link icons and
-  chips to help sections thread (it asked to take them). Do: every PHI-6
-  symbol, life score and equipment chip or Habitable chip (system rows,
-  planet and moon lists, search results, object pages, datatable.js)
-  links to its anchor on the habitability page; the shared link helpers
-  live in habitability_symbols.py and classref so the detail pages items
-  (UX.173) can reuse them; each symbol and chip has a stable anchor on
-  the page. Done: a test that every symbol and chip kind has a link to
-  an anchor that exists, and a browser test of one click.
-  Prerequisites: UX.180. Related: UX.166, UX.173.
-
-- [ ] **UX.182 The standalone Planet class, Spectral class and Luminosity class links go away and the class text itself links to its section**
-  Boss, 12:47 AM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT, relayed by the
-  coordinator): instead of the habitability levels as a link, the icons
-  and chips link directly to the appropriate parts of the habitability
-  page; move that page from Classes to Help as a link, move Classes to
-  the same menu and put it near the search icon's side of the top menu
-  bar; the same for class links and other similar links: remove them and
-  make the class letter, class name or similar link directly to the
-  appropriate page and section. Filed 12:49 AM EDT from the thread 'Link
-  icons and chips to help sections' (root
-  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT). Web only: no
-  generator change, no epoch, no migration. Owner: the Link icons and
-  chips to help sections thread (it asked to take them). Do: remove the
-  standalone 'Planet class X', 'Spectral class' and 'Luminosity class'
-  links in system rows (and the same kind of side links elsewhere); the
-  class letter, class name or similar text is itself the link to the
-  matching page and section, using the shared helper of the chip item.
-  The system page dropdown rewrite is the detail pages item UX.173; this
-  item keeps out of it and only changes the link. Done: a test that no
-  page has a standalone class link and that each class text links to an
-  existing anchor.
-  Prerequisites: UX.180. Related: UX.173.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14124,6 +14055,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the star's XUV history, GEN.639 runaway, cumulative XUV loss, isotope
   decay); no host luminosity history and no time-stepped history. It
   confirms the provisional option.
+  Research (2026-10-09, Decided): Decided (Boss, 1:22 AM EDT 2026-10-24,
+  message cmsg_01RuNTFUNB92A8cm5CbojQAiKbgUoicrhUuDkCMHjUsTxc, '3' on
+  the class B hydrogen and helium card): class B never has hydrogen or
+  helium (a stripped giant core must be at least 5 Earth masses). This
+  replaces his 12:39 AM EDT 'keep some hydrogen and helium'. At the
+  class cut-over the class lane drops 'helium' and the stripped-core
+  line from the class B text in tuning.PLANET_CLASSES; the draw already
+  gives class B none. GEN.695 to GEN.698 are dropped. If Boss later
+  wants stripped cores as an origin for bodies of 5 Earth masses or
+  more, lane L's research note
+  reports/stripped-core-envelope-2026-10-24.md (stand-in envelope
+  fraction 1e-4 to 4e-2) is the start.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -14775,88 +14718,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator)): answers 1 and 2 are GEN.694 (oxygen caps) and the class
   B hydrogen and helium item (the second new item above, GEN.695).
   Prerequisites: none. Related: GEN.411, GEN.415.
-
-- [ ] **GEN.695 Class B keeps some hydrogen and helium in its atmosphere mix next to the sodium and oxygen of a molten world**
-  Decided (Boss, 12:39 AM EDT 2026-10-24 (his message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
-  coordinator)), option 2 of the class B question: keep some hydrogen
-  and helium in class B. Background: lane L's report
-  reports/pure-oxygen-atmosphere-2026-10-24.md found that class B (hot,
-  molten) chemistry gives sodium, potassium, SiO and oxygen and no
-  hydrogen or helium, while Boss expected hydrogen and helium. Do: give
-  the hot-zone small-body family an outgassed or retained primordial
-  hydrogen and helium share, drawn from the formation environment and
-  then thinned by the light-gas escape filter of GEN.693 so a small hot
-  body keeps only what its escape speed and temperature allow (so the
-  share can be small), keep the sodium and oxygen of the lava family,
-  and make the class B text and the stored mixture agree. Done: class B
-  draws sometimes show hydrogen and helium in the stored mixture, in the
-  table and in the sentence, none above what escape allows, and a test
-  covers the agreement. Owner: lane L with the class lane (the class
-  text).
-  Research (2026-10-09, Update): Update 12:41 AM EDT 2026-10-24 (as the
-  class lane reported, its design note
-  docs/design/habitability/condition-based-planet-classes.md, #2855):
-  class B is a stripped giant core that keeps some hydrogen and helium.
-  At the class cut-over (class step C13) the class B text in
-  tuning.PLANET_CLASSES ("a thin mix of helium, sodium, and oxygen")
-  gains hydrogen, and "occasionally the stripped core of a former gas
-  giant" becomes a retained hydrogen and helium share in the mixture and
-  not a fixed string; class I's note about hot-Neptune stripping points
-  at the same origin. B's classifier rule is unchanged. Lane L owns the
-  mixture, the class lane owns the text.
-  Research (2026-10-09, Update): Update 12:56 AM EDT 2026-10-24 (as lane
-  L reported): GEN.693 (light-gas escape filter) and GEN.694 (oxygen
-  caps) merged as #2862, not wired to the generator yet (needs lane I's
-  PR 4), no epoch. GEN.695 now waits on GEN.696 (research source),
-  GEN.697 (the stripped_core origin quantity) and GEN.698 (the recipe
-  rows).
-  Prerequisites: GEN.479. Related: GEN.692, GEN.693, GEN.647, GEN.698.
-
-- [ ] **GEN.696 Research source: the leftover envelope mass fraction of a stripped giant core**
-  Filed 12:56 AM EDT 2026-10-24 from lane L's note (finding 13 of
-  reports/lane-l-findings-2026-10-24.md), as the steps GEN.695 needs:
-  Boss (12:39 AM EDT 2026-10-24) decided that class B, the occasional
-  stripped giant core, keeps some hydrogen and helium. Owner: lane L
-  (atmosphere mixture). Do: find, open and read the published work on
-  how much hydrogen and helium envelope a core keeps after
-  photoevaporation or giant-impact stripping, for bodies far below 1
-  Earth mass (GEN.509 covers 1 to 30 Earth masses only); record the
-  range, the sources and the validity, label stand-ins in the gap plan
-  registry (verified wins, two verified in doubt: newest; two in
-  question: widest range). Done: a note with the sourced fraction and
-  its range, citations opened and read.
-  Prerequisites: none. Related: GEN.695, GEN.509.
-
-- [ ] **GEN.697 The generator records an origin quantity stripped_core for a small hot body that began as a giant**
-  Filed 12:56 AM EDT 2026-10-24 from lane L's note (finding 13 of
-  reports/lane-l-findings-2026-10-24.md), as the steps GEN.695 needs:
-  Boss (12:39 AM EDT 2026-10-24) decided that class B, the occasional
-  stripped giant core, keeps some hydrogen and helium. Owner: lane L
-  (atmosphere mixture). Do: add an origin quantity stripped_core (true
-  for the occasional class B or other small hot body that began as a
-  giant) drawn in the generator from the formation history, stored or
-  derived per the composition rules; this is a generator change and
-  takes the next epoch at merge (new epochs and migrations are fine in
-  testing mode). Done: a test that the quantity is drawn with a stated
-  probability, is stable under recalculation, and is true only for
-  bodies the origin rule allows.
-  Prerequisites: none. Related: GEN.695, GEN.647.
-
-- [ ] **GEN.698 Recipe rows for the stripped core: a hydrogen and helium envelope share for a small hot body, replacing the gating of rows e1 to e6 that stops at 1 Earth mass**
-  Filed 12:56 AM EDT 2026-10-24 from lane L's note (finding 13 of
-  reports/lane-l-findings-2026-10-24.md), as the steps GEN.695 needs:
-  Boss (12:39 AM EDT 2026-10-24) decided that class B, the occasional
-  stripped giant core, keeps some hydrogen and helium. Owner: lane L
-  (atmosphere mixture). Do: add recipe rows for stripped_core bodies
-  that draw a small hydrogen and helium share from the sourced leftover
-  fraction, since the envelope rows e1 to e6 are gated to classes S, V,
-  I and T at 1 to 30 Earth masses and none applies to a 0.03 Earth-mass
-  body; the share is then thinned by the escape filter. Done: a test
-  that a stripped_core body draws a hydrogen and helium share within the
-  sourced range and none above what escape allows, and that bodies
-  without stripped_core are unchanged.
-  Prerequisites: GEN.696, GEN.697, GEN.479. Related: GEN.695, GEN.693.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

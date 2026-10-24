@@ -1234,3 +1234,6 @@ Baseline: PR #1817.
 | GEN.693 | 8.1 | Mixture and stored values |
 | DB.73 | 8.1 | Radiation chain for habitability (GEN.445) |
 | PERF.123 | 8.1 | Queue, caches and performance |
+| UX.182 | 8.1 | Habitability system |
+| UX.181 | 8.1 | Habitability system |
+| UX.180 | 8.1 | Habitability system |
