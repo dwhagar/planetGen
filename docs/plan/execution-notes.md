@@ -95,3 +95,5 @@ Update 11:31 PM EDT 2026-10-23: the survival equipment PR #2766 merged and took 
 Update 11:54 PM EDT 2026-10-23: Boss decided (11:53 PM EDT, relayed by the coordinator) that the NH3 photolysis gap cannot be filled and the work should do the best with what it has: the active-Sun factor 1.078 (GEN.501, #2824, from his supplied rates) stays as a labelled stand-in in the gap registry, and the check item GEN.676 is dropped.
 
 Update 11:58 PM EDT 2026-10-23: the condition-based classes lane merged #2833 (GEN.92, the life part of GEN.647) and took generator epoch 65. The next free epoch is 66 (lane I's GEN.428, GEN.429 and DB.69, lane A's GEN.651, lane G's GEN.414, lane D's GEN.649 and Core 4's GEN.270 renumber at merge). The next free migration is still 0137.
+
+Update 12:21 AM EDT 2026-10-24: #2844 (GEN.656, lane 3) took schema v137 and migration 0137, no epoch. Next free migration is 0138 (lane D's GEN.412, GEN.649, tides and rogue score, lane B's DB.73 and lane G's GEN.414 and PR 4 renumber at merge; lane G's PR 4 had planned v137).
