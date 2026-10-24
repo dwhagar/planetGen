@@ -25,6 +25,7 @@ from planetgen.queue import commands, progress_rate, units, work as workQueue, w
 from planetgen.db import block_stats, containers as containersDb, nebula_blocks, query, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
+from planetgen.generation import generator_battery as generatorBattery
 from planetgen.generation import containers as generationContainers
 from planetgen.generation import phenomenon_reach, phenomenon_scatter
 from planetgen.generation import scatter_companions as scatterCompanions
@@ -249,10 +250,12 @@ scan's own and every row of the lever table (`galaxy.dials`)."""
 
 def skeleton_params(args, mysql_config):
     """The parameters of the `plan-skeleton` command for the parsed `args` (plain JSON): the database, the seed the
-    user asked for (32 hex digits, or `None`) and each of `SKELETON_OPTIONS` the arguments carry."""
+    user asked for (32 hex digits, or `None`), whether the unit prints its step table (`--timing` or `--debug`, UX.162)
+    and each of `SKELETON_OPTIONS` the arguments carry."""
     seed = getattr(args, "seed", None)
     return {"database": wrapper.database_args(mysql_config),
             "galaxy_seed": None if seed is None else galaxySeed.format_seed(seed),
+            "timing": bool(getattr(args, "timing", False) or getattr(args, "debug", None) is not None),
             **{name: getattr(args, name) for name in SKELETON_OPTIONS if hasattr(args, name)}}
 
 
@@ -279,7 +282,8 @@ def plan_skeleton_unit(params, report):
     Returns:
         dict: `summary` (`outer_shell_index`, `reach_shell_index`, `shell_count`, `total_candidate_sectors`,
             `elapsed_s` and `edge_confirmed`) and `lines`, what the run says about it, for the process that started the
-            run to log (this unit may run in a worker).
+            run to log (this unit may run in a worker); with `params["timing"]` they end with the table of where the
+            unit's time went.
 
     Raises:
         ValueError: `reach_shells` is out of range, or a different seed is asked for in a galaxy that has sectors.
@@ -317,6 +321,9 @@ def plan_skeleton_unit(params, report):
         # (GEN.237) all come from it, and the components go in the outline's bound, so they are placed before the
         # outline is walked.
         galaxy_seed = requested_seed or stored_seed or galaxySeed.new_seed()
+        # A new seed records the generator battery's digest with the galaxy (store.save_galaxy_shape): worked out in a
+        # process of its own while the rest of the plan runs, instead of waited for at the end (PERF.176).
+        finish_battery = generatorBattery.start_running_digest() if galaxy_seed != stored_seed else None
         shape_args = types.SimpleNamespace(**{name: dials.restored(params.get(name)) for name in SKELETON_OPTIONS})
         built = planOutline.build(shape_args, galaxy_seed, edge_pc, reach_shell_index)
         shape, drawn, found, young, dwarfs = built.shape, built.drawn, built.clusters, built.young, built.satellites
@@ -356,6 +363,9 @@ def plan_skeleton_unit(params, report):
 
     with timer.step("storing the shells"):
         store.replace_galaxy_shells(extents, config=mysql_config)
+    if finish_battery is not None:
+        with timer.step("the generator battery's digest, as far as it was waited for"):
+            finish_battery()
     with timer.step("storing the shape"):
         galaxy_seed = store.save_galaxy_shape(
             shape, edge_pc=edge_pc, outer_shell_index=outer_shell_index,
@@ -394,7 +404,8 @@ def plan_skeleton_unit(params, report):
         say(_draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed))
     timer.steps.append(("the rest of the unit (the checks, the report, the limits)",
                         max(0.0, time.perf_counter() - unit_started - timer.total())))
-    lines.extend(timer.lines("Where the plan's time went"))
+    if params.get("timing"):
+        lines.extend(timer.lines("Where the plan's time went"))
 
     return {"summary": {
         "outer_shell_index": outer_shell_index,

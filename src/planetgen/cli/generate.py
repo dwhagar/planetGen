@@ -979,6 +979,9 @@ def add_plan_arguments(parser):
                                    f"{program_constants.HALO_MIN_LUMINOSITY_RANGE_SOL[1]:g}; the halo has no mass "
                                    "limit of its own. Stored with the galaxy by a full plan. Default: "
                                    f"{program_constants.HALO_MIN_LUMINOSITY_SOL:g}.")
+    parser.add_argument('--timing', action='store_true',
+                        help="Print a table of where the plan's time went, step by step, the costliest first "
+                             "(also printed with --debug).")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 

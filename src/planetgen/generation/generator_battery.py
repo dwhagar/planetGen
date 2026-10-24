@@ -29,9 +29,10 @@ Nothing here reads the clock, the environment or a stored file, and every case r
 result does not depend on what ran before or on the hash seed.
 """
 
+import concurrent.futures
 import dataclasses
-import functools
 import math
+import multiprocessing
 
 from planetgen import tuning
 from planetgen.db.fingerprint_tree import CLOCK_KEYS
@@ -245,13 +246,49 @@ def generator_battery_digest():
     return BatteryDigest(overall, cases)
 
 
-@functools.lru_cache(maxsize=1)
+_running = None
+"""BatteryDigest or None: What `running_digest` has worked out in this process (or `start_running_digest` was handed)."""
+
+
 def running_digest():
     """
     The running code's `BatteryDigest`, worked out once a process: what a plan records with the galaxy and an update
     records in the version history (OPS.58), so the five seconds are paid once however many call it.
     """
-    return generator_battery_digest()
+    global _running
+    if _running is None:
+        _running = generator_battery_digest()
+    return _running
+
+
+def start_running_digest():
+    """
+    Starts working out `running_digest()` in a process of its own (PERF.176), for a caller that will need it later and
+    has other work to do meanwhile: the battery uses no database and nothing of this process, so the digest is the
+    one this process would make, five seconds that would otherwise be waited for on a free core.
+
+    Returns:
+        callable: `finish()`, which waits for the process and keeps its digest as this process's `running_digest()`. If
+            the process could not be started or died, `running_digest()` works the digest out here when it is asked for.
+    """
+    if _running is not None:
+        return lambda: None
+    try:
+        pool = concurrent.futures.ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
+        future = pool.submit(generator_battery_digest)
+    except Exception:  # noqa: BLE001 -- no process to be had: the digest is worked out where it is asked for
+        return lambda: None
+
+    def finish():
+        global _running
+        try:
+            _running = future.result()
+        except Exception:  # noqa: BLE001 -- the digest is then worked out where it is asked for
+            pass
+        finally:
+            pool.shutdown()
+
+    return finish
 
 
 def first_difference(stored, found):
