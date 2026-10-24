@@ -397,7 +397,7 @@ class Queue(_Section):
         summary="Jobs expected to take longer than this go to the long lane.",
         control="duration")
     unit_ceiling_seconds: float = opt(
-        300, "The longest a unit of a generation stage is expected to run (PERF.155). A stage is cut into units no "
+        300, "The longest a unit of a generation stage is expected to run. A stage is cut into units no "
         "longer than this at the default galaxy size; a unit that runs longer is written to the run's log, naming "
         "the stage. A stage that is one unit by nature is not held to it. A unit this long is also the most a "
         "worker waits to hand its place to a lane that needs it.", unit="seconds", group="speed", gt=0,
