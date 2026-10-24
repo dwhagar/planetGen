@@ -12,7 +12,11 @@
 #   Python dependencies       (the system Python, 3.12 on 24.04 and 3.14 on 26.04: the
 #                              requirements-server.lock, then the test/api/browser extras)
 #   NLTK 'words' corpus       (/usr/local/share/nltk_data)
-#   Playwright, pinned to the Chromium the image already carries (never downloads one)
+#   Playwright, pinned to the Chromium the image already carries (never downloads one),
+#                             plus Firefox (the icon test runs in both browsers)
+#   Static datasets           (/var/cache/planetgen/datasets: isochrones, white dwarf models,
+#                              neutron star matter, ozone UV; generation tests raise
+#                              DataMissing without them)
 #
 # What a setup script can and cannot do (code.claude.com/docs/en/cloud-environments):
 #   - It runs once, as root, and the result is a FILESYSTEM SNAPSHOT reused by later
@@ -117,10 +121,30 @@ install_python() {
     "$PY" -c "import nltk; ok = nltk.download('words', download_dir='$NLTK_DIR', quiet=True); raise SystemExit(0 if ok else 1)"
     [ -d "$NLTK_DIR/corpora/words" ] || [ -f "$NLTK_DIR/corpora/words.zip" ]
 
-    if ls "${PLAYWRIGHT_BROWSERS_PATH:-/opt/pw-browsers}"/chromium-* >/dev/null 2>&1; then
-        echo "Chromium present: $(ls -d "${PLAYWRIGHT_BROWSERS_PATH:-/opt/pw-browsers}"/chromium-* | xargs -n1 basename | tr '\n' ' ')"
+    local browsers="${PLAYWRIGHT_BROWSERS_PATH:-/opt/pw-browsers}"
+    if ls "$browsers"/chromium-* >/dev/null 2>&1; then
+        echo "Chromium present: $(ls -d "$browsers"/chromium-* | xargs -n1 basename | tr '\n' ' ')"
     else
-        echo "warning: no Chromium under ${PLAYWRIGHT_BROWSERS_PATH:-/opt/pw-browsers}; browser tests will skip." >&2
+        echo "warning: no Chromium under $browsers; browser tests will skip." >&2
+    fi
+
+    say "Playwright Firefox (test_web_icons_under_csp_browser runs in Chromium and Firefox)"
+    # Only Firefox is downloaded; the pinned playwright wants the Firefox build of its own version.
+    if PLAYWRIGHT_BROWSERS_PATH="$browsers" "$PY" -m playwright install firefox \
+       && PLAYWRIGHT_BROWSERS_PATH="$browsers" "$PY" -m playwright install-deps firefox; then
+        echo "Firefox present: $(ls -d "$browsers"/firefox-* | xargs -n1 basename | tr '\n' ' ')"
+    else
+        echo "warning: Firefox did not install; its half of the icon browser test will skip." >&2
+    fi
+
+    say "Static datasets (GEN.548)"
+    # The package is not installed in the snapshot (planetgen-env-up installs it per session), so the
+    # fetch runs from the checkout's source.
+    if PYTHONPATH="$REPO/src" "$PY" -I -m planetgen.cli.datasets fetch; then
+        PYTHONPATH="$REPO/src" "$PY" -I -m planetgen.cli.datasets status
+    else
+        echo "warning: the datasets did not download; generation tests will raise DataMissing until" \
+             "'python3 -m planetgen.cli.datasets fetch' succeeds." >&2
     fi
 }
 install_python > /tmp/planetgen-pip.log 2>&1 &
@@ -244,7 +268,9 @@ MySQL 8, Redis, Apache 2, Flask and every test dependency are already installed,
 new session starts with no services running. Before running tests, run `planetgen-env-up`
 (starts MySQL, Redis and Apache and installs the checkout editable; prints one status
 line; safe to repeat). The test variables (PLANETGEN_TEST_MYSQL_*, PLANETGEN_TEST_REDIS_URL)
-are exported by /etc/profile.d/planetgen-test.sh. Do not run `playwright install`.
+are exported by /etc/profile.d/planetgen-test.sh. Chromium, Firefox and the static datasets are
+already installed: do not run `playwright install` (a second Playwright version will not find
+the browsers).
 EOF
 fi
 # Best effort: also run it automatically at session start. Merges into an existing
