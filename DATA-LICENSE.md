@@ -145,6 +145,10 @@ maximum greenhouse rows). Published paper; values only. The paper's raw text is 
 
 Ten more coefficients of the same table (GEN.639): the runaway greenhouse sets for 0.1 and 5 Earth masses (`KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS`). Published paper; values only.
 
+## The aquifer model (`src/planetgen/physics/aquifers.py`, GEN.654)
+
+Values only, read at second hand (the papers' full text could not be opened) and labelled DESIGN stand-ins in `tuning.py` until a verified source replaces them: the crust's porosity law phi = phi0 exp(-z/K) with K = 2.82 km on Mars and phi0 = 0.2, and the crust's thermal conductivity of about 2 W/m/K, from Clifford 1993, JGR 98, 10973 (a published paper); the upper temperature limit of life, 122 C, from Takai et al. 2008, PNAS 105, 10949. The drill's reach (5 km) and the minimum layer (10 m) are planetGen's own.
+
 ## The water layer of the structure solver (`src/planetgen/physics/bulk_structure.py`, GEN.429)
 
 | Source | What was kept | Terms known |

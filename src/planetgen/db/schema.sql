@@ -1436,6 +1436,7 @@
 --   (radiogenic plus primordial, `physics/interior_heat.py`). `urey_ratio` is now an output of that thermal history, not a draw. NULL for a gas giant and a row made before v153.
 -- v156 (DB.100): `planets` and `moons` keep the world's whole milestone schedule, the age its pace reaches each of the five milestones (`life_age_abiogenesis_gyr` to `life_age_technological_civilization_gyr`, Gy; NULL with no life chemistry),
 --   so the life paragraph and the timeline paragraph are written from the row alone. A row saved before gets the ages of its stored pace.
+-- v157 (GEN.654, DB.92): `planets` and `moons` keep the aquifer a world with no liquid at its surface holds underground, `aquifer_depth_km` (to the top of the water-bearing layer) and `aquifer_thickness_km` (NULL for a world with none, a gas giant and a row made before v157).
 --
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
@@ -2364,6 +2365,8 @@ CREATE TABLE IF NOT EXISTS planets (
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
     water_base_pressure_pa      DOUBLE NULL,  -- v151 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2 (NULL for a planet)
+    aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
+    aquifer_thickness_km        DOUBLE NULL,  -- v156: the thickness of that layer, km
     mantle_eta0_pa_s            DOUBLE NULL,  -- v153 (GEN.699): the viscosity prefactor of the mantle, eta = eta0 exp(Ea / R T), Pa s
     mantle_activation_kj_mol    DOUBLE NULL,  -- v153: its viscosity activation energy Ea, kJ/mol
     internal_heat_flux_w_m2     DOUBLE NULL,  -- v153: the heat flowing out of the interior, radiogenic plus primordial, over the body's surface
@@ -2641,6 +2644,8 @@ CREATE TABLE IF NOT EXISTS moons (
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
     water_base_pressure_pa      DOUBLE NULL,  -- v147 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2
+    aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
+    aquifer_thickness_km        DOUBLE NULL,  -- v156: the thickness of that layer, km
     mantle_eta0_pa_s            DOUBLE NULL,  -- v153 (GEN.699): the viscosity prefactor of the mantle, eta = eta0 exp(Ea / R T), Pa s
     mantle_activation_kj_mol    DOUBLE NULL,  -- v153: its viscosity activation energy Ea, kJ/mol
     internal_heat_flux_w_m2     DOUBLE NULL,  -- v153: the heat flowing out of the interior, radiogenic plus primordial, over the body's surface

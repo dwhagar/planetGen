@@ -591,6 +591,13 @@
       "first_release": "8.0.2312",
       "reason": "A massive star younger than 0.3 Myr may start in a young group of 3 to 5 stars that breaks up within 40,000 years, and an older one draws the remnant a group leaves (one star fewer, tighter orbits), so those stars have different companions (GEN.327)",
       "affects": ["scatter", "fill"]
+    },
+    {
+      "epoch": 100,
+      "first_release": null,
+      "pending": true,
+      "reason": "A rocky planet or moon with no liquid at its surface can hold an aquifer in its crust (depth and thickness stored), which makes its water a solvent for life, so worlds that had no life chemistry now draw one and the habitability score and every later draw of such a world change (GEN.654)",
+      "affects": ["fill"]
     }
   ]
 }
