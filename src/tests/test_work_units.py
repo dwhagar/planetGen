@@ -241,6 +241,66 @@ def test_a_killed_worker_process_fails_its_run_at_once_naming_the_unit(monkeypat
     assert runrecord.read_run(conn, run_id)["stages"][0]["done"] == 0
 
 
+def test_a_unit_that_rq_fails_after_it_was_done_does_not_fail_the_run(monkeypatch, conn):
+    """The Execution-not-found crash of 2026-10-23: RQ failed units whose sectors were saved and counted, when it cleaned
+    up after them, and each failure ended the whole run."""
+    _handlers(monkeypatch, test=_square)
+    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=3)])
+    units.enqueue_units(conn, run_id, 0, "test", [({"n": n}, 1.0) for n in range(3)])
+    from planetgen.queue import workers
+    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
+    assert runrecord.read_run(conn, run_id)["stages"][0]["done"] == 3
+    job = type("Job", (), {"func_name": units.UNIT_FUNCTION, "args": (run_id, 0, 1, "test", {"n": 1}, 1.0)})()
+    units.unit_failed(job, conn, ValueError, ValueError("Execution 9ed8 not found in Redis"), None)
+    assert runrecord.read_run(conn, run_id)["state"] == "done", "the unit was done: the run is not failed"
+    open_run = runrecord.start_run(conn, "T2", [runrecord.Stage("test", "T", units=3)])
+    units.enqueue_units(conn, open_run, 0, "test", [({"n": n}, 1.0) for n in range(3)])
+    job = type("Job", (), {"func_name": units.UNIT_FUNCTION, "args": (open_run, 0, 1, "test", {"n": 1}, 1.0)})()
+    units.unit_failed(job, conn, ValueError, ValueError("no stars here"), None)
+    assert runrecord.read_run(conn, open_run)["state"] == "failed", "a unit that was not done still fails the run"
+
+
+def test_a_unit_found_done_is_not_run_again(monkeypatch, conn):
+    ran = []
+    _handlers(monkeypatch, test=lambda args, report: ran.append(args["n"]) or {})
+    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=2)])
+    runrecord.begin_stage(conn, run_id, 0)
+    units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0), ({"n": 2}, 1.0)])
+    from planetgen.queue import workers
+    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
+    assert sorted(ran) == [1, 2]
+    units.enqueue_units(conn, run_id, 0, "test", [({"n": 1}, 1.0)])         # RQ's retry of unit 0, after it was done
+    workers.ensure_workers(redisqueue.BULK_QUEUE, conn)
+    assert sorted(ran) == [1, 2]
+
+
+def test_a_unit_survives_a_warm_that_outlasts_an_execution_record(monkeypatch, conn):
+    """PERF.146's warm used to run after RQ created the unit's execution record, which expires 90 s after its last beat
+    (the first beat is 30 s after the fork), so a warm of over a minute on a loaded host left a unit that finished
+    before the first beat without its record, and RQ failed it with `ValueError: Execution ... not found in Redis`
+    when it cleaned up. Here the warm drops every execution record of the job, as the expiry would."""
+    from planetgen.cli import worker
+    _handlers(monkeypatch, test=_square)
+    seen = []
+
+    def long_warm(job):
+        for key in conn.scan_iter(match=f"rq:execution:{job.id}:*"):
+            seen.append(key)
+            conn.delete(key)
+
+    monkeypatch.setattr(units, "warm_unit", long_warm)
+    run_id = runrecord.start_run(conn, "T", [runrecord.Stage("test", "T", units=1)])
+    runrecord.begin_stage(conn, run_id, 0)
+    units.enqueue_units(conn, run_id, 0, "test", [({"n": 3}, 1.0)])
+    queue = redisqueue.queue(redisqueue.BULK_QUEUE, conn)
+    worker.worker_class()([queue], connection=conn, serializer=redisqueue.JsonSerializer).work(
+        burst=True, logging_level="WARNING")
+    assert seen == [], "no execution record exists while the worker warms"
+    assert queue.failed_job_registry.count == 0
+    run = runrecord.read_run(conn, run_id)
+    assert run["state"] != "failed" and run["stages"][0]["done"] == 1
+
+
 def test_a_killed_job_that_is_not_a_unit_is_left_to_rq(conn):
     other = type("Job", (), {"func_name": "planetgen.somewhere.else", "args": ("x", 1, 2), "connection": conn})()
     units.horse_killed(other, 1, -9, None)               # no run to fail, nothing raised

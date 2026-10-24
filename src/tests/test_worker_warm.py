@@ -66,15 +66,21 @@ def _unit_job(kind="scatter-mass", args=None):
     return type("Job", (), {"func_name": units.UNIT_FUNCTION, "args": ("run", 0, 0, kind, args, 1.0)})()
 
 
-def test_the_worker_warms_a_unit_before_it_forks_the_horse(monkeypatch):
+def test_the_worker_warms_a_unit_before_rq_creates_its_execution_record(monkeypatch):
+    """The warm comes first of all, so the execution record's 90 s do not run out during it (the Execution not found
+    in Redis crash of the 2026-10-23 Generate run: nothing beats during a warm, the horse's first beat is 30 s after
+    the fork)."""
     from planetgen.queue import commands
     order = []
     monkeypatch.setattr(commands, "warm_function", lambda kind: lambda args: order.append(("warm", kind, args)))
+    monkeypatch.setattr(rq.Worker, "prepare_execution", lambda self, job: order.append(("execution",)))
     monkeypatch.setattr(rq.Worker, "fork_work_horse", lambda self, job, queue: order.append(("fork",)))
     cls = worker.worker_class()
     job = _unit_job()
-    cls.__new__(cls).fork_work_horse(job, None)
-    assert order == [("warm", "scatter-mass", job.args[4]), ("fork",)]
+    instance = cls.__new__(cls)
+    instance.prepare_execution(job)
+    instance.fork_work_horse(job, None)
+    assert order == [("warm", "scatter-mass", job.args[4]), ("execution",), ("fork",)]
 
 
 def test_a_warm_that_fails_does_not_stop_the_horse(monkeypatch):
@@ -85,9 +91,9 @@ def test_a_warm_that_fails_does_not_stop_the_horse(monkeypatch):
         raise OSError("the database is away")
 
     monkeypatch.setattr(commands, "warm_function", lambda kind: broken)
-    monkeypatch.setattr(rq.Worker, "fork_work_horse", lambda self, job, queue: forked.append(job))
+    monkeypatch.setattr(rq.Worker, "prepare_execution", lambda self, job: forked.append(job))
     cls = worker.worker_class()
-    cls.__new__(cls).fork_work_horse(_unit_job(), None)
+    cls.__new__(cls).prepare_execution(_unit_job())
     assert len(forked) == 1
 
 

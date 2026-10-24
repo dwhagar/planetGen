@@ -88,16 +88,19 @@ def worker_class():
     import the new files on every job), so before it waits for the next job
     it starts itself over when the release on disk has changed. PERF.146: before it forks a horse for a unit, it
     works out what the unit would work out from the galaxy alone (`units.warm_unit`), so the horse starts with it
-    instead of building it again.
+    instead of building it again. That is done before RQ creates the unit's execution record, not after: the record
+    expires 90 s after its last heartbeat and nothing beats while the worker warms, so a warm of over a minute on a
+    loaded host let it expire before the horse's first heartbeat, and the unit, finished, failed its run on
+    `ValueError: Execution ... not found in Redis` when RQ cleaned up after it.
 
     PERF.152: a worker of a queue that `pause.holds` takes no job while the Queue page's pause flag is set. It waits
     before it asks for one and, if a job came to it in the moment the flag was set, holds that job (still queued,
     untouched) until the flag is cleared, so a paused queue starts no new unit. A unit already running finishes.
     """
     class WarmWorker(rq.Worker):
-        def fork_work_horse(self, job, queue):
+        def prepare_execution(self, job):
             units.warm_unit(job)
-            return super().fork_work_horse(job, queue)
+            return super().prepare_execution(job)
 
         def _wait_while_paused(self):
             if not any(pause.holds(name) for name in self.queue_names()):
