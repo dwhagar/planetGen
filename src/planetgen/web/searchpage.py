@@ -255,8 +255,6 @@ def tag_groups(state, facets):
             continue
         groups.append({
             "title": FACET_TITLES[facet],
-            "help": ({"text": "What the equipment levels mean", "url": page_url("habitability_levels")}
-                     if facet in ("equipment", "moon_equipment") else None),
             "options": [{
                 "label": option["label"],
                 "count": option["count"],

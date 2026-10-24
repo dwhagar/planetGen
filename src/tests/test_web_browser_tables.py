@@ -659,6 +659,12 @@ def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scr
     assert labels[0].startswith("Overall habitability: ") and "Pressure: Blue" in labels
     assert last.locator("svg.hab-symbol use").first.get_attribute("href").endswith("#hab-overall")
     assert last.locator("svg.hab-symbol.tier-red").count() >= 1
+    # UX.181: each symbol, drawn by the page or by datatable.js, is a link to its section of the habitability page.
+    for row in (first, last):
+        links = row.locator("a.help-link[href*='/help/habitability#']")
+        assert links.count() == 7
+        assert links.first.get_attribute("href").endswith("/help/habitability#overall")
+        assert links.nth(1).get_attribute("href").endswith("/help/habitability#domain-pressure")
 
 
 # --- UX.117: the Apply filters button never goes away ------------------------------------------------

@@ -74,6 +74,70 @@ TIER_CLASSES = tuple(f"tier-{name.lower()}" for name in TIER_NAMES)
 """tuple: The CSS class of each rating colour by tier number (0 Blue to 3 Red)."""
 
 
+# --- Links into the habitability page (UX.181) -------------------------------------------------------------
+
+DOMAIN_ANCHORS = {name: f"domain-{name}" for name in DOMAINS}
+"""dict: The id of each domain's table on the habitability page."""
+
+SYMBOL_ANCHORS = {**DOMAIN_ANCHORS, OVERALL: "overall"}
+"""dict: Where each of the seven symbols is explained on the habitability page (the overall one is the score rule)."""
+
+LIFE_ANCHORS = {name: f"life-{name}" for name in LIFE_NAMES}
+"""dict: The id of each life score's row on the habitability page."""
+
+CHIP_ANCHORS = {
+    "habitable class": "chip-habitable-class",
+    "habitable-class moon": "chip-habitable-class-moon",
+    "inhabited": "chip-inhabited",
+}
+"""dict: The id of each flag chip's entry on the habitability page, by its lower-case words."""
+
+EQUIPMENT_ANCHORS = (
+    # (the id of a row of the equipment table, words of an item name that put the item in that row); the first row
+    # with a matching word wins, so a "hardened habitat" is the shelter row and a "hardened suit" the radiation row, not the suit it hardens.
+    ("equipment-shelter", ("shelter", "habitat")),
+    ("equipment-radiation-garment", ("shielded garment", "storm vest", "hardened")),
+    ("equipment-powered-frame", ("powered frame",)),
+    ("equipment-dust", ("dust",)),
+    ("equipment-gas-filter", ("gas filter",)),
+    ("equipment-co2-scrubber", ("scrubber",)),
+    ("equipment-gas-mix-mask", ("gas-mix",)),
+    ("equipment-self-contained-air", ("self-contained",)),
+    ("equipment-mixed-gas", ("mixed-gas", "isolated air")),
+    ("equipment-pressure-suit", ("pressure suit",)),
+    ("equipment-armoured-suit", ("armoured",)),
+    ("equipment-vehicle", ("vehicle",)),
+    ("equipment-sealed-suit", ("sealed suit", "chemical-barrier", "heat-shielded")),
+    ("equipment-thermal-suit", ("insulated", "liquid-cooled", "diving", "full-cover")),
+    ("equipment-clothing", ("clothing",)),
+)
+"""tuple: `(anchor, words)` of the equipment table's rows, in the order `equipment_anchor` tries them."""
+
+EQUIPMENT_FALLBACK = "equipment"
+"""str: The equipment section's id, for an item no row of `EQUIPMENT_ANCHORS` names."""
+
+PHI6_CHIP_ANCHOR = "overall"
+"""str: Where the "PHI-6 Blue" chip of a body that needs no equipment is explained."""
+
+
+def equipment_anchor(item):
+    """The id on the habitability page of the row that explains an equipment item (`item` is a chip's item name,
+    such as "heated sealed suit"), or the equipment section's own id for a name no row claims."""
+    name = item.lower()
+    for anchor, words in EQUIPMENT_ANCHORS:
+        if any(word in name for word in words):
+            return anchor
+    return EQUIPMENT_FALLBACK
+
+
+def help_link(inner_html, help_url, anchor):
+    """`inner_html` as a link to `anchor` on the habitability page at `help_url`; `inner_html` itself where `help_url`
+    is `None` (a page that has no URL for it, or is that page)."""
+    if not help_url:
+        return inner_html
+    return f'<a class="help-link" href="{escape(help_url)}#{anchor}">{inner_html}</a>'
+
+
 def tier_text(tier):
     """The colour name of a stored tier number (0 Blue to 3 Red). `ValueError` for anything else."""
     if isinstance(tier, bool) or not isinstance(tier, int) or not 0 <= tier < len(TIER_NAMES):
@@ -81,11 +145,12 @@ def tier_text(tier):
     return TIER_NAMES[tier]
 
 
-def symbol_html(name, tier, sprite_url, detail=None):
+def symbol_html(name, tier, sprite_url, detail=None, help_url=None):
     """
     One symbol as markup: `name` is one of `SYMBOL_NAMES`, `tier` the stored rating number (0 Blue to 3 Red) and
     `sprite_url` the URL of `static/icons.svg`. `detail` (escaped here) follows the rating in the words, as
-    "Pressure: Blue, 101 kPa". `ValueError` for an unknown name or tier.
+    "Pressure: Blue, 101 kPa". With `help_url` (the habitability page) the symbol links to where it is explained
+    there. `ValueError` for an unknown name or tier.
     """
     if name not in SPRITE_IDS:
         raise ValueError(f"no habitability symbol {name!r}: expected one of {', '.join(SYMBOL_NAMES)}")
@@ -93,8 +158,9 @@ def symbol_html(name, tier, sprite_url, detail=None):
     if detail:
         words += f", {detail}"
     words = escape(words)
-    return (f'<svg class="icon hab-symbol {TIER_CLASSES[tier]}" role="img" aria-label="{words}" focusable="false">'
-            f'<title>{words}</title><use href="{escape(sprite_url)}#{SPRITE_IDS[name]}"></use></svg>')
+    svg = (f'<svg class="icon hab-symbol {TIER_CLASSES[tier]}" role="img" aria-label="{words}" focusable="false">'
+           f'<title>{words}</title><use href="{escape(sprite_url)}#{SPRITE_IDS[name]}"></use></svg>')
+    return help_link(svg, help_url, SYMBOL_ANCHORS[name])
 
 
 def overall_tier(body):
@@ -107,19 +173,19 @@ def overall_tier(body):
     return None if score is None else TIER_INDEX[habitability.tier(score)]
 
 
-def symbol_row(body, sprite_url, with_overall=True, with_life=True):
+def symbol_row(body, sprite_url, with_overall=True, with_life=True, help_url=None):
     """
     The symbols of one body's row (`phi4` and `tier_<domain>` by name), the overall one first, then those of
     `DOMAINS`, then the cluster of its four life scores (`life_row`) when it has them; an empty string for a body
-    that was not scored.
+    that was not scored. With `help_url` every symbol links into the habitability page.
     """
     overall = overall_tier(body)
     if overall is None:
         return ""
-    cells = [symbol_html(OVERALL, overall, sprite_url)] if with_overall else []
-    cells += [symbol_html(domain, body[f"tier_{domain}"], sprite_url) for domain in DOMAINS]
+    cells = [symbol_html(OVERALL, overall, sprite_url, help_url=help_url)] if with_overall else []
+    cells += [symbol_html(domain, body[f"tier_{domain}"], sprite_url, help_url=help_url) for domain in DOMAINS]
     if with_life:
-        cells.append(life_row(body, sprite_url))
+        cells.append(life_row(body, sprite_url, help_url))
     return f'<span class="hab-symbols">{"".join(cells)}</span>'
 
 
@@ -133,20 +199,22 @@ def life_text(name, score):
     return f"{LIFE_LABELS[name]}: none" if score == 0 else f"{LIFE_LABELS[name]}: {score} of {LIFE_MAX}"
 
 
-def life_html(name, score, sprite_url):
+def life_html(name, score, sprite_url, help_url=None):
     """
     One life score as markup: its shape and the number 0 to 9 beside it, one `role="img"` whose label is the words
-    ("Flora: 3 of 9"); a 0 is drawn muted (`hab-life-none`). `ValueError` for an unknown name or score.
+    ("Flora: 3 of 9"); a 0 is drawn muted (`hab-life-none`). With `help_url` it links into the habitability page.
+    `ValueError` for an unknown name or score.
     """
     words = escape(life_text(name, score))
     muted = " hab-life-none" if score == 0 else ""
-    return (f'<span class="hab-life{muted}" role="img" aria-label="{words}" title="{words}">'
-            f'<svg class="icon hab-life-shape" aria-hidden="true" focusable="false">'
-            f'<use href="{escape(sprite_url)}#{LIFE_SPRITE_IDS[name]}"></use></svg>'
-            f'<span class="hab-life-score" aria-hidden="true">{score}</span></span>')
+    shape = (f'<span class="hab-life{muted}" role="img" aria-label="{words}" title="{words}">'
+             f'<svg class="icon hab-life-shape" aria-hidden="true" focusable="false">'
+             f'<use href="{escape(sprite_url)}#{LIFE_SPRITE_IDS[name]}"></use></svg>'
+             f'<span class="hab-life-score" aria-hidden="true">{score}</span></span>')
+    return help_link(shape, help_url, LIFE_ANCHORS[name])
 
 
-def life_row(body, sprite_url):
+def life_row(body, sprite_url, help_url=None):
     """
     The four life scores of a body's row (`life_<name>`, whole numbers 0 to 9) as a cluster, in the order of
     `LIFE_NAMES`; an empty string for a body with no scores.
@@ -154,5 +222,5 @@ def life_row(body, sprite_url):
     scores = [body.get(f"life_{name}") for name in LIFE_NAMES]
     if any(score is None for score in scores):
         return ""
-    cells = "".join(life_html(name, score, sprite_url) for name, score in zip(LIFE_NAMES, scores))
+    cells = "".join(life_html(name, score, sprite_url, help_url) for name, score in zip(LIFE_NAMES, scores))
     return f'<span class="hab-life-cluster">{cells}</span>'

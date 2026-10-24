@@ -506,3 +506,17 @@ def star_type_classes(star_type):
         return None
     letter, _subclass, yerkes = match.groups()
     return letter, LUMINOSITY_CLASS_ALIASES.get(yerkes, yerkes)
+
+
+def star_type_split(star_type):
+    """
+    A stored star type ("G2V Yellow Main Sequence Star") -> `(spectral text, luminosity text, rest)` as written: ("G2",
+    "V", " Yellow Main Sequence Star"). The first two are what link to their class pages (UX.182), `rest` is the words
+    after the code. `None` where `star_type_classes` has none.
+    """
+    if star_type_classes(star_type) is None:
+        return None
+    code, _, tail = star_type.strip().partition(" ")
+    letter, subclass, yerkes = STAR_TYPE_PATTERN.fullmatch(code.upper()).groups()
+    cut = len(code) - len(yerkes)
+    return code[:cut], code[cut:], f" {tail}" if tail else ""
