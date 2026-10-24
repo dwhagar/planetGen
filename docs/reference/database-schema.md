@@ -1445,6 +1445,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 
 | `bond_albedo`, `greenhouse_factor` | DOUBLE | nullable | Added in v142 (GEN.412). The two draws the surface temperature is made of: the Bond albedo A and the greenhouse quantity G, with T_e = ((1 - A) S / (4 sigma))^(1/4) and T_s = T_e (1 + G)^(1/4) (S the starlight at the orbit; a moon's is its planet's; never below 2.725 K). G is 0 for a body with no air. |
 | `albedo_basis` | TINYINT UNSIGNED | nullable | Added in v142 (GEN.412). Where the two came from: 0 recorded at generation, 1 the exact inverse of a row saved without them (from its stored scale height), 2 a seeded draw from the class range where the inverse had no solution. NULL for a row with no temperature or no starlight to work from. |
+| `tidal_flux_w_m2` | DOUBLE | nullable | Added in v152 (GEN.700). The eccentricity-tide heat flow in W/m2 of an icy moon with a frozen surface (the same flow that thins its ice lid), which the chemical energy of its ocean's life counts: `energy_flux_w_m2` is 1% of the moon's own heat plus this. NULL for a planet, a moon with a liquid or dry surface, a rocky moon, and a body saved before v144. |
 
 ### `moon_reflection_spectrum`
 
@@ -2173,6 +2174,9 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v152 (GEN.700): the tide heat flow of an icy moon
+
+Migration 0152 adds `tidal_flux_w_m2` (DOUBLE, nullable) to `planets` and `moons`, at the end of each table (a planet has no tide and keeps NULL). The generator drew the tide before and discarded it after thickening or thinning the ice lid; it is now kept and added to the heat flow the chemical energy of the ocean's life reads (`energy_flux_w_m2`, [habitability-index.md](../design/habitability/habitability-index.md) section 8). The forced eccentricity behind a tide is not stored, so a moon saved earlier keeps NULL and its stored energy flux; only a moon generated now has it. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index); a column already there is left alone. The version is detected from `planets.tidal_flux_w_m2`.
 ### v151 (GEN.461): the pressure under the water layer
 
 Migration 0151 adds `water_base_pressure_pa` (DOUBLE, nullable) at the end of `planets` and `moons`: the pressure at the bottom of the water over the covered area, Pa. A row made before v151 has NULL there and keeps its water-equivalent `ocean_depth_km`, `ice_shell_km` and `hp_ice_km`; from v151 those are the real, compressed kilometres (746 km, not 1047 km, for a tenth of an Earth mass of water on an Earth mass). The generator epoch marks the old rows. Nothing is backfilled.

@@ -36,6 +36,8 @@ def _downgrade(config):
     conn = store.get_connection(config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN tidal_flux_w_m2, ALGORITHM=COPY")  # v152
+        for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} DROP COLUMN life_microbial, DROP COLUMN life_flora, DROP COLUMN life_fauna,"
                          " DROP COLUMN life_sentient, ADD COLUMN phi_bio DOUBLE, ADD COLUMN phi_cpx DOUBLE,"
                          " ADD COLUMN phi_tech DOUBLE, ALGORITHM=COPY")

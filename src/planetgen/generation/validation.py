@@ -292,6 +292,10 @@ def reconcile_moved_planet(planet, keep_class=False):
             if reclassified:
                 moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
                 planetPhysics.generate_orbital_motion_properties(moon, planet.mass)
+            else:
+                # GEN.704: the moon's star distance changed, so the dose, UV and score
+                # `generate_spin` ends with are re-run as a moved planet's are.
+                planetPhysics.generate_spin(moon, planet.mass)
 
     if any_moon_reclassified:
         # A regenerated moon comes out a new size, and so with a new Hill

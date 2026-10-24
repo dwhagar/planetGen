@@ -142,3 +142,38 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
                     assert ph_lo <= body.ocean_ph <= ph_hi and aw_lo <= body.water_activity <= aw_hi
                     assert body.phosphorus in ("high", "limited", "starved")
     assert {"ice", "dry", "vapour"} <= seen
+
+
+def _moon(planet_class, mass_earth, radius_km, distance_au, **extra):
+    return _body(planet_class, 100.0, 0.0, mass_earth=mass_earth, radius_km=radius_km, is_moon=True,
+                 primary_mass_kg=constants.JUPITER_MASS_TO_KG, distance=distance_au, **extra)
+
+
+def test_an_icy_moon_under_ice_keeps_its_tide_and_a_planet_or_a_warm_moon_keeps_none():
+    for seed in range(8):
+        draw.set_run_seed(seed)
+        europa = _moon("D", 8.0e-3, 1560.8, 6.709e8 / constants.AU_TO_M)
+        hy.generate_hydrosphere(europa, 0.002)
+        # Europa's own 1.4e11 W over its surface is 4.6e-3 W/m2; the forced eccentricity is 0.001 to 0.01, so a tenth to 2 times
+        assert 5e-5 < europa.tidal_flux_w_m2 < 2e-2
+        draw.set_run_seed(seed)
+        enceladus = _moon("D", 1.8e-5, 252.1, 2.38e8 / constants.AU_TO_M)
+        hy.generate_hydrosphere(enceladus, 0.002)
+        assert enceladus.tidal_flux_w_m2 > 0.0  # a small moon is boosted by its resonance
+    planet = _body("D", 100.0, 0.0)
+    hy.generate_hydrosphere(planet, 0.002)
+    assert planet.tidal_flux_w_m2 is None
+    warm = _moon("D", 8.0e-3, 1560.8, 6.709e8 / constants.AU_TO_M)
+    warm.surface_temperature = 290.0
+    warm.atmospheric_pressure = 101325.0
+    hy.generate_hydrosphere(warm, 0.002)
+    assert warm.tidal_flux_w_m2 is None  # a liquid surface needs no ice lid, so no tide is drawn
+
+
+def test_the_tide_is_in_the_chemical_energy_of_an_ocean_under_ice():
+    from planetgen.physics import habitability_world as hw
+    body = types.SimpleNamespace(body_type="t", surface_temperature=100.0, tidal_flux_w_m2=0.004)
+    values = {"hydrosphere": "ice-covered ocean"}
+    heat = 0.002 + body.tidal_flux_w_m2
+    assert hw.energy_flux_w_m2(values, None, None, heat) == pytest.approx(hw.CHEMICAL_SHARE * 0.006)
+    assert hw.energy_flux_w_m2(values, None, None, heat) > 2.5 * hw.energy_flux_w_m2(values, None, None, 0.002)

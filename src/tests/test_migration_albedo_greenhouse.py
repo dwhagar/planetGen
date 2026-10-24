@@ -88,6 +88,8 @@ def test_a_v141_galaxy_gets_the_draws_back_and_keeps_its_temperatures(mysql_conf
     try:
         db_schema_support.drop_bulk_composition(conn)  # v144
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN tidal_flux_w_m2, ALGORITHM=COPY")  # v152
+        for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} DROP COLUMN life_microbial, DROP COLUMN life_flora, DROP COLUMN life_fauna,"
                          " DROP COLUMN life_sentient, ADD COLUMN phi_bio DOUBLE, ADD COLUMN phi_cpx DOUBLE,"
                          " ADD COLUMN phi_tech DOUBLE, ALGORITHM=COPY")  # v150 (GEN.649)
@@ -140,6 +142,8 @@ def test_a_row_with_no_solution_takes_a_seeded_class_draw(mysql_config):
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         db_schema_support.drop_bulk_composition(conn)  # v144
+        for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN tidal_flux_w_m2, ALGORITHM=COPY")  # v152
         for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} DROP COLUMN life_microbial, DROP COLUMN life_flora, DROP COLUMN life_fauna,"
                          " DROP COLUMN life_sentient, ADD COLUMN phi_bio DOUBLE, ADD COLUMN phi_cpx DOUBLE,"

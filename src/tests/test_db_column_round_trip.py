@@ -76,9 +76,11 @@ NULL_IN_THIS_GALAXY = {
     **{(table, "hp_ice_km"): CHANCE for table in ("planets", "moons", "rogue_planets")},
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
-       ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "water_activity")},
+       ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "water_activity", "tidal_flux_w_m2")},
     # A moon with a gas envelope (a class I, J or T moon) is rare: the envelope split is stored for every body that has one.
     **{("moons", column): CHANCE for column in ("envelope_helium_fraction", "envelope_z_fraction")},
+    # Only an icy moon with a frozen surface has a tide; a planet has none.
+    ("planets", "tidal_flux_w_m2"): "a planet has no tide",
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
     **{("facilities", column): "facility hosts used" for column in
        ("star_id", "moon_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",
