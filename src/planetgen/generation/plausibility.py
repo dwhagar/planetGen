@@ -70,7 +70,7 @@ import statistics
 from collections import defaultdict
 
 from planetgen.physics import constants as pc
-from planetgen.physics import planets as planetPhysics
+from planetgen.physics import planets as planetPhysics, relations
 from planetgen import tuning as prog_c
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
@@ -200,7 +200,7 @@ def theoretical_gravity_bounds_g(cls):
             for factor in factors:
                 radius_km = min(max_r_km, max(min_r_km, planetPhysics.giant_radius_km(mass_kg) * factor))
                 radius_m = radius_km * pc.KM_TO_M_FACTOR
-                values.append(pc.G * mass_kg / radius_m ** 2 / pc.EARTH_GRAVITY)
+                values.append(relations.surface_gravity(mass_kg, radius_m) / pc.EARTH_GRAVITY)
 
     return min(values), max(values)
 

@@ -27,7 +27,7 @@ import math
 
 from planetgen import tuning
 from planetgen.generation.planet import Planet
-from planetgen.physics import constants
+from planetgen.physics import constants, relations
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -61,7 +61,7 @@ def disc_mass_range_earth():
 
 def _mass_earth(radius_km, density_g_cm3):
     """The mass, Earth masses, of a sphere of `radius_km` and `density_g_cm3`."""
-    volume_m3 = 4.0 / 3.0 * math.pi * (radius_km * constants.KM_TO_M_FACTOR) ** 3
+    volume_m3 = relations.sphere_volume(radius_km * constants.KM_TO_M_FACTOR)
     return volume_m3 * density_g_cm3 * 1000.0 / constants.EARTH_MASS_TO_KG
 
 

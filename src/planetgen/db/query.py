@@ -43,7 +43,7 @@ from planetgen.db.store import (
 )
 from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
-from planetgen.physics import constants
+from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.physics import habitability_world
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
@@ -2046,7 +2046,7 @@ def rogue_planet_gravity_g(mass_kg, radius_km):
     """A rogue planet's surface gravity in g (UX.99), from its mass and radius; `None` when either is missing."""
     if not mass_kg or not radius_km:
         return None
-    return constants.G * mass_kg / (radius_km * 1000.0) ** 2 / constants.EARTH_GRAVITY
+    return relations.surface_gravity(mass_kg, radius_km * 1000.0) / constants.EARTH_GRAVITY
 
 
 def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):

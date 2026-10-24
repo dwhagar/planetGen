@@ -42,7 +42,7 @@ first version.
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import activity, constants, formation, neutron_star, remnant_mass, spin
+from planetgen.physics import activity, constants, formation, neutron_star, relations, remnant_mass, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -267,9 +267,7 @@ class BlackHole(CompactRemnant):
         # horizon radius -- spin technically shrinks this for a Kerr black
         # hole, but the Schwarzschild value is used here as the simple,
         # standard reference radius).
-        schwarzschild_radius_m = (
-            2 * constants.G * self.mass / constants.SPEED_OF_LIGHT_M_S ** 2
-        )
+        schwarzschild_radius_m = relations.schwarzschild_radius(self.mass)
         self.event_horizon_radius_km = schwarzschild_radius_m / 1000
         self.radius = self.event_horizon_radius_km
 
