@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2076] - 2026-10-24
+
+**Headline:** A planet's atmosphere colour can now be worked out from its air, ozone, haze, dust, cloud and ground, from thin sky to the dense-air limit.
+
+### Changed
+- A new atmosphere colour function takes the air column, the star's temperature, the ozone column, haze, dust, cloud with its cover and the ground's albedo, and gives the sky's hex colour and word, its brightness as a share of the star's, the colour of the sun disc and a note when aerosols decide the colour. It reproduces the design's worked examples (a blue sky under a Sun-like star, cream under a red dwarf, orange under 9 MPa of carbon dioxide instead of a clipped red). Nothing reads it yet, so no generated value or page changes.
+
 ## [8.0.2075] - 2026-10-24
 
 **Headline:** Chemical formulas on the pages, in Markdown, wikitext and the terminal are written with subscripts and superscripts (H₂O, Fe²⁺, ³He), through one shared formatter.
