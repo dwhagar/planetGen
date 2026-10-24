@@ -403,9 +403,14 @@ def sample_params(site_app, sample_job, sample_job_tree):
     sector = sectors[0]
     systems = items(f"/api/systems?sector_id={sector['id']}&limit=100")
     everywhere = items("/api/systems?limit=100")
-    with_bodies = [s for s in everywhere if client.get(f"/api/systems/{s['id']}").get_json().get("planets")]
+    def detail(system):
+        resp = client.get(f"/api/systems/{system['id']}")
+        assert resp.status_code == 200, (system["id"], resp.status_code, resp.get_data(as_text=True)[:300])
+        return resp.get_json()
+
+    with_bodies = [s for s in everywhere if detail(s).get("planets")]
     sample_system = (with_bodies or systems)[0]   # the pages' sample system has planets for the body-row tests
-    planet = client.get(f"/api/systems/{sample_system['id']}").get_json()["planets"][0]
+    planet = detail(sample_system)["planets"][0]
     phenomena = items("/api/phenomena?limit=100")
     phenomenon = phenomena[0]
     conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
