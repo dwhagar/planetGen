@@ -16832,32 +16832,6 @@ Design: [docs/design/operations/login-brute-force-protection.md](design/operatio
   specifically authorizes an exception.
   Prerequisites: none. Related: TEST.261.
 
-- [ ] **SEC.34 Upgrade Pillow from 12.3.0 to 13.0.0 in both lock files (37 advisories fixed in 13.0.0)**
-  Found by Bug 1 in its TEST.261 prep sweeps
-  (reports/test261-pre-audit-sweeps-2026-10-24.md finding 1, pip-audit
-  at
-  main 02651a05, 6:36 PM EDT 2026-10-24 as the lane reported): all 37
-  advisories are in the TIFF, GIF, PPM and PDF decoders (out-of-bounds
-  reads, zero-width images) and are reachable only through the admin
-  picture upload. Do: move pillow to 13.0.0 in requirements.lock and
-  requirements-server.lock, check that every use of Pillow still works
-  (the picture upload, the map and render code that imports PIL), and
-  re-run pip-audit. Done when pip-audit lists no Pillow advisory. Owner:
-  Bug 1 (offered to take it). Merged before the audit so SEC.33 does not
-  find it again.
-  Prerequisites: none. Related: SEC.33, TEST.261.
-
-- [ ] **SEC.35 The picture upload opens the file with every format Pillow knows before refusing all but PNG, JPEG and ICO: restrict the formats on open**
-  Found by Bug 1 in its TEST.261 prep sweeps
-  (reports/test261-pre-audit-sweeps-2026-10-24.md finding 2, 6:36 PM EDT
-  2026-10-24 as the lane reported): web/assets.py::_image_info calls
-  Image.open without a format list, so a TIFF, PPM or GIF header is
-  parsed
-  before the format check refuses it. Do: call Image.open with
-  formats=["PNG", "JPEG", "ICO"] and add a test that a TIFF is refused.
-  Owner: Bug 1 (offered to take it). Merged before the audit.
-  Prerequisites: none. Related: SEC.33, TEST.261.
-
 ## TEST: The test suite
 
 From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
@@ -19093,26 +19067,6 @@ clears each one.
   passes, close this. Done: 50 clean trials on main. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: TEST.313, GEN.631.
-
-- [ ] **TEST.335 test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug)**
-  Found by Core 4 at 6:24 AM EDT 2026-10-24 (as the lane reported);
-  report /mnt/project-files/reports/core4-gen271-report-2026-10-24.md.
-  Fails on a clean origin/main worktree in 3 of 8 runs (about 40 percent
-  on its branch), so it is not a load flake: loop the single test (about
-  35 s a run). In a failing run one order leaves bright_stars rows in
-  sectors 1 0 5, 1 0 11 and 1 1 0 that the other order consumed, and the
-  sectors then differ in star_systems count (6 against 4); the stars'
-  member trees were identical in both orders. The lane's reading: a
-  time-dependent backfill (the run's --since second boundary). It also
-  failed once in a parallel pass for Habitability lane B (see TEST.302).
-  Do: reproduce by looping the test, find what the backfill reads of the
-  clock, and make the order of backfill and consumption independent of
-  time (or pass the time in). Done: the test passes 50 runs in a row on
-  main. Owner: Bug Hunt (proposed).
-  Research (2026-10-09, 10-24 Lane 4): Seen again (Lane 4, #3015 gate,
-  1:41 PM EDT 2026-10-24 as the lane reported): failed in the gate under
-  load, passes alone, not touched by that PR.
-  Prerequisites: none. Related: TEST.302.
 
 - [ ] **TEST.336 test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug)**
   Reported by Core 5 at 6:51 AM EDT 2026-10-24 (as the lane's clock
