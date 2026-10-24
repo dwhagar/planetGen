@@ -1043,6 +1043,28 @@ with `clamp()`.
   analysis lane (proposed by the lane).
   Prerequisites: none.
 
+- [ ] **UX.166 The habitability icons display as intended in Chrome but draw as solid black shapes with tiny coloured dots in Firefox, even with a fully cleared cache (bug)**
+  Boss live observation 12:27 AM EDT 2026-10-24 (his message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiL9KBBr8MDZNwucy3Qzk4t7, screenshot of the
+  Sectors view: the Aenki system planet rows show the row of
+  habitability and life icons as black circles, bow-ties, triangles,
+  hexagons and inverted triangles with only a tiny coloured dot in
+  each). Chrome shows them as intended. UX.157 found the same symptom
+  from the site's Content-Security-Policy refusing the sprite's own
+  style element, with a fix on branch habfix-contrast; this report says
+  Firefox still fails with a cleared cache, so either that fix has not
+  reached his server yet or Firefox has a second cause (the Apache-added
+  second policy of UX.148, an SVG sprite use with an external reference,
+  or an opacity or fill rule Firefox treats differently). Do: first
+  check whether the UX.157 fix is merged and in his build; if it is,
+  reproduce in Firefox with the same policy header (the browser test of
+  UX.157 should run in Firefox as well as Chromium), find the cause and
+  fix it. Done: a Firefox browser test that a sprite icon renders its
+  fill and colour under the site's policy in both themes, and the
+  Sectors view icons match Chrome. Owner: the Composition-first stars
+  lane (lane A), with UX.157.
+  Prerequisites: none. Related: UX.157, UX.148, UX.151.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
