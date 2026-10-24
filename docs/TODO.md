@@ -7195,6 +7195,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
   EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 4, 26
   wait; Blocker I (in progress, PR 4).
+  Research (2026-10-09, 10-24 efficiency): Efficiency suggestion 1,
+  applied by Boss (ALL, 2:21 PM EDT 2026-10-24): Blocker I merges PR 4
+  as three separate PRs, each when its own gate is green: (1) GEN.452,
+  (2) GEN.411, (3) GEN.424 with DB.71.
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/composition/sky-colour-analysis.md): "By the end I want all of the
@@ -7532,6 +7536,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-24 (Boss asked for every blocker to have an owner): Lane I,
   inside its PR 4 (GEN.452, GEN.411, DB.71 and GEN.424 are one PR per
   its plan); the older Core 4 line is stale.
+  Research (2026-10-09, 10-24 efficiency): Efficiency suggestion 1,
+  applied by Boss (ALL, 2:21 PM EDT 2026-10-24): Blocker I merges PR 4
+  as three separate PRs, each when its own gate is green: (1) GEN.452,
+  (2) GEN.411, (3) GEN.424 with DB.71.
   Prerequisites: GEN.411. Related: GEN.411, GEN.423, TEST.209.
 
 - [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
@@ -8045,6 +8053,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
   EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 2, 27
   wait; Blocker I (in progress, PR 4).
+  Research (2026-10-09, 10-24 efficiency): Efficiency suggestion 1,
+  applied by Boss (ALL, 2:21 PM EDT 2026-10-24): Blocker I merges PR 4
+  as three separate PRs, each when its own gate is green: (1) GEN.452,
+  (2) GEN.411, (3) GEN.424 with DB.71.
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
   1:00 AM EDT as the lane reported; merged as
@@ -14232,6 +14244,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none yet.
   Prerequisites: none. Related: PERF.181, GEN.633, PERF.98, PERF.99.
 
+- [ ] **PERF.183 Nightly New galaxy smoke: stage times and peak memory per stage, fail above a budget**
+  Efficiency scan suggestion 7, applied by Boss ("ALL", 2:21 PM EDT
+  2026-10-24). Boss found the MySQL out-of-memory (PERF.181) and the
+  Redis crash (PERF.173) by running New galaxy himself. Do: a nightly
+  run of New galaxy on a test box (the 108 sector size that reproduces
+  Stage 7) that records each stage's time and the peak resident memory
+  of mysqld and the workers, prints it in the stage log, and fails when
+  a stage exceeds a stored budget; the budget lives with the other
+  tuning values. PERF.182 (finish an incomplete run, 8.2) makes a failed
+  night cheap to resume. Done: the smoke runs unattended, a deliberate
+  memory regression makes it fail, and the report line appears in the
+  stage log. Owner: Lane OOM, after PERF.181 merges.
+  Prerequisites: PERF.181. Related: PERF.181, PERF.173, PERF.182.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -14664,6 +14690,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.411, DB.67. Related: DB.67, DB.68,
   GEN.411, GEN.413, GEN.415.
+  Research (2026-10-09, 10-24 efficiency): Efficiency suggestion 1,
+  applied by Boss (ALL, 2:21 PM EDT 2026-10-24): Blocker I merges PR 4
+  as three separate PRs, each when its own gate is green: (1) GEN.452,
+  (2) GEN.411, (3) GEN.424 with DB.71.
 
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -18288,25 +18318,6 @@ clears each one.
   browser-under-load flake of this item.
   Prerequisites: none.
 
-- [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
-  Finding of Habitability lane G (PR #2724, 2026-10-23, about 7:25 PM
-  EDT as the lane reported) and the Debug mode thread (PR #2723): the
-  only red in the full suite (22045 passed otherwise) on a lane machine;
-  fails identically on origin/main; the cause is the MySQL grant of the
-  test database user in this environment, not the code. Kind:
-  environment-dependent test; fails on main on the lane machines every
-  run. Do: make the test create what it needs without a grant it does
-  not have, or skip it with a stated reason when the user lacks the
-  grant (never skip silently), and say in the environment settings
-  (OPS.62 area) what grant the test user needs. Owner: none (pool); Bug
-  Hunt proposed.
-  Research (2026-10-09, Update): Debug mode thread (6:17 AM EDT
-  2026-10-24, as the lane reported): still red on lane machines; the
-  cause is that the test database user pgtest lacks GRANT. Either the
-  setup script (OPS.62) grants it, or the test skips with a stated
-  reason when the grant is missing.
-  Prerequisites: none. Related: TEST.302, OPS.62.
-
 - [ ] **TEST.307 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug)**
   Found by Habitability lane F (relayed 2026-10-23, 9:25 PM EDT): this
   test fails about 1 run in 5 to 8 when run alone, unrelated to
@@ -18486,26 +18497,6 @@ clears each one.
   (proposed).
   Prerequisites: none. Related: TEST.313, GEN.631.
 
-- [ ] **TEST.334 Queue and generation tests pass alone but hang or "DID NOT RAISE" in a full run on lane machines: test_gen_resume (7), test_gen_bright_scatter_edges (5), test_work_units (7 in sequence), test_worker_warm, test_work_queue parallel (bug)**
-  Reported by the Debug mode thread at 6:17 AM EDT 2026-10-24 (as the
-  lane reported) when merging PR #2723: these fail on origin/main on
-  lane machines and so are not from that PR: test_gen_resume.py (7
-  tests), test_gen_bright_scatter_edges.py (5), test_work_units.py (7 in
-  sequence),
-  test_worker_warm.py::test_a_warmed_scatter_unit_builds_no_sampling_table_of_its_own
-  and
-  test_work_queue.py::test_a_parallel_galaxy_run_links_neighbors_like_a_serial_one.
-  They pass alone and hang or show 'DID NOT RAISE' in a full run. Likely
-  related to TEST.302 (benchmark_suite.stop_workers() kills other tests'
-  queue workers) or to a queue or test-setup change in the last 24 hours
-  of merges (PERF.155 #2923 added the unit ceiling and the declared
-  longest units; #2723 itself changed the worker log relay). Do: run the
-  files together in the full-run order, bisect the last day of merges
-  that touched queue/ or the test fixtures, and fix the shared cause.
-  Done: the files pass in a full run on a lane machine. Owner: Bug Hunt
-  (proposed).
-  Prerequisites: none. Related: TEST.302, PERF.155, OPS.65.
-
 - [ ] **TEST.335 test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug)**
   Found by Core 4 at 6:24 AM EDT 2026-10-24 (as the lane reported);
   report /mnt/project-files/reports/core4-gen271-report-2026-10-24.md.
@@ -18579,6 +18570,20 @@ clears each one.
   (passes on main). Owner: none (pool); Core 2 is the natural pick since
   MAP.220 is map work.
   Prerequisites: none. Related: MAP.220, TEST.342.
+
+- [ ] **TEST.344 Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory**
+  Efficiency scan suggestion 4, applied by Boss ("ALL", 2:21 PM EDT
+  2026-10-24). About 36 of 81 open test items fail only under gate load
+  (four parallel workers, WebGL and browser timeouts, stale fixtures;
+  TEST.229, TEST.126, TEST.190, TEST.141, TEST.284 are the same family).
+  Do: measure which tests fail only in the parallel phase, then change
+  scripts/test.py so browser, WebGL and real-queue tests run as a
+  separate phase with one or two workers, and cap the worker count by
+  free memory and load. Never skip, disable or loosen a test. Done: a
+  loaded full run on a lane machine no longer produces the load-only
+  failures, and the load-flake items it covers are closed or
+  re-measured. Owner: Bug Hunt.
+  Prerequisites: none. Related: TEST.229, TEST.126, TEST.190.
 
 ## USR: User accounts
 
@@ -19319,6 +19324,15 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   2026-10-24 as the lane reported): after a container restart MySQL can
   fail to start because of stale /var/run/mysqld/*.lock files; remove
   them and run service mysql start. Add this to the lane machine checks.
+  Research (2026-10-09, 10-24 Debug mode): Lesson from the Debug mode
+  thread (2:21 PM EDT 2026-10-24 as the lane reported): a lane or cloud
+  setup must export PLANETGEN_TEST_REDIS_URL
+  (/etc/profile.d/planetgen-test.sh does); without it the inline queue
+  is off and a test run silently uses real workers, which look like
+  hangs and "DID NOT RAISE" (TEST.334, dropped). The test MySQL user
+  also needs GRANT OPTION or
+  test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version
+  fails (TEST.303, dropped).
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
@@ -19394,6 +19408,40 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   file only. Remaining work: one line in the debug mode docs saying so;
   then close.
   Prerequisites: none. Related: OPS.65.
+
+- [ ] **OPS.70 Gate resumes after a restart, and a lane-start health check runs before every gate**
+  Efficiency scan suggestion 5, applied by Boss ("ALL", 2:21 PM EDT
+  2026-10-24). Container and MySQL restarts killed several gates today
+  (the Redis crash fix lane twice, Lane K and Bug Hunt with stale MySQL
+  lock files, binlogs filling disks), each costing 1 to 3 hours. Do: (1)
+  scripts/test.py records the last finished test file and, after a
+  restart, resumes from it instead of from zero; (2) a lane-start health
+  check runs before every gate: MySQL and Redis up, stale lock files in
+  /var/run/mysqld removed, binary logs purged, the test environment
+  variables from /etc/profile.d/planetgen-test.sh exported
+  (PLANETGEN_TEST_REDIS_URL), the test MySQL user has GRANT OPTION,
+  argon2-cffi and Playwright present; it repairs what it can and prints
+  what it did. Done: killing the container mid-gate, then rerunning,
+  resumes at the last finished file with services healthy. Related
+  OPS.62 (the setup script). Owner: Lane Debug, with Bug Hunt for the
+  gate side.
+  Prerequisites: none. Related: OPS.62, TEST.334.
+
+- [ ] **OPS.71 Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand**
+  Efficiency scan suggestion 6, applied by Boss ("ALL", 2:21 PM EDT
+  2026-10-24). Lanes renumbered epochs and migrations at merge about 27
+  times (the execution notes), each after a long gate. TODO now reserves
+  a number when a lane says its change alters drawn values or the
+  schema, and takes it back if unused (process, in force now). Do: a
+  script (scripts/allocate_numbers.py or inside the merge helper) that,
+  during the rebase onto main, takes the next free epoch in
+  src/tests/golden/epochs.json and the next free migration in
+  src/planetgen/db/migrations/versions, renames the migration file and
+  revision ids, updates the old-schema fixture and the epoch reason, and
+  fails loudly when a number was already used. Done: two branches that
+  both took the same epoch and migration both merge in turn with no hand
+  edits, and a test covers the renumbering. Owner: Lane 4.
+  Prerequisites: none. Related: OPS.56.
 
 ## DOC: Documentation
 
