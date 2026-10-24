@@ -37,6 +37,7 @@
   "/api/auth/api-keys POST",
   "/api/auth/api-keys/<int:key_id> DELETE",
   "/api/auth/change-credentials POST",
+  "/api/auth/confirm-password POST",
   "/api/auth/login POST",
   "/api/auth/login/totp POST",
   "/api/auth/logout POST",

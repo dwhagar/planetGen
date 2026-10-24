@@ -338,6 +338,25 @@ def _check_current_password(body):
     return None
 
 
+@bp.route("/confirm-password", methods=["POST"])
+@limiter.limit(LOGIN_RATE_LIMIT)
+@require_admin(fresh=True, session_only=True)
+def confirm_password():
+    """
+    `POST /api/auth/confirm-password` `{"current_password"}` -- the prompt of the Owner-tier settings (ADM.86): types
+    the password again, guarded like a login (SEC.23), and keeps this session's Owner rights open for
+    `adminAuth.RECENT_PASSWORD_MINUTES`. Answers `{"minutes": N}`.
+    """
+    body = parse_body(PasswordCheck, require_json_body())
+    refused = _check_current_password(body)
+    if refused is not None:
+        return refused
+    adminAuth.confirm_password(get_control_db(), request.cookies.get(session_cookie_name()), g.admin_user["id"],
+                               body.current_password)
+    activity_log.event("AUTH", "password.confirmed", user=g.admin_user["username"])
+    return jsonify({"minutes": adminAuth.RECENT_PASSWORD_MINUTES})
+
+
 @bp.route("/totp", methods=["GET"])
 @require_admin(fresh=True)
 def totp_status():

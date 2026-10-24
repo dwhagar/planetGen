@@ -886,14 +886,17 @@ forced credential change. They back the admin stats page
   `{"ok": bool}` and writes the change to the audit and activity logs
   (`work.cancel`, `work.clear`, `work.delete`, `work.queue.pause`, ...).
 - `GET /api/admin/settings` — the configuration page's data (ADM.84):
-  `{"file_hash", "problem", "file_error", "groups", "options",
+  `{"file_hash", "problem", "file_error", "groups", "options", "reauth",
   "pending_restart"}`. Each option is `{"path", "title", "description",
   "category", "kind" ("bool", "int", "float", "text", "list" or "choice"),
   "choices", "limits", "unit", "default", "value" (what config.json holds,
   the default where it holds nothing), "effective" (the value in use),
   "is_set" (a secret only), "source" ("default", "config.json" or
   "environment"), "env", "restart", "secret", "editable", "min_role",
-  "allowed" (for this admin), "reason"}`. A secret's `value`, `default` and
+  "allowed" (for this admin), "reason", "fixed_kind" ("" when allowed, else "server", "owner" or "reauth")}`. An
+  option of the Owner tier (the mail server, `base_url`, the From address) is allowed only to the Owner signed in
+  with a session whose password was typed within the last 10 minutes (ADM.86; an API key is never more than an
+  admin); `reauth` is true when that is all the caller lacks (`POST /api/auth/confirm-password`). A secret's `value`, `default` and
   `effective` are `null`. `problem` says why the file can't be saved (missing
   or not writable by the web user). `pending_restart` lists the options
   saved since this process started that need a restart.
@@ -1004,6 +1007,8 @@ forced credential change. They back the admin stats page
   a wrong password does; a stale or forged `pending`, or one made before
   a password change, is a `401` asking to sign in again. API keys never
   need a code.
+- `POST /api/auth/confirm-password` `{"current_password"}` — session only; types the password again, guarded like a
+  login, and keeps the Owner-tier settings open for `{"minutes": 10}`.
 - `GET /api/auth/totp` — `{"enabled", "recovery_codes_left"}`.
 - `POST /api/auth/totp/setup` `{"current_password"}` — `{"secret", "uri",
   "qr_svg"}` for an authenticator app; nothing changes at sign-in yet.

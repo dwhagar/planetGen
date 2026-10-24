@@ -232,7 +232,9 @@ def site(mysql_config, config):
     adminAuth.bootstrap_control_schema(mysql_config)
     conn = store.get_control_connection(mysql_config)
     try:
-        conn.execute("UPDATE admin_users SET must_change_credentials = 0")
+        # The account the install seeds is the Owner (USR.31); these tests are an admin's, and
+        # test_owner_settings.py is the Owner's.
+        conn.execute("UPDATE admin_users SET must_change_credentials = 0, role = 'admin'")
         conn.commit()
         admin_id = conn.execute("SELECT id FROM admin_users ORDER BY id LIMIT 1").fetchone()["id"]
         session = adminAuth.create_session(conn, admin_id)

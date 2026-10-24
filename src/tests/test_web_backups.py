@@ -239,7 +239,7 @@ def test_an_admin_cannot_download_an_archive_and_the_owner_can(site, config, mon
     name = site.post("/api/admin/backups", json={}).get_json()["name"]
     resp = site.get(f"/api/admin/backups/{name}/download")
     assert resp.status_code == 403 and "Owner" in resp.get_json()["error"]
-    monkeypatch.setattr(settings_api, "ROLE", "owner")
+    monkeypatch.setattr(settings_api, "writer_role", lambda: "owner")
     resp = site.get(f"/api/admin/backups/{name}/download")
     assert resp.status_code == 200 and resp.data == open(backup.backups_dir() + "/" + name, "rb").read()
     assert "attachment" in resp.headers["Content-Disposition"]

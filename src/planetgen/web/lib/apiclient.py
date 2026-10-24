@@ -952,6 +952,13 @@ def auth_totp_status(cookie_header):
     return _auth_request("GET", "/auth/totp", cookie_header=cookie_header)[0]
 
 
+def auth_confirm_password(cookie_header, current_password):
+    """`POST /api/auth/confirm-password` (ADM.86): types the password again for the Owner-tier settings;
+    `{"minutes": N}`. A wrong password is an `ApiError` (400), a locked-out one 429."""
+    return _auth_request("POST", "/auth/confirm-password", cookie_header=cookie_header,
+                         json_body={"current_password": current_password})[0]
+
+
 def auth_totp_setup(cookie_header, current_password):
     """`POST /api/auth/totp/setup`: `{"secret", "uri", "qr_svg"}`."""
     return _auth_request("POST", "/auth/totp/setup", cookie_header=cookie_header,
