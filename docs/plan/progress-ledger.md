@@ -1360,3 +1360,5 @@ Baseline: PR #1817.
 | TEST.347 | 8.1 | Bugs and flaky tests |
 | TEST.348 | 8.1 | Bugs and flaky tests |
 | DOC.75 | 8.1 | Habitability system |
+| GEN.272 | 8.1 | Multi-star and compact systems |
+| MAP.290 | 8.1 | Fly-through map |
