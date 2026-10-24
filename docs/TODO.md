@@ -1080,6 +1080,239 @@ with `clamp()`.
   scores lane, whichever has UX.153's rest; ask the TODO thread first.
   Prerequisites: none. Related: UX.153, UX.163, GEN.655.
 
+- [ ] **UX.168 Property sheet registry and GET /api/objects/<ref>/sheet, with a completeness test against column_units.py**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D1) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: one registry that lists, for every object kind, the stored
+  properties to show, with units and labels, served as GET
+  /api/objects/<ref>/sheet; read-only on the describe code. Done: a test
+  fails when a stored column of a kind (as listed in db/column_units.py)
+  is missing from its sheet, so a new column cannot be forgotten, and
+  the sheet of a star, planet and moon returns every stored property
+  with units.
+  Prerequisites: none. Related: UX.152, GEN.655.
+
+- [ ] **UX.169 Children API GET /api/objects/<ref>/children and the sector-level tree feed**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D2) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: GET /api/objects/<ref>/children with keyset paging, the
+  summary line fields and the counts, plus the feed the sector tree
+  needs (systems with their stars and planets counted); rogue moons wait
+  for DB.73. Done: a test pages through the children of a system, a
+  planet with moons and a sector with thousands of systems, and the
+  counts match.
+  Prerequisites: none. Related: DB.73.
+
+- [ ] **UX.170 Rebuild item.html: header, Location chain with the Inside remainder, siblings, property sheet, description and children**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D3) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: rebuild templates/item.html and web/item_pages.py so every
+  star, planet and moon page has a header, the Location chain (including
+  the Inside line for a containing cluster or superbubble, the UX.144
+  remainder), siblings, the property sheet of D1, the description text
+  and the children of D2. Done: a page-walk test shows each part for
+  every kind, and the description text of the old dropdown is present
+  before it is deleted by D6.
+  Prerequisites: UX.168, UX.169. Related: UX.143, UX.144.
+
+- [ ] **UX.171 bodyview.js: the page rendered example from data-look, with the colour note and a browser test**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D4) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: a bodyview.js that draws the body's rendered example on
+  its own page from the existing data-look record (MAP.271 painters),
+  with the colour note line of UX.158 (look_note) under it. Done: a
+  browser test in Chromium and Firefox that the example draws and the
+  note shows; needs a Firefox check because of UX.166.
+  Prerequisites: MAP.271. Related: UX.158, UX.166.
+
+- [ ] **UX.172 Tree component: partial, script, keyboard and screen-reader behaviour, no-script fallback and narrow-screen layout**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D5) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: a reusable summary tree (lazy partial, small script,
+  keyboard and screen-reader support, a no-script fallback, a
+  narrow-screen layout) fed by D2. Done: browser tests for expand,
+  collapse, keyboard use and no-script, in Chromium and Firefox.
+  Prerequisites: UX.169.
+
+- [ ] **UX.173 System page: stars table and body list become the tree; remove the dropdown rows and move species, facilities and the admin menu to the object page**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D6) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: the system page's stars table and body list become the
+  tree; remove the dropdown rows, star_notes_html and the class links in
+  rows; move species, facilities and the per-body admin menu to the
+  object page. Boss's choice C: the old dropdown text is gone, no shim.
+  D6 must not merge before D3, so the description is never lost between
+  merges. Done: the system page shows the tree only and a test shows
+  that every removed item is reachable on its object page.
+  Prerequisites: UX.170, UX.172. Related: ADM.1, UX.152.
+
+- [ ] **UX.174 Sector page: Contents rows expand into the tree, keeping facets, sort, jump and paging at the top level**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D7) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: the sector page's Contents rows expand into the tree
+  (system, then stars and planets, then moons) and keep the facets,
+  sort, jump and paging at the top level. Done: browser tests on a
+  sector with thousands of systems.
+  Prerequisites: UX.172.
+
+- [ ] **UX.175 The same page anatomy for phenomena, facilities, clusters and regions (absorbs the UX.143 remainder)**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D8) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: the same anatomy (header, Location, sheet, description,
+  children) for phenomena, facilities, clusters and regions; this
+  absorbs the open remainder of UX.143, so link and do not duplicate.
+  8.1 if capacity, else 8.2. Done: the page-walk test passes for every
+  kind in objectref.KINDS.
+  Prerequisites: UX.170. Related: UX.143, UX.144.
+
+- [ ] **UX.176 Link sweep: object_url, search, lists, describer references and the map popup View button all open /object/<ref>; delete body_anchor, bodyanchor.js and the row-highlight styles**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D9) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: every link to a body (object_url, search, lists, describer
+  references, the map popup View button of MAP.288) opens /object/<ref>;
+  delete body_anchor, bodyanchor.js and the row-highlight styles. The
+  popup button's target waits on Boss's card A (View opens the page,
+  jumps to the row in the tree, or both); the button code is Core 2's,
+  D9 only changes the target. Done: no link to a system anchor remains
+  and the old code is deleted.
+  Prerequisites: UX.170, MAP.288. Related: MAP.288.
+
+- [ ] **UX.177 Tests for the object pages: a page-walk for every kind, tree browser tests, accessibility, no-script, a huge sector, a moon of a moon-less planet and an unknown ID**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D10) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: a page-walk for every kind in objectref.KINDS (extends
+  TEST.267), tree browser tests in Chromium and Firefox, accessibility
+  checks, no-script, a sector with thousands of systems, a moon of a
+  moon-less planet, an unknown ID. Rides with each of D3 to D7. Done:
+  all of these pass in the gate.
+  Prerequisites: UX.170, UX.171, UX.172, UX.173, UX.174. Related:
+  TEST.267.
+
+- [ ] **UX.178 Docs for the object pages: docs/design/interface/object-pages.md, the route list, body-rendering.md and the sheet registry rules**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D11) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: write docs/design/interface/object-pages.md, update the
+  route list and docs/design/composition body-rendering notes and the
+  sheet registry rules. Rides with each of D1 to D7. Done: the docs gate
+  passes and every new route is listed.
+  Prerequisites: UX.168, UX.169, UX.170, UX.171, UX.172, UX.173, UX.174.
+
+- [ ] **UX.179 Sitemap entries and an Open Graph image for object pages (optional, can wait)**
+  Boss's ask, 12:43 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq): planet and star
+  details move out of the dropdown into a dedicated page; the sector
+  contents become summary tree lists (stars, planets, moons) tree-linked
+  to their parents; every thing gets a dedicated details page that shows
+  its rendered example, property table and paragraph text. Filed from
+  the design draft design-drafts/object-detail-pages-2026-10-24.md
+  section 4 (label D12) at 12:47 AM EDT. Web, API and docs only: no
+  generator change, no epoch, no migration, no wipe. Version: 8.1 is
+  proposed and waits on Boss's card B (8.1, 8.2 or split). Owner: the
+  Detail pages lane (a new lane, to be started; check nobody started it
+  first). Do: sitemap entries and an Open Graph image for object pages.
+  Optional; belongs to 8.2. Done: the sitemap lists the object pages and
+  a shared link shows the image.
+  Prerequisites: UX.170.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
