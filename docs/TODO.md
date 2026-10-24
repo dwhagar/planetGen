@@ -8853,122 +8853,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   composition statements it would write come from the checked values
   only.
 
-- [ ] **GEN.451 The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer**
-  Finding of the Atmosphere research lane, part 5 (mixing ratios by
-  class,
-  /mnt/project-files/design-drafts/atmosphere-parts/05-mixing-ratios-by-class.md;
-  2026-10-17, 12:26 AM EDT as the lane reported; relayed by the
-  coordinator): `REDOX_EARTH_DELTA_IW = 3.5` in physics/atmosphere.py
-  (the mean of the drawn mantle redox, with `REDOX_SLOPE` 2.0 per decade
-  of mass and `REDOX_SIGMA` 1.0) is far more oxidised than the
-  building-block values of meteorites (about 1 below to 0 above the
-  iron-wuestite buffer), so a young rocky planet should start reduced.
-  The modern Earth's 3.5 is a test value, not a law (NO FIXED CONTENT).
-  Done: the mean mantle redox is a function written from the sources
-  (building blocks, core formation, planet mass and age, with the seeded
-  scatter), a young rocky planet's mean falls inside the meteorite range
-  and an old, large one reaches the oxidised side, the outgassed mixes
-  of GEN.411 and GEN.422 read it, the constant is gone in the same
-  change (no shim), and a test checks the young-planet mean against the
-  meteorite range and the modern Earth value as a plausibility target
-  only. Generator epoch bump; it joins the one rescatter of 8.4's
-  stored-value changes. Owner: Core 4 (the 8.4 atmosphere chain,
-  proposed).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428. Related: GEN.409,
-  GEN.411,
-  GEN.422,
-  GEN.428.
-  Merged research (2026-10-17): part 05 holds the outgassed rocky-planet
-  atmospheres by mantle redox, the magma-ocean stage (near the
-  iron-wuestite buffer to one above) and white-dwarf debris (about one
-  below); the redox papers (Sossi 2020, Gaillard 2014 and 2021,
-  Hirschmann 2012) are not reached and on Boss's list (master section 6
-  item 2).
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): magma-ocean redox from Sossi 2020, Gaillard
-  2014 and 2021 and Hirschmann 2012: Fe3+/(Fe3+ + Fe2+) = 0.037 +/-
-  0.005 for a bulk-silicate-Earth peridotite melt at 2173 K and 1 bar,
-  which buffers the surface melt about 0.5 log above the iron-wuestite
-  buffer; water stays over 99 percent dissolved while the melt is liquid
-  and carbon outgasses as CO (not CO2 or CH4), which the water-gas shift
-  turns into a CO2 and N2 mixture on cooling, so the early Earth and
-  Venus outgassing were alike. It agrees with the lane's magma-ocean
-  stage (near the buffer to one above) and does not change the
-  building-block mean (about 1 below to 0 above) that this item uses;
-  the Earth value is a test target only. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/composition/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Part F of the Body composition research lane
-  (docs/design/composition/body-composition-parts/F-boss-note-check.md; 2026-10-17,
-  1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Item F2: Sossi et al. 2020 (Sci.
-  Adv. 6, eabd1387) was read (PMC7688334) and confirms Boss's figures:
-  Fe3+/(Fe3+ + Fe2+) = 0.037 +/- 0.005 at 2173 K and 1 bar, fO2 at the
-  iron-wuestite buffer plus 0.5, f_H2O/f_H2 = 1.05 and f_CO2/f_CO =
-  0.21, CO-rich gas, and a CO2-N2 atmosphere after cooling. Two
-  corrections: about 99 percent of the bulk silicate Earth's water and
-  about 35 percent of its CO2 are initially dissolved (the note said
-  carbon goes to the gas), and everything uses Earth's inventories of H,
-  C and N. So this item also stores a mantle oxidation state per rocky
-  planet (delta-IW or the ferric fraction, tied to the mantle FeO of the
-  bulk composition; the field is in DB.69), takes f_H2O/f_H2 and
-  f_CO2/f_CO from fO2 and temperature (Sossi's Fig. 1 explores IW-4.5 to
-  IW+3.1), and the H, C and N inventories and the solubility laws for
-  the first outgassed gas; the Earth value (IW+0.5) is a test target
-  only and the draw range a parametrisation. How fO2 varies between
-  planets (Gaillard 2014 and 2021, Hirschmann 2012) is not in anything
-  read and is Boss's research.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. The redox prior of finding 12: IW+0.5 near 1 Earth
-  mass, about IW-2 for small bodies, then oxidising later (rows a1 and
-  a2 of part 09 category a, GEN.478); the repo's REDOX_EARTH_DELTA_IW of
-  3.5 is the later mantle only; dissolved fractions about 99 percent of
-  the water, about 35 percent of the CO2, about 0 percent of the N2.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the carbonate against CO
-  and CH4 split of carbon in silicate melt by delta-IW (Hirschmann 2012,
-  Gaillard 2014 and 2021) and the outgassed atmosphere by redox state;
-  compare with finding 12.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/composition/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G3) QFM is IW + 3.1 to 3.6 (1 bar, 2200 to 1500 K) and
-  +3.4 to 4.0 (1 GPa), the CO2 > CO crossover is IW + 1.0 to 1.4, so the
-  note's '+2 equals QFM' boundary is right but is not QFM; Sossi's +0.5
-  for Earth is on his own scale (0.0 on the Hirschmann 2021 scale), so
-  the generator fixes one IW scale (see the item on one oxygen-fugacity
-  scale, GEN.498); the carbon-in-reduced-melt papers the note cites are
-  models (-4.7 appears only in N2 experiments), reduced melts hold
-  mainly CO and CH4 needs water, and the solubility laws are exponential
-  in NBO/O and mass action gives 10^(-0.5 delta-IW), so the note's forms
-  are schematic; no per-planet delta-IW distribution is published, and
-  part G3 F8 gives a labelled parametrisation (Doyle 2019, Deng 2020,
-  Guimond 2023, the Rubie to Siebert range).
-  Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): AT.a1, a2 mantle redox: the iron-wuestite identity delta IW = 2
-  log10(a_FeO / a_Fe), with the white-dwarf zero point -1.25 +- 0.10;
-  the calibration is Hirschmann 2021 and the introduction is Frost 1991:
-  do NOT cite the buffer to O'Neill and Eggins 2002, which is about
-  activity coefficients of FeO, NiO, CoO and Mo oxides. The white-dwarf
-  (core formation) scale differs from the surface magma-ocean scale and
-  needs a conversion test.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
-  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
-  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
-  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
-  in 8.1, and only scatter-level changes (nebula radius, remnants above
-  the mass cut) need a rescatter. Where this item says it "joins the one
-  rescatter of 8.4", this wins.
-
 - [ ] **GEN.452 The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug)**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
   1:00 AM EDT as the lane reported; merged as
@@ -9091,96 +8975,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   now merges with the spine under lane I and takes a generator epoch at
   merge. The 8.4 rescatter it was to join is not waited for (testing
   mode). Owner: Habitability lane I (the spine, to be started).
-- [ ] **GEN.454 Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench**
-  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
-  1:00 AM EDT as the lane reported; merged as
-  docs/design/composition/atmosphere-composition.md section 3), filed by the TODO
-  thread. Part 05 (mixing ratios by class) gives the solar element
-  budget, the mass-metallicity draw rule for envelopes, the giant and
-  brown-dwarf chemistry sequences by temperature, pressure, metallicity
-  and quench, and hot-Jupiter thermochemistry; part 02 section 2 gives
-  the alkali and metal-oxide bands of the hot classes. Today the giants
-  take the class mixes of the old tables, which do not follow the
-  element budget (the new gas table of GEN.410 adds helium, neon,
-  ammonia, hydrogen cyanide, ethane, acetylene, sodium, potassium,
-  titanium and vanadium oxide, iron hydride and phosphine, which the
-  giants need). Do: draw each giant's and brown dwarf's mixture from its
-  stored mass, equilibrium temperature, internal heat and [Fe/H] with
-  the sequence of part 05 (carbon as methane or carbon monoxide by
-  temperature and pressure, nitrogen as ammonia or molecular nitrogen,
-  water, the alkali metals and oxides in the hot classes, quench levels
-  as a seeded range), every compound named in the gas table and no fixed
-  per-class percentages; the result feeds the giant colour (GEN.419).
-  Where the science is missing (line lists and pressure-broadened wings
-  of TiO, VO, FeH, CrH; Miguel 2011 tables) the item marks the input
-  open and uses a seeded range. Changes stored values, so it ships with
-  a generator epoch bump. Done: a test per class (cool giant, ice giant,
-  warm giant, hot Jupiter, T and L dwarf) checks the element budget
-  (hydrogen, helium and the metals sum to the drawn metallicity), the
-  dominant carbon and nitrogen carriers by temperature, and determinism.
-  Owner: Core 4 (proposed).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.460. Related:
-  GEN.409,
-  GEN.410,
-  GEN.411,
-  GEN.419, GEN.451.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the giant and brown-dwarf mixtures are possibility
-  rows gated by the class (cool giant, ice giant, warm giant, hot
-  Jupiter, T and L dwarf), with weights that follow temperature,
-  pressure, metallicity and quench from the equilibrium sequence; the
-  element budget keeps the fractions normalised.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. Here the mixture proportions follow
-  those two rules.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. The giant, brown-dwarf and hot-Jupiter rows are
-  categories f, g and h of part 09 (GEN.478); the lane's C/O recipe
-  correction (13.9 percent of giants above C/O 0.8 where about 2 to 5
-  percent was intended, so the core is truncated at 0.8 and an explicit
-  tail is added) and the uncovered brown-dwarf range of 500 to 700 K
-  (row g4 added) are in it. The Parmentier and Guillot formulas are as
-  noted on GEN.423.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the giant metallicity
-  scaling and the double-grey profile.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the
-  "uncovered brown-dwarf range of 500 to 700 K" is superseded by GEN.494
-  (Kirkpatrick 2021 Table 13: 500 to 700 K is T8 to T9, Y0 is 371 to 510
-  K).
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, contradiction sweep card, tapped 7:26 AM EDT 2026-10-21
-  and "Teq threshold, Kzz nuisance", as the coordinator reported it):
-  the quench level comes from an equilibrium-temperature threshold and
-  Kzz is a nuisance parameter under the Brande prior, not a seeded
-  quench range (GEN.519's D5 row follows).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): GEN.460 draws the
-  giants' heavy-element mass M_Z and this item reads it (see GEN.460);
-  the Prerequisites line already names GEN.460.
-
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
   1:00 AM EDT as the lane reported; merged as
@@ -9264,85 +9058,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   papers, GEN.488 and GEN.495, 2026-10-17, 12:10 to 12:13 PM EDT; the
   3.6 percent bound is unsupported), flagged a stand-in at the widest
   bracket.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-
-- [ ] **GEN.456 Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides**
-  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
-  1:00 AM EDT as the lane reported; merged as
-  docs/design/composition/atmosphere-composition.md section 3), filed by the TODO
-  thread. Parts 05 and 06 give the vapour pressures of the species over
-  a silicate melt (sodium, potassium, SiO, Mg, Fe, TiO, VO, and the
-  oxygen they leave behind; Schaefer, Lodders and Fegley 2012; LavAtmos,
-  arXiv:2210.10463), the condensation temperatures of oxides, silicates,
-  iron, sulfides and salts, and the optical table of the condensates.
-  Today a hot rocky planet gets one of the class mixes. Do: for a rocky
-  body hot enough to hold a melt (the design of GEN.409 sets the
-  temperature test from the stored surface temperature and the surface
-  composition of GEN.441), draw the vapour mixture from the equilibrium
-  over the melt and the condensates that form on the cool side, with the
-  species from the gas table (GEN.410) and no fixed percentages; the
-  colour and cloud items read it (GEN.414, GEN.418). Where the
-  vapour-pressure tables are not reached (section 6 item 8) the item
-  marks the input open and uses a seeded range. Changes stored values,
-  so it ships with a generator epoch bump. Done: a test checks the
-  mixture's partial pressures against the cited vapour pressures at
-  three melt temperatures within the stated spread, that the partials
-  sum to the surface pressure, and determinism. Owner: Core 4
-  (proposed).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.411, GEN.414, GEN.451, GEN.499.
-  Related:
-  GEN.409,
-  GEN.410, GEN.411, GEN.414, GEN.418, GEN.441.
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): silicate vaporisation equilibria over magma
-  (SiO2 to SiO + 1/2 O2, Na2O to 2 Na + 1/2 O2), partial pressures
-  dominated by Na, K, Fe, Si, SiO, O and O2, the TiO and VO optical
-  bands that cause stratospheric inversions, and the pressure-broadened
-  Na D and K I wings (Schaefer, Lodders and Fegley 2012, LavAtmos).
-  Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/composition/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Part F of the Body composition research lane
-  (docs/design/composition/body-composition-parts/F-boss-note-check.md; 2026-10-17,
-  1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Item F3: this item follows the
-  redox state of GEN.451 (the lava planet's oxygen fugacity sets the
-  vapour); the sources named in Boss's note (Schaefer, Lodders and
-  Fegley 2012, LavAtmos) were not read.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the lava-world vapour recipes are gated rows by the
-  surface composition and temperature (the redox state of GEN.451 sets
-  the weights), so the vapour is one drawn recipe whose partial
-  pressures are normalised.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the LavAtmos and VapoRock
-  vaporisation lines, the sub-liquidus alkali regime and the
-  super-liquidus monoxides above 2200 K.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/composition/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G3) Na dominates the vapour to 2700 to 2800 K, not 2200
-  K, and the mean molar mass is about 25 near 2000 K and 33 near 3000 K,
-  not 40 to 60 g/mol; the vapour equilibria are VapoRock-type
-  chemical-potential calculations (LavAtmos is arXiv:2210.10463, 9
-  oxides, GPL-3.0; VapoRock is AGPL-3.0; tools to read, not code to
-  copy), see the vapour species item GEN.499.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): lava vapour as in GEN.422:
-  Na-dominated to about 2700 K, no 40 to 60 g/mol mean (the Body lane
-  reads 25 to 33 g/mol, see GEN.499).
   Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
   2026-10-18, as the coordinator reported them): fork 1, "One bump for
   the chain": the whole 8.4 stored-value chain takes ONE generator epoch
@@ -10057,7 +9772,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its sources, the stand-in rows replaced or the reason one stays, and
   TEST.214 listing no meteorite-group stand-in. Owner: unowned
   (research; Boss or a read-only research lane).
-  Prerequisites: GEN.473, GEN.474, GEN.451. Related: GEN.457, GEN.442,
+  Prerequisites: GEN.473, GEN.474. Related: GEN.457, GEN.442,
   GEN.472, TEST.214, GEN.473, GEN.474.
 
 - [ ] **GEN.476 Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range**
@@ -10222,6 +9937,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Part merged (2026-10-09): Lane L merged the draw_mixture part (all
+  families) in #2820 (11:32 PM EDT 2026-10-23 as the lane reported, no
+  epoch): it is not wired into the generator yet, because that needs
+  lane I's PR 4 (GEN.411), which replaces CLASS_MIXES; the wiring takes
+  the next epoch at that merge. Open here: the wiring and the class-mix
+  contradictions listed above.
 
 - [ ] **GEN.480 Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -10833,58 +10554,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Kirkpatrick 2021 Table 13). The title's "T/Y boundary near 500 to 700
   K" and GEN.454's "uncovered range of 500 to 700 K" are superseded.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
-
-- [ ] **GEN.499 The lava-world vapour species and mean molar mass from temperature and composition, replacing the heavy-oxide range of 40 to 60 g/mol**
-  Body composition research lane check of Boss's second research note
-  (2:11 AM EDT; checked 2:43 AM EDT as the lane reported; section 15 and
-  parts G1 to G4 of docs/design/composition/body-composition-research.md), filed by
-  the TODO thread. G-5 (part G3, extends part F item F3). The note says
-  Na and K dominate to 2200 K and the mean molar mass is 40 to 60 g/mol;
-  the lane computed that Na dominates to 2700 to 2800 K and the mean
-  molar mass is about 25 near 2000 K and 33 near 3000 K. Do: use
-  VapoRock-type chemical-potential vapour equilibria over the melt
-  (LavAtmos is arXiv:2210.10463, van Buchem, Miguel, Zilinskas and van
-  Westrenen, 9 oxides, GPL-3.0; VapoRock is AGPL-3.0; both are tools to
-  read, not code to copy into the repository) to give the vapour species
-  and the mean molar mass from the temperature and the surface
-  composition, as the data of the lava rows of GEN.456. Done: a test
-  checks the species list and the mean molar mass against part G3's
-  computed values within its stated error at 2000 K and 3000 K. Owner:
-  Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.456, GEN.451, GEN.441,
-  GEN.478.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/research/gap-filling-plan.md section 8): AD6 hot-giant line lists
-  and vapour pressures (ExoMol). Data from HITRAN, ExoMol, Brewer 2016
-  or Hypatia is downloaded at build time and no derived table is stored
-  in the repository, so builds need the network; the design states how
-  tests run offline (fixtures built by the test or a cache of earlier
-  downloads kept outside the repository, plan 6.5), and the data work of
-  group X9 waits on that design, not on the licence read.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
-  coordinator relayed): a download this item makes is a static file
-  fetched at setup by the shared step that GEN.548 builds first
-  (User-Agent, sha256, cache outside the repository, labelled stand-in,
-  offline fixtures), never at run time; a run-time fetch would have to
-  say why the data needs constant updates.
-  Download policy note (Blocker 1, reported 9:46 AM EDT 2026-10-18;
-  Boss's 'Require the data' answer, 9:38 AM EDT, covers star composition
-  only, GEN.590): the shared download catalogue now treats every dataset
-  as required, so this item's design should say whether a missing file
-  refuses to start or falls back to a labelled stand-in, and why.
-  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
-  this replaces the download policy note above): a missing file refuses
-  the run by default, naming the file, its URL and the setup command;
-  with the explicit disregard option (GEN.599) the run uses this
-  dataset's best possible fallback and prints it in the run header;
-  never a silent fallback. See GEN.594.
 
 - [ ] **GEN.501 Source the activity factor of the NH3 photolysis rate from the Huebner and Mukherjee rate tables**
   Body composition research lane reconciliation of the NH3 photolysis
@@ -13700,6 +13369,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each AD item's builder; GEN.599 builds the option. Not a request for
   Boss's data: Boss has provided all the AD1 data he can (3:07 PM EDT
   2026-10-18).
+  Lane L finding (2026-10-09): Lane L, 11:32 PM EDT 2026-10-23 (as the
+  lane reported): the AD datasets are not catalogued yet, so each AD
+  builder registers its fallback when its dataset is catalogued (gap
+  plan section 5, AD1 to AD8). The unit-registry sweep lane holds this
+  item.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.422, GEN.600, DOC.72.
 
 - [ ] **GEN.595 Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution**
@@ -14784,6 +14458,69 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   habitat, worlds a suit cannot handle keep the higher shelter as
   required, and the consistency test covers both. Owner: Survival
   equipment lane (follow-up; the lane stays open until it merges).
+  Prerequisites: none.
+
+- [ ] **GEN.672 Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver**
+  Found by lane L (atmosphere mixture), report
+  reports/lane-l-findings-2026-10-24.md, relayed 11:32 PM EDT 2026-10-23
+  (as the lane reported). Main has physics/equilibrium.py with
+  data/thermo_nasa7.json (GEN.518) and physics/gas_equilibrium.py with
+  species_thermo.py and data/nasa_glenn_species.json (GEN.451, GEN.454,
+  GEN.499; 89 species, 70 gases and 19 condensed phases, held fO2,
+  lava). Both hold the same NASA data. Do: choose one owner, keep one
+  thermo table and one solver (the lane suggests keeping
+  gas_equilibrium.py, which holds more species, with the regime edges of
+  GEN.518 such as ch4_co_temperature calling it), move the other's
+  callers over, delete the duplicate with no shim, and keep the checked
+  values (tests of both modules) passing. Done: one module and one data
+  file, both modules' tests pass against it. Owner: none for now (needs
+  one owner; pool). Rule: a lane takes it only if nobody else has.
+  Prerequisites: none.
+
+- [ ] **GEN.673 Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on**
+  Found by lane L (atmosphere mixture), report
+  reports/lane-l-findings-2026-10-24.md, relayed 11:32 PM EDT 2026-10-23
+  (as the lane reported). The recipes (GEN.478, GEN.518) now gate
+  hot-Jupiter rows on photosphere_bar, tday_k, zone and host_type. Do:
+  the generator stores photosphere_bar for every giant before
+  draw_mixture runs (lane I's PR 4 replaces CLASS_MIXES and is the
+  natural place), with the column in db/column_units.py in the same PR.
+  Done: draw_mixture reads a stored photosphere_bar for every giant and
+  a test shows a hot Jupiter takes the hot rows. Owner: lane I (with PR
+  4, GEN.411).
+  Prerequisites: GEN.411.
+
+- [ ] **GEN.674 Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug)**
+  Found by lane L (atmosphere mixture), report
+  reports/lane-l-findings-2026-10-24.md, relayed 11:32 PM EDT 2026-10-23
+  (as the lane reported). Do: close these, each with its test: (1) rows
+  k have no perihelion gate; (2) a row whose weight is about 0 is still
+  normalised to 1 when it is the only row passing the class gate (frost
+  drawn at 181 K, a wrong result); (3) rows j3 and j4 are gated on d4
+  and d5, which the shoreline never gives small icy bodies; (4) the
+  carbonate-silicate CO2 sink and the life-O2 ordering are not modelled;
+  (5) the Pluto-like family is never drawn because of the d1 retention
+  (the test uses v_esc 3.0 and low insolation); (6) the gas table lacks
+  Al, K2, KO, K2O and Na2O gases for lava vapour. Radon (m10) and ozone
+  (m1, m2) stay with other lanes (ozone is GEN.413, merged). The N and S
+  inventories are stand-ins (see the stand-in item). Cost to watch:
+  about 10 ms per rocky body and 35 ms per giant. Done: each of the six
+  has a test or a stated reason it stays. Owner: none for now (pool).
+  Prerequisites: none.
+
+- [ ] **GEN.675 Register the atmosphere mixture stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each**
+  Found by lane L (atmosphere mixture), report
+  reports/lane-l-findings-2026-10-24.md, relayed 11:32 PM EDT 2026-10-23
+  (as the lane reported). The stand-ins are WATER_RESIDUAL, SULFUR_SINK,
+  WATER_PHOTOLYSED, OCEAN_WATER_WT_PERCENT, CARBON_PER_OCEAN_WATER,
+  OXYGEN_SINK, TITAN_HUMIDITY, TITAN_HYDROGEN, FROST_ICE,
+  ALKALI_ACTIVITY_COEFFICIENT (3e-9 to 3e-8), COMPOSITION_SCATTER, the
+  k1 to k3 ordering rule and the trace-gas amount brackets. Do: add each
+  to the stand-in registry of docs/design/research/gap-filling-plan.md
+  with fill id, kind (D, B, T, P), evidence label, assumptions, knobs,
+  validity range and falsifier test, so none is silent. Done: every
+  constant above has a registry row. Owner: lane L (it knows the
+  values).
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -21518,25 +21255,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: none. Related: TEST.265.
-
-- [ ] **DOC.74 Design part 01, section 7.4: the CO2 row and its recommended CO2-2 sublimation fit are wrong in the cold; the table now says to use CO2-1 below 195.3 K (bug)**
-  Found by Blocker 2 in GEN.452 (relayed 11:38 PM EDT 2026-10-22 as the
-  coordinator reported), when its liquid branch of the saturation
-  function was checked against the design. Kind: design document error.
-  File:
-  docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md,
-  the CO2-2 row of the sublimation fit table and the CO2 row of the
-  section 7.4 table. Failure: CO2-2 is 4 K too cold at 100 Pa and 17 K
-  too cold at 1 mPa against the gas table's own sublimation heat (25.2
-  to 27.2 kJ/mol); the other 12 rows reproduce to 0.12 K. The lane uses
-  CO2-1 below 195.3 K (GEN.452, #2593). Do: the two rows now say so
-  (corrected by the TODO thread in the docs PR that filed this item);
-  also check that docs/design/research/gap-filling-plan.md and
-  docs/design/composition/atmosphere-composition-parts/08-verification-of-boss-added-research-A.md
-  do not repeat the recommendation, and that GEN.497 (the cold-end
-  vapour pressures) reads the corrected row. Done: no design document
-  recommends CO2-2 below 195.3 K. Owner: the TODO thread.
-  Prerequisites: none. Related: GEN.452, GEN.470, GEN.497.
 
 - [ ] **DOC.75 Help and docs text for the whole habitability system: the score, the symbols, the lists, the sector colouring and the map markers**
   Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
