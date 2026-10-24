@@ -95,6 +95,15 @@ from planetgen.tuning import (
 )
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.util import detmath
+from planetgen.physics import unit_registry as units
+
+_au_to_km = units.converter("au", "km")
+_m_to_ly = units.converter("m", "ly")
+_km_to_m = units.converter("km", "m")
+_s_to_yr = units.converter("s", "yr")
+_pc_to_m = units.converter("pc", "m")
+_km_to_au = units.converter("km", "au")
+_m_to_au = units.converter("m", "au")
 
 
 def open_readonly(config=None, statement_timeout_s=None):
@@ -1437,11 +1446,11 @@ def _system_heliopause_km(conn, system_id):
     (pressed in by a surrounding cloud), else `NAV_DEFAULT_HELIOPAUSE_AU`."""
     row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone()
     _open, heliopause_au = _heliopause_au(conn, row, containing_cloud(conn, row))
-    return (heliopause_au if heliopause_au is not None else NAV_DEFAULT_HELIOPAUSE_AU) * constants.AU_TO_KM
+    return _au_to_km(heliopause_au if heliopause_au is not None else NAV_DEFAULT_HELIOPAUSE_AU)
 
 
 def _km_to_ly(km):
-    return km * 1000.0 / constants.LY_TO_M
+    return _m_to_ly(_km_to_m(km))
 
 
 def _nav_endpoint(conn, ref):
@@ -2658,7 +2667,7 @@ def resolve_object(conn, kind, object_id):
         if row is None:
             return [0.0, 0.0, 0.0]
         if row["role"] == "member":    # GEN.630: a star beyond the pair has no column of the system's; its stored offset
-            return [(row[f"offset_{axis}_au"] or 0.0) * constants.AU_TO_KM for axis in "xyz"]
+            return [_au_to_km(row[f"offset_{axis}_au"] or 0.0) for axis in "xyz"]
         values = (row["sx"], row["sy"], row["sz"]) if row["role"] == "secondary" else (row["px"], row["py"], row["pz"])
         return [v or 0.0 for v in values]
 
@@ -3007,7 +3016,7 @@ def scattered_phenomenon_detail(conn, scatter_id):
         detail["speed_kms"] = speed
         detail["direction"] = [value / speed for value in velocity] if speed > 0.0 else None
         if speed > 0.0:
-            detail["flight_years"] = distance_pc * constants.PARSEC_M / (speed * 1000.0) / constants.SECONDS_PER_YEAR
+            detail["flight_years"] = _s_to_yr(_pc_to_m(distance_pc) / _km_to_m(speed))
     sector = conn.execute(
         "SELECT id, name FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ? ORDER BY id LIMIT 1",
         (row["shell_index"], row["band_index"], row["wedge_index"])).fetchone()
@@ -3221,7 +3230,7 @@ def _heliopause_au(conn, system, cloud):
         radius_km = star["heliosphere_radius_km"] if star else None
     if radius_km is None:
         return None, None
-    open_space_au = radius_km / constants.AU_TO_KM
+    open_space_au = _km_to_au(radius_km)
     if cloud is None:
         return open_space_au, open_space_au
     return open_space_au, compressed_heliosphere_radius(open_space_au, cloud["density_cm3"], cloud["temperature_k"])
@@ -4068,7 +4077,7 @@ def scatter_member_tree(conn, table, row_id):
             " WHERE source = ? AND source_id = ? ORDER BY member_no", (source, int(row_id))).fetchall()]
     nodes = [
         {"node_no": r["node_no"], "parent_node_no": r["parent_node_no"], "kind": r["kind"],
-         "mass_solar": r["mass_solar"], "separation_au": r["separation_km"] * 1000.0 / constants.AU_M,
+         "mass_solar": r["mass_solar"], "separation_au": _m_to_au(_km_to_m(r["separation_km"])),
          "period_years": r["period_years"], "eccentricity": r["eccentricity"]}
         for r in conn.execute(
             "SELECT node_no, parent_node_no, kind, mass_solar, separation_km, period_years, eccentricity"

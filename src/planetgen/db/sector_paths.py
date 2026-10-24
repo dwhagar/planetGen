@@ -33,6 +33,10 @@ from planetgen.db import kind_tables, point_columns
 from planetgen.galaxy import spherical as geometry
 from planetgen.physics import constants
 from planetgen.physics import sector_path as sp
+from planetgen.physics import unit_registry as units
+
+_pc_to_m = units.converter("pc", "m")
+_yr_to_s = units.converter("yr", "s")
 
 PATH_TABLES = kind_tables.tables("path")
 """tuple: The tables whose rows get a path (the `sector_paths.object_table` values)."""
@@ -41,8 +45,8 @@ NEIGHBOUR_REACH_EDGES = 2.5
 """float: Point masses are gathered from sectors whose center is within this
 many edges of the sector's, along each axis."""
 
-_PC = constants.PARSEC_M
-_YEAR = constants.SECONDS_PER_YEAR
+_PC = _pc_to_m(1.0)
+_YEAR = _yr_to_s(1.0)
 
 
 def _sector(conn, sector_id):

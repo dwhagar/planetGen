@@ -49,6 +49,8 @@ REPLACED = [
     ("au", "pc", lambda x: x / constants.AU_PER_PARSEC),
     ("pc", "ly", lambda x: x * (constants.PARSEC_M / constants.LIGHTYEAR_M)),
     ("kpc", "ly", lambda x: x * (constants.KILOPARSEC_M / constants.LY_TO_M)),
+    ("m", "ly", lambda x: x / constants.LY_TO_M),
+    ("m", "pc", lambda x: x / constants.PARSEC_M),
     ("au_yr", "km_s", lambda x: x * (constants.AU_TO_KM / SECONDS_PER_YEAR)),
 ]
 

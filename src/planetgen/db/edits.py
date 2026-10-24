@@ -16,7 +16,9 @@ its row (with what points at it).
 import uuid
 
 from planetgen.db import kind_tables, object_rows, store
-from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
+
+_au_to_km = units.converter("au", "km")
 
 PHENOMENON_TABLES = kind_tables.kind_tables("phenomenon", order="placed")
 """dict: The web's phenomenon type (`/phenomenon/<type>/<id>`) -> its table."""
@@ -91,9 +93,9 @@ def _delete_missing(conn, table, column, owner_id, kept_ids):
 
 
 def _save_belt(conn, system_id, star_id, index, belt):
-    lower_km = belt.lower_limit * constants.AU_TO_KM
-    upper_km = belt.upper_limit * constants.AU_TO_KM
-    distance_km = belt.distance * constants.AU_TO_KM
+    lower_km = _au_to_km(belt.lower_limit)
+    upper_km = _au_to_km(belt.upper_limit)
+    distance_km = _au_to_km(belt.distance)
     if getattr(belt, "db_id", None) is None:
         belt.db_id = store.insert_asteroid_belt(conn, belt, system_id, index, star_id=star_id)
         return
@@ -126,7 +128,7 @@ _STAR_COLUMNS = (
 
 
 def _star_values(star):
-    au = constants.AU_TO_KM
+    au = _au_to_km(1.0)
     return (
         star.name, star.type, star.yerkes_class, star.mass, star.radius,
         star.temperature, star.luminosity, star.age, store._lifespan_gy(star.lifespan),
@@ -201,7 +203,7 @@ def save_system_edits(conn, system_id, system, stars=()):
 
 
 def _save_comet_orbit(conn, comet):
-    au = constants.AU_TO_KM
+    au = _au_to_km(1.0)
     conn.execute(
         "UPDATE comets SET perihelion_distance_km = ?, orbital_period_years = ?, primary_mass_solar = ?,"
         " distance_km = ?, position_x_km = ?, position_y_km = ?, position_z_km = ?, orbital_speed_kms = ?,"

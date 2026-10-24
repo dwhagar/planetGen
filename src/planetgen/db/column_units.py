@@ -30,6 +30,8 @@ import dataclasses
 
 from planetgen.physics import constants, unit_registry
 
+_yr_to_s = unit_registry.converter("yr", "s")
+
 
 @dataclasses.dataclass(frozen=True)
 class LocalUnit:
@@ -46,7 +48,7 @@ class LocalUnit:
     factor: float | None = None
 
 
-_YEAR_S = constants.SECONDS_PER_YEAR
+_YEAR_S = _yr_to_s(1.0)
 
 LOCAL_UNITS = {
     # units the registry has not got: the cubic parsec, light times position and temperature sums, rates, dose, magnetic moment, logarithmic scales

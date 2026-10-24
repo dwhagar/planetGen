@@ -38,7 +38,10 @@ import math
 
 from planetgen import tuning
 from planetgen.db import column_units, point_columns
-from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
+
+_au_to_m = units.converter("au", "m")
+_pc_to_m = units.converter("pc", "m")
 
 RESOLUTION_M = 1.0
 """float: The metre a well-placed body keeps."""
@@ -91,18 +94,18 @@ def _edge_maximum_pc():
 
 REACHES = {
     "bound-orbit": Reach(
-        10_000.0 * constants.AU_TO_M,
+        _au_to_m(10_000.0),
         "the bound-orbit limit of the design note (docs/design/architecture/unified-unit-quantity.md, section 6): the multistar "
         "FRAGILE_AXIS_AU, 10,000 AU; farther than that a body is parent-relative in a wider frame"),
     "stability-ceiling": Reach(
-        2.2e6 * constants.AU_TO_M,
+        _au_to_m(2.2e6),
         "the Hill sphere of a 150 solar-mass star at 8 kpc (generation.star.calculate_hill_sphere, checked by "
         "tests/test_precision.py): the farthest a comet's closed orbit reaches"),
     "sector": Reach(
-        math.sqrt(3.0) / 2.0 * tuning.DEFAULT_SECTOR_EDGE_PC * constants.PARSEC_M,
+        _pc_to_m(math.sqrt(3.0) / 2.0 * tuning.DEFAULT_SECTOR_EDGE_PC),
         "the half-diagonal of a cell of the sector grid (tuning.DEFAULT_SECTOR_EDGE_PC)"),
     "galaxy-edge": Reach(
-        _edge_maximum_pc() * constants.PARSEC_M,
+        _pc_to_m(_edge_maximum_pc()),
         "the largest Edge the galaxy dials allow (galaxy.dials, the grid's reach)"),
 }
 """dict: Reach key -> `Reach`."""
