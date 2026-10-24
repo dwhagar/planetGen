@@ -351,6 +351,7 @@ TABLES = {
             "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
             *EQUIPMENT_LEVELS,
             "albedo_basis",
+            "life_microbial", "life_flora", "life_fauna", "life_sentient",
         ),
         "km": (
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
@@ -385,7 +386,7 @@ TABLES = {
         "ratio": (
             "water_mass_fraction", "ocean_fraction", "land_fraction", "water_activity", "dose_helio_mult", "phi4",
             "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
-            "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "flux_variation",
+            "l_solv", "l_chem", "l_ener", "flux_variation",
             "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index", "al26_ratio", "urey_ratio",
             "tau_haze", "tau_dust", "tau_cloud", "cloud_cover", "aerosol_draw",
             "bond_albedo", "greenhouse_factor",
@@ -563,6 +564,7 @@ TABLES = {
             "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
             *EQUIPMENT_LEVELS,
             "albedo_basis",
+            "life_microbial", "life_flora", "life_fauna", "life_sentient",
         ),
         "km": (
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
@@ -598,7 +600,7 @@ TABLES = {
         "ratio": (
             "water_mass_fraction", "ocean_fraction", "land_fraction", "water_activity", "dose_helio_mult", "phi4",
             "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
-            "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "flux_variation",
+            "l_solv", "l_chem", "l_ener", "flux_variation",
             "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index", "al26_ratio", "urey_ratio",
             "tau_haze", "tau_dust", "tau_cloud", "cloud_cover", "aerosol_draw",
             "bond_albedo", "greenhouse_factor",

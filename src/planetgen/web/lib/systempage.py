@@ -26,6 +26,7 @@ beside it link into the habitability page the same way (UX.181).
 """
 
 from planetgen.describe.html import blocks_html
+from planetgen.physics import life_scores
 from planetgen.physics.habitability_world import DOMAINS, TIER_NAMES
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes, star_type_split
 from planetgen.web.lib.fmt import (

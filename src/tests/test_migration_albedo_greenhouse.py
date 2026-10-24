@@ -88,6 +88,10 @@ def test_a_v141_galaxy_gets_the_draws_back_and_keeps_its_temperatures(mysql_conf
     try:
         db_schema_support.drop_bulk_composition(conn)  # v144
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN life_microbial, DROP COLUMN life_flora, DROP COLUMN life_fauna,"
+                         " DROP COLUMN life_sentient, ADD COLUMN phi_bio DOUBLE, ADD COLUMN phi_cpx DOUBLE,"
+                         " ADD COLUMN phi_tech DOUBLE, ALGORITHM=COPY")  # v150 (GEN.649)
+        for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor,"
                          " DROP COLUMN albedo_basis, ALGORITHM=COPY")
@@ -136,6 +140,10 @@ def test_a_row_with_no_solution_takes_a_seeded_class_draw(mysql_config):
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         db_schema_support.drop_bulk_composition(conn)  # v144
+        for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN life_microbial, DROP COLUMN life_flora, DROP COLUMN life_fauna,"
+                         " DROP COLUMN life_sentient, ADD COLUMN phi_bio DOUBLE, ADD COLUMN phi_cpx DOUBLE,"
+                         " ADD COLUMN phi_tech DOUBLE, ALGORITHM=COPY")  # v150 (GEN.649)
         for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor,"

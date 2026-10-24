@@ -212,17 +212,11 @@ at the Deinococcus figure, 10 kGy/yr, so it keeps no life.
 2.0)^2) · f(pO2), with f = 1 for ambient O2 from 8 to 50 kPa and a half
 Gaussian outside (sigma 2 kPa below, 20 kPa above).
 
-**Phi_tech (human operability with equipment)** = the geometric mean of
-four factors (one hard factor can be partly bought off):
-
-- M_press: 0.2 below 6.3 kPa (a sealed base, as on the Moon), 1 to 250
-  kPa, exp(-(P - 250) / 2500) above.
-- M_therm: 1 / (1 + exp(0.5 (wet bulb - 31))) times a cold side 0.3 + 0.7
-  / (1 + exp(-0.2 (T + 50))) (heating a habitat is cheap, so cold never
-  makes a base impossible).
-- M_isru by the water a base can draw on: liquid 1.0, ice 0.8, hydrated
-  minerals or perchlorate brine 0.6, vapour only 0.4, none 0.1.
-- M_rad = (0.05 / D)^0.2 above 50 mSv/yr, the single-year limit.
+**Phi_tech (human operability with equipment)** was the Xenobiology document's third number (the geometric mean of a
+pressure, a thermal, a water-supply and a radiation-shielding factor). Boss removed it on 2026-10-23 (GEN.649): the
+equipment tier and the six domains already say what a person needs, and the number was shown beside two life scores it
+had nothing to do with. Its four factors, the constants behind them (sigma_P, the cold floor, the water-source
+lookup, the shielding exponent) and the column are gone.
 
 **Surface dose**, until GEN.87 adds stellar particles and magnetic
 fields: D = 0.45 exp(-X / 22) + 0.05 exp(-X / 200) Sv/yr from cosmic rays,
@@ -238,16 +232,16 @@ inventory, 2.3 umol/L phosphate, 80 W/m^2, liquid water at aw 1 and chi
 0, relative humidity 0.5, liquid water for a base. Doses are computed
 unless given.
 
-| World | Inputs | P / T / Air / Water / R / Suit | PHI-6 | PHI_bio | PHI_cpx | Phi_tech | Equipment |
-|---|---|---|---|---|---|---|---|
-| Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7, a full biosphere | Blue x6 | 1.00 | 0.97 | 0.97 | 1.00 | ideal |
-| Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2, no life | Green / Yellow / Red / Blue / Blue / Red | 0.69 | 0.97 | 0 | 0.48 | environment suit |
-| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2, microbes | Yellow / Yellow / Green / Blue / Blue / Yellow | 0.73 | 0.97 | 0 | 0.02 | environment suit |
-| Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5, no life | Blue / Blue / Red / Blue / Blue / Red | 0.74 | 0.97 | 0 | 1.00 | environment suit |
-| Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Blue / Green / Red | 0 | 0.53 | 0 | 0.47 | environment suit |
-| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice, no life | Red / Red / Green / Red / Yellow / Red | 0.3999 | 0.01 | 0 | 0.46 | environment suit |
-| Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour, first plants | Blue / Green / Blue / Yellow / Blue / Red | 0.7499 | 0.64 | 0.64 | 0.80 | ideal |
-| Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Green / Red / Red | 0 | 0.40 | 0 | 0.28 | full life support |
+| World | Inputs | P / T / Air / Water / R / Suit | PHI-6 | PHI_bio | PHI_cpx | Equipment |
+|---|---|---|---|---|---|---|
+| Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7, a full biosphere | Blue x6 | 1.00 | 0.97 | 0.97 | ideal |
+| Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2, no life | Green / Yellow / Red / Blue / Blue / Red | 0.69 | 0.97 | 0 | environment suit |
+| Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2, microbes | Yellow / Yellow / Green / Blue / Blue / Yellow | 0.73 | 0.97 | 0 | environment suit |
+| Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5, no life | Blue / Blue / Red / Blue / Blue / Red | 0.74 | 0.97 | 0 | environment suit |
+| Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Blue / Green / Red | 0 | 0.53 | 0 | environment suit |
+| Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice, no life | Red / Red / Green / Red / Yellow / Red | 0.3999 | 0.01 | 0 | environment suit |
+| Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour, first plants | Blue / Green / Blue / Yellow / Blue / Red | 0.7499 | 0.64 | 0.64 | ideal |
+| Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice, microbes under it | Red / Red / Green / Green / Red / Red | 0 | 0.40 | 0 | full life support |
 
 Recomputed for GEN.207 (six domains and the gates): the Water column is the old
 Chemistry's water inputs, the Air column its gas inputs, and Suitability is new;
@@ -267,14 +261,11 @@ archetypes are in 7.1; a test (`test_habitability.py`) pins this table.
    missing solvent (the doc's dune world computed to 0.34 against its stated
    0.05). GEN.148 replaced the product with the Liebig blend (7.1), which
    keeps that gate (a term at 0 gives 0) and lands within 0.1 of the Master
-   doc's stated value for every archetype. Phi_tech keeps the doc's
-   geometric mean, since equipment can make up for one hard factor in part.
+   doc's stated value for every archetype.
 2. The undefined constants are fixed above: k_w 50, X_ref a quarter of
    Earth's inventory, K_P 0.1 umol/L (the doc's 1.0 scored Earth's ocean
    0.70), L_ener log-scaled from 1e-6 to 10 W/m^2 (no single Phi_ref in
-   tanh fits both sunlight and radiolysis), sigma_P 2500 kPa, M_isru a
-   lookup in place of alpha and E_specific, M_rad's exponent 0.2 in place
-   of lambda, solvent factors 1 / 0.2 / 0.1 / 0, and the surface dose
+   tanh fits both sunlight and radiolysis), solvent factors 1 / 0.2 / 0.1 / 0, and the surface dose
    formula.
 3. L_rad keeps 10 Gy/yr, read in Gy (not Sv); Mars's 0.077 Gy/yr (0.236
    Sv/yr) then scores 1, not the table's 0.65. Mars is held back by its
@@ -390,14 +381,14 @@ archetype) [C] shows another rule fits the stated values better:
 
 | World | Stated `PHI_bio` | Geometric mean | Min | Blend, weight 0.65 |
 |---|---|---|---|---|
-| Earth | 0.98 | 0.985 | 0.980 | 0.98 |
+| Earth | 0.98 | 0.985 | 0.98 |
 | Dense CO2, 3 bar | 0.82 | 0.934 | 0.880 | 0.90 |
 | Hycean 20 bar H2 | 0.74 | 0.855 | 0.720 | 0.76 |
 | Stalled CO | 0.79 | 0.914 | 0.860 | 0.88 |
-| Ice-sealed ocean | 0.12 | 0.378 | 0.050 | 0.10 |
+| Ice-sealed ocean | 0.12 | 0.378 | 0.10 |
 | Cryo-brine (Mars) | 0.18 | 0.353 | 0.150 | 0.20 |
 | Desiccated dune | 0.05 | 0.337 | 0.020 | 0.05 |
-| Europan ocean | 0.68 | 0.774 | 0.580 | 0.64 |
+| Europan ocean | 0.68 | 0.774 | 0.64 |
 
 
 RMS error against the stated values: geometric mean 0.169, product 0.157, min
@@ -634,3 +625,44 @@ A species it lists is fixed by regenerating its limits or the placement; there i
 The in-app text for all of this is `/help/habitability` (under the Help menu, UX.180; every symbol, life score and chip links to its section, UX.181) (`web/lib/habitability_ref.py`, `templates/habitability.html`); its numbers are read from the code named in sections 2 and 9, so it cannot disagree with the score. The seven rating symbols (overall first, then the six domains; UX.101) are drawn on the Planets and Moons lists (`/lists/planet`, `/lists/moon`, a Habitability column that is not sortable; UX.100), under the title of a planet or moon page, in the rows of a system page and in the Search panels. A body with no score shows none; a gas giant has none. The four life scores (0 to 9, the cluster of life shapes beside the symbols) are described on the same page and in GEN.649. The sector colouring (MAP.143), the habitable-world markers (MAP.219, MAP.220) and the radiation terms (GEN.445) are added to the page as each lands.
 
 The habitable zone is a guide, not a rating. Its inner edge is the runaway greenhouse flux and its outer edge the maximum greenhouse flux of Kopparapu et al. (2014, Table 1), each a polynomial in the star's temperature minus 5780 K, valid from 2600 to 7200 K (a star outside takes the nearest end's edges); for the Sun they are 0.95 and 1.68 AU (`physics/orbits.calculate_habitable_zone`, GEN.146). The planet-mass dependence of the inner edge and the early runaway history are GEN.639.
+
+## 12. The four life scores (GEN.649, built)
+
+Boss, 2026-10-23: the line "Microbial 0.00 . Complex life 0.00 . Human operability 0.52" becomes four whole numbers, Microbial,
+Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), "based on the evolutionary path and surface conditions", and the
+page shows them as small icons with a number beside the PHI-6 symbols. `physics/life_scores.py` makes them; they are stored on
+every scored planet and moon (`life_microbial`, `life_flora`, `life_fauna`, `life_sentient`, schema v150, NULL for a gas giant
+or a body with no score) and replace the stored `phi_bio`, `phi_cpx` and `phi_tech`. The two likelihoods remain as in-memory
+values (they decide, in `life.life_ceiling`, what the life draw may claim); they are not stored.
+
+**The path** is the latest milestone the body's timeline reached (`life_stage`: abiogenesis, photosynthesis, complex cells,
+multicellularity, technological civilization). Life with a chemistry but no timeline (a moon, or a world outside the habitable
+zone) is microbial and nothing more, as `habitability_world.native_life` already said. A body with no life chemistry, or a
+timeline that has reached no milestone, scores 0 on all four.
+
+**The surface** is the likelihood: `ceil(9 x PHI_bio)` for microbial life, `ceil(9 x PHI_cpx)` for complex life, never below 1
+once the likelihood clears `tuning.HABITABILITY_LIFE_SCORE_MIN` (0.005), 0 under it.
+
+| Score | Needs | Value |
+|---|---|---|
+| Microbial | any milestone | from PHI_bio |
+| Flora | photosynthesis | from PHI_bio but at most 3 until multicellularity (mats and algae); from multicellularity the larger of that and PHI_cpx's step |
+| Fauna | multicellularity | from PHI_cpx, never more than Flora (animals eat plants) |
+| Sentient | technological civilization | Fauna's step times the share of 10 Myr (`LIFE_SCORE_SENTIENT_FULL_GYR`) the civilization has had since its milestone, at least 1 |
+
+The thresholds (3 for simple flora, 10 Myr, the ceil step) are DESIGN values, in `tuning.py`, to be changed by a sweep or by Boss.
+What the sweep of 150 systems (2,556 scored bodies) showed on 2026-10-23: 44 bodies carry a life chemistry, 38 of those have a
+timeline (21 reached a technological civilization, 15 photosynthesis, 2 abiogenesis), 41 score above 0 Microbial; Sentient
+equals Fauna on nearly every civilization world because the generator places a civilization's milestone more than 10 Myr before
+"now" on almost all of them.
+
+**Who has a path (Boss, 2026-10-23).** Every planet and moon, in any zone, that has a life chemistry gets an evolutionary
+path ("moons always get an evolutionary path if appropriate for them, using the same classifications as planets"); the class's
+own life chemistries and stage ceiling, and the habitability index's ceiling (`life.life_ceiling`), are what make it
+appropriate. Before this only an ecosphere planet that was not a moon had one.
+
+**Food comes from Flora and Fauna (Boss, 2026-10-23).** The Suitability food rung is no longer read from the stage of the
+timeline: `life_scores.food_stage` turns the three scores into the old rungs. Flora is always good food (any Flora above 0 is
+Green, 0.85), Flora with Fauna is better (Blue, 1.0), Fauna is all animal life and counts as food on its own (Green); microbes
+alone stay Yellow (0.5) and no life Red (0.2); life under an ice lid is out of reach as before. The Suitability colour is
+still held under the five core domains' ceiling.

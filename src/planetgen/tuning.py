@@ -2517,10 +2517,27 @@ civilization).
 
 HABITABILITY_LIFE_SCORE_MIN = 0.005
 """
-float: A planet's `phi_bio` (microbial) or `phi_cpx` (complex life) score
-below this shows as 0.00 and counts as none (GEN.206): the habitability
+float: A planet's `phi_bio` (microbial) or `phi_cpx` (complex life) likelihood
+below this counts as none (GEN.206, and a life score of 0, GEN.649): the habitability
 index allows no life of that kind, so the description must not claim it.
 """
+
+LIFE_MILESTONES = ("abiogenesis", "photosynthesis", "complex_cells", "multicellularity", "technological_civilization")
+"""
+tuple[str]: The evolutionary milestones (`EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT` keys) in ascending order of life
+complexity. `evolution.MILESTONE_KEYS` and `physics.life_scores` read it.
+"""
+
+LIFE_SCORE_MAX = 9
+"""int: The top of the four life scores (Microbial, Flora, Fauna, Sentient): 0 is none, 9 is abundant (GEN.649)."""
+
+LIFE_SCORE_SIMPLE_FLORA_MAX = 3
+"""int: The most flora a world can show before multicellular life: mats and algae (stage photosynthesis or complex
+cells) never rise above this, however kind the surface (DESIGN, GEN.649)."""
+
+LIFE_SCORE_SENTIENT_FULL_GYR = 0.01
+"""float: Gyr a technological civilization needs after its milestone to fill its surface (Sentient 9 at the best
+conditions); a younger one scores in proportion, never less than 1 (DESIGN, GEN.649: 10 Myr)."""
 
 MOON_BLACKLIST = ['Q', 'S', 'V']
 """

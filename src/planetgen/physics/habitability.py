@@ -8,10 +8,11 @@ Two layers, as Boss chose (2026-10-07 17:11Z): the PHI-6 display -- since
 GEN.207 six domains (Pressure, Temperature, Air, Water, Radiation and
 Suitability, the long-term one), each a score in [0, 1] and a colour tier
 (Blue, Green, Yellow, Red) for a human visitor, and an overall score that
-mixes the colour gates with their geometric mean (`phi4`) -- and the three
-numbers behind it from the Xenobiology document: PHI_bio
-(microbial life), PHI_cpx (complex, animal life) and Phi_tech (human
-operability with equipment). The kit a human needs is worked out in `physics/equipment.py`.
+mixes the colour gates with their geometric mean (`phi4`) -- and the two
+numbers behind the life scores from the Xenobiology document: PHI_bio
+(microbial life) and PHI_cpx (complex, animal life), which `life_scores`
+turns into the Microbial, Flora, Fauna and Sentient scores (GEN.649; the
+document's Phi_tech, human operability, is gone). The kit a human needs is worked out in `physics/equipment.py`.
 
 Everything here is a pure function of a `World` (the inputs GEN.85 to
 GEN.88 will store for every planet and moon); GEN.89 computes and stores
@@ -108,8 +109,7 @@ sun-cover clothing starts (3), Green to where a full-cover suit starts (30), Yel
 shelter from the sun), Red beyond, 0 a decade further out. The score of the Radiation domain is the lower of this and the dose's."""
 
 SINGLE_YEAR_DOSE_SV = limit("dose_single_year_sv")
-"""float: ICRP's limit for any one year, 50 mSv: where `m_rad` starts
-charging for shielding."""
+"""float: ICRP's limit for any one year, 50 mSv."""
 
 Bands = namedtuple("Bands", "armstrong o2_min o2_chronic o2_acute wet_bulb pressure temperature dose o2_high uv")
 """namedtuple: The limits the five core domains are scored against: the Armstrong pressure, the least inspired
@@ -236,37 +236,6 @@ METAZOA_O2_SIGMA_HIGH_KPA = 20.0
 a half Gaussian outside, sigma 2 kPa below and 20 kPa above (planetGen's
 choice; the doc names only the band)."""
 
-# --- Phi_tech ----------------------------------------------------------------------------
-
-SIGMA_P_KPA = 2500.0
-"""float: M_press fall-off above 250 kPa: 0.50 at 2 MPa, 0.02 at 10 MPa
-(the PHI-4 Yellow/Red edge). Planetgen's choice."""
-
-K_T_PER_K = 0.5
-"""float: M_therm's wet-bulb steepness (Vecellio et al., 2022; the doc)."""
-
-COLD_LIMIT_C = limit("cold_suit_c")
-K_COLD_PER_K = 0.2
-COLD_FLOOR = 0.3
-"""float: M_therm's cold side, which the doc leaves out: a logistic at -50
-deg C (the PHI-4 Yellow edge), steepness 0.2 per K, floored at 0.3 --
-heating a sealed habitat is cheap next to cooling one, so no cold makes a
-base impossible (planetGen's choice)."""
-
-VACUUM_PRESS_FACTOR = 0.2
-"""float: M_press below the Armstrong limit: every base is a sealed
-pressure vessel, as on the Moon (planetGen's choice; the doc's 0.2)."""
-
-WATER_SOURCE_FACTOR = {"liquid": 1.0, "ice": 0.8, "hydrated": 0.6, "vapour": 0.4, None: 0.1}
-"""dict: M_isru by the most accessible water: liquid at the surface, ice,
-hydrated minerals (perchlorate brines counted here), atmospheric vapour
-only, or none (imported). Replaces the doc's undefined tanh((H2O + alpha
-ClO4) / E_specific)."""
-
-SHIELD_EXPONENT = 0.2
-"""float: M_rad = (0.05 / D)^0.2 above the 50 mSv/yr single-year limit: the
-shielding a base must add grows with log(D); Mars's 0.25 Sv/yr scores 0.73 and Europa's surface
-(about 2000 Sv/yr) 0.12. Replaces the doc's undefined lambda."""
 
 # --- A world -----------------------------------------------------------------------------
 
@@ -657,7 +626,7 @@ def phi4(world, limits=HUMAN):
     return result
 
 
-# --- PHI_bio, PHI_cpx, Phi_tech ------------------------------------------------------------
+# --- PHI_bio, PHI_cpx -------------------------------------------------------------
 
 def l_solv(world):
     factor = SOLVENT_FACTOR.get(world.solvent, 0.0)
@@ -717,53 +686,10 @@ def phi_cpx(world):
     return phi_bio(world) * t_metazoa(world)
 
 
-def m_press(world):
-    p = world.pressure_kpa
-    if p < ARMSTRONG_KPA:
-        return VACUUM_PRESS_FACTOR
-    if p <= 250.0:
-        return 1.0
-    return math.exp(-(p - 250.0) / SIGMA_P_KPA)
-
-
-def _logistic(x):
-    """1 / (1 + exp(-x)) without overflowing at a very hot or cold extreme."""
-    if x >= 0.0:
-        return 1.0 / (1.0 + math.exp(-x))
-    e = math.exp(x)
-    return e / (1.0 + e)
-
-
-def m_therm(world):
-    hot = 1.0
-    if world.temperature_c >= -20.0:
-        twb = wet_bulb_c(min(world.temperature_c, 50.0), world.relative_humidity)
-        if world.temperature_c > 50.0:
-            twb += world.temperature_c - 50.0  # past Stull's fit, the wet bulb tracks the dry
-        hot = _logistic(-K_T_PER_K * (twb - WET_BULB_CRIT_C))
-    cold = _logistic(K_COLD_PER_K * (world.temperature_c - COLD_LIMIT_C))
-    return hot * (COLD_FLOOR + (1.0 - COLD_FLOOR) * cold)
-
-
-def m_isru(world):
-    return WATER_SOURCE_FACTOR.get(world.water_source, WATER_SOURCE_FACTOR[None])
-
-
-def m_rad(world):
-    dose = world.dose_sv_yr
-    return 1.0 if dose <= SINGLE_YEAR_DOSE_SV else (SINGLE_YEAR_DOSE_SV / dose) ** SHIELD_EXPONENT
-
-
-def phi_tech(world):
-    """The geometric mean of the four mitigation factors (the doc's form:
-    equipment can make up for one hard factor in part)."""
-    return (m_press(world) * m_therm(world) * m_isru(world) * m_rad(world)) ** 0.25
-
-
 def scores(world):
     """Every number the index gives a world, rounded for display."""
     out = {key: round(fn(world), 3) for key, fn in (
         ("L_solv", l_solv), ("L_chem", l_chem), ("L_ener", l_ener), ("L_rad", l_rad),
-        ("PHI_bio", phi_bio), ("PHI_cpx", phi_cpx), ("Phi_tech", phi_tech))}
+        ("PHI_bio", phi_bio), ("PHI_cpx", phi_cpx))}
     out.update(phi4(world))
     return out

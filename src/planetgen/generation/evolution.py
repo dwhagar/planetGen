@@ -20,7 +20,7 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.stellar_object import get_star_evolutionary_profile
 
-MILESTONE_KEYS = ("abiogenesis", "photosynthesis", "complex_cells", "multicellularity", "technological_civilization")
+MILESTONE_KEYS = tuning.LIFE_MILESTONES
 """
 tuple[str]: `EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT`'s own milestone
 keys, in ascending order of life complexity -- shared by

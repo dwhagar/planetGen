@@ -193,11 +193,12 @@ def apply_life_data(planet, _again=True):
     planet.evolutionary_pace = (evolution.draw_scale(planet.star, get_chemical_scales(planet.life_chemical))
                                 if planet.life_chemical else None)
 
-    # Generate evolutionary timeline data if the planet is habitable, has a
-    # life chemistry and is not a moon. Without a chemistry nothing lives
-    # there, so no timeline (a lifeless world used to get one, and the
-    # population pass then gave it a species no page would show).
-    if planet.zone == 'e' and not planet.is_moon and planet.life_chemical:
+    # Generate evolutionary timeline data for every planet and moon, in any zone, that has a life chemistry (Boss,
+    # 2026-10-23: a moon always gets a path when its class and conditions allow one, as a planet does; the class
+    # ceiling and the habitability index's ceiling above are those conditions). Without a chemistry nothing lives
+    # there, so no timeline (a lifeless world used to get one, and the population pass then gave it a species no
+    # page would show).
+    if planet.life_chemical:
         _set_evolutionary_state(planet, evolution.get_evolutionary_state(
             planet.star, planet.evolutionary_pace, max_stage=stage_ceiling(planet)))
     else:

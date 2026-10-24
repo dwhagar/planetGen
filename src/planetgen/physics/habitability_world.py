@@ -52,7 +52,7 @@ A gas giant has no surface and no score (every field `None`).
 import math
 
 from planetgen import tuning
-from planetgen.physics import aerosols, atmosphere, constants, equipment, habitability, magnetism, radiation, regional_temperature
+from planetgen.physics import aerosols, atmosphere, constants, equipment, habitability, life_scores, magnetism, radiation, regional_temperature
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -73,7 +73,7 @@ CORE_DOMAINS = tuple(name.lower() for name in habitability.CORE_DOMAINS)
 
 BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
-    "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "l_rad",
+    *life_scores.FIELDS, "l_solv", "l_chem", "l_ener", "l_rad",
     *equipment.FIELDS, *regional_temperature.FIELDS, "energy_flux_w_m2", "flux_variation",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
@@ -81,7 +81,12 @@ BODY_FIELDS = (
 dose refresh re-scores a body from its columns alone)."""
 
 SCORE_FIELDS = tuple(name for name in BODY_FIELDS if name not in ("energy_flux_w_m2", "flux_variation"))
-"""tuple: The fields `compute` returns (all but the stored energy flux and flux variation)."""
+"""tuple: The stored fields `compute` returns (all but the stored energy flux and flux variation)."""
+
+LIKELIHOOD_FIELDS = ("phi_bio", "phi_cpx")
+"""tuple: The microbial and complex-life likelihoods `compute` also returns and `generate` and `rescore` keep on the body
+in memory: the life draw reads them (`life.life_ceiling`) and the life scores are made from them. They are not stored
+(GEN.649), so a loaded body has none; the stored `life_*` scores say what they gave."""
 
 LETHAL_DOSE_SV_YR = 1000.0
 """float: The dose a compact object's planet is rated at, Sv/yr: the outer
@@ -167,6 +172,11 @@ def values_from_body(body):
         "native_life": native_life(getattr(body, "life_chemical", None), getattr(body, "life_stage", None),
                                    getattr(body, "life_system_age_gyr", None) is not None),
         "flux_variation": getattr(body, "flux_variation", None),
+        "life_chemical": getattr(body, "life_chemical", None),
+        "life_stage": getattr(body, "life_stage", None),
+        "evolutionary_pace": getattr(body, "evolutionary_pace", None),
+        "life_milestone_age_gyr": getattr(body, "life_milestone_age_gyr", None),
+        "life_system_age_gyr": getattr(body, "life_system_age_gyr", None),
     }
     for field in atmosphere.PARTIAL_PRESSURE_FIELDS:
         values[field] = getattr(body, field, None)
@@ -185,9 +195,9 @@ def native_life(life_chemical, milestone, has_timeline):
     The `habitability.LIFE_STAGES` stage of a body's native life, from its life
     chemistry (`None` for none), the latest evolutionary milestone its timeline
     reached (`life_stage` on the body, `None` for none) and whether it has a
-    timeline (`life_system_age_gyr` is set). Life with no timeline (a moon, or a
-    world outside the habitable zone) is microbial; a timeline that has reached
-    no milestone yet is none.
+    timeline (`life_system_age_gyr` is set). Every body with a chemistry has a
+    timeline since 2026-10-23 (a moon or a cold world too); one without (a hand-built body) is microbial; a
+    timeline that has reached no milestone yet is none.
     """
     if not life_chemical:
         return "none"
@@ -348,12 +358,17 @@ def compute(values, compact_host=None):
     `None`).
     """
     if values.get("body_type") == "g" or values.get("surface_temperature_k") is None:
-        return {name: None for name in SCORE_FIELDS}
+        return {name: None for name in (*SCORE_FIELDS, *LIKELIHOOD_FIELDS)}
     world = world_from(values, lethal_host=compact_host)
+    # The life scores come first: the Suitability food rung is made from them (Flora and Fauna, GEN.649)
+    stage = life_scores.stage_of(world.life_stage, values.get("life_stage"), values.get("evolutionary_pace") is not None)
+    life = life_scores.scores(round(habitability.phi_bio(world), 3), round(habitability.phi_cpx(world), 3), stage,
+                              values.get("life_milestone_age_gyr"), values.get("life_system_age_gyr"))
+    world.life_stage = life_scores.food_stage(life[0], life[1], life[2])
     result = habitability.scores(world)
     out = {"phi4": result["PHI-4"], "phi_bio": result["PHI_bio"], "phi_cpx": result["PHI_cpx"],
-           "phi_tech": result["Phi_tech"], "l_solv": result["L_solv"], "l_chem": result["L_chem"],
-           "l_ener": result["L_ener"], "l_rad": result["L_rad"]}
+           "l_solv": result["L_solv"], "l_chem": result["L_chem"], "l_ener": result["L_ener"], "l_rad": result["L_rad"]}
+    out.update(zip(life_scores.FIELDS, life))
     for domain in DOMAINS:
         score, colour = result[domain.capitalize()]
         out[f"phi4_{domain}"] = score
@@ -403,7 +418,7 @@ def rescore(body):
 
 
 def _clear(body):
-    for name in BODY_FIELDS:
+    for name in (*BODY_FIELDS, *LIKELIHOOD_FIELDS):
         setattr(body, name, None)
 
 
