@@ -50,7 +50,7 @@ SHOW_GROUPS = frozenset({"identity", "habitability", "life", "ratings"})
 or a facility with no ratings set is itself the answer."""
 
 _PLANET_ABSENT = frozenset({
-    "atmospheric_pressure_pa", "p_o2_kpa", "outside_hours", "hydrosphere", "ocean_fraction", "water_mass_fraction",
+    "atmospheric_pressure_pa", "outside_hours", "hydrosphere", "ocean_fraction", "water_mass_fraction",
     "dipole_class", "magnetic_moment_a_m2",
 })
 SHOW_WHEN_ABSENT = {
