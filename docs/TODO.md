@@ -20131,6 +20131,17 @@ clears each one.
   Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.317.
 
+- [ ] **TEST.322 test_no_todo_codes_shown fails on main: planetgen/db/point_columns.py:189 shows the item code DB.73 in a string the code shows (bug)**
+  Found by the TODO thread at 12:57 AM EDT 2026-10-24 while gating a
+  docs change after #2863 (DB.73) merged:
+  src/tests/test_no_todo_codes_shown.py::test_strings_the_code_shows_have_no_todo_code
+  fails with planetgen/db/point_columns.py:189: DB.73 (the rogue_planets
+  note reads 'its own galactic point (DB.73)'). Fails on main: yes. Do:
+  remove the item code from the shown string (say what the rule is in
+  words). Done: the test passes on main. Owner: Habitability B lane
+  (DB.73's author).
+  Prerequisites: none. Related: DB.73.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**

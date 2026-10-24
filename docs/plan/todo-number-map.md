@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.322 |
+| TEST | TEST.323 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -2710,6 +2710,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.319 | test_datasets_real::test_the_catalogue_reports_nothing_missing fails when the ozone_uv file is not downloaded (bug) | none | open |
 | TEST.320 | test_db_batching::test_sector_rows_are_written_in_a_few_multi_row_inserts fails once in a full gate and passes alone (bug) | none | open |
 | TEST.321 | test_web_browser_tables: the jump box test flakes under load (bug) | none | open |
+| TEST.322 | test_no_todo_codes_shown fails on main: planetgen/db/point_columns.py:189 shows the item code DB.73 in a string the code shows (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
