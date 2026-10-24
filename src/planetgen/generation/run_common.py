@@ -240,8 +240,23 @@ def _generation_progress(disable=False):
         TimeElapsedColumn(),
         TextColumn("[dim]remaining"),
         _DecayingRemainingColumn(),
+        console=_log_console(),
         disable=disable,
     )
+
+
+LOG_CONSOLE_WIDTH = 160
+"""int: How wide the bar is drawn when the output is not a terminal (a job log file); rich assumes 80 there, and cut
+    the bar's last columns off ("elapsed 0:0... remaining 0:00:...")."""
+
+
+def _log_console():
+    """A console for the bars: rich's own on a terminal or when `COLUMNS` says how wide, else `LOG_CONSOLE_WIDTH` wide,
+    so a log file keeps the whole line."""
+    if sys.stdout.isatty() or os.environ.get("COLUMNS"):
+        return None
+    from rich.console import Console
+    return Console(width=LOG_CONSOLE_WIDTH)
 
 
 def _strict(args):
