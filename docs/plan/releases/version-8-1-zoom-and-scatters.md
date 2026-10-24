@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 5:05 PM EDT 2026-10-24: 975 of 1334 items finished (73.1 percent), 359 open, 30 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 99, phase 2 33, phase 3 26, phase 4 13, phase 5 67, phase 6 24, phase 7 19, phase 8 4, phase 9 28, phase 10 2, phase 11 31, phase 12 13 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 5:14 PM EDT 2026-10-24: 977 of 1335 items finished (73.2 percent), 358 open, 30 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 99, phase 2 33, phase 3 26, phase 4 13, phase 5 68, phase 6 23, phase 7 19, phase 8 4, phase 9 28, phase 10 2, phase 11 31, phase 12 12 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -377,6 +377,7 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes |  |  |
 | GEN.557 | Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion | GEN.553, GEN.565 |  |
 | GEN.726 | Surface pressure supply law: atmosphere mass from delivered volatiles, degassing, escape and sinks, then pressure from mass and gravity |  |  |
+| TEST.357 | changes/map-unresolved-glow.minor.md has a '### Tests' heading, so bump_version.py --check-pr fails on main (bug) |  |  |
 | TEST.356 | test_web_search: the star result link is red on clean main (bug) |  |  |
 | TEST.355 | test_class_pages: the phenomenon link (nebula D) is red on clean main (bug) |  |  |
 | TEST.354 | test_api.py::test_the_description_splits_into_every_body is red on clean main: the facts section appears twice (facts, prose, composition, ratings, facts) (bug) |  |  |
@@ -475,7 +476,6 @@ Moved into 8.1 from 8.4 phase 1 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.555 | The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test | GEN.315, GEN.331, GEN.332, GEN.581 |  |
 | GEN.554 | Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets | GEN.553 |  |
 | GEN.550 | Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system |  |  |
-| DB.89 | Giants store their interior layers: the layer boundaries, the helium share per layer, the core flag, core mass and core composition |  |  |
 | GEN.430 | The planet and moon descriptions state the composition from the stored fractions |  | Boss 11:49 PM EDT; the description side. Core 4 proposed. |
 
 ### Albedo and greenhouse records
@@ -674,7 +674,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 |---|---|---|---|
 | PERF.175 | benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug) |  |  |
 | PERF.174 | Every work unit's database connection runs the schema check again: skip it when the schema version is current |  |  |
-| PERF.173 | A new-galaxy Generate run dies in stage 5 with "Execution not found in Redis": the worker warm outlives the 90 s execution record (bug) |  |  |
 | PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) |  | Boss run log; generation-log lane. |
 | PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) |  | Boss run log; generation-log lane. |
 | PERF.184 | Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug) |  |  |

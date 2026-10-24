@@ -1380,3 +1380,5 @@ Baseline: PR #1817.
 | ADM.86 | 8.1 | Admin and API housekeeping |
 | GEN.714 | 8.1 | Surface and small bodies |
 | TEST.350 | 8.1 | Bugs and flaky tests |
+| DB.89 | 8.1 | Bulk composition |
+| PERF.173 | 8.1 | The headline closes |
