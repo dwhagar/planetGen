@@ -139,6 +139,39 @@ def test_each_stars_tier_is_the_one_of_the_place_it_lands_in():
     assert len(rows) <= wanted * 1.3 + 20
 
 
+def _tiered_pass():
+    skeleton = tiers._skeleton()
+    limits = ScatterLimits.of(skeleton, tiers.FLOOR, tiers.MASS)
+    tiered = scatter_limits.luminosity_pass(limits)
+    fractions, bands = brightStars.pass_of(tiered, tiers.FLOOR, None, None)
+    return tiered, fractions, bands
+
+
+@pytest.mark.parametrize("component", [
+    _cluster(mass=6.0e6, center=(1000.0, 0.0, 6000.0)), _cluster(mass=6.0e6, center=(10.0, 0.0, 5.0)),
+    _satellite(mass=5.0e8)])
+def test_gen678_the_stars_a_component_is_expected_to_place_are_the_stars_its_tiers_keep(component):
+    """GEN.678: a unit was expected to place about 23,000 stars and placed 1,000 to 3,000: the expectation counted every
+    candidate at the share of the largest tier, but a component lies in the tier of its place, which keeps less."""
+    tiered, fractions, bands = _tiered_pass()
+    rows = list(component_pass.scatter_stars([component], EDGE, SEED, fractions, bands, tiered=tiered))
+    kept = component_pass.kept_stars(component, fractions, tiered, EDGE)
+    candidates = dict(component_pass.star_weights([component], fractions, tiered))[component]
+    assert kept <= candidates * 1.0000001
+    assert len(rows) == pytest.approx(kept, abs=4.0 * math.sqrt(kept) + 3.0)
+    assert dict(component_pass.kept_weights([component], fractions, tiered, EDGE)) == {component: kept}
+
+
+def test_gen678_a_component_in_a_tier_that_keeps_none_is_expected_to_place_none_though_its_candidates_are_many():
+    tiered, fractions, bands = _tiered_pass()
+    inner = _cluster(mass=6.0e6, center=(10.0, 0.0, 5.0))
+    assert component_pass.kept_stars(inner, fractions, tiered, EDGE) == 0.0
+    assert dict(component_pass.star_weights([inner], fractions, tiered))[inner] > 100.0
+    assert component_pass.kept_stars(inner, brightStars.band_fractions(FLOOR), None, EDGE) == pytest.approx(
+        dict(component_pass.star_weights([inner], brightStars.band_fractions(FLOOR)))[inner]), \
+        "an untiered pass keeps the share it was given everywhere"
+
+
 def test_the_stars_placed_in_a_cell_are_the_share_the_fill_takes_off_it():
     """No double count: a cell's expected pre-placed stars are its systems times the share the pass keeps, which is what
     `FillContext.bright_share` removes from the cell's own draw."""
