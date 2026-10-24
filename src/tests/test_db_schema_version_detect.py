@@ -10,7 +10,7 @@ is missing. One older than the Alembic baseline (v61) is refused.
 import pytest
 
 from planetgen.db import alembic_runner, store
-from planetgen.physics import equipment
+from planetgen.physics import equipment, regional_temperature
 from tests.db_schema_support import load_old_schema, old_schema_versions
 
 # A fresh database with no schema, which these tests build and migrate themselves (TEST.139 stage 3).
@@ -42,6 +42,8 @@ def _make_older_than_the_baseline(config):
     conn = store.get_connection(config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in regional_temperature.FIELDS)
+                         + ", ALGORITHM=COPY")  # v137
             conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in EQUIPMENT_COLUMNS)
                          + ", ALGORITHM=COPY")  # v136
             conn.execute(f"ALTER TABLE {table} DROP COLUMN ozone_column_du, ALGORITHM=COPY")  # v135

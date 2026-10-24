@@ -52,7 +52,7 @@ A gas giant has no surface and no score (every field `None`).
 import math
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, equipment, habitability, magnetism, radiation
+from planetgen.physics import atmosphere, constants, equipment, habitability, magnetism, radiation, regional_temperature
 
 TIER_INDEX = {"Blue": 0, "Green": 1, "Yellow": 2, "Red": 3}
 TIER_NAMES = tuple(TIER_INDEX)
@@ -68,7 +68,7 @@ CORE_DOMAINS = tuple(name.lower() for name in habitability.CORE_DOMAINS)
 BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "l_rad",
-    *equipment.FIELDS, "energy_flux_w_m2", "flux_variation",
+    *equipment.FIELDS, *regional_temperature.FIELDS, "energy_flux_w_m2", "flux_variation",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
 `moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
@@ -152,6 +152,8 @@ def values_from_body(body):
         "uv_surface_index": getattr(body, "uv_surface_index", None),
         "magnetic_moment_a_m2": getattr(body, "magnetic_moment_a_m2", None),
         "rotation_period_hours": getattr(body, "rotation_period_hours", None),
+        "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
+        "period_years": getattr(body, "period", None),
         "is_moon": bool(getattr(body, "is_moon", False)),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
         "native_life": native_life(getattr(body, "life_chemical", None), getattr(body, "life_stage", None),
@@ -348,6 +350,7 @@ def compute(values, compact_host=None):
         out[f"phi4_{domain}"] = score
         out[f"tier_{domain}"] = TIER_INDEX[colour]
     out.update(equipment.compute(world))
+    out.update(regional_temperature.compute(values))
     return out
 
 

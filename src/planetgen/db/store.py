@@ -1543,6 +1543,7 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (137, _column_marker("planets", "temp_swing_k")),
     (136, _column_marker("planets", "eq_body")),
     (135, _column_marker("planets", "ozone_column_du")),
     (134, _column_marker("system_configs", "max_stars")),

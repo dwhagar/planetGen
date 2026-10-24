@@ -406,7 +406,7 @@ def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client
 def test_the_class_index_and_the_system_list_link_to_the_habitability_levels(client):
     assert 'href="/classes/habitability"' in _html(client, "/classes")
     system = _system()
-    system["planets"][0].update({"equipment": {"required": [], "recommended": [], "line": "", "code": ""}, "phi4": 1.0, "tier_pressure": 0, "tier_temperature": 0,
+    system["planets"][0].update({"equipment": {"required": [], "recommended": [], "line": "", "code": "", "items": []}, "phi4": 1.0, "tier_pressure": 0, "tier_temperature": 0,
                                  "tier_air": 0, "tier_water": 0, "tier_radiation": 0,
                                  "tier_suitability": 0})
     html = system_list_html(system, _SECTIONS, habitability_url="/classes/habitability")

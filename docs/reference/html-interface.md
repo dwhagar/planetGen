@@ -41,7 +41,7 @@ The sweep of the existing wording is done (PR #1049).
 Each rocky planet's and moon's description also carries the PHI-6 rating (UX.91, GEN.218, `physics/protection.py`): the score and the equipment a visitor needs, then one short sentence per category with its colour, score and the value that sets it.
 
 Planet and moon rows carry habitability chips (GEN.89, design in
-`docs/design/habitability/habitability-index.md`): an equipment chip (the survival equipment line, GEN.655: what a visitor needs, such as "pressure suit + dust-tight seals"; none for a world that needs nothing), a colour chip
+`docs/design/habitability/habitability-index.md`): equipment chips (the survival equipment line, GEN.655, UX.154: one chip per item a visitor needs, such as "Pressure suit" and "Dust-tight seals", solid when required and outlined when recommended, each in the colour of the PHI-6 domain it comes from; none for a world that needs nothing), a colour chip
 that comes from the six PHI-6 domains (pressure, temperature, air, water,
 radiation, suitability; Blue, Green, Yellow, Red) under the gates of GEN.207, and the Habitable,
 Habitable moon and Inhabited chips. Planets around pulsars, neutron stars

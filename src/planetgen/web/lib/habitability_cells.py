@@ -11,6 +11,9 @@ from planetgen.web.lib.habitability_symbols import LABELS, OVERALL, overall_tier
 COLUMN = "Habitability"
 """str: The column's heading."""
 
+EQUIPMENT_COLUMN = "Equipment"
+"""str: The heading of the equipment column (UX.154)."""
+
 
 def habitability_cell(row):
     """
@@ -24,3 +27,24 @@ def habitability_cell(row):
     for symbol in symbols:
         symbol["label"] = f"{LABELS[symbol['name']]}: {TIER_NAMES[symbol['tier']]}"
     return {"text": ", ".join(symbol["label"] for symbol in symbols), "symbols": symbols}
+
+
+def equipment_chips(row):
+    """
+    The equipment chips of a search `row` (UX.154): `[{text, severity, tier}]`, one per item of its needs list
+    (`equipment_items`, required first). `severity` is `required` (drawn solid) or `recommended` (outlined) and `tier` the
+    0 to 3 colour of the PHI-6 domain the item comes from. Empty for a body that needs nothing or was not scored.
+    """
+    chips = []
+    for item in row.get("equipment_items") or ():
+        tier = row.get(f"tier_{item['domain'].lower()}")
+        chips.append({"text": item["item"], "severity": item["severity"], "tier": tier if tier is not None else 0})
+    return chips
+
+
+def equipment_cell(row):
+    """The Equipment cell of a data table: the chips, with `text` the same list in words, or a muted dash."""
+    chips = equipment_chips(row)
+    if not chips:
+        return {"text": "—", "muted": True}
+    return {"text": row.get("equipment") or "—", "chips": chips}

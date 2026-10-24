@@ -281,15 +281,23 @@ def _stat(text):
 
 
 def _habitability_chip(body):
-    """GEN.89, GEN.655: the equipment a human needs on this body (the required items, else the recommended; a body that
-    needs nothing shows its PHI-6 colour), coloured by its worst PHI-6 domain (Blue to Red); empty for a gas giant or a
-    body not scored. The ratings themselves are the symbols beside it (UX.100)."""
+    """GEN.89, GEN.655, UX.154: the equipment a human needs on this body as one chip per item, solid for a required item
+    and outlined for a recommended one, each in the colour of the PHI-6 domain it comes from; a body that needs nothing
+    shows one chip of its worst PHI-6 domain's colour; empty for a gas giant or a body not scored. The ratings
+    themselves are the symbols beside it (UX.100)."""
     levels = body.get("equipment")
     if levels is None:
         return ""
-    worst = max(body.get(f"tier_{domain}") or 0 for domain in DOMAINS)
-    text = " + ".join(levels["required"]) or " + ".join(levels["recommended"]) or f"PHI-6 {TIER_NAMES[worst]}"
-    return f'<span class="flag flag-tier flag-tier-{worst}">{esc(text[:1].upper() + text[1:])}</span>'
+    chips = []
+    for item in levels["items"]:
+        tier = body.get(f"tier_{item['domain'].lower()}") or 0
+        text = item["item"][:1].upper() + item["item"][1:]
+        hidden = ' <span class="sr-only">(recommended)</span>' if item["severity"] == "recommended" else ""
+        chips.append(f'<span class="flag flag-eq flag-eq-{item["severity"]} flag-tier flag-tier-{tier}">{esc(text)}{hidden}</span>')
+    if not chips:
+        worst = max(body.get(f"tier_{domain}") or 0 for domain in DOMAINS)
+        return f'<span class="flag flag-tier flag-tier-{worst}">PHI-6 {TIER_NAMES[worst]}</span>'
+    return f'<span class="eq-chips">{"".join(chips)}</span>'
 
 
 def _gravity_text(gravity_g):

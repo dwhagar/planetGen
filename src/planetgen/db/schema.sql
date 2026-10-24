@@ -1428,6 +1428,10 @@
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
 --   `physics/equipment.py`, required and recommended) and `shelter_column_g_cm2` and `outside_hours` (DOUBLE); all NULL for a gas giant and an unscored body.
 --
+-- v137 (GEN.656): `planets` and `moons` also keep where the mean surface temperature is higher or lower (`physics/regional_temperature.py`, kelvin, NULL for a gas giant and an unscored body):
+--   a world that turns on its own has the annual means of its latitude bands `temp_polar_k`, `temp_north_k`, `temp_equator_k` and `temp_south_k` and the day and night swing
+--   `temp_swing_k`; a tidally locked world has `temp_day_side_k`, `temp_terminator_k` and `temp_night_side_k` instead. A pure function of stored columns, so no epoch.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2249,6 +2253,14 @@ CREATE TABLE IF NOT EXISTS planets (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
+    temp_polar_k                DOUBLE,
+    temp_north_k                DOUBLE,
+    temp_equator_k              DOUBLE,
+    temp_south_k                DOUBLE,
+    temp_swing_k                DOUBLE,
+    temp_day_side_k             DOUBLE,
+    temp_terminator_k           DOUBLE,
+    temp_night_side_k           DOUBLE,
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2452,6 +2464,14 @@ CREATE TABLE IF NOT EXISTS moons (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
+    temp_polar_k                DOUBLE,
+    temp_north_k                DOUBLE,
+    temp_equator_k              DOUBLE,
+    temp_south_k                DOUBLE,
+    temp_swing_k                DOUBLE,
+    temp_day_side_k             DOUBLE,
+    temp_terminator_k           DOUBLE,
+    temp_night_side_k           DOUBLE,
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.

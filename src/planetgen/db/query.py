@@ -6344,9 +6344,12 @@ def _equipment_columns(alias):
 
 
 def _with_equipment(row):
-    """A search row with its equipment line (`equipment.line`, empty for a body that needs nothing) and the levels
-    it was worked out from taken out."""
+    """A search row with its equipment line (`equipment.line`, empty for a body that needs nothing), its items
+    (`equipment_items`: `item`, `severity` and the PHI-6 `domain` of each, which the chips are drawn from, UX.154) and the
+    levels it was worked out from taken out."""
     row["equipment"] = equipment.line(row)
+    row["equipment_items"] = [{"item": item.name, "severity": item.severity, "domain": item.domain}
+                              for item in equipment.items(row)]
     for column in equipment.FIELDS:
         row.pop(column, None)
     return row
