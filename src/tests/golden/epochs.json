@@ -433,8 +433,7 @@
     },
     {
       "epoch": 88,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2221",
       "reason": "Where an atmosphere freezes out is now worked out from the checked saturation curves instead of a two-point table, so the stored partial pressures and total surface pressure of cold bodies change (GEN.452)"
     }
   ]
