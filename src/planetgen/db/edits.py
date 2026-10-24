@@ -41,11 +41,12 @@ def _star_ids(conn, system_id, system):
     """`[(star_id, planets), ...]`: the `planets.star_id` each of the
     system's planet lists is stored under (`None` for a close pair's
     circumbinary planets)."""
+    members = [(member.db_id, bodies) for member, bodies in system.member_hosts()]    # GEN.332
     if system.binary_type == "wide":
         return [(system.primary_star.db_id, system.planets),
-                (system.secondary_star.db_id, system.secondary_planets)]
+                (system.secondary_star.db_id, system.secondary_planets), *members]
     if system.binary_type == "close":
-        return [(None, system.planets)]
+        return [(None, system.planets), *members]
     row = conn.execute("SELECT id FROM stars WHERE star_system_id = ? AND role = 'single'", (system_id,)).fetchone()
     return [(row["id"] if row else None, system.planets)]
 

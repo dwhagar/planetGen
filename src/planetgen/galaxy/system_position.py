@@ -104,7 +104,8 @@ def set_system_epoch(system, epoch_unix):
     if not hasattr(system, "primary_star"):
         return
     bodies = list(getattr(system, "stars", None) or [system.primary_star])
-    for planet in list(getattr(system, "planets", []) or []) + list(getattr(system, "secondary_planets", []) or []):
+    for planet in getattr(system, "all_planets", None) or (
+            list(getattr(system, "planets", []) or []) + list(getattr(system, "secondary_planets", []) or [])):
         bodies.append(planet)
         bodies.extend(getattr(planet, "moons", []) or [])
     bodies.extend(getattr(system, "comets", []) or [])
@@ -194,6 +195,8 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
         (getattr(system, "secondary_planets", []) or [], getattr(system, "secondary_comets", []) or [],
          secondary_at, secondary_v),
     ]
+    for member, bodies in system.member_hosts() if hasattr(system, "member_hosts") else ():    # GEN.332
+        groups.append((bodies, [], star_centers.get(id(member), center_au), star_velocities.get(id(member), system_velocity)))
     for planets, comets, anchor, anchor_v in groups:
         for planet in planets:
             placed = _carry(planet, sector_au, anchor, sector_edge_pc, anchor_v, report=True)

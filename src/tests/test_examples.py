@@ -98,8 +98,8 @@ def test_example_object_counts_are_consistent(path):
     assert planet_count == system.planet_count
     assert belt_count == system.belt_count
     assert moon_count == system.moon_count
-    # count_objects() defaults to both stars' combined lists -- identical to
+    # count_objects() defaults to every star's combined lists -- identical to
     # `len(system.planets)` alone unless this example happened to roll an
-    # S-type (wide) binary (system.secondary_planets is always [] otherwise).
-    assert planet_count + belt_count == len(system.planets) + len(system.secondary_planets)
+    # S-type (wide) binary or a third star (GEN.332).
+    assert planet_count + belt_count == len(system.all_planets)
     assert system.habitable_class_count >= system.m_count >= 0

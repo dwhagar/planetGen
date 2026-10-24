@@ -655,13 +655,19 @@ def check_orbit_spacing(planets):
     return problems
 
 
+def _member_hosts(system):
+    """`[(star, planets)]` of the further stars of the tree, none for a system that has no such stars."""
+    return system.member_hosts() if hasattr(system, "member_hosts") else []
+
+
 def star_lists(system):
     """`(star, planets)` for each star that holds its own planet list:
     the system's star (a single star, or a close pair's merged proxy),
-    then a wide pair's secondary."""
+    then a wide pair's secondary, then each further star of the tree (GEN.332)."""
     lists = [(system.star, system.planets)]
     if getattr(system, "binary_type", None) == "wide":
         lists.append((system.secondary_star, system.secondary_planets))
+    lists.extend(_member_hosts(system))
     return lists
 
 
@@ -769,6 +775,8 @@ def refresh_star_reflex(system):
         star = system.secondary_star
         star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z = \
             calculate_reflex_offset(star.mass, children(system.secondary_planets))
+    for star, planets in _member_hosts(system):
+        star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z = calculate_reflex_offset(star.mass, children(planets))
 
 
 def stabilize_star_system(system, pinned=(), allow_removal=False):

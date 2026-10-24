@@ -973,7 +973,8 @@ def sector_generation_summary_lines(sector, args_used):
         lines.append(f"    Phenomena: {phenomena_str}")
 
     stars = sum(len(getattr(entry.star_system, "stars", None) or [None]) for entry in sector.entries)
-    planets = sum(len(getattr(entry.star_system, "planets", None) or ())
+    planets = sum(len(entry.star_system.all_planets) if hasattr(entry.star_system, "all_planets") else
+                  len(getattr(entry.star_system, "planets", None) or ())
                   + len(getattr(entry.star_system, "secondary_planets", None) or ()) for entry in sector.entries)
     lines.append(f"    Totals: {len(sector.entries):,} star systems, {stars:,} stars, {planets:,} planets, "
                  f"{len(sector.phenomena):,} phenomena")

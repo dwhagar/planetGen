@@ -4324,8 +4324,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         elif isinstance(star_system.star, NeutronStar):
             insert_neutron_star(conn, star_system.star, star_id=primary_star_id)
 
-    for member, place in zip(star_system.member_stars, places[2:]):
-        insert_star(conn, member, star_system_id, "member", *place)    # GEN.630: no planets of its own yet (GEN.332)
+    member_ids = [insert_star(conn, member, star_system_id, "member", *place)
+                  for member, place in zip(star_system.member_stars, places[2:])]
 
     for orbital_index, obj in enumerate(star_system.planets):
         if obj.body_type == "a":
@@ -4341,6 +4341,14 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=secondary_star_id)
         else:
             insert_planet(conn, obj, star_system_id, secondary_star_id, orbital_index)
+
+    # A member star's planets (GEN.332): each member has its own orbital-index space, told apart by its star_id.
+    for member_id, bodies in zip(member_ids, star_system.member_planets):
+        for orbital_index, obj in enumerate(bodies):
+            if obj.body_type == "a":
+                insert_asteroid_belt(conn, obj, star_system_id, orbital_index, star_id=member_id)
+            else:
+                insert_planet(conn, obj, star_system_id, member_id, orbital_index)
 
     # Comets have their own list, own table, and no orbital_index -- see
     # insert_comet's own docstring for why they don't share the
@@ -4704,7 +4712,7 @@ def refresh_habitability(conn, system_id):
     if conn.execute("SELECT COUNT(*) AS n FROM stars WHERE star_system_id = ?", (system_id,)).fetchone()["n"] > 1:
         system = load_star_system(conn, system_id)
         insolation.refresh_system(system)
-        for planet in system.planets + getattr(system, "secondary_planets", []):
+        for planet in system.all_planets:
             if planet.body_type == "a":
                 continue
             swings[("planets", planet.db_id)] = planet.flux_variation
@@ -9092,10 +9100,18 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         system.comets = _build_comet_list([r for r in comet_rows if r["star_id"] == primary_db_id])
         system.secondary_comets = _build_comet_list([r for r in comet_rows if r["star_id"] == secondary_db_id])
     else:
-        system.planets = _build_object_list(planet_rows, belt_rows, star)
+        member_star_ids = {member.db_id for member in system.member_stars}
+        system.planets = _build_object_list([r for r in planet_rows if r["star_id"] not in member_star_ids],
+                                            [r for r in belt_rows if r["star_id"] not in member_star_ids], star)
         system.secondary_planets = []
-        system.comets = _build_comet_list(comet_rows)
+        system.comets = _build_comet_list([r for r in comet_rows if r["star_id"] not in member_star_ids])
         system.secondary_comets = []
+    # GEN.332: a member star's planets, each its own orbital-index space
+    system.member_planets = [
+        _build_object_list([r for r in planet_rows if r["star_id"] == member.db_id],
+                           [r for r in belt_rows if r["star_id"] == member.db_id], member)
+        for member in system.member_stars]
+    system.set_stability_limits()
 
     system.system_flavor_text = row["system_flavor_text"]
     system.runaway_class = row["runaway_class"]

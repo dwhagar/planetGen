@@ -961,7 +961,7 @@ class Star(StellarObject):
         self.luminosity = luminosity * constants.SOLAR_LUMINOSITY
 
 
-def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_planets):
+def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_planets, members=()):
     """
     Settles one shared age for a binary pair's two stars (GEN.53): old
     enough for every planet each star hosts (judged by that star's own
@@ -977,11 +977,16 @@ def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_p
         primary_planets (list): Bodies judged against the primary's scales.
         secondary_planets (list): Bodies judged against the companion's (a
             close pair passes its circumbinary planets for both).
+        members (list of tuple): `(star, planets)` for each further star of the system (GEN.332): they share the age
+            too, so their planets set a minimum and their states a ceiling like the companion's.
     """
-    primary.adjust_age_for_planets(primary_planets,
-                                   min_required_age_gy=secondary.planet_age_requirement_gy(secondary_planets),
-                                   age_ceiling_gy=secondary.age_ceiling_gy())
+    min_required = max([secondary.planet_age_requirement_gy(secondary_planets),
+                        *(star.planet_age_requirement_gy(bodies) for star, bodies in members)])
+    ceiling = min([secondary.age_ceiling_gy(), *(star.age_ceiling_gy() for star, _ in members)])
+    primary.adjust_age_for_planets(primary_planets, min_required_age_gy=min_required, age_ceiling_gy=ceiling)
     secondary.age = primary.age
+    for star, _ in members:
+        star.age = primary.age
 
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)

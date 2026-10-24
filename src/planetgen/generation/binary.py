@@ -372,7 +372,7 @@ class BinaryStarProxy(StellarObject):
         proxy.lifespan = float('inf') if data["lifespan"] is None else data["lifespan"]
         return proxy
 
-    def adjust_age_for_planets(self, planets):
+    def adjust_age_for_planets(self, planets, members=()):
         """
         Settles one shared age for both constituent stars that suits the
         system's circumbinary planets (see `adjust_pair_age_for_planets`),
@@ -381,8 +381,9 @@ class BinaryStarProxy(StellarObject):
 
         Args:
             planets (list): A list of `Planet` objects in the system.
+            members (list of tuple): `(star, planets)` of the system's further stars (GEN.332).
         """
-        adjust_pair_age_for_planets(self._primary, self._secondary, planets, planets)
+        adjust_pair_age_for_planets(self._primary, self._secondary, planets, planets, members)
         self.age = self._primary.age
         self.lifespan = max(self._primary.lifespan, self._secondary.lifespan)
 
