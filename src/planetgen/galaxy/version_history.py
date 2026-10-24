@@ -18,6 +18,7 @@ import importlib.metadata
 import json
 import os
 import platform
+from collections import namedtuple
 
 from planetgen._version import __version__
 from planetgen.galaxy import version_key
@@ -37,6 +38,32 @@ _REPO_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.
 
 _FIELDS = ("galaxy_seed", "version_key", "generator_epoch", "battery_digest", "requirements_sha256", "environment")
 """tuple: What an update compares with the newest row: a row is added when any of these differs."""
+
+
+Recorded = namedtuple("Recorded", "key output")
+"""`record`'s answer: the version key, and `output`, the sentence an update prints on whether the generated output
+changed (OPS.15, `output_change`)."""
+
+
+def output_change(older, battery):
+    """
+    Whether the generated output differs from what `older` (the newest history row, or `None`) recorded, as a
+    sentence for the update's report (OPS.15): the generator battery's per-case digests (OPS.57) are the fingerprint.
+    The live galaxy is not touched. Names the first case that differs when they do.
+
+    Args:
+        older (dict or None): `_row`'s newest row for the galaxy.
+        battery (generator_battery.BatteryDigest): The running code's.
+    """
+    if older is None:
+        return "First update recorded for this galaxy, so there is no earlier generated output to compare."
+    if older["battery_digest"] is None:
+        return "The last update recorded no generator battery, so the generated output could not be compared."
+    if older["battery_digest"] == battery.overall:
+        return "Generated output unchanged."
+    first = generator_battery.first_difference(older["battery_cases"] or {}, generator_battery.cases_of(battery))
+    where = f"; the first case that differs is {first}" if first else ""
+    return f"Generated output CHANGED since the update of {older['recorded_at']:%Y-%m-%d %H:%M} UTC{where}."
 
 
 def requirements_sha256(path=None):
@@ -102,7 +129,7 @@ def record(conn, database, galaxy_seed, lock_sha256=None, key=None, battery=None
         env (dict, optional): Defaults to `environment()`.
 
     Returns:
-        str: The version key recorded.
+        Recorded: The version key recorded and the sentence on whether the generated output changed (OPS.15).
     """
     key = key or version_key.version_key()
     battery = battery or generator_battery.running_digest()
@@ -113,10 +140,11 @@ def record(conn, database, galaxy_seed, lock_sha256=None, key=None, battery=None
               "environment": environment() if env is None else env}
     now = datetime.datetime.now(datetime.timezone.utc).replace(tzinfo=None)
     newest = _row(conn, database)
+    output = output_change(newest, battery)
     if newest is not None and all(newest[field] == values[field] for field in _FIELDS):
         conn.execute("UPDATE version_key_history SET last_seen_at = ? WHERE id = ?", (now, newest["id"]))
         conn.commit()
-        return key
+        return Recorded(key, output)
     conn.execute(
         "INSERT INTO version_key_history (database_name, galaxy_seed, version_key, planetgen_version,"
         " requirements_sha256, recorded_at, generator_epoch, battery_digest, battery_cases, environment, last_seen_at)"
@@ -131,7 +159,7 @@ def record(conn, database, galaxy_seed, lock_sha256=None, key=None, battery=None
         " ORDER BY id DESC LIMIT ?) newest)",
         (database, database, KEEP))
     conn.commit()
-    return key
+    return Recorded(key, output)
 
 
 def history(conn, database):

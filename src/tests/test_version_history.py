@@ -38,7 +38,7 @@ def test_each_change_adds_a_row_and_the_last_ten_are_kept(mysql_config):
 def test_a_row_holds_the_seed_the_key_and_the_release(mysql_config):
     conn = _control(mysql_config)
     try:
-        key = version_history.record(conn, "galaxy_c", SEED, lock_sha256="a" * 64)
+        key = version_history.record(conn, "galaxy_c", SEED, lock_sha256="a" * 64).key
         row = version_history.history(conn, "galaxy_c")[0]
     finally:
         conn.execute("DELETE FROM version_key_history")
@@ -189,3 +189,33 @@ def test_an_older_control_database_gains_the_columns(mysql_config):
     assert {"generator_epoch", "battery_digest", "battery_cases", "environment", "last_seen_at"} <= columns
     assert row["version_key"] == "0" * 22 and row["generator_epoch"] is None
     assert row["last_seen_at"] == datetime.datetime(2026, 10, 1)
+
+
+def _other_battery(case):
+    """The running battery with one case's digest changed: what a code change that alters a sector does (OPS.15)."""
+    running = generator_battery.running_digest()
+    cases = dict(running.cases)
+    cases[case] = generator_battery.CaseDigest("0" * 64, "", "")
+    return generator_battery.BatteryDigest("f" * 64, cases)
+
+
+def test_an_update_says_whether_the_generated_output_changed_and_names_the_first_case_that_differs(control):
+    first = version_history.record(control, "galaxy_h", SEED, lock_sha256="c" * 64)
+    assert "no earlier generated output" in first.output
+    assert version_history.record(control, "galaxy_h", SEED, lock_sha256="c" * 64).output == "Generated output unchanged."
+    # Another lock file alone is not a change of output: the battery is what is compared.
+    assert version_history.record(control, "galaxy_h", SEED, lock_sha256="d" * 64).output == "Generated output unchanged."
+    case = sorted(generator_battery.CASES)[0]
+    changed = version_history.record(control, "galaxy_h", SEED, lock_sha256="d" * 64, battery=_other_battery(case))
+    assert changed.output.startswith("Generated output CHANGED since the update of ")
+    assert f"the first case that differs is {case}" in changed.output
+    # The new row is what the next update compares with.
+    assert version_history.record(control, "galaxy_h", SEED, lock_sha256="d" * 64,
+                                  battery=_other_battery(case)).output == "Generated output unchanged."
+
+
+def test_a_row_recorded_with_no_battery_cannot_be_compared(control):
+    version_history.record(control, "galaxy_i", SEED, lock_sha256="c" * 64)
+    control.execute("UPDATE version_key_history SET battery_digest = NULL, battery_cases = NULL")
+    control.commit()
+    assert "could not be compared" in version_history.record(control, "galaxy_i", SEED, lock_sha256="c" * 64).output
