@@ -2314,7 +2314,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones, anything in the galaxy can be reached by zooming to it, and
   Boss confirms it by retest. Owner: the design thread first (report),
   then Core 2 (maps).
-  Prerequisites: MAP.261, MAP.262, MAP.266, MAP.267. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Prerequisites: MAP.266, MAP.267. Related: MAP.146, MAP.249, MAP.209, MAP.210.
   Decision (Boss, 5:51 PM EDT 2026-10-23, answering the four zoom
   cards): 1 the full single space, 2 only a sector plus an optional grid
   tool, 3 a soft glow switchable, 4 sector-block nodes first (not the
@@ -2331,38 +2331,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fly-to), MAP.209 and MAP.210 (verify after S1), MAP.249, MAP.195,
   MAP.237, MAP.212; each is decided when its slice merges. This umbrella
   closes with its subitems.
-- [ ] **MAP.261 N4: the node cut on the page: galaxynodecut.js replaces the tile cut**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. Projected
-  size and hand-over weights decide the nodes needed, with prefetch at
-  the lower half of the band; the star share and zoom opacity read the
-  weights (starfade.js). Ships the same map fed by nodes, with no tile
-  request any more. Size L. Done: the map draws from nodes only and a
-  browser test flies from the galaxy to a sector with no tile request.
-  Owner: lane Map nodes (the coordinator's new lane, 5:53 PM EDT as the
-  lane reported), with Core 2 as owner of galaxymap3d.js and
-  galaxystageview.js (rebase on its merges and tell it before each PR).
-  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
-
-- [ ] **MAP.262 N5: retire the cube tiles**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. Delete
-  /galaxy/tiles, viewport.distance_cut_tiles, the tile cut twin, the
-  tile-keyed cache files and the stamp history of tiles; no shim. Size
-  M. Done: no tile code, route or cache file remains and the suite
-  passes. Owner: lane Map nodes (the coordinator's new lane, 5:53 PM EDT
-  as the lane reported), with Core 2 as owner of galaxymap3d.js and
-  galaxystageview.js (rebase on its merges and tell it before each PR).
-  Prerequisites: MAP.261. Related: MAP.257, MAP.146, MAP.249.
-
 - [ ] **MAP.266 S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu**
   Zoom design (reports in
   /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
@@ -2379,7 +2347,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   5:53 PM EDT as the lane reported), with Core 2 as owner of
   galaxymap3d.js and galaxystageview.js (rebase on its merges and tell
   it before each PR).
-  Prerequisites: MAP.261. Related: MAP.257, MAP.146,
+  Prerequisites: none. Related: MAP.257, MAP.146,
   MAP.249.
 
 - [ ] **MAP.267 S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in)**
@@ -2397,7 +2365,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the item. Owner: lane Map nodes (the coordinator's new lane, 5:53 PM
   EDT as the lane reported), with Core 2 as owner of galaxymap3d.js and
   galaxystageview.js (rebase on its merges and tell it before each PR).
-  Prerequisites: MAP.261. Related: MAP.257, MAP.146, MAP.249.
+  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
 
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
   Boss live observation (8:51 PM EDT 2026-10-23, relayed by the
@@ -2542,6 +2510,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drives the wheel to the deepest level. Higher priority than MAP.291.
   Owner: Core 2 (MAP.258 to MAP.262 in the same files belong to the map
   nodes lane, so check with it).
+  Check (2026-10-09): Update 4:19 PM EDT 2026-10-24: the Map nodes lane
+  found
+  test_web_browser_fixture_maps.py::test_one_wheel_scroll_runs_from_the_galaxy_to_a_sector_with_no_stop_and_no_swoop
+  red on clean main (the zoom stalls at ticks 20 and 21 in a row, as the
+  lane reported 4:17 PM EDT). That is the same symptom as this bug, so
+  the test is the reproduction: Core 2 fixes both together and the test
+  must pass before the item closes.
   Prerequisites: none. Related: MAP.291, MAP.258, MAP.261, MAP.262.
 
 ## NAV: Navigation and courses
@@ -8783,6 +8758,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   record both in the registry (GEN.725) in the same PR that uses the
   value. Nothing changes a generated world until the owning item uses
   it.
+  Carry-over (2026-10-09): Update 4:20 PM EDT 2026-10-24: Lane L left
+  the Pluto-like gate of GEN.674 undone (PR #3072, as the lane reported
+  4:19 PM EDT): the Pluto-like family is never drawn because of the
+  escape-velocity retention gate (d1); fixing it needs the cold-body
+  retention physics Boss's fork 7 asks for
+  (docs/design/composition/mixture-draw.md). Carry it here with the
+  occurrence criteria, tier and tweak level from the best-guess report
+  (section 12).
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.488 Source the comet coma classes and their volatile ratios (AR9)**
@@ -12628,24 +12611,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4, GEN.411).
   Prerequisites: GEN.411.
 
-- [ ] **GEN.674 Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug)**
-  Found by lane L (atmosphere mixture), report
-  reports/lane-l-findings-2026-10-24.md, relayed 11:32 PM EDT 2026-10-23
-  (as the lane reported). Do: close these, each with its test: (1) rows
-  k have no perihelion gate; (2) a row whose weight is about 0 is still
-  normalised to 1 when it is the only row passing the class gate (frost
-  drawn at 181 K, a wrong result); (3) rows j3 and j4 are gated on d4
-  and d5, which the shoreline never gives small icy bodies; (4) the
-  carbonate-silicate CO2 sink and the life-O2 ordering are not modelled;
-  (5) the Pluto-like family is never drawn because of the d1 retention
-  (the test uses v_esc 3.0 and low insolation); (6) the gas table lacks
-  Al, K2, KO, K2O and Na2O gases for lava vapour. Radon (m10) and ozone
-  (m1, m2) stay with other lanes (ozone is GEN.413, merged). The N and S
-  inventories are stand-ins (see the stand-in item). Cost to watch:
-  about 10 ms per rocky body and 35 ms per giant. Done: each of the six
-  has a test or a stated reason it stays. Owner: none for now (pool).
-  Prerequisites: none.
-
 - [ ] **GEN.681 The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw**
   Step C6 of the condition-based classes build (design draft
   design-drafts/condition-based-classes-2026-10-23.md section 7, from
@@ -13687,6 +13652,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   means are tunable to target odds. Emergent chance of civilisation is
   about 0.7 percent of 5.4 Gyr windows; Boss can retune the means.
   Prerequisites: none. Related: GEN.649, GEN.740.
+
+- [ ] **GEN.751 Add the lava-vapour gases Al, K2, KO, K2O and Na2O to the gas table, from the research parts, so the lava-world air has its full species list**
+  Left over from GEN.674 (Lane L, PR #3072, relayed 4:19 PM EDT
+  2026-10-24 as the lane reported; reason in
+  docs/design/composition/mixture-draw.md; filed by the TODO thread).
+  The gas table is generated from research parts 01 and 03, so the five
+  gases belong there, not in the code that reads the table. Do: add the
+  five species to the research parts with their sources, regenerate the
+  table, give each a thermodynamic entry and a test that a lava-world
+  draw can contain them, and register any stand-in with its tier and
+  tweak level (GEN.725). Done: the five gases exist in the table with
+  sources and a lava-world test. Owner: pool (first free atmosphere
+  lane).
+  Prerequisites: none. Related: GEN.674, GEN.703.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18746,29 +18725,6 @@ clears each one.
   TEST.334, TEST.339. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.334, TEST.339.
 
-- [ ] **TEST.343 Three tests red on main since the habitable_systems table (MAP.220, #2945): point columns, parent-relative positions, and VALUES() in migration 0148 (bug)**
-  Reported by lane D from its gate (2:02 PM EDT 2026-10-24 as the lane
-  reported); TODO reproduced all three on main at 2:03 PM EDT. (1)
-  test_point_columns::test_every_table_holding_an_object_is_on_exactly_one_list:
-  habitable_systems holds an object or a point and is on neither LAYOUTS
-  nor NOT_BODIES of db/point_columns.py. (2)
-  test_parent_relative_positions::test_no_table_inside_a_system_stores_an_absolute_position:
-  habitable_systems has star_system_id and no layout-frame point. (3)
-  test_sql_portability::test_no_new_values_function_in_on_duplicate_key_update:
-  migration 0148_habitable_worlds_per_system.py line 44 uses
-  VALUES(habitable_worlds) in ON DUPLICATE KEY UPDATE (deprecated since
-  MySQL 8.0.20; use a row alias, or add it to VALUES_FUNCTION_ALLOWED
-  with a reason). Do: put habitable_systems on the right list (or
-  NOT_BODIES with the reason, since the table is a marker cache), fix
-  the migration statement without changing its result (an existing
-  migration may be edited only while the schema version is unreleased;
-  otherwise add the allowance), and rerun the three tests. Done: all
-  three pass on main. Not reproduced: test_api galaxy tiles carry no
-  comets (likely fixed by TEST.342) and the gas giant density test
-  (passes on main). Owner: none (pool); Core 2 is the natural pick since
-  MAP.220 is map work.
-  Prerequisites: none. Related: MAP.220, TEST.342.
-
 - [ ] **TEST.344 Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory**
   Efficiency scan suggestion 4, applied by Boss ("ALL", 2:21 PM EDT
   2026-10-24). About 36 of 81 open test items fail only under gate load
@@ -18855,7 +18811,24 @@ clears each one.
   missing NLTK words resource. Lane H or Lane I, run it on a clean main
   and report the Urey ratio the failing body gets; close the item if it
   is green.
+  Confirmed (2026-10-09): Update 4:20 PM EDT 2026-10-24: Lane L also
+  reports the test red on clean main (urey_ratio 2.09 against the 1.5
+  bound, as the lane reported 4:19 PM EDT), so Lane I and Lane L both
+  saw it. Lane H owns the decision: the cap is wrong with a stated
+  physics reason, or the model is.
   Prerequisites: none. Related: GEN.721, GEN.735.
+
+- [ ] **TEST.354 test_api.py::test_the_description_splits_into_every_body is red on clean main: the facts section appears twice (facts, prose, composition, ratings, facts) (bug)**
+  Found by the Map nodes lane (relayed 4:18 PM EDT 2026-10-24 as the
+  lane reported, on clean main; filed by the TODO thread). The TODO
+  thread's machine skips the test, so it is not reproduced here. Do:
+  find which merge added a second facts section to the body description
+  (the property sheet and object page work, UX.184 and UX.173, and the
+  composition sections are the likely causes) and fix the description
+  builder or the stale test, with the reason written down. Done: the
+  test passes on main. Owner: Bug Hunt (first free in its queue after
+  TEST.350 and TEST.344).
+  Prerequisites: none. Related: UX.184, TEST.351.
 
 ## USR: User accounts
 
