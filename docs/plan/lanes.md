@@ -6,7 +6,7 @@ shows the table, the stamp and the merged line as written here. Times are the la
 Boss ordered every lane retired and restarted at 12:56 PM EDT 2026-10-21; the rows below are the new threads'
 reports (Core 5 as last reported before its restart).
 
-Updated: 2026-10-24 2:20 PM EDT
+Updated: 2026-10-24 2:23 PM EDT
 
 Now (2:08 PM EDT 2026-10-24, from the lanes' latest reports; the table below is the history by lane and its Doing now cells can be older; the blocker view is reports/blockers-by-lane-2026-10-24.md): Core 1 GEN.633 (in its gate). Core 2 MAP.290 (gate), then MAP.292 (scroll zoom stuck, Boss bug), MAP.291 (Galaxy view fills the page, Boss bug), then UX.125, UX.126, UX.49, MAP.121. Core 3 GEN.710, then GEN.640 (GEN.709 merged). Core 4 GEN.272. Core 5 PERF.99, GEN.310, GEN.180, PERF.120, then GEN.229. Bug Hunt TEST.301 review waits on the class lane and lane D (TEST.329 retired). Lane 4 USR.31, ADM.86, OPS.29, DB.45 (OPS.15 merged). Lane A GEN.652, GEN.553 leftovers, GEN.661, GEN.662. Lane D GEN.639, GEN.701 (needs a redesign), then DB.100 (GEN.700 and GEN.704 merged). Lane E toxicity reads, habitability_explain, GEN.444 slice 2, DOC.77, DOC.75 rest. Lane H GEN.699. Lane I GEN.411 PR 4 (with GEN.452, DB.71, GEN.424), then GEN.565 remainder. Lane J DB.89, GEN.430. Lane K GEN.714 (built, gate ends about 3:45 PM EDT as the lane reported; GEN.713 research done), then GEN.462, GEN.466 wiring, DB.70. Lane L GEN.423 wiring, GEN.479, GEN.422, DB.67, GEN.415, TEST.209 (wait on lane I PR 4). Map nodes MAP.261, MAP.262, MAP.289. Class lane GEN.686 (in its gate), GEN.681, then GEN.646, GEN.647. Unit registry GEN.571 (group 4 merged, #3021), GEN.587. Debug mode OPS.66, then OPS.62. Blocker 4 lane GEN.441 slice 2. Fix MySQL out-of-memory thread PERF.181 (critical). Generate run Redis crash thread (Boss bug, in its gate). Pool (nobody yet): PERF.182 (8.2), UX.179, UX.183, UX.184, UX.185, MAP.220 chosen-classes markers, GEN.719, GEN.717, GEN.718, GEN.715, GEN.720, GEN.721, DOC.79, GEN.716, TEST.343. Numbering: next free epoch 87, migration 0153 (the class lane's GEN.686 holds epoch 87 in its gate, renumbered at merge).
 
@@ -92,3 +92,15 @@ Rules: no lane is told to stop; every lane finishes its current item and the new
 - Lane Units: Unit registry and quantities, GEN.571 (6 open items). First: GEN.570, GEN.349, GEN.300. Retires: Retires when the list is done.
 - Lane Debug: Queue executor cleanup, OPS.66 (3 open items). First: OPS.62, OPS.66, OPS.67. Retires: Retires when the list is done.
 - Lane Draws: Atmosphere sources and tuned draws, GEN.510 (26 open items). First: GEN.480, GEN.481, GEN.482. Retires: Retires when the list is done.
+
+## Standing process rules (Boss, 2:21 PM EDT 2026-10-24: all twelve efficiency suggestions applied; reports/efficiency-scan-2026-10-24.md)
+
+- Any item with 10 or more open items waiting on it gets a named lane within the hour; TODO re-ranks the blockers after every merge (ranked table: reports/lane-reorg-2026-10-24.md).
+- Blocker I merges its PR 4 as three PRs: GEN.452, then GEN.411, then GEN.424 with DB.71.
+- Main stays green: a test reported red on main is fixed or proved a flake by Bug Hunt within 30 minutes (never skipped or disabled); every other lane treats it as known meanwhile.
+- Epoch and migration numbers are reserved by TODO when a lane says its change alters drawn values or the schema, and taken back if unused; the allocation script is OPS.71.
+- Status goes in /mnt/project-files/status/<lane>.md (three lines), not in messages; a merge still gets one message to TODO.
+- TODO refreshes the docs and HTML every 25 to 30 minutes or after five merges; Boss items, critical fixes and anything a lane waits on are immediate.
+- A lane that waits on a blocker starts the next unblocked item of its tree; a lane retires the day its tree is done; items over about an hour of gate are sliced; changed-tests gate while building, full suite once on the merge candidate.
+- New infrastructure items: TEST.344 (browser tests as their own serial phase, Bug Hunt), OPS.70 (gate resume and lane-start health check, Lane Debug), OPS.71 (epoch and migration allocation script, Lane 4), PERF.183 (nightly New galaxy smoke with memory per stage, Lane OOM after PERF.181).
+- Dropped at the Debug mode thread's correction (2:21 PM EDT as the lane reported): TEST.334 and TEST.303 are not red on main (its lane machine lacked PLANETGEN_TEST_REDIS_URL and a MySQL GRANT); the lesson is on OPS.62.

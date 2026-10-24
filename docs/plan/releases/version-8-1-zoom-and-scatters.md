@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 2:17 PM EDT 2026-10-24: 937 of 1310 items finished (71.5 percent), 373 open, 28 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 106, phase 2 36, phase 3 27, phase 4 13, phase 5 71, phase 6 24, phase 7 20, phase 8 4, phase 9 29, phase 10 2, phase 11 31, phase 12 10 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 2:23 PM EDT 2026-10-24: 937 of 1312 items finished (71.4 percent), 375 open, 30 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 107, phase 2 36, phase 3 27, phase 4 13, phase 5 71, phase 6 24, phase 7 20, phase 8 4, phase 9 29, phase 10 2, phase 11 31, phase 12 11 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -104,11 +104,13 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) |  | Lane 2 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) |  | Flake, fix the cause |
 | TEST.341 | A spatial-position test failed once with "no system matching" in the lane gate and passed on rerun (bug) |  |  |
+| OPS.71 | Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand |  |  |
+| OPS.70 | Gate resumes after a restart, and a lane-start health check runs before every gate |  |  |
+| TEST.344 | Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory |  |  |
 | TEST.343 | Three tests red on main since the habitable_systems table (MAP.220, #2945): point columns, parent-relative positions, and VALUES() in migration 0148 (bug) |  |  |
 | TEST.324 | test_web_header_menus top-bar [1280x720-light] times out under load (bug) |  | Core 5 finding. |
 | TEST.336 | test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug) |  |  |
 | TEST.335 | test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug) |  |  |
-| TEST.334 | Queue and generation tests pass alone but hang or "DID NOT RAISE" in a full run on lane machines: test_gen_resume (7), test_gen_bright_scatter_edges (5), test_work_units (7 in sequence), test_worker_warm, test_work_queue parallel (bug) |  |  |
 | TEST.333 | test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug) |  |  |
 | TEST.332 | test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug) |  |  |
 | TEST.331 | test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug) |  |  |
@@ -132,7 +134,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | OPS.66 | Remove the unused older executor in src/planetgen/queue/work.py: RQExecutor, _rq_task and the --debug FILE worker plumbing |  |  |
 | OPS.67 | Detached helpers (the background planetgen warm a run starts, an auto-started worker's own lifecycle) write the debug log file only: decide whether they relay to stdout |  |  |
 | TEST.302 | benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug) |  |  |
-| TEST.303 | test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug) |  |  |
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) |  |  |
 | TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug) |  |  |
 | TEST.287 | test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug) |  | Bug Hunt; Core 2 finding |
@@ -692,6 +693,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | PERF.175 | benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug) |  |  |
 | PERF.174 | Every work unit's database connection runs the schema check again: skip it when the schema version is current |  |  |
 | PERF.173 | A new-galaxy Generate run dies in stage 5 with "Execution not found in Redis": the worker warm outlives the 90 s execution record (bug) |  |  |
+| PERF.183 | Nightly New galaxy smoke: stage times and peak memory per stage, fail above a budget | PERF.181 |  |
 | PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) |  | Boss run log; generation-log lane. |
 | PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) |  | Boss run log; generation-log lane. |
 | PERF.180 | Single-unit stages already past the unit ceiling on big galaxies: clearing the bright stars (211 s on the medium galaxy) and the cache-warm families (one unit each, minutes on a large galaxy) |  |  |
