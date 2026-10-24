@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.186 |
 | MAP | MAP.293 |
 | NAV | NAV.63 |
-| GEN | GEN.722 |
+| GEN | GEN.723 |
 | PERF | PERF.183 |
 | DB | DB.101 |
 | API | API.33 |
@@ -1236,7 +1236,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.506 | The JWST atmosphere target-selection model | none | done, PR #2756 |
 | GEN.507 | The comet admission model by heliocentric distance | none | done, PR #2756 |
 | GEN.508 | The white-dwarf pollution detection and settling model | none | done, PR #2756 |
-| GEN.509 | Tuned draw builder B1: the radius valley and the envelope | none | open |
+| GEN.509 | Tuned draw builder B1: the radius valley and the envelope | none | done, PR #3025 |
 | GEN.510 | Tuned draw builder B2: delivery and water worlds | none | open |
 | GEN.511 | Tuned draw builder B3: retention and lava worlds | none | done, PR #2756 |
 | GEN.512 | Tuned draw builder B4: the iron branch | none | open |
@@ -1449,6 +1449,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.719 | A white dwarf primary makes draw_member_tree ignore n_stars=1, so a binary_system prevalence of -100 still yields a wide double white dwarf (bug) | none | open |
 | GEN.720 | star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug) | none | open |
 | GEN.721 | A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model | none | open |
+| GEN.722 | Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
