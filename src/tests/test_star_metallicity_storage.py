@@ -36,23 +36,17 @@ def test_the_same_seed_draws_the_same_fe_h_and_another_draws_another():
     assert first != [_row_dict(row)["metallicity_fe_h"] for row in _scatter(seed=12)]
 
 
-def test_a_stars_fe_h_does_not_move_the_scatters_other_draws(monkeypatch):
-    """The value has a stream of its own: with it replaced by a constant, every other column is what it was."""
-    rows = _scatter(seed=7)
-    monkeypatch.setattr(brightStars, "star_fe_h", lambda *args: 0.0)
-    assert [row[:-1] for row in rows] == [row[:-1] for row in _scatter(seed=7)]
-    assert len({row[-1] for row in rows}) > 1
-
-
 def test_halo_stars_are_far_poorer_in_metals_than_disc_stars():
     kpc_mpc = 1_000_000
-    disc = [brightStars.star_fe_h("young", (8 * kpc_mpc, 0, 0), seed) for seed in range(300)]
-    halo = [brightStars.star_fe_h("halo", (30 * kpc_mpc, 0, 0), seed) for seed in range(300)]
+    rng = draw.Stream("test-halo-disc")
+    disc = [brightStars.spot_fe_h("young", [((8 * kpc_mpc, 0, 0),)], rng)(0) for _ in range(300)]
+    halo = [brightStars.spot_fe_h("halo", [((30 * kpc_mpc, 0, 0),)], rng)(0) for _ in range(300)]
     assert statistics.mean(disc) - statistics.mean(halo) > 1.5
 
 
 def test_a_cluster_star_has_no_value_until_its_cluster_gives_one():
-    assert brightStars.star_fe_h("cluster", (1000, 0, 0), 5) is None
+    assert brightStars.star_fe_h("cluster", {"metallicity_fe_h": -0.4}) is None
+    assert brightStars.spot_fe_h("cluster", [((1000, 0, 0),)], draw.Stream("t")) is None
 
 
 def test_the_stored_value_comes_back_in_the_stars_params():

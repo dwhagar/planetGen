@@ -173,11 +173,12 @@ def _b_share_between_arms_at_the_sun(shape=SHAPE, draws=100_000, spread_ages=Tru
 
 
 def test_the_local_b_share_is_what_the_derived_history_and_the_mass_function_give():
-    """Recorded: the B-star share between the arms at the solar radius is near 0.05 percent for the Milky Way-like
-    galaxy with the ages spread by the history's rate (GEN.546), 0.07 percent with them spread evenly inside the windows
-    and 0.19 percent with a flat history, against the observed 0.04."""
+    """Recorded: the B-star share between the arms at the solar radius is near 0.04 percent for the Milky Way-like
+    galaxy with the ages spread by the history's rate (GEN.546; 0.05 before the lifetimes read the birth [Fe/H],
+    GEN.651), 0.07 percent with them spread evenly inside the windows and 0.19 percent with a flat history, against the
+    observed 0.04."""
     share = _b_share_between_arms_at_the_sun()
-    assert 0.0004 <= share <= 0.0007
+    assert 0.0003 <= share <= 0.0007
     assert _b_share_between_arms_at_the_sun(spread_ages=False) > share
 
 

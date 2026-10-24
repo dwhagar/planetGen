@@ -55,8 +55,12 @@ def _terms(zeta):
 
 
 def zeta(fe_h):
-    """`log10(Z / 0.02)` of a star of this [Fe/H]: the metallicity argument of every formula of the paper."""
-    return math.log10(tuning.MS_LIFETIME_REFERENCE_Z / HPT_REFERENCE_Z) + fe_h
+    """`log10(Z / 0.02)` of a star of this [Fe/H]: the metallicity argument of every formula of the paper, held to the
+    range the paper's fits are made over (`tuning.MS_LIFETIME_Z_RANGE`): below Z = 1e-4 the polynomials in it run away
+    (a 0.8 solar-mass star at [Fe/H] -3.25 would live 5 Gyr and a table of bright stars would be 50 times as big there
+    as anywhere), so a more metal-poor star has the lifetimes and branches of Z = 1e-4."""
+    low, high = (math.log10(z / HPT_REFERENCE_Z) for z in tuning.MS_LIFETIME_Z_RANGE)
+    return min(max(math.log10(tuning.MS_LIFETIME_REFERENCE_Z / HPT_REFERENCE_Z) + fe_h, low), high)
 
 
 def _base_of_giant_branch_gy(terms, mass_sol):

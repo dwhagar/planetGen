@@ -163,7 +163,7 @@ def star_tree(row):
     white_dwarf = row[_STAR_COLUMN["yerkes_class"]] == "VII"
     placed = multistar.Placed("white-dwarf" if white_dwarf else "star",
                               row[_STAR_COLUMN["mass_kg"]] / constants.SOLAR_MASS_TO_KG,
-                              row[_STAR_COLUMN["initial_mass_sol"]])
+                              row[_STAR_COLUMN["initial_mass_sol"]], fe_h=row[_STAR_COLUMN["metallicity_fe_h"]])
     age_yr = max(row[_STAR_COLUMN["age_gy"]], 1.0e-6) * 1.0e9
     runaway = None if white_dwarf else runaway_draw(seed, placed.birth_mass_solar)
     tree = multistar.draw_member_tree(placed, age_yr, draw.Stream(f"{seed}:{MEMBERS_STREAM}"),

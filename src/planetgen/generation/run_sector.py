@@ -355,8 +355,9 @@ def _add_members(sector, args, members, center_pc, galactic_center_dist_ly, labe
         config.POPULATION = "young"
         age_gy = member.age_yr / 1.0e9
         with draw.bound(member.seed):
-            params = stellar_evolution.star_params(member.mass_sol, age_gy,
-                                                   stellar_evolution.evolve_star(member.mass_sol, age_gy))
+            state = stellar_evolution.evolve_star(member.mass_sol, age_gy, population=config.POPULATION,
+                                                  galactic_center_dist_ly=galactic_center_dist_ly)
+            params = stellar_evolution.star_params(member.mass_sol, age_gy, state)
             system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly,
                                 primary_star_params=params)
         try:

@@ -211,16 +211,23 @@ companion here."""
 class Placed:
     """The object a tree is drawn for. `mass_solar` is its present mass; `initial_mass_solar` its birth mass
     (defaults to the present mass). `recycled` marks a millisecond pulsar; `planetary_nebula` a
-    planetary-nebula central star (a white dwarf)."""
+    planetary-nebula central star (a white dwarf). `fe_h` is the placed star's birth [Fe/H], when known."""
     kind: str
     mass_solar: float
     initial_mass_solar: float | None = None
     recycled: bool = False
     planetary_nebula: bool = False
+    fe_h: float | None = None
 
     @property
     def birth_mass_solar(self):
         return self.mass_solar if self.initial_mass_solar is None else self.initial_mass_solar
+
+    @property
+    def tree_fe_h(self):
+        """The birth [Fe/H] the tree's stars are evolved at (GEN.651): the placed star's own, which its companions
+        share (a system is born from one cloud), else the reference composition, 0 (a remnant's row stores none)."""
+        return 0.0 if self.fe_h is None else self.fe_h
 
 
 @dataclass(frozen=True)
@@ -507,7 +514,7 @@ def _radius_au(state):
     return _m_to_au(radius_sol * constants.SOLAR_RADIUS_M)
 
 
-def _star_leaf(initial_mass, age_yr, rng, lighten=True):
+def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0):
     """A star-like member of this birth mass at the system's age."""
     if initial_mass < BROWN_DWARF_MAX_MASS_SOL:
         # GEN.252: the L, T or Y type its cooling gives at the system's age, and the radius the same laws fix.
@@ -521,7 +528,7 @@ def _star_leaf(initial_mass, age_yr, rng, lighten=True):
         return _Leaf(kind, young["yerkes_class"], initial_mass, initial_mass, _radius_au(young))
     mass = initial_mass
     while True:
-        state = evolution.evolve_star(mass, age_yr / 1.0e9, rng)
+        state = evolution.evolve_star(mass, age_yr / 1.0e9, rng, fe_h=fe_h)
         if state is not None or not lighten:
             break
         mass *= 0.8
@@ -547,18 +554,19 @@ def _remnant_leaf(kind, progenitor, mass, direct=False):
     return _Leaf(kind, None, mass, progenitor, _schwarzschild_au(mass), MEMBER_DIRECT_COLLAPSE if direct else 0)
 
 
-def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
+def _remnant(kind, age_yr, lowest, rng, limit_mass=None, fe_h=0.0):
     """A remnant of this kind that has had time to form by `age_yr`, from a progenitor no lighter than
     `lowest`, or None when no progenitor can have collapsed yet. A neutron star or a black hole has a progenitor from the
     windows of its kind (`remnant_progenitors`), and a black hole's is a star that failed to explode."""
     if kind == "white-dwarf":
         low, high = tuning.WHITE_DWARF_PROGENITOR_SOL
-        low = max(low, lowest, evolution.youngest_progenitor_sol(age_yr))
+        low = max(low, lowest, evolution.youngest_progenitor_sol(age_yr, fe_h))
         if low >= high:
             return None
         progenitor = evolution.sample_imf_mass_sol(low, high, rng)
         return _remnant_leaf(kind, progenitor, remnant_mass.white_dwarf_mass_sol(progenitor))
-    progenitor = remnant_progenitors.sample_mass_sol(kind, max(lowest, evolution.youngest_progenitor_sol(age_yr)), rng)
+    progenitor = remnant_progenitors.sample_mass_sol(kind, max(lowest, evolution.youngest_progenitor_sol(age_yr, fe_h)),
+                                                     rng)
     if progenitor is None:
         return None
     mass = remnant_mass.draw_mass_sol(kind, rng=rng)
@@ -567,10 +575,10 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None):
     return _remnant_leaf(kind, progenitor, mass, direct=kind == "black-hole")
 
 
-def _alive_star_mass(low, high, age_yr, rng):
+def _alive_star_mass(low, high, age_yr, rng, fe_h=0.0):
     """An IMF mass in `[low, high]` that is still on the main sequence at this age (the heaviest such mass
-    caps the range)."""
-    cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9)
+    caps the range) for a star of birth [Fe/H] `fe_h`."""
+    cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9, fe_h)
     high = max(min(high, cap), low * 1.0001)
     return evolution.sample_imf_mass_sol(low, high, rng)
 
@@ -1080,7 +1088,7 @@ def _filling_axis_au(donor, accretor_mass, period_range_days):
     return axis if period_range_days[0] <= period_d <= period_range_days[1] else None
 
 
-def _accreting_companion(placed_mass, kind, age_yr, rng):
+def _accreting_companion(placed_mass, kind, age_yr, rng, fe_h=0.0):
     """The donor of a cataclysmic variable (`kind` `cataclysmic-variable`: a main-sequence star) or an AM CVn binary
     (`am-cvn`: a degenerate helium star) and its lobe-filling axis, `(leaf, axis_au)`, or None after the draws that fit
     no period."""
@@ -1090,7 +1098,8 @@ def _accreting_companion(placed_mass, kind, age_yr, rng):
         window = tuple(minutes / 1440.0 for minutes in tuning.AM_CVN_PERIOD_MINUTES)
     for _ in range(PAIR_RETRIES):
         if kind == "cataclysmic-variable":
-            donor = _star_leaf(rng.uniform(*tuning.CATACLYSMIC_DONOR_MASS_RANGE_SOL), age_yr, rng)
+            donor = _star_leaf(rng.uniform(*tuning.CATACLYSMIC_DONOR_MASS_RANGE_SOL), age_yr, rng,
+                               fe_h=fe_h)
             if donor.kind != "main-sequence":
                 continue
         else:
@@ -1111,14 +1120,15 @@ def _white_dwarf_companion(placed, base, binary, age_yr, rng):
     its orbit span, or None when none fits; a cataclysmic variable's white dwarf is magnetic at
     `tuning.CATACLYSMIC_MAGNETIC_SHARE` (a flag on `base`)."""
     if binary == "double-white-dwarf":
-        companion = _remnant("white-dwarf", age_yr, 0.0, rng)
+        companion = _remnant("white-dwarf", age_yr, 0.0, rng, fe_h=placed.tree_fe_h)
         span = tuning.DOUBLE_WHITE_DWARF_AXIS_AU
     elif binary == "post-common-envelope":
         companion = (_stripped_helium_leaf(1.0, rng) if draw_stripped_helium(rng.random())
-                     else _star_leaf(_alive_star_mass(0.1, 8.0, age_yr, rng), age_yr, rng))
+                     else _star_leaf(_alive_star_mass(0.1, 8.0, age_yr, rng, placed.tree_fe_h), age_yr, rng,
+                                fe_h=placed.tree_fe_h))
         span = tuning.POST_COMMON_ENVELOPE_AXIS_AU
     else:
-        companion = _accreting_companion(placed.mass_solar, binary, age_yr, rng)
+        companion = _accreting_companion(placed.mass_solar, binary, age_yr, rng, placed.tree_fe_h)
         if binary == "cataclysmic-variable" and companion is not None and rng.random() < tuning.CATACLYSMIC_MAGNETIC_SHARE:
             base.flags |= MEMBER_MAGNETIC
         span = None
@@ -1127,10 +1137,10 @@ def _white_dwarf_companion(placed, base, binary, age_yr, rng):
     return companion
 
 
-def _giant_white_dwarf(leaf, binary, age_yr, rng):
+def _giant_white_dwarf(leaf, binary, age_yr, rng, fe_h=0.0):
     """The white dwarf of a barium or symbiotic giant (GEN.271), born from a star heavier than the giant, on the orbit of
     the type, or None when no white dwarf can have formed by the age. The giant carries the flag."""
-    dwarf = _remnant("white-dwarf", age_yr, leaf.initial, rng)
+    dwarf = _remnant("white-dwarf", age_yr, leaf.initial, rng, fe_h=fe_h)
     if dwarf is None:
         return None
     days = tuning.SYMBIOTIC_PERIOD_DAYS if binary == "symbiotic" else tuning.BARIUM_PERIOD_DAYS
@@ -1170,7 +1180,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         be, stripped = draw_be_star(birth, age_yr, types[1], types[2])
         effective_age = age_yr * (REJUVENATION_FRACTION_RANGE[0] + types[5] * (
             REJUVENATION_FRACTION_RANGE[1] - REJUVENATION_FRACTION_RANGE[0])) if merger else None
-        leaf = _star_leaf(birth, effective_age or age_yr, rng, lighten=False)
+        leaf = _star_leaf(birth, effective_age or age_yr, rng, lighten=False, fe_h=placed.tree_fe_h)
         leaf.mass = placed.mass_solar if leaf.kind != "white-dwarf" else leaf.mass
         leaf.effective_age_yr = effective_age
         if merger:
@@ -1191,7 +1201,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
                    else _star_compact_companion(placed, age_yr, rng))
         giant_type = draw_giant_companion(leaf.kind, birth, types[6])
         if compact is None and giant_type is not None:
-            compact = _giant_white_dwarf(leaf, giant_type, age_yr, rng)
+            compact = _giant_white_dwarf(leaf, giant_type, age_yr, rng, placed.tree_fe_h)
         if n_stars is None:
             count = _draw_star_count(birth, max_stars - (compact is not None), prevalence, rng)
             if merger == "massive":
@@ -1201,7 +1211,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         else:
             count = max(1, min(n_stars, max_stars - (compact is not None)))
         for _ in range(count - 1):
-            leaves.append(_star_leaf(_companion_mass(birth, rng), age_yr, rng))
+            leaves.append(_star_leaf(_companion_mass(birth, rng), age_yr, rng, fe_h=placed.tree_fe_h))
         if stripped and count >= 2:
             leaves[1] = _stripped_helium_leaf(birth, rng)
             leaf.flags |= MEMBER_MASS_GAINER
@@ -1247,14 +1257,13 @@ def _placed_direct_collapse(placed):
 def _star_compact_companion(placed, age_yr, rng):
     """The compact companion of a living star, or None (one draw)."""
     table = MEMBER_STATE_BY_PLACED.get(placed_class(placed), {})
-    lifetime_yr = (evolution.main_sequence_lifetime_gy(placed.birth_mass_solar)
-                   * evolution.remnant_age_fraction(placed.birth_mass_solar) * 1.0e9)
+    lifetime_yr = evolution.remnant_formation_time_gy(placed.birth_mass_solar, placed.tree_fe_h) * 1.0e9
     in_window = age_yr >= lifetime_yr * (1.0 - REMNANT_WINDOW_FRACTION)
     pick = rng.random()
     for kind, (default, _low, _high) in table.items():
         chance = default / REMNANT_WINDOW_FRACTION
         if pick < chance:
-            return _remnant(kind, age_yr, placed.birth_mass_solar, rng) if in_window else None
+            return _remnant(kind, age_yr, placed.birth_mass_solar, rng, fe_h=placed.tree_fe_h) if in_window else None
         pick -= chance
     return None
 
@@ -1268,7 +1277,7 @@ def _bound_runaway_companion(placed, age_yr, rng):
     pick = rng.random() * sum(default for _kind, default in odds)
     for kind, default in odds:
         if pick < default:
-            return _remnant(kind, age_yr, placed.birth_mass_solar, rng)
+            return _remnant(kind, age_yr, placed.birth_mass_solar, rng, fe_h=placed.tree_fe_h)
         pick -= default
     return None
 
@@ -1277,18 +1286,19 @@ def _compact_pair_companion(placed, state, age_yr, rng):
     """The companion leaf of a compact (or white dwarf) placed object, drawn for `state`."""
     if state in ("star", "brown-dwarf"):
         if state == "brown-dwarf":
-            return _star_leaf(rng.uniform(0.02, 0.07), age_yr, rng)
+            return _star_leaf(rng.uniform(0.02, 0.07), age_yr, rng, fe_h=placed.tree_fe_h)
         low, high = (0.5, 16.0) if placed.kind == "neutron-star" else (0.1, 8.0)
-        return _star_leaf(_alive_star_mass(low, high, age_yr, rng), age_yr, rng)
+        return _star_leaf(_alive_star_mass(low, high, age_yr, rng, placed.tree_fe_h), age_yr, rng,
+                          fe_h=placed.tree_fe_h)
     limit = placed.mass_solar if state == "black-hole" else None
-    return _remnant(state, age_yr, 0.0, rng, limit_mass=limit)
+    return _remnant(state, age_yr, 0.0, rng, limit_mass=limit, fe_h=placed.tree_fe_h)
 
 
 def _black_hole_tertiary(placed, age_yr, rng):
     if rng.random() < COMPACT_TERTIARY_SHARE:
         kind = "black-hole" if rng.random() < 0.8 else "neutron-star"
-        return _remnant(kind, age_yr, 0.0, rng, limit_mass=placed.mass_solar)
-    return _star_leaf(_alive_star_mass(0.1, 8.0, age_yr, rng), age_yr, rng)
+        return _remnant(kind, age_yr, 0.0, rng, limit_mass=placed.mass_solar, fe_h=placed.tree_fe_h)
+    return _star_leaf(_alive_star_mass(0.1, 8.0, age_yr, rng, placed.tree_fe_h), age_yr, rng, fe_h=placed.tree_fe_h)
 
 
 def _assemble(leaves, builder, age_yr, dropped, rng):

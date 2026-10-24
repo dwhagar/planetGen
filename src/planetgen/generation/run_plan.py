@@ -1487,11 +1487,15 @@ def scatter_shells_warm(unit_args):
         mass_range = unit_args.get("mass_range")
         mass_range = None if mass_range is None else tuple(mass_range)
         tiered = scatter_limits.tiered_from_json(unit_args.get("tiered"), skeleton)
-        brightStars.pass_of(tiered, unit_args["min_luminosity_sol"], unit_args.get("max_luminosity_sol"), mass_range,
-                            brightStars.age_laws_of(skeleton.shape))
+        age_laws = brightStars.age_laws_of(skeleton.shape)
+        _, pass_bands = brightStars.pass_of(tiered, unit_args["min_luminosity_sol"], unit_args.get("max_luminosity_sol"),
+                                            mass_range, age_laws)
         if unit_args.get("component_parts"):       # the clusters' and satellites' stars: an even spread of ages
             brightStars.pass_of(tiered, unit_args["min_luminosity_sol"], unit_args.get("max_luminosity_sol"),
                                 mass_range)
+        for band in pass_bands:                    # a star draws from the table of its own [Fe/H] bin (GEN.651)
+            for population in starPopulation.POPULATIONS:
+                starPopulation.warm_bins(band.min_luminosity_sol, population, band.mass_range, age_laws)
     finally:
         store.close_pool(mysql_config)
 

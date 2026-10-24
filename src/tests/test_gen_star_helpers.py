@@ -155,7 +155,7 @@ def test_star_params_shape_and_units():
     state = stellar_evolution.evolve_star(1.0, 4.6)
     params = stellar_evolution.star_params(1.0, 4.6, state)
     assert set(params) == {"type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
-                           "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy"}
+                           "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "metallicity_fe_h"}
     assert params["temperature_k"] % 100 == 0
     assert params["mass_kg"] == pytest.approx(constants.SOLAR_MASS_TO_KG)
     assert params["type"].endswith("Main Sequence Star")
@@ -178,7 +178,7 @@ def test_evolve_star_phases_follow_age(mass, ms_fraction, yerkes):
     of it and its giant branch ends at 1.12 (GEN.502, Hurley, Pols and Tout 2000); a 6 solar mass star keeps 1.1 and 1.2."""
     age = stellar_evolution.main_sequence_lifetime_gy(mass) * ms_fraction
     rng = random.Random(7)
-    state = stellar_evolution.evolve_star(mass, age, rng)
+    state = stellar_evolution.evolve_star(mass, age, rng, fe_h=0.0)
     assert state["yerkes_class"] == yerkes
     assert age < state["phase_end_gy"]
 
@@ -190,7 +190,7 @@ def test_evolve_star_supergiant_luminosity_honours_a_minimum():
     growth_low, growth_high = PC.SUPERGIANT_LUMINOSITY_GROWTH_RANGE
     floor = stellar_evolution.main_sequence_luminosity_sol(mass) * (growth_low + growth_high) / 2
     for _ in range(20):
-        state = stellar_evolution.evolve_star(mass, t_ms * 1.05, rng, min_luminosity_sol=floor)
+        state = stellar_evolution.evolve_star(mass, t_ms * 1.05, rng, min_luminosity_sol=floor, fe_h=0.0)
         assert state["luminosity_sol"] >= floor
         assert state["yerkes_class"] in ("IB", "IAB", "IA", "0")
 

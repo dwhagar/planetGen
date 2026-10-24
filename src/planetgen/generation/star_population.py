@@ -63,10 +63,12 @@ import functools
 import math
 
 from planetgen.galaxy.age_law import AgeLaw
+from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
 from planetgen.physics import constants, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
-    _power_law_integral, _sample_power_law, agb_bright_chance, evolve_star, giant_bright_chance, giant_end_fraction,
+    _power_law_integral, _sample_power_law, agb_bright_chance, birth_fe_h, evolve_star, giant_bright_chance,
+    giant_end_fraction,
     has_core_helium_phases, horizontal_branch_bright_chance, main_sequence_lifetime_gy, main_sequence_luminosity_sol,
     population_age_range_gy, sample_living_star, star_params, subgiant_end_fraction, subgiant_end_luminosity_sol,
 )
@@ -87,10 +89,10 @@ def _law(population, age_laws):
     return found if found is not None else AgeLaw.uniform(population_age_range_gy(population))
 
 
-def _giant_bright_chance(mass_sol, min_luminosity_sol):
+def _giant_bright_chance(mass_sol, min_luminosity_sol, fe_h=0.0):
     """The chance a giant's luminosity is >= the threshold
     (`stellarEvolution.giant_bright_chance`)."""
-    return giant_bright_chance(mass_sol, min_luminosity_sol)
+    return giant_bright_chance(mass_sol, min_luminosity_sol, fe_h)
 
 
 def _supergiant_bright_chance(ms_luminosity_sol, min_luminosity_sol):
@@ -114,24 +116,24 @@ def _wolf_rayet_bright_chance(min_luminosity_sol):
     return math.log(high / min_luminosity_sol) / math.log(high / low)
 
 
-def _bright_windows(mass_sol, min_luminosity_sol):
+def _bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     """
-    Every age window in which a star of initial mass `mass_sol` can be at
+    Every age window in which a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` can be at
     least `min_luminosity_sol` bright, as `(start_gy, end_gy, chance)`:
     within the window its age puts it in a phase whose luminosity clears
     the threshold with probability `chance`. Mirrors `evolve_star`.
     """
     pc = tuning
-    t_ms = main_sequence_lifetime_gy(mass_sol)
-    t_sub = t_ms * subgiant_end_fraction(mass_sol)
-    t_giant = t_ms * giant_end_fraction(mass_sol)
+    t_ms = main_sequence_lifetime_gy(mass_sol, fe_h)
+    t_sub = t_ms * subgiant_end_fraction(mass_sol, fe_h)
+    t_giant = t_ms * giant_end_fraction(mass_sol, fe_h)
     l_ms = main_sequence_luminosity_sol(mass_sol)
     windows = []
     if l_ms >= min_luminosity_sol:
         windows.append((0.0, t_ms, 1.0))
     if mass_sol >= pc.SUPERGIANT_MIN_MASS_SOL:
         chance = _supergiant_bright_chance(l_ms, min_luminosity_sol)
-        wr_start = wolf_rayet.start_gy(mass_sol, t_ms, t_giant)
+        wr_start = wolf_rayet.start_gy(mass_sol, t_ms, t_giant, fe_h)
         if wr_start is None:
             wr_start = t_giant
         elif _wolf_rayet_bright_chance(min_luminosity_sol) > 0:
@@ -140,10 +142,10 @@ def _bright_windows(mass_sol, min_luminosity_sol):
             windows.append((t_ms, wr_start, chance))
         return windows
     # A subgiant brightens linearly from l_ms to the base of its giant branch.
-    progress = (min_luminosity_sol - l_ms) / (subgiant_end_luminosity_sol(mass_sol) - l_ms)
+    progress = (min_luminosity_sol - l_ms) / (subgiant_end_luminosity_sol(mass_sol, fe_h) - l_ms)
     if progress < 1:
         windows.append((t_ms + (t_sub - t_ms) * max(progress, 0.0), t_sub, 1.0))
-    chance = _giant_bright_chance(mass_sol, min_luminosity_sol)
+    chance = _giant_bright_chance(mass_sol, min_luminosity_sol, fe_h)
     if chance > 0:
         windows.append((t_sub, t_giant, chance))
     if has_core_helium_phases(mass_sol):
@@ -158,35 +160,36 @@ def _bright_windows(mass_sol, min_luminosity_sol):
     return windows
 
 
-def _bright_measure(mass_sol, min_luminosity_sol, window):
-    """The chance a star of this mass, of an age spread over the age law `window`, is
+def _bright_measure(mass_sol, min_luminosity_sol, window, fe_h=0.0):
+    """The chance a star of this mass and birth [Fe/H], of an age spread over the age law `window`, is
     at least `min_luminosity_sol` bright (times the window's length)."""
     return sum(_overlap(start, end, window) * chance
-               for start, end, chance in _bright_windows(mass_sol, min_luminosity_sol))
+               for start, end, chance in _bright_windows(mass_sol, min_luminosity_sol, fe_h))
 
 
-def _living_measure(mass_sol, window):
-    """The chance a star of this mass, of an age spread over the age law `window`, has
+def _living_measure(mass_sol, window, fe_h=0.0):
+    """The chance a star of this mass and birth [Fe/H], of an age spread over the age law `window`, has
     not collapsed (times the window's length); see `evolve_star`."""
     span = window.span
     if mass_sol < tuning.SUPERGIANT_MIN_MASS_SOL:
         return span
-    dead_from = main_sequence_lifetime_gy(mass_sol) * giant_end_fraction(mass_sol)
+    dead_from = main_sequence_lifetime_gy(mass_sol, fe_h) * giant_end_fraction(mass_sol, fe_h)
     return span - _overlap(dead_from, math.inf, window)
 
 
 @functools.lru_cache(maxsize=None)
-def _light_star_phase_envelope(low_mass, high_mass):
+def _light_star_phase_envelope(low_mass, high_mass, fe_h=0.0):
     """
     `(sub_low, sub_high, giant_low, giant_high)`: the least and greatest `subgiant_end_fraction` and
-    `giant_end_fraction` of a star lighter than `HELIUM_FLASH_MASS_SOL` between `low_mass` and `high_mass` (GEN.502),
+    `giant_end_fraction` of a star of birth [Fe/H] `fe_h` lighter than `HELIUM_FLASH_MASS_SOL` between `low_mass` and
+    `high_mass` (GEN.502),
     over a grid of masses across the cell and a percent either side. The fractions move with the mass, so a cell's
     bound takes them over its own masses; a bound over all light stars would be a hundred times too loose.
     """
     top = min(high_mass, tuning.HELIUM_FLASH_MASS_SOL)
     masses = [low_mass * (top / low_mass) ** (i / _ENVELOPE_STEPS) for i in range(_ENVELOPE_STEPS + 1)]
-    subgiant = [subgiant_end_fraction(m) for m in masses]
-    giant = [giant_end_fraction(m) for m in masses]
+    subgiant = [subgiant_end_fraction(m, fe_h) for m in masses]
+    giant = [giant_end_fraction(m, fe_h) for m in masses]
     return min(subgiant) * 0.99, max(subgiant) * 1.01, min(giant) * 0.99, max(giant) * 1.01
 
 
@@ -194,7 +197,7 @@ _ENVELOPE_STEPS = 16
 """int: How many steps across a cell the phase fractions are sampled for its bound."""
 
 
-def _phase_fraction_bounds(low_mass, high_mass):
+def _phase_fraction_bounds(low_mass, high_mass, fe_h=0.0):
     """`(sub_low, sub_high, giant_low, giant_high)` over the masses `low_mass` to `high_mass` of one cell, which no
     phase-rule mass splits: the light stars' envelope, or the constants of the heavier ones."""
     pc = tuning
@@ -202,61 +205,76 @@ def _phase_fraction_bounds(low_mass, high_mass):
              pc.GIANT_PHASE_END_MS_FRACTION, pc.GIANT_PHASE_END_MS_FRACTION)
     if low_mass >= pc.HELIUM_FLASH_MASS_SOL:
         return heavy
-    light = _light_star_phase_envelope(low_mass, high_mass)
+    light = _light_star_phase_envelope(low_mass, high_mass, fe_h)
     if high_mass <= pc.HELIUM_FLASH_MASS_SOL:
         return light
     return tuple(min(a, b) if i % 2 == 0 else max(a, b) for i, (a, b) in enumerate(zip(light, heavy)))
 
 
-def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window):
+def _bright_measure_terms(low_mass, high_mass, min_luminosity_sol, fe_h):
     """
-    An upper bound on `_bright_measure` for every mass in `[low_mass,
-    high_mass]`, a cell that no phase-rule mass (`_mass_grid`'s breaks)
-    splits: each phase's window, stretched over every mass in the cell
-    (lifetimes fall and luminosities rise with mass), at its best chance.
+    The pieces of `_bright_measure_bound` for every mass in `[low_mass, high_mass]`, a cell that no phase-rule mass
+    (`_mass_grid`'s breaks) splits, at birth [Fe/H] `fe_h`: `{phase: (start_gy, end_gy, chance)}`, each phase's window
+    stretched over every mass in the cell (lifetimes fall and luminosities rise with mass) at its best chance.
     """
     pc = tuning
-    t_long = main_sequence_lifetime_gy(low_mass)
-    t_short = main_sequence_lifetime_gy(high_mass)
-    sub_low, sub_high, giant_low, giant_high = _phase_fraction_bounds(low_mass, high_mass)
+    t_long = main_sequence_lifetime_gy(low_mass, fe_h)
+    t_short = main_sequence_lifetime_gy(high_mass, fe_h)
+    sub_low, sub_high, giant_low, giant_high = _phase_fraction_bounds(low_mass, high_mass, fe_h)
     l_max = main_sequence_luminosity_sol(high_mass)
-    bound = 0.0
+    terms = {}
     if l_max >= min_luminosity_sol:
-        bound += _overlap(0.0, t_long, window)
+        terms["main sequence"] = (0.0, t_long, 1.0)
     if low_mass >= pc.SUPERGIANT_MIN_MASS_SOL:
         chance = _supergiant_bright_chance(l_max, min_luminosity_sol)
-        bound += chance * _overlap(t_short, t_long * pc.GIANT_PHASE_END_MS_FRACTION, window)
-        if high_mass >= wolf_rayet.threshold_mass_sol():
+        terms["supergiant"] = (t_short, t_long * pc.GIANT_PHASE_END_MS_FRACTION, chance)
+        if high_mass >= wolf_rayet.threshold_mass_sol(fe_h):
             # GEN.243: the Wolf-Rayet window at the end of the supergiant window, over every mass of the cell.
-            bound += _wolf_rayet_bright_chance(min_luminosity_sol) * _overlap(
+            terms["Wolf-Rayet"] = (
                 t_short * pc.GIANT_PHASE_END_MS_FRACTION - tuning.WR_PHASE_MYR / wolf_rayet.MYR_PER_GY,
-                t_long * pc.GIANT_PHASE_END_MS_FRACTION, window)
-        return bound
-    if subgiant_end_luminosity_sol(high_mass) > min_luminosity_sol:
-        bound += _overlap(t_short, t_long * sub_high, window)
+                t_long * pc.GIANT_PHASE_END_MS_FRACTION, _wolf_rayet_bright_chance(min_luminosity_sol))
+        return terms
+    if subgiant_end_luminosity_sol(high_mass, fe_h) > min_luminosity_sol:
+        terms["subgiant"] = (t_short, t_long * sub_high, 1.0)
     # A heavier giant starts its branch higher, so the chance at the cell's top mass bounds the cell's, except right
     # at a light star's tip, which falls a little with the mass: the greatest of three masses covers that.
-    chance = max(_giant_bright_chance(mass, min_luminosity_sol)
+    chance = max(_giant_bright_chance(mass, min_luminosity_sol, fe_h)
                  for mass in (low_mass, math.sqrt(low_mass * high_mass), high_mass))
-    bound += chance * _overlap(t_short * sub_low, t_long * giant_high, window)
+    terms["giant"] = (t_short * sub_low, t_long * giant_high, chance)
     if has_core_helium_phases(high_mass):
         horizontal = pc.HORIZONTAL_BRANCH_DURATION_GY
-        bound += horizontal_branch_bright_chance(min_luminosity_sol) * _overlap(
-            t_short * giant_low, t_long * giant_high + horizontal, window)
-        bound += agb_bright_chance(min_luminosity_sol) * _overlap(
-            t_short * giant_low + horizontal, t_long * (giant_high + pc.AGB_MS_FRACTION) + horizontal, window)
-    return bound
+        terms["horizontal branch"] = (t_short * giant_low, t_long * giant_high + horizontal,
+                                      horizontal_branch_bright_chance(min_luminosity_sol))
+        terms["asymptotic branch"] = (t_short * giant_low + horizontal,
+                                      t_long * (giant_high + pc.AGB_MS_FRACTION) + horizontal,
+                                      agb_bright_chance(min_luminosity_sol))
+    return terms
+
+
+def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window, fe_hs=(0.0,)):
+    """
+    An upper bound on `_bright_measure` for every mass in `[low_mass, high_mass]` at every birth [Fe/H] in `fe_hs`
+    (a table's bin: its edges and centre): each phase's window stretched over every mass of the cell and, as a
+    lifetime moves with the composition, over every composition, at its best chance. Taking the bound at each
+    composition and the greatest would miss a window that slides across the edge of the age law between them.
+    """
+    stretched = {}
+    for fe_h in fe_hs:
+        for phase, (start, end, chance) in _bright_measure_terms(low_mass, high_mass, min_luminosity_sol,
+                                                                 fe_h).items():
+            low, high, best = stretched.get(phase, (math.inf, -math.inf, 0.0))
+            stretched[phase] = (min(low, start), max(high, end), max(best, chance))
+    return sum(chance * _overlap(start, end, window) for start, end, chance in stretched.values())
 
 
 @functools.lru_cache(maxsize=None)
-def _mass_grid(extra_edges=()):
-    """Log-spaced cell edges over the IMF's range, with every mass where
-    the IMF slope or a phase rule changes added as an edge (and
-    `extra_edges`, a mass cut a draw splits at), and each cell's IMF slope
-    and continuity factor."""
+def _mass_grid(extra_edges=(), cells=None):
+    """Log-spaced cell edges over the IMF's range (`cells` of them, `tuning.BRIGHT_STAR_MASS_GRID_CELLS` without),
+    with every mass where the IMF slope or a phase rule changes added as an edge (and `extra_edges`, a mass cut a
+    draw splits at), and each cell's IMF slope and continuity factor."""
     pc = tuning
     low, high = pc.IMF_BREAKS_SOL[0], pc.IMF_BREAKS_SOL[-1]
-    cells = pc.BRIGHT_STAR_MASS_GRID_CELLS
+    cells = pc.BRIGHT_STAR_MASS_GRID_CELLS if cells is None else cells
     edges = {low * (high / low) ** (i / cells) for i in range(cells + 1)}
     edges.update(pc.IMF_BREAKS_SOL)
     edges.update((pc.BRIGHT_GIANT_MIN_MASS_SOL, pc.SUPERGIANT_MIN_MASS_SOL, pc.HELIUM_FLASH_MASS_SOL))
@@ -299,17 +317,56 @@ def _check_mass_range(mass_range):
     return (None if low is None else float(low), None if high is None else float(high))
 
 
+def fe_h_bin(fe_h):
+    """The centre of the `tuning.BRIGHT_TABLE_FE_H_STEP_DEX` bin of a birth [Fe/H]: the composition a sampling table is
+    built at (GEN.651)."""
+    step = tuning.BRIGHT_TABLE_FE_H_STEP_DEX
+    return round(fe_h / step) * step + 0.0
+
+
+FE_H_BINS = tuple(sorted({fe_h_bin(tuning.METALLICITY_RANGE_FE_H[0] + i * tuning.BRIGHT_TABLE_FE_H_STEP_DEX / 2.0)
+                          for i in range(int(2 * (tuning.METALLICITY_RANGE_FE_H[1] - tuning.METALLICITY_RANGE_FE_H[0])
+                                             / tuning.BRIGHT_TABLE_FE_H_STEP_DEX) + 2)}
+                         | {fe_h_bin(tuning.METALLICITY_RANGE_FE_H[1])}))
+"""tuple: Every bin a star's birth [Fe/H] can fall in (`tuning.METALLICITY_RANGE_FE_H`, clamped), ascending."""
+
+
+def warm_bins(min_luminosity_sol, population, mass_range=None, age_laws=None):
+    """Builds the sampling table of every [Fe/H] bin for one threshold and population (GEN.651), so a worker that
+    forks a horse per job holds them all; a star draws from the table of its own bin."""
+    window = _law(population, age_laws)
+    for fe_bin in FE_H_BINS:
+        _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range), window, fe_bin)
+
+
+def _grid_cells(fe_bin):
+    """How many mass cells a table of this [Fe/H] bin has: the full grid for the reference composition's (it works out
+    the share of stars the counts use), a coarser one for the others, whose bounds already stretch over the bin's
+    lifetimes by more than a coarse cell's width, and which are eight times cheaper to build."""
+    return tuning.BRIGHT_STAR_MASS_GRID_CELLS if fe_bin == 0.0 else tuning.BRIGHT_TABLE_BIN_GRID_CELLS
+
+
+def _bin_fe_hs(fe_bin):
+    """The composition a sampling table's bounds are taken over: the bin's two edges and its centre. A star in the bin
+    draws from the table with its own [Fe/H], so a cell's bound has to hold anywhere in the bin."""
+    half = tuning.BRIGHT_TABLE_FE_H_STEP_DEX / 2.0
+    return (fe_bin - half, fe_bin, fe_bin + half)
+
+
 @functools.lru_cache(maxsize=None)
-def _bright_table(min_luminosity_sol, population, mass_range=None, window=None):
+def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, fe_bin=0.0):
     """
-    The cached per-(threshold, population, mass range) sampling table: cell
+    The cached per-(threshold, population, mass range, [Fe/H] bin) sampling table: cell
     edges, slopes and continuity factors, each cell's measure bound, the
     running total of cell weights (IMF share times bound), and the bright
     fraction. `mass_range` (`(low, high)` initial masses in solar masses,
     either end `None`) keeps only the stars born in it: the fraction is
     still the share of ALL living stars, so a mass pass and a luminosity
     pass below it add up to the share that one threshold gives. `window` is the population's `AgeLaw` (an even spread
-    across its window when `None`).
+    across its window when `None`). `fe_bin` is the birth [Fe/H] the table is built at (`fe_h_bin`; a star's lifetimes
+    and giant branch follow its own, GEN.651), so a star is drawn from the table of its own bin and the bounds are
+    valid for it. The `fraction` is worked out for the reference composition's table (bin 0) only, the one the counts
+    use (a stand-in for the mixture of a place's compositions, GEN.661); another bin's is `None`.
     """
     check_threshold(min_luminosity_sol)
     if window is None:
@@ -317,22 +374,26 @@ def _bright_table(min_luminosity_sol, population, mass_range=None, window=None):
     cells, cumulative = [], []
     running = bright = living = 0.0
     mass_low, mass_high = mass_range if mass_range is not None else (None, None)
-    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in (mass_low, mass_high) if edge is not None)):
+    with_fraction = fe_bin == 0.0
+    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in (mass_low, mass_high) if edge is not None),
+                                        _grid_cells(fe_bin)):
         count = norm * _power_law_integral(a, b, alpha)
-        # E[measure] over the cell by stratified IMF quantiles.
-        points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
-                  for j in range(_FRACTION_POINTS_PER_CELL)]
-        living += count * sum(_living_measure(m, window) for m in points) / len(points)
+        if with_fraction:
+            # E[measure] over the cell by stratified IMF quantiles.
+            points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
+                      for j in range(_FRACTION_POINTS_PER_CELL)]
+            living += count * sum(_living_measure(m, window, fe_bin) for m in points) / len(points)
         if (mass_low is not None and b <= mass_low) or (mass_high is not None and a >= mass_high):
             continue
-        bright += count * sum(_bright_measure(m, min_luminosity_sol, window) for m in points) / len(points)
-        bound = _bright_measure_bound(a, b, min_luminosity_sol, window)
+        if with_fraction:
+            bright += count * sum(_bright_measure(m, min_luminosity_sol, window, fe_bin) for m in points) / len(points)
+        bound = _bright_measure_bound(a, b, min_luminosity_sol, window, _bin_fe_hs(fe_bin)) * tuning.BRIGHT_TABLE_BOUND_MARGIN
         if bound > 0:
             running += count * bound
             cells.append((a, b, alpha, bound))
             cumulative.append(running)
     return {"window": window.window, "law": window, "cells": cells, "cumulative": cumulative, "population": population,
-            "fraction": bright / living if living > 0 else 0.0}
+            "fraction": (bright / living if living > 0 else 0.0) if with_fraction else None}
 
 
 def _power_law_quantile(a, b, alpha, u):
@@ -377,17 +438,70 @@ def massive_star_fraction(min_mass_sol, population=None, age_laws=None):
     return _mass_band_table((float(min_mass_sol), None), population, _law(population, age_laws))["fraction"]
 
 
-def _sample_one_bright(table, min_luminosity_sol, rng):
-    cells, cumulative, law = table["cells"], table["cumulative"], table["law"]
-    window = law.window
-    if not cells:
-        raise ValueError(f"no star in population window {window} Gy reaches {min_luminosity_sol} Lsun")
+def _prior_source(population, rng, fe_h_source, index):
+    """The draw of a birth [Fe/H] for the `index`-th star: the place's (`fe_h_source(index)`, `sample_bright_stars`)
+    or, with no place, one for `population` at the Sun's distance. A star of a population in the gate takes its
+    component's [Fe/H] later and the row stores none (GEN.159, GEN.237), so it is drawn at the reference composition
+    its tree reads it back at (`multistar.Placed.tree_fe_h`): a stand-in until the component's value reaches the draw
+    (GEN.662)."""
+    if fe_h_source is None:
+        if population in POPULATIONS_IN_THE_GATE:
+            return lambda: 0.0
+        return lambda: birth_fe_h(rng, population)
+    return lambda: fe_h_source(index)
+
+
+def _table_total(table):
+    """What a table draws a try's cell from: its cells' running total of weight (IMF share times bound), 0 for a table
+    with none."""
+    return table["cumulative"][-1] if table["cells"] else 0.0
+
+
+FE_H_REDRAWS = 100 * tuning.STAR_MODEL_MAX_REDRAWS
+"""int: How many compositions `_draw_fe_h` tries for one that a table keeps (a metal-poor place against a metal-rich
+table total, rare in the luminosity window it asks for)."""
+
+
+def _draw_fe_h(source, totals, rng):
+    """
+    The birth [Fe/H] for a try at a star the tables condition on (it is bright, or in a mass band): `source()` draws one
+    from the place's distribution and it is kept with the chance its [Fe/H] bin's table total (`totals`, a dict by bin) is
+    of the greatest bin's. A try then draws a cell and a mass from the table of that bin and keeps the star with its
+    measure over its cell's bound, so a composition is kept as often as its stars are there: the composition a place's
+    bright stars have is its prior times each composition's bright share, not the prior (a metal-poor halo has no 2500
+    Lsun giants in a 3 to 10 Gy window, and its metal-rich tail makes all of them). A try that fails draws a new
+    composition with the next.
+    """
+    best = max(totals.values())
+    if best <= 0:
+        raise ValueError("no composition makes a star of this kind in this population window")
+    for _ in range(FE_H_REDRAWS):
+        fe_h = source()
+        if rng.random() * best < totals.get(fe_h_bin(fe_h), 0.0):
+            return fe_h
+    raise ValueError(f"no birth [Fe/H] kept in {FE_H_REDRAWS} tries")
+
+
+def _bin_totals(table_at):
+    """What each [Fe/H] bin's table draws a try's cell from (`_table_total`), by bin: one lookup of each of the tables
+    (built on first use), made once for a star, not once for each composition tried."""
+    return {fe_bin: _table_total(table_at(fe_bin)) for fe_bin in FE_H_BINS}
+
+
+def _sample_one_bright(min_luminosity_sol, population, mass_range, window, rng, source):
+    def table_at(fe_bin):
+        return _bright_table(float(min_luminosity_sol), population, mass_range, window, fe_bin)
+
     for _ in range(tuning.STAR_MODEL_MAX_REDRAWS):
+        fe_h = _draw_fe_h(source, _bin_totals(table_at), rng)
+        table = table_at(fe_h_bin(fe_h))
+        cells, cumulative, law = table["cells"], table["cumulative"], table["law"]
+        span = law.window
         index = min(bisect.bisect_right(cumulative, rng.random() * cumulative[-1]), len(cells) - 1)
         a, b, alpha, bound = cells[index]
         mass = _sample_power_law(a, b, alpha, rng)
-        pieces = [(max(start, window[0]), min(end, window[1]), chance)
-                  for start, end, chance in _bright_windows(mass, min_luminosity_sol)]
+        pieces = [(max(start, span[0]), min(end, span[1]), chance)
+                  for start, end, chance in _bright_windows(mass, min_luminosity_sol, fe_h)]
         weights = [max(0.0, end - start) * chance for start, end, chance in pieces]
         total = sum(weights)
         if rng.random() * bound >= total:
@@ -398,7 +512,8 @@ def _sample_one_bright(table, min_luminosity_sol, rng):
                 break
             pick -= weight
         age = law.sample(start, end, rng)
-        state = evolve_star(mass, age, rng, min_luminosity_sol=min_luminosity_sol, population=table["population"])
+        state = evolve_star(mass, age, rng, min_luminosity_sol=min_luminosity_sol, fe_h=fe_h,
+                            population=table["population"])
         # Guards the window edges against rounding (an age landing exactly
         # on a phase boundary).
         if state is not None and state["luminosity_sol"] >= min_luminosity_sol:
@@ -419,12 +534,12 @@ is brighter than that through all of its life, so the floor cuts none of
 them."""
 
 
-def _sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng):
+def _sample_one_in_band(min_luminosity_sol, max_luminosity_sol, population, mass_range, window, rng, source):
     """One star with `min <= luminosity < max`: a star drawn above `min`,
-    redrawn while it reaches `max` (the brighter band already placed)."""
+    redrawn (its composition with it) while it reaches `max` (the brighter band already placed)."""
     max_w = max_luminosity_sol * constants.SOLAR_LUMINOSITY
     for _ in range(BAND_REDRAWS):
-        params = _sample_one_bright(table, min_luminosity_sol, rng)
+        params = _sample_one_bright(min_luminosity_sol, population, mass_range, window, rng, source)
         if params["luminosity_w"] < max_w:
             return params
     raise ValueError(f"no star between {min_luminosity_sol:g} and {max_luminosity_sol:g} Lsun drawn "
@@ -432,7 +547,7 @@ def _sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng):
 
 
 def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_luminosity_sol=None,
-                        mass_range=None, age_laws=None):
+                        mass_range=None, age_laws=None, fe_h_source=None):
     """
     Draws `n` stars from the population model conditional on luminosity
     `>= min_luminosity_sol` (see the module docstring for how), and below
@@ -451,19 +566,25 @@ def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_lu
             (Lsun, exclusive); `None` for no limit.
         mass_range (tuple, optional): As in `bright_star_fraction`.
         age_laws (dict, optional): As in `bright_star_fraction`.
+        fe_h_source (callable, optional): `fe_h_source(index)` draws a birth [Fe/H] from the distribution of the
+            place of the `index`-th star (`birth_fe_h` there, GEN.651); each star's lifetimes and giant branch follow
+            its own, and it is kept with the chance that composition makes such a star (`_draw_fe_h`). Without it
+            each star draws from `population` at the Sun's distance. The sampling tables are built per [Fe/H] bin
+            (`fe_h_bin`), so each star is drawn from the table of its own bin.
 
     Returns:
         list: `n` dicts from `stellarEvolution.star_params` (type, Yerkes
               class, mass, radius, temperature, luminosity, age, lifespan,
-              initial mass and phase end age), each for `Star.from_params`.
+              initial mass, phase end age and birth [Fe/H]), each for `Star.from_params`.
     """
     if max_luminosity_sol is not None and max_luminosity_sol <= min_luminosity_sol:
         raise ValueError(f"empty luminosity band [{min_luminosity_sol:g}, {max_luminosity_sol:g}) Lsun")
-    table = _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range),
-                          _law(population, age_laws))
+    mass_range, window = _check_mass_range(mass_range), _law(population, age_laws)
     if max_luminosity_sol is None:
-        return [_sample_one_bright(table, min_luminosity_sol, rng) for _ in range(n)]
-    return [_sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng) for _ in range(n)]
+        return [_sample_one_bright(min_luminosity_sol, population, mass_range, window, rng,
+                                   _prior_source(population, rng, fe_h_source, i)) for i in range(n)]
+    return [_sample_one_in_band(min_luminosity_sol, max_luminosity_sol, population, mass_range, window, rng,
+                                _prior_source(population, rng, fe_h_source, i)) for i in range(n)]
 
 
 def bright_band_fraction(min_luminosity_sol, max_luminosity_sol=None, population=None, mass_range=None,
@@ -480,7 +601,7 @@ def bright_band_fraction(min_luminosity_sol, max_luminosity_sol=None, population
 
 
 @functools.lru_cache(maxsize=None)
-def _mass_band_table(mass_range, population, window=None):
+def _mass_band_table(mass_range, population, window=None, fe_bin=0.0):
     """
     The cached sampling table of the stars born in `mass_range` (`(low,
     high)` initial solar masses, `high` `None` for no limit) that are still
@@ -495,22 +616,26 @@ def _mass_band_table(mass_range, population, window=None):
     mass_low, mass_high = mass_range
     cells, cumulative = [], []
     running = born = living = 0.0
-    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in mass_range if edge is not None)):
+    with_fraction = fe_bin == 0.0
+    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in mass_range if edge is not None), _grid_cells(fe_bin)):
         count = norm * _power_law_integral(a, b, alpha)
-        points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
-                  for j in range(_FRACTION_POINTS_PER_CELL)]
-        measure = count * sum(_living_measure(m, window) for m in points) / len(points)
+        measure = 0.0
+        if with_fraction:
+            points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
+                      for j in range(_FRACTION_POINTS_PER_CELL)]
+            measure = count * sum(_living_measure(m, window, fe_bin) for m in points) / len(points)
         living += measure
         if b <= mass_low or (mass_high is not None and a >= mass_high):
             continue
         born += measure
-        bound = _living_measure(a, window)  # falls with mass, and no cell straddles the supergiant mass
+        # Falls with mass, and no cell straddles the supergiant mass.
+        bound = max(_living_measure(a, window, fe_h) for fe_h in _bin_fe_hs(fe_bin)) * tuning.BRIGHT_TABLE_BOUND_MARGIN
         if bound > 0:
             running += count * bound
             cells.append((a, b, alpha, bound))
             cumulative.append(running)
     return {"window": window.window, "law": window, "cells": cells, "cumulative": cumulative, "population": population,
-            "fraction": born / living if living > 0 else 0.0}
+            "fraction": (born / living if living > 0 else 0.0) if with_fraction else None}
 
 
 def _check_mass_band(min_mass_sol, max_mass_sol):
@@ -536,22 +661,25 @@ def mass_band_fraction(min_mass_sol, max_mass_sol=None, max_luminosity_sol=None,
     return max(born, 0.0)
 
 
-def _sample_one_in_mass_band(table, max_luminosity_sol, rng):
-    cells, cumulative, law = table["cells"], table["cumulative"], table["law"]
-    window = law.window
-    if not cells:
-        raise ValueError(f"no star in population window {window} Gy is alive in this mass band")
+def _sample_one_in_mass_band(band, population, law, max_luminosity_sol, rng, source):
+    def table_at(fe_bin):
+        return _mass_band_table(band, population, law, fe_bin)
+
     for _ in range(tuning.STAR_MODEL_MAX_REDRAWS):
+        fe_h = _draw_fe_h(source, _bin_totals(table_at), rng)
+        table = table_at(fe_h_bin(fe_h))
+        cells, cumulative = table["cells"], table["cumulative"]
+        window = table["law"].window
         index = min(bisect.bisect_right(cumulative, rng.random() * cumulative[-1]), len(cells) - 1)
         a, b, alpha, bound = cells[index]
         mass = _sample_power_law(a, b, alpha, rng)
-        if rng.random() * bound >= _living_measure(mass, law):
+        if rng.random() * bound >= _living_measure(mass, law, fe_h):
             continue
         oldest = window[1]
         if mass >= tuning.SUPERGIANT_MIN_MASS_SOL:
-            oldest = min(oldest, main_sequence_lifetime_gy(mass) * giant_end_fraction(mass))
+            oldest = min(oldest, main_sequence_lifetime_gy(mass, fe_h) * giant_end_fraction(mass, fe_h))
         age = law.sample(window[0], oldest, rng)
-        state = evolve_star(mass, age, rng, population=table["population"])
+        state = evolve_star(mass, age, rng, fe_h=fe_h, population=table["population"])
         if state is None:
             continue
         if (max_luminosity_sol is not None and state["yerkes_class"] != "VII"
@@ -562,15 +690,16 @@ def _sample_one_in_mass_band(table, max_luminosity_sol, rng):
 
 
 def sample_mass_band_stars(n, min_mass_sol, max_mass_sol=None, population=None, rng=draw, max_luminosity_sol=None,
-                           age_laws=None):
+                           age_laws=None, fe_h_source=None):
     """
     Draws `n` living stars born with `min_mass_sol <= mass < max_mass_sol`
     and, when given, dimmer than `max_luminosity_sol` (the bright ones
-    were placed already), as `stellarEvolution.star_params` dicts.
+    were placed already), as `stellarEvolution.star_params` dicts. `fe_h_source`: as in `sample_bright_stars`.
     """
     band = _check_mass_band(min_mass_sol, max_mass_sol)
-    table = _mass_band_table(band, population, _law(population, age_laws))
-    return [_sample_one_in_mass_band(table, max_luminosity_sol, rng) for _ in range(n)]
+    law = _law(population, age_laws)
+    return [_sample_one_in_mass_band(band, population, law, max_luminosity_sol, rng,
+                                     _prior_source(population, rng, fe_h_source, i)) for i in range(n)]
 
 
 def placed_star_fraction(min_luminosity_sol, min_mass_sol, population=None, age_laws=None):
@@ -590,7 +719,8 @@ def placed_star_fraction(min_luminosity_sol, min_mass_sol, population=None, age_
             + bright_star_fraction(min_luminosity_sol, population, (None, min_mass_sol), age_laws))
 
 
-def sample_dim_star(max_luminosity_sol, population=None, rng=draw, max_mass_sol=None, age_laws=None):
+def sample_dim_star(max_luminosity_sol, population=None, rng=draw, max_mass_sol=None, age_laws=None,
+                    fe_h_peaks=None, galactic_center_dist_ly=None):
     """
     Draws one star from the population model conditional on luminosity
     `< max_luminosity_sol` (a sector's own stars once its bright ones were
@@ -601,7 +731,8 @@ def sample_dim_star(max_luminosity_sol, population=None, rng=draw, max_mass_sol=
         dict: As one of `sample_bright_stars`'s.
     """
     mass, age, state = sample_living_star(rng=rng, population=population, max_luminosity_sol=max_luminosity_sol,
-                                          max_mass_sol=max_mass_sol,
+                                          max_mass_sol=max_mass_sol, fe_h_peaks=fe_h_peaks,
+                                          galactic_center_dist_ly=galactic_center_dist_ly,
                                           age_law=None if age_laws is None else age_laws.get(population))
     return star_params(mass, age, state)
 

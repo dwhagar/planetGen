@@ -50,10 +50,11 @@ HORIZONTAL_BRANCH_COLOURS = ("blue", "rr-lyrae", "red", "extreme")
 """The horizontal branch's colours, in the order of `tuning.HORIZONTAL_BRANCH_COLOURS`' shares."""
 
 
-def main_sequence_lifetime_gy(mass_sol):
-    """The main-sequence lifetime, Gy, from `ms_lifetime` (Hurley, Pols and Tout 2000, GEN.467), the one the rest of
-    the generator uses."""
-    return ms_lifetime.lifetime_gy(mass_sol)
+def main_sequence_lifetime_gy(mass_sol, fe_h=0.0):
+    """The main-sequence lifetime, Gy, of a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` (default 0, the
+    reference composition), from `ms_lifetime` (Hurley, Pols and Tout 2000, GEN.467), the one the rest of the
+    generator uses."""
+    return ms_lifetime.lifetime_gy(mass_sol, fe_h)
 
 
 def sample_imf_mass_sol(min_mass_sol=None, max_mass_sol=None, rng=draw):
@@ -307,30 +308,30 @@ def sample_giant_luminosity_sol(mass_sol, rng=draw, min_luminosity_sol=None, fe_
     return luminosity_law_quantile(*giant_luminosity_law(mass_sol), rng.random(), min_luminosity_sol)
 
 
-def subgiant_end_luminosity_sol(mass_sol):
-    """The luminosity a star of initial mass `mass_sol` reaches as its subgiant phase ends: the base of its red giant
-    branch below `HELIUM_FLASH_MASS_SOL` (`giant_branch`, GEN.502), else `SUBGIANT_MAX_BRIGHTENING` times its
-    main-sequence luminosity."""
+def subgiant_end_luminosity_sol(mass_sol, fe_h=0.0):
+    """The luminosity a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` reaches as its subgiant phase ends:
+    the base of its red giant branch below `HELIUM_FLASH_MASS_SOL` (`giant_branch`, GEN.502), else
+    `SUBGIANT_MAX_BRIGHTENING` times its main-sequence luminosity."""
     l_ms = main_sequence_luminosity_sol(mass_sol)
     if has_core_helium_phases(mass_sol):
-        return max(giant_branch.base_luminosity_sol(mass_sol), 1.01 * l_ms)
+        return max(giant_branch.base_luminosity_sol(mass_sol, fe_h), 1.01 * l_ms)
     return tuning.SUBGIANT_MAX_BRIGHTENING * l_ms
 
 
-def subgiant_end_fraction(mass_sol):
-    """The age a star of initial mass `mass_sol` leaves the Hertzsprung gap, as a multiple of its main-sequence
-    lifetime: the paper's time to the base of the giant branch below `HELIUM_FLASH_MASS_SOL` (GEN.502), else
-    `SUBGIANT_PHASE_END_MS_FRACTION`."""
+def subgiant_end_fraction(mass_sol, fe_h=0.0):
+    """The age a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` leaves the Hertzsprung gap, as a multiple of
+    its main-sequence lifetime: the paper's time to the base of the giant branch below `HELIUM_FLASH_MASS_SOL`
+    (GEN.502), else `SUBGIANT_PHASE_END_MS_FRACTION`."""
     if has_core_helium_phases(mass_sol):
-        return giant_branch.subgiant_end_fraction(mass_sol)
+        return giant_branch.subgiant_end_fraction(mass_sol, fe_h)
     return tuning.SUBGIANT_PHASE_END_MS_FRACTION
 
 
-def giant_end_fraction(mass_sol):
-    """The age the giant phase ends (helium ignition below `HELIUM_FLASH_MASS_SOL`, GEN.502), as a multiple of the
-    main-sequence lifetime; `GIANT_PHASE_END_MS_FRACTION` for the heavier stars."""
+def giant_end_fraction(mass_sol, fe_h=0.0):
+    """The age the giant phase ends (helium ignition below `HELIUM_FLASH_MASS_SOL`, GEN.502) of a star of birth
+    [Fe/H] `fe_h`, as a multiple of the main-sequence lifetime; `GIANT_PHASE_END_MS_FRACTION` for the heavier stars."""
     if has_core_helium_phases(mass_sol):
-        return giant_branch.giant_end_fraction(mass_sol)
+        return giant_branch.giant_end_fraction(mass_sol, fe_h)
     return tuning.GIANT_PHASE_END_MS_FRACTION
 
 
@@ -354,42 +355,43 @@ def has_core_helium_phases(mass_sol):
     return mass_sol < tuning.HELIUM_FLASH_MASS_SOL
 
 
-def remnant_age_fraction(mass_sol):
-    """The age at which a star of initial mass `mass_sol` ends its last
+def remnant_age_fraction(mass_sol, fe_h=0.0):
+    """The age at which a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` ends its last
     giant phase, as a multiple of its main-sequence lifetime: the giant
     phase's end, or for a star with core helium burning the end of its
     asymptotic giant branch."""
     pc = tuning
     if has_core_helium_phases(mass_sol):
-        return (giant_end_fraction(mass_sol) + pc.HORIZONTAL_BRANCH_DURATION_GY / main_sequence_lifetime_gy(mass_sol)
-                + pc.AGB_MS_FRACTION)
+        return (giant_end_fraction(mass_sol, fe_h)
+                + pc.HORIZONTAL_BRANCH_DURATION_GY / main_sequence_lifetime_gy(mass_sol, fe_h) + pc.AGB_MS_FRACTION)
     return pc.GIANT_PHASE_END_MS_FRACTION
 
 
-def remnant_formation_time_gy(mass_sol):
-    """The age at which a star of initial mass `mass_sol` has become its remnant, Gy: the end of its last giant phase."""
-    return main_sequence_lifetime_gy(mass_sol) * remnant_age_fraction(mass_sol)
+def remnant_formation_time_gy(mass_sol, fe_h=0.0):
+    """The age at which a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` has become its remnant, Gy: the end
+    of its last giant phase."""
+    return main_sequence_lifetime_gy(mass_sol, fe_h) * remnant_age_fraction(mass_sol, fe_h)
 
 
-def youngest_progenitor_sol(age_yr):
-    """The lightest star whose giant phases have ended by this age (a star lighter than
+def youngest_progenitor_sol(age_yr, fe_h=0.0):
+    """The lightest star of birth [Fe/H] `fe_h` whose giant phases have ended by this age (a star lighter than
     `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch, and its
     giant branch has the length of `giant_branch`, GEN.502)."""
     age_gy = age_yr / 1.0e9
     flash = tuning.HELIUM_FLASH_MASS_SOL
 
-    if remnant_formation_time_gy(flash * (1.0 - 1.0e-9)) <= age_gy:
+    if remnant_formation_time_gy(flash * (1.0 - 1.0e-9), fe_h) <= age_gy:
         low, high = ms_lifetime.MIN_MASS_SOL, flash
-        if remnant_formation_time_gy(low) <= age_gy:
+        if remnant_formation_time_gy(low, fe_h) <= age_gy:
             return low
         for _ in range(50):
             middle = math.sqrt(low * high)
-            if remnant_formation_time_gy(middle) > age_gy:
+            if remnant_formation_time_gy(middle, fe_h) > age_gy:
                 low = middle
             else:
                 high = middle
         return high
-    return max(ms_lifetime.mass_for_lifetime_gy(age_gy / tuning.GIANT_PHASE_END_MS_FRACTION), flash)
+    return max(ms_lifetime.mass_for_lifetime_gy(age_gy / tuning.GIANT_PHASE_END_MS_FRACTION, fe_h), flash)
 
 
 def horizontal_branch_shares(fe_h, age_gy):
@@ -435,7 +437,21 @@ def _supergiant_yerkes_class(luminosity_sol):
     return yerkes
 
 
-def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, population=None, fe_h_peaks=None):
+def birth_fe_h(rng=draw, population=None, fe_h_peaks=None, galactic_center_dist_ly=None):
+    """
+    A star's birth [Fe/H] (GEN.651, GEN.553's order: composition first): drawn from its `population` (or
+    `fe_h_peaks`, a cluster's or satellite's own distribution) at `galactic_center_dist_ly` from the centre (the Sun's
+    distance without one) by `metallicity.sample_fe_h`. A cluster or satellite star with no distribution of its own is
+    drawn as the halo's.
+    """
+    if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate") and not fe_h_peaks:
+        population = "halo"
+    distance = scales.default_galactocentric_ly() if galactic_center_dist_ly is None else galactic_center_dist_ly
+    return metallicity.sample_fe_h(population, distance, rng, peaks=fe_h_peaks)
+
+
+def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, population=None, fe_h_peaks=None,
+                galactic_center_dist_ly=None):
     """
     The present state of a star of initial mass `mass_sol` at `age_gy`.
 
@@ -444,11 +460,10 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     `star_population.sample_bright_stars` uses it once it has picked a
     mass and age that can reach it.
 
-    A horizontal-branch star's colour (its temperature) follows its [Fe/H]
-    and age. `fe_h` is the star's own; without it one is drawn from the
-    star's `population` (and `fe_h_peaks`, a cluster's or satellite's own
-    distribution, `metallicity.sample_fe_h`) at the Sun's distance from the
-    centre, and returned as `metallicity_fe_h` for the star to keep.
+    The star's birth [Fe/H] sets its lifetimes and its giant branch (`ms_lifetime`, `giant_branch`, GEN.651) and a
+    horizontal-branch star's colour. `fe_h` is the star's own; without it one is drawn first, before any other draw
+    here (`birth_fe_h`: the star's `population` or `fe_h_peaks`, at `galactic_center_dist_ly` from the centre, the Sun's
+    distance without one), and either way returned as `metallicity_fe_h` for the star to keep.
 
     Returns:
         dict or None: None when the star has already collapsed to a neutron
@@ -458,22 +473,23 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         mass), `luminosity_sol`, `temperature_k`, `radius_km` (a white
         dwarf's from its mass-radius relation, None for every other class,
         whose radius follows from luminosity and temperature),
-        `lifespan_gy` (the age at which it becomes a remnant; infinite for a
+        `metallicity_fe_h` (the birth [Fe/H]), `lifespan_gy` (the age at which it becomes a remnant; infinite for a
         white dwarf) and `phase_end_gy` (the age at which it leaves its
         present phase; infinite for a white dwarf). A horizontal-branch star
         or an asymptotic giant (class III) also has `phase`
         (`"horizontal-branch"` or `"asymptotic-giant"`, a key of
-        `PHASE_NAMES`), and a horizontal-branch star the `metallicity_fe_h`
-        its colour was drawn from. A star younger than its contraction time
+        `PHASE_NAMES`). A star younger than its contraction time
         (`pre_main_sequence.state`, GEN.242) is a `"protostar"` (under 0.5
         Myr) or a `"PMS"` (pre-main-sequence) class, with `disk_class` ("0",
         "I", "II" or "III") in place of a Yerkes numeral, and `phase_end_gy`
         the age it reaches the main sequence.
     """
     pc = tuning
-    t_ms = main_sequence_lifetime_gy(mass_sol)
-    t_sub = t_ms * subgiant_end_fraction(mass_sol)
-    t_giant = t_ms * giant_end_fraction(mass_sol)
+    if fe_h is None:
+        fe_h = birth_fe_h(rng, population, fe_h_peaks, galactic_center_dist_ly)
+    t_ms = main_sequence_lifetime_gy(mass_sol, fe_h)
+    t_sub = t_ms * subgiant_end_fraction(mass_sol, fe_h)
+    t_giant = t_ms * giant_end_fraction(mass_sol, fe_h)
     t_horizontal = t_agb = t_giant
     if has_core_helium_phases(mass_sol):
         t_horizontal = t_giant + pc.HORIZONTAL_BRANCH_DURATION_GY
@@ -481,7 +497,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     massive = mass_sol >= pc.SUPERGIANT_MIN_MASS_SOL
     l_ms = main_sequence_luminosity_sol(mass_sol)
     t_eff_ms = effective_temperature_k(l_ms, main_sequence_radius_sol(mass_sol))
-    state = {"mass_sol": mass_sol, "radius_km": None, "lifespan_gy": t_agb}
+    state = {"mass_sol": mass_sol, "radius_km": None, "lifespan_gy": t_agb, "metallicity_fe_h": fe_h}
 
     wr_start = wolf_rayet.start_gy(mass_sol, t_ms, t_giant, fe_h) if massive else None
     young = pre_main_sequence.state(mass_sol, age_gy * 1.0e9)
@@ -508,21 +524,16 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         progress = (age_gy - t_ms) / (t_sub - t_ms)
         end_temperature = min(t_eff_ms, pc.SUBGIANT_END_TEMPERATURE_K)
         state.update(yerkes_class="IV",
-                     luminosity_sol=l_ms + (subgiant_end_luminosity_sol(mass_sol) - l_ms) * progress,
+                     luminosity_sol=l_ms + (subgiant_end_luminosity_sol(mass_sol, fe_h) - l_ms) * progress,
                      temperature_k=t_eff_ms + (end_temperature - t_eff_ms) * progress,
                      phase_end_gy=t_sub)
     elif age_gy < t_giant:
         bright = mass_sol >= pc.BRIGHT_GIANT_MIN_MASS_SOL
         state.update(yerkes_class="II" if bright else "III",
-                     luminosity_sol=sample_giant_luminosity_sol(mass_sol, rng, min_luminosity_sol, fe_h or 0.0),
+                     luminosity_sol=sample_giant_luminosity_sol(mass_sol, rng, min_luminosity_sol, fe_h),
                      temperature_k=rng.uniform(*pc.GIANT_TEMPERATURE_RANGE_K),
                      phase_end_gy=t_giant)
     elif age_gy < t_horizontal:
-        if fe_h is None:
-            # A cluster or satellite star with no distribution of its own is drawn as the halo's.
-            origin = "halo" if population in ("cluster", "satellite", "satellite_young", "satellite_intermediate") and not fe_h_peaks else population
-            fe_h = metallicity.sample_fe_h(origin, scales.default_galactocentric_ly(), rng, peaks=fe_h_peaks)
-            state["metallicity_fe_h"] = fe_h
         colour = sample_horizontal_branch_colour(fe_h, age_gy, rng)
         state.update(yerkes_class="III", phase="horizontal-branch",
                      luminosity_sol=luminosity_law_quantile(*pc.HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL, 0.0,
@@ -551,7 +562,8 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
 
 
 def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=False,
-                       population=None, max_luminosity_sol=None, max_mass_sol=None, fe_h_peaks=None, age_law=None):
+                       population=None, max_luminosity_sol=None, max_mass_sol=None, fe_h_peaks=None, age_law=None,
+                       galactic_center_dist_ly=None, fe_h=None):
     """
     Draws `(initial_mass_sol, age_gy, state)` for a random star that hasn't
     collapsed (see `evolve_star`), redrawing mass and age together until it
@@ -569,7 +581,9 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
     sector's dim stars, once its bright ones were pre-placed); likewise
     `max_mass_sol` redraws any star born with at least that mass (the stars
     the scatter's mass pass placed). `fe_h_peaks` is the place's [Fe/H]
-    distribution (`evolve_star`), for a horizontal-branch star's colour. `age_law` (a `galaxy.age_law.AgeLaw` over the
+    distribution and `galactic_center_dist_ly` the star's distance from the centre, the place its birth [Fe/H] is
+    drawn for (`birth_fe_h`, GEN.651: each try draws it first, before the mass and the age, and the star's lifetimes
+    and giant branch follow it; `fe_h` pins it instead, a companion's, born with its primary). `age_law` (a `galaxy.age_law.AgeLaw` over the
     population's range, GEN.546) spreads the age inside that range by the disk's star formation rate instead of
     evenly; it goes with the population, so a fallback to the whole disk's ages drops it.
     """
@@ -585,12 +599,13 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
     if habitable_host and population is not None and population_age_range_gy(population)[1] <= pc.LIFE_MIN_STAR_AGE_GY:
         population, age_law = None, None  # likewise, no star this young can host life yet
     for _ in range(pc.STAR_MODEL_MAX_REDRAWS):
+        birth = fe_h if fe_h is not None else birth_fe_h(rng, population, fe_h_peaks, galactic_center_dist_ly)
         if large_star:
             mass = sample_imf_mass_sol(min_mass_sol=pc.LARGE_STAR_MIN_MASS_SOL, rng=rng)
             if max_mass_sol is not None and mass >= max_mass_sol:
                 continue
             low, high = population_age_range_gy(population)
-            high = min(high, main_sequence_lifetime_gy(mass) * remnant_age_fraction(mass))
+            high = min(high, remnant_formation_time_gy(mass, birth))
             if high <= low:
                 continue  # an old population has no living star this massive
             low, high = age_window_gy(low, high, age_bias)
@@ -604,7 +619,7 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             age = sample_star_age_gy(age_bias, rng, population, age_law)
         if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY:
             continue
-        state = evolve_star(mass, age, rng, population=population, fe_h_peaks=fe_h_peaks)
+        state = evolve_star(mass, age, rng, fe_h=birth, population=population, fe_h_peaks=fe_h_peaks)
         if state is None or (habitable_host and state["yerkes_class"] == "VII"):
             continue
         # A white dwarf is never pre-placed, so the cap never removes one
@@ -629,8 +644,7 @@ def star_params(initial_mass_sol, age_gy, state):
         dict: `type` (e.g. "G2V Yellow Main Sequence Star"),
         `yerkes_class`, `mass_kg`, `radius_km`, `temperature_k`,
         `luminosity_w`, `age_gy`, `lifespan_gy`, `initial_mass_sol` and
-        `phase_end_age_gy`; and `metallicity_fe_h` for a horizontal-branch
-        star whose [Fe/H] `evolve_star` drew, which the star keeps.
+        `phase_end_age_gy`; and `metallicity_fe_h`, the birth [Fe/H] the star keeps (GEN.651).
     """
     temperature = int(round(state["temperature_k"], tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
     spectral_class, subclass = spectral_letter_and_subclass(temperature)
@@ -665,7 +679,7 @@ def star_params(initial_mass_sol, age_gy, state):
         "lifespan_gy": state["lifespan_gy"],
         "initial_mass_sol": initial_mass_sol,
         "phase_end_age_gy": state["phase_end_gy"],
-        **({"metallicity_fe_h": state["metallicity_fe_h"]} if "metallicity_fe_h" in state else {}),
+        "metallicity_fe_h": state["metallicity_fe_h"],
     }
 
 

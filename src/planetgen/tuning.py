@@ -440,6 +440,9 @@ WHITE_DWARF_MAX_AGE_GY = 12.0
 # the proto-solar Z of the composition scale, Asplund 2021 (stellar-
 # composition.md D1). A solar mass lasts 10.2 Gy at it.
 MS_LIFETIME_REFERENCE_Z = 0.0154
+MS_LIFETIME_Z_RANGE = (1.0e-4, 0.03)
+"""tuple: The metallicities (mass fraction of metals, Z) Hurley, Pols and Tout 2000 fitted their formulae over (the
+paper's abstract: 0.0001 to 0.03); `ms_lifetime.zeta` holds a star's to it (GEN.651)."""
 MS_LIFESPAN_FRACTION_OF_TOTAL = 0.9
 # Subdwarfs (Yerkes VI, e.g. real sdB/sdO stars) are excluded from the
 # mass-derived model above -- not just from its mass-sampling rejection
@@ -1414,6 +1417,20 @@ DARK_MATTER_SCALE_RADIUS_PC = 16000.0
 # mass grid, in log-spaced cells over the IMF's range, on which the chance
 # of a star being at least the threshold's brightness is tabulated.
 BRIGHT_STAR_MASS_GRID_CELLS = 4000
+
+BRIGHT_TABLE_FE_H_STEP_DEX = 0.25
+"""float: The width, dex, of the [Fe/H] bins the bright-star sampling tables are built at (GEN.651): a star's lifetimes
+and giant branch follow its birth [Fe/H], so a table's cell bounds are valid for the stars of its own bin only."""
+
+BRIGHT_TABLE_BIN_GRID_CELLS = 500
+"""int: The mass cells of a sampling table of an [Fe/H] bin other than the reference composition's
+(`BRIGHT_STAR_MASS_GRID_CELLS` has the reference one's, which works out the share the counts use): such a table's
+bounds already stretch over the bin's lifetimes, by more than a coarse cell's width, and it takes an eighth of the time
+to build, which the worker warm pays for every bin of every population (GEN.651)."""
+
+BRIGHT_TABLE_BOUND_MARGIN = 1.1
+"""float: What a table's cell bound is multiplied by so a star anywhere in its [Fe/H] bin is under it (calibrated by
+`tests/test_star_population.py`, which draws masses and compositions across every bin and checks the ratio)."""
 
 OBJECT_FIRST_CAPACITIES = (1, 2, 4, 8, 16)
 """tuple: The object counts a sector can take in the object-first scatter (PERF.58): its capacity is the smallest
