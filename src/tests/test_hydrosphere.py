@@ -14,6 +14,7 @@ from planetgen.physics import constants, hydrosphere as hy, water_layer as wl
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
+from tests.air_support import air, fold_air
 from tests.fuzz_support import deterministic_entropy
 
 EARTH = constants.EARTH_MASS_TO_KG
@@ -59,7 +60,7 @@ def test_the_lid_counts_by_mass_and_high_pressure_ice_seals_the_ocean():
 
 
 def _ocean(**gases):
-    return types.SimpleNamespace(mantle_redox=gases.pop("redox", "intermediate"), **gases)
+    return types.SimpleNamespace(mantle_redox=gases.pop("redox", "intermediate"), **air(**gases))
 
 
 def test_ocean_classes_follow_the_rules():
@@ -79,7 +80,7 @@ def _body(planet_class, temperature, pressure_pa, mass_earth=1.0, radius_km=6371
                   atmospheric_pressure=pressure_pa, is_moon=False, mantle_redox="intermediate",
                   p_co2_kpa=0.04, p_so2_kpa=0.0, p_h2_kpa=0.0)
     fields.update(extra)
-    return types.SimpleNamespace(**fields)
+    return types.SimpleNamespace(**fold_air(fields))
 
 
 def test_states_by_temperature_and_pressure():

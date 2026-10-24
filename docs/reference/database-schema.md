@@ -1413,7 +1413,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the orbit normal (the orbit frame: inclination and ascending node); see `planetgen/physics/spin.py` and docs/design/orbits/orbital-updates.md section 6. NULL on a row generated before v68. A tidally locked body (now planets as well as moons) has tilt 0 and `rotation_period_hours` equal to its orbit. |
 | `mantle_redox` | VARCHAR(16) | nullable, CHECK reduced / intermediate / oxidized | Added in v70 (GEN.85). The upper mantle's redox state: reduced at or below the iron-wustite buffer, oxidized from IW+2.5. NULL for a gas giant. See `planetgen/physics/atmosphere.py`. |
 | `mantle_delta_iw` | DOUBLE | nullable | Added in v70 (GEN.85). The upper mantle's oxygen fugacity, log units above IW, drawn from mass (Earth about +3.5, the Moon about -1). |
-| `p_o2_kpa`, `p_co2_kpa`, `p_co_kpa`, `p_n2_kpa`, `p_ar_kpa`, `p_h2_kpa`, `p_h2o_kpa`, `p_ch4_kpa`, `p_h2s_kpa`, `p_so2_kpa` | DOUBLE | nullable | Added in v70 (GEN.85). Each gas's partial pressure, kPa, from the class's mix, the mantle redox and the cold side (a gas past its vapour pressure is ice). 0 for an airless body. `atmosphere` is written from them; a gas outside the ten (helium, ammonia, sodium) is named there but not stored, so on a giant they sum to less than `atmospheric_pressure_pa`. |
+| (the air) | | | Since v155 (DB.71) the partial pressures are not columns of `planets`/`moons` any more: see `planet_gases` and `moon_gases`. `atmosphere` is written from them. |
 | `magnetic_moment_a_m2`, `dipole_class`, `magnetopause_rp` | DOUBLE, VARCHAR(16) (CHECK none / weak / earth-like / strong / multipolar), DOUBLE | nullable | Added in v72 (GEN.86). The magnetic dipole moment, A m2 (0 with no dynamo), its class (multipolar when slow rotation leaves under half of it in the dipole), and the magnetopause standoff in body radii against the star's wind (NULL with no field). See `planetgen/physics/magnetism.py` and docs/design/habitability/activity-magnetism-radiation-hydrosphere.md section 3. NULL on a row generated before v72. |
 | `xuv_flux_earth`, `xuv_exposure_index`, `flare_irradiation_index` | DOUBLE | nullable | Added in v72 (GEN.86). The star's XUV flux here in units of Earth's today, its lifetime XUV here against a 1 solar mass star's at 1 AU over 5 Gyr (2 or less Earth-like, over 30 extreme), and its flares above 1e33 erg a year over the distance squared in AU (Earth 0.003). A moon takes its planet's distance. NULL on a row generated before v72. |
 | `water_mass_fraction`, `hydrosphere`, `ocean_fraction`, `land_fraction` | DOUBLE, VARCHAR(20) (CHECK dry / vapour / ice / ice-covered ocean / surface ocean / hycean), DOUBLE, DOUBLE | nullable | Added in v74 (GEN.88). The body's water share of its mass (drawn by class), where its surface water is (gone, in the air, frozen, under ice, open, or under a hydrogen sky), and the shares of the surface the water (liquid or frozen) and the land cover. NULL for a gas giant. See `planetgen/physics/hydrosphere.py` and docs/design/habitability/activity-magnetism-radiation-hydrosphere.md section 5. NULL on a row generated before v74. |
@@ -1465,6 +1465,17 @@ Added in v154 (DB.89, GEN.642). One row per layer of a giant planet's interior, 
 ### `moon_interior_layers`
 
 Moon counterpart of `planet_interior_layers` — identical shape, `moon_id` FK -> `moons.id` (`ON DELETE CASCADE`) instead of `planet_id`.
+
+### `planet_gases` / `moon_gases`
+
+Added in v155 (DB.71, GEN.424). The air of a planet or moon: one row per gas above zero, replacing the ten `p_<gas>_kpa` columns. A class's balance gas (helium, sodium, ammonia) is a row like the others, so the surface pressure is the sum of the rows. No row means no air (or a body saved before GEN.85).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` / `moon_id` | BIGINT UNSIGNED | NOT NULL | FK -> `planets.id` / `moons.id` (`ON DELETE CASCADE`). |
+| `gas` | VARCHAR(16) | NOT NULL | The formula in the gas table (`physics/data/gases.json`): `O2`, `CO2`, `N2`, `He`, `Na`, `NH3`. UNIQUE with the owner. |
+| `partial_pa` | DOUBLE | NOT NULL, CHECK above 0 | The partial pressure, Pa. |
 
 ### `asteroid_belts`
 
@@ -2140,10 +2151,12 @@ sectors 1───* star_systems *───1 system_configs 1───* system_c
                   │             │
                   │             ├──1───* planet_reflection_spectrum
                   │             ├──1───* planet_interior_layers
+                  │             ├──1───* planet_gases
                   │             └──1───* moons
                   │                       │
                   │                       ├──1───* moon_reflection_spectrum
-                  │                       └──1───* moon_interior_layers
+                  │                       ├──1───* moon_interior_layers
+                  │                       └──1───* moon_gases
                   │
                   └──1───* asteroid_belts 1───* asteroid_belt_composition
 
@@ -2189,6 +2202,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v155 (DB.71, GEN.424): the air moves to `planet_gases` and `moon_gases`
+
+The ten `p_<gas>_kpa` columns of `planets` and `moons` are gone; each gas above zero is a row of `planet_gases` or `moon_gases` (formula, Pa), the balance gas included. The migration copies the ten partial pressures (kPa times 1000); a row made before this change has no balance-gas row until the galaxy is regenerated (generator epoch 89).
 
 ### v154 (DB.89, GEN.642): the interior of a giant
 

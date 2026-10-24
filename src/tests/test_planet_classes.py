@@ -16,14 +16,21 @@ import re
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import constants, planet_classes as pc
+from planetgen.physics import atmosphere, constants, gases, planet_classes as pc
 
 EARTH = {
     "body_type": "t", "mass_kg": constants.EARTH_MASS_TO_KG, "gravity_g": 1.0, "surface_temperature_k": 288.0,
     "atmospheric_pressure_pa": 101325.0, "hydrosphere": "surface ocean", "ocean_fraction": 0.7,
     "water_mass_fraction": 2.3e-4, "flux_variation": 0.0,
-    "p_o2_kpa": 21.2, "p_n2_kpa": 78.8, "p_ar_kpa": 0.9, "p_co2_kpa": 0.04,
+    atmosphere.GAS_FIELD: {"O2": 21200.0, "N2": 78800.0, "Ar": 900.0, "CO2": 40.0},
 }
+
+
+def put_kpa(values, gas, kpa):
+    """Sets one species' partial pressure (kPa) in `values`' own copy of the air."""
+    air = dict(values[atmosphere.GAS_FIELD])
+    air[gases.stored(gas).formula] = kpa * 1000.0
+    values[atmosphere.GAS_FIELD] = air
 
 
 def body(**changes):
@@ -33,7 +40,9 @@ def body(**changes):
         if name == "mass_earth":
             values["mass_kg"] = value * constants.EARTH_MASS_TO_KG
         elif name.startswith("share_"):
-            values[f"p_{name[len('share_'):]}_kpa"] = value * values["atmospheric_pressure_pa"] / 1000.0
+            put_kpa(values, name[len("share_"):], value * values["atmospheric_pressure_pa"] / 1000.0)
+        elif name.startswith("p_") and name.endswith("_kpa"):
+            put_kpa(values, name[2:-4], value)
         else:
             values[name] = value
     return values
@@ -41,14 +50,13 @@ def body(**changes):
 
 def airless(**changes):
     values = body(atmospheric_pressure_pa=0.0, hydrosphere="dry", ocean_fraction=0.0, **changes)
-    for field in [k for k in values if k.startswith("p_")]:
-        values[field] = 0.0
+    values[atmosphere.GAS_FIELD] = {}
     return values
 
 
 def no_oxygen(**changes):
     values = body(**changes)
-    values["p_o2_kpa"] = 0.0
+    put_kpa(values, "o2", 0.0)
     return values
 
 
@@ -129,7 +137,7 @@ def test_the_function_is_pure_total_and_the_same_from_an_object():
             hydrosphere=rng.choice(["dry", "vapour", "ice", "ice-covered ocean", "surface ocean", "hycean", None]),
             flux_variation=rng.choice([0.0, rng.random()]))
         for gas in ("o2", "co2", "n2", "ar", "h2", "h2o", "ch4", "h2s", "so2", "co"):
-            values[f"p_{gas}_kpa"] = rng.choice([0.0, values["atmospheric_pressure_pa"] / 1000.0 * rng.random() / 6])
+            put_kpa(values, gas, rng.choice([0.0, values["atmospheric_pressure_pa"] / 1000.0 * rng.random() / 6]))
         first = pc.classify(values)
         assert first in pc.LETTERS and first == pc.classify(dict(values))
         assert (pc.describe(first).kind == values["body_type"])
@@ -139,7 +147,7 @@ def test_the_function_is_pure_total_and_the_same_from_an_object():
             self.body_type, self.mass, self.gravity, self.surface_temperature = "t", EARTH["mass_kg"], 1.0, 288.0
             self.atmospheric_pressure, self.hydrosphere, self.ocean_fraction = 101325.0, "surface ocean", 0.7
             self.water_mass_fraction, self.flux_variation = 2.3e-4, 0.0
-            self.p_o2_kpa, self.p_n2_kpa = 21.2, 78.8
+            self.gas_partials_pa = {"O2": 21200.0, "N2": 78800.0}
 
     assert pc.classify(Planet()) == "M"
 
@@ -161,7 +169,7 @@ def test_a_class_follows_its_conditions():
     assert pc.classify(values) == "M"
     values["surface_temperature_k"] = 150.0
     assert pc.classify(values) == "P"
-    values.update(atmospheric_pressure_pa=0.0, p_o2_kpa=0.0, p_n2_kpa=0.0, p_ar_kpa=0.0, p_co2_kpa=0.0)
+    values.update(atmospheric_pressure_pa=0.0, **{atmosphere.GAS_FIELD: {}})
     assert pc.classify(values) == "C"
 
 

@@ -19,6 +19,7 @@ from planetgen.physics import habitability_world as hw
 from planetgen.physics import life_scores
 from planetgen.util import draw
 
+from tests.air_support import fold_air
 from tests.fuzz_support import deterministic_entropy
 from tests.test_db_persistence import _placed_nebula, _system_point_pc
 from tests.test_web_pages import db_client  # noqa: F401 -- fixture
@@ -35,7 +36,7 @@ def _earth(**changes):
         "dose_ground_msv_yr": 0.5, "energy_flux_w_m2": 82.0, "native_life": "biosphere",
     }
     values.update(changes)
-    return values
+    return fold_air(values)
 
 
 def test_earth_is_blue_everywhere_and_needs_no_kit():
@@ -88,7 +89,7 @@ def test_a_methane_sea_is_a_solvent_but_a_dry_world_is_not():
                    p_ch4_kpa=20.0, p_n2_kpa=125.0)
     from planetgen.physics import atmosphere
     saturated = atmosphere.vapour_pressure_kpa("ch4", 94.0)
-    titan["p_ch4_kpa"] = saturated
+    titan["gas_partials_pa"]["CH4"] = saturated * 1000.0
     assert hw.solvent(titan) == "hydrocarbon"
     assert hw.world_from(titan).phosphate_umol_l == hw.NON_AQUEOUS_PHOSPHATE_UMOL_L
     dry = _earth(hydrosphere="dry", surface_temperature_k=300.0, water_mass_fraction=1e-7, p_h2o_kpa=0.0)
@@ -382,9 +383,8 @@ def _sun_body(**fields):
     base = {"planet_class": "M", "gravity": 1.0, "atmospheric_pressure": 101325.0, "distance": 1.0, "is_moon": False,
             "star": types.SimpleNamespace(temperature=5772.0, luminosity=constants.SOLAR_LUMINOSITY, uv_c_share=1.0),
             "p_n2_kpa": 79.1, "p_o2_kpa": 21.2, "p_ar_kpa": 0.95, "ozone_column_du": 300.0}
-    base.update({f"p_{gas}_kpa": 0.0 for gas in atmosphere.SPECIES if f"p_{gas}_kpa" not in base})
     base.update(fields)
-    return types.SimpleNamespace(**base)
+    return types.SimpleNamespace(**fold_air(base))
 
 
 def test_the_ozone_column_moves_the_radiation_tier_through_the_ground_ultraviolet():

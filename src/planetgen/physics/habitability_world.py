@@ -178,8 +178,7 @@ def values_from_body(body):
         "life_milestone_age_gyr": getattr(body, "life_milestone_age_gyr", None),
         "life_system_age_gyr": getattr(body, "life_system_age_gyr", None),
     }
-    for field in atmosphere.PARTIAL_PRESSURE_FIELDS:
-        values[field] = getattr(body, field, None)
+    values[atmosphere.GAS_FIELD] = atmosphere.gas_partials_pa(body)
     return values
 
 
@@ -217,7 +216,7 @@ def relative_humidity(values):
     """The air's water vapour against saturation at the surface temperature,
     clamped to 5 to 99% (the range Stull's wet-bulb formula is fitted to)."""
     temperature_c = values["surface_temperature_k"] - constants.CELSIUS_ZERO_K
-    share = (values.get("p_h2o_kpa") or 0.0) / saturation_kpa(temperature_c)
+    share = atmosphere.partial_kpa(values, "h2o") / saturation_kpa(temperature_c)
     return min(max(share, 0.05), 0.99)
 
 
@@ -226,7 +225,7 @@ def solvent(values):
     if values.get("hydrosphere") in ("surface ocean", "hycean", "ice-covered ocean"):
         return "water"
     temperature = values["surface_temperature_k"]
-    methane = values.get("p_ch4_kpa") or 0.0
+    methane = atmosphere.partial_kpa(values, "ch4")
     if (methane > 0.0 and temperature <= METHANE_SEA_MAX_K
             and methane >= METHANE_SATURATION * atmosphere.vapour_pressure_kpa("ch4", temperature)):
         return "hydrocarbon"
@@ -244,7 +243,7 @@ def water_source(values):
         return "vapour"
     if (values.get("water_mass_fraction") or 0.0) >= HYDRATED_MIN_WATER_FRACTION:
         return "hydrated"
-    return "vapour" if (values.get("p_h2o_kpa") or 0.0) > 0.0 else None
+    return "vapour" if atmosphere.partial_kpa(values, "h2o") > 0.0 else None
 
 
 def air_inventories_kg(values):
@@ -255,7 +254,7 @@ def air_inventories_kg(values):
     radius_m = _km_to_m(values.get("radius_km") or 0.0)
     if pressure_kpa <= 0.0 or gravity <= 0.0 or radius_m <= 0.0:
         return 0.0, 0.0
-    partials = {gas: values.get(f"p_{gas}_kpa") or 0.0 for gas in atmosphere.SPECIES}
+    partials = atmosphere.partial_pressures_kpa(values)
     balance = max(0.0, pressure_kpa - sum(partials.values()))
     mean_molar = (sum(partials[gas] * MOLAR_KG[gas] for gas in partials) + balance * BALANCE_MOLAR_KG) / (
         sum(partials.values()) + balance)
@@ -303,7 +302,7 @@ def world_from(values, lethal_host=None):
     gases = {}
     if pressure_kpa > 0.0:
         for gas, name in _GAS_NAMES.items():
-            gases[name] = (values.get(f"p_{gas}_kpa") or 0.0) / pressure_kpa
+            gases[name] = atmosphere.partial_kpa(values, gas) / pressure_kpa
     return habitability.World(
         pressure_kpa=pressure_kpa,
         temperature_c=values["surface_temperature_k"] - constants.CELSIUS_ZERO_K,

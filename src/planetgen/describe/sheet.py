@@ -23,7 +23,7 @@ import dataclasses
 from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
-from planetgen.physics import constants, habitability_world, unit_registry
+from planetgen.physics import constants, gases, habitability_world, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number
 
@@ -166,11 +166,6 @@ _BODY_GROUPS = (
            ("carbon_rock", "Carbon-rich rock", FLAG), ("composition_origin", "How the composition was found", TEXT)),
     *_rows("atmosphere", ("atmospheric_pressure_pa", "Surface pressure"), ("atm_density", "Air density"),
            ("atm_molar_density", "Mean molar mass of the air"), ("scale_height_km", "Scale height"),
-           ("p_o2_kpa", "Oxygen partial pressure"), ("p_co2_kpa", "Carbon dioxide partial pressure"),
-           ("p_co_kpa", "Carbon monoxide partial pressure"), ("p_n2_kpa", "Nitrogen partial pressure"),
-           ("p_ar_kpa", "Argon partial pressure"), ("p_h2_kpa", "Hydrogen partial pressure"),
-           ("p_h2o_kpa", "Water vapour partial pressure"), ("p_ch4_kpa", "Methane partial pressure"),
-           ("p_h2s_kpa", "Hydrogen sulfide partial pressure"), ("p_so2_kpa", "Sulfur dioxide partial pressure"),
            ("tau_haze", "Haze optical depth"), ("tau_dust", "Dust optical depth"), ("tau_cloud", "Cloud optical depth"),
            ("cloud_cover", "Cloud cover"), ("ozone_column_du", "Ozone column"),
            ("ozone_loss_flag", "Ozone layer lost", FLAG)),
@@ -555,6 +550,20 @@ def _value(spec, table, stored):
     return [model.qty(kind, value, unit)]
 
 
+GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "moon_id")}
+"""dict: The child table and owner column that keep the air of a planet or a moon, one row per gas (DB.71)."""
+
+
+def _gas_rows(conn, kind, object_id):
+    """The rows of a body's air, one per gas it holds, the most abundant first: each is `(spec, partial pressure Pa)` with a spec
+    whose value is read from the gas table."""
+    table, owner = GAS_TABLES[kind]
+    held = conn.execute(f"SELECT gas, partial_pa FROM {table} WHERE {owner} = ? ORDER BY partial_pa DESC, gas",
+                        (object_id,)).fetchall()
+    return [(PropertySpec(f"p_{row['gas']}", f"{gases.gas(row['gas']).name.capitalize()} partial pressure", "atmosphere", column="partial_pa"),
+             row["partial_pa"]) for row in held]
+
+
 def sheet(conn, kind, object_id):
     """
     The property sheet of one body.
@@ -586,5 +595,9 @@ def sheet(conn, kind, object_id):
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value,
                                      "text": inline_text(value), "stored": stored is not None, "absent": absent,
                                      "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
+    for spec, pascals in _gas_rows(conn, kind, object_id) if kind in GAS_TABLES else ():
+        value = _value(spec, GAS_TABLES[kind][0], pascals)
+        by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "stored": True,
+                                     "absent": not pascals, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     return {"kind": kind, "groups": groups}

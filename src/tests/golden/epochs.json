@@ -465,6 +465,11 @@
       "epoch": 94,
       "first_release": "8.0.2255",
       "reason": "A rocky planet or moon past its star's runaway greenhouse limit while the star was young and bright loses water (energy-limited escape of the steam, from 30 Myr to the star's age), so the water mass fraction of planets in the zone of cool stars falls, to nothing for most (GEN.639)"
+    },
+    {
+      "epoch": 95,
+      "first_release": "8.0.2258",
+      "reason": "A planet's or moon's air is stored gas by gas, the class's balance gas (helium, sodium, ammonia) included, so every stored atmosphere gains its balance-gas row and the air column and the colour that read it change (DB.71, GEN.424)"
     }
   ]
 }

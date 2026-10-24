@@ -50,7 +50,7 @@ The ranges are design defaults, not fits.
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants, gases, runaway_history, saturation, water_layer
+from planetgen.physics import atmosphere, constants, gases, runaway_history, saturation, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 from planetgen.physics import unit_registry as units
@@ -198,8 +198,8 @@ def ocean_class(body, hp_ice_km, surface_fraction, covered):
         return "ice-sealed"
     if surface_fraction < BRINE_MAX_WATER_FRACTION:
         return "chloride brine"
-    so2 = getattr(body, "p_so2_kpa", None) or 0.0
-    co2 = getattr(body, "p_co2_kpa", None) or 0.0
+    so2 = atmosphere.partial_kpa(body, "so2")
+    co2 = atmosphere.partial_kpa(body, "co2")
     redox = getattr(body, "mantle_redox", None)
     if redox == "oxidized" and so2 > ACID_SO2_SHARE * (so2 + co2):
         return "acid sulfate"
@@ -255,7 +255,7 @@ def generate_hydrosphere(body, internal_flux_w_m2):
             return
         column = water_layer.column(body.mass, body.radius, water_kg, covered=covered, bottom_temperature_k=temperature,
                                     pressure_pa=pressure)
-        h2 = getattr(body, "p_h2_kpa", None) or 0.0
+        h2 = atmosphere.partial_kpa(body, "h2")
         state = "hycean" if h2 > HYCEAN_MIN_H2_SHARE * pressure / 1000.0 else "surface ocean"
     else:
         tide = moon_tidal_flux_w_m2(body, getattr(body, "primary_mass_kg", None), w)

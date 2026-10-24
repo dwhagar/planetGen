@@ -4,6 +4,8 @@ import json
 
 from planetgen.web.maps import bodylook as bl
 
+from tests.air_support import fold_air
+
 
 def _planet(**over):
     row = {"id": 7, "planet_class": "o", "body_type": "t", "atmosphere": "Nitrogen-Oxygen",
@@ -71,7 +73,7 @@ def test_look_is_the_same_for_the_same_row():
 def _earth_air(**over):
     row = _planet(gravity_g=1.0, _star_temperature_k=5772.0, p_n2_kpa=79.1, p_o2_kpa=21.2, p_ar_kpa=0.95, p_co2_kpa=0.04)
     row.update(over)
-    return row
+    return fold_air(row)
 
 
 def _channels(hex_colour):
@@ -98,8 +100,8 @@ def test_thick_carbon_dioxide_glows_orange_and_a_row_without_a_star_has_no_glow(
 
 
 def test_a_giant_glows_with_the_colour_of_the_air_above_its_clouds():
-    giant = bl.planet_look(_planet(body_type="g", planet_class="j", gravity_g=2.5, atmosphere="Hydrogen-Helium", atmospheric_pressure_pa=1e5,
-                                   surface_temperature_k=130.0, _star_temperature_k=5772.0, p_h2_kpa=86.0))
+    giant = bl.planet_look(fold_air(_planet(body_type="g", planet_class="j", gravity_g=2.5, atmosphere="Hydrogen-Helium", atmospheric_pressure_pa=1e5,
+                                            surface_temperature_k=130.0, _star_temperature_k=5772.0, p_h2_kpa=86.0)))
     assert giant["body"] == "gas" and len(giant["glow"]) == 7
 
 

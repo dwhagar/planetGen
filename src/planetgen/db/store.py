@@ -619,6 +619,7 @@ still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
+    "planet_gases", "moon_gases",
     "asteroid_belt_composition",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes",
 ))
@@ -2971,13 +2972,39 @@ def _insert_interior_layers(conn, table, id_column, owner_id, layers):
 
 
 def body_child_rows(conn, body, body_id):
-    """Writes a planet's or moon's reflection spectrum and interior layer rows (after any old ones were deleted)."""
+    """Writes a planet's or moon's reflection spectrum, interior layer rows and gas rows (after any old ones were deleted)."""
     prefix, id_column = ("moon", "moon_id") if body.is_moon else ("planet", "planet_id")
     _insert_reflection_spectrum(
         conn, f"{prefix}_reflection_spectrum", id_column, body_id,
         body.reflection_spectrum_visible, body.reflection_spectrum_non_visible,
     )
     _insert_interior_layers(conn, f"{prefix}_interior_layers", id_column, body_id, body.interior_layers)
+    for formula, partial_pa in sorted(atmosphere.gas_partials_pa(body).items()):
+        if partial_pa > 0.0:
+            conn.execute(f"INSERT INTO {prefix}_gases ({id_column}, gas, partial_pa) VALUES (?, ?, ?)",
+                         (body_id, formula, partial_pa))
+
+
+def body_gases(conn, body_ids, is_moon):
+    """`{body id: {gas formula: partial pressure Pa}}` of the planets or moons `body_ids`: the air their rows keep in
+    `planet_gases` or `moon_gases` (a body with none has no key)."""
+    table, id_column = ("moon_gases", "moon_id") if is_moon else ("planet_gases", "planet_id")
+    air = {}
+    ids = list(body_ids)
+    for start in range(0, len(ids), 1000):
+        chunk = ids[start:start + 1000]
+        marks = ", ".join("?" * len(chunk))
+        for row in conn.execute(
+                f"SELECT {id_column}, gas, partial_pa FROM {table} WHERE {id_column} IN ({marks})", tuple(chunk)).fetchall():
+            air.setdefault(row[id_column], {})[row["gas"]] = row["partial_pa"]
+    return air
+
+
+def with_gases(conn, rows, is_moon):
+    """`rows` (dicts from `SELECT *` on `planets` or `moons`) each as a copy that also holds its air under `atmosphere.GAS_FIELD`, the
+    key the habitability, class and colour code read (the same as a `Planet` attribute)."""
+    air = body_gases(conn, [row["id"] for row in rows], is_moon)
+    return [{**dict(row), atmosphere.GAS_FIELD: air.get(row["id"], {})} for row in rows]
 
 
 def planet_parent(star_id, star_system_id):
@@ -4660,7 +4687,8 @@ def stored_world(conn, table, row, with_life=True):
     """
     if row["body_type"] == "g" or row["surface_temperature_k"] is None or row["energy_flux_w_m2"] is None:
         return None
-    values = {**dict(row), "is_moon": table == "moons", "native_life": _stored_native_life(row) if with_life else "none"}
+    values = {**with_gases(conn, [row], table == "moons")[0], "is_moon": table == "moons",
+              "native_life": _stored_native_life(row) if with_life else "none"}
     return habitability_world.world_from(values, lethal_host=compact_host_of_star(conn, row["star_id"]))
 
 
@@ -4694,9 +4722,9 @@ def _refresh_cloud_doses(conn, system_changes):
             (system_id,)).fetchone() is not None
         for table in ("planets", "moons"):
             rows = []
-            for row in conn.execute(
+            for row in with_gases(conn, conn.execute(
                 f"SELECT * FROM {table} WHERE star_system_id = ? AND dose_gcr_msv_yr IS NOT NULL", (system_id,)
-            ).fetchall():
+            ).fetchall(), table == "moons"):
                 column = radiation.column_g_cm2(row["atmospheric_pressure_pa"], row["gravity_g"])
                 multiplier = radiation.helio_multiplier(column, compression)
                 total = radiation.total_dose_msv_yr(
@@ -4705,7 +4733,7 @@ def _refresh_cloud_doses(conn, system_changes):
                 if not compact and row["energy_flux_w_m2"] is not None:
                     # GEN.89: the dose is one of the score's inputs. (A compact host's planet is
                     # rated at a lethal dose whatever the cosmic rays do.)
-                    scores = habitability_world.compute({**dict(row), "surface_dose_msv_yr": total,
+                    scores = habitability_world.compute({**row, "surface_dose_msv_yr": total,
                                                          "dose_helio_mult": multiplier, "is_moon": table == "moons",
                                                          "native_life": _stored_native_life(row)})
                     scored = tuple(scores[name] for name in habitability_world.SCORE_FIELDS)
@@ -4754,12 +4782,12 @@ def refresh_habitability(conn, system_id):
     updated = 0
     for table in ("planets", "moons"):
         rows = []
-        for row in conn.execute(
+        for row in with_gases(conn, conn.execute(
                 f"SELECT * FROM {table} WHERE star_system_id = ? AND energy_flux_w_m2 IS NOT NULL AND body_type <> 'g'",
-                (system_id,)).fetchall():
+                (system_id,)).fetchall(), table == "moons"):
             swing = swings.get((table, row["id"]), 0.0)
             scores = habitability_world.compute(
-                {**dict(row), "flux_variation": swing, "is_moon": table == "moons",
+                {**row, "flux_variation": swing, "is_moon": table == "moons",
                  "native_life": _stored_native_life(row)},
                 compact_host_of_star(conn, row["star_id"]))
             rows.append((row["id"], *(scores[name] for name in habitability_world.SCORE_FIELDS), swing))
@@ -8895,6 +8923,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
 
     data = object_rows.load_dict(PLANET_BODY_FIELDS if not is_moon else BODY_FIELDS, row)
     data.update({
+        atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon).get(row["id"], {}),
         "is_moon": is_moon,
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,

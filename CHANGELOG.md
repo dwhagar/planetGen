@@ -2,6 +2,22 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2259] - 2026-10-24
+
+**Headline:** The surface pressure of a rocky world now has a physical law behind it: how much gas its interior has delivered by its age and what the ocean and the carbonate-silicate cycle take back, calibrated on the Earth and checked on Venus.
+
+### Changed
+- **The supply law of the surface pressure (GEN.726).** `physics/surface_pressure.py` gives the pieces the pressure sum of GEN.422 will use: the share of the mantle's volatiles that the body's heat release has brought to the surface (`degassed_share`, the melt-processing picture of Tosi et al. 2017, one calibrated energy so that an Earth twin has the Earth's 1e22 mol of surface carbon), the gas mass and pressure of a degassed budget, and the CO2 pressure at which silicate weathering balances volcanic outgassing (`carbonate_pco2_bar`, the law and the ranges of Lehmer, Catling and Krissansen-Totton 2020, solved with the surface temperature as a function of the pressure). `interior_heat.Heat` also reports the heat the interior has released since the body formed (`released_j`). Nothing is wired into the generator yet (GEN.411 and GEN.422 do that), so no world changes. The design is `docs/design/composition/surface-pressure-supply-law.md`; the seven stand-in constants are registry rows AM27 to AM33.
+
+## [8.0.2258] - 2026-10-24
+
+**Headline:** A world's air is now stored gas by gas in its own tables, so any gas of the gas table can be in an atmosphere and the balance gas of a giant (helium) or a hot world (sodium) is a stored gas like the rest.
+
+### Changed
+- **The air moves to `planet_gases` and `moon_gases` (DB.71, GEN.424).** The ten `p_<gas>_kpa` columns of `planets` and `moons` are gone. Each gas above zero is a row (the formula in the gas table and its partial pressure in Pa), the class's balance gas (helium, sodium, ammonia) included, so the rows add up to the surface pressure. Migration 0155 copies each row's ten partial pressures into the new tables and drops the columns (schema 155); a row made before it has no balance-gas row until the galaxy is regenerated. `physics/atmosphere.py` keeps the air as the body attribute `gas_partials_pa`; `physics/mixture.py`, `physics/air_column.py`, the habitability, class, radiation, hydrosphere and System Map code read it through `atmosphere.gas_partials_pa` / `atmosphere.partial_kpa`. The System Map's body rows and the describer carry the air by gas formula. Sodium has no Rayleigh cross section, so the air column leaves it out.
+
+generation-output: changed
+
 ## [8.0.2257] - 2026-10-24
 
 **Headline:** The test gate runs the tests that start real queue workers one at a time and cuts its worker count to the memory and idle cores the machine has.
