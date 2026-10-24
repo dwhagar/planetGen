@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2108] - 2026-10-24
+
+**Headline:** The stellar-particle shielding and radiation-weight kernels for the derived surface radiation are in place (GEN.444, slice 1).
+
+### Changed
+
+- New `planetgen.physics.surface_dose`: the Band spectrum of a stellar particle event with the share that gets past an atmospheric and a magnetic cutoff, the shielding of a mixed column by nuclear interaction length, and the ICRP 103 radiation weights. Nothing calls it yet and no stored value changes; the wiring, the epoch and the removal of the proxies are the second slice, after GEN.443, GEN.441 and GEN.459.
+
 ## [8.0.2107] - 2026-10-24
 
 **Headline:** The ammonia activity factor is recorded as a labelled stand-in with its bracket and evidence limits.
