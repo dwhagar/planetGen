@@ -8160,6 +8160,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radiation.py has gamma_dose_msv_yr, radon_dose_msv_yr and
   ground_dose_msv_yr. Lane E: use gamma_dose_msv_yr, radon_dose_msv_yr
   and ground_dose_msv_yr, they are in main.
+  Research (2026-10-09, Update): Lane E (6:48 AM EDT 2026-10-24, as the
+  lane reported): the UV part of this item merged with GEN.445's UV
+  slice as #2933 (epoch 74). The dose part (GCR and SEP shielding, the
+  second GCR curve) is still open.
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8209,6 +8213,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane E (radiation link, help, tests).
+  Research (2026-10-09, Update): Lane E (6:48 AM EDT 2026-10-24, as the
+  lane reported): UV slice merged as #2933 (generator epoch 74, no
+  migration): uv_surface_index (still x Earth, Earth = 1) is computed
+  from the light that reaches the ground (the star's spectrum through
+  the world's air, ozone, haze and cloud) by physics/body_radiation;
+  airless worlds get the star's unfiltered UV; the survival-gear UV line
+  and habitability read it; the old proxy functions are deleted and a
+  test fails if one returns. Still open: the second GCR curve removed,
+  toxicity reads, habitability_explain.
 - [ ] **GEN.446 The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -13866,8 +13879,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the order the planet path uses; add a test that moves a planet and
   checks each moon's dose and UV against the new distance. Changes the
   stored values of moons of moved planets, so it needs a generator
-  epoch. Owner: lane D or lane H, to be confirmed (lane E suggested; the
-  TODO thread proposes lane D).
+  epoch. Owner: lane D (lane D took it at 5:39 AM EDT 2026-10-24 as the lane
+  reported, after GEN.649, folded into the epoch of its next PR).
   Prerequisites: none. Related: GEN.445, GEN.444.
 
 - [ ] **GEN.705 The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug)**
