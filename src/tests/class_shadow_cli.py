@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 src/tests/class_shadow_cli.py -- the shadow sweep of the condition-based classes (GEN.645, C2 of
-docs/design/condition-based-planet-classes.md). Not a pytest module (no `test_*` name).
+docs/design/habitability/condition-based-planet-classes.md). Not a pytest module (no `test_*` name).
 
 Generates systems in memory, classifies every planet and moon from its stored conditions
 (`physics.planet_classes.classify`) and compares the letter with the one the generator drew. Prints (and with

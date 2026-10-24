@@ -1,5 +1,5 @@
 """
-The condition-based planet and moon classes (GEN.645, GEN.647; C1, C2 and C5 of docs/design/condition-based-planet-classes.md):
+The condition-based planet and moon classes (GEN.645, GEN.647; C1, C2 and C5 of docs/design/habitability/condition-based-planet-classes.md):
 `physics/planet_classes.py` and its rule file `physics/data/planet_classes.json`.
 
 * the rule file is well formed: every letter once, the free letters kept apart, the last row of each kind takes the rest;

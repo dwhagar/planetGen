@@ -1,7 +1,7 @@
 # planetgen/physics/planet_classes.py
 
 """
-Planet and moon classes as a function of the finished body (GEN.645, GEN.647, docs/design/condition-based-planet-classes.md)
+Planet and moon classes as a function of the finished body (GEN.645, GEN.647, docs/design/habitability/condition-based-planet-classes.md)
 ============================================================================================================================
 
 A class says what a world is. It is an output: `classify` reads the conditions a finished planet or moon stores (its mass
