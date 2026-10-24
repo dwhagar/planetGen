@@ -13,7 +13,9 @@ import re
 
 import pytest
 
+from planetgen.db import store
 from planetgen.web import item_pages
+from tests.publicids import pid
 from tests.test_web_a11y import site_app, site_db  # noqa: F401 -- fixtures
 
 PUBLIC_ID = r"[0-9A-F]{10}-\d{7}-\d{3}"
@@ -22,25 +24,24 @@ PUBLIC_ID = r"[0-9A-F]{10}-\d{7}-\d{3}"
 WALKED = 6
 """int: How many objects of one kind the walk opens at most (the tests below slice at 6 or fewer)."""
 
+WALKED_TABLES = {"star": ("stars", "1"), "planet": ("planets", "1"), "moon": ("moons", "planet_id IS NOT NULL"),
+                 "belt": ("asteroid_belts", "1"), "comet": ("comets", "1"), "facility": ("facilities", "1")}
+"""dict: The kinds the walk opens and where their rows are (a moon of a free planet has no system, so it is left out)."""
 
-def _bodies(client):
-    """`{kind: [ref, ...]}` for the bodies of the first systems the database holds, from the system API: it stops at the
-    first system after which every kind has `WALKED` objects (or the systems run out), so the fixture makes few calls
-    against the API's per-IP limit (TEST.349 followed a 429 from a loop over every system)."""
+
+def _bodies(site_db):
+    """`{kind: [ref, ...]}` for the first `WALKED` objects of each kind the database holds, read from the tables. It
+    makes no API call: a loop over the systems' API answers spent the API's per-IP limit and then read a 429's body
+    as a system with no "stars" (TEST.349, TEST.359)."""
     found = {kind: [] for kind in item_pages.ITEM_PAGE_KINDS}
-    for system in client.get("/api/systems?limit=100").get_json()["items"]:
-        detail = client.get(f"/api/systems/{system['id']}").get_json()
-        found["star"] += [f"star:{row['id']}" for row in detail["stars"]]
-        found["belt"] += [f"belt:{row['id']}" for row in detail["belts"]]
-        found["comet"] += [f"comet:{row['id']}" for row in detail["comets"]]
-        if len(found["facility"]) < WALKED:
-            found["facility"] += [f"facility:{row['id']}" for row in client.get(f"/api/systems/{system['id']}/facilities")
-                                  .get_json()["items"]]
-        for planet in detail["planets"]:
-            found["planet"].append(f"planet:{planet['id']}")
-            found["moon"] += [f"moon:{moon['id']}" for moon in planet.get("moons") or []]
-        if all(len(refs) >= WALKED for refs in found.values()):
-            break
+    conn = store.get_connection(site_db)
+    try:
+        for kind, (table, where) in WALKED_TABLES.items():
+            rows = conn.execute(f"SELECT id FROM {table} WHERE {where} ORDER BY id LIMIT {WALKED}").fetchall()
+            found[kind] = [f"{kind}:{pid(kind, row['id'], conn)}" for row in rows]
+    finally:
+        conn.close()
+    assert found["star"] and found["planet"], "the sample galaxy holds no star or no planet to walk"
     return found
 
 
@@ -50,8 +51,8 @@ def client(site_app):
 
 
 @pytest.fixture(scope="module")
-def bodies(client):
-    return _bodies(client)
+def bodies(site_db):
+    return _bodies(site_db)
 
 
 def test_every_kind_of_body_in_the_database_has_a_page_with_its_sheet_and_places(client, bodies):
