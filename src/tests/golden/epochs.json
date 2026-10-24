@@ -455,6 +455,12 @@
       "epoch": 92,
       "first_release": "8.0.2243",
       "reason": "A star's minimum age for its planets is read from each planet's stored conditions (physics/age_needs.py) instead of its class letter: about 0.6 percent of bodies need a different age tier than the class table gave"
+    },
+    {
+      "epoch": 93,
+      "first_release": null,
+      "pending": true,
+      "reason": "A moon draws how it came to orbit its parent first (a disk or impact moon, or a captured body, with equal open weights) and its orbit's inclination follows from that: a regular moon within 25 degrees of the equator, a captured one anywhere outside the Kozai-unstable band of 55 to 130 degrees, so moons can now be retrograde, and every moon's later draws move (GEN.714)"
     }
   ]
 }

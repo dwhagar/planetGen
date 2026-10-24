@@ -12,19 +12,21 @@ A moon takes an origin from a gated table (`ORIGIN_TABLE`), and the origin leave
   disk lifetime, the total moon mass of Canup and Ward 2009 and its partition among the large moons.
 * **impact**: a terrestrial planet's moon from a giant impact (Lock et al. 2018): the condensate has little metal, no ice and the
   planet's rock.
-* **captured**: a body caught on a high-inclination orbit: the icy-body rule (`draw_icy_body`) with ice lost by U(0, 0.5).
+* **captured**: a body caught on an irregular orbit, prograde or retrograde (`draw_inclination_deg`): the icy-body rule (`draw_icy_body`) with ice lost by U(0, 0.5).
 * **ring**: a moon that formed from a massive ring near the Roche radius: ice-rich rock and ice.
 * **binary**: the partner of a dwarf planet: the icy-body rule, with a mass ratio of 5e-4 to 0.11.
 
 Every weight of the origin table is open (no source): the rows a moon supports share the probability equally. The gate is the
-parent's kind, the moon's orbital inclination, whether the parent has a massive ring and the moon's distance in Roche radii.
+parent's kind, whether the parent has a massive ring and the moon's distance in Roche radii. The orbit follows the origin
+(GEN.714): a regular moon lies near the parent's equator, a captured one anywhere outside the Kozai-unstable band.
 
 What each draw returns is a `SmallBodyMakeup` (see `small_body_composition`) with `detail["origin"]`. The density of a moon below
 `compaction.TAPER_END_KG` is `compacted_density_kg_m3(radius, rock_fraction)`; above it the structure solver of lane I decides.
 
 Use:
 
-    origin = draw_origin("giant", inclination_deg=2.0)               # a Possibility; origin.row.name == "disk"
+    origin = draw_origin("giant")                                    # a Possibility; origin.row.name is "disk" or "captured"
+    inclination = draw_inclination_deg(origin.row.name)              # degrees to the parent's equator
     system = draw_disk_system(parent_mass_kg)                        # tau, alpha/f, masses, ice line, f_inf
     moon = draw_moon(origin.row.name, formation_km, system)          # SmallBodyMakeup
 """
@@ -32,22 +34,25 @@ Use:
 import math
 
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import compaction, small_body_composition as sb
+from planetgen.physics import compaction, constants, small_body_composition as sb
 from planetgen.util import draw
 
 GIANT = "giant"
 TERRESTRIAL = "terrestrial"
 DWARF_PLANET = "dwarf-planet"
 PARENT_KINDS = (GIANT, TERRESTRIAL, DWARF_PLANET)
+ORIGINS = ("disk", "impact", "captured", "ring", "binary")
 
 GIANT_ENVELOPE_FRACTION = 0.01
 """float: A parent with at least this envelope mass fraction is a giant (a parametrisation; an envelope of 1 percent is where a planet
 has a disk of its own)."""
 DWARF_PLANET_MAX_MASS_KG = 5e22
 """float: A parent without an envelope below this mass is a dwarf planet (a stand-in: Pluto and Eris are 1.3e22 and 1.7e22)."""
-CAPTURE_INCLINATION_DEG = 60.0
-"""float: A moon on an orbit inclined more than this (or retrograde) to its parent's equator is a captured body. The cut is open
-(part D 2.8): a parametrisation."""
+KOZAI_FORBIDDEN_DEG = (55.0, 130.0)
+"""tuple: The inclinations (to the parent's equator, degrees) at which a distant orbit is unstable and no irregular moon is found:
+between them the Kozai resonance stretches the eccentricity until the moon escapes or hits something (Nesvorny et al. 2003, Icarus
+126, 398; the 55 to 130 degree bounds as used by Jewitt's group for Jupiter, arXiv:0805.3733; Shen and Tremaine 2008 give 60 to
+130). Partly verified: the bounds are a recalled range, not a measured edge."""
 RING_MAX_ROCHE_RATIO = 3.0
 """float: A moon forms from a ring only within this many Roche radii (a parametrisation)."""
 
@@ -64,35 +69,59 @@ def _row(name, classes, conditions, rule, source):
                   notes=f"{rule}. {source}. The weight is open: the rows a moon supports share the probability equally.")
 
 
-_REGULAR = pt.Condition("inclination_deg", maximum=CAPTURE_INCLINATION_DEG)
-
 ORIGIN_TABLE = pt.REGISTRY.register(pt.Table(
-    "moon-origin", 1, [
-        _row("disk", (GIANT,), (_REGULAR,), "regular moon of a circumplanetary disk, composition by the ice-line ramp",
+    "moon-origin", 2, [
+        _row("disk", (GIANT,), (), "regular moon of a circumplanetary disk, composition by the ice-line ramp",
              "Canup and Ward 2009, Sasaki et al. 2010, Cilibrasi et al. 2018"),
-        _row("impact", (TERRESTRIAL,), (_REGULAR,), "giant-impact moon: little metal, no ice, the parent's rock",
+        _row("impact", (TERRESTRIAL,), (), "giant-impact moon: little metal, no ice, the parent's rock",
              "Lock et al. 2018 (verified for the rule; the metal range is a parametrisation)"),
-        _row("captured", (pt.ANY_CLASS,), (pt.Condition("inclination_deg", minimum=CAPTURE_INCLINATION_DEG),),
+        _row("captured", (pt.ANY_CLASS,), (),
              "captured body: the icy-body rule with ice lost by U(0, 0.5)", "Barr and Schwamb 2016 (qualitative); the factor is a parametrisation"),
-        _row("ring", (GIANT,), (pt.Condition("has_ring", equals=1), pt.Condition("roche_ratio", maximum=RING_MAX_ROCHE_RATIO), _REGULAR),
+        _row("ring", (GIANT,), (pt.Condition("has_ring", equals=1), pt.Condition("roche_ratio", maximum=RING_MAX_ROCHE_RATIO)),
              "ring-born moon: ice-rich near the Roche radius", "Crida and Charnoz 2012 (abstract only, recalled for the composition)"),
-        _row("binary", (DWARF_PLANET,), (_REGULAR,), "partner of a dwarf planet: the icy-body rule, mass ratio 5e-4 to 0.11",
+        _row("binary", (DWARF_PLANET,), (), "partner of a dwarf planet: the icy-body rule, mass ratio 5e-4 to 0.11",
              "Barr and Schwamb 2016 Table 2"),
-    ], description="The origin of a moon, gated by the parent's kind, the moon's inclination, the parent's ring and the distance in Roche radii."))
+    ], description="The origin of a moon, gated by the parent's kind, the parent's ring and the distance in Roche radii."))
 """Table: The moon origin rows (every weight open)."""
 
 
-def draw_origin(kind, inclination_deg, has_ring=False, roche_ratio=math.inf):
+def draw_origin(kind, has_ring=False, roche_ratio=math.inf):
     """
-    The origin of a moon of a parent of `kind` on an orbit inclined `inclination_deg` to the parent's equator (a retrograde orbit has
-    more than 90). A `Possibility`: `.row.name` is `disk`, `impact`, `captured`, `ring` or `binary`.
+    The origin of a moon of a parent of `kind`. A `Possibility`: `.row.name` is `disk`, `impact`, `captured`, `ring` or `binary`.
+    The origin comes first and the orbit follows from it (`draw_inclination_deg`).
 
     Raises:
         PossibilityError: No row supports the moon (cannot happen for the three kinds).
     """
     if kind not in PARENT_KINDS:
         raise ValueError(f"the parent kind {kind!r} is none of {PARENT_KINDS}")
-    return ORIGIN_TABLE.draw(kind, {"inclination_deg": inclination_deg, "has_ring": 1 if has_ring else 0, "roche_ratio": roche_ratio})
+    return ORIGIN_TABLE.draw(kind, {"has_ring": 1 if has_ring else 0, "roche_ratio": roche_ratio})
+
+
+def draw_inclination_deg(origin):
+    """
+    The inclination of a moon's orbit to its parent's equator, degrees, from its origin (GEN.714).
+
+    A regular moon (disk, impact, ring, binary) lies near the equator: uniform on 0 to `constants.MOON_ORBITAL_INCLINATION_MAX_DEG`,
+    the generator's long-standing bound (the regular satellites of the giants lie within a degree or so of the equator, the
+    Galilean moons within 0.5 degrees, so the bound is wider than what is observed: a stand-in). A captured moon takes an
+    isotropic orbit, the cosine of its inclination uniform from -1 to 1, outside the Kozai-unstable band `KOZAI_FORBIDDEN_DEG`,
+    so it is prograde below the band or retrograde above it (Nesvorny et al. 2003). The draw is one number either way: the
+    uniform number is mapped onto the allowed cosines, so no value is rejected.
+
+    Args:
+        origin (str): `disk`, `impact`, `captured`, `ring` or `binary`.
+    """
+    if origin not in ORIGINS:
+        raise ValueError(f"the origin {origin!r} is none of {ORIGINS}")
+    if origin != "captured":
+        return draw.uniform(0.0, constants.MOON_ORBITAL_INCLINATION_MAX_DEG)
+    low, high = (math.radians(angle) for angle in KOZAI_FORBIDDEN_DEG)
+    prograde = 1.0 - math.cos(low)          # the cosines from 1 down to cos(low)
+    retrograde = 1.0 + math.cos(high)       # the cosines from cos(high) down to -1
+    point = draw.random() * (prograde + retrograde)
+    cosine = 1.0 - point if point < prograde else math.cos(high) - (point - prograde)
+    return math.degrees(math.acos(min(max(cosine, -1.0), 1.0)))
 
 
 # ---------------------------------------------------------------------------------------------------------------------

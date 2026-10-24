@@ -94,7 +94,9 @@ def test_orbital_orientation_is_in_range_and_there_is_no_stored_phase(bodies):
     for planet in planets:
         assert 0 <= planet.orbital_inclination_deg <= pc.PLANET_ORBITAL_INCLINATION_MAX_DEG
     for moon in moons:
-        assert 0 <= moon.orbital_inclination_deg <= pc.MOON_ORBITAL_INCLINATION_MAX_DEG
+        # GEN.714: a regular moon lies near the equator, a captured one can be retrograde
+        limit = 180.0 if moon.moon_origin == "captured" else pc.MOON_ORBITAL_INCLINATION_MAX_DEG
+        assert 0 <= moon.orbital_inclination_deg <= limit
 
 
 def _is_tidally_locked(moon):

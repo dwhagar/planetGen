@@ -236,6 +236,9 @@ class Planet(PlanetaryObject):
     `SpatialPosition3D` (GEN.74), which `set_position_au` moves.
     """
 
+    moon_origin = None
+    """str or None: A moon's origin (`moon_composition.ORIGINS`) while it is being generated; not stored (its columns are DB.70)."""
+
     reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
     """
     float: Class-level defaults (schema v20) so a `Planet` reconstructed
@@ -248,7 +251,7 @@ class Planet(PlanetaryObject):
 
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
-                 is_moon=False, moon_count=None, primary_mass_kg=None):
+                 is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -288,9 +291,13 @@ class Planet(PlanetaryObject):
                                                the star (`generate_moons`
                                                passes the parent planet's own
                                                `mass` here).
+            moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
+                                         `generate_moons`: the orbit's inclination follows from it (GEN.714). A moon built
+                                         without one keeps the old regular orbit.
         """
         self.system_config = system_config # Store SystemConfig
         self.is_moon = is_moon
+        self.moon_origin = moon_origin
         self.moons = []
         # This planet's own reflex-offset "wobble" (schema v20) from its
         # moons' combined pull -- 0.0 by default (no moons yet), recomputed
