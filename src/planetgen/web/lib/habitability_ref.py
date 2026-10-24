@@ -103,7 +103,7 @@ def domains(bands=habitability.HUMAN):
     read from `bands` (the limits in `protection_limits`) and the constants of `habitability`, so the page cannot
     drift from the score.
     """
-    pressure, temperature, dose = bands.pressure, bands.temperature, bands.dose
+    pressure, temperature, dose, uv = bands.pressure, bands.temperature, bands.dose, bands.uv
     gases = habitability.gas_inputs(habitability.World(pressure_kpa=0.0, temperature_c=0.0, gases={}))
     co2, filtered = gases[0], gases[1:]
     water = {label: band for label, _value, band in habitability.water_inputs(
@@ -139,6 +139,8 @@ def domains(bands=habitability.HUMAN):
         ]),
         ("Radiation", [
             ("Dose per year", _under(dose[4], "Sv"), _up_to(dose[5], "Sv"), _up_to(dose[6], "Sv")),
+            ("Ultraviolet light at the ground (DNA-damaging dose)", _under(uv[4], "times Earth's"), _up_to(uv[5], "times Earth's"),
+             _up_to(uv[6], "times Earth's")),
         ]),
         ("Suitability", [
             ("Water within reach (the lowest of the three rungs scores)", "fresh liquid water",

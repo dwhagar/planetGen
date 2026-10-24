@@ -316,3 +316,12 @@ def test_an_item_sits_under_the_rows_that_ask_for_it_not_under_a_blue_one():
     for domain in ("Pressure", "Temperature", "Radiation"):
         assert "hardened pressure suit" in mars[domain]["text"], domain
     assert "hardened habitat" in mars["Radiation"]["text"] and "hardened habitat" not in mars["Pressure"]["text"]
+
+
+def test_radiation_need_names_the_ultraviolet_when_it_is_the_worse_term():
+    """GEN.445: the description agrees with the score; a Blue dose under unfiltered ultraviolet is not 'inside the Blue band'."""
+    rank, gear, why = protection.radiation_need(_world(surface_dose_sv_yr=0.002, uv_index=1000.0))
+    assert gear == "a hardened, shielded habitat" and "ultraviolet" in why and "Blue" not in why
+    rank, gear, why = protection.radiation_need(_world(surface_dose_sv_yr=0.002, uv_index=100.0))
+    assert gear == "a shielded shelter for long stays" and "ultraviolet" in why
+    assert "ultraviolet" not in protection.radiation_need(_world(surface_dose_sv_yr=0.5, uv_index=1.0))[2]

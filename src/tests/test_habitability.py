@@ -11,7 +11,7 @@ import math
 
 import pytest
 
-from planetgen.physics import equipment
+from planetgen.physics import equipment, radiation
 from planetgen.physics import habitability as hab
 from planetgen.physics.habitability import World, scores
 
@@ -35,7 +35,7 @@ EXAMPLES = {
                                 chaotropicity_kj_kg=90, ph=8, inventories={"C": 0.05, "N": 0.01, "H": 0.05},
                                 phosphate_umol_l=0.5, energy_flux_w_m2=40, water_source="ice",
                                 relative_humidity=0.05),
-                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.3999, 0.006, 0.0, 0.458, "B4p F100 S2 H3 [R2]"),
+                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.3999, 0.006, 0.0, 0.460, "B4p F100 S2 H3 [R2]"),
     "Dune world": (World(90, 45, {"N2": 0.78, "O2": 0.21, "CO2": 0.001}, relative_humidity=0.05, water_activity=0.7,
                          ph=8, water_source="vapour", inventories={"C": 0.5, "N": 0.5, "H": 0.05},
                          life_stage="macroscopic"),
@@ -77,12 +77,18 @@ def test_band_edges_score_their_tier_boundaries():
     assert [hab.tier(s) for s in (1.0, 0.8, 0.5, 0.2)] == ["Blue", "Green", "Yellow", "Red"]
 
 
-def test_surface_dose_fits_the_moon_mars_and_earth():
-    assert hab.gcr_surface_dose_sv_yr(0) == pytest.approx(0.502)
-    mars = hab.gcr_surface_dose_sv_yr(hab.column_mass_g_cm2(0.6, 3.71))
-    assert 0.2 < mars < 0.3
-    earth = hab.gcr_surface_dose_sv_yr(hab.column_mass_g_cm2(101.3, 9.81))
-    assert earth == pytest.approx(0.0024, abs=2e-4)
+def test_a_world_with_no_stored_dose_reads_the_one_cosmic_ray_curve_of_the_radiation_model():
+    """GEN.445: the second curve (soft and hard exponentials fitted by hand) is gone; the fallback is `radiation.gcr_dose_msv_yr`."""
+    for name in ("gcr_surface_dose_sv_yr", "column_mass_g_cm2", "GCR_SOFT_SV_YR", "GCR_HARD_SV_YR", "GROUND_SV_YR"):
+        assert not hasattr(hab, name), name
+    moon = World(0.0, -20, {}, gravity_ms2=1.62)
+    mars = World(0.6, -60, {"CO2": 0.95}, gravity_ms2=3.71)
+    earth = World(101.3, 15, {"O2": 0.21})
+    assert moon.dose_sv_yr == pytest.approx(0.5, rel=0.1)                 # the Moon's surface, 0.50 Sv/yr (Zhang 2020)
+    assert 0.2 < mars.dose_sv_yr < 0.3                                    # Mars, about 0.25 Sv/yr (Hassler 2014)
+    assert earth.dose_sv_yr == pytest.approx(radiation.gcr_dose_msv_yr(1033.0) / 1000.0, rel=0.02)
+    assert moon.dose_sv_yr > mars.dose_sv_yr > earth.dose_sv_yr
+    assert World(101.3, 15, {}, surface_dose_sv_yr=0.01).dose_sv_yr == 0.01
 
 
 def test_an_uncompensable_wet_bulb_is_never_better_than_yellow():
@@ -300,3 +306,16 @@ def test_a_request_for_a_habitable_world_aims_for_blue_or_green_and_falls_back_t
     assert result(0.3, 1.0) is None  # Red overall
     assert result(None, 1.0) is None and result(0.7, None) is None
     assert hab.is_habitable(0.75) and not hab.is_habitable(0.7499)
+
+
+def test_the_ultraviolet_dose_is_part_of_the_radiation_score_and_moves_it():
+    """GEN.445: a world with Earth's air and dose scores Blue on radiation at Earth's UV and falls through the tiers as the ground UV rises
+    (an ozone hole, a hot star); the lower of the dose's and the UV's score counts; no UV index leaves the dose alone."""
+    def tier_at(uv, dose=0.002):
+        return hab.tier(hab.radiation_score(World(101.3, 15, {"O2": 0.21}, surface_dose_sv_yr=dose, uv_index=uv)))
+
+    assert [tier_at(uv) for uv in (1.0, 5.0, 100.0, 1000.0)] == ["Blue", "Green", "Yellow", "Red"]
+    assert tier_at(0.0) == tier_at(None) == "Blue"
+    assert tier_at(1.0, dose=0.5) == "Yellow"                       # the dose is the worse of the two
+    assert tier_at(1000.0, dose=0.5) == "Red"                       # and so is the UV
+    assert hab.radiation_score(World(101.3, 15, {}, surface_dose_sv_yr=0.002, uv_index=1e4)) == 0.0

@@ -129,6 +129,18 @@ def water_need(world):
 def radiation_need(world):
     """`(rank, gear, why)` for the dose: a person is shielded by shelter, not by a suit."""
     why = f"the radiation dose is a mean of {_dose(world.dose_sv_yr)}"
+    uv = habitability.uv_score(world)
+    if uv is not None and uv < habitability.band_score(world.dose_sv_yr, habitability.HUMAN.dose, log=True):
+        why = f"the ground ultraviolet is {three_figures_or_tiny(world.uv_index)} times Earth's DNA-damaging dose"
+        colour = tier(uv)
+        edge = {"Blue": "uv_cover_index", "Green": "uv_suit_index", "Yellow": "uv_lethal_index"}.get(colour)
+        band = f"inside the {colour} band (up to {three_figures_or_tiny(limit(edge))} times Earth's)" if edge else (
+            "past the Yellow band")
+        if colour in ("Blue", "Green"):
+            return "none", None, f"{why}, {band}"
+        if colour == "Yellow":
+            return "garment", "a shielded shelter for long stays", f"{why}, {band}"
+        return "hardened", "a hardened, shielded habitat", f"{why}, past the Yellow band (up to {three_figures_or_tiny(limit('uv_lethal_index'))} times Earth's)"
     colour = tier(habitability.radiation_score(world))
     if colour == "Blue":
         return "none", None, f"{why}, inside the Blue band (up to {_dose(limit('dose_blue_sv_yr'))})"

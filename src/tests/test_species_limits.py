@@ -165,7 +165,7 @@ def _earthlike(conn, planet_id, **changes):
         **{f"p_{gas}_kpa": 0.0 for gas in atmosphere.SPECIES}, "ocean_class": None,
         "body_type": "t", "atmospheric_pressure_pa": 101325.0, "surface_temperature_k": 288.15, "gravity_g": 1.0,
         "hydrosphere": "surface ocean", "ocean_ph": 8.0, "water_activity": 1.0, "phosphorus": "limited",
-        "water_mass_fraction": 0.0002, "surface_dose_msv_yr": 2.0, "dose_ground_msv_yr": 2.0, "mass_kg": 5.97e24,
+        "water_mass_fraction": 0.0002, "surface_dose_msv_yr": 2.0, "dose_ground_msv_yr": 2.0, "uv_surface_index": 1.0, "mass_kg": 5.97e24,
         "radius_km": 6371.0, "energy_flux_w_m2": 80.0, "flux_variation": 0.0, "life_chemical": "chlorophyll",
         "p_o2_kpa": 21.2, "p_n2_kpa": 79.0, "p_co2_kpa": 0.04, "p_h2o_kpa": 1.0, "life_stage": "technological_civilization",
         "evolutionary_pace": "normal", "life_system_age_gyr": 4.6, "life_milestone_age_gyr": 4.5, **changes,
