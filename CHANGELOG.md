@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2156] - 2026-10-24
+
+**Headline:** A system asked to have both an asteroid belt and a habitable world no longer loses the belt on a small red dwarf now and then.
+
+### Fixed
+- **A forced asteroid belt or habitable world could be trimmed away after the planet attempts had kept it (TEST.313).** The star's age settles after the attempts and only rises; the survival limit falls with age, so the last trim sometimes took the belt of an M5V star (about 2 systems in 300). The planet attempts now run once more under the settled age before the request is given up as unmet.
+
 ## [8.0.2155] - 2026-10-24
 
 **Headline:** A world is now called habitable when its overall PHI-6 colour is Blue or Green, in one place, instead of by its class letter.
