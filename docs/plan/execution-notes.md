@@ -258,3 +258,5 @@ Update 1:02 PM EDT 2026-10-24: Bug Hunt merged #3009 (TEST.342, as the lane repo
 Update 1:07 PM EDT 2026-10-24: the detail pages lane merged #3011 (UX.173, UX.174, UX.176, UX.177, UX.178, as the lane reported); its queue has UX.175 (unstarted elsewhere) and UX.179 (sitemap, 8.2). TEST.329 should now pass; Bug Hunt confirms and closes it. Numbering unchanged: next free epoch 87, migration 0154.
 
 Update 1:31 PM EDT 2026-10-24: Bug Hunt confirmed all four web.system variants pass on main after #3011, so TEST.329 is retired. The detail pages lane merged #3013 (UX.175 in part: the property sheet panel and sheet route for every phenomenon kind) and retired; the rest of UX.175 is filed as UX.183 (facility pages), UX.184 (star cluster and region pages) and UX.185 (phenomenon paragraph and neighbour links), all in the pool with UX.179. Bug Hunt's queue is only TEST.301 once lane D posts it.
+
+Update 1:42 PM EDT 2026-10-24: Lane 4 merged #3015 (OPS.15, retired); it continues with USR.31, ADM.86, OPS.29, DB.45. Its gate failure in test_order_independence::backfill is the known TEST.335 flake and is noted there.
