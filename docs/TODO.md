@@ -19953,17 +19953,6 @@ clears each one.
   L.
   Prerequisites: GEN.689, TEST.209, TEST.210.
 
-- [ ] **TEST.316 test_no_page_shows_a_formula_that_is_not_written_out fails on main: /classes/habitability shows a bare "CO2" (bug)**
-  Found by lane E at 12:15 AM EDT 2026-10-24 (as the lane reported):
-  pytest
-  src/tests/test_web_formulas.py::test_no_page_shows_a_formula_that_is_not_written_out
-  fails on main alone, because /classes/habitability shows a bare CO2,
-  likely from the new legend text. Do: write the compound out in words
-  or in the page's formula style so the test passes; check no other page
-  is affected. Done: the test passes on main. Owner: Bug Hunt (with
-  UX.149).
-  Prerequisites: none. Related: UX.149.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21360,6 +21349,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   DOC.13.
   Boss, 6:14 PM EDT 2026-10-23: the help describes the four life scores
   0 to 9 and no longer a human operability score; DOC.77 does this part.
+  Research (2026-10-09, Update): Update 12:33 AM EDT 2026-10-24: part 1
+  merged as #2850 (lane E, no epoch): the habitability help page
+  (/classes/habitability) says where the rating symbols show up (lists,
+  planet pages, system page, Search) and what the habitable zone is,
+  with the Sun's 0.95 to 1.68 AU read from the generator; it also fixed
+  the bare CO2 in the equipment table (TEST.316). Still open: sector
+  colouring, markers, radiation terms, GEN.639 zone limits.
 
 - [ ] **DOC.76 Docs for the condition-based classes: the rule table, the planet class pages and the help**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
