@@ -1354,6 +1354,70 @@ def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
     page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)   # MAP.264: more than one, nothing is clipped now
 
 
+LABELS = "() => (document.querySelector('#galaxymap3d-canvas').__mapLabels.shown())"
+
+
+def test_galaxy_map_names_a_nebula_where_it_is_large_enough_and_not_beyond(page, map_site):
+    """MAP.268 (MAP.229, MAP.233): the label engine names the fixture nebula through the Labels group of the Menu:
+    in the window it fills, off with the toggle (which the address keeps), and not from the whole galaxy, where it
+    is far too small to read."""
+    _open_galaxy(page, map_site)
+    assert not [label for label in page.evaluate(LABELS) if label["kind"] == "nebula"], "far out nothing is named"
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'nebula' && label.text === 'Fixture Cloud')")
+    labels = page.locator("#galaxymap3d-canvas").evaluate("c => c.parentElement.querySelectorAll('.map-label').length")
+    assert labels > 0
+    page.click("#galaxymap3d-menu > summary")
+    toggle = page.locator('#galaxymap3d-kinds [data-label="nebula"]')
+    assert toggle.inner_text() == "Nebula names"
+    toggle.click()
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'nebula')")
+    assert "label-nebula" in parse_qs(urlparse(page.url).query).get("hide", [""])[0]
+    toggle.click()
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'nebula')")
+
+
+def test_galaxy_map_names_the_stars_of_the_open_sector_and_the_toggle_takes_them_away(page, map_site):
+    """MAP.268 (MAP.230): in a sector opened in place the named stars are labelled, brightest first, and the System
+    names toggle removes them (and its address entry brings it back)."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'system')")
+    named = [label["text"] for label in page.evaluate(LABELS) if label["kind"] == "system"]
+    assert named and set(named) <= SYSTEM_NAMES, named
+    page.click("#galaxymap3d-menu > summary")
+    page.click('#galaxymap3d-kinds [data-label="system"]')
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'system')")
+    assert "label-system" in parse_qs(urlparse(page.url).query).get("hide", [""])[0]
+
+
+def test_galaxy_map_names_a_generated_sector_in_its_window(page, map_site):
+    """MAP.268 (MAP.230): in a window of sectors close enough to read, a generated sector shows its name."""
+    _open_window(page, map_site, 1, 1, 0, 1, g=3)
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'sector' && label.text === 'Fixture Prime')")
+
+
+def test_galaxy_map_labels_never_take_the_pick_and_stay_inside_the_map(page, map_site):
+    """MAP.229: the labels are decoration over the map: they do not catch the pointer, none overlap and every one sits
+    inside the map's window."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_function(f"() => ({LABELS})().length > 0")
+    boxes = page.evaluate("""() => {
+        const root = document.querySelector('.map-labels');
+        const frame = root.getBoundingClientRect();
+        return {
+            events: getComputedStyle(root).pointerEvents,
+            inside: [...root.children].every((e) => { const r = e.getBoundingClientRect(); return r.left >= frame.left - 1 && r.right <= frame.right + 1 && r.top >= frame.top - 1 && r.bottom <= frame.bottom + 1; }),
+            rects: [...root.children].map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; }),
+        };
+    }""")
+    assert boxes["events"] == "none" and boxes["inside"]
+    rects = boxes["rects"]
+    for i, a in enumerate(rects):
+        for b in rects[i + 1:]:
+            assert not (a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]), (a, b)
+
+
 # --- NAV.40: bookmarks keep a course pick ---------------------------------------------
 
 SEED_BOOKMARKS = """(entries) => {
@@ -2514,6 +2578,22 @@ def _open_system_in_place(page, map_site, name="Middling Sun"):
     _wait_system(page)
 
 
+def test_galaxy_map_names_the_bodies_of_an_open_system_down_to_a_planet(page, map_site):
+    """MAP.268 (MAP.231): the bodies of a system opened in place are named by the label engine once they are a few
+    pixels across: flying to a planet names it (and the labels never overlap), the Body names toggle takes them away,
+    and no stage is involved from the sector to the planet."""
+    _open_system_in_place(page, map_site)
+    button = page.locator(".starmap-sr-system button", has_text="(planet)").first
+    planet = button.inner_text().split(" (")[0]
+    button.evaluate("b => b.click()")
+    page.locator("#galaxymap3d-info button", has_text="Fly to").click()
+    _wait_system(page)
+    page.wait_for_function(f"([name]) => ({LABELS})().some((label) => label.kind === 'body' && label.text === name)", arg=[planet])
+    page.click("#galaxymap3d-menu > summary")
+    page.click('#galaxymap3d-kinds [data-label="body"]')
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'body')")
+
+
 def test_a_close_pairs_two_orbits_are_drawn_each_at_its_share(page, map_site):
     """MAP.136: both stars of a close pair circle the barycenter on their own
     line, the lighter one on the wider (the fixture pair's mass fraction is
@@ -2894,6 +2974,21 @@ def test_galaxy_map_wheel_carries_the_zoom_down_through_the_windows_and_back_up(
     assert _wheel_until(page, 400, lambda: parse_qs(_query(page)).get("win", [""])[0] != inside, ticks=120), "the wheel never came back out"
     _settle(page)
     assert parse_qs(_query(page))["win"][0].startswith("243."), "back out on the parent window, the 243-shell blocks"
+
+
+def test_galaxy_map_the_picked_sector_stays_picked_across_a_wheel_crossing(page, map_site):
+    """MAP.268: what is picked at one scale is still picked at the next: a sector read under a click on the galaxy is
+    kept when the wheel carries the zoom on into the next window (and back), with no stage to hold it."""
+    _open_galaxy(page, map_site)
+    _click_choice(page, GENERATED_CHOICE)
+    picked = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySelectedSector()")
+    assert picked, "the click picked a sector"
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    start = _query(page)
+    assert _wheel_until(page, -400, lambda: _query(page) != start), "the wheel never carried on into a block"
+    _settle(page)
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySelectedSector()") == picked
 
 
 def test_nothing_is_clipped_when_you_zoom_into_a_window_or_a_sector(page, map_site):

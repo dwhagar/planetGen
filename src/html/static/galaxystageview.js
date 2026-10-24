@@ -1061,8 +1061,10 @@ export function createStageView(host) {
     const keep = !!((options.keepCamera || keepNext) && view && display);
     keepNext = false;
     if (entered) closeSector();
-    if (!options.keepSector) selectedSector = null;
-    if (!options.keepPicked) pickedSector = null;
+    // MAP.268: the selection is not a stage's: a crossing the wheel makes from one window to the next (the camera
+    // kept) keeps the selected and the picked sector, so what is selected at one scale is still selected at the next.
+    if (!options.keepSector && !keep) selectedSector = null;
+    if (!options.keepPicked && !keep) pickedSector = null;
     const token = ++goToken;
     arriving = true;
     const query = withKept(options.query || cameraQueryFor(r, options.camera || (keep ? currentCamera() : cameraFor(r))));
@@ -1713,8 +1715,10 @@ export function createStageView(host) {
     const sector = at ? P.cellAt(1, at.x, at.y, at.z, edgePc) : null;
     const chosen = sector && P.cellExists(sector.shell, sector.band, sector.wedge)
       ? { shell: sector.shell, band: sector.band, wedge: sector.wedge } : null;
-    pickedSector = chosen;
-    go(into, Object.assign({ keepPicked: !!chosen }, how));
+    // (A crossing the wheel makes only carries what is picked on.)
+    const clicked = !(how && how.keepCamera);
+    if (clicked) pickedSector = chosen;
+    go(into, Object.assign({ keepPicked: clicked && !!chosen }, how));
   }
 
   // A sector cell {shell, band, wedge} as the info panels and outlines take it.
@@ -3354,7 +3358,49 @@ export function createStageView(host) {
     if (display && !animation) rebuildDisplay();
   }
 
+  // MAP.268: what the label engine (maplabels.js) may name here. The sectors of the stage's window that hold a
+  // generated sector, by name, each with its edge (parsecs): {id, text, x, y, z, sizePc}.
+  function sectorLabels() {
+    if (!display || !display.options || entered || pinned) return [];
+    const labels = [];
+    display.options.forEach(function (option) {
+      const block = option.blocks[0];
+      if (option.blocks.length !== 1 || block.m !== 1) return;
+      const record = sectorRecord(block);
+      if (!record) return;
+      const middle = P.cellCenter(block.bounds);
+      labels.push({
+        id: "sector:" + (record.id !== undefined && record.id !== null ? record.id : cellKey(block)),
+        text: record.name || "Sector " + S.sectorDesignation(block.shell, block.band, block.wedge),
+        x: middle[0], y: middle[1], z: middle[2], sizePc: edgePc,
+      });
+    });
+    return labels;
+  }
+
+  // ... and the named systems of the sector the map has open or is coming up to, brightest first by the caller:
+  // {id, text, x, y, z, luminositySol}.
+  function systemLabels() {
+    if (enteredSystem) return [];
+    return sectorStage.entries().filter(function (e) {
+      return e.name && e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !sectorStage.hides(e);
+    }).map(function (e) {
+      return { id: e.endpoint, text: e.name, x: e.x, y: e.y, z: e.z, luminositySol: e.luminositySol || 0 };
+    });
+  }
+
+  // ... and the bodies of the system open in place or being come up to: {id, text, x, y, z, sizePc} (the width of
+  // the body in parsecs, so its label shows once it is a few pixels across).
+  function bodyLabels() {
+    return systemStage.entries().filter(function (e) { return e.name && e.r > 0; }).map(function (e) {
+      return { id: e.ref, text: e.name, x: e.x, y: e.y, z: e.z, sizePc: 2 * e.r };
+    });
+  }
+
   return {
+    bodyLabels: bodyLabels,
+    sectorLabels: sectorLabels,
+    systemLabels: systemLabels,
     setActive: setActive,
     isActive: function () { return active; },
     openFromLocation: openFromLocation,

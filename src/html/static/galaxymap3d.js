@@ -65,6 +65,7 @@ const {
   BLACK_HOLE_KIND, HABITABLE_KIND, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
+const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
@@ -3211,6 +3212,40 @@ function initGalaxyMap3d(canvasEl, data) {
     if (entry.item.type) showPointInfo(entry.item);
     else showHabitableSystemInfo(entry.item);
   }
+  // MAP.268: the names (galaxylabels.js, through the label engine maplabels.js): sectors, the open sector's systems and
+  // nebulae, a layer each in the Menu's Labels group.
+  var galaxyLabels = null;
+  if (!data.pinned && viewport) {
+    LABEL_KINDS.forEach(function (kind) {
+      stageView.layers.register({
+        id: kind.id, label: kind.label, modes: ["galaxy"], group: "Labels", data: { label: kind.kind },
+        defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: kind.title,
+      });
+    });
+    stageView.layers.readUrl(location.search);
+    stageView.layers.refresh();
+    galaxyLabels = createGalaxyLabels({
+      THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),
+      sources: { sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: stageView.bodyLabels, nebulae: cloudLabels },
+    });
+    canvasEl.__mapLabels = galaxyLabels;    // the browser tests read what is placed
+  }
+  // The nebulae and remnants in view that are large enough on screen to read: their name, else their type.
+  function cloudLabels() {
+    var found = [];
+    cloudSprites.forEach(function (sprite) {
+      var cloud = sprite.userData.cloud;
+      var distance = camera.position.distanceTo(sprite.position);
+      if (!drawnByTheGalaxy(sprite.position.x, sprite.position.y, sprite.position.z) || distance < 1.2 * cloud.radius_pc) {
+        return;
+      }
+      found.push({
+        id: "cloud:" + cloudKey(cloud), text: cloud.name || cloudTypeLabel(cloud),
+        x: sprite.position.x, y: sprite.position.y, z: sprite.position.z, pixels: 2 * cloudPixels(cloud, distance),
+      });
+    });
+    return found;
+  }
   var markerFrustum = new THREE.Frustum();
   var markerMatrix = new THREE.Matrix4();
   var markerPoint = new THREE.Vector3();
@@ -3525,6 +3560,7 @@ function initGalaxyMap3d(canvasEl, data) {
       if (markersDirty) refreshMarkers();
       markerLayer.update();
     }
+    if (galaxyLabels) galaxyLabels.update(now, false);
     renderer.render(scene, camera);
   })();
 }
