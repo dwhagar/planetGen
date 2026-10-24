@@ -1093,6 +1093,18 @@ with `clamp()`.
   takes focus on arrival. Owner: Bug Hunt.
   Prerequisites: none.
 
+- [ ] **UX.161 After a galaxy reset the counts on the main page do not change even though the database has been wiped (bug)**
+  Boss's live observation, 11:08 PM EDT 2026-10-23: after a galaxy reset
+  the numbers on the main page (counts of stars, systems and so on) are
+  unchanged although the database was wiped. Do: find where the main
+  page counts come from (a cache, a stored summary or a stale API
+  response), reproduce with a reset on a populated database, and make
+  the counts follow the database: the reset clears or recomputes
+  whatever holds them, and the page shows zero or the new totals. Done:
+  a test that resets and then reads the main page counts. Owner: Bug
+  Hunt.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -20184,15 +20196,6 @@ clears each one.
   2026-10-23 as the lane reported); not caused by its changes. Do:
   reproduce it on a machine with MySQL and Redis, find the cause, fix it
   or make it deterministic, no skip. Owner: Bug Hunt.
-  Prerequisites: none.
-
-- [ ] **TEST.312 test_datasets_real::test_the_catalogue_reports_nothing_missing fails on main for the new ozone_uv dataset (bug)**
-  Seen by lane J (10:55 PM EDT 2026-10-23 as the lane reported): the
-  derived files of the ozone_uv dataset (AD9, GEN.443) are not made
-  until update.sh runs the setup step, so the changed gate shows one red
-  on any lane machine. Do: the test skips (or checks differently) a
-  dataset whose setup step has not run, without hiding a truly missing
-  dataset. Owner: lane G (GEN.443).
   Prerequisites: none.
 
 ## USR: User accounts
