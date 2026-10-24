@@ -283,3 +283,7 @@ Update 2:31 PM EDT 2026-10-24: Core 5 merged #3030 (PERF.99, API version 6, no e
 Update 2:36 PM EDT 2026-10-24: PERF.181 (#3031) and GEN.710 (#3033, epoch 87) retired; 940 of 1315 8.1 items finished (71.5 percent), 375 open. Epoch 87 is taken by GEN.710, so the class lane's GEN.686 moves to epoch 88 and the next free epoch is 89 (migration 0153 still free). Boss asked for the Redis fix back at 2:34 PM EDT (PERF.173 stays open, first priority) and filed a bug: time estimates break when the server has no benchmark (PERF.184, Core 5). Core 3 starts GEN.327 because the rest of GEN.332 is Blocker 4's.
 
 Update 2:38 PM EDT 2026-10-24: filed PERF.185 (a hard host-wide cap on worker processes, Lane OOM, after PERF.183) and added the schema-DDL measurement (about 32,000 CREATE TABLE statements in one scatter) to PERF.174; 940 of 1316 8.1 items finished (71.4 percent), 376 open.
+
+Update 2:48 PM EDT 2026-10-24: filed TEST.347 (two test_admin_edits system page tests fail alone on main, Bug Hunt, found by Lane D). Reserved for Lane D: DB.100 takes migration 0153 and epoch 89; GEN.701 takes 0154 and epoch 90 (GEN.686 holds 88). Lane L started GEN.675, then GEN.672, GEN.674 at 2:38 PM EDT as the lane reported. 940 of 1317 8.1 items finished (71.4 percent), 377 open.
+
+Update 2:49 PM EDT 2026-10-24: GEN.675 (#3037), UX.152 and UX.153 (#3038) retired; filed TEST.348 (test_class_pages failures on main, Bug Hunt) and GEN.723 (optional refresh of hot-Jupiter recipe rows h1 to h3, pool). 943 of 1319 8.1 items finished (71.5 percent), 376 open.
