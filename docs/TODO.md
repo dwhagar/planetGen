@@ -13084,6 +13084,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   builder registers its fallback when its dataset is catalogued (gap
   plan section 5, AD1 to AD8). The unit-registry sweep lane holds this
   item.
+  Research (2026-10-09, Update): Update 3:43 AM EDT 2026-10-24 (as the
+  unit registry lane reported): GEN.599 already built the
+  refuse-or-disregard mechanism (the catalogue's fallback and
+  Located.use_stand_in), but the catalogue holds only SC1 to SC3 and
+  AD9, so AD1 to AD8 have nothing to attach a fallback to yet. Decided
+  by TODO from this item's own text (each AD builder registers its
+  fallback when its dataset is catalogued): the lane does NOT build the
+  datasets. The builders are the consuming items: AD1 and AD4 GEN.422,
+  AD2 GEN.423, AD3 GEN.413 and GEN.414, AD5 GEN.436 and GEN.444, AD6
+  GEN.485 and GEN.499, AD7 GEN.471 and GEN.491, AD8 GEN.496 and GEN.501.
+  GEN.594 stays open and the lane takes one dataset's fallback at a time
+  as each lands in the catalogue, checking that nobody has started it.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.422, GEN.600, DOC.72.
 
 - [ ] **GEN.595 Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution**
