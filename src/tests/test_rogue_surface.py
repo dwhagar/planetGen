@@ -72,8 +72,8 @@ def test_stevenson_envelope_warms_the_ground():
 
 
 def test_nitrogen_frost_gives_a_pluto_like_trace():
-    assert 0.5 < rs.nitrogen_vapor_pressure_pa(40.0) < 20
-    assert rs.nitrogen_vapor_pressure_pa(20.0) < 1e-6
+    assert 0.5 < rs.frozen_nitrogen_pressure_pa(40.0) < 20
+    assert rs.frozen_nitrogen_pressure_pa(20.0) < 1e-6
 
 
 def test_every_regime_occurs_and_conditions_are_consistent():
