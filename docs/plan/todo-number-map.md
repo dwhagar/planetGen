@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.183 |
 | MAP | MAP.291 |
 | NAV | NAV.63 |
-| GEN | GEN.717 |
+| GEN | GEN.719 |
 | PERF | PERF.181 |
 | DB | DB.101 |
 | API | API.33 |
@@ -1429,7 +1429,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.700 | Tidal heating of moons counts in the energy term of the habitability score: keep the tidal flux on the moon and add it to the heat flow | none | open |
 | GEN.701 | Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields | none | open |
 | GEN.702 | Some equipment items sit in the wrong habitability row: self-contained air under a Blue Air row on cold worlds, and a hardened pressure suit under Radiation while the Pressure row names no gear (bug) | none | done, PR #2920 |
-| GEN.703 | The greenhouse optical depth (tau0) comes from the stored mixture and the band opacities, replacing the per-gas strengths | none | open |
+| GEN.703 | The greenhouse optical depth (tau0) comes from the stored mixture and the band opacities, replacing the per-gas strengths | none | done, PR #2992 |
 | GEN.704 | Moons of a moved planet keep the dose, solar particle exposure, UV and habitability of their old distance from the star (bug) | none | open |
 | GEN.705 | The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug) | none | open |
 | GEN.706 | Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug) | none | open |
@@ -1443,6 +1443,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.714 | Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug) | none | open |
 | GEN.715 | Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703 | none | open |
 | GEN.716 | add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug) | none | open |
+| GEN.717 | The greenhouse opacity has no water-vapour vertical profile, so the 15 micron CO2 band is not masked by water and a CO2 doubling warms 0.3 to 0.6 K instead of about 1.1 K | none | open |
+| GEN.718 | Cold haze worlds like Titan come out about twice too warm in the spectral greenhouse opacity | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
