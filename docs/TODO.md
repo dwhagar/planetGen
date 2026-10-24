@@ -946,20 +946,6 @@ with `clamp()`.
   and life scores lane.
   Prerequisites: none. Related: UX.90, GEN.216, GEN.218.
 
-- [ ] **UX.154 Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended**
-  Section 11 item 4 of the design draft. Do: chips for the Body, Filter,
-  Supply and Shelter lists on the planet and moon lists and the system
-  page, solid for required and outlined for recommended, in the symbols
-  and icons of UX.101 and the score display of UX.152, with a browser
-  test. Done: a world that needs nothing shows no equipment line, and
-  the chips read the stored columns. Design:
-  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
-  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
-  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
-  Owner: Survival equipment lane (thread 'Survival equipment fields').
-  Prerequisites: UX.153. Related: UX.101, UX.152,
-  UX.100.
-
 - [ ] **UX.157 Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug)**
   Boss live observation (relayed 2026-10-23, 9:07 and 9:10 PM EDT),
   found by the Composition-first stars lane (lane A): the symbols from
@@ -14257,20 +14243,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tidally heated moon), the rungs, the Microbial rule, tests,
   determinism across worker counts, and the design doc states it.
   Prerequisites: GEN.649. Related: GEN.648, GEN.649, GEN.653.
-
-- [ ] **GEN.656 Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator and night side for locked worlds) and the day and night swing, with the regional sentences of the detail text**
-  Section 11 item 5 of the design draft. Do: the module that estimates
-  the four regional annual means and the day and night swing from the
-  stored row (the columns arrive with DB.93); the score and the required
-  gear read the average, the detail text names any region or hour that
-  needs more and lists the heavier gear as recommended (Boss, C); tests
-  against Earth, the Moon, Mars and Mercury. Done: the regional values
-  agree with the observed ones within the stated tolerance. Design:
-  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
-  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
-  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
-  Owner: Survival equipment lane (thread 'Survival equipment fields').
-  Prerequisites: none. Related: DB.93.
 
 - [ ] **GEN.657 Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH**
   Section 11 item 6 of the design draft. Do: the toxic rows (H2S, CO,

@@ -1381,7 +1381,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.653 | Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life | none | open |
 | GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only | none | open |
 | GEN.655 | Survival equipment: one physics/equipment.py returns the list of needs (required or recommended) for the four slots, and replaces habitability.equipment and protection.requirements | none | done, PR #2766 |
-| GEN.656 | Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator and night side for locked worlds) and the day and night swing, with the regional sentences of the detail text | none | open |
+| GEN.656 | Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator and night side for locked worlds) and the day and night swing, with the regional sentences of the detail text | none | done, PR #2844 |
 | GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH | none | open |
 | GEN.658 | Dust loading and dust toxicity feed the dust filter and seals level of the equipment needs | none | open |
 | GEN.659 | The interstellar debris density stand-in of 1e12 per pc^3 is 700 to 1,800 times too low: the measured value is 7e14 to 1.8e15 per pc^3 (bug) | none | done, PR #2801 |
@@ -2249,7 +2249,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.151 | Icons for Microbial, Flora, Fauna and Sentient life, with a 0 to 9 digit, drawn as a small cluster next to the PHI-6 icons, both themes | none | done, PR #2733 |
 | UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes | none | open |
 | UX.153 | Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none | none | open |
-| UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | open |
+| UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | done, PR #2844 |
 | UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) | none | done, PR #2784 |
 | UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | done, PR #2784 |
 | UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | open |

@@ -1218,3 +1218,5 @@ Baseline: PR #1817.
 | GEN.679 | 8.1 | Consistency |
 | UX.148 | 8.1 | Generate page and directives |
 | MAP.270 | 8.1 | Fly-through map |
+| GEN.656 | 8.1 | Habitability system |
+| UX.154 | 8.1 | Habitability system |
