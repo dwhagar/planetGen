@@ -9,6 +9,7 @@ pace its life sentence has always said. A body with both keeps its pace, which i
 `evolutionary_speed` is dropped. A column already gone is skipped, so a stopped run can be started again.
 """
 
+import sqlalchemy as sa
 from alembic import op
 
 from planetgen.db.migrations import helpers
@@ -31,4 +32,5 @@ def upgrade():
             connection, table, "evolutionary_pace = LOWER(evolutionary_speed)",
             "evolutionary_pace IS NULL AND LOWER(evolutionary_speed) IN ('fast', 'normal', 'slow')",
             label=f"{table} pace")
-        helpers.drop_column_instant(connection, table, "evolutionary_speed")
+        # Not INSTANT: `planets` has a FULLTEXT index, and InnoDB refuses an instant change beside one (as in 0111).
+        connection.execute(sa.text(f"ALTER TABLE {table} DROP COLUMN evolutionary_speed"))

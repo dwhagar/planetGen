@@ -1543,7 +1543,8 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
-    (136, lambda shape: ("planets", "evolutionary_speed") not in shape["columns"]),
+    (136, lambda shape: ("planets", "life_stage") in shape["columns"]
+     and ("planets", "evolutionary_speed") not in shape["columns"]),
     (135, _column_marker("planets", "ozone_column_du")),
     (134, _column_marker("system_configs", "max_stars")),
     (133, _column_marker("stars", "slot")),

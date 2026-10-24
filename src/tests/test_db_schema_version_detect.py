@@ -39,6 +39,7 @@ def _make_older_than_the_baseline(config):
     conn = store.get_connection(config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v136 (GEN.666)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN ozone_column_du, ALGORITHM=COPY")  # v135
         conn.execute("ALTER TABLE system_configs DROP COLUMN stars, DROP COLUMN max_stars, DROP COLUMN prevalence_multi_star,"
                      " ALGORITHM=COPY")  # v134
