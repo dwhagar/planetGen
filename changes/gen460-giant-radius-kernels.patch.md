@@ -1,0 +1,4 @@
+**Headline:** The radius, inflation and heavy-element mass of a giant planet now have their checked kernels, ready to replace the old anchored relation.
+
+### Added
+- **`physics/giant_radius.py` and `giant_radius_tables.py`** (GEN.460, first part, no behaviour change yet): the Fortney, Marley and Barnes 2007 giant radius tables (Tables 2 to 4, three ages, five distances, five core masses, 17 to 3,594 Earth masses) interpolated in mass, flux, age and core mass, with three misprinted cells corrected by their neighbours; the hot-giant inflation of Sestovic, Demory and Queloz 2018 (a stand-in for the physical efficiency of Thorngren and Fortney 2018); and the heavy-element mass law of Chachan et al. 2025 with its 66 percent scatter. A planet that is mostly heavy elements is outside the tables and `covers` says so.
