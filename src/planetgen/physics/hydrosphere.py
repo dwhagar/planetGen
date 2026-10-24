@@ -44,7 +44,7 @@ The ranges are design defaults, not fits.
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, gases, saturation
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -60,11 +60,6 @@ HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocea
 OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutral")
 
 WATER_MELTING_K = 273.15
-WATER_CRITICAL_K = 647.1
-WATER_BOILING_K = 373.15
-WATER_TRIPLE_POINT_PA = 611.657
-WATER_VAPORIZATION_J_MOL = 40.7e3
-GAS_CONSTANT_J_MOL_K = 8.314
 LIQUID_WATER_DENSITY_KG_M3 = 1000.0
 DEEP_WATER_DENSITY_KG_M3 = 1050.0
 """float: The compressed column's mean density, for its bottom pressure."""
@@ -129,13 +124,22 @@ ICY_MIN_WATER_FRACTION = 0.01
 
 
 def water_boiling_k(pressure_pa):
-    """Water's boiling point at `pressure_pa` (Clausius-Clapeyron), capped at
-    its critical point: above that there is no liquid, only a supercritical
-    fluid."""
+    """Water's boiling point at `pressure_pa`, from the one saturation function (`physics/saturation.py`), capped at its critical
+    point: above that there is no liquid, only a supercritical fluid. Under the triple-point pressure it is the sublimation
+    temperature, below the melting point."""
     if pressure_pa <= 0:
         return WATER_MELTING_K
-    inverse = 1 / WATER_BOILING_K - GAS_CONSTANT_J_MOL_K * math.log(pressure_pa / 101325.0) / WATER_VAPORIZATION_J_MOL
-    return WATER_CRITICAL_K if inverse <= 0 else min(1 / inverse, WATER_CRITICAL_K)
+    critical = gases.gas("H2O").critical_temperature_k
+    if pressure_pa >= saturation.pressure_pa("H2O", critical - 1e-6):
+        return critical
+    low, high = 1.0, critical
+    for _ in range(80):
+        middle = 0.5 * (low + high)
+        if saturation.pressure_pa("H2O", middle) < pressure_pa:
+            low = middle
+        else:
+            high = middle
+    return 0.5 * (low + high)
 
 
 def ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_temperature_k=WATER_MELTING_K):
@@ -270,7 +274,7 @@ def generate_hydrosphere(body, internal_flux_w_m2):
         body.hydrosphere = "dry"
         return
 
-    if pressure < WATER_TRIPLE_POINT_PA and temperature >= VACUUM_ICE_MAX_K:
+    if pressure < saturation.WATER_TRIPLE_POINT_PA and temperature >= VACUUM_ICE_MAX_K:
         body.hydrosphere = "dry"
         body.ocean_fraction, body.land_fraction = 0.0, 1.0
         return
