@@ -345,7 +345,7 @@ def test_the_timeline_is_written_from_the_stored_state_with_the_ladders():
     for _overrides, system in _systems(8):
         document = describe(system)
         for body in system.planets + system.secondary_planets:
-            if body.body_type == "a" or not body.evolutionary_data:
+            if body.body_type == "a" or not body.has_timeline:
                 continue
             section = next(s for s in model.sections(document) if s["title"] == body.name)
             block = next((b for b in section["blocks"] if b["type"] == "prose" and b["role"] == "timeline"), None)

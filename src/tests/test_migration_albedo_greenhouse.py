@@ -86,6 +86,7 @@ def test_a_v141_galaxy_gets_the_draws_back_and_keeps_its_temperatures(mysql_conf
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor,"
                          " DROP COLUMN albedo_basis, ALGORITHM=COPY")
         conn.execute("UPDATE alembic_version SET version_num = '0141'")
@@ -132,6 +133,7 @@ def test_a_row_with_no_solution_takes_a_seeded_class_draw(mysql_config):
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor,"
                          " DROP COLUMN albedo_basis, ALGORITHM=COPY")
         conn.execute("UPDATE alembic_version SET version_num = '0141'")

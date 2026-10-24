@@ -31,7 +31,7 @@ def test_a_v110_database_loses_the_prose_and_keeps_the_rest(mysql_config):
             assert column in _columns(conn, table)
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
         _insert(conn, "planets", body_type="t", star_system_id=7, star_id=4, flavor_text="a quiet shore",
-                hab_note="breathable", evolutionary_speed="Standard", life_stage="complex_cells", flavor_key="planet:4")
+                hab_note="breathable", evolutionary_speed="normal", life_stage="complex_cells", flavor_key="planet:4")
         conn.commit()
     finally:
         conn.close()
@@ -41,11 +41,11 @@ def test_a_v110_database_loses_the_prose_and_keeps_the_rest(mysql_config):
         assert not set(MIGRATION.TABLES) & _tables(conn)
         for table, column in MIGRATION.COLUMNS:
             assert column not in _columns(conn, table)
-        row = conn.execute("SELECT evolutionary_speed, life_stage, flavor_key FROM planets").fetchone()
+        row = conn.execute("SELECT evolutionary_pace, life_stage, flavor_key FROM planets").fetchone()
         assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
     finally:
         conn.close()
-    assert (row["evolutionary_speed"], row["life_stage"], row["flavor_key"]) == ("Standard", "complex_cells", "planet:4")
+    assert (row["evolutionary_pace"], row["life_stage"], row["flavor_key"]) == ("normal", "complex_cells", "planet:4")
 
 
 def test_a_migration_run_again_changes_nothing(mysql_config):

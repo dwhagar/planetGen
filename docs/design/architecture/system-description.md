@@ -119,6 +119,16 @@ Rules:
 | belt | inner and outer edge, density | `Composition` |
 | comet | type, perihelion, eccentricity, period, current distance and speed, nucleus size, activity | `Composition` |
 
+**One set of facts for the life text (GEN.666).** The life paragraph and the timeline paragraph of a body are written
+from one `describe.life_facts.LifeFacts` (chemistry, pace, spectra, and the timeline's system age, milestone and
+milestone age), resolved once from the stored columns by `life_facts.resolve`. A sentence reads its fact from there and
+never from the body, and the pace is stated once, in the life paragraph (the timeline paragraph says "at that pace").
+The generator draws the pace once (`evolution.draw_scale`) and the stored column is the only copy. The milestone name
+and text follow the chemistry's metabolism (`tuning.LIFE_METABOLISMS`), so a world whose life does not split water is
+never told it releases oxygen. `tests/test_life_text_consistency.py` fails if two sentences of a generated page name a
+different pace, chemistry, milestone or age. A new life fact (the four life scores of GEN.649) goes into `LifeFacts` and
+the checker in that test, not into a sentence on its own.
+
 The table rows and prose are the ones the old text carried; UX.104 adds a coverage test that every old fact key and every
 old sentence topic has a home, so nothing is lost silently. Phenomena (nebula, quasar, rogue planet, asteroid field,
 compact remnant, supernova remnant) are described by the same model from GEN.221; the web's phenomenon page already shows

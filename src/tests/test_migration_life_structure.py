@@ -26,7 +26,7 @@ def test_a_v109_database_gains_the_columns_and_keeps_its_rows(mysql_config):
             assert not set(NAMES) & _columns(conn, table)
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
         _insert(conn, "planets", body_type="t", star_system_id=7, star_id=4, flavor_text="a quiet shore",
-                evolutionary_speed="Standard")
+                evolutionary_speed="normal")
         conn.commit()
     finally:
         conn.close()
@@ -35,12 +35,12 @@ def test_a_v109_database_gains_the_columns_and_keeps_its_rows(mysql_config):
     try:
         for table in ("planets", "moons"):
             assert set(NAMES) <= _columns(conn, table)
-        row = conn.execute("SELECT evolutionary_speed, " + ", ".join(NAMES) + " FROM planets").fetchone()
+        row = conn.execute("SELECT " + ", ".join(NAMES) + " FROM planets").fetchone()
         assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
     finally:
         conn.close()
-    assert row["evolutionary_speed"] == "Standard"
-    assert all(row[name] is None for name in NAMES)  # nothing reads or writes them yet
+    assert row["evolutionary_pace"] == "normal"  # v135 copied the speed that the v109 row had into the pace
+    assert all(row[name] is None for name in NAMES if name != "evolutionary_pace")
 
 
 def test_a_migration_run_again_changes_nothing(mysql_config):

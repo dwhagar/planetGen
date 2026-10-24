@@ -1551,6 +1551,8 @@ def _type_marker(table, column, column_type):
 
 
 _VERSION_MARKERS = (
+    (143, lambda shape: ("planets", "life_stage") in shape["columns"]
+     and ("planets", "evolutionary_speed") not in shape["columns"]),
     (142, _column_marker("planets", "bond_albedo")),
     (141, _column_marker("planets", "c_k0_ppm")),
     (140, _column_marker("interstellar_comets", "parent_id")),
@@ -3018,7 +3020,7 @@ BODY_FIELDS = (
     object_rows.attr("scale_height_km", "scale_height"), object_rows.attr("hill_radius_km", "hill_radius"),
     object_rows.scaled("min_orbit_distance_km", "min_orbit_distance", _AU_KM, nullable=True),
     _au_pair("habitable_zone_inner_km", "habitable_zone_outer_km", "habitable_zone"),
-    object_rows.attr("life_chemical"), object_rows.attr("evolutionary_speed"),
+    object_rows.attr("life_chemical"),
     object_rows.attr("life_stage"), object_rows.attr("evolutionary_pace"),
     object_rows.attr("life_milestone_age_gyr"), object_rows.attr("life_system_age_gyr"),
     object_rows.attr("flavor_key"), object_rows.attr("flavor_text_count"),
@@ -4715,7 +4717,7 @@ def compact_host_of_star(conn, star_id):
 def _stored_native_life(row):
     """The `habitability.LIFE_STAGES` stage of a stored planet or moon `row` (`planets` or `moons`), read
     from its life chemistry and the milestone its timeline reached (`habitability_world.native_life`), for a re-score."""
-    return habitability_world.native_life(row["life_chemical"], row["life_stage"], row["evolutionary_pace"] is not None)
+    return habitability_world.native_life(row["life_chemical"], row["life_stage"], row["life_system_age_gyr"] is not None)
 
 
 def stored_world(conn, table, row, with_life=True):

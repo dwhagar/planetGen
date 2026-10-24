@@ -391,7 +391,7 @@ def test_a_habitable_world_with_no_viable_chemistry_gets_no_timeline(monkeypatch
     for _ in range(50):
         system = StarSystem(system_config=cfg)
         planet = next((p for p in system.planets if getattr(p, "zone", None) == "e" and not p.is_moon
-                       and p.evolutionary_data), None)
+                       and p.has_timeline), None)
         if planet is not None:
             break
     assert planet is not None
@@ -399,4 +399,4 @@ def test_a_habitable_world_with_no_viable_chemistry_gets_no_timeline(monkeypatch
     monkeypatch.setattr(planetLife, "get_viable_life_chemicals", lambda *args, **kwargs: {})
     planetLife.apply_life_data(planet)
     assert planet.life_chemical is None
-    assert planet.evolutionary_data == []
+    assert not planet.has_timeline and planet.evolutionary_pace is None

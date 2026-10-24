@@ -249,6 +249,22 @@ def generate_atmosphere(planet):
     planet.atmosphere = describe(partials, balance_kpa, balance_name)
 
 
+def balance_names(planet_class):
+    """The names of the gases that make up a class's balance (`CLASS_MIXES`), a tuple: empty for a class with none."""
+    balance_name = CLASS_MIXES.get(planet_class, DEFAULT_MIX)[1]
+    if balance_name is None:
+        return ()
+    return (balance_name,) if isinstance(balance_name, str) else tuple(balance_name)
+
+
+def balance_kpa(body):
+    """The pressure of `body`'s balance gases (named in the text, not stored), kPa: what the surface pressure holds beyond
+    the stored partial pressures; 0 for a class with no balance."""
+    if not balance_names(body.planet_class):
+        return 0.0
+    return max((body.atmospheric_pressure or 0.0) / 1000.0 - sum(partial_pressures_kpa(body).values()), 0.0)
+
+
 def partial_pressures_kpa(body):
     """`body`'s stored partial pressures as a dict gas -> kPa (zeros for a
     body saved before GEN.85)."""

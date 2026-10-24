@@ -335,6 +335,12 @@
       "epoch": 68,
       "first_release": "8.0.2135",
       "reason": "Close-binary types: contact binaries, Algols, blue stragglers, merger products, Be stars with a stripped companion, R Coronae Borealis, FK Comae and Thorne-Zytkow stars are drawn inside the member tree, and the tight tail of the period law is weighted for solar-type pairs, so star systems and their companions change (GEN.270)"
+    },
+    {
+      "epoch": 69,
+      "first_release": null,
+      "pending": true,
+      "reason": "A world's evolutionary pace is drawn once, from what the star and its life chemistry allow, instead of twice (the second draw sat inside the timeline), a body with no viable chemistry draws no pace, so the stream after the life draw moves (GEN.666)"
     }
   ]
 }

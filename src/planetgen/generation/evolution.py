@@ -19,14 +19,12 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.stellar_object import get_star_evolutionary_profile
-from planetgen.util.format import format_age_string, to_paragraph
-# Removed: from . import config # Import the config module
 
 MILESTONE_KEYS = ("abiogenesis", "photosynthesis", "complex_cells", "multicellularity", "technological_civilization")
 """
 tuple[str]: `EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT`'s own milestone
 keys, in ascending order of life complexity -- shared by
-`get_evolutionary_timeline` for both display-name lookup and comparing a
+`get_evolutionary_state` for both display-name lookup and comparing a
 milestone against a cap (`life.stage_ceiling`).
 """
 
@@ -39,50 +37,40 @@ MILESTONE_DISPLAY_NAMES = {
 }
 
 
-def get_evolutionary_state(star, max_stage=None):
+def draw_scale(star, chemical_scales=None):
     """
-    Draws the speculative evolutionary state of a planet from its
-    host star's spectral class: the timeline scale, the latest milestone reached and the ages (DB.51). This
-    is the structure the stored columns hold; `timeline_paragraphs` writes it as prose.
+    Draws a world's evolutionary pace once, as a `tuning.EVOLUTIONARY_TIMELINES` key. Everything the world says
+    about its pace (the life sentence, the timeline, the stored column) is this one value.
 
-    This function takes a `Star` object as input and uses its spectral class
-    to determine the appropriate evolutionary timeline. The timelines are
-    defined in the `EVOLUTIONARY_TIMELINES` constant and are categorized as
-    "Fast," "Earth Norm," or "Slow." The function retrieves the appropriate
-    timeline and formats it into a human-readable string.
-
-    The function also includes a summary of the star's characteristics and
-    its likely impact on the evolution of life. The output is formatted as a
-    simple paragraph string, suitable for wikitext or markdown.
+    The pace is one the star's lifespan supports and, when the world has a life chemistry, one that chemistry
+    needs (`chemical_scales`, `LIFE_CHEMICALS[...]["evolutionary_time_scale"]`; a star that supports none of them
+    decides alone). A forced technological civilization (`INTELLIGENT_LIFE`) draws among the paces whose
+    civilization fits inside the star's actual, already-finalized age (the fastest one when none does), so the
+    milestone never lies in the future.
 
     Args:
-        star (Star): The star for which to generate an evolutionary timeline.
-        max_stage (str, optional): A `MILESTONE_KEYS` key capping the milestone, whether from the natural age-based
-            roll below or a forced `INTELLIGENT_LIFE=True`: the habitability index allows a world only microbial life
-            (GEN.206), so its timeline stops at "photosynthesis" (`life.stage_ceiling`). The class letter caps nothing
-            (GEN.647).
+        star (Star): The host star.
+        chemical_scales (list[str], optional): The paces the life chemistry allows.
 
     Returns:
-        dict: `scale` (a `tuning.EVOLUTIONARY_TIMELINES` key), `stage` (a `MILESTONE_KEYS` key, `None` when no
-            milestone has been reached), `milestone_age_gyr` (`None` with no stage) and `system_age_gyr`.
+        str: `"fast"`, `"normal"` or `"slow"`.
     """
     # Uses get_star_evolutionary_profile rather than a raw STAR_EVOLUTION[spectral_class]
     # lookup so giants/supergiants/white dwarfs etc. (whose spectral letter reflects
     # only current temperature, not a main-sequence lifespan) are handled correctly.
     star_info = get_star_evolutionary_profile(star)
 
-    # Ensure "normal" is a fallback if the star's supported_evolutionary_scales is empty or missing
+    # "normal" is the fallback if the star's supported_evolutionary_scales is empty or missing
     supported_scales = star_info.get("supported_evolutionary_scales")
+    if supported_scales and chemical_scales:
+        supported_scales = [scale for scale in supported_scales if scale in chemical_scales] or supported_scales
     if not supported_scales:
         evolutionary_scale = "normal"
     elif star.system_config.INTELLIGENT_LIFE is True:
-        # A forced technological civilization needs to fit inside the star's
-        # actual (already-finalized, lifespan-capped) age. Pick randomly among
-        # whichever supported scales are actually reachable at that age (so
-        # "fast" isn't always favored just because it's usually reachable —
+        # Pick randomly among whichever supported scales are actually reachable at that age (so
+        # "fast" isn't always favored just because it's usually reachable --
         # a G-type star forcing intelligent life should still often read as
-        # "Standard" pace, not always "Hyper-Accelerated"), so the milestone
-        # below never has to be claimed at a time later than "now". If none
+        # "Standard" pace, not always "Hyper-Accelerated"). If none
         # fit, fall back to the fastest supported scale, and the milestone
         # age is capped to the star's current age when reporting it.
         scale_speed_order = [s for s in ["fast", "normal", "slow"] if s in supported_scales]
@@ -101,12 +89,31 @@ def get_evolutionary_state(star, max_stage=None):
                        f"forced intelligent life: no scale in {scale_speed_order} was reachable by star "
                        f"age {star.age:.4g}, falling back to the fastest supported one")
     else:
-        # If there are multiple supported scales, pick one randomly
         evolutionary_scale = draw.choice(supported_scales)
         log.choice("Evolutionary scale", evolutionary_scale,
                    f"uniform draw among supported scales {supported_scales}")
+    return evolutionary_scale
 
-    timeline = tuning.EVOLUTIONARY_TIMELINES[evolutionary_scale]
+
+def get_evolutionary_state(star, scale, max_stage=None):
+    """
+    The speculative evolutionary state of a planet at its host star's age, at the pace `draw_scale` drew for it:
+    the latest milestone reached and the ages (DB.51). This is the structure the stored columns hold;
+    `describe/build.py` writes it as prose. It draws nothing.
+
+    Args:
+        star (Star): The host star.
+        scale (str): The pace, a `tuning.EVOLUTIONARY_TIMELINES` key (`draw_scale`).
+        max_stage (str, optional): A `MILESTONE_KEYS` key capping the milestone, whether from the natural age-based
+            roll below or a forced `INTELLIGENT_LIFE=True`: the habitability index allows a world only microbial life
+            (GEN.206), so its timeline stops at "photosynthesis" (`life.stage_ceiling`). The class letter caps nothing
+            (GEN.647).
+
+    Returns:
+        dict: `scale` (the one given), `stage` (a `MILESTONE_KEYS` key, `None` when no milestone has been reached),
+            `milestone_age_gyr` (`None` with no stage) and `system_age_gyr`.
+    """
+    timeline = tuning.EVOLUTIONARY_TIMELINES[scale]
 
     # The current system age is always the star's actual, already-finalized age
     # (see Star.adjust_age_for_planets) — never inflated past it, so this sentence
@@ -147,52 +154,33 @@ def get_evolutionary_state(star, max_stage=None):
 
     # Hard invariant, not just a silent clamp: whatever got selected above
     # must never exceed max_index. Structurally impossible given the
-    # candidate pool was already truncated to allowed_keys -- a violation
-    # here means a future change reintroduced an unrestricted milestone
-    # path somewhere above, and that's a real bug worth failing loudly on
-    # rather than silently shipping a planet's life narrative that
-    # contradicts its own class description again.
+    # candidate pool was already truncated to allowed_keys.
     if most_recent_key is not None:
         assert MILESTONE_KEYS.index(most_recent_key) <= max_index, (
-            f"get_evolutionary_timeline picked {most_recent_key!r}, exceeding its cap {MILESTONE_KEYS[max_index]!r}"
+            f"get_evolutionary_state picked {most_recent_key!r}, exceeding its cap {MILESTONE_KEYS[max_index]!r}"
         )
 
-    return {"scale": evolutionary_scale, "stage": most_recent_key,
+    return {"scale": scale, "stage": most_recent_key,
             "milestone_age_gyr": most_recent_milestone_age if most_recent_key is not None else None,
             "system_age_gyr": current_system_age}
 
 
-def timeline_paragraphs(state):
-    """
-    The evolutionary timeline paragraph of a `get_evolutionary_state` (or of the stored `life_stage`,
-    `evolutionary_pace`, `life_milestone_age_gyr` and `life_system_age_gyr`, under the same keys).
-
-    Returns:
-        list: One paragraph, in a list.
-    """
-    timeline = tuning.EVOLUTIONARY_TIMELINES[state["scale"]]
-    key = state["stage"]
-    output_sentences = []
-
-    output_sentences.append(
-        f"A speculative evolutionary timeline for a planet orbiting this star indicates a {timeline['evolutionary_pace'].lower()} evolutionary pace. "
-        f"The current estimated age of the system is {format_age_string(state['system_age_gyr'])}."
-    )
-
-    if key is not None:
-        name = MILESTONE_DISPLAY_NAMES[key]
-        output_sentences.append(
-            f"The most recent significant evolutionary milestone prior to this age would have been "
-            f"{name} at {format_age_string(state['milestone_age_gyr'])}. {tuning.EVOLUTIONARY_TEXT[key]}"
-        )
-    else:
-        output_sentences.append(
-            "No significant evolutionary milestones are predicted to have occurred yet at this system's age."
-        )
-
-    return [to_paragraph(output_sentences)]
+def stage_name(stage, life_chemical):
+    """The display name of a milestone (`MILESTONE_DISPLAY_NAMES`), the "photosynthesis" one as the chemistry's own
+    way of harvesting energy calls it (`tuning.LIFE_METABOLISMS`)."""
+    if stage == "photosynthesis":
+        return tuning.LIFE_METABOLISMS[metabolism(life_chemical)]["stage_name"].title()
+    return MILESTONE_DISPLAY_NAMES[stage]
 
 
-def get_evolutionary_timeline(star, max_stage=None):
-    """The paragraph of a freshly drawn `get_evolutionary_state` (see there for the arguments)."""
-    return timeline_paragraphs(get_evolutionary_state(star, max_stage))
+def stage_text(stage, life_chemical):
+    """What the biosphere is like at a milestone: `tuning.EVOLUTIONARY_TEXT`, the "photosynthesis" one by the
+    chemistry's metabolism (`tuning.LIFE_METABOLISMS`)."""
+    if stage == "photosynthesis":
+        return tuning.LIFE_METABOLISMS[metabolism(life_chemical)]["text"]
+    return tuning.EVOLUTIONARY_TEXT[stage]
+
+
+def metabolism(life_chemical):
+    """How a life chemistry harvests its energy (`tuning.LIFE_CHEMICALS[...]["metabolism"]`)."""
+    return tuning.LIFE_CHEMICALS[life_chemical]["metabolism"]

@@ -14,10 +14,9 @@ and the sentences carry quantities, not finished strings.
 import math
 
 from planetgen import tuning
-from planetgen.describe import model
+from planetgen.describe import life_facts, model
 from planetgen.describe.model import fact, facts, inline, measured, prose, qty, section, swatch
 from planetgen.generation.belt import format_composition_summary
-from planetgen.generation import evolution
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.names.bodies import close_pair_label
@@ -310,24 +309,28 @@ def _atmosphere_composition(planet):
     pressures = {gas: getattr(planet, f"p_{gas}_kpa", None) for gas in atmosphere_physics.SPECIES}
     total = sum(value for value in pressures.values() if value)
     parts = []
+    balance = atmosphere_physics.balance_kpa(planet)
+    balance_names = atmosphere_physics.balance_names(planet.planet_class) if balance > 0 else ()
+    total += balance
     if total > 0:
-        for gas, value in sorted(pressures.items(), key=lambda item: -(item[1] or 0.0)):
-            if value:
-                parts.append({"name": atmosphere_physics.SPECIES_NAMES[gas], "share": value / total})
+        shares = [(atmosphere_physics.SPECIES_NAMES[gas], value) for gas, value in pressures.items() if value]
+        shares += [(name, balance / len(balance_names)) for name in balance_names]
+        for name, value in sorted(shares, key=lambda item: -item[1]):
+            parts.append({"name": name, "share": value / total})
     return model.composition("Atmosphere", parts, planet.atmosphere.lower())
 
 
-def _timeline_sentences(planet):
-    """The speculative timeline from the stored state: the pace and the system's age, then the latest milestone."""
-    pace = tuning.EVOLUTIONARY_TIMELINES[planet.evolutionary_pace]["evolutionary_pace"].lower()
-    sentences = [inline("On a speculative timeline, life here would evolve at a ", pace, " pace. The system is about ",
-                        _gy(planet.life_system_age_gyr), " old.")]
-    if planet.life_stage is None:
+def _timeline_sentences(life):
+    """The speculative timeline, written from the `life_facts.LifeFacts` alone: the system's age, then the latest
+    milestone (the pace is the one the life sentence names)."""
+    timeline = life.timeline
+    opening = "On a speculative timeline" + ("" if life.pace is None else " at that pace")
+    sentences = [inline(opening, ", the system is about ", _gy(timeline.system_age_gyr), " old.")]
+    if timeline.stage is None:
         sentences.append(inline("No significant milestone is predicted yet at the system's age."))
     else:
-        name = evolution.MILESTONE_DISPLAY_NAMES[planet.life_stage].lower()
-        sentences.append(inline("Its latest milestone would be ", name, ", reached at ", _gy(planet.life_milestone_age_gyr),
-                                ". ", tuning.EVOLUTIONARY_TEXT[planet.life_stage]))
+        sentences.append(inline("Its latest milestone would be ", timeline.stage_name, ", reached when the system was ",
+                                _gy(timeline.milestone_age_gyr), " old. ", timeline.stage_text))
     return sentences
 
 
@@ -341,20 +344,16 @@ def _colours(names):
     return ", ".join(words[:-1]) + " and " + words[-1] if len(words) > 1 else words[0]
 
 
-def _life_sentences(planet):
-    noun = _noun(planet)
-    sentences = []
-    if planet.life_chemical:
-        chemical = planet.life_chemical.lower()
-        if planet.evolutionary_speed:
-            sentences.append(f"Life based on {chemical} could arise on this {noun}, and it would evolve at a "
-                             f"{planet.evolutionary_speed} pace.")
-        else:
-            sentences.append(f"Life based on {chemical} could arise on this {noun}.")
-        if planet.reflection_spectrum_visible:
-            sentences.append(f"In visible light that life would look {_colours(planet.reflection_spectrum_visible)}.")
-        if planet.reflection_spectrum_non_visible:
-            sentences.append(f"Outside visible light it would show {_colours(planet.reflection_spectrum_non_visible)}.")
+def _life_sentences(life):
+    """The life paragraph, written from the `life_facts.LifeFacts` alone."""
+    if life is None:
+        return []
+    pace = "" if life.pace is None else f", and it would evolve at a {life.pace} pace"
+    sentences = [f"Life based on {life.chemical} could arise on this {life.noun}{pace}."]
+    if life.visible:
+        sentences.append(f"In visible light that life would look {_colours(life.visible)}.")
+    if life.non_visible:
+        sentences.append(f"Outside visible light it would show {_colours(life.non_visible)}.")
     return sentences
 
 
@@ -437,9 +436,10 @@ def _planet_section(planet):
     blocks.append(model.composition("Composition", summary=planet.composition.lower()))
     blocks.append(_ratings_block(planet))
     blocks.append(_equipment_block(planet))
-    blocks.append(prose("life", *_life_sentences(planet)))
-    if planet.evolutionary_data:
-        blocks.append(prose("timeline", *_timeline_sentences(planet)))
+    life = life_facts.resolve(planet)
+    blocks.append(prose("life", *_life_sentences(life)))
+    if life is not None and life.timeline is not None:
+        blocks.append(prose("timeline", *_timeline_sentences(life)))
     if planet.flavor_text:
         blocks.append(prose("flavour", f"Sensors show {planet.flavor_text}"))
     kind = _noun(planet)

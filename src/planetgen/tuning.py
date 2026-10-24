@@ -2184,6 +2184,7 @@ LIFE_CHEMICALS = {
         "requires": [{"quantity": "share_o2", "lt": 0.1}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a primitive photosensitive chemical that represents a young/early biosphere precursor, operating via proton-motive gradients rather than electron transport chains in pre-oxygenated, reducing atmospheres",
         "evolutionary_time_scale": "fast",
+        "metabolism": "retinal",
         "absorption_spectrum": ["Green", "Yellow", "500-650 nm"],
         "reflection_spectrum_visible": ["Blue", "Red", "Purple", "Magenta"],
         "reflection_spectrum_non_visible": ["Green edge (inverse of the standard Vegetation Red Edge)"],
@@ -2195,6 +2196,7 @@ LIFE_CHEMICALS = {
         "requires": [],
         "description": "a radiotrophic chemical that thrives in environments with lethal ionizing radiation or stellar flaring, and is viable on rogue planets subject to cosmic ray bombardment without a thick protective atmosphere",
         "evolutionary_time_scale": "normal",
+        "metabolism": "radiotrophic",
         "absorption_spectrum": ["Extreme Ultraviolet (EUV)", "X-rays", "Gamma rays", "Ionizing radiation"],
         "reflection_spectrum_visible": ["None (Charcoal-black)"],
         "reflection_spectrum_non_visible": ["Extremely low albedo across all bands"],
@@ -2206,6 +2208,7 @@ LIFE_CHEMICALS = {
         "requires": [{"quantity": "share_o2", "min": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a standard porphyrin that drives oxygenic photosynthesis, requiring an oxygenated atmosphere as a climax ecology and stable, moderate radiation environments",
         "evolutionary_time_scale": "slow",
+        "metabolism": "oxygenic",
         "absorption_spectrum": ["Red (644-746 nm)", "Blue (468-476 nm)"],
         "reflection_spectrum_visible": ["Green"],
         "reflection_spectrum_non_visible": ["Near-infrared edge (Canonical Vegetation Red Edge / VRE)"],
@@ -2217,6 +2220,7 @@ LIFE_CHEMICALS = {
         "requires": [{"quantity": "share_o2", "min": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a porphyrin that requires simultaneous evolution of biofluorescence for UV shielding, down-converting lethal high-energy light into safe visible wavelengths and creating transient, global optical fluorescence aligned with stellar flares",
         "evolutionary_time_scale": "slow",
+        "metabolism": "oxygenic",
         "absorption_spectrum": ["Intense Blue (468-476 nm)", "Ultraviolet (UV)"],
         "reflection_spectrum_visible": ["Red", "Orange", "Yellow", "Biofluorescent Green", "Biofluorescent Red"],
         "reflection_spectrum_non_visible": ["Blue-shifted vegetation edge", "Strong UV absorption"],
@@ -2228,6 +2232,7 @@ LIFE_CHEMICALS = {
         "requires": [{"quantity": "share_o2", "lt": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a chemical that drives anoxygenic photosynthesis, does not split water, and requires chemical electron donors like Hydrogen Sulfide (H2S), Ferrous Iron (Fe2+), or Molecular Hydrogen (H2), resulting in reducing atmospheres lacking Oxygen (O2) or Ozone (O3)",
         "evolutionary_time_scale": "slow",
+        "metabolism": "anoxygenic",
         "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (805-890 nm)", "Deep Infrared (987-1050 nm)"],
         "reflection_spectrum_visible": ["None (Black)"],
         "reflection_spectrum_non_visible": ["Deep infrared edge (> 1.0 µm)"],
@@ -2239,6 +2244,7 @@ LIFE_CHEMICALS = {
         "requires": [{"quantity": "ocean_ph", "lt": 3.0}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a secondary adaptation derived from standard magnesium-chelatase pathways that requires highly acidic global oceans (pH 1.5 - 3.0) and planetary heavy metal abundance and mobilization, often tied to severe volcanic outgassing",
         "evolutionary_time_scale": "slow",
+        "metabolism": "anoxygenic",
         "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (793 nm, 853 nm)"],
         "reflection_spectrum_visible": ["None (Black)"],
         "reflection_spectrum_non_visible": ["Blue-shifted near-infrared edge"],
@@ -2335,18 +2341,54 @@ EVOLUTIONARY_TIMELINES = {
     }
 }
 
+LIFE_METABOLISMS = {
+    "oxygenic": {
+        "stage_name": "photosynthesis",
+        "text": (
+            "The biosphere is dominated by simple, light-harvesting microbes. While macroscopic flora "
+            "and fauna still do not exist, vast microbial mats and stony biological structures (similar "
+            "to stromatolites) line the shallow waters and coastlines. These organisms are actively "
+            "terraforming the planet by releasing oxygen into the atmosphere."
+        ),
+    },
+    "anoxygenic": {
+        "stage_name": "anoxygenic photosynthesis",
+        "text": (
+            "The biosphere is dominated by simple, light-harvesting microbes that draw their electrons "
+            "from hydrogen sulfide, ferrous iron or hydrogen instead of water, so they release no oxygen. "
+            "While macroscopic flora and fauna still do not exist, vast microbial mats and stony "
+            "biological structures line the shallow waters and coastlines."
+        ),
+    },
+    "retinal": {
+        "stage_name": "retinal phototrophy",
+        "text": (
+            "The biosphere is dominated by simple microbes that harvest light with retinal pigments, "
+            "pumping protons across their membranes instead of splitting water, so they release no "
+            "oxygen. While macroscopic flora and fauna still do not exist, vast microbial mats line the "
+            "shallow waters and coastlines."
+        ),
+    },
+    "radiotrophic": {
+        "stage_name": "radiotrophy",
+        "text": (
+            "The biosphere is dominated by simple microbes that feed on ionizing radiation, using "
+            "melanin to turn it into energy, so they release no oxygen. While macroscopic flora and "
+            "fauna still do not exist, dark microbial mats cover the shallow waters, coastlines and "
+            "exposed ground."
+        ),
+    },
+}
+"""dict[str, dict]: How a life chemistry (`LIFE_CHEMICALS[...]["metabolism"]`) harvests its energy, and so what the
+"photosynthesis" milestone of `EVOLUTIONARY_TIMELINES` is called and says on a world with that chemistry
+(`stage_name`, `text`). A world whose life does not split water must not be told it is releasing oxygen."""
+
 EVOLUTIONARY_TEXT = {
     "abiogenesis": (
         "Life is in its absolute infancy, consisting entirely of simple, single-celled organisms "
         "without a nucleus. There is no true flora or fauna. The biosphere is largely limited to "
         "chemotrophs and extremophiles thriving in nutrient-rich primordial pools or around "
         "hydrothermal vents, feeding on chemical reactions."
-    ),
-    "photosynthesis": (
-        "The biosphere is dominated by simple, light-harvesting microbes. While macroscopic flora "
-        "and fauna still do not exist, vast microbial mats and stony biological structures (similar "
-        "to stromatolites) line the shallow waters and coastlines. These organisms are actively "
-        "terraforming the planet by releasing oxygen into the atmosphere."
     ),
     "complex_cells": (
         "Microscopic life has evolved distinct internal structures and nuclei (eukaryotes). This stage "
@@ -2377,7 +2419,7 @@ list: A list of planet class codes that are considered habitable.
 """
 dict[str, str]: Maps a habitable planet class code to the highest
 `EVOLUTIONARY_TIMELINES`-milestone key its own generated description text
-is consistent with -- see `evolution.get_evolutionary_timeline`'s
+is consistent with -- see `evolution.get_evolutionary_state`'s
 `planet_class` parameter, the only reader of this mapping. A class not
 present here is uncapped (full range, up to and including a technological
 civilization).

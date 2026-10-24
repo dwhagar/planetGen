@@ -105,9 +105,6 @@ class Planet(PlanetaryObject):
         name (str): The generated name of the planet or moon.
         life_chemical (str): The primary chemical basis for any potential life
                              (set by `life.apply_life_data`, None until then).
-        evolutionary_speed (str): How fast life evolves here (e.g. 'fast',
-                                  'normal', 'slow'); set by `life.apply_life_data`,
-                                  None until then.
         reflection_spectrum_visible (list): Visible-light reflection descriptors
                                             for any life present (set by
                                             `life.apply_life_data`, None until then).
@@ -180,8 +177,9 @@ class Planet(PlanetaryObject):
                                         gas's partial pressure, kPa.
         life_stage (str or None): The latest `evolution.MILESTONE_KEYS` milestone the timeline reached (set by
                                   `life.apply_life_data`; `None` before any, or with no timeline).
-        evolutionary_pace (str or None): The timeline scale (`fast`, `normal`, `slow`); `None` when the body has no
-                                         timeline.
+        evolutionary_pace (str or None): How fast life evolves here, a `tuning.EVOLUTIONARY_TIMELINES` key (`fast`,
+                                         `normal`, `slow`), drawn once by `life.apply_life_data`; `None` when the
+                                         body has no life chemistry. Every sentence about the pace reads it.
         life_milestone_age_gyr, life_system_age_gyr (float or None): The milestone's age and the system's, Gy.
         flavor_key (str or None): The flavour line `life.decide_flavor_text` drew, as `category:index` into the
                                   `tuning` flavour lists (`flavor_text` reads it).
@@ -193,7 +191,7 @@ class Planet(PlanetaryObject):
         "atm_density", "surface_temperature", "density", "atmospheric_pressure",
         "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
-        "life_chemical", "evolutionary_speed", "reflection_spectrum_visible",
+        "life_chemical", "reflection_spectrum_visible",
         "reflection_spectrum_non_visible", "life_stage", "evolutionary_pace",
         "life_milestone_age_gyr", "life_system_age_gyr", "flavor_key",
         "flavor_text_count", "habitable_zone", "volume", "period",
@@ -321,7 +319,6 @@ class Planet(PlanetaryObject):
         self.min_orbit_distance = None
         self.name = None # Set by the owning StarSystem (names.bodies.name_bodies) once orbits are final.
         self.life_chemical = None
-        self.evolutionary_speed = None
         self.reflection_spectrum_visible = None
         self.reflection_spectrum_non_visible = None
         self.life_stage = None # Set later by life.apply_life_data, with the next three
@@ -424,65 +421,11 @@ class Planet(PlanetaryObject):
     def _decode(self, data):
         self.habitable_zone = tuple(data["habitable_zone"])
 
-    def _generate_life_and_flavor_paragraphs(self, object_type_desc, sentences):
-        """
-        Generates paragraphs related to life, evolution, and flavor text for the planet.
-
-        Reads (but does not compute) `self.life_chemical`, `self.evolutionary_speed`,
-        `self.evolutionary_data`, and `self.flavor_text`, all of which are
-        set by `life.apply_life_data`/`life.decide_flavor_text`
-        before this is ever called (`to_paragraph_list` is only invoked once
-        a `StarSystem` is fully generated) -- this method is a pure read and
-        may be called more than once without re-rolling or re-mutating
-        `system_config.system_flavor_count`.
-
-        Args:
-            object_type_desc (str): Description of the object type ("planet" or "moon").
-            sentences (list): A list of sentences to append life-related descriptions to.
-
-        Returns:
-            list: A list of generated paragraphs.
-        """
-        life_paragraphs = []
-
-        if self.life_chemical:
-            if self.evolutionary_speed:
-                sentences.append(
-                    f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}, which is expected to evolve at a {self.evolutionary_speed} pace.")
-            else:
-                sentences.append(
-                    f"The {object_type_desc}'s conditions are suitable for the development of life based on {self.life_chemical.lower()}.")
-            if self.reflection_spectrum_visible:
-                visible_spectrum = ", ".join(self.reflection_spectrum_visible)
-                sentences.append(
-                    f"The visible reflection spectrum of the life on this {object_type_desc} is characterized by {visible_spectrum.lower()}.")
-            if self.reflection_spectrum_non_visible:
-                non_visible_spectrum = ", ".join(self.reflection_spectrum_non_visible)
-                sentences.append(f"In the non-visible spectrum, it exhibits {non_visible_spectrum.lower()}.")
-
-        life_paragraphs.append(to_paragraph(sentences))
-
-        # Add the evolutionary timeline data if available
-        if self.evolutionary_data:
-            life_paragraphs.extend(self.evolutionary_data)
-
-        # Flavor text was already decided at generation time (life.decide_flavor_text);
-        # this is a pure read so repeated renders don't re-roll or double-count it.
-        if self.flavor_text:
-            life_paragraphs.append(f"Sensors show {self.flavor_text}")
-
-        return life_paragraphs
-
     @property
-    def evolutionary_data(self):
-        """The evolutionary timeline paragraph written from the stored structure (`evolution.timeline_paragraphs`),
-        `[]` for a body with no timeline."""
-        if self.evolutionary_pace is None:
-            return []
-        from planetgen.generation import evolution
-        return evolution.timeline_paragraphs({
-            "scale": self.evolutionary_pace, "stage": self.life_stage,
-            "milestone_age_gyr": self.life_milestone_age_gyr, "system_age_gyr": self.life_system_age_gyr})
+    def has_timeline(self):
+        """Whether the body has an evolutionary timeline (the system's age at which `life_stage` was reached), as
+        against a chemistry that only has a pace."""
+        return self.life_system_age_gyr is not None
 
     @property
     def flavor_text(self):
