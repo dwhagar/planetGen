@@ -862,7 +862,7 @@ def get_object(db, ref):
 
 def get_object_sheet(db, ref):
     """Returns `GET /api/objects/<ref>/sheet`'s dict (`kind`, `groups` of `{key, label, rows}`), the stored properties of
-    a star, planet, moon, belt or comet -- see `describe/sheet.py`."""
+    a star, planet, moon, belt, comet or phenomenon -- see `describe/sheet.py`."""
     _require_db(db)
     return _request(f"/objects/{ref}/sheet", {"db": db})
 

@@ -16,15 +16,25 @@ and an admin has that body's Admin menu in the action bar (Regenerate, Change cl
 ## The property sheet
 
 `describe/sheet.py` is the one registry of what a page shows about a body: per kind (`star`, `planet`, `moon`, `belt`,
-`comet`) an ordered list of `PropertySpec(key, label, group, quantity, column, solar)`. The page (`item.html`) and
+`comet` and the eight standalone phenomenon kinds, UX.175) an ordered list of `PropertySpec(key, label, group, quantity, column, solar)`. The page (`item.html`) and
 `GET /api/objects/<ref>/sheet` both read it, so the website, the API and the tests agree. A value the row does not hold
 is returned as "not stored", never left out, so an empty line means no data and not a bug.
 
 **A new column needs a sheet row.** `tests/test_property_sheet.py` walks every column of `stars`, `planets`, `moons`,
-`asteroid_belts` and `comets` (from `db.models.metadata`, with the unit from `db/column_units.py`) and fails for a column
+`asteroid_belts`, `comets` and the eight phenomenon tables (from `db.models.metadata`, with the unit from `db/column_units.py`) and fails for a column
 that is neither a `PropertySpec` of its kind nor on that kind's `NOT_SHOWN` list with a reason (the ids, links and
 bookkeeping a reader never needs). A lane that adds a column to one of those tables adds its sheet row, or its `NOT_SHOWN`
 reason, in the same pull request.
+
+## Phenomena
+
+A nebula, asteroid field, black hole, neutron star, supernova remnant, rogue planet, interstellar comet or quasar keeps its
+own page, `/phenomenon/<type>/<id>` (`web/system_pages.py`, `phenomenon.html`): its view, a curated data table with the
+derived values (Einstein radius, galactic speed) and class links, the Location block, what a nebula or remnant holds, and
+since UX.175 an "All stored properties" panel that is the same property sheet as a body's, served by the same API. Not yet
+on the phenomenon pages: the paragraph text (the phenomenon description is built from a freshly generated object and
+cannot yet be rebuilt from a stored row), neighbour links and the tree. Facilities, star clusters and regions are not
+object kinds with an Object ID yet, so they have no page of their own.
 
 ## The summary tree
 

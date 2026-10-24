@@ -110,6 +110,14 @@ class FakeData:
                   "summary": {"star_type": "G2V", "role": "single"}}] if ref.startswith("system:") else []
         return {"ref": ref, "kind": ref.partition(":")[0], "total": len(items), "items": items, "next": None}
 
+    def get_object_sheet(self, db, ref):
+        self.calls.append(("get_object_sheet", db, ref))
+        kind = ref.partition(":")[0]
+        value = [{"qty": {"kind": "length", "value": 5.5, "unit": "ly"}}]
+        return {"kind": kind, "groups": [{"key": "physical", "label": "Physical", "rows": [
+            {"key": "radius_ly", "label": "Radius", "value": value, "text": "5.5 ly", "stored": True},
+            {"key": "mass_kg", "label": "Mass", "value": ["not stored"], "text": "not stored", "stored": False}]}]}
+
     def get_system_owner(self, db, system_id):
         return None
 
@@ -153,7 +161,7 @@ class FakeData:
         return self.admin
 
 
-_FAKED = ("get_system", "get_system_description", "get_system_facilities", "get_object_children", "get_system_owner", "get_facility_types", "get_system_habitable_species",
+_FAKED = ("get_system", "get_system_description", "get_system_facilities", "get_object_children", "get_object_sheet", "get_system_owner", "get_facility_types", "get_system_habitable_species",
           "get_system_text",
           "get_phenomena", "get_phenomenon", "get_phenomenon_contents", "auth_me")
 
@@ -454,6 +462,17 @@ def test_phenomenon_detail(app, client, fake):
     assert re.search(r'<script type="module" src="/static/nebulaview.js\?v=[^"]+"></script>', html)
     assert "/galaxy/nebula/4/shape" in html and "/galaxy/nebula/4/surroundings" in html
     assert 'src="static/' not in html
+
+
+def test_phenomenon_page_lists_every_stored_property(client, fake):
+    """UX.175: under the data table, a phenomenon's page holds the property sheet by group, a value that is not stored
+    shown as such."""
+    html = client.get("/phenomenon/nebula/4").get_data(as_text=True)
+    assert ("get_object_sheet", DB, "nebula:4") in fake.calls
+    assert 'id="item-properties"' in html and "All stored properties" in html
+    assert '<details class="sheet-group" id="sheet-physical">' in html
+    assert '<th scope="row">Radius</th>' in html
+    assert re.search(r'<th scope="row">Mass</th><td class="sheet-missing">not stored</td>', html)
 
 
 def test_rogue_planet_detail_shows_its_surface_gravity(client, fake):

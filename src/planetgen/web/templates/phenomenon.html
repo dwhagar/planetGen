@@ -65,6 +65,23 @@
 </div></div>
 {%- endif %}
 {% include "partials/location.html" %}
+{%- if sheet %}
+<section class="panel" id="item-properties" aria-labelledby="item-properties-heading">
+  <div class="panel-header"><h2 id="item-properties-heading">All stored properties</h2></div>
+  {%- for group in sheet %}
+  <details class="sheet-group" id="sheet-{{ group.key }}">
+    <summary><h3>{{ group.label }}</h3></summary>
+    <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+      <tbody>
+        {%- for row in group.rows %}
+        <tr><th scope="row">{{ row.label }}</th><td{% if not row.stored %} class="sheet-missing"{% endif %}>{{ row.html }}</td></tr>
+        {%- endfor %}
+      </tbody>
+    </table></div>
+  </details>
+  {%- endfor %}
+</section>
+{%- endif %}
 {%- if contents %}
 {% include "partials/contents.html" %}
 {%- endif %}

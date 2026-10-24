@@ -41,10 +41,10 @@ def test_a_row_has_a_label_a_known_group_and_one_place(kind):
             assert (sheet.TABLES[kind], spec.stored_column()) in column_units.COLUMNS, f"{kind}.{spec.key} has no unit"
 
 
-def test_the_kinds_are_the_bodies_a_page_exists_for():
+def test_the_kinds_are_the_bodies_and_phenomena_a_page_exists_for():
     from planetgen.galaxy import objectref
 
-    assert sorted(sheet.SPECS) == sorted(objectref.BODY_KINDS) == sorted(sheet.TABLES)
+    assert sorted(sheet.SPECS) == sorted(objectref.BODY_KINDS + objectref.PHENOMENON_KINDS) == sorted(sheet.TABLES)
 
 
 def test_a_unit_decides_how_a_number_is_shown():
@@ -125,3 +125,30 @@ def test_a_kind_with_no_sheet_and_a_missing_object_are_404s(client, mysql_config
         response = client.get(f"/api/objects/{ref}/sheet")
         assert response.status_code == 404, ref
         assert isinstance(response.get_json()["error"], str)
+
+
+def test_every_phenomenon_has_a_sheet_over_its_stored_row(client, mysql_config):
+    """UX.175: the eight standalone phenomenon kinds serve the same sheet as a body, row for row from `SPECS`."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.asteroid_field import AsteroidField
+    from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+    from planetgen.generation.phenomena.nebula import Nebula
+    from planetgen.generation.phenomena.quasar import Quasar
+    from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+
+    config = SystemConfig()
+    made = {"nebula": (Nebula, "nebula"), "asteroid_field": (AsteroidField, "asteroid-field"),
+            "black_hole": (BlackHole, "black-hole"), "neutron_star": (NeutronStar, "neutron-star"),
+            "supernova_remnant": (SupernovaRemnant, "supernova-remnant"), "rogue_planet": (RoguePlanet, "rogue-planet"),
+            "interstellar_comet": (InterstellarComet, "comet"), "quasar": (Quasar, "quasar")}
+    for kind, (cls, stored_as) in made.items():
+        row_id = store.save_phenomenon(cls(config), config, stored_as, config=mysql_config)
+        response = client.get(f"/api/objects/{kind}:{pid(kind, row_id)}/sheet")
+        assert response.status_code == 200, kind
+        body = response.get_json()
+        assert body["kind"] == kind
+        rows = _rows(body)
+        assert list(rows) == [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
+        assert all(row["text"] for row in rows.values()), kind
+        assert any(row["stored"] for row in rows.values()), kind
