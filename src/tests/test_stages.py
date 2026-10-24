@@ -6,7 +6,6 @@ as skipped with a reason, and the Generate page counts the stages of a whole
 job instead of its processes.
 """
 
-import argparse
 import json
 import types
 
@@ -165,7 +164,6 @@ def _control(mysql_config):
 
 def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_config, monkeypatch):
     mysql_config = control_config
-    from planetgen.db import store
     from planetgen.generation import stats as generation_stats
     monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
     args = _galaxy("--then-scatter", "--phenomenon-min-mass", "16", "--bright-star-min-luminosity", "9000",

@@ -21,7 +21,7 @@ from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import sample_living_star
 from planetgen.galaxy.spherical import sector_position_pc, wedge_count
 from tests.test_bright_star_scatter import (
-    EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _scatter_args, _profile, _row_dict, _seed_galaxy,
+    EDGE_PC, E_VALUE, SHAPE, THRESHOLD, _scatter_args, _profile, _row_dict, _seed_galaxy,
 )
 
 MASS_LIMIT = 3.0

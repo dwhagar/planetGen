@@ -7,7 +7,6 @@ no cells; a cluster reaches as far as its density does and no farther than its t
 really expect a system beside the candidates; a random start lands in a sector that expects one.
 """
 
-import math
 import types
 
 import numpy as np

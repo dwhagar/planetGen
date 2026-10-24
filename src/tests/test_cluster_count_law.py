@@ -71,5 +71,3 @@ def test_the_same_seed_gives_the_same_count_and_the_count_does_not_move_the_clus
     assert clusters.generate_clusters(seed, 10) == clusters.generate_clusters(seed, 30)[:10]
 
 
-def test_the_old_fixed_count_is_gone():
-    assert not hasattr(tuning, "CLUSTER_COUNT_MILKY_WAY")

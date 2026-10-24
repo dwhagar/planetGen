@@ -15,7 +15,6 @@ from planetgen.db import hostednebula, query, store
 from planetgen.generation import nebula_contents
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.galaxy.profile import sector_profile
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.web.maps.starmap import uncharted_scene_data

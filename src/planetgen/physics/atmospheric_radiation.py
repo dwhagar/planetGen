@@ -184,7 +184,7 @@ def ozone_peak_pressure_pa(column, ozone_du=0.0):
     return float(min(max(OZONE_PEAK_PA_PER_PAL / pal, 10.0), 0.9 * column.pressure_pa))
 
 
-def _mixed(a, b):
+def mix_layers(a, b):
     """Combines two scattering species in one slab: returns (tau, omega, g) arrays from `(tau, omega, g)` triples a and b."""
     tau = a[0] + b[0]
     scattering = a[0] * a[1] + b[0] * b[1]
@@ -194,7 +194,7 @@ def _mixed(a, b):
     return tau, omega, asymmetry
 
 
-def _gas_layers(column, centres, edges):
+def gas_layers(column, centres, edges):
     """The Rayleigh and absorption optical depth of the whole column at each cell, and the absorption alone."""
     tau_rayleigh = np.zeros_like(centres)
     for formula, pressure in column.partials_pa.items():
@@ -239,7 +239,7 @@ def surface_radiation(column, *, temperature_k, flux_w_m2, uv_c_share=1.0, ozone
     edges = uv_cross_sections.standard_edges() if edges_nm is None else np.asarray(edges_nm, dtype=float)
     centres = uv_cross_sections.centres(edges)
     top = stellar_spectrum.irradiance_w_m2(edges, temperature_k, flux_w_m2, uv_c_share)
-    tau_rayleigh, tau_absorption = _gas_layers(column, centres, edges)
+    tau_rayleigh, tau_absorption = gas_layers(column, centres, edges)
 
     pressure_ozone = ozone_peak_pressure_pa(column, ozone_du) if ozone_pressure_pa is None else ozone_pressure_pa
     above = min(max(pressure_ozone / column.pressure_pa, 0.0), 1.0)
@@ -257,7 +257,7 @@ def surface_radiation(column, *, temperature_k, flux_w_m2, uv_c_share=1.0, ozone
     ozone = two_stream.absorbing_layer(tau_ozone, mu0)
     lower_slab = gas_slab(1.0 - above)
     if haze is not None:
-        lower_slab = _mixed(lower_slab, (haze.tau, haze.omega, haze.g))
+        lower_slab = mix_layers(lower_slab, (haze.tau, haze.omega, haze.g))
     lower = two_stream.scattering_layer(*lower_slab, mu0)
     albedo = np.broadcast_to(np.asarray(ground_albedo, dtype=float), centres.shape)
 

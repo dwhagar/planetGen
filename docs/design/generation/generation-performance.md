@@ -284,6 +284,31 @@ kept galaxy of the same build (`plan`, the three scatters and the band run one b
   `CREATE OR REPLACE VIEW`), 861 times over the band step, about 130 s of server time. The suite's `--keep` is accepted but the
   scratch databases are dropped on success (so a kept galaxy has to be built command by command, as here).
 
+## The settle stage in units (PERF.115)
+
+Measured on the kept `medium` galaxy with `planetgen galaxy --shell 100 --limit 100 --population` (100 sectors, 3,370
+systems, 25,550 sector paths, 3 workers, one run each, release 8.0.2070):
+
+| Stage | Seconds | Per sector | One unit before? |
+|---|---|---|---|
+| Generate the sectors | 324.6 | 3.2 s | no, a unit per run of sectors |
+| Link the neighbours | 7.0 | 70 ms | yes (`link-neighbours`) |
+| Backfill | 7.0 | 3.5 ms (2,018 sectors) | no |
+| Population | 0.2 | | yes, but it had no species to name here |
+| Settle the sector paths | 18.2 | 182 ms | yes (`settle-sector-paths`) |
+
+`settle` is the stage that grows with a run: one process settling every sector in turn, a minute at 330 sectors and the
+5-minute unit ceiling (PERF.155) at about 1,650. It is cut into static chunks of `SETTLE_UNIT_SECTORS` (100) sectors now
+(`run_galaxy.expand_save_sector_paths`): the sectors to settle (the run's and those around them) are found once in the
+expansion, in order, and each unit saves its chunk's paths with `expand=False`. A path depends only on the final point
+masses of the sectors around its own and is written with its own sector, so the chunks cannot collide; the same
+`settle` on the 100 sectors gave the same 51,100 knot rows (a checksum of the stored rows before and after) with the stage
+at 11 s instead of 18 s on 3 workers. A stage of at most 100 sectors stays one unit and keeps its `--workers` for a crowded
+sector's bodies (PERF.80); a longer one gives each unit one process.
+
+The fill of the map luminosity (PERF.117) and the habitability re-score (PERF.116) are already a unit per run of ids
+(`fill-map-luminosity`, `rescore-habitability`), as PERF.160 found.
+
 ## What `medium` and `large` show (PERF.164)
 
 Same 4-CPU box, three workers, release 8.0.1973, seed `...BEEF`, one run each. The container restarted during the

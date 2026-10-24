@@ -2,12 +2,10 @@
 
 """UX.116: the Generate page's limit sliders (web/limit_sliders.py), without a page."""
 
-import math
 
 import pytest
 
 from planetgen import tuning
-from planetgen.web import limit_sliders
 from planetgen.web.limit_sliders import SLIDERS, LimitSlider, ladder, plain, steps
 
 

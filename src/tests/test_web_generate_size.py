@@ -7,7 +7,6 @@ sized yet. The page tests use the fake site of `test_web_generate.py`; the last 
 `planetgen galaxy --estimate-only` against a throwaway database (skipped without the MySQL test server).
 """
 
-import json
 
 import pytest
 

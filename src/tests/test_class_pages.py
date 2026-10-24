@@ -18,8 +18,9 @@ from planetgen.describe import model  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from markupsafe import escape  # noqa: E402
-from planetgen.physics import constants  # noqa: E402
+from planetgen.physics import constants, planet_classes  # noqa: E402
 from planetgen import tuning
+from planetgen.util import chem
 from planetgen.generation.comet import PERIOD_CLASS_LABELS  # noqa: E402
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS  # noqa: E402
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES  # noqa: E402
@@ -107,7 +108,7 @@ def test_catalog_types_cover_the_tables():
                          "asteroid-field", "black-hole", "rogue-planet", "comet"]
     assert list(cat["star-spectral"]["classes"]) == list(constants.SPECTRAL_CLASS_COLORS)
     assert set(cat["star-luminosity"]["classes"]) == set(YERKES_CLASS_NAMES) - {"D"}
-    assert list(cat["planet"]["classes"]) == list(tuning.PLANET_CLASSES)
+    assert list(cat["planet"]["classes"]) == sorted(planet_classes.LETTERS)
     assert tuple(cat["nebula"]["classes"]) == NEBULA_CLASS_LETTERS
     assert tuple(cat["supernova-remnant"]["classes"]) == REMNANT_CLASS_LETTERS
     letters = {letter for family in tuning.ASTEROID_FIELD_COMPOSITIONS.values()
@@ -124,17 +125,16 @@ def test_class_pages_show_the_constants(client):
     nebula = tuning.NEBULA_CLASSES["D"]
     html = _html(client, "/classes/nebula/D")
     assert str(escape(nebula["name"])) in html
-    assert str(escape(nebula["species"])) in html
+    assert chem.mark_html(nebula["species"]) in html     # UX.149: its formulas written out
 
     remnant = tuning.NEBULA_CLASSES["T"]
     assert str(escape(remnant["name"])) in _html(client, "/classes/supernova-remnant/T")
 
-    planet = tuning.PLANET_CLASSES["M"]
-    html = _html(client, "/classes/planet/M")
-    low, high = planet["radius_range"]
-    assert classref.number_range(low, high, "km") in html  # UX.20, UX.107: both ends in one style
-    assert "<th scope=\"row\">Habitable class</th><td>Yes</td>" in html
-    assert planet["composition"][1:] in html
+    html = _html(client, "/classes/planet/M")  # GEN.645: a class page gives the rule
+    assert planet_classes.describe("M").sentence in html
+    assert "<th scope=\"row\">Core class</th><td>Yes</td>" in html
+    html = _html(client, "/classes/planet/S")
+    assert "surface pressure below 10 Pa; mass at least 1.5 Earth masses" in html
 
     low_k, high_k = constants.TEMP_RANGES["G"]
     html = _html(client, "/classes/star-spectral/G")

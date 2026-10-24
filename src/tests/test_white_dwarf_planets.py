@@ -11,7 +11,6 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import remnant_orbits
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants, mass_loss, planets as planet_physics
 from planetgen.util import draw

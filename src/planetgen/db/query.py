@@ -43,7 +43,7 @@ from planetgen.db.store import (
 )
 from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
-from planetgen.physics import constants
+from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.physics import habitability_world
 from planetgen.physics import equipment
@@ -1960,8 +1960,8 @@ def interstellar_debris_count(star_count):
     kilometers across) drift through a sector holding `star_count` stars:
     `INTERSTELLAR_DEBRIS_DENSITY_PC3` scales with stellar density like
     every other interstellar object, so it's a fixed number per star
-    (~7e12). Far too many to be rows -- a figure for the sector page
-    ("about 10^13 interstellar comets and planetesimals"); the
+    (~7e15). Far too many to be rows -- a figure for the sector page
+    ("about 10^16 interstellar comets and planetesimals"); the
     `interstellar_comets` rows are only the notable ones.
 
     Returns:
@@ -2046,7 +2046,7 @@ def rogue_planet_gravity_g(mass_kg, radius_km):
     """A rogue planet's surface gravity in g (UX.99), from its mass and radius; `None` when either is missing."""
     if not mass_kg or not radius_km:
         return None
-    return constants.G * mass_kg / (radius_km * 1000.0) ** 2 / constants.EARTH_GRAVITY
+    return relations.surface_gravity(mass_kg, radius_km * 1000.0) / constants.EARTH_GRAVITY
 
 
 def _placed_phenomenon_rows(conn, bbox=None, sector_id=None):
@@ -2691,8 +2691,8 @@ def resolve_object(conn, kind, object_id):
         table = object_ref.TABLES[kind]
         columns = {
             "star": "name, star_system_id",
-            "planet": "name, star_system_id, star_id, position_x_km, position_y_km, position_z_km",
-            "moon": "name, star_system_id, planet_id, star_id, position_x_km, position_y_km, position_z_km",
+            "planet": f"name, star_system_id, star_id, position_x_km, position_y_km, position_z_km, {_tiers('')}",
+            "moon": f"name, star_system_id, planet_id, star_id, position_x_km, position_y_km, position_z_km, {_tiers('')}",
             "belt": "star_system_id, orbital_index",
             "comet": "name, star_system_id, star_id, position_x_km, position_y_km, position_z_km",
         }[kind]
@@ -2713,12 +2713,15 @@ def resolve_object(conn, kind, object_id):
         else:
             siblings, truncated = _sibling_refs(
                 conn, kind, table, "star_system_id = ?", (row["star_system_id"],), object_id)
-    return {
+    found = {
         "ref": object_ref.format(kind, object_id), "kind": kind, "id": object_id, "name": name,
         "parents": parents, "siblings": siblings, "siblings_truncated": truncated,
         "positions": positions,
         "keep_out": keep_out_radius_dict(conn, kind, object_id),
     }
+    if kind in ("planet", "moon"):
+        found.update({column: row[column] for column in _tier_columns()})
+    return found
 
 
 def nebula_shape(conn, nebula_id):
@@ -3267,7 +3270,7 @@ def system_detail(conn, system_id):
         raise ValueError(f"no star_systems row with id {system_id}")
 
     stars = conn.execute(
-        "SELECT id, role, name, star_type, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km"
+        "SELECT id, role, name, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km"
         " FROM stars WHERE star_system_id = ?"
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 WHEN 'secondary' THEN 1 ELSE 2 END, id",
         (system_id,),
@@ -6324,11 +6327,15 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
     return {"rows": _with_refs(conn, [dict(r) for r in rows], "star"), **page}
 
 
+def _tier_columns():
+    """The stored habitability of a planet or moon (UX.100): `phi4` and the six `tier_<domain>` columns."""
+    return ("phi4", *(f"tier_{domain}" for domain in habitability_world.DOMAINS))
+
+
 def _tiers(alias):
-    """The select list of a planet's or moon's habitability (UX.100): `phi4` and the six `tier_<domain>` columns of
-    table alias `alias`."""
-    columns = ("phi4", *(f"tier_{domain}" for domain in habitability_world.DOMAINS))
-    return ", ".join(f"{alias}.{column}" for column in columns)
+    """`_tier_columns` as a select list of table alias `alias` (none: bare column names)."""
+    prefix = f"{alias}." if alias else ""
+    return ", ".join(f"{prefix}{column}" for column in _tier_columns())
 
 
 def _equipment_columns(alias):

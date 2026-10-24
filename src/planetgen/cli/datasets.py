@@ -20,6 +20,9 @@ downloads at run time.
 import argparse
 import sys
 
+from rich.console import Console
+from rich.progress import BarColumn, DownloadColumn, Progress, TextColumn, TimeRemainingColumn, TransferSpeedColumn
+
 from planetgen.datasets import catalogue, fetch
 
 
@@ -44,6 +47,45 @@ def _piece_line(state, piece, reason=""):
     return f"    {state:<8} {piece.url}" + (f" ({reason})" if reason else "")
 
 
+class _Bars:
+    """
+    One bar per file while it downloads (the name, the bytes done of the total, the speed and the time left, in the style of the generation
+    bar of `generation.run_common`), taken away when the file is done; the `fetch` line below it says how it went. Lines printed while a
+    bar is live go above it (`note`).
+    """
+
+    def __init__(self, console):
+        self._progress = Progress(
+            TextColumn("[progress.description]{task.description}"), BarColumn(), DownloadColumn(), TransferSpeedColumn(),
+            TextColumn("[dim]remaining"), TimeRemainingColumn(), console=console, transient=True)
+        self._tasks = {}
+
+    def begin(self, piece):
+        self._progress.start()
+        self._tasks[piece.name] = self._progress.add_task(piece.name, total=piece.size)
+
+    def update(self, piece, count):
+        self._progress.update(self._tasks[piece.name], completed=count)
+
+    def note(self, text):
+        self._progress.console.print(f"    {text}", markup=False, highlight=False)
+
+    def end(self, piece):
+        task = self._tasks.pop(piece.name, None)
+        if task is not None:
+            self._progress.remove_task(task)
+        if not self._tasks:
+            self._progress.stop()
+
+
+def _download_progress():
+    """The bars on a terminal, plain periodic lines anywhere else (a log file, a pipe)."""
+    console = Console()
+    if console.is_terminal:
+        return _Bars(console)
+    return fetch.PlainProgress(lambda text: print(text, flush=True))
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("command", choices=("fetch", "status"))
@@ -57,9 +99,10 @@ def main(argv=None):
         print("No datasets are registered yet.")
         return 0
     absent = 0
+    progress = _download_progress() if args.command == "fetch" else None
     for dataset in datasets:
         if args.command == "fetch":
-            result = fetch.fetch(dataset)
+            result = fetch.fetch(dataset, progress=progress)
             if result.status == "missing":
                 absent += 1
                 print(_line(dataset, True, "; ".join(result.reasons)) + _CONSEQUENCE.format(dataset.replaces))

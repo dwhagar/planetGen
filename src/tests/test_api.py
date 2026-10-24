@@ -28,7 +28,6 @@ from planetgen.api.config import Config
 from planetgen.db import store as _db
 from planetgen.admin import auth as adminAuth
 from planetgen.galaxy import sector as spaceSector
-from planetgen.galaxy import spherical
 from planetgen.physics.constants import SOLAR_LUMINOSITY as SOLAR_LUMINOSITY_W
 from planetgen.db.store import MySQLConfig
 from planetgen.generation.config import SystemConfig
@@ -1435,7 +1434,6 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     """`/api/galaxy/stage` counts each child block's generated sectors at
     every level, and at a level-3 block lists the sectors themselves;
     `galaxy_changes` names the stages a new sector makes stale."""
-    from planetgen.db import block_stats
     from planetgen.galaxy.drill import block_addresses, drill_chain_of, format_drill_key
     from planetgen.galaxy.spherical import sector_position_pc
 
@@ -2627,7 +2625,6 @@ def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
     address or by a point inside the cell, with its coordinates and 8
     corners, and names the generated sector there if one exists."""
     from planetgen.galaxy.spherical import sector_position_pc
-    from planetgen.physics.units import ly_to_pc
 
     from planetgen import tuning
 

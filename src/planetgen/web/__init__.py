@@ -54,7 +54,7 @@ from planetgen.web.lib.fmt import static_url as fmt_static_url  # noqa: E402
 from planetgen.web.lib.modulegraph import module_graph  # noqa: E402
 from planetgen.api.limiter import page_limit  # noqa: E402
 from planetgen.util.settings import get_settings  # noqa: E402
-from planetgen.util import settings_view  # noqa: E402
+from planetgen.util import chem, settings_view  # noqa: E402
 
 from . import adminregistry, csrf, errors, seo, transport  # noqa: E402
 from .helpers import NAV_MENU, current_admin, page_url, visible_sections  # noqa: E402
@@ -213,6 +213,21 @@ def _template_globals():
         # `num(x, ",.2f")` -- scientific past 4 whole digits.
         "num": format_number,
     }
+
+
+@bp.app_template_filter("formula")
+def _formula(value):
+    """UX.149: one chemical formula as HTML, `H<sub>2</sub>O` (`planetgen.util.chem.html`)."""
+    return Markup(chem.html(value))
+
+
+@bp.app_template_filter("chem")
+def _chem(value):
+    """UX.149: a text that names chemicals (a nebula's contents, a limit's meaning) as HTML, each formula
+    `chem.split` finds there written out; text already marked up is left as it is."""
+    if not value or isinstance(value, Markup):
+        return value
+    return Markup(chem.mark_html(value))
 
 
 errors.register(bp)

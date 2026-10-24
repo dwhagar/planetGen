@@ -801,29 +801,99 @@ def _one_unit_stage(args, key, title, kind, total, started_at, result_key, extra
     return counted[0]
 
 
+SETTLE_UNIT_SECTORS = 100
+"""int: Sectors in a unit of the `settle-sector-paths` stage (PERF.115). A sector takes about 0.18 s to settle at the default
+galaxy size, so a unit is about 18 s and a long settle is many short units (PERF.155)."""
+
+SETTLE_UNITS_MAX = 1000
+"""int: Most units the `settle-sector-paths` stage is cut into; a larger stage has bigger units."""
+
+
 def expand_save_sector_paths(params):
-    """The `settle-sector-paths` command's stage (PERF.107): one unit, the paths of every sector saved since
-    `params["since"]` and of the sectors around them."""
-    return commands.Expansion([(params, float(len(_sectors_since(params))))], {})
+    """
+    The `settle-sector-paths` command's stage (PERF.107, PERF.115): the sectors to settle (those saved since `params["since"]`,
+    or `params["sector_ids"]`, and with `params["expand"]` (the default) the sectors around them,
+    `sector_paths.sectors_to_settle`) are found once, here, and cut in order into static chunks of `SETTLE_UNIT_SECTORS`
+    (at most `SETTLE_UNITS_MAX` chunks), the same at any worker count. Each sector's paths depend only on the final
+    sectors around it and are saved with the sector, so the chunks cannot collide. A stage with nothing to settle is one
+    empty unit, so the stage still stores its row.
+    """
+    created = _sectors_since(params)
+    if params.get("expand", True):
+        conn = store.get_connection(_mysql_config_of(params))
+        try:
+            sectors = sector_paths.sectors_to_settle(conn, created)
+        finally:
+            conn.close()
+    else:
+        sectors = sorted(set(created))
+    size = max(SETTLE_UNIT_SECTORS, -(-len(sectors) // SETTLE_UNITS_MAX))
+    # One unit may spread a crowded sector's bodies over processes; a stage of many units already fills the workers.
+    workers = params["workers"] if len(sectors) <= size else 1
+    units = [({"database": params["database"], "sector_ids": sectors[start:start + size], "workers": workers},
+              float(len(sectors[start:start + size]))) for start in range(0, len(sectors), size)]
+    return commands.Expansion(units or [({"database": params["database"], "sector_ids": [], "workers": 1}, 1.0)],
+                              {"sectors": len(sectors)})
 
 
 def save_sector_paths_unit(params, report):
     """
-    The `settle-sector-paths` command's unit (GEN.126, PERF.107): saves the path of every body in the sectors a run
-    created and in the sectors around them (`sector_paths.settle_sectors`), so each path sees the final set of
-    neighbours whatever order the workers filled sectors in. A crowded sector's bodies are integrated in
-    `params["workers"]` processes.
+    The `settle-sector-paths` command's unit (GEN.126, PERF.107, PERF.115): saves the path of every body in the chunk of
+    sectors it was given (`sector_paths.settle_sectors`, `expand=False`: the stage's expansion already added the sectors
+    around the run's), so each path sees the final set of neighbours whatever order the workers filled sectors in. A
+    crowded sector's bodies are integrated in `params["workers"]` processes.
 
     Returns:
-        dict: `saved`, how many paths were saved.
+        dict: `saved`, how many paths were saved, and `visited`, the chunk's sectors.
     """
-    created = _sectors_since(params)
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        return {"saved": sector_paths.settle_sectors(conn, created, report, workers=params["workers"],
-                                                     expand=params.get("expand", True))}
+        return {"saved": sector_paths.settle_sectors(conn, params["sector_ids"], report, workers=params["workers"],
+                                                     expand=False),
+                "visited": len(params["sector_ids"])}
     finally:
         conn.close()
+
+
+def _settle_on_queue(args, started_at, extra=None):
+    """
+    The settle stage of a run on the new queue (PERF.115): the wrapper selects the `settle-sector-paths` command from this
+    run's steps, finds the sectors to settle once and cuts them into units (`expand_save_sector_paths`), this process
+    follows the units with a bar of the sectors they settle, and the unit that completes the stage stores the stage's row.
+
+    Args:
+        started_at: The sectors saved since this (the database's clock when the run started) are the run's, unless
+            `extra["sector_ids"]` names them.
+        extra (dict, optional): More params for the stage: `sector_ids` and `expand`.
+
+    Returns:
+        int: How many paths were saved, summed over the units.
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    step, listing = wrapper.step_for(args, "settle", "Sector paths", {
+        "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "), "workers": workers,
+        **(extra or {})})
+    row = stages.hand_over_open_stage()
+    saved = [0]
+    with run_common._generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            with steps.Step("Sector paths", "paths", 1, args=args, progress=progress, workers=workers) as bar:
+                def on_plan(_index, plan):
+                    bar.update(total=max(plan["detail"]["sectors"], 1))
+
+                def on_result(_index, _unit, result):
+                    saved[0] += result["saved"]
+                    bar.update(advance=result["visited"])
+
+                wrapper.run("Sector paths", [step], on_plan, on_result, workers_count=workers,
+                            who=getattr(args, "who", None), database=mysql_config.database,
+                            argv=getattr(args, "argv", None), seed=None, listing=listing,
+                            rows=None if row is None else {"settle": row})
+        finally:
+            log.reset_console()
+    return saved[0]
 
 
 def settle_after_run(args, started_at):
@@ -853,7 +923,7 @@ def settle_after_run(args, started_at):
     stages.enter("settle")
     stages.note(sectors=len(created))
     log.normal("Saving the sector paths...")
-    saved = _one_unit_stage(args, "settle", "Sector paths", "paths", len(created), started_at, "saved")
+    saved = _settle_on_queue(args, started_at)
     log.normal(f"Saved {saved:,} sector paths.")
     return saved
 
@@ -1068,7 +1138,7 @@ def run_settle(args):
     stages.enter("settle")
     stages.note(sectors=len(created))
     log.normal("Saving the sector paths...")
-    saved = _one_unit_stage(args, "settle", "Sector paths", "paths", len(created), args.since, "saved")
+    saved = _settle_on_queue(args, args.since)
     log.normal(f"Saved {saved:,} sector paths.")
     stages.finish()
 
@@ -1091,8 +1161,7 @@ def settle_named_sectors(sector_ids, config, expand=True):
         started_at = store.database_now(conn)
     finally:
         conn.close()
-    return _one_unit_stage(args, "settle", "Sector paths", "paths", len(sector_ids), started_at, "saved",
-                           extra={"sector_ids": sector_ids, "expand": expand})
+    return _settle_on_queue(args, started_at, extra={"sector_ids": sector_ids, "expand": expand})
 
 
 def queue_settle(config, sector_ids):
@@ -1784,8 +1853,7 @@ def _generate_batch_as_runs(args, batch, title, edge_pc, config, center_pc):
     created_ids = [item["sector_id"] for item in saved]
     if created_ids:
         _backfill_on_queue(args, started_at, center_pc=center_pc)
-        _one_unit_stage(args, "settle", "Sector paths", "paths", len(created_ids), started_at, "saved",
-                        extra={"sector_ids": sorted(created_ids)})
+        _settle_on_queue(args, started_at, extra={"sector_ids": sorted(created_ids)})
     return created_ids, len(created_ids)
 
 

@@ -30,12 +30,15 @@ Sequence Star" -> ("G", "V")).
 import functools
 import math
 
-from planetgen.physics import brown_dwarf, constants as phys
+from markupsafe import Markup, escape
+
+from planetgen.physics import brown_dwarf, constants as phys, planet_classes
 from planetgen import tuning as pc
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
 from planetgen.generation.star import STAR_TYPE_PATTERN
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES
+from planetgen.util import chem
 
 LUMINOSITY_CLASS_ALIASES = {"D": "VII"}
 """dict: Yerkes codes that are another spelling of a class
@@ -114,6 +117,11 @@ def _sentence(text):
     return text[:1].upper() + text[1:] if text else text
 
 
+def _contents(text):
+    """A cloud's contents (`"H+, e-, O2+, N+ and S+"`) as HTML, its formulas written out (UX.149)."""
+    return Markup(chem.mark_html(text))
+
+
 def _label(key):
     """A table key as a label: `"jupiter_family"` -> `"Jupiter family"`."""
     return _sentence(key.replace("_", " "))
@@ -183,33 +191,32 @@ def _star_luminosity():
 
 
 def _planet():
+    """The planet and moon classes from the rule rows (`physics/planet_classes.py`, GEN.645): a class is what the finished
+    body's conditions say, so a page gives the rule, not a table of ranges the class was drawn from."""
     classes = {}
-    for code, data in pc.PLANET_CLASSES.items():
-        type_label = PLANET_TYPE_LABELS.get(data["type"], data["type"])
-        habitable = code in pc.HABITABLE_PLANET_CLASSES
-        zones = [label for key, label in PLANET_ZONE_LABELS.items() if data.get(key)]
+    ordered = planet_classes.CLASSES
+    for cls in sorted(ordered, key=lambda c: c.letter):
+        before = [c.letter for c in ordered if c.kind == cls.kind and ordered.index(c) < ordered.index(cls)]
+        rule = planet_classes.rule_words(cls)
         facts = [
-            ("Description", _sentence(data["description"])),
-            ("Type", type_label),
-            ("Composition", _sentence(data["composition"])),
-            ("Atmosphere", _sentence(data["atmosphere"]) if data.get("atmosphere") else "None"),
-            ("Radius", number_range(*data["radius_range"], "km")),
-            ("Forms in", ", ".join(zones) if zones else "None"),
-            ("Habitable class", "Yes" if habitable else "No"),
+            ("Name", cls.name),
+            ("Type", PLANET_TYPE_LABELS[cls.kind]),
+            ("Rule", "; ".join(rule) if rule else "Every " + PLANET_TYPE_LABELS[cls.kind].lower()
+                      + " that no class checked earlier takes"),
+            ("Checked after", ", ".join(before) if before else "Nothing: checked first"),
+            ("Core class", "Yes" if cls.core else "No"),
         ]
-        if data.get("life_chemical"):
-            facts.append(("Life's light-harvesting pigments", ", ".join(data["life_chemical"])))
-        if code in pc.PLANET_CLASS_MAX_LIFE_STAGE:
-            facts.append(("Most advanced life", _label(pc.PLANET_CLASS_MAX_LIFE_STAGE[code])))
-        name = f"{type_label}, habitable" if habitable else type_label
-        classes[code] = _entry(code, name, _sentence(data["description"]) + ".", facts)
+        classes[cls.letter] = _entry(cls.letter, cls.name, cls.sentence, facts)
     return {
         "name": "Planet Classes",
         "label": "Planet class",
-        "summary": "One letter for what a planet or moon is like: its makeup, air and size.",
+        "summary": "One letter for what a planet or moon is like, worked out from its finished conditions.",
         "notes": [
-            "Each planet and moon gets one class letter. A class forms only in the zones listed for it: "
-            "the hot zone near the star, the habitable zone (ecosphere), or the cold zone beyond.",
+            "A class is never drawn first: once a planet or moon is complete, its class is the first class in the check "
+            "order whose rule its mass, gravity, temperature, air, water and starlight satisfy. All the rules must hold.",
+            "Habitable is not a class. It is the overall habitability colour (Blue or Green); a world of any class can "
+            "score it or not.",
+            "Letters no class uses (" + ", ".join(planet_classes.RESERVE) + ") are kept free for new classes.",
             "A rogue planet, adrift with no star, gets a class too, from the classes that list "
             "interstellar space: with no starlight, no class with life qualifies.",
         ],
@@ -232,13 +239,14 @@ def _nebula():
         facts = [
             ("Name", data["name"]),
             ("Family", _sentence(data["family"])),
-            ("Contents", _sentence(data["species"])),
+            ("Contents", _contents(_sentence(data["species"]))),
             ("Radius", number_range(*data["radius_range_ly"], "ly")),
             *_cloud_facts(data),
         ]
         if data.get("center"):
             facts.append(("At the center", _sentence(data["center"])))
-        classes[code] = _entry(code, data["name"], f"{_sentence(data['family'])} nebula: {data['species']}.", facts)
+        classes[code] = _entry(code, data["name"], escape(f"{_sentence(data['family'])} nebula: ") + _contents(data["species"]) + ".",
+                               facts)
     return {
         "name": "Nebula Classes",
         "label": "Nebula class",
@@ -258,14 +266,14 @@ def _supernova_remnant():
         facts = [
             ("Name", data["name"]),
             ("Morphology", _sentence(data["morphology"])),
-            ("Contents", _sentence(data["species"])),
+            ("Contents", _contents(_sentence(data["species"]))),
             ("Age", number_range(*data["age_range_years"], "years")),
             ("Compact remnant allowed", ", ".join(_COMPACT_LABELS.get(kind, str(kind)) for kind in data["compact"])),
             *_cloud_facts(data),
         ]
         if data.get("center"):
             facts.append(("At the center", _sentence(data["center"])))
-        summary = f"{_sentence(data['morphology'])} remnant: {data['species']}."
+        summary = escape(f"{_sentence(data['morphology'])} remnant: ") + _contents(data["species"]) + "."
         classes[code] = _entry(code, data["name"], summary, facts)
     return {
         "name": "Supernova Remnant Classes",

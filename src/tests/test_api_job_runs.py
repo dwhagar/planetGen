@@ -5,7 +5,6 @@ import itertools
 
 import pytest
 
-from planetgen.db import store
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs, commands, redisqueue, runrecord
 from tests.test_galaxy_gen import _all_sectors, _seed_skeleton, _shells

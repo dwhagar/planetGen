@@ -238,7 +238,6 @@ def test_restoring_the_whole_archive_restores_every_part(env, notes):
 
 
 def test_a_part_this_build_has_no_provider_for_is_skipped_reported_and_kept(env, notes):
-    store = notes
     archive = backup.take()
     del core._PARTS["notes"]  # an older build, or a part from a later release
     row = [a for a in backup.list_archives() if a.name == archive.name][0]

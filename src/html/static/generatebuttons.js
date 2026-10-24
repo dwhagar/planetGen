@@ -8,7 +8,7 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 
-const { LIGHTYEAR_M, PARSEC_M } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 // The neighborhood dialog's radius in light years: the default (about
@@ -22,7 +22,7 @@ export var NEIGHBORHOOD_MAX_LY = 652;
 export var NEIGHBORHOOD_CONFIRM_SECTORS = 5000;
 
 export function lyToPc(ly) {
-  return (ly * LIGHTYEAR_M) / PARSEC_M;
+  return convert(ly, "ly", "pc");
 }
 
 // About how many sectors a sphere of `radiusLy` covers, at sectors

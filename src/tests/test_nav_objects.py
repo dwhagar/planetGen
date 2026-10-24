@@ -7,7 +7,6 @@ course to or from a body has legs inside its system.
 
 import math
 
-import pytest
 
 from planetgen.db import store
 from planetgen.galaxy.sector import SpaceSector
@@ -18,7 +17,7 @@ from planetgen.generation.system import StarSystem
 from tests.test_api import (  # noqa: F401
     _place_sector, admin_client, client, default_admin_client, first_admin_password,
 )
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 def _planet_sector(mysql_config, name, center_pc):

@@ -5,7 +5,6 @@ GEN.458: the stored snow line and the born-beyond flag. A system saved and loade
 migration 0132 gives a galaxy made at v131 the blackbody position for each star and the flag from each body's distance.
 """
 
-import math
 
 import pytest
 
@@ -14,7 +13,6 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants, equipment, formation
 from planetgen.util import draw
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
 

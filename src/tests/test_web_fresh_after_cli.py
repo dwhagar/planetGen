@@ -51,9 +51,8 @@ from planetgen import tuning
 from tests.toy_shape import toy_shape
 from tests.publicids import pid
 from planetgen.galaxy import spherical
-from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
 from planetgen.physics.units import ly_to_pc  # noqa: E402
-from tests.publicids import pid, pids
+from tests.publicids import pid
 from tests.tile_support import tile_payload
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)

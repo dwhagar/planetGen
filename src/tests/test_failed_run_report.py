@@ -5,8 +5,6 @@ failure puts its traceback in the job's log.
 """
 
 import io
-import json
-import os
 import pickle
 import sys
 

@@ -152,6 +152,7 @@ def render_item(kind, printed_id):
         breadcrumbs=_crumbs(found, name),
         description=f"The {label.lower()} {name}: where it is and what it is like.",
         kind_label=label,
+        habitability=found if kind in ("planet", "moon") else None,
         object_id=printed_id,
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
         children=children,

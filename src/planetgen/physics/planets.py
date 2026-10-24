@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, constants, metallicity
-from planetgen.physics import atmosphere, habitability_world, hydrosphere, magnetism, radiation, rogue_surface, spin
+from planetgen.physics import atmosphere, habitability_world, hydrosphere, magnetism, radiation, relations, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -588,7 +588,7 @@ def calculate_surface_gravity(planet):
         ValueError: If the computed gravity is zero or negative.
     """
     radius_meters = planet.radius * 1000
-    surface_gravity = (constants.G * planet.mass) / (radius_meters ** 2)
+    surface_gravity = relations.surface_gravity(planet.mass, radius_meters)
     surface_gravity_g = surface_gravity / constants.EARTH_GRAVITY
     if surface_gravity_g <= 0:
         raise ValueError('Invalid value for gravity.')

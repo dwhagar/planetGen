@@ -38,7 +38,7 @@ import math
 import statistics
 from collections import Counter, defaultdict
 
-from planetgen.physics import constants as pc, neutron_star
+from planetgen.physics import constants as pc, neutron_star, relations
 from planetgen import tuning as prog_c
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar, hawking_luminosity_w
@@ -392,9 +392,7 @@ def check_hard_invariants(record):
         spin_lo, spin_hi = prog_c.BLACK_HOLE_SPIN_RANGE
         if not (spin_lo <= record["spin"] <= spin_hi):
             issues.append(f"spin={record['spin']!r} outside {prog_c.BLACK_HOLE_SPIN_RANGE}")
-        expected_radius_km = (
-            2 * pc.G * (mass * pc.SOLAR_MASS_TO_KG) / pc.SPEED_OF_LIGHT_M_S ** 2
-        ) / 1000
+        expected_radius_km = relations.schwarzschild_radius(mass * pc.SOLAR_MASS_TO_KG) / 1000
         _isclose_or_flag(issues, "event_horizon_radius_km", record["event_horizon_radius_km"], expected_radius_km)
         if not record["has_accretion_disk"]:
             # Without a disk it shines only by Hawking radiation (GEN.82).
@@ -517,9 +515,7 @@ def check_hard_invariants(record):
         lo, hi = prog_c.QUASAR_EDDINGTON_RATIO_RANGE
         if not (lo <= record["eddington_ratio"] <= hi):
             issues.append(f"eddington_ratio={record['eddington_ratio']!r} outside {prog_c.QUASAR_EDDINGTON_RATIO_RANGE}")
-        expected_radius_km = (
-            2 * pc.G * (mass * pc.SOLAR_MASS_TO_KG) / pc.SPEED_OF_LIGHT_M_S ** 2
-        ) / 1000
+        expected_radius_km = relations.schwarzschild_radius(mass * pc.SOLAR_MASS_TO_KG) / 1000
         _isclose_or_flag(issues, "event_horizon_radius_km", record["event_horizon_radius_km"], expected_radius_km)
         expected_luminosity_w = record["eddington_ratio"] * prog_c.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * mass
         _isclose_or_flag(issues, "luminosity_w", record["luminosity_w"], expected_luminosity_w)

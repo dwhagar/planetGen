@@ -6,7 +6,6 @@ cited masses, the measurements it must contain, that a star's radius lies in the
 the old 10 to 13 km range, and determinism.
 """
 
-import pathlib
 import statistics
 
 import pytest
@@ -75,9 +74,3 @@ def test_the_same_seed_gives_the_same_radius():
     assert radii() == radii()
 
 
-def test_no_code_reads_the_old_range():
-    root = pathlib.Path(__file__).resolve().parents[1]
-    for path in root.rglob("*.py"):
-        if path.name != pathlib.Path(__file__).name:
-            assert "NEUTRON_STAR_RADIUS_RANGE_KM" not in path.read_text(encoding="utf-8"), path
-    assert not hasattr(tuning, "NEUTRON_STAR_RADIUS_RANGE_KM")

@@ -22,7 +22,7 @@ from planetgen.galaxy import spherical
 from planetgen.galaxy.density import build_galaxy_shape, relative_density, shape_with_terms
 from planetgen.galaxy.drill import (
     DRILL_LEVELS, DrillBlock, block_addresses, drill_band_count, drill_block_bounds, drill_chain_of, drill_parent,
-    drill_wedge_count, format_drill_key,
+    drill_wedge_count,
 )
 from planetgen.galaxy.skeleton import GalaxyBounds, build_shell_extents, expected_system_count_at_density_1
 from planetgen.galaxy.window import window_cells

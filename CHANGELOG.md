@@ -2,6 +2,248 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2100] - 2026-10-24
+
+**Headline:** One table now shows the order of every random draw from a star to its planets' habitability rating.
+
+### Changed
+
+- **One draw-order table from the star to the PHI-6 (DOC.78).** `docs/design/composition/composition-spine-contracts.md` gains section 4: every star and body block in the order its draws are made, which stream each uses, and the rule for changing the order. Documentation only; no generator change.
+
+## [8.0.2099] - 2026-10-24
+
+**Headline:** The real-data checks of the downloaded data sets now wait for every data set, so a machine that updated before the ozone file was added no longer shows a failing test.
+
+### Changed
+- **TEST.312.** `test_datasets_real` skipped only when the first three data sets were missing, so a machine whose cache held those but not the ozone cross sections (AD9) failed `test_the_catalogue_reports_nothing_missing`. It now skips unless the whole catalogue is in the cache.
+
+## [8.0.2098] - 2026-10-24
+
+**Headline:** The documentation now explains how a planet's atmosphere colour is worked out and where it appears.
+
+### Changed
+- A new reference page describes the atmosphere colour: what it is made from, the method from Rayleigh scattering to the thick-air limit and the giants' reference level, what it leaves out (sunsets, twilight, the view from the planet) and its sources. The API page, the description document page and the web interface page point to it and describe the new colour item and the Atmosphere Colour row.
+
+## [8.0.2097] - 2026-10-24
+
+**Headline:** The glow around a planet on the System Map now has the colour of its own air, under its own star.
+
+### Changed
+- The rim glow of a planet or moon with air on the System Map follows its atmosphere colour, worked out from the stored gases and ozone and the temperature of the star it orbits: a pale blue under a Sun-like star, cream or paler under a red dwarf, orange for a thick carbon dioxide world. The old three-colour glow by temperature is gone. A gas or ice giant glows in the colour of the air above 1 bar; a body with no star temperature or no stored gases has no glow.
+
+## [8.0.2096] - 2026-10-24
+
+**Headline:** The radius, inflation and heavy-element mass of a giant planet now have their checked kernels, ready to replace the old anchored relation.
+
+### Added
+- **`physics/giant_radius.py` and `giant_radius_tables.py`** (GEN.460, first part, no behaviour change yet): the Fortney, Marley and Barnes 2007 giant radius tables (Tables 2 to 4, three ages, five distances, five core masses, 17 to 3,594 Earth masses) interpolated in mass, flux, age and core mass, with three misprinted cells corrected by their neighbours; the hot-giant inflation of Sestovic, Demory and Queloz 2018 (a stand-in for the physical efficiency of Thorngren and Fortney 2018); and the heavy-element mass law of Chachan et al. 2025 with its 66 percent scatter. A planet that is mostly heavy elements is outside the tables and `covers` says so.
+
+## [8.0.2095] - 2026-10-24
+
+**Headline:** The browser holds measured values in a Quantity and reads every unit factor from the registry.
+
+### Added
+- **The browser's Quantity** (UX.128). `static/quantity.js` mirrors the Python `Quantity`: a number in one registry unit, answered in any other unit of its kind, with the same bounds checks. `unitladder.js` shows one with `formatMeasure`.
+
+### Changed
+- The unit formatter's `format*` names read the registry unit they are for, and the factors it exported (`KM_M`, `AU_M`, `LIGHTYEAR_M`, `PARSEC_M`, `SECONDS_PER_YEAR`, `STANDARD_GRAVITY` and the rest) are removed.
+- The light-year to parsec conversion of the galaxy map and the generate buttons, the speed steps of the orbit clock, the time estimate of the limit sliders, the duration words of the settings page and the Sun's radius in the system scale go through the registry.
+
+## [8.0.2094] - 2026-10-24
+
+**Headline:** A sector's count of interstellar comets and planetesimals is now about a thousand times larger, matching the measured density.
+
+### Changed
+- `INTERSTELLAR_DEBRIS_DENSITY_PC3` moves from 1e12 to 1e15 per pc³: Do, Tucker and Tonry (2018) and Jewitt and Seligman (2023) put the density of interstellar objects like 'Oumuamua at 0.1 to 0.2 per AU³, which is 7e14 to 1.8e15 per pc³; the old 1e11 to 1e14 range was three orders too low. The figure on a sector page ("about 10^16 interstellar comets and planetesimals") is the only output that changes; no row and no generator output moves (GEN.659). The three design notes that quoted 1e12 are corrected.
+
+## [8.0.2093] - 2026-10-24
+
+**Headline:** Ten more places that wrote a physical law by hand now call the one declared law, with the same numbers.
+
+### Changed
+- The Schwarzschild radius (black holes, quasars, the phenomena plausibility check), surface gravity (planets, rogue planets, the plausibility range, the planet query), escape speed and mean density (collision outcomes) and the volume of a sphere (comet nuclei, gas clouds, pulsar planets) come from `physics/relations.py` instead of a typed formula (GEN.587, first file group). Every replaced expression gives the same float bit for bit; the sites whose operation order would change the last digit (`multistar._schwarzschild_au`, the `mathcheck` Schwarzschild helper, `lensing`) are left for the epoch-changing pass.
+
+## [8.0.2092] - 2026-10-24
+
+**Headline:** The last six columns without a declared unit now have one, read from the code that uses them.
+
+### Changed
+- `atm_density` on planets and moons is kg/m³, `atm_molar_density` kg/mol, `asteroid_fields.formed_at` a Unix time and `comets.parabolic_mean_anomaly` a plain number (DB.86); the `unspecified` marker is removed from the column registry and a test fails if a column goes without a unit. No stored value changes.
+
+## [8.0.2091] - 2026-10-24
+
+**Headline:** Gas giants, ice giants and brown dwarfs can now be given full layered interiors, from molecular and metallic hydrogen to helium rain, dilute cores and rocky cores, and any body can be asked whether it can have satellites.
+
+### Added
+- **`planetgen.physics.hosting_gate` (GEN.579).** `can_host(host)` runs the three parts of the hosting gate in order (a 10 m
+  satellite must fit under the mass-ratio limit; a stable orbit must exist between the host's radius or fluid Roche limit and
+  0.4895 of its Hill radius, with the hierarchical stability screen for a comparable satellite; the body must reach the 1 km
+  size cut and its population and size must have a satellite share), names the first part that fails, and carries the gated
+  `satellite-share` table with every row's source state. A moon holds nothing until a sourced row exists, and
+  `tidal_survival_radius_m` is the submoon tidal gate of Kollmeier and Raymond 2019. Nothing calls it yet.
+- **`planetgen.physics.giant_interior` (GEN.642).** Places the layers of a gas giant (molecular and metallic hydrogen
+  envelope, a helium-enriched zone and shell where helium has rained out of a cold giant, a dilute core, a compact core
+  of rock and iron), an ice giant (molecular envelope over an ionic or superionic water, ammonia and methane mantle over a
+  rock and iron core) and a brown dwarf (no solid core), each with its pressures, mass, state and the mass of every material
+  in it, and describes them in words. The layers hold exactly the heavy elements and natal helium the caller fixed. Nothing
+  calls it yet: the planet draw wires it in with GEN.428 and the layers are stored by DB.89.
+- **Three research notes.** `docs/design/composition/giant-interiors.md` (GEN.641: layers, metallization, helium rain, dilute and compact
+  cores, ice giants and brown dwarfs, with each source's state); `docs/design/composition/giant-heavy-element-law.md` (the heavy-element
+  mass law of Chachan et al. 2025, now read: GEN.460's input); `docs/design/composition/small-body-size-laws.md` (GEN.566 and GEN.580:
+  size-frequency laws of belts, comets, Kuiper belt objects and interstellar objects, and binary and satellite fractions by
+  size, with the numbers read in each paper). The size-law note corrects the interstellar object density in
+  `unified-star-like-objects.md`: 0.1 to 0.2 per au3 is 7e14 to 1.8e15 per pc3, not 1e12.
+- **The unit docs describe the registry (DOC.70).** `docs/design/units-and-number-formatting.md` now says where the units live
+  (the unit registry, `Quantity`, the relations, the field declarations, the column registry, the display ladders, the
+  browser copy) and that the registry is the only unit table; `docs/database-schema.md` has a "Units of a column" section.
+
+## [8.0.2090] - 2026-10-24
+
+**Headline:** Rogue planets, comets, black holes, neutron stars and asteroid fields are now drawn from their own stored data instead of one fixed look each.
+
+### Changed
+- **Rogue planets use the planet painters (MAP.278).** A rogue planet's View is painted from a look record built from its stored row (`bodylook.rogue_planet_look`): a rocky one by the solid-world painter (ice where its surface is cold, ice over an ocean when it is stored as liquid under an ice shell, no sea otherwise), a giant as bands of its temperature colour. It replaces the fixed blue-grey.
+- **Comet nuclei take a colour from activity.** An active comet's nucleus is grey-white, an inactive one dark red-brown, and its lumpy shape is the same on every visit.
+- **Black hole disks and neutron star surfaces take their temperature colour.** The accretion disk's hot colour and the neutron star's surface are the blackbody colour of the stored temperature, in place of one blue-white or yellow-white for each class.
+- **Asteroid field grains follow the composition.** On the Sector Map an asteroid field's cloud and glow are tinted by its composition family (carbonaceous dark, stony tan, metallic grey, icy pale, basaltic brown), from the field's class letter.
+- **Each phenomenon View has its own stars.** The background starfield is seeded from the object, not one fixed seed for every View.
+
+Nebula tints by type already existed; supernova remnant shells by age are not in this change (they need the remnant's age on the sector scene).
+
+## [8.0.2089] - 2026-10-24
+
+**Headline:** `update.sh` no longer looks hung on a big or slow data set download: each file shows a progress bar, and a stalled download is retried from where it stopped.
+
+### Changed
+- **Data set downloads (GEN.548).** `python3 -m planetgen.cli.datasets fetch` (the update and install step) now shows one bar per file with the bytes done of the total, the speed and the time left, in the style of the generation bar, and plain lines every 10 seconds where the output is not a terminal. A host that trickles bytes (fewer than 128 kB in 60 seconds) is given up as stalled, and every retry (four attempts, was three) asks for the rest of the file with a `Range` request, starting over only when the host does not honour it. A file that still cannot be had is reported with its URL and the update goes on, as before.
+
+## [8.0.2088] - 2026-10-24
+
+**Headline:** Stars on the System Map are painted from their class: their true blackbody colour, a surface that matches the kind of star, and a glow that grows with luminosity.
+
+### Added
+- **The star painter (MAP.276).** `static/starpaint.js` paints a star's disc from its look record: O, B and A stars are nearly featureless, F and G stars finely granulated with a few dark spots, K and M stars coarser with more and larger spots (an M dwarf can show a bright flare patch), giants and supergiants show a few huge convection cells, and a white dwarf is one smooth disc. The colour is the blackbody colour of the star's effective temperature (`photometry.star_colour`, the one the sky-colour model assumes), so a Sun-like star now reads white with a faint warm tint rather than the spectral-letter yellow. The glow around a star is sized and strengthened by its luminosity (capped), where every star used to get the same one.
+
+### Changed
+- **The star look record carries the Yerkes class.** The system query (`get_system_detail`) now reads `stars.yerkes_class`, and `bodylook.star_look` puts it in `data-look` as `yerkes`.
+
+## [8.0.2087] - 2026-10-24
+
+**Headline:** Saving the sector paths of a large run is spread over the workers.
+
+### Changed
+- **The settle stage is cut into units of 100 sectors (PERF.115).** A run saved the paths of every sector it made, and of the sectors around them, one after the other in a single process (182 ms a sector at the default galaxy size). The sectors are found once and saved by the workers in chunks, each path as before: the same rows are stored, and on 100 sectors the stage took 11 s on three workers instead of 18 s.
+
+## [8.0.2086] - 2026-10-24
+
+**Headline:** Planet and moon descriptions now show the colour of their air.
+
+### Changed
+- A planet or moon with a solid surface and an atmosphere gets an "Atmosphere Colour" row in its facts, with a colour chip and a word such as "pale blue", in the text, Markdown, wiki and web outputs and in the description JSON; an airless body and a gas or ice giant show none (a giant waits for its stored cloud). The colour is the clear-sky colour from the body's air, its star's temperature and its ozone column over a stand-in ground, until the stored haze, dust, cloud and ground colour arrive.
+- The ozone's visible absorption (the Chappuis band) is now a small table in the repository, so working out a colour needs no download.
+
+## [8.0.2085] - 2026-10-24
+
+**Headline:** Planets and moons on the System Map now show their ocean, land and ice, drawn from the stored water fractions and temperature.
+
+### Added
+- **The body look record (MAP.271).** Every star, planet and moon marker on the System Map carries one `data-look` JSON record built by `planetgen/web/maps/bodylook.py` from the stored row: the body family, a seed from its id, a base colour, the water fractions, ocean class and colour, hydrosphere, pressure, temperature and atmosphere rim colour. A value that is not stored is left out, not zero. It replaces the loose `data-color`, `data-hasatmosphere` and the temperature text the page used to parse.
+- **The shared painter (MAP.272).** `static/bodytexture.js` holds the seeded noise, the 128-body texture cache, a paint queue that paints one texture per frame (largest first) and the size tiers (point, disc, 128 x 64, 256 x 128).
+- **The solid-world painter (MAP.273).** `static/solidpaint.js` paints a planet or moon as a rough few-tone picture: the sea covers the stored ocean fraction of the sphere, ice sits where the temperature is below freezing (polar caps on a temperate world, all ice on a frozen one), airless worlds show craters. The info panel's Colour line says it is an estimate from temperature and stored water fractions until the composition colour (MAP.274) replaces it. Gas giants and stars keep their current look for now (MAP.275, MAP.276).
+
+### Changed
+- **A planet's sphere is no longer coloured by its class letter.** The flat marker keeps the class colour as the key to the class letter; the sphere takes its colour from the look record.
+
+## [8.0.2084] - 2026-10-24
+
+**Headline:** Planets, moons and rogue planets now share one `PlanetaryObject` family class, the third family under the mass object core.
+
+### Changed
+- **`generation/planetary_object.py`** (GEN.565f): `PlanetaryObject(MassObject)` holds what a planet, a moon and a rogue planet share: the class letter and composition defaults, `is_giant`, and `parent_kind` (`"star"` for a planet, `"planet"` for a moon, `None` for a rogue planet). `Planet` and `RoguePlanet` subclass it; `RoguePlanet.kind_label` reads `is_giant`. No field, stored value or draw changes. GEN.565 stays open for folding the remnant classes into states and the table revision.
+
+## [8.0.2083] - 2026-10-24
+
+**Headline:** The ground of a planet or moon now has a composition: the minerals, ices and ocean that cover it, drawn from the body's own bulk fractions, temperature and air.
+
+### Added
+- **Surface and crust composition kernel (GEN.441, first slice).** `planetgen.physics.surface_composition.draw_surface` gives a planet or moon its ground: what covers the surface (liquid ocean with its salts, or the ices that the temperature and the air let stand), the dominant ground of the land (metal-rich for a stripped mantle, carbon for carbon rock, otherwise basaltic where the heat flow still resurfaces it, else the primary crust, ultramafic or anorthositic by an FeO-weighted overturn chance), and the modifiers the inputs allow (granitoid with plate tectonics, clay where liquid water stood, iron-oxidised ground under free oxygen, evaporite beside an ocean, sulfur under tidal heating). Every ground type is a recipe of rows of the shared materials table (Hu, Ehlmann and Seager 2012, Table 2); the mass shares and the areal shares each add up to one. `band_albedo` and `crust_reservoir` read the ground's lab reflectance and its K, Th and U back from it. The kernel changes no stored value yet (wiring into the generator, the columns and the epoch follow GEN.428, GEN.459 and GEN.461).
+
+## [8.0.2082] - 2026-10-24
+
+**Headline:** The planets and moons lists and every planet and moon page now show the habitability symbols.
+
+### Changed
+- **Habitability symbols on the lists and the item pages (UX.155, UX.156).** The Planets and Moons lists (`/lists/planet`, `/lists/moon`) have a Habitability column of the overall rating symbol and the six domain symbols, and the page of a scored planet or moon (`/object/planet:...`, `/object/moon:...`) shows the same seven symbols under its title. The object list items (`GET /api/object-lists/planet` and `moon`) and `GET /api/objects/<ref>` for a planet or moon carry `phi4` and the six `tier_<domain>` ratings they are drawn from.
+
+## [8.0.2081] - 2026-10-24
+
+**Headline:** A planet or moon's class can now be worked out from its finished conditions (air, temperature, water, size and gravity), and the class pages show the rule.
+
+### Added
+- **The classifier (GEN.645, GEN.647 first slice).** `planetgen.physics.planet_classes.classify(body)` returns a class letter from a planet or moon's stored mass, gravity, mean surface temperature, surface pressure and gas mixture, water cover and share, and starlight variation. The rules are the ordered rows of `physics/data/planet_classes.json` (a one-sentence reading and a `basis` each); the last row of each kind takes the rest, so every body gets one letter. All 20 letters stay, H, P, O, J, M, I, C, D and N are marked core, and R, U, W, X, Y and Z are kept free for new classes. Design: `docs/design/condition-based-planet-classes.md`.
+- **The shadow sweep.** `python src/tests/class_shadow_cli.py` compares the derived letter with the drawn one (98.3 percent of 32,487 bodies from 2,000 systems keep their letter) and prints the confusion table. Generation still draws a class; nothing it stores changes.
+
+### Changed
+- **The planet class pages give the rule.** `/classes/planet/<letter>` shows the class's name, sentence, the rule in plain words, which classes are checked before it and whether it is a core class, in place of the table of radius ranges, zones and pigments the zone draw used.
+
+## [8.0.2080] - 2026-10-24
+
+**Headline:** Delete regression tests that guard nothing and the unused galaxy shape visualizer.
+
+### Removed
+- A skipped test module for a function that no longer exists, and the 18 tests that only check what the first two already show.
+- About 20 tombstone tests that assert a retired constant, option or page is gone, and trimmed four that also checked a live behaviour.
+- A duplicate test, five unused test helpers, and the unused imports and variables across the test suite.
+- The `galaxy_shape_visualizer_cli.py` test tool and the matplotlib test extra it needed.
+
+## [8.0.2079] - 2026-10-24
+
+**Headline:** The disc's recent star formation now falls faster in its thin outer gas, as the observations of molecular and atomic gas say, instead of at one fixed index.
+
+### Changed
+
+- The share of a thin-disc star that is recent (`galaxy.star_formation.recent_factor`) now has the star-formation law's index rise where the disc's own gas thins (GEN.450): the rate goes as `gas^1.4 (gas / (gas + 9))^(2.1 - 1.4)`, the gas being the rings' gas of the disc's star-formation history. Molecular gas forms stars at a constant efficiency, atomic gas (under about 9 solar masses per pc2) at a falling one (Bigiel et al. 2008, Leroy et al. 2008, Schaye 2004). For a Milky Way-like disc the fall beyond the rate peak is -0.27 dex per kpc (was -0.23; the Herschel study observes -0.28, which is a test target and not an input); 91% of the star formation is inside the solar circle (was 86%, observed 84%) and 0.4% beyond 13.5 kpc (was 1.3%, observed 1%). The young and intermediate populations are lighter in the outer disc of every galaxy, so a placed star there is older on average.
+- `tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT` (2.1, the middle of the 1.5 to 2.7 that resolved total-gas fits give) and `tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2` (9) are new and open: no source gives them for one galaxy.
+- `tests/fixtures/density_identity.json` is recorded again for the new factor.
+
+generation-output: changed
+
+## [8.0.2078] - 2026-10-24
+
+**Headline:** A gas or ice giant's atmosphere colour can now be worked out at its reference level, with a cloud deck or the dark deep gas below.
+
+### Changed
+- A new giant colour function cuts the giant's mixture at the reference pressure (the lower of 1 bar and the cloud top, computed from the cloud's depth and sedimentation) and gives the colour, brightness and word of the air above, with the cloud deck's reflectance as the lower boundary. Methane, ammonia and water bands use the gas table's coarse bins, so a giant carrying them is marked as partial colour quality. Nothing reads it yet, so no generated value or page changes.
+
+## [8.0.2077] - 2026-10-24
+
+**Headline:** The atmosphere chain has one table of gas and condensate free energies and one equilibrium solver, which reproduce the research's outgassing speciation.
+
+### Added
+- **NASA Glenn thermodynamics of 87 species (GEN.451, GEN.454, GEN.499).** `physics/species_thermo.py` loads `physics/data/nasa_glenn_species.json`, read from the NASA CEA database by `scripts/build_species_thermo.py` (the raw database is not in the repository): 70 gases (the hydrogen, carbon, nitrogen, sulfur, phosphorus, alkali, silicon, iron, magnesium, titanium and vanadium species of the atmosphere research parts 05 and 06) and 17 condensed phases, each with its elements, its molar mass checked against the element table and its temperature intervals checked to join. A temperature outside a species' fits is refused.
+- **An ideal-gas equilibrium solver (`physics/gas_equilibrium.py`).** `solve(abundances, T, P)` gives the mole fractions of every gas of the table that the elements can make, by the Gibbs-minimisation method of Gordon and McBride (NASA RP-1311), with the oxygen potential optionally held at a given oxygen fugacity (a gas over a buffered mantle). At 1200 K and 1 bar over an iron-wuestite mantle it gives H2 0.487, H2O 0.30, CO 0.113, CO2 0.051 and H2S 0.032 for the research's element budget (part 05 section 3.4: 0.48, 0.30, 0.11, 0.051, 0.033), and at 800 K and 100 bar NH3 1.5 percent; it follows Zahnle and Marley's CH4 to CO constant. It is not called by the generator yet: no generator epoch.
+- **The rocky outgassed mixture (`physics/mixture_draw.py`, GEN.451, GEN.479).** `outgassed_mixture(subject)` turns the regimes the recipe tables draw (mantle redox, delivered water, age) into mole fractions of the gas table by chemistry: the volcano's gas in equilibrium with the mantle's oxygen fugacity at 1100 to 1500 K, cooled in a closed system to the surface or quench temperature, with the nitrogen, sulfur and radiogenic argon inventories from design brackets that the research items GEN.481 and GEN.492 replace. `required_inputs(body_class)` lists what a subject must carry. Design in `docs/design/composition/mixture-draw.md`. Not called by the generator yet.
+
+### Changed
+- **`physics/oxygen_fugacity.py` reads the one thermodynamics table.** Its own five-gas file (`nasa_glenn_redox_gases.json`) is gone; the same coefficients are in the new file (compared to the last digit), so every buffer, ratio and constant is unchanged.
+- **Docs (DOC.74).** Part 06 and part 08A of the atmosphere research now say, where they list the CO2-2 sublimation fit, that it holds only from 195.3 K up and that CO2-1 serves below it.
+
+## [8.0.2076] - 2026-10-24
+
+**Headline:** A planet's atmosphere colour can now be worked out from its air, ozone, haze, dust, cloud and ground, from thin sky to the dense-air limit.
+
+### Changed
+- A new atmosphere colour function takes the air column, the star's temperature, the ozone column, haze, dust, cloud with its cover and the ground's albedo, and gives the sky's hex colour and word, its brightness as a share of the star's, the colour of the sun disc and a note when aerosols decide the colour. It reproduces the design's worked examples (a blue sky under a Sun-like star, cream under a red dwarf, orange under 9 MPa of carbon dioxide instead of a clipped red). Nothing reads it yet, so no generated value or page changes.
+
+## [8.0.2075] - 2026-10-24
+
+**Headline:** Chemical formulas on the pages, in Markdown, wikitext and the terminal are written with subscripts and superscripts (H₂O, Fe²⁺, ³He), through one shared formatter.
+
+### Fixed
+- **Formulas printed as plain text, as H2O for water (UX.149).** A new `planetgen/util/chem.py` is the one writer: counts are subscripts, ion charges superscripts after the formula (`Fe2+`, `NH4+`, `SO4^2-`, `e-`), isotope mass numbers superscripts before the symbol (`3He`, `14C`), a hydrate keeps its coefficient on the line (`CaSO4·2H2O`), and brackets, decimal counts and `x`/`y` counts are read. `chem.html` gives `<sub>`/`<sup>` HTML (also what Markdown and wikitext get) and `chem.text` its Unicode twin for a terminal. It takes one formula, never free text: a caller that prints a text naming chemicals uses `chem.split`, which marks only the formulas of the gas and material tables or a charged element. The web pages get the Jinja filters `formula` and `chem`, and the system Document a `chem` inline item every renderer writes. Used where formulas are printed today: a nebula's and remnant's Contents and summary on the class pages, a nebula's Dominant Gas and Dominant Species, and the species page's environment limits (whose label also read "Inspired o2 min"; it now reads Inspired O₂ min). Stored values and the API are unchanged. `test_chem_formulas.py` covers counts, charges, isotopes, hydrates, brackets, the renderers and that no template types a bare formula; `test_web_formulas.py` checks that no page of the sample galaxy shows one unwritten.
+
+TODO items resolved: UX.149. Added: none.
+
 ## [8.0.2074] - 2026-10-24
 
 **Headline:** The host star's rotation track is a uniform percentile through the published tracks, not three invented weights.

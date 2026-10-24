@@ -6,6 +6,10 @@
 // that follows its box, and a rate's "No limit" box. Without script the same page works: the search and the switch
 // are a plain GET form (its Apply button), and the server draws the page they ask for.
 
+// Imported with this module's own `?v=` query, as systemmap.js explains.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+
 const STORE_KEY = "planetgen.settings.showFixed";
 
 function stored() {
@@ -26,14 +30,14 @@ function remember(on) {
 
 // 21600 seconds -> "6 hours"; the same words the server writes (web/settings_page.py duration_text).
 export function durationText(value, unit) {
-  const seconds = Number(value) * (unit === "hours" ? 3600 : 1);
+  const seconds = convert(Number(value), unit === "hours" ? "h" : "s", "s");
   if (value === "" || !Number.isFinite(seconds) || seconds < 0) return "";
   if (seconds === 0) return "off";
   const parts = [];
   let rest = seconds;
-  for (const [name, size] of [["day", 86400], ["hour", 3600], ["minute", 60], ["second", 1]]) {
-    const count = Math.floor(rest / size);
-    rest -= count * size;
+  for (const [name, symbol] of [["day", "d"], ["hour", "h"], ["minute", "min"], ["second", "s"]]) {
+    const count = Math.floor(convert(rest, "s", symbol));
+    rest -= convert(count, symbol, "s");
     if (count >= 1) parts.push(`${count} ${name}${count === 1 ? "" : "s"}`);
     if (parts.length === 2) break;
   }

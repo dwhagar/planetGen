@@ -64,6 +64,10 @@ sought. The raw pages are never in the repository.
 | `white_dwarf_mass_radius.json` | Computed here from physical constants; no third-party data |
 | `ozone_uv` (AD9, GEN.443; MPI-Mainz UV/VIS Spectral Atlas snapshot of 2013-06-24, Zenodo record 6951) | CC BY 4.0; cite Keller-Rudek et al. 2013 (Earth Syst. Sci. Data 5, 365); the cross sections read are those of Daumont et al. 1992, Malicet et al. 1995 and Brion et al. 1998; the archive is downloaded at setup and removed after the four tables are kept |
 
+## The Chappuis cross sections (`src/planetgen/physics/data/ozone_chappuis.json`, GEN.418)
+
+The ozone cross section of the Chappuis band, 380 to 780 nm, as 5 nm cell means of the 295 K, 1 nm table of the Brion, Daumont, Malicet and Jenouvrier group (Daumont et al. 1992, Malicet et al. 1995, Brion et al. 1998) in the MPI-Mainz UV/VIS Spectral Atlas snapshot of 2013-06-24 (Zenodo record 6951, CC BY 4.0; cite Keller-Rudek et al. 2013, Earth Syst. Sci. Data 5, 365). Built by `scripts/build_ozone_chappuis.py` from the `ozone_uv` download; only these 81 derived values are in the repository.
+
 ## The comet volatile population (`src/planetgen/physics/data/comet_population.json`, GEN.495)
 
 The keys are the source keys of the file. Only values computed or read from the papers are kept; the database is not in the repository.

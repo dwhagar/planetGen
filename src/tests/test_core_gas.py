@@ -14,7 +14,6 @@ from planetgen import tuning
 from planetgen.galaxy import components, core_gas, nebula_field, profile
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.generation import open_clusters
-from planetgen.physics import open_cluster_evolution as evolution
 
 BASE = dict(disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
             bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4)

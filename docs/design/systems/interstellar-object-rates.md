@@ -51,7 +51,7 @@ the rest) are in `anomalies.md`.
   chance scales as `(8000 pc / r_GC)^2`.
 - Interstellar comets kept as rows use a design rate, `"comet": 0.007`
   per pc³ (0.05 per star), not the research density. The real population
-  (1e12 per pc³, `INTERSTELLAR_DEBRIS_DENSITY_PC3`) is shown only as a
+  (1e15 per pc³, `INTERSTELLAR_DEBRIS_DENSITY_PC3`) is shown only as a
   computed count on the sector page (`queryDb.interstellar_debris_count`).
 - Asteroid fields have rate 0; the type stays for hand-made fields and
   facilities.
@@ -88,7 +88,7 @@ Three types don't scale with `n_*` alone:
 
 | Type | n at R0 (pc⁻³) | Per star | Scales with | Per 4 pc sector* |
 |---|---|---|---|---|
-| Interstellar comets and debris (m-km) | 1e11 to 1e14 (1e12 central) | ~7e12 | n_* | ~6e13 |
+| Interstellar comets and debris (about 100 m and up) | 7e14 to 1.8e15 (1e15 central; 0.1 to 0.2 per au³) | ~7e15 | n_* | ~6e16 |
 | Terrestrial rogue planets (0.1-2 M⊕) | 0.5-1.4 (0.7 central) | 2-10 (5) | n_* | ~45 |
 | Jupiter-mass rogue planets (> 1 Mjup) | 0.035 | ≤ 0.25 | n_* | ~2.2 |
 | Rogue brown dwarfs (13-80 Mjup) | 0.025-0.035 (0.03) | ~0.21 | n_* | ~1.9 |
@@ -146,10 +146,10 @@ above 0.1 M⊕, a hundred times the terrestrial estimate.
 
 ## Checks
 
-- **Comet separation column.** The research table gives a characteristic
-  separation of 0.001-0.02 AU for 1e11-1e14 pc⁻³. `n^(-1/3)` of those is
-  about 45 AU down to 4.5 AU (1 pc³ = 8.8e15 AU³). The densities
-  themselves agree with the ~1e-4 to 1e-2 AU⁻³ quoted beside them.
+- **Comet separation column (GEN.659).** The old research table gave 1e11-1e14 pc⁻³ (1e-4 to 1e-2 AU⁻³, a spacing of
+  45 to 4.5 AU). The papers say more: Do, Tucker and Tonry 2018 find about 0.2 AU⁻³ for objects like 'Oumuamua and
+  Jewitt and Seligman 2023 about 0.1 AU⁻³ (1 pc³ = 8.8e15 AU³), so 7e14 to 1.8e15 pc⁻³, a spacing `n^(-1/3)` of about
+  2.2 to 1.7 AU. The constant takes 1e15, the middle of that range, for objects of about 100 m and up.
 - **Hypervelocity stars.** With `n ∝ r_GC⁻²`, the count inside radius R
   is `4π n0 r0² R`. Using 5e-9 pc⁻³ at 8 kpc gives about 30,000 inside
   8 kpc and about 400,000 out to 100 kpc, against the stated 1e3-1e4
@@ -196,7 +196,7 @@ problem. What changes is what a sector looks like: rogues would
 outnumber systems about five to one in the Contents table and on the
 Sector Map.
 
-Comets can't be rows: ~6e13 per sector. Neutron stars and everything
+Comets can't be rows: ~6e16 per sector. Neutron stars and everything
 rarer are fine as rows; most sectors simply get none.
 
 ## References (short form)
@@ -239,7 +239,7 @@ Balogh 2010, intracluster supernovae.
   the mass-and-age star model (7.23.0) leaves behind, so isolated remnants
   and the star census agree.
 - **No free asteroid fields.** They disperse in 1e6 to 1e7 years.
-- **Comets as a figure, not rows.** About 6e13 per sector cannot be stored.
+- **Comets as a figure, not rows.** About 6e16 per sector cannot be stored.
 
 ### Alternatives not taken
 

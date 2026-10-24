@@ -12,7 +12,7 @@ import math
 
 import pytest
 
-from planetgen.galaxy.density import build_galaxy_shape, halo_density, relative_density
+from planetgen.galaxy.density import halo_density, relative_density
 from planetgen.galaxy.skeleton import bound_relative_density_at, expected_system_count_at_density_1
 from tests.toy_shape import toy_shape
 

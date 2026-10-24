@@ -873,6 +873,14 @@ cumulative to better than 1e-3 of the window)."""
 STAR_FORMATION_LAW_EXPONENT = 1.4
 """float: The Kennicutt-Schmidt exponent: the rate per area goes as the gas per area to this power (Kennicutt 1998:
 1.4 +/- 0.15 over 61 spirals and 36 starbursts; other fits run from 1.3 to 1.65)."""
+STAR_FORMATION_LOW_DENSITY_EXPONENT = 2.1
+"""float: The index the star-formation law steepens to where the gas thins (GEN.450): resolved observations give 1.5 to 2.7 for
+the total gas (Kennicutt and Evans), and 2.1 is the middle of that range. Open: no source gives the index of the outer
+discs of a single galaxy (Bigiel et al. 2008 find the total-gas relation weak where atomic gas dominates)."""
+STAR_FORMATION_SATURATION_GAS_MSUN_PC2 = 9.0
+"""float: The gas surface density, solar masses per pc2, below which the index rises (GEN.450): atomic gas saturates near
+9 solar masses per pc2 (Bigiel et al. 2008), so the gas that forms stars at a constant efficiency, the molecular gas,
+is what lies above it; read as a 'half-way' scale of the smooth rise, not a step."""
 GAS_TO_STELLAR_SCALE_LENGTH_RATIO = 1.0
 """float: The gas disk's scale length over the stellar disk's. An assumption, not a measurement: the observed gas
 disk is more extended, which would make the outer disk younger; 1 is the plain reading, and the profile test shows
@@ -3825,11 +3833,11 @@ DISK_HALF_MASS_SCALE_LENGTHS = 1.6783469900170382
 """float: The radius that holds half of an exponential disc's stars, in scale lengths (the root of `1 - (1 + x) exp(-x)
 = 1/2`): where a system with no place in the galaxy is taken (`galaxy.scales.default_galactocentric_pc`)."""
 
-INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e12
-"""float: Interstellar comets and planetesimals (m-km) per pc^3 at
-REFERENCE_STELLAR_DENSITY_PC3, 1e11-1e14 (Engelhardt et al. 2017, AJ
-153:133; Seligman & Laughlin 2020, ApJL 896:L8) -- far too many for rows,
-so a sector shows it as a figure (`planetgen.db.query.interstellar_debris_count`)."""
+INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e15
+"""float: Interstellar objects of about 100 m and up per pc^3 at REFERENCE_STELLAR_DENSITY_PC3: 0.1 to 0.2 per au^3,
+which is 7e14 to 1.8e15 per pc^3 (Do, Tucker and Tonry 2018 from 'Oumuamua; Jewitt and Seligman 2023, ARA&A), 1e15 the
+middle of the range; smaller bodies are more numerous still (`docs/design/small-body-size-laws.md`). Far too many for
+rows, so a sector shows it as a figure (`planetgen.db.query.interstellar_debris_count`)."""
 
 RUNAWAY_STAR_SPEED_RANGE_KMS = (30.0, 200.0)
 """tuple: A runaway star's speed relative to its neighbors, km/s

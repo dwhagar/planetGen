@@ -13,7 +13,6 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.galaxy import system_position
 from planetgen.population import facilities
-from planetgen.physics import constants
 from tests.member_systems import binary, with_member
 
 pytestmark = pytest.mark.fresh_database

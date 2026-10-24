@@ -17,7 +17,6 @@ import random
 
 import pytest
 
-from planetgen import tuning
 from tests.bughunt_support import FUZZ_SEEDS, mysql_argv, run_cli
 
 _SEEDS = FUZZ_SEEDS[:60]

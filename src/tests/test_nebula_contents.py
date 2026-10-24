@@ -9,7 +9,6 @@ sector that holds each one's point.
 import collections
 import types
 
-import pytest
 
 from planetgen import tuning
 from planetgen.generation import nebula_contents, run_sector

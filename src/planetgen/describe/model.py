@@ -13,8 +13,13 @@ Inline text is a list whose items are a string or one of:
   (the unit symbol of a kind with no ladder yet).
 - `{"ref": "planet:31", "name": "40 Eridani II"}`: a link to another object.
 - `{"strong": "Pressure: Red"}`: emphasis, written per format by the renderer.
+- `{"chem": "H2O"}`: a chemical formula (UX.149), written per format by `planetgen.util.chem`.
+- `{"swatch": {"hex": "#99bfff", "word": "pale blue"}}`: a colour (GEN.420): the word, with the colour as a chip where the format has one.
 """
 
+import re
+
+from planetgen.util import chem as chemistry
 from planetgen.util import ladders
 
 LADDER_KINDS = tuple(ladder.quantity for ladder in ladders.LADDERS)
@@ -56,6 +61,25 @@ def ref(ref_text, name):
 def strong(text):
     """An emphasis inline item."""
     return {"strong": text}
+
+
+def swatch(hex_colour, word):
+    """A colour swatch inline item (GEN.420): `hex_colour` is `#rrggbb`, `word` what it is called."""
+    return {"swatch": {"hex": hex_colour, "word": word}}
+
+
+def chem(formula):
+    """A chemical formula inline item; `formula` must read as one (`planetgen.util.chem.parse`)."""
+    chemistry.parse(formula)
+    return {"chem": formula}
+
+
+def chem_text(words):
+    """An inline list from a text that names chemicals (a nebula's contents): each formula `chem.split` finds there
+    is a `chem` item. An empty or missing text is an empty list."""
+    if not words:
+        return []
+    return inline(*(chem(part) if isinstance(part, chemistry.Formula) else part for part in chemistry.split(words)))
 
 
 def inline(*parts):
@@ -110,7 +134,7 @@ def document(kind, ref_text, title, sections):
 def walk_inline(node):
     """Every inline item (strings included) anywhere in a Document or part of one."""
     if isinstance(node, dict):
-        if "qty" in node or "ref" in node and "name" in node or "strong" in node and len(node) == 1:
+        if "qty" in node or "ref" in node and "name" in node or ("strong" in node or "chem" in node or "swatch" in node) and len(node) == 1:
             yield node
             return
         for value in node.values():
@@ -176,3 +200,7 @@ def check(node):
     for item in walk_inline(node):
         if isinstance(item, dict) and "qty" in item and item["qty"]["kind"] not in KINDS:
             raise ValueError(f"unknown quantity kind {item['qty']['kind']!r}")
+        if isinstance(item, dict) and "swatch" in item:
+            swatch_item = item["swatch"]
+            if not re.fullmatch(r"#[0-9a-f]{6}", str(swatch_item.get("hex"))) or not swatch_item.get("word"):
+                raise ValueError(f"a swatch needs a #rrggbb colour and a word, not {swatch_item!r}")

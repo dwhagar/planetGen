@@ -9,7 +9,7 @@ filters and facet counts (`queryDb.list_phenomena`, `count_phenomena`,
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
-from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+from planetgen.generation.phenomena.rogue import RoguePlanet
 from tests.test_api import client  # noqa: F401
 
 

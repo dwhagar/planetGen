@@ -34,7 +34,10 @@
 // get a second, separate instance of it.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
-const { glowInnerRatio, makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { glowInnerRatio, makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { makeCache, makeQueue, parseLook, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
+const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
+const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { formatDistanceKm: formatLadderKm } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { addField } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERSION_QUERY}`);
@@ -54,7 +57,7 @@ function classField(el) {
 // The glow shader (GLOW_VERTEX_SHADER/GLOW_FRAGMENT_SHADER) and the star
 // granulation texture now live in ./bodyRendering.js, shared with
 // sectorscene.js's own star/nebula/asteroid-field/black-hole/neutron-star
-// spheres -- imported above (makeGlowMaterial/makeStarSurfaceTexture)
+// spheres -- imported above (makeGlowMaterial)
 // rather than duplicated here.
 
 function hexToRgba(hex, alpha) {
@@ -118,25 +121,6 @@ function makeRingTexture(baseColorHex) {
   return texture;
 }
 
-
-// The kelvin at the front of "1,230 K (957 °C, 1,754 °F)"
-// (format.format_temperature_k), comma grouping and all.
-function parseSurfaceTempK(text) {
-  var match = /(-?[\d.,]+)/.exec(text || "");
-  return match ? parseFloat(match[1].replace(/,/g, "")) : NaN;
-}
-
-// Not a spectral simulation -- just enough of a temperature cue that a
-// scorched Class N reads hazy/orange, a frigid world reads pale blue, and
-// an Earth-like temperate one reads sky-blue, the same "gesture at the
-// physics, not model it exactly" spirit as this module's own
-// `_CLASS_COLORS` (see planetgen/web/maps/systemmap.py).
-function glowColorForTemp(tempK) {
-  if (!isFinite(tempK)) return "#bcdfff";
-  if (tempK >= 320) return "#ffb066";
-  if (tempK <= 200) return "#bcd7ff";
-  return "#bfe3ff";
-}
 
 // The diagram's coordinate space when a scene has no viewBox to read --
 // `planetgen/web/maps/systemmap.py`'s own `_VIEW_SIZE_PX`. A scene's viewBox is usually
@@ -229,13 +213,10 @@ function initSphereField(canvasEl) {
   var PLANET_GLOW_POWER = 1.4;
   var PLANET_GLOW_STRENGTH = 0.7;
   var STAR_GLOW_POWER = 1.8;
-  var STAR_GLOW_STRENGTH = 1.0;
-  var STAR_GLOW_SCALE = 1.45;
   // The glow shell's radius relative to the body sphere's own, planet
-  // (unscaled) and star (scaled up by STAR_GLOW_SCALE) -- the shader
+  // (unscaled) and star (scaled up by the star's own glow scale, from its luminosity) -- the shader
   // starts its fade at the body's limb (see bodyRendering.js).
   var PLANET_GLOW_INNER = glowInnerRatio(GLOW_R / SPHERE_R);
-  var STAR_GLOW_INNER = glowInnerRatio((GLOW_R * STAR_GLOW_SCALE) / SPHERE_R);
 
   var glowMaterial = makeGlowMaterial(THREE, 0xbcdfff, PLANET_GLOW_POWER, PLANET_GLOW_STRENGTH, GLOW_R / SPHERE_R);
   var glow = new THREE.Mesh(new THREE.SphereGeometry(GLOW_R, 48, 32), glowMaterial);
@@ -249,15 +230,49 @@ function initSphereField(canvasEl) {
   var markers = [];
   var rects = [];
 
+  // Painted surface textures (MAP.272): one per body and tier, kept least-recently-used, painted one per frame
+  // nearest (largest) first. Until a body's texture is ready it shows as a flat sphere tinted by its look colour.
+  var textureCache = makeCache(128, function (texture) {
+    texture.dispose();
+  });
+  var paintQueue = makeQueue();
+
+  function paintTexture(marker, tier) {
+    var size = TIER_SIZES[tier];
+    var canvas = document.createElement("canvas");
+    canvas.width = size[0];
+    canvas.height = size[1];
+    var ctx = canvas.getContext("2d");
+    var image = ctx.createImageData(size[0], size[1]);
+    image.data.set((marker.isStar ? paintStar : paintSolid)(marker.look, size[0], size[1]));
+    ctx.putImageData(image, 0, 0);
+    var texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  }
+
+  // The texture this marker should show at its current size, or null while it is still being painted.
+  function textureFor(marker, tier) {
+    if (!marker.paintable || (tier !== "low" && tier !== "high")) {
+      return null;
+    }
+    var key = marker.look.seed + ":" + tier;
+    var cached = textureCache.get(key);
+    if (cached) {
+      return cached;
+    }
+    paintQueue.add(key, -marker.diameterPx, function () {
+      textureCache.set(key, paintTexture(marker, tier));
+    });
+    return null;
+  }
+
   function disposeMarker(marker) {
     if (marker.bandTexture) {
       marker.bandTexture.dispose();
     }
     if (marker.ringTexture) {
       marker.ringTexture.dispose();
-    }
-    if (marker.starTexture) {
-      marker.starTexture.dispose();
     }
   }
 
@@ -269,20 +284,21 @@ function initSphereField(canvasEl) {
       var cx = ((parseFloat(marker.circle.getAttribute("cx")) || 0) - view.x) * scale;
       var cy = ((parseFloat(marker.circle.getAttribute("cy")) || 0) - view.y) * scale;
       var r = (parseFloat(marker.circle.getAttribute("r")) || 0) * scale;
+      marker.diameterPx = 2 * r;
       // The local half-extent (`frameCamera`'s own units) that a gas
       // giant's ring or a plain glow shell needs to stay in-frame -- see
       // that function's own comment -- mapped so the body's own
       // `SPHERE_R` (1 local unit) lands at exactly this marker's own
       // on-screen radius, the same relationship the flat circle it
       // replaces already had to its neighbors. A star's own glow shell
-      // is scaled up by STAR_GLOW_SCALE (see configureBody) -- framed
+      // is scaled up by the marker's glowScale (see configureBody) -- framed
       // for that larger reach here too, or its corona would simply clip
       // outside the frustum the same way an under-framed gas giant ring
       // once did (see this function's own earlier fix for that).
       var halfExtent = marker.isGasGiant
         ? RING_OUTER_R * 1.15
         : marker.isStar
-          ? GLOW_R * STAR_GLOW_SCALE * 1.15
+          ? GLOW_R * marker.glowScale * 1.15
           : GLOW_R * 1.15;
       return { cx: cx, cy: cy, side: 2 * halfExtent * r, halfExtent: halfExtent };
     });
@@ -290,6 +306,7 @@ function initSphereField(canvasEl) {
 
   function setMarkers(list) {
     markers.forEach(disposeMarker);
+    paintQueue.clear();
     markers = list;
     recomputeRects();
   }
@@ -308,16 +325,17 @@ function initSphereField(canvasEl) {
   function configureBody(marker) {
     if (marker.isStar) {
       sphere.material = starMaterial;
-      // marker.starTexture (see makeStarTexture) already bakes the
+      // the painted star texture (starpaint.js) already bakes the
       // star's own color into its granulation pattern -- tinting
       // starMaterial.color on top of that too would double-multiply it
       // (darker/oversaturated), so the material's own color resets to
       // white whenever a texture is doing the coloring instead. Falls
       // back to the old flat-tinted-sphere look only if the texture
       // somehow isn't there.
-      if (marker.starTexture) {
+      var starTexture = textureFor(marker, tierForDiameter(marker.diameterPx));
+      if (starTexture) {
         starMaterial.color.set(0xffffff);
-        starMaterial.map = marker.starTexture;
+        starMaterial.map = starTexture;
       } else {
         starMaterial.color.set(marker.color);
         starMaterial.map = null;
@@ -325,22 +343,23 @@ function initSphereField(canvasEl) {
       starMaterial.needsUpdate = true;
       ring.visible = false;
       // A star gets its own glow shell too, tinted to its own spectral
-      // color rather than `glowColorForTemp` -- a cheap "it's a light
+      // color rather than the planet rim's -- a cheap "it's a light
       // source" cue, not a real corona simulation. Bigger and brighter
-      // than a planet's own subtle atmosphere rim (STAR_GLOW_SCALE/
-      // _POWER/_STRENGTH vs. PLANET_*) -- it needs to read unmistakably
+      // than a planet's own subtle atmosphere rim (the marker's glowScale/
+      // glowStrength, from luminosity, vs. PLANET_*) -- it needs to read unmistakably
       // as "this is the light source", not just a faint haze.
       glow.visible = true;
-      glow.scale.setScalar(STAR_GLOW_SCALE);
+      glow.scale.setScalar(marker.glowScale);
       glowMaterial.uniforms.glowColor.value.set(marker.color);
       glowMaterial.uniforms.glowPower.value = STAR_GLOW_POWER;
-      glowMaterial.uniforms.glowStrength.value = STAR_GLOW_STRENGTH;
-      glowMaterial.uniforms.innerRatio.value = STAR_GLOW_INNER;
+      glowMaterial.uniforms.glowStrength.value = marker.glowStrength;
+      glowMaterial.uniforms.innerRatio.value = glowInnerRatio((GLOW_R * marker.glowScale) / SPHERE_R);
       return;
     }
     sphere.material = planetMaterial;
-    planetMaterial.map = marker.isGasGiant ? marker.bandTexture : null;
-    planetMaterial.color.set(marker.isGasGiant ? "#ffffff" : marker.color);
+    var painted = marker.isGasGiant ? null : textureFor(marker, tierForDiameter(marker.diameterPx));
+    planetMaterial.map = marker.isGasGiant ? marker.bandTexture : painted;
+    planetMaterial.color.set(marker.isGasGiant || painted ? "#ffffff" : marker.color);
     planetMaterial.needsUpdate = true;
 
     ring.visible = marker.isGasGiant;
@@ -372,6 +391,7 @@ function initSphereField(canvasEl) {
     if (!w || !h) {
       return;
     }
+    paintQueue.runOne();
     renderer.setScissorTest(false);
     renderer.setViewport(0, 0, w, h);
     renderer.clear();
@@ -414,9 +434,7 @@ var sphereField = spheresCanvas ? initSphereField(spheresCanvas) : null;
 // Builds `sphereField`'s marker list from whichever scene `<svg>` is now
 // visible -- every `.sysmap-body` (star/planet/moon; `.sysmap-belt` isn't
 // a sphere and is left alone) with its own `<circle class="sysmap-body-
-// fill">`, `data-color`/`data-bodytype`/`data-hasatmosphere`/`data-
-// surfacetemp` read the same way the old single-body preview read them
-// off the clicked marker. A gas giant's band/ring textures are built once
+// fill">` and its `data-look` record (planetgen/web/maps/bodylook.py). A gas giant's band/ring textures are built once
 // here (not per frame -- `renderFrame` only re-reads the cached texture),
 // and `sysmap-sphere-active` is added so `style.css` can drop that
 // marker's own flat circle fill/ring silhouette in favor of the sphere
@@ -435,23 +453,29 @@ function gatherSphereMarkers(sceneEl) {
     if (!circle) {
       continue;
     }
-    var isStar = el.dataset.kind === "star";
-    var isGasGiant = !isStar && el.dataset.bodytype === "Gas Giant";
+    var look = parseLook(el.dataset.look);
+    if (!look) {
+      continue;
+    }
+    var isStar = look.body === "star";
+    var isGasGiant = look.body === "gas";
     var marker = {
       circle: circle,
+      look: look,
       isStar: isStar,
       isGasGiant: isGasGiant,
-      color: el.dataset.color || "#8a8f9c",
-      hasAtmosphere: !isStar && el.dataset.hasatmosphere === "true",
-      glowColor: glowColorForTemp(parseSurfaceTempK(el.dataset.surfacetemp)),
+      paintable: look.body === "solid" || isStar,
+      glowScale: glowFor(look.lumSolar).scale,
+      glowStrength: glowFor(look.lumSolar).strength,
+      diameterPx: 0,
+      color: look.color,
+      hasAtmosphere: !!look.atm,
+      glowColor: look.glow || "#bcdfff",
       rotation: Math.random() * Math.PI * 2, // dephased so a scene's spheres don't all spin in lockstep
     };
     if (isGasGiant) {
       marker.bandTexture = makeBandTexture(marker.color);
       marker.ringTexture = makeRingTexture(marker.color);
-    }
-    if (isStar) {
-      marker.starTexture = makeStarSurfaceTexture(THREE, marker.color);
     }
     el.classList.add("sysmap-sphere-active");
     markers.push(marker);
@@ -479,7 +503,7 @@ function infoFields(el) {
   return [["Class", classField(el)], ["Type", d.bodytype], ["Radius", d.radius], ["Mass", d.mass], ["Zone", d.zone],
     ["Distance", d.distance], ["Period", d.period], ["Gravity", d.gravity], ["Atmosphere", d.atmosphere],
     ["Surface composition", d.composition], ["Surface temperature", d.surfacetemp],
-    ["Surface pressure", d.surfacepressure], ["Life Chemistry", d.life],
+    ["Surface pressure", d.surfacepressure], ["Life Chemistry", d.life], ["Colour", d.looknote],
     kind === "moon" ? ["Orbits", d.parent] : ["Moons", d.moons], ["Note", d.note]];
 }
 

@@ -127,10 +127,7 @@ setup(
         'numba>=0.68.0',
     ],
     extras_require={
-        # matplotlib/numpy are for tests/galaxy_shape_visualizer_cli.py
-        # alone (renders the density model as an actual image) -- no
-        # other test or application code touches either.
-        'test': ['pytest>=7.4.0', 'matplotlib>=3.8.0', 'numpy>=1.26.0',
+        'test': ['pytest>=7.4.0',
                  # tests/test_fuzz_*.py (property-based brute-force tests;
                  # see tests/fuzz_support.py).
                  'hypothesis>=6.100.0',

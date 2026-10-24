@@ -17,9 +17,8 @@ from planetgen.generation import run_galaxy
 from planetgen.physics.units import ly_to_pc, mpc_to_pc
 from planetgen.web.app import create_app
 from planetgen import tuning
-from planetgen.galaxy.density import build_galaxy_shape
 from tests.toy_shape import toy_shape
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SHAPE = toy_shape(

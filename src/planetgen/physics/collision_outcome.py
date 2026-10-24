@@ -57,6 +57,7 @@ import math
 from planetgen import tuning
 from planetgen.physics import constants
 from planetgen.physics import planets
+from planetgen.physics import relations
 from planetgen.physics import stellar_abundances
 
 KINDS = ("T", "G", "B", "S", "X")
@@ -163,7 +164,7 @@ def _norm(v):
 
 def escape_speed(m_total, r_sum):
     """The mutual escape speed at contact, m/s: `sqrt(2 G (M1 + M2) / (R1 + R2))`."""
-    return math.sqrt(2.0 * constants.G * m_total / r_sum)
+    return relations.escape_speed(m_total, r_sum)
 
 
 def catastrophic_energy(m_target, m_projectile):
@@ -243,8 +244,8 @@ def _fusion(survivor, z, parents, flags, records):
 
 def _roche(compact, body):
     factor = RIGID_ROCHE_FACTOR if body.kind == "T" else FLUID_ROCHE_FACTOR
-    rho_compact = compact.mass_kg / (4.0 / 3.0 * math.pi * compact.radius_m ** 3)
-    rho_body = body.mass_kg / (4.0 / 3.0 * math.pi * body.radius_m ** 3)
+    rho_compact = relations.mean_density(compact.mass_kg, compact.radius_m)
+    rho_body = relations.mean_density(body.mass_kg, body.radius_m)
     return factor * compact.radius_m * (rho_compact / rho_body) ** (1.0 / 3.0)
 
 

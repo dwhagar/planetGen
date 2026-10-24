@@ -24,7 +24,6 @@ dicts/tuples.
 
 Run with: pytest src/tests/test_starmap.py
 """
-import json
 import math
 import os
 import re

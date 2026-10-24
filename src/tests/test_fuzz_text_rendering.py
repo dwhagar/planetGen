@@ -105,7 +105,7 @@ def _assert_no_active_content(markup, allowed_tags, allowed_attrs, trusted_targe
 # ---------------------------------------------------------------------------
 
 _BLOCK_TAGS = {"p", "table", "caption", "thead", "tbody", "tr", "th", "td", "div", "span", "strong", "a", "sup"}
-_BLOCK_ATTRS = {"class", "tabindex", "scope", "href", "data-q", "data-si", "data-nc"}
+_BLOCK_ATTRS = {"class", "tabindex", "scope", "href", "data-q", "data-si", "data-nc", "data-colour"}
 
 
 def _hostile_document(text):
@@ -439,4 +439,6 @@ def test_the_split_system_description_with_hostile_names_is_inert(mysql_config):
                                            for t in sections[key].values()]
         assert all(chunks)
         for chunk in chunks:
-            _assert_no_active_content(blocks_html(chunk, lambda ref: f"#{ref}"), _BLOCK_TAGS, _BLOCK_ATTRS)
+            parsed = _assert_no_active_content(blocks_html(chunk, lambda ref: f"#{ref}"), _BLOCK_TAGS, _BLOCK_ATTRS)
+            for _tag, attrs in parsed.tags:        # a swatch's colour is a hex colour, nothing else (GEN.420)
+                assert re.fullmatch(r"#[0-9a-f]{6}", attrs["data-colour"]) if "data-colour" in attrs else True

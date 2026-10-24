@@ -127,7 +127,7 @@ Counts per local sector use a 64 pc^3 cell with 8 stars [S: `interstellar-object
 |---|---|---|---|---|---|---|---|
 | Rogue planet, six mass bins | built | 5.6 terrestrial per star, giants 0.028 [S] | about 58 per local sector | a moon with probability 0.2 | none | per star | F |
 | Rogue brown dwarf | built | 0.03 pc^-3 [S] | built | none | none | per star | F |
-| Interstellar comet | built | 1e12 pc^-3 real, 0.007 pc^-3 kept as rows [S] | rows plus a computed count | none | none | per star | F |
+| Interstellar comet | built | 1e15 pc^-3 real, 0.007 pc^-3 kept as rows [S] | rows plus a computed count | none | none | per star | F |
 | Asteroid field | built, rate 0 | disperses in 1e6 to 1e7 yr [S] | hand-made only | none | none | none | hand-made |
 | Debris belt in a system | built | all stars with planets | in the planet draw | n/a | n/a | the star | F |
 | Debris disk around A and F stars | filed GEN.245 | about 20% of A and Sun-like stars [R] | none | n/a (a descriptor) | dust radius and mass | intermediate | F |

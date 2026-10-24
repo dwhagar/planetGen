@@ -18,7 +18,6 @@ def test_every_live_neighbor_is_linked_even_when_the_stored_name_is_stale():
     # The stored string names "Alpha Vesta", but that system was saved as
     # "Alpha Vesta II" (name uniqueness) -- the live neighbor list still
     # links it, under its real name.
-    location = "Voranthis Kelmoor -- nearest: Alpha Vesta (4.2 ly), Beta (5.1 ly)"
     neighbors = [
         {"id": 7, "name": "Alpha Vesta II", "distance_ly": 4.21},
         {"id": 9, "name": "Beta", "distance_ly": 5.08},

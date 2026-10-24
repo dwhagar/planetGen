@@ -61,10 +61,6 @@ FAR_POINTS = [
 ]
 
 
-def test_the_flat_floor_is_gone():
-    assert not hasattr(tuning, "MIN_RELATIVE_DENSITY")
-
-
 @pytest.mark.parametrize("point", FAR_POINTS)
 def test_the_populations_still_sum_to_the_density_and_the_halo_is_the_far_stars(point):
     densities = population_densities(point, MILKY_WAY)

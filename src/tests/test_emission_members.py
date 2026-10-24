@@ -7,7 +7,6 @@ points in a Plummer sphere of half-mass radius 1 pc (D) or 2 pc (E) clipped to t
 star's point alone, so every sector that reaches a region builds the same members and each builds those in its cube.
 """
 
-import collections
 import math
 import types
 
@@ -139,7 +138,6 @@ def test_each_sector_builds_only_the_members_inside_it_and_together_they_make_ev
     built = []
     wanted = 0
     for k in range(3):
-        local = (0.0, 0.0, 0.0)           # the seed star sits on the plane x = 0 of the sector frame
         from planetgen.galaxy.frame import local_to_galaxy_pc
         point = local_to_galaxy_pc(centre_pc, tuple(ly_to_pc(v) for v in (0.001 * k, 0.0, 0.0)))
         wanted += len(nebula_contents.emission_members(SEED, nebula, "O5V", point))
