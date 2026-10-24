@@ -180,7 +180,9 @@ _BODY_GROUPS = (
            ("l_solv", "Solvent suitability"), ("l_chem", "Chemistry suitability"), ("l_ener", "Energy suitability"),
            ("l_rad", "Radiation tolerance")),
     *_rows("radiogenic", ("c_k0_ppm", "Potassium at formation"), ("c_th0_ppm", "Thorium at formation"),
-           ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 ratio"), ("urey_ratio", "Urey ratio")),
+           ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 ratio"), ("urey_ratio", "Urey ratio"),
+           ("internal_heat_flux_w_m2", "Heat flowing out of the interior"), ("mantle_eta0_pa_s", "Mantle viscosity prefactor"),
+           ("mantle_activation_kj_mol", "Mantle viscosity activation energy")),
 )
 
 _PLANET = _MOON = _BODY_GROUPS
