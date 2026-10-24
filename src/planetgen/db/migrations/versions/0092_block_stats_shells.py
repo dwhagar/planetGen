@@ -3,6 +3,9 @@
 Schema v92. 0091 dropped the table of the cylinder ladder; this makes it again, keyed by the block's shell, band and
 wedge (`galaxy/drill.py`, docs/design/galaxy/spherical-block-ladder.md), and fills it from the sectors and their stats the
 galaxy already holds, a shell at a time. Skipped when the table is there, so a stopped run can be started again.
+
+`m` is INT UNSIGNED, not the SMALLINT UNSIGNED it was made as: the rows are filled by the current ladder, whose root is
+177,147 shells (MAP.258, migration 0146 widens a table made earlier).
 """
 
 import sqlalchemy as sa
@@ -27,7 +30,7 @@ def upgrade():
         return
     op.execute("""
         CREATE TABLE galaxy_block_stats (
-            m                 SMALLINT UNSIGNED NOT NULL,
+            m                 INT UNSIGNED NOT NULL,
             shell_index       INT NOT NULL,
             band_index        INT NOT NULL,
             wedge_index       INT NOT NULL,

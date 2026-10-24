@@ -29,8 +29,8 @@ import numpy as np
 from planetgen import tuning
 from planetgen.galaxy import drill
 
-LEVELS = drill.DRILL_LEVELS[:-1]
-"""tuple: The levels kept: every block size above a sector."""
+LEVELS = drill.STAGE_LEVELS[:-1]
+"""tuple: The levels kept: every stage block size above a sector (`drill.STAGE_LEVELS`; the map's nodes above them hold no nebula cover yet)."""
 
 FAMILIES = ("diffuse", "emission", "reflection", "planetary", "dark", "supernova-remnant")
 """tuple: The nebula families, in the order of the table's family columns."""
@@ -202,7 +202,7 @@ def roll_up(fine):
     for key, volume in fine.items():
         block = drill.DrillBlock(drill.DRILL_STEP, *unpack(key))
         while True:
-            block = drill.drill_parent(block)
+            block = drill.stage_parent(block)
             if block is None:
                 break
             parents = result[block.m]

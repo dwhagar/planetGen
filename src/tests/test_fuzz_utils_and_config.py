@@ -306,24 +306,6 @@ def test_reflex_offset_is_a_sum_of_two_body_terms(parent, children):
     assert orbits.calculate_reflex_offset(parent, []) == (0.0, 0.0, 0.0)
 
 
-@given(radius=st.floats(0, 1e6), density=st.floats(0, 100))
-def test_calculate_object_mass_with_given_density(radius, density):
-    volume, mass = planet_physics.calculate_object_mass("M", radius, {}, {}, object_density=density)
-    assert _close(volume, 4 / 3 * math.pi * radius ** 3)
-    assert _close(mass, volume * physical_constants.KM_TO_M_FACTOR ** 3 * density * 1000)
-    assert mass >= 0
-
-
-@pytest.mark.parametrize("planet_class", sorted(tuning.PLANET_CLASSES))
-def test_calculate_object_mass_random_density_within_class_range(planet_class):
-    kind = tuning.PLANET_CLASSES[planet_class]["type"]
-    lo, hi = physical_constants.PLANET_DENSITY[kind]
-    volume, mass = planet_physics.calculate_object_mass(planet_class, 1000.0, tuning.PLANET_CLASSES,
-                                               physical_constants.PLANET_DENSITY)
-    density = mass / (volume * physical_constants.KM_TO_M_FACTOR ** 3 * 1000)
-    assert lo - 1e-9 <= density <= hi + 1e-9
-
-
 @given(letter=st.characters(), yerkes=st.sampled_from(["V", "III", "Ia", "VII", "IV", "sd", ""]),
        age=st.floats(0, 20), lifespan=st.one_of(st.just(math.inf), st.floats(0, 1e4)),
        proxy=st.booleans())
@@ -773,8 +755,6 @@ def test_probability_tables_are_well_formed():
         weights = getattr(pg, name)
         assert weights and all(w >= 0 for w in weights.values()), name
         assert sum(weights.values()) > 0, name
-    for letter, chance in pg.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.items():
-        assert 0 <= chance <= 1, letter
     assert 0 <= pg.WIDE_BINARY_ECCENTRICITY_MAX < 1
     assert all(len(values) == len(pg.COMPANION_LOG_PERIODS_DAYS) and all(v > 0 for v in values)
                for _mass, values in pg.COMPANIONS_PER_DECADE_BY_PRIMARY_MASS)
@@ -791,7 +771,6 @@ def test_lookup_tables_reference_each_other_consistently():
         assert set(table) == spectral
     assert set(pg.SPECTRAL_PROBABILITIES_NORMAL) <= spectral
     assert set(pg.SPECTRAL_PROBABILITIES_LARGE_STAR) <= spectral
-    assert {key[0] for key in pg.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS} <= spectral
     for scale in ("fast", "normal", "slow"):
         assert pg.EVOLUTIONARY_TIMELINES[scale]["technological_civilization"] > 0
     fast, normal, slow = (pg.EVOLUTIONARY_TIMELINES[s]["technological_civilization"] for s in ("fast", "normal", "slow"))

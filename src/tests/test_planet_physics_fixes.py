@@ -111,52 +111,6 @@ def test_small_rogue_gas_giants_are_smaller_than_large_ones():
     assert small / pc.EARTH_RADIUS_KM == pytest.approx(3.9, rel=0.15)
 
 
-def test_density_range_override_skips_the_blend(monkeypatch, host_star):
-    """
-    A class declaring its own density_range should use that draw as
-    planet.density directly -- no core/envelope blend -- since a class
-    whose density is set this deliberately (e.g. a brown-dwarf-like object,
-    which doesn't have a meaningfully separate light envelope over a denser
-    core the way an ordinary gas giant does) shouldn't have that value
-    diluted back down by blending toward a light "puffy" envelope value
-    (see generate_planet_properties' `"density_range" not in class_data`
-    guard). No current class declares density_range (it's generic,
-    reusable override infrastructure -- the same `.get(..., default)`
-    pattern every other per-class override in PLANET_CLASSES uses), so this
-    test injects one onto an existing gas-giant class for the duration of
-    the test rather than depending on a specific class having it.
-    """
-    gas_giant_class = GAS_GIANT_CLASS
-    zone = GAS_GIANT_ZONE
-    density_range = (42.0, 42.0)
-    patched_class_data = dict(prog_c.PLANET_CLASSES[gas_giant_class])
-    patched_class_data["density_range"] = density_range
-    monkeypatch.setitem(prog_c.PLANET_CLASSES, gas_giant_class, patched_class_data)
-
-    core_density_gcm3 = 42.0  # within the injected density_range above
-
-    queued = [core_density_gcm3]
-    real_uniform = planets.draw.uniform
-
-    def fake_uniform(a, b):
-        if queued:
-            return queued.pop(0)
-        return real_uniform(a, b)
-
-    monkeypatch.setattr(planets.draw, "uniform", fake_uniform)
-
-    cfg = SystemConfig()
-    distance = plausibility.distance_for_zone(host_star, zone)
-    radius = sum(prog_c.PLANET_CLASSES[gas_giant_class]["radius_range"]) / 2
-    planet = Planet(
-        cfg, host_star, host_star.habitable_zone, distance,
-        planet_class=gas_giant_class, radius=radius, zone_override=zone,
-        moon_count=0,
-    )
-
-    assert planet.density == pytest.approx(core_density_gcm3, rel=1e-9)
-
-
 def test_gas_giant_sampled_gravity_is_within_theoretical_bounds():
     """Statistical check across a real generation sample: every gas giant's
     density is finite and positive and its gravity sits inside

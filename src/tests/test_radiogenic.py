@@ -199,7 +199,7 @@ def test_every_generated_body_stores_one_set_of_concentrations_that_its_heat_and
             from planetgen.physics import planets as planet_physics
             age = body.star.age
             assert planet_physics.internal_heat_flux_w_m2(body) == pytest.approx(
-                radiogenic.heat_flow_w_m2(content, body.mass, body.radius, age))
+                radiogenic.heat_flow_w_m2(content, body.mass, body.radius, age, *radiogenic.rock_inputs(body)))
             assert body.dose_ground_msv_yr > 0
     assert seen > 8
 
@@ -247,3 +247,17 @@ def test_a_stored_body_reads_back_its_content(mysql_config):
             assert row["urey_ratio"] == pytest.approx(body.urey_ratio)
     finally:
         conn.close()
+
+
+def test_a_rocky_body_heats_with_its_own_rock_share_and_aluminium():
+    """GEN.428: the rock share and the Al2O3 of the body's drawn composition replace the Earth's stand-ins."""
+    from types import SimpleNamespace
+    body = SimpleNamespace(metal_mass_fraction=0.3, rock_mass_fraction=0.7, water_mass_fraction=0.0, ice_mass_fraction=0.0,
+                           envelope_mass_fraction=0.0, rock_feo_fraction=0.08, rock_al2o3_fraction=0.09, rock_mg_si_ratio=1.2,
+                           envelope_helium_fraction=None, envelope_z_fraction=None, porosity=None, carbon_rock=False,
+                           composition_origin="drawn")
+    silicate, aluminium = radiogenic.rock_inputs(body)
+    assert silicate == pytest.approx(0.7)
+    assert aluminium == pytest.approx(2 * radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
+    body.metal_mass_fraction = None  # saved before GEN.428: no composition, the Earth's stand-ins
+    assert radiogenic.rock_inputs(body) == (None, radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)

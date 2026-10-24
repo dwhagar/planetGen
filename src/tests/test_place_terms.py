@@ -166,26 +166,20 @@ def test_terms_from_a_profile_read_its_density_and_the_weighted_dispersion():
     assert place_terms.from_profile(empty).dispersion_kms == tuning.SOLAR_NEIGHBOURHOOD_DISPERSION_KMS
 
 
-# --- StarSystem._companion --------------------------------------------------------------------------------------------
+# --- The tree of stars a StarSystem draws --------------------------------------------------------------------------------------------
 
-def _system(letter="G", fe_h=0.0, terms=None, age_gy=5.0, mass_sol=1.0, **flags):
-    system = object.__new__(StarSystem)
-    config = SystemConfig()
-    config.PLACE_TERMS = terms
-    for name, value in flags.items():
-        setattr(config, name, value)
-    system.system_config = config
-    system.primary_star = SimpleNamespace(type=letter + "2V", metallicity_fe_h=fe_h, age=age_gy,
-                                          initial_mass_sol=mass_sol, mass=mass_sol * 1.98841e30)
-    return system
-
-
-def _kinds(system, n=3000, seed=11):
-    counts = {"close": 0, "wide": 0, None: 0}
+def _systems(terms=None, count=150, seed=11, **flags):
+    """`count` real systems (no planets) of a place's `terms` and the config `flags`."""
+    systems = []
     with draw.bound(seed):
-        for _ in range(n):
-            counts[system._companion()[0]] += 1
-    return {kind: count / n for kind, count in counts.items()}
+        for _ in range(count):
+            config = SystemConfig()
+            config.PLANETS = False
+            config.PLACE_TERMS = terms
+            for name, value in flags.items():
+                setattr(config, name, value)
+            systems.append(StarSystem(system_config=config))
+    return systems
 
 
 @pytest.mark.parametrize("fe_h", [-3.0, -1.0, -0.2, 0.5])
@@ -227,18 +221,26 @@ def test_the_chances_never_pass_one_and_a_massive_star_changes_by_the_odds_not_t
     assert m_low > 2 * m_high
 
 
+def _widest_limit(terms, system, ratio):
+    """The widest axis the place keeps for any star of `system` as the placed one (the heavier companion may take the primary's
+    place, the limit was drawn for the star placed)."""
+    return max(place_terms.wide_axis_limit_au(
+        terms, (star.initial_mass_sol or star.mass / 1.98841e30) * ratio, system.primary_star.age) for star in system.stars)
+
+
 def test_a_place_that_keeps_no_wide_pair_loses_it_from_the_chances():
     dense = place_terms.PlaceTerms(660.0, 120.0)       # the limit is under 5 AU: the 0.25 AU edge is all that is left
     here = companion_classes.odds(1.0, 0.44, 0.0, 0.1)
     assert here.wide == 0.0 and here.close < 0.44      # nothing above 0.25 AU, and the lost chances are lost
     assert here.close == pytest.approx(companion_classes.odds(1.0, 0.44, 0.0, 11_400.0).close)
-    shares = _kinds(_system(terms=dense))
-    assert shares["wide"] < 0.15
-    # A forced companion there is a close one; a pair forced wide is wide all the same.
-    with draw.bound(3):
-        assert {_system(terms=place_terms.PlaceTerms(60_000.0, 150.0), BINARY_SYSTEM=True)._companion()[0]
-                for _ in range(200)} == {"close"}
-        assert {_system(terms=dense, WIDE_BINARY=True, BINARY_SYSTEM=True)._companion()[0] for _ in range(20)} == {"wide"}
+    # The tree of stars keeps no axis the place cannot (GEN.631): a dense place has a pair or none, and no wide one beyond.
+    pairs = [system for system in _systems(terms=dense, count=400) if system.binary_type == "wide"]
+    ratio = 1.0 + sum(tuning.BINARY_MASS_RATIO_RANGE) / 2.0
+    assert all(system.wide_binary.separation_au <= _widest_limit(dense, system, ratio) for system in pairs)
+    # A forced companion in a place that keeps little still keeps the place's limit.
+    crowded = place_terms.PlaceTerms(60_000.0, 150.0)
+    forced = [system for system in _systems(terms=crowded, BINARY_SYSTEM=True, count=60) if system.binary_type == "wide"]
+    assert all(system.wide_binary.separation_au <= _widest_limit(crowded, system, ratio) for system in forced)
 
 
 def test_the_ranges_of_separation_share_the_companions_by_moe_and_di_stefanos_lines():
@@ -251,8 +253,7 @@ def test_the_ranges_of_separation_share_the_companions_by_moe_and_di_stefanos_li
 
 
 def test_the_binary_flags_still_force_the_outcome():
-    with draw.bound(5):
-        assert _system(BINARY_SYSTEM=False)._companion() == (None, None, None)
-        for _ in range(50):
-            kind, ratio, _reason = _system(BINARY_SYSTEM=True, WIDE_BINARY=False)._companion()
-            assert kind == "close" and tuning.BINARY_MASS_RATIO_RANGE[0] <= ratio <= tuning.BINARY_MASS_RATIO_RANGE[1]
+    assert {len(system.stars) for system in _systems(BINARY_SYSTEM=False, count=30)} == {1}
+    forced = _systems(BINARY_SYSTEM=True, WIDE_BINARY=False, count=30)
+    assert {system.binary_type for system in forced} <= {"close", None}    # none: a star with no lighter star to pair with
+    assert any(system.binary_type == "close" for system in forced)

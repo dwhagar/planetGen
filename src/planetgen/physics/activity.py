@@ -33,7 +33,7 @@ sections 2.1 to 2.4; every rate here is a design default good to about
 
 import math
 
-from planetgen.physics import constants, unit_registry as units
+from planetgen.physics import constants, stellar_spectrum, unit_registry as units
 from planetgen.util import draw
 
 _au_to_m = units.converter("au", "m")
@@ -46,7 +46,7 @@ _gyr_to_s = units.converter("Gyr", "s")
 
 STAR_ACTIVITY_UNITS = {
     "log_lx_lbol": "dex", "l_xuv_w": "W", "xuv_saturated": "flag", "flare_n33_per_yr": "1/yr", "flare_alpha": "ratio",
-    "xuv_fluence_j": "J", "lethal_event_rate_per_gyr": "1/Gy",
+    "xuv_fluence_j": "J", "lethal_event_rate_per_gyr": "1/Gy", "uv_c_share": "ratio",
 }
 """dict: What `generate_activity` sets on a star, as stored in `stars`, with each attribute's native unit."""
 
@@ -281,6 +281,8 @@ def generate_activity(star):
     """Sets `STAR_ACTIVITY_FIELDS` on an ordinary star (main sequence,
     subgiant, subdwarf, giant or white dwarf)."""
     set_galactic_hazard(star)
+    # GEN.443: the UV-C share of the blackbody (R17), from the star's own stream so no draw of the run's moves.
+    star.uv_c_share = stellar_spectrum.draw_uv_c_share(draw.Stream(f"uv_c_share:{star.mass!r}:{star.age!r}:{star.temperature!r}"))
     mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
     luminosity = star.luminosity or 0.0
     age = max(star.age or 0.0, 1e-4)
@@ -317,6 +319,7 @@ def _set_remnant(star, l_xuv_w, age_gy):
     star.xuv_saturated = False
     star.flare_n33_per_yr = 0.0
     star.flare_alpha = None
+    star.uv_c_share = None
     star.l_xuv_w = l_xuv_w
     star.xuv_fluence_j = _yr_to_s(_gyr_to_yr(l_xuv_w * age_gy))
 

@@ -14,8 +14,8 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 const {
-  DEFAULT_WINDOW, DRILL_LEVELS, WINDOW_WIDTHS, bandRange, bandColatitudeBounds, boundsContain, cellAt, cellCenter, cellExists,
-  cellPositionPc, drillBandCount, drillBlockBounds, drillBlockHolds, drillBlockTotal, drillChainOf, drillParent,
+  DEFAULT_WINDOW, STAGE_TOP, WINDOW_WIDTHS, bandRange, bandColatitudeBounds, boundsContain, cellAt, cellCenter, cellExists,
+  cellPositionPc, drillBandCount, drillBlockBounds, drillBlockHolds, drillBlockTotal, stageChainOf, drillParent, stageParent,
   drillWedgeCount, formatDrillKey, galaxyOutline, isBlock, outlineHigh, parseSectorDesignation, sameBlock,
   REACH_OUTLINE, sectorAddressAt, sectorDesignation, sectorInOutline, wedgeCount, windowCells,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
@@ -127,7 +127,7 @@ export function galaxyBlocks(outline, edgePc) {
   let blocks = galaxyCache.get(outline);
   if (!blocks) {
     blocks = [];
-    const top = DRILL_LEVELS[0];
+    const top = STAGE_TOP;
     for (let shell = 0; shell <= Math.floor(outline.outerShell / top); shell++) {
       blockRows(shell, top, outline).forEach(function (band) {
         const wedges = drillWedgeCount(top, shell, band);
@@ -246,7 +246,7 @@ export function stageSteps(stage, outline, edgePc) {
   const steps = [resolveStage(galaxyStage(), outline, edgePc)];
   if (!stage.win) return steps;
   const chain = [];
-  for (let centre = stage.win.centre; centre; centre = drillParent(centre)) chain.push(centre);
+  for (let centre = stage.win.centre; centre; centre = stageParent(centre)) chain.push(centre);
   chain.reverse().forEach(function (centre) {
     const next = resolveStage(windowStage(centre, stage.win.g), outline, edgePc);
     if (!next.problem) steps.push(next);
@@ -292,8 +292,8 @@ export function courseStage(sectors, outline, edgePc) {
     for (let k = 0; k < 3; k++) middle[k] += p[k] / stops.length;
   });
   const at = sectorAddressAt(middle[0], middle[1], middle[2], edgePc);
-  const around = drillChainOf(at.shell, at.band, at.wedge).reverse();
-  const chains = stops.map(function (s) { return drillChainOf(s.shell, s.band, s.wedge).reverse(); });
+  const around = stageChainOf(at.shell, at.band, at.wedge).reverse();
+  const chains = stops.map(function (s) { return stageChainOf(s.shell, s.band, s.wedge).reverse(); });
   for (let level = 0; level < around.length; level++) {
     const wanted = new Set(windowCells(around[level], edgePc, DEFAULT_WINDOW).map(formatDrillKey));
     if (chains.every(function (chain) { return wanted.has(formatDrillKey(chain[level])); })) {

@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 4:32 AM EDT 2026-10-24: 869 of 1269 items finished (68.5 percent), 400 open, 30 dropped (TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 115, phase 2 40, phase 3 25, phase 4 13, phase 5 81, phase 6 27, phase 7 24, phase 8 4, phase 9 28, phase 10 2, phase 11 31, phase 12 10 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 5:46 AM EDT 2026-10-24: 877 of 1275 items finished (68.8 percent), 398 open, 30 dropped (TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 115, phase 2 40, phase 3 24, phase 4 13, phase 5 81, phase 6 26, phase 7 24, phase 8 4, phase 9 28, phase 10 2, phase 11 31, phase 12 10 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -110,9 +110,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) |  | Lane 2 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) |  | Flake, fix the cause |
-| TEST.313 | test_systems.py test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] is a random flake: about 2 in 12 runs the belt is missing (bug) |  | Class lane finding 11:58 PM EDT 2026-10-23. |
 | TEST.324 | test_web_header_menus top-bar [1280x720-light] times out under load (bug) |  | Core 5 finding. |
 | TEST.323 | test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug) |  | Core 5 finding. |
+| TEST.330 | test_web_formulas::test_no_page_shows_a_formula_that_is_not_written_out fails on (/classes/habitability, CO2) (bug) |  |  |
 | TEST.328 | Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists |  |  |
 | TEST.329 | test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug) |  |  |
 | TEST.321 | test_web_browser_tables: the jump box test flakes under load (bug) |  | Lane finding. |
@@ -200,9 +200,9 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:45 PM EDT; Core 2 profiles first. |
-| MAP.258 | N1: the sector-block ladder above 243 sectors and drillChildren in JavaScript |  |  |
-| MAP.259 | N2: node aggregates for the pre-placed bright stars and scattered phenomena | MAP.258 |  |
-| MAP.260 | N3: node read and cache: GET /galaxy/nodes, the node cache, the change feed and the warm-up | MAP.258, MAP.259 |  |
+| MAP.259 | N2: node aggregates for the pre-placed bright stars and scattered phenomena |  |  |
+| MAP.289 | The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug) |  |  |
+| MAP.260 | N3: node read and cache: GET /galaxy/nodes, the node cache, the change feed and the warm-up | MAP.259 |  |
 | MAP.261 | N4: the node cut on the page: galaxynodecut.js replaces the tile cut | MAP.260 |  |
 | MAP.262 | N5: retire the cube tiles | MAP.261 |  |
 | MAP.265 | S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick |  |  |
@@ -212,7 +212,7 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.286 | Supernova remnant shells drawn by age on the maps |  | Body rendering follow-up (R9a rest); lane report. |
 | MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | MAP.261 |  |
 | MAP.268 | S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales | MAP.265 |  |
-| MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.265, MAP.266, MAP.267, MAP.268 |  |
+| MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | MAP.259, MAP.260, MAP.261, MAP.262, MAP.265, MAP.266, MAP.267, MAP.268 |  |
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") |  | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
@@ -270,16 +270,15 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | GEN.593 | Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets |  |  |
 | GEN.263 | Promote every bound compact pair to the scatter, whatever its mass |  | Multi-star systems at scatter time, Boss 2026-10-15. Step 4. Core. |
 | GEN.315 | A fill builds a system from its stored members and nodes; the system pass keeps only planets, moons, belts and disks |  | Split from GEN.264. |
-| GEN.631 | GEN.316 part (b), narrowed: stages D and G draw their members from draw_member_tree, trees of 3 or more stars build as member stars, and the old companion draw and the two-star probability table are deleted |  | Core 3; takes an epoch at merge |
-| ADM.128 | The admin one-off system page and the API schema offer the star count and the cap (stars and max_stars) | GEN.631 |  |
-| GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | GEN.315, GEN.631, GEN.332, GEN.640 | Split from GEN.264. |
+| ADM.128 | The admin one-off system page and the API schema offer the star count and the cap (stars and max_stars) |  |  |
+| GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | GEN.315, GEN.332, GEN.640 | Split from GEN.264. |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.315, GEN.316 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows |  | Core 4, 10:20 PM EDT 2026-10-23; no epoch until a law changes. |
 | GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 15. Core. |
 | GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
 | GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected |  | Split from GEN.273. |
 | GEN.331 | Substellar companions: brown-dwarf close (the desert) and wide companions, brown-dwarf pairs and planetary-mass companions |  | Split from GEN.275. |
-| GEN.332 | Circumbinary and S-type planets, circumbinary disks and rogue planet pairs at fill | GEN.315, GEN.631 | Split from GEN.275. |
+| GEN.332 | Circumbinary and S-type planets, circumbinary disks and rogue planet pairs at fill | GEN.315 | Split from GEN.275. |
 | GEN.640 | GEN.316 part (c): delete BinaryStarProxy, WideBinaryPair and the writers of the binary_* columns, once circumbinary and S-type planets come from the tree | GEN.332 | Split from GEN.631. |
 | GEN.275 | Substellar and circumbinary types: brown-dwarf and planetary-mass companions, circumbinary disks and planets | GEN.331, GEN.332 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 19. Core. |
 
@@ -384,10 +383,12 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 | UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) |  | Boss run log; generation-log lane. |
 | MAP.220 | Markers for habitable worlds and chosen classes, optional per kind |  | Split from MAP.132. |
 | GEN.639 | The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1) |  | From Blocker 3's report of GEN.146 (#2685). |
-| GEN.643 | Habitable means PHI-6 overall Blue or Green: one rule, one function, read by the sector counts, the markers, the lists, the search and the descriptions |  |  |
 | GEN.691 | The Suitability sentence says "no food readily available, but there is water and shelter available" while the Water row is Red and "undrinkable without heavy treatment" (bug) |  | Boss page paste 12:11 AM EDT 2026-10-24. |
 | GEN.649 | The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed |  |  |
 | GEN.701 | Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields | GEN.649 |  |
+| GEN.706 | Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug) |  |  |
+| GEN.705 | The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug) |  |  |
+| GEN.704 | Moons of a moved planet keep the dose, solar particle exposure, UV and habitability of their old distance from the star (bug) |  |  |
 | GEN.702 | Some equipment items sit in the wrong habitability row: self-contained air under a Blue Air row on cold worlds, and a hardened pressure suit under Radiation while the Pressure row names no gear (bug) |  |  |
 | GEN.700 | Tidal heating of moons counts in the energy term of the habitability score: keep the tidal flux on the moon and add it to the heat flow |  |  |
 | GEN.653 | Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life | GEN.649 |  |
@@ -396,8 +397,8 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 | DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | GEN.654 |  |
 | DB.91 | Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech | GEN.649 |  |
 | UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes | DB.91, GEN.649 |  |
-| GEN.644 | Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree | GEN.643 |  |
-| GEN.645 | Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91 | GEN.644, GEN.643 |  |
+| GEN.644 | Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree |  |  |
+| GEN.645 | Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91 | GEN.644 |  |
 | GEN.650 | Design: the planet mass law once the class no longer supplies the mass: the isolation mass at the formation distance, the snow line and the host, replacing the class mass ranges of decision 28 (design note, prerequisite of GEN.646) | GEN.645 |  |
 | DOC.75 | Help and docs text for the whole habitability system: the score, the symbols, the lists, the sector colouring and the map markers | MAP.220, GEN.639 |  |
 | DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document | GEN.649, UX.152 |  |
@@ -416,17 +417,15 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | GEN.651 | Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag | GEN.553 |  |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes |  |  |
 | GEN.557 | Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion | GEN.553, GEN.565 |  |
-| GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text |  | Boss 11:49 PM EDT; generator epoch bump. Core 4 proposed. |
-| GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation | GEN.428 | Boss 11:49 PM EDT; the atmosphere chain reads this gravity. Core 4 proposed. |
 | GEN.452 | The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug) |  | Atmosphere research lane finding 1 (part 01 section 7); generator epoch bump. Core 4 proposed. |
-| GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | GEN.429, GEN.452 | Boss 11:24 PM EDT; generator epoch bump. Core 4 proposed (Boss, 11:41 PM EDT). |
-| GEN.461 | The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug) | GEN.428, GEN.429 | Body composition research lane finding F4, cluster 8 (parts C, D, E); generator epoch bump. Core 4 proposed. |
+| GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | GEN.452 | Boss 11:24 PM EDT; generator epoch bump. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.461 | The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug) |  | Body composition research lane finding F4, cluster 8 (parts C, D, E); generator epoch bump. Core 4 proposed. |
 | GEN.699 | Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9 | GEN.461 |  |
 | GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | GEN.411 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
-| GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air | GEN.428, GEN.429, GEN.461 | Boss 11:58 PM EDT; the ground's composition; generator epoch bump. |
-| GEN.443 | Atmospheric radiation: transmission by band and the greenhouse effect from the stored mixture, the aerosols and the cloud |  | Boss 11:58 PM EDT; band transmission and greenhouse from the mixture. |
-| GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content | GEN.443, GEN.441 | Boss 11:58 PM EDT; replaces the proxies of physics/radiation.py; generator epoch bump. |
+| GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air | GEN.461 | Boss 11:58 PM EDT; the ground's composition; generator epoch bump. |
+| GEN.444 | Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content | GEN.441 | Boss 11:58 PM EDT; replaces the proxies of physics/radiation.py; generator epoch bump. |
 | GEN.445 | Habitability, toxicity and the UV index read the derived radiation instead of the proxies | GEN.444 | Boss 11:58 PM EDT; habitability reads the derived values. |
+| GEN.703 | The greenhouse optical depth (tau0) comes from the stored mixture and the band opacities, replacing the per-gas strengths |  |  |
 
 ### Docs
 
@@ -511,11 +510,10 @@ Moved into 8.1 from 8.4 phase 1 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.555 | The pair builder for any masses: planet pairs, brown dwarf pairs and a planet with its moons share one stability test | GEN.315, GEN.331, GEN.332, GEN.581 |  |
 | GEN.554 | Remnant counts follow from the mass function and the star formation history, with a kick step, and Boss's research densities become test targets | GEN.553 |  |
 | GEN.550 | Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system |  |  |
-| GEN.460 | Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug) | GEN.428 | Body composition research lane finding F7, cluster 6 (parts A and C); generator epoch bump. Core 4 proposed. |
-| GEN.642 | Giants, ice giants and brown dwarfs get a full interior composition: the molecular envelope, the liquid and metallic hydrogen and helium layers, the dilute zone, and a rocky, iron or icy core with its own composition, drawn and described | GEN.460, GEN.428, GEN.429 |  |
+| GEN.460 | Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug) |  | Body composition research lane finding F7, cluster 6 (parts A and C); generator epoch bump. Core 4 proposed. |
+| GEN.642 | Giants, ice giants and brown dwarfs get a full interior composition: the molecular envelope, the liquid and metallic hydrogen and helium layers, the dilute zone, and a rocky, iron or icy core with its own composition, drawn and described | GEN.460 |  |
 | DB.89 | Giants store their interior layers: the layer boundaries, the helium share per layer, the core flag, core mass and core composition | GEN.642 |  |
-| DB.69 | Planets and moons store the composition fractions | GEN.429, GEN.460 | Boss 11:49 PM EDT; migration revision after DB.67. Core 4 proposed. |
-| GEN.430 | The planet and moon descriptions state the composition from the stored fractions | GEN.428, GEN.429 | Boss 11:49 PM EDT; the description side. Core 4 proposed. |
+| GEN.430 | The planet and moon descriptions state the composition from the stored fractions |  | Boss 11:49 PM EDT; the description side. Core 4 proposed. |
 
 ### Albedo and greenhouse records
 
@@ -537,9 +535,9 @@ Moved into 8.1 from 8.4 phase 2 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line | GEN.428, GEN.429 | Boss 11:58 PM EDT; small bodies; generator epoch bump. |
+| GEN.442 | Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line |  | Boss 11:58 PM EDT; small bodies; generator epoch bump. |
 | GEN.660 | The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug) |  | Found by lane K, 8:21 PM EDT 2026-10-23. |
-| GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age | GEN.428, GEN.429, GEN.442 | Body composition research lane part D sections 2.8 to 2.11; generator epoch bump. Core 4 proposed. |
+| GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age | GEN.442 | Body composition research lane part D sections 2.8 to 2.11; generator epoch bump. Core 4 proposed. |
 | GEN.559 | Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity | GEN.557, GEN.442 |  |
 | GEN.558 | Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone | GEN.556, GEN.557, GEN.466 |  |
 | GEN.556 | `populate(host)`: planets, belts, comets and moons come from the class tables by one recursive routine, and the system pass is absorbed | GEN.315, GEN.555, GEN.565, GEN.581 |  |
@@ -607,28 +605,28 @@ Moved into 8.1 from 8.4 phase 4 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.646 | Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter | GEN.645, GEN.428, GEN.429, GEN.411, GEN.442, GEN.461, GEN.466, DB.67, DB.69, DB.70, GEN.650 |  |
+| GEN.646 | Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter | GEN.645, GEN.411, GEN.442, GEN.461, GEN.466, DB.67, DB.70, GEN.650 |  |
 | GEN.647 | The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons | GEN.646 |  |
 | TEST.315 | TEST.210 reports the class shares and ranges as outputs; TEST.209 adds that the class agrees with the conditions | GEN.689, TEST.209, TEST.210 | Class design step C16. |
 | GEN.690 | Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs | GEN.689 | Class design step C15. |
-| GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | GEN.681, GEN.682, GEN.683, GEN.684, GEN.685, GEN.686, GEN.687, DB.67, DB.69, DB.70 | Class design step C14. |
+| GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | GEN.681, GEN.682, GEN.683, GEN.684, GEN.685, GEN.686, GEN.687, DB.67, DB.70 | Class design step C14. |
 | GEN.688 | Generation requests name conditions, not class letters: slots and the admin class change take conditions, +habitable_world steers on the PHI-6, the directive counts is_habitable | GEN.681, GEN.682, GEN.683, GEN.684, GEN.685 | Class design step C13. |
-| GEN.687 | Rogue planets get their class from classify; delete choose_rogue_planet_class | GEN.558, GEN.428, GEN.682, GEN.683 | Class design step C12. |
-| GEN.686 | Age needs come from the processes; delete age_ranges | GEN.428 | Class design step C11. |
+| GEN.687 | Rogue planets get their class from classify; delete choose_rogue_planet_class | GEN.558, GEN.682, GEN.683 | Class design step C12. |
+| GEN.686 | Age needs come from the processes; delete age_ranges |  | Class design step C11. |
 | GEN.685 | Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class] | GEN.442, GEN.466, GEN.461 | Class design step C10. |
 | GEN.684 | Albedo and greenhouse come from the composition; delete the two class ranges | GEN.462, GEN.422 | Class design step C9. |
 | GEN.683 | Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range | GEN.411, GEN.479, GEN.452, GEN.681 | Class design step C8. |
-| GEN.682 | Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range | GEN.428, GEN.429, GEN.460, GEN.681 | Class design step C7. |
-| GEN.681 | The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw | GEN.556, GEN.428, GEN.429 | Class design step C6. |
+| GEN.682 | Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range | GEN.460, GEN.681 | Class design step C7. |
+| GEN.681 | The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw | GEN.556 | Class design step C6. |
 | TEST.314 | Only classify writes the class column, and the class is recomputed when an input is edited |  | Class design step C5. |
-| GEN.648 | The generation request for a habitable world (+habitable_world) runs an ordered ladder of nine adaptations before it gives up: redraw the surface, restrict the planet, more starting water, aquifers, regenerate the planet, adapt the system, add a brighter primary, regenerate the star, then the best result | GEN.646, GEN.643 |  |
+| GEN.648 | The generation request for a habitable world (+habitable_world) runs an ordered ladder of nine adaptations before it gives up: redraw the surface, restrict the planet, more starting water, aquifers, regenerate the planet, adapt the system, add a brighter primary, regenerate the star, then the best result | GEN.646 |  |
 | TEST.301 | Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism | GEN.647, DB.90, GEN.648 |  |
 | DB.90 | Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild | GEN.647 |  |
 | UX.150 | Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table | DB.90, GEN.647 |  |
 | GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | GEN.411 | Boss 11:24 PM EDT; the description side of consistency. Core 4 proposed (Boss, 11:41 PM EDT). |
 | TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree | GEN.411, GEN.415, DB.67, GEN.422, GEN.423, GEN.424 | Boss 11:24 PM EDT; the proof. |
 | DOC.76 | Docs for the condition-based classes: the rule table, the planet class pages and the help | GEN.645, DB.90 |  |
-| TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | GEN.428, GEN.429, GEN.430, DB.69, GEN.441, GEN.442, DB.70, GEN.460, GEN.461, GEN.462, GEN.466 | Boss 11:49 PM EDT; the proof. |
+| TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | GEN.430, GEN.441, GEN.442, DB.70, GEN.460, GEN.461, GEN.462, GEN.466 | Boss 11:49 PM EDT; the proof. |
 | TEST.240 | Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own | GEN.565, DB.74 |  |
 | PERF.136 | Measure the fill with wanderers and their moons, and decide whether the rogue cost is on by default | GEN.558, GEN.559 |  |
 | TEST.239 | Tests for the unified chain: determinism by host, representation counts per kind and level, rogue and comet rates, derived remnant shares | GEN.554, GEN.558, GEN.559 |  |

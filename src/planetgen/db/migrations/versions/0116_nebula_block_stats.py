@@ -10,12 +10,11 @@ field is drawn. The fill is skipped once `nebula_block_state` holds its row (the
 be started again.
 """
 
-import re
-
 import sqlalchemy as sa
 from alembic import op
 
 from planetgen import tuning
+from planetgen.db.migrations import helpers
 
 revision = "0116"
 down_revision = "0115"
@@ -65,44 +64,6 @@ TABLES = {
 }
 
 
-class _Connection:
-    """The store connection's `execute(sql, params)` (`?` marks, dict rows) and `executemany` on the revision's
-    SQLAlchemy connection, which is what `db.nebula_blocks.rebuild` needs."""
-
-    def __init__(self, connection):
-        self.connection = connection
-
-    @staticmethod
-    def _named(sql, params):
-        names = iter(f"p{i}" for i in range(len(params)))
-        return re.sub(r"\?", lambda _m: ":" + next(names), sql), {f"p{i}": v for i, v in enumerate(params)}
-
-    def execute(self, sql, params=()):
-        sql, bound = self._named(sql, tuple(params))
-        return _Result(self.connection.execute(sa.text(sql), bound))
-
-    def executemany(self, sql, rows):
-        rows = list(rows)
-        if rows:
-            sql, _ = self._named(sql, rows[0])
-            self.connection.execute(sa.text(sql), [{f"p{i}": v for i, v in enumerate(row)} for row in rows])
-
-    def commit(self):
-        """The revision commits as a whole."""
-
-
-class _Result:
-    def __init__(self, result):
-        self.result = result
-
-    def fetchone(self):
-        row = self.result.mappings().fetchone()
-        return None if row is None else dict(row)
-
-    def fetchall(self):
-        return [dict(row) for row in self.result.mappings().fetchall()]
-
-
 def upgrade():
     connection = op.get_bind()
     for statement in TABLES.values():    # `schema.sql` is applied first, so the tables are usually there already
@@ -112,4 +73,4 @@ def upgrade():
     from planetgen.db import nebula_blocks
 
     edge = connection.execute(sa.text("SELECT edge_pc FROM galaxy_shape WHERE id = 1")).scalar()
-    nebula_blocks.rebuild(_Connection(connection), float(edge) if edge else float(tuning.DEFAULT_SECTOR_EDGE_PC))
+    nebula_blocks.rebuild(helpers.StoreConnection(connection), float(edge) if edge else float(tuning.DEFAULT_SECTOR_EDGE_PC))

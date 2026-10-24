@@ -272,9 +272,11 @@ def _flag_chip(text, help_url):
 
 
 def _habitable_chip(body, help_url=None):
-    """The "Habitable class" chip (the class can carry life, which says nothing of its PHI-6 rating), or `""`. The
-    row names the class and no Terrestrial or Gas Giant label (UX.32)."""
-    return _flag_chip("Habitable class", help_url) if body["habitable"] else ""
+    """The "Habitable" chip (its overall PHI-6 colour is Blue or Green, GEN.643) and the "Habitable class" chip (the
+    class can carry life, which says nothing of the rating), each or `""`. The row names the class and no Terrestrial
+    or Gas Giant label (UX.32)."""
+    return ((_flag_chip("Habitable", help_url) if body["habitable"] else "")
+            + (_flag_chip("Habitable class", help_url) if body["habitable_class"] else ""))
 
 
 def _stat(text):
@@ -311,9 +313,9 @@ def _gravity_text(gravity_g):
 def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None, species=None, admin_rows=None,
                      sprite_url=None, help_url=None):
     """
-    A planet's (or moon's) row: its class, a "Habitable class" chip for a
-    habitable class, a "Habitable-class moon" chip when one of its moons is
-    habitable, "Inhabited" when it is, its moon count, its distance, period
+    A planet's (or moon's) row: its class, a "Habitable" chip for a Blue or Green
+    overall rating (GEN.643), a "Habitable class" chip for a habitable class, "Habitable moon" and
+    "Habitable-class moon" chips when one of its moons is, "Inhabited" when it is, its moon count, its distance, period
     and gravity, and the equipment chip and the PHI-6 symbols (UX.100; none
     where `sprite_url` is not given or the body is unscored). The class letter
     links to its class page (UX.182); the chips and symbols link into the
@@ -329,6 +331,8 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
         _habitable_chip(body, help_url),
     ]
     if any(moon["habitable"] for moon in moons):
+        stats.append(_flag_chip("Habitable moon", help_url))
+    if any(moon["habitable_class"] for moon in moons):
         stats.append(_flag_chip("Habitable-class moon", help_url))
     if body["inhabited"]:
         stats.append(_flag_chip("Inhabited", help_url))

@@ -45,8 +45,7 @@ from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import habitability_world
-from planetgen.physics import equipment
+from planetgen.physics import equipment, habitability, habitability_world
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types
 from planetgen.generation.star import compressed_heliosphere_radius
@@ -76,8 +75,8 @@ from planetgen.galaxy.viewport import (
 )
 from planetgen.galaxy.window import check_width, parse_window_key, window_cells
 from planetgen.galaxy.drill import (
-    DRILL_STEP, DRILL_TOP, DrillBlock, drill_block_sectors, drill_chain_of, drill_children, format_drill_key,
-    parse_drill_key,
+    DRILL_STEP, STAGE_TOP, DrillBlock, drill_block_sectors, drill_chain_of, drill_children, format_drill_key,
+    parse_stage_key,
 )
 from planetgen.db.corridor import (
     BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
@@ -3381,18 +3380,19 @@ def system_detail(conn, system_id):
 def _with_life_fields(body, colonized=(), compact_host=None):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
-    row dict: `habitable` (its class is one of
-    `tuning.HABITABLE_PLANET_CLASSES`, the same test
-    `StarSystem.count_habitable` uses), `life_stage` (the most advanced
-    evolutionary milestone its timeline reached, or `None`: the stored column, kept for a habitable class only) and
-    `inhabited` (habitable and reached a technological civilization --
+    row dict: `habitable` (its overall PHI-6 colour is Blue or Green, `habitability.is_habitable`, the same test
+    `StarSystem.count_habitable` uses), `habitable_class` (its class is one of `tuning.HABITABLE_PLANET_CLASSES`),
+    `life_stage` (the most advanced evolutionary milestone its timeline reached, or `None`: the stored column, kept
+    for a habitable class only) and
+    `inhabited` (reached a technological civilization --
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
     it: `colonized` is that table's ids from `colonized_body_ids`, schema
     v42).
     """
-    body["habitable"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
-    body["life_stage"] = body["life_stage"] if body["habitable"] else None
+    body["habitable_class"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
+    body["habitable"] = habitability.is_habitable(body.get("phi4"))
+    body["life_stage"] = body["life_stage"] if body["habitable_class"] else None
     body["compact_host"] = compact_host
     body["equipment"] = equipment.summary(body)
     body["inhabited"] = body["life_stage"] == "technological_civilization" or body["id"] in colonized
@@ -5140,7 +5140,7 @@ def galaxy_stage(conn, at=None):
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
         at (str or None): A block key, `m.shell.band.wedge` (see
-            `galaxyDrill.parse_drill_key`), or `None` for the galaxy.
+            `drill.parse_stage_key`), or `None` for the galaxy.
 
     Returns:
         dict: `at` (the canonical key, or `None`), `edge_pc` (the sector edge,
@@ -5157,13 +5157,13 @@ def galaxy_stage(conn, at=None):
     """
     edge_pc = galaxy_edge_pc(conn)
     if at is None or at == "":
-        rows = _block_rows(conn, DRILL_TOP)
+        rows = _block_rows(conn, STAGE_TOP)
         counts = {}
         for r in rows:
-            _add_stage_sums(counts, DrillBlock(DRILL_TOP, int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"])), r)
-        return {"at": None, "child_m": DRILL_TOP, "children": _stage_children(counts), "sectors": None, "edge_pc": edge_pc}
+            _add_stage_sums(counts, DrillBlock(STAGE_TOP, int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"])), r)
+        return {"at": None, "child_m": STAGE_TOP, "children": _stage_children(counts), "sectors": None, "edge_pc": edge_pc}
 
-    block = parse_drill_key(at)
+    block = parse_stage_key(at)
     child_m = block.m // DRILL_STEP
     children = [c for _shell, group in drill_children(block) for c in group]
 
@@ -5363,11 +5363,11 @@ def galaxy_nebula_cover(conn, at=None, g=None, edge_pc=None):
         cells = [(c.shell, c.band, c.wedge) for c in window_cells(centre, edge_pc, width)]
         key = format_drill_key(centre)
     elif at is None or at == "":
-        found = nebula_blocks.covers(conn, DRILL_TOP)
-        return {"at": None, "child_m": DRILL_TOP,
+        found = nebula_blocks.covers(conn, STAGE_TOP)
+        return {"at": None, "child_m": STAGE_TOP,
                 "cells": [[*cell, cover] for cell, cover in sorted(found.items())]}
     else:
-        block = parse_drill_key(at)
+        block = parse_stage_key(at)
         child_m = block.m // DRILL_STEP
         key = format_drill_key(block)
         if child_m == 1:
@@ -5564,15 +5564,16 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
 
 def galaxy_stage_keys(shell, band, wedge):
     """The stage keys a change to sector `(shell, band, wedge)` makes stale:
-    `"galaxy"` and its blocks above level 1."""
-    return ["galaxy"] + [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)[:-1]]
+    `"galaxy"` and its blocks above level 1 up to the stages' top (the level-243 blocks, `drill.STAGE_TOP`)."""
+    return ["galaxy"] + [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)[:-1] if b.m <= STAGE_TOP]
 
 
-TILE_FORMAT = 1
+TILE_FORMAT = 2
 """int: The version of what the Galaxy Map's stored tiles and drill-down stages hold and how they are packed
 (`web/lib/tilecache.trim_tile`, `tilepack`, `galaxy_tiles`, `galaxy_stage`). A change that alters those bytes for the
 same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored tiles are rebuilt once;
-a release that does not alter them leaves every stored tile valid (PERF.133)."""
+a release that does not alter them leaves every stored tile valid (PERF.133). 2: the block ladder's levels above 243 (MAP.258)
+moved the rows and wedges of every level, so a stored stage names other blocks."""
 
 GALAXY_CHANGES_MAX_SECTORS = 1000
 """int: Most changed sectors `galaxy_changes` lists tiles for. More than

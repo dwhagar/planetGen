@@ -1417,6 +1417,10 @@
 --   the epoch each run generated under, so a galaxy says which epoch each pass of it was made at. `planetgen.galaxy.version_check` compares them with the running code.
 -- v132 (GEN.458): `stars.snow_line_km`, the star's own snow line (drawn once, 0.2 dex around the 170 K blackbody position, then stored), and `planets.born_beyond_snow_line`
 --   and `moons.born_beyond_snow_line`, whether the body formed beyond its star's line (a moon takes its planet's). The fixed 2.7 AU constant is gone from the generator.
+-- v144 (DB.69, GEN.428): `planets` and `moons` gain the bulk composition: `metal_mass_fraction`, `rock_mass_fraction`, `ice_mass_fraction` and `envelope_mass_fraction`
+--   (with the existing `water_mass_fraction`, the five shares of the whole body's mass add up to 1), the rock's `rock_feo_fraction`, `rock_al2o3_fraction` and
+--   `rock_mg_si_ratio`, the envelope's `envelope_helium_fraction` and `envelope_z_fraction`, a small body's `porosity`, `carbon_rock` and `composition_origin`
+--   ('drawn' or 'inverse'). The mass, radius and density of a rocky body follow from them (`physics/bulk_structure.py`). NULL on a row saved before v145.
 -- v133 (GEN.630): `stars.role` also takes 'member' (a star of a system of more than two), and `stars.slot` says which child (0 or 1) of its parent node a star is.
 --   A pair already stored gets its slots from its roles. Nothing else changes.
 -- v134 (GEN.267): `system_configs` also keeps the star count a system was forced to (`stars`), the cap on it (`max_stars`, 12 unless raised) and the prevalence of five or more stars
@@ -1446,6 +1450,9 @@
 -- v141 (GEN.459): `planets` and `moons` keep the radiogenic content of the body (`c_k0_ppm`, `c_th0_ppm`, `c_u0_ppm`: potassium, thorium and uranium in the bulk silicate at
 --   formation, ppm by mass; `al26_ratio`: 26Al/27Al at formation; `urey_ratio`: the radiogenic share of the heat flowing out), the one set its interior heat and its ground dose read.
 --   Rows from before v141 have NULL there and keep the heat and the dose they were generated with.
+-- v145 (GEN.443): `stars.uv_c_share`, the share of its blackbody's UV-C a star gives off (the Sun's measured 0.256 is one value of the open bracket 0.1 to 1), drawn once from the star's own stream.
+--   A row saved before v145 has NULL, which the radiation model reads as the blackbody (1).
+-- v146 (MAP.258): `galaxy_block_stats.m` is INT UNSIGNED (the block ladder now runs from 177,147 down to 3, `galaxy/drill.py`). Every level below 243 changed shape with the levels put above it, so the table is filled again with a row for every level and the nebula block tables are made again.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1776,8 +1783,9 @@ CREATE TABLE IF NOT EXISTS galaxy_shell (
 -- block's children are its sectors, read from `sector_stats`). Written by
 -- `db/block_stats.py` when sectors are saved or deleted, and by `planetgen plan
 -- --fill-block-stats`; no foreign key, as the blocks are not rows of their own.
+-- v146: `m` is INT UNSIGNED: the ladder's root is 177,147 shells deep.
 CREATE TABLE IF NOT EXISTS galaxy_block_stats (
-    m                 SMALLINT UNSIGNED NOT NULL,
+    m                 INT UNSIGNED NOT NULL,
     shell_index       INT NOT NULL,
     band_index        INT NOT NULL,
     wedge_index       INT NOT NULL,
@@ -2091,6 +2099,7 @@ CREATE TABLE IF NOT EXISTS stars (
     disk_outer_au               DOUBLE NULL,  -- v104 (DB.53)
     cluster_id                  BIGINT UNSIGNED NULL,  -- v127 (DB.61)
     snow_line_km                DOUBLE NOT NULL,  -- v132 (GEN.458): this star's own snow line, drawn once around the 170 K blackbody position
+    uv_c_share                  DOUBLE NULL,  -- v145 (GEN.443): the UV-C share of the star's blackbody, drawn once (log-uniform 0.1 to 1), NULL for a remnant and for a row saved before v145
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
@@ -2309,6 +2318,18 @@ CREATE TABLE IF NOT EXISTS planets (
     bond_albedo                 DOUBLE NULL,  -- v142 (GEN.412): the Bond albedo drawn for the temperature
     greenhouse_factor           DOUBLE NULL,  -- v142: the greenhouse quantity G (T_s = T_e (1 + G)^(1/4)), 0 for no air
     albedo_basis                TINYINT UNSIGNED NULL,  -- v142: 0 recorded at generation, 1 exact inverse of a stored row, 2 seeded class draw
+    metal_mass_fraction         DOUBLE,  -- v144 (DB.69, GEN.428): the iron-rich core's share of the whole body's mass, light elements included
+    rock_mass_fraction          DOUBLE,  -- v144: the silicate (or silicon carbide and graphite) share
+    ice_mass_fraction           DOUBLE,  -- v144: every ice other than water, as one share
+    envelope_mass_fraction      DOUBLE,  -- v144: the hydrogen and helium share
+    rock_feo_fraction           DOUBLE,  -- v144: FeO, a mass fraction of the rock
+    rock_al2o3_fraction         DOUBLE,  -- v144: Al2O3, a mass fraction of the rock
+    rock_mg_si_ratio            DOUBLE,  -- v144: the rock's molar Mg/Si
+    envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
+    envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
+    porosity                    DOUBLE,  -- v144: the void share of a small body's volume
+    carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
+    composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2528,6 +2549,18 @@ CREATE TABLE IF NOT EXISTS moons (
     bond_albedo                 DOUBLE NULL,  -- v142 (GEN.412): the Bond albedo drawn for the temperature
     greenhouse_factor           DOUBLE NULL,  -- v142: the greenhouse quantity G (T_s = T_e (1 + G)^(1/4)), 0 for no air
     albedo_basis                TINYINT UNSIGNED NULL,  -- v142: 0 recorded at generation, 1 exact inverse of a stored row, 2 seeded class draw
+    metal_mass_fraction         DOUBLE,  -- v144 (DB.69, GEN.428): the iron-rich core's share of the whole body's mass, light elements included
+    rock_mass_fraction          DOUBLE,  -- v144: the silicate (or silicon carbide and graphite) share
+    ice_mass_fraction           DOUBLE,  -- v144: every ice other than water, as one share
+    envelope_mass_fraction      DOUBLE,  -- v144: the hydrogen and helium share
+    rock_feo_fraction           DOUBLE,  -- v144: FeO, a mass fraction of the rock
+    rock_al2o3_fraction         DOUBLE,  -- v144: Al2O3, a mass fraction of the rock
+    rock_mg_si_ratio            DOUBLE,  -- v144: the rock's molar Mg/Si
+    envelope_helium_fraction    DOUBLE,  -- v144: Y, a mass fraction of the envelope
+    envelope_z_fraction         DOUBLE,  -- v144: heavy elements, a mass fraction of the envelope
+    porosity                    DOUBLE,  -- v144: the void share of a small body's volume
+    carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
+    composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

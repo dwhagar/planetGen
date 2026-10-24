@@ -22,8 +22,8 @@ from bisect import bisect_left, bisect_right
 
 from planetgen.galaxy import spherical
 from planetgen.galaxy.drill import (
-    DRILL_LEVELS, DrillBlock, block_radius, cell_colatitude, drill_band_count, drill_parent, drill_wedge_count,
-    format_drill_key,
+    STAGE_LEVELS, DrillBlock, block_radius, cell_colatitude, drill_band_count, drill_wedge_count, format_drill_key,
+    stage_parent,
 )
 
 WINDOW_WIDTHS = (3, 5, 7, 9, 11)
@@ -52,8 +52,8 @@ def parse_window_key(key):
         m, shell, band, wedge = (int(p) for p in parts)
     except ValueError:
         raise ValueError(f"not a block key: {key!r}") from None
-    if m not in DRILL_LEVELS:
-        raise ValueError(f"block size must be one of {DRILL_LEVELS}, got {m}")
+    if m not in STAGE_LEVELS:
+        raise ValueError(f"block size must be one of {STAGE_LEVELS}, got {m}")
     if shell < 0:
         raise ValueError(f"no such block: {key!r}")
     if m == 1:
@@ -204,7 +204,7 @@ def window_parents(cells):
     without repeats, in order of first use."""
     seen = {}
     for cell in cells:
-        seen.setdefault(drill_parent(cell), None)
+        seen.setdefault(stage_parent(cell), None)
     return list(seen)
 
 

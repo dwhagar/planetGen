@@ -335,7 +335,7 @@ def assert_counts_are_consistent(system):
     hab_count, m_count = system.count_habitable()
     assert hab_count == system.hab_count
     assert m_count == system.m_count
-    assert hab_count >= m_count >= 0
+    assert system.count_habitable_class_worlds() >= m_count >= 0
     # comets is its own list, separate from planets/secondary_planets (see
     # StarSystem._generate_comets' docstring) -- count_comets() defaults
     # to both stars' combined lists the same way count_objects() does.
@@ -389,7 +389,7 @@ def test_each_tristate_flag_forced(star_type, value, attr):
         assert_positions_and_speeds_are_consistent(system)
 
         if attr == "HABITABLE_WORLD" and value is True:
-            assert system.hab_count >= 1, f"{star_type}: HABITABLE_WORLD=True produced no habitable world"
+            assert system.habitable_class_count >= 1, f"{star_type}: HABITABLE_WORLD=True produced no habitable world"
         if attr == "ASTEROID_BELT" and value is True:
             assert system.belt_count >= 1, f"{star_type}: ASTEROID_BELT=True produced no belt"
         if attr == "COMETS" and value is True:
@@ -464,7 +464,7 @@ def test_asteroid_belt_and_habitable_world_forced_together_both_succeed(star_typ
         system = StarSystem(system_config=make_config(star_type, ASTEROID_BELT=True, HABITABLE_WORLD=True))
         if system.belt_count == 0:
             failures_belt += 1
-        if system.hab_count == 0:
+        if system.habitable_class_count == 0:
             failures_hab += 1
         assert_no_belt_overlap_all_pairs(system)
     assert failures_belt == 0, f"{star_type}: ASTEROID_BELT+HABITABLE_WORLD failed to produce a belt in {failures_belt}/{trials} trials"
@@ -508,7 +508,7 @@ def test_intelligent_life_implies_habitable_world_ends_true():
         cfg = make_config("G2V", INTELLIGENT_LIFE=value)
         assert cfg.HABITABLE_WORLD is True
         system = StarSystem(system_config=cfg)
-        assert system.hab_count >= 1
+        assert system.habitable_class_count >= 1
 
 
 def test_render_is_idempotent_and_does_not_double_roll_flavor(monkeypatch):
