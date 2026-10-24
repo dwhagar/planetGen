@@ -1284,3 +1284,8 @@ Baseline: PR #1817.
 | GEN.632 | 8.1 | Mixture and stored values |
 | MAP.259 | 8.1 | Fly-through map |
 | MAP.260 | 8.1 | Fly-through map |
+| MAP.265 | 8.1 | Fly-through map |
+| TEST.311 | 8.1 | Bugs and flaky tests |
+| TEST.304 | 8.1 | Bugs and flaky tests |
+| TEST.299 | 8.1 | Bugs and flaky tests |
+| TEST.330 | 8.1 | Bugs and flaky tests |

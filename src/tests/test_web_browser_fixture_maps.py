@@ -26,7 +26,8 @@ Image = pytest.importorskip("PIL.Image")
 from planetgen.galaxy.viewport import TILE_MAX_LEVEL  # noqa: E402
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
-    HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, halo_site,
+    HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD,
+    halo_site,
     map_site,
 )
 
@@ -1729,7 +1730,7 @@ def test_galaxy_map_block_lines_show_only_on_the_block_being_chosen(page, map_si
         if not parse_qs(_query(page)).get("win"):
             pytest.skip("no window reached")
         page.mouse.move(1, 1)
-        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.lines === 0")
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.shade === 0")
         assert 0 < page.evaluate(LINES)["blockEdges"] <= 0.15
         assert _hover_choice(page), "no block to hover"
         page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().blockEdges === 1")
@@ -1779,7 +1780,7 @@ def test_galaxy_map_charted_only_outlines_the_charted_blocks(page, map_site):
 def test_galaxy_map_outlines_the_whole_block_a_click_would_open_and_shades_it(page, map_site, scheme):
     """MAP.198: the block under the pointer, at every level, is outlined all
     round (top and bottom edges and up its corners) and shaded a little, in
-    both themes; with the pointer off the map nothing is outlined."""
+    both themes; with the pointer off the map nothing is shaded."""
     page.emulate_media(color_scheme=scheme)
     _open_galaxy(page, map_site)
     for _ in range(3):
@@ -1790,7 +1791,9 @@ def test_galaxy_map_outlines_the_whole_block_a_click_would_open_and_shades_it(pa
         assert hovered["zMax"] > hovered["zMin"], ("the outline reaches only one height", hovered)
         assert 0 < hovered["shade"] <= 0.3, ("the block is shaded a little", hovered)
         page.mouse.move(1, 1)
-        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.lines === 0")
+        # With the pointer off the map the block is neither outlined nor shaded; the sector a click selected stays
+        # outlined (MAP.265), on its own.
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.shade === 0")
         found = _hover_choice(page, GENERATED_CHOICE)
         if not found:
             break
@@ -1798,6 +1801,40 @@ def test_galaxy_map_outlines_the_whole_block_a_click_would_open_and_shades_it(pa
         _settle(page)
         if not _on_galaxy(page):
             break
+
+
+def test_galaxy_map_draws_no_blocks_unless_the_cell_grid_or_a_fill_is_on(page, map_site):
+    """MAP.265: the blocks (translucent prisms) are not drawn by default, in the whole galaxy or in a window; the
+    Menu's Cell grid draws them, as do Charted only and a Color by fill, and turning each off takes them away."""
+    _open_galaxy(page, map_site)
+    drawn = "() => document.querySelector('#galaxymap3d-canvas').galaxyLines().blocksDrawn"
+    assert page.evaluate(drawn) == 0
+    _click_choice(page, GENERATED_CHOICE)
+    assert parse_qs(_query(page)).get("win"), "a window is open"
+    assert page.evaluate(drawn) == 0
+    page.click("#galaxymap3d-menu > summary")
+    for action in ("cell-grid", "charted-only"):
+        page.click(f'[data-action="{action}"]')
+        page.wait_for_function(f"() => ({drawn})() > 0")
+        assert page.get_attribute(f'[data-action="{action}"]', "aria-pressed") == "true"
+        page.click(f'[data-action="{action}"]')
+        page.wait_for_function(f"() => ({drawn})() === 0")
+
+
+def test_galaxy_map_a_sector_is_selected_from_the_galaxy_view(page, map_site):
+    """MAP.265: a click on the whole galaxy reads the sector under the click in closed form, with no block of sectors
+    drawn or loaded: once the window opens that sector is selected, outlined (the pointer away from the map) and
+    described in the panel by its address (no step is added to the breadcrumb)."""
+    _open_galaxy(page, map_site)
+    assert _crumbs(page) == ["Galaxy"]
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySelectedSector()") is None
+    _click_choice(page, GENERATED_CHOICE)
+    sector = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySelectedSector()")
+    assert sector and set(sector) == {"shell", "band", "wedge"}, sector
+    page.mouse.move(1, 1)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.lines > 0")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info').textContent.includes('Designation')")
+    assert f"{sector['shell']}" in page.locator("#galaxymap3d-info").inner_text()
 
 
 def test_galaxy_map_an_unfilled_sector_stays_outlined_once_selected(page, map_site):
@@ -2100,6 +2137,38 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]').click()
     assert {e["name"] for e in _markers_until(page, lambda found: bool(found))} >= set(holes)
     assert "hide" not in page.url
+
+
+def test_galaxy_map_habitable_world_markers_are_opt_in_and_name_the_system(page, map_site):
+    """MAP.220: systems with a habitable world get a marker of their own kind, off until the Menu turns it on (and
+    `show=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(1000)
+    assert {e["kind"] for e in page.evaluate(MARKERS)} == {"marker-black-hole"}
+    systems = {s["name"]: s for s in WORLD_FIELD}
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]')
+    _open_menu(page)
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "false"
+    button.click()
+    page.wait_for_timeout(400)
+    assert "show=marker-habitable" in page.url
+    drawn = {e["name"] for e in _markers_until(page, lambda found: any(e["kind"] == "marker-habitable" for e in found))
+             if e["kind"] == "marker-habitable"}
+    assert drawn == set(systems), drawn
+    assert "Habitable worlds" in page.locator("#galaxymap3d-layer-legend").inner_text()
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(300)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    eden = systems["Fixture Eden"]
+    spot = _screen_of(page, (eden["x"], eden["y"], eden["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.wait_for_timeout(200)
+    assert "Fixture Eden, 2 habitable worlds" in page.locator("#galaxymap3d-tooltip").inner_text()
+    page.mouse.click(*spot)
+    assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Eden"
+    assert "2" in page.locator("#galaxymap3d-info").inner_text()
 
 
 def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):

@@ -2,6 +2,48 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2172] - 2026-10-24
+
+**Headline:** The species tech filter test no longer fails when the population pass makes a species above tech 6.
+
+### Fixed
+- **`test_api_species_tech_filters` failed about once in two full runs (TEST.299).** The test raised the first species to tech 6.0 and expected it to lead the tech-descending list, but the population pass draws each species' tech from the galaxy fixture, and now and then makes one higher (6.55 in the reported run), which then led the list. The test now sets every species to tech 1.0 first, so the one it raises is the top.
+TODO items resolved: TEST.299. Added: none.
+
+## [8.0.2171] - 2026-10-24
+
+**Headline:** The hosted nebula row tests no longer fail when the built star draws a heavier companion.
+
+### Fixed
+- **`test_hosted_nebula_rows` failed with all data sets fetched (TEST.311).** The test built the row's star as a plain `StarSystem`, which draws a member tree of its own (GEN.631), and a heavier companion drawn there became `stars[0]` and lit, or did not light, a nebula the row does not predict. A sector fill never draws a tree for a row with no stored members: it passes `stored_trees.SINGLE`. The test now builds the star the same way.
+TODO items resolved: TEST.311. Added: none.
+
+## [8.0.2170] - 2026-10-24
+
+**Headline:** Every test that drives headless Chromium now runs in the browser phase of the test runner, not beside the all-core tests.
+
+### Changed
+- **Eleven Playwright test files were not marked `browser` (TEST.304).** `conftest.py` marked only `test_web_a11y.py` and `test_web_browser_*.py`, so `test_architecture_map`, `test_web_admin_menu_fits`, `test_web_adminshell_browser`, `test_web_edit_menu`, `test_web_generate_alignment`, `test_web_generate_flow_browser`, `test_web_header_menus`, `test_web_job_terminal`, `test_web_settings_browser`, `test_web_system_nav_row` and `test_web_ui_fields_browser` started Chromium in the all-core phase. A test is now marked by what it does: its file imports Playwright, or it takes a browser fixture (`conftest._uses_playwright`), so a new browser file cannot miss the marker. Test in `test_browser_marker.py`.
+TODO items resolved: TEST.304. Added: none.
+
+## [8.0.2169] - 2026-10-24
+
+**Headline:** The Galaxy Map can mark the star systems that hold a habitable world: turn on "Habitable worlds" in the Menu and each gets a glyph you can hover (how many) and click (its card and page).
+
+### Changed
+- **Habitable world markers (MAP.220).** A second kind of marker on the MAP.219 marker layer, off until the Menu's Markers group turns it on (`show=marker-habitable` in the address): a glyph, the PHI-6 overall shape, over each star system with a planet or moon that is Blue or Green overall, most worlds first within the layer's budget. Hovering says how many (`Eden, 2 habitable worlds`); a click shows the system's card with a link to its page. Markers of chosen planet classes follow with the condition-based classes (GEN.645 to GEN.648).
+- **A table of the systems with a habitable world (migration 0148, schema v148).** `habitable_systems` has one row per such system with its count and position and a key on the position; it is filled from the scores already stored, kept right when a sector is filled or a score is worked out again, and the galaxy tiles carry its rows as a new `worlds` section from the finest levels. `star_systems` is not changed (its FULLTEXT key would make adding a column copy the whole table). No generator epoch: no generated value changes.
+
+## [8.0.2168] - 2026-10-24
+
+**Headline:** The Galaxy Map no longer draws translucent blocks; cells show only when you ask, and a click selects the sector under it.
+
+### Changed
+- **No translucent prisms (MAP.265).** The blocks the Galaxy Map used to draw over the galaxy and every window are still what the pointer picks, but they are no longer drawn. They appear only through the new **Cell grid** button in the Menu, a **Color by** fill, or **Charted only**; hovering a block still outlines the one a click would open.
+- **Any sector can be selected from any distance (MAP.265).** A click on a block now also selects the sector holding the middle of what you clicked through, found by arithmetic rather than from drawn cells. When the next window arrives that sector is outlined, and named in the info popup (its own record is fetched on demand).
+
+TODO items resolved: MAP.265. Added: none.
+
 ## [8.0.2167] - 2026-10-24
 
 **Headline:** The Galaxy Map's data can now be read as sector-block nodes, with the light of every block stored, the first step to one continuous map that has no zoom stages.

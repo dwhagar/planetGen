@@ -113,6 +113,24 @@ export const BLACK_HOLE_KIND = {
   describe: function (item) { return (item.name ? item.name + ", " : "") + "Black Hole" + (item.descriptor ? " (" + item.descriptor + ")" : ""); },
 };
 
+// The star systems with a habitable world (MAP.220): an overall PHI-6 Blue or Green planet or moon. The tiles' `worlds`
+// list them from the finest levels (the server leaves it out of coarser tiles), most worlds first.
+export const HABITABLE_KIND = {
+  id: "marker-habitable",
+  label: "Habitable worlds",
+  glyph: "habitable",
+  color: "#4fd18b",
+  minLevel: 0,
+  defaultOn: false,
+  source: function (tile) {
+    return (tile.worlds || []).map(function (system) { return Object.assign({ key: String(system.id) }, system); });
+  },
+  rank: function (item) { return item.worlds || 0; },
+  describe: function (item) {
+    return (item.name ? item.name + ", " : "") + item.worlds + (item.worlds === 1 ? " habitable world" : " habitable worlds");
+  },
+};
+
 // The level of a tile key "level/ix/iy/iz".
 export function levelOfKey(key) {
   const level = parseInt(String(key).split("/")[0], 10);

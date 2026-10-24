@@ -48,7 +48,7 @@ Measured with real Chromium (software GL) against the real Flask app on a local 
 
 ### 2.1 The format
 
-`GET /galaxy/tiles?tiles=level/ix/iy/iz,...` returns `{stamp, generation, tiles: {key: {placed, planned, filled, clouds, stars, generated, points}}}` as JSON with `Cache-Control: no-store`. The opening view's tile (level 0) is embedded in the `/galaxy` HTML. A star is `{id, x, y, z, luminosity_sol, temperature_k, radius_sol, star_type ("B4V Blue-White Main Sequence Star"), population, yerkes_class, ring_index, layer_index, ring_slot_index, system_id}`, plus `name` for generated stars. Floats arrive rounded to 4 decimals (`_round_floats` in `tilecache.py`), which is still 5.5 digits more than the screen can show.
+`GET /galaxy/tiles?tiles=level/ix/iy/iz,...` returns `{stamp, generation, tiles: {key: {placed, planned, filled, clouds, stars, generated, points, worlds}}}` as JSON with `Cache-Control: no-store`. The opening view's tile (level 0) is embedded in the `/galaxy` HTML. A star is `{id, x, y, z, luminosity_sol, temperature_k, radius_sol, star_type ("B4V Blue-White Main Sequence Star"), population, yerkes_class, ring_index, layer_index, ring_slot_index, system_id}`, plus `name` for generated stars. Floats arrive rounded to 4 decimals (`_round_floats` in `tilecache.py`), which is still 5.5 digits more than the screen can show.
 
 ### 2.2 Bytes by zoom (one view = the tiles the JS asks for at that camera radius)
 
@@ -87,7 +87,7 @@ Cap check: 70,000 stars x 270 B = **18.9 MB raw, 3.2 MB gzip** at today's format
 
 ## 3. What the client uses
 
-`galaxymap3d.js` reads only `tile.clouds`, `tile.stars`, `tile.generated` and `tile.points` (`tileStars`, `renderFromCache`). **`placed`, `planned` and `filled` are never read** by any file under `html/static` (grep of the whole directory; the block view uses `/galaxy/stage` instead). They are 9 to 35% of every tile (section 2.2, "Unused sections") and are written to the disk cache too. Of each star's fields the JS uses `x y z luminosity_sol temperature_k radius_sol star_type (first letter only, for the class filter) id system_id` (system_id only for `null` = "uncharted"); `ring_index`, `layer_index`, `ring_slot_index`, `population`, `yerkes_class` and a generated star's `name` are never read (stars cannot be picked, MAP.101). Treat this as true of main at 8.0.783; the build re-greps before removing.
+`galaxymap3d.js` reads only `tile.clouds`, `tile.stars`, `tile.generated`, `tile.points` and (MAP.220) `tile.worlds` (`[{id, name, worlds, x, y, z}]`: the star systems with a habitable world, most worlds first, from level `POINT_PHENOMENON_MIN_LEVEL` only, read from `habitable_systems`; JSON in the packed tile's meta like `points`) (`tileStars`, `renderFromCache`). **`placed`, `planned` and `filled` are never read** by any file under `html/static` (grep of the whole directory; the block view uses `/galaxy/stage` instead). They are 9 to 35% of every tile (section 2.2, "Unused sections") and are written to the disk cache too. Of each star's fields the JS uses `x y z luminosity_sol temperature_k radius_sol star_type (first letter only, for the class filter) id system_id` (system_id only for `null` = "uncharted"); `ring_index`, `layer_index`, `ring_slot_index`, `population`, `yerkes_class` and a generated star's `name` are never read (stars cannot be picked, MAP.101). Treat this as true of main at 8.0.783; the build re-greps before removing.
 
 ## 4. The options, measured
 

@@ -302,22 +302,26 @@ test("the toggle buttons flip aria-pressed and what they control", () => {
   let wanted = false;
   const controls = h("div", {}, [
     h("button", { "data-action": "charted-only", "aria-pressed": "false" }),
+    h("button", { "data-action": "cell-grid", "aria-pressed": "false" }),
     h("button", { "data-action": "territories", "aria-pressed": "false" }),
     h("button", { "data-action": "no-such-action" }),
   ]);
   G3.wireMapControls(controls, G3.mapControlHandlers({
+    stageView: { setCellGrid: (on) => calls.push(["cell-grid", on]) },
     setChartedOnly: (on) => calls.push(["charted-only", on]),
     setTerritories: (on, btn) => { calls.push(["territories", on, btn.dataset.action]); wanted = on; },
     territoriesWanted: () => wanted,
   }));
-  const [only, territories, unknown] = controls.children;
+  const [only, grid, territories, unknown] = controls.children;
   only.click();
   assert.equal(only.getAttribute("aria-pressed"), "true");
   only.click();
+  grid.click();
+  assert.equal(grid.getAttribute("aria-pressed"), "true");
   territories.click();
   assert.equal(territories.getAttribute("aria-pressed"), "true");
   unknown.click();
-  assert.deepEqual(calls, [["charted-only", true], ["charted-only", false], ["territories", true, "territories"]]);
+  assert.deepEqual(calls, [["charted-only", true], ["charted-only", false], ["cell-grid", true], ["territories", true, "territories"]]);
 });
 
 // --- The drill-down ------------------------------------------------------------
@@ -353,7 +357,7 @@ test("the whole galaxy has no grid lines; a window shows the lines between its b
   assert.equal(m.view.stage().win.centre.m, 81);
   const rest = gridEdges(m);
   assert.ok(rest.length === 1 && rest[0] > 0 && rest[0] <= 0.15, "nearly invisible at rest (MAP.202): " + rest);
-  assert.deepEqual(Object.keys(m.host.canvasEl.galaxyLines()).sort(), ["blockEdges", "chartedLines", "hovered"]);
+  assert.deepEqual(Object.keys(m.host.canvasEl.galaxyLines()).sort(), ["blockEdges", "blocksDrawn", "chartedLines", "hovered"]);
 });
 
 test("the whole galaxy turns and zooms in to half its fit, never out past it", async () => {

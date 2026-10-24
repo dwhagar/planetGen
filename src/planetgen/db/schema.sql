@@ -1454,6 +1454,9 @@
 --   A row saved before v145 has NULL, which the radiation model reads as the blackbody (1).
 -- v146 (MAP.258): `galaxy_block_stats.m` is INT UNSIGNED (the block ladder now runs from 177,147 down to 3, `galaxy/drill.py`). Every level below 243 changed shape with the levels put above it, so the table is filled again with a row for every level and the nebula block tables are made again.
 -- v147 (MAP.259): `galaxy_block_lights` is new: the summed light of the pre-placed bright stars and scattered phenomena in each block of the ladder, filled by the migration from the stored scatter.
+-- v148 (MAP.220): `habitable_systems`, one row per star system with a habitable world (its planets and moons that are Blue or Green overall),
+--   with its count and position, so the Galaxy Map's marker layer finds the systems with one in a box. (`star_systems` has a FULLTEXT key,
+--   so a column could only be added by copying the whole table.)
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -3987,6 +3990,24 @@ CREATE TABLE IF NOT EXISTS sector_system_counts (
     sector_id     BIGINT UNSIGNED NOT NULL PRIMARY KEY,
     system_count  INT UNSIGNED NOT NULL,
     KEY idx_sector_system_counts_count (system_count, sector_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- habitable_systems (v148, MAP.220): one row per star system with a habitable world (an
+-- overall PHI-6 score that is Blue or Green on a planet or moon), with how many and where, so the
+-- Galaxy Map's marker layer finds them in a box (`query.galaxy_habitable_systems_in_box`) without
+-- reading every planet. Derived data: `store.count_system_habitable_worlds` rebuilds a system's row
+-- whenever its scores are worked out; the position is the system's `galaxy_*_pc`, which never changes.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS habitable_systems (
+    star_system_id    BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    habitable_worlds  SMALLINT UNSIGNED NOT NULL,
+    galaxy_x_pc       DOUBLE NOT NULL,
+    galaxy_y_pc       DOUBLE NOT NULL,
+    galaxy_z_pc       DOUBLE NOT NULL,
+    KEY idx_habitable_systems_position (galaxy_x_pc, galaxy_y_pc, galaxy_z_pc),
+    CONSTRAINT fk_habitable_systems_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

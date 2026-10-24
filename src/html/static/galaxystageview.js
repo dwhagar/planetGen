@@ -158,6 +158,10 @@ export function createStageView(host) {
   let stage = S.galaxyStage();
   let resolved = null;
   let selectedSector = null;
+  // MAP.265: the sector a click on a coarser block read under it (closed form): outlined and described once the next
+  // window is in, but no part of the selection (the URL, the breadcrumb, the bookmark); a click on the
+  // sector itself, once it is a choice, selects it as ever.
+  let pickedSector = null;
   // The sector opened in place: {sector: {shell, band, wedge}, id, center,
   // halfEdge, fitPoints}, while galaxysector.js has its scene up.
   // A sector page's map (MAP.68): the one sector, shell/band/wedge, it is
@@ -184,6 +188,10 @@ export function createStageView(host) {
   // {option (index into display.options), sticky}
   let hover = null;
   let chartedOnly = false;
+  // MAP.265: the blocks (translucent prisms) are drawn only when the reader asks: the cell grid tool, a "Color by" fill
+  // or "Charted only". They are always there to be picked; the one cell the reader sees otherwise is the one hovered
+  // or selected.
+  let cellGrid = false;
   // What the blocks' fill shows (MAP.131): a key of galaxyblocks' COLOR_MODES.
   let colorBy = "default";
   // Choosing a NAV end (setNeedGenerated): only a choice holding
@@ -396,6 +404,7 @@ export function createStageView(host) {
         const mesh = host.makeBlockMesh(part, n === 1);
         if (mesh.material.uniforms && mesh.material.uniforms.gridEdges) mesh.material.uniforms.gridEdges.value = gridEdges;
         mesh.userData.cells = built.cells[n];
+        mesh.visible = cellsShown();
         mesh.renderOrder = n;
         group.add(mesh);
         meshes.push(mesh);
@@ -732,13 +741,16 @@ export function createStageView(host) {
   };
 
   // Which lines the stage draws: {blockEdges} (the blocks' own edges on or
-  // off) and {chartedLines} (how many line pieces outline the charted
+  // off), {blocksDrawn} (how many block meshes are drawn: none unless the cell grid, a fill or "Charted only" is on,
+  // MAP.265) and {chartedLines} (how many line pieces outline the charted
   // blocks, MAP.111). Read by the browser tests.
   canvasEl.galaxyLines = function () {
     if (!display) return null;
     let blockEdges = 0;
+    let blocksDrawn = 0;
     display.groups.forEach(function (group) {
       group.meshes.forEach(function (mesh) {
+        if (mesh.visible) blocksDrawn += 1;
         if (mesh.material.uniforms && mesh.material.uniforms.gridEdges) blockEdges = Math.max(blockEdges, mesh.material.uniforms.gridEdges.value);
       });
     });
@@ -761,7 +773,7 @@ export function createStageView(host) {
         }
       });
     }
-    return { blockEdges: blockEdges, chartedLines: chartedLines, hovered: hovered };
+    return { blockEdges: blockEdges, blocksDrawn: blocksDrawn, chartedLines: chartedLines, hovered: hovered };
   };
 
   // The camera's tilt from straight down, in degrees (0 top-down, 90
@@ -1050,6 +1062,7 @@ export function createStageView(host) {
     keepNext = false;
     if (entered) closeSector();
     if (!options.keepSector) selectedSector = null;
+    if (!options.keepPicked) pickedSector = null;
     const token = ++goToken;
     arriving = true;
     const query = withKept(options.query || cameraQueryFor(r, options.camera || (keep ? currentCamera() : cameraFor(r))));
@@ -1175,6 +1188,10 @@ export function createStageView(host) {
     if (index >= 0) {
       setHover({ option: index, sticky: true });
       showSectorInfo(display.options[index].blocks[0]);
+    } else if (pickedSector && !selectedSector && !pinned && !pendingOpen) {
+      // Picked from a coarser view (MAP.265): not a choice of this stage, but outlined and described all the same.
+      applyHover();
+      describePickedSector();
     } else {
       applyHover();
       showStageInfo();
@@ -1524,6 +1541,7 @@ export function createStageView(host) {
     if (index >= 0 && display.options[index]) outlineOption(index);
     else clearOutline();
     if (selected >= 0 && selected !== index) outlineOption(selected, true);
+    else if (selected < 0 && !selectedSector && pickedSector && !entered && !pinned) addOutline(S.cellEdgePoints(sectorCell(pickedSector).bounds), 1);
   }
 
   function showTooltip(text, clientX, clientY) {
@@ -1689,8 +1707,40 @@ export function createStageView(host) {
     // The window opens round the middle of what the click went through, not the face it met first.
     if (at) at = S.chordMiddle(pick.block.bounds || P.drillBlockBounds(pick.block, edgePc), at, host.camera.position);
     const into = S.windowInto(base, pick.block, at, edgePc);
-    if (into) go(into, how);
+    if (!into) return;
+    // MAP.265: any sector is selectable from any distance: the sector holding the middle of what the click went
+    // through is found in closed form (no block of sectors need be drawn), and is the one selected on arrival.
+    const sector = at ? P.cellAt(1, at.x, at.y, at.z, edgePc) : null;
+    const chosen = sector && P.cellExists(sector.shell, sector.band, sector.wedge)
+      ? { shell: sector.shell, band: sector.band, wedge: sector.wedge } : null;
+    pickedSector = chosen;
+    go(into, Object.assign({ keepPicked: !!chosen }, how));
   }
+
+  // A sector cell {shell, band, wedge} as the info panels and outlines take it.
+  function sectorCell(sector) {
+    const cell = { m: 1, shell: sector.shell, band: sector.band, wedge: sector.wedge };
+    cell.bounds = P.drillBlockBounds(cell, edgePc);
+    return cell;
+  }
+
+  // The panel of the selected sector when it is no choice on screen: its own record, asked for as the smallest window
+  // round it (the stage's counts are of coarser cells), and the cell's place when nothing is charted there.
+  function describePickedSector() {
+    const asked = pickedSector;
+    const cell = sectorCell(asked);
+    loadData({ centre: cell, g: P.WINDOW_WIDTHS[0] }).then(function (data) {
+      if (!active || pickedSector !== asked || selectedSector || entered || pinned) return;
+      const record = data.sectors.get(cellKey(cell));
+      if (record) host.showPlacedInfo(sectorEntry(cell, record));
+      else host.showCellInfo({ m: 1, bounds: cell.bounds, address: asked, filled: data.failed ? null : 0, uncharted: null });
+    });
+  }
+
+  canvasEl.galaxySelectedSector = function () {
+    const sector = selectedSector || pickedSector;
+    return sector ? Object.assign({}, sector) : null;
+  };
 
   function sectorOption(sector) {
     if (!display) return -1;
@@ -3265,11 +3315,37 @@ export function createStageView(host) {
     if (display && !animation) rebuildDisplay();
   }
 
+  // Whether the blocks are drawn: a sector page's map (pinned) as it always was; else only with the cell grid tool, a
+  // fill chosen by "Color by", or "Charted only" (MAP.265).
+  function cellsShown() {
+    return pinned || cellGrid || chartedOnly || colorBy !== "default";
+  }
+
+  function applyCellsShown() {
+    [display].concat(leaving).forEach(function (d) {
+      if (!d) return;
+      d.groups.forEach(function (group) {
+        group.meshes.forEach(function (mesh) { mesh.visible = cellsShown(); });
+      });
+    });
+  }
+
+  // MAP.265: the optional grid tool, the cells of the stage drawn (a toggle of the map's Menu).
+  function setCellGrid(on) {
+    cellGrid = !!on;
+    applyCellsShown();
+  }
+  canvasEl.galaxyCellGrid = function (on) {
+    if (on !== undefined) setCellGrid(on);
+    return cellGrid;
+  };
+
   // MAP.131: what the blocks' fill shows; the choice rides in the URL in
   // place (it is no step of its own).
   function setColorBy(mode) {
     if (mode === colorBy) return;
     colorBy = mode;
+    applyCellsShown();
     const params = new URLSearchParams(location.search);
     if (mode === "default") params.delete("color");
     else params.set("color", mode);
@@ -3297,6 +3373,7 @@ export function createStageView(host) {
     travel: travel,
     travelToCurrent: travelToCurrent,
     setChartedOnly: setChartedOnly,
+    setCellGrid: setCellGrid,
     setColorBy: setColorBy,
     colorBy: function () { return colorBy; },
     setNeedGenerated: setNeedGenerated,

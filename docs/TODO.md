@@ -2104,6 +2104,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is_habitable predicate, this item reads it when it lands; until then
   use the stored overall score and the same test). Tying the PHI-6 into
   the planet classes is GEN.644 (Habitability lane D, proposal first).
+  Research (2026-10-09, Update): Habitability lane C (7:17 AM EDT
+  2026-10-24, as the lane reported): the habitable worlds half merged as
+  #2943 (schema v148, migration 0148, no epoch, no marker row). The
+  Galaxy Map has an opt-in 'Habitable worlds' marker kind (Menu toggle
+  or show=marker-habitable): a glyph over each system with a Blue or
+  Green world, hover shows the count, click shows the system card. New
+  side table habitable_systems (star_systems has a FULLTEXT key so no
+  column); tiles carry a new `worlds` section; the count uses the stored
+  phi4 floor, which equals habitability.is_habitable. NOT done, and this
+  item stays open for it: the 'chosen classes' markers (a kind registry
+  entry plus a class filter), which wait on GEN.645 to GEN.648. The lane
+  retired; the item needs a new owner when GEN.645 to GEN.648 land.
 
 - [ ] **MAP.221 Station and vessel icons on the Galaxy Map**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -2652,7 +2664,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones, anything in the galaxy can be reached by zooming to it, and
   Boss confirms it by retest. Owner: the design thread first (report),
   then Core 2 (maps).
-  Prerequisites: MAP.261, MAP.262, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Prerequisites: MAP.261, MAP.262, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
   Decision (Boss, 5:51 PM EDT 2026-10-23, answering the four zoom
   cards): 1 the full single space, 2 only a sector plus an optional grid
   tool, 3 a soft glow switchable, 4 sector-block nodes first (not the
@@ -2701,23 +2713,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxystageview.js (rebase on its merges and tell it before each PR).
   Prerequisites: MAP.261. Related: MAP.257, MAP.146, MAP.249.
 
-- [ ] **MAP.265 S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. Replace
-  the window meshes with the hover and selected sector outline (a sector
-  is the only cell the user sees) plus the optional grid tool (Boss card
-  2); pick the cell under the ray in closed form; the charted tint
-  stays; block prisms are no longer drawn; the window stops being a
-  display source (/galaxy/window stays as an admin read). Size M. Done:
-  no translucent prisms, any sector is selectable from any distance, and
-  a browser test selects a sector from the galaxy view. Owner: Core 2
-  (maps).
-  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
-
 - [ ] **MAP.266 S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu**
   Zoom design (reports in
   /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
@@ -2734,7 +2729,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   5:53 PM EDT as the lane reported), with Core 2 as owner of
   galaxymap3d.js and galaxystageview.js (rebase on its merges and tell
   it before each PR).
-  Prerequisites: MAP.261, MAP.265. Related: MAP.257, MAP.146,
+  Prerequisites: MAP.261. Related: MAP.257, MAP.146,
   MAP.249.
 
 - [ ] **MAP.267 S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in)**
@@ -2765,7 +2760,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   query, not against stages, and select by object ID at any scale. Size
   M. Done: labels and selection work from the galaxy to a planet with no
   stage, and a browser test covers both. Owner: Core 2 (maps).
-  Prerequisites: MAP.265. Related: MAP.257, MAP.146,
+  Prerequisites: none. Related: MAP.257, MAP.146,
   MAP.249.
 
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
@@ -13908,7 +13903,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   50 runs in a row. This may change generator output, so it takes the
   next free generator epoch. Owner: Core 3 (it owns GEN.630 and GEN.631;
   proposed).
+  Research (2026-10-09, Update): Core 3 accepted this (6:58 AM EDT
+  2026-10-24, as the lane reported): it takes GEN.709 right after
+  GEN.332 slice 1 merges and takes the next free generator epoch at
+  merge.
   Prerequisites: none. Related: TEST.130, GEN.630, GEN.631.
+
+- [ ] **GEN.710 A pre-placed row with a stored tree can have a member heavier than the row star at stars[0], so the nebula it lights and the star page disagree with the built sector (bug)**
+  Found by Bug Hunt while fixing TEST.311 (#2945), as the lane reported
+  at 7:22 AM EDT 2026-10-24. Pre-placed rows with stored trees
+  (scatter_companions.star_tree) use the same multistar.draw_member_tree
+  as the fill. A member can then be heavier than the row star, so the
+  built system has it at stars[0]. run_sector.add_star_hosted_nebulae
+  lights the nebula from stars[0], while the GEN.530 row prediction
+  (row_nebula) uses the row star, so the star page and the uncharted
+  scene can disagree with the built sector. Evidence: a drawn tree for
+  one O7V row gave members O7V 18.74, B2V 10.4, B5V 6.93 solar masses in
+  a k=30 case on old main; the mismatch appears whenever a companion
+  out-masses the primary. Do: either light the nebula from the row star,
+  or order the members so the row star stays first (the choice may
+  change generated output and then needs the next free generator epoch,
+  now 77). Done: for a sample of rows with trees, the nebula built in
+  the sector equals the row_nebula prediction, with a test that forces a
+  companion heavier than the primary. Owner: Core 3 (it owns the member
+  tree; proposed).
+  Prerequisites: none. Related: GEN.530, GEN.631, GEN.709, TEST.311.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18672,27 +18691,11 @@ clears each one.
   worker still running) and make it wait for or remove that state. Done:
   the four tests pass 50 times in a row at -n 4 under load, with the
   cause on this item. Owner: Bug Hunt (proposed by the TODO thread).
+  Research (2026-10-09, Update): Bug Hunt (7:22 AM EDT 2026-10-24, as
+  the lane reported): not reproduced, 50 of 50 green at -n 4 under load.
+  Parked: it needs the finalizer text the next time it is seen; close it
+  if nothing shows by the next audit.
   Prerequisites: none. Related: TEST.297, TEST.141.
-
-- [ ] **TEST.299 test_api_species_tech_filters fails once in a full run: the first species of the tech-descending list has tech 6.55, not the 6.0 the test set (bug)**
-  Found by Core 4 (relayed 5:06 PM EDT 2026-10-23 as the lane reported)
-  in its 4-worker full run for GEN.267 (22,894 passed, 3 failed; the
-  other two failures were its own tests and are fixed); filed by the
-  TODO thread. Kind: order- or data-dependent test. Test:
-  src/tests/test_population.py::test_api_species_tech_filters. Failure
-  text: assert 6.55 == 6.0, the first species of the tech-descending
-  listing was a 6.55 one, so a species with tech above 6.0 existed in
-  the population pass's output and the test's UPDATE to 6.0 did not make
-  it the top. Passes alone, and the test touches nothing the lane
-  changed. Fails on main: not checked. Frequency: once in two full runs
-  on that branch (the other gate did not select it). Reproducer: run the
-  full suite; the result depends on which species population.run_pass
-  makes for the galaxy fixture. Do: make the test set its own species so
-  no other species can outrank it (raise the top species' tech above any
-  generated value, or filter by its own sector), then loop the test in a
-  full run. Done: the cause is on this item and the test passes in 10
-  full runs. Owner: Bug Hunt (proposed by the TODO thread).
-  Prerequisites: none. Related: TEST.296, TEST.298.
 
 - [ ] **TEST.300 End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers**
   Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
@@ -18813,21 +18816,6 @@ clears each one.
   reason when the grant is missing.
   Prerequisites: none. Related: TEST.302, OPS.62.
 
-- [ ] **TEST.304 Nine Playwright test files are not marked browser, so they run in the all-core phase**
-  Found by the regression test review thread (2026-10-23; report
-  reports/regression-test-review-2026-10-23.md section 8): conftest
-  marks only test_web_a11y.py and test_web_browser*, so
-  test_web_admin_menu_fits, test_web_adminshell_browser,
-  test_web_edit_menu, test_web_generate_alignment,
-  test_web_generate_flow_browser, test_web_header_menus,
-  test_web_job_terminal, test_web_settings_browser and
-  test_web_system_nav_row run with the all-core tests (about 1,780 s
-  summed on the reviewer's box), which is the TEST.126 situation. Done:
-  all nine carry the browser marker (or conftest marks every Playwright
-  file), the all-core phase no longer starts Chromium, and a check fails
-  when a file imports playwright without the marker.
-  Prerequisites: none. Related: TEST.126.
-
 - [ ] **TEST.305 The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug)**
   Found by the regression test review thread (2026-10-23): on a fresh
   4-core box (MySQL 8.0.46, Chromium 153 via playwright 1.63) 41 tests
@@ -18850,13 +18838,6 @@ clears each one.
   reasoning recorded, and 50 repeated runs pass. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: GEN.413.
-
-- [ ] **TEST.311 test_hosted_nebula_rows::test_a_pre_placed_star_rolls_the_nebula_its_sector_builds fails on main (bug)**
-  Seen failing on main by the body-rendering build lane (10:52 PM EDT
-  2026-10-23 as the lane reported); not caused by its changes. Do:
-  reproduce it on a machine with MySQL and Redis, find the cause, fix it
-  or make it deterministic, no skip. Owner: Bug Hunt.
-  Prerequisites: none.
 
 - [ ] **TEST.314 Only classify writes the class column, and the class is recomputed when an input is edited**
   Step C5 of the condition-based classes build (design draft
@@ -19031,18 +19012,6 @@ clears each one.
   inside summary.body-stats).
   Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
 
-- [ ] **TEST.330 test_web_formulas::test_no_page_shows_a_formula_that_is_not_written_out fails on (/classes/habitability, CO2) (bug)**
-  Reported by Core 3 at 5:30 AM EDT 2026-10-24 (as the lane reported) as
-  failing on main in its gate: the page /classes/habitability shows the
-  formula CO2 and the test says it is not written out with a subscript.
-  The TODO thread could not run it (the test needs Playwright, not
-  installed on this machine), so recheck on current main first; UX.149
-  (the formula formatter) and the class lane's habitability page text
-  are the likely sources. Do: reproduce on current main; write the
-  formula with the chem filter (UX.149) on the page or its template.
-  Done: the test passes. Owner: Bug Hunt.
-  Prerequisites: none. Related: UX.149.
-
 - [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
   Found by the detail pages lane at 5:54 AM EDT 2026-10-24 (as the lane
   reported), checked in a clean worktree on untouched origin/main: the
@@ -19139,6 +19108,13 @@ clears each one.
   GEN.631 or GEN.271, or the DB.98 fixture clean-up #2931, are the
   likely sources) and fix the test or the migration. Done: the test
   passes on main. Owner: Bug Hunt (proposed).
+  Research (2026-10-09, Update): Habitability lane C (7:17 AM EDT
+  2026-10-24, as the lane reported): test_migration_habitable_worlds
+  fails with DataMissing on a fresh lane machine until the ozone_uv
+  dataset is fetched (python3 -m planetgen.cli.datasets fetch ozone_uv).
+  That may be the whole cause of this red on lane machines (the same
+  environment fault as TEST.319); recheck with the dataset fetched
+  before looking for a code cause.
   Prerequisites: none. Related: DB.98, GEN.631, GEN.271.
 
 ## USR: User accounts
@@ -19880,6 +19856,15 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   skips until `python -m playwright install firefox` has been run, so
   the environment script should run it too (Chromium is already there).
   Without it the Firefox check never runs on a lane machine.
+  Research (2026-10-09, Update): Habitability lane C (7:17 AM EDT
+  2026-10-24, as the lane reported): a fresh lane machine also needs the
+  ozone_uv dataset fetched (python3 -m planetgen.cli.datasets fetch
+  ozone_uv) or test_migration_habitable_worlds fails with DataMissing;
+  add it to the setup script.
+  Research (2026-10-09, Update): Bug Hunt (7:22 AM EDT 2026-10-24, as
+  the lane reported): GEN.445 means every test machine needs the
+  ozone_uv dataset fetched (python3 -m planetgen.cli.datasets fetch
+  ozone_uv) or generation tests raise DataMissing.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
