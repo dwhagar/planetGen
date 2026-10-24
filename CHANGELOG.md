@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2213] - 2026-10-24
+
+**Headline:** The envelope rows of the atmosphere recipes are tuned to the observed radius valley.
+
+### Added
+- **Rows e1 and e2 are tuned to the Kepler radius valley (GEN.509).** A simulated Kepler survey (`physics/radius_valley.py`) reproduces the published valley slope (-0.11) and its radius at 10 days (1.84 Earth radii) along one degenerate ridge of the starting envelope and the loss efficiency; the rows draw on that ridge. Two new tuning targets. The recipes are not read by the generator yet, so no generated value changes.
+
 ## [8.0.2212] - 2026-10-24
 
 **Headline:** The database layer and the edit pages convert AU, km, years and parsecs through the one unit registry, with the same numbers.
