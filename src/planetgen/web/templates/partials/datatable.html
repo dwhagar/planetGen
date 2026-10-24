@@ -50,6 +50,19 @@
   {%- endif %}
   <p class="datatable-count-line" role="status" aria-live="polite">{{ num(t.total) }}{% if t.capped %}+{% endif %} {{ t.noun_many if t.total != 1 or t.capped else t.noun_one }}{% if t.filtered %} match{% endif %}{% if t.jump and t.jump.start and not t.note %} from “{{ t.jump.start }}”{% endif %}{% if t.note %}. {{ t.note }}{% endif %}</p>
   <p class="datatable-busy" role="status" aria-live="polite" hidden>The database is busy. Showing the rows loaded so far; trying again.</p>
+  <div class="datatable-job" data-table-job hidden>
+    <p class="job-progress">
+      <progress data-job-bar max="100" aria-label="Building these rows"></progress>
+      <span data-job-percent></span>
+    </p>
+    <p data-job-status role="status" aria-live="polite"></p>
+    <p class="error" role="alert" data-job-error hidden></p>
+    <p class="slow-load-actions">
+      <button type="button" class="btn btn-small" data-job-stop>Stop waiting</button>
+      <button type="button" class="btn btn-small" data-job-resume hidden>Check again</button>
+      <button type="button" class="btn btn-small" data-job-retry hidden>Try again</button>
+    </p>
+  </div>
   <div class="table-scroll datatable-scroll" role="region" aria-label="{{ t.label }} table" tabindex="0">
     <table aria-rowcount="{{ t.total + 1 }}">
       <thead>

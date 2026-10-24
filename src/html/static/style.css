@@ -434,6 +434,20 @@ h2 {
   font-size: 0.85rem;
 }
 
+.datatable-job {
+  margin: 0 0 0.6rem;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.datatable-job p {
+  margin: 0 0 0.3rem;
+}
+
+.datatable-job progress {
+  width: min(20rem, 70%);
+}
+
 .datatable-sort {
   color: inherit;
   text-decoration: none;
