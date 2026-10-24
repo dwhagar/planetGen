@@ -114,6 +114,8 @@ if [[ -z "$PYTHON" ]]; then
     exit 1
 fi
 
+warn_if_no_swap
+
 echo "== 1/8: Installing the Python package and its libraries =="
 # planetGen's own virtual environment (OPS.45); see that script for the
 # details. PYTHON is the interpreter it is made from.

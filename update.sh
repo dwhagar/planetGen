@@ -202,6 +202,8 @@ find "$HTML_DIR" -name '*.py' -exec chmod +x {} +
 # shellcheck source=scripts/deploy-common.sh
 source "$SCRIPT_DIR/scripts/deploy-common.sh"
 
+warn_if_no_swap
+
 echo
 UPDATE_STEP="step 2/9, checking the Python libraries"
 echo "== 2/9: Checking the Python libraries =="

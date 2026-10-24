@@ -43,7 +43,7 @@ def lane(redis_server, key_prefix, monkeypatch):
         worker.register_death()
     for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE):
         redisqueue.queue(name, connection).empty()
-        connection.delete(workers.STARTING_PREFIX + name)
+        connection.delete(workers.STARTING_PREFIX + name, workers.DECIDING_PREFIX + name)
     for worker in made:
         connection.delete(workers.LENT_PREFIX + worker.name)
 
@@ -131,3 +131,39 @@ def test_shed_bulk_asks_idle_workers_first_and_never_twice(lane):
     assert workers.shed_bulk(connection, 1) == 1 and told == [idle.name]
     assert workers.shed_bulk(connection, 1) == 0 and told == [idle.name]            # it is leaving: counted as gone
     assert workers.shed_bulk(connection, 0) == 1 and told == [idle.name, busy.name]
+
+
+def test_perf181_many_callers_at_once_start_no_more_workers_than_the_cap(lane):
+    """PERF.181: the web app asks for upkeep workers from every request thread. A burst of threads (a map being
+    dragged during a run) each read "none starting" before any wrote its start, so each started the whole cap: on
+    2026-10-24 about 130 workers of 125 MB took a 16 GB host and the kernel killed MySQL."""
+    import threading
+    connection, started, told, register = lane
+    _queue(connection, redisqueue.MAINTENANCE_QUEUE, 10)
+    _generation_run(connection)
+    assert workers.maintenance_cap(connection) == 1
+    gate = threading.Barrier(24)
+
+    def ask():
+        own = redisqueue.connect()
+        gate.wait()
+        workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, own)
+
+    threads = [threading.Thread(target=ask) for _ in range(24)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert len(started) == 1
+
+
+def test_perf181_a_worker_that_is_slow_to_register_is_counted_for_longer_than_a_few_seconds(lane):
+    """PERF.181: a worker on a host short of memory can take far longer than 15 s to import and register. Until it
+    does it counts as starting, so asking again does not start another for the same need."""
+    connection, started, told, register = lane
+    _queue(connection, redisqueue.MAINTENANCE_QUEUE, 10)
+    _generation_run(connection)
+    assert workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 1
+    assert connection.ttl(workers.STARTING_PREFIX + redisqueue.MAINTENANCE_QUEUE) > 60
+    assert workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 0
+    assert len(started) == 1

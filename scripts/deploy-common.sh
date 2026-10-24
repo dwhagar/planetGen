@@ -23,6 +23,18 @@ is_macos() {
     [[ "$(uname -s)" == Darwin ]]
 }
 
+# Says so when a Linux host has no swap on (PERF.181): with none, a burst of memory ends in the kernel killing MySQL,
+# Redis or the web server. Only a warning; scripts/enable-swap.sh fixes it.
+warn_if_no_swap() {
+    is_macos && return 0
+    command -v swapon >/dev/null 2>&1 || return 0
+    if [[ -z "$(swapon --show=NAME --noheadings 2>/dev/null)" ]]; then
+        echo "warning: this host has no swap. A memory spike then makes the kernel kill MySQL, Redis or the web" >&2
+        echo "  server instead of slowing down. Fix: sudo $SCRIPT_DIR/scripts/enable-swap.sh  (see INSTALL.md, Swap)" >&2
+    fi
+    return 0
+}
+
 # The Python the venv is made from when PYTHON isn't given: on macOS
 # Homebrew's python3 (Apple Silicon, then Intel) rather than the Command
 # Line Tools' /usr/bin/python3; elsewhere python3 on the PATH.
