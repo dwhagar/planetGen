@@ -24,7 +24,11 @@ planets (`physics.rogue_surface`) use the functions here.
    `ice_shell_thickness_km` from the body's internal heat; it seals the
    whole column (`ice`) or floats on an ocean (`ice-covered ocean`). The
    lid is ice (917 kg/m3) and is compared with the column by mass; its base
-   melts at 273.15 K less 0.0074 K per bar of ice above it.
+   melts at 273.15 K less 0.0074 K per bar of ice above it. A body whose
+   surface water is under `BRINE_MAX_WATER_FRACTION` has its salts
+   concentrated: the base melts at the drawn eutectic of a perchlorate brine
+   (`clathrate_brine.draw_brine`, 198 to 236 K, GEN.762) and the brine ocean
+   keeps that salt's water activity.
 4. **The compressed column and high-pressure ice (GEN.461).** The water over
    the covered area is integrated from the surface down with its density
    rising with the pressure (`water_layer.column`: 746 km deep at 11 GPa for
@@ -50,7 +54,7 @@ The ranges are design defaults, not fits.
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants, gases, runaway_history, saturation, water_layer
+from planetgen.physics import clathrate_brine, constants, gases, runaway_history, saturation, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 from planetgen.physics import unit_registry as units
@@ -149,14 +153,14 @@ def ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_temperature_k=WATE
     return ICE_CONDUCTIVITY_A_W_M / flux_w_m2 * math.log(base_temperature_k / top_temperature_k) / 1000.0
 
 
-def pressure_melted_shell_km(flux_w_m2, top_temperature_k, gravity_m_s2):
-    """`ice_shell_thickness_km` with the base melting point lowered by the
+def pressure_melted_shell_km(flux_w_m2, top_temperature_k, gravity_m_s2, melting_k=WATER_MELTING_K):
+    """`ice_shell_thickness_km` with the base melting point (`melting_k`: pure water's, or a brine's eutectic) lowered by the
     lid's own weight (fix 3 of section 5.3)."""
-    base_k = WATER_MELTING_K
+    base_k = melting_k
     shell_km = ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_k)
     for _ in range(3):
         bar = ICE_DENSITY_KG_M3 * gravity_m_s2 * shell_km * 1000.0 / 1e5
-        base_k = WATER_MELTING_K - MELTING_SLOPE_K_PER_BAR * bar
+        base_k = melting_k - MELTING_SLOPE_K_PER_BAR * bar
         shell_km = ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_k)
     return shell_km
 
@@ -248,6 +252,7 @@ def generate_hydrosphere(body, internal_flux_w_m2):
         body.ocean_fraction, body.land_fraction = 0.0, 1.0
         return
     water_kg = surface_w * body.mass
+    salt = None
     if temperature >= WATER_MELTING_K:
         if temperature >= water_boiling_k(pressure):
             body.hydrosphere = "vapour"
@@ -261,10 +266,16 @@ def generate_hydrosphere(body, internal_flux_w_m2):
         tide = moon_tidal_flux_w_m2(body, getattr(body, "primary_mass_kg", None), w)
         body.tidal_flux_w_m2 = tide or None  # GEN.700: kept, the heat the life of an ice-covered ocean can use
         flux = internal_flux_w_m2 + tide
-        shell = pressure_melted_shell_km(max(flux, 1e-6), max(temperature, 1.0), gravity)
+        melting_k = WATER_MELTING_K
+        if surface_w < BRINE_MAX_WATER_FRACTION:
+            salt, melting_k = clathrate_brine.draw_brine()  # GEN.762: little water, so the salts are concentrated and the ice melts at their eutectic
+        shell = pressure_melted_shell_km(max(flux, 1e-6), max(temperature, 1.0), gravity, melting_k)
         column = water_layer.column(body.mass, body.radius, water_kg, covered=covered, shell_km=shell,
-                                    bottom_temperature_k=WATER_MELTING_K, pressure_pa=pressure)
-        state = "ice-covered ocean" if column.liquid_km else "ice"
+                                    bottom_temperature_k=melting_k, pressure_pa=pressure)
+        if not column.liquid_km:
+            state = "ice"
+        else:  # a brine warmer than its eutectic is liquid at the surface (GEN.762): no lid to cover it
+            state = "ice-covered ocean" if column.ice_shell_km else "surface ocean"
     shell_km, liquid_km, hp_km = column.ice_shell_km, column.liquid_km or None, column.hp_ice_km
     body.hydrosphere = state
     body.ice_shell_km = shell_km or None
@@ -278,6 +289,8 @@ def generate_hydrosphere(body, internal_flux_w_m2):
     body.ocean_class = kind
     body.ocean_ph = draw.uniform(ph_lo, ph_hi)
     body.water_activity = draw.uniform(aw_lo, aw_hi)
+    if kind == "chloride brine" and salt is not None and clathrate_brine.water_activity(salt) is not None:
+        body.water_activity = clathrate_brine.water_activity(salt)  # GEN.762: the drawn salt's own figure
     body.phosphorus = "high" if kind == "soda" else "starved" if kind == "ice-sealed" else "limited"
 
 

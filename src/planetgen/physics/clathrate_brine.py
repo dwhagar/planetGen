@@ -19,6 +19,10 @@ Two things keep an icy crust or an ocean moon's water in a form other than ice a
 Every constant carries its source key and source state in `clathrate_brine.json`; the linear liquidus between pure water and the eutectic is a
 parametrisation of this module (the data hold no more than the eutectic point). Nothing here is drawn except `draw_eutectic_k`, which reads only `util.draw`.
 
+Use in the generator (GEN.762): `physics/atmosphere.py` lets an icy body's hydrate skin hold the guest gases above their
+dissociation pressure (`hydrate_hold_pa`), and `physics/hydrosphere.py` melts the base of an ice lid over a brine at the drawn
+eutectic temperature (`draw_brine`).
+
 Use:
 
     dissociation_pressure_pa("CH4", 100.0)       # Pa
@@ -31,7 +35,7 @@ import json
 import math
 import os
 
-from planetgen.physics import elements
+from planetgen.physics import elements, gases
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
 
@@ -164,3 +168,60 @@ def freezing_point_k(salt, wt_percent):
 def liquid_range_k(salt):
     """The temperatures at which some solution of the salt is liquid: `(eutectic K, 273.15 K)`."""
     return (eutectic_k(salt), ICE_POINT_K)
+
+
+HYDRATE_SKIN_RANGE_M = (1.0, 1000.0)
+"""tuple: The depth of ice, m, whose water cages a body's atmosphere can reach (drawn log-uniform per body). A planetGen stand-in:
+the cages form where gas meets ice, and how deep that goes (kinetics, regolith, cracks) has no measured figure; the bracket runs from
+a frost skin to a regolith."""
+ICE_DENSITY_KG_M3 = 917.0
+"""float: Water ice Ih, kg/m3 (the density `water_layer.ICE_LID_DENSITY_KG_M3` uses)."""
+
+
+def hydrate_hold_pa(partials_pa, temperature_k, gravity_m_s2, skin_m, ice_density_kg_m3=ICE_DENSITY_KG_M3):
+    """
+    The partial pressure, Pa, of each guest gas that the water cages of a `skin_m` layer of ice hold at `temperature_k`.
+
+    `partials_pa` maps a stored species (`"co2"`) to its partial pressure. A guest above its dissociation pressure forms hydrate until
+    its pressure falls to that curve, so the demand of each is the excess over the curve; the cages (one guest per `HYDRATE_NUMBER`
+    waters) are shared, so when the demand of all guests together is more than the skin holds, every guest gives up the same share of
+    its excess. The mole count of a partial pressure is `p / (M g)` with `M` the mean molar mass of the listed gases (a gas not listed,
+    such as a helium balance, is not counted). Only the stored species that form hydrates (`CLATHRATES`) are held, and a guest above its
+    curve's upper temperature (`upper_temperature_k`) is not.
+
+    Returns:
+        dict: Species -> the pressure held, Pa (only the species held, and only above zero).
+    """
+    total = sum(partials_pa.values())
+    if not (total > 0.0 and gravity_m_s2 > 0.0 and temperature_k > 0.0 and skin_m > 0.0):
+        return {}
+    mean_molar_mass = sum(pressure * gases.stored(species).molar_mass for species, pressure in partials_pa.items()) / total
+    excess = {}
+    for species, pressure in partials_pa.items():
+        formula = gases.stored(species).formula
+        if pressure <= 0.0 or formula not in _DATA["clathrates"]:
+            continue
+        try:
+            floor = dissociation_pressure_pa(formula, temperature_k)
+        except OutOfRange:
+            continue
+        if pressure > floor:
+            excess[species] = pressure - floor
+    if not excess:
+        return {}
+    demand_mol_m2 = sum(excess.values()) / (mean_molar_mass * gravity_m_s2)
+    cages_mol_m2 = ice_density_kg_m3 * skin_m / (HYDRATE_NUMBER * gases.gas("H2O").molar_mass)
+    share = min(1.0, cages_mol_m2 / demand_mol_m2)
+    return {species: value * share for species, value in excess.items()}
+
+
+def draw_brine():
+    """One body's brine: a salt (equal weights, a planetGen stand-in) and the eutectic temperature of its saturated solution, K
+    (`draw_eutectic_k`). Returns `(salt, eutectic K)`."""
+    salt = draw.choice(BRINES)
+    return salt, draw_eutectic_k(salt)
+
+
+def water_activity(salt):
+    """The water activity of the salt's eutectic brine, or `None` where the source gave none."""
+    return _brine(salt)["water_activity"]

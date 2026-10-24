@@ -30,12 +30,17 @@ section 3.3 (the cold side).
    below the triple point, the Wagner liquid curves above it, no limit above
    the critical point): the excess is condensate, and the total surface
    pressure drops by it. Gas giants have no surface and skip this.
+5. **Hydrate cages (GEN.762).** An icy body (`hydrosphere.ICY_MIN_WATER_FRACTION` of its mass in water) with a surface under
+   water's freezing point holds the guest gases that sit above their clathrate dissociation pressure in the water
+   cages of its ice skin (`physics/clathrate_brine.py`, `hydrate_hold_pa`): the skin's depth is drawn per body
+   (`HYDRATE_SKIN_RANGE_M`, a stand-in), and the held pressure leaves the air like the condensate does.
 """
 
 import math
 
-from planetgen.physics import constants, gases, saturation
+from planetgen.physics import clathrate_brine, constants, gases, hydrosphere, saturation
 from planetgen.util import draw
+from planetgen.util.random import log_uniform
 
 SPECIES = ("o2", "co2", "co", "n2", "ar", "h2", "h2o", "ch4", "h2s", "so2")
 """tuple: The stored species, in column order (`p_<species>_kpa`)."""
@@ -234,9 +239,23 @@ def generate_atmosphere(planet):
             if value > 0.0:
                 partials[gas] = min(value, vapour_pressure_kpa(gas, planet.surface_temperature))
         planet.atmospheric_pressure = (sum(partials.values()) + balance_kpa) * 1000.0
+        partials = _hold_in_hydrate(planet, partials)
+        planet.atmospheric_pressure = (sum(partials.values()) + balance_kpa) * 1000.0
     for gas, value in partials.items():
         setattr(planet, f"p_{gas}_kpa", value)
     planet.atmosphere = describe(partials, balance_kpa, balance_name)
+
+
+def _hold_in_hydrate(planet, partials):
+    """Rule 5: `partials` (kPa) less what the cages of an icy cold body's ice skin hold."""
+    water = getattr(planet, "water_mass_fraction", None)
+    temperature = planet.surface_temperature
+    if not water or water < hydrosphere.ICY_MIN_WATER_FRACTION or not temperature or temperature >= clathrate_brine.ICE_POINT_K:
+        return partials
+    skin_m = log_uniform(*clathrate_brine.HYDRATE_SKIN_RANGE_M)
+    held = clathrate_brine.hydrate_hold_pa({gas: value * 1000.0 for gas, value in partials.items()}, temperature,
+                                           planet.gravity * constants.EARTH_GRAVITY, skin_m)
+    return {gas: value - held.get(gas, 0.0) / 1000.0 for gas, value in partials.items()}
 
 
 def balance_names(planet_class):
