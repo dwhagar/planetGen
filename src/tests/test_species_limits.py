@@ -12,7 +12,7 @@ import pytest
 
 from planetgen.cli import species_check
 from planetgen.db import species_fit, store
-from planetgen.physics import atmosphere, habitability, species_limits
+from planetgen.physics import gases, habitability, species_limits
 from planetgen.physics.protection_limits import LIMIT_ROWS, limit
 from tests.publicids import pid
 from tests.test_admin_edits import _saved_system
@@ -162,7 +162,7 @@ def test_no_kit_makes_a_world_without_drinkable_water_habitable():
 def _earthlike(conn, planet_id, **changes):
     """Makes planet `planet_id` a scored, Earth-like rocky world with a biosphere, then applies `changes`."""
     values = {
-        **{f"p_{gas}_kpa": 0.0 for gas in atmosphere.SPECIES}, "ocean_class": None,
+        "ocean_class": None,
         "body_type": "t", "atmospheric_pressure_pa": 101325.0, "surface_temperature_k": 288.15, "gravity_g": 1.0,
         "hydrosphere": "surface ocean", "ocean_ph": 8.0, "water_activity": 1.0, "phosphorus": "limited",
         "water_mass_fraction": 0.0002, "surface_dose_msv_yr": 2.0, "dose_ground_msv_yr": 2.0, "uv_surface_index": 1.0, "mass_kg": 5.97e24,
@@ -170,8 +170,14 @@ def _earthlike(conn, planet_id, **changes):
         "p_o2_kpa": 21.2, "p_n2_kpa": 79.0, "p_co2_kpa": 0.04, "p_h2o_kpa": 1.0, "life_stage": "technological_civilization",
         "evolutionary_pace": "normal", "life_system_age_gyr": 4.6, "life_milestone_age_gyr": 4.5, **changes,
     }
+    kpa = {key: values.pop(key) for key in [key for key in values if key.startswith("p_") and key.endswith("_kpa")]}
     conn.execute(f"UPDATE planets SET {', '.join(f'{name} = ?' for name in values)} WHERE id = ?",
                  (*values.values(), planet_id))
+    conn.execute("DELETE FROM planet_gases WHERE planet_id = ?", (planet_id,))
+    for key, value in kpa.items():
+        if value:
+            conn.execute("INSERT INTO planet_gases (planet_id, gas, partial_pa) VALUES (?, ?, ?)",
+                         (planet_id, gases.stored(key[2:-4]).formula, value * 1000.0))
 
 
 def _species(conn, planet_id, system_id, name, tech):
@@ -423,8 +429,8 @@ def test_creating_a_species_checks_its_homeworld(mysql_config, galaxy):
     conn = store.get_connection(mysql_config)
     try:
         species_fit.check_homeworld(conn, galaxy["earth"])
-        conn.execute("UPDATE planets SET hydrosphere = NULL, water_mass_fraction = NULL, p_h2o_kpa = 0 WHERE id = ?",
-                     (galaxy["harsh"],))
+        conn.execute("UPDATE planets SET hydrosphere = NULL, water_mass_fraction = NULL WHERE id = ?", (galaxy["harsh"],))
+        conn.execute("DELETE FROM planet_gases WHERE planet_id = ? AND gas = 'H2O'", (galaxy["harsh"],))
         conn.commit()
         with pytest.raises(species_fit.PlacementError, match="no water"):
             species_fit.check_homeworld(conn, galaxy["harsh"])

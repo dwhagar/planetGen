@@ -53,7 +53,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_radiation, constants, magnetism, ozone, proton_range, radiogenic
+from planetgen.physics import atmosphere, body_radiation, constants, magnetism, ozone, proton_range, radiogenic
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -367,7 +367,7 @@ def generate_dose(body):
     free = free_sep_msv_yr(getattr(star, "flare_n33_per_yr", None), distance)
     sep = sep_dose_msv_yr(free, column, cutoff)
     ground = _ground_dose(body, pressure_pa)
-    p_o2_pa = (getattr(body, "p_o2_kpa", None) or 0.0) * 1000.0
+    p_o2_pa = atmosphere.partial_kpa(body, "o2") * 1000.0
     body.ozone_column_du = ozone.draw_column_du(getattr(star, "temperature", None), p_o2_pa, getattr(body, "gravity", None))
     body.dose_gcr_msv_yr = gcr
     body.dose_sep_msv_yr = sep

@@ -1468,6 +1468,9 @@
 -- v154 (DB.89, GEN.642): `planets` and `moons` gain the summary of a giant's interior (`interior_kind`, `core_mass_earth`, `dilute_core_mass_earth`,
 --   `metallization_pressure_gpa`, `helium_depletion`, `has_helium_shell`), and `planet_interior_layers` and `moon_interior_layers` hold its layers, outside in: the
 --   kind, the state, the pressure and radius fraction at the top and the bottom, and the mass of each material (Earth masses). NULL and no rows on a body without one.
+-- v155 (DB.71, GEN.424): the air moves out of `planets` and `moons` into the child tables `planet_gases` and `moon_gases` (one row per gas above zero: `gas`, its formula in the gas table, and `partial_pa`,
+--   its partial pressure in Pa); the ten `p_<gas>_kpa` columns are gone. A class's balance gas (helium, sodium, ammonia) is a row like the others, so the pressure is the sum of the rows. The migration
+--   copies each row's ten partial pressures (kPa times 1000) into the child tables.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2235,19 +2238,9 @@ CREATE TABLE IF NOT EXISTS planets (
     spin_axis_y                 DOUBLE,
     spin_axis_z                 DOUBLE,
     axial_tilt_deg              DOUBLE,
-    -- v70 (GEN.85): mantle redox and the air's partial pressures, see header comment.
+    -- v70 (GEN.85): mantle redox, see header comment (the air's partial pressures went to `planet_gases` and `moon_gases` in v155).
     mantle_redox                VARCHAR(16) CHECK (mantle_redox IN ('reduced', 'intermediate', 'oxidized')),
     mantle_delta_iw             DOUBLE,
-    p_o2_kpa                      DOUBLE,
-    p_co2_kpa                     DOUBLE,
-    p_co_kpa                      DOUBLE,
-    p_n2_kpa                      DOUBLE,
-    p_ar_kpa                      DOUBLE,
-    p_h2_kpa                      DOUBLE,
-    p_h2o_kpa                     DOUBLE,
-    p_ch4_kpa                     DOUBLE,
-    p_h2s_kpa                     DOUBLE,
-    p_so2_kpa                     DOUBLE,
     -- v72 (GEN.86): magnetic field and the star's XUV and flares here, see header comment.
     magnetic_moment_a_m2        DOUBLE,
     dipole_class                VARCHAR(16) CHECK (dipole_class IN ('none', 'weak', 'earth-like', 'strong', 'multipolar')),
@@ -2435,6 +2428,19 @@ CREATE TABLE IF NOT EXISTS planet_interior_layers (
         FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The air of a planet (v155, DB.71, GEN.424): one row per gas above zero, its formula in the gas table (`physics/data/gases.json`) and its partial pressure.
+-- A class's balance gas (helium, sodium, ammonia) is a row like the others. No row means no air (or a row made before GEN.85).
+CREATE TABLE IF NOT EXISTS planet_gases (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id  BIGINT UNSIGNED NOT NULL,
+    gas         VARCHAR(16) NOT NULL,
+    partial_pa  DOUBLE NOT NULL CHECK (partial_pa > 0),
+
+    CONSTRAINT fk_planet_gases_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_planet_gases (planet_id, gas)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------
 -- moons -- one row per moon, as of schema v2 (see the header comment's
 -- "v2" note). Exactly the same column shape as `planets` (moons are
@@ -2509,19 +2515,9 @@ CREATE TABLE IF NOT EXISTS moons (
     spin_axis_y                 DOUBLE,
     spin_axis_z                 DOUBLE,
     axial_tilt_deg              DOUBLE,
-    -- v70 (GEN.85): mantle redox and the air's partial pressures, see header comment.
+    -- v70 (GEN.85): mantle redox, see header comment (the air's partial pressures went to `planet_gases` and `moon_gases` in v155).
     mantle_redox                VARCHAR(16) CHECK (mantle_redox IN ('reduced', 'intermediate', 'oxidized')),
     mantle_delta_iw             DOUBLE,
-    p_o2_kpa                      DOUBLE,
-    p_co2_kpa                     DOUBLE,
-    p_co_kpa                      DOUBLE,
-    p_n2_kpa                      DOUBLE,
-    p_ar_kpa                      DOUBLE,
-    p_h2_kpa                      DOUBLE,
-    p_h2o_kpa                     DOUBLE,
-    p_ch4_kpa                     DOUBLE,
-    p_h2s_kpa                     DOUBLE,
-    p_so2_kpa                     DOUBLE,
     -- v72 (GEN.86): magnetic field and the star's XUV and flares here, see header comment.
     magnetic_moment_a_m2        DOUBLE,
     dipole_class                VARCHAR(16) CHECK (dipole_class IN ('none', 'weak', 'earth-like', 'strong', 'multipolar')),
@@ -2705,6 +2701,19 @@ CREATE TABLE IF NOT EXISTS moon_interior_layers (
     UNIQUE KEY uq_moon_interior_layers_index (moon_id, layer_index),
     CONSTRAINT fk_moon_interior_layers_moon
         FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The air of a moon (v155, DB.71, GEN.424): one row per gas above zero, its formula in the gas table (`physics/data/gases.json`) and its partial pressure.
+-- A class's balance gas (helium, sodium, ammonia) is a row like the others. No row means no air (or a row made before GEN.85).
+CREATE TABLE IF NOT EXISTS moon_gases (
+    id          BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    moon_id  BIGINT UNSIGNED NOT NULL,
+    gas         VARCHAR(16) NOT NULL,
+    partial_pa  DOUBLE NOT NULL CHECK (partial_pa > 0),
+
+    CONSTRAINT fk_moon_gases_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_moon_gases (moon_id, gas)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

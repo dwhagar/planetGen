@@ -64,8 +64,7 @@ def values_from_body(body):
         "flux_variation": getattr(body, "flux_variation", None),
         "ocean_ph": getattr(body, "ocean_ph", None),
     }
-    for field in atmosphere.PARTIAL_PRESSURE_FIELDS:
-        values[field] = getattr(body, field, None)
+    values[atmosphere.GAS_FIELD] = atmosphere.gas_partials_pa(body)
     return values
 
 
@@ -91,7 +90,7 @@ def quantities(values):
         "ocean_ph": values.get("ocean_ph"),
     }
     for gas in GASES:
-        partial_pa = (values.get(f"p_{gas}_kpa") or 0.0) * 1000.0
+        partial_pa = atmosphere.partial_kpa(values, gas) * 1000.0
         found[f"share_{gas}"] = min(1.0, partial_pa / pressure) if pressure > 0.0 else 0.0
     found["reducing_share"] = found["share_ch4"] + found["share_h2"]
     return found

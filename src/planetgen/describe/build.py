@@ -33,6 +33,7 @@ from planetgen.physics import atmosphere as atmosphere_physics
 from planetgen.physics import (
     atmosphere_colour,
     equipment,
+    gases,
     habitability,
     habitability_explain,
     pre_main_sequence,
@@ -326,15 +327,11 @@ def _atmosphere_composition(planet):
     """The air as shares of its partial pressures, with the stored phrase; `None` for an airless body."""
     if planet.atmosphere in (None, "None"):
         return None
-    pressures = {gas: getattr(planet, f"p_{gas}_kpa", None) for gas in atmosphere_physics.SPECIES}
-    total = sum(value for value in pressures.values() if value)
+    air = atmosphere_physics.gas_partials_pa(planet)
+    total = sum(air.values())
     parts = []
-    balance = atmosphere_physics.balance_kpa(planet)
-    balance_names = atmosphere_physics.balance_names(planet.planet_class) if balance > 0 else ()
-    total += balance
     if total > 0:
-        shares = [(atmosphere_physics.SPECIES_NAMES[gas], value) for gas, value in pressures.items() if value]
-        shares += [(name, balance / len(balance_names)) for name in balance_names]
+        shares = [(gases.gas(formula).name, value) for formula, value in air.items() if value]
         for name, value in sorted(shares, key=lambda item: -item[1]):
             parts.append({"name": name, "share": value / total})
     return model.composition("Atmosphere", parts, planet.atmosphere.lower())

@@ -173,8 +173,8 @@ class Planet(PlanetaryObject):
                                     for a gas giant.
         mantle_delta_iw (float or None): The upper mantle's oxygen fugacity,
                                          log units above the iron-wustite buffer.
-        p_o2_kpa ... p_so2_kpa (float): Each `physics.atmosphere.SPECIES`
-                                        gas's partial pressure, kPa.
+        gas_partials_pa (dict): The air: gas-table formula to partial pressure, Pa, only the gases above zero (stored in
+                                the child tables `planet_gases` and `moon_gases`, DB.71; `physics.atmosphere`).
         life_stage (str or None): The latest `evolution.MILESTONE_KEYS` milestone the timeline reached (set by
                                   `life.apply_life_data`; `None` before any, or with no timeline).
         evolutionary_pace (str or None): How fast life evolves here, a `tuning.EVOLUTIONARY_TIMELINES` key (`fast`,
@@ -201,6 +201,7 @@ class Planet(PlanetaryObject):
         "min_update_interval_years",
         "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
         *atmosphere.ATMOSPHERE_FIELDS,
+        atmosphere.GAS_FIELD,
         *climate_draws.CLIMATE_FIELDS,
         *magnetism.BODY_FIELDS,
         *hydrosphere.HYDROSPHERE_FIELDS,
@@ -356,6 +357,7 @@ class Planet(PlanetaryObject):
         self.axial_tilt_deg = None
         for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + bulk_composition.NEW_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS:
             setattr(self, field, None)
+        setattr(self, atmosphere.GAS_FIELD, {})
 
         # From the star, should not be changed.
         self.habitable_zone = habitable_zone

@@ -24,6 +24,8 @@ import pytest  # noqa: E402
 from planetgen.web.maps import systemmap as sm  # noqa: E402
 from planetgen.physics.constants import EARTH_MASS_TO_KG, JUPITER_MASS_TO_KG  # noqa: E402
 
+from tests.air_support import fold_air  # noqa: E402
+
 AU_KM = 1.496e8
 
 
@@ -908,9 +910,9 @@ def _look_of(html, kind, body_id):
 
 def test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star():
     air = dict(atmosphere="Nitrogen-Oxygen", atmospheric_pressure_pa=101_325.0)
-    partials = dict(p_n2_kpa=79.1, p_o2_kpa=21.2, p_ar_kpa=0.95)
-    moon = dict(_moon(7, 4e5, 0.0), atmosphere="Nitrogen-Oxygen", atmospheric_pressure_pa=60_000.0, gravity_g=0.5,
-                p_n2_kpa=47.0, p_o2_kpa=12.5, p_ar_kpa=0.5)
+    partials = fold_air(dict(p_n2_kpa=79.1, p_o2_kpa=21.2, p_ar_kpa=0.95))
+    moon = fold_air(dict(_moon(7, 4e5, 0.0), atmosphere="Nitrogen-Oxygen", atmospheric_pressure_pa=60_000.0, gravity_g=0.5,
+                         p_n2_kpa=47.0, p_o2_kpa=12.5, p_ar_kpa=0.5))
     first = dict(_planet(1, 10, AU_KM, 0.0, moons=[moon], **air), **partials)
     second = dict(_planet(2, 11, 2 * AU_KM, 0.0, **air), **partials)
     stars = [_star(10), _star(11, temperature_k=3300.0, star_type="M3V", luminosity_w=1e24)]

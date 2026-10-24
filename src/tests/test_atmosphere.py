@@ -4,6 +4,7 @@ Mantle redox and atmosphere species (GEN.85, `planetgen.physics.atmosphere`).
 
 import math
 import statistics
+import types
 
 import pytest
 
@@ -12,6 +13,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.physics import atmosphere, constants, gases, saturation
 from planetgen.util import draw
 
+from tests.air_support import air
 from tests.fuzz_support import deterministic_entropy
 
 
@@ -103,6 +105,11 @@ def test_generated_bodies_store_consistent_air():
         count += 1
         total_kpa = body.atmospheric_pressure / 1000.0
         assert sum(partials.values()) <= total_kpa * (1 + 1e-9)
+        # GEN.424: the balance gas is stored too, so the rows add up to the surface pressure.
+        air = atmosphere.gas_partials_pa(body)
+        assert sum(air.values()) == pytest.approx(body.atmospheric_pressure, rel=1e-9)
+        assert all(gases.has(formula) and value > 0.0 for formula, value in air.items())
+        assert atmosphere.balance_kpa(body) * 1000.0 == pytest.approx(sum(air.values()) - sum(value * 1000.0 for value in partials.values()), abs=1e-6)
         if body.body_type == "t" and atmosphere.CLASS_MIXES.get(body.planet_class, (None, None))[1] is None:
             assert sum(partials.values()) == pytest.approx(total_kpa)
             for gas, value in partials.items():
@@ -112,7 +119,6 @@ def test_generated_bodies_store_consistent_air():
 
 
 def test_hydrogen_inventory_counts_every_hydrogen_carrier():
-    body = type("Body", (), {f"p_{gas}_kpa": 0.0 for gas in atmosphere.SPECIES})()
-    body.p_h2o_kpa, body.p_ch4_kpa, body.p_h2_kpa, body.p_h2s_kpa = 1.0, 0.5, 0.25, 0.1
+    body = types.SimpleNamespace(**air(p_h2o_kpa=1.0, p_ch4_kpa=0.5, p_h2_kpa=0.25, p_h2s_kpa=0.1))
     assert atmosphere.hydrogen_kpa(body) == pytest.approx(1.0 + 1.0 + 0.25 + 0.1)
     assert math.isclose(atmosphere.hydrogen_kpa(object()), 0.0)
