@@ -263,8 +263,8 @@ def test_validate_system_belt_overlap_correction_lands_exactly_past_the_belt():
     (trivially) satisfies -- so this asserts the exact corrected value.
     """
     system = StarSystem(system_config=make_config("G2V", PLANETS=False))
-    belt = AsteroidBelt(system.system_config, distance=2.0, lower_limit=1.8, upper_limit=2.2)
-    overlapping_belt = AsteroidBelt(system.system_config, distance=2.0, lower_limit=1.8, upper_limit=2.2)
+    belt = AsteroidBelt(system.system_config, system.star, distance=2.0, lower_limit=1.8, upper_limit=2.2)
+    overlapping_belt = AsteroidBelt(system.system_config, system.star, distance=2.0, lower_limit=1.8, upper_limit=2.2)
 
     system.validate_system([belt, overlapping_belt])
 

@@ -60,7 +60,7 @@ def planet_at(system, distance_au, planet_class, moon_count=0):
 
 
 def belt(system, lower, upper):
-    return AsteroidBelt(system.system_config, lower, lower, upper)
+    return AsteroidBelt(system.system_config, system.star, lower, lower, upper)
 
 
 def zone_of(system, distance_au):
@@ -72,7 +72,7 @@ def zone_of(system, distance_au):
 
 def test_slot_asteroid_belt_spans_from_the_estimated_distance(system):
     for _ in range(DRAWS):
-        obj = system.generate_slot_object({"type": "asteroid_belt"}, 3.0)
+        obj = system.generate_slot_object(system.star, {"type": "asteroid_belt"}, 3.0)
         assert isinstance(obj, AsteroidBelt) and obj.body_type == 'a'
         assert obj.distance == obj.lower_limit == 3.0
         assert (3.0 * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN <= obj.upper_limit
@@ -81,28 +81,28 @@ def test_slot_asteroid_belt_spans_from_the_estimated_distance(system):
 
 def test_slot_planet_honours_class_and_moon_count(system):
     cold = system.star.habitable_zone[1] * 4
-    obj = system.generate_slot_object({"type": "planet", "planet_class": "J", "moons": 2}, cold)
+    obj = system.generate_slot_object(system.star, {"type": "planet", "planet_class": "J", "moons": 2}, cold)
     assert isinstance(obj, Planet)
     assert obj.planet_class == "J" and obj.distance == cold
     assert len(obj.moons) <= 2
 
 
 def test_slot_type_defaults_to_planet(system):
-    obj = system.generate_slot_object({}, system.star.habitable_zone[1] * 2)
+    obj = system.generate_slot_object(system.star, {}, system.star.habitable_zone[1] * 2)
     assert isinstance(obj, Planet) and obj.body_type in ('t', 'g')
 
 
 def test_slot_planet_class_is_moved_into_a_zone_that_supports_it(system):
     """An ecosphere-only class asked for in a cold-zone slot is placed in
     the habitable zone instead of failing."""
-    obj = system.generate_slot_object({"type": "planet", "planet_class": "M"}, system.star.habitable_zone[1] * 5)
+    obj = system.generate_slot_object(system.star, {"type": "planet", "planet_class": "M"}, system.star.habitable_zone[1] * 5)
     assert obj.planet_class == "M" and obj.zone == 'e'
 
 
 @pytest.mark.parametrize("slot_type", ["comet", "", "Planet", None])
 def test_slot_with_an_unknown_type_raises(system, slot_type):
     with pytest.raises(ValueError, match=f"Invalid slot type '{slot_type}'; expected 'planet' or 'asteroid_belt'."):
-        system.generate_slot_object({"type": slot_type}, 1.0)
+        system.generate_slot_object(system.star, {"type": slot_type}, 1.0)
 
 
 # --- calculate_distance_for_class -----------------------------------------

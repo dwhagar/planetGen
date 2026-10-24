@@ -10,8 +10,8 @@ interstellar space, encountered independently of any particular star
 system -- unlike `asteroidData.AsteroidBelt`, which always orbits a star
 within a `StarSystem`. Physically these are the same kind of object
 (density + mineral composition), just without a host star/orbit, so this
-class reuses `asteroidData.generate_asteroid_composition`/
-`format_composition_summary` rather than duplicating that logic.
+class draws its composition from the same taxa (`small_body_composition.draw_field`, GEN.477) and
+writes it with `asteroidData.format_composition_summary`.
 
 Like `nebulaData.Nebula` and the other standalone exotic phenomena, an
 `AsteroidField` is generated on demand by `phenomenonGen.py`'s separate,
@@ -21,10 +21,10 @@ normal per-slot rolls.
 
 import math
 
-from planetgen.generation.belt import format_composition_summary, generate_asteroid_composition
+from planetgen.generation.belt import format_composition_summary
 from planetgen.generation.config import SystemConfig
 from planetgen import tuning
-from planetgen.physics import constants as pc
+from planetgen.physics import constants as pc, small_body_composition
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS
@@ -64,18 +64,6 @@ def composition_family_for_letter(letter):
     raise ValueError(f"unknown asteroid field class letter {letter!r}")
 
 
-def _family_composition(composition_family):
-    """A (component, concentration) list like
-    `generate_asteroid_composition`'s, sampled from the family's own
-    components (or all asteroid components for a mixed family)."""
-    components = tuning.ASTEROID_FIELD_COMPOSITIONS[composition_family]["components"]
-    if components is None:
-        return generate_asteroid_composition()
-    concentrations = ["high", "moderate", "small", "trace"]
-    chosen = draw.sample(components, k=min(len(concentrations), len(components)))
-    return list(zip(chosen, concentrations))
-
-
 def asteroid_field_designation(field_class, sector_code, index):
     """
     An asteroid field's designation (v40): `AF <class>-<sector>-<nn>`,
@@ -104,7 +92,8 @@ class AsteroidField(SmallBody):
         density (str): The density of the field ('dense', 'sparse', 'typical'
             -- the same three levels `AsteroidBelt.density` uses).
         composition (list): A list of (component, concentration) tuples,
-            generated the same way `AsteroidBelt.composition` is.
+            generated the same way `AsteroidBelt.composition` is (the words of `makeup`).
+        makeup (SmallBodyMakeup or None): The drawn composition (GEN.477); None for a field read from a store without it.
         radius_ly (float): The field's approximate radius, in light-years
             (`tuning.ASTEROID_FIELD_RADIUS_RANGE_LY`).
         galactic_orbital_speed_kms (float): Circular orbital speed around
@@ -145,26 +134,24 @@ class AsteroidField(SmallBody):
 
         self.density = draw.choice(["dense", "sparse", "typical"])
         log.choice("Asteroid field density", self.density, "uniform draw among dense/sparse/typical")
-        families = list(tuning.ASTEROID_FIELD_COMPOSITIONS)
-        self.composition_family = draw.choices(
-            families,
-            weights=[tuning.ASTEROID_FIELD_COMPOSITIONS[f]["frequency"] for f in families],
-            k=1,
-        )[0]
+        self.composition_family = small_body_composition.draw_field_family()
         log.choice("Asteroid field composition", self.composition_family,
-                   "weighted draw by ASTEROID_FIELD_COMPOSITIONS frequency")
-        self.composition = _family_composition(self.composition_family)
+                   "gated draw of the asteroid-field-family table (weights are the stand-in frequencies)")
+        self.makeup = small_body_composition.draw_field(self.composition_family)
+        self.composition = small_body_composition.describe(self.makeup)
         self.radius_ly = draw.uniform(*tuning.ASTEROID_FIELD_RADIUS_RANGE_LY)
         self.field_class = asteroid_field_class(self.composition_family, self.density, self.radius_ly)
 
         self.set_galactic_motion()
 
     def _encode(self, data):
-        """`composition` as a list of 2-element lists (JSON has no tuple type), as `AsteroidBelt.to_dict` does."""
+        """`composition` as a list of 2-element lists (JSON has no tuple type), as `AsteroidBelt.to_dict` does, and the makeup."""
         data["composition"] = [list(pair) for pair in self.composition]
+        data["makeup"] = self.makeup.to_dict() if self.makeup is not None else None
 
     def _decode(self, data):
         self.composition = [tuple(pair) for pair in data["composition"]]
+        self.makeup = small_body_composition.SmallBodyMakeup.from_dict(data["makeup"]) if data.get("makeup") else None
 
     @classmethod
     def from_dict(cls, data, system_config):

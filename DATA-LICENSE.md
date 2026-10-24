@@ -33,6 +33,7 @@ The keys are the source keys of the file.
 | `hp2011-burnman` | Holland and Powell (2011) data set as shipped in `burnman` | As for `burnman` |
 | `journaux2020` | Journaux et al. 2020 Gibbs splines as distributed in SeaFreeze 1.1.3, evaluated in part C | SeaFreeze is GPL-3; only the spline data were used and the evaluator is the project's own; values only |
 | `blum-bischoff` | Blum and Bischoff, arXiv:2207.12731, as read in part C | Preprint; values only |
+| `cod-part-d` | Densities computed in part D (section 2.1) from the Crystallography Open Database cell of the same formula | COD entries are public domain (CC0); only the computed densities are kept |
 | `ideal-gas` | The ideal gas law | None (exact law) |
 
 ## The gas table (`src/planetgen/physics/data/gases.json`, GEN.410)
@@ -133,6 +134,10 @@ Fitted numbers only (counts of known and measured comets by group and perihelion
 | Robinson, Malamud, Opitom, Perets and Blum 2024, A&A (arXiv:2403.15644), database doi 10.7488/ds/7723 | CC BY 4.0; attribution given here |
 | JPL Small-Body Database query API (https://ssd-api.jpl.nasa.gov/sbdb_query.api), retrieved 2026-10-23 | Public data of NASA/JPL; orbit class and perihelion distance only |
 
+## The compaction table (`src/planetgen/physics/data/compaction_table.json`, GEN.442)
+
+Computed here by `scripts/build_compaction_table.py` from the porosity laws and grain densities of Bierson and Nimmo 2019 (Icarus 326, 10, Table 1 and Eqs. 1 and 2; published paper, values only) and third-order Birch-Murnaghan constants that are the design note's stand-ins. No third-party data file is in the repository.
+
 ## The habitable-zone fits (`src/planetgen/physics/orbits.py`, GEN.146)
 
 Eight coefficients of Kopparapu et al. 2014, ApJL 787, L29 (arXiv:1404.5292), Table 1, read from the paper (1 Earth-mass runaway greenhouse and
@@ -152,3 +157,14 @@ The seven-coefficient polynomials of 54 gas species (`scripts/build_thermo_table
 |---|---|---|
 | NIST Chemistry WebBook fluid properties for water (IAPWS-95), isotherm at 300 K from 0.1 to 950 MPa, read 2026-10-23 | Twenty density values | NIST Standard Reference Data are copyrighted by the Secretary of Commerce; no permission was sought; values only |
 | Ice VI, VII and X reference points | Read from the materials table (`journaux2020`, `seager2007`) | As the materials table |
+
+## Clathrate hydrates and eutectic brines (`src/planetgen/physics/data/clathrate_brine.json`, GEN.471)
+
+The keys are the source keys of the file. Published values only; no third-party data file is in the repository.
+
+| Source key | Source | Terms known |
+|---|---|---|
+| `marboeuf-2014` | Marboeuf et al. 2014, Table 5 (from Mohammadi and Richon 2010, Fray 2010, Hersant 2004) | Published paper; the six fit constants only |
+| `semenov-2023` | Semenov, Stoporev et al. 2023, Int. J. Mol. Sci. 24, 9321 | Open access (MDPI); two quadruple points only |
+| `chevrier-2009` | Chevrier, Hanley and Altheide 2009, GRL 36, L10202 | Published abstract; two eutectic points only |
+| `pestova-2005` | Pestova et al. 2005, Marion et al. 2010, as quoted by arXiv:1811.00862 and arXiv:2012.00100 | Second-hand; one eutectic point |

@@ -32,7 +32,7 @@ import math
 
 from markupsafe import Markup, escape
 
-from planetgen.physics import brown_dwarf, constants as phys, planet_classes
+from planetgen.physics import brown_dwarf, constants as phys, planet_classes, small_body_composition
 from planetgen import tuning as pc
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
@@ -295,11 +295,7 @@ def _asteroid_field():
     classes = {}
     for letter in sorted(densities):
         family, data, density_list = densities[letter]
-        components = data["components"]
-        if components is None:
-            components_text = "Any asteroid material: " + ", ".join(pc.ASTEROID_COMPONENTS)
-        else:
-            components_text = _sentence(", ".join(components))
+        components_text = small_body_composition.field_family_text(family)
         classes[letter] = _entry(letter, f"{_sentence(family)}, {' or '.join(density_list)}",
                                  _sentence(data["description"]) + ".", [
             ("Composition family", _sentence(family)),

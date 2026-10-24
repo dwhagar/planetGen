@@ -294,7 +294,7 @@ ASTEROID_COMPONENTS = [
 ]
 """
 list: A comprehensive list of various components that can be found in asteroids.
-These components are used to generate the composition of asteroid belts.
+This is a vocabulary of names the materials table resolves (a belt's or field's composition is drawn from asteroid taxa, GEN.442 and GEN.477).
 """
 
 # --- Space Sector Generation Parameters ---
@@ -3406,19 +3406,8 @@ INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM = (0.05, 5.0)
 # 'Oumuamua-like body with no detected outgassing.
 INTERSTELLAR_COMET_ACTIVE_CHANCE = 0.5
 
-COMET_COMPOSITION = [
-    "water ice", "carbon dioxide ice", "carbon monoxide ice",
-    "methane ice", "ammonia ice", "silicate dust", "amorphous carbon",
-    "complex organic compounds", "hydrogen cyanide", "formaldehyde",
-]
-"""
-list: Common cometary nucleus components (real, spectroscopically-
-identified cometary ices/dust, e.g. as surveyed in A'Hearn et al. 1995,
-Icarus 118:223), used the same way ASTEROID_COMPONENTS is -- a random
-subset sampled per object for descriptive composition text. Shared by
-`InterstellarComet` and `cometData.Comet` alike -- nucleus chemistry
-doesn't depend on whether the comet is bound to a star.
-"""
+# A comet nucleus's makeup is drawn by `physics/small_body_composition.draw_comet` (GEN.442): the refractory-to-ice ratio, the
+# organic share, the porosity and the volatiles, with the density they make.
 
 # --- Star-Bound Comets (cometData.Comet) ---
 #
@@ -3438,10 +3427,6 @@ doesn't depend on whether the comet is bound to a star.
 # separate, wider range reflects that real difference rather than reusing
 # the interstellar range as-is.
 BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM = (0.5, 20.0)
-COMET_NUCLEUS_DENSITY_KG_M3 = 533.0
-"""float: Bulk density of a comet nucleus, kg/m^3 -- 67P/Churyumov-Gerasimenko, measured by Rosetta (Paetzold et al.
-2016, 533 +/- 6), the one nucleus whose mass and volume are both known. A nucleus's mass is this times its sphere's
-volume (`physics/bulk_mass.comet_nucleus_mass_kg`)."""
 
 # Perihelion distance range, in AU, for a star-bound comet -- wide enough
 # to cover both a sungrazer-like close pass and an outer-system comet that
@@ -3633,67 +3618,52 @@ ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
 # 0.001-1 ly field is 1-4. A full class reads like "C3". V-Z are reserved.
 #
 # Each composition family: `letters` keyed by density (`sparse`, `typical`,
-# `dense`), `components` (what its bodies are made of, sampled for the
-# composition text), `description`, and `frequency` (relative weight).
+# `dense`), `description`, and `frequency` (relative weight; what its bodies are
+# made of is `small_body_composition.FIELD_FAMILIES`).
 ASTEROID_FIELD_COMPOSITIONS = {
     "carbonaceous": {
         "letters": {"sparse": "A", "typical": "B", "dense": "C"},
-        "components": ["carbon", "serpentine", "magnetite", "silicon carbide", "sulfur",
-                       "phosphorus", "olivine", "troilite"],
         "description": "dark carbon-rich bodies with hydrated clays",
         "frequency": 30.0,
     },
     "stony": {
         "letters": {"sparse": "D", "typical": "E", "dense": "F"},
-        "components": ["olivine", "pyroxene", "plagioclase feldspars", "silicon", "magnesium",
-                       "troilite", "iron", "silicon dioxide"],
         "description": "silicate rock with flecks of metal",
         "frequency": 20.0,
     },
     "metallic": {
         "letters": {"sparse": "G", "typical": "H", "dense": "J"},
-        "components": ["iron", "nickel", "kamacite", "taenite", "schreibersite", "cohenite",
-                       "iridium", "platinum", "osmiridium"],
         "description": "iron-nickel cores of shattered bodies",
         "frequency": 8.0,
     },
     "icy": {
         "letters": {"sparse": "K", "typical": "L", "dense": "M"},
-        "components": ["water ice", "carbon dioxide ice", "ammonia ice", "amorphous carbon",
-                       "complex organic compounds", "silicate dust", "serpentine"],
         "description": "volatile-rich primitive bodies, ices bound in dark crusts",
         "frequency": 20.0,
     },
     "basaltic": {
         "letters": {"sparse": "N", "typical": "N", "dense": "P"},
-        "components": ["pyroxene", "plagioclase feldspars", "olivine", "ilmenite", "chromite",
-                       "magnesium", "calcium"],
         "description": "basalt from a differentiated body's crust",
         "frequency": 4.0,
     },
     "mixed": {
         "letters": {"sparse": "Q", "typical": "R", "dense": "S"},
-        "components": None,
         "description": "a mix of rock, metal and carbonaceous bodies",
         "frequency": 10.0,
     },
     "dust": {
         "letters": {"sparse": "T", "typical": "T", "dense": "T"},
-        "components": ["silicon dioxide", "carbon", "olivine", "pyroxene", "magnetite"],
         "description": "mostly dust and gravel, with few large bodies",
         "frequency": 5.0,
     },
     "collisional": {
         "letters": {"sparse": "U", "typical": "U", "dense": "U"},
-        "components": None,
         "description": "fragments of one parent body broken apart in a collision",
         "frequency": 3.0,
     },
 }
-"""dict: See the comment above. The icy family borrows cometary ices
-(`COMET_COMPOSITION`); `components` None means sample from all of
-`ASTEROID_COMPONENTS` (a mixed field, or a collisional family whose
-parent body could have been anything)."""
+"""dict: See the comment above. What a family is made of is its mixture of asteroid taxa
+(`physics/small_body_composition.FIELD_FAMILIES`, GEN.477)."""
 
 # --- Collisions (GEN.345, docs/design/orbits/collisions-and-mergers.md section 5.1) ---
 

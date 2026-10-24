@@ -62,6 +62,8 @@ SOURCES = {
     "journaux2020": "Journaux et al. 2020, JGR Planets, Gibbs-energy splines as distributed in SeaFreeze 1.1.3 (spline data only), evaluated in part C "
                     "section 2.3 (computed from second-hand data)",
     "blum-bischoff": "Blum and Bischoff, arXiv:2207.12731, as read in part C section 2.3 (comet densities)",
+    "cod-part-d": "Part D of the body composition research, section 2.1: densities computed from the Crystallography Open Database cell of the same formula "
+                  "(rho = Z M / (N_A V)), label COMPUTED; not a measurement of the solid at the body's temperature",
     "ideal-gas": "The ideal gas law rho = P M / (R T); exact, no constants of its own",
 }
 
@@ -356,6 +358,18 @@ def main():
     fa["props"]["rho_grain_g_cm3"] = null_prop("rho_grain_g_cm3")
     fa["note"] = "PubChem lists the anhydrous liquid (0.815 g/cm3 at -20 C) only; no solid density was reached."
     rows["formaldehyde"] = fa
+    for row_id, name, formula, aliases_here in (("ch3oh_ice", "methanol ice", "CH3OH", ["methanol ice", "methanol"]),
+                                                 ("c2h6_ice", "ethane ice", "C2H6", ["ethane ice", "ethane"]),
+                                                 ("h2s_ice", "hydrogen sulfide ice", "H2S", ["hydrogen sulfide ice", "hydrogen sulfide"])):
+        # The comet ices the volatile population (GEN.495) names that the lists did not: the gas table owns the molecule's gas figures.
+        row = new_row(row_id, name, "ice", formula, aliases_here, gas=formula)
+        if row_id in data.COD_DENSITY:
+            value, basis = data.COD_DENSITY[row_id]
+            row["props"]["rho_grain_g_cm3"] = prop(value, "C", "cod-part-d", "g/cm3", basis=basis)
+        else:
+            row["props"]["rho_grain_g_cm3"] = null_prop("rho_grain_g_cm3")
+            row["note"] = "No solid density was reached (part D lists no cell for the solid)."
+        rows[row_id] = row
     ac = new_row("amorphous_carbon", "amorphous carbon", "carbon", "C", ["amorphous carbon"])
     ac["props"]["rho_grain_g_cm3"] = null_prop("rho_grain_g_cm3")
     ac["note"] = "No density source reached; the value depends on the hydrogen content and the formation."

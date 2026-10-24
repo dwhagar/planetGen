@@ -14,7 +14,7 @@ import math
 
 import pytest
 
-from planetgen.physics import constants
+from planetgen.physics import constants, materials
 from planetgen import tuning
 from planetgen.generation.comet import Comet
 from planetgen.describe import build
@@ -51,7 +51,8 @@ def test_elliptical_comet_within_configured_ranges():
         assert 0 <= comet.mean_anomaly_deg < 360
         assert comet.min_update_interval_years is not None and comet.min_update_interval_years > 0
         assert 0 < len(comet.composition) <= 3
-        assert all(component in tuning.COMET_COMPOSITION for component in comet.composition)
+        assert all(materials.has(component) for component in comet.composition)
+        assert comet.makeup is not None and comet.mass_kg == pytest.approx(comet.makeup.mass_kg(comet.nucleus_diameter_km))
 
 
 def test_parabolic_comet_within_configured_ranges():

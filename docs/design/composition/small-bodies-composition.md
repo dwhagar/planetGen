@@ -4,6 +4,8 @@
 
 The numbers marked COMPUTED were made for this note with the two small programs in `/mnt/project-files/design-drafts/small-bodies/` (`handoff.py`, `taper.py`: a uniform-composition sphere in hydrostatic balance, Bierson and Nimmo's two porosity laws mixed by volume, third-order Birch-Murnaghan grains: ice K0 9.2 GPa, K' 5.5, silicate K0 110 GPa, K' 4.0, which are my stand-ins for the solver's EOS). They are a check of the shape of the design, not a replacement for the reference solver of GEN.429.
 
+**Implementation status (2026-10-23, GEN.442):** sections 3 to 5 and the compaction of section 4 are built in `physics/compaction.py` (with the table `physics/data/compaction_table.json`, made by `scripts/build_compaction_table.py`) and `physics/small_body_composition.py` (the taxon table, the comet, icy-body and ring draws). Belts, comets and interstellar comets read them (`AsteroidBelt` takes its star for the stored snow line; a comet stores `mass_kg` from its makeup; `tuning.COMET_COMPOSITION` and `tuning.COMET_NUCLEUS_DENSITY_KG_M3` are gone). Section 1 below describes main before that work. Stored composition rows are DB.70; the condition-based classes of lane D read the stored rows. Lane K's interface note: `/mnt/project-files/reports/lane-k-contracts-2026-10-23.md`.
+
 ## 1. What exists at main
 
 - **Belts and fields.** `AsteroidBelt` (generation/belt.py) draws four names from the flat list `tuning.ASTEROID_COMPONENTS` and gives them the words high, moderate, small and trace; the density word (dense, sparse, typical) is a separate uniform draw; the mass is stated as zero (NAV.62). A standalone field draws one of eight families by frequencies with no source. The replacement of that draw is GEN.477; this note gives it the taxon table it reads.

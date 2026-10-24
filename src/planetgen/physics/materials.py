@@ -7,7 +7,7 @@ The shared materials and components table (GEN.427, docs/design/composition/bulk
 The one table of every element, mineral, ice, organic and alloy a body can contain: its formula, molar mass, grain density,
 phase points, latent heats, the band albedos and the equation-of-state constants of the model GEN.426 chose, each number with
 the source it was read from. There is no component list owned by one kind: the 84 names of `tuning.ASTEROID_COMPONENTS`, the
-families of `tuning.ASTEROID_FIELD_COMPOSITIONS`, `tuning.COMET_COMPOSITION` and the composition texts of
+taxa of `physics/small_body_composition.py` and the composition texts of
 `tuning.PLANET_CLASSES` all resolve to rows of it (`material`, `class_composition`), and a test fails when one does not. A
 planet's or moon's bulk and surface draws (GEN.428, GEN.441) read the same rows; this item holds the data only and
 changes no draw, so it bumps nothing (Boss, 2:10 PM EDT, card "Data table, no bump").

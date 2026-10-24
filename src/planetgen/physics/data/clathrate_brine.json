@@ -1,0 +1,86 @@
+{
+ "title": "Clathrate hydrate dissociation curves and eutectic brines (GEN.471)",
+ "sources": {
+  "marboeuf-2014": "Marboeuf et al. 2014, section 3.4 and Table 5 (from Mohammadi and Richon 2010, Fray 2010, Hersant 2004): ln P_cl(Pa) = A0 + A1/T for the hydrates in the cold ice regime; hydrate number 6 for all; CO, CO2, CH4, H2S form structure I, N2 structure II, NH3 a stoichiometric monohydrate (read by the Body composition research lane, part C)",
+  "semenov-2023": "Semenov, Stoporev et al. 2023, Int. J. Mol. Sci. 24, 9321 (DOI 10.3390/ijms24119321): CO2 hydrate quadruple points Q1 (V-Lw-I-H) 271.60 K at 1.044 MPa (+/- 0.023 K, +/- 0.021 MPa) and Q2 (V-Lw-L-H) 283.13 K at 4.494 MPa",
+  "chevrier-2009": "Chevrier, Hanley and Altheide 2009, GRL 36, L10202 (Crossref abstract read): eutectics of 206 +/- 1 K at 44.0 wt% Mg(ClO4)2 and 236 +/- 1 K at 52 wt% NaClO4",
+  "pestova-2005": "Pestova et al. 2005 and Marion et al. 2010 (Icarus 207, 675), as quoted by Martinez et al. arXiv:1811.00862 and Rivera-Valentin et al. arXiv:2012.00100 (second-hand): Ca(ClO4)2 eutectic 198 to 199 K, water activity 0.51 to 0.52",
+  "parametrisation": "the linear liquidus between pure water and the eutectic, the eutectic spread (the stated plus or minus) and the water activity of an arbitrary mixture are parametrisations of this module"
+ },
+ "clathrates": {
+  "CO": {
+   "structure": "I",
+   "a0": 23.3818,
+   "a1": -1890.39,
+   "source": "marboeuf-2014",
+   "state": "verified"
+  },
+  "CO2": {
+   "structure": "I",
+   "a0": 23.294,
+   "a1": -2565.0,
+   "source": "marboeuf-2014",
+   "state": "verified",
+   "upper_k": 271.6,
+   "upper_source": "semenov-2023"
+  },
+  "CH4": {
+   "structure": "I",
+   "a0": 22.6864,
+   "a1": -2176.2,
+   "source": "marboeuf-2014",
+   "state": "verified"
+  },
+  "H2S": {
+   "structure": "I",
+   "a0": 22.8931,
+   "a1": -3111.02,
+   "source": "marboeuf-2014",
+   "state": "verified"
+  },
+  "N2": {
+   "structure": "II",
+   "a0": 22.719,
+   "a1": -1696.05,
+   "source": "marboeuf-2014",
+   "state": "verified"
+  },
+  "NH3": {
+   "structure": "monohydrate",
+   "a0": 19.515,
+   "a1": -2878.23,
+   "source": "marboeuf-2014",
+   "state": "verified"
+  }
+ },
+ "hydrate_number": 6,
+ "ice_point_k": 273.15,
+ "brines": {
+  "NaClO4": {
+   "eutectic_k": 236.0,
+   "sd_k": 1.0,
+   "wt_percent": 52.0,
+   "water_activity": null,
+   "source": "chevrier-2009",
+   "state": "verified"
+  },
+  "Mg(ClO4)2": {
+   "eutectic_k": 206.0,
+   "sd_k": 1.0,
+   "wt_percent": 44.0,
+   "water_activity": 0.555,
+   "source": "chevrier-2009",
+   "state": "partly verified",
+   "limit": "authors differ: 205 K (Gough 2011) to 212 K (Pal and Kereszturi); the water activity 0.55 to 0.56 is second-hand"
+  },
+  "Ca(ClO4)2": {
+   "eutectic_k": 198.0,
+   "sd_k": 1.0,
+   "wt_percent": null,
+   "water_activity": 0.515,
+   "source": "pestova-2005",
+   "state": "partly verified",
+   "limit": "second-hand (arXiv preprints quoting Pestova 2005 and Marion 2010); the eutectic composition was not reached"
+  }
+ }
+}
