@@ -29,7 +29,8 @@ from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.names.wordsalad import LazySaladName
-from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS, MassObject
+from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS
+from planetgen.generation.planetary_object import PlanetaryObject
 from planetgen.generation.small_body import SmallBody
 from planetgen.util.format import format_flux_w_m2, format_number
 from planetgen.util.random import sample_power_law
@@ -150,7 +151,7 @@ def default_rogue_planet_class(planet_type, radius_km, mass_kg, mass_bin=None):
     return max(candidates, key=lambda code: tuning.PLANET_CLASS_PROBABILITIES.get(code, 0.0))
 
 
-class RoguePlanet(LazySaladName, MassObject):
+class RoguePlanet(LazySaladName, PlanetaryObject):
     """
     A basic class to store information for a free-floating ("rogue"/nomad)
     planet with no host star.
@@ -305,11 +306,19 @@ class RoguePlanet(LazySaladName, MassObject):
         return planet
 
     @property
+    def giant_kind(self):
+        return self.planet_type
+
+    @property
+    def parent_kind(self):
+        return None
+
+    @property
     def kind_label(self):
         """`"Brown Dwarf"`, `"Gas Giant"` or `"Terrestrial"`."""
         if getattr(self, "mass_bin", None) == "brown-dwarf":
             return "Brown Dwarf"
-        return "Gas Giant" if self.planet_type == 'g' else "Terrestrial"
+        return "Gas Giant" if self.is_giant else "Terrestrial"
 
     @property
     def spectral_type(self):
