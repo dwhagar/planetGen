@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.160 |
+| UX | UX.161 |
 | MAP | MAP.286 |
 | NAV | NAV.63 |
 | GEN | GEN.671 |
@@ -2224,6 +2224,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | open |
 | UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality | none | open |
 | UX.159 | Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests | none | open |
+| UX.160 | The search icon button opens a box over the page: it should go straight to the search page (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
