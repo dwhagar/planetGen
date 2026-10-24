@@ -1,0 +1,365 @@
+{
+  "title": "Planet and moon classes as conditions of the finished body",
+  "version": 1,
+  "status": "design thresholds (GEN.645): every number marked design is a planetGen default to be refitted by the shadow sweep (src/tests/class_shadow_cli.py), not a measured constant",
+  "reserve": [
+    "R",
+    "U",
+    "W",
+    "X",
+    "Y",
+    "Z"
+  ],
+  "reserve_note": "Letters no class uses. Boss (6:26 PM EDT 2026-10-23): a letter is never retired without asking him, and free letters are kept for new designations that make more sense; use none of them for anything else.",
+  "quantities": {
+    "mass_earth": {
+      "label": "mass",
+      "unit": "Earth masses",
+      "note": "the body's mass in Earth masses"
+    },
+    "gravity_g": {
+      "label": "surface gravity",
+      "unit": "g",
+      "note": "surface gravity in Earth gravities"
+    },
+    "temperature_k": {
+      "label": "mean surface temperature",
+      "unit": "K",
+      "note": "mean surface temperature"
+    },
+    "pressure_pa": {
+      "label": "surface pressure",
+      "unit": "Pa",
+      "note": "surface pressure (0 for no air)"
+    },
+    "ocean_fraction": {
+      "label": "water cover",
+      "percent": true,
+      "note": "share of the surface covered by water, liquid or frozen"
+    },
+    "water_mass_fraction": {
+      "label": "water share of the body's mass",
+      "percent": true,
+      "note": "water share of the whole body's mass"
+    },
+    "hydrosphere": {
+      "label": "water state",
+      "note": "the stored water state: dry, vapour, ice, ice-covered ocean, surface ocean, hycean"
+    },
+    "flux_variation": {
+      "label": "variation of starlight over the orbit",
+      "percent": true,
+      "note": "peak-to-peak variation of the starlight the body receives, as a fraction"
+    },
+    "share_<gas>": {
+      "label": "<gas> share of the air",
+      "percent": true,
+      "note": "a stored gas's partial pressure over the surface pressure (o2, co2, co, n2, ar, h2, h2o, ch4, h2s, so2)"
+    },
+    "reducing_share": {
+      "label": "methane and hydrogen share of the air",
+      "percent": true,
+      "note": "the methane and hydrogen shares together"
+    },
+    "body_type": {
+      "label": "body type",
+      "note": "t terrestrial, g giant"
+    }
+  },
+  "rows": [
+    {
+      "letter": "T",
+      "name": "Gas dwarf",
+      "kind": "g",
+      "when": [
+        {
+          "quantity": "mass_earth",
+          "lt": 10.0
+        }
+      ],
+      "sentence": "A gas dwarf: a giant under about 10 Earth masses, a deep hydrogen and helium envelope over a small core.",
+      "basis": "design: 10 Earth masses, the lower edge of the ice giants' range (tuning.GIANT_CLASS_MASS_RANGE_EARTH); the sweep finds no better cut"
+    },
+    {
+      "letter": "I",
+      "name": "Ice giant",
+      "kind": "g",
+      "when": [
+        {
+          "quantity": "mass_earth",
+          "lt": 35.0
+        }
+      ],
+      "sentence": "An ice giant: 10 to 35 Earth masses, mostly water, ammonia and methane ices and rock under a hydrogen and helium envelope.",
+      "basis": "design: 35 Earth masses, the cut that misplaces fewest of the drawn ice and gas giants (15 percent; their mass ranges overlap from 30 to 60); the envelope share of GEN.428 replaces it at the cut-over"
+    },
+    {
+      "letter": "J",
+      "name": "Gas giant",
+      "kind": "g",
+      "when": [],
+      "sentence": "A gas giant: 35 Earth masses or more, mostly hydrogen and helium.",
+      "basis": "design: the rest of the giants"
+    },
+    {
+      "letter": "D",
+      "name": "Small icy body",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "pressure_pa",
+          "lt": 10.0
+        },
+        {
+          "quantity": "water_mass_fraction",
+          "min": 0.01
+        }
+      ],
+      "sentence": "A small icy body: no air and at least 1 percent of its mass water or ice.",
+      "basis": "design: 1 percent, between the dry rocky bodies (under 1e-4) and the icy ones (5 to 50 percent)"
+    },
+    {
+      "letter": "S",
+      "name": "Airless super-Earth",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "pressure_pa",
+          "lt": 10.0
+        },
+        {
+          "quantity": "mass_earth",
+          "min": 1.5
+        }
+      ],
+      "sentence": "A barren, rocky super-Earth with no air: 1.5 Earth masses or more.",
+      "basis": "design: 1.5 Earth masses, the lower edge of a super-Earth"
+    },
+    {
+      "letter": "C",
+      "name": "Dead world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "pressure_pa",
+          "lt": 10.0
+        }
+      ],
+      "sentence": "A dead world: rock with no air (under 10 Pa).",
+      "basis": "design: 10 Pa, the edge of an exosphere"
+    },
+    {
+      "letter": "A",
+      "name": "Volcanic world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "share_so2",
+          "min": 0.03
+        }
+      ],
+      "sentence": "A volcanic world: air with sulfur dioxide as 3 percent or more of it, outgassed by active volcanism.",
+      "basis": "design: 3 percent sulfur dioxide, which no non-volcanic mixture reaches"
+    },
+    {
+      "letter": "N",
+      "name": "Hot dense world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "pressure_pa",
+          "min": 1000000.0
+        }
+      ],
+      "sentence": "A hot world with an air column of 10 bar or more, carbon dioxide and sulfur dominated.",
+      "basis": "design: 10 bar, between every temperate world (under 4 bar) and the dense runaway-greenhouse worlds (over 50 bar)"
+    },
+    {
+      "letter": "Q",
+      "name": "Variable-climate world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "flux_variation",
+          "min": 0.25
+        }
+      ],
+      "sentence": "A world whose starlight varies by a quarter or more over its orbit, so its climate swings between extremes.",
+      "basis": "design: 0.25 peak to peak, from an eccentric orbit or a close companion"
+    },
+    {
+      "letter": "V",
+      "name": "High-gravity world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "gravity_g",
+          "min": 1.25
+        }
+      ],
+      "sentence": "A world with air and a surface gravity of 1.25 g or more (a super-Earth).",
+      "basis": "design: 1.25 g, above every ecosphere world of Earth size"
+    },
+    {
+      "letter": "L",
+      "name": "Marginal thin-air world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "pressure_pa",
+          "lt": 3000.0
+        },
+        {
+          "quantity": "share_o2",
+          "min": 0.1
+        },
+        {
+          "quantity": "gravity_g",
+          "min": 0.5
+        }
+      ],
+      "sentence": "A marginal world: oxygen-bearing air thinner than 3 kPa on a world of 0.5 g or more.",
+      "basis": "design: 3 kPa, 10 percent oxygen (no carbon dioxide thin-air world reaches it) and 0.5 g (the small hot worlds of class B do not)"
+    },
+    {
+      "letter": "K",
+      "name": "Thin-air world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "pressure_pa",
+          "lt": 3000.0
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 273.15
+        }
+      ],
+      "sentence": "A cold world with air thinner than 3 kPa and little oxygen: a cold desert below freezing.",
+      "basis": "design: 3 kPa and the freezing point of water"
+    },
+    {
+      "letter": "P",
+      "name": "Glaciated world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "temperature_k",
+          "lt": 210.0
+        }
+      ],
+      "sentence": "A cold, glaciated world: air and a mean surface under 210 K.",
+      "basis": "design: 210 K"
+    },
+    {
+      "letter": "B",
+      "name": "Small hot world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "gravity_g",
+          "lt": 0.5
+        }
+      ],
+      "sentence": "A small world (under 0.5 g) with air, a surface above 210 K and no sealed ocean.",
+      "basis": "design: 0.5 g"
+    },
+    {
+      "letter": "E",
+      "name": "Wet reducing world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "share_o2",
+          "lt": 0.03
+        },
+        {
+          "quantity": "reducing_share",
+          "min": 0.05
+        },
+        {
+          "quantity": "share_h2o",
+          "min": 0.15
+        }
+      ],
+      "sentence": "A hot world with a reducing, steamy air: no free oxygen, methane or hydrogen, and water vapour as 15 percent or more of it.",
+      "basis": "design"
+    },
+    {
+      "letter": "F",
+      "name": "Reducing world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "share_o2",
+          "lt": 0.03
+        },
+        {
+          "quantity": "reducing_share",
+          "min": 0.05
+        }
+      ],
+      "sentence": "A world with a reducing air: no free oxygen and methane or hydrogen as 5 percent or more of it.",
+      "basis": "design"
+    },
+    {
+      "letter": "G",
+      "name": "Carbon dioxide world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "share_co2",
+          "min": 0.2
+        }
+      ],
+      "sentence": "A rocky world with a carbon dioxide air (20 percent or more).",
+      "basis": "design"
+    },
+    {
+      "letter": "O",
+      "name": "Ocean world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "ocean_fraction",
+          "min": 0.9
+        }
+      ],
+      "sentence": "An ocean world: water covers 90 percent or more of the surface.",
+      "basis": "design"
+    },
+    {
+      "letter": "H",
+      "name": "Desert world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "ocean_fraction",
+          "lt": 0.15
+        }
+      ],
+      "sentence": "A desert world: air, and water over under 15 percent of the surface.",
+      "basis": "design"
+    },
+    {
+      "letter": "M",
+      "name": "Temperate world",
+      "kind": "t",
+      "when": [],
+      "sentence": "A temperate terrestrial world: air and water over 15 to 90 percent of the surface.",
+      "basis": "design: the rest of the worlds with air"
+    }
+  ],
+  "core": [
+    "H",
+    "P",
+    "O",
+    "J",
+    "M",
+    "I",
+    "C",
+    "D",
+    "N"
+  ],
+  "core_note": "Boss (6:30 PM EDT 2026-10-23): H, P, O, J, M, I, C, D and N are the core classes. Keep their letters and meanings as close to today's as the conditions allow."
+}

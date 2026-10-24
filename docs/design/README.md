@@ -152,6 +152,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [habitability-index.md](habitability/habitability-index.md) | The planetary habitability index (PHI-4) and the protection gear | partly built (scores built, GEN.84) |
+| [condition-based-planet-classes.md](habitability/condition-based-planet-classes.md) | A planet or moon's class worked out from its finished conditions (air, temperature, water, size, gravity) instead of drawn first: the rule file, the core classes, the shadow sweep and the cut-over (GEN.645 to GEN.648) | partly built (class lane, 2026-10-23; the classifier, sweep and class pages are built, the cut-over waits on the composition lanes) |
 | [atmospheres-retention-and-classes.md](habitability/atmospheres-retention-and-classes.md) | Atmosphere retention and class timing | research |
 | [activity-magnetism-radiation-hydrosphere.md](habitability/activity-magnetism-radiation-hydrosphere.md) | Stellar activity, magnetism, radiation dose and hydrosphere | partly built |
 | [population-and-politics.md](habitability/population-and-politics.md) | Species, civilizations, territories, tech levels and facilities | built |
