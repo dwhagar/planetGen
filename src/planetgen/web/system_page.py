@@ -29,7 +29,7 @@ from flask import Response, request
 
 from . import bp, jobs
 from .generate_page import FormError, _admin_or_403, _admin_or_redirect, _no_store, _number
-from .helpers import crumb, render_page, trusted_html
+from .helpers import crumb, trusted_html
 
 from planetgen.queue import api_jobs
 from planetgen import describe

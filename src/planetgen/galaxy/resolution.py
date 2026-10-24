@@ -23,7 +23,6 @@ stars fit.
 import math
 from dataclasses import dataclass
 
-from planetgen import tuning
 from planetgen.galaxy import disk_history, system_mass
 from planetgen.generation.star_population import placed_star_fraction
 

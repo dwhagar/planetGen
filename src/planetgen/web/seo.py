@@ -22,7 +22,6 @@ This module imports Flask only for the request.
 """
 
 import json
-import os
 import re
 import threading
 import time

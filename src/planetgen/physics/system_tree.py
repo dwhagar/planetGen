@@ -111,7 +111,6 @@ def member_offsets_au(members, nodes, unix):
     members, nodes = list(members), list(nodes)
     if not nodes:
         return {member.member_no: (0.0, 0.0, 0.0) for member in members}
-    by_node = {node.node_no: node for node in nodes}
     children = {}                       # node_no -> {slot: ("member", obj) | ("node", obj)}
     for member in members:
         children.setdefault(member.parent_node_no, {})[member.slot] = ("member", member)

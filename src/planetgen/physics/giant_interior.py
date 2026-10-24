@@ -784,7 +784,6 @@ def _gas_giant(subject):
     # Pressures from the polytrope at the mass inside each boundary
     layers = []
     above = 0.0
-    shell_boundary = {}
     rows = [("molecular_envelope", mass_mol, "molecular_fluid"), ("metallic_envelope", upper_metallic, "metallic_fluid"),
             ("helium_gradient", gradient_mass - shell_mass, "metallic_fluid"), ("helium_shell", shell_mass, "metallic_fluid"),
             ("dilute_core", dilute, "metallic_fluid"), ("compact_core", core_mass, "molten")]

@@ -32,7 +32,6 @@ stored mixture and gravity.
 Units: nm for wavelengths, cm2 per molecule for cross sections, cm-2 for columns.
 """
 
-import math
 
 from planetgen.physics import gases
 

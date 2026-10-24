@@ -16,7 +16,6 @@ any kind and `giant_occurrence_factor` for giants, both 1 at and above `floor_fe
 `expected_factor` averages one over a population's [Fe/H] distribution for a place's profile.
 """
 
-import math
 
 import numpy as np
 

@@ -207,7 +207,6 @@ def sphere_runs(center, r, budget=BUDGET, reach_pc=REACH_PC):
     cell = 2.0 * reach_pc / (1 << BITS)
     where = [(c + reach_pc) / cell for c in center]
     radius = r / cell + _INFLATE_CELLS
-    size = 1 << BITS
     # The cubes of the coarsest level whose edge is at least four radii, clipped to the box.
     level = BITS
     while level > 0 and (1 << (BITS - level)) < 4.0 * radius:

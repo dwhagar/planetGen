@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, metallicity, moon_composition
-from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, rogue_surface, spin
+from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log

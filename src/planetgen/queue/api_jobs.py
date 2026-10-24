@@ -28,10 +28,9 @@ import secrets
 import sys
 import time
 
-import rq
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, wrapper, workers
+from planetgen.queue import redisqueue, workers
 
 QUEUE_PREFIX = "planetgen-api-"
 """str: A job's id in RQ is this plus its own id."""
