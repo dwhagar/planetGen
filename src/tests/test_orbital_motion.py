@@ -36,7 +36,6 @@ import pytest
 from planetgen.physics import constants as pc
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.planets import _tidal_locking_timescale_seconds, generate_orbital_motion_properties
-from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 
 N_SYSTEMS = 20

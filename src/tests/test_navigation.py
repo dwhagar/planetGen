@@ -10,7 +10,6 @@ database via `conftest.py`'s `mysql_config` fixture, seeded with real
 use) rather than hand-built rows, same convention as `test_api.py`.
 """
 
-import math
 
 import pytest
 

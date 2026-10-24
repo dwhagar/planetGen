@@ -34,7 +34,7 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 
 from tests.conftest import _test_server_kwargs
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 def _system(name):

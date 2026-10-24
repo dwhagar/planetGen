@@ -24,7 +24,7 @@ from planetgen.generation import bright_stars as brightStars
 from planetgen.generation.star_population import bright_star_fraction
 from planetgen.physics import constants
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
+from planetgen.galaxy.density import predicted_star_count
 from planetgen.galaxy.profile import profile_at
 from planetgen.galaxy.spherical import neighbor_addresses, sector_address_at, sector_position_pc
 from planetgen.physics.units import ly_to_pc

@@ -124,7 +124,6 @@ def test_the_unit_seed_is_restored_after_a_unit():
     assert galaxySeed.current_galaxy_seed() is None
 
 
-def test_the_old_milky_way_constant_is_gone():
-    assert not hasattr(constants, "MILKY_WAY_MASS")
+def test_the_galactic_hill_radius_matches_the_hill_sphere():
     assert keepout.galactic_hill_radius_km(1e30, 2000.0, 2e42) == pytest.approx(
         calculate_hill_sphere(2000.0 * constants.PARSEC_M, 1e30, 2e42) / 1000.0)

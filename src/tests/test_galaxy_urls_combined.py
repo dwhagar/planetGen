@@ -30,7 +30,7 @@ from planetgen.web.lib import apiclient  # noqa: E402
 
 # Imported fixtures (see test_bughunt_api_gaps.py for why this works).
 from tests.test_web_galaxy import _place_sector, _scene, app, client, db_client, fake  # noqa: F401,E402
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 def _assert_clean_page(response, statuses=(200,)):

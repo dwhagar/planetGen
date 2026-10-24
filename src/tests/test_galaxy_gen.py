@@ -49,7 +49,7 @@ from planetgen.db import store as _db
 from planetgen.db import store
 from planetgen import tuning
 from planetgen.galaxy import profile as galaxy_profile, resolution as galaxy_resolution, spherical, structure_draw
-from planetgen.galaxy.density import FAMILY_COLUMNS, build_galaxy_shape, predicted_star_count, relative_density
+from planetgen.galaxy.density import FAMILY_COLUMNS, predicted_star_count, relative_density
 from planetgen.galaxy.frame import galaxy_to_local_pc
 from planetgen.galaxy.spherical import (
     SectorCell, enumerate_sectors_within_radius, sector_position_pc, wedge_count,

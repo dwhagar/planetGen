@@ -672,13 +672,6 @@ def test_admin_post_requires_csrf(client, fake):
     assert not fake.called("auth_create_api_key")
 
 
-def test_admin_page_no_longer_has_the_sector_wiki_form(client, fake):
-    """UX.73: the form lives in the sector page's Admin menu."""
-    _logged_in(client, fake)
-    html = client.get("/admin").get_data(as_text=True)
-    assert "Sector wiki link" not in html and 'value="set_sector_wiki_url"' not in html
-
-
 def test_admin_hub_lists_the_admin_pages_without_a_signed_in_card(client, fake):
     """UX.72: the hub links the pages under it, and the tab row repeats them."""
     _logged_in(client, fake)

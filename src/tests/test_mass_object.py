@@ -177,7 +177,6 @@ def test_the_next_due_time_is_the_epoch_plus_the_time_to_move_the_threshold():
 
 
 def test_a_body_with_nothing_yet_has_an_empty_record():
-    from planetgen.generation.config import SystemConfig
     from planetgen.generation.planet import Planet
     planet = object.__new__(Planet)
     record = planet.kinematic_record()

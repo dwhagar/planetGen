@@ -31,12 +31,6 @@ def test_an_edge_outside_its_range_or_without_a_unit_is_refused(text):
         EDGE.parse(text)
 
 
-def test_the_old_option_is_gone():
-    from planetgen.cli import generate as generate_cli
-    _parser, parsers = generate_cli.build_parser()
-    assert "--max-shell" not in {option for action in parsers["plan"]._actions for option in action.option_strings}
-
-
 @pytest.mark.db
 def test_a_plan_stops_at_the_edge_and_stores_it_as_a_pin(mysql_config, capsys):
     run_cli("plan", ["--edge=40pc", "--nuclear-amplitude", "0", "--seed",

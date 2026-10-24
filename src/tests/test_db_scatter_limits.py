@@ -16,7 +16,6 @@ from planetgen import tuning
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
 from planetgen.galaxy import scatter_limits
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.physics.units import ly_to_pc
 from tests.toy_shape import toy_shape
 from tests.bughunt_support import mysql_argv, run_cli

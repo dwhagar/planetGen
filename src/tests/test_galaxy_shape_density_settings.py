@@ -9,7 +9,6 @@ import math
 
 import pytest
 
-from planetgen import tuning
 from planetgen.cli.generate import add_plan_arguments
 from planetgen.db import store
 from planetgen.galaxy import density

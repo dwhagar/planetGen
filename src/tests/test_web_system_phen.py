@@ -32,7 +32,7 @@ from planetgen.describe import model  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
 from planetgen.web import csrf  # noqa: E402
-from tests.publicids import pid, pids, psys
+from tests.publicids import pid, psys
 
 DB = "planetgen_web_test"
 

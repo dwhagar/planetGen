@@ -10,7 +10,7 @@ import pytest
 
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
+from planetgen.galaxy.frame import local_to_galaxy_pc
 from planetgen.galaxy.spherical import band_center_pc, sector_address_at, sector_position_pc, wedge_longitude_bounds
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.galaxy.sector import SpaceSector
@@ -277,7 +277,6 @@ SCATTER_RADIUS_PC = 8000.0
 
 def _seed_scatter_grid(mysql_config):
     """The galaxy's stored cell size (a point is refiled by it) and one point of every moving scatter kind."""
-    from planetgen.galaxy.density import build_galaxy_shape
     shape = toy_shape(disk_scale_length_pc=40.0, disk_scale_height_pc=12.0, bulge_scale_radius_pc=10.0,
                                bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
     store.save_galaxy_shape(shape, edge_pc=EDGE_PC, outer_shell_index=8, expected_system_count_at_density_1=2000.0,
@@ -365,7 +364,7 @@ def test_a_systems_galaxy_point_and_cell_key_follow_every_save_and_move(mysql_co
     """DB.34: `star_systems.galaxy_*_pc` is the sector's center plus the offset, and `cell_key` (MySQL's) follows it."""
     from planetgen.galaxy import cellkey
     sector, position = _place(3, [(0.0, 0.0, 0.0), (0.3, -0.2, 0.1)], "Keyed")
-    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=position)
+    store.save_sector(sector, config=mysql_config, galaxy_position=position)
     center = (position["center_x_pc"], position["center_y_pc"], position["center_z_pc"])
 
     def check(conn):

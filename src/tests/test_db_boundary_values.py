@@ -23,7 +23,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from tests.fuzz_support import deterministic_entropy
 from tests.test_api import admin_client, client, default_admin_client, first_admin_password  # noqa: F401  (fixtures)
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 pytestmark = pytest.mark.db
 

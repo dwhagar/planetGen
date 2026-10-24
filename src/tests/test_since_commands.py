@@ -2,7 +2,6 @@
 time, as a run of one command through the wrapper."""
 
 import datetime
-import sys
 
 import pytest
 

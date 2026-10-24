@@ -92,7 +92,7 @@ def test_the_suggestion_reads_the_host_the_species_and_the_distance(admin, world
                          (world["system_id"], world["polity_id"]))
     finally:
         conn.close()
-    strong_public = _create(admin, world, name="Strong", affiliation_polity_id=world["polity_id"])
+    _create(admin, world, name="Strong", affiliation_polity_id=world["polity_id"])
     conn = store.get_connection(mysql_config)
     try:
         strong = conn.execute("SELECT id FROM facilities WHERE name = 'Strong'").fetchone()["id"]

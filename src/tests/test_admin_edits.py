@@ -20,7 +20,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 @pytest.fixture

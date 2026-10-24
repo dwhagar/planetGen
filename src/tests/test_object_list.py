@@ -6,7 +6,7 @@ names, nothing uses `OFFSET`, and a bad kind, sort or cursor is refused."""
 
 import pytest
 
-from planetgen.db import objectindex, objectlist, query, store
+from planetgen.db import objectindex, objectlist, store
 from tests.publicids import pid  # noqa: F401
 from tests.test_api import client  # noqa: F401
 from tests.test_object_index import galaxy  # noqa: F401  (fixture)

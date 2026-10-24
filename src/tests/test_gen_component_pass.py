@@ -14,7 +14,6 @@ import math
 import numpy as np
 import pytest
 
-from planetgen import tuning
 from planetgen.db import store
 from planetgen.galaxy import remnant_density, component_field, components, scatter_limits, spherical
 from planetgen.galaxy.scatter_limits import ScatterLimits
@@ -287,7 +286,7 @@ def test_a_large_component_is_a_unit_per_slice_that_reports_its_progress_and_add
         mysql_config, monkeypatch):
     import json
 
-    from planetgen.queue import commands, wrapper
+    from planetgen.queue import wrapper
     monkeypatch.setattr(component_pass, "STAR_SLICE_STARS", 100.0)
     monkeypatch.setattr(run_plan, "COMPONENT_REPORT_ROWS", 4)
     monkeypatch.setattr(run_plan, "CHANNEL_INTERVAL_SECONDS", 0.0)

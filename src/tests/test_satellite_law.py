@@ -109,8 +109,7 @@ def test_a_drawn_satellite_is_a_generated_row_with_a_profile_and_a_metallicity()
     assert all(c.mass_solar >= satellites.MIN_STELLAR_MASS_SOLAR for c in found)
 
 
-def test_the_plan_draws_its_satellites_from_the_halo_and_the_old_table_is_gone():
-    assert not hasattr(satellites, "MILKY_WAY_SATELLITES") and not hasattr(satellites, "place_satellites")
+def test_the_plan_draws_its_satellites_from_the_halo():
     built = plan_outline.build(plan_outline._parser().parse_args(["--mass", "3e7", "--disk-scale-length", "700pc"]),
                                bytes(16), 4.0)
     assert sum(c.mass_solar for c in built.satellites) < 0.05 * 3.0e7

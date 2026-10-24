@@ -3,7 +3,6 @@
 """GEN.125: revision 0064 adds the velocity columns to `facilities` and works them out for the
 stand-alone facilities already stored. Needs MySQL."""
 
-import math
 
 import pytest
 

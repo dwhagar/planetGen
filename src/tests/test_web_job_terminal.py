@@ -9,7 +9,6 @@ the MySQL test server, like `test_web_a11y.py`.
 
 import json
 import os
-import threading
 import time
 
 import pytest

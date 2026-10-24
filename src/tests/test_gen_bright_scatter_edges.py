@@ -62,24 +62,6 @@ class _CountingRandom(random.Random):
         return super().random()
 
 
-class _ScriptedRandom(random.Random):
-    """Returns `script`'s values first, then a seeded stream."""
-
-    def __new__(cls, script, seed=1):
-        # Before Python 3.11, Random.__new__ seeds itself with its first
-        # argument, which can't be a list (TEST.76).
-        return super().__new__(cls, seed)
-
-    def __init__(self, script, seed=1):
-        super().__init__(seed)
-        self.script = list(script)
-
-    def random(self):
-        if self.script:
-            return self.script.pop(0)
-        return super().random()
-
-
 # --- TEST.24: shells and extents ---------------------------------------------
 
 def test_a_shell_whose_stars_all_fail_to_place_yields_nothing(monkeypatch):

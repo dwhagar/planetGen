@@ -13,7 +13,6 @@ import math
 import numpy as np
 import pytest
 
-from planetgen import tuning
 from planetgen.galaxy import component_field, components, profile, skeleton, spherical
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.physics import king

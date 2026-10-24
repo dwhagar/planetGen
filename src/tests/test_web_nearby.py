@@ -15,13 +15,12 @@ from planetgen import tuning
 from planetgen.galaxy import spherical
 from planetgen.api.config import Config
 from planetgen.db import store
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import run_galaxy
 from planetgen.physics.units import ly_to_pc
 from planetgen.web.app import create_app
 from tests.toy_shape import toy_shape
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SHAPE = toy_shape(

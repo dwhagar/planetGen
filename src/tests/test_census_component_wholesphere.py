@@ -22,7 +22,6 @@ from planetgen.generation import star_population as population
 from planetgen.galaxy import scatter_limits
 from planetgen.physics import hii, stellar_evolution as evolution
 from planetgen.physics.units import ly_to_pc
-from tests.audit import census as audit
 from tests.audit import representation as rep
 from tests.test_emission_members import D_REGIONS, E_REGIONS, SEED
 

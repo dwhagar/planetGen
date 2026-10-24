@@ -22,7 +22,6 @@ import pytest
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
-from planetgen import tuning
 from planetgen.physics import constants as physical_constants
 from planetgen.galaxy import (
     density as galaxyDensity, skeleton as galaxySkeleton, spherical, viewport as gv,

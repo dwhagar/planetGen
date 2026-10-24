@@ -5,7 +5,6 @@ import math
 
 from planetgen.db import store
 from planetgen.galaxy import version_check, version_key
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.generation import generator_battery
 from planetgen.util import generator_epoch
 from tests.toy_shape import toy_shape

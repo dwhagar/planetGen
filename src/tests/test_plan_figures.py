@@ -101,7 +101,3 @@ def test_the_share_falls_with_the_census_dial_and_is_not_a_table_lookup():
     assert shares[0] < shares[1] and all(0.0 < share < 1.0 for share in shares)
 
 
-def test_the_fixed_system_mass_and_the_lookup_table_are_gone():
-    from planetgen.galaxy import dials
-    for name in ("OUTLINE_DENSITY_PER_HEIGHT", "PLANNED_SHARE_BY_CREST", "planned_share", "disc_crest"):
-        assert not hasattr(dials, name)

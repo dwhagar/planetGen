@@ -183,7 +183,6 @@ def test_a_deeply_nested_json_body_is_a_400_not_a_500(admin_client):
 
 
 def _fake_job(function, started, ended):
-    import datetime
     from types import SimpleNamespace
     return SimpleNamespace(args=(function, (1,)) if function else (), started_at=started, ended_at=ended)
 

@@ -34,7 +34,7 @@ from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
 from planetgen.web.maps.systemmap import render_system_map_panel  # noqa: E402
 from planetgen.web import csrf  # noqa: E402
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 DB = "planetgen_web_test"
 AU_KM = constants.AU_TO_KM

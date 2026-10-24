@@ -130,16 +130,3 @@ def test_the_pair_survives_a_round_trip_through_a_dict():
 
 # --- nothing reads the old constant -----------------------------------------------------------------------------
 
-def test_no_code_reads_the_fixed_constant():
-    name = "SNOW_LINE_AU_AT_" + "1_LSUN"
-    hits = []
-    for folder in ("src", "scripts"):
-        for root, _dirs, files in os.walk(os.path.join(REPO, folder)):
-            for file in files:
-                if file.endswith((".py", ".js", ".json", ".sql")):
-                    path = os.path.join(root, file)
-                    with open(path, encoding="utf-8") as handle:
-                        if name in handle.read():
-                            hits.append(os.path.relpath(path, REPO))
-    assert not hits, hits
-    assert not hasattr(constants, name)

@@ -5,12 +5,10 @@ own seed, with the odds of `tuning.SYSTEM_PASS_ODDS`.
 """
 
 import math
-import random
 
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.profile import profile_at
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.spherical import sector_position_pc

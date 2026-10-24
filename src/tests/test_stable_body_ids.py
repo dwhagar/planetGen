@@ -1,6 +1,5 @@
 # tests/test_stable_body_ids.py -- DB.75: a body keeps its ID when the system's content is drawn again.
 
-import pytest
 
 from planetgen.db import store
 from planetgen.galaxy import object_uid

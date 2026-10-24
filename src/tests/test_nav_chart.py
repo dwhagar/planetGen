@@ -13,7 +13,6 @@ import pytest
 from planetgen import tuning
 from planetgen.db import query, store
 from planetgen.db.corridor import BypassBudgetExceeded, UnknownEdges
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.spherical import neighbor_addresses, sector_position_pc
 from planetgen.galaxy.nav_graph import shortest_path
 from planetgen.galaxy.sector import SpaceSector

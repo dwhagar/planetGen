@@ -12,7 +12,6 @@ import pytest
 
 from planetgen import tuning
 from planetgen.galaxy import density, resolution
-from planetgen.galaxy import structure as galaxyStructure
 from planetgen.galaxy.profile import profile_at
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.galaxy.spherical import cell_volume

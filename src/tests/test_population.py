@@ -22,7 +22,7 @@ from planetgen.physics.units import ly_to_pc
 
 from planetgen.cli import generate as generate_cli
 from planetgen.generation import run_population
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 # ---------------------------------------------------------------------------

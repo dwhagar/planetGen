@@ -5,7 +5,6 @@ the end fails when a gas the code or the docs name is not a row of the table."""
 import json
 import os
 import re
-import shutil
 
 import pytest
 

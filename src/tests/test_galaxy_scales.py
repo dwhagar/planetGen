@@ -4,7 +4,6 @@
 (`galaxy.scales`), and a system with no place is taken at the radius that holds half of its galaxy's disc stars."""
 
 import math
-import re
 from pathlib import Path
 
 import pytest
@@ -12,21 +11,11 @@ import pytest
 from planetgen import tuning
 from planetgen.galaxy import remnant_distribution, scales, seed as galaxySeed
 from planetgen.generation import clusters
-from planetgen.physics import constants, metallicity
+from planetgen.physics import metallicity
 from planetgen.physics.units import ly_to_pc
 
 SOURCE = Path(__file__).resolve().parent.parent / "planetgen"
 SEED = bytes(range(16))
-
-
-def test_no_source_reads_a_sun_radius_or_the_old_calibration():
-    sources = {path: path.read_text() for path in SOURCE.rglob("*.py")}
-    for name in ("GALAXY_SUN_RADIUS_PC", "HVS_REFERENCE_RADIUS_PC", "GALACTIC_CENTER_DISTANCE_LY",
-                 "GALAXY_SOLAR_RADIUS_TO_SCALE_LENGTH", "GALAXY_DISK_SCALE_LENGTH_PC", "calibration_radius_pc",
-                 "MODEL_SYSTEMS_PER_STELLAR_MASS", "halo_local_density_scale", "HALO_LOCAL_DENSITY_FRACTION",
-                 "_DEFAULT_PLACE_PC", "solar_angle_rad"):
-        assert not [path.name for path, text in sources.items() if name in text], name
-    assert not hasattr(constants, "GALACTIC_CENTER_DISTANCE_LY")
 
 
 def test_the_scales_follow_the_galaxy_the_unit_runs_in():

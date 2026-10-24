@@ -37,7 +37,7 @@ from dataclasses import dataclass, field
 
 from planetgen.galaxy.profile import profile_at
 from planetgen.generation import bright_stars as brightStars
-from planetgen.generation import fill_stages, run_galaxy, run_sector
+from planetgen.generation import run_galaxy, run_sector
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import draw
 

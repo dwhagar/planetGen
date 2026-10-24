@@ -10,7 +10,6 @@ import math
 
 import pytest
 from planetgen.util import draw
-from planetgen import tuning
 
 from planetgen.galaxy import density
 from planetgen.physics import constants as physicalConstants

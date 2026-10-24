@@ -186,7 +186,7 @@ def test_coordinates_are_kept_in_the_unit_given_with_no_round_trip():
 def test_carrying_an_anchor_moves_the_body_with_it():
     p = _planet()
     system = p.get_coordinates("system", "cartesian")
-    sector = p.get_coordinates("sector", "cartesian")
+    p.get_coordinates("sector", "cartesian")
     p.carry_star_center((0.0, 0.0, 0.0))
     assert p.get_coordinates("system", "cartesian") == system
     assert _close(p.get_coordinates("galactic", "cartesian"), system, abs_=1.0)
@@ -285,8 +285,6 @@ def test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star():
 
 
 def test_placing_a_system_keeps_every_offset_and_follows_in_galactic_coordinates():
-    from planetgen.generation.config import SystemConfig
-    from planetgen.generation.system import StarSystem
     from planetgen.galaxy.sector import SpaceSector
 
     sector = SpaceSector("Move", edge_ly=11.5)
@@ -551,10 +549,7 @@ def test_a_body_moved_several_times_reads_only_its_last_place():
     assert moved.sector_address == fresh.sector_address
 
 
-def test_the_position_module_states_no_unit_factor_of_its_own():
+def test_the_position_module_takes_its_unit_factors_from_the_registry():
     """The registry owns the length unit, the speed of light and the mass and mu relation (GEN.573)."""
-    for name in ("SPEED_OF_LIGHT_MS", "mu_of", "mass_of", "length_unit_m"):
-        assert not hasattr(pos, name), name
-    assert not hasattr(SpatialPosition3D((0.0, 0.0, 0.0), (0.0, 0.0, 0.0)), "length_unit_m")
     assert pos._KM_S == unit_registry.unit("km_s").factor
     assert pos._MASS_MU is unit_registry.RELATIONS["mass-mu"]

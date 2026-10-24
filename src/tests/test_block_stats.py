@@ -13,7 +13,7 @@ import sqlalchemy
 
 from planetgen.db import alembic_runner, block_stats, edits, query, store
 from planetgen.galaxy import spherical
-from planetgen.galaxy.drill import DRILL_LEVELS, DrillBlock, drill_chain_of, format_drill_key
+from planetgen.galaxy.drill import drill_chain_of, format_drill_key
 
 pytestmark = pytest.mark.db
 
