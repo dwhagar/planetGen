@@ -9,6 +9,8 @@ import pytest
 
 from planetgen.physics import air_column, atmosphere, atmospheric_radiation, body_radiation, constants, stellar_spectrum
 
+from tests.air_support import fold_air
+
 
 def _sun(**fields):
     base = {"temperature": 5772.0, "luminosity": constants.SOLAR_LUMINOSITY, "uv_c_share": 1.0}
@@ -19,9 +21,8 @@ def _sun(**fields):
 def _earth(**fields):
     base = {"planet_class": "M", "gravity": 1.0, "atmospheric_pressure": 101325.0, "distance": 1.0, "is_moon": False, "star": _sun(),
             "p_n2_kpa": 79.1, "p_o2_kpa": 21.2, "p_ar_kpa": 0.95, "ozone_column_du": 300.0}
-    base.update({f"p_{gas}_kpa": 0.0 for gas in atmosphere.SPECIES if f"p_{gas}_kpa" not in base})
     base.update(fields)
-    return types.SimpleNamespace(**base)
+    return types.SimpleNamespace(**fold_air(base))
 
 
 def test_an_earth_like_body_at_one_au_gets_the_kernels_spectrum_for_its_record():

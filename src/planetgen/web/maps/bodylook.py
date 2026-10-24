@@ -122,7 +122,7 @@ def air_colour(planet):
     body = SimpleNamespace(
         body_type=planet.get("body_type"), gravity=planet.get("gravity_g"), atmospheric_pressure=planet.get("atmospheric_pressure_pa"),
         planet_class=planet.get("planet_class"), ozone_column_du=planet.get("ozone_column_du"), star=SimpleNamespace(temperature=temperature),
-        **{f"p_{gas}_kpa": planet.get(f"p_{gas}_kpa") for gas in atmosphere.SPECIES})
+        **{atmosphere.GAS_FIELD: atmosphere.gas_partials_pa(planet)})
     if planet.get("body_type") == "g":
         return giant_colour.body_giant_colour(body)
     return atmosphere_colour.body_atmosphere_colour(body)

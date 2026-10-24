@@ -116,8 +116,8 @@ ICRP: 20 mSv per year averaged over five years (occupational), 50 mSv in any one
 | T mean, C; coldest and hottest over the orbit | `surface_temperature_k`; `habitability.temperature_extremes_c` (from `flux_variation`) | yes |
 | **Day and night swing** | New: damped-oscillator estimate from the rotation period, air column heat capacity (c_p P / g) and its radiative time constant, regolith inertia if airless (5.5) | no (decision C) |
 | **Regional temperatures** (Polar, Northern, Equatorial, Southern) | New: annual-mean insolation by latitude from the obliquity, flattened by the air's heat transport (5.5) | no (decision C) |
-| Wet bulb | Stull formula from T and relative humidity (`p_h2o_kpa` over saturation) | derived |
-| Partial pressure of each gas | the ten `p_<gas>_kpa` columns; every gas of the table once `planet_gases` lands (GEN.424, DB.71) | 10 yes, the rest no |
+| Wet bulb | Stull formula from T and relative humidity (the H2O partial pressure over saturation) | derived |
+| Partial pressure of each gas | the child tables `planet_gases` and `moon_gases` (DB.71, GEN.424): every gas of the table, the balance gas included | yes |
 | Inspired oxygen | O2 fraction times (P minus 6.3 kPa) | derived |
 | Breathing-gas density of the best mix | heliox with 40 kPa O2: P M / (R T) | derived (`atm_molar_density` is the mean molar mass) |
 | Dose, Sv/yr, and its parts | `surface_dose_msv_yr`, `dose_gcr`, `dose_sep`, `dose_ground`, `dose_helio_mult` | yes |

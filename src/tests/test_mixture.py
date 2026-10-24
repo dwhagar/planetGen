@@ -8,17 +8,17 @@ import pytest
 
 from planetgen.physics import atmosphere, elements, gases, mixture
 
+from tests.air_support import air
+
 
 def _air(**kpa):
-    values = {f"p_{gas}_kpa": 0.0 for gas in atmosphere.SPECIES}
-    values.update({f"p_{gas}_kpa": value for gas, value in kpa.items()})
-    return SimpleNamespace(**values)
+    return SimpleNamespace(**air(**{f"p_{gas}_kpa": value for gas, value in kpa.items()}))
 
 
 def test_every_stored_species_is_a_row_of_the_gas_table():
-    for key, formula in mixture.STORED_FORMULAS.items():
-        assert gases.has(formula), key
-        assert gases.gas(formula).formula.lower() == key
+    for key in atmosphere.SPECIES:
+        assert gases.has(gases.stored(key).formula), key
+        assert gases.stored(key).formula.lower() == key
 
 
 def test_the_partials_come_back_in_pascal_under_the_table_formulas():

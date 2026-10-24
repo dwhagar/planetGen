@@ -10,6 +10,8 @@ import pytest
 
 from planetgen.physics import air_column, atmosphere, gases, rayleigh
 
+from tests.air_support import fold_air
+
 EARTH_G = 9.80665
 EARTH_DRY_AIR_PA = {"N2": 0.78084 * 101325.0, "O2": 0.20946 * 101325.0, "Ar": 0.00934 * 101325.0, "CO2": 4e-4 * 101325.0}
 
@@ -99,9 +101,8 @@ def test_the_band_depth_lies_between_its_edges():
 
 def _body(**fields):
     base = {"planet_class": "M", "gravity": 1.0, "atmospheric_pressure": 101325.0}
-    base.update({f"p_{gas}_kpa": 0.0 for gas in atmosphere.SPECIES})
     base.update(fields)
-    return types.SimpleNamespace(**base)
+    return types.SimpleNamespace(**fold_air(base))
 
 
 def test_a_bodys_stored_partials_become_its_column():
@@ -112,12 +113,17 @@ def test_a_bodys_stored_partials_become_its_column():
     assert rayleigh.optical_depth(column, 550.0) == pytest.approx(0.0972, rel=0.01)
 
 
-def test_the_unstored_balance_gas_of_a_giant_template_is_helium():
-    giant = _body(planet_class="J", gravity=2.53, atmospheric_pressure=1e5, p_h2_kpa=86.0, p_ch4_kpa=0.3)
+def test_the_stored_balance_gas_of_a_giant_template_is_helium():
+    giant = _body(planet_class="J", gravity=2.53, atmospheric_pressure=1e5, gas_partials_pa={"H2": 86000.0, "CH4": 300.0, "He": 13700.0})
     mixture = air_column.partials_pa(giant)
     assert mixture["H2"] == pytest.approx(86000.0)
     assert mixture["He"] == pytest.approx(1e5 - 86300.0)
     assert air_column.column_of(giant).pressure_pa == pytest.approx(1e5)
+
+
+def test_sodium_is_left_out_of_the_column_for_want_of_a_cross_section():
+    hot = _body(planet_class="B", gas_partials_pa={"N2": 80000.0, "Na": 20000.0})
+    assert air_column.partials_pa(hot) == {"N2": 80000.0}
 
 
 def test_a_body_without_air_or_gravity_has_no_column():

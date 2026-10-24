@@ -40,6 +40,7 @@ import pymysql
 
 from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, get_galaxy_shape_pins, sector_deletions, surrounding_cloud,
+    with_gases,
 )
 from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
@@ -3357,14 +3358,14 @@ def system_detail(conn, system_id):
     # mass-weighted offset from the system's barycenter, rather than
     # (incorrectly) anchoring the whole system on the primary alone.
 
-    planet_rows = conn.execute(
+    planet_rows = with_gases(conn, conn.execute(
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
-    ).fetchall()
+    ).fetchall(), False)
     colonized = colonized_body_ids(conn, system_id)
     moons_by_planet = {}
-    for moon in conn.execute(
+    for moon in with_gases(conn, conn.execute(
         "SELECT * FROM moons WHERE star_system_id = ? ORDER BY planet_id, orbital_index", (system_id,)
-    ).fetchall():
+    ).fetchall(), True):
         moons_by_planet.setdefault(moon["planet_id"], []).append(moon)
     planets = []
     hosts = {}  # one lookup per host star, not per planet

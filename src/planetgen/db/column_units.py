@@ -350,6 +350,10 @@ TABLES = {
         "Mearth": ("mass_earth", "hydrogen", "helium", "iron", "rock", "water_liquid", "ice_x", "nh3_ice", "ch4_ice"),
         "ratio": ("top_radius_fraction", "bottom_radius_fraction"),
     },
+    "moon_gases": {
+        "id": ("id", "moon_id"),
+        "Pa": ("partial_pa",),
+    },
     "moon_reflection_spectrum": {
         "id": ("id", "moon_id"),
         "index": ("position",),
@@ -386,10 +390,6 @@ TABLES = {
         "g/cm2": ("shelter_column_g_cm2",),
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "dex": ("mantle_delta_iw",),
-        "kPa": (
-            "p_o2_kpa", "p_co2_kpa", "p_co_kpa", "p_n2_kpa", "p_ar_kpa", "p_h2_kpa", "p_h2o_kpa", "p_ch4_kpa",
-            "p_h2s_kpa", "p_so2_kpa",
-        ),
         "A*m2": ("magnetic_moment_a_m2", "induced_moment_a_m2"),
         "R_planet": ("magnetopause_rp",),
         "xuv-earth": ("xuv_flux_earth",),
@@ -575,6 +575,10 @@ TABLES = {
         "Mearth": ("mass_earth", "hydrogen", "helium", "iron", "rock", "water_liquid", "ice_x", "nh3_ice", "ch4_ice"),
         "ratio": ("top_radius_fraction", "bottom_radius_fraction"),
     },
+    "planet_gases": {
+        "id": ("id", "planet_id"),
+        "Pa": ("partial_pa",),
+    },
     "planet_reflection_spectrum": {
         "id": ("id", "planet_id"),
         "index": ("position",),
@@ -612,10 +616,6 @@ TABLES = {
         "g/cm2": ("shelter_column_g_cm2",),
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "dex": ("mantle_delta_iw",),
-        "kPa": (
-            "p_o2_kpa", "p_co2_kpa", "p_co_kpa", "p_n2_kpa", "p_ar_kpa", "p_h2_kpa", "p_h2o_kpa", "p_ch4_kpa",
-            "p_h2s_kpa", "p_so2_kpa",
-        ),
         "A*m2": ("magnetic_moment_a_m2", "induced_moment_a_m2"),
         "R_planet": ("magnetopause_rp",),
         "xuv-earth": ("xuv_flux_earth",),

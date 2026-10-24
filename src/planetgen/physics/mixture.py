@@ -6,9 +6,8 @@ contracts of docs/design/composition/composition-spine-contracts.md)
 =============================================================================================================
 
 The mixture is a plain dict of gas-table formula (`physics/gases.py`: `"CO2"`, `"N2"`, `"He"`, `"NH3"`) to partial
-pressure in Pa. Every lane that reads the air reads it here, so the storage can change underneath: today the ten
-`p_<gas>_kpa` columns (`physics/atmosphere.SPECIES`) hold it, and GEN.411 and DB.71 move it to a child table that holds
-any gas of the table, the balance gas included. A caller never reads the columns.
+pressure in Pa. Every lane that reads the air reads it here, so the storage can change underneath: since DB.71 the child
+tables `planet_gases` and `moon_gases` hold it, any gas of the table, the balance gas included.
 
 Use:
 
@@ -19,11 +18,6 @@ Use:
 
 from planetgen.physics import atmosphere, gases
 
-KPA_TO_PA = 1000.0
-
-STORED_FORMULAS = {key: gases.stored(key).formula for key in atmosphere.SPECIES}
-"""dict: Each stored column species (`"o2"`) and its formula in the gas table (`"O2"`)."""
-
 
 def partial_pressures_pa(body):
     """
@@ -33,11 +27,7 @@ def partial_pressures_pa(body):
         dict: Gas-table formula to Pa, only the gases with a pressure above zero. Empty for an airless body or one
         saved before GEN.85.
     """
-    mixture = {}
-    for key, kpa in atmosphere.partial_pressures_kpa(body).items():
-        if kpa > 0.0:
-            mixture[STORED_FORMULAS[key]] = kpa * KPA_TO_PA
-    return mixture
+    return {formula: pa for formula, pa in atmosphere.gas_partials_pa(body).items() if pa > 0.0}
 
 
 def total_pressure_pa(mixture):

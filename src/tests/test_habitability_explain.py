@@ -10,7 +10,6 @@ import pytest
 
 from planetgen.describe import build
 from planetgen.physics import (
-    atmosphere,
     body_radiation,
     constants,
     habitability,
@@ -19,6 +18,7 @@ from planetgen.physics import (
     radiation,
     radiogenic,
 )
+from tests.air_support import fold_air
 
 AGE_GY = 4.568
 FELSIC = 0.3
@@ -37,9 +37,8 @@ def _earth(**fields):
             "surface_temperature": 288.0, "radius": 6371.0, "mass": 5.972e24, "hydrosphere": "ocean",
             "magnetic_moment_a_m2": 7.768e22, "c_k0_ppm": k, "c_th0_ppm": th * radiogenic.formation_mix("Th")[1],
             "c_u0_ppm": u * radiogenic.formation_mix("U")[1], "al26_ratio": 0.0, "urey_ratio": 0.5, "dose_helio_mult": 1.0}
-    base.update({f"p_{gas}_kpa": 0.0 for gas in atmosphere.SPECIES if f"p_{gas}_kpa" not in base})
     base.update(fields)
-    body = types.SimpleNamespace(**base)
+    body = types.SimpleNamespace(**fold_air(base))
     _redo_dose(body)
     return body
 
