@@ -1092,7 +1092,7 @@ with `clamp()`.
 - [ ] **UX.158 Info panel line: how this colour was worked out, which inputs and whether partial or full quality**
   A short line in the info panel naming the inputs. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  10), filed by the body-rendering design thread, 10:30 PM EDT
+  10), filed by the body-rendering design thread, 10:18 PM EDT
   2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: MAP.271.
 
@@ -1102,7 +1102,7 @@ with `clamp()`.
   docs/design/architecture/architecture.html still list web/old_urls.py
   and are regenerated after the PR merges. Source:
   reports/regression-test-review-2026-10-23.md (Boss approved A1, B1,
-  C1, D1, E1), relayed by the regression-test cleanup lane at 10:30 PM
+  C1, D1, E1), relayed by the regression-test cleanup lane at 10:24 PM
   EDT 2026-10-23 as the lane reported.
   Prerequisites: none.
 
@@ -2871,7 +2871,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   temperature and show a halo that scales with luminosity. It extends
   MAP.269. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  1, 6), filed by the body-rendering design thread, 10:30 PM EDT
+  1, 6), filed by the body-rendering design thread, 10:18 PM EDT
   2026-10-23 as the thread reported. Version placement is a proposal
   until Boss answers the choices in section 11 of the draft.
   Prerequisites: none.
@@ -2881,7 +2881,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   data-surfacetemp; the class colour table (_CLASS_COLORS) is retired.
   Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  3), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  3), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Decision (2026-10-09): Boss answered the body-rendering choices (10:26
   PM EDT 2026-10-23) and approved the design (10:28 PM EDT): 1 split the
@@ -2899,14 +2899,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   One module for the seeded noise, the LRU texture cache, the paint
   queue and the size tiers the painters share. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  3, 9), filed by the body-rendering design thread, 10:30 PM EDT
+  3, 9), filed by the body-rendering design thread, 10:18 PM EDT
   2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
 
 - [ ] **MAP.273 Ocean, land and ice painter on stored data: sea level from the ocean fraction, caps from temperature, land hues from temperature and class family, with an estimate line in the info panel**
   Paints from stored water fractions, the ocean class and the atmosphere
   colour; exact fractions need the ground items. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: MAP.271, MAP.272.
 
@@ -2914,7 +2914,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Land colour follows the bulk fractions instead of the temperature and
   class estimate. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: GEN.411, GEN.428, GEN.429, MAP.273.
 
@@ -2922,7 +2922,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bands, storms, a chemistry tint, thermal glow, and rings with
   resonance gaps. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  5), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  5), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: MAP.271, MAP.272, GEN.670, GEN.419.
 
@@ -2930,21 +2930,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Class texture, spots by activity, luminosity glow, white dwarf and
   brown dwarf variants. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  6), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  6), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: MAP.271, MAP.272.
 
 - [ ] **MAP.277 Atmosphere glow from pressure and composition, and the day and night terminator**
   Thin air, none and thick air each draw their own glow. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: MAP.271, DB.96.
 
 - [ ] **MAP.278 Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data**
   Drawn from stored data and classes; comet species need GEN.488. Design
   draft design-drafts/body-rendering-from-composition-2026-10-24.md
-  (section 7), filed by the body-rendering design thread, 10:30 PM EDT
+  (section 7), filed by the body-rendering design thread, 10:18 PM EDT
   2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: MAP.271, MAP.272.
 
@@ -15049,7 +15049,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.670 Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition**
   Stand-ins are registered in the gap plan until sourced. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  5, 10), filed by the body-rendering design thread, 10:30 PM EDT
+  5, 10), filed by the body-rendering design thread, 10:18 PM EDT
   2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -17056,7 +17056,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration, one generator epoch, and the column_units.py entries;
   MAP.244 then reads it. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: GEN.414, GEN.418, GEN.419.
 
@@ -17064,14 +17064,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Follows the DB.4 marker detection. Next in the regression-test cleanup
   lane. Source: reports/regression-test-review-2026-10-23.md (Boss
   approved A1, B1, C1, D1, E1), relayed by the regression-test cleanup
-  lane at 10:30 PM EDT 2026-10-23 as the lane reported.
+  lane at 10:24 PM EDT 2026-10-23 as the lane reported.
   Prerequisites: none.
 
 - [ ] **DB.98 Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test**
   Last in the regression-test cleanup lane, after the item that removes
   detect_schema_version. Source:
   reports/regression-test-review-2026-10-23.md (Boss approved A1, B1,
-  C1, D1, E1), relayed by the regression-test cleanup lane at 10:30 PM
+  C1, D1, E1), relayed by the regression-test cleanup lane at 10:24 PM
   EDT 2026-10-23 as the lane reported.
   Prerequisites: DB.97.
 
