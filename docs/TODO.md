@@ -19254,35 +19254,6 @@ clears each one.
   Owner: Bug 1 after the two SEC items; not a security fix.
   Prerequisites: none. Related: SEC.33, TEST.261.
 
-- [ ] **TEST.365 Six phenomenon-page tests in test_class_pages.py fail on clean main (bug)**
-  Reported by Aux 4 (Lane E) at 6:37 PM EDT 2026-10-24 as the lane
-  reported: six phenomenon-page tests in test_class_pages.py are red on
-  clean main and are not from its changes. Find the cause (a stale
-  expectation after the colour or look changes, or a real page defect),
-  fix it and record which. Owner: Bug 1.
-  Research (2026-10-09, Update 6:43 PM EDT): Update 6:43 PM EDT
-  2026-10-24 (Core 1, as the lane reported): the same failures fail
-  identically on origin/main on its lane:
-  test_phenomenon_page_links_its_class (5 params, HTTP 502 on
-  /phenomenon/<kind>/4) and test_phenomenon_unknown_class_stays_text
-  (AttributeError: 'NoneType' object has no attribute 'capitalize').
-  Run: pytest src/tests/test_class_pages.py -k "links_its_class or
-  unknown_class".
-  Prerequisites: none. Related: TEST.346.
-
-- [ ] **TEST.366 test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug)**
-  Reported by Aux 8 (Lane L) and Core 2 while merging GEN.756, GEN.757
-  and MAP.291 (6:34 and 6:37 PM EDT 2026-10-24 as the lanes reported):
-  the
-  test expects [('Holds', 'step')] and gets [('Holds', 'm...lds',
-  'step')].
-  Lane L's reading: it counts the host's MySQL memory. Make the memory
-  watch count only the step's own processes (or the test isolate the
-  watch from the host), without loosening the budget check. Owner: Bug 1
-  (PERF.183 and PERF.186 code, so ask Bug 2's report if it is not
-  clear).
-  Prerequisites: none. Related: PERF.183, PERF.186.
-
 - [ ] **TEST.367 Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug)**
   Reported by Core 1 while merging API.15 (#3136, 6:43 PM EDT 2026-10-24
   as the lane reported); they fail identically on origin/main on its
