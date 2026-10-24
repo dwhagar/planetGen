@@ -2692,23 +2692,35 @@ def resolve_object(conn, kind, object_id):
         columns = {
             "star": "name, star_system_id",
             "planet": f"name, star_system_id, star_id, position_x_km, position_y_km, position_z_km, {_tiers('')}",
-            "moon": f"name, star_system_id, planet_id, star_id, position_x_km, position_y_km, position_z_km, {_tiers('')}",
+            "moon": "name, star_system_id, planet_id, rogue_planet_id, star_id, position_x_km, position_y_km, "
+                    f"position_z_km, {_tiers('')}",
             "belt": "star_system_id, orbital_index",
             "comet": "name, star_system_id, star_id, position_x_km, position_y_km, position_z_km",
         }[kind]
         row = one(table, object_id, columns)
-        parents, positions = system_parents_and_positions(row["star_system_id"])
+        free_moon = kind == "moon" and row["rogue_planet_id"] is not None
+        if free_moon:    # DB.94: a moon of a free planet has no system; its parent is the rogue planet
+            rogue = one("rogue_planets", row["rogue_planet_id"], "name, center_x_pc, center_y_pc, center_z_pc")
+            parents = [galaxy, {"ref": object_ref.format("rogue_planet", row["rogue_planet_id"]), "kind": "rogue_planet",
+                                "name": rogue["name"]}]
+            if rogue["center_x_pc"] is not None:
+                positions["galaxy_pc"] = [rogue["center_x_pc"], rogue["center_y_pc"], rogue["center_z_pc"]]
+        else:
+            parents, positions = system_parents_and_positions(row["star_system_id"])
         name = f"Asteroid belt {row['orbital_index'] + 1}" if kind == "belt" else row["name"]
         if kind == "star":
             positions["system_km"] = star_offset(object_id)
         elif kind in ("planet", "comet"):
             positions["system_km"] = add(star_offset(row["star_id"]), offset(row))
-        elif kind == "moon":
+        elif kind == "moon" and not free_moon:
             planet = one("planets", row["planet_id"], "name, position_x_km, position_y_km, position_z_km")
             parents.append({"ref": object_ref.format("planet", row["planet_id"]), "kind": "planet",
                             "name": planet["name"]})
             positions["system_km"] = add(add(star_offset(row["star_id"]), offset(planet)), offset(row))
-        if kind == "moon":
+        if free_moon:
+            siblings, truncated = _sibling_refs(conn, kind, table, "rogue_planet_id = ?", (row["rogue_planet_id"],),
+                                                object_id)
+        elif kind == "moon":
             siblings, truncated = _sibling_refs(conn, kind, table, "planet_id = ?", (row["planet_id"],), object_id)
         else:
             siblings, truncated = _sibling_refs(
@@ -6267,10 +6279,13 @@ def _with_refs(conn, rows, kind):
             parents.append({"ref": object_ref.format("sector", row["sector_id"]), "kind": "sector",
                             "name": names.get(row["sector_id"])})
         system_id = row["id"] if kind == "system" else row.get("star_system_id")
-        if kind in ("star", "planet", "moon", "belt"):
+        if kind in ("star", "planet", "moon", "belt") and system_id is not None:
             parents.append({"ref": object_ref.format("system", system_id), "kind": "system",
                             "name": row.get("system_name")})
-        if kind == "moon":
+        if kind == "moon" and row.get("rogue_planet_id") is not None:    # DB.94: a moon of a free planet
+            parents.append({"ref": object_ref.format("rogue_planet", row["rogue_planet_id"]), "kind": "rogue_planet",
+                            "name": row.get("planet_name")})
+        elif kind == "moon":
             parents.append({"ref": object_ref.format("planet", row["planet_id"]), "kind": "planet",
                             "name": row.get("planet_name")})
         row["ref"] = object_ref.format(row_kind, row["id"])
@@ -6414,15 +6429,17 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
         conn,
         f"""
         SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, {_equipment_columns('m')}, {_tiers("m")}, m.radius_km,
-               m.planet_id, p.name AS planet_name, m.star_system_id, ss.name AS system_name, ss.sector_id
+               m.planet_id, m.rogue_planet_id, COALESCE(p.name, rp.name) AS planet_name, m.star_system_id,
+               ss.name AS system_name, COALESCE(ss.sector_id, rp.sector_id) AS sector_id
         """,
         f"""
         FROM moons m
-        JOIN planets p ON p.id = m.planet_id
-        JOIN star_systems ss ON ss.id = m.star_system_id
+        LEFT JOIN planets p ON p.id = m.planet_id
+        LEFT JOIN rogue_planets rp ON rp.id = m.rogue_planet_id
+        LEFT JOIN star_systems ss ON ss.id = m.star_system_id
         WHERE 1=1{where}
         """,
-        "ss.name, ss.id, p.orbital_index, m.orbital_index, m.id",
+        "ss.name, ss.id, rp.name, rp.id, p.orbital_index, m.orbital_index, m.id",
         params, limit, offset,
     )
     return {"rows": _with_refs(conn, [_with_equipment(dict(r)) for r in rows], "moon"), **page}
