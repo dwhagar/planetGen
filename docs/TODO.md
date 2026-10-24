@@ -15449,8 +15449,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   new epoch and schema); the schema document lists them. Done: a round
   trip test, a test that the life paragraph and the timeline paragraph
   are the same text from the stored row with no generator call, and the
-  epoch and migration are taken. Owner: the lane "Store life and
-  evolution results in database" (started 2026-10-24). Related: GEN.649,
+  epoch and migration are taken. Owner: none (pool), any lane may
+  take it after PR #2930 merges (Boss, 9:16 AM EDT 2026-10-24: to the pool; the lane that audited it did not build it and retired). Related: GEN.649,
   DB.91, DB.73, UX.152, DOC.77.
   Research (2026-10-09, Handoff): Audit of main 0a0a15e (the retired
   lane, 9:16 AM EDT 2026-10-24, as the lane reported): chemistry, pace
