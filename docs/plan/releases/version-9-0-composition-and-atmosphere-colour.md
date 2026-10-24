@@ -25,3 +25,15 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition | GEN.443, GEN.444, GEN.445, GEN.446 | Boss 11:58 PM EDT; the radiation proof. |
 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | TEST.212, TEST.211, DOC.63, DOC.65 | Boss 11:58 PM EDT; docs only. |
 | GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | GEN.420, MAP.244, DOC.64, GEN.446, TEST.209, TEST.210, TEST.211, TEST.212, DOC.66 | Headline of 9.0 (Boss, 11:25 PM EDT). |
+| UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality | MAP.271 | Body rendering R12; proposed 9.0. |
+| TEST.308 | Body rendering tests: look record stability, painter determinism, tier switching and the memory ceiling | MAP.272 | Body rendering R11; proposed 9.0. |
+| GEN.670 | Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition |  | Body rendering R10; proposed 9.0. |
+| MAP.278 | Phenomena painters: rogue planet, comet, nebula, remnant, asteroid field and black hole disc | MAP.271, MAP.272, GEN.488 | Body rendering R9; proposed 9.0. |
+| MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator | MAP.271, DB.96 | Body rendering R8; proposed 9.0. |
+| MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | MAP.271, MAP.272 | Body rendering R7; proposed 9.0. |
+| MAP.275 | Gas and ice giant painter: bands, storms, chemistry tint, thermal glow and rings with gaps | MAP.271, MAP.272, GEN.419, GEN.422 | Body rendering R6; proposed 9.0. |
+| MAP.274 | Land colour from the bulk composition: oxidation and rock type | GEN.411, GEN.428, GEN.429, MAP.273 | Body rendering R5; proposed 9.0. |
+| MAP.273 | Solid world painter: ocean, land, ice and cloud from the stored fractions and the atmosphere colour | MAP.271, MAP.272, GEN.441, GEN.461, GEN.462 | Body rendering R4; proposed 9.0. |
+| MAP.272 | Shared body painter module: seeded noise, texture cache, paint queue and size tiers |  | Body rendering R3; proposed 9.0. |
+| DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | GEN.414, GEN.418, GEN.419 | Body rendering R2; proposed 9.0. |
+| MAP.271 | The bodylook record: the server builds one data-look record per body from stored columns |  | Body rendering R1; proposed 9.0. |

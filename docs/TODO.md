@@ -1089,6 +1089,14 @@ with `clamp()`.
   terminal font).
   Prerequisites: none. Related: UX.101, UX.151.
 
+- [ ] **UX.158 Info panel line: how this colour was worked out, which inputs and whether partial or full quality**
+  A short line in the info panel naming the inputs. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  10), filed by the body-rendering design thread, 10:30 PM EDT
+  2026-10-23 as the thread reported. Version placement is a proposal
+  until Boss answers the choices in section 11 of the draft.
+  Prerequisites: MAP.271.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2840,6 +2848,87 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   switchable glow design). Owner: Bug Hunt (fixing now in starpoint.js,
   galaxymap3d.js and sectorscene.js).
   Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
+
+- [ ] **MAP.270 Far stars on the maps: use the blackbody colour and a luminosity halo (bug)**
+  A star seen from afar should take its colour from its blackbody
+  temperature and show a halo that scales with luminosity. It extends
+  MAP.269. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  1, 6), filed by the body-rendering design thread, 10:30 PM EDT
+  2026-10-23 as the thread reported. Version placement is a proposal
+  until Boss answers the choices in section 11 of the draft.
+  Prerequisites: none.
+
+- [ ] **MAP.271 The bodylook record: the server builds one data-look record per body from stored columns**
+  Replaces data-color, data-bodytype, data-hasatmosphere and
+  data-surfacetemp; the class colour table (_CLASS_COLORS) is retired.
+  Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  3), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  as the thread reported. Version placement is a proposal until Boss
+  answers the choices in section 11 of the draft.
+  Prerequisites: none.
+
+- [ ] **MAP.272 Shared body painter module: seeded noise, texture cache, paint queue and size tiers**
+  One module for the seeded noise, the LRU texture cache, the paint
+  queue and the size tiers the painters share. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  3, 9), filed by the body-rendering design thread, 10:30 PM EDT
+  2026-10-23 as the thread reported. Version placement is a proposal
+  until Boss answers the choices in section 11 of the draft.
+  Prerequisites: none.
+
+- [ ] **MAP.273 Solid world painter: ocean, land, ice and cloud from the stored fractions and the atmosphere colour**
+  Paints from stored water fractions, the ocean class and the atmosphere
+  colour; exact fractions need the ground items. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  as the thread reported. Version placement is a proposal until Boss
+  answers the choices in section 11 of the draft.
+  Prerequisites: MAP.271, MAP.272, GEN.441, GEN.461, GEN.462.
+
+- [ ] **MAP.274 Land colour from the bulk composition: oxidation and rock type**
+  Land colour follows the bulk fractions instead of the temperature and
+  class estimate. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  as the thread reported. Version placement is a proposal until Boss
+  answers the choices in section 11 of the draft.
+  Prerequisites: GEN.411, GEN.428, GEN.429, MAP.273.
+
+- [ ] **MAP.275 Gas and ice giant painter: bands, storms, chemistry tint, thermal glow and rings with gaps**
+  Bands, storms, a chemistry tint, thermal glow, and rings with
+  resonance gaps. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  5), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  as the thread reported. Version placement is a proposal until Boss
+  answers the choices in section 11 of the draft.
+  Prerequisites: MAP.271, MAP.272, GEN.419, GEN.422.
+
+- [ ] **MAP.276 Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow**
+  Class texture, spots by activity, luminosity glow, white dwarf and
+  brown dwarf variants. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  6), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  as the thread reported. Version placement is a proposal until Boss
+  answers the choices in section 11 of the draft.
+  Prerequisites: MAP.271, MAP.272.
+
+- [ ] **MAP.277 Atmosphere glow from pressure and composition, and the day and night terminator**
+  Thin air, none and thick air each draw their own glow. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  as the thread reported. Version placement is a proposal until Boss
+  answers the choices in section 11 of the draft.
+  Prerequisites: MAP.271, DB.96.
+
+- [ ] **MAP.278 Phenomena painters: rogue planet, comet, nebula, remnant, asteroid field and black hole disc**
+  Drawn from stored data and classes; comet species need GEN.488. Design
+  draft design-drafts/body-rendering-from-composition-2026-10-24.md
+  (section 7), filed by the body-rendering design thread, 10:30 PM EDT
+  2026-10-23 as the thread reported. Version placement is a proposal
+  until Boss answers the choices in section 11 of the draft.
+  Prerequisites: MAP.271, MAP.272, GEN.488.
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -5731,7 +5820,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.450, SEC.33, TEST.261, UX.100, MAP.143, MAP.220,
+  Prerequisites: SEC.33, TEST.261, UX.100, MAP.143, MAP.220,
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -8866,66 +8955,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the radiation and
   composition statements it would write come from the checked values
   only.
-
-- [ ] **GEN.450 The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named**
-  Follow-up from the Core 4 citation re-check of GEN.134 (2026-10-17,
-  12:45 AM EDT as the lane reported), filed for Boss (2026-10-17, 12:21
-  AM EDT: fix all of the re-check's findings). The Milky Way's own
-  Schmidt index of 1.12 to 1.2 gives a star-formation gradient of about
-  -0.19 dex per kpc beyond the peak, while the observed -0.28 dex per
-  kpc needs an index of about 1.65 (Kennicutt 1998 gives 1.4 +-0.15).
-  GEN.134 derives the profile from the galaxy's own gas profile and a
-  Schmidt law, so the gradient it produces depends on this choice, and
-  the observed figure stays a test target, never an input (NO FIXED
-  CONTENT). Done: the sources for each way of closing the gap are
-  checked first (a Schmidt index that rises at low gas density, a gas
-  disc more extended or steeper than the stars, the Herschel scale
-  length of 1.55 kpc against the stellar 2.6 kpc, the outer-disc
-  threshold of Kennicutt), the one the science supports is built in the
-  profile with the others named in the note, and the generated gradient
-  is compared with the observed one in the star-type share test. If the
-  sources do not settle it, Boss decides on a card. Owner: Core 4 (it
-  owns GEN.134 and density.py).
-  Epoch and rescatter (2026-10-17, Boss 12:21 AM EDT: fix all of the
-  re-check's findings, with the 8.1 scatter changes so one rescatter
-  serves them): the item changes stored values, so it bumps the
-  generator epoch with the rule of OPS.56 and joins the one full
-  rescatter that follows the other scatter changes; GEN.301 waits for
-  it. The profile code (density.py, tuning.py) is Core 4's GEN.134 work
-  and not Core 3's sampler (GEN.322, GEN.323); ask Core 3 before
-  touching its files.
-  Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): Nearest law: the same Kennicutt-Schmidt law (index 1.4 +- 0.15,
-  verified); the gap to the observed -0.28 dex per kpc closes by an
-  index rising at low gas density, a gas disc more extended than the
-  stars, or an outer-disc threshold: the choice must be named. Rule V.
-  Progress (Core 4, relayed 6:43 AM EDT 2026-10-23 as the lane
-  reported): the sources are read on arXiv (Bigiel 2008, Leroy 2008,
-  Schaye 2004; the Herschel paper and Kennicutt were already in this
-  note). They support a physical closure (H2 forms stars at constant
-  efficiency, the efficiency in HI-dominated gas falls with radius, HI
-  saturates near 9 solar masses per square parsec) but not a single
-  number, so the item's card clause applies: Core 4 posted Boss a
-  3-option card (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiS9jhDFnZqx3T8wX3aZqvZC, in the Core 4
-  thread). Core 4 waits on his tap before building.
-  Decided (Boss, 12:27 PM EDT 2026-10-23 (cards, relayed by the
-  coordinator), card
-  cmsg_01RuNTFUNB92A8cm5CbojQAiS9jhDFnZqx3T8wX3aZqvZC): option 1, a
-  Schmidt index that rises at low gas density. Core 4 builds it; the
-  observed gradient stays a test target, never an input.
-  Progress (Core 4, relayed 1:03 PM EDT 2026-10-23 as the lane
-  reported): built to Boss's option 1 and waiting for the gate machine;
-  the fall beyond the peak is -0.27 dex per kpc (was -0.23), 91 percent
-  of the star formation lies inside the solar circle (was 86, observed
-  84) and 0.4 percent beyond 13.5 kpc (was 1.3, observed 1); it takes a
-  generator epoch (60 as a placeholder) and re-records
-  tests/fixtures/density_identity.json. Open stand-ins, labelled in the
-  note and the design doc: the steeper index 2.1 (middle of 1.5 to 2.7)
-  and the saturation at 9 solar masses per square parsec, because no
-  source gives them for one galaxy.
-  Prerequisites: none. Related: GEN.134, GEN.405, GEN.386, TEST.186.
 
 - [ ] **GEN.451 The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer**
   Finding of the Atmosphere research lane, part 5 (mixing ratios by
@@ -15010,6 +15039,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that loses half its air. Owner: none yet (pool).
   Prerequisites: none. Related: GEN.413, GEN.189.
 
+- [ ] **GEN.669 Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows**
+  Finding of Core 4 (10:20 PM EDT 2026-10-23 as the lane reported), left
+  open on purpose. (1) GEN.450 (merged as #2776, epoch 64): the radial
+  fall is -0.27 dex/kpc against -0.28 observed (a test target), but 91%
+  of star formation sits inside the solar circle against 84% observed,
+  and 0.4% lies beyond 13.5 kpc against 1%; the stand-ins are Schmidt
+  index 2.1 and saturation 9 Msun/pc2. Retune the index and the
+  saturation, or the gas-thinning law, until the shares fall inside the
+  observed range, with the choice named. (2) GEN.270 (close-binary
+  types, in its gate): tight_tail_weight is 6.0 and the Algol share
+  comes out at 0.09% of a constant-star-formation disc against the 0.1%
+  to 0.2% window (a lower limit; a higher weight would put over 1% of
+  systems under one day). Decide the weight or add the missing physics,
+  and record the residual in the generation-output line.
+  Prerequisites: GEN.270.
+
+- [ ] **GEN.670 Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition**
+  Stand-ins are registered in the gap plan until sourced. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  5, 10), filed by the body-rendering design thread, 10:30 PM EDT
+  2026-10-23 as the thread reported. Version placement is a proposal
+  until Boss answers the choices in section 11 of the draft.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -17008,6 +17061,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   page counts and lists those moons. Owner: Habitability lane B (planet
   and moon lists).
   Prerequisites: DB.73. Related: DB.73.
+
+- [ ] **DB.96 Store the atmosphere colour and the cloud cover on planets and moons**
+  The RGB integer from GEN.418 and GEN.419 and the cloud cover; one
+  migration, one generator epoch, and the column_units.py entries;
+  MAP.244 then reads it. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  4), filed by the body-rendering design thread, 10:30 PM EDT 2026-10-23
+  as the thread reported. Version placement is a proposal until Boss
+  answers the choices in section 11 of the draft.
+  Prerequisites: GEN.414, GEN.418, GEN.419.
 
 ## API: The JSON API
 
@@ -20420,6 +20483,14 @@ clears each one.
   reasoning recorded, and 50 repeated runs pass. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: GEN.413.
+
+- [ ] **TEST.308 Body rendering tests: look record stability, painter determinism, tier switching and the memory ceiling**
+  Each lands with its own item. Design draft
+  design-drafts/body-rendering-from-composition-2026-10-24.md (section
+  10), filed by the body-rendering design thread, 10:30 PM EDT
+  2026-10-23 as the thread reported. Version placement is a proposal
+  until Boss answers the choices in section 11 of the draft.
+  Prerequisites: MAP.272.
 
 ## USR: User accounts
 
