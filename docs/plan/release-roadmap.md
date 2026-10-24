@@ -13,7 +13,7 @@ Fifteen versions from 8.1 to 10.0, then a "later" list for features that belong 
 - Progress per version is finished over finished plus open, from the progress ledger (the version each finished item belonged to) and TODO.md on every build. Dropped items count neither way.
 
 ## Release 8.1: Infinite zoom and the new generate scatters
-Status: in progress, the only version being built (Boss, 7:44 PM EDT 2026-10-22: the five core lanes work 8.1 items only until 8.1 is complete). As of 2:02 AM EDT 2026-10-23: 701 of 936 items finished (74.9 percent), 235 open, by phase 113 (foundations and open trees), 29 (infinite zoom), 28 (stars, nebulae, region query), 17 (components, clusters, audits), 33 (core, halo, interface, docs) and 15 (the headline closes). The DB lane has finished its queue (DB.85 merged as #2582) and its thread is retired.
+Status: in progress, the only version being built (Boss, 7:44 PM EDT 2026-10-22: the five core lanes work 8.1 items only until 8.1 is complete). As of 9:33 AM EDT 2026-10-24: 895 of 1295 items finished (69.1 percent), 400 open, by phase 113 (foundations and open trees), 29 (infinite zoom), 28 (stars, nebulae, region query), 17 (components, clusters, audits), 33 (core, halo, interface, docs) and 15 (the headline closes). The DB lane has finished its queue (DB.85 merged as #2582) and its thread is retired.
 Headline: Infinite zoom, one camera from the whole galaxy to a star system and on into its planets and moons, and the new generate scatters: accurate galactic generation and scattering out to 262 kpc, including the halo, the satellites, the nebula stars and a realistic core
 Today: 8.1 infinite zoom (the fly-through Galaxy Map), MAP.146
 Change: A second headline joins the first (Boss, 1:07 PM EDT): the new generate scatters, as GEN.301 (new, carries a `Headline: 8.1` tag). The Phase 1 tail (queues, reproducible galaxies, the description layer, tech levels, directives, every open bug and flaky test) stays in 8.1 as phase 1, because the stamp waits for all of it. The admin editors that sat in the Phase 1 tail (ADM.32, ADM.35, ADM.55, ADM.56, MAP.119, MAP.120) move to 8.6 and the bookmark items (UX.46, UX.47) to 8.2, so they no longer gate the 8.1 stamp. The configuration page (ADM.43, ADM.44) moves up from 8.2 into 8.1 phase 1 as its own thread (Boss, 1:43 PM EDT: "we're starting to desperately need that"), with the per-cell system cap (GEN.303) wired to it in phase 5. The settings page also holds the one backup mechanism, a bz2 tarball per backup with `settings.backups_kept` archives kept (ADM.87), and its first part, the settings (Boss, 1:59 and 2:00 PM EDT). The research, designs and data tables of the 9.0 composition headline are building blocks that go down to 8.1 (Boss, 11:57 PM EDT): phase 1 holds the four research lanes and the designs (GEN.431 to GEN.437, with GEN.409, GEN.425 and GEN.426), phase 2 the data tables (GEN.438, GEN.410, GEN.427, GEN.439), phase 3 the star composition function (GEN.440) and phase 4 its sweep (TEST.211); none changes a stored value.
@@ -21,63 +21,63 @@ Needs: the closing order of 8.1 (Boss, 6:40 PM EDT 2026-10-21, updated 10:46 PM 
 Lanes (8:26 PM EDT 2026-10-23, queues in reports/8-1-core-queues-2026-10-22.md and the board in docs/plan/lanes.md): Core 1: GEN.633 (before 8.1, Boss 8:29 AM EDT), GEN.55, then reproducibility, storage, superbubbles and satellites; Core 2: TEST.237, MAP.256 (UX.124 merged, #2716) and the zoom items MAP.263 to MAP.265 and MAP.268 (Map nodes lane takes MAP.258 to MAP.262, MAP.266, MAP.267) (ADM.126 merged, #2677; MAP.174 merged, #2694) (MAP.209, MAP.210 and MAP.249 wait on Boss's retest; MAP.146 is done and retired); ADM.125 is merged (#2646); Core 3: GEN.630, GEN.631 (the split of GEN.316), GEN.332, the GEN.315 remainder and the multi-star, nebula and galaxy-law items; Core 4: GEN.450 (card with Boss) and the binaries and clusters; Core 5: PERF.123 (slice 2 merged as #2665; D1, then C, then D2), the queue and logging items and GEN.301 last; Bugfix 2: finished (all six plan numbers bugs merged; its follow-ups are GEN.636 for Core 4, TEST.294 for Bug Hunt and GEN.637, the GEN.625 sweep re-run); Blocker 2 is finished (GEN.599, GEN.416, GEN.498, GEN.496, GEN.470 and GEN.452 part 1 merged; GEN.452 part 2 is PR #2613, held for the 8.4 epoch); Blocker 3: finished (GEN.427, GEN.478, GEN.495, GEN.458, SEC.32 and GEN.146 merged; `full --check` green at 2:37 PM EDT as the lane reported; lane retired); Bug Hunt: TEST.295 (next), TEST.284 and TEST.290 (waiting for a recurrence), TEST.287, the stable-code hunt, then the TEST.261 audit at the close; Performance: PERF.164, PERF.165 and the findings PERF.156 to PERF.161 (PERF.170, the math-check move, merged as #2696 at 3:04 PM EDT as the lane reported; PERF.162 and PERF.166 moved to the later version); PERF.154 (waiting list) goes to Core 5 last and PERF.155 is in the pool. Finished lanes: Fair scheduling (retired; PERF.150 to PERF.153 merged), the DB lane (retired), Blocker 2 (retired), Blocker 3 (retired 2:37 PM EDT 2026-10-23), Bugfix 2 (retired), Admin suite, Galaxy dials.
 
 ## Release 8.2: Accounts and email invitations
-Status: Boss named it; new version Progress (2:02 AM EDT 2026-10-23): 15 of 41 items finished (36.6 percent), 26 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: Boss named it; new version Progress (9:33 AM EDT 2026-10-24): 16 of 43 items finished (37.2 percent), 27 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: User accounts, with sign-up by an email invitation that only an admin can send
 Today: (new)
 Change: Boss, 12:45 PM EDT. It is already planned as USR.1 to USR.7; the configuration page left this version for 8.1 (Boss, 1:43 PM EDT) and USR.2 stores four roles (user, moderator, admin, Owner) behind one guard so the roles of 10.0 fit without a rebuild; this moves it up and puts the bookmark items (UX.46, UX.47) with it. One change to USR.4 on approval: its decided answer says the invitee's email is optional and the admin may only copy the link; the email invitation becomes the main path, with the link shown only when SMTP is not set up.
 Needs: the settings page (ADM.43, ADM.84), now built in 8.1, is where the SMTP form sits; its Owner tier (ADM.86) opens this version's thread after USR.2; SEC.32 (Argon2id) before USR.2 so new accounts start on it. Mail goes out as a queue job (USR.3), so the queue steps PERF.97 to PERF.100 in 8.1 phase 1 come first.
 
 ## Release 8.3: The moving galaxy
-Status: proposed; the orbital update moves here from 8.0 Progress (2:02 AM EDT 2026-10-23): 33 of 67 items finished (49.3 percent), 34 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: proposed; the orbital update moves here from 8.0 Progress (9:33 AM EDT 2026-10-24): 33 of 67 items finished (49.3 percent), 34 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: The orbital update: every object moves on its orbit each day, with n-body influence, collisions and ejections
 Today: 8.0 the orbital update system (GEN.105)
 Change: GEN.105 needs open items that take database migrations from Core 1 (GEN.289, GEN.294), so it earns its own version after the scatters. GEN.198 (the gravity field evaluator) is placed here, not with the gravity map, because the courses of 8.5 reuse it.
 Needs: GEN.294 and GEN.289 (every object as one SpatialPosition3D and kept planets and moons) first, in phase 1; GEN.115 and GEN.142 have no prerequisites. GEN.111 needs 8.2's SMTP settings (USR.3). GEN.299 and GEN.300 (the Quantity class) need GEN.294 and GEN.135. OPS.16 and OPS.17 set up the nightly run.
 
 ## Release 8.4: New worlds
-Status: proposed Progress (2:02 AM EDT 2026-10-23): 30 of 140 items finished (21.4 percent), 110 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: proposed Progress (9:33 AM EDT 2026-10-24): 33 of 58 items finished (56.9 percent), 25 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Planet classes R to Z and the habitability-driven refactor: a world's class, atmosphere and life follow its index
 Today: (new)
 Change: The planet class work (GEN.33, GEN.28, GEN.27, GEN.90 and the rest) has no headline today. Boss (11:25 PM EDT) put the generation and storage half of the atmosphere colour here, as four phases ahead of the class work: the bulk composition that drives density, mass and gravity (GEN.428 to GEN.430, DB.69), the albedo records (GEN.412), the surface and small-body composition (GEN.441, GEN.442), the one mixture and its stored values (GEN.411, GEN.422 to GEN.424, DB.67), ozone, haze, dust and cloud (GEN.413, GEN.414), the stored shares (DB.70, DB.68), the text and the sweeps (GEN.415, TEST.209, TEST.210, DOC.63, DOC.65). The research, designs and tables they read moved to 8.1 (Boss, 11:57 PM EDT).
 Needs: The habitability index (built). GEN.33 first, one class per PR. GEN.95 comes before GEN.93 (nebula conditions on planets). POP.13 (the species editor) goes with it because the "find me a world" idea needs species limits.
 
 ## Release 8.5: Courses that bend around gravity wells
-Status: Boss named it; headline unchanged Progress (2:02 AM EDT 2026-10-23): 14 of 43 items finished (32.6 percent), 29 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: Boss named it; headline unchanged Progress (9:33 AM EDT 2026-10-24): 14 of 43 items finished (32.6 percent), 29 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Courses that bend around gravity wells, with waypoints, editable and saved courses (NAV.59)
 Today: 8.5 courses that bend around gravity wells, NAV.59
 Change: No change to the headline. NAV.19 (saved courses in the account) rides here because accounts arrive in 8.2.
 Needs: MAP.122 (Select mode) from 8.1 for waypoints (NAV.49); GEN.198 (the evaluator) from 8.3; saved courses in the account need USR.7 from 8.2, while per-browser saving (NAV.18) needs nothing. NAV.6's open question on keep-out radii still stands, with its default.
 
 ## Release 8.6: Edit everything
-Status: Boss named it (1:07 PM EDT); items filed Progress (2:02 AM EDT 2026-10-23): 4 of 47 items finished (8.5 percent), 43 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: Boss named it (1:07 PM EDT); items filed Progress (9:33 AM EDT 2026-10-24): 4 of 47 items finished (8.5 percent), 43 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Edit everything: the admin has complete control and the world adjusts to what the admin wants, after the admin approves a generation plan
 Today: (new)
 Change: New headline (ADM.57), filed as 35 items in 5 phases with the design in docs/design/interface/edit-everything.md. Boss: the admin can move stars in a sector, change orbits in a system, change densities for a sector or region and regenerate any star to any specification; changing an A planet into an M planet makes the system work out how to rearrange the star system and show that generation plan for approval before anything changes. In every regen screen the admin picks the aspects to keep and the aspects to regenerate. Every change is a plan the admin sees and approves, applies as one job and can undo. An admin approves their own plan, so an admin confirms rather than requests (Boss, 1:49 PM EDT); the plan states already include `requested` so the roles of 10.0 need no new plan table. Two pieces are shared with 8.9 and built here once (Boss, 1:33 PM EDT): the unit finalizer (ADM.82, also API.8) and the recipe schema (API.28, also API.18).
 Needs: The plan model, aspects and regions come first (phase 1); then the approval screen, locks, regen screens and density overrides (phase 2); then the editors that make plans and the rearranger (phase 3); then regeneration to a specification (phase 4); then the end-to-end tests, the help and the headline (phase 5). ADM.36 (edit orbits) comes from the orbital update foundations in 8.3 and ADM.52 (the planet editor) from earlier. The override journal has to keep regeneration, parity repair and the golden-seed tests (GEN.57, DB.9, DB.17 in 8.1 phase 1) working.
 
 ## Release 8.7: The pilot's console and built-in help
-Status: proposed Progress (2:02 AM EDT 2026-10-23): 0 of 17 items finished (0.0 percent), 17 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: proposed Progress (9:33 AM EDT 2026-10-24): 0 of 17 items finished (0.0 percent), 17 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: A built-in help section and the pilot's starmap look: every page explains itself and the interface reads like a navigation console
 Today: (new)
 Change: The help pages (DOC.6 to DOC.16) and the console design (UX.43) have no headline today.
 Needs: The help pages describe what 8.1 to 8.6 built, so this version goes after them; DOC.6 (the template and coverage test) first.
 
 ## Release 8.8: The deep sky
-Status: proposed Progress (2:02 AM EDT 2026-10-23): 1 of 33 items finished (3.0 percent), 32 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: proposed Progress (9:33 AM EDT 2026-10-24): 1 of 31 items finished (3.2 percent), 30 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Nebulae, clusters, satellites and the rarest stars drawn on the map and reachable by flight
 Today: (new)
 Change: The nebula drawing items (MAP.176 to MAP.183), the cluster work and the "later" stellar phenomena have no headline today.
 Needs: The scatters of 8.1 (components, nebula stars, Wolf-Rayet, scattered nebulae in the index) and the nebula tiles and cover (MAP.173, MAP.174). MAP.194 (nebulae and clusters open their own zoom window) needs MAP.176.
 
 ## Release 8.9: Generate anywhere
-Status: proposed Progress (2:02 AM EDT 2026-10-23): 4 of 35 items finished (11.4 percent), 31 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: proposed Progress (9:33 AM EDT 2026-10-24): 4 of 35 items finished (11.4 percent), 31 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Remote generation: build a galaxy on a local machine, upload it through the API and have the server verify it
 Today: (new)
 Change: The remote generation chain (API.3 and its parts) and recipes (API.18, API.19) have no headline today. Boss (1:33 PM EDT): 8.6 and this version are closely related, so what both need is built once in 8.6: the unit finalizer (ADM.82, used by API.8) and the recipe schema and runner (API.28, used by API.18); API.8 and API.18 here keep only the upload and route parts, and API.19 uses the region object of 8.6 (GEN.302). It depends only on the reproducibility items of 8.1 phase 1 and those 8.6 pieces, so it can move earlier if Boss wants it sooner. Also here (Boss, 11:26 PM EDT): the sky data and research of the view from a planet (VIEW.4, VIEW.6, VIEW.9, DB.64, VIEW.1, VIEW.7, VIEW.8) and the backups and repair chain (ADM.88 to ADM.91, DB.40 to DB.42, OPS.55, TEST.180, DOC.56), moved from 9.0 because none of it needs the atmosphere colour.
 Needs: GEN.57, GEN.135, OPS.28 and TEST.77 (reproducibility, 8.1 phase 1) first: remote generation must reproduce what the server makes (API.17). API.10, API.11 and API.12 are the base; API.19 needs API.18.
 
 ## Release 9.0: Composition and atmosphere colour
-Status: proposed; Boss named it the 9.0 feature (11:25 PM EDT) and made composition its joint headline (11:57 PM EDT) Progress (2:02 AM EDT 2026-10-23): 1 of 59 items finished (1.7 percent), 58 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: proposed; Boss named it the 9.0 feature (11:25 PM EDT) and made composition its joint headline (11:57 PM EDT) Progress (9:33 AM EDT 2026-10-24): 1 of 12 items finished (8.3 percent), 11 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: What every body, star and atmosphere is made of, from real science, and what follows from it: the colour of the air of any world, for solid worlds and gas giants, and the radiation in the air and on the ground, with every stored value agreeing
 Today: (new)
 Change: Boss (11:24 PM EDT, 11:25 PM EDT): store the albedo and greenhouse values, break the molar density into per-gas partial pressures so both match, build ozone from real research, add haze, dust and cloud, keep one table of every gas and compound, and word the sky colour as atmosphere colour, absolute and including gas giants; it replaces the planet colour on the maps. The view from a planet that was planned here moved to 9.1 and the backups and repair chain to 8.9 (11:26 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9"). Boss (11:57 PM EDT): atmosphere composition and the composition of planets, moons, stars and everything is the joint headline of 9.0: every body has figures on its composition from actual science, not made up where it can be avoided, with the atmospheric radiation and the surface radiation derived from what is in the air and the ground; two research lanes (atmosphere, body composition) write the design documents first.
@@ -85,7 +85,7 @@ Needs: The building blocks go down to earlier versions (Boss, 11:57 PM EDT): 8.1
 Alternative (Politics and territories): Territories that grow and shift on the map, with borders drawn and polities that trade. Placed at 9.2; it could be a later headline.
 
 ## Release 9.1: The view from a planet
-Status: proposed; Boss chose the headline (11:42 PM EDT) Progress (2:02 AM EDT 2026-10-23): 1 of 19 items finished (5.3 percent), 18 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: proposed; Boss chose the headline (11:42 PM EDT) Progress (9:33 AM EDT 2026-10-24): 1 of 20 items finished (5.0 percent), 19 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Stand on a world and look up: the sky from any planet or moon, with real constellations, rendered as a picture
 Today: (new)
 Change: Boss (11:26 PM EDT, 11:42 PM EDT): the view from a planet moved here from 9.0 and is the headline of 9.1, with the gravity map (MAP.167) as the second feature. Its sky data and research are in 8.9 (VIEW.4, VIEW.6, VIEW.9, DB.64, VIEW.1, VIEW.7, VIEW.8) and it builds on the atmosphere colour of 9.0 (VIEW.11 extends GEN.416). The gravity map keeps its foundations in 8.3 (GEN.198, TEST.131).
@@ -99,14 +99,14 @@ Change: Boss, 1:07 PM EDT: politics and territories come before ships and statio
 Needs: 8.3 (time) and the population items of 8.4 (species and limits). The population-and-politics design note holds the groundwork.
 
 ## Release 9.3: Ships and stations
-Status: proposed; after politics and territories Progress (2:02 AM EDT 2026-10-23): 1 of 7 items finished (14.3 percent), 6 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: proposed; after politics and territories Progress (9:33 AM EDT 2026-10-24): 1 of 7 items finished (14.3 percent), 6 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Users place their own ships and stations and follow them across the live map
 Today: (new)
 Change: USR.10 and POP.11 have no headline today; they follow politics and territories (Boss, 1:07 PM EDT).
 Needs: 8.2 (accounts), 8.3 (movement), 8.5 (courses to fly) and 9.2 (territories, so stations belong to a polity).
 
 ## Release 9.4: Galaxy types
-Status: Boss named it (8:48 PM EDT); items filed Progress (2:02 AM EDT 2026-10-23): 0 of 16 items finished (0.0 percent), 16 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: Boss named it (8:48 PM EDT); items filed Progress (9:33 AM EDT 2026-10-24): 0 of 18 items finished (0.0 percent), 18 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Galaxy types: the seed draws a galaxy of a known type (spiral, lenticular, elliptical, irregular or dwarf), every shape number calculated from published scaling relations
 Today: (new)
 Change: New headline (Boss, 8:48 PM EDT: "different galactic models for generation based on known galaxy types", broken into a chain of required items and counted back from 9.4), filed as 18 items in 6 phases with the plan in docs/design/galaxy/galaxy-types.md. A galaxy type is a parameter family, never a copy of a named galaxy (no fixed content, Boss 4:11 and 4:14 PM EDT): the seed draws the stellar mass, then the family from the mass-dependent type fractions, then each number from a scaling relation. It reuses the shape, the density model, the potential, the halo, the satellites and the scatters. The old "Hubble-sequence generator" suggestion (SL-b) is this headline. 9.4 is Boss's own number and needs no .major note.
@@ -114,7 +114,7 @@ Needs: three steps of the chain come earlier so the families only fill in the sh
 Lanes: not assigned; GEN.378 is proposed for Core 1 (it writes GEN.368's table), and the rest sits after 8.3.
 
 ## Release 10.0: Roles and permissions
-Status: Boss named it (1:43 PM EDT); items filed Progress (2:02 AM EDT 2026-10-23): 1 of 18 items finished (5.6 percent), 17 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: Boss named it (1:43 PM EDT); items filed Progress (9:33 AM EDT 2026-10-24): 1 of 18 items finished (5.6 percent), 17 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Roles and permissions: users submit edit requests, moderators approve user requests and admins approve moderator requests
 Today: (new)
 Change: New headline (USR.25), filed as 18 items in 4 phases with the design in docs/design/interface/roles-and-requests.md. Three roles, User, Moderator and Admin, with the Owner above admin. A user proposes an edit, a moderator approves it; a moderator proposes an edit, an admin approves it; an admin approves their own plan at the time, so an admin confirms with the preview and does not request (Boss, 1:49 PM EDT). A request is a change plan of 8.6, so approval, preview, history, undo and audit are written once. 10.0 is a major version; the `.major.md` note waits for Boss's word.
@@ -122,7 +122,7 @@ Needs: 8.2 (accounts: USR.2 holds the role column with the four values and one g
 Lanes: not assigned; the work sits after 8.6, so no lane queue holds it.
 
 ## Release later: Future features
-Status: possible future features, not scheduled Progress (2:02 AM EDT 2026-10-23): 1 of 8 items finished (12.5 percent), 7 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: possible future features, not scheduled Progress (9:33 AM EDT 2026-10-24): 1 of 10 items finished (10.0 percent), 9 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: No headline: features that belong to no version yet, noted for later
 Today: (new)
 Change: Boss, 1:07 PM EDT: multiple galaxies is a possible future feature, not a headline (Boss, 1:43 PM EDT: 10.0 is roles and permissions). The items (GEN.9, GEN.157, GEN.164, MAP.145, NAV.57) sit in the "later" list.
