@@ -438,6 +438,12 @@ def test_habitability_levels_page_states_the_habitable_zone_from_the_generators_
     assert (inner, outer) == pytest.approx((0.95, 1.68), abs=0.01)
     low, high = orbits.KOPPARAPU_TEFF_RANGE_K
     assert f"{low:,.0f} to {high:,.0f} K" in text
+    light, heavy = orbits.KOPPARAPU_MASS_RANGE_EARTH
+    light_inner = orbits.hz_limits(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K, light)[0]
+    heavy_inner = orbits.hz_limits(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K, heavy)[0]
+    assert f"{light_inner:.2f} AU at {light:g} Earth masses and {heavy_inner:.2f} AU at {heavy:g}" in text
+    assert heavy_inner < inner < light_inner
+    assert "lost water" in text
     html = _html(client, "/help/habitability")
     assert 'id="zone-heading"' in html and "runaway greenhouse" in html
 
