@@ -15093,6 +15093,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   written into the tuning notes. Owner: Composition lane M.
   Prerequisites: none. Related: GEN.505, GEN.508.
 
+- [ ] **GEN.666 The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug)**
+  Boss live observation (relayed 2026-10-23, 9:11 PM EDT): on a planet
+  page paragraph 1 said melanin life 'would evolve at a normal pace' and
+  paragraph 2 said 'hyper-accelerated pace', for an 80 Myr civilization
+  in a 13.8 Gyr system. Cause found by the Habitability text consistency
+  thread: the pace is drawn twice (life.get_evolutionary_speed and
+  evolution.get_evolutionary_state), stored in two columns and written
+  by two text writers. Done: the pace is drawn once, planets and moons
+  lose the evolutionary_speed column (migration, no shim), one LifeFacts
+  object feeds every life sentence on every page, and a consistency test
+  fails when two sentences about the same planet disagree. Owner:
+  Habitability text consistency thread (2026-10-23).
+  Prerequisites: none. Related: GEN.649, GEN.653.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
