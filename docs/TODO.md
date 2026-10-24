@@ -12272,7 +12272,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.553, DB.73, GEN.565. Related: GEN.550,
+  Prerequisites: GEN.553, GEN.565. Related: GEN.550,
   GEN.428,
   GEN.458, GEN.291.
   Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
@@ -13231,7 +13231,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   modelled and the profiles leave room. Done: no consumer reads a
   dropped column and every derived value equals the old stored one to
   the precision of the computation.
-  Prerequisites: GEN.578, GEN.565, DB.73. Related: GEN.550, GEN.565,
+  Prerequisites: GEN.578, GEN.565. Related: GEN.550, GEN.565,
   GEN.576, GEN.578.
   Relations: the derived columns (speed, axial tilt, galactic orbital
   period and phase, rotation period, a*) are computed through the
@@ -14776,38 +14776,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   B hydrogen and helium item (the second new item above, GEN.695).
   Prerequisites: none. Related: GEN.411, GEN.415.
 
-- [ ] **GEN.693 Light-gas escape filter after outgassing: the mixture draw gives a small warm body hydrogen as its main gas**
-  Found by lane L (finding 11, reports/lane-l-findings-2026-10-24.md):
-  draw_mixture does not remove gases a small warm body cannot hold; a
-  3.5 km/s world at 310 K drew hydrogen at 37% as its main gas (Jeans
-  parameter about 5). Do: after outgassing, apply a Jeans escape filter
-  per gas from escape speed, exobase temperature and age, so gases with
-  a short retention time are removed and the rest renormalised;
-  stand-ins labelled in the gap plan registry. Done: a body like that
-  draws no hydrogen as a main gas, Earth keeps nitrogen and oxygen,
-  Titan keeps methane, and tests cover each. Belongs with the retention
-  rows of GEN.422.
-  Prerequisites: GEN.479. Related: GEN.422, GEN.479.
-
-- [ ] **GEN.694 Oxygen caps in the atmosphere draw: biotic oxygen at most 35 percent, abiotic at most 95 percent with a nitrogen and argon floor, and no mixture shown as 100 percent**
-  Decided (Boss, 12:39 AM EDT 2026-10-24 (his message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
-  coordinator)), option 1 of the oxygen question: the rule of lane L's
-  report reports/pure-oxygen-atmosphere-2026-10-24.md section 3. Do: in
-  draw_mixture, biotic oxygen is at most 35 percent by mole, drawn
-  mostly between 15 and 30 percent, and above 25 percent the description
-  says the air is fire-prone; abiotic oxygen (water-loss worlds only,
-  today class Z around an M dwarf in the habitable zone) is at most 95
-  percent, the rest nitrogen, argon and carbon dioxide with a floor of
-  0.5 percent for argon and nitrogen together; other worlds get oxygen
-  only from chemistry; the abiotic row is a minority of eligible worlds
-  and the description says 'oxygen without life'; a mixture with more
-  than one source gas always has a named trace. Done: a test over many
-  draws that no mixture exceeds the caps, that the floor holds, and that
-  the abiotic row is a minority; stand-in weights are labelled in the
-  gap plan registry. Owner: lane L (atmosphere mixture).
-  Prerequisites: GEN.479. Related: GEN.692, GEN.693, GEN.411.
-
 - [ ] **GEN.695 Class B keeps some hydrogen and helium in its atmosphere mix next to the sodium and oxygen of a molten world**
   Decided (Boss, 12:39 AM EDT 2026-10-24 (his message
   cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
@@ -14837,7 +14805,58 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not a fixed string; class I's note about hot-Neptune stripping points
   at the same origin. B's classifier rule is unchanged. Lane L owns the
   mixture, the class lane owns the text.
-  Prerequisites: GEN.693, GEN.479. Related: GEN.692, GEN.693, GEN.647.
+  Research (2026-10-09, Update): Update 12:56 AM EDT 2026-10-24 (as lane
+  L reported): GEN.693 (light-gas escape filter) and GEN.694 (oxygen
+  caps) merged as #2862, not wired to the generator yet (needs lane I's
+  PR 4), no epoch. GEN.695 now waits on GEN.696 (research source),
+  GEN.697 (the stripped_core origin quantity) and GEN.698 (the recipe
+  rows).
+  Prerequisites: GEN.479. Related: GEN.692, GEN.693, GEN.647, GEN.698.
+
+- [ ] **GEN.696 Research source: the leftover envelope mass fraction of a stripped giant core**
+  Filed 12:56 AM EDT 2026-10-24 from lane L's note (finding 13 of
+  reports/lane-l-findings-2026-10-24.md), as the steps GEN.695 needs:
+  Boss (12:39 AM EDT 2026-10-24) decided that class B, the occasional
+  stripped giant core, keeps some hydrogen and helium. Owner: lane L
+  (atmosphere mixture). Do: find, open and read the published work on
+  how much hydrogen and helium envelope a core keeps after
+  photoevaporation or giant-impact stripping, for bodies far below 1
+  Earth mass (GEN.509 covers 1 to 30 Earth masses only); record the
+  range, the sources and the validity, label stand-ins in the gap plan
+  registry (verified wins, two verified in doubt: newest; two in
+  question: widest range). Done: a note with the sourced fraction and
+  its range, citations opened and read.
+  Prerequisites: none. Related: GEN.695, GEN.509.
+
+- [ ] **GEN.697 The generator records an origin quantity stripped_core for a small hot body that began as a giant**
+  Filed 12:56 AM EDT 2026-10-24 from lane L's note (finding 13 of
+  reports/lane-l-findings-2026-10-24.md), as the steps GEN.695 needs:
+  Boss (12:39 AM EDT 2026-10-24) decided that class B, the occasional
+  stripped giant core, keeps some hydrogen and helium. Owner: lane L
+  (atmosphere mixture). Do: add an origin quantity stripped_core (true
+  for the occasional class B or other small hot body that began as a
+  giant) drawn in the generator from the formation history, stored or
+  derived per the composition rules; this is a generator change and
+  takes the next epoch at merge (new epochs and migrations are fine in
+  testing mode). Done: a test that the quantity is drawn with a stated
+  probability, is stable under recalculation, and is true only for
+  bodies the origin rule allows.
+  Prerequisites: none. Related: GEN.695, GEN.647.
+
+- [ ] **GEN.698 Recipe rows for the stripped core: a hydrogen and helium envelope share for a small hot body, replacing the gating of rows e1 to e6 that stops at 1 Earth mass**
+  Filed 12:56 AM EDT 2026-10-24 from lane L's note (finding 13 of
+  reports/lane-l-findings-2026-10-24.md), as the steps GEN.695 needs:
+  Boss (12:39 AM EDT 2026-10-24) decided that class B, the occasional
+  stripped giant core, keeps some hydrogen and helium. Owner: lane L
+  (atmosphere mixture). Do: add recipe rows for stripped_core bodies
+  that draw a small hydrogen and helium share from the sourced leftover
+  fraction, since the envelope rows e1 to e6 are gated to classes S, V,
+  I and T at 1 to 30 Earth masses and none applies to a 0.03 Earth-mass
+  body; the share is then thinned by the escape filter. Done: a test
+  that a stripped_core body draws a hydrogen and helium share within the
+  sourced range and none above what escape allows, and that bodies
+  without stripped_core are unchanged.
+  Prerequisites: GEN.696, GEN.697, GEN.479. Related: GEN.695, GEN.693.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16251,126 +16270,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: GEN.411, DB.67. Related: DB.67, DB.68,
   GEN.411, GEN.413, GEN.415.
 
-- [ ] **DB.73 Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue**
-  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
-  the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/architecture/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U11 of the draft, card D1 (Decided: option 2, code plus one shared parent link, the kind tables keep their own columns). The object ID is unchanged (body
-  number 0 for the head of a system or a wanderer, 1 and up for the rest
-  on one counter; a planet leaving its star keeps its ID and changes its
-  parent). Do: widen `parent_type` and `parent_id` (on `planets` and
-  `moons` since migrations 0102 and 0109) to every orbiter and add
-  `node` (using `orbit_nodes`, which GEN.315 begins to fill) and the
-  free case (no parent); let `moons` point at free planets and brown
-  dwarfs (`moons.star_system_id` and `planet_id` stop being NOT NULL, or
-  a rogue gets a system id of its own); the build that turns a scatter
-  row into a system deletes its `scatter_members` and `scatter_nodes` in
-  its own transaction and the same rule applies to every wanderer's
-  stored seed; `rogue_planets` and `interstellar_comets` rows are
-  regenerated (wiped rescatter), not converted. The Alembic revision is
-  numbered at merge (head 0109 at 6:20 PM EDT on 2026-10-17). Done: a
-  moon of a free planet stores and loads, a planet's parent change keeps
-  its row and ID, and the schema doc is updated. Owner: Core 1 (Boss's card D7, 2026-10-17, 11:28 to 11:31 PM EDT as the coordinator relayed; Core 4's 8.4 items stay held until its 8.1 chain is built), 8.4 phase
-  1. Standing rules for the whole chain: NO FIXED CONTENT (nothing
-  copied from the Solar System or the Milky Way), the database schema is
-  not a constraint, no backward-compatibility shims, every draw through
-  the one wrapper `util/draw.py` (GEN.56), every recalled source
-  verified by a lane before use under the standing source rules, and any
-  change to a drawn value bumps the generator epoch (OPS.56 rule).
-  Back-scatter answer (Boss's back-scatter cards, taps 11:38 to 11:40 PM
-  EDT, 2026-10-17, as the coordinator relayed): ONE 8.4 revision carries
-  this item and DB.67 to DB.71, in the order Cores 1 and 4 agree;
-  nothing of it moves to 8.1.
-  Migration facts from Core 1's read-only code audit of main at 5c49fc42
-  (11:50 PM EDT as the lane reported; a helper read it, Core 1 did not
-  re-verify each line, no code was run): relaxing `moons.planet_id` and
-  `star_system_id` (NOT NULL, ON DELETE CASCADE, with KEYs) is a plain
-  MODIFY COLUMN ... BIGINT UNSIGNED NULL with rows kept (precedents
-  0108, 0099, 0107, 0078); `parent_type`, `parent_id` and
-  `dynamical_state` already exist on planets and moons (0102;
-  `parent_id` nullable, no foreign key, no index); head is 0109, so the
-  next revision is 0110; widening the `chk_moons_parent_type` CHECK is
-  DROP CHECK plus MODIFY (precedent 0099, 0107; verify on MariaDB); new
-  albedo and greenhouse columns (DB.67) are ADD COLUMN NULL. Not
-  trivial: the `sector_objects` view (`schema.sql` 4122 to 4128)
-  inner-joins moons on `star_system_id`, so moons with NULL there vanish
-  from it; `parent_id` has no foreign key, so dropping the two foreign
-  keys loses the system and planet cascades (keep the foreign keys on
-  the nullable columns or add explicit deletes at `db/edits.py` 100,
-  `api/routes.py` 2072 and `delete_sector_with_contents`); code reading
-  the old columns: `db/query.py` 824 to 828, 3140, 5119, 5968 to 5974,
-  `db/near.py` 209, `db/store.py` 8702 and 9410 to 9426, `db/edits.py`
-  95 to 100 and 201, `db/check.py` 95, `db/fingerprint.py` 50 (a NULL
-  `star_system_id` drops out of sector digests), `insert_moon`
-  (`store.py` 2977 to 2986); it needs an index on `parent_id`; per
-  revision housekeeping: the `schema.sql` header, `db/models.py`,
-  `_VERSION_MARKERS` (`store.py` 1526 and after), a
-  `tests/fixtures/old_schemas/schema_v109.sql.gz` and a
-  `test_migration_*.py`. Migration without a wipe: yes.
-  Decided (Boss's cards S10 to S18, 12:30 to 12:32 AM EDT, 2026-10-18,
-  as the coordinator relayed; docs/design/architecture/unified-system-barycentre.md,
-  card S18): speed, axial tilt, galactic orbital period and phase,
-  rotation period and a* become derived and their columns are dropped in
-  this revision with the wobble columns (DB.78) and the kinematic record
-  of GEN.584.
-  Revision number (2026-10-18 about 2:50 AM EDT lane clock): the head is
-  0111 after Core 4's description-layer bundle (#2206 took 0110 and
-  0111) and GEN.244 takes the next free one; this item's 8.4 revision
-  takes the next free number at its own merge.
-  Revision number (11:12 AM EDT 2026-10-18): GEN.244 took 0112 (#2253);
-  the head is 0112 and this item's revision takes the next free number,
-  0113 or later, at its own merge.
-  Core 4's re-scope of GEN.565b (5:25 PM EDT 2026-10-18 on the lane's
-  clock; Boss's standing rule of 5:20 PM EDT, see GEN.565): the core's
-  one state vector relative to the parent is position, velocity, epoch
-  and parent mass, advanced by one `advance(seconds)` for every body,
-  galactic, planetary and lunar. Storage here should hold that same
-  state vector (with GEN.584).
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): DB.67,
-  DB.68, DB.69, DB.70 and DB.71 share this item's ONE 8.4 revision
-  (Boss, 2026-10-17, 11:38 to 11:40 PM EDT, in the order Cores 1 and 4
-  agree): the earlier lines that give each its own next free id in merge
-  order, DB.71's "revision after the DB.67 one", and DB.69's "follows
-  the DB.65 and DB.67 ones" are superseded. DB.67's "Boss wipes and
-  rebuilds" describes a different revision and is left as written.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 5, "Keep the full
-  S16 record": the stored point record is the full S16 kinematic record
-  (position, velocity, spin axis and rate, member mass with mu, epoch
-  and next-due); Core 4's narrower state vector of 5:25 PM EDT
-  2026-10-18 (position, velocity, epoch, parent mass) is overruled. The
-  standing rule that all motion runs through the one set of mass object
-  functions stands.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 5 stands (Core 4's
-  detail, 6:16 PM EDT 2026-10-18 on the lane's clock, after Boss's fork
-  5 "Keep the full S16 record"): the core stores for every mass object
-  mass_kg and mu_m3_s2, position and velocity relative to the parent,
-  spin_axis (unit) and spin_rate_rad_s, epoch_unix and next_update_due,
-  with identity, radius and age beside it; spin is not in a profile
-  table. Derived, and their columns dropped in the DB.73 revision:
-  speed, axial tilt, rotation period, a*, ms period, galactic orbital
-  speed, period and phase, and min_update_interval_years.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the Owner line's
-  wording "Core 4's 8.4 items stay held until its 8.1 chain is built" is
-  stale: the hold is lifted. Core 4 started its 8.4 items in the draft
-  order of GEN.550 (in progress, reported 1:31 PM EDT 2026-10-18 on the
-  lane's clock, on GEN.553 and GEN.565) and GEN.565a merged as #2274
-  (reported 4:33 PM EDT 2026-10-18).
-  Order (Core 1, the coordinator, 8:16 AM EDT 2026-10-22): GEN.598 now,
-  then DB.76, DB.73 and DB.74.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.550, DB.69, DB.70.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane B (planet and moon lists).
 - [ ] **DB.74 One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables**
   Part of the unified orbited-body chain (GEN.550; design note
   docs/design/architecture/mass-object-class.md, decided: Boss's cards, as the
@@ -16455,7 +16354,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
   held it before; this replaces any earlier owner line).
-  Prerequisites: DB.73, GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
+  Prerequisites: GEN.565. Related: GEN.550, DB.73, DB.67, DB.70.
 
 - [ ] **DB.75 Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID**
   Part of the unified orbited-body chain (GEN.550; design note
@@ -16541,7 +16440,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   generator epoch, one epoch with GEN.577. Done: no consumer reads a
   removed column and the maps show the same positions to the precision
   of the sum.
-  Prerequisites: GEN.576, DB.73. Related: GEN.550, GEN.552, GEN.315,
+  Prerequisites: GEN.576. Related: GEN.550, GEN.552, GEN.315,
   GEN.565.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
 
@@ -16680,7 +16579,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   of free planets. Done: a moon under a rogue planet resolves by its
   object ID and appears in search. Owner: Habitability lane B (planet
   and moon lists).
-  Prerequisites: DB.73. Related: DB.73.
+  Prerequisites: none. Related: DB.73.
 
 - [ ] **DB.95 The sector_objects view includes the moons of free planets**
   Follow-up of DB.73, filed by the TODO thread from lane B's report of
@@ -16688,7 +16587,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   view lists the moons that hang under a free planet. Done: a sector
   page counts and lists those moons. Owner: Habitability lane B (planet
   and moon lists).
-  Prerequisites: DB.73. Related: DB.73.
+  Prerequisites: none. Related: DB.73.
 
 - [ ] **DB.96 Store the atmosphere colour and the cloud cover on planets and moons**
   The RGB integer from GEN.418 and GEN.419 and the cloud cover; one
