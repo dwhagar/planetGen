@@ -8290,6 +8290,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2 with GEN.411, DB.71 and GEN.424, then GEN.565 PlanetaryObject and
   GEN.557. Contracts:
   /mnt/project-files/reports/composition-spine-contracts-2026-10-23.md.
+  Research (2026-10-09, Update): Update 1:25 AM EDT 2026-10-24 (as lane
+  H reported): GEN.459 merged as #2868 (schema v141, migration 0141,
+  epoch 67): physics/radiogenic.py stores K, Th, U, Al-26 and the Urey
+  ratio per rocky body (c_k0_ppm, c_th0_ppm, c_u0_ppm, al26_ratio,
+  urey_ratio); interior heat and the ground gamma and radon dose read
+  them (a bulk silicate Earth gives 21.0 TW and 0.67 nGy/h);
+  radiation.py has gamma_dose_msv_yr, radon_dose_msv_yr and
+  ground_dose_msv_yr. Stand-ins waiting on this item: silicate fraction
+  0.675 and Al 2.38 percent; pass rock_mass_fraction and
+  rock_al2o3_fraction/0.045 into radiogenic.generate_content. Owner:
+  lane I.
 - [ ] **GEN.429 Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -8430,7 +8441,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429, GEN.459, GEN.461. Related:
+  Prerequisites: GEN.428, GEN.429, GEN.461. Related:
   DB.70,
   GEN.444, GEN.418,
   GEN.412.
@@ -8494,6 +8505,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/composition/surface-composition.md. GEN.441 stays open:
   slice 2 (the generator call, columns, migration and API) waits on
   #2751, GEN.459 and GEN.461.
+  Research (2026-10-09, Update): Update 1:25 AM EDT 2026-10-24 (as lane
+  H reported): GEN.459 merged as #2868 (schema v141, migration 0141,
+  epoch 67): physics/radiogenic.py stores K, Th, U, Al-26 and the Urey
+  ratio per rocky body (c_k0_ppm, c_th0_ppm, c_u0_ppm, al26_ratio,
+  urey_ratio); interior heat and the ground gamma and radon dose read
+  them (a bulk silicate Earth gives 21.0 TW and 0.67 nGy/h);
+  radiation.py has gamma_dose_msv_yr, radon_dose_msv_yr and
+  ground_dose_msv_yr. Stand-in waiting on this item: the surface rock
+  (basalt or felsic) used by the ground dose. Free for Blocker 4.
 - [ ] **GEN.442 Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8539,7 +8559,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428, GEN.429, GEN.459.
+  Prerequisites: GEN.428, GEN.429.
   Related:
   DB.70,
   GEN.360, GEN.441.
@@ -8748,7 +8768,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.443, GEN.441, GEN.459.
+  Prerequisites: GEN.443, GEN.441.
   Related:
   GEN.445,
   GEN.256, GEN.317, GEN.87, GEN.453.
@@ -8833,6 +8853,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radiation weights; nothing uses them yet, so no world changes. Slice 2
   (the wiring, with an epoch) waits on GEN.443, GEN.441 and GEN.459.
   Done by lane E, which holds the item with lane H for the wiring.
+  Research (2026-10-09, Update): Update 1:25 AM EDT 2026-10-24 (as lane
+  H reported): GEN.459 merged as #2868 (schema v141, migration 0141,
+  epoch 67): physics/radiogenic.py stores K, Th, U, Al-26 and the Urey
+  ratio per rocky body (c_k0_ppm, c_th0_ppm, c_u0_ppm, al26_ratio,
+  urey_ratio); interior heat and the ground gamma and radon dose read
+  them (a bulk silicate Earth gives 21.0 TW and 0.67 nGy/h);
+  radiation.py has gamma_dose_msv_yr, radon_dose_msv_yr and
+  ground_dose_msv_yr. Lane E: use gamma_dose_msv_yr, radon_dose_msv_yr
+  and ground_dose_msv_yr, they are in main.
 - [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -9137,114 +9166,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
 
-- [ ] **GEN.459 One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug)**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/composition/body-composition-research.md, parts in
-  docs/design/composition/body-composition-parts/), filed by the TODO thread.
-  Findings F1 and F2 (part E sections 2.8 and 2.9, part A section 2.8,
-  part D heating): `rogue_surface.radiogenic_flux_w_m2` and
-  `tuning.ROGUE_RADIOGENIC_ISOTOPES` use the Turcotte and Schubert
-  mantle values (U 31 ppb, Th 124 ppb, K 310 ppm), which give 29.8 TW
-  for a bulk silicate Earth of 4.03e24 kg against 21.7 TW (Palme and
-  O'Neill 2014) and 19.8 TW (McDonough and Sun 1995): 37 to 50 percent
-  too high; the Urey ratio `ROGUE_UREY_RATIO = 0.67` is against 0.47 to
-  0.52 from the same totals (Nimmo 2020, Borexino); the abundance range
-  (0.5, 2.0) is narrower than the star-to-star scatter (0.3 to 3); and
-  the ground-dose factor `a_rad` (`radiation.py`) is a separate
-  log-uniform draw, so a body cannot be rich in thorium for its dose and
-  average for its heat. Do: one stored set of potassium, thorium,
-  uranium and aluminium-26 concentrations per body, drawn from the
-  star's birth abundances (Eu, Th, U, K from GEN.440's relations, with
-  the Al-26 early heating term) and the body's reservoir (the crust and
-  mantle split of part E table 2.8b), feeds the heat function H(t)
-  isotope-wise with one set of isotope constants (GEN.438; the
-  chondritic heating of small bodies in part D and the bulk-silicate
-  heat in part E use the same function, within 0.1 percent for U and Th
-  and 2.2 percent for K-40), the Urey ratio is a draw (0.1 to 0.9), and
-  `a_rad` and the old constants are removed (no shim); GEN.444 reads the
-  same concentrations for the ground dose. Changes stored values, so it
-  ships with a generator epoch bump and joins the one rescatter of 8.4.
-  Done: a test checks the isotope-wise sum, a chondrite and a
-  bulk-silicate case against their calibration targets within the stated
-  tolerance (as test targets, not presets), that heat and ground dose of
-  one body read the same concentrations, and that the old constants are
-  gone. Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.428. Related: GEN.427, GEN.428, GEN.438,
-  GEN.440, GEN.442, GEN.444, GEN.441, DB.69.
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): the stellar Th/U and K/U against [Fe/H] and
-  [alpha/Fe] as the radioisotope inventory of accreting planets, with
-  high Th/U raising early radiogenic heating and low K/U lowering
-  long-term crustal heating (master section 6 item 12 of
-  docs/design/composition/atmosphere-composition.md); the lane's parts A and E hold
-  the read abundance trends. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/composition/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): no table: the radiogenic heat is derived from the host
-  star's abundances through the isotope rows of the element table, and
-  does not draw a recipe.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. The K, Th and U values of the Earth
-  rock types are `stand-in` rows until GEN.474 replaces them.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the K/U and Th/U table by
-  reservoir and the Th and U against [Fe/H] and alpha trend; Solar
-  System values are test targets only.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/composition/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G2) Venus K/U is not Earth-like: Venera 8 and Vega give
-  K/U 5.9 to 15 (x10^3) and Th/U 2.3 to 3.0 with errors of 40 to 130
-  percent; Mercury Th/U is 2.4 +/- 0.9 (K 1150, Th 220 ppb, U 90 ppb;
-  abstract only), not 3.5 to 4.0; MORB Th/U is about 3.0 (part E keeps
-  3.04) with K/U 12.7e3; the Moon K/U is about 2.3e3. Part E 3.3: keep
-  x_Th sigma 0.22 dex as an upper bound (solar-twin scatter 0.05, pooled
-  Th/Mg 0.10, Eu 0.16), add a mean shift with [Fe/H] (Th/Fe slope -0.34
-  dex per dex, Eu/alpha -0.16 to -0.23); d_K log-uniform 0.03 to 1 stays
-  (observed bodies lie at 0.03 to 0.28). K/U and Th/U by reservoir are
-  calibration targets with the scatters of part G2, never presets.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): Venus K/U 6 to 8 thousand;
-  MORB Th/U about 3.0 (the radioisotope Th/U range needs a lower tail);
-  Solar System reservoirs stay test targets.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
-  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
-  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
-  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
-  in 8.1, and only scatter-level changes (nebula radius, remnants above
-  the mass cut) need a rescatter. Where this item says it "joins the one
-  rescatter of 8.4", this wins.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane H (surface dose).
 - [ ] **GEN.460 Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -9861,8 +9782,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   environment. Size: medium. Done: a note with the derivation and its
   sources, GEN.459 reading it, and TEST.214 listing no Al-26 stand-in.
   Owner: unowned (research; Boss or a read-only research lane).
-  Prerequisites: GEN.459. Related: GEN.459, GEN.440, GEN.472,
+  Prerequisites: none. Related: GEN.459, GEN.440, GEN.472,
   TEST.214.
+  Research (2026-10-09, Update): Update 1:25 AM EDT 2026-10-24 (as lane
+  H reported): GEN.459 merged as #2868 (schema v141, migration 0141,
+  epoch 67): physics/radiogenic.py stores K, Th, U, Al-26 and the Urey
+  ratio per rocky body (c_k0_ppm, c_th0_ppm, c_u0_ppm, al26_ratio,
+  urey_ratio); interior heat and the ground gamma and radon dose read
+  them (a bulk silicate Earth gives 21.0 TW and 0.67 nGy/h);
+  radiation.py has gamma_dose_msv_yr, radon_dose_msv_yr and
+  ground_dose_msv_yr. Stand-in waiting on this item: the Al-26 range.
 
 - [ ] **GEN.477 The asteroid belt and field composition is drawn from the star, the distance and the belt's mass, not four names drawn uniformly from a list of 84 (bug)**
   Finding F11 of the Body composition research lane (section 14.5 of
@@ -15940,7 +15869,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.429, GEN.459, GEN.460. Related:
+  Prerequisites: GEN.429, GEN.460. Related:
   DB.67,
   DB.68.
   Part F of the Body composition research lane

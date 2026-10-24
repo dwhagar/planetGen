@@ -1237,3 +1237,4 @@ Baseline: PR #1817.
 | UX.182 | 8.1 | Habitability system |
 | UX.181 | 8.1 | Habitability system |
 | UX.180 | 8.1 | Habitability system |
+| GEN.459 | 8.1 | Radiation chain for habitability (GEN.445) |
