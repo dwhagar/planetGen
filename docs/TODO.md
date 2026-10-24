@@ -5340,44 +5340,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (heaviest first at every node, no new copy of the swap).
   Design: [docs/design/systems/multi-star-systems.md](design/systems/multi-star-systems.md)
 
-- [ ] **GEN.270 Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars**
-  Step 14 (design note sections 13.1 and 13.2). On GEN.269's classifier:
-  contact binaries (0.2% of FGK dwarfs, a 60% tertiary share, 1% of O
-  and B binaries over-contact), semi-detached Algols (0.1% to 0.2% of
-  disk stars, `mass_reversed` donors), the spectroscopic and eclipsing
-  flags derived from the geometry (a pair eclipses when the inclination
-  is within asin((R1+R2)/a) of edge-on), field blue stragglers and
-  merger products (0.5% of old and intermediate stars), massive-star
-  merger products (8%) and mass gainers (20%), hot subdwarfs and
-  stripped helium stars, Be stars (about 20% of B stars, 30% with a
-  stripped companion), Wolf-Rayet binaries (WN 52%, WC 90%), the R
-  Coronae Borealis and FK Comae flags, and the Thorne-Zytkow default
-  (100 in the Galaxy, flagged theoretical). Contact and Algol rates are
-  tuned with the tight-tail weight. Done: over a seeded fill each type's
-  count is within four Poisson sigma of its default (audit test 10) and
-  no type appears where its gate forbids it (audit test 11). Owner:
-  Interface (2026-10-15; moved off Core by the lane queue, Core owns the
-  star model or the key it builds on). Boss (2026-10-15 6:08 PM EDT)
-  widened the multi-star plan to "every observed and theoretical type of
-  multi-star/star-like-object system", built "into our generator
-  throughout to match as close as possible to observed and theoretical
-  probabilities (observed are best, theoretical are good too)".
-  Scope after the review (2026-10-16 review): contact, Algol,
-  spectroscopic and eclipsing flags, tertiary shares, merger products
-  and Be stars, without the Wolf-Rayet binaries (GEN.243 owns the
-  Wolf-Rayet companion fractions). GEN.249 narrows to carbon stars and
-  Mira variables, reusing the `flags` column; the Be part is this item.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.269 merged as #2481). Core 4 asks Core 3
-  before touching stellar evolution constants in tuning.py. A line here
-  that named Core 3 or Core 4 earlier is replaced by this one.
-  Prerequisites: none. Related: GEN.243, GEN.246, GEN.162, GEN.268.
-  Design: [docs/design/systems/multi-star-systems.md](design/systems/multi-star-systems.md)
-
 - [ ] **GEN.271 White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars**
   Step 15 (design note section 13.3); extends GEN.253. A white dwarf
   with a companion 30% (22% of them wide); a close double white dwarf
@@ -5415,6 +5377,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-17): the stale prerequisite on GEN.253 is dropped: the
   2026-10-16 review line (self-contained table, GEN.253 independent) was
   the newer decision. Core 4 can build it now (GEN.269 merged as #2481).
+  Research (2026-10-09, Update): Update 2:44 AM EDT 2026-10-24 (as Core
+  4 reported on GEN.270, #2879): residuals to keep in view: the Algol
+  share is 0.09% of a constant-star-formation disk against the 0.1 to
+  0.2% lower limit; stand-ins in tuning.py to label in the gap plan
+  registry: the stripped-pair period range 30 to 1000 d, the Be
+  progenitor mass ratio 1.2 to 2.0, the old giant share 0.5% and the
+  massive merger edge 9 solar masses. The planet-zones P-type shares for
+  5 and 7 stars were re-measured (0.40 and 0.33) by that merge. Owner:
+  Core 4.
   Prerequisites: none. Related: GEN.253, GEN.130, GEN.268.
   Design: [docs/design/systems/multi-star-systems.md](design/systems/multi-star-systems.md)
 
@@ -18095,7 +18066,7 @@ clears each one.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.270, GEN.271, GEN.272, GEN.275, GEN.327. Related: TEST.162, DOC.50, TEST.160.
+  Prerequisites: GEN.271, GEN.272, GEN.275, GEN.327. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
@@ -19849,6 +19820,20 @@ clears each one.
   Do: make the test downgrade past the v140 marker or reset the marker.
   Done: the test passes on main. DB.98 (the Alembic re-baseline) may
   delete this test; if it does, close this with DB.98.
+  Prerequisites: none.
+
+- [ ] **TEST.326 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug)**
+  Found by Core 4 at 2:44 AM EDT 2026-10-24 (as the lane reported). It
+  fails about 1 run in 12 on main too (reproduced on a GEN.450 tree: 1
+  of 12 loops with `pytest -k M5V` alone; over 15 trials in the test,
+  one makes no belt although ASTEROID_BELT and HABITABLE_WORLD are both
+  forced). So a forced belt is not always honoured. Do: find why the
+  belt is dropped for an M5V star with both flags forced (a failed
+  placement that gives up, or the habitable-world rebuild removing the
+  belt), fix the generator so a forced belt is always made or the test
+  states the real rule, and run the test 50 times. Done: 50 loops of the
+  test pass. Owner: Bug Hunt, unless Core 4 prefers it, since the flag
+  handling is generation code.
   Prerequisites: none.
 
 ## USR: User accounts
