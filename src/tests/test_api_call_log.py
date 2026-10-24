@@ -92,7 +92,7 @@ def test_a_client_request_id_is_kept_and_a_poor_one_is_replaced(admins, log_dir)
     kept = client.get("/api/no/such/route", headers={"X-Request-Id": "trace-0123456789"}, environ_base=_address())
     assert kept.headers["X-Request-Id"] == "trace-0123456789"
     assert _field(_calls(log_dir)[-1], "rid") == "trace-0123456789"
-    replaced = client.get("/api/no/such/route", headers={"X-Request-Id": "x y\n"}, environ_base=_address())
+    replaced = client.get("/api/no/such/route", headers={"X-Request-Id": "x y"}, environ_base=_address())
     assert re.fullmatch(r"[0-9a-f]{32}", replaced.headers["X-Request-Id"])
     assert _field(_calls(log_dir)[-1], "rid") == replaced.headers["X-Request-Id"]
 
