@@ -5149,6 +5149,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.269 merged as #2481). Core 4 asks Core 3
   before touching stellar evolution constants in tuning.py. A line here
   that named Core 3 or Core 4 earlier is replaced by this one.
+  Research (2026-10-09, 10-24 Core 4): Started by Core 4 at about 12:22
+  PM EDT 2026-10-24 (as the lane reported, after GEN.678); nobody else
+  had started it.
   Design: [docs/design/systems/multi-star-systems.md](design/systems/multi-star-systems.md)
 
 - [ ] **GEN.273 Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw**
@@ -13152,18 +13155,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   validity range and falsifier test, so none is silent. Done: every
   constant above has a registry row. Owner: lane L (it knows the
   values).
-  Prerequisites: none.
-
-- [ ] **GEN.678 The bright-star units expected about 23,000 stars but placed 1,000 to 3,000, so the run placed 229,596 stars against 365,093 expected and took 20 minutes (bug)**
-  From the generation-log analysis of Boss's run
-  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
-  reported; report reports/generation-log-analysis-2026-10-24.md). P4.
-  Do: find why the bright-star units place a small share of the stars
-  they expect (a cap, a limit by place, a seed or a dedupe), and make
-  placed equal expected within the stated tolerance, or explain the
-  difference in the report line. Done: a test on the placed and expected
-  counts of a bright-star unit. Owner: none for now (pool; Core 4
-  proposed). It changes generated values, so it needs a generator epoch.
   Prerequisites: none.
 
 - [ ] **GEN.681 The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw**
