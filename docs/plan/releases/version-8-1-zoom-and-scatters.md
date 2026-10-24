@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 8:38 PM EDT 2026-10-23: 757 of 1173 items finished (64.5 percent), 416 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 113, phase 2 40, phase 3 25, phase 4 14, phase 5 83, phase 6 35, phase 7 22, phase 8 6, phase 9 17, phase 10 2, phase 11 48, phase 12 11 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 9:00 PM EDT 2026-10-23: 758 of 1173 items finished (64.6 percent), 415 open, 23 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 113, phase 2 40, phase 3 25, phase 4 14, phase 5 83, phase 6 35, phase 7 22, phase 8 6, phase 9 17, phase 10 2, phase 11 47, phase 12 11 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -697,30 +697,29 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.503 | The shared tuning harness: a target table, a simulate-and-compare function and a loader that refuses a tunable row without a target |  | Tunable gaps report: The shared tuning harness: a target table, a simulate-and-compare func. |
-| GEN.504 | The Kepler transit-plus-recovery selection model | GEN.503 | Tunable gaps report: The Kepler transit-plus-recovery selection model. |
-| GEN.505 | The mass-radius sample selection model | GEN.503 | Tunable gaps report: The mass-radius sample selection model. |
-| GEN.506 | The JWST atmosphere target-selection model | GEN.503 | Tunable gaps report: The JWST atmosphere target-selection model. |
-| GEN.507 | The comet admission model by heliocentric distance | GEN.503 | Tunable gaps report: The comet admission model by heliocentric distance. |
-| GEN.508 | The white-dwarf pollution detection and settling model | GEN.503 | Tunable gaps report: The white-dwarf pollution detection and settling model. |
-| GEN.509 | Tuned draw builder B1: the radius valley and the envelope | GEN.503, GEN.504 | Tunable gaps report: Tuned draw builder B1: the radius valley and the envelope. |
-| GEN.510 | Tuned draw builder B2: delivery and water worlds | GEN.503, GEN.505 | Tunable gaps report: Tuned draw builder B2: delivery and water worlds. |
-| GEN.511 | Tuned draw builder B3: retention and lava worlds | GEN.503, GEN.506 | Tunable gaps report: Tuned draw builder B3: retention and lava worlds. |
-| GEN.512 | Tuned draw builder B4: the iron branch | GEN.503, GEN.505 | Tunable gaps report: Tuned draw builder B4: the iron branch. |
-| GEN.513 | Tuned draw builder B5: redox and white-dwarf debris | GEN.503, GEN.508 | Tunable gaps report: Tuned draw builder B5: redox and white-dwarf debris. |
-| GEN.514 | Tuned draw builder B6: radioisotopes | GEN.503 | Tunable gaps report: Tuned draw builder B6: radioisotopes. |
-| GEN.515 | Tuned draw builder B7: ground and petrology | GEN.503 | Tunable gaps report: Tuned draw builder B7: ground and petrology. |
-| GEN.516 | Tuned draw builder B8: giant planets | GEN.503, GEN.506 | Tunable gaps report: Tuned draw builder B8: giant planets. |
-| GEN.517 | Tuned draw builder B9: brown dwarfs | GEN.503 | Tunable gaps report: Tuned draw builder B9: brown dwarfs. |
-| GEN.518 | Tuned draw builder B10: the chemistry module | GEN.503 | Tunable gaps report: Tuned draw builder B10: the chemistry module. |
-| GEN.519 | Tuned draw builder B11: aerosol amplitude | GEN.503, GEN.506 | Tunable gaps report: Tuned draw builder B11: aerosol amplitude. |
-| GEN.520 | Tuned draw builder B12: the comet sampler | GEN.503, GEN.507 | Tunable gaps report: Tuned draw builder B12: the comet sampler. |
+| GEN.504 | The Kepler transit-plus-recovery selection model |  | Tunable gaps report: The Kepler transit-plus-recovery selection model. |
+| GEN.505 | The mass-radius sample selection model |  | Tunable gaps report: The mass-radius sample selection model. |
+| GEN.506 | The JWST atmosphere target-selection model |  | Tunable gaps report: The JWST atmosphere target-selection model. |
+| GEN.507 | The comet admission model by heliocentric distance |  | Tunable gaps report: The comet admission model by heliocentric distance. |
+| GEN.508 | The white-dwarf pollution detection and settling model |  | Tunable gaps report: The white-dwarf pollution detection and settling model. |
+| GEN.509 | Tuned draw builder B1: the radius valley and the envelope | GEN.504 | Tunable gaps report: Tuned draw builder B1: the radius valley and the envelope. |
+| GEN.510 | Tuned draw builder B2: delivery and water worlds | GEN.505 | Tunable gaps report: Tuned draw builder B2: delivery and water worlds. |
+| GEN.511 | Tuned draw builder B3: retention and lava worlds | GEN.506 | Tunable gaps report: Tuned draw builder B3: retention and lava worlds. |
+| GEN.512 | Tuned draw builder B4: the iron branch | GEN.505 | Tunable gaps report: Tuned draw builder B4: the iron branch. |
+| GEN.513 | Tuned draw builder B5: redox and white-dwarf debris | GEN.508 | Tunable gaps report: Tuned draw builder B5: redox and white-dwarf debris. |
+| GEN.514 | Tuned draw builder B6: radioisotopes |  | Tunable gaps report: Tuned draw builder B6: radioisotopes. |
+| GEN.515 | Tuned draw builder B7: ground and petrology |  | Tunable gaps report: Tuned draw builder B7: ground and petrology. |
+| GEN.516 | Tuned draw builder B8: giant planets | GEN.506 | Tunable gaps report: Tuned draw builder B8: giant planets. |
+| GEN.517 | Tuned draw builder B9: brown dwarfs |  | Tunable gaps report: Tuned draw builder B9: brown dwarfs. |
+| GEN.518 | Tuned draw builder B10: the chemistry module |  | Tunable gaps report: Tuned draw builder B10: the chemistry module. |
+| GEN.519 | Tuned draw builder B11: aerosol amplitude | GEN.506 | Tunable gaps report: Tuned draw builder B11: aerosol amplitude. |
+| GEN.520 | Tuned draw builder B12: the comet sampler | GEN.507 | Tunable gaps report: Tuned draw builder B12: the comet sampler. |
 | GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution |  | Boss, 2026-10-18 (fork 8, flagged stand-ins only). |
-| GEN.521 | Tuned draw builder B13: belts | GEN.503 | Tunable gaps report: Tuned draw builder B13: belts. |
-| GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects | GEN.503 | Tunable gaps report: Tuned draw builder B14: moons and Kuiper belt objects. |
-| GEN.523 | Tuned draw builder B15: host-star activity | GEN.503 | Tunable gaps report: Tuned draw builder B15: host-star activity. |
-| GEN.524 | Tuned draw builder B16: halogens and trace gases | GEN.503 | Tunable gaps report: Tuned draw builder B16: halogens and trace gases. |
-| GEN.525 | Tuned draw builder B17: the design-flag registry | GEN.503 | Tunable gaps report: Tuned draw builder B17: the design-flag registry. |
+| GEN.521 | Tuned draw builder B13: belts |  | Tunable gaps report: Tuned draw builder B13: belts. |
+| GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects |  | Tunable gaps report: Tuned draw builder B14: moons and Kuiper belt objects. |
+| GEN.523 | Tuned draw builder B15: host-star activity |  | Tunable gaps report: Tuned draw builder B15: host-star activity. |
+| GEN.524 | Tuned draw builder B16: halogens and trace gases |  | Tunable gaps report: Tuned draw builder B16: halogens and trace gases. |
+| GEN.525 | Tuned draw builder B17: the design-flag registry |  | Tunable gaps report: Tuned draw builder B17: the design-flag registry. |
 
 ## Phase 12: The headline closes
 

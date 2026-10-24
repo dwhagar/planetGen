@@ -1153,3 +1153,4 @@ Baseline: PR #1817.
 | GEN.622 | 8.1 | Bulk composition |
 | GEN.629 | 8.1 | Surface and small bodies |
 | PERF.159 | 8.1 | The headline closes |
+| GEN.503 | 8.1 | Tuned draws and selection models |
