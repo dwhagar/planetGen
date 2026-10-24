@@ -7854,143 +7854,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radiation.py has gamma_dose_msv_yr, radon_dose_msv_yr and
   ground_dose_msv_yr. Stand-in waiting on this item: the surface rock
   (basalt or felsic) used by the ground dose. Free for Blocker 4.
-- [ ] **GEN.442 Asteroids, comets, rings and dwarf planets draw their composition from the formation distance and the snow line**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition/composition-model.md. The small bodies of a system
-  (asteroid belts and fields, comets, rings, dwarf planets) draw a
-  composition from where they formed against the snow line and the
-  star's abundances (rocky and metal-rich inside, carbonaceous beyond,
-  icy and volatile-rich far out, with the taxonomic classes the research
-  lists), through the same materials table and bulk model as planets
-  (GEN.427, GEN.428), instead of the fixed class texts. Changes stored
-  values, so it ships with a generator epoch bump. Done: a belt, a comet
-  and a ring each have shares that sum to one and move with the
-  formation distance in the physical direction; the same system gives
-  the same shares at any worker count; a test says so.
-  Finding (Core 1, 2026-10-17, 12:04 AM EDT, from #1952): belts and
-  asteroid fields have no mass model (the mass is stated as zero, NAV.62
-  already notes it), so the design says how a small body's mass follows
-  from its composition and size.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation
-  code as the atmosphere items Boss gave it; to be confirmed).
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/composition/body-composition-research.md and its five
-  parts in docs/design/composition/body-composition-parts/). Part D: the taxon mass
-  shares drawn as a Dirichlet on the zone kernel x = a / a_snow (DeMeo
-  and Carry Table 6) with the per-system snow line of GEN.458, the comet
-  refractory-to-ice ratio, porosity and volatile shares, the compaction
-  law (zero porosity above about 1e20 kg, the hand-over to the structure
-  solver), the KBO and dwarf-planet rock-fraction draw, and the
-  long-lived and aluminium-26 heating from the radiogenic module of
-  GEN.459; the mixing rule is 1 / sum(w_i / rho_i) with a porosity term.
-  Class D density replacement (finding F3): rock mass fraction from a
-  truncated normal on [0.45, 0.95], a parametrisation to replace when
-  sourced. The moons are GEN.466.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none.
-  Related:
-  DB.70,
-  GEN.360, GEN.441.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the taxon and comet rows (the S, C, X and D-type taxa,
-  comet and Kuiper-belt volatile classes) are possibilities gated by the
-  object kind, with a weight that is a function of a / a_snow (the zone
-  kernel of part D) and the host star.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. Here the taxon shares and the zone
-  kernel are `stand-in` rows until GEN.473 replaces them.
-  Finding F11 of the Body composition research lane (section 14.5 of
-  docs/design/composition/body-composition-research.md, tables E1 to E4; 2026-10-17,
-  1:47 AM EDT as the lane reported, read from the code at the commit it
-  names), filed by the TODO thread. The belt and field draw it has to
-  replace is GEN.477; the taxon rows are `stand-in` until GEN.473.
-  Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
-  "basically anything an asteroid field or belt can be made of, a planet
-  or moon can be made of too that was my main point there". So there is
-  one shared materials and components table for every object kind
-  (asteroid, belt, field, comet, moon, planet, dwarf planet), each row
-  gated by class; there are no separate component lists per kind.
-  Asteroids, comets, rings and dwarf planets read the shared table of
-  GEN.427, with no list of their own.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/composition/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G1) the comet volatile draw reads the comet population
-  table (GEN.495); class by dynamical type is a weak predictor (only CO
-  separates, 28 percent of the variance), so the chemical classes of the
-  note are not used.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/research/gap-filling-plan.md section 8): BC7 ice densities: Fray
-  and Schmitt 2009 and Bierson and Nimmo 2019 were on Boss's own list
-  (Boss, 3:07 PM EDT 2026-10-18: he has provided all the data he can, so
-  the bracket from NIST and PubChem stays as a labelled stand-in).
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/research/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Fray and Schmitt 2009 is on Boss's list;
-  Bierson and Nimmo 2019 has a free PubMed Central copy (PMC7058130) a
-  thread can fetch.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): BC7: Bierson and Nimmo (accepted
-  manuscript) Table 1 and Eq. 1 to 2: ice density 920 and silicate 3500
-  kg/m^3, initial porosity 0.60, strength-supported porosity 0.20 (ice),
-  compaction b1 -0.1 per MPa (ice) and b2 -0.11 (silicate); ice porosity
-  phi_i = max(0.60 exp(-0.1 P), 0.20), P in MPa; silicate phi_s =
-  min(0.6 P^-0.11, 0.6) [V, re-read]. A constant 70 percent rock mass
-  fraction matches 14 of 17 Kuiper Belt objects within 2 sigma; minimum
-  formation time 4 Myr (rock fraction 0.5) or 5 Myr (0.7) from early
-  Al-26; Makemake and 2007 OR10 about 1800 kg/m^3 and MU69 about 750
-  predicted. Contradiction, the paper wins: our ice compaction guess has
-  the reference pressure P0 = 1e6 Pa, ten times lower than the paper's
-  10 MPa with the 0.2 floor; our 0.08 scatter and 0.58 to 0.82 range are
-  not in the paper. Eq. 3 (dphi/dt = phi P/eta) prints a positive sign,
-  which would make porosity grow, and the file carries the note 'error
-  in equation 2b': check against Besserer 2013 or the published version
-  before coding it. Fray and Schmitt (paid) is still missing.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided for the compaction hand-over (Boss, 8:13 PM EDT 2026-10-21,
-  card "Taper porosity, 1e19 to 1e21 kg"
-  cmsg_01RuNTFUNB92A8cm5CbojQAiPSvSbu9zLMXNK4qVkmZUgA, relayed by the
-  Blocker 2 lane, decision S9 of
-  docs/design/composition/small-bodies-composition.md): porosity tapers to zero in
-  log mass between 1e19 and 1e21 kg (the paper's law stays; the
-  endpoints are flagged stand-in until viscous compaction replaces
-  them), and the Galilean-class solver test still comes before 1e21 kg
-  to 0.1 Earth masses is called validated. This replaces the hand-over
-  shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
-  close the 1e20 kg porosity jump by moving the hand-over (density stays
-  1.32 to 1.35 times low up to 3e23 kg).
-
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8212,7 +8075,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.442, GEN.444, GEN.445.
+  Prerequisites: GEN.441, GEN.444, GEN.445.
   Related:
   GEN.430, GEN.415, GEN.420, GEN.208.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -8379,7 +8242,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.442. Related:
+  Prerequisites: GEN.441. Related:
   GEN.409,
   GEN.410,
   GEN.441, GEN.442, DB.70, GEN.446.
@@ -8650,7 +8513,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.442. Related: GEN.412, GEN.418, GEN.441,
+  Prerequisites: GEN.441. Related: GEN.412, GEN.418, GEN.441,
   GEN.442, MAP.244, DB.70.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
@@ -8663,6 +8526,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
+  lane reported): the ground band albedo merged in #2956 but is UNWIRED
+  (nothing hands it to the atmosphere colour yet). Do not mark done.
 
 - [ ] **GEN.464 The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -8753,7 +8619,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.442. Related:
+  Prerequisites: none. Related:
   GEN.442,
   GEN.457, GEN.461, DB.70.
   Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
@@ -8810,6 +8676,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
   close the 1e20 kg porosity jump by moving the hand-over (density stays
   1.32 to 1.35 times low up to 3e23 kg).
+  Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
+  lane reported): the moon origin and disk composition module merged in
+  #2956 but is UNWIRED (no draw uses it yet). Do not mark done.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -8897,6 +8766,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
+  lane reported): the clathrate and brine curves merged in #2956 but are
+  UNWIRED (no draw uses them yet). Do not mark done.
 
 - [ ] **GEN.473 Replace the asteroid taxon shares and the zone kernel, measured in the Solar System belt, by a derived or general distribution**
   Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
@@ -8927,7 +8799,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reason one stays is written down, and the test of the possibility
   tables (TEST.214) no longer lists the rows as stand-ins. Owner:
   unowned (research; Boss or a read-only research lane).
-  Prerequisites: GEN.442. Related: GEN.442, GEN.457, GEN.472, GEN.458,
+  Prerequisites: none. Related: GEN.442, GEN.457, GEN.472, GEN.458,
   GEN.440, TEST.214, GEN.477.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
@@ -9127,7 +8999,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.442, DB.70. Related:
+  Prerequisites: DB.70. Related:
   GEN.442, GEN.457, GEN.473, GEN.472, GEN.458, DB.70, NAV.62.
   Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
   "basically anything an asteroid field or belt can be made of, a planet
@@ -9162,6 +9034,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
+  Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
+  lane reported): the field half merged with GEN.442 (#2956, epoch 79):
+  asteroid fields draw a family taxa mixture. The item stays open until
+  the belt half is confirmed against the Done line; Lane K to say what
+  remains.
 
 - [ ] **GEN.479 The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -11512,7 +11389,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.557, GEN.442. Related: GEN.550, GEN.520.
+  Research (2026-10-09, Update): Blocked on the size-frequency law and
+  cut, filed as research item GEN.713. Lane K reported 7:50 AM
+  EDT 2026-10-24, as the lane reported.
+  Prerequisites: GEN.557. Related: GEN.550, GEN.520.
 
 - [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
   Filed proposed, not assigned, from Core 1's read-only code audit of
@@ -13608,7 +13488,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.647 and GEN.646. Do: the water mass fraction from the origin and
   the composition (GEN.442, GEN.466, GEN.461); delete the class table.
   Done: nothing reads WATER_MASS_FRACTION. Owner: Composition J and K.
-  Prerequisites: GEN.442, GEN.466, GEN.461.
+  Prerequisites: GEN.466, GEN.461.
 
 - [ ] **GEN.686 Age needs come from the processes; delete age_ranges**
   Step C11 of the condition-based classes build (design draft
@@ -13930,6 +13810,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a registry row. Owner: the class lane (it knows the values).
   Prerequisites: none. Related: GEN.650, GEN.646, GEN.509, GEN.510,
   GEN.675.
+
+- [ ] **GEN.712 The materials row complex_organics has a density of 1.5 g/cm3 but Choukroun 2020 gives about 2 g/cm3 (bug)**
+  Found by Habitability lane K (7:50 AM EDT 2026-10-24, as the lane
+  reported) while merging GEN.442 (#2956). The materials table row
+  complex_organics carries 1.5 g/cm3; Choukroun 2020 gives about 2
+  g/cm3. Standing source rule: a verified figure wins over a stand-in;
+  check the paper (the TODO thread has not read it) and, if it holds,
+  replace the value with the cited figure and label the range. Done: the
+  row cites its source, the density matches it, a test pins the value,
+  and the epoch is bumped if a drawn value changes. Owner: Lane K.
+  Prerequisites: none. Related: GEN.442.
+
+- [ ] **GEN.713 Research the size law and the cut for long-period and interstellar comets (blocks GEN.559)**
+  Habitability lane K (7:50 AM EDT 2026-10-24, as the lane reported)
+  found GEN.559 blocked on this research gap after the comet composition
+  of GEN.442. Do: read Jewitt and Seligman 2023 (already cited in
+  tuning.py) and verify Do, Tucker and Tonry 2018 (recalled,
+  unverified); report the size-frequency law for long-period and
+  interstellar comets, the lowest size worth a row, the range of the
+  law, and the source for each figure; where no verified source exists,
+  say so, and apply the standing source rules (verified wins; two in
+  doubt = newest; two in question = widest range). Done: a report under
+  /mnt/project-files/reports/ with the law, the cut and the sources, and
+  GEN.559's text updated by the TODO thread. Owner: none (pool), a short
+  read-only research thread.
+  Prerequisites: none. Related: GEN.559, GEN.550.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15118,7 +15024,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.442, GEN.461, GEN.462, GEN.466. Related:
+  Prerequisites: GEN.441, GEN.461, GEN.462, GEN.466. Related:
   DB.69, DB.67, DB.68.
   Finding F11 of the Body composition research lane (section 14.5 of
   docs/design/composition/body-composition-research.md, tables E1 to E4; 2026-10-17,
@@ -17693,7 +17599,7 @@ clears each one.
   with the fractions after the migration; the text names only stored
   materials. Done: it passes on a generated galaxy and fails when any
   one rule is broken (a test that breaks each rule in turn).
-  Prerequisites: GEN.430, GEN.441, GEN.442,
+  Prerequisites: GEN.430, GEN.441,
   DB.70, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.466.
   Related: TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
@@ -19133,6 +19039,9 @@ clears each one.
   the forcing reliable or make the forcing report that the system cannot
   take one; seed the trials so the test is repeatable. Done: 100
   consecutive runs pass, and a system that cannot hold a belt says so.
+  Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
+  lane reported) also saw a belt forcing flake, 1 trial in 60, passing
+  on rerun.
   Related: TEST.333 (forced belt). Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.333.
 
@@ -19149,6 +19058,17 @@ clears each one.
   the product, and keep each test's intent. Done: all four pass on main.
   Owner: Bug Hunt (proposed), with TEST.338.
   Prerequisites: none. Related: TEST.338, TEST.337, GEN.651, GEN.631.
+
+- [ ] **TEST.341 A spatial-position test failed once with "no system matching" in the lane gate and passed on rerun (bug)**
+  Seen once by Habitability lane K (7:50 AM EDT 2026-10-24, as the lane
+  reported) in the GEN.442 gate (#2956): a spatial-position test failed
+  with "no system matching" and passed on rerun. The test name was not
+  given. Recheck on current main: find the test, run it 50 times, and
+  find whether the fixture draws a system that sometimes has no match
+  (an unseeded draw) or whether a generation change made it rare. Done:
+  the test is repeatable or the product cause is fixed. Related:
+  TEST.334, TEST.339. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.334, TEST.339.
 
 ## USR: User accounts
 

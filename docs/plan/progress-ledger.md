@@ -1294,3 +1294,4 @@ Baseline: PR #1817.
 | TEST.305 | 8.1 | Bugs and flaky tests |
 | OPS.37 | 8.1 | Reproducible galaxies |
 | GEN.651 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.442 | 8.1 | Surface and small bodies |
