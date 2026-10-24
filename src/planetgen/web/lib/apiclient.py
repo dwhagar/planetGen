@@ -26,7 +26,6 @@ alongside `html/` in a real deployment.
 """
 
 import json
-import os
 import time
 import urllib.error
 import urllib.parse

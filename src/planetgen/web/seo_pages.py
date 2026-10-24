@@ -20,7 +20,7 @@ import hashlib
 import os
 import threading
 
-from flask import Response, abort, redirect, request, url_for
+from flask import Response, abort, redirect, url_for
 
 from planetgen.util import settings as settingsModule
 from planetgen.web import assets, seo

@@ -98,7 +98,6 @@ def cell_bubbles(galaxy_seed, shape, index):
 
 def bubbles_reaching(galaxy_seed, shape, point_pc, reach_pc=0.0):
     """Every bubble whose sphere comes within `reach_pc` of `point_pc`, nearest column first."""
-    edge = tuning.SUPERBUBBLE_CELL_PC
     span = tuning.SUPERBUBBLE_RADIUS_RANGE_PC[1] + reach_pc
     low = cell_index((point_pc[0] - span, point_pc[1] - span))
     high = cell_index((point_pc[0] + span, point_pc[1] + span))

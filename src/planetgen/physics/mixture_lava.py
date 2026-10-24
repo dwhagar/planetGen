@@ -29,7 +29,7 @@ own over the vapour, at the surface pressure: carbon with the same held oxygen, 
 import math
 
 from planetgen.physics import elements, gas_equilibrium, oxygen_fugacity as fo2, species_thermo
-from planetgen.physics.mixture_base import MixtureDraw, MixtureError, bracket, finish, require
+from planetgen.physics.mixture_base import MixtureError, bracket, finish, require
 from planetgen.util import draw
 
 MELT_MIN_K = 1400.0

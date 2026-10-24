@@ -19,7 +19,6 @@ giant. A pure law over the star and the formation distance; it reads no class an
 """
 
 import collections
-import math
 
 from planetgen import tuning
 from planetgen.physics import constants, formation, metallicity

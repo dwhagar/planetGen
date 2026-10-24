@@ -44,7 +44,6 @@ from planetgen.galaxy.navigation import format_course
 from planetgen.physics.units import ly_to_pc
 
 from . import bp
-from .sector_page import PHENOMENON_TYPE_LABELS
 from .helpers import crumb, current_admin, db_name, page_url, render_page, trusted_html
 
 SECTOR_PICKER_LIMIT = 500

@@ -20,7 +20,6 @@ The parts and how a table is seen to have them are in `detected_parts`.
 """
 
 import dataclasses
-import re
 
 from planetgen.db import column_units
 from planetgen.physics.position import SpatialPosition3D

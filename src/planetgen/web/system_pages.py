@@ -24,13 +24,12 @@ from markupsafe import Markup
 from planetgen.describe.html import blocks_html
 from planetgen.describe.model import sections, split_by_body
 from planetgen.describe.stored_phenomena import stored_phenomenon_document
-from planetgen.galaxy import objectref
 from planetgen.physics.quantity import Quantity
 from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
 from planetgen.web.lib import apiclient, facility_display
 from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.fmt import (
-    distance_km_html, distance_ly_html, format_distance_km, format_members, format_number, linkify_nearest,
+    distance_km_html, distance_ly_html, format_members, format_number, linkify_nearest,
     measured_html, nearest_systems_html, period_years_html, runaway_text, speed_kms_html,
 )
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, read_from_start
@@ -49,7 +48,7 @@ from planetgen.tuning import NEBULA_CLASSES
 from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
 from planetgen.util import chem
 
-from . import bp, habitability_symbol_row, static_url, tables
+from . import bp, habitability_symbol_row, tables
 from . import edit_actions, glance, item_pages, system_facilities, system_species
 from .class_pages import class_url
 from .helpers import (

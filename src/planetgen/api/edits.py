@@ -18,7 +18,7 @@ touch `routes.py`.
 """
 
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify
 
 from planetgen.queue import api_jobs
 from planetgen.generation import run_phenomenon

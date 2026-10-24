@@ -12,7 +12,6 @@ mark every field in one round trip. The limits are the ones the routes
 always had (`routes.MAX_NAME_LENGTH` and the rest).
 """
 
-import math
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import (

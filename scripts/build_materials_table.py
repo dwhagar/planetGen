@@ -452,7 +452,6 @@ def main():
         "Anorthite": "anorthite", "Pyrope": "pyrope", "Grossular": "grossular", "Mg-majorite": "mg_majorite", "Spinel": "spinel",
         "Hematite": "hematite", "Magnetite": "magnetite",
     }
-    unit_formula = {"Periclase": "MgO", "Wuestite": "FeO", "Wuestite, low spin": "FeO"}
     row_formula = {"Mg-wadsleyite": "Mg2SiO4", "Fe-wadsleyite": "Fe2SiO4", "Mg-ringwoodite": "Mg2SiO4", "Fe-ringwoodite": "Fe2SiO4",
                    "Mg-bridgmanite": "MgSiO3", "Fe-bridgmanite": "FeSiO3", "Mg-post-perovskite": "MgSiO3", "Fe-post-perovskite": "FeSiO3",
                    "Ca-perovskite": "CaSiO3", "HP-clinoenstatite": "Mg2Si2O6", "Clinoenstatite": "Mg2Si2O6", "Mg-akimotoite": "MgSiO3",
@@ -488,7 +487,6 @@ def main():
         valid = {"p_gpa": [0.0, 200.0]}
         rows[row_id]["eos"].append(eos_entry(model, params, "seager2007", "R", valid=valid, uncertainty=uncertainty, note=note))
     # --- water: the liquid and the ice phases of part C
-    water_ice = rows["water_ice"]
     ice_rows = {
         "ice_ii": ("ice II", "II"), "ice_iii": ("ice III", "III"), "ice_v": ("ice V", "V"), "ice_vi": ("ice VI", "VI"),
         "ice_vii": ("ice VII", "VII"), "ice_x": ("ice X (and superionic water above about 100 GPa and 2000 K)", "X"),

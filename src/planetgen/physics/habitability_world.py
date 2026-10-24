@@ -51,7 +51,6 @@ A gas giant has no surface and no score (every field `None`).
 
 import math
 
-from planetgen import tuning
 from planetgen.physics import aerosols, atmosphere, constants, equipment, habitability, life_scores, magnetism, radiation, regional_temperature
 from planetgen.physics import unit_registry as units
 

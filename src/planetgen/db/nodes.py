@@ -34,7 +34,7 @@ from planetgen.db import block_lights, query
 from planetgen.galaxy import spherical
 from planetgen.galaxy.nodecut import block_box
 from planetgen.galaxy.drill import (
-    DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_block_bounds, drill_parent, format_drill_key, parse_node_key)
+    DRILL_STEP, DrillBlock, drill_parent, format_drill_key, parse_node_key)
 from planetgen.physics.units import ly_to_pc
 
 NODE_STARS = 96

@@ -10,7 +10,6 @@ to rebuild `SMALL_FIT` in `src/planetgen/physics/bulk_structure.py`; it prints t
 
     python3 scripts/fit_small_body_radius.py
 """
-import itertools
 import math
 import os
 import random

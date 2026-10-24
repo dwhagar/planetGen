@@ -767,8 +767,8 @@ def main(argv: list[str] | None = None) -> int:
         for p in stale:
             print(f"{p.relative_to(ROOT)} is out of date: run python scripts/build_todo_docs.py")
         return 1 if stale else 0
-    for p, html in pages.items():
-        p.write_text(html, encoding="utf-8")
+    for p, page_html in pages.items():
+        p.write_text(page_html, encoding="utf-8")
         print(f"wrote {p.relative_to(ROOT)}")
     return 0
 

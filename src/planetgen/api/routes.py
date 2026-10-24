@@ -114,7 +114,7 @@ from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
 from planetgen.db.render import FORMATS as SYSTEM_TEXT_FORMATS
 from planetgen.db.render import describe_system, render_system_text
-from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, pc_to_ly
+from planetgen.physics.units import ly_to_milliparsecs, pc_to_ly
 from planetgen.util import detmath
 
 from . import ids
