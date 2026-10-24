@@ -14839,52 +14839,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replaces any earlier owner line on this item.
   Prerequisites: none. Related: PERF.104, TEST.54.
 
-- [ ] **PERF.113 The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
-  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
-  parallelized in a way that helps (a thread per chunk for scatters, a
-  worker per sector for sector generation). Audit finding: `link`
-  (`store.link_sector_neighbors`, db/store.py, called by the `galaxy`
-  command) runs on one connection in one process in batches of
-  LINK_BATCH_SECTORS, and PERF.107 only moves it onto the queue as ONE
-  one-shot unit. Done: the stage is timed and the figure recorded; if it
-  justifies it, `link` becomes static chunks of sectors (each chunk
-  writes only its own sectors' neighbour rows, so chunks cannot
-  collide), with the run-record barrier before `population`. Same rule
-  for every stage: measure first. Time the stage on an idle box for a
-  galaxy of the size a real run makes and write the figure in the PR;
-  split it into parallel units only if that time is large enough to
-  matter (about a minute or more), otherwise leave it as one unit and
-  say so in the PR. Either way the result must be identical for the same
-  seed at 1 and at 4 workers (a test that compares the stored rows), and
-  the units are static chunks, not a work-stealing split, so a rerun
-  gives the same chunks.
-  Owner: Performance (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the
-  queue is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: PERF.98, PERF.107.
-
-- [ ] **PERF.114 The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
-  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
-  parallelized in a way that helps (a thread per chunk for scatters, a
-  worker per sector for sector generation). Audit finding:
-  `run_population` (generation/run_population.py) calls `model.run_pass`
-  in one process, and PERF.107 only moves it onto the queue as ONE
-  one-shot unit. Done: the stage is timed and the figure recorded; if it
-  justifies it, the pass runs as static chunks of sectors after the
-  `link` barrier, with the pass's draws depending only on the seed and
-  the system's own address. Same rule for every stage: measure first.
-  Time the stage on an idle box for a galaxy of the size a real run
-  makes and write the figure in the PR; split it into parallel units
-  only if that time is large enough to matter (about a minute or more),
-  otherwise leave it as one unit and say so in the PR. Either way the
-  result must be identical for the same seed at 1 and at 4 workers (a
-  test that compares the stored rows), and the units are static chunks,
-  not a work-stealing split, so a rerun gives the same chunks.
-  Owner: Performance (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the
-  queue is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: PERF.98, PERF.107.
-
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
   Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
   process, all the scatter phases, are individual commands, then a

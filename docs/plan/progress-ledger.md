@@ -1222,3 +1222,5 @@ Baseline: PR #1817.
 | UX.154 | 8.1 | Habitability system |
 | GEN.518 | 8.1 | Tuned draws and selection models |
 | GEN.520 | 8.1 | Tuned draws and selection models |
+| PERF.113 | 8.1 | Queue, caches and performance |
+| PERF.114 | 8.1 | Queue, caches and performance |
