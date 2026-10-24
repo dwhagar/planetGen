@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2107] - 2026-10-24
+
+**Headline:** The ammonia activity factor is recorded as a labelled stand-in with its bracket and evidence limits.
+
+### Changed
+- **Gap plan registry (GEN.501).** Boss decided the NH3 gap cannot be filled; the factor 1.078 stays, registered as a stand-in with the bracket 1.05 to 1.10, the evidence limits and what would replace it. Docs only.
+
 ## [8.0.2106] - 2026-10-24
 
 **Headline:** The ammonia activity factor's label now records that the evidence behind it was checked and is not verified.
