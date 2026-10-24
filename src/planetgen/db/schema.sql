@@ -1452,6 +1452,7 @@
 --   Rows from before v141 have NULL there and keep the heat and the dose they were generated with.
 -- v145 (GEN.443): `stars.uv_c_share`, the share of its blackbody's UV-C a star gives off (the Sun's measured 0.256 is one value of the open bracket 0.1 to 1), drawn once from the star's own stream.
 --   A row saved before v145 has NULL, which the radiation model reads as the blackbody (1).
+-- v146 (MAP.258): `galaxy_block_stats.m` is INT UNSIGNED (the block ladder now runs from 177,147 down to 3, `galaxy/drill.py`). Every level below 243 changed shape with the levels put above it, so the table is filled again with a row for every level and the nebula block tables are made again.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1782,8 +1783,9 @@ CREATE TABLE IF NOT EXISTS galaxy_shell (
 -- block's children are its sectors, read from `sector_stats`). Written by
 -- `db/block_stats.py` when sectors are saved or deleted, and by `planetgen plan
 -- --fill-block-stats`; no foreign key, as the blocks are not rows of their own.
+-- v146: `m` is INT UNSIGNED: the ladder's root is 177,147 shells deep.
 CREATE TABLE IF NOT EXISTS galaxy_block_stats (
-    m                 SMALLINT UNSIGNED NOT NULL,
+    m                 INT UNSIGNED NOT NULL,
     shell_index       INT NOT NULL,
     band_index        INT NOT NULL,
     wedge_index       INT NOT NULL,

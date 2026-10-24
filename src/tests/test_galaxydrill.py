@@ -14,8 +14,9 @@ import pytest
 
 from planetgen.galaxy import spherical
 from planetgen.galaxy.drill import (
-    DRILL_LEVELS, DRILL_STEP, DrillBlock, block_addresses, drill_band_count, drill_block_bounds, drill_block_sectors, drill_chain_of,
-    drill_children, drill_parent, drill_wedge_count, format_drill_key, parse_drill_key,
+    DRILL_LEVELS, DRILL_STEP, DRILL_TOP, STAGE_LEVELS, STAGE_TOP, DrillBlock, block_addresses, drill_band_count,
+    drill_block_bounds, drill_block_sectors, drill_chain_of, drill_children, drill_parent, drill_wedge_count,
+    format_drill_key, parse_drill_key, parse_stage_key, stage_parent,
 )
 
 EDGE = 4.0
@@ -41,9 +42,34 @@ def _sample_sectors(count=40, seed=11):
     return sectors
 
 
-def test_the_ladder_is_243_81_27_9_3_then_a_sector():
-    assert DRILL_LEVELS == (243, 81, 27, 9, 3, 1)
-    assert DRILL_STEP == 3
+def test_the_ladder_runs_from_a_root_of_three_blocks_down_to_a_sector():
+    assert DRILL_LEVELS == (177147, 59049, 19683, 6561, 2187, 729, 243, 81, 27, 9, 3, 1)
+    assert DRILL_STEP == 3 and DRILL_TOP == 177147
+    assert all(a == b * DRILL_STEP for a, b in zip(DRILL_LEVELS, DRILL_LEVELS[1:]))
+    assert STAGE_LEVELS == (243, 81, 27, 9, 3, 1) and STAGE_TOP == 243
+    assert STAGE_LEVELS == DRILL_LEVELS[DRILL_LEVELS.index(STAGE_TOP):]
+
+
+def test_the_root_is_three_wedges_of_one_row_holding_the_whole_grid():
+    """The grid's last shell is 65,535 and the root's one block shell holds 177,147, so nothing lies outside it."""
+    assert drill_band_count(DRILL_TOP, 0) == 1
+    assert drill_wedge_count(DRILL_TOP, 0, 0) == 3
+    assert drill_block_bounds(DrillBlock(DRILL_TOP, 0, 0, 1), EDGE)[0] == (0.0, (DRILL_TOP - 0.5) * EDGE)
+    assert 65535 < DRILL_TOP
+    roots = {drill_chain_of(shell, band, wedge)[0] for shell, band, wedge in _sample_sectors()}
+    assert roots <= {DrillBlock(DRILL_TOP, 0, 0, w) for w in range(3)}
+    assert drill_parent(DrillBlock(DRILL_TOP, 0, 0, 2)) is None
+    assert [c for _s, group in drill_children(DrillBlock(DRILL_TOP, 0, 0, 0)) for c in group][0].m == DRILL_LEVELS[1]
+
+
+def test_the_stages_stop_at_243():
+    assert stage_parent(DrillBlock(243, 4, 3, 2)) is None
+    assert stage_parent(DrillBlock(81, 12, 0, 40)) == drill_parent(DrillBlock(81, 12, 0, 40))
+    assert parse_stage_key("81.12.-3.40") == DrillBlock(81, 12, -3, 40)
+    assert parse_stage_key("243.3.0.0").m == 243
+    for key in ("729.0.0.0", "177147.0.0.0", "1.0.0.0"):
+        with pytest.raises(ValueError):
+            parse_stage_key(key)
 
 
 def test_a_block_shell_has_an_odd_number_of_rows_so_the_plane_runs_through_the_middle():
@@ -53,13 +79,25 @@ def test_a_block_shell_has_an_odd_number_of_rows_so_the_plane_runs_through_the_m
             assert drill_band_count(m, shell) % 2 == 1, (m, shell)
 
 
-def test_the_top_counts_aim_at_m_edges_of_arc():
-    for shell in (5, 40, 200, 1000, 3000):
-        radius = shell * 243 + 121
-        rows = drill_band_count(243, shell)
-        assert rows == pytest.approx(math.pi * radius / 243, abs=1)
-        equator = drill_wedge_count(243, shell, 0)
-        assert equator == pytest.approx(2 * math.pi * radius / 243, rel=0.05, abs=1)
+def test_the_root_counts_aim_at_m_edges_of_arc():
+    radius = (DRILL_TOP - 1) / 2
+    assert drill_band_count(DRILL_TOP, 0) == 1
+    assert drill_wedge_count(DRILL_TOP, 0, 0) == pytest.approx(2 * math.pi * radius / DRILL_TOP, abs=0.5)
+
+
+@pytest.mark.parametrize("m", DRILL_LEVELS[1:-1])
+def test_every_level_stays_near_m_edges_of_arc(m):
+    """A level's counts are its parent's times a rounded ratio, so a row or wedge is not exactly `m` edges; it stays
+    within the range the ladder was designed to (measured: rows 0.70 to 2.0, wedges 0.45 to 1.4 of `m`)."""
+    shells = _block_shells(m)
+    for shell in shells[:: max(1, len(shells) // 60)]:
+        rows = drill_band_count(m, shell)
+        radius = shell * m + (m - 1) / 2
+        assert 0.65 <= math.pi * radius / rows / m <= 2.05, (m, shell)
+        for band in range(-(rows // 2), rows // 2 + 1, max(1, rows // 12)):
+            theta = ((rows - 1) // 2 - band + 0.5) * math.pi / rows
+            wedges = drill_wedge_count(m, shell, band)
+            assert 0.4 <= 2 * math.pi * radius * math.sin(theta) / wedges / m <= 1.45, (m, shell, band)
 
 
 @pytest.mark.parametrize("m", DRILL_LEVELS[1:-1])
@@ -82,7 +120,7 @@ def test_a_sectors_chain_runs_from_the_top_to_the_sector():
     chain = drill_chain_of(1705, 120, 8000)
     assert [b.m for b in chain] == list(DRILL_LEVELS)
     assert chain[-1] == DrillBlock(1, 1705, 120, 8000)
-    assert [b.shell for b in chain[:-1]] == [7, 21, 63, 189, 568]
+    assert [b.shell for b in chain[:-1]] == [0, 0, 0, 0, 0, 2, 7, 21, 63, 189, 568]
     for parent, child in zip(chain, chain[1:]):
         assert drill_parent(child) == parent
 
@@ -90,7 +128,8 @@ def test_a_sectors_chain_runs_from_the_top_to_the_sector():
 def test_every_sector_chain_agrees_with_the_child_lists():
     for shell, band, wedge in _sample_sectors():
         chain = drill_chain_of(shell, band, wedge)
-        assert chain[0].m == 243 and chain[-1] == DrillBlock(1, shell, band, wedge)
+        assert chain[0].m == DRILL_TOP and chain[-1] == DrillBlock(1, shell, band, wedge)
+        assert [b.m for b in chain] == list(DRILL_LEVELS)
         for parent, child in zip(chain, chain[1:]):
             assert drill_parent(child) == parent
             assert child in [c for _s, group in drill_children(parent) for c in group], (parent, child)
@@ -165,7 +204,7 @@ def test_children_partition_their_parent_and_nest_in_its_bounds():
 
 def test_a_block_cuts_the_sphere_in_whole_rows_and_wedges():
     """The rows of a block shell tile colatitude 0 to pi, and the wedges of a row tile the circle."""
-    for m, shell in ((243, 4), (81, 40), (27, 300), (9, 90), (3, 1000)):
+    for m, shell in ((59049, 1), (6561, 5), (729, 60), (243, 4), (81, 40), (27, 300), (9, 90), (3, 1000)):
         rows = drill_band_count(m, shell)
         edges = [drill_block_bounds(DrillBlock(m, shell, b, 0), EDGE)[1] for b in range(rows // 2, -(rows // 2) - 1, -1)]
         assert edges[0][0] == 0 and edges[-1][1] == pytest.approx(math.pi)
@@ -179,7 +218,7 @@ def test_keys_round_trip_and_bad_ones_are_refused():
     block = DrillBlock(81, 12, -3, 40)
     assert format_drill_key(block) == "81.12.-3.40"
     assert parse_drill_key("81.12.-3.40") == block
-    for bad in ("", "81.12.-3", "x.1.2.3", "729.0.0.0", "1.0.0.0", "81.-1.0.0", "81.12.999.0", "81.12.0.999999"):
+    for bad in ("", "81.12.-3", "x.1.2.3", "730.0.0.0", "1.0.0.0", "81.-1.0.0", "81.12.999.0", "81.12.0.999999"):
         with pytest.raises(ValueError):
             parse_drill_key(bad)
 

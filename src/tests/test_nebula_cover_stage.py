@@ -11,7 +11,7 @@ import pytest
 from planetgen import tuning
 from planetgen.db import block_stats, nebula_blocks, query, store
 from planetgen.galaxy import nebula_blocks as rules
-from planetgen.galaxy.drill import DRILL_STEP, DrillBlock, drill_block_bounds, drill_chain_of, drill_children, format_drill_key
+from planetgen.galaxy.drill import DRILL_STEP, STAGE_TOP, DrillBlock, drill_block_bounds, drill_chain_of, drill_children, format_drill_key
 from planetgen.web import galaxy_views
 from planetgen.web.lib import apiclient
 
@@ -50,7 +50,7 @@ def _blocks():
 def _filled_keys():
     keys = set()
     for address in _addresses():
-        keys.update(tuple(block) for block in drill_chain_of(*address)[:-1])
+        keys.update(tuple(block) for block in drill_chain_of(*address)[:-1] if block.m <= STAGE_TOP)
     return keys
 
 

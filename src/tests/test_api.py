@@ -1439,7 +1439,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     from planetgen.galaxy.spherical import sector_position_pc
 
     home = (1705, 120, 8000)
-    chain = drill_chain_of(*home)
+    chain = [block for block in drill_chain_of(*home) if block.m <= 243]     # the stages' blocks, level 243 down to 3
     level3 = chain[4]
     # Two more sectors in the same level-3 block.
     others = [a for a in block_addresses(level3) if a != home][:2]
@@ -1452,7 +1452,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     assert galaxy["at"] is None and galaxy["child_m"] == 243
     top = {(c["shell"], c["band"], c["wedge"]): c["generated"] for c in galaxy["children"]}
     assert top[(chain[0].shell, chain[0].band, chain[0].wedge)] == 3
-    core = drill_chain_of(0, 0, 0)[0]
+    core = [block for block in drill_chain_of(0, 0, 0) if block.m <= 243][0]
     assert top[(core.shell, core.band, core.wedge)] == 1
 
     def counted(children):
@@ -1480,7 +1480,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     changes = query.galaxy_changes(_db.get_connection(mysql_config), before)
     assert not changes["full"]
     assert set(changes["stages"]) == {"galaxy"} | {format_drill_key(b) for b in chain[:5]} | {
-        format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:5]}
+        format_drill_key(b) for b in [block for block in drill_chain_of(0, 0, 0) if block.m <= 243][:5]}
 
 
 def _rebuild_block_stats(mysql_config):
@@ -1505,7 +1505,7 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
     from planetgen.galaxy.spherical import sector_position_pc
 
     home = (1705, 120, 8000)
-    chain = drill_chain_of(*home)
+    chain = [block for block in drill_chain_of(*home) if block.m <= 243]     # the stages' blocks, level 243 down to 3
     others = [a for a in block_addresses(chain[4]) if a != home][:2]
     addresses = [home] + others
     for n, address in enumerate(addresses):
