@@ -468,6 +468,11 @@
     },
     {
       "epoch": 95,
+      "first_release": "8.0.2258",
+      "reason": "A planet's or moon's air is stored gas by gas, the class's balance gas (helium, sodium, ammonia) included, so every stored atmosphere gains its balance-gas row and the air column and the colour that read it change (DB.71, GEN.424)"
+    },
+    {
+      "epoch": 96,
       "first_release": null,
       "pending": true,
       "reason": "A cold icy body holds CO2, CO, N2, CH4 and H2S above their clathrate dissociation pressure in the water cages of a drawn ice skin, so its air is thinner, and a cold body with very little surface water melts its ice at a drawn perchlorate eutectic, so its lid is thinner or absent and its brine ocean takes that salt's water activity (GEN.762)"

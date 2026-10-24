@@ -98,13 +98,32 @@ def test_the_sheet_of_a_star_a_planet_and_a_moon_returns_every_property_with_uni
         rows = _rows(body)
         assert body["kind"] == kind
         ordered = [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
-        assert ordered == list(rows), "every spec is a row, grouped in the order of GROUPS"
+        shown = [key for key in rows if not (kind != "star" and key.startswith("p_"))]
+        assert ordered == shown, "every spec is a row, grouped in the order of GROUPS"
+        assert all(rows[key]["value"][0]["qty"]["kind"] == "pressure" for key in rows if kind != "star" and key.startswith("p_"))
         assert [group["key"] for group in body["groups"]] == [key for key in sheet.GROUPS
                                                               if any(s.group == key for s in sheet.SPECS[kind])]
         mass = rows["mass_kg"]
         assert mass["stored"] and mass["value"][0]["qty"]["kind"] == "mass" and mass["value"][0]["qty"]["value"] > 0
         assert mass["text"] and mass["text"] != sheet.NOT_STORED
         assert all(row["text"] for row in rows.values())
+
+
+def test_the_air_of_a_planet_is_one_row_per_gas_the_most_abundant_first(client, mysql_config):
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    planet_id = _ids(mysql_config, "SELECT id FROM planets WHERE star_system_id = ? ORDER BY id", (system_id,))[0]
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM planet_gases WHERE planet_id = ?", (planet_id,))
+        conn.executemany("INSERT INTO planet_gases (planet_id, gas, partial_pa) VALUES (?, ?, ?)",
+                         [(planet_id, "O2", 21000.0), (planet_id, "N2", 78000.0)])
+        conn.commit()
+    finally:
+        conn.close()
+    rows = _rows(client.get(f"/api/objects/planet:{pid('planet', planet_id)}/sheet").get_json())
+    air = [key for key in rows if key.startswith("p_")]
+    assert air == ["p_N2", "p_O2"]
+    assert rows["p_N2"]["label"] == "Nitrogen partial pressure" and rows["p_N2"]["value"][0]["qty"]["kind"] == "pressure"
 
 
 def test_a_property_with_no_stored_value_says_so(client, mysql_config):
@@ -118,7 +137,7 @@ def test_a_property_with_no_stored_value_says_so(client, mysql_config):
         conn.close()
     row = _rows(client.get(f"/api/objects/planet:{pid('planet', planet_id)}/sheet").get_json())["ocean_depth_km"]
     assert row == {"key": "ocean_depth_km", "label": "Ocean depth", "value": [sheet.NOT_STORED], "text": sheet.NOT_STORED,
-                   "stored": False}
+                   "stored": False, "absent": True, "show_absent": False}
 
 
 def test_a_kind_with_no_sheet_and_a_missing_object_are_404s(client, mysql_config):
@@ -154,3 +173,12 @@ def test_every_phenomenon_has_a_sheet_over_its_stored_row(client, mysql_config):
         assert list(rows) == [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
         assert all(row["text"] for row in rows.values()), kind
         assert any(row["stored"] for row in rows.values()), kind
+
+
+def test_the_glance_and_show_when_absent_lists_name_rows_the_kind_has():
+    for kind, keys in sheet.GLANCE.items():
+        have = {spec.key for spec in sheet.SPECS[kind]}
+        assert set(keys) <= have, f"{kind}: {sorted(set(keys) - have)}"
+    for kind, keys in sheet.SHOW_WHEN_ABSENT.items():
+        have = {spec.key for spec in sheet.SPECS[kind]}
+        assert set(keys) <= have, f"{kind}: {sorted(set(keys) - have)}"

@@ -881,17 +881,16 @@ interstellar_comets = sa.Table(
 )
 
 
-moon_reflection_spectrum = sa.Table(
-    'moon_reflection_spectrum',
+moon_gases = sa.Table(
+    'moon_gases',
     metadata,
     sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
     sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
-    sa.Column('spectrum_type', sa.String(16), nullable=False),
-    sa.Column('position', mysql.INTEGER(), nullable=False),
-    sa.Column('value', sa.String(255), nullable=False),
-    sa.Index('idx_moon_reflection_spectrum_moon_id', 'moon_id'),
-    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_reflection_spectrum_moon', ondelete='CASCADE'),
-    sa.CheckConstraint("(`spectrum_type` in (_utf8mb4'visible',_utf8mb4'non_visible'))", name='moon_reflection_spectrum_chk_1'),
+    sa.Column('gas', sa.String(16), nullable=False),
+    sa.Column('partial_pa', mysql.DOUBLE(), nullable=False),
+    sa.Index('uq_moon_gases', 'moon_id', 'gas', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_gases_moon', ondelete='CASCADE'),
+    sa.CheckConstraint('(`partial_pa` > 0)', name='moon_gases_chk_1'),
     mysql_engine="InnoDB",
 )
 
@@ -921,6 +920,21 @@ moon_interior_layers = sa.Table(
     sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_interior_layers_moon', ondelete='CASCADE'),
     sa.CheckConstraint("(`kind` in (_utf8mb4'molecular_envelope',_utf8mb4'metallic_envelope',_utf8mb4'helium_gradient',_utf8mb4'helium_shell',_utf8mb4'dilute_core',_utf8mb4'compact_core',_utf8mb4'ice_mantle',_utf8mb4'rock_core'))", name='moon_interior_layers_chk_1'),
     sa.CheckConstraint("(`state` in (_utf8mb4'molecular_fluid',_utf8mb4'metallic_fluid',_utf8mb4'ionic_fluid',_utf8mb4'superionic',_utf8mb4'molten'))", name='moon_interior_layers_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
+moon_reflection_spectrum = sa.Table(
+    'moon_reflection_spectrum',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('spectrum_type', sa.String(16), nullable=False),
+    sa.Column('position', mysql.INTEGER(), nullable=False),
+    sa.Column('value', sa.String(255), nullable=False),
+    sa.Index('idx_moon_reflection_spectrum_moon_id', 'moon_id'),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_reflection_spectrum_moon', ondelete='CASCADE'),
+    sa.CheckConstraint("(`spectrum_type` in (_utf8mb4'visible',_utf8mb4'non_visible'))", name='moon_reflection_spectrum_chk_1'),
     mysql_engine="InnoDB",
 )
 
@@ -982,16 +996,6 @@ moons = sa.Table(
     sa.Column('axial_tilt_deg', mysql.DOUBLE(), nullable=True),
     sa.Column('mantle_redox', sa.String(16), nullable=True),
     sa.Column('mantle_delta_iw', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_o2_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_co2_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_co_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_n2_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_ar_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_h2_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_h2o_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_ch4_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_h2s_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_so2_kpa', mysql.DOUBLE(), nullable=True),
     sa.Column('magnetic_moment_a_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('dipole_class', sa.String(16), nullable=True),
     sa.Column('induced_moment_a_m2', mysql.DOUBLE(), nullable=True),
@@ -1634,17 +1638,16 @@ phenomenon_scatter_classes = sa.Table(
 )
 
 
-planet_reflection_spectrum = sa.Table(
-    'planet_reflection_spectrum',
+planet_gases = sa.Table(
+    'planet_gases',
     metadata,
     sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
     sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
-    sa.Column('spectrum_type', sa.String(16), nullable=False),
-    sa.Column('position', mysql.INTEGER(), nullable=False),
-    sa.Column('value', sa.String(255), nullable=False),
-    sa.Index('idx_planet_reflection_spectrum_planet_id', 'planet_id'),
-    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_reflection_spectrum_planet', ondelete='CASCADE'),
-    sa.CheckConstraint("(`spectrum_type` in (_utf8mb4'visible',_utf8mb4'non_visible'))", name='planet_reflection_spectrum_chk_1'),
+    sa.Column('gas', sa.String(16), nullable=False),
+    sa.Column('partial_pa', mysql.DOUBLE(), nullable=False),
+    sa.Index('uq_planet_gases', 'planet_id', 'gas', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_gases_planet', ondelete='CASCADE'),
+    sa.CheckConstraint('(`partial_pa` > 0)', name='planet_gases_chk_1'),
     mysql_engine="InnoDB",
 )
 
@@ -1674,6 +1677,21 @@ planet_interior_layers = sa.Table(
     sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_interior_layers_planet', ondelete='CASCADE'),
     sa.CheckConstraint("(`kind` in (_utf8mb4'molecular_envelope',_utf8mb4'metallic_envelope',_utf8mb4'helium_gradient',_utf8mb4'helium_shell',_utf8mb4'dilute_core',_utf8mb4'compact_core',_utf8mb4'ice_mantle',_utf8mb4'rock_core'))", name='planet_interior_layers_chk_1'),
     sa.CheckConstraint("(`state` in (_utf8mb4'molecular_fluid',_utf8mb4'metallic_fluid',_utf8mb4'ionic_fluid',_utf8mb4'superionic',_utf8mb4'molten'))", name='planet_interior_layers_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
+planet_reflection_spectrum = sa.Table(
+    'planet_reflection_spectrum',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('spectrum_type', sa.String(16), nullable=False),
+    sa.Column('position', mysql.INTEGER(), nullable=False),
+    sa.Column('value', sa.String(255), nullable=False),
+    sa.Index('idx_planet_reflection_spectrum_planet_id', 'planet_id'),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_reflection_spectrum_planet', ondelete='CASCADE'),
+    sa.CheckConstraint("(`spectrum_type` in (_utf8mb4'visible',_utf8mb4'non_visible'))", name='planet_reflection_spectrum_chk_1'),
     mysql_engine="InnoDB",
 )
 
@@ -1734,16 +1752,6 @@ planets = sa.Table(
     sa.Column('axial_tilt_deg', mysql.DOUBLE(), nullable=True),
     sa.Column('mantle_redox', sa.String(16), nullable=True),
     sa.Column('mantle_delta_iw', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_o2_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_co2_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_co_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_n2_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_ar_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_h2_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_h2o_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_ch4_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_h2s_kpa', mysql.DOUBLE(), nullable=True),
-    sa.Column('p_so2_kpa', mysql.DOUBLE(), nullable=True),
     sa.Column('magnetic_moment_a_m2', mysql.DOUBLE(), nullable=True),
     sa.Column('dipole_class', sa.String(16), nullable=True),
     sa.Column('induced_moment_a_m2', mysql.DOUBLE(), nullable=True),

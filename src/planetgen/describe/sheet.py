@@ -23,7 +23,7 @@ import dataclasses
 from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
-from planetgen.physics import constants, habitability_world, unit_registry
+from planetgen.physics import constants, gases, habitability_world, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number
 
@@ -44,6 +44,31 @@ GROUPS = {
     "ratings": "Ratings",
 }
 """dict: Every group key of a sheet and its heading, in the order the page shows them."""
+
+SHOW_GROUPS = frozenset({"identity", "habitability", "life", "ratings"})
+"""frozenset: The groups whose rows are listed on a page even when the value is none or 0 (UX.188): a world with no life
+or a facility with no ratings set is itself the answer."""
+
+_PLANET_ABSENT = frozenset({
+    "atmospheric_pressure_pa", "outside_hours", "hydrosphere", "ocean_fraction", "water_mass_fraction",
+    "dipole_class", "magnetic_moment_a_m2",
+})
+SHOW_WHEN_ABSENT = {
+    "planet": _PLANET_ABSENT, "moon": _PLANET_ABSENT,
+    "star": frozenset({"flare_n33_per_yr", "lethal_event_rate_per_gyr"}),
+}
+"""dict: For each kind, the row keys a page lists even when the value is none or 0, because the absence matters to a
+captain (no air, no magnetic field, a quiet star); every other row is left out of a page when it holds nothing. The
+API sheet always returns every row and says which are `absent` and which are `show_absent`."""
+
+GLANCE = {
+    "planet": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
+               "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "distance_km", "period_years"),
+    "moon": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
+             "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "distance_km", "period_years"),
+}
+"""dict: For each kind, the row keys of its "At a glance" panel (UX.188), in a captain's order: what it is, can I
+survive there, how long is a day and how far is it. Each is a row of the same sheet."""
 
 NOT_STORED = "not stored"
 """str: What a row with no stored value says."""
@@ -141,11 +166,6 @@ _BODY_GROUPS = (
            ("carbon_rock", "Carbon-rich rock", FLAG), ("composition_origin", "How the composition was found", TEXT)),
     *_rows("atmosphere", ("atmospheric_pressure_pa", "Surface pressure"), ("atm_density", "Air density"),
            ("atm_molar_density", "Mean molar mass of the air"), ("scale_height_km", "Scale height"),
-           ("p_o2_kpa", "Oxygen partial pressure"), ("p_co2_kpa", "Carbon dioxide partial pressure"),
-           ("p_co_kpa", "Carbon monoxide partial pressure"), ("p_n2_kpa", "Nitrogen partial pressure"),
-           ("p_ar_kpa", "Argon partial pressure"), ("p_h2_kpa", "Hydrogen partial pressure"),
-           ("p_h2o_kpa", "Water vapour partial pressure"), ("p_ch4_kpa", "Methane partial pressure"),
-           ("p_h2s_kpa", "Hydrogen sulfide partial pressure"), ("p_so2_kpa", "Sulfur dioxide partial pressure"),
            ("tau_haze", "Haze optical depth"), ("tau_dust", "Dust optical depth"), ("tau_cloud", "Cloud optical depth"),
            ("cloud_cover", "Cloud cover"), ("ozone_column_du", "Ozone column"),
            ("ozone_loss_flag", "Ozone layer lost", FLAG)),
@@ -530,6 +550,20 @@ def _value(spec, table, stored):
     return [model.qty(kind, value, unit)]
 
 
+GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "moon_id")}
+"""dict: The child table and owner column that keep the air of a planet or a moon, one row per gas (DB.71)."""
+
+
+def _gas_rows(conn, kind, object_id):
+    """The rows of a body's air, one per gas it holds, the most abundant first: each is `(spec, partial pressure Pa)` with a spec
+    whose value is read from the gas table."""
+    table, owner = GAS_TABLES[kind]
+    held = conn.execute(f"SELECT gas, partial_pa FROM {table} WHERE {owner} = ? ORDER BY partial_pa DESC, gas",
+                        (object_id,)).fetchall()
+    return [(PropertySpec(f"p_{row['gas']}", f"{gases.gas(row['gas']).name.capitalize()} partial pressure", "atmosphere", column="partial_pa"),
+             row["partial_pa"]) for row in held]
+
+
 def sheet(conn, kind, object_id):
     """
     The property sheet of one body.
@@ -542,7 +576,7 @@ def sheet(conn, kind, object_id):
     Returns:
         dict: `kind`, `groups`: the non-empty groups in `GROUPS` order, each `{"key", "label", "rows"}`; a row is
             `{"key", "label", "value" (the inline list), "text" (it as plain text), "stored" (whether the column held a
-            value)}`.
+            value), "absent" (none or 0), "show_absent" (a page lists it even then)}`.
 
     Raises:
         ValueError: For a kind with no sheet or a missing row.
@@ -557,7 +591,13 @@ def sheet(conn, kind, object_id):
     for spec in specs:
         stored = row[spec.stored_column()]
         value = _value(spec, table, stored)
+        absent = stored is None or stored == 0 or stored == ""
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value,
-                                     "text": inline_text(value), "stored": stored is not None})
+                                     "text": inline_text(value), "stored": stored is not None, "absent": absent,
+                                     "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
+    for spec, pascals in _gas_rows(conn, kind, object_id) if kind in GAS_TABLES else ():
+        value = _value(spec, GAS_TABLES[kind][0], pascals)
+        by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "stored": True,
+                                     "absent": not pascals, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     return {"kind": kind, "groups": groups}

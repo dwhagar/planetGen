@@ -21,6 +21,9 @@ STANDINS = (
     "mixture_rocky.OXIDATION_TIME_GY", "mixture_trace.ABUNDANCES", "mixture_escape.EXOBASE_RATIO",
     "mixture_escape.XUV_EXPONENT", "mixture_escape.ESCAPE_WIDTH", "mixture_escape.LOST_BELOW", "mixture_escape.LOST_TOTAL",
     "mixture_evolved.TITAN_MAX_METHANE", "mixture_oxygen.INERT_FLOOR",
+    "surface_pressure.PROCESSING_ENERGY_J_PER_KG", "surface_pressure.DEGAS_EFFICIENCY_H", "surface_pressure.DEGAS_EFFICIENCY",
+    "surface_pressure.WEATHERING_ALPHA", "surface_pressure.WEATHERING_T_E_K", "surface_pressure.OUTGASSING_EXPONENT",
+    "surface_pressure.HEAT_FLUX_EARTH_W_M2",
 )
 
 

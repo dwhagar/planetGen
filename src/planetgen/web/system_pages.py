@@ -892,7 +892,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         facts=trusted_html(_phenomenon_facts(phenomenon_type, detail)),
         previous=_phenomenon_peer(phenomenon_type, detail.get("previous")),
         following=_phenomenon_peer(phenomenon_type, detail.get("next")),
-        sheet=item_pages.sheet_view(apiclient.get_object_sheet(db_name(), f"{phenomenon_type}:{phenomenon_id}")),
+        **item_pages.sheet_context(apiclient.get_object_sheet(db_name(), f"{phenomenon_type}:{phenomenon_id}")),
         # A system's own black hole or neutron star is edited with its system.
         can_edit=edit_actions.can_edit(current_admin()) and detail.get("star_id") is None,
         edit_target=f"{phenomenon_type}:{detail['id']}",

@@ -92,6 +92,7 @@
     </table></div>
   </details>
   {%- endfor %}
+  {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
 </section>
 {%- endif %}
 {%- if contents %}

@@ -1,9 +1,12 @@
 """
 Mantle redox and atmosphere species for planets and moons (GEN.85).
 
-Each body with air stores the partial pressures, kPa, of ten species
-(`SPECIES`) and its mantle's redox state; the free-text `atmosphere` is
-written from them. The design is in docs/design/habitability/habitability-index.md
+Each body with air stores the partial pressure, Pa, of every gas in its air
+(`GAS_FIELD`, a dict of gas-table formula to Pa, kept in the child tables
+`planet_gases` and `moon_gases`; DB.71) and its mantle's redox state; the
+free-text `atmosphere` is written from them. A gas outside the ten the
+class mixes name (`SPECIES`) is the class's balance, stored by its formula
+like the rest (GEN.424). The design is in docs/design/habitability/habitability-index.md
 section 4 (rows 1 and 2) and docs/design/habitability/atmospheres-retention-and-classes.md
 section 3.3 (the cold side).
 
@@ -20,7 +23,7 @@ section 3.3 (the cold side).
 2. **Mixing ratios.** Each class has a mole-fraction template
    (`CLASS_MIXES`, read from today's class atmosphere text); every fraction
    gets a log-normal scatter. A gas outside the ten (helium, ammonia,
-   sodium) is the class's `balance`, named in the text but not stored.
+   sodium) is the class's `balance`, stored with the rest by its formula.
 3. **Redox shift.** A reduced mantle outgasses H2, CO, CH4 and H2S in place
    of H2O, CO2 and SO2; in an anoxic atmosphere (O2 under 0.1 percent) part
    of each oxidized gas moves to its reduced partner (`REDOX_SHIFT`). An
@@ -30,15 +33,16 @@ section 3.3 (the cold side).
    below the triple point, the Wagner liquid curves above it, no limit above
    the critical point): the excess is condensate, and the total surface
    pressure drops by it. Gas giants have no surface and skip this.
-5. **Hydrate cages (GEN.762).** An icy body (`hydrosphere.ICY_MIN_WATER_FRACTION` of its mass in water) with a surface under
+5. **Hydrate cages (GEN.762).** An icy body (`ICY_MIN_WATER_FRACTION` of its mass in water) with a surface under
    water's freezing point holds the guest gases that sit above their clathrate dissociation pressure in the water
    cages of its ice skin (`physics/clathrate_brine.py`, `hydrate_hold_pa`): the skin's depth is drawn per body
    (`HYDRATE_SKIN_RANGE_M`, a stand-in), and the held pressure leaves the air like the condensate does.
 """
 
 import math
+from collections.abc import Mapping
 
-from planetgen.physics import clathrate_brine, constants, gases, hydrosphere, saturation
+from planetgen.physics import clathrate_brine, constants, gases, saturation
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -51,11 +55,12 @@ SPECIES_NAMES = {
     "h2s": "hydrogen sulfide", "so2": "sulfur dioxide",
 }
 
-PARTIAL_PRESSURE_FIELDS = tuple(f"p_{gas}_kpa" for gas in SPECIES)
-"""tuple: The attributes (and columns) holding each species' partial pressure."""
+GAS_FIELD = "gas_partials_pa"
+"""str: The body attribute holding the air: gas-table formula to partial pressure in Pa, only the gases above zero. Stored in
+the child tables `planet_gases` and `moon_gases` (DB.71), not in columns."""
 
-ATMOSPHERE_FIELDS = ("mantle_redox", "mantle_delta_iw") + PARTIAL_PRESSURE_FIELDS
-"""tuple: Every attribute (and column) this module sets."""
+ATMOSPHERE_FIELDS = ("mantle_redox", "mantle_delta_iw")
+"""tuple: The attributes (and columns) this module sets besides `GAS_FIELD`."""
 
 REDOX_EARTH_DELTA_IW = 3.5
 REDOX_SLOPE = 2.0
@@ -112,6 +117,8 @@ DENSE_KPA = 500.0
 MAJOR_FRACTION = 0.01
 TRACE_FRACTION = 1e-4
 HUMID_H2O_FRACTION = 0.02
+ICY_MIN_WATER_FRACTION = 0.01
+"""float: The water mass fraction from which a body's surface is ice (`hydrosphere.ICY_MIN_WATER_FRACTION` is this)."""
 
 
 def redox_class(delta_iw):
@@ -211,11 +218,9 @@ def _join(names):
 
 def generate_atmosphere(planet):
     """
-    Sets `planet`'s `ATMOSPHERE_FIELDS` and its `atmosphere` text from its
-    class, mass, surface temperature and `atmospheric_pressure` (Pa), and
-    lowers `atmospheric_pressure` by any gas the cold side freezes out. An
-    airless body (`atmosphere == "None"`) keeps its redox and gets zero
-    partial pressures.
+    Sets `planet`'s `ATMOSPHERE_FIELDS`, its `GAS_FIELD` and its `atmosphere` text from its class, mass, surface temperature and
+    `atmospheric_pressure` (Pa), and lowers `atmospheric_pressure` by any gas the cold side freezes out. An airless body
+    (`atmosphere == "None"`) keeps its redox and gets no gases.
     """
     giant = planet.body_type == "g"
     if giant:
@@ -225,9 +230,8 @@ def generate_atmosphere(planet):
         planet.mantle_delta_iw = draw_mantle_delta_iw(planet.mass)
         planet.mantle_redox = redox_class(planet.mantle_delta_iw)
 
+    setattr(planet, GAS_FIELD, {})
     if planet.atmosphere == "None" or not planet.atmospheric_pressure:
-        for field in PARTIAL_PRESSURE_FIELDS:
-            setattr(planet, field, 0.0)
         return
 
     total_kpa = planet.atmospheric_pressure / 1000.0
@@ -241,16 +245,26 @@ def generate_atmosphere(planet):
         planet.atmospheric_pressure = (sum(partials.values()) + balance_kpa) * 1000.0
         partials = _hold_in_hydrate(planet, partials)
         planet.atmospheric_pressure = (sum(partials.values()) + balance_kpa) * 1000.0
-    for gas, value in partials.items():
-        setattr(planet, f"p_{gas}_kpa", value)
+    stored = {gases.stored(gas).formula: value * KPA_TO_PA for gas, value in partials.items() if value > 0.0}
+    if balance_kpa > 0.0:
+        names = balance_names(planet.planet_class)
+        for name in names:
+            stored[BALANCE_FORMULAS[name]] = balance_kpa * KPA_TO_PA / len(names)
+    setattr(planet, GAS_FIELD, stored)
     planet.atmosphere = describe(partials, balance_kpa, balance_name)
+
+
+BALANCE_FORMULAS = {"helium": "He", "sodium": "Na", "ammonia": "NH3"}
+"""dict: The gas-table formula of each balance gas a class names (`CLASS_MIXES`)."""
+
+KPA_TO_PA = 1000.0
 
 
 def _hold_in_hydrate(planet, partials):
     """Rule 5: `partials` (kPa) less what the cages of an icy cold body's ice skin hold."""
     water = getattr(planet, "water_mass_fraction", None)
     temperature = planet.surface_temperature
-    if not water or water < hydrosphere.ICY_MIN_WATER_FRACTION or not temperature or temperature >= clathrate_brine.ICE_POINT_K:
+    if not water or water < ICY_MIN_WATER_FRACTION or not temperature or temperature >= clathrate_brine.ICE_POINT_K:
         return partials
     skin_m = log_uniform(*clathrate_brine.HYDRATE_SKIN_RANGE_M)
     held = clathrate_brine.hydrate_hold_pa({gas: value * 1000.0 for gas, value in partials.items()}, temperature,
@@ -266,18 +280,30 @@ def balance_names(planet_class):
     return (balance_name,) if isinstance(balance_name, str) else tuple(balance_name)
 
 
+def gas_partials_pa(body):
+    """`body`'s air as a dict of gas-table formula to partial pressure in Pa: every gas it stores, the balance gases included. `body`
+    is a `Planet` or a column-named dict (a row with its gases, `db.store.with_gases`). Empty for an airless body or one saved
+    before GEN.85."""
+    air = body.get(GAS_FIELD) if isinstance(body, Mapping) else getattr(body, GAS_FIELD, None)
+    return dict(air or {})
+
+
 def balance_kpa(body):
-    """The pressure of `body`'s balance gases (named in the text, not stored), kPa: what the surface pressure holds beyond
-    the stored partial pressures; 0 for a class with no balance."""
-    if not balance_names(body.planet_class):
-        return 0.0
-    return max((body.atmospheric_pressure or 0.0) / 1000.0 - sum(partial_pressures_kpa(body).values()), 0.0)
+    """The pressure of `body`'s balance gases (the stored gases outside the ten species), kPa; 0 for a class with no balance."""
+    stored = {gases.stored(gas).formula for gas in SPECIES}
+    return sum(value for formula, value in gas_partials_pa(body).items() if formula not in stored) / KPA_TO_PA
+
+
+def partial_kpa(body, gas):
+    """`body`'s partial pressure of one of the ten species (`SPECIES`, lower case), kPa; 0 for a gas it lacks."""
+    return gas_partials_pa(body).get(gases.stored(gas).formula, 0.0) / KPA_TO_PA
 
 
 def partial_pressures_kpa(body):
-    """`body`'s stored partial pressures as a dict gas -> kPa (zeros for a
-    body saved before GEN.85)."""
-    return {gas: getattr(body, f"p_{gas}_kpa", None) or 0.0 for gas in SPECIES}
+    """`body`'s partial pressures of the ten species as a dict gas -> kPa (zeros for a gas it lacks, and for a body saved before
+    GEN.85)."""
+    air = gas_partials_pa(body)
+    return {gas: air.get(gases.stored(gas).formula, 0.0) / KPA_TO_PA for gas in SPECIES}
 
 
 def hydrogen_kpa(body):

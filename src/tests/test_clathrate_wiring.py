@@ -63,10 +63,11 @@ def test_a_cold_icy_body_keeps_less_of_a_guest_gas_than_the_same_dry_or_warm_bod
         body = _icy(temperature, water)
         atmosphere.generate_atmosphere(body)
         results[name] = body
-    floor_kpa = cb.dissociation_pressure_pa("CH4", 110.0) / 1000.0
-    assert results["icy"].p_ch4_kpa <= floor_kpa * (1 + 1e-9) < results["dry"].p_ch4_kpa
+    floor_pa = cb.dissociation_pressure_pa("CH4", 110.0)
+    methane = {name: atmosphere.gas_partials_pa(body).get("CH4", 0.0) for name, body in results.items()}
+    assert methane["icy"] <= floor_pa * (1 + 1e-9) < methane["dry"]
     assert results["icy"].atmospheric_pressure < results["dry"].atmospheric_pressure
-    assert results["warm"].p_ch4_kpa == pytest.approx(min(results["warm"].p_ch4_kpa, results["dry"].p_ch4_kpa))
+    assert methane["warm"] > floor_pa  # no cages above the ice point
 
 
 def _dry_cold_body(temperature=210.0):

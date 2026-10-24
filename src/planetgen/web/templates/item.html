@@ -46,9 +46,6 @@
     {%- if system_name %}<span class="badge">{{ system_name }} system</span>
     {%- elif owner_name %}<span class="badge">Orbits the free planet {{ owner_name }}</span>{% endif %}
   </p>
-  {%- if habitability %}{% set symbols = habitability_symbol_row(habitability) %}{% if symbols %}
-  <p class="item-habitability">{{ symbols }}</p>
-  {%- endif %}{% endif %}
   {%- if chips %}
   <p class="item-chips">{{ chips }}</p>
   {%- endif %}
@@ -73,6 +70,22 @@
   </figure>
 </section>
 {%- endif %}
+{%- set symbols = habitability_symbol_row(habitability) if habitability else "" %}
+{%- if glance or symbols %}
+<section class="panel" id="item-glance" aria-labelledby="item-glance-heading">
+  <div class="panel-header"><h2 id="item-glance-heading">At a glance</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      {%- if symbols %}
+      <tr class="glance-habitability"><th scope="row">Habitability</th><td class="item-habitability">{{ symbols }}</td></tr>
+      {%- endif %}
+      {%- for row in glance %}
+      <tr><th scope="row">{{ row.label }}</th><td>{{ row.html }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 <section class="panel" id="item-properties" aria-labelledby="item-properties-heading">
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in sheet %}
@@ -87,6 +100,7 @@
     </table></div>
   </details>
   {%- endfor %}
+  {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
 </section>
 <section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
   <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>

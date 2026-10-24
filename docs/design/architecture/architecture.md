@@ -578,6 +578,7 @@ The map panels and their data.
 | `facilityform.js` | The system page's "Place a facility" form (web/templates/system.html, web/system_facilities.py). |
 | `galaxysystem.js` | A star system opened in place on the Galaxy Map (MAP.125), using `systemview3d.js` at the system's position. |
 | `galaxynodecut.js` | The sector-block nodes the Galaxy Map fetches and draws for a camera, opened by projected size, and the hand-over weight of each (MAP.261; twin of `galaxy/nodecut.py`). |
+| `starbuffer.js` | The Galaxy Map's one star buffer (MAP.267): relative-to-eye pairs for positions and the dense slot store the node-by-node fill uses. |
 | `galaxyglow.js` | The Galaxy Map's unresolved glow, the choosing half (MAP.266): a blob per node from the light its aggregate stores less the stars it lists, and how strongly it shows. |
 | `galaxyglowlayer.js` | The glow drawn (MAP.266): a screen-sized quad per blob under the stars, each at the share the cut gives its node; the Menu's `glow` layer switches it. |
 | `sectorreach.js` | Which sector's own scene the camera wants up in a window of sectors, and how much of it shows (MAP.152). |

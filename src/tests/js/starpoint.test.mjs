@@ -139,7 +139,7 @@ test("Charted only dims the farther from the focus more, and the glsl twin agree
 
 test("the Galaxy Map gives every object a keep share and the shader applies it with the distance rule", () => {
   const map = source("galaxymap3d.js");
-  assert.match(map, /keeps\[i\] = unchartedKeep\(star, star\.phenomenon \? massRampShare\(star\.mass_solar\) : t\)/);
+  assert.match(map, /a\.starKeep\[i\] = unchartedKeep\(star, star\.phenomenon \? massRampShare\(star\.mass_solar\) : t\)/);
   assert.match(map, /attribute float starKeep;/);
   assert.match(map, /mix\(1\.0, unchartedFarKeep, unchartedFar\(dist, focusPc\)\)/);
   assert.match(map, /uniforms\.focusPc\.value = nearUniforms\.nearD\.value/);

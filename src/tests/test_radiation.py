@@ -15,7 +15,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
-from planetgen.physics import activity, constants, proton_range, radiation as rad, radiogenic
+from planetgen.physics import activity, atmosphere, constants, proton_range, radiation as rad, radiogenic
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -228,7 +228,7 @@ def test_every_generated_body_has_a_consistent_dose():
                 body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr)
             assert body.dose_gcr_msv_yr > 0 and body.dose_ground_msv_yr > 0
             assert isinstance(body.ozone_loss_flag, bool)
-            assert (body.ozone_column_du > 0.0) == ((body.p_o2_kpa or 0.0) > 0.0 and bool(body.star.temperature))
+            assert (body.ozone_column_du > 0.0) == (atmosphere.partial_kpa(body, "o2") > 0.0 and bool(body.star.temperature))
             seen["ozone"] += body.ozone_loss_flag
             assert body.uv_surface_index is None or body.uv_surface_index > 0
     assert seen["rocky"] > 10 and seen["giant"] > 0

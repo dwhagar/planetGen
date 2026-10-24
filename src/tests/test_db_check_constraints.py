@@ -28,6 +28,7 @@ _BETWEEN = re.compile(r"^`?(\w+)`?\s+between\s+(-?\d+)\s+and\s+(-?\d+)$", re.IGN
 _AT_LEAST = re.compile(r"^`?(\w+)`?\s*>=\s*(-?\d+)")
 _EQUALS_ONE = re.compile(r"^`?(\w+)`?\s*=\s*1$")
 _OPEN_UNIT_RANGE = re.compile(r"^`?(\w+)`?\s*>\s*0\)?\s+and\s+\(?`?\1`?\s*<=\s*1$", re.IGNORECASE)
+_ABOVE_ZERO = re.compile(r"^`?(\w+)`?\s*>\s*0$")
 _ONE_OR_ZERO = re.compile(r"^`?(\w+)`?\s*=\s*1\)?\s+or\s+\(`?\w+`?\s*=\s*0$", re.IGNORECASE)
 """`(a = 1) or (b = 0)`: the seed row must have b non-zero, so moving a off 1 breaks both arms."""
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
@@ -140,6 +141,9 @@ def _breaking_value(conn, table, clause, row):
     match = _ONE_OR_ZERO.match(clause)
     if match:
         return match[1], 2
+    match = _ABOVE_ZERO.match(clause)
+    if match:
+        return match[1], -1
     match = _NULL_TOGETHER.search(clause)
     if match:
         column = match[1]
