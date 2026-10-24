@@ -975,6 +975,11 @@ with `clamp()`.
   Boss's browser and OS or a screenshot. One hypothesis: his Apache adds
   its own Content-Security-Policy header, which would block Xterm's
   injected style and drop the font (the same cause as UX.157).
+  Update (2026-10-09): Boss (2026-10-23, 9:54 PM EDT): he uses Firefox
+  and his Apache does set its own Content-Security-Policy header, so the
+  CSP hypothesis is the leading cause; the terminal's injected style is
+  probably refused. Fix like UX.157: no injected style elements, the
+  rules live in the site's own stylesheet.
   Prerequisites: none. Related: UX.102, UX.123, UX.125.
 
 - [ ] **UX.150 Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table**
@@ -1078,6 +1083,10 @@ with `clamp()`.
   themes. Fix is committed on branch habfix-contrast and rides one PR
   with UX.151. Owner: the Composition-first stars lane (lane A). Found
   in UX.101.
+  Update (2026-10-09): Boss (2026-10-23, 9:54 PM EDT): he uses Firefox
+  and his Apache sets its own Content-Security-Policy header, which
+  confirms the cause; the same header probably explains UX.148 (the
+  terminal font).
   Prerequisites: none. Related: UX.101, UX.151.
 
 ## MAP: Galaxy Map, Sector Map, System Map
