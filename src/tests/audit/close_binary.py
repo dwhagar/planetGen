@@ -37,8 +37,7 @@ import math
 from dataclasses import dataclass
 from types import SimpleNamespace
 
-from planetgen import tuning
-from planetgen.generation import companion_classes, place_terms, wide_binary
+from planetgen.generation import companion_classes, wide_binary
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw

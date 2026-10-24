@@ -8,7 +8,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.generation import multistar
-from planetgen.physics import constants, planet_zones as pz
+from planetgen.physics import planet_zones as pz
 from planetgen.physics.orbits import (
     hill_radius_in_pair_au, holman_wiegert_circumbinary_a_crit_au, holman_wiegert_critical_semimajor_axis)
 from planetgen.physics.system_tree import AU_KM, OrbitNode, TreeMember

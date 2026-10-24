@@ -388,7 +388,7 @@ def test_a_scatter_stage_is_stored_once_by_the_unit_that_completes_it_with_its_s
 @pytest.mark.fresh_database
 def test_the_band_stage_is_stored_once_by_the_starter_because_it_tops_up_after_its_units(mysql_config, monkeypatch):
     from planetgen.db import store
-    from planetgen.generation import run_plan, stages
+    from planetgen.generation import run_plan
     from planetgen.generation import stats as generation_stats
     from tests.test_bright_star_scatter import _scatter_args, _seed_galaxy
     store.get_control_connection(mysql_config, ensure_schema=True).close()

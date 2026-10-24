@@ -10,9 +10,7 @@ import random
 
 import pytest
 
-from planetgen import tuning
 from planetgen.db import orbit_trees, scatter_systems, store
-from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import multistar, run_galaxy, run_plan, stored_trees
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star

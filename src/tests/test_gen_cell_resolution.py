@@ -15,9 +15,8 @@ from planetgen.api import routes
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
 from planetgen.galaxy import resolution, structure_draw, system_mass
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.profile import profile_at, sector_profile
-from planetgen.galaxy.spherical import cell_volume, sector_position_pc
+from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars as brightStars, run_galaxy
 from planetgen.generation.star_population import placed_star_fraction
 from planetgen.physics import constants

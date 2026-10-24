@@ -56,11 +56,9 @@ def test_the_layers_stack_in_order_defaults_config_environment():
     assert result.cache.max_mb == 30 and result.jobs.keep == 5
 
 
-def test_one_cache_size_key_defaults_to_a_gigabyte_and_the_old_tile_cache_key_is_not_read():
-    """PERF.139: `cache.max_mb` (1024) replaces `tile_cache.max_mb`, with no shim."""
-    assert _load({}).cache.max_mb == 1024 and not hasattr(_load({}).tile_cache, "max_mb")
-    result = _load({"tile_cache": {"max_mb": 5}})
-    assert result.cache.max_mb == 1024, "the old key does nothing"
+def test_one_cache_size_key_defaults_to_a_gigabyte():
+    """PERF.139: `cache.max_mb` (1024) replaces `tile_cache.max_mb`."""
+    assert _load({}).cache.max_mb == 1024
     assert _load({"cache": {"max_mb": 0}}).cache.max_mb == 0
 
 

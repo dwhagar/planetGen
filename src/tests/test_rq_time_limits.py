@@ -21,7 +21,6 @@ import os
 import pathlib
 import secrets
 import signal
-import subprocess
 import sys
 import time
 

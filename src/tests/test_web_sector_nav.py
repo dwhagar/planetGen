@@ -33,7 +33,7 @@ from planetgen.generation.system import StarSystem  # noqa: E402
 from planetgen.web import csrf, generate_page, jobs, sector_page  # noqa: E402
 from planetgen.web.helpers import page_url  # noqa: E402
 from planetgen.web.nav_page import endpoint, nav_url  # noqa: E402
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 DB = "planetgen_web_test"
@@ -269,12 +269,6 @@ def _csrf(app, client):
     session = client.get_cookie(SESSION_COOKIE_NAME)
     with app.app_context():
         return csrf._sign(nonce, session.value if session else "")  # bound to the login session
-
-
-def _page_scene(html):
-    """The map's scene data a sector page embeds (`#galaxymap3d-data`)."""
-    match = re.search(r'<script type="application/json" id="galaxymap3d-data">(.*?)</script>', html, re.S)
-    return json.loads(match.group(1))
 
 
 def _scene(client, path):

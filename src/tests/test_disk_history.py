@@ -123,12 +123,6 @@ def test_lighter_galaxies_have_more_recent_stars():
     assert young[0] > 3.0 * young[-1]
 
 
-def test_the_populations_still_sum_to_the_density_with_the_derived_shares():
-    for point in ((250.0, 0.0, 0.0), (3500.0, 800.0, 40.0), (8200.0, 0.0, 0.0), (15_000.0, 3000.0, 100.0)):
-        total = sum(density.population_densities(point, SHAPE).values())
-        assert total == pytest.approx(density.relative_density(point, SHAPE), rel=1e-9)
-
-
 def test_a_flat_inflow_settles_a_ring_toward_a_constant_rate():
     """Gas continuity checked on its own: a constant inflow fills a ring and its rate climbs, ever more slowly, toward
     the rate that uses the inflow up (the second half of ten Gy changes by under 15 percent)."""

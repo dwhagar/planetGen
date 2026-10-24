@@ -14,7 +14,7 @@ import random
 import pytest
 
 from planetgen.galaxy.cellkey import REACH_PC
-from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
+from planetgen.galaxy.density import predicted_star_count
 from planetgen.galaxy.spherical import enumerate_sectors_within_radius
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 from planetgen.galaxy.viewport import (

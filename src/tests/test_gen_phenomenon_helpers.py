@@ -7,8 +7,6 @@ the phenomena -- nebula (`nebulaData`), supernova remnant
 interstellar comet (`roguePlanetData`), star-bound comet (`cometData`)
 and asteroid field (`asteroidFieldData`).
 """
-import math
-import re
 from types import SimpleNamespace
 
 import pytest
@@ -18,13 +16,10 @@ from planetgen.generation import comet as cometData
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation.phenomena import rogue as roguePlanetData, supernova_remnant
-from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar, infer_black_hole_mass_class
+from planetgen.generation.phenomena.compact_remnant import BlackHole, infer_black_hole_mass_class
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS, Nebula
-from planetgen.generation.planet import Planet
 from planetgen.generation.phenomena.rogue import RoguePlanet
-from planetgen.generation.star import Star
-from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy
 

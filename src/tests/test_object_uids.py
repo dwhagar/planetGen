@@ -6,7 +6,6 @@ Object IDs in the database (GEN.69, DB.20, GEN.171, `galaxy/uid.py`,
 against the layout and the run-time counters.
 """
 
-import pytest
 
 from planetgen.db import store
 from planetgen.galaxy import object_uid as ids, uid as galaxy_uid
@@ -172,7 +171,6 @@ def test_the_issuer_numbers_systems_then_bodies():
 
 
 def test_a_body_deleted_through_an_edit_keeps_its_number_used(mysql_config):
-    from planetgen.db import edits
 
     store.save_sector(_sector("Uid Edit", 1, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
     conn = store.get_connection(mysql_config)

@@ -25,7 +25,7 @@ from planetgen.population import model
 from tests.test_population import _set_age, galaxy  # noqa: E402,F401
 from tests.test_web_facilities import _planet as _facility_planet  # noqa: E402
 from tests.test_web_system_phen import app, client, fake  # noqa: E402,F401
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 SPECIES = {
     "id": 3, "name": "Vel<ar>", "homeworld_planet_id": 11, "homeworld_name": "Home", "star_system_id": 5,

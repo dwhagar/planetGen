@@ -13,7 +13,6 @@ import io
 import re
 import sys
 
-import pytest
 
 from planetgen.cli import generate as generate_cli
 from planetgen.db import fingerprint, store

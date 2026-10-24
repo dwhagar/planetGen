@@ -9,7 +9,6 @@ import statistics
 
 import pytest
 
-from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import object_first

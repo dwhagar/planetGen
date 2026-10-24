@@ -45,7 +45,7 @@ AREA_RULES = (
 )
 
 HEAVY_FILES = frozenset({
-    "test_neighborhood_edge.py", "test_galaxy_gen.py", "test_parallel_generation.py", "test_prevalence.py",
+    "test_galaxy_gen.py", "test_parallel_generation.py", "test_prevalence.py",
     "test_api.py", "test_phenomenon_scatter.py", "test_work_queue_failures.py", "test_galaxy_urls_combined.py",
     "test_db_old_schemas.py", "test_web_generate.py", "test_api_thin_routes.py", "test_bright_star_scatter.py",
     "test_work_queue.py", "test_admin_edits.py", "test_gen_resume.py", "test_api_auth_sweep.py",

@@ -5,7 +5,6 @@ every generated body stores and the containment pass that updates the
 heliosphere multiplier.
 """
 
-import math
 import types
 
 import pytest

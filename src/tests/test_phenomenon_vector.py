@@ -12,7 +12,6 @@ import pytest
 
 from planetgen import tuning
 from planetgen.galaxy import remnant_density, density, remnant_distribution
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_address_at, wedge_count
 from planetgen.generation import bright_stars

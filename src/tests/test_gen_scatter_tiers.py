@@ -16,7 +16,6 @@ import pytest
 from planetgen import tuning
 from planetgen.db import store
 from planetgen.galaxy import scatter_limits, structure_draw
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.scatter_limits import BASELINE, CORE, HALO, ScatterLimits
 from planetgen.galaxy.spherical import band_range
 from planetgen.generation import bright_stars as brightStars

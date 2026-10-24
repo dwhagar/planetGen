@@ -10,7 +10,6 @@ import shutil
 import pytest
 
 from planetgen.physics import elements, habitability_world
-from planetgen.physics.elements import AVOGADRO
 
 KEV_J = 1.602176634e-16
 """float: One keV in joules."""

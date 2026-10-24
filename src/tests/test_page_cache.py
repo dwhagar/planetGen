@@ -21,7 +21,7 @@ from planetgen.db import dataversion  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.queue import redisclient  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 class _Clock:

@@ -1,6 +1,5 @@
 """PERF.50: a worker reports the progress of one sector's save to the run's bar."""
 
-import pytest
 
 from planetgen import tuning
 from planetgen.generation import run_galaxy, steps

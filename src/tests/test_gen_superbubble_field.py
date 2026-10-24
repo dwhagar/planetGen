@@ -29,7 +29,6 @@ def test_the_same_seed_gives_the_same_bubbles_and_another_seed_others():
 
 
 def test_a_bubble_has_its_centre_in_its_column_a_radius_in_range_and_thin_hot_gas():
-    edge = tuning.SUPERBUBBLE_CELL_PC
     low_r, high_r = tuning.SUPERBUBBLE_RADIUS_RANGE_PC
     low_n, high_n = tuning.SUPERBUBBLE_AMBIENT_DENSITY_RANGE_CM3
     bubbles = superbubble_field.all_bubbles(SEED, MILKY_WAY, 12000.0)

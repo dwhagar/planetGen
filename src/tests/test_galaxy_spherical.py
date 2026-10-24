@@ -67,7 +67,6 @@ def test_every_band_of_every_shell_uses_one_rule():
     of every shell from 4 out; no outline, window or neighbouring shell enters."""
     for shell in [4, 5, 9, 31, 250, 1000, 3764, 4095]:
         low, high = band_range(shell)
-        radius = shell * EDGE_PC
         for band in range(low + 1, high):
             m, remainder = divmod(wedge_count(shell, band), 6)
             assert remainder == 0 and m >= 1

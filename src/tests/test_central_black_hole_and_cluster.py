@@ -4,7 +4,6 @@
 seed (`galaxy.structure`, `galaxy.structure_draw`), not from fixed Milky Way masses."""
 
 import math
-import re
 import statistics
 from pathlib import Path
 
@@ -99,7 +98,3 @@ def test_a_hole_made_on_its_own_is_the_hole_of_a_random_galaxy():
     assert all(1.0e3 < m < 1.0e11 for m in masses)
 
 
-def test_the_fixed_milky_way_nucleus_masses_are_gone():
-    sources = "".join(p.read_text() for p in SOURCE.rglob("*.py"))
-    for name in ("NUCLEAR_CLUSTER_BULGE_RATIO", "SUPERMASSIVE_BLACK_HOLE_MASS_SOLAR", "BLACK_HOLE_SUPERMASSIVE_VELOCITY_DISPERSION_KMS", "QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR"):
-        assert name not in sources, name

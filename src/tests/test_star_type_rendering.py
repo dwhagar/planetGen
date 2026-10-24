@@ -13,7 +13,7 @@ from tests.bughunt_support import mysql_argv, run_cli
 from tests.test_bughunt_end_to_end import _db_get_connection, _web_client
 
 from planetgen.web.maps import starmap  # noqa: E402
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 @pytest.mark.parametrize("star_type", ["G2VII", "K2III", "M1III", "B1IA"])

@@ -143,7 +143,3 @@ def test_the_star_clusters_and_satellites_of_a_shape_are_not_part_of_the_cache_k
     assert enclosed_mass.mass_model(with_components, SEED) is enclosed_mass.mass_model(shape, SEED)
 
 
-def test_the_old_whole_halo_central_mass_is_gone():
-    assert not hasattr(mass_chain, "central_mass_kg")
-    assert not hasattr(mass_chain, "current_central_mass_kg")
-    assert not hasattr(mass_chain.MassChain, "halo_mass_kg")

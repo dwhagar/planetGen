@@ -15,7 +15,6 @@ from planetgen.generation import multistar, run_galaxy, run_plan, run_sector, sc
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import system_types
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants
 from planetgen.util import draw
 from tests.test_bright_star_scatter import EDGE_PC, _scatter_args, _seed_galaxy, light_steps  # noqa: F401
 from tests.test_gen_scatter_companions import STAR, _star_row

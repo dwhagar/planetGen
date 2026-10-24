@@ -11,10 +11,9 @@ answer `202` with a bar while their job is queued and `200` with the list once i
 
 import pytest
 
-from planetgen import tuning
 from planetgen.api.config import Config
 from planetgen.api.limiter import PAGE_LIMITS_OFF
-from planetgen.queue import api_jobs, pagejobs, redisclient, workers
+from planetgen.queue import pagejobs, redisclient, workers
 from planetgen.web.app import create_app
 from planetgen.web.lib import apiclient, slowpages, slowroute
 from tests.test_api import seeded_sector  # noqa: F401 -- the fixture galaxy needs

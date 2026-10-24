@@ -16,7 +16,6 @@ from planetgen import tuning
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
 from planetgen.galaxy import remnant_density, density, remnant_distribution
-from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc, wedge_count
 from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.generation import run_galaxy, run_plan, run_sector

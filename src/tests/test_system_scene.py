@@ -16,7 +16,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.web.app import create_app
 from planetgen.web.maps.systemscene import build_scene
-from tests.publicids import pid, pids
+from tests.publicids import pid
 
 
 def _system(want_binary):

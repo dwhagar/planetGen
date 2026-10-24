@@ -13,7 +13,6 @@ import random
 import pytest
 
 from planetgen import tuning
-from planetgen.generation import multistar
 from planetgen.generation import star_population as sp
 from planetgen.generation.bright_stars import star_fe_h
 from planetgen.physics import giant_branch

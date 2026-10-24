@@ -16,7 +16,6 @@ from planetgen.generation import possibility_table as pt
 from planetgen.generation import tuning_harness as th
 from planetgen.generation.possibility_table import Row, Subject, Table
 from planetgen.generation.tuning_harness import TargetError, TargetTable
-from planetgen.physics import atmosphere_recipes as ar
 from planetgen.physics.atmosphere_recipes import RECIPES, Recipes
 from planetgen.util import draw
 

@@ -11,7 +11,6 @@ import types
 
 import pytest
 
-from planetgen.db import store
 from planetgen.galaxy import density, dials, shape_draw, system_mass
 from tests.test_shape_pins import SEED, _load, _save
 
