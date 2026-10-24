@@ -1,8 +1,8 @@
 # planetgen/physics/rayleigh.py
 
 """
-Rayleigh scattering of an atmosphere (GEN.417; docs/design/atmosphere-composition-parts/02-gas-optics-uv-visible.md
-section 3.1, docs/design/radiation-model.md section 3).
+Rayleigh scattering of an atmosphere (GEN.417; docs/design/composition/atmosphere-composition-parts/02-gas-optics-uv-visible.md
+section 3.1, docs/design/composition/radiation-model.md section 3).
 
 The optical depth of the scattering by the air above the ground at wavelength `lambda` is
 

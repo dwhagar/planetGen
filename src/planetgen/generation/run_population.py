@@ -28,7 +28,7 @@ def run_population(args):
     """
     Runs the population pass (`model.run_pass`): names the dominant
     species of every new life world, dates civilizations, founds polities
-    and recomputes territories. See docs/design/population-and-politics.md.
+    and recomputes territories. See docs/design/habitability/population-and-politics.md.
 
     Args:
         args (argparse.Namespace): Validated arguments (`command ==

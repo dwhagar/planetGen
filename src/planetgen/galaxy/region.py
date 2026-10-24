@@ -1,7 +1,7 @@
 """
 planetgen/galaxy/region.py
 
-The round region (MAP.151, docs/design/drilldown-region-sizes.md section
+The round region (MAP.151, docs/design/interface/drilldown-region-sizes.md section
 5.2): a ball of sectors around a centre -- the shape the radial fills
 (ADM.30) cut -- described as ranges: in each shell the ball reaches, in
 each band of it, one arc of wedges that may wrap past wedge 0 or be the

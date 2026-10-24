@@ -28,7 +28,7 @@ it returns. It imports the kernel inside the functions that call it, so the web 
 integrates them, never imports numba.
 
 Point masses are softened like the galaxy's own (`Plummer`, 1 pc by
-default, see `docs/design/orbital-updates.md` section 10.1), so the pull
+default, see `docs/design/orbits/orbital-updates.md` section 10.1), so the pull
 near a black hole stays finite. A single dominant flyby could use the
 hyperbolic deflection formula instead; the integration covers it without a
 second path.

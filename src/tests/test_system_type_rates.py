@@ -3,7 +3,7 @@
 """
 GEN.268: `SYSTEM_TYPE_RATES` (`planetgen/generation/phenomena/system_types.py`)
 has one entry per row of the catalogue of system types in
-docs/design/multi-star-systems.md (sections 13.1 to 13.6). These tests fail
+docs/design/systems/multi-star-systems.md (sections 13.1 to 13.6). These tests fail
 when a row of the note has no entry, an entry has no generator, owner or
 audit, or a number is out of order.
 """
@@ -17,7 +17,7 @@ import pytest
 
 from planetgen.generation.phenomena import system_types as types
 
-_NOTE = pathlib.Path(types.__file__).resolve().parents[4] / "docs" / "design" / "multi-star-systems.md"
+_NOTE = pathlib.Path(types.__file__).resolve().parents[4] / "docs" / "design" / "systems" / "multi-star-systems.md"
 _TAGS = {"S", "C", "R", "I"}
 
 

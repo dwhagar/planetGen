@@ -1,7 +1,7 @@
 # planetgen/physics/stellar_abundances.py
 
 """
-The stellar composition relations (GEN.439, docs/design/stellar-composition.md)
+The stellar composition relations (GEN.439, docs/design/composition/stellar-composition.md)
 =================================================================================
 
 What a star, a brown dwarf or a remnant is made of, as functions of the values the generator already stores: [Fe/H], the

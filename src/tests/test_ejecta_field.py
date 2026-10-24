@@ -67,7 +67,7 @@ def test_the_density_is_n_over_four_pi_r_squared_v_t_out_to_v_t_and_none_beyond(
 
 
 def test_a_cell_far_out_holds_about_the_expected_ejecta_of_the_design_note():
-    """docs/design/intergalactic-and-halo-contents.md 5.6: 1.3e-7 of a 4 pc cell at 50 kpc and 3.3e-8 at 100 kpc for
+    """docs/design/galaxy/intergalactic-and-halo-contents.md 5.6: 1.3e-7 of a 4 pc cell at 50 kpc and 3.3e-8 at 100 kpc for
     2e8 unbound neutron stars; this galaxy has about 1.4e8 at the middle of the range, so about 0.6 of that (about 0.5 once GEN.545 derives the mean system mass)."""
     near = _density("neutron-star", 5.0e4) * CELL_PC3
     far = _density("neutron-star", 1.0e5) * CELL_PC3

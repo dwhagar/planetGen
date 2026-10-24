@@ -185,7 +185,7 @@ def test_an_unbarred_galaxy_has_no_bar_gap():
 def test_the_stored_shape_row_gains_nothing():
     """The structure is rebuilt from the seed: no column of `galaxy_shape` holds any field of it. The component columns
     DB.66 added (the bar, the thick disk, the spheroid of a family) are NULL or at their default for a spiral, which
-    means "as the structure draw gives them"; only a family that sets them stores them (docs/design/galaxy-types.md
+    means "as the structure draw gives them"; only a family that sets them stores them (docs/design/galaxy/galaxy-types.md
     section 10)."""
     schema = (Path(__file__).resolve().parents[1] / "planetgen" / "db" / "schema.sql").read_text()
     table = re.search(r"CREATE TABLE IF NOT EXISTS galaxy_shape \((.*?)\n\)", schema, re.S)

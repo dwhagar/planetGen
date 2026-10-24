@@ -1,7 +1,7 @@
 # tests/test_parent_relative_positions.py
 
 """
-TEST.241 (section 5 point 3 of docs/design/unified-system-barycentre.md): nothing inside a system stores an absolute sector
+TEST.241 (section 5 point 3 of docs/design/architecture/unified-system-barycentre.md): nothing inside a system stores an absolute sector
 or galactic position. A table whose rows are tied to a system or a body (`point_columns.BODY_PARENT_COLUMNS`) and that
 holds a point stores it in the `system` frame, parent-relative; the few tables that do not are listed with their reason
 and way out in `point_columns.ABSOLUTE_WITH_A_PARENT`, and a listed table that stopped needing it is refused.

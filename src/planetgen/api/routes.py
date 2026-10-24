@@ -23,7 +23,7 @@ apply the same defaults, cap, and error behavior.
 The write endpoints (`POST`/`PATCH`/`DELETE` on `/sectors`/`/systems`,
 near the bottom of this file) do real inserts/updates/deletes now, gated
 behind admin authentication (`authz.require_admin`) and run against a
-separate, write-capable database account -- see `docs/api.md`'s
+separate, write-capable database account -- see `docs/reference/api.md`'s
 "Write endpoints" section and `planetgen/admin/auth.py`.
 """
 
@@ -780,7 +780,7 @@ def nav():
     star system, body inside one, or standalone phenomenon, written as an
     object reference (`?from=planet:7&to=nebula:2`; a bare number is a
     system) -- see `db.query.nav_course` for the legs and
-    `db.query.nav_between` for the availability rules, and docs/api.md for
+    `db.query.nav_between` for the availability rules, and docs/reference/api.md for
     the response shape.
     """
     from_ref = _nav_ref_param(request.args, "from")
@@ -1532,7 +1532,7 @@ def object_ref_route(ref):
     """
     Resolves one object reference (`<kind>:<id>`, NAV.7): name, parent
     chain, sibling references and positions in each frame -- see
-    `db.query.resolve_object` and docs/api.md.
+    `db.query.resolve_object` and docs/reference/api.md.
     """
     try:
         resolved = ids.resolve_ref(get_db(), ref)
@@ -1660,7 +1660,7 @@ def wiki_config():
 # account -- see `config.py`) rather than the request-scoped read-only
 # `get_db()` every read route above uses, and records one
 # `admin_audit_log` row (`authz.audit`) after it actually succeeds, never
-# speculatively. See docs/api.md's "Write endpoints" section for the
+# speculatively. See docs/reference/api.md's "Write endpoints" section for the
 # request/response shapes.
 # ---------------------------------------------------------------------
 

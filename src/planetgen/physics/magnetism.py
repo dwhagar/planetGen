@@ -1,7 +1,7 @@
 """
 Planetary magnetic fields and the star's radiation at the planet (GEN.86).
 
-The rules are docs/design/activity-magnetism-radiation-hydrosphere.md
+The rules are docs/design/habitability/activity-magnetism-radiation-hydrosphere.md
 section 3.5 (design defaults):
 
 1. **Rocky bodies.** A dynamo needs mass of at least 0.05 Earth and a core

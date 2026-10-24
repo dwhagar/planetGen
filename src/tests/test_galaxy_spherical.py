@@ -2,7 +2,7 @@
 
 """
 Tests for `planetgen.galaxy.spherical` -- the shell/band/wedge sector grid
-(`docs/design/spherical-sector-coordinates.md`).
+(`docs/design/galaxy/spherical-sector-coordinates.md`).
 
 The grid is pure geometry, so most checks are against the grid itself: the
 cells tile the ball exactly (their volumes add up), every point maps to a

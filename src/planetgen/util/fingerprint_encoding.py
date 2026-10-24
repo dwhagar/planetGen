@@ -6,7 +6,7 @@ The canonical encoding every fingerprint hashes (GEN.304)
 
 One encoder for the digests of generated values, so a galaxy's fingerprint (`db/fingerprint.py`, GEN.58), the
 generator battery's digest (OPS.28) and the golden tests (TEST.77) hash a value one way, and a 1-ulp difference in
-`exp` or `sin` between two machines does not show (docs/design/reproducible-galaxies.md, generation-determinism.md
+`exp` or `sin` between two machines does not show (docs/design/generation/reproducible-galaxies.md, generation-determinism.md
 section 4).
 
 A value is a tree of `dict` (string keys), `list` or `tuple`, `str`, `bool`, `None`, `int`, `float`, `Decimal` and

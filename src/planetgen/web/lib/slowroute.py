@@ -1,7 +1,7 @@
 # planetgen/web/lib/slowroute.py
 
 """
-The loading state of a slow page (UX.118; design in docs/design/slow-page-answers.md).
+The loading state of a slow page (UX.118; design in docs/design/operations/slow-page-answers.md).
 
 `@slow_route(...)` on a page's view lets the view's slow requests (`slowpages.cost`) wait for a job instead of
 holding the request (PERF.105). When one does, the view is abandoned and the visitor gets the same page frame

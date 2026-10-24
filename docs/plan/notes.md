@@ -63,7 +63,7 @@ Boss's research notes (kept in the project's shared files under `todo-tasks/rese
   | Supernova remnant | blast shell | event | 5 to 20 pc | pulsars, neutron stars |
 
   The existing classes and rates are in
-  [nebula-and-asteroid-field-classes.md](../design/nebula-and-asteroid-field-classes.md).
+  [nebula-and-asteroid-field-classes.md](../design/systems/nebula-and-asteroid-field-classes.md).
 
 ### From "Phase 2: Maps and navigation" (first plan)
 
@@ -77,7 +77,7 @@ Boss's research notes (kept in the project's shared files under `todo-tasks/rese
   the arc, where the user picks a height band (a slab); (4) the slab's
   sectors appear for the next pick. Note the word: "arc" was MAP.19's
   name for one cell of the old 3x3 region pick
-  ([galaxy-drilldown-navigation.md](../design/galaxy-drilldown-navigation.md));
+  ([galaxy-drilldown-navigation.md](../design/interface/galaxy-drilldown-navigation.md));
   it now means this first pick; the design doc's section 15 ("The arc
   pick") describes it as built. Shipped in PR #369 (MAP.60,
   MAP.55, MAP.85, MAP.52): arcs are 45 degrees wide (the width nearest
@@ -330,11 +330,11 @@ refresh the execution plan's headline section.
 - **The prevalence group in phase 0**: GEN.48 is a bug, so its controls (GEN.52, ADM.16, TEST.75) came with it.
 - **Kept in the bugfix lane, not folded**: UX.24, UX.29, UX.25 (already built once), OPS.6 (one check, not worth waiting for Pydantic), MAP.114 (CI red, though MAP.68 deletes sectormap.js later).
 - **DB.13 in phase 0**: Boss called it "a Phaser 0 priority".
-- Top priority since 2026-10-10 22:19Z (Boss): every performance item and every correction to the generation process goes to the top of every lane queue, ahead of Orbital updates, Maps, Nearby search and Routing; no build already running is cancelled (each lane finishes its current task and any PR already in flight). The scatter stays one job on the Redis queue. Only Foundations lane 1 adds migrations. Per-lane queues: `docs/plan/execution-plan.html` and `/mnt/project-files/reports/phase-1-open-items-2026-10-10.md`.
+- Top priority since 2026-10-10 22:19Z (Boss): every performance item and every correction to the generation process goes to the top of every lane queue, ahead of Orbital updates, Maps, Nearby search and Routing; no build already running is cancelled (each lane finishes its current task and any PR already in flight). The scatter stays one job on the Redis queue. Only Foundations lane 1 adds migrations. Per-lane queues: `docs/generated/execution-plan.html` and `/mnt/project-files/reports/phase-1-open-items-2026-10-10.md`.
 - Intergalactic space plan (Boss, 2026-10-15): [intergalactic-space-plan.md](intergalactic-space-plan.md) is the plan for the whole sphere out to 262 kpc and the phenomena catalogue fill: stages A, B1 to B7, slot M for the multi-star research, slot C for the region query, the later group, the defaults awaiting Boss.
-- Execution plan (Boss's priority order of 2026-10-09 07:13Z: Orbital updates, Maps, Nearby search, Routing; Repeatable galaxy last, blockers first): `docs/plan/execution-plan.html`, with lanes by wave and the Alembic and file conflicts between groups.
-- Boss (2026-10-09 07:54Z): "I haven't held anything, so integrate ALL phase 1 items into the immediate TODO breakdown, focusing on unblocking things as a first priority." The execution plan's lane lists now hold all 77 non-bug Phase 1 items, ordered with the items that unblock the most work first (`docs/plan/execution-plan.html`).
-- GEN.100's galaxy-wide scatter would write about 1.17e9 rows (161 GB) at the default galaxy size before a mass cut (phenomenon_scatter table); the 1.6e8 first noted here (2026-10-09 08:15Z) was an unverified estimate. Boss decided (2026-10-09 19:54Z) on a lowest-mass cut with the sector fill drawing the rest; at the recommended 20 solar masses the table is about 2.7e5 rows (DB.19, GEN.166 to GEN.168; [phenomenon-scatter-mass-cut.md](../design/phenomenon-scatter-mass-cut.md)).
+- Execution plan (Boss's priority order of 2026-10-09 07:13Z: Orbital updates, Maps, Nearby search, Routing; Repeatable galaxy last, blockers first): `docs/generated/execution-plan.html`, with lanes by wave and the Alembic and file conflicts between groups.
+- Boss (2026-10-09 07:54Z): "I haven't held anything, so integrate ALL phase 1 items into the immediate TODO breakdown, focusing on unblocking things as a first priority." The execution plan's lane lists now hold all 77 non-bug Phase 1 items, ordered with the items that unblock the most work first (`docs/generated/execution-plan.html`).
+- GEN.100's galaxy-wide scatter would write about 1.17e9 rows (161 GB) at the default galaxy size before a mass cut (phenomenon_scatter table); the 1.6e8 first noted here (2026-10-09 08:15Z) was an unverified estimate. Boss decided (2026-10-09 19:54Z) on a lowest-mass cut with the sector fill drawing the rest; at the recommended 20 solar masses the table is about 2.7e5 rows (DB.19, GEN.166 to GEN.168; [phenomenon-scatter-mass-cut.md](../design/systems/phenomenon-scatter-mass-cut.md)).
 - One combined reseed (Boss, 2026-10-09 20:28Z): the one-time seed change from lazy names (PERF.43) and from the 20 solar mass cut (GEN.166 to GEN.168) lands with these two items together; the release notes of whichever lands second name both.
 
 ## Design notes in docs/design
@@ -344,48 +344,48 @@ items. New notes are listed here when the PR that adds them merges.
 
 | Note | Covers |
 |---|---|
-| [interstellar-object-rates.md](../design/interstellar-object-rates.md) | Real-world rates for interstellar objects (retuned in PR #804). |
-| [star-types-by-galactic-radius.md](../design/star-types-by-galactic-radius.md) | GEN.133: every star type's rate against distance from the core, checked against the observed Milky Way; four proposals (young and intermediate populations weighted by the star-formation profile, a lower B share, a young tail in the bulge, a metallicity gradient only if planets need it), none built or filed yet (PR #807). |
-| [compact-remnant-regions.md](../design/compact-remnant-regions.md) | Research on where neutron stars and black holes are in the galaxy, behind the regional rates (GEN.132, PR #807); added in PR #804. |
-| [habitability-index.md](../design/habitability-index.md) | The habitability score structure, equipment profiles and tiers (GEN.84, PR #803). |
-| [orbital-updates.md](../design/orbital-updates.md) | The orbital update design (GEN.105 and its chain). |
-| [library-migration.md](../design/library-migration.md) | The move to third-party libraries. |
-| [reproducible-galaxies.md](../design/reproducible-galaxies.md) | Seeds, version keys and the same-seed rule. |
-| [generation-determinism.md](../design/generation-determinism.md) | Floating-point rules, rounding, fingerprints and CI for the same-seed guarantee (GEN.55, GEN.57, GEN.58, TEST.77, OPS.14, OPS.15, DB.7; GEN.59, GEN.61 and OPS.12 were dropped 2026-10-09). |
-| [db-check-and-parity-repair.md](../design/db-check-and-parity-repair.md) | Damage check, parity file and repair, Alembic progress and locks (DB.8 to DB.15). |
-| [ops-scheduling-and-rotation.md](../design/ops-scheduling-and-rotation.md) | The daily maintenance run and schedules on three systems (OPS.8, OPS.13, OPS.14, OPS.16, OPS.17, OPS.21, OPS.27); the 18-slot backup rotation (OPS.18, ADM.19, ADM.20) was dropped 2026-10-09. |
-| [sampling-backfill-and-resume.md](../design/sampling-backfill-and-resume.md) | Backfill cost, sampling equivalence and resumable runs (GEN.40 to GEN.43, GEN.96 to GEN.99, GEN.102, PERF.18, PERF.29, PERF.30). |
-| [fill-order-curves-and-core.md](../design/fill-order-curves-and-core.md) | Hilbert and other fill orders, region enumeration and the galactic core (GEN.101, ADM.29, ADM.30, GEN.97, GEN.23, GEN.24). |
-| [course-routing.md](../design/course-routing.md) | Routes, the route graph, hop lengths and nearby search (NAV.9 to NAV.12, NAV.36, NAV.39 to NAV.48). |
-| [course-avoidance.md](../design/course-avoidance.md) | Keep-out zones for courses around hazards (NAV.22, NAV.24 to NAV.28, NAV.51). |
-| [orbital-solvers-and-integrators.md](../design/orbital-solvers-and-integrators.md) | Kepler solvers, N-body integrators, thresholds and scheduling (GEN.105 to GEN.109, GEN.111, GEN.115). |
-| [galactic-potential.md](../design/galactic-potential.md) | The galactic gravity model and its gradient for object updates (GEN.108, GEN.115, GEN.106, GEN.125). |
-| [collisions-and-mergers.md](../design/collisions-and-mergers.md) | Detecting and resolving collisions and mergers during an orbital update (GEN.109 to GEN.112). |
-| [atmospheres-retention-and-classes.md](../design/atmospheres-retention-and-classes.md) | When a planet keeps an atmosphere, the new hot- and cold-zone classes and life stage (GEN.91, GEN.92). |
-| [activity-magnetism-radiation-hydrosphere.md](../design/activity-magnetism-radiation-hydrosphere.md) | Stellar activity, magnetic fields, surface dose, water and oceans (GEN.86 to GEN.89, GEN.104). |
-| [anomalies.md](../design/anomalies.md) | Anomalies and asteroid fields: classes, rates and generation rules (GEN.113, GEN.114, GEN.103, GEN.128 to GEN.130). |
-| [multistar-and-compact-systems.md](../design/multistar-and-compact-systems.md) | Multi-star systems, binaries and compact-remnant systems (GEN.62, GEN.71, GEN.128 to GEN.130, GEN.103). |
-| [population-and-politics.md](../design/population-and-politics.md) | Population, politics, technology levels and facilities (POP.7 to POP.10). |
-| [api-design-standards.md](../design/api-design-standards.md) | API conventions: errors, paging, versioning, keys, logging and limits (API.3 to API.19, ADM.13). |
-| [units-and-number-formatting.md](../design/units-and-number-formatting.md) | Units, unit ladders and number formatting in code and in the browser (UX.36). |
-| [map-ui-and-frontend-libraries.md](../design/map-ui-and-frontend-libraries.md) | Map interface patterns and front-end library choices (UX.3, UX.40 to UX.49). |
-| [settings-seo-and-accounts.md](../design/settings-seo-and-accounts.md) | Settings pages, search-engine behaviour and account design (ADM.42 to ADM.44, USR.1 to USR.8, API.6). |
-| [sky-view.md](../design/sky-view.md) | The view from a planet's surface: stars, backfill levels and cost (VIEW.1 to VIEW.4). |
-| [multiple-galaxies.md](../design/multiple-galaxies.md) | Neighbour galaxies in the sky and several galaxies in one install (GEN.9, VIEW.2, VIEW.3). |
-| [navigation-frames.md](../design/navigation-frames.md) | Coordinate frames used for navigation and courses. |
-| [galaxy-coordinate-system.md](../design/galaxy-coordinate-system.md) | The galaxy frame and the shell, band and wedge sector grid. |
-| [spherical-shell-sectors.md](../design/spherical-shell-sectors.md) | Research (Boss, 2026-10-15 05:51Z): what spherical-shell sectors with a round 4 pc core would mean; recommends keeping the cylindrical grid (no TODO item unless Boss decides otherwise). |
-| [galaxy-disk-density.md](../design/galaxy-disk-density.md) | The disk density model behind sector fill. |
-| [performance-eta-queue-and-caching.md](../design/performance-eta-queue-and-caching.md) | Profiling, progress and ETA estimates, the RQ queue and cache invalidation (PERF.20, PERF.31 to PERF.34, UX.3, ADM.15). |
-| [exotic-environments-planets-and-compact-binaries.md](../design/exotic-environments-planets-and-compact-binaries.md) | Planets and compact-object orbits in extreme environments: Boss's research digested for GEN.94, GEN.95, GEN.130. |
-| [globular-clusters.md](../design/globular-clusters.md) | Globular clusters: density-component storage, King sampling, metallicity, planet culls and pulsar planets; Boss's research digested with computed checks (GEN.9, GEN.130, GEN.134). |
-| [generation-performance-study.md](../design/generation-performance-study.md) | Where the scatters and the sector fill spend their time, measured on a quarter-scale galaxy: worker start-up (8 times), phenomenon row volume, the database path, word salad; ranked fixes (PERF.31, PERF.18, PERF.39). |
-| [phenomenon-scatter-mass-cut.md](../design/phenomenon-scatter-mass-cut.md) | A lowest-mass cut for the GEN.100 scatter (recommended 20 solar masses: 1.17e9 rows to 2.7e5), the error it causes, how the sector fill draws below the cut, reproducibility and DB.19; traces the notes' 1.6e8 figure (DB.19, GEN.100). |
-| [zoom-star-visibility.md](../design/zoom-star-visibility.md) | Why stars appear in bursts at 11 camera radii on the Galaxy Map (tile levels, caps, the 160 pc detail tiles, a time fade), measured on tile data, eleven ways to smooth it, and a rank-based fade that cuts the worst step from +883% to +59%; includes a side-by-side demo (MAP.116, MAP.147) |
-| [slow-reads-and-timeouts.md](../design/slow-reads-and-timeouts.md) | Why pages hit the 10 s database limit on a big galaxy, measured on 2,000,000 systems (Sectors list 17 s, Systems offset 1.5M 12 s, map tiles 33 s) and under a fill; queue-and-hold versus keyset paging, stored counts, indexes and partial answers, page by page; eleven build items (PERF.68, PERF.69, PERF.70, PERF.71) |
-| [nebula-map-visibility.md](../design/nebula-map-visibility.md) | Why nebulae cannot be seen on the Galaxy Map (field clouds are derived not stored, sub-2 px at galaxy scale, near-black dark fill, 200-per-tile cap) and a three-scale design: nebula cover as a Color by choice, fixed-grid regions that split on zoom (16 px cells, 600 budget), individual clouds; colour, wire format, picking, cost; fourteen build items split Phase 1 foundations and Phase 2 visible feature |
-| [nebula-density-vs-reality.md](../design/nebula-density-vs-reality.md) | The generated nebula field against the real Milky Way (clouds, H II regions, remnants, planetary nebulae, with sources): class M about 10 times too many, the volume filled 8 to 10 times too high, remnants and hosted H II regions far too many; options measured on a 4 kpc sample; recommended keep rates (M 0.095, N 0.5, P and Q whole), what to generate versus what to draw, the effect on rows, storage and tiles, and on existing galaxies; eleven build items split Phase 1 and Phase 2 |
-| [math-and-library-efficiency.md](../design/math-and-library-efficiency.md) | Where the heavy math still runs as plain Python (sector-path integrator 1.0 ms a path, nearest-neighbour sort, one-point density calls), measured and prototyped on a real fill: numba 22 to 31 times on paths, `cKDTree` 190 to 590 times on neighbours; ranked fixes with the install cost of numba, orjson, mysqlclient and astropy. |
+| [interstellar-object-rates.md](../design/systems/interstellar-object-rates.md) | Real-world rates for interstellar objects (retuned in PR #804). |
+| [star-types-by-galactic-radius.md](../design/galaxy/star-types-by-galactic-radius.md) | GEN.133: every star type's rate against distance from the core, checked against the observed Milky Way; four proposals (young and intermediate populations weighted by the star-formation profile, a lower B share, a young tail in the bulge, a metallicity gradient only if planets need it), none built or filed yet (PR #807). |
+| [compact-remnant-regions.md](../design/systems/compact-remnant-regions.md) | Research on where neutron stars and black holes are in the galaxy, behind the regional rates (GEN.132, PR #807); added in PR #804. |
+| [habitability-index.md](../design/habitability/habitability-index.md) | The habitability score structure, equipment profiles and tiers (GEN.84, PR #803). |
+| [orbital-updates.md](../design/orbits/orbital-updates.md) | The orbital update design (GEN.105 and its chain). |
+| [library-migration.md](../design/architecture/library-migration.md) | The move to third-party libraries. |
+| [reproducible-galaxies.md](../design/generation/reproducible-galaxies.md) | Seeds, version keys and the same-seed rule. |
+| [generation-determinism.md](../design/generation/generation-determinism.md) | Floating-point rules, rounding, fingerprints and CI for the same-seed guarantee (GEN.55, GEN.57, GEN.58, TEST.77, OPS.14, OPS.15, DB.7; GEN.59, GEN.61 and OPS.12 were dropped 2026-10-09). |
+| [db-check-and-parity-repair.md](../design/operations/db-check-and-parity-repair.md) | Damage check, parity file and repair, Alembic progress and locks (DB.8 to DB.15). |
+| [ops-scheduling-and-rotation.md](../design/operations/ops-scheduling-and-rotation.md) | The daily maintenance run and schedules on three systems (OPS.8, OPS.13, OPS.14, OPS.16, OPS.17, OPS.21, OPS.27); the 18-slot backup rotation (OPS.18, ADM.19, ADM.20) was dropped 2026-10-09. |
+| [sampling-backfill-and-resume.md](../design/generation/sampling-backfill-and-resume.md) | Backfill cost, sampling equivalence and resumable runs (GEN.40 to GEN.43, GEN.96 to GEN.99, GEN.102, PERF.18, PERF.29, PERF.30). |
+| [fill-order-curves-and-core.md](../design/galaxy/fill-order-curves-and-core.md) | Hilbert and other fill orders, region enumeration and the galactic core (GEN.101, ADM.29, ADM.30, GEN.97, GEN.23, GEN.24). |
+| [course-routing.md](../design/orbits/course-routing.md) | Routes, the route graph, hop lengths and nearby search (NAV.9 to NAV.12, NAV.36, NAV.39 to NAV.48). |
+| [course-avoidance.md](../design/orbits/course-avoidance.md) | Keep-out zones for courses around hazards (NAV.22, NAV.24 to NAV.28, NAV.51). |
+| [orbital-solvers-and-integrators.md](../design/orbits/orbital-solvers-and-integrators.md) | Kepler solvers, N-body integrators, thresholds and scheduling (GEN.105 to GEN.109, GEN.111, GEN.115). |
+| [galactic-potential.md](../design/galaxy/galactic-potential.md) | The galactic gravity model and its gradient for object updates (GEN.108, GEN.115, GEN.106, GEN.125). |
+| [collisions-and-mergers.md](../design/orbits/collisions-and-mergers.md) | Detecting and resolving collisions and mergers during an orbital update (GEN.109 to GEN.112). |
+| [atmospheres-retention-and-classes.md](../design/habitability/atmospheres-retention-and-classes.md) | When a planet keeps an atmosphere, the new hot- and cold-zone classes and life stage (GEN.91, GEN.92). |
+| [activity-magnetism-radiation-hydrosphere.md](../design/habitability/activity-magnetism-radiation-hydrosphere.md) | Stellar activity, magnetic fields, surface dose, water and oceans (GEN.86 to GEN.89, GEN.104). |
+| [anomalies.md](../design/systems/anomalies.md) | Anomalies and asteroid fields: classes, rates and generation rules (GEN.113, GEN.114, GEN.103, GEN.128 to GEN.130). |
+| [multistar-and-compact-systems.md](../design/systems/multistar-and-compact-systems.md) | Multi-star systems, binaries and compact-remnant systems (GEN.62, GEN.71, GEN.128 to GEN.130, GEN.103). |
+| [population-and-politics.md](../design/habitability/population-and-politics.md) | Population, politics, technology levels and facilities (POP.7 to POP.10). |
+| [api-design-standards.md](../design/operations/api-design-standards.md) | API conventions: errors, paging, versioning, keys, logging and limits (API.3 to API.19, ADM.13). |
+| [units-and-number-formatting.md](../design/architecture/units-and-number-formatting.md) | Units, unit ladders and number formatting in code and in the browser (UX.36). |
+| [map-ui-and-frontend-libraries.md](../design/interface/map-ui-and-frontend-libraries.md) | Map interface patterns and front-end library choices (UX.3, UX.40 to UX.49). |
+| [settings-seo-and-accounts.md](../design/interface/settings-seo-and-accounts.md) | Settings pages, search-engine behaviour and account design (ADM.42 to ADM.44, USR.1 to USR.8, API.6). |
+| [sky-view.md](../design/orbits/sky-view.md) | The view from a planet's surface: stars, backfill levels and cost (VIEW.1 to VIEW.4). |
+| [multiple-galaxies.md](../design/galaxy/multiple-galaxies.md) | Neighbour galaxies in the sky and several galaxies in one install (GEN.9, VIEW.2, VIEW.3). |
+| [navigation-frames.md](../design/orbits/navigation-frames.md) | Coordinate frames used for navigation and courses. |
+| [galaxy-coordinate-system.md](../design/galaxy/galaxy-coordinate-system.md) | The galaxy frame and the shell, band and wedge sector grid. |
+| [spherical-shell-sectors.md](../design/galaxy/spherical-shell-sectors.md) | Research (Boss, 2026-10-15 05:51Z): what spherical-shell sectors with a round 4 pc core would mean; recommends keeping the cylindrical grid (no TODO item unless Boss decides otherwise). |
+| [galaxy-disk-density.md](../design/galaxy/galaxy-disk-density.md) | The disk density model behind sector fill. |
+| [performance-eta-queue-and-caching.md](../design/operations/performance-eta-queue-and-caching.md) | Profiling, progress and ETA estimates, the RQ queue and cache invalidation (PERF.20, PERF.31 to PERF.34, UX.3, ADM.15). |
+| [exotic-environments-planets-and-compact-binaries.md](../design/systems/exotic-environments-planets-and-compact-binaries.md) | Planets and compact-object orbits in extreme environments: Boss's research digested for GEN.94, GEN.95, GEN.130. |
+| [globular-clusters.md](../design/galaxy/globular-clusters.md) | Globular clusters: density-component storage, King sampling, metallicity, planet culls and pulsar planets; Boss's research digested with computed checks (GEN.9, GEN.130, GEN.134). |
+| [generation-performance-study.md](../design/generation/generation-performance-study.md) | Where the scatters and the sector fill spend their time, measured on a quarter-scale galaxy: worker start-up (8 times), phenomenon row volume, the database path, word salad; ranked fixes (PERF.31, PERF.18, PERF.39). |
+| [phenomenon-scatter-mass-cut.md](../design/systems/phenomenon-scatter-mass-cut.md) | A lowest-mass cut for the GEN.100 scatter (recommended 20 solar masses: 1.17e9 rows to 2.7e5), the error it causes, how the sector fill draws below the cut, reproducibility and DB.19; traces the notes' 1.6e8 figure (DB.19, GEN.100). |
+| [zoom-star-visibility.md](../design/interface/zoom-star-visibility.md) | Why stars appear in bursts at 11 camera radii on the Galaxy Map (tile levels, caps, the 160 pc detail tiles, a time fade), measured on tile data, eleven ways to smooth it, and a rank-based fade that cuts the worst step from +883% to +59%; includes a side-by-side demo (MAP.116, MAP.147) |
+| [slow-reads-and-timeouts.md](../design/operations/slow-reads-and-timeouts.md) | Why pages hit the 10 s database limit on a big galaxy, measured on 2,000,000 systems (Sectors list 17 s, Systems offset 1.5M 12 s, map tiles 33 s) and under a fill; queue-and-hold versus keyset paging, stored counts, indexes and partial answers, page by page; eleven build items (PERF.68, PERF.69, PERF.70, PERF.71) |
+| [nebula-map-visibility.md](../design/interface/nebula-map-visibility.md) | Why nebulae cannot be seen on the Galaxy Map (field clouds are derived not stored, sub-2 px at galaxy scale, near-black dark fill, 200-per-tile cap) and a three-scale design: nebula cover as a Color by choice, fixed-grid regions that split on zoom (16 px cells, 600 budget), individual clouds; colour, wire format, picking, cost; fourteen build items split Phase 1 foundations and Phase 2 visible feature |
+| [nebula-density-vs-reality.md](../design/systems/nebula-density-vs-reality.md) | The generated nebula field against the real Milky Way (clouds, H II regions, remnants, planetary nebulae, with sources): class M about 10 times too many, the volume filled 8 to 10 times too high, remnants and hosted H II regions far too many; options measured on a 4 kpc sample; recommended keep rates (M 0.095, N 0.5, P and Q whole), what to generate versus what to draw, the effect on rows, storage and tiles, and on existing galaxies; eleven build items split Phase 1 and Phase 2 |
+| [math-and-library-efficiency.md](../design/architecture/math-and-library-efficiency.md) | Where the heavy math still runs as plain Python (sector-path integrator 1.0 ms a path, nearest-neighbour sort, one-point density calls), measured and prototyped on a real fill: numba 22 to 31 times on paths, `cKDTree` 190 to 590 times on neighbours; ranked fixes with the install cost of numba, orjson, mysqlclient and astropy. |
 
 Most of these notes are the research pass Boss asked for on 2026-10-09 (08:43Z): each gives its sources, marks numbers as seen in a search [S], computed [C] or recalled and still to verify [R], and names the TODO items it informs. The research environment could read search-result text but not the papers themselves, so every [R] needs checking once paper access is allowed.
 

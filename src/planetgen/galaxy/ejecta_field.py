@@ -13,7 +13,7 @@ and has been leaving for `T` (10 Gyr), so
 
     n(r) = N / (4 pi r^2 v T)    for r < v T, and none beyond
 
-(docs/design/intergalactic-and-halo-contents.md 5.6). Against the halo's bound neutron stars the ejecta take over
+(docs/design/galaxy/intergalactic-and-halo-contents.md 5.6). Against the halo's bound neutron stars the ejecta take over
 near 50 kpc: 1.3e-7 of a 4 pc cell at 50 kpc, 3.3e-8 at 100 kpc. They are not pre-placed (about 1e7 rows inside the
 262 kpc reach would be needed); `SectorProfile.ejecta` holds the mean count a cell draws at fill.
 

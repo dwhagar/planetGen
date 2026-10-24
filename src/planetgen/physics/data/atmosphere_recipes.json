@@ -1,7 +1,7 @@
 {
  "title": "The atmosphere possibility tables (GEN.478): 16 categories, 104 rows",
  "retrieved": "2026-10-18",
- "part": "docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md",
+ "part": "docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md",
  "version": 1,
  "categories": {
   "a": "Mantle redox (magma-ocean stage, later upper mantle)",
@@ -338,7 +338,7 @@
    "option": "Building-block redox (PARAM)",
    "gate_text": "AST, C, D, small bodies",
    "weight_text": "dIW ~ U[-1.4, 0]",
-   "source": "22 polluted white dwarf values: median -1.26, sample sd 0.45 (Doyle 2020 Table 1, Doyle 2023 Table 4, via docs/design/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the meteoritic bracket -1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
+   "source": "22 polluted white dwarf values: median -1.26, sample sd 0.45 (Doyle 2020 Table 1, Doyle 2023 Table 4, via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the meteoritic bracket -1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
    "status": "DESIGN",
    "research": [
     "R3"

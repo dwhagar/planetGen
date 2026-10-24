@@ -46,4 +46,4 @@ def test_a_script_does_not_round_or_group_a_measurement_itself(name):
     unexpected = [(method, line) for method, line in found if (name, method) not in ALLOWED]
     assert not unexpected, (
         f"{name} formats a number by hand ({unexpected}): use unitladder.js for a measurement or "
-        f"numberformat.js for a count (docs/design/units-and-number-formatting.md)")
+        f"numberformat.js for a count (docs/design/architecture/units-and-number-formatting.md)")

@@ -1,7 +1,7 @@
 # tests/test_gen_compact_orbit_laws.py
 
 """
-GEN.266: the orbit law of each pairing with a compact object, as docs/design/multi-star-systems.md 4.6 gives them.
+GEN.266: the orbit law of each pairing with a compact object, as docs/design/systems/multi-star-systems.md 4.6 gives them.
 The laws live in the member-tree generator (`planetgen/generation/multistar.py`, GEN.261); the Peters-time and
 wide-companion filters and the V404 Cygni tertiary are tested in `test_multistar.py`. This pins the rest: a black
 hole or neutron star with a star (log-uniform in period from 0.3 to 1e4 days, circular under 7 days, Roche floor),

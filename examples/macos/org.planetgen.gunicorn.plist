@@ -9,7 +9,7 @@
   examples/systemd/planetgen-gunicorn.service; see docs/deployment/macos.md.
   gunicorn loads src/html/wsgi.py directly. config.json must set
   "proxy_fix": {"x_for": 1, "x_proto": 1} so the app sees the client's
-  address and scheme, not nginx's (docs/config.md).
+  address and scheme, not nginx's (docs/reference/config.md).
 
   Install:
       sudo cp org.planetgen.gunicorn.plist /Library/LaunchDaemons/
@@ -59,7 +59,7 @@
     <key>WorkingDirectory</key>
     <string>/var/lib/planetGen</string>
 
-    <!-- Optional PLANETGEN_* overrides (docs/config.md) go in an
+    <!-- Optional PLANETGEN_* overrides (docs/reference/config.md) go in an
          EnvironmentVariables dict here; config.json is the main file. -->
 
     <key>RunAtLoad</key>

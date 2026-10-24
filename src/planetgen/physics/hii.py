@@ -3,7 +3,7 @@
 """
 H II regions from their stars' ionizing photons (GEN.150).
 
-The rules are docs/design/nebula-and-asteroid-field-classes.md, "H II radius
+The rules are docs/design/systems/nebula-and-asteroid-field-classes.md, "H II radius
 from the ionizing photon rate" and "Lifetimes by class":
 
 1. **Photons.** Each hot main-sequence star gives off `Q` photons a second

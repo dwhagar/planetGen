@@ -5,7 +5,7 @@
 Builds src/planetgen/physics/data/atmosphere_recipes.json (GEN.478)
 ===================================================================
 
-The 104 rows of part 09 of the atmosphere research (docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md)
+The 104 rows of part 09 of the atmosphere research (docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md)
 in 16 tables a to p. The words of each row (option, gate, weight, weight source, status, notes) are read from the part itself;
 the machine columns (kind, classes, conditions, weight expression, distribution, constants, corrections) are in
 `atmosphere_recipes_data.py`. The result is written for the loader `planetgen.physics.atmosphere_recipes`.
@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import atmosphere_recipes_data as data  # noqa: E402
 
 ROOT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..")
-PART = os.path.join("docs", "design", "atmosphere-composition-parts", "09-weighted-composition-tables.md")
+PART = os.path.join("docs", "design", "composition", "atmosphere-composition-parts", "09-weighted-composition-tables.md")
 OUT = os.path.join(ROOT, "src", "planetgen", "physics", "data", "atmosphere_recipes.json")
 
 CATEGORIES = {}

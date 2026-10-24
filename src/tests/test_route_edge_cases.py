@@ -3,7 +3,7 @@
 """
 Route edge cases (TEST.79), written before NAV.12 from the hop-length
 study (2026-10-02, `nav-hop-length/report.md` in the project's shared
-files; design in docs/design/course-routing.md).
+files; design in docs/design/orbits/course-routing.md).
 
 The cases: an isolated system; empty and unfilled sectors between the
 endpoints; the galaxy edge and the halo (a lone system 2 kpc above the

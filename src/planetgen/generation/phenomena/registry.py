@@ -104,7 +104,7 @@ _S = "planetgen.generation.run_sector:"
 KINDS = (
     Kind("star-system", "star", "built", None, "stellar density", "fill", None, False,
          "planetgen.generation.system:StarSystem", "star-like", (), None, None, None, None,
-         "The ordinary system every star gets; docs/design/phenomena-catalogue-and-fill.md 4.1."),
+         "The ordinary system every star gets; docs/design/systems/phenomena-catalogue-and-fill.md 4.1."),
     Kind("bright-star", "star", "built", None, "stellar density", "scatter", "bright-star", False,
          _S + "_add_preplaced_systems", "star-like", (), 9, None, None, None,
          "The bright and massive stars placed by the bright-star scatter (bright_stars.py)."),

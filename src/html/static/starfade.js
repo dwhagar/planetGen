@@ -17,7 +17,7 @@
 // listed in both stays whole, one listed in one comes in or goes out smoothly.
 // The finest tile of the cut has nothing finer to give way to (L = 1 there). The
 // finest "detail" tiles round the target fade by distance alone, whole within
-// DETAIL_FULL_PC and gone at DETAIL_GONE_PC. docs/design/fly-through-view-distance.md
+// DETAIL_FULL_PC and gone at DETAIL_GONE_PC. docs/design/interface/fly-through-view-distance.md
 // sections 4.5 and 4.7.
 //
 // A star's `fade` is its tile: `{ parts: [level, ix, iy, iz], detail }`, or

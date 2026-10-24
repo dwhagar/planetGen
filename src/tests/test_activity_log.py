@@ -18,7 +18,7 @@ LINE = re.compile(
     r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ planetgen\[\d+\]: (?P<cat>[A-Z]+) (?P<action>\S+) '
     r'ip=(?P<ip>\S+) user="(?P<user>(?:[^"\\]|\\.)*)"(?P<rest>.*)$'
 )
-"""The documented line shape (docs/config.md)."""
+"""The documented line shape (docs/reference/config.md)."""
 
 FAIL2BAN = re.compile(r'^\s*planetgen\[\d+\]: AUTH (?:login\.failed|login\.locked|password\.failed) '
                       r'ip=(?P<host>[0-9a-fA-F.:]+)(?:\s|$)')

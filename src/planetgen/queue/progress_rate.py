@@ -40,7 +40,7 @@ finished and this long has passed (a first unit finishing says little)."""
 ETA_LOW_FACTOR = 0.88
 ETA_HIGH_FACTOR = 1.15
 """Where the middle 80% of estimates lie, in times the true time left
-(docs/design/performance-eta-queue-and-caching.md 2.3)."""
+(docs/design/operations/performance-eta-queue-and-caching.md 2.3)."""
 
 STALL_FLOOR_SECONDS = 60.0
 """float: No unit finishing for at least this long (and 3 times the longest

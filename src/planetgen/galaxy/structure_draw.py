@@ -1,8 +1,8 @@
 # planetgen/galaxy/structure_draw.py
 
 """
-The structure of a spiral galaxy drawn from its seed (GEN.532, GEN.533; docs/design/galaxy-laws-research.md Q1, Q3,
-Q5 and docs/design/gap-filling-plan.md 4.3, 4.4, 4.9, 4.11), the part of the shape that is not a stored column
+The structure of a spiral galaxy drawn from its seed (GEN.532, GEN.533; docs/design/galaxy/galaxy-laws-research.md Q1, Q3,
+Q5 and docs/design/research/gap-filling-plan.md 4.3, 4.4, 4.9, 4.11), the part of the shape that is not a stored column
 (`galaxy.structure`). The same seed gives the same structure; each link draws from `unit_seed(galaxy_seed,
 "structure", <link>)` through the one random wrapper (`planetgen.util.draw.Stream`), so the draws neither depend on
 each other nor on the order they run in.
@@ -36,7 +36,7 @@ each other nor on the order they run in.
    and the bulge's scatter 0.097 dex about `Vc / sigma_0 = 2 (1 - B/T)` (Courteau 2007).
 5. **Black holes** (GEN.563; `draw_black_hole_shares`): the shares of the massive stars that fail to explode at solar and at
    zero metallicity, which `galaxy.remnant_density` turns into a rate per star at a place.
-6. **Bar** (GEN.533; sources and conflicts in `docs/design/gen533-bar-sources.md`): whether the galaxy has a bar, the
+6. **Bar** (GEN.533; sources and conflicts in `docs/design/galaxy/gen533-bar-sources.md`): whether the galaxy has a bar, the
    bar's (or an unbarred bulge's) axis ratios and the bar's angle; see `draw_bar`.
 7. **Nuclear disc** (GEN.628): the barred galaxy's disc mass from its stellar mass, the centre log-uniform between the
    two fits of Gadotti and de Sa-Freitas 2025 (arXiv:2509.14319, Eqs. 1 and 2), scattered by a placeholder 0.3 dex;

@@ -1,7 +1,7 @@
 {
  "title": "Photolysis lifetimes at 1 AU of the species a comet or an atmosphere loses to the stellar far ultraviolet",
  "basis": "Optically thin, unshielded, 1 AU from the quiet Sun. beta = 1/lifetime_s is photodissociation plus photoionisation; beta_diss and beta_ion are Heays 2017 (Leiden database) rates times 37692 for the quiet-period solar field. ratio_4000k and ratio_10000k are the dissociation rate around a 4000 K and a 10000 K blackbody divided by the solar rate at equal 91.2 to 200 nm flux (Heays 2017 Table 18, COMPUTED); the Sun is 1.",
- "source": "docs/design/body-composition-parts/G1-comets.md sections G1.2, 2.1 and 2.2; docs/design/atmosphere-composition.md (NH3 settled value)",
+ "source": "docs/design/composition/body-composition-parts/G1-comets.md sections G1.2, 2.1 and 2.2; docs/design/composition/atmosphere-composition.md (NH3 settled value)",
  "species": {
   "H2O": {
    "lifetime_s": 82900.0,

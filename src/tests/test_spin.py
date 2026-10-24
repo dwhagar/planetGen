@@ -1,6 +1,6 @@
 """
 Spin vectors and axial tilts (GEN.104, `planetgen.physics.spin`): the
-draws follow docs/design/orbital-updates.md section 6, and every generated
+draws follow docs/design/orbits/orbital-updates.md section 6, and every generated
 star, planet, moon, comet, remnant, rogue planet and interstellar comet
 carries a unit spin axis whose angle from its reference normal is its tilt.
 """

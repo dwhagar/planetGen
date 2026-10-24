@@ -1453,7 +1453,7 @@ def build_parser():
         'fingerprint',
         description="Prints a canonical SHA-256 digest of each sector's generated content, and one for the "
                     "region (the whole galaxy, plan included, without --shell or --sector), skipping row ids, "
-                    "timestamps and what is rebuilt from positions (docs/design/reproducible-galaxies.md). "
+                    "timestamps and what is rebuilt from positions (docs/design/generation/reproducible-galaxies.md). "
                     "Two builds of one galaxy are the same when their digests match. Writes nothing.",
         help="Print a digest of the generated content, to compare two builds.")
     add_fingerprint_arguments(fingerprint_parser)

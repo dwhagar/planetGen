@@ -190,7 +190,7 @@ ABSOLUTE_WITH_A_PARENT = {
                   "state; no 8.1 item stores a position for one",
 }
 """dict: Table -> why a table with a parent link stores an absolute position. The rule (TEST.241, section 5 point 3 of
-docs/design/unified-system-barycentre.md): nothing inside a system stores an absolute sector or galactic position; it
+docs/design/architecture/unified-system-barycentre.md): nothing inside a system stores an absolute sector or galactic position; it
 stores the state parent-relative (about the parent's central object, in the galactic axes, with its epoch), and the
 barycentre is the system's row point. A new entry needs a reason and a way out."""
 

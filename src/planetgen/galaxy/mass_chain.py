@@ -1,7 +1,7 @@
 # planetgen/galaxy/mass_chain.py
 
 """
-The galaxy's mass chain (GEN.400; docs/design/intergalactic-and-halo-contents.md, section 5.13, rows 1 to 3).
+The galaxy's mass chain (GEN.400; docs/design/galaxy/intergalactic-and-halo-contents.md, section 5.13, rows 1 to 3).
 
 One root draw and two links, all from the galaxy seed, with no Milky Way value anywhere:
 

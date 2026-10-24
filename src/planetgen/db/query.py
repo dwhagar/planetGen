@@ -539,7 +539,7 @@ def _keyset_condition(columns, values, descending, id_column, after_id):
     holds the id as its last part) serves the page and the sort needs no filesort.
 
     Written with `OR` and `AND`, never as a row constructor: `(a, b, id) > (?, ?, ?)` took 5.0 s on MariaDB 10.11
-    with no index range, the same condition spelled out 2 ms (docs/design/slow-reads-and-timeouts.md).
+    with no index range, the same condition spelled out 2 ms (docs/design/operations/slow-reads-and-timeouts.md).
 
     Args:
         columns (list[str]): The sort columns, in order, all sorted the same way.
@@ -1171,7 +1171,7 @@ def _hop_course(hop, places, galaxy_frame, local_positions):
     """
     NAV.42: the course from one stop of a route to the next, in the frame NAV uses for that pair -- the Sector
     Local Frame when both stops are systems of one sector, the Galactic Frame otherwise
-    (docs/design/navigation-frames.md).
+    (docs/design/orbits/navigation-frames.md).
 
     Returns:
         dict: `bearing_deg`, `mark_deg`, `elevation_deg` and `frame`.
@@ -1216,7 +1216,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     via adjacent systems (`planetgen.galaxy.nav_graph`), or raises if NAV
     doesn't apply to this pair.
 
-    NAV availability rules (see docs/api.md's NAV section for the
+    NAV availability rules (see docs/reference/api.md's NAV section for the
     user-facing statement of these):
         - Both endpoints are systems in the SAME sector -> available,
           scoped to that sector's own systems (sector-local positions) --
@@ -1419,7 +1419,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
 
 NAV_DEFAULT_HELIOPAUSE_AU = 120.0
 """float: The heliopause used for a system that stores none (Boss's text
-in `docs/design/navigation-frames.md`)."""
+in `docs/design/orbits/navigation-frames.md`)."""
 
 NAV_IN_SYSTEM_NOTE = (
     "Travel times use the same warp and fold tables as courses between systems; "
@@ -5105,7 +5105,7 @@ def galaxy_edge_pc(conn):
 def galaxy_stage(conn, at=None):
     """
     One drill-down stage's generated counts (the Galaxy Map drill-down,
-    docs/design/spherical-block-ladder.md section 4): how many generated
+    docs/design/galaxy/spherical-block-ladder.md section 4): how many generated
     sectors each child block of `at` holds. Totals (allowed sectors) are the
     page's own math, so only generated counts come from here, and children
     with none are left out.

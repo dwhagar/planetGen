@@ -1,7 +1,7 @@
 # planetgen/physics/remnant_progenitors.py
 
 """
-Which massive stars leave a black hole and which a neutron star (GEN.554; docs/design/explosion-islands.md)
+Which massive stars leave a black hole and which a neutron star (GEN.554; docs/design/systems/explosion-islands.md)
 ===========================================================================================================
 
 Every star born with 8 to 150 solar masses (`tuning.CORE_COLLAPSE_MASS_RANGE_SOL`) ends as one or the other, and which

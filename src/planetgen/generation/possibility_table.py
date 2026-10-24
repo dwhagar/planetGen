@@ -8,7 +8,7 @@ Every composition category (the gases of an atmosphere, the materials of a body,
 origin of a moon) is a table of possibilities. A row names one possibility, the classes it supports, a weight, where the
 weight comes from. A body's composition is drawn by taking the rows whose gate passes the
 body, evaluating their weights, normalising to 100 percent and picking one. The format and the draw are written up in
-docs/design/composition-model.md section 4b; this module is the one loader every table uses.
+docs/design/composition/composition-model.md section 4b; this module is the one loader every table uses.
 
 The draw, in order:
 

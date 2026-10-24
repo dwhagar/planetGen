@@ -3,7 +3,7 @@
 """
 A cache of the API's public read responses, so the pages don't query the database on every
 request (PERF.2), shared by every web process and the warm-up through Redis (PERF.104;
-docs/design/cache-warm-up.md).
+docs/design/operations/cache-warm-up.md).
 
 Every page reads through `apiclient`'s plain GET wrappers (`get_sector`, `get_system`,
 `get_phenomena`, ...), which send no cookie, so their answers are the same for every visitor and

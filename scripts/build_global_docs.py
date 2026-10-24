@@ -9,8 +9,8 @@ after each batch of merges and the release stamp checks it.
 
 The global documents are:
 
-* `docs/design/architecture-map.html` (`scripts/build_architecture_map.py`): lists every module of the package;
-* `docs/plan/*.html` (`scripts/build_todo_docs.py`): the plan pages, from `docs/TODO.md` and the notes beside it;
+* `docs/generated/architecture-map.html` (`scripts/build_architecture_map.py`): lists every module of the package;
+* `docs/generated/*.html` (`scripts/build_todo_docs.py`; the five plan pages): the plan pages, from `docs/TODO.md` and the notes beside it;
 * `docs/index.html` (`scripts/build_docs_index.py`): every HTML page under `docs/` with its description, so it is
   built last.
 
@@ -33,8 +33,8 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SCRIPTS = os.path.join(ROOT, "scripts")
 
 GENERATORS = (
-    ("docs/design/architecture-map.html", "build_architecture_map"),
-    ("docs/plan/*.html", "build_todo_docs"),
+    ("docs/generated/architecture-map.html", "build_architecture_map"),
+    ("docs/generated/*.html", "build_todo_docs"),
     ("docs/index.html", "build_docs_index"),
 )
 """tuple: `(what it writes, script under scripts/)` in the order they run: the index last, as it lists the others."""

@@ -145,7 +145,7 @@ def print_initial_admin_login(username, password):
     print(f"    username: {username}")
     print(f"    password: {password}")
     print("Log in at /login now and change both; the admin pages stay locked")
-    print("until you do. If you lose this password, see docs/api.md")
+    print("until you do. If you lose this password, see docs/reference/api.md")
     print("(\"Resetting the admin login\").")
     print("=" * 72)
     print()

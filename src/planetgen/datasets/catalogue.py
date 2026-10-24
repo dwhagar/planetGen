@@ -6,7 +6,7 @@ every file, the citation and the stand-in it replaced (named in the message when
 here holds its dataset and the functions that read it: the MIST main sequence (`isochrones`), the white-dwarf cooling
 sequences with their layers (`white_dwarf_models`) and the neutron-star equations of state with the outer-crust
 compositions (`neutron_star_matter`). The data of the atmosphere group (AD1 to AD8) is added the same way, each by the
-item that reads it; every entry needs its verified source (docs/design/gap-filling-plan.md 6.5) and a stand-in row
+item that reads it; every entry needs its verified source (docs/design/research/gap-filling-plan.md 6.5) and a stand-in row
 (section 6.6). The generator requires every dataset here (GEN.590): `missing` is the check bulk generation starts with.
 """
 

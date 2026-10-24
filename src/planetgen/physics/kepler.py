@@ -9,7 +9,7 @@ Two-body Kepler/Barker-equation propagation for eccentric (elliptical,
 alternative to `orbits.orbital_position_au`'s uniform-angular-speed
 circular-orbit model, needed for any body whose orbit isn't nearly
 circular. `cometData.Comet` is the motivating case here (see
-docs/design/comet-orbital-realism.md): a Halley-like bound comet reaches
+docs/design/systems/comet-orbital-realism.md): a Halley-like bound comet reaches
 eccentricities around 0.97, and a single-apparition long-period comet is,
 for practical purposes, parabolic. `physics/planets.py`'s planets/moons
 stay on the existing circular-orbit model (`orbital_phase_deg` advancing
@@ -387,7 +387,7 @@ def wrapped_turn_deg(elapsed, period):
 STUMPFF_SERIES_LIMIT = 1.0
 """float: `stumpff_c2_c3` sums its series below this `abs(z)`. The closed forms keep 13 digits at `abs(z)` = 1e-3 (the
 `sin` and `cosh` differences cancel; a hyperbolic `c3` is off by 4e-13 there) and all 16 only from about `abs(z)` = 1
-(GEN.140, docs/design/orbital-solvers-and-integrators.md section 7)."""
+(GEN.140, docs/design/orbits/orbital-solvers-and-integrators.md section 7)."""
 
 STUMPFF_SERIES_TERMS = 10
 """int: Terms of each series: the next is below 1e-21 of `c2` at `abs(z) < 1`."""
@@ -425,7 +425,7 @@ def universal_step(position, velocity, mu, dt):
     """
     Moves a two-body state `dt` forward (or back, for negative `dt`) on
     its conic, whatever the conic: the universal-variable form of Kepler's
-    equation (docs/design/orbital-updates.md section 10.6, with the
+    equation (docs/design/orbits/orbital-updates.md section 10.6, with the
     document's double-counted term corrected), the GEN.108 guard for
     near-parabolic orbits, where the elliptical and hyperbolic forms both
     lose precision, and for steps of any length (a whole number of orbits

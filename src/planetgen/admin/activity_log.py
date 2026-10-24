@@ -23,7 +23,7 @@ planetgen.log` on Linux, `/Library/Logs/planetgen/planetgen.log` on
 macOS;
 `config.json`'s `"log_dir"` or `PLANETGEN_LOG_DIR` moves it.
 
-Every line has the same shape, documented in `docs/config.md`, so tools
+Every line has the same shape, documented in `docs/reference/config.md`, so tools
 can match it::
 
     2026-10-01T08:00:00Z planetgen[1234]: AUTH login.failed ip=203.0.113.5 user="admin"

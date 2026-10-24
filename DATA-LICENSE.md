@@ -14,7 +14,7 @@ The keys are the source keys of the file.
 
 | Source key | Source | Terms known |
 |---|---|---|
-| `research-e` | Part E of the body composition research (this repository, `docs/design/body-composition-parts/`) | The project's own text; its values are read from the sources below |
+| `research-e` | Part E of the body composition research (this repository, `docs/design/composition/body-composition-parts/`) | The project's own text; its values are read from the sources below |
 | `nist-webbook` | NIST Chemistry WebBook phase-change and critical data | NIST Standard Reference Data are copyrighted by the Secretary of Commerce; no permission was sought |
 | `crc-chemicals` | CRC Handbook tables as carried in the `chemicals` 1.5.2 package | Copyright of the handbook's publisher; the package's own licence is open source; read second-hand |
 | `pdg-nuclear` | Particle Data Group atomic and nuclear properties | PDG data are free to use with citation |

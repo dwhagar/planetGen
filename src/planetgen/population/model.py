@@ -7,7 +7,7 @@ Population and politics (POP.1 to POP.4, schema v44)
 Names the species of every world with a technological civilization
 (GEN.80; worlds with simpler life get none), dates each one and places it in an era, founds a polity for every
 spacefaring species, and splits the generated systems around them into
-territories. See `docs/design/population-and-politics.md`.
+territories. See `docs/design/habitability/population-and-politics.md`.
 
 Everything here works from what is already stored -- the planets'
 evolutionary paragraphs (`evolution.get_evolutionary_timeline`) and the

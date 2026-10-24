@@ -1,7 +1,7 @@
 # tests/test_black_hole_density.py
 
 """
-GEN.563: the stellar-mass black holes follow the stars' metallicity (docs/design/black-hole-density.md). A galaxy draws
+GEN.563: the stellar-mass black holes follow the stars' metallicity (docs/design/systems/black-hole-density.md). A galaxy draws
 the share of its massive stars that fail to explode at solar and at zero metallicity (cut at the neutron star budget),
 the share falls as the metals rise, a place's black holes per star are the populations' share of it, and every scatter
 class draws from a stream of its own.

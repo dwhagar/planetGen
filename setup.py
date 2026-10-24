@@ -97,7 +97,7 @@ setup(
         # (TimeElapsedColumn/TimeRemainingColumn; see _generation_progress
         # in planetgen/generation/run_common.py).
         'rich>=13.7.0',
-        # The library migration (OPS.20, docs/design/library-migration.md):
+        # The library migration (OPS.20, docs/design/architecture/library-migration.md):
         # pinned here first (OPS.21) so each swap PR only changes code.
         # The work queue and web jobs on Redis (PERF.24), and Redis as
         # Flask-Limiter's storage (SEC.30).
@@ -134,7 +134,7 @@ setup(
                  # tests/test_fuzz_*.py (property-based brute-force tests;
                  # see tests/fuzz_support.py).
                  'hypothesis>=6.100.0',
-                 # `pytest -n auto` (docs/testing.md); the suite still
+                 # `pytest -n auto` (docs/reference/testing.md); the suite still
                  # runs serially without it.
                  'pytest-xdist>=3.5.0',
                  'pytest-timeout>=2.3.1',

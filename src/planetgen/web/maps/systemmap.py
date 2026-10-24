@@ -10,7 +10,7 @@ its own anchor that's log-scaled into a shared pixel budget the whole
 scene uses (`_radial_scale_bounds`/`_radial_px`) -- a log scale is what
 lets one diagram span both a close binary's ~0.05-0.3 AU separation and an
 outer planet's tens-of-AU orbit without either collapsing to a point or
-blowing out the frame, the same reasoning `docs/design/
+blowing out the frame, the same reasoning `docs/design/galaxy/
 galaxy-coordinate-system.md` gives for using parsecs (not km/ly) one scale
 level up. A once-only pass of `_relax_markers` then nudges apart any two
 markers real angle happened to place too close together (the exact,

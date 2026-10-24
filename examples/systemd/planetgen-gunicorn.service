@@ -7,7 +7,7 @@
 #
 # gunicorn loads src/html/wsgi.py directly, the file mod_wsgi loads.
 # config.json must set "proxy_fix": {"x_for": 1, "x_proto": 1} so the app
-# sees the client's address and scheme, not the proxy's (docs/config.md).
+# sees the client's address and scheme, not the proxy's (docs/reference/config.md).
 # See docs/deployment/nginx.md.
 #
 # Install:
@@ -44,7 +44,7 @@ User=www-data
 Group=www-data
 WorkingDirectory=/var/lib/planetGen
 # config.json at the repo root is the main configuration. Optional
-# per-process overrides (PLANETGEN_* variables, see docs/config.md) go in
+# per-process overrides (PLANETGEN_* variables, see docs/reference/config.md) go in
 # this file, mode 640 root:www-data. The leading "-" makes it optional.
 EnvironmentFile=-/etc/planetgen/web.env
 
@@ -56,7 +56,7 @@ RuntimeDirectoryMode=0750
 # limits and login lockouts count on the Redis server in redis.url
 # (ratelimit.storage_uri empty, the default), so they stay correct with
 # more than one worker; "memory://" counts per process and is right only
-# with exactly one (docs/api.md, "Rate limiting").
+# with exactly one (docs/reference/api.md, "Rate limiting").
 #
 # --timeout is gunicorn's worker heartbeat, not a per-request limit: with
 # threads, one slow request does not trip it. The per-request limit is

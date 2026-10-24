@@ -1,8 +1,8 @@
 # examples/apache/planetgen.conf.example
 #
 # Example Apache2 virtual host for the planetGen web interface
-# (docs/html-interface.md documents the application itself) and the JSON
-# API (docs/api.md). One Flask app (html/wsgi.py) serves both; Apache
+# (docs/reference/html-interface.md documents the application itself) and the JSON
+# API (docs/reference/api.md). One Flask app (html/wsgi.py) serves both; Apache
 # serves only static/ itself. Copy this file to
 # /etc/apache2/sites-available/planetgen.conf, edit ServerName/logging as
 # needed, then enable it:
@@ -30,7 +30,7 @@
 #                   package without a separate `pip install`
 #
 # The database itself is a MySQL server (TODO.md Phase 5). The app reads
-# its settings from config.json (docs/config.md) or PLANETGEN_* variables
+# its settings from config.json (docs/reference/config.md) or PLANETGEN_* variables
 # in Apache's own process environment -- see the NOTE below.
 #
 # WSGIScriptAlias below mounts html/wsgi.py's `application` at / -- the
@@ -68,7 +68,7 @@
     </IfModule>
 
     # Settings (MySQL server/account, control schema, tile cache, ...)
-    # come from config.json (docs/config.md) or PLANETGEN_* variables in
+    # come from config.json (docs/reference/config.md) or PLANETGEN_* variables in
     # Apache's own process environment (e.g. /etc/apache2/envvars, or an
     # `Environment=` line on the apache2 systemd unit). NOT SetEnv:
     # mod_wsgi only exposes SetEnv values through the per-request WSGI

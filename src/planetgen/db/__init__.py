@@ -14,6 +14,6 @@ unknown space), `sector_paths.py` (saved paths through a sector),
 too big for a request), `species_fit.py` (which species could live where)
 and `stats.py` (statistics for the admin page); `render.py` renders a
 stored system's text and `edits.py` writes an admin's edits back. `check.py`
-is the database check, `fingerprint.py` a galaxy's digest. `docs/database-schema.md`
+is the database check, `fingerprint.py` a galaxy's digest. `docs/reference/database-schema.md`
 describes the tables.
 """

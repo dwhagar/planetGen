@@ -1,7 +1,7 @@
 // html/static/galaxystages.js
 //
-// The Galaxy Map's stages (docs/design/galaxy-drilldown-navigation.md, as
-// MAP.150 and MAP.151 changed it; docs/design/spherical-block-ladder.md for
+// The Galaxy Map's stages (docs/design/interface/galaxy-drilldown-navigation.md, as
+// MAP.150 and MAP.151 changed it; docs/design/galaxy/spherical-block-ladder.md for
 // the shell grid), without any drawing: which blocks a stage holds and how
 // many sectors each can hold, stage URLs, the breadcrumb, labels, and the
 // camera path of a flight into a block. galaxymap3d.js draws and drives them.

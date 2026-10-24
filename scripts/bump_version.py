@@ -45,7 +45,7 @@ for each category added up"):
   change"): every note takes the previous BUILD plus one, so it changes on
   every stamp and never resets, not on a revision or a major bump either.
   It no longer comes from the TODO counters; the "Next free IDs" table in
-  `docs/design/todo-number-map.md` only allocates TODO IDs, and `--check-pr`
+  `docs/plan/todo-number-map.md` only allocates TODO IDs, and `--check-pr`
   still insists that `docs/TODO.md` stays below it.
 
 The generator epoch (OPS.56)
@@ -77,7 +77,7 @@ README_FILE = "README.md"
 CHANGELOG_FILE = "CHANGELOG.md"
 CHANGES_DIR = "changes"
 TODO_FILE = os.path.join("docs", "TODO.md")
-TODO_MAP_FILE = os.path.join("docs", "design", "todo-number-map.md")
+TODO_MAP_FILE = os.path.join("docs", "plan", "todo-number-map.md")
 GOLDEN_DIR = os.path.join("src", "tests", "golden")
 EPOCHS_FILE = os.path.join(GOLDEN_DIR, "epochs.json")
 GENERATION_OUTPUT_RE = re.compile(r"^generation-output: changed[ \t]*$", re.M)
@@ -178,7 +178,7 @@ def next_version(version, level):
 def todo_counters(root):
     """
     Each TODO category's counter (the highest ID issued in it), from the
-    "Next free IDs" table in `docs/design/todo-number-map.md`.
+    "Next free IDs" table in `docs/plan/todo-number-map.md`.
 
     Returns:
         dict or None: `{category: counter}`, or None when the checkout has

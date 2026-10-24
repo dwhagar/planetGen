@@ -14,7 +14,7 @@ frame, and naming that frame's center, before calling in here.
 
 Course convention (nested reference frames)
 --------------------------------------------
-Boss's design, `docs/design/navigation-frames.md`. A course reads
+Boss's design, `docs/design/orbits/navigation-frames.md`. A course reads
 "bearing mark mark", both 000-359, where North (bearing 000) points from
 the ship toward the current frame's center, flattened onto the frame's
 reference plane:

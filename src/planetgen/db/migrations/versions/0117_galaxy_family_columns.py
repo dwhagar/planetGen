@@ -3,7 +3,7 @@
 Schema v117. `galaxy_shape` gains `family` (`spiral`, `lenticular`, `elliptical`, `irregular` or `dwarf_spheroid`) and the
 columns of the components a family may have that a spiral does not draw today: the bar's axes and angle, the thick disk's
 amplitude, the Sersic spheroid (amplitude, index, effective radius, two axis ratios, three orientation angles) and the
-irregular family's young clump share (docs/design/galaxy-types.md section 10). Every existing galaxy becomes a `spiral`
+irregular family's young clump share (docs/design/galaxy/galaxy-types.md section 10). Every existing galaxy becomes a `spiral`
 with no spheroid and no clump share, which changes no stored density. The bar and the thick disk of an existing galaxy
 stay NULL, meaning "as the structure draw gives them from the seed", because they were never stored; a later family stores
 its own, and an amplitude of 0 removes a component exactly. Nothing reads the columns yet (GEN.379 does). One statement

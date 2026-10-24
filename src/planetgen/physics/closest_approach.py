@@ -1,7 +1,7 @@
 # planetgen/physics/closest_approach.py
 
 """
-The pair closest-approach library (GEN.334; docs/design/collisions-and-mergers.md section 5)
+The pair closest-approach library (GEN.334; docs/design/orbits/collisions-and-mergers.md section 5)
 ============================================================================================
 
 One question, asked of any two paths: do they come within `R` of each other in this window? For `R = R1 + R2` it is a

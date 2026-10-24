@@ -1,9 +1,9 @@
 """The TODO pages in docs/plan/ match their sources.
 
-`scripts/build_todo_docs.py` builds docs/plan/version-plan.html,
-docs/plan/todo-reference.html, docs/plan/todo-tree.html and
-docs/plan/release-roadmap.html from docs/TODO.md, the version files, the
-plan notes and the number map; docs/plan/execution-plan.html (DOC.68) comes from the same data plus
+`scripts/build_todo_docs.py` builds docs/generated/version-plan.html,
+docs/generated/todo-reference.html, docs/generated/todo-tree.html and
+docs/generated/release-roadmap.html from docs/TODO.md, the version files, the
+plan notes and the number map; docs/generated/execution-plan.html (DOC.68) comes from the same data plus
 docs/plan/lanes.md, docs/plan/execution-notes.md and the history snippet. Boss (2026-10-07) asked for them to be rebuilt
 with every TODO.md change, so a change that forgets the rebuild fails here
 with the command to run. Boss (2026-10-16) turned the tiers into a version

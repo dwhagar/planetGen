@@ -5,7 +5,7 @@ How deep a cell is resolved (GEN.281)
 =====================================
 
 A cell that expects more systems than the **cell star ceiling** is filled only with the stars at or above the **fill
-luminosity cap**; the rest of it is *unresolved* (docs/design/realistic-galactic-core.md section 4.2). Both are
+luminosity cap**; the rest of it is *unresolved* (docs/design/galaxy/realistic-galactic-core.md section 4.2). Both are
 settings of the galaxy (`store.GalaxySkeletonInfo.cell_star_ceiling` and `fill_luminosity_cap_sol`). Ordinary space
 never reaches the ceiling, so it is untouched.
 

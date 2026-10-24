@@ -8,8 +8,8 @@ any object the fill creates). One function, `draw_member_tree`, with two call
 sites: the scatter passes and the fill. It draws the members and their orbits
 only: planets, moons and belts stay at sector fill.
 
-The laws and numbers are in docs/design/multi-star-systems.md (sections 4, 6
-and 13) and docs/design/multistar-and-compact-systems.md (sections 3, 4, 5
+The laws and numbers are in docs/design/systems/multi-star-systems.md (sections 4, 6
+and 13) and docs/design/systems/multistar-and-compact-systems.md (sections 3, 4, 5
 and 7); the stability criteria, the Kozai-Lidov screen and the Peters time are
 `planetgen.physics.stability`. In short:
 

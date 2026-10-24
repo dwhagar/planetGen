@@ -211,7 +211,7 @@ def test_panel_json_payload_has_every_field_the_client_reads():
     assert data["hasShape"] is True
     for field in ("tileRootEdgePc", "tileMaxLevel", "fetchRadiusFactor", "maxTilesPerRequest"):
         assert field in data
-    # The block ladder fixes block sizes (docs/design/spherical-block-ladder.md): nothing to tune per view.
+    # The block ladder fixes block sizes (docs/design/galaxy/spherical-block-ladder.md): nothing to tune per view.
     assert "blockMinPx" not in data and "blockBudget" not in data and "galaxyEdgePc" not in data
     assert data["edgePc"] == pytest.approx(EDGE_PC)
     assert data["edgeLy"] > 0

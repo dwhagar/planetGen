@@ -1,7 +1,7 @@
 # planetgen/galaxy/component_field.py
 
 """
-The components' density in the sector gate (GEN.160, GEN.237; docs/design/globular-clusters.md sections 3 and 4).
+The components' density in the sector gate (GEN.160, GEN.237; docs/design/galaxy/globular-clusters.md sections 3 and 4).
 
 A `ComponentField` holds a galaxy's components (`galaxy.components.Component`, the `galaxy_components` table): its
 globular clusters (a King profile each) and its satellite galaxies (an exponential or Plummer profile each; the

@@ -1,7 +1,7 @@
 # planetgen/physics/atmosphere_recipes.py
 
 """
-The atmosphere possibility tables (GEN.478, docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md)
+The atmosphere possibility tables (GEN.478, docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md)
 ========================================================================================================================
 
 The recipes of every atmosphere, cloud, trace gas, ground radioisotope and host-star UV regime as gated rows in the format of
@@ -81,7 +81,7 @@ OBJECT_CLASSES = ("asteroid", "comet", "brown-dwarf")
 """tuple: The classes besides the planet letters a row's gate may name."""
 
 PLANNED_CLASSES = ("R", "U", "W", "X", "Y", "Z")
-"""tuple: The letters part 09 gates on that are planned and not yet in `tuning.PLANET_CLASSES` (docs/design/atmospheres-retention-and-classes.md)."""
+"""tuple: The letters part 09 gates on that are planned and not yet in `tuning.PLANET_CLASSES` (docs/design/habitability/atmospheres-retention-and-classes.md)."""
 
 KINDS = ("option", "binary", "param", "bins", "derived", "flag", "windows", "choice")
 

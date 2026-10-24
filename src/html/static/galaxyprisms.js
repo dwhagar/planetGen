@@ -2,7 +2,7 @@
 //
 // The 3D Galaxy Map's sector grid and predicted-density shading
 // (galaxymap3d.js), on the spherical shell grid the generator cuts space
-// into (planetgen/galaxy/spherical.py, docs/design/spherical-sector-
+// into (planetgen/galaxy/spherical.py, docs/design/galaxy/spherical-sector-
 // coordinates.md). A cell is named (shell, band, wedge): a shell is a
 // spherical skin one sector edge deep around the galactic origin (shell 0
 // the core ball), a band a latitude ring of the shell, a wedge one of the
@@ -508,7 +508,7 @@ export function cellExists(shell, band, wedge) {
 
 // --- Drill-down ladder ------------------------------------------------------
 //
-// The drill-down's nested blocks (docs/design/spherical-block-ladder.md):
+// The drill-down's nested blocks (docs/design/galaxy/spherical-block-ladder.md):
 // 243, 81, 27, 9 and 3 shells deep and a sector (1), each block wholly inside
 // one block of the next size up by counts. A block is {m, shell, band, wedge}:
 // block shell `shell` holds the sector shells shell*m .. shell*m + m - 1 (its

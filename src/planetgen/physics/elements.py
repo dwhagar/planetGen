@@ -1,7 +1,7 @@
 # planetgen/physics/elements.py
 
 """
-The elements and their isotopes (GEN.438, docs/design/composition-model.md section 7.1 step 1)
+The elements and their isotopes (GEN.438, docs/design/composition/composition-model.md section 7.1 step 1)
 ================================================================================================
 
 The one table of atomic data the gas, materials and stellar tables take their molar masses from, and the one set of

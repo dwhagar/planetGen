@@ -1,8 +1,8 @@
 # planetgen/queue/commands.py
 
 """
-Commands, and the step list the wrapper builds from a request (PERF.118, docs/design/redis-and-the-work-queue.md
-5.12 and docs/design/command-inventory.md).
+Commands, and the step list the wrapper builds from a request (PERF.118, docs/design/operations/redis-and-the-work-queue.md
+5.12 and docs/design/architecture/command-inventory.md).
 
 **A command is a kind in `REGISTRY`.** It does one thing and nothing else: it does not know what ran before it, what
 runs after it or where it sits in the order. A command with a `unit` is queued as a stage of units; one with an

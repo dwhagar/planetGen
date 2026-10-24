@@ -7,7 +7,7 @@ Spin and axial tilt (GEN.104)
 Every rotating body's spin: a unit axis (the direction of its angular
 velocity, right-handed) and a rate (its rotation period), so the spin
 vector is `axis * 2 pi / period`. Drawn by the cascade in "Observational
-Kinetics for Rotational Vectors.md" (docs/design/orbital-updates.md
+Kinetics for Rotational Vectors.md" (docs/design/orbits/orbital-updates.md
 section 6):
 
 1. A body tidally locked to what it orbits turns once an orbit, with its

@@ -67,7 +67,7 @@ db.sqlite3-journal
 *.db
 *.db-journal
 
-# planetGen deployment config (see docs/config.md) -- the real,
+# planetGen deployment config (see docs/reference/config.md) -- the real,
 # per-deployment file, holding MySQL credentials among other settings;
 # never committed. config.json.example is the template and stays tracked.
 config.json

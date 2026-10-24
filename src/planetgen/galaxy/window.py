@@ -1,8 +1,8 @@
 """
 planetgen/galaxy/window.py
 
-The Galaxy Map's data window (MAP.151, docs/design/drilldown-region-sizes.md
-sections 1 and 5.3; on shells, docs/design/spherical-block-ladder.md
+The Galaxy Map's data window (MAP.151, docs/design/interface/drilldown-region-sizes.md
+sections 1 and 5.3; on shells, docs/design/galaxy/spherical-block-ladder.md
 section 4): `g` cells across, centred on a chosen cell of one level of the
 block ladder (`galaxy.drill`). The window is a ball: every cell of the
 centre's level whose centre lies within `g * m / 2` edges of the centre cell's
@@ -28,7 +28,7 @@ from planetgen.galaxy.drill import (
 
 WINDOW_WIDTHS = (3, 5, 7, 9, 11)
 """tuple: Cells across a window, odd so the chosen cell sits in the middle
-(docs/design/drilldown-region-sizes.md section 5.5)."""
+(docs/design/interface/drilldown-region-sizes.md section 5.5)."""
 
 DEFAULT_WINDOW = 9
 """int: Nine across: at most a few hundred cells."""

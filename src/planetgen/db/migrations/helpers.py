@@ -1,7 +1,7 @@
 # planetgen/db/migrations/helpers.py
 
 """
-Helpers for revisions that touch a big table (DB.18, docs/design/db-check-and-parity-repair.md section 7).
+Helpers for revisions that touch a big table (DB.18, docs/design/operations/db-check-and-parity-repair.md section 7).
 
 Alembic's `op.add_column`, `op.create_index` and `op.alter_column` cannot name an `ALGORITHM`, and without one
 the server may copy the whole table and block writers for the length of the copy; `op.batch_alter_table` is a
@@ -123,7 +123,7 @@ def long_transactions(connection, seconds=LONG_TRANSACTION_S):
 def require_no_long_transactions(connection, seconds=LONG_TRANSACTION_S):
     """
     Raises RuntimeError naming the transactions when any is `seconds` old or more: an index build started behind
-    one waits for its metadata lock and holds every later query on the table back (docs/design/
+    one waits for its metadata lock and holds every later query on the table back (docs/design/operations/
     db-check-and-parity-repair.md section 7.3).
     """
     found = long_transactions(connection, seconds)

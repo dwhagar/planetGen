@@ -10,7 +10,7 @@ a star, propagated via real two-body Kepler/Barker orbital mechanics (see
 unbound object passing through on a fixed hyperbolic trajectory,
 encountered independently of any star system.
 
-See docs/design/comet-orbital-realism.md for the full research/design
+See docs/design/systems/comet-orbital-realism.md for the full research/design
 writeup this implements. In short, real comets split by orbital
 eccentricity into three physically distinct categories; this module adds
 the two that were missing (`InterstellarComet` already covers the third,
@@ -31,7 +31,7 @@ This is a straightforward two-body model: `Comet` is generated given its
 primary's mass (in solar masses) and rolls its own orbital elements
 independently -- it does not (yet) model gravitational capture or a
 planetary slingshot, both of which require a genuine three-body close
-encounter (see docs/design/comet-orbital-realism.md's Context section for
+encounter (see docs/design/systems/comet-orbital-realism.md's Context section for
 why that's out of scope for this pass).
 """
 
@@ -105,7 +105,7 @@ def _activity_chance(perihelion_distance_au):
     or beyond `COMET_ACTIVITY_PERIHELION_THRESHOLD_AU` -- real cometary
     activity is driven by solar heating at the comet's *closest* approach,
     not by which orbit_type/period_class it happens to be (see those
-    constants' own docstrings and docs/design/comet-orbital-realism.md).
+    constants' own docstrings and docs/design/systems/comet-orbital-realism.md).
 
     Args:
         perihelion_distance_au (float): Perihelion distance `q`, in AU.

@@ -808,11 +808,11 @@ def _invariant_checks():
               mode="max", unit="relative error"),
         Check("shell_layout", "invariant", "spherical.shell_bounds_pc, band_range, band_colatitude_bounds",
               _shell_layout_failures, 0, 0.0,
-              "design (docs/design/galaxy-coordinate-system.md): shells 4 pc deep from a 2 pc core ball, "
+              "design (docs/design/galaxy/galaxy-coordinate-system.md): shells 4 pc deep from a 2 pc core ball, "
               "an odd count of signed bands from pole to pole", mode="max", unit="failures"),
         Check("wedge_count_rule", "invariant", "spherical.wedge_count",
               _wedge_rule_violations, 0, 0.0,
-              "design (docs/design/galaxy-coordinate-system.md): 6*m wedges, m only 2, 3, 5 and 7, "
+              "design (docs/design/galaxy/galaxy-coordinate-system.md): 6*m wedges, m only 2, 3, 5 and 7, "
               "arc about one edge, caps one cell", mode="max", unit="violations"),
         Check("sector_address_round_trip", "invariant",
               "spherical.sector_address_at(sector_position_pc(...))",

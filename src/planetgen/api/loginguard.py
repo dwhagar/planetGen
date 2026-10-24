@@ -166,7 +166,7 @@ class LoginGuard:
                 and not (current_app.config.get("PROXY_FIX") or {}).get("x_for"):
             _warn_once("proxy", f"planetgen: locked out the private address {self.address} after failed logins. "
                                 f"If the site is behind a reverse proxy, every visitor has that address: set "
-                                f"proxy_fix.x_for in config.json (docs/config.md), or add the proxy to "
+                                f"proxy_fix.x_for in config.json (docs/reference/config.md), or add the proxy to "
                                 f"login_allowlist.")
 
     def succeeded(self):

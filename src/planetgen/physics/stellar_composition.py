@@ -1,7 +1,7 @@
 # planetgen/physics/stellar_composition.py
 
 """
-What a star is made of, derived from the values already stored (GEN.440, docs/design/stellar-composition.md sections 3, 4, 7 and 9)
+What a star is made of, derived from the values already stored (GEN.440, docs/design/composition/stellar-composition.md sections 3, 4, 7 and 9)
 ======================================================================================================================================
 
 `star_makeup` returns the composition of any star, brown dwarf or remnant from its kind, its stored [Fe/H], its age, its mass and a

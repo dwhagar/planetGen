@@ -5,7 +5,7 @@ Each file is run through the full generation pipeline (star + planets +
 life data + string rendering) exactly as `planetgen system --system-file`
 would, and checked for basic invariants. Every file in examples/systems/
 is discovered automatically, so adding a new fixture there adds it to
-this suite for free -- see docs/example-systems.md.
+this suite for free -- see docs/reference/example-systems.md.
 
 Run with: pytest src/tests/test_examples.py
 """

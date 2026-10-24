@@ -3,7 +3,7 @@
 """
 The system-type registry (GEN.268): `SYSTEM_TYPE_RATES`, one entry per row of
 the catalogue of multi-star and star-like-object system types
-(docs/design/multi-star-systems.md, sections 13.1 to 13.6; 57 types), plus
+(docs/design/systems/multi-star-systems.md, sections 13.1 to 13.6; 57 types), plus
 the tuning knobs of section 13.7. It sits beside the phenomena registry
 (`registry.py`) and holds data only.
 

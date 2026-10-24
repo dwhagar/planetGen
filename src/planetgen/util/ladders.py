@@ -11,7 +11,7 @@ reads these tables in Python; `scripts/build_unit_ladders.py` writes the
 same tables to `html/static/unitladders.js` for `html/static/unitladder.js`,
 the one algorithm in the browser. A test fails when the committed file is
 out of date, so the two copies cannot drift apart
-(docs/design/units-and-number-formatting.md).
+(docs/design/architecture/units-and-number-formatting.md).
 
 Each ladder's base is the SI unit of its quantity, and a rung's `factor` is
 how many base units one of it is. A rung or companion is built from its row of the

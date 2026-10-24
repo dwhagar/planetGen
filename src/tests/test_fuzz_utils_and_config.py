@@ -196,7 +196,7 @@ def test_solar_reference_points():
     inner, outer = orbits.calculate_habitable_zone(physical_constants.SOLAR_LUMINOSITY, 5772.0)
     assert 0.9 < inner < 1.0 < 1.6 < outer < 1.8
     assert _close(formation.disk_surface_density_scale(physical_constants.SOLAR_MASS_TO_KG), 1.0)
-    # 170 K blackbody: (278.3 K / 170 K)^2 AU for the Sun (docs/design/bulk-composition-sources-check.md)
+    # 170 K blackbody: (278.3 K / 170 K)^2 AU for the Sun (docs/design/composition/bulk-composition-sources-check.md)
     assert abs(formation.snow_line_au(physical_constants.SOLAR_LUMINOSITY) - 2.68) < 0.005
 
 

@@ -1,7 +1,7 @@
 # planetgen/web/lib/pagetags.py
 
 """
-What each cached answer reads, and what each write changes (PERF.104, docs/design/cache-warm-up.md).
+What each cached answer reads, and what each write changes (PERF.104, docs/design/operations/cache-warm-up.md).
 
 `read_tags` names the data tags (`planetgen.db.dataversion`) an API answer depends on, from its
 path and its body: a sector page reads its own sector, each neighbour it links to, the sets of

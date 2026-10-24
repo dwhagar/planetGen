@@ -3,7 +3,7 @@
 planetGen's web interface is one Flask app: every page and the JSON API
 (`/api`). It runs from a git checkout, reads `config.json` at the repo
 root, and talks to one MySQL server and one Redis server
-(`redis.url` in [`config.json`](../config.md); the Generate page's jobs,
+(`redis.url` in [`config.json`](../reference/config.md); the Generate page's jobs,
 the work queue, the rate limits and the login lockouts run on it). This page compares the
 supported ways to host it and covers what they share. Each guide has the
 full steps for its platform.
@@ -27,7 +27,7 @@ addresses that keep guessing admin passwords.
   processes=1 threads=5`, gunicorn `--workers 1 --threads 5`. The rate limits and login lockouts count on
   Redis (`ratelimit.storage_uri` empty = the server in `redis.url`), so
   more processes share them; `memory://` is only right with one process
-  ([`api.md`](../api.md#rate-limiting)).
+  ([`api.md`](../reference/api.md#rate-limiting)).
 - **Threads, because of the live job log.** The admin Generate page streams
   a running job's output over Server-Sent Events (`/admin/generate/jobs/<id>/stream`,
   ADM.22). Each open stream holds one of the five threads, so the app
@@ -125,7 +125,7 @@ proxies to trust for one header:
 scheme from `X-Forwarded-Proto`, `x_host` the host from
 `X-Forwarded-Host`. All three are 0 by default, which changes nothing.
 The environment variables `PLANETGEN_PROXY_FIX_X_FOR`, `_X_PROTO` and
-`_X_HOST` override the file. See [`config.md`](../config.md).
+`_X_HOST` override the file. See [`config.md`](../reference/config.md).
 
 Rules:
 
@@ -152,13 +152,13 @@ account is used everywhere: the generation CLIs, `planetgen.cli.migrate` (run by
 is no separate read-only or write account to configure:
 `WRITE_MYSQL_CONFIG` and `CONTROL_MYSQL_CONFIG` reuse `MYSQL_CONFIG`
 (`src/planetgen/api/config.py`). Set it once in `config.json`'s `mysql`
-section (or `PLANETGEN_MYSQL_*`; see [`config.md`](../config.md)).
+section (or `PLANETGEN_MYSQL_*`; see [`config.md`](../reference/config.md)).
 
 That account creates and changes the schema, so it needs full rights on
 the game database (`mysql.database`, default `planetgen`), on the
 **control schema** (`control_database`, default `planetgen_control`,
 which `planetgen.cli.migrate` creates: admin logins, sessions, API keys, audit
-log; see [`database-schema.md`](../database-schema.md#the-control-schema)),
+log; see [`database-schema.md`](../reference/database-schema.md#the-control-schema)),
 and on any other game databases that share the prefix. For example:
 
 ```sql
@@ -182,7 +182,7 @@ block (on Linux, in `install.sh`'s step 2/8). Only its hash is stored.
 Log in at `https://<your site>/login`; you are sent to `/account` to
 choose your own username and password, and the other admin pages stay
 locked until you do. If the password is lost, see
-[`api.md`](../api.md#resetting-the-admin-login).
+[`api.md`](../reference/api.md#resetting-the-admin-login).
 
 ## Updating a running site
 
@@ -217,5 +217,5 @@ works there too). `update.sh` never edits your Redis configuration or your Apach
 
 ## After deploying
 
-Run the [server checklist](../server-checklist.md). It has the commands
+Run the [server checklist](server-checklist.md). It has the commands
 for each platform.

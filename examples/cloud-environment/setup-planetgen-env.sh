@@ -222,7 +222,7 @@ UP
 chmod +x /usr/local/bin/planetgen-env-up
 
 cat > /etc/profile.d/planetgen-test.sh <<EOF
-# Written by setup-planetgen-env.sh: what src/tests/conftest.py and docs/testing.md read.
+# Written by setup-planetgen-env.sh: what src/tests/conftest.py and docs/reference/testing.md read.
 export PLANETGEN_TEST_MYSQL_HOST=127.0.0.1
 export PLANETGEN_TEST_MYSQL_PORT=3306
 export PLANETGEN_TEST_MYSQL_USER=root

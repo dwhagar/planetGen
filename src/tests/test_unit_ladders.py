@@ -176,7 +176,7 @@ def test_the_temperature_companions_agree_with_astropys_scales():
     (constants.EARTH_MASS_TO_KG, "1 Earth mass"),
 ])
 def test_mass_switches_units_at_the_decided_points(kilograms, text):
-    """The design note's prototype outputs (docs/design/units-and-number-formatting.md)."""
+    """The design note's prototype outputs (docs/design/architecture/units-and-number-formatting.md)."""
     assert format_quantity(ladders.MASS, kilograms) == text
 
 

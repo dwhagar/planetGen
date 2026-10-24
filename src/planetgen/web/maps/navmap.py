@@ -4,7 +4,7 @@
 NAV map: a flat, top-down SVG plot of the galactic X-Y plane showing a
 NAV request's origin, destination, and (when one was found) the optimal
 route's intermediate hops -- the "actual plotted image/diagram of the two
-points" `docs/api.md`/`docs/TODO.md` flagged as still open once
+points" `docs/reference/api.md`/`docs/TODO.md` flagged as still open once
 `planetgen.db.query.nav_between` started returning course/route data as numbers and
 links only (the NAV page, `/nav`).
 

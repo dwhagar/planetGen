@@ -1,7 +1,7 @@
 # tests/test_collision_outcome.py
 
 """
-GEN.345: the outcome table of docs/design/collisions-and-mergers.md section 5.1 as one pure function. Every row has a
+GEN.345: the outcome table of docs/design/orbits/collisions-and-mergers.md section 5.1 as one pure function. Every row has a
 case, mass and momentum are conserved to a stated tolerance, the same input gives the same outcome in either order, and a
 borderline case is flagged.
 """

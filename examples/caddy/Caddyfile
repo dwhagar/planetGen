@@ -16,7 +16,7 @@
 # X-Forwarded-Host on proxied requests (ignoring any a client sent). Set
 #     "proxy_fix": {"x_for": 1, "x_proto": 1, "x_host": 0}
 # in config.json so the app uses them for the client address and scheme
-# (docs/config.md).
+# (docs/reference/config.md).
 
 planetgen.example.com {
 	encode zstd gzip

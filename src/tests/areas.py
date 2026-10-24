@@ -12,7 +12,7 @@ without moving any file (`pytest -m area_web`, `scripts/test.py area web db`):
   here, but `test_test_areas.py` lists the files that landed in `other` so they
   can be given a rule.
 - `heavy`: the files in `HEAVY_FILES`, which took over 100 s each in the
-  2026-10-14 baseline (docs/design/test-suite-rebuild.md). They stay out of the
+  2026-10-14 baseline (docs/design/operations/test-suite-rebuild.md). They stay out of the
   `quick` slice.
 
 The areas are coarse on purpose. What a change really touches is decided by the
