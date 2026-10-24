@@ -342,7 +342,7 @@ def _keep_mass(body, mass_kg):
     body.mass = mass_kg
     if planetPhysics.uses_giant_mass_radius(body.planet_class):
         body.radius = None
-        planetPhysics._apply_giant_mass_and_radius(body, radius_given=False, mass_given=True)
+        planetPhysics.apply_giant(body, radius_given=False, mass_given=True)
     else:
         low, high = tuning.PLANET_CLASSES[body.planet_class]["radius_range"]
         radius_m = (3 * mass_kg / (4 * math.pi * body.density * 1000)) ** (1 / 3)

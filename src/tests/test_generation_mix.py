@@ -61,7 +61,9 @@ def test_giants_have_real_densities_and_super_jupiters_occur(systems):
     # Real gas and ice giants run 0.69-1.64 g/cm^3 (Saturn to Neptune);
     # the median was 0.25 before GEN.34.
     assert 0.69 <= statistics.median(densities) <= 1.64
-    assert all(0.2 < d < 40 for d in densities)
+    # GEN.460: a light giant of the radius tables, or a hot one swollen by its starlight, can be very puffy (measured
+    # super-puffs run down to 0.03 g/cm^3, Masuda 2014).
+    assert all(0.05 < d < 40 for d in densities)
     super_jupiters = [p for p in giants if p.mass > pc.JUPITER_MASS_TO_KG]
     assert len(super_jupiters) / len(giants) > 0.05
 
