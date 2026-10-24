@@ -28,7 +28,7 @@ IW. Mixing values from different papers without converting shifts the gas ratios
   offsets are not reliable; the Hirschmann IW is.
 * **Gas ratios** (`co2_to_co`, `h2o_to_h2`) follow from the oxygen fugacity and the reactions
   `CO + 1/2 O2 = CO2` and `H2 + 1/2 O2 = H2O` (ideal gas, 1 bar standard state, the NASA Glenn fits of
-  `data/nasa_glenn_redox_gases.json`): `log10(f_CO2/f_CO) = log K1 + 0.5 log10 fO2`. At 2173 K the CO2/CO ratio of 1
+  `physics/species_thermo.py`): `log10(f_CO2/f_CO) = log K1 + 0.5 log10 fO2`. At 2173 K the CO2/CO ratio of 1
   is at IW+1.37 and the H2O/H2 ratio of 1 at IW-0.06 (docs/design/composition/body-composition-research.md section 15 and the
   G3 research).
 * **Melt iron** (`fe3_fraction`, `delta_iw_from_fe3_fraction`): Sossi et al. (2020) equation 4,
@@ -39,11 +39,9 @@ The functions are pure and take temperatures in kelvin and pressures in gigapasc
 which is in bar as published.
 """
 
-import json
 import math
-import os
 
-from planetgen.physics import elements
+from planetgen.physics import species_thermo
 
 REFERENCE_SCALE = "hirschmann2021"
 """str: The scale every stored delta-IW is on."""
@@ -106,8 +104,6 @@ GAS_REACTIONS = {
     "h2o_h2": {"H2O": 1.0, "H2": -1.0, "O2": -0.5},
 }
 """dict: The reactions, products positive."""
-
-DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "nasa_glenn_redox_gases.json")
 
 
 def _poly(coefficients, pressure_gpa):
@@ -182,32 +178,10 @@ def _scale_origin(scale, temperature_k, pressure_gpa):
     return -SOSSI_OFFSET_2173K  # sossi2020: its zero lies 0.5 below the reference's, so IW+0.5 there is IW+0.0 here
 
 
-def _load_gases():
-    with open(DATA_FILE, encoding="utf-8") as handle:
-        return json.load(handle)["gases"]
-
-
-_GASES = _load_gases()
-
-
-def _g_over_rt(gas, temperature_k):
-    for fit in _GASES[gas]:
-        if fit["t_min_k"] <= temperature_k <= fit["t_max_k"]:
-            break
-    else:
-        raise ValueError(f"{gas}: no thermodynamic fit at {temperature_k} K (200 to 20000 K; H2O to 6000 K)")
-    a1, a2, a3, a4, a5, a6, a7 = fit["a"]
-    b1, b2 = fit["b"]
-    t = temperature_k
-    h_rt = -a1 / t ** 2 + a2 * math.log(t) / t + a3 + a4 * t / 2 + a5 * t ** 2 / 3 + a6 * t ** 3 / 4 + a7 * t ** 4 / 5 + b1 / t
-    s_r = -a1 / (2 * t ** 2) - a2 / t + a3 * math.log(t) + a4 * t + a5 * t ** 2 / 2 + a6 * t ** 3 / 3 + a7 * t ** 4 / 4 + b2
-    return h_rt - s_r
-
-
 def log_k(reaction, temperature_k):
     """log10 of the equilibrium constant (bar to the net power) of a `GAS_REACTIONS` key at `temperature_k`."""
     stoichiometry = GAS_REACTIONS[reaction]
-    return -math.fsum(n * _g_over_rt(gas, temperature_k) for gas, n in stoichiometry.items()) / math.log(10.0)
+    return species_thermo.log10_k(stoichiometry, temperature_k)
 
 
 def co2_to_co(delta_iw_value, temperature_k, pressure_gpa=1e-4):
