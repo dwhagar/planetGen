@@ -37,8 +37,8 @@ NAMED = {
     "Arctic": (dict(temperature=-35.0), "B2c", "Required: insulated suit."),
     "Everest": (dict(pressure=33.7, temperature=-30.0), "B2c S1", "Required: insulated suit + gas-mix mask."),
     "Mars": (dict(pressure=0.6, temperature=-60.0, gases={"CO2": 0.95}, dose=0.236, parts=(0.236, 0.0, 0.001)),
-             "B4p F100 S2 [R2]",
-             "Required: pressure suit + dust-tight seals. Recommended: hardened habitat."),
+             "B4p F100 S2 H3 [R2]",
+             "Required: hardened pressure suit + dust-tight seals. Recommended: hardened habitat."),
     "Venus": (dict(pressure=9200.0, temperature=462.0, gases={"CO2": 0.965}, dose=0.0001, parts=(0.0001, 0.0, 0.0)),
               "B5h S4", "Required: armoured suit."),
     "Titan": (dict(pressure=146.7, temperature=-179.0, gases={"CH4": 0.0}), "B3c S2",
@@ -118,7 +118,7 @@ def test_every_item_the_tables_can_name_has_a_tech_level():
 def test_the_tech_a_species_needs_is_the_highest_of_its_required_items():
     levels = equipment.compute(_world(pressure=0.6, temperature=-60.0, gases={"CO2": 0.95}, dose=0.236,
                                       parts=(0.236, 0.0, 0.001)))
-    assert equipment.tech_needed(levels, tuning.SPECIES_EQUIPMENT_TECH) == 3.0
+    assert equipment.tech_needed(levels, tuning.SPECIES_EQUIPMENT_TECH) == 3.5  # the hardened suit
     assert equipment.tech_needed(equipment.compute(_world()), tuning.SPECIES_EQUIPMENT_TECH) == 0.0
     vehicle = equipment.compute(_world(pressure=9200.0, temperature=600.0, gases={"CO2": 0.9}))
     assert equipment.tech_needed(vehicle, tuning.SPECIES_EQUIPMENT_TECH) == 99.0
@@ -129,3 +129,20 @@ def test_the_search_ticks_select_what_the_line_lists():
         assert equipment.tick_condition("p", [value]).count("p.") >= 1
         assert "{a}" not in equipment.tick_condition("p", [value])
         assert clause.format(a="p") in equipment.tick_condition("p", [value])
+
+
+def test_where_no_garment_stops_cosmic_rays_the_hardened_suit_is_required_and_the_habitat_recommended():
+    """GEN.671 (Boss, 2026-10-23): a hardened suit in the game works against cosmic rays, so Mars and the Moon need it."""
+    for changes in (NAMED["Mars"][0], dict(pressure=1e-9, temperature=-20.0, gases={}, dose=0.5, parts=(0.5, 0.0, 0.0005))):
+        levels = equipment.compute(_world(**changes))
+        assert "hardened pressure suit" in equipment.required_names(levels), changes
+        assert equipment.recommended_names(levels) == ["hardened habitat"], changes
+
+
+def test_the_required_and_recommended_lines_leave_an_empty_list_off():
+    nothing = equipment.compute(_world())
+    assert equipment.lines(nothing) == ("", "")  # a list with nothing in it is left off, never "none"
+    assert equipment.summary(nothing)["required_line"] == "" and equipment.summary(nothing)["recommended_line"] == ""
+    mars = equipment.summary(equipment.compute(_world(**NAMED["Mars"][0])))
+    assert mars["required_line"] == "Required: hardened pressure suit + dust-tight seals."
+    assert mars["recommended_line"] == "Recommended: hardened habitat."
