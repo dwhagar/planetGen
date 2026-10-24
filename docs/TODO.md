@@ -992,17 +992,6 @@ with `clamp()`.
   Hunt.
   Prerequisites: none.
 
-- [ ] **UX.163 Every planet and moon page and the descriptions carry a Required line and a Recommended line for the equipment, on every run**
-  Boss, 11:25 PM EDT 2026-10-23: a Required line and a Recommended line
-  on every run (every planet and moon page and every description
-  output). Do: the planet and moon pages, the description document and
-  the lists show a Required line and a Recommended line from the needs
-  list of GEN.655, an empty line is left off and never reads None (Decided, Boss, 12:39 AM EDT 2026-10-24, card option 2: when nothing is required or recommended the line is not shown), in the same wording on every page. Done: a test over the page, the description and
-  the API that every planet and moon has both lines, with the hardened
-  suit and habitat case of the item above. Owner: Survival equipment
-  lane (follow-up; the lane stays open until it merges).
-  Prerequisites: none.
-
 - [ ] **UX.164 The wipe line reads "Wiped 75 tables (about 1 row)" (bug)**
   From the generation-log analysis of Boss's run
   job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
@@ -14240,23 +14229,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   5, 10), filed by the body-rendering design thread, 10:18 PM EDT
   2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-
-- [ ] **GEN.671 Where a hardened suit works against the radiation, the needs say "required hardened suit" and "recommended hardened habitat"**
-  Boss, 11:25 PM EDT 2026-10-23: in the game this is made for there are
-  hardened suits that would work against the radiation on worlds such as
-  Mars and the Moon, so the equipment rules say required hardened suit
-  and recommended hardened habitat for such cases. Do: in
-  physics/equipment.py (GEN.655), where the radiation ladder reaches a
-  dose that a hardened suit handles, return the hardened suit as
-  required for the Radiation Protection slot and the hardened habitat as
-  recommended (a shielded shelter stays required only where no suit is
-  enough); the dose comes from physics/radiation.py and the suit's
-  shielding from the limits rows, not a per-world list. Done: Mars and
-  the Moon read required hardened suit with recommended hardened
-  habitat, worlds a suit cannot handle keep the higher shelter as
-  required, and the consistency test covers both. Owner: Survival
-  equipment lane (follow-up; the lane stays open until it merges).
-  Prerequisites: none.
 
 - [ ] **GEN.672 Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver**
   Found by lane L (atmosphere mixture), report

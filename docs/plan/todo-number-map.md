@@ -1396,7 +1396,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | open |
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows | none | open |
 | GEN.670 | Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition | none | open |
-| GEN.671 | Where a hardened suit works against the radiation, the needs say "required hardened suit" and "recommended hardened habitat" | none | open |
+| GEN.671 | Where a hardened suit works against the radiation, the needs say "required hardened suit" and "recommended hardened habitat" | none | done, PR #2883 |
 | GEN.672 | Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver | none | open |
 | GEN.673 | Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on | none | open |
 | GEN.674 | Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug) | none | open |
@@ -2266,7 +2266,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.160 | The search icon button opens a box over the page: it should go straight to the search page (bug) | none | open |
 | UX.161 | After a galaxy reset the counts on the main page do not change even though the database has been wiped (bug) | none | open |
 | UX.162 | The plan prints a "Where the plan's time went" table in every galaxy plan; it should show only in debug mode or with a --timing flag (bug) | none | done, PR #2877 |
-| UX.163 | Every planet and moon page and the descriptions carry a Required line and a Recommended line for the equipment, on every run | none | open |
+| UX.163 | Every planet and moon page and the descriptions carry a Required line and a Recommended line for the equipment, on every run | none | done, PR #2883 |
 | UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) | none | open |
 | UX.165 | Class pages and names come from the rule rows | none | done, PR #2781 |
 | UX.166 | The habitability icons display as intended in Chrome but draw as solid black shapes with tiny coloured dots in Firefox, even with a fully cleared cache (bug) | none | open |
