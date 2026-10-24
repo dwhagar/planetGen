@@ -6023,7 +6023,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Re-cut (Core 3, relayed 2:20 PM EDT 2026-10-23 as the lane reported):
   the umbrella is now done when GEN.630, the narrowed GEN.631, GEN.332
   and GEN.640 (the pair classes deleted) are done.
-  Prerequisites: GEN.315, GEN.631, GEN.332, GEN.640. Related: GEN.264.
+  Prerequisites: GEN.315, GEN.332, GEN.640. Related: GEN.264.
 
 - [ ] **GEN.326 Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4**
   Split from GEN.162 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -6153,7 +6153,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   circumbinary and S-type planets to any tree, including the pair that
   BinaryStarProxy and WideBinaryPair host today; GEN.640 deletes those
   classes afterwards.
-  Prerequisites: GEN.315, GEN.631. Related: GEN.275, GEN.316.
+  Prerequisites: GEN.315. Related: GEN.275, GEN.316.
 
 - [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -12941,51 +12941,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.538, GEN.539, GEN.540. Related: GEN.537, GEN.538,
   GEN.539, GEN.540, UX.137, MAP.248, TEST.226.
 
-- [ ] **GEN.631 GEN.316 part (b), narrowed: stages D and G draw their members from draw_member_tree, trees of 3 or more stars build as member stars, and the old companion draw and the two-star probability table are deleted**
-  Split of GEN.316 proposed by Core 3 (relayed 1:21 AM EDT 2026-10-23 as
-  the lane reported), the original scope of GEN.316 on top of part (a):
-  a system made at fill (stage D, the cell's other systems; stage G,
-  below-cut remnants) draws its members from draw_member_tree at the
-  same odds as a scatter row, and BinaryStarProxy, WideBinaryPair and
-  BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS are deleted (no shim; this
-  removes three of the four copies of the heavier-star swap, leaving the
-  tree's copy in multistar._Builder.place). Changes generated values, so
-  it takes the next free generator epoch at its merge. Done: a
-  fill-created system draws its members from draw_member_tree at the
-  table's odds, no code path uses the old two-star draw, and the census
-  of stars per system matches the table (B and A binaries about 0.75 and
-  0.60, mean 1.38 stars per system). Owner: Core 3, after part (a).
-  Re-cut (Core 3, relayed 2:20 PM EDT 2026-10-23 as the lane reported;
-  the TODO thread agreed): deleting BinaryStarProxy and WideBinaryPair
-  would remove the only code that hosts planets around a two-star
-  system, and giving those planets back is GEN.332's content, so this
-  item no longer deletes the classes. It now is: stage D and G systems
-  and the uncharted route draw their members from draw_member_tree at
-  the table's odds; a tree of 3 or more stars builds all its stars as
-  member_stars on the GEN.630 host (no planets of their own yet); a
-  two-star tree still builds through the pair classes; the old companion
-  draw and BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS are deleted.
-  Done: members come from the tree at the table's odds, the old
-  companion draw is gone, and the census matches the table (B and A
-  binaries about 0.75 and 0.60, mean 1.38 stars per system). Takes an
-  epoch at merge. The deletion of the pair classes is the new item
-  GEN.640 after GEN.332.
-  Note from GEN.267 (Core 4, merged as #2704, about 5:30 PM EDT
-  2026-10-23 as the lane reported, schema v134, no epoch): the
-  star-count settings now exist and StarSystem does not read them yet,
-  so the honoured half is this item's. SystemConfig.STARS and MAX_STARS
-  (default cap 12) are in the config JSON, the plan arguments and
-  system_configs (stars, max_stars, prevalence_multi_star); the refusals
-  are in the CLI (a count under 1, over the cap, over 64, --stars 1 with
-  +binary_system or +wide_binary, 2 or more stars with -binary_system).
-  The prevalence feature multi_star (usual share 0.45 percent of
-  systems) comes with prevalence.multi_star_scale(config), which this
-  item passes to draw_member_tree(prevalence=...). Open stand-ins for
-  the registry: the ceiling of 64 (tuning.MAX_STARS_CEILING) and the
-  0.45 percent usual share (remeasure from generated systems once the
-  host builds five stars).
-  Prerequisites: none. Related: GEN.316, GEN.315, GEN.264, GEN.581.
-
 - [ ] **GEN.632 Two code paths still hold their own vapour-pressure constants: rogue_surface.nitrogen_vapor_pressure_pa and the water curve in hydrosphere.py should read the one saturation function**
   Finding of Blocker 2 in GEN.452 (relayed 2:01 AM EDT 2026-10-23 as the
   lane reported), filed by the TODO thread. After GEN.470 (#2590) and
@@ -14086,6 +14041,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch. Owner: lane D or lane H, to be confirmed (lane E suggested; the
   TODO thread proposes lane D).
   Prerequisites: none. Related: GEN.445, GEN.444.
+
+- [ ] **GEN.705 The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug)**
+  Found by Core 3 while merging GEN.631 (#2915, epoch 72), as the lane
+  reported at 5:30 AM EDT 2026-10-24; report
+  /mnt/project-files/reports/gen631-findings-2026-10-24.md. The
+  close-companion factor from [Fe/H] (GEN.103, GEN.448) was applied by
+  the old one-companion draw. The tree draw (draw_member_tree) does not
+  take it, so metal-poor and metal-rich stars have the same
+  close-companion odds at fill. The TEST.196 audit of that factor was
+  removed with the draw it checked. Do: pass the star's [Fe/H] into the
+  tree draw so the close-companion share follows it as GEN.103 and
+  GEN.448 say, and restore a test of the dependence (a metal-poor sample
+  has a higher close share than a metal-rich one, at the observed
+  slope). Changes generated values, so it takes the next free generator
+  epoch. Owner: Core 3 (proposed).
+  Prerequisites: none. Related: GEN.631, GEN.103, GEN.448, TEST.196.
+
+- [ ] **GEN.706 Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug)**
+  Found by Core 3 while merging GEN.631 (#2915), as the lane reported at
+  5:30 AM EDT 2026-10-24; report
+  /mnt/project-files/reports/gen631-findings-2026-10-24.md. Brown dwarfs
+  are no host class, so the tree draw drops companions it cannot place:
+  the single share of M dwarfs measures 0.846 against 0.73 in the table,
+  forced pairs around M8 primaries return 'a companion star' unmet, and
+  compact companions of living stars are cut because no pair class holds
+  them. Measured after the merge: mean stars per system about 1.31 (the
+  table implies about 1.38), 23.9 percent of systems have a pair, 81
+  percent of the pairs are wide. Do: either add brown dwarfs (and the
+  compact pair classes) as companion classes so the census returns to
+  the table, or state in the table that the cut is intended and update
+  its shares; make a forced pair around an M8 primary succeed or refuse
+  with a stated reason. Done: the census of stars per system matches the
+  table within a stated tolerance for every spectral class. Owner: Core
+  3 (proposed); the base prevalence shares were remeasured in the same
+  report.
+  Prerequisites: none. Related: GEN.631, GEN.267, GEN.332.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16837,7 +16828,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the same words, and a test covers each. Owner: Core 4 (it built the
   settings; after GEN.631 reads them, so the page can be tried end to
   end).
-  Prerequisites: GEN.631. Related: GEN.267, UX.125.
+  Prerequisites: none. Related: GEN.267, UX.125.
 
 ## SEC: Security
 
@@ -18961,6 +18952,12 @@ clears each one.
   test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it
   in test_web_browser_fixture_maps.py pass alone and fail under load;
   the same isolation fix applies.
+  Research (2026-10-09, Update): Core 3 (5:30 AM EDT 2026-10-24, as the
+  lane reported): test_web_a11y sample_params errored 164 times on one
+  xdist worker in a broad run (KeyError 'planets') and passes alone: a
+  possible load flake of the same kind. Also, scripts/test.py changed
+  needed over 120 minutes and the background tool kills at 120, so a
+  resume re-ran the browser phase.
   Prerequisites: none.
 
 - [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
@@ -19039,6 +19036,11 @@ clears each one.
   although ASTEROID_BELT and HABITABLE_WORLD are both forced). TEST.326
   was filed for it by mistake and is dropped as a duplicate of this
   item. Owner: lane 4 (Flaky test fixes), which listed TEST.313 next.
+  Research (2026-10-09, Update): Core 3 (5:30 AM EDT 2026-10-24, as the
+  lane reported): the same forced belt-and-habitable test shows about
+  0.2 percent failures for single G2V trials on main as well (reproducer
+  /tmp/claude-0/belthab.py on Core 3's machine), so the flake is not
+  only M5V.
   Prerequisites: none.
 
 - [ ] **TEST.314 Only classify writes the class column, and the class is recomputed when an input is edited**
@@ -19138,6 +19140,10 @@ clears each one.
   lane machine's main was older; recheck on current main first. Do:
   reproduce on current main, find the cause (the selector or the fixture
   site), fix. Done: the 41 tests pass on current main. Owner: Bug Hunt.
+  Research (2026-10-09, Update): Core 3 (5:30 AM EDT 2026-10-24, as the
+  lane reported) saw the same 41 failures on main while merging GEN.631:
+  still red on a lane machine at that time. See
+  /mnt/project-files/reports/gen631-findings-2026-10-24.md.
   Prerequisites: none. Related: MAP.256, MAP.143.
 
 - [ ] **TEST.324 test_web_header_menus top-bar [1280x720-light] times out under load (bug)**
@@ -19184,6 +19190,18 @@ clears each one.
   only if UX.173 is not near. Done: the four variants pass. Owner: none
   (pool); Bug Hunt proposed.
   Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
+
+- [ ] **TEST.330 test_web_formulas::test_no_page_shows_a_formula_that_is_not_written_out fails on (/classes/habitability, CO2) (bug)**
+  Reported by Core 3 at 5:30 AM EDT 2026-10-24 (as the lane reported) as
+  failing on main in its gate: the page /classes/habitability shows the
+  formula CO2 and the test says it is not written out with a subscript.
+  The TODO thread could not run it (the test needs Playwright, not
+  installed on this machine), so recheck on current main first; UX.149
+  (the formula formatter) and the class lane's habitability page text
+  are the likely sources. Do: reproduce on current main; write the
+  formula with the chem filter (UX.149) on the page or its template.
+  Done: the test passes. Owner: Bug Hunt.
+  Prerequisites: none. Related: UX.149.
 
 ## USR: User accounts
 

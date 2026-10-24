@@ -1271,3 +1271,4 @@ Baseline: PR #1817.
 | DB.69 | 8.1 | Bulk composition |
 | GEN.443 | 8.1 | Radiation chain for habitability (GEN.445) |
 | MAP.258 | 8.1 | Fly-through map |
+| GEN.631 | 8.1 | Multi-star and compact systems |
