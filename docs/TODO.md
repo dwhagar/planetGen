@@ -7516,6 +7516,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
+  Research (2026-10-09, 10-24 blocker scan): Owner assigned 2:08 PM EDT
+  2026-10-24 (Boss asked for every blocker to have an owner): Lane I,
+  inside its PR 4 (GEN.452, GEN.411, DB.71 and GEN.424 are one PR per
+  its plan); the older Core 4 line is stale.
   Prerequisites: GEN.411. Related: GEN.411, GEN.423, TEST.209.
 
 - [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
@@ -8156,6 +8160,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
   lane reported): the ground band albedo merged in #2956 but is UNWIRED
   (nothing hands it to the atmosphere colour yet). Do not mark done.
+  Research (2026-10-09, 10-24 blocker scan): Owner assigned 2:08 PM EDT
+  2026-10-24 (Boss asked for every blocker to have an owner): Lane K
+  (ground albedo feeds GEN.684 and DB.70 in its chain); Core 4 and the
+  pool lines are stale. Not started.
 
 - [ ] **GEN.464 The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -11287,6 +11295,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   folding into states and the DB.74 table revision (stored names
   body_type and planet_type, mass and mass_kg). Report:
   reports/blocker-5-status-2026-10-24.md.
+  Research (2026-10-09, 10-24 blocker scan): Owner assigned 2:08 PM EDT
+  2026-10-24 (Boss asked for every blocker to have an owner): Lane I,
+  after PR 4 (remnant states and the DB.74 table revision; the Blocker 5
+  lane retired after slice f, #2778).
 - [ ] **GEN.570 Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/architecture/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -12565,8 +12577,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   conditions is unchanged within the stated bands or the change is
   explained.
   Prerequisites: GEN.645, GEN.411, GEN.412,
-  GEN.442, GEN.454, GEN.461, GEN.466, DB.67, DB.69, DB.70. Related: GEN.645,
-  GEN.428, GEN.90.
+  GEN.442, GEN.454, GEN.461, DB.69. Related: GEN.645,
+  GEN.428, GEN.90, GEN.466, DB.67, DB.70 (class lane, 2:10 PM EDT
+  2026-10-24 as the lane reported: classify needs none of the three, they
+  only store or refine composition, so they follow GEN.646 and no longer
+  block it; GEN.466 wiring waited on GEN.646 while GEN.646 waited on it).
   Owner (as the class lane reported, 6:24 PM EDT 2026-10-23, recorded by
   the TODO thread): the Condition-based planet classes lane builds this
   item (its design draft:
@@ -12953,8 +12968,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Composition J (quantities and bulk composition).
   Research (2026-10-09, 10-24 class lane): Owner changed to the class
   lane (lane J confirmed free 2:02 PM EDT 2026-10-24 as the lane
-  reported), to feed GEN.646.
-  Prerequisites: GEN.556.
+  reported), to feed GEN.646. GEN.556 (populate(host), unowned, outside
+  8.1) is not needed to replace the class draw (class lane, 2:10 PM EDT
+  2026-10-24 as the lane reported), so it is dropped as a prerequisite.
+  Prerequisites: none. Related: GEN.556.
 
 - [ ] **GEN.682 Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range**
   Step C7 of the condition-based classes build (design draft
@@ -14540,6 +14557,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
   above are the order, not the ids.
+  Research (2026-10-09, 10-24 blocker scan): Owner assigned 2:08 PM EDT
+  2026-10-24 (Boss asked for every blocker to have an owner): Lane L,
+  after GEN.411, GEN.422, GEN.423 and GEN.424. Not started.
 
 - [ ] **DB.70 Planets, moons and small bodies store the surface and small-body composition shares**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
@@ -14598,6 +14618,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
   DB.68 take the next free ids in the order they merge, so the numbers
   above are the order, not the ids.
+  Research (2026-10-09, 10-24 blocker scan): Owner assigned 2:08 PM EDT
+  2026-10-24 (Boss asked for every blocker to have an owner): Lane K,
+  after GEN.441 slice 2, GEN.462 and GEN.466. Not started.
 
 - [ ] **DB.71 Planets and moons store the partial pressures of the added gases, not only the ten stored today**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
