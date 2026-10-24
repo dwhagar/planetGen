@@ -36,6 +36,9 @@ from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.wordsalad import generate_phoneme_salad_name
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util import detmath
+from planetgen.physics import unit_registry as units
+
+_mpc_to_pc = units.converter("mpc", "pc")
 
 SCAN_BATCH = 5000
 """int: Planet ids per scan query."""
@@ -550,7 +553,7 @@ def _system_positions(conn, sector_ids):
             tuple(chunk),
         ).fetchall()
         for row in rows:
-            positions[row["id"]] = (row["x"] / 1000.0, row["y"] / 1000.0, row["z"] / 1000.0)
+            positions[row["id"]] = (_mpc_to_pc(row["x"]), _mpc_to_pc(row["y"]), _mpc_to_pc(row["z"]))
     return positions
 
 
@@ -562,7 +565,7 @@ def capital_positions(conn):
         "FROM polities p JOIN star_systems ss ON ss.id = p.capital_system_id "
         "LEFT JOIN sectors sec ON sec.id = ss.sector_id ORDER BY p.id"
     ).fetchall()
-    return [(row["id"], None if row["x"] is None else (row["x"] / 1000.0, row["y"] / 1000.0, row["z"] / 1000.0),
+    return [(row["id"], None if row["x"] is None else (_mpc_to_pc(row["x"]), _mpc_to_pc(row["y"]), _mpc_to_pc(row["z"])),
              row["reach_ly"]) for row in rows]
 
 
