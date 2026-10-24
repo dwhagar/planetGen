@@ -85,6 +85,17 @@ def unit_timeout(expected_seconds=None):
     return redisqueue.job_timeout(expected_seconds)
 
 
+def coarsen(count, size):
+    """
+    The size of a piece, `size` or a whole multiple of it, that cuts `count` items into at most `MAX_UNITS` pieces: a
+    stage whose cut has a fixed piece size (a chunk of tiles, a range of ids) uses this so a big galaxy makes bigger
+    units rather than more than the cap, which `enqueue_units` refuses. The same `count` and `size` always give the same
+    piece, whatever the number of workers.
+    """
+    pieces = -(-count // size) if count > 0 else 0
+    return size * max(1, -(-pieces // MAX_UNITS))
+
+
 def static_chunks(rows, units=STATIC_UNITS, max_rows=None):
     """
     Cuts `rows` (consecutive items, each `row[-1]` its weight) into about `units` units of about equal total

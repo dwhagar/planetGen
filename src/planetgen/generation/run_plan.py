@@ -2037,8 +2037,9 @@ def _id_batches(top, size):
 
 
 def expand_fill_map_luminosity(params):
-    """The `fill-map-luminosity` command's stage (PERF.106): a unit per id range of `MAP_LUMINOSITY_BATCH_IDS` of
-    `phenomenon_scatter`, its cost the ids it covers; `detail` holds the highest id and the rows still empty."""
+    """The `fill-map-luminosity` command's stage (PERF.106): a unit per id range of `MAP_LUMINOSITY_BATCH_IDS` (a whole
+    multiple of it past `units.MAX_UNITS` ranges) of `phenomenon_scatter`, its cost the ids it covers; `detail` holds the
+    highest id and the rows still empty."""
     conn = store.get_connection(_mysql_config_of(params))
     try:
         top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM phenomenon_scatter").fetchone()["n"])
@@ -2048,7 +2049,8 @@ def expand_fill_map_luminosity(params):
         conn.close()
     return commands.Expansion(
         [({"database": params["database"], "low": low, "high": high}, float(high - low + 1))
-         for low, high in _id_batches(top, MAP_LUMINOSITY_BATCH_IDS)], {"top": top, "remaining": remaining})
+         for low, high in _id_batches(top, units.coarsen(top, MAP_LUMINOSITY_BATCH_IDS))],
+        {"top": top, "remaining": remaining})
 
 
 def fill_map_luminosity_unit(params, report):
@@ -2141,7 +2143,8 @@ HABITABILITY_BATCH_SYSTEMS = 500
 
 def expand_rescore_habitability(params):
     """The `rescore-habitability` command's stage (PERF.106): a unit per id range of `HABITABILITY_BATCH_SYSTEMS`
-    of `star_systems`, its cost the ids it covers; `detail` holds the highest id and the systems to re-score."""
+    (a whole multiple of it past `units.MAX_UNITS` ranges) of `star_systems`, its cost the ids it covers; `detail` holds
+    the highest id and the systems to re-score."""
     conn = store.get_connection(_mysql_config_of(params))
     try:
         top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM star_systems").fetchone()["n"])
@@ -2150,7 +2153,8 @@ def expand_rescore_habitability(params):
         conn.close()
     return commands.Expansion(
         [({"database": params["database"], "low": low, "high": high}, float(high - low + 1))
-         for low, high in _id_batches(top, HABITABILITY_BATCH_SYSTEMS)], {"top": top, "total": total})
+         for low, high in _id_batches(top, units.coarsen(top, HABITABILITY_BATCH_SYSTEMS))],
+        {"top": top, "total": total})
 
 
 def rescore_habitability_unit(params, report):

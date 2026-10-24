@@ -69,6 +69,19 @@ def test_a_unit_holds_at_most_max_rows_and_a_stage_at_most_max_units(monkeypatch
     assert units.static_chunks([]) == []
 
 
+def test_a_fixed_piece_size_grows_by_whole_multiples_to_stay_within_the_cap(monkeypatch):
+    """Boss, 2026-10-24: "unit 0 of stage 3 failed: a stage queues at most 4000 units, not 4051"."""
+    assert units.coarsen(0, 128) == 128 and units.coarsen(1, 128) == 128
+    assert units.coarsen(128 * units.MAX_UNITS, 128) == 128, "exactly the cap needs no growth"
+    assert units.coarsen(128 * units.MAX_UNITS + 1, 128) == 256, "one piece over the cap doubles the piece"
+    assert units.coarsen(128 * 4051, 128) == 256
+    monkeypatch.setattr(units, "MAX_UNITS", 10)
+    for count in (1, 99, 1280, 1281, 5000, 123457):
+        size = units.coarsen(count, 128)
+        assert size % 128 == 0 and -(-count // size) <= 10, (count, size)
+        assert size == 128 or -(-count // (size - 128)) > 10, "no bigger than it has to be"
+
+
 def test_every_unit_runs_once_and_the_run_ends_done(monkeypatch, conn):
     seen = []
     progress = []
