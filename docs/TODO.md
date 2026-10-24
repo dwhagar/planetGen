@@ -2711,7 +2711,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones, anything in the galaxy can be reached by zooming to it, and
   Boss confirms it by retest. Owner: the design thread first (report),
   then Core 2 (maps).
-  Prerequisites: MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.263, MAP.264, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Prerequisites: MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.264, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
   Decision (Boss, 5:51 PM EDT 2026-10-23, answering the four zoom
   cards): 1 the full single space, 2 only a sector plus an optional grid
   tool, 3 a soft glow switchable, 4 sector-block nodes first (not the
@@ -2822,23 +2822,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxystageview.js (rebase on its merges and tell it before each PR).
   Prerequisites: MAP.261. Related: MAP.257, MAP.146, MAP.249.
 
-- [ ] **MAP.263 S1: the camera is the only state: stages follow the camera, with no gesture gate, preset flights, per-stage zoom range or pan clamp**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. Remove
-  the across gate, the preset flights, the per-stage zoom range and the
-  pan clamp in galaxystageview.js and galaxystages.js; blocks cross-fade
-  by camera distance with hysteresis; the turn and the zoom are never
-  reset; view.zoom and the fit bookkeeping are replaced by distance.
-  Independent of the nodes (client only); rewrites the stage browser
-  tests (test_web_browser_*maps*). Size L. Done: one wheel scroll from
-  the galaxy to a sector with no stop and no swoop, and the rewritten
-  browser tests pass. Owner: Core 2 (maps).
-  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
-
 - [ ] **MAP.264 S2: nothing is clipped when you zoom: drop setWedgeClip and markClippedStars**
   Zoom design (reports in
   /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
@@ -2850,7 +2833,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is drawn. Client only. Size S. Done: the surroundings stay in view
   when you zoom, and a browser test finds a neighbouring star after
   zooming into a sector. Owner: Core 2 (maps).
-  Prerequisites: MAP.263. Related: MAP.257, MAP.146, MAP.249.
+  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
 
 - [ ] **MAP.265 S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick**
   Zoom design (reports in
@@ -2867,7 +2850,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no translucent prisms, any sector is selectable from any distance, and
   a browser test selects a sector from the galaxy view. Owner: Core 2
   (maps).
-  Prerequisites: MAP.263. Related: MAP.257, MAP.146, MAP.249.
+  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
 
 - [ ] **MAP.266 S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu**
   Zoom design (reports in
@@ -2903,7 +2886,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the item. Owner: lane Map nodes (the coordinator's new lane, 5:53 PM
   EDT as the lane reported), with Core 2 as owner of galaxymap3d.js and
   galaxystageview.js (rebase on its merges and tell it before each PR).
-  Prerequisites: MAP.261, MAP.263. Related: MAP.257, MAP.146, MAP.249.
+  Prerequisites: MAP.261. Related: MAP.257, MAP.146, MAP.249.
 
 - [ ] **MAP.268 S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales**
   Zoom design (reports in
@@ -2916,7 +2899,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   query, not against stages, and select by object ID at any scale. Size
   M. Done: labels and selection work from the galaxy to a planet with no
   stage, and a browser test covers both. Owner: Core 2 (maps).
-  Prerequisites: MAP.263, MAP.264, MAP.265. Related: MAP.257, MAP.146,
+  Prerequisites: MAP.264, MAP.265. Related: MAP.257, MAP.146,
   MAP.249.
 
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
@@ -19540,6 +19523,11 @@ clears each one.
   test_phenomenon_scatter, test_order_independence and
   test_update_database_step can fail; all pass alone. Treat them with
   the same isolation fix.
+  Research (2026-10-09, Update): Update 3:22 AM EDT 2026-10-24 (as Core
+  2 reported):
+  test_web_browser_sector_open.py::test_a_star_in_a_sector_far_from_the_core_is_selectable
+  also fails under load and passes alone; the same isolation fix
+  applies.
   Prerequisites: none.
 
 - [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
@@ -19761,6 +19749,22 @@ clears each one.
   adding a migration needs no edit to those tests. Owner: none (pool);
   the regression-test cleanup lane proposed, after DB.98.
   Prerequisites: none. Related: DB.98.
+
+- [ ] **TEST.329 test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug)**
+  Found by Core 2 at 3:22 AM EDT 2026-10-24 (as the lane reported, on
+  main 8ae036ae, release 8.0.2131). Four variants of
+  src/tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.system-*]
+  fail alone on every run: the class links in the planet list
+  (a[href$="planet/J"] and the like, inside the .body-row summary) have
+  a link contrast of 1.06:1 and are focusable links inside a summary
+  (axe nested-interactive). Probably from UX.100 (#2737), made worse by
+  UX.181 and UX.182 (#2867, class text links). Do: give the links a
+  visible contrast on every theme and move them out of the summary
+  element, or make the whole row the one control. The system page body
+  rows are replaced by the tree in UX.173, so check there first and fix
+  only if UX.173 is not near. Done: the four variants pass. Owner: none
+  (pool); Bug Hunt proposed.
+  Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
 
 ## USR: User accounts
 
