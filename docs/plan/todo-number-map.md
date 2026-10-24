@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.159 |
+| UX | UX.160 |
 | MAP | MAP.279 |
 | NAV | NAV.63 |
 | GEN | GEN.671 |
 | PERF | PERF.176 |
-| DB | DB.97 |
+| DB | DB.99 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.309 |
+| TEST | TEST.310 |
 | USR | USR.32 |
 | OPS | OPS.68 |
 | DOC | DOC.79 |
@@ -645,6 +645,8 @@ Parents marked "new parent" had no old number of their own.
 | DB.94 | The object index, resolve_object and the search panels read the moons of free planets | none | open |
 | DB.95 | The sector_objects view includes the moons of free planets | none | open |
 | DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | none | open |
+| DB.97 | Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message | none | open |
+| DB.98 | Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -2213,6 +2215,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | open |
 | UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | open |
 | UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality | none | open |
+| UX.159 | Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2627,6 +2630,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.306 | Five physics modules are imported only by tests and no item names them | none | open |
 | TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) | none | open |
 | TEST.308 | Body rendering tests: look record stability, painter determinism, tier switching and the memory ceiling | none | open |
+| TEST.309 | Delete the dead, duplicate and tombstone regression tests, the unused test imports and variables, and the unused galaxy_shape_visualizer_cli.py tool | none | done, PR #2771 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
