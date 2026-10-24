@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2112] - 2026-10-24
+
+**Headline:** The solid-world and star painters load their shared helper with the release stamp, so a new release cannot serve a stale copy.
+
+### Changed
+
+- `solidpaint.js` and `starpaint.js` import `bodytexture.js` with the page's `?v=` stamp, as every other script does (TEST.310; the page-shell test caught it).
+
 ## [8.0.2111] - 2026-10-24
 
 **Headline:** The page cache can no longer fill Redis and stop a galaxy run; the Redis memory limit is now 4 GB.
