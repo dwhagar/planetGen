@@ -14480,20 +14480,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   values).
   Prerequisites: none.
 
-- [ ] **GEN.676 Check the NH3 photolysis activity factor (1.078) against the published Huebner photodissociation table and replace the Boss-supplied value**
-  Follow-up of GEN.501 (merged as #2824, 11:49 PM EDT 2026-10-23 as the
-  lane reported). The NH3 active-Sun factor in photolysis_lifetimes.json
-  is 1.078, taken from Boss's supplied rates (1.80e-4 per s quiet,
-  1.94e-4 per s active) and labelled Boss-supplied and unchecked; the
-  quiet lifetime 6.7e3 s is Heays 2017. The Huebner tables were not
-  reachable on three tries (phidrates returned 503, no search hit). Do:
-  obtain the published table (or a mirror), recompute the factor, and
-  replace the flagged value with the checked one, or record that the two
-  agree. Done: the factor is labelled verified, or the registry row says
-  why it stays a stand-in. Owner: Source and tune atmosphere draws lane
-  (it holds the rest of the GEN.5xx sourcing).
-  Prerequisites: none.
-
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
