@@ -93,7 +93,7 @@
    "beta_diss_per_s": 0.000155,
    "beta_ion_per_s": 3.62e-07,
    "activity_factor": 1.078,
-   "activity_source": "Boss-supplied, not yet checked against the published table (2026-10-23, 11:48 PM EDT): total 1.80e-4 quiet and 1.94e-4 active per s at 1 AU, ratio 1.078, attributed to Huebner et al. 1992 and Huebner and Mukherjee 2015; inside the 1.05 to 1.10 bracket of the body lane (NH3 absorbs mainly at 170 to 217 nm). Replace by the table value when read. His quiet lifetime 5.56e3 s is not adopted: the 5.6e3 s of Huebner 1992 is a quiet and active mean and the verified Heays 2017 rate gives 6.7e3 s",
+   "activity_source": "Boss-supplied, not yet checked against the published table (2026-10-23, 11:48 PM EDT): total 1.80e-4 quiet and 1.94e-4 active per s at 1 AU, ratio 1.078, attributed to Huebner et al. 1992 and Huebner and Mukherjee 2015; inside the 1.05 to 1.10 bracket of the body lane (NH3 absorbs mainly at 170 to 217 nm). Evidence check 2026-10-24 (reports/nh3-evidence-check-2026-10-24.md): the supporting text is unverified and has two citation errors, and SORCE cycle amplitudes near 200 nm are up to five times SUSIM's, so the true factor could exceed 1.10. Replace by the table value when read. His quiet lifetime 5.56e3 s is not adopted: the 5.6e3 s of Huebner 1992 is a quiet and active mean and the verified Heays 2017 rate gives 6.7e3 s",
    "ratio_4000k": 0.88,
    "ratio_10000k": 0.41,
    "status": "READ, COMPUTED",
