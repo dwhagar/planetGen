@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2092] - 2026-10-24
+
+**Headline:** The last six columns without a declared unit now have one, read from the code that uses them.
+
+### Changed
+- `atm_density` on planets and moons is kg/m³, `atm_molar_density` kg/mol, `asteroid_fields.formed_at` a Unix time and `comets.parabolic_mean_anomaly` a plain number (DB.86); the `unspecified` marker is removed from the column registry and a test fails if a column goes without a unit. No stored value changes.
+
 ## [8.0.2091] - 2026-10-24
 
 **Headline:** Gas giants, ice giants and brown dwarfs can now be given full layered interiors, from molecular and metallic hydrogen to helium rain, dilute cores and rocky cores, and any body can be asked whether it can have satellites.
