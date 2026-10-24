@@ -13909,6 +13909,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merge.
   Prerequisites: none. Related: TEST.130, GEN.630, GEN.631.
 
+- [ ] **GEN.710 A pre-placed row with a stored tree can have a member heavier than the row star at stars[0], so the nebula it lights and the star page disagree with the built sector (bug)**
+  Found by Bug Hunt while fixing TEST.311 (#2945), as the lane reported
+  at 7:22 AM EDT 2026-10-24. Pre-placed rows with stored trees
+  (scatter_companions.star_tree) use the same multistar.draw_member_tree
+  as the fill. A member can then be heavier than the row star, so the
+  built system has it at stars[0]. run_sector.add_star_hosted_nebulae
+  lights the nebula from stars[0], while the GEN.530 row prediction
+  (row_nebula) uses the row star, so the star page and the uncharted
+  scene can disagree with the built sector. Evidence: a drawn tree for
+  one O7V row gave members O7V 18.74, B2V 10.4, B5V 6.93 solar masses in
+  a k=30 case on old main; the mismatch appears whenever a companion
+  out-masses the primary. Do: either light the nebula from the row star,
+  or order the members so the row star stays first (the choice may
+  change generated output and then needs the next free generator epoch,
+  now 77). Done: for a sample of rows with trees, the nebula built in
+  the sector equals the row_nebula prediction, with a test that forces a
+  companion heavier than the primary. Owner: Core 3 (it owns the member
+  tree; proposed).
+  Prerequisites: none. Related: GEN.530, GEN.631, GEN.709, TEST.311.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18671,27 +18691,11 @@ clears each one.
   worker still running) and make it wait for or remove that state. Done:
   the four tests pass 50 times in a row at -n 4 under load, with the
   cause on this item. Owner: Bug Hunt (proposed by the TODO thread).
+  Research (2026-10-09, Update): Bug Hunt (7:22 AM EDT 2026-10-24, as
+  the lane reported): not reproduced, 50 of 50 green at -n 4 under load.
+  Parked: it needs the finalizer text the next time it is seen; close it
+  if nothing shows by the next audit.
   Prerequisites: none. Related: TEST.297, TEST.141.
-
-- [ ] **TEST.299 test_api_species_tech_filters fails once in a full run: the first species of the tech-descending list has tech 6.55, not the 6.0 the test set (bug)**
-  Found by Core 4 (relayed 5:06 PM EDT 2026-10-23 as the lane reported)
-  in its 4-worker full run for GEN.267 (22,894 passed, 3 failed; the
-  other two failures were its own tests and are fixed); filed by the
-  TODO thread. Kind: order- or data-dependent test. Test:
-  src/tests/test_population.py::test_api_species_tech_filters. Failure
-  text: assert 6.55 == 6.0, the first species of the tech-descending
-  listing was a 6.55 one, so a species with tech above 6.0 existed in
-  the population pass's output and the test's UPDATE to 6.0 did not make
-  it the top. Passes alone, and the test touches nothing the lane
-  changed. Fails on main: not checked. Frequency: once in two full runs
-  on that branch (the other gate did not select it). Reproducer: run the
-  full suite; the result depends on which species population.run_pass
-  makes for the galaxy fixture. Do: make the test set its own species so
-  no other species can outrank it (raise the top species' tech above any
-  generated value, or filter by its own sector), then loop the test in a
-  full run. Done: the cause is on this item and the test passes in 10
-  full runs. Owner: Bug Hunt (proposed by the TODO thread).
-  Prerequisites: none. Related: TEST.296, TEST.298.
 
 - [ ] **TEST.300 End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers**
   Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished
@@ -18812,21 +18816,6 @@ clears each one.
   reason when the grant is missing.
   Prerequisites: none. Related: TEST.302, OPS.62.
 
-- [ ] **TEST.304 Nine Playwright test files are not marked browser, so they run in the all-core phase**
-  Found by the regression test review thread (2026-10-23; report
-  reports/regression-test-review-2026-10-23.md section 8): conftest
-  marks only test_web_a11y.py and test_web_browser*, so
-  test_web_admin_menu_fits, test_web_adminshell_browser,
-  test_web_edit_menu, test_web_generate_alignment,
-  test_web_generate_flow_browser, test_web_header_menus,
-  test_web_job_terminal, test_web_settings_browser and
-  test_web_system_nav_row run with the all-core tests (about 1,780 s
-  summed on the reviewer's box), which is the TEST.126 situation. Done:
-  all nine carry the browser marker (or conftest marks every Playwright
-  file), the all-core phase no longer starts Chromium, and a check fails
-  when a file imports playwright without the marker.
-  Prerequisites: none. Related: TEST.126.
-
 - [ ] **TEST.305 The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug)**
   Found by the regression test review thread (2026-10-23): on a fresh
   4-core box (MySQL 8.0.46, Chromium 153 via playwright 1.63) 41 tests
@@ -18849,13 +18838,6 @@ clears each one.
   reasoning recorded, and 50 repeated runs pass. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: GEN.413.
-
-- [ ] **TEST.311 test_hosted_nebula_rows::test_a_pre_placed_star_rolls_the_nebula_its_sector_builds fails on main (bug)**
-  Seen failing on main by the body-rendering build lane (10:52 PM EDT
-  2026-10-23 as the lane reported); not caused by its changes. Do:
-  reproduce it on a machine with MySQL and Redis, find the cause, fix it
-  or make it deterministic, no skip. Owner: Bug Hunt.
-  Prerequisites: none.
 
 - [ ] **TEST.314 Only classify writes the class column, and the class is recomputed when an input is edited**
   Step C5 of the condition-based classes build (design draft
@@ -19029,18 +19011,6 @@ clears each one.
   main (link-in-text-block and nested-interactive on planet class links
   inside summary.body-stats).
   Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
-
-- [ ] **TEST.330 test_web_formulas::test_no_page_shows_a_formula_that_is_not_written_out fails on (/classes/habitability, CO2) (bug)**
-  Reported by Core 3 at 5:30 AM EDT 2026-10-24 (as the lane reported) as
-  failing on main in its gate: the page /classes/habitability shows the
-  formula CO2 and the test says it is not written out with a subscript.
-  The TODO thread could not run it (the test needs Playwright, not
-  installed on this machine), so recheck on current main first; UX.149
-  (the formula formatter) and the class lane's habitability page text
-  are the likely sources. Do: reproduce on current main; write the
-  formula with the chem filter (UX.149) on the page or its template.
-  Done: the test passes. Owner: Bug Hunt.
-  Prerequisites: none. Related: UX.149.
 
 - [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
   Found by the detail pages lane at 5:54 AM EDT 2026-10-24 (as the lane
@@ -19891,6 +19861,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   ozone_uv dataset fetched (python3 -m planetgen.cli.datasets fetch
   ozone_uv) or test_migration_habitable_worlds fails with DataMissing;
   add it to the setup script.
+  Research (2026-10-09, Update): Bug Hunt (7:22 AM EDT 2026-10-24, as
+  the lane reported): GEN.445 means every test machine needs the
+  ozone_uv dataset fetched (python3 -m planetgen.cli.datasets fetch
+  ozone_uv) or generation tests raise DataMissing.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
