@@ -12196,43 +12196,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.625 measurement; proposed by the TODO thread).
   Prerequisites: none. Related: GEN.625, GEN.624, GEN.403.
 
-- [ ] **GEN.639 The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1)**
-  Left open by GEN.146 (Blocker 3, merged as #2685 at about 1:20 PM EDT
-  2026-10-23 as the lane reported, generator epoch 60): the Kopparapu
-  runaway and maximum greenhouse edges now follow the star's temperature
-  (Table 1, 1 Earth mass; temperature clamped to 2,600 to 7,200 K; a
-  binary uses the luminosity-weighted temperature), but two parts of
-  design note 4.1 were not done: the planet-mass hz_limits (the edges
-  for other masses than 1 Earth mass) and the pre-main-sequence runaway
-  history. Filed by the TODO thread from the lane's report; the exact
-  scope is design note 4.1 and the lane's PR, which the owner reads
-  first. Do: read design note 4.1 and the GEN.146 PR, build the two
-  parts or record in the design note why one is not needed, and say in
-  the PR whether it changes stored values (and takes an epoch). Done:
-  both parts are built and tested, or the design note says why not.
-  Owner: none (pool; after 8.1 unless Boss wants it sooner).
-  Prerequisites: none. Related: GEN.146, GEN.29.
-  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
-  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
-  right now to build it, I want the habitability system finished before
-  8.1 is ready'; this overrides the 8.1-only pause for it and any
-  earlier owner line. Owner: Habitability lane D (model). It changes
-  generated values, so it takes a generator epoch at merge (62 is
-  GEN.450, then 63).
-  Decided (Boss, 7:09 and 7:12 PM EDT 2026-10-23, option 1 of lane D's
-  card, relayed by lane D; design note
-  /mnt/project-files/design-drafts/red-dwarf-water-and-star-regeneration-2026-10-23.md):
-  ship the planet-mass habitable zone edges as staged; keep the
-  early-runaway loss with a smaller escape efficiency,
-  ENERGY_LIMITED_EFFICIENCY 0.01 (the low end of the published range
-  0.01 to 0.3, a DESIGN stand-in: label it in the stand-in registry of
-  the gap plan, docs/design/research/gap-filling-plan.md), so only the worst red
-  dwarfs desiccate; the loss comes off the surface reservoir first
-  (surface_water_fraction), and the mantle returns part of the deficit
-  over the star's age by outgassing. Re-measure on 120 systems and
-  report the ocean and dry counts. Takes a generator epoch at merge.
-  Owner: Habitability lane D (already on its list).
-
 - [ ] **GEN.640 GEN.316 part (c): delete BinaryStarProxy, WideBinaryPair and the writers of the binary_* columns, once circumbinary and S-type planets come from the tree**
   Split from GEN.631 (Core 3's re-cut, relayed 2:20 PM EDT 2026-10-23 as
   the lane reported; TODO thread agreed). BinaryStarProxy and
