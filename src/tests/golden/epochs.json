@@ -468,8 +468,7 @@
     },
     {
       "epoch": 95,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2258",
       "reason": "A planet's or moon's air is stored gas by gas, the class's balance gas (helium, sodium, ammonia) included, so every stored atmosphere gains its balance-gas row and the air column and the colour that read it change (DB.71, GEN.424)"
     }
   ]
