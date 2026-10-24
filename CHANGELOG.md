@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2133] - 2026-10-24
+
+**Headline:** A galaxy plan takes about half as long, because the digest it stores with the galaxy is worked out alongside the plan.
+
+### Changed
+- **A new galaxy's plan no longer stops for the generator battery (PERF.176).** The plan records a digest of the generator with a new galaxy, and worked it out in the middle of storing the shape: 8 to 20 seconds of a 15 to 39 second plan. It is now worked out in a process of its own while the rest of the plan runs; the plan waits under a second for it. The digest stored is the same.
+
 ## [8.0.2132] - 2026-10-24
 
 **Headline:** Every map shows what you pick in one popup over the map, and the panel beside the map is gone, so the map gets the room.
