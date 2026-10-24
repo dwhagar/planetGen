@@ -14073,7 +14073,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   value, doubling a gas moves the warming as the physics says, no NaN
   for any class. Owner: lane E (as lane G handed it over, to be
   confirmed).
+  Research (2026-10-09, Update): Lane E (4:51 AM EDT 2026-10-24 as the
+  lane reported): lane E takes this after the GEN.444/GEN.445 wiring
+  merges; nobody has started it, so it stays lane E's unless lane H or
+  GEN.423 asks.
   Prerequisites: none. Related: GEN.443, GEN.423, GEN.412, GEN.436.
+
+- [ ] **GEN.704 Moons of a moved planet keep the dose, solar particle exposure, UV and habitability of their old distance from the star (bug)**
+  Found by lane E while wiring GEN.445 (reported 4:51 AM EDT
+  2026-10-24). validation.reconcile_moved_planet re-runs
+  calculate_atmospheric_conditions on each moon of a moved planet, so
+  the moon's star distance updates, but it never re-runs generate_spin,
+  the dose or the habitability for the moon. The moon keeps its dose,
+  SEP, UV and habitability from the old distance. Seen: a moon at 0.229
+  au when its dose was drawn and 0.318 au at the end, with the UV 1.93
+  times off. Planets are fine because they do get generate_spin. Do:
+  after the moon's atmospheric conditions are recalculated, re-run the
+  same steps a planet gets (spin, dose, habitability) for each moon, in
+  the order the planet path uses; add a test that moves a planet and
+  checks each moon's dose and UV against the new distance. Changes the
+  stored values of moons of moved planets, so it needs a generator
+  epoch. Owner: lane D or lane H, to be confirmed (lane E suggested; the
+  TODO thread proposes lane D).
+  Prerequisites: none. Related: GEN.445, GEN.444.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
