@@ -5,7 +5,7 @@ The `User-Agent` of every request the software makes to another site (API.31).
 
 One function builds it, so this is the only place that spells the string: the release from `planetgen/_version.py`,
 the project URL in a comment and the API version from `planetgen/api/version.py`, in the RFC 9110 form of product
-tokens with a comment, for example `PlanetGen/8.0.1721 (+https://github.com/dwhagar/planetGen) PlanetGen-API/6`.
+tokens with a comment, for example `PlanetGen/8.0.1721 (+https://github.com/dwhagar/planetGen) PlanetGen-API/7`.
 """
 
 from planetgen._version import REPO_URL, __version__

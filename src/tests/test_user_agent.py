@@ -43,8 +43,7 @@ def _calls_user_agent(path):
     return any(isinstance(node, ast.Call) and getattr(node.func, "id", None) == "user_agent" for node in ast.walk(tree))
 
 
-OUTGOING = ["planetgen/web/lib/apiclient.py", "planetgen/wiki/mediawiki.py", "planetgen/wiki/wikijs.py",
-            "planetgen/datasets/fetch.py", "../scripts/build_element_tables.py"]
+OUTGOING = ["planetgen/web/lib/apiclient.py", "planetgen/datasets/fetch.py", "../scripts/build_element_tables.py"]
 
 
 @pytest.mark.parametrize("relative", OUTGOING)
