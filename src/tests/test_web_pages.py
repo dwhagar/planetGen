@@ -25,7 +25,6 @@ from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.web import csrf  # noqa: E402
 from planetgen.web.helpers import page_url  # noqa: E402
 from werkzeug.routing import BuildError  # noqa: E402
-from planetgen.web.old_urls import OLD_PAGES  # noqa: E402
 
 DB = "planetgen_web_test"
 
@@ -480,45 +479,6 @@ def test_in_process_transport_declines_outside_a_request(app, monkeypatch):
     monkeypatch.setattr(apiclient, "_http_transport", unreachable)
     with pytest.raises(apiclient.ApiError, match="Could not reach"):
         apiclient.get_wiki_config()
-
-
-# --- Old CGI URLs ----------------------------------------------------------------------
-
-@pytest.mark.parametrize("script", ["index.py", "browse.py"])
-def test_old_home_urls_redirect_keeping_page_numbers(client, script):
-    result = client.get(f"/{script}?db=x&sectors_page=2&standalone_page=4")
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/?sectors_page=2&standalone_page=4"
-
-
-def test_old_url_without_params_goes_home(client):
-    result = client.get("/browse.py")
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/"
-
-
-@pytest.mark.parametrize("script,location", [
-    ("sectors.py", None), ("wsgi.py", None), ("nope.py", None),
-    ("galaxy3d.py", "/galaxy"), ("galaxy_view.py", "/galaxy"),
-])
-def test_old_url_names(client, script, location):
-    result = client.get(f"/{script}")
-    if location is None:
-        assert result.status_code == 404
-        assert "text/html" in result.headers["Content-Type"]
-    else:
-        assert result.status_code == 301
-        assert result.headers["Location"] == location
-
-
-def test_every_old_page_points_at_a_route(app):
-    for name, endpoint in OLD_PAGES.items():
-        assert endpoint in app.view_functions, name
-
-
-def test_old_url_post_is_not_replayed(client):
-    """An old form POSTed to a `.py` URL is refused like any stale form."""
-    assert client.post("/login.py", data={"username": "a", "password": "b"}).status_code in (400, 405)
 
 
 # --- Real database, in-process ----------------------------------------------------------

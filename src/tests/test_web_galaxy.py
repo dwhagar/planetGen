@@ -698,20 +698,6 @@ def test_nebula_surroundings_endpoint_passes_the_stars_through(client, fake, mon
     assert client.get("/galaxy/nebula/9/surroundings").status_code == 404
 
 
-# --- Old CGI URLs ---------------------------------------------------------------------------
-
-def test_old_galaxy_url_redirects(client):
-    result = client.get("/galaxy.py?db=x&quadrant=II&page=3")
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/galaxy?quadrant=II&page=3"
-
-
-def test_old_galaxy_tiles_url_redirects(client):
-    result = client.get("/galaxy_tiles.py", query_string={"db": "x", "tiles": "1/1/1/1,2/2/2/2", "stamp": STAMP})
-    assert result.status_code == 301
-    assert result.headers["Location"] == f"/galaxy/tiles?tiles=1%2F1%2F1%2F1%2C2%2F2%2F2%2F2&stamp={STAMP}"
-
-
 # --- Real database, in-process ----------------------------------------------------------------
 
 @pytest.fixture

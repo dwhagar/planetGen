@@ -71,7 +71,7 @@ itself, which needs `pymysql` and a database account.
 | File | Purpose |
 |---|---|
 | `../src/html/wsgi.py` | The WSGI entry point (loaded by mod_wsgi or gunicorn): the Flask app serving the API under `/api` and every page. |
-| `../src/planetgen/web/` | The pages: routes, templates and helpers (see "Flask pages" below). `web/old_urls.py` answers the old `/<name>.py` CGI URLs with a 301 to the page that replaced them. |
+| `../src/planetgen/web/` | The pages: routes, templates and helpers (see "Flask pages" below). |
 | `../src/planetgen/web/lib/pagination.py` | The site's one pager, used under every paged table (Browse's two tables, Phenomena, a sector's Contents table, a Galaxy Map Quadrant's sector list, each Search result panel, the admin API key list and the admin stats page's duplicate-names list): a "Showing X-Y of Z" summary, then First/Prev, numbered pages and Next/Last, 50 rows a page. Each table has its own page parameter (e.g. `sectors_page`), a plain GET link, and changing a Search filter starts its results back at page 1. |
 | `../src/planetgen/web/lib/apiclient.py` | The API client every page calls instead of querying MySQL directly -- one typed wrapper function per read endpoint, plus `auth_*` wrappers (the admin pages) supporting POST/DELETE, a request body, and `Cookie`/`Set-Cookie` relay, and `NotFoundError`/`ApiError` (`web/errors.py` turns these into a 404/502 page; `ApiError.status_code` lets `auth_me`/the admin pages branch on a 401 without string-matching). Inside the Flask app it runs in-process (`web/transport.py`); elsewhere it uses HTTP to `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`). Not web-accessible. |
 | `../src/planetgen/web/lib/fmt.py` | HTML-escaping and small formatting helpers (`esc`, `linkify_location`/`nearest_neighbors_location` -- which take a `system_url(system_id)` hook for the neighbour links -- `format_density`, and `static_url`, the versioned `static/` URL every page uses) with nothing to do with fetching data. Not web-accessible. |
@@ -387,21 +387,6 @@ shows the slider only for "in orbit" and reads out its distance, period
 and speed as it moves; without it the form still works and the server
 refuses a host that doesn't fit.
 
-**Old URLs.** `web/old_urls.py` answers a GET of an old CGI page's URL
-(`/<name>.py`) with `301 Moved Permanently` to the page that replaced it,
-so old links and bookmarks still land somewhere sensible. The query
-string is carried over minus `db` and empty values (the new pages kept
-the old parameter names: `sectors_page`, `quadrant`, `page`, the search
-filters, ...). `/sector.py?id=N` goes to `/sector/N` (keeping
-`contents_page`), `/system.py?id=N` to `/system/N` (keeping `code`),
-`/phenomenon.py?type=T&id=N` to `/phenomenon/T/N`, each falling back to
-its list page without a valid id; `/nav.py`'s old `from=12&from_kind=
-phenomenon&from_type=nebula` becomes `from=nebula:12`. `galaxy3d.py` and
-`galaxy_view.py` (older Galaxy Map scripts) go to `/galaxy`. Any other
-`.py` name, `wsgi.py` included, gets the 404 page. An old form POSTed to
-a `.py` URL is not replayed (it fails the CSRF check like any stale
-form).
-
 The Galaxy Map's disk tile cache (`planetgen/web/lib/tilecache.py`) is written by the
 WSGI daemon. A tile cache location or size set only with `SetEnv
 PLANETGEN_TILE_CACHE_DIR`/`_MAX_MB` in the vhost does not reach it: put it
@@ -621,7 +606,6 @@ src/planetgen/web/
   transport.py        in-process transport for planetgen/web/lib/apiclient.py
   csrf.py             CSRF tokens for POST forms
   errors.py           HTML 404/502/500 pages, and the 503/504 pages
-  old_urls.py         301s from the old /<name>.py URLs
   templates/          base.html + one template per page (+ partials/)
 ```
 

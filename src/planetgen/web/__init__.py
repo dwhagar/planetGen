@@ -6,8 +6,7 @@ The HTML pages of the site, served by the same Flask app as the JSON API
 
 Every page has a real GET route here (`/`, `/sectors`, `/sector/<id>`,
 ...) and a Jinja2 template in `web/templates/` extending `base.html`.
-The old CGI URLs (`/<name>.py`) 301 to their replacements
-(`old_urls.py`). See `docs/reference/html-interface.md` ("Flask pages") for the
+See `docs/reference/html-interface.md` ("Flask pages") for the
 full guide; in short, a new page is:
 
     # web/views.py
@@ -260,7 +259,6 @@ from . import class_pages  # noqa: E402,F401 -- /classes, /classes/<type>, /clas
 from . import maintenance_page  # noqa: E402,F401 -- /maintenance (UX.112)
 from . import galaxy_status_page  # noqa: E402,F401 -- /galaxy-status (UX.3)
 from . import object_lists  # noqa: E402,F401 -- /lists, /lists/<kind> (UX.141)
-from . import old_urls  # noqa: E402,F401 -- /<name>.py -> 301 to the page that replaced it
 
 
 PAGE_CACHE_EXTENSION = "planetgen_page_cache"

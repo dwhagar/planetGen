@@ -746,7 +746,7 @@ def test_admin_stats_renders(client, fake):
     assert "0.10 / 0.20 / 0.30" in html
     # Duplicate names: links to the sector/system pages, escaped names.
     assert "Vega &lt;b&gt;Beta&lt;/b&gt;" in html
-    assert 'href="/sector.py?db=' in html or 'href="/sector/5"' in html
+    assert 'href="/sector/5"' in html
     assert "Planet/moon collisions" not in html
     assert '<a href="/admin/stats" data-destination="data" aria-current="page">Data</a>' in html
     assert "/admin/stats/lockouts" not in re.search(r'<main.*</main>', html, re.S).group(0)
@@ -848,29 +848,6 @@ def test_admin_stats_database_unreachable(client, fake, monkeypatch):
     assert "database unreachable" in html
     assert "connection &lt;refused&gt;" in html
     assert "Names made unique" not in html
-
-
-# --- Old CGI URLs ----------------------------------------------------------------------------
-
-@pytest.mark.parametrize("url,location", [
-    ("/login.py?db=x", "/login"),
-    ("/logout.py", "/logout"),
-    ("/changecreds.py", "/account"),
-    ("/admin.py?keys_page=3", "/admin?keys_page=3"),
-    ("/adminstats.py?db=x&names_page=2", "/admin/stats?names_page=2"),
-])
-def test_old_admin_urls_redirect(client, url, location):
-    result = client.get(url)
-    assert result.status_code == 301
-    assert result.headers["Location"] == location
-
-
-def test_old_logout_url_does_not_log_out(client):
-    """A GET of the old logout.py only redirects; it never reaches the API."""
-    client.set_cookie(SESSION_COOKIE_NAME, "abc")
-    result = client.get("/logout.py")
-    assert result.status_code == 301
-    assert "Set-Cookie" not in result.headers
 
 
 # --- Real database, in-process ----------------------------------------------------------------

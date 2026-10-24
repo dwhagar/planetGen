@@ -585,25 +585,6 @@ def test_location_link_hook():
     assert html == '<a href="/system/3">A</a> (1.0 ly), Z (2.0 ly)'
 
 
-# --- Old CGI URLs ---------------------------------------------------------------------
-
-@pytest.mark.parametrize("url,location", [
-    ("/system.py?db=x&id=12", "/systems"),
-    ("/system.py?db=x&id=12&code=markdown", "/systems"),
-    ("/system.py?db=x&id=../admin", "/systems"),
-    ("/system.py", "/systems"),
-    ("/phenomenon.py?db=x&type=black_hole&id=3", "/phenomena"),
-    ("/phenomenon.py?db=x&type=../x&id=3", "/phenomena"),
-    ("/phenomenon.py?db=x", "/phenomena"),
-    ("/phenomena.py?db=x&page=3", "/phenomena?page=3"),
-    ("/phenomena.py", "/phenomena"),
-])
-def test_old_system_and_phenomenon_urls_redirect(client, url, location):
-    result = client.get(url)
-    assert result.status_code == 301
-    assert result.headers["Location"] == location
-
-
 # --- Real database, in-process ---------------------------------------------------------
 
 @pytest.fixture
