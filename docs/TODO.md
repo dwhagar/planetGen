@@ -940,6 +940,28 @@ with `clamp()`.
   Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
   GEN.430, GEN.445.
 
+- [ ] **UX.188 Object pages put the critical facts first: planet basics under the render, details in sections after**
+  Boss (5:50 PM EDT 2026-10-24, design note): 'Redesign the object pages
+  so that we frontload with the critical information, planet basics
+  (temp, pressure, gravity, habitability, etc etc etc) and details come
+  in sections after that. The habitability icons should be on their own
+  line in the basic information table that's just under the render.' Do:
+  for the planet and moon pages (then star, belt, comet and the other
+  kinds with their own critical facts) put the basic information table
+  directly under the render with the critical facts first: surface
+  temperature, surface pressure, surface gravity, habitability (the
+  PHI-6 colour and the four life scores) and the other facts a visitor
+  needs at a glance; the habitability icons sit on their own line of
+  that table; everything else (orbit, interior and heat, atmosphere
+  mixture, surface, radiation, life, history, and the physics outputs of
+  UX.187) follows as titled sections, collapsed or ordered by
+  importance, with anchors from the table. Keep the field macro and the
+  existing links up the chain (UX.144). Done: a page test checks the
+  order of the basics and the icon line on a planet, a moon and a star
+  page. Owner: Aux 11 (Lane 3, pages and markers).
+  Prerequisites: none. Related: UX.143, UX.144, UX.150, UX.187, GEN.430,
+  GEN.445.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.

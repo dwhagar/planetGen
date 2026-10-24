@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.188 |
+| UX | UX.189 |
 | MAP | MAP.293 |
 | NAV | NAV.63 |
 | GEN | GEN.764 |
@@ -2376,6 +2376,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.185 | Phenomenon pages: paragraph text and neighbour links from the stored row | none | done, PR #3045 |
 | UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary | none | open |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output | none | open |
+| UX.188 | Object pages put the critical facts first: planet basics under the render, details in sections after | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
