@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2136] - 2026-10-24
+
+**Headline:** A moon of a free (rogue) planet can now be found by name, looked up by its ID and opened on its own page.
+
+### Changed
+- **Moons of free planets are read where other moons are (DB.94).** The object index, the object lookup (`GET /api/objects/<ref>`), the Search page's Moons panel and the moon's own page all handle a moon that orbits a free planet instead of a star: the lookup names the rogue planet as its parent and gives its galaxy point, Search lists it with the free planet where a planet's name goes (and no system), and its page links to the free planet in place of a system. Nothing generates such moons yet.
+
 ## [8.0.2135] - 2026-10-24
 
 **Headline:** Close binaries now come in their observed kinds: contact binaries, Algols, blue stragglers, merger products, Be stars with a stripped companion, and the rare R Coronae Borealis, FK Comae and Thorne-Zytkow stars.
