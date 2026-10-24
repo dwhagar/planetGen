@@ -12437,6 +12437,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to that range (tuning.MS_LIFETIME_Z_RANGE); stars outside it use the
   edge value. Label it a stand-in in the gap plan registry when GEN.652
   settles the one main-sequence source.
+  Priority (2026-10-09): Update 5:13 PM EDT 2026-10-24 (Boss asked how
+  firmly the generator rests on real physics, 4:07 PM EDT; assessment
+  reports/physics-grounding-assessment-2026-10-24.md, contradiction 1,
+  relayed by the coordinator): GOES TO THE FRONT of Lane A's queue
+  (after the part of GEN.553 it needs). The assessment found that
+  evolve_star holds a living main-sequence star at its zero-age
+  luminosity until it leaves the main sequence, so a star never
+  brightens: a solar-mass star ends main-sequence life far brighter than
+  it began and the Sun was about 30 percent fainter at formation. Done
+  now also includes: luminosity, radius and temperature along the main
+  sequence follow age (and [Fe/H]) from the MIST isochrones, a test that
+  the Sun at 4.6 Gyr is near 1 solar luminosity and at zero age near
+  0.7, and that the habitable zone edges move with age. Owner: Lane A
+  (it holds GEN.553 and GEN.652).
 
 - [ ] **GEN.654 Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only**
   Boss, 7:12 PM EDT 2026-10-23, via lane D (design note
@@ -13134,6 +13148,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   degassed share (GEN.482, redox), both research items with no builder,
   so the first step is a design note that defines P_supply and names the
   verified source for each term.
+  Priority (2026-10-09): Update 5:13 PM EDT 2026-10-24: the physics
+  grounding assessment (contradictions 4 and 5) names the missing
+  surface-pressure supply law as the largest single weakness: pressure
+  is a class density range times gravity, and everything downstream
+  (temperature, shielding, habitability, atmosphere colour) inherits it.
+  Boss already ordered it first (3:50 PM EDT): it is built on Lane I's
+  branch gen726 and merges right after step 4b, before 4c. Owner: Lane
+  I.
 
 - [ ] **GEN.727 Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
@@ -14292,38 +14314,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (proposed, after PERF.125).
   Prerequisites: PERF.124, PERF.125. Related: PERF.123.
 
-- [ ] **PERF.173 A new-galaxy Generate run dies in stage 5 with "Execution not found in Redis": the worker warm outlives the 90 s execution record (bug)**
-  Boss's live observation (relayed 5:18 PM EDT 2026-10-23 by a fix
-  thread: 'Recent generate log crashed, investigate, report, and fix';
-  filed by the TODO thread). Kind: crash. A new-galaxy Generate run died
-  in stage 5 with ValueError: Execution ... not found in Redis after
-  saving 5 of 104 sectors. Cause (the fix thread's report,
-  /mnt/project-files/reports/generate-redis-crash-2026-10-23.md):
-  PERF.146's worker warm ran after RQ created the unit's execution
-  record (90 s expiry, first renewal 30 s after the fork), so a warm of
-  over a minute on a loaded host left finished units without a record
-  and RQ failed them on cleanup, which failed the run. Also found:
-  units.unit_failed says RQ calls on_failure only after the retry, which
-  is wrong (every failure), so Retry(max=1) only applies to killed
-  workers. Fix in progress on branch claude/project-thread-bb2equ
-  (cli/worker.py, queue/units.py, tests). Fails on main: yes.
-  Reproducer: a new-galaxy run on a loaded host with a worker warm over
-  60 s. Do: keep the execution record alive during the warm (renew
-  before the warm or warm before the record is created), correct the
-  on_failure comment, and add a test that a long warm does not fail a
-  unit. Done: a unit whose worker warm takes longer than the record's
-  expiry finishes and the run completes, and the test passes. Owner: the
-  fix thread (Boss, 5:18 PM EDT 2026-10-23).
-  Research (2026-10-09, Boss reversal): Update 2:34 PM EDT 2026-10-24
-  (Boss, relayed by the coordinator): at 2:32 PM EDT Boss said to ignore
-  the crash (he thought it was the MySQL out-of-memory kill, PERF.181);
-  at 2:34 PM EDT he reversed it: 'Make the redis fix please. ASAP.'
-  PERF.173 stays open and is first priority again. The fix is on branch
-  claude/project-thread-bb2equ (b787ee3), local gate about 30 percent
-  when the lane paused; report
-  reports/generate-redis-crash-2026-10-23.md. Owner: Lane Redis.
-  Prerequisites: none. Related: PERF.146, PERF.171.
-
 - [ ] **PERF.174 Every work unit's database connection runs the schema check again: skip it when the schema version is current**
   Found by the Performance lane in PERF.156 to PERF.158 (relayed 7:34 PM
   EDT 2026-10-23 as the lane's clock reads); filed by the TODO thread.
@@ -15115,30 +15105,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Not covered: the edit paths and the end of a scatter. The item stays
   open for those two paths.
   Prerequisites: none. Related: DB.25.
-
-- [ ] **DB.89 Giants store their interior layers: the layer boundaries, the helium share per layer, the core flag, core mass and core composition**
-  Boss, 6:01 PM EDT 2026-10-23: 'I want gas giants to have a full
-  composition, including liquid or metallic hydrogen or helium cores, if
-  they have a rocky core, and what it is made of.' Gap found by the TODO
-  thread: GEN.460 draws only the heavy-element mass M_Z, the envelope
-  helium and metallicity and a core-mass placeholder (log-uniform 5 to
-  20 Earth masses, part C item 3 of
-  docs/design/composition/body-composition-parts/C-volatile-and-giants.md, the giant
-  interior design note never filed), and the spine contract
-  (composition-spine-contracts-2026-10-23.md) stores a giant as
-  fractions metal, rock, water, ice and envelope with envelope_helium
-  and envelope_z, with no layers. Covers gas giants, ice giants and
-  brown dwarfs. Owner: Composition lane J (bulk composition). Lane I
-  (the spine) is told: BulkFractions needs the giant interior fields
-  once GEN.642 settles them (testing mode: new epochs and database
-  versions are allowed, Boss 5:42 PM EDT). Columns on the planets table
-  (and the brown dwarf table where separate), declared in
-  db/column_units.py with their kinds in the same PR, one Alembic
-  revision, schema version bump, the loader and the writer in the
-  generic insert (DB.74), the rebuild step for older rows, and the API
-  field. Done: a save and load round trip returns the layers unchanged,
-  the migration test passes, and the schema docs list the columns.
-  Prerequisites: none. Related: GEN.642, DB.69, DB.74.
 
 - [ ] **DB.90 Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -18797,6 +18763,16 @@ clears each one.
   and fix the page or the stale test without weakening it. Done: the
   test passes on main. Owner: Bug Hunt (main-green rule).
   Prerequisites: none. Related: UX.184.
+
+- [ ] **TEST.357 changes/map-unresolved-glow.minor.md has a '### Tests' heading, so bump_version.py --check-pr fails on main (bug)**
+  Found by the Redis lane's gate (relayed 5:12 PM EDT 2026-10-24 as the
+  lane reported; filed by the TODO thread). The release-note check
+  allows only the standard headings (### Changed plus the Headline
+  line); the file's line 6 is '### Tests'. Do: move the test lines into
+  the ### Changed section or delete the heading, and run `python3
+  scripts/bump_version.py --check-pr`. Done: the check passes on main.
+  Owner: Map nodes lane (it wrote the file; MAP.261/MAP.262 work).
+  Prerequisites: none. Related: MAP.262.
 
 ## USR: User accounts
 
