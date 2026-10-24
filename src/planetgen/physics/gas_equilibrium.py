@@ -32,6 +32,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from planetgen.physics import species_thermo
+from planetgen.util import detmath
 
 NEGLIGIBLE_LOG_FRACTION = -18.420680743952367
 """float: ln 1e-8, the mole fraction below which a species is treated as negligible when the step is damped (Gordon and McBride)."""
@@ -46,6 +47,11 @@ MOLES_FLOOR = 1e-290
 """float: The least moles a species is allowed, so that no logarithm is minus infinity."""
 
 MAX_ITERATIONS = 400
+
+
+def _times_vector(matrix, vector):
+    """`matrix @ vector` without BLAS (a result that goes to the database must not depend on the library)."""
+    return detmath.matmul(matrix, np.asarray(vector)[:, None])[:, 0]
 
 
 class EquilibriumError(RuntimeError):
@@ -152,19 +158,19 @@ def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None
         weighted = matrix * moles
         row_sums = weighted.sum(axis=1)
         lhs = np.empty((len(free) + 1, len(free) + 1))
-        lhs[:-1, :-1] = weighted @ matrix.T
+        lhs[:-1, :-1] = detmath.matmul(weighted, matrix.T)
         lhs[:-1, -1] = row_sums
         lhs[-1, :-1] = row_sums
         lhs[-1, -1] = moles.sum() - total
         rhs = np.empty(len(free) + 1)
-        rhs[:-1] = totals - row_sums + weighted @ potentials
-        rhs[-1] = total - moles.sum() + moles @ potentials
+        rhs[:-1] = totals - row_sums + _times_vector(weighted, potentials)
+        rhs[-1] = total - moles.sum() + float(_times_vector(moles[None, :], potentials)[0])
         try:
             solution = np.linalg.solve(lhs, rhs)
         except np.linalg.LinAlgError:
             solution = np.linalg.lstsq(lhs, rhs, rcond=None)[0]
         element_potentials, d_ln_total = solution[:-1], solution[-1]
-        d_ln_moles = matrix.T @ element_potentials - potentials + d_ln_total
+        d_ln_moles = _times_vector(matrix.T, element_potentials) - potentials + d_ln_total
         significant = log_fraction > NEGLIGIBLE_LOG_FRACTION
         biggest = max(5.0 * abs(d_ln_total), float(np.max(np.abs(d_ln_moles[significant]))) if significant.any() else 0.0)
         factor = 1.0 if biggest <= 2.0 else 2.0 / biggest
@@ -184,8 +190,8 @@ def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None
     else:
         raise EquilibriumError(f"no convergence at {temperature_k} K and {pressure_bar} bar")
     # one undamped pass on every species from the converged potentials, so the trace species are exact too
-    moles = np.maximum(np.exp(math.log(total) - chemical_constant + matrix.T @ element_potentials), 0.0)
-    if np.abs(matrix @ moles - totals).max() / totals.max() > BALANCE_TOLERANCE:
+    moles = np.maximum(np.exp(math.log(total) - chemical_constant + _times_vector(matrix.T, element_potentials)), 0.0)
+    if np.abs(_times_vector(matrix, moles) - totals).max() / totals.max() > BALANCE_TOLERANCE:
         raise EquilibriumError(f"the element balance is off at {temperature_k} K and {pressure_bar} bar")
 
     fractions = moles / moles.sum()
