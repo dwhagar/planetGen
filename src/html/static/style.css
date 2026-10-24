@@ -4050,7 +4050,8 @@ body.app {
   font-weight: 700;
   text-decoration: none;
 }
-.polity-swatch {
+.polity-swatch,
+.swatch {
   display: inline-block;
   width: 0.8rem;
   height: 0.8rem;

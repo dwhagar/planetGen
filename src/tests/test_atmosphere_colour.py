@@ -3,7 +3,7 @@ GEN.418: the atmosphere colour of a world with a ground (`planetgen.physics.atmo
 docs/design/composition/atmosphere-colour.md section 14.1 and the targets of section 15.
 
 Solar System rows (the Earth-like test air, the thin carbon dioxide and the dense carbon dioxide cases) live here only; the module
-reads none of them. Tests that need the real ozone cross sections run on the gas table's coarse bins when the download is absent.
+reads none of them. The ozone's Chappuis band is a table in the repository, so no test needs a download.
 """
 
 import math
@@ -11,7 +11,6 @@ import math
 import numpy as np
 import pytest
 
-from planetgen.datasets import fetch
 from planetgen.physics import air_column, atmosphere_colour as ac, photometry
 
 EARTH_AIR_PA = {"N2": 0.78084 * 101325.0, "O2": 0.209476 * 101325.0, "Ar": 0.00934 * 101325.0, "CO2": 4e-4 * 101325.0}
@@ -128,12 +127,20 @@ def test_cloud_whitens_and_brightens_by_its_cover():
 
 
 def test_ozone_takes_a_few_percent_of_the_light_and_shifts_the_hue_little():
-    with fetch.disregard_missing_data():
-        ozone = ac.atmosphere_colour(_earth(), temperature_k=SUN_K, ozone_du=300.0)
+    ozone = ac.atmosphere_colour(_earth(), temperature_k=SUN_K, ozone_du=300.0)
     bare = ac.atmosphere_colour(_earth(), temperature_k=SUN_K)
     drop = 1.0 - ozone.luminance_ratio / bare.luminance_ratio
     assert 0.0 < drop < 0.15
     assert abs(ozone.colour.x - bare.colour.x) < 0.02 and abs(ozone.colour.y - bare.colour.y) < 0.02
+
+
+def test_ozone_matters_more_when_the_sun_is_low_and_the_table_is_the_chappuis_band():
+    table = ac.chappuis_cross_section_cm2()
+    assert ac.WAVELENGTHS_NM[int(np.argmax(table))] == pytest.approx(600.0, abs=10.0)
+    assert table.max() == pytest.approx(5.1e-21, rel=0.03)
+    low = ac.atmosphere_colour(_earth(), temperature_k=SUN_K, mu0=0.2)
+    low_ozone = ac.atmosphere_colour(_earth(), temperature_k=SUN_K, mu0=0.2, ozone_du=300.0)
+    assert 0.05 < 1.0 - low_ozone.luminance_ratio / low.luminance_ratio < 0.2
 
 
 def test_a_cool_star_has_the_bt_settl_offset_and_no_step_at_4500_kelvin():
