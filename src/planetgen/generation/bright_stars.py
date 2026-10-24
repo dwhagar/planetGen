@@ -847,7 +847,7 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
 
 
 def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
-                   mass_range=None):
+                   mass_range=None, memo=None):
     """
     Draws and places every star in a luminosity band for a few cells (the
     sectors a backfill reaches, GEN.23, one by one since GEN.44): the band
@@ -861,6 +861,11 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
     asked for afterwards, so a cell taken down to 1000 Lsun and later to
     500 holds exactly the stars one draw down to 500 gives (GEN.44).
 
+    A block of a band (`BLOCK_WEDGES` cells) that expects few stars draws them block first instead (GEN.309, the
+    candidate path, `block_candidates`): one count for the block, each candidate on a stream of its own. Which path a
+    block and luminosity band takes depends on the block's bound alone (`candidate_path`), so a cell gets the same
+    stars whichever cells of its block the run reaches, in whatever order or split.
+
     Args:
         shape (GalaxyShape): The galaxy's shape.
         addresses (iterable): `(shell, band, wedge)` cells to fill.
@@ -873,22 +878,37 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
         mass_range (tuple, optional): As in `scatter`: a galaxy whose mass
             pass placed every heavy star draws the lighter ones only,
             `(None, mass limit)`.
+        memo (dict, optional): The blocks' bounds and candidates this galaxy's calls have worked out already (the
+            keys name the block, the band and `mass_range`); a caller that draws many cells passes one dict for the
+            run's chunk so each block is drawn once. Left out, the call keeps its own.
 
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
     bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
     age_laws = age_laws_of(shape)
-    shares = {(k, population): bright_band_fraction(low, high, population, mass_range, age_laws)
-              for k, low, high in bands for population in SCATTERED_POPULATIONS}
+    memo = {} if memo is None else _trimmed(memo)
+    of_band = _band_shares(memo, ("shares", mass_range), [(k, low, high) for k, low, high in bands],
+                           lambda low, high, population: bright_band_fraction(low, high, population, mass_range, age_laws))
     for shell_index, band_index, wedge in addresses:
-        center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
-        densities = _densities(center, shape)
-        volume = volume_ratio(shell_index, band_index, edge_pc)
+        address = (shell_index, band_index, wedge)
         for k, low, high in bands:
-            means = {population: expected_at_density_1 * volume * densities[population] * shares[(k, population)]
+            candidates = candidate_path(memo, shape, address, edge_pc, expected_at_density_1, seed, k, of_band[k],
+                                        mass_range)
+            if candidates is not None and not candidates:
+                continue          # a sparse block that put no star in this cell: its densities are never read
+            densities, volume = _cell_densities(memo, shape, address, edge_pc)
+            means = {population: expected_at_density_1 * volume * densities[population] * of_band[k][population]
                      for population in SCATTERED_POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
+                continue
+            if candidates is not None:
+                for row in _candidate_rows(candidates, address, means, seed, k, edge_pc,
+                                           lambda population, rng, low=low, high=high: sample_bright_stars(
+                                               1, low, population, rng, max_luminosity_sol=high, mass_range=mass_range,
+                                               age_laws=age_laws)):
+                    if _in_range(row, min_luminosity_sol, max_luminosity_sol):
+                        yield row
                 continue
             rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{wedge}:{k}")
             for population in SCATTERED_POPULATIONS:
@@ -1018,6 +1038,139 @@ def block_candidates(seed, shell_index, band_index, chunk, k, bound, rate_of):
     return kept
 
 
+CANDIDATE_PATH_BOUND = 0.05
+"""float: A block takes the candidate path (GEN.309) when its bound, the most stars one cell of it can expect in the
+luminosity band, is under this: the block then expects fewer candidates than about 5 percent of its cells, so the one
+count and the few cells asked beat a Poisson count in every cell. Denser blocks (the bulge, where a quarter of the cells
+hold a star) draw cell by cell, which is faster there (docs/design/generation/sampling-backfill-and-resume.md
+section 2.1)."""
+
+
+BLOCK_MEMO_LIMIT = 50000
+"""int: How many entries a draw's memo of blocks keeps (GEN.309); past it the memo is emptied and the blocks are drawn
+again when asked for, the same draw each time, so a backfill of many millions of sectors holds a bounded few megabytes."""
+
+
+def _trimmed(memo):
+    """`memo`, emptied first when it has grown past `BLOCK_MEMO_LIMIT`."""
+    if len(memo) > BLOCK_MEMO_LIMIT:
+        memo.clear()
+    return memo
+
+
+def candidate_path(memo, shape, address, edge_pc, expected_at_density_1, seed, key, shares, tag):
+    """
+    The candidates of `address`'s cell on the candidate path (GEN.309), or `None` when its block takes the cell-by-cell
+    path. The choice depends on the block and the luminosity (or mass) band alone, never on the cells a run reaches.
+
+    Args:
+        memo (dict): Where the block's bound and candidates are kept, so one block is drawn once per call chain.
+        shape (GalaxyShape): The galaxy's shape.
+        address (tuple): `(shell, band, wedge)`.
+        edge_pc (float): The sector edge.
+        expected_at_density_1 (float): Systems per sector at density 1.
+        seed (int): The galaxy's bright-star seed.
+        key: The band's name in the stream keys: its `canonical_bands` number, or `m<mass>` for a mass band.
+        shares (dict): Population to its share of the band.
+        tag: What else the shares depend on (the mass range), part of the memo's keys.
+
+    Returns:
+        list or None: The `BlockCandidate`s that fall in this cell, possibly none; `None` for the cell-by-cell path.
+    """
+    shell_index, band_index, wedge = address
+    chunk = wedge // BLOCK_WEDGES
+    bound_key = ("bound", shell_index, band_index, key, tag)
+    bound = memo.get(bound_key)
+    if bound is None:
+        bound = memo[bound_key] = block_bound(shape, shell_index, band_index, edge_pc, expected_at_density_1, shares)
+    if bound >= CANDIDATE_PATH_BOUND:
+        return None
+    block = ("candidates", shell_index, band_index, chunk, key, tag)
+    found = memo.get(block)
+    if found is None:
+        def rate_of(cell):
+            densities, volume = _cell_densities(memo, shape, (shell_index, band_index, cell), edge_pc)
+            return sum(expected_at_density_1 * volume * densities[population] * shares[population]
+                       for population in SCATTERED_POPULATIONS)
+
+        found = {}
+        for candidate in block_candidates(seed, shell_index, band_index, chunk, key, bound, rate_of):
+            found.setdefault(candidate.wedge, []).append(candidate)
+        memo[block] = found
+    return found.get(wedge, [])
+
+
+def _band_shares(memo, memo_key, bands, share_of):
+    """
+    The share of each population in each of `bands` (`(name, low, high)`), as `{name: {population: share}}`, kept in
+    `memo` under `memo_key`: they depend on the band, the mass or luminosity limit and the galaxy's age laws, not on the
+    cell, and a draw that asks per sector would otherwise work them out for every sector (most of a sparse cell's cost).
+
+    Args:
+        memo (dict): The draw's memo.
+        memo_key: What the shares depend on besides the band (the limit), the memo's key for them.
+        bands (list): `(name, low, high)` of each band.
+        share_of (callable): `share_of(low, high, population)` -> the population's share of the band.
+    """
+    kept = memo.setdefault(memo_key, {})
+    for name, low, high in bands:
+        if name not in kept:
+            kept[name] = {population: share_of(low, high, population) for population in SCATTERED_POPULATIONS}
+    return kept
+
+
+def _cell_densities(memo, shape, address, edge_pc):
+    """`(densities, volume)` of a cell: the population densities at its centre (`_densities`) and its volume in edge
+    cubes. They do not depend on the band, so a cell asked about in every luminosity band works them out once, and a
+    cell no band has a candidate in never does."""
+    key = ("cell", address)
+    found = memo.get(key)
+    if found is None:
+        shell_index, band_index, wedge = address
+        found = memo[key] = (_densities(sector_position_pc(shell_index, band_index, wedge, edge_pc), shape),
+                             volume_ratio(shell_index, band_index, edge_pc))
+    return found
+
+
+def _candidate_rows(candidates, address, means, seed, key, edge_pc, star_of):
+    """
+    The stars of a cell's candidates: each picks its population in proportion to the cell's per-population means and
+    draws its parameters and place from the stream of its own (`candidate_stream`), so it depends on the seed, the block,
+    the band and its place in the block's draw alone.
+
+    Args:
+        candidates (list): The cell's `BlockCandidate`s.
+        address (tuple): `(shell, band, wedge)`.
+        means (dict): Population to the stars the cell expects of it in the band.
+        seed (int): The galaxy's bright-star seed.
+        key: The band's name in the stream keys.
+        edge_pc (float): The sector edge.
+        star_of (callable): `star_of(population, rng)` -> an iterable with the parameters of one star.
+
+    Yields:
+        tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
+    """
+    shell_index, band_index, wedge = address
+    total = sum(means.values())
+    for candidate in candidates:
+        target = candidate.u_population * total
+        chosen = None
+        for population in SCATTERED_POPULATIONS:
+            if means[population] <= 0.0:
+                continue
+            chosen = population
+            target -= means[population]
+            if target < 0.0:
+                break
+        rng = candidate_stream(seed, shell_index, band_index, wedge // BLOCK_WEDGES, key, candidate.index)
+        for params in star_of(chosen, rng):
+            for _ in range(SLOT_REDRAWS):
+                point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
+                if point is not None:
+                    yield _row(shell_index, band_index, wedge, point, chosen, params, rng)
+                    break
+
+
 def mass_band_edges(mass_limit_sol, ring_masses=None):
     """
     The fixed mass edges (GEN.187) the mass backfill's bands lie between,
@@ -1059,7 +1212,7 @@ def canonical_mass_bands(target_mass_sol, held_mass_sol, edges):
 
 
 def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
-                        max_luminosity_sol, seed, edges):
+                        max_luminosity_sol, seed, edges, memo=None):
     """
     Draws and places every star born with `target_mass_sol <= mass <
     held_mass_sol` for some cells (the sectors a mass backfill reaches,
@@ -1072,7 +1225,7 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
     band that are dimmer than `max_luminosity_sol`, the luminosity pass's
     floor, since the brighter ones were placed already), each star uniform
     in the cell. A band draws from its own stream (the seed, the address and
-    the band's lower mass).
+    the band's lower mass); a block that expects few stars draws them block first, as `backfill_cells` does (GEN.309).
 
     Args:
         shape (GalaxyShape): The galaxy's shape.
@@ -1087,22 +1240,34 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
             placed everything above; `None` for no luminosity pass.
         seed (int): The galaxy's bright-star seed.
         edges (list): `mass_band_edges`.
+        memo (dict, optional): As in `backfill_cells`.
 
     Yields:
         tuple: One row per star, in `store.BRIGHT_STAR_COLUMNS` order.
     """
     bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
     age_laws = age_laws_of(shape)
-    shares = {(low, population): mass_band_fraction(low, high, max_luminosity_sol, population, age_laws)
-              for low, high in bands for population in SCATTERED_POPULATIONS}
+    memo = {} if memo is None else _trimmed(memo)
+    of_band = _band_shares(memo, ("mass shares", max_luminosity_sol), [((low, high), low, high) for low, high in bands],
+                           lambda low, high, population: mass_band_fraction(low, high, max_luminosity_sol, population,
+                                                                            age_laws))
     for shell_index, band_index, wedge in addresses:
-        center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
-        densities = _densities(center, shape)
-        volume = volume_ratio(shell_index, band_index, edge_pc)
+        address = (shell_index, band_index, wedge)
         for low, high in bands:
-            means = {population: expected_at_density_1 * volume * densities[population] * shares[(low, population)]
+            candidates = candidate_path(memo, shape, address, edge_pc, expected_at_density_1, seed, f"m{low:g}",
+                                        of_band[(low, high)], (max_luminosity_sol, high))
+            if candidates is not None and not candidates:
+                continue          # a sparse block that put no star in this cell: its densities are never read
+            densities, volume = _cell_densities(memo, shape, address, edge_pc)
+            means = {population: expected_at_density_1 * volume * densities[population] * of_band[(low, high)][population]
                      for population in SCATTERED_POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
+                continue
+            if candidates is not None:
+                yield from _candidate_rows(candidates, address, means, seed, f"m{low:g}", edge_pc,
+                                           lambda population, rng, low=low, high=high: sample_mass_band_stars(
+                                               1, low, high, population, rng, max_luminosity_sol=max_luminosity_sol,
+                                               age_laws=age_laws))
                 continue
             rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{wedge}:m{low:g}")
             for population in SCATTERED_POPULATIONS:

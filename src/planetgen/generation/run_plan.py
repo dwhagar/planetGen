@@ -122,6 +122,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_
     """
     sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
+    blocks = {}        # the blocks' candidates, drawn once for the whole draw (GEN.309)
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         entries = []
@@ -157,7 +158,8 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, limits, seed, ceiling_
             mass_cap = mass_limit if held is None else held if mass_limit is None else min(held, mass_limit)
             rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
                                                    ceiling, seed,
-                                                   mass_range=None if mass_cap is None else (None, mass_cap)))
+                                                   mass_range=None if mass_cap is None else (None, mass_cap),
+                                                   memo=blocks))
             new_levels[address] = floor
             if on_sector is not None:
                 on_sector()
@@ -200,6 +202,7 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
     e_value = skeleton.expected_system_count_at_density_1
     edges = brightStars.mass_band_edges([found.mass_limit_sol for found in limits.tiers or ()])
     addresses = sorted(targets)
+    blocks = {}        # the blocks' candidates, drawn once for the whole draw (GEN.309)
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         entries = []
@@ -226,7 +229,7 @@ def _draw_sector_masses(conn, skeleton, targets, limits, seed, on_sector=None, s
                 # a level (TEST.25, GEN.44), so it is wiped and drawn again.
                 store.delete_unbuilt_bright_stars(conn, address)
             rows.extend(brightStars.backfill_mass_cells(skeleton.shape, [address], skeleton.edge_pc, e_value,
-                                                        target, held, ceiling, seed, edges))
+                                                        target, held, ceiling, seed, edges, memo=blocks))
             own = galaxy_level if galaxy_level is not None and (level is None or level < 0) else None
             states[address] = (target, own)
             if on_sector is not None:
