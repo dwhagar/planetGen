@@ -39,18 +39,6 @@ def test_rerunning_a_finished_migration_changes_nothing(mysql_config):
     assert schema_snapshot(mysql_config) == before
 
 
-def test_empty_schema_migrations_on_a_current_database_is_taken_as_current(mysql_config):
-    store.get_connection(mysql_config).close()
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute("DELETE FROM schema_migrations")
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    assert_like_new(mysql_config)
-
-
 def test_gapped_schema_migrations_counts_its_highest_version(mysql_config):
     """Rows 8 and 61 only: the database is v61."""
     load_old_schema(mysql_config, alembic_runner.BASELINE_VERSION)

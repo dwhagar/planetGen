@@ -50,7 +50,7 @@ def test_a_v101_database_gets_every_new_column(mysql_config):
         for table, columns in MIGRATION.ADDITIONS.items():
             assert {name for name, _ in columns} <= _columns(conn, table), table
         assert {name for name, _ in MIGRATION.SECTOR_COLUMNS} <= _columns(conn, "sectors")
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()
 

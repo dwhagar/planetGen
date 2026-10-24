@@ -65,7 +65,7 @@ def test_a_v139_database_gets_the_link_backfilled_from_what_said_it_before(mysql
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
         for table in NEW_TABLES:
             assert {"parent_type", "parent_id"} <= _columns(conn, table), table
         assert _links(conn, "stars") == {1: ("node", 0), 2: ("node", 0), 3: ("system", 2)}

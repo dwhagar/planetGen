@@ -33,7 +33,7 @@ def test_a_v108_database_loses_the_phase_columns_and_keeps_its_rows(mysql_config
         assert "orbital_phase_deg" not in _columns(conn, "planets")
         assert "orbital_phase_deg" not in _columns(conn, "moons")
         rows = conn.execute("SELECT star_id, parent_type, parent_id FROM planets ORDER BY id").fetchall()
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()
     assert (rows[0]["parent_type"], rows[0]["parent_id"]) == ("system", 7)  # a circumbinary planet goes round its system
