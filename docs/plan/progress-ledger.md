@@ -1372,3 +1372,5 @@ Baseline: PR #1817.
 | MAP.262 | 8.1 | Fly-through map |
 | TEST.343 | 8.1 | Bugs and flaky tests |
 | GEN.674 | 8.1 | Mixture and stored values |
+| PERF.183 | 8.1 | The headline closes |
+| PERF.186 | 8.1 | The headline closes |

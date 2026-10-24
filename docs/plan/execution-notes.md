@@ -331,3 +331,5 @@ Update 4:20 PM EDT 2026-10-24: GEN.674 retired (#3072, Lane L, no epoch, the gen
 Update 4:22 PM EDT 2026-10-24: the second-hand citations report (reports/secondhand-citations-2026-10-24.md) is attached as source notes on GEN.733 (Chabrier H/He EOS tables are open), GEN.482 (Gaillard papers open), GEN.747, GEN.670 (ExoMol CoYuTe ammonia) and GEN.725 (tier proposals, the CFC-12 0.32 against 0.33 and NH3 1.078 flags, the not-found list, two author errors in Boss's reference list).
 
 Update 4:26 PM EDT 2026-10-24: Bug Hunt merged #3075 (the Python half of TEST.350: 20 facility and population page tests, test fixes only). TEST.350 stays open for one browser test (web.system plain buttons).
+
+Update 4:31 PM EDT 2026-10-24: PERF.186 (CRITICAL Stop everything) and PERF.183 (smoke run) retired (#3078, Lane OOM). New: PERF.187 (the phenomena scatter holds 6.4 GB in its own process, every other step under 300 MB; Lane OOM, high priority). PERF.184 (Core 5) now also owns the red test_eta_estimator.py::test_the_queue_page_shows_a_range_or_estimating. 969 of 1331 8.1 items finished (72.8 percent), 362 open.
