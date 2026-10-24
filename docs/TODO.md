@@ -14122,6 +14122,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through the coordinator, 5:34 PM EDT 2026-10-24: wire it as fast as
   possible. Owner: Core 3 (system and moon draw area; to confirm);
   nobody has started it.
+  Research (2026-10-09, Owner): Owner confirmed: Core 3 took it at 5:39
+  PM EDT 2026-10-24 (as the lane reported), ahead of GEN.327; it edits
+  generate_moons in physics/planets.py and takes the next free epoch at
+  merge. Other lanes touching the moon draw (class lane GEN.681, Math 2
+  GEN.727/GEN.737, GEN.466) wait for it or tell Core 3 and TODO what
+  they changed.
   Prerequisites: none. Related: GEN.579, GEN.466, GEN.754.
 
 - [ ] **GEN.762 Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw**
