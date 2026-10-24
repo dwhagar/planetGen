@@ -79,7 +79,7 @@ from planetgen.physics import activity, aerosols, atmosphere, bulk_composition, 
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
-from planetgen.generation import multistar, steps
+from planetgen.generation import multistar, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -4270,7 +4270,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     # GEN.311: the system's tree of orbits. A generated binary is one node, made from its pair; a tree the system was
     # given (`orbit_nodes`) is stored as it is. The phases hold at the database's orbit epoch (now, before any update).
     nodes = tuple(star_system.orbit_nodes)
-    if not nodes and star_system.binary_type is not None:
+    generated = bool(nodes) and nodes[0].epoch_unix == stored_trees.GENERATED_EPOCH_UNIX    # GEN.631: a drawn tree
+    if (not nodes and star_system.binary_type is not None) or generated:
         orbit_epoch = conn.orbit_epoch_unix if conn._batch is not None else None
         if orbit_epoch is None:
             orbit_epoch = get_orbit_epoch_unix(conn)
@@ -4278,7 +4279,10 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
                 orbit_epoch = int(time.time())
             if conn._batch is not None:
                 conn.orbit_epoch_unix = orbit_epoch
-        nodes = orbit_trees.binary_nodes(star_system, orbit_epoch)
+        if generated:
+            nodes = tuple(dataclasses.replace(node, epoch_unix=float(orbit_epoch)) for node in nodes)
+        else:
+            nodes = orbit_trees.binary_nodes(star_system, orbit_epoch)
     orbit_trees.write_nodes(conn, star_system_id, nodes, replace=False)
     star_system.orbit_nodes = nodes
     places = orbit_trees.star_places(star_system)

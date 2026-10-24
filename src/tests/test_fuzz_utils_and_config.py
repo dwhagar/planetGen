@@ -755,8 +755,6 @@ def test_probability_tables_are_well_formed():
         weights = getattr(pg, name)
         assert weights and all(w >= 0 for w in weights.values()), name
         assert sum(weights.values()) > 0, name
-    for letter, chance in pg.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.items():
-        assert 0 <= chance <= 1, letter
     assert 0 <= pg.WIDE_BINARY_ECCENTRICITY_MAX < 1
     assert all(len(values) == len(pg.COMPANION_LOG_PERIODS_DAYS) and all(v > 0 for v in values)
                for _mass, values in pg.COMPANIONS_PER_DECADE_BY_PRIMARY_MASS)
@@ -773,7 +771,6 @@ def test_lookup_tables_reference_each_other_consistently():
         assert set(table) == spectral
     assert set(pg.SPECTRAL_PROBABILITIES_NORMAL) <= spectral
     assert set(pg.SPECTRAL_PROBABILITIES_LARGE_STAR) <= spectral
-    assert {key[0] for key in pg.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS} <= spectral
     for scale in ("fast", "normal", "slow"):
         assert pg.EVOLUTIONARY_TIMELINES[scale]["technological_civilization"] > 0
     fast, normal, slow = (pg.EVOLUTIONARY_TIMELINES[s]["technological_civilization"] for s in ("fast", "normal", "slow"))

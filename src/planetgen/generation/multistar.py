@@ -389,7 +389,7 @@ def spectral_class(initial_mass_sol):
 
 
 def companion_class(initial_mass_sol, letter=None):
-    """The key into the `star-count` table (`hosts.STAR_COUNT_PROBABILITIES`) and `tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` of a star: its
+    """The key into the `star-count` table (`hosts.STAR_COUNT_PROBABILITIES`) of a star: its
     spectral letter (from the mass when `letter` is None), with the B stars of 5 to 16 solar masses split into B-mid and
     B-early (Moe and Di Stefano's bins, GEN.449)."""
     letter = letter or spectral_class(initial_mass_sol)
@@ -626,7 +626,8 @@ def classify_pair(a, b, axis_au, e):
 class _Builder:
     """Draws the orbits of one tree shape, top down."""
 
-    def __init__(self, leaves, age_yr, rng, fixed=None):
+    def __init__(self, leaves, age_yr, rng, fixed=None, max_axis_au=math.inf):
+        self.max_axis_au = max_axis_au
         self.leaves = leaves
         self.age_yr = age_yr
         self.rng = rng
@@ -753,7 +754,7 @@ class _Builder:
         law = self.law(left, right)
         extent = self.extent(left) + self.extent(right)
         a_lo = self.axis_floor(left, right, extent)
-        cap = self.wide_cap(sub)
+        cap = min(self.wide_cap(sub), self.max_axis_au)
         heavy = max(self.leaves[i].initial for i in self.leaves_of(sub))
         massive = heavy >= MASSIVE_PRIMARY_MIN_MASS_SOL
         fixed = self.fixed.get(id(sub))
@@ -934,6 +935,44 @@ def _stripped_helium_leaf(be_birth_mass_sol, rng):
     progenitor = be_birth_mass_sol * rng.uniform(*tuning.BE_STRIPPED_PROGENITOR_RATIO_RANGE)
     radius_sol = tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47 * (mass / 0.47) ** (-1.0 / 3.0)
     return _Leaf("stripped-helium", None, mass, progenitor, radius_sol * constants.SOLAR_RADIUS_M / constants.AU_M)
+
+
+def _swap_units(shape, a, b):
+    """`shape` with the members `a` and `b` changing places."""
+    if isinstance(shape, int):
+        return b if shape == a else a if shape == b else shape
+    return (_swap_units(shape[0], a, b), _swap_units(shape[1], a, b))
+
+
+def _leaf_pairs(shape):
+    """The nodes of `shape` whose two children are both single members, as `(left, right)`."""
+    if isinstance(shape, int):
+        return []
+    if isinstance(shape[0], int) and isinstance(shape[1], int):
+        return [shape]
+    return _leaf_pairs(shape[0]) + _leaf_pairs(shape[1])
+
+
+def _beside_placed(shape):
+    """What hangs beside member 0 (the placed object) in `shape`: a member or a subtree, `None` if 0 is the whole tree."""
+    if isinstance(shape, int):
+        return None
+    left, right = shape
+    if isinstance(left, int) and left == 0:
+        return right
+    if isinstance(right, int) and right == 0:
+        return left
+    found = _beside_placed(left)
+    return found if found is not None else _beside_placed(right)
+
+
+def _pair_placed(shape):
+    """`shape` with the placed object (member 0) beside a single member, when the tree has a pair to give it: the placed
+    object trades places with a member of a pair of the subtree beside it (the orbits are drawn after, for the new shape)."""
+    beside = _beside_placed(shape)
+    if beside is None or isinstance(beside, int):
+        return shape
+    return _swap_units(shape, 0, _leaf_pairs(beside)[0][0])
 
 
 _DRAW_COMPANION = object()
@@ -1158,8 +1197,65 @@ def _single(leaf, age_yr, dropped, rng):
     return MemberTree((member,), (), age_yr, dropped)
 
 
+def without_members(tree, kinds):
+    """
+    `tree` with every member whose kind is in `kinds` taken out (member 0, the placed object, stays): the node a member hung
+    in goes with it and the member's sibling takes its place, so the orbits of every other pair stay as they were drawn.
+    The nodes above are given the mass that is left and the period of their own axis about it, and are numbered again
+    from 1 in the tree's order, as are the members. A system build uses it for the members it cannot make from a birth mass
+    (a brown dwarf, a neutron star, a black hole).
+
+    Args:
+        tree (MemberTree): The tree drawn.
+        kinds (tuple): The member kinds to take out.
+
+    Returns:
+        MemberTree: `tree` itself when no member has such a kind, else the smaller tree (`dropped` unchanged).
+    """
+    if not any(member.kind in kinds for member in tree.members[1:]):
+        return tree
+    members = {member.member_no: member for member in tree.members}
+    nodes = {node.node_no: node for node in tree.nodes}
+    for member_no in [m.member_no for m in tree.members[1:] if m.kind in kinds]:
+        gone = members.pop(member_no)
+        parent = nodes.pop(gone.parent_node_no)
+        sibling_member = next((m for m in members.values()
+                               if m.parent_node_no == parent.node_no and m.slot != gone.slot), None)
+        if sibling_member is not None:
+            if parent.parent_node_no is None:     # the root went: the sibling is all that is left
+                return MemberTree((dataclasses.replace(sibling_member, member_no=0, parent_node_no=None, slot=0),), (),
+                                  tree.age_yr, tree.dropped)
+            members[sibling_member.member_no] = dataclasses.replace(
+                sibling_member, parent_node_no=parent.parent_node_no, slot=parent.slot,
+                flags=sibling_member.flags & ~(MEMBER_MASS_GAINER | MEMBER_MASS_REVERSED))
+        else:
+            sibling = next(n for n in nodes.values() if n.parent_node_no == parent.node_no)
+            nodes[sibling.node_no] = dataclasses.replace(sibling, parent_node_no=parent.parent_node_no, slot=parent.slot)
+    node_number = {node_no: number for number, node_no in enumerate(sorted(nodes), start=1)}
+    member_number = {member_no: number for number, member_no in enumerate(sorted(members))}
+    below = {}
+
+    def mass_below(node_no):
+        if node_no not in below:
+            below[node_no] = sum(m.mass_solar for m in members.values() if m.parent_node_no == node_no) + sum(
+                mass_below(n.node_no) for n in nodes.values() if n.parent_node_no == node_no)
+        return below[node_no]
+
+    kept = []
+    for node_no in sorted(nodes):
+        node = nodes[node_no]
+        mass = mass_below(node_no)
+        kept.append(dataclasses.replace(
+            node, node_no=node_number[node_no], parent_node_no=node_number.get(node.parent_node_no), mass_solar=mass,
+            period_years=math.sqrt(node.separation_au ** 3 / mass)))
+    ordered = tuple(dataclasses.replace(members[member_no], member_no=member_number[member_no],
+                                        parent_node_no=node_number[members[member_no].parent_node_no])
+                    for member_no in sorted(members))
+    return MemberTree(ordered, tuple(kept), tree.age_yr, tree.dropped)
+
+
 def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=None, prevalence=1.0,
-                     companion=_DRAW_COMPANION, bound_runaway=False):
+                     companion=_DRAW_COMPANION, bound_runaway=False, max_axis_au=math.inf, pair_placed=False):
     """
     The members of the system around `placed` and their orbits, as a `MemberTree`.
 
@@ -1180,19 +1276,29 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=No
             (`draw_runaway_origin`, GEN.329): the tree gives it one, a neutron star or a black hole that has had time
             to form by the age, in place of the draw at the odds of `MEMBER_STATE_BY_PLACED`. Ignored for any other
             placed object.
+        max_axis_au (float): The widest axis any orbit of the tree may have: what the place keeps of a wide pair against
+            passing stars and the tide (`place_terms.wide_axis_limit_au`, GEN.103). The scatter, which has no place,
+            leaves it unbounded.
+        pair_placed (bool): Draw the shape so the placed object is in a pair of two single members, when the tree has one
+            (a system build, whose pair is the primary and secondary); the scatter leaves the shape as drawn.
 
     Returns:
         MemberTree: The placed object is member 0. A single object has one member and no nodes.
     """
     leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion, bound_runaway)
     dropped = 0
+
+    def shape_of(units, rng):
+        shape = _shape(units, rng)
+        return _pair_placed(shape) if pair_placed else shape
+
     while True:
         if len(units) == 1 and isinstance(units[0], int):
             return _single(leaves[units[0]], age_yr, dropped, rng)
         for _ in range(TREE_RESTARTS):
-            builder = _Builder(leaves, age_yr, rng)
+            builder = _Builder(leaves, age_yr, rng, max_axis_au=max_axis_au)
             try:
-                builder.place(_shape(units, rng), None, 0, None)
+                builder.place(shape_of(units, rng), None, 0, None)
             except _Failed:
                 continue
             if not builder.clears_extents():
