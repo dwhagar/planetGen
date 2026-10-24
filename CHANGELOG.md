@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2098] - 2026-10-24
+
+**Headline:** The documentation now explains how a planet's atmosphere colour is worked out and where it appears.
+
+### Changed
+- A new reference page describes the atmosphere colour: what it is made from, the method from Rayleigh scattering to the thick-air limit and the giants' reference level, what it leaves out (sunsets, twilight, the view from the planet) and its sources. The API page, the description document page and the web interface page point to it and describe the new colour item and the Atmosphere Colour row.
+
 ## [8.0.2097] - 2026-10-24
 
 **Headline:** The glow around a planet on the System Map now has the colour of its own air, under its own star.
