@@ -13,10 +13,10 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.157 |
+| UX | UX.158 |
 | MAP | MAP.269 |
 | NAV | NAV.63 |
-| GEN | GEN.666 |
+| GEN | GEN.667 |
 | PERF | PERF.176 |
 | DB | DB.96 |
 | API | API.33 |
@@ -1387,6 +1387,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.663 | A chemical-evolution birth-epoch model for thorium and uranium: row o4 draws the formation time from 3 to 13 Gyr | none | open |
 | GEN.664 | The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044) | none | open |
 | GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | open |
+| GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2195,6 +2196,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | open |
 | UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) | none | open |
 | UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | open |
+| UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
