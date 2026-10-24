@@ -430,6 +430,12 @@
       "epoch": 87,
       "first_release": "8.0.2217",
       "reason": "A hot star's nebula is rolled from the star the place drew, not the system's heaviest star, so a hot star with a heavier companion lights a different nebula or none (GEN.710)"
+    },
+    {
+      "epoch": 88,
+      "first_release": null,
+      "pending": true,
+      "reason": "Where an atmosphere freezes out is now worked out from the checked saturation curves instead of a two-point table, so the stored partial pressures and total surface pressure of cold bodies change (GEN.452)"
     }
   ]
 }
