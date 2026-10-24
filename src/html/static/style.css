@@ -2063,6 +2063,31 @@ a.btn.btn-secondary.btn-active:visited {
   gap: 0.2em;
 }
 
+/* UX.101: a life score, its shape and a small number 0 to 9 beside it (`habitability_life`); 0 is muted. */
+.hab-life-cluster {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35em;
+  margin-left: 0.4em;
+}
+
+.hab-life {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.1em;
+}
+
+.hab-life-score {
+  font-size: 0.75em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.hab-life-none {
+  color: var(--text-muted);
+}
+
 /* A button that is only an icon; its words are its aria-label and title
    tooltip. Touch screens get a 44 px target. */
 .icon-btn {

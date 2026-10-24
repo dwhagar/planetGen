@@ -50,6 +50,26 @@ SHAPES = {
 }
 """dict: What each shape looks like, for the legend on the habitability levels page."""
 
+LIFE_NAMES = ("microbial", "flora", "fauna", "sentient")
+"""tuple: The four life scores (Boss, 6:14 PM EDT 2026-10-23), a body's `life_<name>` columns."""
+
+LIFE_MAX = 9
+"""int: The top of a life score: 0 is none and 9 abundant."""
+
+LIFE_LABELS = {"microbial": "Microbial life", "flora": "Flora", "fauna": "Fauna", "sentient": "Sentient life"}
+"""dict: Each life score's words, as the tooltip and the screen reader say them."""
+
+LIFE_SPRITE_IDS = {name: f"life-{name}" for name in LIFE_NAMES}
+"""dict: The `<symbol>` id of each life symbol in `static/icons.svg`."""
+
+LIFE_SHAPES = {
+    "microbial": "a cluster of cells",
+    "flora": "a stem with two leaves",
+    "fauna": "a paw print",
+    "sentient": "a head and shoulders",
+}
+"""dict: What each life symbol looks like, for the legend on the habitability levels page."""
+
 TIER_CLASSES = tuple(f"tier-{name.lower()}" for name in TIER_NAMES)
 """tuple: The CSS class of each rating colour by tier number (0 Blue to 3 Red)."""
 
@@ -87,14 +107,52 @@ def overall_tier(body):
     return None if score is None else TIER_INDEX[habitability.tier(score)]
 
 
-def symbol_row(body, sprite_url, with_overall=True):
+def symbol_row(body, sprite_url, with_overall=True, with_life=True):
     """
     The symbols of one body's row (`phi4` and `tier_<domain>` by name), the overall one first, then those of
-    `DOMAINS`; an empty string for a body that was not scored.
+    `DOMAINS`, then the cluster of its four life scores (`life_row`) when it has them; an empty string for a body
+    that was not scored.
     """
     overall = overall_tier(body)
     if overall is None:
         return ""
     cells = [symbol_html(OVERALL, overall, sprite_url)] if with_overall else []
     cells += [symbol_html(domain, body[f"tier_{domain}"], sprite_url) for domain in DOMAINS]
+    if with_life:
+        cells.append(life_row(body, sprite_url))
     return f'<span class="hab-symbols">{"".join(cells)}</span>'
+
+
+def life_text(name, score):
+    """The words of a life score: "Flora: 3 of 9", or "Flora: none" for 0. `ValueError` for an unknown name or a
+    score that is not a whole number from 0 to `LIFE_MAX`."""
+    if name not in LIFE_SPRITE_IDS:
+        raise ValueError(f"no life score {name!r}: expected one of {', '.join(LIFE_NAMES)}")
+    if isinstance(score, bool) or not isinstance(score, int) or not 0 <= score <= LIFE_MAX:
+        raise ValueError(f"no life score {score!r}: expected a whole number from 0 to {LIFE_MAX}")
+    return f"{LIFE_LABELS[name]}: none" if score == 0 else f"{LIFE_LABELS[name]}: {score} of {LIFE_MAX}"
+
+
+def life_html(name, score, sprite_url):
+    """
+    One life score as markup: its shape and the number 0 to 9 beside it, one `role="img"` whose label is the words
+    ("Flora: 3 of 9"); a 0 is drawn muted (`hab-life-none`). `ValueError` for an unknown name or score.
+    """
+    words = escape(life_text(name, score))
+    muted = " hab-life-none" if score == 0 else ""
+    return (f'<span class="hab-life{muted}" role="img" aria-label="{words}" title="{words}">'
+            f'<svg class="icon hab-life-shape" aria-hidden="true" focusable="false">'
+            f'<use href="{escape(sprite_url)}#{LIFE_SPRITE_IDS[name]}"></use></svg>'
+            f'<span class="hab-life-score" aria-hidden="true">{score}</span></span>')
+
+
+def life_row(body, sprite_url):
+    """
+    The four life scores of a body's row (`life_<name>`, whole numbers 0 to 9) as a cluster, in the order of
+    `LIFE_NAMES`; an empty string for a body with no scores.
+    """
+    scores = [body.get(f"life_{name}") for name in LIFE_NAMES]
+    if any(score is None for score in scores):
+        return ""
+    cells = "".join(life_html(name, score, sprite_url) for name, score in zip(LIFE_NAMES, scores))
+    return f'<span class="hab-life-cluster">{cells}</span>'
