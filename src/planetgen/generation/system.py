@@ -31,7 +31,7 @@ from planetgen.generation import (
     life as planetLife, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import constants, insolation, magnetism, mass_loss, metallicity, pre_main_sequence, wolf_rayet
+from planetgen.physics import constants, habitability, insolation, magnetism, mass_loss, metallicity, pre_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -144,7 +144,9 @@ class StarSystem:
         belt_count (int): The total number of asteroid belts in the system.
         comet_count (int): The total number of comets in the system.
         moon_count (int): The total number of moons in the system.
-        hab_count (int): The total number of potentially habitable worlds.
+        hab_count (int): The total number of habitable worlds (overall PHI-6 Blue or Green, `habitability.is_habitable`).
+        habitable_class_count (int): The planets and moons of a class that can carry life (`count_habitable_class_worlds`).
+        habitable_request (str or None): How the system answers `system_config.HABITABLE_WORLD` (`habitable_request_status`).
         m_count (int): The total number of Class M worlds.
         system_flavor_count (int): Tracks the total number of flavor texts added across the system.
         system_flavor_text (str or None): The system-level flavor text sentence,
@@ -385,7 +387,7 @@ class StarSystem:
                     # method's own docstring.
                     self._validate_cross_star_clearance()
 
-                habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable(self.planets)[0] > 0
+                habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
                 belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
             if habitable_satisfied and belt_satisfied:
                 log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
@@ -412,7 +414,7 @@ class StarSystem:
         self._trim_to_orbit_ceiling(self.planets, self._orbit_ceiling_au(self.star))
         if self.binary_type == "wide":
             self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
-        habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable(self.planets)[0] > 0
+        habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
         belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
         self.unmet_requirements = []
         if not habitable_satisfied:
@@ -516,6 +518,8 @@ class StarSystem:
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
+        self.habitable_class_count = self.count_habitable_class_worlds()
+        self.habitable_request = self.habitable_request_status()
         self.comet_count = self.count_comets()
         log.debug(f"System {self.name!r} finished: binary={self.binary_type or 'no'}, "
                   f"{self.planet_count} planets, {self.belt_count} belts, {self.moon_count} moons, "
@@ -1589,6 +1593,8 @@ class StarSystem:
 
         system.planet_count, system.belt_count, system.moon_count = system.count_objects()
         system.hab_count, system.m_count = system.count_habitable()
+        system.habitable_class_count = system.count_habitable_class_worlds()
+        system.habitable_request = system.habitable_request_status()
         system.comet_count = system.count_comets()
 
         return system
@@ -1853,38 +1859,71 @@ class StarSystem:
 
     def count_habitable(self, planets=None):
         """
-        Counts the number of potentially habitable worlds in the system.
-
-        This method iterates through all planets and their moons, checking their
-        classification against `tuning.HABITABLE_PLANET_CLASSES` to
-        determine if they are potentially habitable, and also keeps a separate
-        count of Class M worlds, which are considered the most Earth-like. This
-        is used for the system summary output.
+        Counts the habitable worlds in the system: the planets and moons whose overall PHI-6 score is Blue or Green
+        (`habitability.is_habitable`; Boss, 2026-10-23), and separately the Class M worlds, which are considered the
+        most Earth-like. This is used for the system summary output.
 
         Args:
             planets (list, optional): See `count_objects`'s identical
                 parameter -- defaults to both stars' combined lists.
 
         Returns:
-            tuple: A tuple containing the total number of potentially habitable
-                   worlds and the total number of Class M worlds, in that order.
+            tuple: A tuple containing the total number of habitable worlds and
+                   the total number of Class M worlds, in that order.
         """
         if planets is None:
             planets = self.planets + self.secondary_planets
-        habitable_classes = tuning.HABITABLE_PLANET_CLASSES
         hab_count, m_count = 0, 0
         for planet in planets:
             if planet.body_type != 'a':
-                if planet.planet_class in habitable_classes:
-                    hab_count += 1
-                if planet.planet_class == "M":
-                    m_count += 1
-                for moon in planet.moons:
-                    if moon.planet_class in habitable_classes:
+                for body in (planet, *planet.moons):
+                    if habitability.is_habitable(getattr(body, "phi4", None)):
                         hab_count += 1
-                    if moon.planet_class == "M":
+                    if body.planet_class == "M":
                         m_count += 1
         return hab_count, m_count
+
+    def habitable_request_status(self, planets=None):
+        """
+        How the system answers a request for a habitable world (`system_config.HABITABLE_WORLD`), `None` when none was made:
+        `"aim"` when a planet or moon is habitable (overall PHI-6 Blue or Green), `"fallback"` when the best it has is overall
+        Yellow with Suitability at least Yellow (Boss, 2026-10-23: accepted when the request must fall short), else
+        `"unmet"`. The generation retry still steers by life class (`count_habitable_class_worlds`), so `"unmet"` is possible
+        until the world is regenerated under restricted draws.
+        """
+        if getattr(getattr(self, "system_config", None), "HABITABLE_WORLD", None) is not True:
+            return None
+        if planets is None:
+            planets = self.planets + self.secondary_planets
+        best = "unmet"
+        for planet in planets:
+            if planet.body_type == 'a':
+                continue
+            for body in (planet, *planet.moons):
+                result = habitability.habitable_request_result(
+                    getattr(body, "phi4", None), getattr(body, "phi4_suitability", None))
+                if result == "aim":
+                    return "aim"
+                if result == "fallback":
+                    best = "fallback"
+        return best
+
+    def count_habitable_class_worlds(self, planets=None):
+        """
+        Counts the planets and moons whose class can carry life (`tuning.HABITABLE_PLANET_CLASSES`). This is what a request
+        for a habitable world steers by while the class is drawn before the score is known: the planet is placed by its
+        class, and `count_habitable` says how it scored.
+
+        Args:
+            planets (list, optional): See `count_objects`'s identical parameter.
+
+        Returns:
+            int: The number of planets and moons of a life class.
+        """
+        if planets is None:
+            planets = self.planets + self.secondary_planets
+        return sum(1 for planet in planets if planet.body_type != 'a'
+                   for body in (planet, *planet.moons) if body.planet_class in tuning.HABITABLE_PLANET_CLASSES)
 
     def count_comets(self, comets=None):
         """

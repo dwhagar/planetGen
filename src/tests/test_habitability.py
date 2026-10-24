@@ -288,3 +288,15 @@ def test_a_world_with_no_atmosphere_has_red_air_and_a_zero_score():
         assert got["Air"] == (0.0, "Red"), pressure
     assert hab.air_score(World(0.6, -60, {"CO2": 0.95, "N2": 0.03})) > 0.0
     assert scores(EARTH)["Air"][1] == "Blue"
+
+
+def test_a_request_for_a_habitable_world_aims_for_blue_or_green_and_falls_back_to_yellow_with_yellow_suitability():
+    """Boss, 2026-10-23: Blue or Green is habitable; if the request must fall short it accepts Yellow, so long as the
+    sustainability factor (Suitability) is at least Yellow."""
+    result = hab.habitable_request_result
+    assert result(1.0, 1.0) == "aim" and result(0.8, 0.2) == "aim"  # Green overall needs no particular Suitability
+    assert result(0.7, 0.45) == "fallback" and result(0.7, 0.9) == "fallback"
+    assert result(0.7, 0.2) is None  # Yellow overall but Red Suitability: not habitable at all
+    assert result(0.3, 1.0) is None  # Red overall
+    assert result(None, 1.0) is None and result(0.7, None) is None
+    assert hab.is_habitable(0.75) and not hab.is_habitable(0.7499)

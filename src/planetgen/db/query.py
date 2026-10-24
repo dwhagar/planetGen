@@ -45,8 +45,7 @@ from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import habitability_world
-from planetgen.physics import equipment
+from planetgen.physics import equipment, habitability, habitability_world
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types
 from planetgen.generation.star import compressed_heliosphere_radius
@@ -3381,18 +3380,19 @@ def system_detail(conn, system_id):
 def _with_life_fields(body, colonized=(), compact_host=None):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
-    row dict: `habitable` (its class is one of
-    `tuning.HABITABLE_PLANET_CLASSES`, the same test
-    `StarSystem.count_habitable` uses), `life_stage` (the most advanced
-    evolutionary milestone its timeline reached, or `None`: the stored column, kept for a habitable class only) and
-    `inhabited` (habitable and reached a technological civilization --
+    row dict: `habitable` (its overall PHI-6 colour is Blue or Green, `habitability.is_habitable`, the same test
+    `StarSystem.count_habitable` uses), `habitable_class` (its class is one of `tuning.HABITABLE_PLANET_CLASSES`),
+    `life_stage` (the most advanced evolutionary milestone its timeline reached, or `None`: the stored column, kept
+    for a habitable class only) and
+    `inhabited` (reached a technological civilization --
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
     it: `colonized` is that table's ids from `colonized_body_ids`, schema
     v42).
     """
-    body["habitable"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
-    body["life_stage"] = body["life_stage"] if body["habitable"] else None
+    body["habitable_class"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
+    body["habitable"] = habitability.is_habitable(body.get("phi4"))
+    body["life_stage"] = body["life_stage"] if body["habitable_class"] else None
     body["compact_host"] = compact_host
     body["equipment"] = equipment.summary(body)
     body["inhabited"] = body["life_stage"] == "technological_civilization" or body["id"] in colonized

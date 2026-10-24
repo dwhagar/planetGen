@@ -62,8 +62,9 @@ WET_BULB_CRIT_C = limit("wet_bulb_c")
 TIERS = ("Blue", "Green", "Yellow", "Red")
 
 POTENTIALLY_HABITABLE_TIERS = ("Blue", "Green")
-"""tuple: The overall PHI-6 colours a world can have and still count as "potentially habitable" in a system's overview
-(GEN.220; Decided default, Boss can move the line)."""
+"""tuple: The overall PHI-6 colours of a habitable world (Boss, 2026-10-23 6:02 PM EDT: "Habitable should now be based on
+the PHI-6 score which must be Blue or Green overall"; the name predates it, GEN.220). `is_habitable` is the one place the
+word is defined."""
 
 POTENTIALLY_HABITABLE_MIN_SCORE = 0.75
 """float: The lowest overall PHI-6 score that is still Green (`tier`), so the lowest that counts as potentially habitable
@@ -382,6 +383,36 @@ def tier(score):
     if score >= 0.4:
         return "Yellow"
     return "Red"
+
+
+def is_habitable(overall_score):
+    """Whether a body with this overall PHI-6 score (`phi4`, `None` for a body with no score) is habitable: its overall
+    colour is one of `POTENTIALLY_HABITABLE_TIERS`. The API, the lists, the search, the map and the counts all call this."""
+    return overall_score is not None and tier(overall_score) in POTENTIALLY_HABITABLE_TIERS
+
+
+FALLBACK_TIERS = ("Yellow",)
+"""tuple: The overall colours a request for a habitable world accepts when it must fall short of `POTENTIALLY_HABITABLE_TIERS`, provided
+the Suitability colour (the sustainability factor) is at least `FALLBACK_SUITABILITY_TIER`."""
+
+FALLBACK_SUITABILITY_TIERS = ("Blue", "Green", "Yellow")
+"""tuple: The Suitability colours a Yellow fallback may have (not Red)."""
+
+
+def habitable_request_result(overall_score, suitability_score):
+    """
+    How a world answers a request for a habitable world (Boss, 2026-10-23): `"aim"` when it is habitable (overall Blue
+    or Green), `"fallback"` when the request must settle for less and the world is overall Yellow with Suitability at
+    least Yellow ("technically habitable"), else `None`. Either score may be `None` (an unscored body): `None`.
+    """
+    if overall_score is None:
+        return None
+    if is_habitable(overall_score):
+        return "aim"
+    if (tier(overall_score) in FALLBACK_TIERS and suitability_score is not None
+            and tier(suitability_score) in FALLBACK_SUITABILITY_TIERS):
+        return "fallback"
+    return None
 
 
 def wet_bulb_c(temperature_c, relative_humidity):

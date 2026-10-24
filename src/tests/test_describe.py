@@ -204,23 +204,23 @@ def test_the_overview_keeps_the_old_summary_but_counts_worlds_by_their_rating():
         assert overview["role"] == "overview"
         text = [_plain(sentence) for sentence in overview["text"]]
         assert any("gravitational influence extends out to" in sentence for sentence in text[-2:])
-        count = build._potentially_habitable_count(system)
-        line = {0: "There are no potentially habitable worlds in this system.",
-                1: "There is 1 potentially habitable world in the system."}.get(
-            count, f"There are {count} potentially habitable worlds in the system.")
+        count = build._habitable_count(system)
+        line = {0: "There are no habitable worlds in this system.",
+                1: "There is 1 habitable world in the system."}.get(
+            count, f"There are {count} habitable worlds in the system.")
         assert text.count(line) == 1 and not any("class M" in sentence for sentence in text)
 
 
-def test_a_world_counts_as_potentially_habitable_by_its_overall_tier(monkeypatch):
+def test_a_world_counts_as_habitable_by_its_overall_tier(monkeypatch):
     for _overrides, system in _systems():
         bodies = [body for planet in system.planets + system.secondary_planets if planet.body_type != "a"
                   for body in (planet, *planet.moons)]
         expected = sum(1 for body in bodies if body.habitability_world() is not None
                        and habitability.tier(protection.rating(*body.habitability_world())["overall"])
                        in ("Blue", "Green"))
-        assert build._potentially_habitable_count(system) == expected
+        assert build._habitable_count(system) == expected
     monkeypatch.setattr(habitability, "POTENTIALLY_HABITABLE_TIERS", ())
-    assert all(build._potentially_habitable_count(system) == 0 for _overrides, system in _systems())
+    assert all(build._habitable_count(system) == 0 for _overrides, system in _systems())
 
 
 def test_the_life_sentences_are_short_and_plain():

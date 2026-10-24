@@ -182,6 +182,9 @@ COMPACT_HOST_RULE = (
 )
 
 CHIPS = (
+    ("Habitable", "The world's overall PHI-6 colour is Blue or Green, so it needs at most a mask. It is not a promise "
+                  "that anything lives there."),
+    ("Habitable moon", "A moon of this planet is habitable in that sense."),
     ("Habitable class", "The planet's class can carry life (an Earth-like or similar world). It is not a rating "
                         "and not a promise that anything lives there: the equipment level beside it is the rating."),
     ("Habitable-class moon", "A moon of this planet is of a habitable class in that sense."),
