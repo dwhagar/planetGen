@@ -60,7 +60,7 @@ def test_the_taxa_are_mixes_of_the_shared_table_with_grain_densities_near_their_
         assert math.fsum(data.fractions.values()) == pytest.approx(1.0, abs=1e-9), taxon
         for name in data.fractions:
             assert materials.has(name), (taxon, name)
-    grain = {t: compaction.grain_density_kg_m3(sb.TAXON_DATA[t].fractions, sb.COMPONENT_DENSITIES) for t in sb.TAXA}
+    grain = {t: compaction.grain_density_kg_m3(sb.TAXON_DATA[t].fractions) for t in sb.TAXA}
     # Britt and Consolmagno 2003 grain densities (part D 2.2): CI 2.26, CM 2.71, ordinary chondrites 3.48 to 3.64
     assert 2400 <= grain["C"] <= 3100 and 3300 <= grain["S"] <= 3800
     # bulk density at the middle of the family's porosity range against Carry 2012 Table 3 (part D 2.3): C 1.57, S 2.66, M 3.85+,
@@ -237,3 +237,18 @@ def test_the_same_seed_gives_the_same_bodies_at_one_and_four_workers():
     assert serial == [_worker(s) for s in seeds] and serial[0] != serial[1]
     with concurrent.futures.ProcessPoolExecutor(max_workers=4, mp_context=multiprocessing.get_context("spawn")) as pool:
         assert list(pool.map(_worker, seeds)) == serial
+
+
+def test_a_comets_organics_take_the_shared_tables_density_not_a_separate_one():
+    """GEN.712: complex organics are 1.5 g/cm3 in the materials table (the middle of 1.0 to 2.0, Blum and Bischoff 2022) and a comet
+    states no other density for them; only the silicate dust, which the table holds none for, carries a stand-in."""
+    from planetgen.physics import materials
+    row = materials.material("complex_organics")
+    prop = row.props["rho_grain_g_cm3"]
+    assert prop.value == 1.5
+    assert tuple(prop.measured_range) == (1.0, 2.0)
+    comet = sb.draw_comet()
+    assert "complex_organics" not in comet.densities
+    assert sb.REFRACTORY_DENSITIES == {"silicate_dust": 3500.0}
+    organics_only = compaction.grain_density_kg_m3({"complex_organics": 1.0})
+    assert organics_only == pytest.approx(1500.0)

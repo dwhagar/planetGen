@@ -248,9 +248,6 @@ TAXON_DATA = {
 """dict: The taxa by letter."""
 TAXON_DATA = {name: TAXON_DATA[name] for name in TAXA}
 
-COMPONENT_DENSITIES = {"complex_organics": 1500.0}
-"""dict: Grain densities this module states where it differs from the table (none yet: the table's complex organics are 1.5 g/cm3)."""
-
 
 def _zone_centres():
     return [math.sqrt(lo * hi) for _name, lo, hi, _shares in ZONES]
@@ -337,7 +334,7 @@ def _from_taxa(kind, names, weights, concentration, detail, porosity=None):
             taxon_porosity[taxon] = draw.uniform(low, high)
         else:
             taxon_porosity[taxon] = porosity
-        grain = compaction.grain_density_kg_m3(data.fractions, COMPONENT_DENSITIES)
+        grain = compaction.grain_density_kg_m3(data.fractions)
         bulk[taxon] = grain * (1.0 - taxon_porosity[taxon])
         total = math.fsum(data.fractions.values())
         for name, value in data.fractions.items():
@@ -345,7 +342,7 @@ def _from_taxa(kind, names, weights, concentration, detail, porosity=None):
     mean_bulk = 1.0 / math.fsum(shares[t] / bulk[t] for t in names)
     mean_porosity = math.fsum(shares[t] * taxon_porosity[t] for t in names)
     albedo = math.fsum(shares[t] * TAXON_DATA[t].albedo for t in names)
-    makeup = _makeup(kind, components, 0.0, albedo, densities=COMPONENT_DENSITIES)
+    makeup = _makeup(kind, components, 0.0, albedo)
     # the belt's own figures: the grains' mixing density of the whole belt and the mass-weighted bulk density of its taxa
     return SmallBodyMakeup(kind, makeup.components, makeup.metal, makeup.rock, makeup.water, makeup.ice, mean_porosity,
                            makeup.grain_density_kg_m3, mean_bulk, albedo,
@@ -429,8 +426,11 @@ COMET_POROSITY_RANGE = (0.5, 0.8)
 """tuple: A comet nucleus' porosity, uniform (Choukroun et al. 2020: 65 to 79 percent)."""
 KUIPER_POROSITY_RANGE = (0.3, 0.6)
 """tuple: The porosity of a Kuiper belt object under 100 km, uniform (design note section 5.2)."""
-REFRACTORY_DENSITIES = {"silicate_dust": 3500.0, "complex_organics": 2000.0}
-"""dict: The refractory grain densities of Choukroun et al. 2020 (silicate about 3.5, organics about 2 g/cm3)."""
+REFRACTORY_DENSITIES = {"silicate_dust": 3500.0}
+"""dict: The grain density of a comet's silicate dust, kg/m3 (the shared table holds none for the row). A labelled stand-in: Blum and
+Bischoff 2022 (arXiv:2207.12731) say the density of cometary refractory material "is not known and can only be constrained within a
+range", 2600 to 5000 for the minerals; 3500 is the value the design note took from the Rosetta reviews and sits in that range. The
+organics take the row of the shared table (1.5 g/cm3, the middle of Blum and Bischoff's 1000 to 2000; GEN.712)."""
 ICE_STAND_IN_DENSITIES = {"ch4_ice": 500.0, "nh3_ice": 850.0, "c2h6_ice": 920.0, "hcn_ice": 920.0, "formaldehyde": 920.0,
                           "so2_ice": 920.0}
 """dict: Grain densities of ices the shared table holds no number for (kg/m3): the bracket of the design note (bulk-composition.md
@@ -450,7 +450,7 @@ def draw_comet(period_class=None, interstellar=False):
 
     The draws, in order: the refractory-to-ice ratio, the organic share, the porosity, then the volatiles of
     `comet_population.draw_volatiles`. The ice is the water and the volatiles at the number ratios the population gives, turned
-    into masses with the molar masses; the refractories are silicate dust and organics at the densities of Choukroun et al. 2020.
+    into masses with the molar masses; the refractories are silicate dust (a stand-in density, `REFRACTORY_DENSITIES`) and organics (the shared table's density).
 
     Args:
         period_class (str or None): `jupiter_family`, `halley_type`, `long_period`; `None` (a parabolic or interstellar

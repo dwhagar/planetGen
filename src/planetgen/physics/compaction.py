@@ -10,7 +10,7 @@ with the void share taken out:
     rho_grain = 1 / sum(w_i / rho_i),      rho = rho_grain (1 - porosity)
 
 with `w_i` the mass fractions (adding to 1) and `rho_i` the grain densities of the shared materials table (GEN.427; a
-caller may state a density the table does not hold, for example the comet refractories of Choukroun et al. 2020).
+caller may state a density the table does not hold, for example the silicate dust of a comet).
 
 How much of the void a body keeps depends on its size. Bierson and Nimmo (2019, Icarus 326, 10, Table 1 and Eqs. 1 and 2)
 give the brittle law, with the pressure `P` in megapascals: ice grains close their pores as `max(0.60 exp(-0.1 P), 0.20)` and

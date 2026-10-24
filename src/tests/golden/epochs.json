@@ -405,6 +405,12 @@
       "epoch": 82,
       "first_release": "8.0.2192",
       "reason": "Every planet and moon with a life chemistry now has an evolutionary path (moons and cold-zone worlds too), and the Suitability food rung is made from the Flora and Fauna life scores, so the Suitability and overall score of every world with life move (GEN.649)"
+    },
+    {
+      "epoch": 83,
+      "first_release": null,
+      "pending": true,
+      "reason": "A comet nucleus' organic material takes the density of the shared materials table (1.5 g/cm3, the middle of the measured 1.0 to 2.0) in place of a separate 2.0, so every comet's grain density, bulk density and stored mass change (GEN.712)"
     }
   ]
 }
