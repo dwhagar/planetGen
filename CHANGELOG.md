@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2105] - 2026-10-24
+
+**Headline:** The ammonia photolysis activity factor now carries the value Boss supplied, labelled as not yet checked against the published table.
+
+### Changed
+- **NH3 activity factor 1.075 to 1.078 (GEN.501).** From the quiet and active rates Boss supplied (1.80e-4 and 1.94e-4 per s at 1 AU); the Huebner tables are still NOT REACHED, so the row stays labelled unverified and the quiet lifetime 6.7e3 s (Heays 2017) is kept.
+
 ## [8.0.2104] - 2026-10-24
 
 **Headline:** The thorium-to-uranium ratio of a planet's rock now follows the history of its galaxy's disc.
