@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 10:23 AM EDT 2026-10-24: 904 of 1297 items finished (69.7 percent), 393 open, 26 dropped (TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 117, phase 2 35, phase 3 25, phase 4 13, phase 5 80, phase 6 24, phase 7 22, phase 8 5, phase 9 29, phase 10 2, phase 11 31, phase 12 10 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 10:28 AM EDT 2026-10-24: 908 of 1297 items finished (70.0 percent), 389 open, 26 dropped (TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 116, phase 2 35, phase 3 25, phase 4 13, phase 5 77, phase 6 24, phase 7 22, phase 8 5, phase 9 29, phase 10 2, phase 11 31, phase 12 10 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -52,7 +52,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | GEN.633 | The backfill after a run puts its dimmer bright stars only in sectors not yet generated, so a sector holds different systems depending on the order the sectors were generated in (bug) |  |  |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer |  | Split from DB.9. Core 1 owns migrations. |
-| DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it |  |  |
 | DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) |  |  |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | DB.45 | Split from DB.9. Core 1 owns migrations. |
 | DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | DB.46 | Split from DB.9. Core 1 owns migrations. |
@@ -382,23 +381,20 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 | MAP.220 | Markers for habitable worlds and chosen classes, optional per kind |  | Split from MAP.132. |
 | GEN.639 | The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1) |  | From Blocker 3's report of GEN.146 (#2685). |
 | GEN.691 | The Suitability sentence says "no food readily available, but there is water and shelter available" while the Water row is Red and "undrinkable without heavy treatment" (bug) |  | Boss page paste 12:11 AM EDT 2026-10-24. |
-| GEN.649 | The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed |  |  |
 | DB.100 | Store all the life and evolutionary data of a world in the database and build the life paragraph from the stored results |  |  |
-| GEN.701 | Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields | GEN.649 |  |
+| GEN.701 | Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields |  |  |
 | GEN.706 | Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug) |  |  |
 | GEN.705 | The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug) |  |  |
 | GEN.704 | Moons of a moved planet keep the dose, solar particle exposure, UV and habitability of their old distance from the star (bug) |  |  |
 | GEN.700 | Tidal heating of moons counts in the energy term of the habitability score: keep the tidal flux on the moon and add it to the heat flow |  |  |
-| GEN.653 | Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life | GEN.649 |  |
-| GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only | GEN.649 |  |
+| GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only |  |  |
 | UX.153 | Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none |  | Survival equipment system, Boss 7:56 PM EDT 2026-10-23; design draft section 11. |
 | DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | GEN.654 |  |
-| DB.91 | Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech | GEN.649 |  |
-| UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes | DB.91, GEN.649 |  |
+| UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes |  |  |
 | GEN.644 | Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree |  |  |
 | GEN.645 | Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91 | GEN.644 |  |
 | DOC.75 | Help and docs text for the whole habitability system: the score, the symbols, the lists, the sector colouring and the map markers | MAP.220, GEN.639 |  |
-| DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document | GEN.649, UX.152 |  |
+| DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document | UX.152 |  |
 | TEST.300 | End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers | MAP.220 |  |
 
 ### Radiation chain for habitability (GEN.445)

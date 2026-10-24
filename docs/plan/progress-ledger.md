@@ -1305,3 +1305,7 @@ Baseline: PR #1817.
 | MAP.229 | 8.1 | Fly-through map |
 | MAP.230 | 8.1 | Fly-through map |
 | MAP.233 | 8.8 | Nebula drawing |
+| GEN.649 | 8.1 | Habitability system |
+| GEN.653 | 8.1 | Habitability system |
+| DB.91 | 8.1 | Habitability system |
+| DB.84 | 8.1 | Reproducible galaxies |

@@ -923,7 +923,7 @@ with `clamp()`.
   shim. Owner: Habitability lane B. Done: every page shows the cluster,
   no page shows human operability, and a browser test (TEST.300) checks
   the cluster on a list and a page.
-  Prerequisites: DB.91, GEN.649. Related: UX.151, UX.100,
+  Prerequisites: none. Related: UX.151, UX.100,
   TEST.300.
 
 - [ ] **UX.153 Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none**
@@ -2757,7 +2757,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Stand-in until sourced by GEN.670. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: GEN.670, MAP.280, GEN.649.
+  Prerequisites: GEN.670, MAP.280.
 
 - [ ] **MAP.283 Comet colour from the coma species**
    Design draft
@@ -12955,36 +12955,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
   Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
 
-- [ ] **GEN.649 The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed**
-  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
-  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
-  replace this with: Microbial, Flora, Fauna, Sentient and let's add
-  that to the icon design so that the # scores for these (based on the
-  evolutionary path and surface conditions), each icon goes with a small
-  number in a small cluster next to the PHI-6 icons. These will be a
-  score from 0 (none) to 9 (abundant) for each based on surface
-  conditions and current evolutionary stage.' Human operability goes
-  away. Replace phi_bio (microbial), phi_cpx (complex life) and phi_tech
-  (human operability with equipment) in physics/habitability.py,
-  habitability_world.py, generation/life.py and tuning.py with four
-  integer scores. Each is a function of the body's current evolutionary
-  stage (the life path already drawn in life.py) and its surface
-  conditions (temperature, pressure, radiation dose, water, air): 0
-  means none, 9 abundant; Flora and Fauna split the old complex-life
-  score, Sentient is new and is 0 unless the stage reaches it. Check
-  what reads phi_tech first (the equipment tier and the six-domain
-  overall in docs/design/habitability/habitability-index.md lines 197 and 492):
-  remove it where it is only a display and keep the equipment tier only
-  where the PHI-6 overall needs it; file anything else found. Changes
-  stored values: a new generator epoch (testing mode, Boss 5:42 PM EDT).
-  Owner: Habitability lane D. Done: the four scores per planet and moon,
-  a table of examples per stage and condition, tests for 0 and 9 and
-  monotone behaviour with conditions, determinism across worker counts.
-  Prerequisites: none. Related: GEN.643, GEN.89, UX.101, UX.100.
-  Boss, 6:54 PM EDT 2026-10-23: the Flora and Fauna scores also give the
-  food of the Suitability domain (GEN.653): Flora is always good food,
-  both are better, Fauna includes all animal life.
-
 - [ ] **GEN.652 The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug)**
   Gap found by the pipeline report
   /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
@@ -13012,31 +12982,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   edge value. Label it a stand-in in the gap plan registry when GEN.652
   settles the one main-sequence source.
 
-- [ ] **GEN.653 Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life**
-  Boss, 6:54 PM EDT 2026-10-23: 'Now as an error condition for the
-  habitable planet option, for this, while we aim for a Blue or Green if
-  we MUST we'll accept a Yellow as that is technically habitable so long
-  as the sustainability factor is at least yellow. Use the Flora and
-  Fauna scores to calculate food, Flora is always good food, both are
-  better. Fauna includes all animal life.' Reading recorded by the TODO
-  thread: 'the sustainability factor' is the Suitability domain of the
-  PHI-6 (water within reach, food, shelter,
-  docs/design/habitability/habitability-index.md); Boss to correct if he meant
-  another factor. Owner: Habitability lane D. Today the food rung reads
-  the latest milestone of the planet's evolutionary timeline (a full
-  biosphere of forests and animals 1, first plants and animals 0.85,
-  microbial mats and plankton 0.5, none 0.2; habitability-index.md
-  section on Suitability). Replace it with a function of the Flora and
-  Fauna scores of GEN.649 (0 to 9 each): Flora alone gives good food,
-  Flora and Fauna together give better, Fauna counts every kind of
-  animal life (not only land animals or large ones), Microbial alone is
-  not food for people. The rung's colours and the Suitability colour
-  follow from the new value. Changes stored values (the PHI-6 colours):
-  rides the epoch of GEN.649 (testing mode, Boss 5:42 PM EDT). Done: the
-  rung table with a case per Flora and Fauna pair, a test that Flora
-  alone beats none and both beat Flora alone, and the docs state it.
-  Prerequisites: GEN.649. Related: GEN.649, GEN.648, GEN.643.
-
 - [ ] **GEN.654 Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only**
   Boss, 7:12 PM EDT 2026-10-23, via lane D (design note
   /mnt/project-files/design-drafts/red-dwarf-water-and-star-regeneration-2026-10-23.md,
@@ -13053,7 +12998,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mode). Done: the model with cases (a dry hot world, a frozen world, a
   tidally heated moon), the rungs, the Microbial rule, tests,
   determinism across worker counts, and the design doc states it.
-  Prerequisites: GEN.649. Related: GEN.648, GEN.649, GEN.653.
+  Prerequisites: none. Related: GEN.648, GEN.649, GEN.653.
 
 - [ ] **GEN.657 Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH**
   Section 11 item 6 of the design draft. Do: the toxic rows (H2S, CO,
@@ -13417,7 +13362,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rogue scores above a bare ice rogue, and the scores show in the API. A
   new migration and the next free epoch at merge. Owner: lane D; check
   nobody started it first.
-  Prerequisites: GEN.649. Related: GEN.557, GEN.687.
+  Prerequisites: none. Related: GEN.557, GEN.687.
 
 - [ ] **GEN.703 The greenhouse optical depth (tau0) comes from the stored mixture and the band opacities, replacing the per-gas strengths**
   Split off GEN.443 when its last part merged (#2910, as lane G reported
@@ -15097,26 +15042,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   open for those two paths.
   Prerequisites: none. Related: DB.25.
 
-- [ ] **DB.84 Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it**
-  Found by Blocker 2 (about 4:02 AM EDT 2026-10-22 as the lane reported,
-  DB.44), filed by the TODO thread. The FULLTEXT index on `sectors`
-  forces `ALGORITHM=COPY` on a MySQL `ALTER TABLE`, so DB.44's two
-  columns were added by a full table rebuild in one migration instead of
-  the INSTANT form the DB.18 helpers prefer. On a large galaxy that is a
-  long `update.sh` step and needs free disk for a second copy of the
-  table. Every later migration that touches `sectors` pays the same
-  cost. Do: decide with the DB items chain lane and Boss's defaults (no
-  question card needed unless the choice changes a feature): the default
-  is to batch every remaining `sectors` column change into as few
-  migrations as possible, say the rebuild cost in the migration
-  docstring and in the update.sh output, and keep the FULLTEXT index;
-  the other choice is to move the FULLTEXT index to a side table so
-  `sectors` can use INSTANT again. Done: the choice is written in
-  docs/design/architecture/architecture.md and the DB.18 helper docstring, and every
-  open item that adds a `sectors` column is checked against it. Owner:
-  not assigned (the DB items chain lane after its listed order).
-  Prerequisites: none. Related: DB.18, DB.44.
-
 - [ ] **DB.89 Giants store their interior layers: the layer boundaries, the helium share per layer, the core flag, core mass and core composition**
   Boss, 6:01 PM EDT 2026-10-23: 'I want gas giants to have a full
   composition, including liquid or metallic hydrogen or helium cores, if
@@ -15167,23 +15092,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
-
-- [ ] **DB.91 Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech**
-  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
-  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
-  replace this with: Microbial, Flora, Fauna, Sentient and let's add
-  that to the icon design so that the # scores for these (based on the
-  evolutionary path and surface conditions), each icon goes with a small
-  number in a small cluster next to the PHI-6 icons. These will be a
-  score from 0 (none) to 9 (abundant) for each based on surface
-  conditions and current evolutionary stage.' Human operability goes
-  away. Four small-integer columns with their Alembic revision and
-  schema version (testing mode allows it), declared in
-  db/column_units.py in the same PR, the old columns removed with no
-  shim, the loader, writer and API field names, and the rebuild step for
-  older rows. Owner: Habitability lane D with lane B for the API. Done:
-  round trip, migration test, and the schema document lists the columns.
-  Prerequisites: GEN.649. Related: GEN.649, DB.73.
 
 - [ ] **DB.92 Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers)**
   Boss, 7:12 PM EDT 2026-10-23, via lane D (design note
@@ -16874,6 +16782,9 @@ clears each one.
   /mnt/project-files/reports/lane4/test-130-finding-2026-10-24.md). The
   test stays open on it and was not weakened. TEST.111 and TEST.254 did
   not reproduce (12 and 120 repeats under load) and stay open.
+  Research (2026-10-09, 10-24 lane D): Lane D (10:27 AM EDT as the lane
+  reported) saw it fail only under load at the #2930 gate and pass
+  alone, 3 times.
   Prerequisites: none. Related: TEST.123, GEN.122, GEN.709.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
@@ -18903,6 +18814,8 @@ clears each one.
   Research (2026-10-09, Update): Habitability lane E (7:36 AM EDT
   2026-10-24, as the lane reported) sees the same shape in three more
   tests: filed together as the next TEST item (see Related).
+  Research (2026-10-09, 10-24 lane D): Seen again at the #2930 gate by
+  lane D (10:27 AM EDT as the lane reported).
   Prerequisites: none. Related: GEN.631, TEST.337.
 
 - [ ] **TEST.339 test_systems::test_asteroid_belt_forcing_is_reliable fails about 1 run in 4: 2 of 60 trials without a belt, not seeded (bug)**
@@ -18937,6 +18850,12 @@ clears each one.
   eccentricity) and test_migration_bulk_composition in #2968; still red
   on main: test_emission_members (hot star) and test_bright_star_scatter
   (TEST.338). Details in reports/core4-gen677-report-2026-10-24.md.
+  Research (2026-10-09, 10-24 lane D): Lane D (10:27 AM EDT as the lane
+  reported) saw
+  test_emission_members::test_a_pre_placed_hot_star_rolls_the_same_region_as_the_star_its_sector_builds
+  and
+  test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree_and_spends_the_rows_of_the_trees_it_built
+  fail on plain main at the #2930 gate (after Core 4's #2968).
   Prerequisites: none. Related: TEST.338, TEST.337, GEN.651, GEN.631.
 
 - [ ] **TEST.341 A spatial-position test failed once with "no system matching" in the lane gate and passed on rerun (bug)**
@@ -20426,7 +20345,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   conditions), the cluster, and that human operability is gone. Owner:
   Habitability lane E. Done: the help (DOC.75) and the design and schema
   docs state it and no text names human operability as a score.
-  Prerequisites: GEN.649, UX.152. Related: DOC.75, GEN.649.
+  Prerequisites: UX.152. Related: DOC.75, GEN.649.
 
 ## VIEW: The view from a planet
 

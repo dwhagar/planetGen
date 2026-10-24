@@ -632,14 +632,14 @@ Parents marked "new parent" had no old number of their own.
 | DB.81 | Shape dials: the plan stores which sliders were pinned and at what value, so the galaxy page can say 'mass pinned at X, the rest drawn' | none | done, PR #2403 |
 | DB.82 | The object index builder uses VALUES() in ON DUPLICATE KEY UPDATE, which test_no_new_values_function_in_on_duplicate_key_update rejects (bug) | none | done, PR #2390 |
 | DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) | none | open |
-| DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | open |
+| DB.84 | Every schema change on `sectors` rebuilds the whole table because of its FULLTEXT index: decide how the later DB items pay for it | none | done, PR #2984 |
 | DB.85 | Globular clusters and superbubbles stored as containers: which container holds a point, and what a container holds | none | done, PR #2582 |
 | DB.86 | Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more | none | done, PR #2801 |
 | DB.87 | The precision table lists the vessels table but the documented floor table does not: test_precision fails on main (bug) | none | done, PR #2541 |
 | DB.88 | The vessels table has an Object ID but is not in db/kind_tables.py: test_kind_tables fails on main (bug) | none | done, PR #2545 |
 | DB.89 | Giants store their interior layers: the layer boundaries, the helium share per layer, the core flag, core mass and core composition | none | open |
 | DB.90 | Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild | none | open |
-| DB.91 | Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech | none | open |
+| DB.91 | Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech | none | done, PR #2930 |
 | DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | none | open |
 | DB.93 | Planets and moons store the equipment levels and regional temperatures and drop equipment_tier; the API serves one equipment object | none | done, PR #2766 |
 | DB.94 | The object index, resolve_object and the search panels read the moons of free planets | none | done, PR #2881 |
@@ -1375,11 +1375,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.646 | Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter | none | open |
 | GEN.647 | The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons | none | open |
 | GEN.648 | The generation request for a habitable world (+habitable_world) steers by conditions, not by a class list: redraw water, life, temperature and atmosphere inside their ranges until the PHI-6 overall is Blue or Green | none | open |
-| GEN.649 | The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed | none | open |
+| GEN.649 | The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed | none | done, PR #2930 |
 | GEN.650 | Design: the planet mass law once the class no longer supplies the mass: the isolation mass at the formation distance, the snow line and the host, replacing the class mass ranges of decision 28 (design note, prerequisite of GEN.646) | none | done, PR #2947 |
 | GEN.651 | Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag | none | done, PR #2952 |
 | GEN.652 | The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug) | none | open |
-| GEN.653 | Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life | none | open |
+| GEN.653 | Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life | none | done, PR #2930 |
 | GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only | none | open |
 | GEN.655 | Survival equipment: one physics/equipment.py returns the list of needs (required or recommended) for the four slots, and replaces habitability.equipment and protection.requirements | none | done, PR #2766 |
 | GEN.656 | Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator and night side for locked worlds) and the day and night swing, with the regional sentences of the detail text | none | done, PR #2844 |
