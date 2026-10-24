@@ -13248,30 +13248,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   takes the next free generator epoch. Owner: Core 4 (proposed).
   Prerequisites: none. Related: GEN.271.
 
-- [ ] **GEN.710 A pre-placed row with a stored tree can have a member heavier than the row star at stars[0], so the nebula it lights and the star page disagree with the built sector (bug)**
-  Found by Bug Hunt while fixing TEST.311 (#2945), as the lane reported
-  at 7:22 AM EDT 2026-10-24. Pre-placed rows with stored trees
-  (scatter_companions.star_tree) use the same multistar.draw_member_tree
-  as the fill. A member can then be heavier than the row star, so the
-  built system has it at stars[0]. run_sector.add_star_hosted_nebulae
-  lights the nebula from stars[0], while the GEN.530 row prediction
-  (row_nebula) uses the row star, so the star page and the uncharted
-  scene can disagree with the built sector. Evidence: a drawn tree for
-  one O7V row gave members O7V 18.74, B2V 10.4, B5V 6.93 solar masses in
-  a k=30 case on old main; the mismatch appears whenever a companion
-  out-masses the primary. Do: either light the nebula from the row star,
-  or order the members so the row star stays first (the choice may
-  change generated output and then needs the next free generator epoch,
-  now 77). Done: for a sample of rows with trees, the nebula built in
-  the sector equals the row_nebula prediction, with a test that forces a
-  companion heavier than the primary. Owner: Core 3 (it owns the member
-  tree; proposed).
-  Research (2026-10-09, Update): Core 3 accepted this (7:23 AM EDT
-  2026-10-24, as the lane reported): order is GEN.332 slice 1, then
-  GEN.709, GEN.710, then the rest of GEN.332 and GEN.640; it takes the
-  next free epoch at each merge.
-  Prerequisites: none. Related: GEN.530, GEN.631, GEN.709, TEST.311.
-
 - [ ] **GEN.711 Register the planet mass law stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each**
   Found by the class lane while merging GEN.650 (#2947), as the lane
   reported at 7:26 AM EDT 2026-10-24; design note
@@ -14103,6 +14079,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unit. Done: a unit whose worker warm takes longer than the record's
   expiry finishes and the run completes, and the test passes. Owner: the
   fix thread (Boss, 5:18 PM EDT 2026-10-23).
+  Research (2026-10-09, Boss reversal): Update 2:34 PM EDT 2026-10-24
+  (Boss, relayed by the coordinator): at 2:32 PM EDT Boss said to ignore
+  the crash (he thought it was the MySQL out-of-memory kill, PERF.181);
+  at 2:34 PM EDT he reversed it: 'Make the redis fix please. ASAP.'
+  PERF.173 stays open and is first priority again. The fix is on branch
+  claude/project-thread-bb2equ (b787ee3), local gate about 30 percent
+  when the lane paused; report
+  reports/generate-redis-crash-2026-10-23.md. Owner: Lane Redis.
   Prerequisites: none. Related: PERF.146, PERF.171.
 
 - [ ] **PERF.174 Every work unit's database connection runs the schema check again: skip it when the schema version is current**
@@ -14173,29 +14157,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it has already gone).
   Prerequisites: none. Related: PERF.155, PERF.167, PERF.171, PERF.123.
 
-- [ ] **PERF.181 CRITICAL (bug): MySQL is killed out of memory during New galaxy Stage 7 (scatter --mass), 65,536 shells and 19,795 components (bug)**
-  Boss live observation (1:49 PM EDT 2026-10-24, log
-  /mnt/project-files/reports/new-galaxy-oom-log-2026-10-24.log, run
-  started about 12:58 PM EDT on his server, PlanetGen 8.0.2205). Stage 7
-  "Scatter the massive stars" (scatter --mass --phenomenon-min-mass 14
-  --bright-star-min-luminosity 9000) printed "about 32,731 stars
-  expected in 65,536 shells, 65,535 shells being the grid's reach, and
-  19,795 components", then lost its connection ("Lost connection to
-  MySQL server during query", beat_nodes in queue/work.py committing)
-  and exited with status -9 after 550 s. Boss reports mysqld hit the
-  out-of-memory killer and shut down; status -9 means the process was
-  killed, so the kernel log (dmesg or journalctl -k) says which process.
-  Stages 1 to 6 passed (stages 4 to 5 took 601 s). Do: find what holds
-  memory in this stage (a table or result set sized by shells or
-  components read whole, an unbounded batch or a very large transaction,
-  the InnoDB buffer pool size against the host RAM), fix it so the stage
-  runs in bounded memory, and add a test or a size guard that fails if
-  the stage reads everything at once. Done: Boss repeats New galaxy and
-  Stage 7 finishes with MySQL alive. Top priority; the Fix MySQL
-  out-of-memory thread owns it. Related: MAP.258, MAP.259, MAP.260,
-  GEN.631, PERF.35.
-  Prerequisites: none. Related: MAP.258, MAP.259, MAP.260, GEN.631.
-
 - [ ] **PERF.182 Finish an incomplete run: resume a New galaxy run that died partway from the stage it stopped in**
   Boss, 1:53 PM EDT 2026-10-24, for version 8.2: "We need to find a way
   to finish an incomplete run." Cause: Boss's New galaxy run died in
@@ -14229,7 +14190,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   night cheap to resume. Done: the smoke runs unattended, a deliberate
   memory regression makes it fail, and the report line appears in the
   stage log. Owner: Lane OOM, after PERF.181 merges.
-  Prerequisites: PERF.181. Related: PERF.181, PERF.173, PERF.182.
+  Prerequisites: none. Related: PERF.181, PERF.173, PERF.182.
+
+- [ ] **PERF.184 Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug)**
+  Boss's live observation (relayed 2:34 PM EDT 2026-10-24 by the
+  coordinator; filed by the TODO thread). Kind: wrong output. When the
+  server has no benchmark run on record, the time estimates (the
+  Generate page plan line, the run's remaining time) break instead of
+  giving a best guess. Do: when there is no benchmark, estimate from the
+  best available information (hardware found on the host such as core
+  count and memory, the size of the plan, and defaults for the cost per
+  star, per layer and per unit) and say that it is a rough guess and how
+  wide it is. As the system records how long each star, layer or unit
+  actually takes, fold those timings into the estimate so it tightens as
+  the run goes and on later runs. Done: a fresh server with no benchmark
+  shows a sensible estimate; the estimate changes after recorded timings
+  arrive; tests for both. Owner: Core 5 (the queue and speed lane;
+  proposed by the TODO thread because no lane owns estimates since
+  PERF.178 went to a finished lane).
+  Prerequisites: none. Related: PERF.178, PERF.174.
 
 ## DB: Database and schema
 
