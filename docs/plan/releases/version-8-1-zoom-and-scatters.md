@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 5:58 PM EDT 2026-10-24: 992 of 1385 items finished (71.6 percent), 393 open, 30 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 95, phase 2 31, phase 3 26, phase 4 13, phase 5 64, phase 6 23, phase 7 18, phase 8 4, phase 9 28, phase 10 2, phase 11 73, phase 12 16 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 6:07 PM EDT 2026-10-24: 994 of 1387 items finished (71.7 percent), 393 open, 30 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 95, phase 2 31, phase 3 26, phase 4 13, phase 5 64, phase 6 23, phase 7 18, phase 8 4, phase 9 28, phase 10 2, phase 11 71, phase 12 18 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -685,13 +685,11 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | GEN.422, GEN.462 |  |
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | GEN.503, GEN.504 |  |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output |  |  |
-| UX.188 | Captain-first object pages, step C0: the GLANCE registry, the At a glance panel partial and its test (every key is in the sheet; the page renders the panel above the sheet) |  |  |
-| UX.194 | Captain-first object pages, step C6: galaxy page | UX.188 |  |
-| UX.193 | Captain-first object pages, step C5: belt, comet, facility, cluster and superbubble pages | UX.188 |  |
-| UX.192 | Captain-first object pages, step C4: phenomenon pages | UX.188 |  |
-| UX.191 | Captain-first object pages, step C3: sector pages | UX.188 |  |
-| UX.190 | Captain-first object pages, step C2: star and star system pages | UX.188 |  |
-| UX.189 | Captain-first object pages, step C1: planet and moon pages | UX.188 |  |
+| UX.194 | Captain-first object pages, step C6: galaxy page |  |  |
+| UX.193 | Captain-first object pages, step C5: belt, comet, facility, cluster and superbubble pages |  |  |
+| UX.192 | Captain-first object pages, step C4: phenomenon pages |  |  |
+| UX.191 | Captain-first object pages, step C3: sector pages |  |  |
+| UX.190 | Captain-first object pages, step C2: star and star system pages |  |  |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |
 | GEN.763 | The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug) |  |  |
 | GEN.762 | Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw |  |  |
@@ -715,6 +713,8 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) |  | Boss run log; generation-log lane. |
 | PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) |  | Boss run log; generation-log lane. |
 | PERF.184 | Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug) |  |  |
+| TEST.359 | test_object_page_walk fixtures error on main: the system detail has no "stars" (bug) |  |  |
+| TEST.358 | test_property_sheet planet and moon "every column shown or excused" fails on main for the interior columns of GEN.642 and DB.89 (bug) |  |  |
 | PERF.191 | The warm-up after an epoch change fails: "a stage queues at most 4000 units, not 4051" (bug) |  |  |
 | PERF.190 | Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates | PERF.189 |  |
 | PERF.189 | The block light rebuild at the end of every scatter reports its progress (Step bar, a log line, phase lines) (bug) |  |  |
