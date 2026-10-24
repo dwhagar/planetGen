@@ -115,6 +115,7 @@ def test_panel_includes_the_canvas_and_controls():
     assert 'data-action="territories"' in html
     assert 'id="galaxymap3d-territories"' in html
     assert 'data-action="charted-only"' in html
+    assert 'data-action="cell-grid"' in html
 
 
 def test_the_panel_carries_the_superbubbles_as_centre_and_radius():

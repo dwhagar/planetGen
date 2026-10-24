@@ -130,6 +130,11 @@ export function mapControlHandlers(ctx) {
       ctx.setTerritories(button.getAttribute("aria-pressed") !== "true", button);
       button.setAttribute("aria-pressed", String(ctx.territoriesWanted()));
     },
+    "cell-grid": function (button) {
+      var on = button.getAttribute("aria-pressed") !== "true";
+      button.setAttribute("aria-pressed", String(on));
+      ctx.stageView.setCellGrid(on);
+    },
     "charted-only": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
