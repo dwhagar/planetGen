@@ -13,12 +13,27 @@ A star with no stored UV-C share (a remnant, or a row saved before schema v137) 
 
 `uv_index` and `dna_dose_w_m2` are the two numbers the habitability code wants; both are for the star at the zenith angle given (`mu0`, the default
 is overhead) with the ground mixture, and 0 for a body with no air or no star.
+
+`dna_dose_index(body)` is the number a body stores as `uv_surface_index` (GEN.445): the Setlow DNA-damage dose at its ground as a multiple of the
+dose at Earth's (`earth_dna_dose_w_m2`, so Earth is 1 by definition and the limits of `protection_limits` stay in "x Earth"). A body with air reads the
+spectrum below its air; a body with none reads the star's unfiltered light (`bare_dna_dose_w_m2`), the bare-ground case the proxy gave its ceiling
+for; a body with no star or no distance has no index (`None`).
 """
 
-from planetgen.physics import aerosols, air_column, atmospheric_radiation, stellar_spectrum, uv_cross_sections
+import functools
+
+import numpy as np
+
+from planetgen.physics import aerosols, air_column, atmospheric_radiation, constants, stellar_spectrum, uv_cross_sections
 
 DEFAULT_GROUND_ALBEDO = 0.15
 """float: The ground reflectance used until GEN.462 gives it by band (stand-in: the Earth-like land mean)."""
+EARTH_OZONE_DU = 300.0
+"""float: The ozone column of the reference Earth, DU (measured: 279 to 313 DU in the models and 300 DU in the record)."""
+SUN_EFFECTIVE_K = 5772.0
+"""float: The Sun's effective temperature, K (IAU 2015)."""
+EARTH_AIR_PA = {"N2": 79100.0, "O2": 21200.0, "Ar": 950.0}
+"""dict: The reference Earth's dry air, Pa by gas formula (101.25 kPa)."""
 
 
 def _star_distance_au(body):
@@ -71,3 +86,37 @@ def dna_dose_w_m2(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_a
     """The Setlow DNA-damage weighted irradiance at the ground of `body`, W/m2, 0 where there is no air to compute it in."""
     spectrum = surface_spectrum(body, mu0, ground_albedo, distance_au)
     return 0.0 if spectrum is None else spectrum.dna_dose_w_m2()
+
+
+def bare_dna_dose_w_m2(body, mu0=1.0, distance_au=None):
+    """The Setlow DNA-damage weighted irradiance of the star's unfiltered light on a horizontal surface, W/m2, or `None` for a body with no star or no
+    distance. The ground of a body with no air."""
+    lit = _star_flux_w_m2(body, distance_au or _star_distance_au(body))
+    if lit is None:
+        return None
+    temperature, flux = lit
+    share = getattr(body.star, "uv_c_share", None)
+    edges = uv_cross_sections.standard_edges()
+    top = stellar_spectrum.irradiance_w_m2(edges, temperature, flux, 1.0 if share is None else share)
+    return float(mu0 * np.sum(top * atmospheric_radiation.setlow_weight(uv_cross_sections.centres(edges))))
+
+
+@functools.lru_cache(maxsize=1)
+def earth_dna_dose_w_m2():
+    """The DNA dose at the ground of the reference Earth, W/m2: the Sun at 1 au (blackbody UV-C), `EARTH_AIR_PA` at 1 g, `EARTH_OZONE_DU`, a clear sky,
+    the default ground and the Sun overhead. The unit of `dna_dose_index`."""
+    column = air_column.from_partials(EARTH_AIR_PA, constants.EARTH_GRAVITY)
+    spectrum = atmospheric_radiation.surface_radiation(
+        column, temperature_k=SUN_EFFECTIVE_K,
+        flux_w_m2=stellar_spectrum.bolometric_flux_w_m2(constants.SOLAR_LUMINOSITY, 1.0), ozone_du=EARTH_OZONE_DU)
+    return spectrum.dna_dose_w_m2()
+
+
+def dna_dose_index(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distance_au=None):
+    """The DNA dose at the ground of `body` as a multiple of Earth's (`earth_dna_dose_w_m2`), or `None` for a body with no star or no distance."""
+    if air_column.column_of(body) is None:
+        dose = bare_dna_dose_w_m2(body, mu0, distance_au)
+    else:
+        spectrum = surface_spectrum(body, mu0, ground_albedo, distance_au)
+        dose = None if spectrum is None else spectrum.dna_dose_w_m2()
+    return None if dose is None else dose / earth_dna_dose_w_m2()

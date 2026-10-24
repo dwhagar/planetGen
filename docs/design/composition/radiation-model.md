@@ -108,8 +108,8 @@ E(lambda) at the ground = direct + diffuse + ground-reflected, from section 3. U
 | Proxy today | Replaced by | Item |
 |---|---|---|
 | `ozone_ratio` = sqrt(p_O2 / 21.2 kPa), capped 1.2, 0 under 0.02 kPa | Kozakis column by O2 and host (R8); the fit's own floor is 0.01 percent PAL, 2.1 Pa | GEN.413, used by GEN.443 |
-| `uv_index` = `uv_ratio` x flux x ozone^-1.6 (a ratio to the Sun, not the CIE index) | UVI and DNA dose of section 7 | GEN.445 |
-| `_band_fraction`, `uv_ratio` (blackbody 200 to 300 nm, floor 0.1) | band shares of R6 and the stellar UV of R17 | GEN.443 |
+| `uv_index` = `uv_ratio` x flux x ozone^-1.6 (a ratio to the Sun, not the CIE index) | UVI and DNA dose of section 7 | GEN.445. **Built (epoch 72):** `uv_surface_index` = `body_radiation.dna_dose_index(body)`, the Setlow dose of the ground spectrum over Earth's; the proxy and its tests are gone |
+| `_band_fraction`, `uv_ratio` (blackbody 200 to 300 nm, floor 0.1) | band shares of R6 and the stellar UV of R17 | GEN.443. **Built:** removed from `radiation.py` with GEN.445 |
 | `a_rad` log-uniform 0.5 to 2 times 0.48 mSv/yr times heat ratio, plus radon 0.5 mSv/yr behind a 1 kPa gate | gamma and radon from K, U, Th (section 6) | GEN.444 with GEN.459 |
 | `GCR_POINTS` (500, 237, 110), `GCR_ATTENUATION_G_CM2` 164, `magnetic_factor` (cut 0.4, flat) | Atri and Griessmeier tables (R13) | GEN.453 then GEN.444. **Built (GEN.453):** `GCR_SHOWER_POINTS`, `GCR_ANCHORS`, `magnetic_factor(cutoff, column)` |
 | `cutoff_rigidity_gv` (R_E/R)^3 | M / r^2 | GEN.453. **Built:** 14.34 GV for Earth |
