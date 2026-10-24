@@ -315,6 +315,9 @@ def zone_text():
     """
     low, high = orbits.KOPPARAPU_TEFF_RANGE_K
     inner, outer = orbits.calculate_habitable_zone(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K)
+    light_mass, heavy_mass = orbits.KOPPARAPU_MASS_RANGE_EARTH
+    light_inner = orbits.hz_limits(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K, light_mass)[0]
+    heavy_inner = orbits.hz_limits(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K, heavy_mass)[0]
     return (
         "A star's habitable zone is the ring of orbits where a planet like Earth could keep liquid water on its "
         "surface. Its inner edge is the runaway greenhouse limit, where a planet loses its water to space, and its "
@@ -322,7 +325,12 @@ def zone_text():
         "surface warm (Kopparapu et al., 2014). Both edges are a flux, in units of the sunlight Earth gets, that "
         "depends on the star's temperature: a cool star's light is redder, so a planet takes more of it at the same "
         "flux and the zone lies nearer in than the star's brightness alone says. "
-        f"For the Sun the edges are {inner:.2f} and {outer:.2f} AU. The fits cover stars from {low:,.0f} to "
+        f"For the Sun the edges are {inner:.2f} and {outer:.2f} AU. The inner edge moves with the planet's mass, because a "
+        f"heavier planet holds its water to a higher flux: for the Sun it is {light_inner:.2f} AU at {light_mass:g} Earth "
+        f"masses and {heavy_inner:.2f} AU at {heavy_mass:g}; the star's own zone is for one Earth mass. A cool star is "
+        "also brightest when young, so a planet in its zone today may have crossed the runaway limit early and lost "
+        "water, and its oceans are smaller for it. "
+        f"The fits cover stars from {low:,.0f} to "
         f"{high:,.0f} K; a star outside that range (a brown dwarf, a white dwarf, a remnant) takes the nearest end's "
         "edges. The zone is a guide to where to look and is not the rating: a planet is rated by the six domains "
         "above, from its own air, water, temperature and radiation, wherever it orbits."
