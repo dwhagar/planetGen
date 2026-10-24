@@ -7,7 +7,7 @@ The HTML pages of the site, served by the same Flask app as the JSON API
 Every page has a real GET route here (`/`, `/sectors`, `/sector/<id>`,
 ...) and a Jinja2 template in `web/templates/` extending `base.html`.
 The old CGI URLs (`/<name>.py`) 301 to their replacements
-(`old_urls.py`). See `docs/html-interface.md` ("Flask pages") for the
+(`old_urls.py`). See `docs/reference/html-interface.md` ("Flask pages") for the
 full guide; in short, a new page is:
 
     # web/views.py

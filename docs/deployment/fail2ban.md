@@ -1,10 +1,10 @@
 # Blocking login brute force with fail2ban
 
 planetGen locks an address out by itself after failed sign-ins (3
-failures, then 5 minutes doubling to a day; [`api.md`](../api.md)). On
+failures, then 5 minutes doubling to a day; [`api.md`](../reference/api.md)). On
 Linux, fail2ban can go further and drop a guessing address at the
 firewall, so it can't reach the site at all. It reads the activity log
-([`config.md`](../config.md#the-activity-log)), which writes one line per
+([`config.md`](../reference/config.md#the-activity-log)), which writes one line per
 failed sign-in with the client's address.
 
 The filter and jail are in [`examples/fail2ban/`](../../examples/fail2ban/).

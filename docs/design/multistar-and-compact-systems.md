@@ -69,7 +69,7 @@ were rerun while writing this document.
   radii, eccentricity 0, circular position, random orientation, mass ratio
   `uniform(0.1, 1.0)` (`tuning.BINARY_MASS_RATIO_RANGE`), same age as the primary
   (GEN.53). The orbit lives in `binary_*` columns on `star_systems`; the proxy has
-  no `stars` row ([database-schema.md](../database-schema.md), "Binary
+  no `stars` row ([database-schema.md](../reference/database-schema.md), "Binary
   configuration").
 - **Wide (S-type) pair.** `WideBinaryPair` (`generation/wide_binary.py`):
   separation from Moe and Di Stefano's companions per decade of period, between
@@ -105,7 +105,7 @@ were rerun while writing this document.
   self._companion()` in `StarSystem.__init__`). **The module
   docstring cites `docs/design/exotic-phenomena.md`, which does not exist**; a
   repo-wide grep finds the path only there (the words "exotic-phenomena" elsewhere
-  are prose in `docs/cli.md` and a test CLI). The design home is
+  are prose in `docs/reference/cli.md` and a test CLI). The design home is
   [anomalies.md](anomalies.md) plus this note; the docstring should point there.
 - **Collapsed stars stay out of normal systems on purpose.**
   `physics/stellar_evolution.evolve_star` returns None for a star at or above 8
@@ -826,7 +826,7 @@ Seen in search results (summaries only; no paper text was read):
 - Repo files read: `generation/binary.py`, `wide_binary.py`, `system.py`, `star.py`,
   `phenomena/compact_remnant.py`, `physics/orbits.py`, `physics/kepler.py`,
   `physics/stellar_evolution.py`, `names/bodies.py`, `tuning.py`,
-  `web/maps/systemscene.py`, `docs/database-schema.md`, and the design documents
+  `web/maps/systemscene.py`, `docs/reference/database-schema.md`, and the design documents
   linked above, with "Orbital Update Full Algorithm.md" and "Orbital Position and
   Vector Update Algorithms.md"; TODO items GEN.128 to GEN.130, GEN.109, GEN.84 to
   GEN.89, GEN.103; GitHub issues #777 and #778.

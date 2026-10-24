@@ -12,7 +12,7 @@
 # Usage:
 #   sudo examples/apache/set-permissions.sh [install-dir] [state-dir]
 #
-# Defaults match the layout documented in docs/html-interface.md and
+# Defaults match the layout documented in docs/reference/html-interface.md and
 # examples/apache/planetgen.conf.example:
 #   install-dir defaults to /var/lib/planetGen (the checkout: src/, db/,
 #               scripts/, config.json, .git, ... -- install.sh and

@@ -18,7 +18,7 @@ server's CPU, the peak memory of the `planetgen` processes, the MySQL counters (
 updated), the stages the step reports, and what it made, so the time per star or per cell can be read off. `--repeats N`
 runs the whole suite N times and prints the fastest, median and slowest run of each step. `--steps a,b` runs only some
 (a step needs the ones before it to have run). `--step-timeout MINUTES` stops a step that runs away and records it as
-not finished. `docs/cli.md` has the options. A test (`src/tests/test_benchmark_suite.py`) runs the first step on the
+not finished. `docs/reference/cli.md` has the options. A test (`src/tests/test_benchmark_suite.py`) runs the first step on the
 `tiny` size and checks the JSON's shape.
 
 The sizes grow by the galaxy's mass (`--mass`): `tiny` 2e6, `small` 3e7, `medium` 4e9 (the size a seed draws), `large`

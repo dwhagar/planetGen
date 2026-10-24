@@ -44,7 +44,7 @@ fits in one short file. gunicorn runs the app exactly as in the
    shows how that went.
 
 5. Log in at `https://<your site>/login` and change the admin username
-   and password. Then run the [server checklist](../server-checklist.md).
+   and password. Then run the [server checklist](server-checklist.md).
 
 ## What the Caddyfile does
 
@@ -79,4 +79,4 @@ config reload is `sudo systemctl reload caddy`.
     curl -sI https://HOST/ | grep -i strict-transport
     curl -s https://HOST/api/health
 
-Then the [server checklist](../server-checklist.md).
+Then the [server checklist](server-checklist.md).

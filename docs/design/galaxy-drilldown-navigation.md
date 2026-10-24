@@ -976,7 +976,7 @@ every star of the sector (MAP.80, phase 1).
 - **Same math in Python and JavaScript, with a parity test.** The page and
   the server must agree on every block key; `test_galaxydrill.py` runs both.
 - **three.js stays.** The map keeps the vendored three.js build; the reasons
-  are in `docs/html-interface.md` ("Why the maps use three.js") and in
+  are in `docs/reference/html-interface.md` ("Why the maps use three.js") and in
   `design-decisions.md`.
 
 ### Ideas from the paper that were rejected

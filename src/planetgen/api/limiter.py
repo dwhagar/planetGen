@@ -92,7 +92,7 @@ limiter = Limiter(key_func=limit_key, default_limits_exempt_when=exempt_from_def
 # (`web/__init__.py` applies `page_limit("other")` to the pages'
 # blueprint). The values come from `app.config["RATELIMIT_PAGES"]`
 # (`config.json`'s `ratelimit.pages`, see `config.py` and
-# `docs/config.md`), read on each request:
+# `docs/reference/config.md`), read on each request:
 #
 # - `search`: `/search` (default 30 per minute)
 # - `galaxy`: `/galaxy`, the Galaxy Map page (default 60 per minute)

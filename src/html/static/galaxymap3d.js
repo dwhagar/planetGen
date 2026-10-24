@@ -1,5 +1,5 @@
 // html/static/galaxymap3d.js
-// (Why three.js and not another renderer: docs/html-interface.md.)
+// (Why three.js and not another renderer: docs/reference/html-interface.md.)
 //
 // Renders the interactive 3D Galaxy Map (planetgen/web/maps/galaxymap3d.py) as a real
 // WebGL scene (three.js, vendored at ./vendor/three.module.min.js -- see

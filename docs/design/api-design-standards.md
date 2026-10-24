@@ -10,7 +10,7 @@ Status: research, 2026-10-09; decisions marked "Boss" are his, everything else i
 
 Evidence tags: [S] seen in a source (URL in section 11), [C] computed or measured in the research environment, [R] recalled and unconfirmed (listed in section 11). The research environment could only read search-result text and raw files from GitHub and PyPI, not papers or RFCs, so every outside-standards claim is [S] from raw IETF, Apache, tus, Pydantic or oasdiff source text, or [R]. Absolute MB/s and millisecond figures came from a slow sandbox CPU and MariaDB 10.11 (CI targets 11.4); treat them as relative.
 
-Related: [reproducible-galaxies.md](reproducible-galaxies.md) (seed, version key, API.16 and API.17), [login-brute-force-protection.md](login-brute-force-protection.md) (lockouts, two-factor), [work-queue-audit.md](work-queue-audit.md) (which API paths run on the queue), [library-migration.md](library-migration.md), [object-ids.md](object-ids.md), [../api.md](../api.md) (the API as built).
+Related: [reproducible-galaxies.md](reproducible-galaxies.md) (seed, version key, API.16 and API.17), [login-brute-force-protection.md](login-brute-force-protection.md) (lockouts, two-factor), [work-queue-audit.md](work-queue-audit.md) (which API paths run on the queue), [library-migration.md](library-migration.md), [object-ids.md](object-ids.md), [../api.md](../reference/api.md) (the API as built).
 
 ## 1. Decisions already taken
 
@@ -19,8 +19,8 @@ Related: [reproducible-galaxies.md](reproducible-galaxies.md) (seed, version key
 - Keys (Boss, 2026-10-02 01:31Z, API.6): every key is attached to the account that created it, and requests made with it act as that account.
 - Logging (Boss, 2026-10-02 01:31Z, API.15): by default every API call is logged with the user (key owner, signed-in user, or `god` for the console), how it came in (API key, web session or console) and the HTTP response code; the API docs say HTTP codes are used for parity with web server logs.
 - Recipes (Boss, 2026-10-07 11:47Z, API.18, API.19): one adaptable JSON system for sectors, systems, planets, moons, phenomena and a galaxy, any field fixed, ranged or random; validation errors are JSON with details and the command's log output; 400 for a gibberish request, 422 for a validation failure; a galaxy is built region by region.
-- The queue (Boss, 2026-10-01 22:13Z, plan approved 2026-10-07): everything that communicates with the API uses the work queue whenever possible; long work answers `202` with a job id, short generation is queued and waited on, plain row writes stay in the request ([work-queue-audit.md](work-queue-audit.md); built for the routes in [../api.md](../api.md#queued-jobs)).
-- Libraries (Boss, 2026-10-07): request bodies are Pydantic models (ADM.21, built); request limits and login lockouts run on Flask-Limiter with Redis (SEC.30, done, PR #643); two-factor sign-in runs on pyotp and segno (SEC.29, done, PR #612). Both SEC items are verified finished (SEC rows of [todo-number-map.md](todo-number-map.md); CHANGELOG.md entries for the Redis rate limits and the segno QR codes) and appear below only as constraints.
+- The queue (Boss, 2026-10-01 22:13Z, plan approved 2026-10-07): everything that communicates with the API uses the work queue whenever possible; long work answers `202` with a job id, short generation is queued and waited on, plain row writes stay in the request ([work-queue-audit.md](work-queue-audit.md); built for the routes in [../api.md](../reference/api.md#queued-jobs)).
+- Libraries (Boss, 2026-10-07): request bodies are Pydantic models (ADM.21, built); request limits and login lockouts run on Flask-Limiter with Redis (SEC.30, done, PR #643); two-factor sign-in runs on pyotp and segno (SEC.29, done, PR #612). Both SEC items are verified finished (SEC rows of [todo-number-map.md](../plan/todo-number-map.md); CHANGELOG.md entries for the Redis rate limits and the segno QR codes) and appear below only as constraints.
 
 ## 2. Summary of the recommendation
 
@@ -72,7 +72,7 @@ Recommendation: no framework. A generator of about 150 lines (`planetgen/api/spe
 2. `python -m planetgen.api.spec --check` regenerates the remote-contract spec and fails if it differs from the committed `docs/api/openapi.json`.
 3. CI runs `oasdiff breaking` and `changelog` between PR base and head. A breaking diff requires a higher MAJOR; a non-breaking non-empty diff a higher MINOR; no diff an unchanged version. Description-only changes are excluded [S].
 4. The check sits beside `scripts/bump_version.py --check-pr`. `stamp-version.yml` writes the release number into the compatibility table row after merge (unknown until then, so a hand-written column would always be wrong). No `changes/<name>.api.md` kind is needed: the spec diff is the record.
-5. The docs compatibility table (API.4) is generated from the history list into `docs/api.md`. Columns: API version, release introduced, changed routes and payloads, client versions that work.
+5. The docs compatibility table (API.4) is generated from the history list into `docs/reference/api.md`. Columns: API version, release introduced, changed routes and payloads, client versions that work.
 
 Without oasdiff, use the weaker rule "spec changed means version changed", with a reviewer checking major versus minor.
 
@@ -93,7 +93,7 @@ Prior art (GitHub fine-grained tokens, Stripe restricted keys `rk_...`, Google O
 | `upload` | remote-run routes: download (API.12), reserve, batch upload, seal, status (API.3, API.14) | `read` |
 | `admin` | every current write route (edits, jobs, admin stats, key listing) | all of the above |
 
-A key's scopes are limited to what its owner's role may hold (Boss: "Only admin can upload"; user-level keys "access but not upload"). Today every owner is an admin, so the check is "creator is an admin" for `upload` and `generate`; USR.2 later maps roles to scopes. Account-management routes stay `session_only` whatever the scope ([../api.md](../api.md#authentication), TEST.44). `upload` is separate from `admin` so a key on a laptop cannot delete a sector or rename the galaxy if the laptop is lost. Refusal: `403 {"error":"this key lacks the 'upload' scope","required_scope":"upload"}`.
+A key's scopes are limited to what its owner's role may hold (Boss: "Only admin can upload"; user-level keys "access but not upload"). Today every owner is an admin, so the check is "creator is an admin" for `upload` and `generate`; USR.2 later maps roles to scopes. Account-management routes stay `session_only` whatever the scope ([../api.md](../reference/api.md#authentication), TEST.44). `upload` is separate from `admin` so a key on a laptop cannot delete a sector or rename the galaxy if the laptop is lost. Refusal: `403 {"error":"this key lacks the 'upload' scope","required_scope":"upload"}`.
 
 Open policy point: the galaxy seed (API.16, API.12) lets anyone with the code predict unfilled sectors. Default: those routes need `upload` or `generate`, not public.
 
@@ -273,7 +273,7 @@ In-process calls: opening `/`, `/sectors`, `/sector/1`, `/system/1`, `/search` a
 
 Measured [C]: `activity_log.event` takes 78 to 126 microseconds per call (8,000 to 13,000 per second); one autocommit MariaDB INSERT 5.9 ms (slow sandbox disk; expect 0.5 to 2 ms on an SSD); 500 rows per commit 0.43 ms per row; about 98 bytes per row with two secondary indexes. At 1 million calls a day that is about 100 MB a day and 3.6 GB a year.
 
-1. **Now (API.15):** add `API` to `CATEGORIES` (and its row in `docs/config.md`) and write one line per call to the activity log, with its rotation and fail2ban-compatible format and the rule that writing never stops the program. Add `X-Request-Id`. No schema change, no user accounts needed.
+1. **Now (API.15):** add `API` to `CATEGORIES` (and its row in `docs/reference/config.md`) and write one line per call to the activity log, with its rotation and fail2ban-compatible format and the rule that writing never stops the program. Add `X-Request-Id`. No schema change, no user accounts needed.
 2. **When an admin page needs search:** an `api_calls` table in the control DB (same columns) filled by a background thread draining a bounded `queue.Queue`, 500 rows per commit; when full, drop and count. The deployment is one process with threads, so an in-process queue is sound. Redis would add a failure mode for no gain; synchronous inserts add milliseconds to every call and stack up across 5 threads.
 
 Retention: full IPs 30 days, then truncated (IPv4 /24, IPv6 /48), rows kept 13 months; purge by batched `DELETE ... LIMIT 10000` from the daily maintenance run (OPS.16). Partition by month only past tens of millions of rows. Privacy: an IP address is personal data under GDPR where the operator can link it to a person, and dynamic addresses count (CJEU, Breyer, C-582/14 [R]); no statutory retention number exists for security logs, and 30 days full plus truncation is a defensible default for a hobby site. The activity log already holds IPs under logrotate (100 MB, 30 copies). State this in the docs. Never log request bodies, tokens or `Authorization` headers.
@@ -282,7 +282,7 @@ Retention: full IPs 30 days, then truncated (IPv4 /24, IPv6 /48), rows kept 13 m
 
 ### 9.1 Pydantic and the shape
 
-Pydantic v2 models are the source of truth, with JSON Schema exported by `model_json_schema` for the docs and the OpenAPI file. The repo already depends on Pydantic >=2.7, validates every body with it (`api/schemas.py`) and the Generate page uses `TypeAdapter`. Python 3.9 works with 2.13.5 [S] under two rules: write unions as `Union[...]` and `Optional[...]` (`X | Y` fails at runtime on 3.9), and stay within 2.13.x features. The `--system-file` format ([../system-file-format.md](../system-file-format.md): tri-state options, per-orbit `slots`) is already a recipe; the schema starts from it and adds `fixed / range / random` for any numeric field. Prototype [C]:
+Pydantic v2 models are the source of truth, with JSON Schema exported by `model_json_schema` for the docs and the OpenAPI file. The repo already depends on Pydantic >=2.7, validates every body with it (`api/schemas.py`) and the Generate page uses `TypeAdapter`. Python 3.9 works with 2.13.5 [S] under two rules: write unions as `Union[...]` and `Optional[...]` (`X | Y` fails at runtime on 3.9), and stay within 2.13.x features. The `--system-file` format ([../system-file-format.md](../reference/system-file-format.md): tri-state options, per-orbit `slots`) is already a recipe; the schema starts from it and adds `fixed / range / random` for any numeric field. Prototype [C]:
 
 ```python
 Dim = Annotated[Union[Fixed, Range, Random], Field(discriminator="mode")]   # mode: fixed|range|random
@@ -309,7 +309,7 @@ RFC 9110 section 15.5.21 defines `422 Unprocessable Content`: content type and s
 - **422, validation:** a known kind with a wrong field: unknown field, wrong type, out of range, `min > max`, a list too long, a physics or consistency rule broken (`+habitable_world` with an O star), or a generation that cannot satisfy the recipe after its retries (the CLI "tried five times" case).
 - **413** size cap, **415** wrong `Content-Type`, **429** rate limits.
 
-Body: RFC 9457 `application/problem+json` (obsoletes RFC 7807 [R]) with `type`, `title`, `status`, `detail`, and extension members `errors` (each with `pointer`, a JSON Pointer such as `/slots/3/mass_earth`, `code` and `message`), `log` (the last 100 lines or 16 KB of the command's log), `request_id`, and `truncated` when more than 50 errors exist. The existing `error` and `errors:[{field,message}]` members stay so current clients keep working: `ApiError` gets optional `type` and `log`, and a `ValidationFailed` subclass supplies 422. The log is filtered to generation log lines (no file paths, SQL or tracebacks), consistent with the 500 handler never leaking internals. Existing routes keep `400` for body validation (changing them is an API-major event under 4.4), and [../api.md](../api.md#errors) should state the split.
+Body: RFC 9457 `application/problem+json` (obsoletes RFC 7807 [R]) with `type`, `title`, `status`, `detail`, and extension members `errors` (each with `pointer`, a JSON Pointer such as `/slots/3/mass_earth`, `code` and `message`), `log` (the last 100 lines or 16 KB of the command's log), `request_id`, and `truncated` when more than 50 errors exist. The existing `error` and `errors:[{field,message}]` members stay so current clients keep working: `ApiError` gets optional `type` and `log`, and a `ValidationFailed` subclass supplies 422. The log is filtered to generation log lines (no file paths, SQL or tracebacks), consistent with the 500 handler never leaking internals. Existing routes keep `400` for body validation (changing them is an API-major event under 4.4), and [../api.md](../reference/api.md#errors) should state the split.
 
 ### 9.4 Cost limits
 
@@ -323,7 +323,7 @@ Validation cost [C]: 0.1 ms for a 3 KB system recipe, 24.5 ms for 91 KB, 2.35 s 
 
 The guide ("Web UX and Job Management Guide.md", titled "Single-Server Migration Guide & Codebase Modernization Outline") was checked against the code and [library-migration.md](library-migration.md).
 
-- **Superseded:** the broker-less `ProcessPoolExecutor` with SQLite state, `future.cancel()` and the SQLite WAL mitigation (Phase 1, "How should single-server queue management be structured"). Boss chose Redis; jobs are RQ jobs (PERF.24, built for the routes in [../api.md](../api.md#queued-jobs)) and cancel and pause use RQ's stop command.
+- **Superseded:** the broker-less `ProcessPoolExecutor` with SQLite state, `future.cancel()` and the SQLite WAL mitigation (Phase 1, "How should single-server queue management be structured"). Boss chose Redis; jobs are RQ jobs (PERF.24, built for the routes in [../api.md](../reference/api.md#queued-jobs)) and cancel and pause use RQ's stop command.
 - **Built with changes:** SSE log streaming (Phase 2, ADM.22, ADM.40). The stream is a page route, `/admin/generate/jobs/<id>/stream`, not `/api/jobs/<id>/stream`; events carry the byte offset as their id so a reconnect resumes; the log is a file read by offset, not an in-memory queue per job id, so it works across Apache's and the workers' processes; the stream closes itself every 40 s to stay under the daemon timeout. API clients get `GET /api/jobs/<id>` (state, result, error), not a stream.
 - **Holds:** WSGI worker starvation. Under Apache one open stream holds one of the 5 threads; the deployment docs set threaded mod_wsgi daemon processes, and the upload concurrency limits above leave threads for pages and streams.
 - **Not API:** Phases 3 and 4 (TanStack tables, Shoelace, 3D tiles, camera-relative coordinates) are UI work, built (UX.40, UX.41, MAP.102).

@@ -3,7 +3,7 @@
 """
 Flask application factory for the planetGen site: the JSON API under `/api` and the HTML pages.
 
-See `docs/api.md` for how to run this in development and how it deploys
+See `docs/reference/api.md` for how to run this in development and how it deploys
 behind the project's existing Apache2 vhost (`examples/apache/`).
 """
 

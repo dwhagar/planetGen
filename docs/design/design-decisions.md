@@ -100,7 +100,7 @@ a CDN.
   three.js WebGL scene.
 - 5.46.13 (2026-09-23): the 3D Galaxy Map, with live viewport queries.
 - 2026-10-01 (PR #153, MAP.40): the choice re-checked for the Galaxy Map
-  and recorded in `docs/html-interface.md`, "Why the maps use three.js".
+  and recorded in `docs/reference/html-interface.md`, "Why the maps use three.js".
 
 **Why:**
 - A real perspective camera gives correct occlusion, and sprites shrink with
@@ -172,7 +172,7 @@ the web interface. The `schema.sql` port notes add that `BIGINT` keys give
 headroom at galaxy scale (tens of millions of bodies).
 
 **Rejected:** SQLite (one writer at a time, which the shell-era plan table
-also hit; `docs/design/archive/galaxy-disk-density-rev2.md`, section 5).
+also hit; `docs/archive/galaxy-disk-density-rev2.md`, section 5).
 Other servers such as PostgreSQL are not discussed anywhere in the
 repository.
 
@@ -205,7 +205,7 @@ note). A uniquely named note per PR cannot collide.
 
 **Later (2026-10-01, OPS.1):** the version became MAJOR.REVISION.BUILD.
 A `major` note bumps MAJOR, any other note bumps REVISION, and BUILD was the
-sum of the TODO category counters in `docs/design/todo-number-map.md`
+sum of the TODO category counters in `docs/plan/todo-number-map.md`
 (Boss: "major feature set.revision.build"). **Changed 2026-10-10:** Boss
 wanted BUILD to change on every stamp, so BUILD is now the previous BUILD
 plus one and never resets; the counters only allocate TODO IDs. See

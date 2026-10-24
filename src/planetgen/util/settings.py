@@ -8,7 +8,7 @@ One Pydantic model, `Settings`, describes every `config.json` option: its
 type, default, help text, unit, whether it is a secret, whether changing it
 needs a restart, which environment variable overrides it and whether the
 web may edit it. The loader (`get_settings`), the generated tables in
-`docs/config.md`, `config.json.example` and `config.schema.json`
+`docs/reference/config.md`, `config.json.example` and `config.schema.json`
 (`planetgen.cli.config`) all read the model, and tests fail when they
 drift or when code reads a `PLANETGEN_*` variable the model doesn't name.
 
@@ -1126,7 +1126,7 @@ def _format_default(value):
 
 
 def docs_table():
-    """The generated option table for `docs/config.md` (Markdown)."""
+    """The generated option table for `docs/reference/config.md` (Markdown)."""
     rows = ["| Option | Setting | Type | Default | Applies | Edited | Environment | What it does |",
             "|---|---|---|---|---|---|---|---|"]
     roles = {"admin": "any admin", "owner": "the Owner"}

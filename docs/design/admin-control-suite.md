@@ -273,7 +273,7 @@ The S and G items below are the children of ADM.100 and ADM.99. The K items are 
 | ADM.113 | One-off system on the frame, tri-state rows as segmented controls | `test_web_generate` tri-state field test still matches the CLI list | ADM.107, UX.125 | 8.1 P1 |
 | ADM.114 | Check and Wipe tasks; History tab | Wipe is last and red and needs the typed name; History lists the same rows as Recent jobs | ADM.107 | 8.1 P1 |
 | ADM.115 | Run again from History: re-run a finished job with its stored settings | needs the job record to hold the form; a failed job's Run again goes back to its Review step | ADM.108, ADM.114 | 8.1 P1 or later (answer 11: Run again plus named recipes) |
-| ADM.116 | Remove the old Generate page pieces and update `docs/html-interface.md` and the architecture table | the removed files are gone; no unused CSS; docs match | ADM.109 to ADM.114 | 8.1 P1 |
+| ADM.116 | Remove the old Generate page pieces and update `docs/reference/html-interface.md` and the architecture table | the removed files are gone; no unused CSS; docs match | ADM.109 to ADM.114 | 8.1 P1 |
 | ADM.117 | Browser tests for every task end to end, in both themes, without script, and on a phone width | a failing step fails the test with a screenshot | ADM.109 to ADM.114 | 8.1 P1; joins TEST.168 and TEST.169 |
 
 ## 6. Overlap with existing TODO items

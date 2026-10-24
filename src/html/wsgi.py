@@ -44,7 +44,7 @@ def _restore_mount_prefix(wsgi_app):
     `SCRIPT_NAME="/api"` and `PATH_INFO="/health"`, the `/api` already
     stripped off. But every route in `api/routes.py`/`api/auth.py` is
     itself registered under a blueprint `url_prefix` of `/api`(`/auth`) --
-    chosen so the *documented* URLs (`docs/api.md`) and a direct
+    chosen so the *documented* URLs (`docs/reference/api.md`) and a direct
     `python wsgi.py` dev-server run (where Flask's own server puts the
     whole path in `PATH_INFO` and leaves `SCRIPT_NAME` empty) both match
     without a mount in front. Under the real mod_wsgi mount, Werkzeug's

@@ -1,6 +1,6 @@
 # Issue groups
 
-Boss (2026-10-15): issues are groups of TODO items, the goals we are working toward. Each row is one GitHub issue and the items it covers. `scripts/build_todo_docs.py` reads this table and links every item to its issues in the version plan, the TODO tree and the TODO reference; `docs/plan/execution-plan.html` links them too.
+Boss (2026-10-15): issues are groups of TODO items, the goals we are working toward. Each row is one GitHub issue and the items it covers. `scripts/build_todo_docs.py` reads this table and links every item to its issues in the version plan, the TODO tree and the TODO reference; `docs/generated/execution-plan.html` links them too.
 
 Rules:
 

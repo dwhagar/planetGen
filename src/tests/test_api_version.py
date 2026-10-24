@@ -4,7 +4,7 @@
 The API version (API.22, `planetgen/api/version.py`): every `/api` answer carries it, `/api/health`
 reports it, and it cannot sit still while the route table moves. `tests/fixtures/api_routes.json`
 holds the version and the routes it was last written for; a change to either needs the other:
-bump `API_VERSION` for a breaking change (and add its line to the change list in `docs/api.md`),
+bump `API_VERSION` for a breaking change (and add its line to the change list in `docs/reference/api.md`),
 then rewrite the snapshot with `python tests/test_api_version.py --write`.
 """
 
@@ -46,7 +46,7 @@ def test_the_route_table_and_the_version_move_together():
     live = _live_routes(_app())
     assert live == snapshot["routes"] and API_VERSION == snapshot["api_version"], (
         "The API's routes changed. If that is a breaking change, bump API_VERSION in planetgen/api/version.py and "
-        "add a line to docs/api.md; either way rewrite the snapshot: python tests/test_api_version.py --write\n"
+        "add a line to docs/reference/api.md; either way rewrite the snapshot: python tests/test_api_version.py --write\n"
         f"added: {sorted(set(live) - set(snapshot['routes']))}\nremoved: {sorted(set(snapshot['routes']) - set(live))}"
         f"\nsnapshot version {snapshot['api_version']}, code version {API_VERSION}")
 
