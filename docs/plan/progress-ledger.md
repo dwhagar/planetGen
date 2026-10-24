@@ -1406,3 +1406,4 @@ Baseline: PR #1817.
 | DOC.80 | 8.1 | The headline closes |
 | PERF.187 | 8.1 | The headline closes |
 | DOC.77 | 8.1 | Habitability system |
+| GEN.762 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

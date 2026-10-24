@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.362 |
+| TEST | TEST.364 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -1491,7 +1491,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.759 | Wire the r-process Th/U enrichment (rprocess_enrichment, GEN.663) into the radiogenic heat module | none | open |
 | GEN.760 | Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw | none | open |
 | GEN.761 | Wire the satellite hosting gate (hosting_gate, GEN.579) into the moon draw | none | open |
-| GEN.762 | Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw | none | open |
+| GEN.762 | Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw | none | done, PR #3128 |
 | GEN.763 | The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
@@ -2852,6 +2852,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.359 | test_object_page_walk fixtures error on main: the system detail has no "stars" (bug) | none | done, PR #3118 |
 | TEST.360 | test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug) | none | open |
 | TEST.361 | test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug) | none | open |
+| TEST.362 | test_object_rows read-back fails on main with KeyError partial_pa (bug) | none | open |
+| TEST.363 | test_protection describer disagrees with habitability_explain on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

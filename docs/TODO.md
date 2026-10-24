@@ -13204,6 +13204,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Wolff solar-band w0 0.922 to 0.926, 0.940 for the smaller-grain case).
   Cooper 2001, Patterson 2012, Nordheim 2018 and Gronoff 2009 are still
   unread.
+  Research (2026-10-09, Update 6:36 PM EDT): Update 6:36 PM EDT
+  2026-10-24 (GEN.762 merged as #3128, Aux 13; epoch 96): two stand-ins
+  to register, with the tier and tweak level TODO proposes from the
+  lane's report (the registry owner confirms or corrects): (1) ice skin
+  depth over a body's clathrate-bearing crust, 1 m to 1 km drawn
+  log-uniform: tier 6 Marginal educated guess based on physics, tweak
+  level L0 as envisioned; (2) equal weights for the brine salt species
+  (perchlorate and the other eutectic salts): tier 4 Unverified, tweak
+  level L0. Both in clathrate_brine callers in
+  atmosphere.generate_atmosphere and hydrosphere.generate_hydrosphere.
   Prerequisites: none. Related: GEN.675, GEN.707, GEN.711, GEN.724.
 
 - [ ] **GEN.727 Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow**
@@ -14067,24 +14077,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.727/GEN.737, GEN.466) wait for it or tell Core 3 and TODO what
   they changed.
   Prerequisites: none. Related: GEN.579, GEN.466, GEN.754.
-
-- [ ] **GEN.762 Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw**
-  clathrate_brine.py (dissociation pressures and the liquid range of
-  eutectic brines for icy crusts and ocean moons, GEN.471) is only
-  imported by atmosphere_recipes. Make the icy-body atmosphere and ocean
-  draws read it: gas trapped in clathrate, and brines liquid below 273
-  K. It touches the atmosphere draw, so the owner confirms with Lane L
-  first. Found by the physics fix plan thread
-  (reports/physics-fix-plan-2026-10-24.md section 16: built, merged and
-  never imported by the generator). No shim: the generator calls the
-  module, the old path is deleted, and a test fails if the module has no
-  caller (the wiring guard GEN.754). Takes a generator epoch in merge
-  order (next free is 95). Each stand-in it touches records its source
-  tier and tweak level in the registry (GEN.725). Requested by Boss
-  through the coordinator, 5:34 PM EDT 2026-10-24: wire it as fast as
-  possible. Owner: Lane Draws (atmosphere draw tables) after its current
-  list; confirm with Lane L; nobody has started it.
-  Prerequisites: none. Related: GEN.471, GEN.423, GEN.479, GEN.754.
 
 - [ ] **GEN.763 The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug)**
   Found by Bug Hunt while fixing TEST.353 (#3103, 5:45 PM EDT 2026-10-24
@@ -19163,6 +19155,25 @@ clears each one.
   that names MAP.220, rewrite it in plain words, and keep the test.
   Owner: Bug 1.
   Prerequisites: none. Related: MAP.220.
+
+- [ ] **TEST.362 test_object_rows read-back fails on main with KeyError partial_pa (bug)**
+  Reported by Aux 13 while merging GEN.762 (#3128, 6:33 PM EDT as the
+  lane reported): a test in test_object_rows reads an atmosphere row
+  back
+  and raises KeyError: 'partial_pa'. Not from GEN.762. This is separate
+  from TEST.332 (the comet missing from the row-kind set). Find whether
+  the column was renamed by the supply-law or 4b changes or the test is
+  stale, fix it and record which. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.332.
+
+- [ ] **TEST.363 test_protection describer disagrees with habitability_explain on main (bug)**
+  Reported by Aux 13 while merging GEN.762 (#3128, 6:33 PM EDT as the
+  lane reported): the test_protection describer check fails against
+  habitability_explain on main and is not from GEN.762. Find which side
+  is
+  right after the life score and radiation changes, fix the other, and
+  record which. Owner: Bug 1.
+  Prerequisites: none. Related: GEN.762.
 
 ## USR: User accounts
 
