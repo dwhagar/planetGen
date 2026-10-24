@@ -3100,6 +3100,26 @@ def test_one_wheel_scroll_runs_from_the_galaxy_to_a_sector_with_no_stop_and_no_s
     assert seen[-1]["dist"] < start["dist"] / 50, (start["dist"], seen[-1]["dist"])
 
 
+def test_the_wheel_keeps_the_view_over_the_disc_on_the_way_down_to_a_sector(page, map_site):
+    """MAP.292: the blocks are not drawn (MAP.265), so the point the wheel zooms toward is not the top face of the
+    invisible column of them (kiloparsecs above the disc, where no star is): scrolling in with the pointer anywhere
+    over the galaxy carries the view down to a sector with its centre still in the plane the stars lie in."""
+    for fraction in (0.5, 0.2, 0.8):
+        _open_galaxy(page, map_site)
+        page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+        box = page.locator(GALAXY_CANVAS).bounding_box()
+        page.mouse.move(box["x"] + box["width"] * fraction, box["y"] + box["height"] * 0.5)
+        targets = []
+
+        def reached():
+            camera = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+            targets.append(camera["target"][2])
+            return parse_qs(_query(page)).get("win", [""])[0].startswith("1.")
+
+        assert _wheel_until(page, -400, reached, ticks=260), f"the scroll never reached a sector (pointer at {fraction})"
+        assert max(abs(z) for z in targets) < 600, (fraction, targets)
+
+
 # --- The halo beyond the outline (MAP.243) -----------------------------------------------
 
 def _tooltip(page):
@@ -3149,6 +3169,7 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
     # The wheel toward the star hands off to the window round the cell that holds it, and on, level by level. Once
     # the star is out of the visible part of the page the wheel goes on at the middle of what is shown.
     viewport = page.viewport_size
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     for _ in range(24):
         spot = _screen_of(page, point)
         if not spot or not (0 <= spot[0] < viewport["width"] and 0 <= spot[1] < viewport["height"]):
@@ -3162,7 +3183,9 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
     crumbs = _crumbs(page)
     assert len(crumbs) >= 6 and crumbs[0] == "Galaxy", crumbs
     camera = _camera(page)
-    assert math.dist(camera["target"], point) < 2000.0, (camera["target"], point)
+    # The blocks are not drawn (MAP.265, MAP.292), so once the star is off the screen the wheel goes on toward the
+    # focus plane at the middle of what is shown, not a block face beside the star: a little wider than it was.
+    assert math.dist(camera["target"], point) < 2500.0, (camera["target"], point)
 
 
 @pytest.mark.viewport(1280, 900)
