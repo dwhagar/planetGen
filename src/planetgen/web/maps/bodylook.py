@@ -47,6 +47,9 @@ from types import SimpleNamespace
 
 from planetgen.physics import atmosphere, atmosphere_colour, giant_colour, photometry
 from planetgen.web.maps.starmap import star_color
+from planetgen.physics import unit_registry as units
+
+_pa_to_kpa = units.converter("Pa", "kPa")
 
 LOOK_VERSION = 1
 
@@ -153,7 +156,7 @@ def planet_look(planet, kind="planet"):
         if colour is not None:
             look["glow"] = (colour.atmosphere if gas else colour).hex
     pressure_pa = planet.get("atmospheric_pressure_pa")
-    _put(look, "pkpa", _rounded(pressure_pa / 1000.0 if pressure_pa is not None else None, 3))
+    _put(look, "pkpa", _rounded(_pa_to_kpa(pressure_pa) if pressure_pa is not None else None, 3))
     _put(look, "tempK", _rounded(temp_k, 1))
     _put(look, "radiusKm", _rounded(planet.get("radius_km"), 1))
     if not gas:

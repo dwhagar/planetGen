@@ -26,6 +26,9 @@ down, not minus how far) and subtracted where it is used.
 
 from planetgen.generation.phenomena import registry as _phenomena_registry
 from planetgen.physics import constants as _physical_constants
+from planetgen.physics import unit_registry as units
+
+_myr_to_gyr = units.converter("Myr", "Gyr")
 
 # --- Planet Generation Parameters ---
 # Domingos, Winter & Yokoyama (2006), MNRAS 373:1227, "Stable satellites
@@ -880,7 +883,7 @@ STELLAR_POPULATION_AGE_RANGES_GY = {
 OPEN_CLUSTER_AGE_EDGES_MYR = tuple(10.0 ** (k / 4.0) for k in range(13))
 OPEN_CLUSTER_POPULATIONS = tuple(f"open_cluster_{k:02d}" for k in range(len(OPEN_CLUSTER_AGE_EDGES_MYR) - 1))
 STELLAR_POPULATION_AGE_RANGES_GY.update({
-    name: (OPEN_CLUSTER_AGE_EDGES_MYR[k] / 1000.0, OPEN_CLUSTER_AGE_EDGES_MYR[k + 1] / 1000.0)
+    name: (_myr_to_gyr(OPEN_CLUSTER_AGE_EDGES_MYR[k]), _myr_to_gyr(OPEN_CLUSTER_AGE_EDGES_MYR[k + 1]))
     for k, name in enumerate(OPEN_CLUSTER_POPULATIONS)})
 # The three thin-disc populations' scale heights over the old one's come from the galaxy's own dispersions
 # (`galaxy.structure.population_height_ratios`, GEN.532), not from a table here.

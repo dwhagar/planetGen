@@ -17,6 +17,8 @@ SECONDS_PER_YEAR = constants.SECONDS_PER_YEAR
 
 # (from, to, the expression the sweep replaced)
 REPLACED = [
+    ("mpc", "pc", lambda x: x / 1000.0),
+    ("Myr", "Gyr", lambda x: x / 1000.0),
     ("au", "m", lambda x: x * constants.AU_TO_M),
     ("m", "au", lambda x: x / constants.AU_M),
     ("au", "km", lambda x: x * constants.AU_TO_KM),
