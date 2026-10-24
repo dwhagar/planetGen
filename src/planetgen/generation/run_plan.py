@@ -576,7 +576,7 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
         conn.commit()
     finally:
         conn.close()
-    refresh_block_lights(mysql_config)
+    refresh_block_lights(mysql_config, args)
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
     log.normal(
@@ -2133,7 +2133,7 @@ def fill_map_luminosity(args):
         args, "map-luminosity", "Map luminosity", {}, "Filling the map luminosity",
         lambda detail: f"Map luminosity: {detail['remaining']:,} scattered rows have a mass and no value yet.", "filled")
     log.normal(f"Filled the map luminosity of {filled:,} scattered rows.")
-    refresh_block_lights(store.mysql_config_from_args(args))
+    refresh_block_lights(store.mysql_config_from_args(args), args)
     return filled
 
 
@@ -2205,11 +2205,12 @@ def fill_habitability(args):
     return updated
 
 
-def refresh_block_lights(mysql_config):
+def refresh_block_lights(mysql_config, args=None):
     """
     MAP.259: makes the light totals of the Galaxy Map's blocks again (`db.block_lights.rebuild`) once a scatter, a
-    clear or the map-luminosity fill has changed the pre-placed objects, so the nodes' glow follows them. A failure
-    only warns: `planetgen fill-block-totals` makes the totals again.
+    clear or the map-luminosity fill has changed the pre-placed objects, so the nodes' glow follows them. It has its
+    own step with a bar over the units, and a log line before the scan, after it and every `program_constants.PROGRESS_LOG_SECONDS`
+    (PERF.189). A failure only warns: `planetgen fill-block-totals` makes the totals again.
 
     Returns:
         int: The block rows written (0 when it failed).
@@ -2217,7 +2218,23 @@ def refresh_block_lights(mysql_config):
     try:
         conn = store.get_connection(mysql_config)
         try:
-            written = block_lights.rebuild(conn)
+            with run_common._generation_progress() as progress:
+                log.set_console(progress.console)
+                try:
+                    log.normal("Making the block light totals for the Galaxy Map (this reads every pre-placed star and "
+                               "phenomenon again; a full galaxy takes a while)...")
+                    last_line = [time.monotonic()]
+                    with steps.Step("Making the block light totals", "block-lights", None, args=args, progress=progress,
+                                    force=True) as bar:
+                        def on_progress(done, total):
+                            bar.update(completed=done, total=total)
+                            if time.monotonic() - last_line[0] >= program_constants.PROGRESS_LOG_SECONDS:
+                                last_line[0] = time.monotonic()
+                                log.normal(f"Making the block light totals: unit {done:,} of {total:,}.")
+
+                        written = block_lights.rebuild(conn, on_progress=on_progress, on_phase=log.normal)
+                finally:
+                    log.reset_console()
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- the scatter is stored; the totals can be made again
@@ -2538,7 +2555,7 @@ def scatter_phenomena(args):
         conn.commit()
     finally:
         conn.close()
-    refresh_block_lights(mysql_config)
+    refresh_block_lights(mysql_config, args)
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
     stages.note(shells=len(extents), shells_modified=landed[0], objects=total)
