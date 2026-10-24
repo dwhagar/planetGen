@@ -4112,6 +4112,12 @@ sub-item if it's predicted to take longer than 15 seconds"), and the moment
 it runs past it if it was not (`planetgen.generation.steps`).
 """
 
+PROGRESS_LOG_SECONDS = 30.0
+"""
+float: A long step that works in many units writes a log line about every this many seconds (PERF.189), so a log
+read without the bar (a job's stage log, `tail -f`) never goes quiet longer than this.
+"""
+
 BRIGHT_STAR_BACKFILL_RING_MASSES_SOL = (1.0, 2.0, 5.0, 8.0)
 """
 tuple: The bright-star backfill around the generated sectors (GEN.187;
@@ -4594,8 +4600,10 @@ SMOKE_BUDGET_MB = {"mysql": 1800, "workers": 1400, "step": 600, "host": 5000}
 memory is caught the night it merges and not on the first big galaxy. Set about twice the first measured run (906 MB
 MySQL, 661 MB workers, 271 MB a step, 2,535 MB host in the worst step, 10-24). A planetGen default."""
 
-SMOKE_STEP_BUDGET_MB = {"Scatter the phenomena": {"mysql": 1500, "workers": 1500, "step": 9000, "host": 12000}}
+SMOKE_STEP_BUDGET_MB = {"Scatter the phenomena": {"mysql": 3600, "workers": 1500, "step": 4200, "host": 9700}}
 """dict: Budgets of single steps (by the step's label on the Generate page) that replace `SMOKE_BUDGET_MB` for it. The
 phenomena scatter held 6,391 MB in its own process on the first measured run (a 12 pc neighborhood, host 8,655 MB),
-far above every other step: its budget is set about 1.4 times that so it cannot get worse, and is lowered when the
-step is fixed. A planetGen default."""
+far above every other step; PERF.187 made its block light totals write each block as the shells pass it and its nebula
+block totals write one level at a time, and the run then measured 2,100 MB in the step (the nebula block totals pass,
+which still holds the cover of the level-3 blocks as dicts), 1,819 MB MySQL, 644 MB workers and 4,853 MB host
+(10-24). Set about twice that. A planetGen default."""

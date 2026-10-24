@@ -93,6 +93,7 @@ const {
   cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
+const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 const {
   NEBULA_MESH_MIN_PX, buildNebulaMesh, createShapeLoader, disposeNebulaMesh,
@@ -3543,6 +3544,9 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   // --- Resize/render loop ----------------------------------------------
+
+  // MAP.291: the window is as wide as its column and as tall as the browser window leaves room for.
+  watchWindowFit(viewport, viewport.closest(".starmap-layout").querySelector(".starmap-side"));
 
   watchResize(viewport, function () {
     fitRendererToCanvas(renderer, camera, canvasEl);

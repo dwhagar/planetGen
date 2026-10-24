@@ -277,3 +277,56 @@ def test_fill_block_totals_makes_both_tables_and_can_be_run_again(lit):
     finally:
         conn.close()
     assert run_plan.refresh_block_lights(config) == len(_expected(stars, points))
+
+
+def test_a_unit_writes_each_block_once_and_forgets_it_as_the_shells_move_on(lit, monkeypatch):
+    """PERF.187: the blocks of a unit are written as the shells pass them, not all together at the unit's end, so the
+    memory held is the current block shells', and no block is written twice."""
+    config, stars, points = lit
+    by_shell = {}
+    for address, x, y, z, luminosity, _temperature in stars:
+        by_shell.setdefault(address[0], {})[address] = [1, luminosity, 0.0, 0.0, 0.0, 0.0, 0, 0.0, 0.0, 0.0, 0.0]
+    shells = sorted(by_shell)
+    assert len(shells) > 6
+    read = []
+    monkeypatch.setattr(block_lights, "_object_sums", lambda _conn, _where, params, by_address=False: (
+        read.append(params[0]) or dict(by_shell[params[0]])))
+    seen = set()
+    first_batch_after = None
+    for batch in block_lights._unit_batches(None, shells):
+        if first_batch_after is None:
+            first_batch_after = len(read)
+        for row in batch:
+            key = tuple(row[:4])
+            assert key not in seen, key
+            seen.add(key)
+    assert read == shells
+    assert first_batch_after < len(shells)
+    assert {key[0] for key in seen} == {m for m in DRILL_LEVELS[:-1] if m <= block_lights.UNIT_LEVEL}
+
+
+def test_the_rebuild_says_what_it_is_doing_and_counts_its_units(lit):
+    """PERF.189: a phase line before the scan, after it and before the levels above, and a call per unit."""
+    config, stars, points = lit
+    conn = store.get_connection(config)
+    try:
+        phases, units = [], []
+        block_lights.rebuild(conn, on_progress=lambda done, total: units.append((done, total)), on_phase=phases.append)
+        assert len(phases) == 3 and "sector shells" in phases[1] and "levels above" in phases[2]
+        assert units and units[-1][0] == units[-1][1] == len(units)
+    finally:
+        conn.close()
+
+
+def test_refreshing_the_block_lights_logs_its_phases(lit, caplog):
+    import logging
+
+    from planetgen.generation import run_plan
+
+    config, stars, points = lit
+    with caplog.at_level(logging.INFO):
+        written = run_plan.refresh_block_lights(config)
+    text = "\n".join(record.getMessage() for record in caplog.records)
+    assert "Making the block light totals" in text
+    assert "Looking for the sector shells" in text
+    assert f"Made {written:,} block light totals." in text

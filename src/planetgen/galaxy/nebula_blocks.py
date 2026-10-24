@@ -276,12 +276,21 @@ def level_rows(x, y, z, radius, codes, m, edge_pc, covers=None):
     return LevelRows(blocks, classes)
 
 
-def all_rows(x, y, z, radius, codes, edge_pc, levels=LEVELS, on_level=None):
-    """`level_rows` for every level: `{m: LevelRows}`. `on_level(done, total)` is called after each."""
-    result = {}
+def iter_rows(x, y, z, radius, codes, edge_pc, levels=LEVELS, on_level=None):
+    """
+    `level_rows` for every level, one `(m, LevelRows)` at a time, so a caller that writes each level as it comes keeps
+    one level's rows in memory instead of every level's (PERF.187); a level's cover is dropped once its rows are made.
+    `on_level(done, total)` is called after each.
+    """
     covers = roll_up(fine_cover(x, y, z, radius, edge_pc))
     for done, m in enumerate(levels, start=1):
-        result[m] = level_rows(x, y, z, radius, codes, m, edge_pc, covers[m])
+        level = level_rows(x, y, z, radius, codes, m, edge_pc, covers.pop(m))
+        yield m, level
+        del level
         if on_level is not None:
             on_level(done, len(levels))
-    return result
+
+
+def all_rows(x, y, z, radius, codes, edge_pc, levels=LEVELS, on_level=None):
+    """`level_rows` for every level: `{m: LevelRows}`. `on_level(done, total)` is called after each."""
+    return dict(iter_rows(x, y, z, radius, codes, edge_pc, levels, on_level))

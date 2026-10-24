@@ -23,7 +23,10 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
-const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { makeBandTexture, makeGlowMaterial, paintedTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { makeCache, makeQueue, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
+const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
+const { paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { createPointerControl, orbitByDrag, orbitByKey, panInScreenPlane, wheelPixels } = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { fitRendererToCanvas, watchResize } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { createPicker, createTooltip, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
@@ -36,6 +39,8 @@ const { createLabelLayer } = await import(`./maplabels.js${VERSION_QUERY}`);
 
 const AU_KM = convert(1, "au", "km");
 const SPHERE_SEGMENTS = [28, 20];
+// The size a body is taken to be on screen when the host cannot say (the Galaxy Map): the small texture.
+const DEFAULT_DIAMETER_PX = 40;
 const BELT_PARTICLES = 700;
 const PICK_REACH_PX = 16;
 const MIN_PHI = 0.05;
@@ -54,9 +59,15 @@ function randomStream(seed) {
   };
 }
 
+// A body's colour: the look record's (MAP.287; a star, planet or moon), a comet's own `color`.
 function colorOf(body) {
-  return new THREE.Color(body.color || "#ffffff");
+  return new THREE.Color((body.look && body.look.color) || body.color || "#ffffff");
 }
+
+// The shell of a planet's air, as the System Map draws it (systemmap.js).
+const AIR_SHELL = 1.14;
+const AIR_GLOW_POWER = 1.4;
+const AIR_GLOW_STRENGTH = 0.7;
 
 function lineFrom(layout, around, rel, color, opacity) {
   const points = rel.map((p) => new THREE.Vector3(...layout.place(around, p)));
@@ -91,6 +102,12 @@ export function buildSystemScene(scene, layout, options) {
   const hangers = {}; // parent ref -> orbit lines and belts that follow it
   const lights = [];
   const trails = {}; // ref -> its orbit line
+  // The painted surfaces (MAP.287): the System Map's painters (solidpaint.js, starpaint.js) one texture per body and tier,
+  // painted one per frame, nearest first; until a body's texture is ready it is a sphere in its look colour.
+  const textures = makeCache(64, (texture) => texture.dispose());
+  const paintQueue = makeQueue();
+  const paintable = []; // [{ ref, look }]
+  const madeTextures = []; // every texture made here, for dispose
 
   function hang(parent, object) {
     group.add(object);
@@ -112,6 +129,21 @@ export function buildSystemScene(scene, layout, options) {
     mesh.userData.ref = item.ref;
     group.add(mesh);
     objects[item.ref] = mesh;
+    const look = body.look || null;
+    if (look && (look.body === "solid" || look.body === "star")) {
+      paintable.push({ ref: item.ref, look: look });
+    } else if (look && look.body === "gas") {
+      const bands = makeBandTexture(THREE, look.color);
+      madeTextures.push(bands);
+      mesh.material.map = bands;
+      mesh.material.color.set("#ffffff");
+    }
+    if (look && look.atm && look.body !== "star" && opts.glow !== false) {
+      const air = new THREE.Mesh(
+        new THREE.SphereGeometry(1, 20, 14), makeGlowMaterial(THREE, look.glow || "#bcdfff", AIR_GLOW_POWER, AIR_GLOW_STRENGTH, AIR_SHELL));
+      air.scale.setScalar(AIR_SHELL);
+      mesh.add(air);
+    }
     if (item.kind === "star") {
       // The Galaxy Map draws on a logarithmic depth buffer, which the glow
       // shader doesn't write, so a system drawn there has none (opts.glow false).
@@ -258,7 +290,36 @@ export function buildSystemScene(scene, layout, options) {
     });
   }
 
+  // Paints the textures the bodies call for, one per call: `diameterPx(entry)` is a body's size on screen (the Galaxy
+  // Map, which has no such size here, asks for none and every body gets the small tier).
+  function paintTick(diameterPx) {
+    paintQueue.runOne();
+    paintable.forEach((one) => {
+      const px = diameterPx ? diameterPx(byRef[one.ref]) : DEFAULT_DIAMETER_PX;
+      const tier = tierForDiameter(px);
+      const mesh = objects[one.ref];
+      if (tier !== "low" && tier !== "high") return;
+      const key = one.look.seed + ":" + tier;
+      const texture = textures.get(key);
+      if (!texture) {
+        paintQueue.add(key, -px, () => {
+          const made = paintedTexture(THREE, one.look.body === "star" ? paintStar : paintSolid, one.look, TIER_SIZES[tier]);
+          madeTextures.push(made);
+          textures.set(key, made);
+        });
+      } else if (mesh.userData.textureKey !== key) {
+        // The painted star and the painted solid world already carry their own colour: a tint on top would double it.
+        mesh.userData.textureKey = key;
+        mesh.material.map = texture;
+        mesh.material.color.set("#ffffff");
+        mesh.material.needsUpdate = true;
+      }
+    });
+  }
+
   function dispose() {
+    paintQueue.clear();
+    madeTextures.forEach((texture) => texture.dispose());
     group.traverse((object) => {
       if (object.geometry) object.geometry.dispose();
       if (object.material) object.material.dispose();
@@ -266,7 +327,9 @@ export function buildSystemScene(scene, layout, options) {
   }
 
   update(opts.years || 0);
-  return { group: group, entries: entries, byRef: byRef, objects: objects, update: update, highlight: highlight,
+  return { group: group, entries: entries, byRef: byRef, objects: objects, update: update, highlight: highlight, paintTick: paintTick,
+    // The look-record texture a body shows now (null: still its flat colour), for tests.
+    textureKey: (ref) => objects[ref].userData.textureKey || null,
     // A body's orbit line opacity (null: it has none), for tests.
     trailOpacity: (ref) => (trails[ref] ? trails[ref].material.opacity : null),
     // How far an orbit line reaches from what it goes round, in scene units (null: it has none), for tests.
@@ -533,12 +596,20 @@ export function createSystemView(options) {
     labelLayer.update(candidates);
   }
 
+  // A body's size on screen in pixels, for the tier of its texture.
+  const eyeToBody = new THREE.Vector3();
+  function diameterPx(entry) {
+    const distance = Math.max(eyeToBody.set(entry.x, entry.y, entry.z).sub(camera.position).length(), 1e-12);
+    return (2 * entry.radius / (distance * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2))) * (canvasEl.clientHeight || 1);
+  }
+
   let frame = 0;
   function render(now) {
     if (disposed) return;
     frame = requestAnimationFrame(render);
     if (options.clock) years = options.clock.tick(Date.now());
     built.update(years);
+    built.paintTick(diameterPx);
     stepFlight(now);
     if (follow.ref && built.byRef[follow.ref] && !flight) {
       const e = built.byRef[follow.ref];
@@ -572,6 +643,10 @@ export function createSystemView(options) {
     select: function (ref) { select(built.byRef[ref] || null); },
     selected: () => selected,
     entries: () => built.entries,
+    // What each body is drawn from, for the browser tests: its look record's seed and body family, and the texture it
+    // shows now (null: still its flat colour).
+    bodies: () => built.entries.map((e) => ({ ref: e.ref, family: e.body.look ? e.body.look.body : null,
+      seed: e.body.look ? e.body.look.seed : null, texture: built.textureKey(e.ref) })),
     // The bodies by name, for the screen-reader list.
     list: () => built.entries.map((e) => ({ ref: e.ref, name: e.name, kind: e.kind })),
     camera: camera,

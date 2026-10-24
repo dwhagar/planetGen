@@ -111,6 +111,8 @@ if (root && diagram && diagramButton && button3d) {
         canvasEl: els.canvas, labelsEl: els.labels, tooltipEl: els.tip, infoEl: els.info, scene: scene, clock: clock,
         onSelect: (entry) => { if (current === "3d") setUrl("3d", entry ? entry.ref : null); },
       });
+      els.canvas.systemBodies = view.bodies;
+      els.canvas.systemFlyTo = view.flyTo;
       els.scaleNote.textContent = view.note();
       fillList(view.list());
       showRate();

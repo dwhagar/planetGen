@@ -20,7 +20,7 @@
   <div class="panel-header"><h2 id="symbols-heading">The symbols</h2></div>
   <p>{{ symbol_intro }}</p>
   <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">Symbol</th><th scope="col">Rating</th><th scope="col">Shape</th></tr></thead>
+    <thead><tr><th scope="col">Symbol</th><th scope="col">Rating</th><th scope="col">Shape</th><th scope="col">What sets it</th></tr></thead>
     <tbody>
       {%- for name, words, shape in symbol_rows %}
       <tr><th scope="row">{{ words }}</th>
@@ -71,11 +71,13 @@
       {%- for name, words, shape in life_rows %}
       <tr id="{{ life_ids[name] }}"><th scope="row">{{ words }}</th>
         <td>{% for score in life_scores %}{{ habitability_life(name, score, link=False) }} {% endfor %}</td>
-        <td>{{ shape }}</td></tr>
+        <td>{{ shape }}</td>
+        <td>{{ life_needs[name] }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
   <p>Left to right: a score of 0, 3 and 9. A 0 is drawn muted.</p>
+  <p>{{ life_food }}</p>
 </section>
 
 <section class="panel" aria-labelledby="domains-heading">

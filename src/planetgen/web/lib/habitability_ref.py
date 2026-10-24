@@ -9,6 +9,7 @@ the thresholds are read from `planetgen.physics.habitability` and `protection_li
 their sources (`domains`), so the tables cannot disagree with the score.
 """
 
+from planetgen import tuning
 from planetgen.physics import atmosphere, constants, habitability, orbits
 from planetgen.physics.habitability_world import LETHAL_DOSE_SV_YR
 from planetgen.physics.protection_limits import limit
@@ -209,6 +210,26 @@ LIFE_INTRO = (
     "surface conditions and the stage life has reached on that world, and is drawn as a shape with the number next to it."
 )
 
+LIFE_NEEDS = (
+    ("microbial", "Any step of life at all, from abiogenesis on. How much comes from how kind the surface is to microbes."),
+    ("flora", (f"From photosynthesis. Until life is multicellular it is mats and algae and stays at "
+               f"{tuning.LIFE_SCORE_SIMPLE_FLORA_MAX} or less; after that it follows how kind the surface is to complex life.")),
+    ("fauna", ("From multicellular life. How much comes from how kind the surface is to complex life, and never more "
+               "than the Flora the animals feed on.")),
+    ("sentient", ("Only where a technological civilization has arisen. It takes Fauna's number and scales it by how long "
+                  f"the civilization has existed, in full after {tuning.LIFE_SCORE_SENTIENT_FULL_GYR * 1000:g} million "
+                  "years; never below 1 once there is one.")),
+)
+"""tuple: `(life score name, what it needs and what sets how much)`, the numbers read from `planetgen.tuning`."""
+
+LIFE_FOOD = (
+    "A 0 means none of that kind. A world with a life chemistry always has a timeline, so these four read where it "
+    "got to. Food for a visitor comes from the same numbers: any Flora is good food, Flora together with Fauna is "
+    "better, Fauna on its own counts, and microbes alone are poor food. Ice over the life puts it out of reach. "
+    f"The scale tops out at {tuning.LIFE_SCORE_MAX}; a surface too hostile to a kind of life scores it 0, whatever stage "
+    "the world reached."
+)
+
 LIFE_ROWS = tuple((habitability_symbols.LIFE_NAMES[index], habitability_symbols.LIFE_LABELS[name],
                    habitability_symbols.LIFE_SHAPES[name])
                   for index, name in enumerate(habitability_symbols.LIFE_NAMES))
@@ -294,6 +315,9 @@ def zone_text():
     """
     low, high = orbits.KOPPARAPU_TEFF_RANGE_K
     inner, outer = orbits.calculate_habitable_zone(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K)
+    light_mass, heavy_mass = orbits.KOPPARAPU_MASS_RANGE_EARTH
+    light_inner = orbits.hz_limits(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K, light_mass)[0]
+    heavy_inner = orbits.hz_limits(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K, heavy_mass)[0]
     return (
         "A star's habitable zone is the ring of orbits where a planet like Earth could keep liquid water on its "
         "surface. Its inner edge is the runaway greenhouse limit, where a planet loses its water to space, and its "
@@ -301,7 +325,12 @@ def zone_text():
         "surface warm (Kopparapu et al., 2014). Both edges are a flux, in units of the sunlight Earth gets, that "
         "depends on the star's temperature: a cool star's light is redder, so a planet takes more of it at the same "
         "flux and the zone lies nearer in than the star's brightness alone says. "
-        f"For the Sun the edges are {inner:.2f} and {outer:.2f} AU. The fits cover stars from {low:,.0f} to "
+        f"For the Sun the edges are {inner:.2f} and {outer:.2f} AU. The inner edge moves with the planet's mass, because a "
+        f"heavier planet holds its water to a higher flux: for the Sun it is {light_inner:.2f} AU at {light_mass:g} Earth "
+        f"masses and {heavy_inner:.2f} AU at {heavy_mass:g}; the star's own zone is for one Earth mass. A cool star is "
+        "also brightest when young, so a planet in its zone today may have crossed the runaway limit early and lost "
+        "water, and its oceans are smaller for it. "
+        f"The fits cover stars from {low:,.0f} to "
         f"{high:,.0f} K; a star outside that range (a brown dwarf, a white dwarf, a remnant) takes the nearest end's "
         "edges. The zone is a guide to where to look and is not the rating: a planet is rated by the six domains "
         "above, from its own air, water, temperature and radiation, wherever it orbits."
@@ -316,6 +345,8 @@ def page():
         "life_intro": LIFE_INTRO,
         "life_rows": LIFE_ROWS,
         "life_scores": (0, 3, 9),
+        "life_needs": dict(LIFE_NEEDS),
+        "life_food": LIFE_FOOD,
         "where_intro": WHERE_INTRO,
         "where_rows": WHERE_ROWS,
         "map_intro": MAP_INTRO,

@@ -105,16 +105,17 @@ def clear(conn):
 
 
 def write(conn, rows_by_level):
-    """Writes `rules.all_rows`' result into the tables, a batch of rows at a statement. Returns the block rows."""
+    """
+    Writes `rules.all_rows`' result (or the `(m, LevelRows)` pairs of `rules.iter_rows`, written as they come so one
+    level is in memory at a time, PERF.187) into the tables, a batch of rows at a statement. Returns the block rows.
+    """
     written = 0
-    for m, level in rows_by_level.items():
-        blocks = [block_params(row) for row in level.blocks]
-        for start in range(0, len(blocks), WRITE_BATCH):
-            conn.executemany(INSERT_BLOCK, blocks[start:start + WRITE_BATCH])
-        classes = [class_params(m, row) for row in level.classes]
-        for start in range(0, len(classes), WRITE_BATCH):
-            conn.executemany(INSERT_CLASS, classes[start:start + WRITE_BATCH])
-        written += len(blocks)
+    for m, level in (rows_by_level.items() if hasattr(rows_by_level, "items") else rows_by_level):
+        for start in range(0, len(level.blocks), WRITE_BATCH):
+            conn.executemany(INSERT_BLOCK, [block_params(row) for row in level.blocks[start:start + WRITE_BATCH]])
+        for start in range(0, len(level.classes), WRITE_BATCH):
+            conn.executemany(INSERT_CLASS, [class_params(m, row) for row in level.classes[start:start + WRITE_BATCH]])
+        written += len(level.blocks)
     return written
 
 
@@ -126,9 +127,8 @@ def rebuild(conn, edge_pc, on_progress=None):
     """
     top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM nebulae").fetchone()["n"])
     codes, x, y, z, radius = sources(conn)
-    rows = rules.all_rows(x, y, z, radius, codes, edge_pc, on_level=on_progress)
     clear(conn)
-    written = write(conn, rows)
+    written = write(conn, rules.iter_rows(x, y, z, radius, codes, edge_pc, on_level=on_progress))
     _set_through(conn, top)
     return written
 

@@ -13,6 +13,8 @@ present); the ozone rows are lane F's.
 | Free energies of the gases and condensates | this | `physics/species_thermo.py`, from the NASA Glenn database (89 species) |
 | The equilibrium gas of an element budget at T and P, optionally over a mantle of a given fO2 | this | `physics/gas_equilibrium.py` |
 | Regimes to mole fractions of the gases of the table | this | `physics/mixture_draw.py`, `draw_mixture` |
+| The subject of a generated body: the quantities the tables and the chemistry read, built from its stored fields and its star | GEN.756 | `physics/mixture_subject.py`, `subject_of_body` |
+| What an ocean takes out of the drawn air: the water vapour cap and the sulfur uptake | GEN.757 | `physics/mixture_sinks.py`, `apply_ocean_sinks` |
 | Total pressure, freeze-out of what the surface condenses, sum of partials = pressure, storage, accessor | lane I | GEN.411, GEN.422 |
 | Clouds, hazes, ozone | lanes G and F | GEN.414, GEN.413 |
 
@@ -33,6 +35,30 @@ are the test of the solver, not a table the generator reads.
 `required_inputs` is computed from the recipe tables, so the generator's wiring (GEN.479) cannot drift from what the tables read. A
 missing quantity raises `MixtureError` naming it. The draws go through `util/draw.py` after the recipe draw, in a fixed order: a change
 of the order is a generator-epoch change.
+
+## The subject of a body and the ocean's sinks (GEN.756, GEN.757)
+
+Two small pieces of GEN.411 that need nothing of its climate loop; the loop passes in what it owns.
+
+`mixture_subject.subject_of_body(body, ts_k=, pressure_bar=, ocean_present=, long_lived_geology=, water_lost=, star_distance_au=)`
+returns the `Subject` of a planet or moon, holding exactly `required_inputs(class)`. It derives the mass, radius and escape speed, the
+age of the star (the reference age of a starless body, as `interior_heat` takes it), the insolation, the equilibrium temperature at the
+body's stored Bond albedo, the XUV exposure index (`activity.exposure_index`), the position against the star's snow line, the
+runaway-greenhouse ratio against the Kopparapu inner edge, the zone against the star's habitable zone, the host type, and for a giant
+the temperature of its 1 bar layer (`giant_draw.ONE_BAR_OVER_EFFECTIVE` times its effective temperature), its dayside and its
+effective temperature. The surface temperature and pressure, the ocean and the geology are the loop's. A moon passes the distance of
+its parent from the star. A quantity that cannot be built is refused by name. Limits: the dayside temperature is the no-redistribution
+bound (`DAYSIDE_OVER_EQUILIBRIUM`, `(8/3)^(1/4)`: the generator has no redistribution model), the layer pressure of a giant is 0.1 bar
+(`PHOTOSPHERE_BAR`), a hot A, B or O star takes the F rows and a brown dwarf the M rows, and the snow ratio uses the body's present
+distance because no formation distance is stored.
+
+`mixture_sinks.apply_ocean_sinks(mole_fractions, pressure_pa, ts_k, gravity, ocean_present=, ocean_column_kg_m2=)` caps the water
+vapour at its saturation pressure over the ocean (none above the critical point or with no ocean) and keeps `1 / (1 + kH m g M / P0)`
+of each sulfur gas (SO2, H2S: Henry's law over `m` kg of ocean per square metre). It returns the renormalised mixture, the new total
+pressure and what left. The outgassed inventory and the ocean and carbonate sinks of the carbon, water and nitrogen are GEN.726's;
+this only limits what the drawn air can show. Limits: the physical solubility only (both gases dissociate in water, so a real ocean
+takes more), the Henry law's 273.15 to 323.15 K with the nearest end standing in outside, and full saturation (a bound, not Earth's
+0.6 to 0.8 relative humidity).
 
 ## Rocky outgassing
 
@@ -102,7 +128,7 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
   eligible worlds that are Venus-like and that keep abiotic oxygen). (3) A body with an ocean and a long-lived geology keeps only the
   share `INVENTORY["weathering_sink"]` (1e-5 to 1e-2, log; Earth keeps about 1.5e-5 of its near-surface carbon in the air) of the
   outgassed carbon and sulfur, the nitrogen, argon and water staying: an Earth-like draw is nitrogen with some water and a little CO2
-  instead of a carbon dioxide and sulfur air (the water is capped by its saturation in the pressure bookkeeping, GEN.422).
+  instead of a carbon dioxide and sulfur air (the water is capped by its saturation, `mixture_sinks`, GEN.757).
 - Gaps that stay, each with its reason (GEN.674 items 3, 5 and 6; the filed finding numbers are in the item): rows `j3` and `j4` are
   gated on the retention rows `d4` and `d5`, and the shoreline (a fit to hot rocky exoplanets, extrapolated to an escape speed of 1.2
   km/s) gives a Pluto-like body `d1` (airless), so the Pluto-like family is never drawn for it. Boss decided (fork 7, 10-18) that

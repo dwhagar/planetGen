@@ -1401,3 +1401,15 @@ Baseline: PR #1817.
 | UX.189 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.359 | 8.1 | The headline closes |
 | PERF.191 | 8.1 | The headline closes |
+| TEST.358 | 8.1 | The headline closes |
+| PERF.189 | 8.1 | The headline closes |
+| DOC.80 | 8.1 | The headline closes |
+| PERF.187 | 8.1 | The headline closes |
+| DOC.77 | 8.1 | Habitability system |
+| GEN.762 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.757 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.756 | 8.1 | Radiation chain for habitability (GEN.445) |
+| TEST.361 | 8.1 | The headline closes |
+| TEST.360 | 8.1 | The headline closes |
+| MAP.287 | 8.1 | Fly-through map |
+| MAP.291 | 8.1 | Fly-through map |

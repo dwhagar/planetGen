@@ -2578,11 +2578,12 @@ code {
    the identical "copy a planetgen CLI command" concept one level in. */
 /* The Galaxy Map is the page's whole point (MAP.3): the map takes the
    full width of a wider main column (.app-main-wide, galaxy.html) and as
-   much of the window's height as is left under the header, with the
-   controls in a row underneath that wraps to a stack when it doesn't fit,
-   and the block info beside them. On a phone it stays about square, so
-   the page can still be scrolled past it. galaxymap3d.js follows the
-   canvas's size with a ResizeObserver. */
+   much of the window's height as is left under the header and search and
+   above the controls (MAP.291: mapfit.js sets the height from the window,
+   so the map's shape follows the window's), with the controls in a row
+   underneath that wraps to a stack when it doesn't fit, and the block info
+   as a popup over the map. galaxymap3d.js follows the canvas's size with a
+   ResizeObserver. */
 /* The panel header's box is dropped so its heading becomes the panel's own
    flex item (the how-to text moved into the Map help dialog, UX.50). */
 .galaxymap3d-panel {
@@ -2605,40 +2606,28 @@ code {
   gap: 1rem;
 }
 
-/* MAP.30: the map is 4:3 (wider than tall) and no taller than the window
-   under the header; 1:1 on a phone. MAP.55: the info panel (a picked
-   sector's address and designation) is a popup over the map (MAP.256, MAP.288). */
 .galaxymap3d-panel .galaxy-map-row {
   display: flex;
-  flex-wrap: wrap;
   align-items: flex-start;
-  justify-content: center;
   gap: 0.75rem;
   min-width: 0;
 }
 
+/* MAP.291: the map's window is as wide as its column. Its height is set by
+   mapfit.js to what the window has left; this is the height before the
+   script runs and the least it keeps. */
 .galaxymap3d-panel .galaxy-map-main {
   position: relative;
   min-width: 0;
-  flex: 0 1 calc(min(100%, (100svh - 9rem) * 4 / 3));
-}
-
-@media (max-width: 599px) {
-  .galaxymap3d-panel .galaxy-map-main {
-    flex-basis: 100%;
-  }
+  flex: 1 1 100%;
 }
 
 .galaxymap3d-panel .starmap-viewport {
   min-width: 0;
   width: 100%;
-  aspect-ratio: 4 / 3;
-}
-
-@media (max-width: 599px) {
-  .galaxymap3d-panel .starmap-viewport {
-    aspect-ratio: 1 / 1;
-  }
+  height: 28rem;
+  min-height: 20rem;
+  aspect-ratio: auto;
 }
 
 .galaxymap3d-panel .starmap-side {
