@@ -57,7 +57,6 @@ def _admin_public_dict(admin):
     return {
         "username": admin["username"],
         "must_change_credentials": bool(admin["must_change_credentials"]),
-        "role": admin["role"],
     }
 
 
