@@ -932,7 +932,11 @@ class StarSystem:
         if kind is None:
             kind = "close" if _km_to_au(pair_node.separation_km) < tuning.WIDE_BINARY_SEPARATION_MIN_AU else "wide"
         if kind == "close":
-            pair_node = dataclasses.replace(pair_node, kind="close", eccentricity=0.0)
+            # (a circle has no periapsis: the angle from the ascending node is the argument of periapsis plus the anomaly,
+            # which is the phase the pair is tracked by, `BinaryStarProxy`)
+            pair_node = dataclasses.replace(
+                pair_node, kind="close", eccentricity=0.0, arg_periapsis_deg=0.0,
+                mean_anomaly_deg=(pair_node.mean_anomaly_deg + pair_node.arg_periapsis_deg) % 360.0)
         else:
             # (the wide pair holds eccentricities under `WIDE_BINARY_ECCENTRICITY_MAX`, where its stability limit is good)
             pair_node = dataclasses.replace(pair_node, kind="wide", eccentricity=min(

@@ -78,11 +78,16 @@ def _star_around(planet_or_belt, stars, system):
     return f"star:{stars[0]['id']}" if stars else "barycenter"
 
 
+def _offset_km(row):
+    """A star row's stored place in the whole tree (`offset_*_au`), in km."""
+    return [_au_to_km(row[f"offset_{axis}_au"] or 0.0) for axis in "xyz"]
+
+
 def _stars(conn, system_id, stars, row):
     """The scene's stars, positioned in the system frame."""
     offsets = {r["id"]: r for r in conn.execute(
-        "SELECT id, offset_x_au, offset_y_au, offset_z_au FROM stars WHERE star_system_id = ? AND role = 'member'",
-        (system_id,)).fetchall()}
+        "SELECT id, offset_x_au, offset_y_au, offset_z_au FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()}
+    in_tree = any(star["role"] == "member" for star in stars)    # a pair inside a larger tree sits where the tree puts it
     primary_xyz = _xyz(row, "binary_primary_position_")
     secondary_xyz = _xyz(row, "binary_secondary_position_")
     mutual_xyz = _xyz(row, "binary_mutual_position_")
@@ -98,7 +103,7 @@ def _stars(conn, system_id, stars, row):
         }
         if row["is_binary"] and star["role"] == "secondary":
             if row["binary_configuration"] == "close":
-                item["position_km"] = secondary_xyz
+                item["position_km"] = _offset_km(offsets[star["id"]]) if in_tree else secondary_xyz
             else:
                 item["position_km"] = mutual_xyz
             item["orbit"] = {
@@ -111,10 +116,9 @@ def _stars(conn, system_id, stars, row):
                 "secondary_mass_fraction": row["binary_secondary_mass_fraction"],
             }
         elif star["role"] == "member":    # GEN.630: a star beyond the pair, at the offset its row stores
-            item["position_km"] = [_au_to_km(offsets[star["id"]][f"offset_{axis}_au"] or 0.0)
-                                   for axis in "xyz"]
+            item["position_km"] = _offset_km(offsets[star["id"]])
         elif row["is_binary"] and row["binary_configuration"] == "close":
-            item["position_km"] = primary_xyz
+            item["position_km"] = _offset_km(offsets[star["id"]]) if in_tree else primary_xyz
         out.append(item)
     return out
 
