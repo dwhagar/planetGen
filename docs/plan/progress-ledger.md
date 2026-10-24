@@ -1257,3 +1257,7 @@ Baseline: PR #1817.
 | UX.157 | 8.1 | Habitability system |
 | UX.166 | 8.1 | Habitability system |
 | TEST.327 | 8.1 | Bugs and flaky tests |
+| GEN.574 | 8.1 | Bulk composition |
+| TEST.273 | 8.1 | Bugs and flaky tests |
+| TEST.233 | 8.1 | Bugs and flaky tests |
+| TEST.218 | 8.1 | Bugs and flaky tests |

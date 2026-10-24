@@ -2,6 +2,25 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2145] - 2026-10-24
+
+**Headline:** Several threads asking for a database connection at once no longer leave extra connections open on the server.
+
+### Fixed
+- **A first burst of connections built one connection pool per thread (TEST.218).** `_get_pool` now builds a database's pool under a lock, so threads that are the first to ask share one pool instead of each opening a connection that the last pool stored would drop without closing.
+
+### Changed
+- **Tests: the object index budget test (TEST.273) keeps its records under its own Redis keys,** so another worker's database cannot take bytes off the tile cache budget between two reads.
+- **Tests: the prevalence percentage tests (TEST.233) use a seed that is the same in every process,** so a failure repeats and the assert message prints the seed.
+- **Tests: the control connections test (TEST.218) ends its pool and asserts it left no connection open.**
+
+## [8.0.2144] - 2026-10-24
+
+**Headline:** The text description of a body now keeps each quantity in the unit it is stored in, and converts it only when it is shown.
+
+### Changed
+- **Describe quantities** (GEN.574): a quantity in the description model is `{"kind", "value", "unit"}` instead of `{"kind", "si"}`. `model.qty` checks the unit against the unit registry and `model.measured` keeps the stored quantity's own unit, so a length held in megametres is no longer converted to metres on the way in. The wiki, text and web renderers convert to the kind's base unit when they show it; the page's `data-si` attribute, which the browser reads, is unchanged. What you see on a body page does not change.
+
 ## [8.0.2143] - 2026-10-24
 
 **Headline:** Twelve physics files now convert astronomical units, years, light-years and parsecs through the one unit registry, with the same numbers.

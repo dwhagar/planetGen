@@ -14,7 +14,7 @@ both themes. The six symbols of UX.101 are not drawn yet: a rating names its tie
 import html
 import math
 
-from planetgen.describe.quantity import LADDER_BY_KIND, _powers, quantity_text
+from planetgen.describe.quantity import LADDER_BY_KIND, _powers, display_value, quantity_text
 from planetgen.describe.render import share_text
 from planetgen.util import chem
 from planetgen.util.format import format_quantity
@@ -24,7 +24,7 @@ FIRST_HEADING = 2
 
 
 def _quantity(quantity):
-    kind, value = quantity["kind"], quantity["si"]
+    kind, value = quantity["kind"], display_value(quantity)
     if kind in LADDER_BY_KIND and value is not None and math.isfinite(value):
         companions = quantity.get("companions", True)
         # Plain text inside the span, as `web/lib/fmt.quantity_html` writes it: `static/units.js` rewrites the span's

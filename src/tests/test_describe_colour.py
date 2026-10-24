@@ -4,7 +4,7 @@ import pytest
 
 from planetgen.describe import describe, model
 from planetgen.describe.html import inline_html
-from planetgen.describe.quantity import inline_text
+from planetgen.describe.quantity import display_value, inline_text
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.util import draw
@@ -44,7 +44,7 @@ def test_a_solid_body_with_air_gets_the_row_and_an_airless_one_or_a_giant_does_n
             if "pressure" not in rows:                      # a giant has an internal pressure instead
                 assert "atmosphere_colour" not in rows
                 giants += 1
-            elif rows["pressure"]["value"][0]["qty"]["si"] > 0:
+            elif display_value(rows["pressure"]["value"][0]["qty"]) > 0:
                 swatch = rows["atmosphere_colour"]["value"][0]["swatch"]
                 assert len(swatch["hex"]) == 7 and swatch["word"]
                 with_air += 1

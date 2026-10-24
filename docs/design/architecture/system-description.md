@@ -74,7 +74,7 @@ Block      one of
   Composition {"type": "composition", "label": "Atmosphere", "parts": [{"name": "nitrogen", "share": 0.78}, ...]}
   Prose     {"type": "prose", "role": "overview|summary|life|timeline|flavour", "text": [Inline, ...]}
 Inline     a string, or one of
-  {"qty": {"kind": "pressure", "si": 0.0}}          a quantity: kind (the ladder family), SI value
+  {"qty": {"kind": "pressure", "value": 0.0, "unit": "Pa"}}   a quantity: kind (the ladder family), the value in the unit it was stored in
   {"ref": "planet:31", "name": "40 Eridani II"}     a link to another object
   {"strong": "Pressure: Red"}                       emphasis, rendered per format
   {"swatch": {"hex": "#99bfff", "word": "pale blue"}}   a colour (GEN.420): the word, with a chip where the format has one
@@ -91,7 +91,8 @@ Rules:
 1. **No format in the model.** No `#`, `**`, `<sup>`, wikitext templates or `'''`, and no Unicode superscripts. Emphasis and
    links are Inline nodes the renderers turn into whatever the format has.
 2. **Quantities are values, never strings.** A quantity names its family (`distance`, `speed`, `period`, `mass`,
-   `temperature`, `pressure`, `gravity`, `dose`, `luminosity`, `density`...) and its SI value. Each renderer calls the
+   `temperature`, `pressure`, `gravity`, `dose`, `luminosity`, `density`...), its value and the registry unit the value is
+   held in (`model.qty` checks the unit against `unit_registry`; `model.measured` keeps a `Quantity`'s own unit). Each renderer calls the
    one ladder for that family (`util/ladders.py` for the text forms; `unitladder.js` for the browser, which is how the
    unit preference UX.78 can later re-render every `.qty` span from `data-si`). Nothing in `describe/` formats a
    number itself, and a test fails on a raw `:.2f` or `f"{x} km"` in that package.
@@ -158,7 +159,7 @@ current wording; GEN.218 replaces the wording.
 
 | Renderer | Where | Output |
 |---|---|---|
-| HTML | `describe/html.py` (UX.119; the page passes it the links of its own routes) | A body's detail is: a facts table (`<table>` in the site's `table-scroll` wrapper), the ratings table with chips and symbols, the composition bars, prose paragraphs, then its moons. Quantities are `<span class="qty" data-q="..." data-si="...">`. Same tables, chips and both themes as the rest of the site; no header levels or Markdown, so no `mdrender`. |
+| HTML | `describe/html.py` (UX.119; the page passes it the links of its own routes) | A body's detail is: a facts table (`<table>` in the site's `table-scroll` wrapper), the ratings table with chips and symbols, the composition bars, prose paragraphs, then its moons. Quantities are `<span class="qty" data-q="..." data-si="...">` (`data-si` is the value converted to the kind's SI unit, `DISPLAY_UNITS`). Same tables, chips and both themes as the rest of the site; no header levels or Markdown, so no `mdrender`. |
 | Markdown | `describe/markdown.py` | Today's layout: `# system`, `## planet`, `### moon`, `Property | Value` pipe tables, bold rating lines. Quantities through the text ladder; superscripts as `<sup>` as now. |
 | wikitext | `describe/wikitext.py` | Today's layout: `= system =`, the Planet Data template (Class Data for moons), the Exp template for powers of ten, `[[Category:Star Systems]]`. |
 | text | `describe/text.py` | Plain tables and sentences for the terminal (Unicode superscripts, no markup). The command line default. |

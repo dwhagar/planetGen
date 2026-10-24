@@ -3,6 +3,8 @@
 """PERF.140: the object index builder (`db/objectindex.py`): it matches the live tables after a build, a refresh writes only what
 changed, a gone object loses its row and `check` says when the index and the tables differ."""
 
+import uuid
+
 import pytest
 
 from planetgen.db import objectindex, store
@@ -208,8 +210,13 @@ def test_the_status_gives_the_size_and_each_kinds_rows(galaxy):
 # --- the warm-up command, the check and the shared budget -----------------------------------------------------
 
 @pytest.fixture
-def indexed_database(galaxy, redis_server):
+def indexed_database(galaxy, redis_server, monkeypatch):
+    """The galaxy's database with no run recorded. The records sit under a key family of this test's own: the
+    budget sums the recorded sizes of every database on the server (`objectindex.reserved_bytes`), so another
+    worker's database would otherwise take bytes off the budget between two reads (TEST.273)."""
     config, _sector = galaxy
+    family = f"planetgen:objindex-test:{uuid.uuid4().hex}"
+    monkeypatch.setattr(objectindex, "state_key", lambda database: f"{family}:{database}")
     objectindex.forget(config.database)
     yield config
     objectindex.forget(config.database)
