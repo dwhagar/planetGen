@@ -104,7 +104,7 @@ def _star_stats(summary, context):
 def _body_stats(summary, context):
     code = summary.get("planet_class")
     class_html = _link(context.class_url("planet", code) if context.class_url and code else None, esc(code)) if code else ""
-    symbols = symbol_row(summary, context.sprite_url, with_life=False, help_url=context.help_url) \
+    symbols = symbol_row(summary, context.sprite_url, help_url=context.help_url) \
         if context.sprite_url and summary.get("phi4") is not None else ""
     return [_stat(f"Class {class_html}" if class_html else ""),
             _stat(distance_km_html(summary["distance_km"]) if summary.get("distance_km") is not None else ""),

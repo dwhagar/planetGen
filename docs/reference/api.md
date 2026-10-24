@@ -281,7 +281,7 @@ connectivity to that specific schema rather than the default one.
   (kilometers from the system's origin), each `[x, y, z]` or `null` where
   the object has none (a body inside a system takes the system's galaxy and
   sector positions; a belt is a ring with no `system_km`; a moon of a free planet (DB.94) has `rogue_planet` as its parent after the galaxy, the rogue planet's galaxy point, no `system_km`, and the planet's other moons as siblings). A bad reference
-  or a missing row is a `404`. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100). `keep_out` (NAV.24) is the object's keep-out
+  or a missing row is a `404`. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24) is the object's keep-out
   radius for course planning: `{radius_km, basis, note}`, `basis` one of
   `hill` (a planet or moon), `perimeter` (a star or system: the widest
   stored `system_perimeter_km`), `galactic_hill` (a black hole, neutron
@@ -314,7 +314,7 @@ connectivity to that specific schema rather than the default one.
   `{ref, kind, id, name, summary, counts, child_count}`: `summary` is what its
   own row says (a star's `star_type`, `mass_kg`, `luminosity_w`; a planet's or
   moon's `planet_class`, `distance_km`, `period_years` and the PHI-6 `phi4` and
-  `tier_<domain>` ratings; a system's `is_binary`, `quadrant` and `star_types`;
+  `tier_<domain>` ratings and the four `life_<name>` scores (UX.152); a system's `is_binary`, `quadrant` and `star_types`;
   a belt's `density` and limits; a comet's orbit), `counts` how many of each
   kind lie anywhere below it (a system's `star`, `planet`, `moon`, `belt`,
   `comet`; a star's or planet's; none for a sector) and `child_count` how many
@@ -640,7 +640,8 @@ connectivity to that specific schema rather than the default one.
   `queryDb.search`'s docstring for the exact inclusion rule; a size range
   alone is reason enough, same as a tag or name term). `stars`/`planets`/
   `moons` result rows each include their own `radius_km`, and a planet or moon row also `equipment_tier`, `phi4` and the six
-  `tier_<domain>` ratings (0 Blue to 3 Red; `null` for a body that was not scored), which the page draws as symbols (UX.100). Each result
+  `tier_<domain>` ratings (0 Blue to 3 Red; `null` for a body that was not scored), which the page draws as symbols (UX.100), and
+  the four life scores as the cluster beside them (UX.152). Each result
   panel is paged on its own: `limit` sets the rows per panel (default
   300, clamped to 500 like "Pagination" below), and `sectors_offset`/
   `systems_offset`/`stars_offset`/`planets_offset`/`moons_offset`/
