@@ -135,14 +135,31 @@ def render_item(kind, printed_id):
     except apiclient.NotFoundError:
         abort(404)
     system = next((p for p in found["parents"] if p["kind"] == "system"), None)
-    if system is None:
+    free_planet = next((p for p in found["parents"] if p["kind"] == "rogue_planet"), None)
+    if system is None and free_planet is None:
         abort(404)
+    name = found["name"]
+    label = KIND_LABELS[kind]
+    if system is None:    # DB.94: a moon of a free planet has no system, so no description to read its facts from
+        return render_page(
+            "item.html",
+            title=name,
+            section="systems",
+            breadcrumbs=_crumbs(found, name),
+            description=f"The {label.lower()} {name}: where it is and what it is like.",
+            kind_label=label,
+            habitability=found if kind in ("planet", "moon") else None,
+            object_id=printed_id,
+            facts=trusted_html(""),
+            children=[],
+            location=location(found["parents"], None),
+            owner_url=item_url(free_planet["ref"]),
+            owner_name=esc(free_planet["name"]),
+        )
     system_id = system["ref"].partition(":")[2]
     document = apiclient.get_system_description(db, system_id)
     inside = apiclient.get_system(db, system_id).get("inside")
     piece = _section(document, ref)
-    name = found["name"]
-    label = KIND_LABELS[kind]
     children = [{"title": child["title"], "kind": KIND_LABELS.get(child["kind"], child["kind"].title()),
                  "url": _ref_link(child["ref"])} for child in (piece["children"] if piece else []) if child["ref"]]
     return render_page(
