@@ -1299,7 +1299,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.571 | Replace the ad-hoc unit conversions with the registry, by file group, bit-identical on the golden set | none | open |
 | GEN.572 | The two rounded unit factors become exact: 63241.077 AU per light-year and 3.26156 light-years per parsec, as one epoch-changing change | none | done, PR #2243 |
 | GEN.573 | The position class reads its units from the registry: length unit by key, no bare 1000 or copy of c, mass and mu a declared relation | none | done, PR #2490 |
-| GEN.574 | Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit} | none | open |
+| GEN.574 | Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit} | none | done, PR #2806 |
 | GEN.575 | Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit | none | open |
 | GEN.576 | system(host): the one function that groups bodies by their parent link and returns the barycentre sums, the central object's offset and the valid-system check | none | open |
 | GEN.577 | Stored planet and moon states become the state of the barycentre of the body and its own members | none | open |
@@ -1391,7 +1391,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.663 | A chemical-evolution birth-epoch model for thorium and uranium: row o4 draws the formation time from 3 to 13 Gyr | none | done, PR #2822 |
 | GEN.664 | The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044) | none | done, PR #2815 |
 | GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | done, PR #2815 |
-| GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | open |
+| GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | done, PR #2799 |
 | GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | none | open |
 | GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | open |
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows | none | open |
@@ -1417,7 +1417,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | none | open |
 | GEN.690 | Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs | none | open |
 | GEN.691 | The Suitability sentence says "no food readily available, but there is water and shelter available" while the Water row is Red and "undrinkable without heavy treatment" (bug) | none | open |
-| GEN.692 | The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug) | none | open |
+| GEN.692 | The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug) | none | done, PR #2799 |
 | GEN.693 | Light-gas escape filter after outgassing: the mixture draw gives a small warm body hydrogen as its main gas | none | done, PR #2862 |
 | GEN.694 | Oxygen caps in the atmosphere draw: biotic oxygen at most 35 percent, abiotic at most 95 percent with a nitrogen and argon floor, and no mixture shown as 100 percent | none | done, PR #2862 |
 | GEN.695 | Class B keeps some hydrogen and helium in its atmosphere mix next to the sodium and oxygen of a molten world | none | dropped (Boss, 1:22 AM EDT 2026-10-24, card option 3: class B never has hydrogen or helium; a stripped core is at least 5 Earth masses) |
@@ -1690,7 +1690,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.261 | N4: the node cut on the page: galaxynodecut.js replaces the tile cut | none | open |
 | MAP.262 | N5: retire the cube tiles | none | open |
 | MAP.263 | S1: the camera is the only state: stages follow the camera, with no gesture gate, preset flights, per-stage zoom range or pan clamp | none | done, PR #2888 |
-| MAP.264 | S2: nothing is clipped when you zoom: drop setWedgeClip and markClippedStars | none | open |
+| MAP.264 | S2: nothing is clipped when you zoom: drop setWedgeClip and markClippedStars | none | done, PR #2903 |
 | MAP.265 | S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick | none | open |
 | MAP.266 | S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu | none | open |
 | MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | none | open |
@@ -2608,7 +2608,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.215 | The Solar System calibration rows live in test files only: a flag fences them and a test fails when a generator table reads one | none | open |
 | TEST.216 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug) | none | done, PR #2124 |
 | TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | done, PR #1989 |
-| TEST.218 | `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug) | none | open |
+| TEST.218 | `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug) | none | done, PR #2899 |
 | TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster | none | open |
 | TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) | none | done, PR #2214 |
 | TEST.221 | test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug) | none | done, PR #2070 |
@@ -2623,7 +2623,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.230 | test_o_stars_sit_in_h_ii_regions_and_cool_stars_light_nothing fails in about 10 of 12 runs since the stellar bundle merged (bug) | none | done, PR #2128 |
 | TEST.231 | test_the_wheel_anchors_on_the_star_under_the_pointer_not_the_mesh_behind_it failed alone once in 8 runs (bug) | none | done, PR #2147 |
 | TEST.232 | The a11y page_targets fixture fails 199 browser tests when /search answers 202 (slow-page job) under load (bug) | none | done, PR #2149 |
-| TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) | none | open |
+| TEST.233 | test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug) | none | done, PR #2899 |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) | none | open |
 | TEST.235 | test_stop_waiting_stops_the_polling_and_check_again_picks_it_up[light] failed once in a loaded gate and passes alone (bug) | none | done, PR #2218 |
 | TEST.236 | test_galaxy_map_drill_down_by_clicks rejects a window address with a negative band, because its regex allows a minus sign only on the wedge (bug) | none | done, PR #2227 |
@@ -2663,7 +2663,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.270 | check-db reports a damaged revision during a full parallel gate and fails two db_check tests (flake) | none | done, PR #2573 |
 | TEST.271 | test_drop_database_holders gentle_wait fails on a clean main with MySQL "Lock wait timeout exceeded" (bug) | none | done, PR #2441 |
 | TEST.272 | test_a_star_in_an_opened_sector_is_selectable (browser) fails in a full gate on main (bug) | none | done, PR #2573 |
-| TEST.273 | test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake) | none | open |
+| TEST.273 | test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake) | none | done, PR #2899 |
 | TEST.274 | test_orbital_limits.py::test_a_circular_body_far_from_its_epoch_is_where_the_remainder_puts_it fails on main: _relative_circular_km was removed by #2481 (bug) | none | done, PR #2493 |
 | TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | done, PR #2600 |
 | TEST.275 | test_fuzz_web_routes shape-report case runs past the 900 s pytest limit on main: /admin/generate/shape-report under hostile query strings (bug) | none | done, PR #2600 |
@@ -2717,7 +2717,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.323 | test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug) | none | open |
 | TEST.324 | test_web_header_menus top-bar [1280x720-light] times out under load (bug) | none | open |
 | TEST.325 | test_migration_habitable_worlds: the v135 galaxy count test fails on main because it downgrades to v138 while the DB.73 v140 marker still reads 140 (bug) | none | done, PR #2881 |
-| TEST.326 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug) | none | open |
+| TEST.326 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug) | none | dropped (duplicate of TEST.313, TODO 4:07 AM EDT 2026-10-24) |
 | TEST.327 | test_web_browser_tables::test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts fails on main: it counts 0 a.help-link elements and expects 7 since UX.180 to UX.182 (bug) | none | done, PR #2892 |
 | TEST.328 | Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists | none | open |
 | TEST.329 | test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug) | none | open |

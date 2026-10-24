@@ -83,7 +83,7 @@ NULL_IN_THIS_GALAXY = {
         "galactic_radius_pc")},
     # A life-bearing moon (rare) and its paragraphs and spectrum.
     **{("moons", column): CHANCE for column in
-       ("atm_density", "atm_molar_density", "scale_height_km", "life_chemical", "evolutionary_speed",
+       ("atm_density", "atm_molar_density", "scale_height_km", "life_chemical",
         "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr")},
     **{("moon_reflection_spectrum", column): CHANCE for column in
        ("id", "moon_id", "spectrum_type", "position", "value")},

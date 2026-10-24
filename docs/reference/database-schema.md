@@ -1410,7 +1410,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `composition` | TEXT | nullable | Descriptive string — contrast `asteroid_belt_composition`'s structured (component, concentration) rows. |
 | `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km` | DOUBLE | nullable | |
 | `habitable_zone_inner_km`, `_outer_km` | DOUBLE | NOT NULL | Copied from the host star at generation time, never recomputed. |
-| `life_chemical`, `evolutionary_speed` | TEXT | nullable | Set by life-data generation, if any. |
+| `life_chemical` | TEXT | nullable | Set by life-data generation, if any. The pace life evolves at is `evolutionary_pace` (below, since v135). |
 | `flavor_text_count` | INTEGER | NOT NULL, default 0 | |
 | `orbital_inclination_deg`, `orbital_ascending_node_deg` | DOUBLE | NOT NULL | Added in v9. Fixed at generation time — together they orient this (circular) orbital plane in 3D. |
 | `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`orbits.orbital_position_au`). `planetgen.cli.orbits` moves it by `kepler.universal_step` (v109: there is no stored phase; the phase is derived from this position). |
@@ -2164,6 +2164,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v143 (GEN.666): `evolutionary_speed` is gone, the pace is stored once
+
+Migration 0143 drops `planets.evolutionary_speed` and `moons.evolutionary_speed`. A world's pace (`fast`, `normal` or `slow`, a `tuning.EVOLUTIONARY_TIMELINES` key) was stored twice, once as the speed its life sentence named and once as the pace its timeline was built on, and the two were separate draws, so a page could name two paces. The generator now draws it once and stores it in `evolutionary_pace`, for every body that has a life chemistry (a moon or a world outside the habitable zone has a pace and no timeline: `life_system_age_gyr` is NULL). A row that had a speed and no pace takes the speed as its pace; a row with both keeps its pace, which its ages and milestone were built on. The version is detected from `planets.evolutionary_speed` being gone.
 
 ### v141 (GEN.459): the radiogenic content of a body
 

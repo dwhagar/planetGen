@@ -121,6 +121,7 @@ def test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds(mysql
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor, DROP COLUMN albedo_basis,"
                          " ALGORITHM=COPY")    # v142
             conn.execute(f"ALTER TABLE {table} DROP COLUMN c_k0_ppm, DROP COLUMN c_th0_ppm, DROP COLUMN c_u0_ppm,"

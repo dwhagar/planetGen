@@ -2670,7 +2670,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones, anything in the galaxy can be reached by zooming to it, and
   Boss confirms it by retest. Owner: the design thread first (report),
   then Core 2 (maps).
-  Prerequisites: MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.264, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Prerequisites: MAP.258, MAP.259, MAP.260, MAP.261, MAP.262, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
   Decision (Boss, 5:51 PM EDT 2026-10-23, answering the four zoom
   cards): 1 the full single space, 2 only a sector plus an optional grid
   tool, 3 a soft glow switchable, 4 sector-block nodes first (not the
@@ -2781,19 +2781,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxystageview.js (rebase on its merges and tell it before each PR).
   Prerequisites: MAP.261. Related: MAP.257, MAP.146, MAP.249.
 
-- [ ] **MAP.264 S2: nothing is clipped when you zoom: drop setWedgeClip and markClippedStars**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. The
-  visibility law and the sector and system hand-offs already decide what
-  is drawn. Client only. Size S. Done: the surroundings stay in view
-  when you zoom, and a browser test finds a neighbouring star after
-  zooming into a sector. Owner: Core 2 (maps).
-  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
-
 - [ ] **MAP.265 S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick**
   Zoom design (reports in
   /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
@@ -2858,7 +2845,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   query, not against stages, and select by object ID at any scale. Size
   M. Done: labels and selection work from the galaxy to a planet with no
   stage, and a browser test covers both. Owner: Core 2 (maps).
-  Prerequisites: MAP.264, MAP.265. Related: MAP.257, MAP.146,
+  Prerequisites: MAP.265. Related: MAP.257, MAP.146,
   MAP.249.
 
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
@@ -12453,31 +12440,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
 
-- [ ] **GEN.574 Describe and API: qty() builds a Quantity and the {kind, si} shape becomes {kind, value, unit}**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/architecture/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 4 (the description
-  layer). Waits on UX.107 and UX.119, which it ties to. Do:
-  `describe/model.py` `qty()` builds a `Quantity`; the shape becomes
-  `{kind, value, unit}`, keeping `si` only where an API consumer needs
-  it (no backward shim otherwise); `describe/quantity.py` loses its
-  `_KM_M`. Done: the Document and API tests pass on the new shape and
-  the HTML renderer shows the same text.
-  Prerequisites: none. Related: GEN.550, GEN.565,
-  DB.74.
-  Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
-
 - [ ] **GEN.575 Sweep the mass object classes: the 35 unit-suffixed attributes and every quantity held under two units get one declared native unit**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/architecture/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -13805,6 +13767,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   more, lane L's research note
   reports/stripped-core-envelope-2026-10-24.md (stand-in envelope
   fraction 1e-4 to 4e-2) is the start.
+  Research (2026-10-09, Update): Update 4:07 AM EDT 2026-10-24: GEN.692
+  (#2799) made a class B page's atmosphere table list the class's
+  balance gases, so it shows helium and sodium until the class cut-over.
+  Boss's answer on the class B card (12:22 AM EDT: class B never has
+  hydrogen or helium) means the class lane must drop helium from the
+  class B phrase, the table and the stripped-core line at the cut-over;
+  nothing to change before then.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -14133,20 +14102,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry until then. Owner: the Composition-first stars lane, after GEN.651.
   Prerequisites: GEN.651. Related: GEN.553, GEN.652.
 
-- [ ] **GEN.666 The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug)**
-  Boss live observation (relayed 2026-10-23, 9:11 PM EDT): on a planet
-  page paragraph 1 said melanin life 'would evolve at a normal pace' and
-  paragraph 2 said 'hyper-accelerated pace', for an 80 Myr civilization
-  in a 13.8 Gyr system. Cause found by the Habitability text consistency
-  thread: the pace is drawn twice (life.get_evolutionary_speed and
-  evolution.get_evolutionary_state), stored in two columns and written
-  by two text writers. Done: the pace is drawn once, planets and moons
-  lose the evolutionary_speed column (migration, no shim), one LifeFacts
-  object feeds every life sentence on every page, and a consistency test
-  fails when two sentences about the same planet disagree. Owner:
-  Habitability text consistency thread (2026-10-23).
-  Prerequisites: none. Related: GEN.649, GEN.653.
-
 - [ ] **GEN.667 Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands**
   Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
   GEN.413 merged as #2761): the ozone column is computed from an oxygen
@@ -14418,27 +14373,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the combination Green with a mask is valid. Owner: Habitability text
   lane / lane D.
   Prerequisites: none.
-
-- [ ] **GEN.692 The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug)**
-  Boss's live observation on a class B page (0.346 AU, 310 K, 19.8 kPa)
-  at 12:12 AM EDT 2026-10-24, reported by lane L. The table in
-  describe/build.py _atmosphere_composition adds up only the ten stored
-  partial pressures and divides each by that sum, so unstored balance
-  gases (helium, sodium; class B, E, F, I, J, T, V all have a balance)
-  vanish and oxygen shows 100% when the real share is about 6%. Do
-  (interim, before GEN.411): divide by the real total pressure and show
-  the unstored balance gases as named rows or an Other row, so the table
-  sums to the real total and never shows 100% for a mixture. Permanent
-  fix is GEN.411 plus GEN.415. Done: the class B page shows helium,
-  sodium and oxygen shares that sum to 100% of the total, and a test
-  covers a class with an unstored balance. Details:
-  reports/pure-oxygen-atmosphere-2026-10-24.md.
-  Research (2026-10-09, Decided): Related decision (Boss, 12:39 AM EDT
-  2026-10-24 (his message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva, relayed by the
-  coordinator)): answers 1 and 2 are GEN.694 (oxygen caps) and the class
-  B hydrogen and helium item (the second new item above, GEN.695).
-  Prerequisites: none. Related: GEN.411, GEN.415.
 
 - [ ] **GEN.699 Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9**
   Boss, 1:28 AM EDT 2026-10-24 (message
@@ -17471,6 +17405,10 @@ clears each one.
   Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
   is in reports/8-1-core-queues-2026-10-22.md; this replaces any
   earlier owner line).
+  Research (2026-10-09, Update): Update 3:49 AM EDT 2026-10-24 (as lane
+  4 reported on #2899): it did not reproduce in 12 repeats under load,
+  so it stays open with that note; the connection pool race fixed in
+  TEST.218 may have been the cause, so recheck after the next full gate.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -18565,23 +18503,6 @@ clears each one.
   within-system comet shape) is kept as a flagged stand-in with the
   replacement item GEN.595.
 
-- [ ] **TEST.218 `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug)**
-  Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
-  gate), filed by the TODO thread.
-  `src/tests/test_db_schema_race.py::test_first_control_connections_at_once`
-  leaves 3 idle connections (state Sleep, not from a pool) on
-  `planetgen_test_*` when its fixture ends; the new drop warning of
-  TEST.193 names them and ends them, so nothing hangs, but the test
-  should close its own connections. Do: the test closes the connections
-  it opens (in a finally or a fixture finalizer), and the drop warning
-  no longer names it in a full run. Done: a full run of the file prints
-  no drop warning for it, and a test asserts no connection of the test's
-  own stays open at the fixture's end. Fails on main: yes (after #1997).
-  Frequency: every full run (the warning is in the gate log).
-  Reproducer: `python -m pytest -q src/tests/test_db_schema_race.py` and
-  read the drop warning. Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.193, TEST.208.
-
 - [ ] **TEST.219 Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster**
   Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
   gate), filed by the TODO thread. The new TEST.193 warnings list
@@ -18713,35 +18634,6 @@ clears each one.
   is on this item and the browser phase shows no multi-minute stall in a
   gate. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126, TEST.171, TEST.172.
-
-- [ ] **TEST.233 test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug)**
-  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
-  GEN.321's third gate), filed by the TODO thread.
-  `src/tests/test_prevalence.py::test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30]`
-  failed once with a share of 0.752 against 0.7891 within 0.0365 (the
-  band is 4 standard deviations of 2,000 systems). The TODO thread
-  (2026-10-17, 8:31 to 8:38 PM EDT) ran it alone 13 times with different
-  hash seeds (13 passed) and measured the unchanged asteroid-belt share
-  over 6 seeds of 2,000 systems at 0.6088 against
-  `PREVALENCE_BASE_SHARES` 0.607 (one standard deviation of the mean
-  0.0045), so the generator did not drift. The cause of the
-  irreproducibility: the test seeds its run with `hash((feature,
-  percent)) % 1000`, and `hash()` of a tuple holding a string differs in
-  every Python process (hash randomisation), so each run draws a
-  different sample from the 4-sigma band and a failure cannot be
-  replayed. A 4-sigma miss on one sample is rare (about 6 in 100,000 per
-  test per run) but there are 7 such cases in the file and every gate
-  runs them. Fails on main: not run on main. Frequency: once in about 14
-  runs seen. Reproducer: none for the failing sample; the seed is not
-  recorded. Do: seed every case with a stable value (for example
-  `zlib.crc32(f"{feature}:{percent}".encode()) % 1000`) so a failure
-  repeats, and print the seed in the assert message; if the stable seeds
-  all pass keep the 4-sigma band, and if one lands outside it re-measure
-  that feature's response to the percentage (a belt share at +30% may
-  not be exactly 1.3 times the base). Done: the seeds are stable, the
-  assert names its seed, and each case passes 30 of 30 runs. Owner: Core
-  3 (found it; proposed).
-  Prerequisites: none. Related: GEN.448.
 
 - [ ] **TEST.234 test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug)**
   Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
@@ -19126,23 +19018,6 @@ clears each one.
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
 
-- [ ] **TEST.273 test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake)**
-  Found by Core 2 (relayed 12:52 PM EDT 2026-10-22 as the lane's clock
-  reads, in a full run for UX.144), filed by the TODO thread. Kind:
-  flake. Test: test_the_index_takes_its_size_off_the_tile_cache_budget.
-  Failure: it compared max_cache_bytes 1073577984 against 1073741824
-  (the cache.max_mb budget of 1024 MB) and failed in a full run; it
-  passes alone. Fails on main: not checked. Frequency: 1 sighting.
-  Reproducer: a full `scripts/test.py changed` gate; not reproducible
-  alone. It looks like state left by another test in the cache area (the
-  tile cache budget, PERF.140 and `planetgen warm`). Do: find which test
-  or fixture leaves the cache budget or `max_cache_bytes` changed for
-  this worker and make that test restore it, or give this test its own
-  configuration; no retry loop that hides the cause. Done: the cause is
-  on this item and the test passes in 20 full-gate runs. Owner: Bug Hunt
-  (proposed; a test-flake finding of the TEST.265 family).
-  Prerequisites: none. Related: TEST.265, TEST.270, PERF.140.
-
 - [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
   Found by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
   the lane's clock reads), filed by the TODO thread. Kind: flake. Test:
@@ -19520,6 +19395,12 @@ clears each one.
   test_web_browser_sector_open.py::test_a_star_in_a_sector_far_from_the_core_is_selectable
   also fails under load and passes alone; the same isolation fix
   applies.
+  Research (2026-10-09, Update): Update 4:12 AM EDT 2026-10-24 (as Core
+  2 reported on MAP.264):
+  test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view and
+  test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it
+  in test_web_browser_fixture_maps.py pass alone and fail under load;
+  the same isolation fix applies.
   Prerequisites: none.
 
 - [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
@@ -19591,6 +19472,13 @@ clears each one.
   in code if the test is right, or make the test deterministic with the
   reason stated; never skip it. Done: 200 runs of the test pass. Owner:
   none for now (pool; the Flaky test fixes lane is proposed).
+  Research (2026-10-09, Update): Update 4:07 AM EDT 2026-10-24 (as Core
+  4 reported on GEN.270, 2:44 AM EDT): same failure seen again, about 1
+  run in 12 on main (reproduced on a GEN.450 tree, 1 of 12 loops with
+  `pytest -k M5V` alone; over 15 trials in the test one makes no belt
+  although ASTEROID_BELT and HABITABLE_WORLD are both forced). TEST.326
+  was filed for it by mistake and is dropped as a duplicate of this
+  item. Owner: lane 4 (Flaky test fixes), which listed TEST.313 next.
   Prerequisites: none.
 
 - [ ] **TEST.314 Only classify writes the class column, and the class is recomputed when an input is edited**
@@ -19700,20 +19588,6 @@ clears each one.
   repeated gates. Note: UX.180 changes the header menus (the Help menu),
   so the fix should land with or after it. Owner: Bug Hunt.
   Prerequisites: none. Related: UX.180, TEST.317.
-
-- [ ] **TEST.326 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug)**
-  Found by Core 4 at 2:44 AM EDT 2026-10-24 (as the lane reported). It
-  fails about 1 run in 12 on main too (reproduced on a GEN.450 tree: 1
-  of 12 loops with `pytest -k M5V` alone; over 15 trials in the test,
-  one makes no belt although ASTEROID_BELT and HABITABLE_WORLD are both
-  forced). So a forced belt is not always honoured. Do: find why the
-  belt is dropped for an M5V star with both flags forced (a failed
-  placement that gives up, or the habitable-world rebuild removing the
-  belt), fix the generator so a forced belt is always made or the test
-  states the real rule, and run the test 50 times. Done: 50 loops of the
-  test pass. Owner: Bug Hunt, unless Core 4 prefers it, since the flag
-  handling is generation code.
-  Prerequisites: none.
 
 - [ ] **TEST.328 Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists**
   Finding of lane B at 2:52 AM EDT 2026-10-24 (as the lane reported):

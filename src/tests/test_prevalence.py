@@ -8,6 +8,7 @@ are checked with a tolerance a few standard errors wide.
 """
 
 import random
+import zlib
 
 import pytest
 
@@ -78,8 +79,10 @@ def test_percent_for_share(factor, percent):
 ])
 def test_a_measured_feature_moves_by_the_percentage(feature, percent):
     expected = min(1.0, tuning.PREVALENCE_BASE_SHARES[feature] * (1 + percent / 100))
-    share = _shares({feature: percent}, seed=hash((feature, percent)) % 1000)[feature]
-    assert share == pytest.approx(expected, abs=_tolerance(expected)), (feature, percent, share)
+    # TEST.233: a seed that is the same in every process (hash() of a string differs per process), so a failure repeats
+    seed = zlib.crc32(f"{feature}:{percent}".encode()) % 1000
+    share = _shares({feature: percent}, seed=seed)[feature]
+    assert share == pytest.approx(expected, abs=_tolerance(expected)), (feature, percent, seed, share)
 
 
 @pytest.mark.parametrize("feature, base, percent", [

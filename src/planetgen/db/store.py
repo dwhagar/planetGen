@@ -443,6 +443,7 @@ keying by config rather than keeping a single module-level pool lets
 tests (and any future multi-database use) point at a second database
 within the same process without the two stomping on each other's pooled
 connections."""
+_pools_lock = threading.Lock()
 
 
 STATEMENT_TIMEOUT_ERRORS = (3024,)
@@ -477,53 +478,59 @@ def _session_sql_mode():
 def _get_pool(config, statement_timeout_s=None, lock_wait_s=None):
     key = config._key() if not (statement_timeout_s or lock_wait_s) else (
         config._key(), float(statement_timeout_s or 0), float(lock_wait_s or 0))
-    if key not in _pools:
-        init = "SET time_zone = '+00:00'"
-        if statement_timeout_s:
-            init += ", " + _statement_timeout_sql(statement_timeout_s)
-        if lock_wait_s:
-            init += f", SESSION innodb_lock_wait_timeout = {max(int(lock_wait_s), 1)}"
-        sql_mode = _session_sql_mode()
-        if sql_mode:
-            init += f", SESSION sql_mode = '{sql_mode}'"
-        connect_args = dict(
-            host=config.host,
-            port=config.port,
-            user=config.user,
-            password=config.password,
-            database=config.database,
-            charset="utf8mb4",
-            cursorclass=pymysql.cursors.DictCursor,
-            autocommit=False,
-            # TIMESTAMP columns are stored in UTC but read back in the
-            # session's zone; pinning it to UTC makes every time read the
-            # same whatever the server's own zone is (the pages convert to
-            # each viewer's zone in the browser).
-            # PERF.17: a web pool also stops any statement that runs
-            # past `statement_timeout_s`.
-            init_command=init,
-        )
-        # Never fail over to a fresh connection mid-use: SQLAlchemy's pool
-        # hands out one DBAPI connection and never re-runs a statement on
-        # another, so a deadlock leaves the caller to see it (the error
-        # 1452s of PERF.14's parallel test came from a silent re-run in a
-        # transaction MySQL had already rolled back). A dead pooled
-        # connection is still replaced when it's checked out
-        # (`_ping_on_checkout`); one lost mid-use raises.
-        # A bare pool, not an Engine: an Engine's dialect would probe the
-        # server through these DictCursor connections and read rows by
-        # position.
-        pool = sqlalchemy.pool.QueuePool(
-            lambda: login.connect(**connect_args),
-            pool_size=10,
-            max_overflow=10,
-        )
-        sqlalchemy.event.listen(pool, "checkout", _ping_on_checkout)
-        # Open one connection now, so an unreachable server or a wrong
-        # password fails here rather than at the first query.
-        pool.connect().close()
-        _pools[key] = pool
-    return _pools[key]
+    pool = _pools.get(key)
+    if pool is not None:
+        return pool
+    # One pool per key even when several threads are the first to ask (TEST.218): each would otherwise build its own,
+    # and all but the last stored would be dropped with a connection open on the server.
+    with _pools_lock:
+        if key not in _pools:
+            init = "SET time_zone = '+00:00'"
+            if statement_timeout_s:
+                init += ", " + _statement_timeout_sql(statement_timeout_s)
+            if lock_wait_s:
+                init += f", SESSION innodb_lock_wait_timeout = {max(int(lock_wait_s), 1)}"
+            sql_mode = _session_sql_mode()
+            if sql_mode:
+                init += f", SESSION sql_mode = '{sql_mode}'"
+            connect_args = dict(
+                host=config.host,
+                port=config.port,
+                user=config.user,
+                password=config.password,
+                database=config.database,
+                charset="utf8mb4",
+                cursorclass=pymysql.cursors.DictCursor,
+                autocommit=False,
+                # TIMESTAMP columns are stored in UTC but read back in the
+                # session's zone; pinning it to UTC makes every time read the
+                # same whatever the server's own zone is (the pages convert to
+                # each viewer's zone in the browser).
+                # PERF.17: a web pool also stops any statement that runs
+                # past `statement_timeout_s`.
+                init_command=init,
+            )
+            # Never fail over to a fresh connection mid-use: SQLAlchemy's pool
+            # hands out one DBAPI connection and never re-runs a statement on
+            # another, so a deadlock leaves the caller to see it (the error
+            # 1452s of PERF.14's parallel test came from a silent re-run in a
+            # transaction MySQL had already rolled back). A dead pooled
+            # connection is still replaced when it's checked out
+            # (`_ping_on_checkout`); one lost mid-use raises.
+            # A bare pool, not an Engine: an Engine's dialect would probe the
+            # server through these DictCursor connections and read rows by
+            # position.
+            pool = sqlalchemy.pool.QueuePool(
+                lambda: login.connect(**connect_args),
+                pool_size=10,
+                max_overflow=10,
+            )
+            sqlalchemy.event.listen(pool, "checkout", _ping_on_checkout)
+            # Open one connection now, so an unreachable server or a wrong
+            # password fails here rather than at the first query.
+            pool.connect().close()
+            _pools[key] = pool
+        return _pools[key]
 
 
 def _ping_on_checkout(dbapi_connection, _record, _proxy):
@@ -2884,7 +2891,7 @@ BODY_FIELDS = (
     object_rows.attr("scale_height_km", "scale_height"), object_rows.attr("hill_radius_km", "hill_radius"),
     object_rows.scaled("min_orbit_distance_km", "min_orbit_distance", _AU_KM, nullable=True),
     _au_pair("habitable_zone_inner_km", "habitable_zone_outer_km", "habitable_zone"),
-    object_rows.attr("life_chemical"), object_rows.attr("evolutionary_speed"),
+    object_rows.attr("life_chemical"),
     object_rows.attr("life_stage"), object_rows.attr("evolutionary_pace"),
     object_rows.attr("life_milestone_age_gyr"), object_rows.attr("life_system_age_gyr"),
     object_rows.attr("flavor_key"), object_rows.attr("flavor_text_count"),
@@ -4581,7 +4588,7 @@ def compact_host_of_star(conn, star_id):
 def _stored_native_life(row):
     """The `habitability.LIFE_STAGES` stage of a stored planet or moon `row` (`planets` or `moons`), read
     from its life chemistry and the milestone its timeline reached (`habitability_world.native_life`), for a re-score."""
-    return habitability_world.native_life(row["life_chemical"], row["life_stage"], row["evolutionary_pace"] is not None)
+    return habitability_world.native_life(row["life_chemical"], row["life_stage"], row["life_system_age_gyr"] is not None)
 
 
 def stored_world(conn, table, row, with_life=True):

@@ -94,3 +94,4 @@ Commit each file came from:
 - v139: 3daf30ba3 (before DB.73)
 - v140: 2ae3043 (DB.73 parent link) (before GEN.459)
 - v141: 7cbd9d6 (GEN.459 radiogenic module, before GEN.412)
+- v142: 77fdfbb96 (GEN.412 albedo and greenhouse, before GEN.666)

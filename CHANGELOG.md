@@ -2,6 +2,46 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2147] - 2026-10-24
+
+**Headline:** Zooming into a window of the Galaxy Map no longer hides the stars and clouds outside it.
+
+### Changed
+- **Nothing is clipped to the window (MAP.264).** Stepping into a block, a window of sectors or a sector used to hide every star and cloud outside the window's cells, so the surroundings vanished at each stage. They all stay now and the map's visibility rules decide what is drawn; only a sector opened in place still leaves out the galaxy's own stars inside its cell, because that sector draws them itself.
+
+TODO items resolved: MAP.264. Added: none.
+
+## [8.0.2146] - 2026-10-24
+
+**Headline:** A planet page now states one pace, one chemistry and one set of milestones and ages for its life, so its paragraphs can no longer contradict each other.
+
+### Fixed
+- **GEN.666: the life paragraphs disagreed.** A page could say "life based on melanin would evolve at a normal pace" and, a paragraph later, "life here would evolve at a hyper-accelerated pace ... technological civilization, reached at 80 Myr". The pace was drawn twice (`life.get_evolutionary_speed` and a second draw inside `evolution.get_evolutionary_state`), stored in two columns and written by two writers. The generator now draws the pace once (`evolution.draw_scale`, one the star supports and the life chemistry needs) and stores it in `evolutionary_pace` for every body with a life chemistry. `evolutionary_speed` is dropped (migration 0143, schema v143; a body that had only a speed keeps it as its pace). `describe/life_facts.py` resolves the chemistry, pace, ages and milestone once into a `LifeFacts` and the life paragraph and the timeline paragraph are written from it alone; the timeline no longer repeats a pace of its own and says when the system was that old at the milestone. The unused second writer (`Planet._generate_life_and_flavor_paragraphs`, `evolution.timeline_paragraphs`) is removed.
+- **A world whose life does not split water is no longer told it releases oxygen.** The "photosynthesis" milestone is named and described by the chemistry's metabolism (`tuning.LIFE_METABOLISMS`): oxygenic photosynthesis, anoxygenic photosynthesis, retinal phototrophy or radiotrophy.
+- A body with no viable life chemistry no longer keeps a reflection spectrum.
+- **The atmosphere table now holds the class's balance gases.** A class B page said "a mix of helium, sodium, and oxygen" above a table of "Oxygen 100%": helium and sodium (the class's balance, named in the phrase and held in the surface pressure) were left out of the table. The table is now shares of the whole surface pressure (`physics/atmosphere.balance_names` and `balance_kpa`).
+
+generation-output: changed
+
+## [8.0.2145] - 2026-10-24
+
+**Headline:** Several threads asking for a database connection at once no longer leave extra connections open on the server.
+
+### Fixed
+- **A first burst of connections built one connection pool per thread (TEST.218).** `_get_pool` now builds a database's pool under a lock, so threads that are the first to ask share one pool instead of each opening a connection that the last pool stored would drop without closing.
+
+### Changed
+- **Tests: the object index budget test (TEST.273) keeps its records under its own Redis keys,** so another worker's database cannot take bytes off the tile cache budget between two reads.
+- **Tests: the prevalence percentage tests (TEST.233) use a seed that is the same in every process,** so a failure repeats and the assert message prints the seed.
+- **Tests: the control connections test (TEST.218) ends its pool and asserts it left no connection open.**
+
+## [8.0.2144] - 2026-10-24
+
+**Headline:** The text description of a body now keeps each quantity in the unit it is stored in, and converts it only when it is shown.
+
+### Changed
+- **Describe quantities** (GEN.574): a quantity in the description model is `{"kind", "value", "unit"}` instead of `{"kind", "si"}`. `model.qty` checks the unit against the unit registry and `model.measured` keeps the stored quantity's own unit, so a length held in megametres is no longer converted to metres on the way in. The wiki, text and web renderers convert to the kind's base unit when they show it; the page's `data-si` attribute, which the browser reads, is unchanged. What you see on a body page does not change.
+
 ## [8.0.2143] - 2026-10-24
 
 **Headline:** Twelve physics files now convert astronomical units, years, light-years and parsecs through the one unit registry, with the same numbers.

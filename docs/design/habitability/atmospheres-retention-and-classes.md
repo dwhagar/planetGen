@@ -81,7 +81,7 @@ is listed under Evidence notes for checking when paper access is allowed.
   the planet's score, atmosphere, radiation or time since habitable.
 - **A finding.** Class N (and Q) carries a `life_chemical` but is not in the
   habitable list and has no stage cap. `life.py` (line 198) stores an uncapped
-  `evolutionary_data` timeline for any ecosphere planet with a chemical;
+  timeline for any ecosphere planet with a chemical;
   `Planet.to_paragraph_list` displays it only for the habitable list. A Venus
   analog (737 K, 9.2 MPa) therefore stores a life chemical and a hidden
   timeline, and its page still says "conditions are suitable for the
