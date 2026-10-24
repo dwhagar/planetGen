@@ -26,7 +26,6 @@ from planetgen.api.config import Config
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib.fmt import linkify_nearest, nearest_systems_html  # noqa: E402
 from planetgen.db import store  # noqa: E402
-from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.describe import model  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
@@ -57,7 +56,6 @@ def _system_detail(system_id=5, name="Kepler <b>42</b>", sector_id=7):
         "is_binary": 0, "binary_type": None, "binary_configuration": None,
         "binary_mutual_position_x_km": None, "binary_mutual_position_y_km": None,
         "binary_mutual_position_z_km": None,
-        "wikijs_url": None, "mediawiki_url": None,
         "stars": [_star(1)], "planets": [], "belts": [], "comets": [],
         "sector_siblings": [{"id": 8, "name": "Alpha"}, {"id": 9, "name": "Beta"}],
         "nearest_neighbors": [{"id": 8, "name": "Alpha", "distance_ly": 4.2},
@@ -89,8 +87,6 @@ class FakeData:
             "galactic_orbital_speed_kms": 220.0, "galactic_orbital_period_gy": 0.25,
             "galactic_radius_pc": 1000.0, "sector_id": 3, "sector_name": "Crab <Sector>",
         }
-        self.wiki_config = {"wikijs": True, "mediawiki": True}
-        self.upload_error = None
         self.admin = None
         self.calls = []
 
@@ -119,17 +115,7 @@ class FakeData:
 
     def get_system_text(self, db, system_id, fmt):
         self.calls.append(("get_system_text", db, system_id, fmt))
-        return {"id": system_id, "format": fmt, "content": f"== {fmt} <page> ==\nline"}
-
-    def get_wiki_config(self):
-        self.calls.append(("get_wiki_config",))
-        return self.wiki_config
-
-    def upload_system_to_wiki(self, cookie_header, db, system_id, backend, path=None):
-        self.calls.append(("upload_system_to_wiki", cookie_header, db, system_id, backend, path))
-        if self.upload_error:
-            raise self.upload_error
-        return {"id": 1, "path": path, "title": "x", "url": "https://wiki.example/x"}
+        return {"id": system_id, "format": fmt, "content": f"# {fmt} <page>\nline"}
 
     def get_phenomena(self, db, limit=None, offset=None, sort=None, descending=False, types=(), descriptors=(),
                       placed=None, facets=False, after=None, start=None):
@@ -162,7 +148,7 @@ class FakeData:
 
 
 _FAKED = ("get_system", "get_system_description", "get_system_facilities", "get_system_owner", "get_facility_types", "get_system_habitable_species",
-          "get_system_text", "get_wiki_config", "upload_system_to_wiki",
+          "get_system_text",
           "get_phenomena", "get_phenomenon", "get_phenomenon_contents", "auth_me")
 
 
@@ -256,9 +242,9 @@ def test_system_page_renders(app, client, fake):
     assert 'id="system-code"' not in html
     assert not re.search(r'href="/system/[^"]*db=', html)
     assert {call[1] for call in fake.calls if call[0].startswith("get_system")} == {DB}
-    # Logged out: no wiki lookup and no upload form.
-    assert not [c for c in fake.calls if c[0] in ("get_wiki_config", "auth_me")]
-    assert "Upload to Wiki" not in html
+    # Logged out: no admin lookup.
+    assert not [c for c in fake.calls if c[0] == "auth_me"]
+    assert "wiki" not in html.lower()
 
 
 def test_system_page_pick_mode_offers_only_the_pick_button(client, fake):
@@ -304,24 +290,19 @@ def test_standalone_system_breadcrumbs_and_no_nav(client, fake):
 
 
 def test_system_page_code_views(client, fake):
-    html = client.get("/system/5?code=wikitext").get_data(as_text=True)
-    assert ("get_system_text", DB, "5", "wikitext") in fake.calls
+    html = client.get("/system/5?code=markdown").get_data(as_text=True)
+    assert ("get_system_text", DB, "5", "markdown") in fake.calls
     assert 'id="system-code"' in html and 'data-copy-target="system-code"' in html
-    assert "== wikitext &lt;page&gt; ==" in html
-    assert 'href="/system/5#system-panel"' in html and ">Hide Wikitext</a>" in html
-    assert 'href="/system/5?code=markdown#system-panel"' in html
+    assert "# markdown &lt;page&gt;" in html
+    assert 'href="/system/5#system-panel"' in html and ">Hide Markdown</a>" in html
+    html = client.get("/system/5?code=wikitext").get_data(as_text=True)
+    assert 'id="system-code"' not in html
+    assert not [c for c in fake.calls if c[0] == "get_system_text" and c[3] == "wikitext"]
     html = client.get("/system/5?code=bogus").get_data(as_text=True)
     assert 'id="system-code"' not in html
-    assert 'href="/system/5?code=wikitext#system-panel">Wikitext</a>' in html
+    assert 'href="/system/5?code=markdown#system-panel">Markdown</a>' in html
     # UX.67: the switch is a quiet "View source" menu, not two buttons.
     assert '<summary>View source</summary>' in html and "btn-secondary" not in html.split('id="system-heading"')[1][:600]
-
-
-def test_system_page_wiki_links(client, fake):
-    fake.system["wikijs_url"] = "https://wiki.example/a?x=1&y=2"
-    html = client.get("/system/5").get_data(as_text=True)
-    assert 'href="https://wiki.example/a?x=1&amp;y=2" target="_blank" rel="noopener noreferrer">View on Wiki.js' in html
-    assert "View on MediaWiki" not in html
 
 
 def test_unknown_system_is_404(client, fake):
@@ -331,66 +312,10 @@ def test_unknown_system_is_404(client, fake):
     assert client.get("/system/abc").status_code == 404
 
 
-def test_admin_sees_upload_form_with_remaining_backends(client, fake):
+def test_a_post_that_is_no_known_action_is_refused(app, client, fake):
     _as_admin(client, fake)
-    fake.system["mediawiki_url"] = "https://wiki.example/m"
-    html = client.get("/system/5").get_data(as_text=True)
-    form = re.search(r'<form method="post" action="/system/5".*?</form>', html, re.S).group(0)
-    assert 'name="csrf_token"' in form
-    assert 'value="wikijs" checked' in form
-    assert 'value="mediawiki"' not in form
-    assert 'placeholder="e.g. systems/Kepler &lt;b&gt;42&lt;/b&gt;"' in form
-
-
-def test_admin_upload_form_hidden_when_nothing_left(client, fake):
-    _as_admin(client, fake)
-    fake.wiki_config = {"wikijs": False, "mediawiki": False}
-    html = client.get("/system/5").get_data(as_text=True)
-    assert 'id="wiki-upload"' not in html
-
-
-def test_upload_post_redirects_to_get(app, client, fake):
-    _as_admin(client, fake)
-    token = _csrf(app, client)
-    resp = client.post("/system/5", data={csrf.FIELD_NAME: token, "backend": "wikijs", "path": " systems/k42 "})
-    assert resp.status_code == 303
-    assert resp.headers["Location"] == "/system/5?wiki=uploaded#wiki-upload"
-    upload = [c for c in fake.calls if c[0] == "upload_system_to_wiki"][0]
-    assert upload[2:] == (DB, "5", "wikijs", "systems/k42")
-    assert f"{SESSION_COOKIE_NAME}=token-value" in upload[1]
-    html = client.get("/system/5?wiki=uploaded").get_data(as_text=True)
-    assert "Uploaded to the wiki." in html
-
-
-@pytest.mark.parametrize("status,code,message", [
-    (409, "exists", "A page already exists at that location."),
-    (400, "invalid", "The upload was rejected."),
-    (501, "unconfigured", "That wiki is not configured"),
-    (502, "failed", "The upload failed."),
-])
-def test_upload_errors_become_fixed_messages(app, client, fake, status, code, message):
-    _as_admin(client, fake)
-    fake.upload_error = apiclient.ApiError("detail <x>", status_code=status)
-    resp = client.post("/system/5", data={csrf.FIELD_NAME: _csrf(app, client), "backend": "mediawiki"})
-    assert resp.headers["Location"] == f"/system/5?wiki={code}#wiki-upload"
-    html = client.get(f"/system/5?wiki={code}").get_data(as_text=True)
-    assert message in html and "detail &lt;x&gt;" not in html
-
-
-def test_upload_rejects_unknown_backend_without_calling_api(app, client, fake):
-    _as_admin(client, fake)
-    resp = client.post("/system/5", data={csrf.FIELD_NAME: _csrf(app, client), "backend": "evil"})
-    assert resp.headers["Location"] == "/system/5?wiki=invalid#wiki-upload"
-    assert not [c for c in fake.calls if c[0] == "upload_system_to_wiki"]
-
-
-def test_upload_needs_admin_and_csrf(app, client, fake):
-    assert client.post("/system/5", data={"backend": "wikijs"}).status_code == 400
-    resp = client.post("/system/5", data={csrf.FIELD_NAME: _csrf(app, client), "backend": "wikijs"})
-    assert resp.status_code == 403
-    assert not [c for c in fake.calls if c[0] == "upload_system_to_wiki"]
-    # A visitor can't show the outcome message either.
-    assert "Uploaded to the wiki." not in client.get("/system/5?wiki=uploaded").get_data(as_text=True)
+    resp = client.post("/system/5", data={csrf.FIELD_NAME: _csrf(app, client), "backend": "wikijs", "path": "x"})
+    assert resp.status_code == 400
 
 
 # --- /phenomena and /phenomenon/<type>/<id> ------------------------------------------
@@ -637,7 +562,7 @@ def test_real_system_page_lists_bodies_and_code(db_app, mysql_config):
     assert '<span class="stat">Class ' in html
     assert html.index("<h2>Stars</h2>") < html.index('id="system-panel"')
     assert 'id="system-code"' not in html
-    for fmt, marker in (("wikitext", "[[Category:Star Systems]]"), ("markdown", "| Property | Value |")):
+    for fmt, marker in (("markdown", "| Property | Value |"),):
         page = client.get(f"/system/{pid('system', system_id)}?code={fmt}").get_data(as_text=True)
         assert 'id="system-code"' in page
         assert marker in page.replace("&#39;", "'")
@@ -703,32 +628,6 @@ def test_real_phenomena_list_and_detail(db_app, mysql_config):
         # side by side when there's room (static/style.css).
         row = page.index('class="object-view-row"')
         assert row < page.index('id="phenomrender"') < page.index('id="phenomenon-data-heading"')
-
-
-def test_real_admin_upload_without_wiki_config(db_app, mysql_config):
-    """With no wiki configured, an admin sees no form, and a hand-made
-    POST comes back as a fixed message: first "change your default
-    credentials" (the API's own rule), then "not configured"."""
-    _username, first_password = adminAuth.bootstrap_control_schema(mysql_config)
-    system_id = _save_system(mysql_config, moons=False)
-    client = db_app.test_client()
-    assert client.post("/api/auth/login", json={"username": "admin", "password": first_password}).status_code == 200
-    html = client.get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
-    assert 'id="wiki-upload"' not in html
-    token = _csrf(db_app, client)
-    resp = client.post(f"/system/{pid('system', system_id)}", data={csrf.FIELD_NAME: token, "backend": "mediawiki"})
-    assert resp.headers["Location"] == f"/system/{pid('system', system_id)}?wiki=forbidden#wiki-upload"
-    assert "Change the admin username and password the installer set first." in client.get(resp.headers["Location"]).get_data(as_text=True)
-
-    assert client.post("/api/auth/change-credentials", json={
-        "current_password": first_password, "new_username": "boss", "new_password": "a-long-new-password-1",
-    }).status_code == 200
-    token = _csrf(db_app, client)  # the change re-issued the session; tokens are bound to it
-    resp = client.post(f"/system/{pid('system', system_id)}", data={csrf.FIELD_NAME: token, "backend": "mediawiki"})
-    assert resp.status_code == 303
-    assert resp.headers["Location"] == f"/system/{pid('system', system_id)}?wiki=unconfigured#wiki-upload"
-    html = client.get(resp.headers["Location"]).get_data(as_text=True)
-    assert "That wiki is not configured for this site." in html
 
 
 def test_system_page_shows_it_on_the_galaxy_map(client, fake):

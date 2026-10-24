@@ -55,5 +55,4 @@ The script reads `requirements-server.lock` and `setup.py` from a checkout if it
 ## Not covered
 
 - Only what the repo's tests need. It does not run `install.sh` or `update.sh`, does not create a PlanetGen database or `config.json`, and never touches your real server.
-- Wiki.js and MediaWiki integration tests stay skipped (they need external servers).
 - Python is the image's system Python (PlanetGen needs 3.12 or newer, the script checks). `mod_wsgi` from Ubuntu is built for Ubuntu's own `python3` (3.12 on 24.04, 3.14 on 26.04), so it is not used to serve the app here.

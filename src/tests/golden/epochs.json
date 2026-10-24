@@ -390,6 +390,11 @@
       "epoch": 79,
       "first_release": "8.0.2177",
       "reason": "Belts, comets and interstellar comets are drawn from their materials: a belt's taxa follow its distance in units of its star's snow line, a comet's nucleus has its ices, refractories and porosity and a stored mass in place of the fixed 533 kg/m3, so every belt's composition text and every comet's composition, mass and later draws change (GEN.442)"
+    },
+    {
+      "epoch": 80,
+      "first_release": "8.0.2180",
+      "reason": "A giant planet's radius comes from the Fortney, Marley and Barnes 2007 tables for its mass, heavy-element core, starlight and age (plus hot-giant inflation) and its heavy elements and layered interior are drawn together (Chachan et al. 2025 for class J), replacing the anchored mass-radius relation and the stand-in envelope shares, so every giant's radius and composition and the stream after it move (GEN.460, GEN.642)"
     }
   ]
 }

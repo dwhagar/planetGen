@@ -63,7 +63,7 @@ Field metadata goes in `json_schema_extra` under `x-` keys, declared through one
 | Tier | Options | Edited in the browser by |
 |---|---|---|
 | admin | site text, SEO, Open Graph, icons, `limits`, `ratelimit` numbers, tile cache, `jobs.keep`, page cache | any admin |
-| Owner | SMTP, `base_url`, wiki URLs and credentials | the Owner, after re-entering the password |
+| Owner | SMTP, `base_url` | the Owner, after re-entering the password |
 | read-only | `mysql.*`, `control_database`, `jobs.python`, `jobs.dir`, log paths, `secret_key`, `proxy_fix.*`, `admin_cookie_insecure`, `redis.url`, `api_base_url` | nobody; the page shows the value and "change it on the command line" |
 
 This enforces "everything except the database" by file permission, not only by hiding fields.
@@ -79,7 +79,7 @@ A Jinja macro walks `Settings.model_fields` and picks a Shoelace widget (UX.49) 
 - **Missing versus false.** An unchecked checkbox sends nothing, so post a hidden list of the rendered field names and apply only those. Disabled (environment-overridden) and read-only fields are never applied.
 - **Validation layers:** per field (Pydantic); cross field (`model_validator`: `smtp.security=none` with a non-loopback host is refused); environmental checks that only warn (folder writable, Redis answers, SMTP test, PNG decodes), run from "Test" buttons, not on every save.
 - **Concurrent edits.** The form carries a hash of the file as read; a stale hash is refused with a diff.
-- **Recent authentication** for the Owner tier: the password again (valid 5 minutes) before saving SMTP, `base_url` or wiki settings. Each field also shows where its value comes from (default, file or environment).
+- **Recent authentication** for the Owner tier: the password again (valid 5 minutes) before saving SMTP or `base_url`. Each field also shows where its value comes from (default, file or environment).
 
 ### A4. Applying changes: live reload versus restart
 
@@ -87,7 +87,7 @@ The code already splits this way by accident (from the `load_config` call sites,
 
 | Option | Read | Treat as |
 |---|---|---|
-| `site_name`, `tile_cache.*`, `jobs.*`, `mysql.statement_timeout_seconds`, `wiki.*`, `redis.url` (queue) | on each use | live |
+| `site_name`, `tile_cache.*`, `jobs.*`, `mysql.statement_timeout_seconds`, `redis.url` (queue) | on each use | live |
 | `debug`, `log_file`, `log_dir`, `log_rotation`, `page_cache.*` | at logger or app start | restart (could become live) |
 | `ratelimit.*`, `login_allowlist`, `admin_cookie_insecure`, `secret_key`, `proxy_fix.*`, `api_base_url`, `mysql.*`, `control_database` | at import into `Config` | restart |
 
@@ -99,7 +99,7 @@ The code already splits this way by accident (from the `load_config` call sites,
 
 ### A5. Secrets
 
-Secrets in scope: SMTP password, wiki token and password, `secret_key`, MySQL password. Every secret is stored in the same `config.json`. An environment variable is a supported override (`x-env`), not storage (mod_wsgi does not pass Apache `SetEnv` into `os.environ`). Encrypting in the control database is not worth it: the key would sit on the same host where the web user reads it, so it only protects a leaked dump, and a file outside the database is already absent from dumps. Secrets are never returned to the browser (the form shows "set" and takes a replacement), never written to the audit or debug log, and shown in a diff, an audit row, an export and `config check` only as "(changed)" or "set". An archive of the file (ADM.87) holds the secrets, so it is an owner-only file that only the Owner may download.
+Secrets in scope: SMTP password, `secret_key`, MySQL password. Every secret is stored in the same `config.json`. An environment variable is a supported override (`x-env`), not storage (mod_wsgi does not pass Apache `SetEnv` into `os.environ`). Encrypting in the control database is not worth it: the key would sit on the same host where the web user reads it, so it only protects a leaked dump, and a file outside the database is already absent from dumps. Secrets are never returned to the browser (the form shows "set" and takes a replacement), never written to the audit or debug log, and shown in a diff, an audit row, an export and `config check` only as "(changed)" or "set". An archive of the file (ADM.87) holds the secrets, so it is an owner-only file that only the Owner may download.
 
 ### A6. Saving, backup, rollback, versioning, audit, import and export
 

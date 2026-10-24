@@ -15,7 +15,6 @@ SWATCH = model.swatch("#99bfff", "pale blue")
 def test_a_swatch_is_written_by_every_format():
     assert inline_text([SWATCH], "text") == "pale blue (#99bfff)"
     assert inline_text(["Sky: ", SWATCH], "markdown") == "Sky: pale blue (#99bfff)"
-    assert inline_text([SWATCH], "wikitext") == '<span style="background:#99bfff">&emsp;</span> pale blue'
     html = inline_html([SWATCH])
     assert 'class="swatch"' in html and 'data-colour="#99bfff"' in html and "style=" not in html and html.endswith(" pale blue")
 

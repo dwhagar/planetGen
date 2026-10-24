@@ -24,8 +24,6 @@ much mass that radius holds.
    A small body (below `SMALL_BODY_MASS_KG`) is a heap with a porosity and its mass is its volume times the mixing density.
 4. **Class S and a body given both a mass and a radius** go the other way (`origin` is `inverse`): the mass and the radius
    (for class S, the radius and a density from the class's range) say the core mass fraction, as the observer's route does.
-5. **A giant** has its mass and radius from the giant law (GEN.34) and gets a stand-in envelope share and heavy-element core
-   from `GIANT_ENVELOPE` and `GIANT_CORE`, until the giant interiors (GEN.460) replace them.
 
 The draw order is the order above; it is part of the generator epoch.
 """
@@ -66,17 +64,6 @@ RANGES = {
 - `porosity`: the void share of a small icy body, uniform; a stand-in until viscous compaction (lane K) replaces it.
 - `other_ice_comet_class`: whose volatile proportions an icy class takes for its ices other than water.
 """
-
-GIANT_ENVELOPE = {"I": (0.05, 0.25), "J": (0.75, 0.97), "T": (0.50, 0.90)}
-"""dict: A giant class's envelope (hydrogen and helium) share of its mass, uniform; a stand-in until GEN.460."""
-
-GIANT_CORE = {"I": {"metal": 0.05, "rock": 0.25, "water": 0.55, "ice": 0.15},
-              "J": {"metal": 0.20, "rock": 0.55, "water": 0.20, "ice": 0.05},
-              "T": {"metal": 0.15, "rock": 0.45, "water": 0.30, "ice": 0.10}}
-"""dict: Mean shares of a giant's non-envelope mass, drawn around with `GIANT_CORE_CONCENTRATION`; a stand-in until GEN.460."""
-GIANT_CORE_CONCENTRATION = 40.0
-GIANT_ENVELOPE_Z = {"I": (5.0, 30.0), "J": (1.0, 8.0), "T": (1.0, 12.0)}
-"""dict: A giant's envelope heavy-element share as a multiple of its star's Z, log-uniform; a stand-in until GEN.460."""
 
 DENSITY_BOUNDS_G_CM3 = (0.6, 25.0)
 """tuple: The lowest and highest mean density a terrestrial body can have, g/cm3: ice with the 30 percent porosity of `RANGES` (0.917 times 0.7) and
@@ -352,24 +339,3 @@ def _draw_inverse(body, ratios, water, ice, feo, light, carbon_rock, graphite, m
         metal=cmf * (1.0 - wet), rock=(1.0 - cmf) * (1.0 - wet), water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo,
         rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=None, carbon_rock=carbon_rock, origin="inverse")
     _store(body, bulk)
-
-
-def draw_giant(body):
-    """
-    Draws a giant's bulk composition (a stand-in until GEN.460); its mass, radius and density were set by the giant law.
-
-    Sets:
-        The attributes of `bulk_composition.BODY_FIELDS`.
-    """
-    ratios = host_ratios(body.star)
-    envelope = draw.uniform(*GIANT_ENVELOPE[body.planet_class])
-    means = GIANT_CORE[body.planet_class]
-    shares = dict(zip(means, draw.dirichlet([GIANT_CORE_CONCENTRATION * share for share in means.values()])))
-    core = 1.0 - envelope
-    z_low, z_high = GIANT_ENVELOPE_Z[body.planet_class]
-    envelope_z = min(0.5, ratios.z * log_uniform(z_low, z_high))
-    bulk = bulk_composition.BulkFractions(
-        metal=core * shares["metal"], rock=core * shares["rock"], water=core * shares["water"], ice=core * shares["ice"],
-        envelope=envelope, envelope_helium=ratios.y_envelope, envelope_z=envelope_z, origin="drawn")
-    for attribute, value in bulk.to_attributes().items():
-        setattr(body, attribute, value)

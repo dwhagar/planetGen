@@ -56,7 +56,7 @@ RUNS_FILE = os.path.join(ROOT, ".test-runs.json")
 FAILURES_FILE = os.path.join(ROOT, ".test-failures.jsonl")
 PROGRESS_DIR = os.path.join(ROOT, ".test-progress")
 KEEP_PROGRESS_SECONDS = 24 * 3600
-AREAS = ("web", "api", "db", "generation", "physics", "names", "wiki", "ops", "other")
+AREAS = ("web", "api", "db", "generation", "physics", "names", "ops", "other")
 
 
 def build_phases(command, areas, workers, browser_workers):

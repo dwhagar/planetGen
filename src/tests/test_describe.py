@@ -6,7 +6,7 @@
 The Document must hold everything the old per-class text carried (every fact
 key, the same overview sentences), be the same whether it is built from a
 fresh system or one rebuilt from the database, be plain JSON, and carry no
-Markdown, wikitext or HTML.
+Markdown or HTML.
 """
 
 import json

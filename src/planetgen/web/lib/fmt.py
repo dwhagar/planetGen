@@ -250,7 +250,7 @@ def static_url(name):
 def esc(value):
     """
     HTML-escapes any value for safe interpolation into a page -- API
-    content (system/star/planet names, flavor text, generated wikitext)
+    content (system/star/planet names, flavor text, generated Markdown)
     is user-influenced-adjacent (from `--name`, `--system-file`, etc.)
     and must never be trusted as pre-sanitized HTML.
 

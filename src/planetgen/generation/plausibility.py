@@ -180,29 +180,13 @@ def theoretical_gravity_bounds_g(cls):
         min_d, max_d = bulk_draw.DENSITY_BOUNDS_G_CM3
         values.extend((gravity_g(radii_m[0], min_d * 1000), gravity_g(radii_m[1], max_d * 1000)))
     else:
-        # A giant's radius follows its mass (planetPhysics' giant mass-radius
-        # relation, GEN.34): g = G*M/R^2 with R = relation(M) times a
-        # scatter factor within 3 sigma, clamped to the class's radius
-        # range. Between the mass range's ends, the branches' transition
-        # mass and the masses where the scattered radius meets a clamp,
-        # g is a single power of M (monotonic), so its extremes are at
-        # those masses.
+        # A giant's radius comes from its mass, heavy elements, starlight and age (the radius tables of GEN.460, or the anchored
+        # relation of GEN.34 outside them), kept inside the class's radius range, so the bounds are the ones no radius law
+        # passes: g = G*M/R^2 is least for the lightest mass at the largest radius and greatest for the heaviest mass at the
+        # smallest, with the masses of the class's mass range.
         low_kg, high_kg = planetPhysics.giant_mass_range_kg(cls)
-        sigma = max(pc.GIANT_RADIUS_SCATTER.values())
-        factors = (1 - 3 * sigma, 1 + 3 * sigma)
-        earth_kg, earth_km = pc.EARTH_MASS_TO_KG, pc.EARTH_RADIUS_KM
-        masses = [low_kg, high_kg, planetPhysics.GIANT_TRANSITION_MASS_EARTH * earth_kg]
-        for m0, r0, slope in (pc.GIANT_NEPTUNIAN_MASS_RADIUS, pc.GIANT_JOVIAN_MASS_RADIUS):
-            for factor in factors:
-                for bound_km in (min_r_km, max_r_km):
-                    masses.append(m0 * (bound_km / earth_km / (r0 * factor)) ** (1 / slope) * earth_kg)
-        for mass_kg in masses:
-            if not low_kg <= mass_kg <= high_kg:
-                continue
-            for factor in factors:
-                radius_km = min(max_r_km, max(min_r_km, planetPhysics.giant_radius_km(mass_kg) * factor))
-                radius_m = _km_to_m(radius_km)
-                values.append(relations.surface_gravity(mass_kg, radius_m) / pc.EARTH_GRAVITY)
+        values.extend(relations.surface_gravity(mass_kg, _km_to_m(radius_km)) / pc.EARTH_GRAVITY
+                      for mass_kg, radius_km in ((low_kg, max_r_km), (high_kg, min_r_km)))
 
     return min(values), max(values)
 

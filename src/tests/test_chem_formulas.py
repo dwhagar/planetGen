@@ -11,7 +11,7 @@ import re
 
 import pytest
 
-from planetgen.describe import html as describe_html, markdown, model, text as describe_text, wikitext
+from planetgen.describe import html as describe_html, markdown, model, text as describe_text
 from planetgen.describe.quantity import inline_text
 from planetgen.util import chem
 
@@ -112,7 +112,6 @@ def test_the_document_s_chem_item_is_written_by_every_renderer():
         model.chem("not a formula")
     assert inline_text(value, "text") == "H₂, CO and Fe²⁺"
     assert inline_text(value, "markdown") == "H<sub>2</sub>, CO and Fe<sup>2+</sup>"
-    assert inline_text(value, "wikitext") == "H<sub>2</sub>, CO and Fe<sup>2+</sup>"
     assert describe_html.inline_html(value) == "H<sub>2</sub>, CO and Fe<sup>2+</sup>"
     document = model.document("phenomenon", "nebula:1", "A Cloud", [
         model.section("nebula", "nebula:1", "A Cloud", [model.facts("Facts", [model.fact("species", "Dominant Gas", value)])])])
@@ -120,7 +119,6 @@ def test_the_document_s_chem_item_is_written_by_every_renderer():
     assert {"chem": "H2"} in list(model.walk_inline(document))
     assert "H₂, CO and Fe²⁺" in describe_text.render(document)
     assert "H<sub>2</sub>, CO and Fe<sup>2+</sup>" in markdown.render(document)
-    assert "H<sub>2</sub>, CO and Fe<sup>2+</sup>" in wikitext.render(document)
     assert "H<sub>2</sub>, CO and Fe<sup>2+</sup>" in describe_html.render(document)
 
 

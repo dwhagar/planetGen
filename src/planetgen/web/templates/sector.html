@@ -7,39 +7,9 @@
 {%- set groups = [] %}
 {#- ADM.34, UX.75: the sector's admin actions are built here, outside the blocks, so the
     action bar (subhead) and the dialogs (content) share them. -#}
-{%- set show_wiki = admin and wiki_backends and not sector.wiki_url -%}
 {%- set show_generate = can_generate and sector.placed -%}
 {%- set here = url_for('web.sector', sector_id=sector_id) %}
 {%- set actions = [] %}
-{%- if show_wiki %}
-{%- set wiki_fields %}
-    <div class="search-fields">
-      <fieldset class="search-field">
-        <legend>Wiki</legend>
-        {%- for value, label in wiki_backends %}
-        <label><input type="radio" name="backend" value="{{ value }}"{% if loop.first %} checked{% endif %}> {{ label }}</label>
-        {%- endfor %}
-      </fieldset>
-      <label class="search-field">Path (Wiki.js only; MediaWiki uses the sector's name)
-        <input type="text" name="path" placeholder="e.g. sectors/{{ sector.name }}">
-      </label>
-    </div>
-{%- endset %}
-{%- set _ = actions.append({'key': 'wiki', 'label': 'Upload to Wiki', 'title': 'Upload to Wiki', 'note': '',
-    'fields': wiki_fields, 'hidden': {'action': 'upload_wiki'}, 'button': 'Upload'}) %}
-{%- endif %}
-{%- if admin %}
-{%- set wiki_link_fields %}
-    <div class="search-fields">
-      <label class="search-field">Wiki URL
-        <input type="text" inputmode="url" name="wiki_url" value="{{ sector.wiki_url or '' }}" placeholder="https://wiki.example.com/Sector_Name">
-      </label>
-    </div>
-{%- endset %}
-{%- set _ = actions.append({'key': 'wiki-link', 'label': 'Set wiki link', 'title': 'Set wiki link',
-    'note': 'The link to this sector\'s wiki page, for a hand-written page from outside this app or to fix a link an upload set. Leave the URL blank to clear it.',
-    'fields': wiki_link_fields, 'hidden': {'action': 'set_wiki_url'}, 'button': 'Save link'}) %}
-{%- endif %}
 {%- if show_generate %}
 {%- set _ = actions.append({'key': 'neighborhood', 'label': 'Generate neighborhood', 'title': 'Generate neighborhood',
     'note': 'Fills in every not-yet-generated sector within 12 pc (about 39 ly) of this one (already-generated sectors are skipped), and gives the 100 ly around every new sector its bright stars. It runs as a job on the Generate page, so it keeps going if you close this page. The size and time are shown first, to confirm.',
@@ -94,20 +64,11 @@
 {%- for message in messages %}
 <p class="hint" role="status">{{ message }}</p>
 {%- endfor %}
-{%- if sector.wiki_url %}
-<p class="wiki-link"><a href="{{ sector.wiki_url }}" target="_blank" rel="noopener noreferrer">View on Wiki</a></p>
-{%- endif %}
-{#- ADM.34: every admin action of this page (upload to the wiki, generate the
+{#- ADM.34: every admin action of this page (generate the
     neighborhood, regenerate and delete the sector) sits behind the one Admin
     menu (partials/admin_menu.html, static/dialogmenus.js) and opens in a
     dialog. The neighborhood's size-and-time check comes back as a dialog
     opened on load. #}
-{%- if errors.wiki %}
-<p class="error" role="alert">{{ errors.wiki }}</p>
-{%- endif %}
-{%- if errors.wiki_link %}
-<p class="error" role="alert">{{ errors.wiki_link }}</p>
-{%- endif %}
 {%- if errors.neighborhood %}
 <p class="error" role="alert">{{ errors.neighborhood }}</p>
 {%- endif %}

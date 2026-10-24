@@ -5,11 +5,10 @@ The system and phenomenon pages (moved from the CGI `system.py`,
 `phenomena.py` and `phenomenon.py`):
 
 - `/system/<id>`: one star system -- the system map, the expandable body
-  list with each body's generated description, the Wikitext/Markdown
-  code views (`?code=wikitext|markdown`), the Stars/Planets/Belts/Comets
-  tables, the system's facilities, and for an admin an "Upload to Wiki"
-  form (POST, CSRF-checked, then redirected back to the GET page) and the
-  facility form and Remove buttons (`web/system_facilities.py`).
+  list with each body's generated description, the Markdown code view
+  (`?code=markdown`), the Stars/Planets/Belts/Comets tables, the
+  system's facilities, and for an admin the facility form and Remove
+  buttons (`web/system_facilities.py`).
 - `/phenomena`: every exotic phenomenon, paged with `?page=N`.
 - `/phenomenon/<type>/<id>`: one phenomenon's data and its AU-scale
   diagram.
@@ -42,7 +41,6 @@ from planetgen.web.lib.systempage import body_anchor, star_notes_html, stars_htm
 from planetgen.web.lib.tabledisplay import format_star_radius, to_plain_text
 
 from planetgen.web.lib.classref import ROGUE_MASS_CLASS_NAMES
-from planetgen.admin import activity_log
 from planetgen.generation.belt import format_composition_summary
 from planetgen.generation.phenomena.compact_remnant import hawking_luminosity_w, hawking_temperature_k
 from planetgen.generation.phenomena.rogue import format_comet_composition_summary
@@ -63,23 +61,8 @@ from .nearby_page import DEFAULT_DISTANCE_PC, nearby_url
 # /system/<id>
 # ---------------------------------------------------------------------
 
-CODE_FORMATS = {"wikitext": "Wikitext", "markdown": "Markdown"}
+CODE_FORMATS = {"markdown": "Markdown"}
 """dict: `?code=` values the system page accepts, with their labels."""
-
-WIKI_BACKENDS = {"wikijs": "Wiki.js", "mediawiki": "MediaWiki"}
-
-WIKI_MESSAGES = {
-    # ?wiki=<code> after an upload POST -> (is_error, message)
-    "uploaded": (False, "Uploaded to the wiki."),
-    "exists": (True, "A page already exists at that location."),
-    "invalid": (True, "The upload was rejected. Wiki.js needs a path; check the backend and path."),
-    "unconfigured": (True, "That wiki is not configured for this site."),
-    "forbidden": (True, "Not allowed. Change the admin username and password the installer set first."),
-    "failed": (True, "The upload failed. The wiki could not be reached or returned an error."),
-}
-"""dict: The upload outcome shown after the POST-redirect-GET. Only these
-fixed messages are shown, so nothing from the query string reaches the
-page as text."""
 
 _LOCATION_MARKER = " -- nearest: "
 
@@ -227,7 +210,7 @@ def _badges(system):
 
 
 def _code_buttons(system_id, code_fmt):
-    """The Wikitext/Markdown toggle links: `?code=<fmt>` shows that code
+    """The Markdown toggle link: `?code=<fmt>` shows that code
     box, and the active one becomes "Hide <label>" (back to no code)."""
     buttons = []
     for fmt, label in CODE_FORMATS.items():
@@ -239,14 +222,6 @@ def _code_buttons(system_id, code_fmt):
             "active": active,
         })
     return buttons
-
-
-def _wiki_upload_options(system, wiki_config):
-    """The backends an admin may still upload to: configured site-wide
-    and not yet uploaded for this system."""
-    uploaded = {"wikijs": system["wikijs_url"], "mediawiki": system["mediawiki_url"]}
-    return [{"value": value, "label": label} for value, label in WIKI_BACKENDS.items()
-            if wiki_config.get(value) and not uploaded[value]]
 
 
 def _species_by_planet(db, system):
@@ -299,13 +274,12 @@ system_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 @bp.route("/system/<uid:system_id>", methods=["GET", "POST"])
 def system(system_id):
     """One star system. A POST with a `facility_action` is the admin
-    facility form (`web/system_facilities.py`); any other POST is the
-    admin "Upload to Wiki" form."""
+    facility form (`web/system_facilities.py`); any other POST is refused."""
     facility_action = request.form.get("facility_action") if request.method == "POST" else None
     if request.method == "POST" and "edit_action" in request.form:
         return _edit_post(system_id)
     if request.method == "POST" and facility_action not in system_facilities.ACTIONS:
-        return _upload_to_wiki(system_id)
+        abort(400)
 
     db = db_name()
     code_fmt = request.args.get("code")
@@ -326,8 +300,6 @@ def system(system_id):
     code_content = apiclient.get_system_text(db, system_id, code_fmt)["content"] if code_fmt else None
 
     admin = current_admin()
-    wiki_options = _wiki_upload_options(detail, apiclient.get_wiki_config()) if admin else []
-    wiki_status = WIKI_MESSAGES.get(request.args.get("wiki")) if admin else None
     edit_rows = _edit_rows(detail, edit_actions.class_options(system_id)) if edit_actions.can_edit(admin) else []
 
     section, breadcrumbs = _system_crumbs(detail)
@@ -374,8 +346,6 @@ def system(system_id):
         territory=_territory(db, system_id),
         stars_html=trusted_html(stars_html(detail["stars"], class_url,
                                            star_notes_html(detail, sections, class_url, facilities))),
-        wiki_options=wiki_options,
-        wiki_status=wiki_status,
         admin=admin,
         facilities=system_facilities.facility_rows(facilities),
         habitable_species=system_species.panel_rows(db, system_id),
@@ -444,32 +414,6 @@ def _edit_post(system_id):
             else page_url("systems"))
     return edit_actions.handle_post(allowed, page_url("system", system_id=system_id, _anchor="admin-menu"),
                                     after_delete={"system": gone})
-
-
-def _upload_to_wiki(system_id):
-    """
-    The admin "Upload to Wiki" POST (the CSRF token was already checked
-    app-wide). Always answers with a 303 back to the GET page carrying a
-    fixed `?wiki=<outcome>` code, so a reload never re-posts.
-    """
-    if current_admin() is None:
-        activity_log.event("AUTHZ", "admin.required", path=request.path)
-        abort(403)
-    backend = request.form.get("backend", "")
-    path = (request.form.get("path") or "").strip() or None
-    outcome = "uploaded"
-    if backend not in WIKI_BACKENDS:
-        outcome = "invalid"
-    else:
-        try:
-            apiclient.upload_system_to_wiki(request.headers.get("Cookie"), db_name(), system_id, backend, path)
-        except apiclient.NotFoundError:
-            raise
-        except apiclient.ApiError as exc:
-            outcome = {
-                409: "exists", 400: "invalid", 401: "forbidden", 403: "forbidden", 501: "unconfigured",
-            }.get(exc.status_code, "failed")
-    return redirect(page_url("system", system_id=system_id, wiki=outcome, _anchor="wiki-upload"), code=303)
 
 
 # ---------------------------------------------------------------------

@@ -19,7 +19,7 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import body_state, bulk_draw, constants, metallicity
+from planetgen.physics import body_state, bulk_draw, constants, giant_draw, metallicity
 from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, magnetism, radiation, radiogenic, relations, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
@@ -487,8 +487,7 @@ def generate_planet_properties(planet, zone_override=None):
     planet.body_type = class_data["type"]
 
     if uses_giant_mass_radius(planet.planet_class):
-        _apply_giant_mass_and_radius(planet, radius_given, mass_given)
-        bulk_draw.draw_giant(planet)
+        apply_giant(planet, radius_given, mass_given)
     else:
         # The composition comes first and the mass, density and gravity follow
         # from it (GEN.428, GEN.429; `bulk_draw`).
@@ -529,16 +528,20 @@ def generate_planet_properties(planet, zone_override=None):
     update_hill_sphere(planet)
 
 
-def _apply_giant_mass_and_radius(planet, radius_given, mass_given):
+def apply_giant(planet, radius_given, mass_given):
     """
-    Sets a gas giant's mass, radius and density from the giant mass-radius
-    relation (GEN.34) instead of a radius and a density drawn apart: with
-    neither given, a mass from the class's mass function (at most
-    `GIANT_MAX_STAR_MASS_RATIO` of its star's mass) and a radius from the
-    relation; with only a mass, the relation's radius for it; with only
-    a radius, the relation's mass for it (`_giant_mass_for_radius_kg`);
-    with both, those two. The density is whatever the mass and radius make,
-    so the mass and the volume agree.
+    Sets a gas giant's mass, radius, density and composition: the mass first (`_apply_giant_mass`), then its heavy elements, radius
+    and interior (`giant_draw.draw_giant`, GEN.460 and GEN.642), with the anchored mass-radius relation (GEN.34) for a body the
+    radius tables do not hold.
+    """
+    _apply_giant_mass(planet, radius_given, mass_given)
+    giant_draw.draw_giant(planet, radius_given, _sample_giant_radius_km)
+
+
+def _apply_giant_mass(planet, radius_given, mass_given):
+    """
+    Sets a gas giant's mass: with none given, a mass from the class's mass function (at most `GIANT_MAX_STAR_MASS_RATIO` of its
+    star's mass); with only a radius, the anchored relation's mass for it (`_giant_mass_for_radius_kg`); with a mass, that mass.
     """
     if not mass_given:
         if radius_given:
@@ -549,10 +552,6 @@ def _apply_giant_mass_and_radius(planet, radius_given, mass_given):
             if star_mass:
                 high_kg = max(low_kg, min(high_kg, tuning.GIANT_MAX_STAR_MASS_RATIO * star_mass))
             planet.mass = _sample_giant_mass_kg(low_kg, high_kg)
-    if not radius_given:
-        planet.radius = _sample_giant_radius_km(planet.planet_class, planet.mass)
-    volume_m3 = (4 / 3) * math.pi * (planet.radius * constants.KM_TO_M_FACTOR) ** 3
-    planet.density = planet.mass / volume_m3 / 1000  # g/cm^3
 
 
 def update_hill_sphere(planet):

@@ -1,14 +1,13 @@
 # planetGen
 
-**Version:** 8.0.2178 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.2180 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
 spiral galaxy and saved to a MySQL database. A website on top of it lets
 you browse and search the galaxy, fly around it on 3D maps, and copy any
-system's write-up as MediaWiki wikitext or Markdown. It was built for
-the Molten Aether FFRP game, so a generated system can be pasted straight
-into the [game's wiki](https://wiki.moltenaether.com).
+system's write-up as Markdown. It was built for
+the Molten Aether FFRP game.
 
 **To install it, see [INSTALL.md](INSTALL.md).**
 
@@ -140,8 +139,8 @@ Once installed, the site's front page leads to:
   50 to a page. A sector has a 3D Sector Map (with the same Generate
   buttons for admins, and Nav from/to on any system) and a Contents
   list; a system has its stars, planets, moons and facilities, the cloud
-  it sits in, its nearest systems, a System Map, and its wiki write-up
-  ready to copy. Phenomena have pages too, with their class, what fills
+  it sits in, its nearest systems, a System Map, and its write-up
+  ready to copy as Markdown. Phenomena have pages too, with their class, what fills
   them, and a view that suits each one (a neutron star's spinning beams,
   a black hole's accretion disk).
 - **Classes**: a reference page for every kind of class the generator

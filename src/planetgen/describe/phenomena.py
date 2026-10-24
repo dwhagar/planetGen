@@ -5,7 +5,7 @@ The Document of a phenomenon (docs/design/architecture/system-description.md, UX
 interstellar comet, an asteroid field, a supernova remnant, or a black hole or neutron star on its own. One section
 holds a facts table and a few short sentences; a supernova remnant's compact remnant is its child section.
 
-Like `build.describe`, this holds no Markdown, wikitext or HTML and no raw number formatting: every number is a
+Like `build.describe`, this holds no Markdown or HTML and no raw number formatting: every number is a
 typed quantity the renderers write.
 """
 

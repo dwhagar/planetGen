@@ -1,9 +1,9 @@
 # System description: one model, many renderers
 
 How planetGen turns a star system, a planet, a moon, a belt or a comet into the text and tables people read, so that
-the web page, the API, the command line and the wiki exports all say the same thing from one place.
+the web page, the API, the command line and the Markdown export all say the same thing from one place.
 
-Status: design, 2026-10-15. Decisions marked "Boss" are his; everything else is a recommendation. Written by the
+Status: design, 2026-10-15; wikitext and the wiki upload were removed on 2026-10-24 (OPS.69, Boss: "strip out all of the wiki functionality"), Markdown and text stay. Decisions marked "Boss" are his; everything else is a recommendation. Written by the
 Foundations Wording lane. Informs: UX.103 (this note), UX.104 (the model), UX.105 (the web page; absorbs UX.30), API.25,
 UX.106, GEN.218 to GEN.221, UX.107, TEST.155, DB.31, DOC.45.
 
@@ -22,7 +22,7 @@ render and instead fits with the modern web UI." The system overview stays prose
 - The web's expanded body rows were that Markdown, split per body by `/api/systems/<id>/sections`, then converted to HTML
   by `web/lib/mdrender.py` (the Python `markdown` package cut down to headers, pipe tables and `<sup>`). Since UX.120 the
   system page reads `/description` and splits the Document per body (`describe.model.split_by_body`); `/sections` is gone.
-- Units, header levels, wikitext template names and sentences live in the model classes. Quantities in sentences are
+- Units, header levels, template names and sentences live in the model classes. Quantities in sentences are
   formatted by four different helpers and bypass the unit ladders (`util/ladders.py`).
 - Life timelines (`*_evolutionary_paragraphs`), `flavor_text` and `hab_note` are stored as finished prose, and the code
   reads the stage back out of the text.
@@ -39,7 +39,6 @@ model object graph / stored rows
         |
         +--> HTML renderer      (web: tables, chips, .qty spans)
         +--> Markdown renderer  (on request)
-        +--> wikitext renderer  (on request, wiki upload)
         +--> text renderer      (command line)
         +--> JSON               (API, `GET /api/systems/<id>/description`)
 ```
@@ -48,8 +47,8 @@ model object graph / stored rows
 a pure function of the system. The web app does not import it (the web app never imports `numba`, and the generation
 package pulls it in); the web gets the Document as JSON from the API and renders HTML from that, the way it already
 gets rows. The one-off system page, which today runs the CLI in a subprocess, asks the CLI for the JSON form and
-renders it the same way. The Markdown, wikitext and text renderers are plain Python in `planetgen/describe/` because the
-API (`/text`), the CLI and the wiki upload all run on the generation side.
+renders it the same way. The Markdown and text renderers are plain Python in `planetgen/describe/` because the
+API (`/text`) and the CLI both run on the generation side.
 
 The old per-class `to_paragraph_list()`, `__str__` renderers, `properties_to_string`, `to_scientific_notation`'s
 format switch, `db/render.py` and `SystemConfig.MARKDOWN` are deleted when the new path lands (no shims; Boss, 2026-10-07).
@@ -82,13 +81,12 @@ Inline     a string, or one of
 
 The **Atmosphere Colour** row (GEN.420, key `atmosphere_colour`) of a planet or moon is a facts row whose value is one `swatch`: the
 colour of the body's air worked out by `physics/atmosphere_colour.py` from its stored mixture, ozone column and star ([how it is worked
-out](../../reference/atmosphere-colour.md)). Text, Markdown and wikitext write the word (with the hex colour, or a coloured span in
-wikitext); the web page writes a `swatch` span that `static/units.js` paints from `data-colour`, because the site policy forbids style
+out](../../reference/atmosphere-colour.md)). Text and Markdown write the word (with the hex colour); the web page writes a `swatch` span that `static/units.js` paints from `data-colour`, because the site policy forbids style
 attributes. The row is absent for an airless body and for a giant.
 
 Rules:
 
-1. **No format in the model.** No `#`, `**`, `<sup>`, wikitext templates or `'''`, and no Unicode superscripts. Emphasis and
+1. **No format in the model.** No `#`, `**`, `<sup>`, templates or `'''`, and no Unicode superscripts. Emphasis and
    links are Inline nodes the renderers turn into whatever the format has.
 2. **Quantities are values, never strings.** A quantity names its family (`distance`, `speed`, `period`, `mass`,
    `temperature`, `pressure`, `gravity`, `dose`, `luminosity`, `density`...), its value and the registry unit the value is
@@ -96,10 +94,9 @@ Rules:
    one ladder for that family (`util/ladders.py` for the text forms; `unitladder.js` for the browser, which is how the
    unit preference UX.78 can later re-render every `.qty` span from `data-si`). Nothing in `describe/` formats a
    number itself, and a test fails on a raw `:.2f` or `f"{x} km"` in that package.
-3. **A fact row has a stable `key`.** The key is the old wikitext parameter name where there was one (`type`, `radius`,
+3. **A fact row has a stable `key`.** The key is the old template parameter name where there was one (`type`, `radius`,
    `mass`, `temp`, `lum`, `hab`, `orbit`, `loc`, `wobble`, `class`, `distance`, `period`, `speed`, `gravity`,
-   `moon_wobble`, `separation`, `mutual_orbit`, `eccentricity`, `primary_limit`, `secondary_limit`), so the wikitext
-   renderer writes the same templates and a wiki that already holds those pages keeps working. The label is the display
+   `moon_wobble`, `separation`, `mutual_orbit`, `eccentricity`, `primary_limit`, `secondary_limit`). The label is the display
    name (the Markdown key map, `Property | Value`).
 4. **Text is short and complete.** A Prose or Ratings sentence is a finished sentence in the site's voice (section 6).
    Wording is chosen in `describe/`, not in the model classes and not in the renderers.
@@ -149,7 +146,7 @@ The six PHI-6 domains are a table, not a paragraph:
 
 with the overall line above it ("PHI-6 habitability is 0.00, and a visitor needs an environment suit.") and the equipment label.
 These rows are Boss's text (GEN.216, 2026-10-15 03:46Z). The colour is a chip, using the symbols of UX.101; the colour is
-never the only signal (the word is in the cell). Markdown and wikitext render the same rows as lines of bold text, as
+never the only signal (the word is in the cell). Markdown renders the same rows as lines of bold text, as
 GEN.216's examples do, because a table is not needed there. One module builds the rows from `physics/habitability` and
 `physics/protection_limits` (the single limits table), so the colour, the score, the band the sentence names and the gear
 come from one calculation. Until GEN.215 and GEN.216 merge, UX.104 calls the existing functions and the rows carry the
@@ -161,13 +158,12 @@ current wording; GEN.218 replaces the wording.
 |---|---|---|
 | HTML | `describe/html.py` (UX.119; the page passes it the links of its own routes) | A body's detail is: a facts table (`<table>` in the site's `table-scroll` wrapper), the ratings table with chips and symbols, the composition bars, prose paragraphs, then its moons. Quantities are `<span class="qty" data-q="..." data-si="...">` (`data-si` is the value converted to the kind's SI unit, `DISPLAY_UNITS`). Same tables, chips and both themes as the rest of the site; no header levels or Markdown, so no `mdrender`. |
 | Markdown | `describe/markdown.py` | Today's layout: `# system`, `## planet`, `### moon`, `Property | Value` pipe tables, bold rating lines. Quantities through the text ladder; superscripts as `<sup>` as now. |
-| wikitext | `describe/wikitext.py` | Today's layout: `= system =`, the Planet Data template (Class Data for moons), the Exp template for powers of ten, `[[Category:Star Systems]]`. |
 | text | `describe/text.py` | Plain tables and sentences for the terminal (Unicode superscripts, no markup). The command line default. |
 | JSON | the API | The Document as above. |
 
 The web page keeps its row list (name, chips, a `<details>` per body); only what is inside a row changes, from converted
-Markdown to the Document's HTML. The page-level Wikitext/Markdown buttons keep working: they ask `/text?format=` and show
-the result in the code box (and the wiki upload posts the same text). They are on request only.
+Markdown to the Document's HTML. The page-level Markdown button keeps working: it asks `/text?format=` and shows
+the result in the code box. It is on request only.
 
 ## 5. Inputs
 
@@ -213,20 +209,19 @@ old columns, tables and the parsing helpers with it.
 
 ## 8. API and command line
 
-- `GET /api/systems/<id>/description` returns the Document (JSON). `GET /api/systems/<id>/text?format=markdown|wikitext|text`
+- `GET /api/systems/<id>/description` returns the Document (JSON). `GET /api/systems/<id>/text?format=markdown|text`
   renders it. `GET /api/systems/<id>/sections` and `render_system_sections` are removed (UX.120); `mdrender.py` and the
   `markdown` dependency of the web app go with UX.109. `docs/reference/api.md` documents both.
-- CLI: `--markdown` on `system`, `sector`, `galaxy` and the phenomenon commands becomes `--format text|markdown|wikitext`
+- CLI: `--markdown` on `system`, `sector`, `galaxy` and the phenomenon commands becomes `--format text|markdown`
   (default `text`; Decided default). `--output FILE` writes whichever format was asked. `-` is stdout.
-- The wiki upload (`wiki/`) renders wikitext or Markdown from the Document when an admin uploads, as now.
 
 ## 9. Tests
 
 - Coverage: every fact key and sentence topic of the old render has a home in the Document (a fixture over the example
   systems in `examples/systems/`).
-- Renderer parity: Markdown and wikitext for the same Document carry the same facts and the same sentences; quantities
+- Renderer parity: Markdown and text for the same Document carry the same facts and the same sentences; quantities
   agree with the ladder text (`util/ladders.py`) and the browser's `unitladder.js` (existing Python/JS parity test).
-- No-format rule: nothing in `describe/model` or the builders contains Markdown, wikitext or HTML (a scan test), and no raw
+- No-format rule: nothing in `describe/model` or the builders contains Markdown or HTML (a scan test), and no raw
   numeric formatting (`:.Nf`, `toFixed`) in `describe/`.
 - Web: the system page contains no output of `markdown` and no `<sup>`; every quantity is a `.qty` span with `data-si`.
 - Index and wording agree (TEST.155): colour, score, band named, gear and equipment label from the same world, for random worlds
@@ -248,7 +243,7 @@ old columns, tables and the parsing helpers with it.
 
 ## Open questions (defaults apply unless Boss says otherwise)
 
-1. The command line prints plain text by default; Markdown and wikitext by `--format`. Default: yes.
+1. The command line prints plain text by default; Markdown by `--format`. Default: yes.
 2. "Potentially habitable" in the overview means overall Green or Blue. Default: yes.
 3. The one-off system page shows the HTML page with a download button per format, not a Markdown code box. Default: yes.
 4. Keep `phi4*` column names. Default: yes.
