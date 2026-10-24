@@ -6,16 +6,20 @@ builds (`nebula_contents.row_nebula`), the star's page and the uncharted sector'
 star already built into a system lists none (the system's own phenomenon holds it).
 """
 
+import dataclasses
 import types
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
 
 from planetgen.db import hostednebula, query, store
-from planetgen.generation import nebula_contents, stored_trees
+from planetgen import tuning
+from planetgen.galaxy.sector import SpaceSector
+from planetgen.generation import multistar, nebula_contents, run_sector, stored_trees
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import stellar_evolution as evolution
+from planetgen.physics import constants, stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.web.maps.starmap import uncharted_scene_data
 from tests.test_galactic_motion import EDGE_PC, SCATTER_RADIUS_PC, _seed_scatter_grid
@@ -69,6 +73,63 @@ def test_a_pre_placed_star_rolls_the_nebula_its_sector_builds():
             built.nebula_class, built.hosts, built.radius_ly, built.age_myr, str(built.name))
         classes.add(found.nebula_class)
     assert classes, "no star of 400 lit a nebula"
+
+
+def _heavier_companion_plan(row, k):
+    """The plan of a stored pair around the row's star whose companion outweighs it by half: a tree drawn for the star,
+    its second member's masses replaced (the plan is not `exact`, so the build keeps the stars it makes)."""
+    placed = multistar.Placed("star", row["mass_kg"] / constants.SOLAR_MASS_TO_KG, row["initial_mass_sol"])
+    age_yr = row["age_gy"] * 1.0e9
+    for seed in range(300):
+        tree = multistar.draw_member_tree(placed, age_yr, draw.Stream(f"{k}:{seed}:members"), n_stars=2, pair_placed=True)
+        if tree.member_count == 2 and tree.members[1].kind in stored_trees.PAIR_STAR_KINDS:
+            plan = stored_trees.drawn(tree)
+            heavier = dataclasses.replace(plan.members[1], mass_solar=1.5 * placed.mass_solar,
+                                          initial_mass_solar=1.5 * placed.birth_mass_solar)
+            return dataclasses.replace(plan, members=(plan.members[0], heavier))
+    return None
+
+
+def test_a_row_with_a_heavier_companion_lights_the_nebula_its_row_predicts(monkeypatch):
+    """GEN.710: a stored member heavier than the row's star takes `stars[0]`, and the nebula the sector builds is still
+    the row star's, the one `row_nebula` rolled for its page and the uncharted scene."""
+    from planetgen.generation import bright_stars as brightStarsGen
+    monkeypatch.setattr(tuning, "NEBULA_HOST_RULES", tuple((*rule[:4], 1.0) for rule in tuning.NEBULA_HOST_RULES))
+    sector = SpaceSector("Heavier Companions", edge_ly=200.0)
+    rows, displaced = [], 0
+    for k in range(0, 400, 25):
+        params = _params(k)
+        if evolution.main_sequence_lifetime_gy(params["initial_mass_sol"]) <= params["age_gy"]:
+            continue
+        row = _row(k, params)
+        plan = _heavier_companion_plan(row, k)
+        if plan is None:
+            continue
+        config = SystemConfig()
+        config.POPULATION = "young"
+        with draw.bound(1000 + k):
+            system = StarSystem(system_config=config, primary_star_params=brightStarsGen.star_params(row),
+                                member_tree=plan)
+        if len(system.stars) < 2:
+            continue
+        displaced += system.stars[0] is not system.placed_star
+        assert system.placed_star.mass == pytest.approx(row["mass_kg"])
+        sector.add_preplaced_system(system, (0.5 * len(rows), 0.0, 0.0), system_config=config)
+        rows.append(row)
+    assert displaced >= 5, "too few companions took the primary's place"
+    hosts = []
+    entries = run_sector.add_star_hosted_nebulae(sector, SimpleNamespace(), hosts_out=hosts)
+    lit = [row for row in rows if nebula_contents.row_nebula(row) is not None]
+    assert lit and len(entries) == len(lit)
+    for system_entry, row in zip(sector.entries, rows):
+        expected = nebula_contents.row_nebula(row)
+        built = [e.phenomenon for e in entries if e.position == system_entry.position]
+        if expected is None:
+            assert built == []
+            continue
+        assert len(built) == 1
+        assert (built[0].nebula_class, built[0].hosts, built[0].radius_ly, built[0].age_myr, str(built[0].name)) == (
+            expected.nebula_class, expected.hosts, expected.radius_ly, expected.age_myr, str(expected.name))
 
 
 def test_the_chance_factor_of_the_cell_scales_the_roll_as_the_sector_does():

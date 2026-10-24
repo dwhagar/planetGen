@@ -425,6 +425,12 @@
       "epoch": 86,
       "first_release": "8.0.2211",
       "reason": "The tide heat flow of an icy moon with a frozen surface counts in the chemical energy of its ocean's life, so the energy flux and the habitability score of such a moon change, and each moon of a planet moved by orbit spacing is spun, dosed and scored again at its parent's new distance from the star instead of keeping the values drawn at the old one (GEN.700, GEN.704)"
+    },
+    {
+      "epoch": 87,
+      "first_release": null,
+      "pending": true,
+      "reason": "A hot star's nebula is rolled from the star the place drew, not the system's heaviest star, so a hot star with a heavier companion lights a different nebula or none (GEN.710)"
     }
   ]
 }

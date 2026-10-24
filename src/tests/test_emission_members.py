@@ -263,7 +263,7 @@ def test_a_hosted_nebula_reports_its_seed_star_for_the_members_to_be_placed_from
     class _Host(_Frame):
         def __init__(self, stars):
             super().__init__([], True)
-            self.entries = [types.SimpleNamespace(star_system=types.SimpleNamespace(stars=[star], name=f"S{n}"),
+            self.entries = [types.SimpleNamespace(star_system=types.SimpleNamespace(stars=[star], placed_star=star, name=f"S{n}"),
                                                   position=(0.1 * n, 0.0, 0.0)) for n, star in enumerate(stars)]
             self.phenomena = []
             self.name = "Test"
