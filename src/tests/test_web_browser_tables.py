@@ -651,6 +651,9 @@ def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scr
     page.locator("#search-planets [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
     first = page.locator("#search-planets tbody tr", has_text="World 000").first
     assert first.locator("svg.hab-symbol").count() == 7
+    first_links = first.locator("a.help-link[href*='/help/habitability#']")      # read now: scrolling drops the row
+    assert first_links.count() == 7
+    first_hrefs = first_links.evaluate_all("els => els.map(e => e.getAttribute('href'))")
     page.locator("#search-planets .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
     last = page.locator("#search-planets tbody tr[data-index]", has_text="World 119")
     last.wait_for(state="attached", timeout=10000)
@@ -660,11 +663,11 @@ def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scr
     assert last.locator("svg.hab-symbol use").first.get_attribute("href").endswith("#hab-overall")
     assert last.locator("svg.hab-symbol.tier-red").count() >= 1
     # UX.181: each symbol, drawn by the page or by datatable.js, is a link to its section of the habitability page.
-    for row in (first, last):
-        links = row.locator("a.help-link[href*='/help/habitability#']")
-        assert links.count() == 7
-        assert links.first.get_attribute("href").endswith("/help/habitability#overall")
-        assert links.nth(1).get_attribute("href").endswith("/help/habitability#domain-pressure")
+    last_links = last.locator("a.help-link[href*='/help/habitability#']")
+    assert last_links.count() == 7
+    for hrefs in (first_hrefs, last_links.evaluate_all("els => els.map(e => e.getAttribute('href'))")):
+        assert hrefs[0].endswith("/help/habitability#overall")
+        assert hrefs[1].endswith("/help/habitability#domain-pressure")
 
 
 # --- UX.117: the Apply filters button never goes away ------------------------------------------------
