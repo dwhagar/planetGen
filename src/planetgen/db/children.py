@@ -39,7 +39,8 @@ PARENT_KINDS = ("sector", "system", "star", "planet", "rogue_planet")
 """tuple: The kinds that can hold children (any other kind answers an empty list)."""
 
 _TABLES = {"system": "star_systems", "star": "stars", "planet": "planets", "moon": "moons", "belt": "asteroid_belts",
-           "comet": "comets", "sector": "sectors", "rogue_planet": "rogue_planets"}
+           "comet": "comets", "sector": "sectors", "rogue_planet": "rogue_planets", "facility": "facilities",
+           "globular_cluster": "galaxy_containers", "superbubble": "galaxy_containers"}
 
 _SUMMARY = {
     "system": ("name", "is_binary", "binary_configuration", "quadrant"),

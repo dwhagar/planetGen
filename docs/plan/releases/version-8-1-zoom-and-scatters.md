@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 2:03 PM EDT 2026-10-24: 935 of 1309 items finished (71.4 percent), 374 open, 28 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 106, phase 2 36, phase 3 27, phase 4 13, phase 5 71, phase 6 24, phase 7 21, phase 8 4, phase 9 29, phase 10 2, phase 11 31, phase 12 10 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 4:20 PM EDT 2026-10-24: 967 of 1330 items finished (72.7 percent), 363 open, 30 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 102, phase 2 33, phase 3 26, phase 4 13, phase 5 66, phase 6 24, phase 7 20, phase 8 4, phase 9 29, phase 10 2, phase 11 31, phase 12 13 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -33,14 +33,12 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | PERF.128 | `benchmark` is a step list handed to the wrapper, not a sequence of its own |  | Boss, 2026-10-17, 4:19 PM EDT (all commands). |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill |  | Parent; closes with its subitems. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands |  | Research: ledger size at full galaxy. |
-| PERF.99 | Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command | PERF.98, PERF.119 | PERF.86 step 5 |
-| PERF.181 | CRITICAL (bug): MySQL is killed out of memory during New galaxy Stage 7 (scatter --mass), 65,536 shells and 19,795 components (bug) |  |  |
-| PERF.154 | One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5) | PERF.119, PERF.99 |  |
+| PERF.154 | One waiting list for runs in Redis (up to 8 runs, a setting), replacing next.json, the file lock and Busy (F5) | PERF.119 |  |
 | PERF.147 | A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds |  | Boss, 8:46 PM EDT 2026-10-21 (relayed). |
-| GEN.310 | Fill a whole block of the shell ladder: planetgen generate --block and the queue job | PERF.99 | Split from GEN.231. |
+| GEN.310 | Fill a whole block of the shell ladder: planetgen generate --block and the queue job |  | Split from GEN.231. |
 | UX.127 | The Galaxy Map block menu offers Generate again | GEN.310 | Split from GEN.231. |
 | GEN.231 | Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back | GEN.310, UX.127 | Maps hand-off 2026-10-15. Core, then Interface for the buttons. |
-| DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them | PERF.99 |  |
+| DB.29 | update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them |  |  |
 | PERF.100 | Work queue step 6: delete the old machinery and the work_* tables (Alembic migration) | DB.29 | PERF.86 step 6 |
 
 ### Reproducible galaxies
@@ -48,8 +46,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) |  | Parent of the chain. |
-| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.633 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
-| GEN.633 | The backfill after a run puts its dimmer bright stars only in sectors not yet generated, so a sector holds different systems depending on the order the sectors were generated in (bug) |  |  |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer |  | Split from DB.9. Core 1 owns migrations. |
 | DB.83 | `galaxy_block_stats` has no maintainer: nothing keeps the block totals current after a scatter, a fill or an edit (bug) |  |  |
@@ -57,9 +53,9 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | DB.46 | Split from DB.9. Core 1 owns migrations. |
 | DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | DB.47 | Split from DB.9. Core 1 owns migrations. |
 | DB.9 | Repair a damaged galaxy database from a parity file | DB.45, DB.46, DB.47, DB.48 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
-| DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | GEN.57, DB.47, GEN.179 | Research split of DB.9: the regenerate-from-seed fallback. |
+| DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | DB.47, GEN.179 | Research split of DB.9: the regenerate-from-seed fallback. |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts |  | Research follow-up to OPS.8 (built). |
-| TEST.77 | A golden-seed regression test | GEN.57 |  |
+| TEST.77 | A golden-seed regression test |  |  |
 
 ### Tech levels and species
 
@@ -75,17 +71,14 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.26 | Bump API_VERSION for the shell, band and wedge sector address |  |  |
-| API.4 | API compatibility data in the docs | API.26 | Docs and version number. |
+| API.4 | API compatibility data in the docs |  | Docs and version number. |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
-| API.31 | Every outgoing web request sends a standard User-Agent with the software, its version and the API version |  | Needs nothing. Boss, 2026-10-17, 11:33 AM EDT. |
 | USR.31 | The Owner account stub: one Owner row and a role check, enough for the Owner-tier settings of ADM.86 in 8.1 |  | Boss, 2026-10-18 (fork 9, stay in 8.1). |
 | ADM.86 | Owner-tier settings: Owner-only options behind a recent-password prompt | USR.31 | Boss 1:43 PM EDT 2026-10-16: the settings page is 8.1; stays in 8.1 with the Owner stub (Boss, fork 9, 2026-10-18). |
-| UX.121 | The logging layer and the written standard |  | Split from UX.102. |
-| UX.122 | The command line, the job log files and the downloadable log use the layer | UX.121 | Split from UX.102. |
-| UX.123 | The Generate page log, the admin log pages and update.sh output use the layer | UX.121 | Split from UX.102. |
+| UX.122 | The command line, the job log files and the downloadable log use the layer |  | Split from UX.102. |
+| UX.123 | The Generate page log, the admin log pages and update.sh output use the layer |  | Split from UX.102. |
 | TEST.183 | A test that fails when a new output path formats its own lines | UX.122, UX.123 | Split from UX.102. |
-| UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | UX.121, UX.122, UX.123, TEST.183 |  |
+| UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | UX.122, UX.123, TEST.183 |  |
 
 
 ### Generate page and directives
@@ -104,11 +97,16 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) |  | Lane 2 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) |  | Flake, fix the cause |
 | TEST.341 | A spatial-position test failed once with "no system matching" in the lane gate and passed on rerun (bug) |  |  |
-| TEST.343 | Three tests red on main since the habitable_systems table (MAP.220, #2945): point columns, parent-relative positions, and VALUES() in migration 0148 (bug) |  |  |
+| OPS.71 | Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand |  |  |
+| OPS.70 | Gate resumes after a restart, and a lane-start health check runs before every gate |  |  |
+| TEST.344 | Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory |  |  |
+| TEST.352 | test_db_column_round_trip::test_every_column_is_written fails on main: the star columns disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au are now written, so they must leave NULL_IN_THIS_GALAXY (bug) |  |  |
+| TEST.350 | Tests red on clean main: test_web_facilities (18 tests), test_web_population (test_system_page_names_species_and_territory, test_real_population) and test_web_browser_controls test_every_plain_button_does_something[web.system] (bug) |  |  |
+| TEST.346 | web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug) |  |  |
+| TEST.345 | test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug) |  |  |
 | TEST.324 | test_web_header_menus top-bar [1280x720-light] times out under load (bug) |  | Core 5 finding. |
 | TEST.336 | test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug) |  |  |
 | TEST.335 | test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug) |  |  |
-| TEST.334 | Queue and generation tests pass alone but hang or "DID NOT RAISE" in a full run on lane machines: test_gen_resume (7), test_gen_bright_scatter_edges (5), test_work_units (7 in sequence), test_worker_warm, test_work_queue parallel (bug) |  |  |
 | TEST.333 | test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug) |  |  |
 | TEST.332 | test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug) |  |  |
 | TEST.331 | test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug) |  |  |
@@ -120,7 +118,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.317 | test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails under heavy load (bug) |  | Core 2 finding. |
 | TEST.127 | test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.128 | test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug) |  | Lane 1 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
-| GEN.710 | A pre-placed row with a stored tree can have a member heavier than the row star at stars[0], so the nebula it lights and the star page disagree with the built sector (bug) |  |  |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.140 | test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.141 | test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug) |  | Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
@@ -132,7 +129,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | OPS.66 | Remove the unused older executor in src/planetgen/queue/work.py: RQExecutor, _rq_task and the --debug FILE worker plumbing |  |  |
 | OPS.67 | Detached helpers (the background planetgen warm a run starts, an auto-started worker's own lifecycle) write the debug log file only: decide whether they relay to stdout |  |  |
 | TEST.302 | benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug) |  |  |
-| TEST.303 | test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug) |  |  |
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) |  |  |
 | TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug) |  |  |
 | TEST.287 | test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug) |  | Bug Hunt; Core 2 finding |
@@ -192,14 +188,12 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:45 PM EDT; Core 2 profiles first. |
 | MAP.289 | The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug) |  |  |
-| MAP.261 | N4: the node cut on the page: galaxynodecut.js replaces the tile cut |  |  |
-| MAP.262 | N5: retire the cube tiles | MAP.261 |  |
-| MAP.266 | S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu | MAP.261 |  |
+| MAP.266 | S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu |  |  |
 | MAP.269 | Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug) |  | Boss bug 8:51 PM EDT |
 | MAP.287 | The 3D system view takes the body look record: systemscene.py still colours by class_color |  | Body rendering follow-up; lane report. |
 | MAP.286 | Supernova remnant shells drawn by age on the maps |  | Body rendering follow-up (R9a rest); lane report. |
-| MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | MAP.261 |  |
-| MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | MAP.261, MAP.262, MAP.266, MAP.267 |  |
+| MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) |  |  |
+| MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | MAP.266, MAP.267 |  |
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") |  | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
@@ -218,7 +212,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts |  | GEN.372 audit; Boss card. |
 | MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map | MAP.240 | Boss 7:24 PM EDT; look only. |
 | MAP.241 | Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug) |  | Boss 7:43 PM EDT. |
-| MAP.290 | The System Map draws only the close pair of a triple or larger system, not a scene for each extra star |  |  |
 | MAP.292 | Galaxy Map scroll zoom gets stuck and never reaches a sector, a system or a star (bug) |  |  |
 | MAP.291 | Galaxy view map window does not use the full page width or the page height (bug) |  |  |
 
@@ -261,7 +254,6 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 | GEN.316 | Stages D and G draw a member tree for every object the fill creates, and the two-star classes are retired | GEN.315, GEN.332, GEN.640 | Split from GEN.264. |
 | GEN.264 | The fill builds a system from its stored members; the system pass keeps only planets, moons and belts | GEN.315, GEN.316 | Multi-star systems at scatter time, Boss 2026-10-15. Step 5. Core. |
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows |  | Core 4, 10:20 PM EDT 2026-10-23; no epoch until a law changes. |
-| GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples |  | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 16. Core. |
 | GEN.708 | White dwarf merger products draw their 0.8 to 1.1 solar mass bump: the star model gives the white dwarf its mass before the member tree, so the tree only flags 10 percent as merger products |  |  |
 | GEN.707 | Register the white dwarf binary stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each |  |  |
 | GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected |  | Split from GEN.273. |
@@ -323,7 +315,7 @@ Satellites, clusters and wanderers as components, the globular cluster chain and
 |---|---|---|---|
 | TEST.161 | Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table |  | Phenomena catalogue, Boss 2026-10-15. Step 2 tests. Quality. |
 | TEST.162 | Multiplicity audit: companion states, row bookkeeping, stability, determinism, no planets in a scatter, fill reuse, motion and the census anchors | GEN.315 | Multi-star systems at scatter time, Boss 2026-10-15. Step 9. Quality. |
-| TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.272, GEN.275, GEN.327 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
+| TEST.164 | Catalogue type audit: type counts, region gates, the N tail, interaction consistency and group decay | GEN.275, GEN.327 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 20. Quality. |
 | TEST.165 | Re-measure the region query on a real generated galaxy, warm and cold |  | Spherical region query, stage C. Step 6. Quality. |
 
 ### Composition proofs
@@ -359,10 +351,7 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.175 | The same page anatomy for phenomena, facilities, clusters and regions (absorbs the UX.143 remainder) |  |  |
-| UX.185 | Phenomenon pages: paragraph text and neighbour links from the stored row |  |  |
-| UX.184 | Star cluster and region pages: stored cluster and region objects and their object pages |  |  |
-| UX.183 | Facility pages: add the facility kind to the object index and resolver so /object/facility:<ID> works |  |  |
+| UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary |  |  |
 | UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) |  | Boss run log; generation-log lane. |
 | MAP.220 | Markers for habitable worlds and chosen classes, optional per kind |  | Split from MAP.132. |
 | GEN.639 | The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1) |  | From Blocker 3's report of GEN.146 (#2685). |
@@ -372,13 +361,10 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 | GEN.706 | Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug) |  |  |
 | GEN.705 | The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug) |  |  |
 | GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only |  |  |
-| UX.153 | Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none |  | Survival equipment system, Boss 7:56 PM EDT 2026-10-23; design draft section 11. |
 | DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | GEN.654 |  |
-| UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes |  |  |
 | GEN.644 | Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree |  |  |
 | GEN.645 | Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91 | GEN.644 |  |
-| DOC.75 | Help and docs text for the whole habitability system: the score, the symbols, the lists, the sector colouring and the map markers | MAP.220, GEN.639 |  |
-| DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document | UX.152 |  |
+| DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document |  |  |
 | DOC.79 | The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C |  |  |
 | TEST.300 | End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers | MAP.220 |  |
 
@@ -394,10 +380,11 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | GEN.661 | Bright-star counts still use the reference-composition fraction (stand-in, bug) |  | Stand-in until GEN.651 lands |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes |  |  |
 | GEN.557 | Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion | GEN.553, GEN.565 |  |
-| GEN.452 | The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug) |  | Atmosphere research lane finding 1 (part 01 section 7); generator epoch bump. Core 4 proposed. |
-| GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | GEN.452 | Boss 11:24 PM EDT; generator epoch bump. Core 4 proposed (Boss, 11:41 PM EDT). |
-| GEN.699 | Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9 |  |  |
-| GEN.721 | A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model | GEN.699 |  |
+| GEN.726 | Surface pressure supply law: atmosphere mass from delivered volatiles, degassing, escape and sinks, then pressure from mass and gravity |  |  |
+| TEST.354 | test_api.py::test_the_description_splits_into_every_body is red on clean main: the facts section appears twice (facts, prose, composition, ratings, facts) (bug) |  |  |
+| TEST.353 | test_interior_heat::test_every_generated_rocky_body_stores_its_draws_and_an_urey_ratio_that_is_an_output is red on main: a generated body has urey_ratio 2.09 and the test caps it at 1.5 (bug) |  |  |
+| GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | GEN.726 | Boss 11:24 PM EDT; generator epoch bump. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.721 | A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model |  |  |
 | GEN.720 | star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug) |  |  |
 | GEN.423 | Atmosphere density, scale height and the greenhouse multiplier follow from the mixture | GEN.411 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.441 | Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air |  | Boss 11:58 PM EDT; the ground's composition; generator epoch bump. |
@@ -517,7 +504,6 @@ Moved into 8.1 from 8.4 phase 2 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.466 | Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age |  | Body composition research lane part D sections 2.8 to 2.11; generator epoch bump. Core 4 proposed. |
 | GEN.714 | Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug) |  |  |
 | GEN.559 | Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity | GEN.557 |  |
-| GEN.713 | Research the size law and the cut for long-period and interstellar comets (blocks GEN.559) |  |  |
 | GEN.558 | Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone | GEN.556, GEN.557, GEN.466 |  |
 | GEN.556 | `populate(host)`: planets, belts, comets and moons come from the class tables by one recursive routine, and the system pass is absorbed | GEN.315, GEN.555, GEN.565, GEN.581 |  |
 | GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates | GEN.441 | Atmosphere research lane new work 6 (parts 04 section 5 and 05); generator epoch bump. Core 4 proposed. |
@@ -527,11 +513,11 @@ Moved into 8.1 from 8.4 phase 2 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.479 | The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug) | GEN.411 | Atmosphere lane part 09 conflicts 3 to 8 with the code, checked on main; replaced by the recipe tables. Core 4 proposed. |
-| GEN.675 | Register the atmosphere mixture stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each |  | Lane L finding 11:32 PM EDT 2026-10-23. |
-| GEN.674 | Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug) |  | Lane L finding 11:32 PM EDT 2026-10-23. |
 | GEN.673 | Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on | GEN.411 | Lane L finding 11:32 PM EDT 2026-10-23. |
-| GEN.672 | Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver |  | Lane L finding 11:32 PM EDT 2026-10-23. |
-| GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | GEN.411, GEN.452 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.723 | Refresh the hot-Jupiter recipe rows h1 to h3: their edge points were computed with the deleted gas-equilibrium module and sit up to 16 K (0.6 percent) above the surviving solver |  |  |
+| GEN.725 | Stand-in values carry a source tier and a tweak level: two new columns in the gap plan registry and one document in docs listing every stand-in, where it came from, its tier and how far it was tuned for outcome |  |  |
+| GEN.724 | Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps |  |  |
+| GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | GEN.411, GEN.726 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.594 | Each AD dataset (AD1 to AD8) ships its best possible fallback, used only when a run is told explicitly to disregard missing files |  |  |
 | GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | GEN.411 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH | GEN.424 | Survival equipment system, Boss 7:56 PM EDT 2026-10-23; design draft section 11. |
@@ -591,7 +577,7 @@ Moved into 8.1 from 8.4 phase 4 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.686 | Age needs come from the processes; delete age_ranges |  | Class design step C11. |
 | GEN.685 | Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class] | GEN.466 | Class design step C10. |
 | GEN.684 | Albedo and greenhouse come from the composition; delete the two class ranges | GEN.462, GEN.422 | Class design step C9. |
-| GEN.683 | Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range | GEN.411, GEN.479, GEN.452, GEN.681 | Class design step C8. |
+| GEN.683 | Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range | GEN.411, GEN.479, GEN.681 | Class design step C8. |
 | GEN.682 | Radius, density and gravity come from the bulk composition; delete radius_range, size_mode and density_range | GEN.681 | Class design step C7. |
 | GEN.681 | The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw | GEN.556 | Class design step C6. |
 | TEST.314 | Only classify writes the class column, and the class is recomputed when an input is edited |  | Class design step C5. |
@@ -669,8 +655,8 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.509 | Tuned draw builder B1: the radius valley and the envelope |  | Tunable gaps report: Tuned draw builder B1: the radius valley and the envelope. |
 | GEN.510 | Tuned draw builder B2: delivery and water worlds |  | Tunable gaps report: Tuned draw builder B2: delivery and water worlds. |
+| GEN.722 | Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins |  |  |
 | GEN.512 | Tuned draw builder B4: the iron branch |  | Tunable gaps report: Tuned draw builder B4: the iron branch. |
 | GEN.515 | Tuned draw builder B7: ground and petrology |  | Tunable gaps report: Tuned draw builder B7: ground and petrology. |
 | GEN.519 | Tuned draw builder B11: aerosol amplitude |  | Tunable gaps report: Tuned draw builder B11: aerosol amplitude. |
@@ -693,10 +679,13 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | PERF.175 | benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug) |  |  |
 | PERF.174 | Every work unit's database connection runs the schema check again: skip it when the schema version is current |  |  |
 | PERF.173 | A new-galaxy Generate run dies in stage 5 with "Execution not found in Redis": the worker warm outlives the 90 s execution record (bug) |  |  |
+| PERF.183 | Nightly New galaxy smoke: stage times and peak memory per stage, fail above a budget |  |  |
+| PERF.186 | CRITICAL (bug): Cancel does not cancel, python workers keep saturating the host; add a working Stop everything that cancels all runs, kills all workers and blocks any new start until the owner says so (bug) |  |  |
 | PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) |  | Boss run log; generation-log lane. |
 | PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) |  | Boss run log; generation-log lane. |
+| PERF.184 | Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug) |  |  |
 | PERF.180 | Single-unit stages already past the unit ceiling on big galaxies: clearing the bright stars (211 s on the medium galaxy) and the cache-warm families (one unit each, minutes on a large galaxy) |  |  |
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
-| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, MAP.220, GEN.639, GEN.445, DOC.75, TEST.300 |  |
+| GEN.301 | Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo | SEC.33, TEST.261, MAP.220, GEN.639, GEN.445, TEST.300 |  |
 | GEN.637 | Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638) |  |  |

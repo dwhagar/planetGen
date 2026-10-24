@@ -1,5 +1,7 @@
 # Fly-through Galaxy Map: view distance, see-through near field, free camera (MAP.146 rebuilt)
 
+**Superseded in part by MAP.258 to MAP.262 (2026-10-24):** the map is no longer cut into cube tiles. `/galaxy/tiles`, `viewport.distance_cut_tiles` and `galaxytilecut.js` are gone; the map fetches sector-block nodes (`/galaxy/nodes`, keys `m.shell.band.wedge`) chosen by projected size (`planetgen.galaxy.nodecut`, `static/galaxynodecut.js`), and a star's fade is its node's weight (`weightCalculator`). Read "tile" below as the cube tile the map had before; the wire format, packing and cache carry over to nodes unchanged.
+
 **Status (2026-10-15):** decided; partly built. Done: MAP.148 (#1160), MAP.149 (#1141), MAP.150 (#1382), MAP.153 (#998), MAP.154 (#1303), MAP.155 (#1253) and MAP.188 (#1289), and MAP.152 (client part built 2026-10-15, see its "As built" paragraph; merged 2026-10-16). Section 2, "What the map does today", describes the map before MAP.148 and MAP.149.
 
 Research and design, 2026-10-09, from Boss's message of 22:56Z. No code changes. The rewritten MAP.146 text and the proposed split are in sections 7 and 8, for the TODO thread to file.

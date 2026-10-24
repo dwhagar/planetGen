@@ -303,7 +303,8 @@ def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None, po
 def add_star_hosted_nebulae(sector, args, chance_factor=1.0, hosts_out=None):
     """
     Grows emission and reflection nebulae around `sector`'s own hot
-    stars (GEN.10, GEN.150): each system whose primary is a main-sequence
+    stars (GEN.10, GEN.150): each system whose placed star (`StarSystem.placed_star`, the star its place drew, which a
+    heavier companion does not displace, GEN.710) is a main-sequence
     star matching a `NEBULA_HOST_RULES` row rolls that row's chance (the star
     is still in its natal cloud), and on a hit gets a nebula of one of the row's
     classes centered on it, the classes the star is young enough for
@@ -323,17 +324,17 @@ def add_star_hosted_nebulae(sector, args, chance_factor=1.0, hosts_out=None):
     """
     entries = []
     for system_entry in list(sector.entries):
-        stars = getattr(system_entry.star_system, "stars", None) or []
-        if not stars:
+        host = system_entry.star_system.placed_star
+        if host is None:
             continue
-        nebula = nebula_contents.hosted_nebula_of(stars[0], chance_factor)
+        nebula = nebula_contents.hosted_nebula_of(host, chance_factor)
         if nebula is None:
             continue
-        log.debug(f"Sector {sector.name!r}: {_spectral_code(stars[0])} star {system_entry.star_system.name!r} "
+        log.debug(f"Sector {sector.name!r}: {_spectral_code(host)} star {system_entry.star_system.name!r} "
                   f"lights class {nebula.nebula_class} nebula {nebula.name!r}")
         entries.append(sector.add_phenomenon(nebula, "nebula", position=system_entry.position))
         if hosts_out is not None:
-            hosts_out.append((nebula, nebula_contents.host_name_of(stars[0]), system_entry.position))
+            hosts_out.append((nebula, nebula_contents.host_name_of(host), system_entry.position))
     return entries
 
 

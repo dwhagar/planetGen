@@ -68,8 +68,8 @@ def slow_site():
                       lambda db: {"generated": True, "species": True, "polities": True, "territories": False})
         patch.setattr(apiclient, "get_sector", _fake_sector)
         patch.setattr(apiclient, "get_galaxy_shape", lambda db: None)
-        patch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
-            "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
+        patch.setattr(sector_page, "fetch_nodes", lambda db, keys, known_stamp=None, ahead=False: {
+            "stamp": "0" * 16, "nodes": {}, "edge_pc": 3.066, "has_shape": False})
         patch.setattr(pagejobs, "status", lambda job_id: dict(WORLD.job) if job_id == JOB else None)
         app = create_app(_SiteConfig)
         app.testing = True

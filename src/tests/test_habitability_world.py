@@ -398,3 +398,16 @@ def test_the_ozone_column_moves_the_radiation_tier_through_the_ground_ultraviole
     assert bare["tier_radiation"] == 3                    # the unfiltered light of a world with oxygen and no ozone is lethal
     for domain in ("pressure", "temperature", "air", "water"):
         assert bare[f"tier_{domain}"] == shielded[f"tier_{domain}"]
+
+
+def test_the_habitability_cell_carries_the_four_life_scores_after_the_phi6_symbols():
+    """UX.152: a scored body's cell has its life cluster, a body without scores has none."""
+    from planetgen.web.lib import habitability_cells
+    row = {"phi4": 0.9, "tier_pressure": 0, "tier_temperature": 0, "tier_air": 0, "tier_water": 0, "tier_radiation": 0,
+           "tier_suitability": 0, "life_microbial": 3, "life_flora": 0, "life_fauna": 1, "life_sentient": 0}
+    cell = habitability_cells.habitability_cell(row)
+    assert [entry["name"] for entry in cell["life"]] == ["microbial", "flora", "fauna", "sentient"]
+    assert [entry["score"] for entry in cell["life"]] == [3, 0, 1, 0]
+    assert cell["life"][1]["label"] == "Flora: none" and cell["life"][0]["anchor"] == "life-microbial"
+    assert "Microbial life: 3 of 9" in cell["text"]
+    assert "life" not in habitability_cells.habitability_cell({**row, "life_flora": None})

@@ -27,6 +27,7 @@ install. For what planetGen is and how to use it, see the
 | MySQL | MySQL 8.0.19+ (MariaDB is not supported) | Local or on another machine. |
 | A web server | Apache2 + mod_wsgi (reference), nginx, Caddy | Only for the website. The command line needs none. |
 | git | any | The checkout must be a git clone so the update scripts can pull. |
+| Swap | on (8 GB is plenty) | A server with none has nothing between a memory spike and the kernel's out-of-memory killer, which ends MySQL, Redis or the web server. `sudo scripts/enable-swap.sh` makes a swap file and keeps it across reboots; see [swap](#swap) below. |
 | Disk | about 10 GB once the galaxy is planned, more as sectors fill | The plan stores about 60 million bright stars. Most people then fill neighborhoods as they need them rather than the whole galaxy. |
 
 Supported platforms:
@@ -47,6 +48,37 @@ platforms in more detail. Windows: see [docs/deployment/WINDOWS.md](docs/deploym
 > editable package (`pip install -e`), so the site and the command line
 > run the checkout's code and a `git pull` takes effect without a
 > reinstall.
+
+### Swap
+
+Turn swap on before you generate anything. A host with none (many cloud servers ship that way) has nothing to absorb
+a burst of memory, and the kernel then kills whichever big process it finds first, usually MySQL; with swap the
+server slows down instead. One command makes an 8 GB swap file, switches it on and adds it to `/etc/fstab` so it
+stays on after a reboot (it does nothing when swap is already on):
+
+```bash
+sudo scripts/enable-swap.sh            # 8 GB at /swapfile
+sudo scripts/enable-swap.sh 16G        # another size
+sudo scripts/enable-swap.sh 8G /mnt/disk/swapfile   # another place, when the system disk is small
+```
+
+`swapon --show` and `free -m` show the result. `install.sh` and `update.sh` warn when the host has no swap.
+
+Also worth doing on a host that runs MySQL and Redis next to the website: tell the kernel to give up the generation
+workers and the web app before the databases if memory ever does run out (the workers can be started again, a killed
+database cannot be asked politely to resume):
+
+```bash
+for unit in mysql redis-server; do
+  sudo mkdir -p /etc/systemd/system/$unit.service.d
+  printf '[Service]\nOOMScoreAdjust=-800\n' | sudo tee /etc/systemd/system/$unit.service.d/oom.conf >/dev/null
+done
+sudo systemctl daemon-reload && sudo systemctl restart mysql redis-server
+```
+
+On a 16 GB host that also generates, `innodb_buffer_pool_size = 4G` in `/etc/mysql/mysql.conf.d/mysqld.cnf` keeps
+MySQL near 5 GB at most and leaves the rest to the workers (about 250 MB each, up to the worker count on the
+Generate page) and the web app.
 
 ### Ubuntu 24.04 and 26.04 LTS
 

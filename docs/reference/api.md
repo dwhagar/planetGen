@@ -40,13 +40,20 @@ this API instead.
 
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here.
 
+- **8** (MAP.262): `GET /api/galaxy/tiles` is gone: the map's data is read by sector-block node (`GET /api/galaxy/nodes`), and `GET /api/galaxy/changes` no longer has `tiles` (it has `nodes`).
+- **7** (API.26): every sector address in a request or an answer is `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers), where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`). The switch to shells, bands and wedges was made on 2026-10-15 without raising the version, so 4, 5 and 6 were taken by later changes and this one carries it. No route that takes the old names is kept.
+- **6** (PERF.99): `GET /api/admin/work` and `GET /api/admin/work/<id>` return the runs in Redis (`items` are runs with their stage, units and time left, not job tree roots; `<id>` is a run id and answers the run with its stages and log), `POST /api/admin/work/<id>/control` takes `cancel` or `clear` (`pause` and `resume` of a node are gone), `POST /api/admin/work/<id>/delete` and `clear-finished` delete runs, `GET /api/admin/work/<id>/log` is new, and `POST /api/admin/work/lease/clear` is gone (clear the run instead).
 - **5** (DB.51): `GET /api/systems/<uid>/sections` is gone: the description is a document built from stored data, not a table of paragraphs.
 - **4** (ADM.50): `GET /api/admin/galaxy-settings` and `GET /api/admin/galaxy-settings/<name>` are gone with the galaxy settings files.
 - **3** (API.23, stage 2): stars, planets, moons, asteroid belts, comets and facilities are named by their object ID too, in the same way: `id`, `star_id`, `planet_id`, `moon_id`, `belt_id`, `comet_id`, `host_id` and `homeworld_planet_id` fields, `<kind>:<ID>` references (including the keys of `class-options` and the `around`/`parent` fields of a system scene), the `ref` of every section and link of `/api/systems/<id>/description`, and the URLs (`/api/planets/<id>`, `/api/moons/<id>/class`, `/api/facilities/<id>`, ...). A facility's `host_id` (on `POST /api/facilities` and `GET /api/facilities/orbit`) is the host's ID: a sector's for `host_type` `space`. A row number is refused.
 - **2** (API.23, stage 1): sectors, systems and phenomena are named by their object ID, printed as `0008000000-4000000-000`, and not by their database row number. IDs appear in every `id`, `sector_id` and `ref` field of those answers, in the URLs (`/api/systems/<id>`, `/api/sectors/<id>`, `/api/phenomena/<type>/<id>`, `/api/nebulae/<id>/...`) and in `from`/`to`/`course` references such as `system:0008000000-4000000-000`. A row number is refused (404). A sector's ID is the hex designation of its grid address (shell, band and wedge bit-packed, e.g. `FE81000A2B`), or `(1 << 40) + id` when it was made by hand with no grid address.
 - **1**: the first numbered version.
 
-The sector grid changed to shells, bands and wedges on 2026-10-15 (the spherical switch). Every sector address in a request or an answer is now `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers) where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`), and sector IDs were renumbered from the new designations. The API version was not raised for it.
+The sector grid changed to shells, bands and wedges on 2026-10-15 (the spherical switch). Every sector address in a request or an answer is now `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers) where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`), and sector IDs were renumbered from the new designations. Version 6 records it.
+
+## The User-Agent and the version header
+
+Every request the software makes to another site sends one `User-Agent` in the RFC 9110 form of product tokens with a comment, `PlanetGen/<release> (+<project URL>) PlanetGen-API/<API version>`, for example `PlanetGen/8.0.2017 (+https://github.com/dwhagar/planetGen) PlanetGen-API/7` (API.31). `planetgen.util.user_agent.user_agent()` builds it and is the only place that spells it; the API client the web pages use, the setup-time dataset downloads (`planetgen.datasets.fetch`, [gap-filling-plan.md](../design/research/gap-filling-plan.md) section 6.5) and the build script for the element tables all send it. A page's own JavaScript cannot set `User-Agent`, so `static/apiversion.js` (loaded first by every page) adds the `X-PlanetGen-API-Version` header, with the same API version, to each `fetch` and `XMLHttpRequest` the page makes to this site's `/api/`.
 
 ## Endpoints
 
@@ -269,7 +276,8 @@ connectivity to that specific schema rather than the default one.
   cell key).
 - `GET /api/objects/<ref>` — one object by its reference (NAV.7), the one
   form every kind shares: `<kind>:<id>` with kind `sector`, `system`, `star`,
-  `planet`, `moon`, `belt`, `comet` or a phenomenon type (`nebula`,
+  `planet`, `moon`, `belt`, `comet`, `facility` (UX.183: its parents run down to the body it is built on, or to its
+  sector, and its siblings are the facilities of that host) or a phenomenon type (`nebula`,
   `asteroid_field`, `black_hole`, `neutron_star`, `supernova_remnant`,
   `rogue_planet`, `interstellar_comet`, `quasar`); a bare number is a system.
   Returns `ref`, `kind`, `id`, `name`; `parents` (from `galaxy` down to the
@@ -280,7 +288,7 @@ connectivity to that specific schema rather than the default one.
   (kilometers from the system's origin), each `[x, y, z]` or `null` where
   the object has none (a body inside a system takes the system's galaxy and
   sector positions; a belt is a ring with no `system_km`; a moon of a free planet (DB.94) has `rogue_planet` as its parent after the galaxy, the rogue planet's galaxy point, no `system_km`, and the planet's other moons as siblings). A bad reference
-  or a missing row is a `404`. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100). `keep_out` (NAV.24) is the object's keep-out
+  or a missing row is a `404`. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24) is the object's keep-out
   radius for course planning: `{radius_km, basis, note}`, `basis` one of
   `hill` (a planet or moon), `perimeter` (a star or system: the widest
   stored `system_perimeter_km`), `galactic_hill` (a black hole, neutron
@@ -290,7 +298,7 @@ connectivity to that specific schema rather than the default one.
   `queryDb.resolve_object`,
   `planetgen.galaxy.objectref` and `static/objectref.js` hold the logic.
 - `GET /api/objects/<ref>/sheet` — the property sheet of a star, planet, moon,
-  belt, comet or standalone phenomenon (UX.168, UX.175, `describe/sheet.py`):
+  belt, comet, facility (UX.183, with a `ratings` group) or standalone phenomenon (UX.168, UX.175, `describe/sheet.py`):
   `kind` and `groups` (`identity`, `orbit`, `physical`, `rotation`,
   `composition`, `atmosphere`, `climate`, `water`, `magnetism`, `radiation`,
   `habitability`, `life`, the star's `zones`, `stellar`, `galactic`, `disk`, and
@@ -313,7 +321,7 @@ connectivity to that specific schema rather than the default one.
   `{ref, kind, id, name, summary, counts, child_count}`: `summary` is what its
   own row says (a star's `star_type`, `mass_kg`, `luminosity_w`; a planet's or
   moon's `planet_class`, `distance_km`, `period_years` and the PHI-6 `phi4` and
-  `tier_<domain>` ratings; a system's `is_binary`, `quadrant` and `star_types`;
+  `tier_<domain>` ratings and the four `life_<name>` scores (UX.152); a system's `is_binary`, `quadrant` and `star_types`;
   a belt's `density` and limits; a comet's orbit), `counts` how many of each
   kind lie anywhere below it (a system's `star`, `planet`, `moon`, `belt`,
   `comet`; a star's or planet's; none for a sector) and `child_count` how many
@@ -430,56 +438,6 @@ connectivity to that specific schema rather than the default one.
   the brightest objects inside the block, nested down the ladder: a block lists every object of its parent that lies
   inside it. `placed` is only on a level-3 block and a sector. The nebula cover is not in a node (it changes without a
   sector changing; read `/api/galaxy/nebula-cover`). `400` for a malformed key or too many keys.
-- `GET /api/galaxy/tiles?tiles=<key>,<key>,...` — the 3D
-  Galaxy Map's data, one fixed cube of space ("tile") at a time
-  (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube
-  524,288 pc on a side centered on the galactic origin (the grid's whole 262 kpc reach either side, MAP.239), each level halves
-  the edge down to 16 pc at level 15, and a key is `level/ix/iy/iz`
-  (`ix` counts cubes along x from the root cube's −x face). A part that took
-  too long is left empty and named in the tile's `incomplete` list. Returns
-  `{"tiles": {"<key>": {"placed": [...], "planned": [...], "sector_count": n,
-  "clouds": [...], "stars": [...], "generated": [...], "points": [...]}},
-  "edge_pc": ...,
-  "has_shape": ...}`:
-  `placed` is every placed sector whose center is in the tile's half-open
-  box (the `/api/galaxy/sectors` shape plus `wedge_index`,
-  `designation` and `edge_ly`, this sector's real edge length, `null` if it
-  predates per-sector edge tracking), lowest id first,
-  at most 250; `planned` lists the tile's qualifying not-yet-generated
-  slots, only for 16 pc tiles (empty otherwise); `sector_count` is how many
-  placed sectors have their center in the tile, nothing left out
-  (`queryDb.galaxy_sector_count_in_box`), which the tile's share of the
-  generated-star budget goes by. The Galaxy Map's blocks come from the stored
-  block totals (`/api/galaxy/stage` and `/api/galaxy/window`), not from the
-  tiles. `clouds` lists the placed
-  nebulae and supernova remnants whose sphere reaches into the tile
-  (`queryDb.galaxy_clouds_in_box`), largest first, at most 200:
-  `{type, id, name, descriptor, class, radius_pc, x, y, z}`. `stars`
-  lists the tile's pre-placed bright stars (`bright_stars`, filled or
-  not; `queryDb.galaxy_bright_stars_in_box`), most luminous first, at
-  most 400: `{id, x, y, z, luminosity_sol, temperature_k, radius_sol,
-  star_type, yerkes_class, shell_index, band_index, wedge_index,
-  system_id}` (`system_id` is `null` until the star's sector is filled).
-  `generated` lists the stars of the tile's generated systems (by their
-  sector's center; `queryDb.galaxy_generated_stars_in_box`) at or above
-  the tile level's luminosity floor (`queryDb.generated_star_floor_sol`:
-  every star at level 12, four times brighter per coarser level, none
-  past 1,000 L☉), most luminous first, at most 1,000 (4,000 at level 12,
-  so the Galaxy Map zoomed to a sector shows all of its stars, MAP.80),
-  read from at most
-  1,500 of its sectors (a hashed sample past that); a star already in
-  `stars` isn't repeated: `{id, name, x, y, z, luminosity_sol,
-  temperature_k, radius_sol, star_type, shell_index, band_index,
-  wedge_index, system_id}` (`id` is the `stars` row). `points` lists
-  the placed black holes, neutron stars and quasars centered in the tile
-  (`queryDb.galaxy_point_phenomena_in_box`), only at level 10 (64 pc) and
-  finer, most luminous first, at most 200: `{type, id, name, descriptor,
-  luminosity_sol, x, y, z}` (`type` is `black_hole`, `neutron_star` or
-  `quasar`). Predicted density isn't
-  served: the page evaluates the galaxy's shape itself
-  (`static/galaxyprisms.js`). At most 128 keys per request; a
-  malformed key is a 400. Every part depends only on its key and the
-  database's contents, so callers cache it by key and `/api/galaxy/stamp`.
 - `GET /api/galaxy/nebula-cover?at=<block key>[&g=<n>]` — the share of each cell of a Galaxy Map stage (`at` alone,
   or none for the galaxy) or data window (`at` the middle cell and `g` the cells across) that lies inside a nebula
   (`queryDb.galaxy_nebula_cover`, MAP.174), for the cells that hold a generated sector and the ones that do not: the
@@ -524,24 +482,25 @@ connectivity to that specific schema rather than the default one.
   `parents`.
 - `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>", "state":
   "<token>"}` (`queryDb.galaxy_content_stamp`). `stamp` changes whenever
-  tile contents could: sectors placed, edited or removed (their
+  node contents could: sectors placed, edited or removed (their
   `modified_at`, schema v27), new star systems, a re-planned galaxy shape,
   or a new planetGen release. `state` is what `/api/galaxy/changes` takes.
-  `tile_stamp` (in `/api/galaxy/changes`) is the same without the release, for the stored tiles (PERF.133).
+  `tile_stamp` (in `/api/galaxy/changes`) is the same without the release, for the stored nodes (PERF.133).
 - `GET /api/galaxy/changes?since=<state>` — `{"stamp", "tile_stamp", "state", "full",
-  "tile_full", "tiles", "stages"}` (`queryDb.galaxy_changes`): the keys of the tiles
+  "tile_full", "stages", "nodes"}` (`queryDb.galaxy_changes`): the keys of the nodes
   that changed since that `state`, found from `sectors.modified_at`, new
-  sector ids and new star-system ids, and the drill-down stages holding
-  those sectors (`stages`, the keys `queryDb.galaxy_stage_keys` gives for each changed
-  sector: `galaxy` and every block above the sector). `tile_full` is `true` (and both lists empty) when that can't
-  be pinned to tiles: a deleted sector, a new shape, tile format or generator epoch, more than
+  sector ids and new star-system ids (`nodes`, the keys `queryDb.galaxy_node_keys` gives for each changed
+  sector: every block of the ladder over it, from the root down, and the sector's own), and the drill-down stages
+  holding those sectors (`stages`, the keys `queryDb.galaxy_stage_keys` gives for each changed
+  sector: `galaxy` and every block above the sector up to level 243). `tile_full` is `true` (and both lists empty) when that can't
+  be pinned to nodes: a deleted sector, a new shape, node format or generator epoch, more than
   1,000 changed sectors, new bright stars (a backfill), or a missing or
-  unreadable `since`; `full` is `true` for all of those and also for a new release alone, which stales the pages and counts cached by `stamp` but no stored tile (PERF.133). When `tile_full` is only because so much changed at once
+  unreadable `since`; `full` is `true` for all of those and also for a new release alone, which stales the pages and counts cached by `stamp` but no stored node (PERF.133). When `tile_full` is only because so much changed at once
   (more than 1,000 sectors, or new bright stars), the answer also has
-  `"busy": true`, and the web layer keeps its cached tiles for up to ten
+  `"busy": true`, and the web layer keeps its cached nodes for up to ten
   minutes instead of refetching them all under that load (PERF.34).
   `../src/planetgen/web/lib/tilecache.py` (the web layer's disk cache) calls it
-  about once a minute and deletes only the listed tiles, and passes the
+  about once a minute and deletes only the listed nodes, and passes the
   list on to the map's browser cache.
 - `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
   row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; a non-number is a 400;
@@ -597,13 +556,14 @@ connectivity to that specific schema rather than the default one.
   anything, or an id that is no row, is a 404 (`db.cloudcontents`). A system's own compact remnant is not counted.
 - `GET /api/containers[?kind=globular_cluster|superbubble]` (DB.85) — the stored containers, a globular cluster inside its tidal radius or a superbubble inside its cavity, by kind then id: `{"containers": [{id, uid, kind, name, component_id, center_pc, extent_pc, region: {shell, band, wedge}, bubble?}]}`. `uid` is the printed object ID (the container kind of the layout); `bubble` (`[column i, column j, draw]`) is set on a superbubble only. Another kind is a 400 (`db.containers`).
 - `GET /api/containers/at?x=&y=&z=[&kind=]` — the containers holding a galaxy-frame point, parsecs, deepest first, each with `depth` (distance from the centre over the extent) and `distance_pc`. A missing or non-numeric coordinate is a 400.
-- `GET /api/containers/<object ID>` and `GET /api/containers/<object ID>/contents[?limit=]` — one container, and what sits inside it (`counts` by kind, `total`, up to `limit` `items`, as the phenomenon contents above). An ID that is no container is a 404.
+- `GET /api/containers/<object ID>` and `GET /api/containers/<object ID>/contents[?limit=]` — one container (a globular cluster also carries `component`: its `mass_solar`, `age_gy`, `metallicity_fe_h`, `half_mass_radius_pc`, `tidal_radius_pc`, `king_w0` and `core_collapsed`), and what sits inside it (`counts` by kind, `total`, up to `limit` `items` whose `id` is the printed object ID, as the phenomenon contents above). An ID that is no container is a 404. A container is also an object reference (UX.184): `globular_cluster:<ID>` and `superbubble:<ID>` resolve at `GET /api/objects/<ref>` (the galaxy above it, its centre in `positions.galaxy_pc`, no keep-out radius), serve a sheet (`/sheet`: radius of its sphere and birth shell, band and wedge) and hold no children; a cluster's ID named as a superbubble (or the reverse) is a 404.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/
   `has_accretion_disk`, a supernova remnant's `morphology`/`progenitor_type`/
   `age_years`), plus `type`, `sector_name` and `nearest` (its three
-  nearest star systems, `{id, name, distance_ly}`). An asteroid field also
+  nearest star systems, `{id, name, distance_ly}`), `previous` and `next` (UX.185: `{id, name}` of the free phenomenon of the
+  same type before and after it, or `null`) and, for a supernova remnant with a stored centre, `compact_remnant_name`. An asteroid field also
   has `composition`, its saved composition rows in order as
   `{component, concentration}` (`concentration` is `high`/`moderate`/
   `small`/`trace`), and an interstellar comet `composition`, its
@@ -639,7 +599,8 @@ connectivity to that specific schema rather than the default one.
   `queryDb.search`'s docstring for the exact inclusion rule; a size range
   alone is reason enough, same as a tag or name term). `stars`/`planets`/
   `moons` result rows each include their own `radius_km`, and a planet or moon row also `equipment_tier`, `phi4` and the six
-  `tier_<domain>` ratings (0 Blue to 3 Red; `null` for a body that was not scored), which the page draws as symbols (UX.100). Each result
+  `tier_<domain>` ratings (0 Blue to 3 Red; `null` for a body that was not scored), which the page draws as symbols (UX.100), and
+  the four life scores as the cluster beside them (UX.152). Each result
   panel is paged on its own: `limit` sets the rows per panel (default
   300, clamped to 500 like "Pagination" below), and `sectors_offset`/
   `systems_offset`/`stars_offset`/`planets_offset`/`moons_offset`/
@@ -869,14 +830,22 @@ forced credential change. They back the admin stats page
   phoneme codec names takes a new name at once and no row is rewritten.
   409 before the galaxy is planned. Audited as `naming-key.change`. On the
   Stats page.
-- `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10):
+- `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10, PERF.99):
   `{"available", "status": {"workers_active", "runs_active", "paused",
-  "paused_by", "paused_at", "holder", "job_id", "heartbeat_age_s",
-  "stale", "load": {"values", "kind", "text"}}, "items": [job tree
-  roots, newest first, each with "totals"], "total", "limit",
-  "offset"}`. `load.kind` is `load` (the 1, 5 and 15 minute load
-  average); `load.values` is null where the system has no load average.
-  `available` is false until `update.sh` has added control schema v7.
+  "paused_by", "paused_at", "holder", "holder_title", "heartbeat_age_s",
+  "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
+  first], "total", "limit", "offset"}`. A run is `{"id", "title", "kind"
+  ("generation", "maintenance" or "check"), "who", "database", "job" (the
+  Generate page job that started it), "argv", "state" ("running",
+  "cancelling", "done", "failed" or "cancelled"), "error", "live", "stale",
+  "created", "started", "updated", "finished", "seconds", "stage": {"index",
+  "count", "label", "state"}, "units", "units_done", "percent", "eta":
+  {"seconds", "low", "high", "source", "from_earlier_runs", "partial",
+  "stalled"} or null}`, all read from the run record in Redis (`holder` is
+  the run that owns the machine; `stale` says it has not been heard from
+  for `max(120 s, 3 x its longest unit)`). `load.kind` is `load` (the 1, 5
+  and 15 minute load average); `load.values` is null where the system has
+  no load average. `available` is false when no Redis server answers.
 - `GET /api/admin/work/warm?database=NAME` — what the cache warm-up has done on that database, phase by phase (PERF.141):
   `{"available", "run": {"state", "started_at", "finished_at", "reason", "error"} or null, "phases": [{"name", "text",
   "families", "state", "state_text", "line", "built", "cached", "left_out", "seconds", "started_at", "finished_at"}],
@@ -892,28 +861,30 @@ forced credential change. They back the admin stats page
   POST needs a fresh admin login, is audited as `work.workers.set`, and
   lowering the count asks the extra workers to finish their unit and exit.
   503 when Redis does not answer.
-- `GET /api/admin/work/<id>` — the whole job tree holding node `<id>`
-  (ADM.12): every node's `kind`, `title`, `state`, `status` (`interrupted`
-  for a run that stopped answering), Unix-time `created_at`,
-  `started_at`, `finished_at`, `seconds`, `control`, `children`, a queue
-  node's `tasks` (up to 200, failed first) and `totals` (`tasks`,
-  `queued`, `running`, `done`, `failed`, `cancelled`, `work_seconds`,
-  `eta_seconds`) added up from the children.
-- `POST /api/admin/work/<id>/control` `{"action": "pause"|"resume"|"cancel"}`
-  — asks a live node and everything under it to pause (running tasks
-  finish, then it stands by without the lease, so other jobs run),
-  resume, or cancel. `POST /api/admin/work/<id>/delete` deletes a
-  finished tree by its root; `POST /api/admin/work/clear-finished`
-  deletes every finished tree and answers `{"cleared": count}`.
-  `POST /api/admin/work/queue`
+- `GET /api/admin/work/<id>` — one run (PERF.99): `{"run": the run above with
+  "stages": [{"key", "label", "state" ("waiting", "running" or "done"),
+  "units", "done", "cost", "cost_done", "started", "ended", "seconds",
+  "longest_unit"}], "events": the last 300 lines of its log [{"id", "t",
+  "level", "kind", "message"}], "log": true}`; 404 for an unknown run.
+  `GET /api/admin/work/<id>/log` answers the whole log as `{"text": ...}`,
+  from Redis while the run's record lasts (30 days) and from the file in the
+  jobs directory's `runs` folder after (the last 20 are kept).
+- `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"}` —
+  cancel stops a live run now: its waiting units are taken off the queue,
+  its started units are sent RQ's stop command, and the machine is free
+  (measured under a second for a run of 4,000 units); clear ends a run that
+  has stopped answering (its process is gone, or it is stale) as failed and
+  frees the machine, and is refused for a run that still answers.
+  Answers `{"ok": bool, "cancelled": n, "stopped": n}`.
+  `POST /api/admin/work/<id>/delete` deletes a finished run's record;
+  `POST /api/admin/work/clear-finished` deletes every finished run and
+  answers `{"cleared": count}`. `POST /api/admin/work/queue`
   `{"action": "pause"|"resume"}` pauses the whole queue (a flag in Redis,
   `planetgen:queue:paused`: the workers of a run's units and of the maintenance work take no job
   until it is cleared, a unit already running finishes, and the two API lanes are never held; PERF.152)
-  or resumes it; `503` when Redis does not answer. `POST /api/admin/work/lease/clear`
-  frees a lease whose holder stopped refreshing it. Each answers
-  `{"ok": bool}` (`{"cleared": holder}` for the lease) and writes the
-  change to the audit and activity logs (`work.pause`, `work.queue.pause`,
-  ...).
+  or resumes it; `503` when Redis does not answer. Each answers
+  `{"ok": bool}` and writes the change to the audit and activity logs
+  (`work.cancel`, `work.clear`, `work.delete`, `work.queue.pause`, ...).
 - `GET /api/admin/settings` — the configuration page's data (ADM.84):
   `{"file_hash", "problem", "file_error", "groups", "options",
   "pending_restart"}`. Each option is `{"path", "title", "description",

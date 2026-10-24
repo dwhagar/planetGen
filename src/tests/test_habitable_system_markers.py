@@ -2,13 +2,16 @@
 
 """
 MAP.220: a star system with a habitable world has a row in `habitable_systems` (migration 0148), the
-Galaxy Map's tiles list the systems that have one from the finest levels (`worlds`), and a re-score keeps the count right.
+Galaxy Map's nodes list the systems that have one for the blocks of 81 shells and smaller (`worlds`), and a re-score keeps the count right.
 """
 
 import pytest
 
 from planetgen.db import query, store
-from planetgen.galaxy import viewport
+from planetgen.db import nodes
+from planetgen.galaxy import spherical
+from planetgen.galaxy.drill import drill_chain_of, format_drill_key
+from planetgen.physics.units import ly_to_pc
 from planetgen.physics import habitability
 from tests.test_migration_habitable_worlds import ADDRESS, _fill_one_sector
 
@@ -77,15 +80,22 @@ def test_the_limit_cuts_the_list(mysql_config):
         conn.close()
 
 
-def test_a_fine_tile_carries_the_worlds_and_a_coarse_one_does_not(mysql_config):
+def test_a_small_node_carries_the_worlds_and_a_big_one_does_not(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         sector_id, expected = _fill_one_sector(conn)
         system_id = _place(conn, sector_id)
-        keys = viewport.tile_keys_containing(POSITION_PC)
-        fine = query.galaxy_tiles(conn, [keys[-1], keys[0]])["tiles"]
-        assert [(s["id"], s["worlds"]) for s in fine[keys[-1]]["worlds"]] == [(system_id, expected)]
-        assert fine[keys[0]]["worlds"] == []
+        # A node's box stops at the outline (the furthest stored sector's shell), so the system sits in its own sector.
+        edge_pc = ly_to_pc(query.DEFAULT_SECTOR_EDGE_LY)
+        position = spherical.sector_position_pc(*ADDRESS, edge_pc)
+        conn.execute("UPDATE star_systems SET galaxy_x_pc = ?, galaxy_y_pc = ?, galaxy_z_pc = ? WHERE id = ?",
+                     (*position, system_id))
+        store.recount_habitable_worlds(conn, [system_id])
+        chain = drill_chain_of(*spherical.sector_address_at(position, edge_pc))
+        keys = [format_drill_key(chain[-1]), format_drill_key(chain[0])]
+        found = nodes.galaxy_nodes(conn, keys)["nodes"]
+        assert [(s["id"], s["worlds"]) for s in found[keys[0]]["worlds"]] == [(system_id, expected)]
+        assert found[keys[1]]["worlds"] == []
     finally:
         conn.close()
 

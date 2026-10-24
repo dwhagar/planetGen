@@ -610,17 +610,15 @@ class LockoutLift(Lenient):
         return self
 
 
-class WorkAction(Lenient):
+class RunAction(Lenient):
     """`POST /api/admin/work/<id>/control`."""
 
     action: Optional[StrictStr] = None
 
     @model_validator(mode="after")
     def _known(self):
-        from planetgen.queue import work
-
-        if self.action not in work.ACTIONS:
-            raise ValueError("'action' must be pause, resume or cancel")
+        if self.action not in ("cancel", "clear"):
+            raise ValueError("'action' must be cancel or clear")
         return self
 
 

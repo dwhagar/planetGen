@@ -24,7 +24,7 @@ from planetgen.describe.html import blocks_html, inline_html
 from planetgen.describe.model import sections
 from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
-from planetgen.web.lib import bodyview
+from planetgen.web.lib import bodyview, facility_display
 from planetgen.web.lib.habitability_chips import chips_html
 from planetgen.web.lib.fmt import esc
 from planetgen.web.lib.systempage import facilities_by_host, facilities_html
@@ -39,10 +39,11 @@ from .nearby_page import nearby_url
 OWN_PAGE_KINDS = ("sector", "system") + objectref.PHENOMENON_KINDS
 """tuple: The kinds whose reference opens a page the site already has."""
 
-ITEM_PAGE_KINDS = objectref.BODY_KINDS
+ITEM_PAGE_KINDS = objectref.BODY_KINDS + objectref.FACILITY_KINDS + objectref.CONTAINER_KINDS
 """tuple: The kinds this module renders."""
 
-KIND_LABELS = {"star": "Star", "planet": "Planet", "moon": "Moon", "belt": "Asteroid belt", "comet": "Comet"}
+KIND_LABELS = {"star": "Star", "planet": "Planet", "moon": "Moon", "belt": "Asteroid belt", "comet": "Comet",
+               "facility": "Facility", "globular_cluster": "Globular cluster", "superbubble": "Superbubble"}
 
 
 def page_kinds():
@@ -273,7 +274,7 @@ def neighbours(detail, kind, row):
 def hosted_facilities(db, system_id, kind, row):
     """The facilities stored on this body (`GET /api/systems/<id>/facilities`), as the list its page shows."""
     found = facilities_by_host(apiclient.get_system_facilities(db, system_id)).get((kind, row["id"]))
-    return trusted_html(facilities_html(found))
+    return trusted_html(facilities_html(found, lambda facility: item_url(f"facility:{facility['id']}")))
 
 
 def dominant_species(db, kind, row):
@@ -340,8 +341,130 @@ def _free_moon_page(db, kind, printed_id, found, free_planet):
     )
 
 
+def _facility_facts(facility, found):
+    """The About text of a facility (UX.183): what it is built on, its type and affiliation, its description and its
+    rating chips, as HTML."""
+    lines = []
+    host = found["parents"][-1] if found["parents"] and found["parents"][-1]["kind"] not in ("galaxy", "sector", "system") \
+        else None
+    if host is not None:
+        lines.append(f'<p>Built on <a href="{esc(item_url(host["ref"]))}">{esc(host["name"])}</a>.</p>')
+    kind_words = esc(facility["kind"].replace("-", " "))
+    typed = facility_display.type_html(facility)
+    lines.append(f"<p>A {kind_words}{' of the type ' + typed if typed else ''}"
+                 f"{', affiliated with ' + esc(facility_display.affiliation_text(facility)) if facility.get('affiliation_name') else ''}.</p>")
+    if facility.get("description"):
+        lines.append(f"<p>{esc(facility['description'])}</p>")
+    lines.append(facility_display.rating_chips(facility))
+    return "".join(lines)
+
+
+def _facility_page(db, printed_id, found):
+    """The page of a facility (UX.183): where it stands, its stored properties and what its record says. It holds
+    nothing, so it has no tree; a facility not in a system has no system to link to."""
+    ref = f"facility:{printed_id}"
+    name = found["name"]
+    facility = apiclient.get_facility(db, printed_id)
+    system = next((p for p in found["parents"] if p["kind"] == "system"), None)
+    nav_ref = endpoint("facility", printed_id)
+    return render_page(
+        "item.html",
+        title=name,
+        section="systems",
+        breadcrumbs=_crumbs(found, name),
+        description=f"The facility {name}: where it stands, what it is and everything stored about it.",
+        kind="facility",
+        kind_label=KIND_LABELS["facility"],
+        object_id=printed_id,
+        facts=trusted_html(_facility_facts(facility, found)),
+        sheet=sheet_view(apiclient.get_object_sheet(db, ref)),
+        tree="",
+        location=location(found["parents"], None),
+        system_url=page_url("system", system_id=system["ref"].partition(":")[2]) if system else None,
+        system_name=esc(system["name"]) if system else None,
+        bookmark=bookmark("facility", nav_ref, name, item_url(ref)),
+        nav_links=None,    # a course names a system, a body or a phenomenon, not a facility
+        nearby_url=None,
+        admin=current_admin(),
+        object_ref=ref,
+    )
+
+
+_CONTAINER_WORDS = {
+    "globular_cluster": "a globular cluster, a dense ball of old stars",
+    "superbubble": "a superbubble, a cavity that supernovae and stellar winds have blown in the gas",
+}
+
+def _container_contents_html(listing):
+    """The "What is inside it" lists of a container (UX.184), one linked list per kind, as HTML."""
+    shown = {}
+    for item in listing["items"]:
+        shown.setdefault(item["kind"], []).append(item)
+    parts = []
+    for kind, label in CONTENT_LABELS.items():
+        count = listing["counts"].get(kind)
+        if not count:
+            continue
+        links = "".join(f'<li><a href="{esc(own_page_url(kind, item["id"]))}">{esc(item["name"])}</a></li>'
+                        for item in shown.get(kind, []))
+        more = count - len(shown.get(kind, []))
+        tail = f"<li><em>and {more:,} more</em></li>" if more > 0 else ""
+        parts.append(f"<h3>{esc(label)} ({count:,})</h3><ul>{links}{tail}</ul>")
+    if not parts:
+        return "<p>Nothing the galaxy stores lies inside it.</p>"
+    return "<h3>What is inside it</h3>" + "".join(parts)
+
+
+def _container_facts(container, found, listing):
+    """The About text of a cluster or a superbubble (UX.184): what it is, where its centre lies, a cluster's mass, age
+    and metallicity, and what sits inside it, as HTML."""
+    kind = found["kind"]
+    lines = [f"<p>This is {_CONTAINER_WORDS[kind]}. Its sphere is {container['extent_pc']:,.0f} parsecs "
+             "in radius.</p>"]
+    centre = found["positions"]["galaxy_pc"]
+    if centre:
+        lines.append("<p>Its centre lies at (" + ", ".join(f"{value:,.0f}" for value in centre)
+                     + ") parsecs in the galaxy frame.</p>")
+    component = container.get("component")
+    if component:
+        facts = [f"{component['mass_solar']:,.0f} solar masses" if component.get("mass_solar") else None,
+                 f"{component['age_gy']:.1f} billion years old" if component.get("age_gy") is not None else None,
+                 f"[Fe/H] {component['metallicity_fe_h']:+.2f}" if component.get("metallicity_fe_h") is not None else None]
+        lines.append("<p>" + esc(", ".join(fact for fact in facts if fact).capitalize()) + ".</p>")
+    lines.append(_container_contents_html(listing))
+    return "".join(lines)
+
+
+def _container_page(db, kind, printed_id, found):
+    """The page of a globular cluster or a superbubble (UX.184): where it lies, its stored properties and what sits
+    inside it. It has no tree and is no endpoint of a course."""
+    ref = f"{kind}:{printed_id}"
+    container = apiclient.get_container(db, printed_id)
+    listing = apiclient.get_container_contents(db, printed_id)
+    name = found["name"] or f"{KIND_LABELS[kind]} {printed_id}"
+    return render_page(
+        "item.html",
+        title=name,
+        section="galaxy",
+        breadcrumbs=_crumbs(found, name),
+        description=f"The {KIND_LABELS[kind].lower()} {name}: where it lies, what it is and what sits inside it.",
+        kind=kind,
+        kind_label=KIND_LABELS[kind],
+        object_id=printed_id,
+        facts=trusted_html(_container_facts(container, found, listing)),
+        sheet=sheet_view(apiclient.get_object_sheet(db, ref)),
+        tree="",
+        location=location(found["parents"], None),
+        bookmark=bookmark(kind, endpoint(kind, printed_id), name, item_url(ref)),
+        nav_links=None,
+        nearby_url=None,
+        admin=current_admin(),
+        object_ref=ref,
+    )
+
+
 def render_item(kind, printed_id):
-    """The page of one star, planet, moon, belt or comet; a missing one is a 404."""
+    """The page of one star, planet, moon, belt, comet, facility, globular cluster or superbubble; a missing one is a 404."""
     ref = f"{kind}:{printed_id}"
     post = request.method == "POST"
     db = db_name()
@@ -349,6 +472,10 @@ def render_item(kind, printed_id):
         found = apiclient.get_object(db, ref)
     except apiclient.NotFoundError:
         abort(404)
+    if kind == "facility":
+        return _facility_page(db, printed_id, found)
+    if kind in objectref.CONTAINER_KINDS:
+        return _container_page(db, kind, printed_id, found)
     system = next((p for p in found["parents"] if p["kind"] == "system"), None)
     if system is None:
         free_planet = next((p for p in found["parents"] if p["kind"] == "rogue_planet"), None)

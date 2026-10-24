@@ -290,7 +290,8 @@ def test_the_hosted_nebula_chance_is_scaled_by_the_nebula_factor(monkeypatch):
 
         def __init__(self):
             Entry.made += 1
-            self.star_system = types.SimpleNamespace(stars=[Star(Entry.made)], name="x")
+            star = Star(Entry.made)
+            self.star_system = types.SimpleNamespace(stars=[star], placed_star=star, name="x")
             self.position = (0.0, 0.0, 0.0)
 
     class Sector:

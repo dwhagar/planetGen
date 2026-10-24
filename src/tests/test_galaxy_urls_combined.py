@@ -123,7 +123,7 @@ def test_locate_endpoint_not_found_from_the_api_is_json(client, fake, monkeypatc
 
     monkeypatch.setattr(apiclient, "get_galaxy_locate", missing)
     response = client.get("/galaxy/locate?q=Vega")
-    # JSON like its sibling endpoints (/galaxy/tiles, /galaxy/stage), not
+    # JSON like its sibling endpoints (/galaxy/nodes, /galaxy/stage), not
     # the HTML 404 page.
     assert response.status_code == 404
     assert response.get_json() == {"error": "no such database"}

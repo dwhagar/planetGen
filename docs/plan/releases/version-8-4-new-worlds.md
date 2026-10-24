@@ -57,3 +57,28 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | MAP.275 | Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons | GEN.670, GEN.419 | Body rendering R6a; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.279 | Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape |  | Body rendering R13; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | DB.99 | Store the ground colour and the ice fraction on planets and moons | MAP.274 | Body rendering R2a; Boss's plan of 10:26 PM EDT 2026-10-23. |
+| GEN.738 | Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss |  |  |
+| GEN.739 | Impact erosion and late delivery of atmospheres, with history |  |  |
+| GEN.740 | Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere) |  |  |
+| GEN.750 | Evolutionary timeline: a model of the time to each life stage from conditions (Boss ruled: model it from physics) |  |  |
+| GEN.749 | Trapped radiation belts and the magnetosphere's shielding beyond a dipole size |  |  |
+| GEN.748 | Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's |  |  |
+| GEN.747 | Solar energetic particle events: the full event set and the Weibull parameters |  |  |
+| GEN.746 | Cosmic-ray dose below 100 g/cm2 of air from shower simulations instead of a straight stand-in between the Moon and Mars |  |  |
+| GEN.745 | Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share |  |  |
+| GEN.744 | Alpha-enhanced stellar tracks and an age-metallicity relation from the galaxy's own history |  |  |
+| GEN.743 | Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs |  |  |
+| GEN.742 | White dwarf cooling sequences by mass and atmosphere, including crystallisation and spectral type against temperature |  |  |
+| GEN.741 | Post-main-sequence stellar tracks: subgiant, red giant, horizontal branch, asymptotic giant and supergiant from mass and age instead of random draws |  |  |
+| GEN.737 | Tidal heating from the orbit, stored and counted for moons and planets |  |  |
+| GEN.736 | Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model |  |  |
+| GEN.735 | Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate |  |  |
+| GEN.734 | Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance |  |  |
+| GEN.733 | Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model |  |  |
+| GEN.732 | Planetary rings: existence, mass, extent and composition from the Roche limit and a disrupted moon or captured body |  |  |
+| GEN.731 | Planet spin: day length from accretion angular momentum, tidal despinning with per-body Q and k2, and spin-orbit resonances |  |  |
+| GEN.730 | Formation-era dynamics: giant impacts, scattering and instability instead of one survival constant |  |  |
+| GEN.729 | Planet spacing from the observed period-ratio and size-uniformity statistics, with stability checked |  |  |
+| GEN.728 | Planet count from the observed multiplicity and occurrence distributions by star mass and metallicity |  |  |
+| GEN.727 | Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow |  |  |
+| GEN.751 | Add the lava-vapour gases Al, K2, KO, K2O and Na2O to the gas table, from the research parts, so the lava-world air has its full species list |  |  |

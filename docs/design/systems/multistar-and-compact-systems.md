@@ -435,6 +435,8 @@ somewhere: higher N removes zones around single stars but rarely all of them.
 
 **As built (GEN.709).** The places stored for the two stars of a pair are the places the tree puts them at its epoch. A close pair is circular, so its node folds the argument of periapsis into the mean anomaly (the periapsis is 0 and the anomaly is the angle from the ascending node, which `BinaryStarProxy` tracks as its phase); a wide pair built from a node sits where `system_tree.node_relative_au` puts the secondary (the real ellipse, not the circle its phase is advanced on). The system scene gives a close pair inside a larger tree the stars' stored offsets in the whole tree, as a member gets, instead of the pair's own frame. `tests/test_gen_pair_positions.py` pins both.
 
+**As built (GEN.710).** `StarSystem.placed_star` is the star the build was made around (member 0 of the tree). It is `stars[0]` unless a companion outweighs it (GEN.631), when the heavier takes the primary's place. `run_sector.add_star_hosted_nebulae` rolls and names the nebula from `placed_star`, the star `nebula_contents.row_nebula` rolls for a pre-placed row, so the nebula built in the sector equals the row's prediction whatever the stored members weigh. A system loaded from the database has no `placed_star`; the nebula is a sector-build step only.
+
 **"Usable" for a P-type window (GEN.543).** The table's row was an earlier estimate with no definition past the width and a "crude habitable-zone test"; it cannot be reproduced from the text, so two definitions were tried on the same seeded draw (300 trees per N, `draw.Stream(0..299)`, main-sequence members, the host's luminosity the sum of the members below the node) against the row's 34, 35, 28, 23, 20 and 18%:
 
 | N | 2 | 3 | 4 | 5 | 6 | 7 |

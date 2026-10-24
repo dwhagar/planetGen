@@ -30,12 +30,13 @@ from planetgen.api.config import Config
 from planetgen.db import store as _db
 from planetgen.admin import auth as adminAuth
 from planetgen.galaxy import sector as spaceSector
+from planetgen.galaxy import spherical
+from planetgen.galaxy.drill import drill_chain_of, format_drill_key
+from planetgen.physics.units import ly_to_pc
+from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.constants import SOLAR_LUMINOSITY as SOLAR_LUMINOSITY_W
 from planetgen.db.store import MySQLConfig
 from planetgen.generation.config import SystemConfig
-from planetgen.galaxy.viewport import (
-    TILE_MAX_LEVEL, TILE_ROOT_EXTRA_LEVELS, tile_keys_containing, tiles_intersecting_sphere,
-)
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.db import edits as db_edits
@@ -767,38 +768,8 @@ def test_galaxy_nodes_answer_by_block_key_and_refuse_malformed_requests(client, 
     assert client.get(f"/api/galaxy/nodes?keys={many}").status_code == 400
 
 
-def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
-    """`GET /api/galaxy/tiles` puts each placed sector in exactly the tile
-    whose half-open box holds its center, and lists planned slots only
-    for small tiles."""
-    _place_sector(mysql_config, "Near Core", (5.0, 5.0, 5.0))
-    _place_sector(mysql_config, "Far Out", (9000.0, -3000.0, 20.0))
-
-    near = tiles_intersecting_sphere(TILE_MAX_LEVEL, (5.0, 5.0, 5.0), 0.0)[0]
-    far = tiles_intersecting_sphere(TILE_MAX_LEVEL, (9000.0, -3000.0, 20.0), 0.0)[0]
-    whole = "0/0/0/0"
-    response = client.get(f"/api/galaxy/tiles?tiles={near},{far},{whole}")
-    assert response.status_code == 200
-    body = response.get_json()
-    tiles = body["tiles"]
-    assert [s["name"] for s in tiles[near]["placed"]] == ["Near Core"]
-    assert [s["name"] for s in tiles[far]["placed"]] == ["Far Out"]
-    assert sorted(s["name"] for s in tiles[whole]["placed"]) == ["Far Out", "Near Core"]
-    assert tiles[near]["placed"][0]["system_count"] == 1
-    assert tiles[near]["placed"][0]["edge_ly"] == pytest.approx(10.0)
-    # No galaxy shape here, so small tiles list every slot unfiltered;
-    # the level-0 tile is far too big to list slots at all.
-    assert tiles[near]["planned"]
-    assert tiles[whole]["planned"] == []
-    # Neither sector has a grid address, so neither is counted.
-    assert tiles[near]["sector_count"] == 0 and tiles[whole]["sector_count"] == 0
-    assert tiles[near]["clouds"] == [] and tiles[whole]["clouds"] == []
-    assert "density" not in body
-    assert body["has_shape"] is False
-
-
 def test_galaxy_sector_count_in_box_counts_every_addressed_sector(mysql_config):
-    """A tile's sector count is every addressed sector whose center is in the half-open box -- nothing is
+    """A node's sector count is every addressed sector whose center is in the half-open box -- nothing is
     sampled away, and a sector with no grid address is not counted."""
     from planetgen.galaxy.spherical import sector_position_pc
 
@@ -820,7 +791,7 @@ def test_galaxy_sector_count_in_box_counts_every_addressed_sector(mysql_config):
 
 
 def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
-    """A tile lists each nebula or supernova remnant whose sphere reaches
+    """A node lists each nebula or supernova remnant whose sphere reaches
     into it, wherever its center is, largest first; past `max_clouds` the
     smallest are dropped. Point-like phenomena aren't clouds."""
     from planetgen.generation.phenomena.nebula import Nebula
@@ -1010,7 +981,7 @@ def _generated_sectors(mysql_config, luminosities):
 
 
 def test_galaxy_generated_stars_in_box_lists_the_brightest_above_the_floor(mysql_config, monkeypatch):
-    """MAP.51: a tile lists its generated systems' stars at or above its
+    """MAP.51: a node lists its generated systems' stars at or above its
     floor, most luminous first, placed at sector center plus system
     offset; a star also pre-placed as a bright star isn't listed twice;
     past the sector budget only every k-th sector is read."""
@@ -1073,82 +1044,9 @@ def _add_stars_to_sector(mysql_config, sector_id, luminosities):
         conn.close()
 
 
-def _cut_views():
-    """MAP.152: the tiles of a view for a spread of cameras (near the plane, high above it, at the
-    centre, out at the edge, deep in a sector, far outside) looking every way: the fetch set round
-    the camera plus the finest tiles round its target when it is close."""
-    import math
-    import random
-
-    from planetgen.galaxy.viewport import fetch_cut_tiles
-    from planetgen.web.maps.galaxymap3d import DETAIL_CAMERA_PC, DETAIL_RADIUS_PC
-
-    bounds = ((-12600.0, -12600.0, -960.0), (12600.0, 12600.0, 960.0))
-    rng = random.Random(4)
-    for _ in range(120):
-        reach = rng.choice([0, 10, 100, 1000, 5000, 10000, 14000, 40000])
-        camera = (rng.uniform(-1, 1) * reach + rng.choice([0.0, 8000.0]), rng.uniform(-1, 1) * reach,
-                  rng.uniform(-1, 1) * min(reach, 1500))
-        azimuth, tilt = rng.uniform(0, 2 * math.pi), rng.uniform(-1.5, 1.5)
-        look = (camera[0] + 50 * math.cos(tilt) * math.cos(azimuth), camera[1] + 50 * math.cos(tilt) * math.sin(azimuth),
-                camera[2] + 50 * math.sin(tilt))
-        keys = fetch_cut_tiles(camera, look, bounds)
-        distance = math.dist(camera, look)
-        if distance <= DETAIL_CAMERA_PC:
-            keys = tiles_intersecting_sphere(TILE_MAX_LEVEL, look, DETAIL_RADIUS_PC) + keys
-        yield keys
-
-
-def test_a_views_star_payload_has_a_stated_cap():
-    """MAP.109, MAP.152: the caps on every tile of a distance cut (and the finest tiles round the
-    target) add up to under the stated figure, for any camera, and a budget raised so far that the
-    worst view comes near it is noticed."""
-    worst = max(query.galaxy_view_star_cap(keys) for keys in _cut_views())
-    assert worst <= query.GALAXY_VIEW_MAX_STARS
-    assert worst > query.GALAXY_VIEW_MAX_STARS * 0.7, "tighten the stated figure"
-
-
-def test_a_cut_view_of_the_fixture_galaxy_comes_back_in_time_and_inside_the_cap(client, mysql_config):
-    import time
-
-    from planetgen.galaxy.viewport import fetch_cut_tiles
-
-    _generated_sectors(mysql_config, [0.5, 5.0, 40.0])
-    keys = fetch_cut_tiles((60.0, 60.0, 60.0), (2.0, 2.0, 0.0), ((-400.0, -400.0, -120.0), (400.0, 400.0, 120.0)))[:64]
-    assert len(keys) >= 8
-    started = time.monotonic()
-    body = client.get("/api/galaxy/tiles?tiles=" + ",".join(keys)).get_json()
-    elapsed = time.monotonic() - started
-    assert set(body["tiles"]) == set(keys)
-    stars = sum(len(t["stars"]) + len(t["generated"]) for t in body["tiles"].values())
-    assert 0 < stars <= query.galaxy_view_star_cap(keys)
-    assert elapsed < 10.0, f"a {len(keys)}-tile view took {elapsed:.1f} s"
-
-
-def test_generated_star_budget_grows_with_every_finer_level():
-    """MAP.116, MAP.152: one table, each finer level lists no fewer than the coarser one, none past
-    the finest tile's own, and the per-sector allowance is the dense/sparse fudge."""
-    from planetgen.galaxy.viewport import TILE_MAX_LEVEL
-
-    levels = sorted(query.GALAXY_TILE_STAR_BUDGET)
-    assert levels[-1] == TILE_MAX_LEVEL - 1
-    assert all(query.GALAXY_TILE_STAR_BUDGET[a] <= query.GALAXY_TILE_STAR_BUDGET[b]
-               for a, b in zip(levels, levels[1:]))
-    assert max(query.GALAXY_TILE_STAR_BUDGET.values()) < query.GALAXY_TILE_MAX_DETAIL_STARS
-    bright = [query.GALAXY_TILE_BRIGHT_BUDGET[level] for level in sorted(query.GALAXY_TILE_BRIGHT_BUDGET)]
-    assert bright == sorted(bright, reverse=True), "the coarsest tiles keep the most bright stars"
-    assert set(query.GALAXY_TILE_BRIGHT_BUDGET) == set(range(TILE_MAX_LEVEL))
-    assert query.generated_star_budget(TILE_MAX_LEVEL, 500) == (query.GALAXY_TILE_MAX_DETAIL_STARS, None)
-    budget, dense = query.generated_star_budget(8, 1500)
-    assert budget == query.GALAXY_TILE_STAR_BUDGET[8] and dense == 1
-    _budget, sparse = query.generated_star_budget(8, 4)
-    assert sparse == 3 * query.GALAXY_TILE_STAR_BUDGET[8] // 4 and sparse > dense
-    assert query.generated_star_budget(2, 100) == (0, None)
-
-
 def test_generated_stars_per_sector_allowance_leaves_room_for_a_sparse_sector(mysql_config):
     """MAP.116: a dense sector gives at most its allowance (its brightest);
-    a sparse one keeps what it has; the tile limit still takes the brightest."""
+    a sparse one keeps what it has; the node limit still takes the brightest."""
     sector_ids, star_ids = _generated_sectors(mysql_config, [8.0, 3.0])
     _add_stars_to_sector(mysql_config, sector_ids[0], [7.0, 6.0, 5.0, 4.0])
     lo, hi = (0.0, 0.0, -5.0), (64.0, 64.0, 5.0)
@@ -1164,142 +1062,15 @@ def test_generated_stars_per_sector_allowance_leaves_room_for_a_sparse_sector(my
         conn.close()
 
 
-def test_galaxy_tile_counts_follow_the_level_budget_for_dense_and_sparse_sectors(client, mysql_config, monkeypatch):
-    """MAP.116: a tile lists at most its level's budget; the dense sector
-    gives its brightest, the sparse one still shows."""
-    sector_ids, _star_ids = _generated_sectors(mysql_config, [90.0, 60.0])
-    _add_stars_to_sector(mysql_config, sector_ids[0], [80.0, 70.0, 50.0, 40.0, 30.0])
-    key = tiles_intersecting_sphere(6 + TILE_ROOT_EXTRA_LEVELS, (2.0, 2.0, 0.0), 0.0)[0]
-    finest = tiles_intersecting_sphere(TILE_MAX_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
-    monkeypatch.setattr(query, "GALAXY_TILE_STAR_BUDGET", {6 + TILE_ROOT_EXTRA_LEVELS: 4})
-    monkeypatch.setattr(query, "SECTOR_ALLOWANCE_FUDGE", 1)
-
-    def lums(tile):
-        body = client.get(f"/api/galaxy/tiles?tiles={tile}").get_json()["tiles"][tile]
-        return [s["luminosity_sol"] for s in body["generated"]]
-
-    # Budget 4 over 2 sectors: 2 stars each at most, the dense one's brightest.
-    assert lums(key) == pytest.approx([90, 80, 60], rel=1e-3)
-    monkeypatch.setattr(query, "SECTOR_ALLOWANCE_FUDGE", 3)
-    assert lums(key) == pytest.approx([90, 80, 70, 60], rel=1e-3)  # the tile budget stops it at 4
-    # A finest tile lists every star of the sectors it holds.
-    assert len(lums(finest)) == 7
-
-
-def test_galaxy_tiles_carry_no_comets_rogue_planets_or_asteroid_fields(client, mysql_config):
-    """MAP.115: those live on the Sector Map only. The `worlds` section is the habitable-system markers (MAP.220)."""
+def test_galaxy_nodes_carry_no_comets_rogue_planets_or_asteroid_fields(client, mysql_config):
+    """MAP.115: those live on the Sector Map only."""
     _generated_sectors(mysql_config, [1.0])
-    key = tiles_intersecting_sphere(TILE_MAX_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
-    tile = client.get(f"/api/galaxy/tiles?tiles={key}").get_json()["tiles"][key]
-    assert set(tile) == {"placed", "planned", "sector_count", "clouds", "stars", "generated", "points", "worlds"}
-    assert {p["type"] for p in tile["points"]} <= {"black_hole", "neutron_star", "quasar"}
-
-
-def test_galaxy_tiles_lists_generated_stars_by_tile_level(client, mysql_config):
-    """The finest tile lists every generated star, a coarser one its budget's brightest (MAP.152: no
-    brightness floor, so a sparse tile lists all it has), and a galaxy-sized one none (the bright stars
-    cover it)."""
-    _sector_ids, star_ids = _generated_sectors(mysql_config, [0.001, 5.0])
-    finest = tiles_intersecting_sphere(TILE_MAX_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
-    mid = tiles_intersecting_sphere(6 + TILE_ROOT_EXTRA_LEVELS, (2.0, 2.0, 0.0), 0.0)[0]
-    tiles = client.get(f"/api/galaxy/tiles?tiles={finest},{mid},0/0/0/0").get_json()["tiles"]
-    assert [s["id"] for s in tiles[finest]["generated"]] == pids("star", [star_ids[1], star_ids[0]])
-    assert [s["id"] for s in tiles[mid]["generated"]] == pids("star", [star_ids[1], star_ids[0]])
-    assert tiles["0/0/0/0"]["generated"] == []
-
-
-def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client, mysql_config, monkeypatch):
-    """MAP.80: a finest tile lists every generated star up to its own,
-    larger cap; tiles from `POINT_PHENOMENON_MIN_LEVEL` in list the black
-    holes, neutron stars and quasars centered in them, brightest first,
-    and coarser tiles none."""
-    import math
-
-    from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
-    from planetgen.generation.config import SystemConfig
-    from planetgen.generation.phenomena.quasar import Quasar
-
-    _sector_ids, star_ids = _generated_sectors(mysql_config, [0.001, 5.0, 0.3])
-    sector_id = _sector_ids[0]
-
-    def placement(x):
-        return {"center_x_pc": x, "center_y_pc": 2.0, "center_z_pc": 0.0, "galactic_radius_pc": math.hypot(x, 2.0)}
-
-    conn = _db.get_connection(mysql_config)
-    try:
-        with conn:
-            hole = _db.insert_black_hole(conn, BlackHole(SystemConfig()), sector_id=sector_id, placement=placement(1.0))
-            pulsar = _db.insert_neutron_star(conn, NeutronStar(SystemConfig()), sector_id=sector_id,
-                                             placement=placement(3.0))
-            quasar = _db.insert_quasar(conn, Quasar(SystemConfig()), sector_id=sector_id, placement=placement(2.5))
-            # Bound to a system, so not placed on its own.
-            _db.insert_black_hole(conn, BlackHole(SystemConfig()))
-        printed = {"black_hole": pid("black_hole", hole, conn), "neutron_star": pid("neutron_star", pulsar, conn),
-                   "quasar": pid("quasar", quasar, conn)}
-    finally:
-        conn.close()
-
-    finest = tiles_intersecting_sphere(TILE_MAX_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
-    sector_level = tiles_intersecting_sphere(query.POINT_PHENOMENON_MIN_LEVEL, (2.0, 2.0, 0.0), 0.0)[0]
-    coarse = tiles_intersecting_sphere(query.POINT_PHENOMENON_MIN_LEVEL - 1, (2.0, 2.0, 0.0), 0.0)[0]
-    monkeypatch.setattr(query, "GALAXY_TILE_STAR_BUDGET", {query.POINT_PHENOMENON_MIN_LEVEL: 1})
-    tiles = client.get(f"/api/galaxy/tiles?tiles={finest},{sector_level},{coarse}").get_json()["tiles"]
-    assert [s["id"] for s in tiles[finest]["generated"]] == pids("star", [star_ids[1], star_ids[2], star_ids[0]])
-    assert len(tiles[sector_level]["generated"]) == 1
-    points = tiles[finest]["points"]
-    assert {(p["type"], p["id"]) for p in points} == set(printed.items())
-    # MAP.208: the heaviest first (the map draws each as bright as a star of its mass).
-    assert [p["map_luminosity_sol"] for p in points] == sorted((p["map_luminosity_sol"] for p in points), reverse=True)
-    assert points[0]["type"] == "quasar"
-    by_type = {p["type"]: p for p in points}
-    assert (by_type["neutron_star"]["x"], by_type["neutron_star"]["y"]) == pytest.approx((3.0, 2.0))
-    assert by_type["neutron_star"]["descriptor"] in ("young", "millisecond", "non-pulsing")
-    assert by_type["black_hole"]["name"]
-    assert tiles[sector_level]["points"] == points
-    assert tiles[coarse]["points"] == []
-
-
-def test_galaxy_tiles_list_the_scattered_black_holes_and_neutron_stars_before_their_sector_is_filled(
-        client, mysql_config):
-    """MAP.164: a scatter row not yet built into a sector comes back as a point with its class's size, the
-    biggest classes at every level (so the largest show from the whole galaxy) and the rest from sector zoom."""
-    from planetgen.galaxy.spherical import sector_address_at
-
-    positions = {"supermassive": (0, 0, 0), "intermediate": (40_000, 30_000, 0), "stellar": (50_000, 20_000, 0),
-                 None: (60_000, 10_000, 0)}
-
-    def address(x, y, z):
-        return sector_address_at((x / 1000.0, y / 1000.0, z / 1000.0), 4.0)
-
-    insert = ("INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype,"
-              " position_x_mpc, position_y_mpc, position_z_mpc, seed{built}) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?{now})")
-    conn = _db.get_connection(mysql_config)
-    try:
-        with conn:
-            for subtype, (x, y, z) in positions.items():
-                kind = "neutron-star" if subtype is None else "black-hole"
-                conn.execute(insert.format(built="", now=""), (*address(x, y, z), kind, subtype, x, y, z, 1))
-            conn.execute(insert.format(built=", built_at", now=", NOW()"),
-                         (*address(1, 1, 1), "black-hole", "stellar", 1, 1, 1, 2))
-            conn.execute(insert.format(built=", built_at", now=", NOW()"),
-                         (*address(2, 2, 2), "quasar", None, 2, 2, 2, 3))
-    finally:
-        conn.close()
-
-    near = (0.04, 0.03, 0.0)
-    fine = tiles_intersecting_sphere(query.POINT_PHENOMENON_MIN_LEVEL, near, 0.0)[0]
-    coarse = tiles_intersecting_sphere(3 + TILE_ROOT_EXTRA_LEVELS, near, 0.0)[0]
-    tiles = client.get(f"/api/galaxy/tiles?tiles={fine},{coarse}").get_json()["tiles"]
-    fine_points = tiles[fine]["points"]
-    assert [(p["type"], p["descriptor"], p["size"]) for p in fine_points] == [
-        ("black_hole", "supermassive", 1.0), ("black_hole", "intermediate", 0.8),
-        ("black_hole", "stellar", 0.55), ("neutron_star", "scattered", 0.35)]
-    assert all(p["scattered"] for p in fine_points)
-    # The nucleus quasar is listed from the whole-galaxy view even once built, and the unbuilt ones keep "(uncharted)".
-    coarse_points = {p["descriptor"]: p for p in tiles[coarse]["points"]}
-    assert set(coarse_points) == {"scattered", "supermassive", "intermediate"} and len(tiles[coarse]["points"]) == 3
-    assert coarse_points["scattered"]["type"] == "quasar" and coarse_points["scattered"]["name"] == "Quasar"
-    assert coarse_points["supermassive"]["name"].endswith("(uncharted)")
+    address = spherical.sector_address_at((2.0, 2.0, 0.0), ly_to_pc(DEFAULT_SECTOR_EDGE_LY))
+    key = format_drill_key(drill_chain_of(*address)[0])
+    node = client.get(f"/api/galaxy/nodes?keys={key}").get_json()["nodes"][key]
+    assert set(node) <= {"aggregate", "placed", "planned", "sector_count", "clouds", "stars", "generated", "points",
+                         "worlds", "incomplete"}
+    assert {p["type"] for p in node["points"]} <= {"black_hole", "neutron_star", "quasar"}
 
 
 def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
@@ -1590,18 +1361,6 @@ def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):
     assert [s["id"] for s in everything] == ids
 
 
-def test_galaxy_tiles_rejects_bad_requests(client, mysql_config):
-    _db.get_connection(mysql_config).close()
-    assert client.get(f"/api/galaxy/tiles?tiles={TILE_MAX_LEVEL + 1}/0/0/0").status_code == 400
-    assert client.get("/api/galaxy/tiles?tiles=1/2/0/0").status_code == 400
-    assert client.get("/api/galaxy/tiles?tiles=nonsense").status_code == 400
-    too_many = ",".join(f"12/{i}/0/0" for i in range(129))
-    assert client.get(f"/api/galaxy/tiles?tiles={too_many}").status_code == 400
-    empty = client.get("/api/galaxy/tiles?tiles=")
-    assert empty.status_code == 200
-    assert empty.get_json()["tiles"] == {}
-
-
 def test_galaxy_stamp_changes_when_a_sector_is_placed(client, mysql_config):
     _db.get_connection(mysql_config).close()
     first = client.get("/api/galaxy/stamp").get_json()["stamp"]
@@ -1610,22 +1369,33 @@ def test_galaxy_stamp_changes_when_a_sector_is_placed(client, mysql_config):
     _place_sector(mysql_config, "New Sector", (1.0, 2.0, 3.0))
     assert client.get("/api/galaxy/stamp").get_json()["stamp"] != first
 
+
 def _galaxy_changes(client, since):
     response = client.get("/api/galaxy/changes", query_string={"since": since})
     assert response.status_code == 200
     return response.get_json()
 
 
-def test_galaxy_changes_lists_only_the_edited_sectors_tiles(client, mysql_config):
-    # A rename bumps `sectors.modified_at` (v27), which names the one tile
-    # per level holding that sector -- not the other sector's.
-    renamed_id = _place_sector(mysql_config, "Renamed", (5.0, 5.0, 5.0))
-    _place_sector(mysql_config, "Untouched", (9000.0, -3000.0, 20.0))
+def _place_addressed(mysql_config, name, point):
+    """A sector placed at `point` with its grid address, which is what puts it in the nodes: `(id, address)`."""
+    address = spherical.sector_address_at(point, ly_to_pc(DEFAULT_SECTOR_EDGE_LY))
+    return _place_sector(mysql_config, name, point, address=address), address
+
+
+def _node_keys_over(address):
+    return sorted(query.galaxy_node_keys(*address))
+
+
+def test_galaxy_changes_lists_only_the_edited_sectors_nodes(client, mysql_config):
+    # A rename bumps `sectors.modified_at` (v27), which names the blocks over that sector, down to the sector's own
+    # node, and not the other sector's own.
+    renamed_id, address = _place_addressed(mysql_config, "Renamed", (5.0, 5.0, 5.0))
+    _place_addressed(mysql_config, "Untouched", (9000.0, -3000.0, 20.0))
     before = client.get("/api/galaxy/stamp").get_json()
 
     unchanged = _galaxy_changes(client, before["state"])
     assert unchanged == {"stamp": before["stamp"], "tile_stamp": unchanged["tile_stamp"], "state": before["state"],
-                         "full": False, "tile_full": False, "tiles": [], "stages": [], "nodes": []}
+                         "full": False, "tile_full": False, "nodes": [], "stages": []}
 
     time.sleep(0.01)
     conn = _db.get_connection(mysql_config)
@@ -1638,13 +1408,13 @@ def test_galaxy_changes_lists_only_the_edited_sectors_tiles(client, mysql_config
     changes = _galaxy_changes(client, before["state"])
     assert changes["full"] is False
     assert changes["stamp"] != before["stamp"]
-    assert changes["tiles"] == sorted(tile_keys_containing((5.0, 5.0, 5.0)))
-    assert _galaxy_changes(client, changes["state"])["tiles"] == []
+    assert changes["nodes"] == _node_keys_over(address)
+    assert _galaxy_changes(client, changes["state"])["nodes"] == []
 
 
-def test_a_release_alone_keeps_the_stored_tiles_valid(client, mysql_config, monkeypatch):
-    # PERF.133: the tile stamp leaves the release number out, so a release that changes neither the tile format nor
-    # the generator epoch keeps every stored tile, while what is cached by the plain stamp (pages, counts) goes.
+def test_a_release_alone_keeps_the_stored_nodes_valid(client, mysql_config, monkeypatch):
+    # PERF.133: the tile stamp leaves the release number out, so a release that changes neither the node format nor
+    # the generator epoch keeps every stored node, while what is cached by the plain stamp (pages, counts) goes.
     _place_sector(mysql_config, "Steady", (5.0, 5.0, 5.0))
     before = _galaxy_changes(client, "")
     monkeypatch.setattr(query, "__version__", "99.0.0")
@@ -1652,12 +1422,12 @@ def test_a_release_alone_keeps_the_stored_tiles_valid(client, mysql_config, monk
     assert after["stamp"] != before["stamp"]
     assert after["tile_stamp"] == before["tile_stamp"]
     assert after["full"] is True and after["tile_full"] is False
-    assert after["tiles"] == [] and "busy" not in after
+    assert after["nodes"] == [] and "busy" not in after
 
 
-def test_a_release_alone_still_lists_the_tiles_an_edit_touched(client, mysql_config, monkeypatch):
-    renamed_id = _place_sector(mysql_config, "Renamed", (5.0, 5.0, 5.0))
-    _place_sector(mysql_config, "Untouched", (9000.0, -3000.0, 20.0))
+def test_a_release_alone_still_lists_the_nodes_an_edit_touched(client, mysql_config, monkeypatch):
+    renamed_id, address = _place_addressed(mysql_config, "Renamed", (5.0, 5.0, 5.0))
+    _place_addressed(mysql_config, "Untouched", (9000.0, -3000.0, 20.0))
     before = _galaxy_changes(client, "")
     monkeypatch.setattr(query, "__version__", "99.0.0")
     time.sleep(0.01)
@@ -1670,40 +1440,40 @@ def test_a_release_alone_still_lists_the_tiles_an_edit_touched(client, mysql_con
     after = _galaxy_changes(client, before["state"])
     assert after["tile_full"] is False
     assert after["tile_stamp"] != before["tile_stamp"]
-    assert after["tiles"] == sorted(tile_keys_containing((5.0, 5.0, 5.0)))
+    assert after["nodes"] == _node_keys_over(address)
 
 
-@pytest.mark.parametrize("what", ["tile_format", "epoch"])
-def test_a_new_tile_format_or_generator_epoch_makes_every_tile_stale(client, mysql_config, monkeypatch, what):
+@pytest.mark.parametrize("what", ["node_format", "epoch"])
+def test_a_new_node_format_or_generator_epoch_makes_every_node_stale(client, mysql_config, monkeypatch, what):
     _place_sector(mysql_config, "Steady", (5.0, 5.0, 5.0))
     before = _galaxy_changes(client, "")
-    if what == "tile_format":
+    if what == "node_format":
         monkeypatch.setattr(query, "TILE_FORMAT", query.TILE_FORMAT + 1)
     else:
         monkeypatch.setattr(query.generator_epoch, "generator_epoch", lambda: 10 ** 6)
     after = _galaxy_changes(client, before["state"])
     assert after["tile_stamp"] != before["tile_stamp"]
-    assert after["full"] is True and after["tile_full"] is True and after["tiles"] == []
+    assert after["full"] is True and after["tile_full"] is True and after["nodes"] == []
 
 
-def test_galaxy_changes_lists_a_new_sectors_tiles(client, mysql_config):
-    _place_sector(mysql_config, "Old", (5.0, 5.0, 5.0))
+def test_galaxy_changes_lists_a_new_sectors_nodes(client, mysql_config):
+    _place_addressed(mysql_config, "Old", (5.0, 5.0, 5.0))
     before = client.get("/api/galaxy/stamp").get_json()
-    _place_sector(mysql_config, "New", (-800.0, 40.0, 3.0))
+    _, address = _place_addressed(mysql_config, "New", (-800.0, 40.0, 3.0))
     changes = _galaxy_changes(client, before["state"])
     assert changes["full"] is False
-    assert changes["tiles"] == sorted(tile_keys_containing((-800.0, 40.0, 3.0)))
+    assert changes["nodes"] == _node_keys_over(address)
 
 
 def test_galaxy_changes_is_busy_when_a_run_changes_too_much_at_once(client, mysql_config, monkeypatch):
     # PERF.34: more changed sectors than a list holds, or a backfill adding stars, is `busy` (full, but
-    # not a deletion), so a cache can keep its tiles a while instead of refetching all of them.
+    # not a deletion), so a cache can keep its nodes a while instead of refetching all of them.
     _place_sector(mysql_config, "Old", (5.0, 5.0, 5.0))
     before = client.get("/api/galaxy/stamp").get_json()
     _place_sector(mysql_config, "New", (-800.0, 40.0, 3.0))
     monkeypatch.setattr(query, "GALAXY_CHANGES_MAX_SECTORS", 0)
     changes = _galaxy_changes(client, before["state"])
-    assert changes["full"] is True and changes["busy"] is True and changes["tiles"] == []
+    assert changes["full"] is True and changes["busy"] is True and changes["nodes"] == []
 
     monkeypatch.undo()
     settled = client.get("/api/galaxy/stamp").get_json()
@@ -1720,10 +1490,10 @@ def test_galaxy_changes_is_busy_when_a_run_changes_too_much_at_once(client, mysq
     assert "busy" not in _galaxy_changes(client, "nonsense")
 
 
-def test_galaxy_changes_lists_the_tiles_of_a_sector_that_lost_a_system(admin_client, mysql_config):
-    # Tiles show each sector's system count; deleting a system bumps its
+def test_galaxy_changes_lists_the_nodes_of_a_sector_that_lost_a_system(admin_client, mysql_config):
+    # Nodes show each sector's system count; deleting a system bumps its
     # sector (`_db.touch_sector`).
-    sector_id = _place_sector(mysql_config, "Shrinking", (100.0, 200.0, 300.0))
+    sector_id, address = _place_addressed(mysql_config, "Shrinking", (100.0, 200.0, 300.0))
     conn = _db.get_connection(mysql_config)
     try:
         system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
@@ -1734,17 +1504,17 @@ def test_galaxy_changes_lists_the_tiles_of_a_sector_that_lost_a_system(admin_cli
     assert admin_client.delete(f"/api/systems/{pid('system', system_id)}").status_code == 200
     changes = _galaxy_changes(admin_client, before["state"])
     assert changes["full"] is False
-    assert changes["tiles"] == sorted(tile_keys_containing((100.0, 200.0, 300.0)))
+    assert changes["nodes"] == _node_keys_over(address)
 
 
 def test_galaxy_changes_is_full_after_a_deletion_or_a_bad_since(admin_client, mysql_config):
-    # A deleted sector leaves no row to locate its tiles by.
+    # A deleted sector leaves no row to locate its nodes by.
     sector_id = _place_sector(mysql_config, "Doomed", (5.0, 5.0, 5.0))
     _place_sector(mysql_config, "Survivor", (50.0, 5.0, 5.0))
     before = admin_client.get("/api/galaxy/stamp").get_json()
     assert admin_client.delete(f"/api/sectors/{pid('sector', sector_id)}").status_code == 200
     changes = _galaxy_changes(admin_client, before["state"])
-    assert changes["full"] is True and changes["tiles"] == []
+    assert changes["full"] is True and changes["nodes"] == []
 
     for since in ("", "nonsense", "0123456789abcdef.1.2.3.4", "0123456789abcdef.0123456789abcdef.1.2.3.4"):
         assert _galaxy_changes(admin_client, since)["full"] is True
@@ -1837,6 +1607,7 @@ def test_unmatched_route_returns_json_404(client):
 # Authentication (see auth.py/authz.py) -- login, the forced default-
 # credential change, and API keys.
 # ---------------------------------------------------------------------
+
 
 def test_login_wrong_password_is_generic_401(mysql_config, client):
     adminAuth.bootstrap_control_schema(mysql_config)
@@ -2014,6 +1785,7 @@ def test_login_is_rate_limited(mysql_config, client):
 # Write endpoints -- real inserts/updates/deletes (see routes.py),
 # authenticated via `admin_client`.
 # ---------------------------------------------------------------------
+
 
 def test_create_sector_then_get_update_delete(admin_client):
     response = admin_client.post("/api/sectors", json={"name": "Test", "edge_ly": 10.0})
@@ -2638,3 +2410,5 @@ def test_galaxy_superbubbles_list_the_cavities_and_a_sector_inside_one_names_it(
     assert found["radius_pc"] == pytest.approx(contained.radius_pc, abs=0.1)
     assert found["temperature_k"] == tuning.SUPERBUBBLE_TEMPERATURE_K
     assert client.get(f"/api/sectors/{pid('sector', outside)}").get_json()["superbubble"] is None
+
+

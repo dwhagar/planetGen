@@ -1,14 +1,14 @@
 // html/static/tilepack.js
 //
-// MAP.159: reads the packed Galaxy Map tiles `/galaxy/tiles` sends and the
-// tile store keeps. planetgen/web/lib/tilepack.py writes them and describes
+// MAP.159: reads the packed Galaxy Map nodes `/galaxy/nodes` sends and the
+// node store keeps. planetgen/web/lib/tilepack.py writes them and describes
 // the layout; this file is its reader, so the format has one definition on
 // each side and a test (tests/test_tilepack.py with tests/js/tilepack.test.mjs)
 // holds the two together.
 //
 // A response is "PGTB", the header's JSON length (u32), the header (stamp,
-// generation, ..., `tiles`: [[key, byte length], ...]) and the tiles' bytes
-// in that order. A tile is "PGT1", the JSON length, its JSON (clouds, points,
+// generation, ..., `nodes`: [[key, byte length], ...]) and the nodes' bytes
+// in that order. A node is "PGT1", the JSON length, its JSON (clouds, points,
 // incomplete) and two star columns (`stars`, `generated`); a star's id is a
 // whole number, a printed object ID or anything else JSON holds, whatever
 // the list has (tilepack.py describes the three).
@@ -38,7 +38,7 @@ function decodeLog(code, range, top) {
 function column(bytes, offset, count, Constructor) {
   const size = count * Constructor.BYTES_PER_ELEMENT;
   const copy = bytes.slice(offset, offset + size);
-  if (copy.length !== size) throw new Error("a packed tile ends early");
+  if (copy.length !== size) throw new Error("a packed node ends early");
   return new Constructor(copy.buffer);
 }
 
@@ -89,9 +89,9 @@ function readStars(bytes, view, start) {
     at += length;
     ids = (i) => list[i];
   } else {
-    throw new Error("a packed tile has an unknown id kind");
+    throw new Error("a packed node has an unknown id kind");
   }
-  if (at > bytes.length) throw new Error("a packed tile ends early");
+  if (at > bytes.length) throw new Error("a packed node ends early");
 
   const stars = new Array(count);
   for (let i = 0; i < count; i++) {
@@ -114,48 +114,48 @@ function readStars(bytes, view, start) {
   return { stars, end: at };
 }
 
-// A packed tile (a Uint8Array) as the tile object the page reads: `stars`
+// A packed node (a Uint8Array) as the node object the page reads: `stars`
 // and `generated` (a star's `charted` is true when its system is known), and
-// the JSON sections as sent. Throws on bytes that are not one whole tile.
-export function unpackTile(bytes) {
-  if (bytes.length < 8 || magicAt(bytes, 0) !== MAGIC) throw new Error("not a packed tile");
+// the JSON sections as sent. Throws on bytes that are not one whole node.
+export function unpackNode(bytes) {
+  if (bytes.length < 8 || magicAt(bytes, 0) !== MAGIC) throw new Error("not a packed node");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const metaLength = view.getUint32(4, true);
   const metaEnd = 8 + metaLength;
-  if (metaEnd > bytes.length) throw new Error("a packed tile ends early");
-  const tile = JSON.parse(new TextDecoder("utf-8").decode(bytes.subarray(8, metaEnd)));
+  if (metaEnd > bytes.length) throw new Error("a packed node ends early");
+  const node = JSON.parse(new TextDecoder("utf-8").decode(bytes.subarray(8, metaEnd)));
   let at = metaEnd;
   for (const section of ["stars", "generated"]) {
     const read = readStars(bytes, view, at);
-    tile[section] = read.stars;
+    node[section] = read.stars;
     at = read.end;
   }
-  if (at !== bytes.length) throw new Error("a packed tile has bytes left over");
-  return tile;
+  if (at !== bytes.length) throw new Error("a packed node has bytes left over");
+  return node;
 }
 
-// A `/galaxy/tiles` body (an ArrayBuffer or Uint8Array) as
-// `{ header, packed: Map key -> Uint8Array, tiles: { key: tile } }`: the
-// header without its `tiles` list, each tile's own bytes (what the tile
-// store keeps) and the tiles read.
+// A `/galaxy/nodes` body (an ArrayBuffer or Uint8Array) as
+// `{ header, packed: Map key -> Uint8Array, nodes: { key: node } }`: the
+// header without its `nodes` list, each node's own bytes (what the node
+// store keeps) and the nodes read.
 export function unpackResponse(body) {
   const bytes = body instanceof Uint8Array ? body : new Uint8Array(body);
-  if (bytes.length < 8 || magicAt(bytes, 0) !== RESPONSE_MAGIC) throw new Error("not a packed tile response");
+  if (bytes.length < 8 || magicAt(bytes, 0) !== RESPONSE_MAGIC) throw new Error("not a packed node response");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const headerEnd = 8 + view.getUint32(4, true);
-  if (headerEnd > bytes.length) throw new Error("a packed tile response ends early");
+  if (headerEnd > bytes.length) throw new Error("a packed node response ends early");
   const header = JSON.parse(new TextDecoder("utf-8").decode(bytes.subarray(8, headerEnd)));
-  const listed = header.tiles || [];
-  delete header.tiles;
+  const listed = header.nodes || [];
+  delete header.nodes;
   const packed = new Map();
-  const tiles = {};
+  const nodes = {};
   let at = headerEnd;
   for (const [key, length] of listed) {
-    if (at + length > bytes.length) throw new Error("a packed tile response ends early");
+    if (at + length > bytes.length) throw new Error("a packed node response ends early");
     const part = bytes.slice(at, at + length);
     packed.set(key, part);
-    tiles[key] = unpackTile(part);
+    nodes[key] = unpackNode(part);
     at += length;
   }
-  return { header, packed, tiles };
+  return { header, packed, nodes };
 }

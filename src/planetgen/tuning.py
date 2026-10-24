@@ -1564,6 +1564,62 @@ days to tens of years)."""
 SYMBIOTIC_PERIOD_DAYS = (200.0, 2000.0)
 """tuple: The period of a symbiotic star's white dwarf, log-uniform, days (Mikolajewska 2012: 200 to 1,500 days)."""
 
+# Accreting compact binaries (GEN.272, docs/design/systems/multi-star-systems.md 13.4). Every figure below is a stand-in
+# unless it names a source; the shares of the registry rows (`high-mass-xray-binary`, `low-mass-xray-binary`,
+# `microquasar`, `millisecond-pulsar-companion`) are in `generation/phenomena/system_types.py`.
+SUPERGIANT_XRAY_PERIOD_DAYS = (1.4, 100.0)
+"""tuple: The period of a wind-fed (supergiant) high-mass X-ray binary, log-uniform, days (Cyg X-1 5.6 d, Vela X-1 9 d,
+GX 301-2 41 d: 1 to 100 d). A star whose lobe the span would put inside takes the span out to `XRAY_SPAN_ROOM` times the
+closest the pair may be."""
+
+BE_XRAY_PERIOD_DAYS = (10.0, 300.0)
+"""tuple: The period of a Be/X-ray binary, log-uniform, days (Corbet 1986 and Reig 2011: 10 to 300 d; the orbit is eccentric)."""
+
+LOW_MASS_XRAY_PERIOD_DAYS = (0.17, 1.0)
+"""tuple: The period of a low-mass X-ray binary with a main-sequence donor, days (4 to 24 hours, most of the 349 known)."""
+
+LOW_MASS_XRAY_DONOR_MASS_RANGE_SOL = (0.1, 1.5)
+"""tuple: The initial mass of the low-mass star that a neutron star or a black hole accretes from, solar masses (a stand-in
+for the range of donors of the low-mass X-ray binaries)."""
+
+XRAY_SPAN_ROOM = 4.0
+"""float: How far past the closest allowed axis an X-ray binary's span reaches when its period range would put the donor
+inside its lobe (see `SUPERGIANT_XRAY_PERIOD_DAYS`)."""
+
+SPIDER_PERIOD_DAYS = (0.1, 1.0)
+"""tuple: The orbital period of a black widow or a redback, log-uniform, days (hours to a day, arXiv 2210.16295)."""
+
+BLACK_WIDOW_MASS_RANGE_SOL = (0.01, 0.05)
+"""tuple: A black widow's companion mass, solar masses (the registry row: 0.01 to 0.05)."""
+
+REDBACK_MASS_RANGE_SOL = (0.2, 0.4)
+"""tuple: A redback's companion mass, solar masses (the registry row: 0.2 to 0.4; 0.07 to 0.1 is empty)."""
+
+MICROQUASAR_SHARE_OF_XRAY_BINARIES = 0.10
+"""float: The share of accreting neutron stars and black holes that launch jets (a microquasar). A stand-in: several dozen
+microquasars (the registry row's 50) against the 165 high-mass and 349 low-mass X-ray binaries known."""
+
+ACCRETION_EFFICIENCY_BLACK_HOLE = 0.1
+"""float: The share of the rest-mass energy of accreted gas that a black hole radiates (a stand-in for a moderate spin; the
+neutron star's is its surface potential, `physics/accretion.py`)."""
+
+WIND_MASS_LOSS_MSUN_YR_AT_1E5_LSUN = 1.0e-6
+WIND_MASS_LOSS_LUMINOSITY_EXPONENT = 1.5
+"""A hot massive star's wind loses `WIND_MASS_LOSS_MSUN_YR_AT_1E5_LSUN` solar masses a year at 1e5 solar luminosities,
+scaling as the luminosity to this power (stand-ins within the range of Vink et al. 2001 for O and B supergiants)."""
+
+WIND_SPEED_OVER_ESCAPE = 1.5
+"""float: The terminal wind speed of a hot massive star over its surface escape speed (1.5 to 3 for OB stars; the low end)."""
+
+BE_DISC_MASS_LOSS_MSUN_YR = 1.0e-8
+BE_DISC_OUTFLOW_KMS = 20.0
+"""A Be star's decretion disc supplies the neutron star at periastron: the rate and the slow outflow speed of the disc gas
+(stand-ins; Be/X-ray outbursts average 1e36 to 1e37 erg/s)."""
+
+OVERFLOW_TIMESCALE_YR = {"main-sequence": 5.0e8, "giant": 1.0e7}
+"""dict: A lobe-filling donor gives up its mass over this many years, by the kind of donor (a stand-in for the angular
+momentum loss of a main-sequence donor and the expansion of a giant)."""
+
 # The chance of a companion inside 10 AU against the star's own [Fe/H] (GEN.103; Boss, 2026-10-16, 6:12 to 6:15 PM
 # EDT: one pooled trend, every star mass). Moe, Kratter & Badenes 2019, ApJ 875:61 (arXiv 1808.02116), for solar-type
 # primaries (0.6 to 1.5 Msun, periods under 10^4 d): 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2 and
@@ -3151,7 +3207,7 @@ ROGUE_EARTH_REFERENCE_AGE_GY = 4.5
 
 RADIOGENIC_SILICATE_MASS_FRACTION = 0.675
 """float: The heat-producing (bulk silicate) share of a rocky body's mass: the Earth's 1 minus its core mass fraction 0.325 (part E
-2.8e). The stand-in for a body with no stored composition; `radiogenic.rock_inputs` reads the drawn one (GEN.428)."""
+2.8e). The stand-in for a body with no stored composition; `radiogenic.rock_of` reads the drawn one (GEN.428)."""
 
 GCR_SOLAR_MODULATION_RANGE = (0.5, 1.64)
 """tuple: The cosmic-ray dose as a fraction of its mean over the solar cycle, drawn log-uniformly per body (GEN.453): the
@@ -3183,9 +3239,19 @@ RADIOGENIC_AL26_FACTOR_RANGE = (0.1, 10.0)
 """tuple: The 26Al/27Al at formation over the Solar System's 5.23e-5, drawn log-uniformly (Lichtenberg et al. 2019). A stand-in until
 GEN.476 derives it from the star's formation environment."""
 
-RADIOGENIC_UREY_RANGE = (0.1, 0.9)
-"""tuple: The Urey ratio today, radiogenic heat over the heat flowing out, drawn uniformly (part E 3.3: young bodies sit well below 1,
-the Earth's 0.47 to 0.52 is a test target, and 0.67 is above every measured value)."""
+INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (2.6e10, 5.3e13)
+"""tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly: the bounds Guimond, Rudge and
+Shorttle 2022 take (arXiv:2201.05636 section 2.2.3; READ), wet olivine's 1.6e11 Karato and Wu 1993 less an order of magnitude to dry
+enstatite's (Zhang et al. 2017). Their uncertainty on the rheology of other planets' mantles."""
+
+INTERIOR_ACTIVATION_RANGE_KJ_MOL = (200.0, 300.0)
+"""tuple: The viscosity activation energy `Ea`, kJ/mol, drawn uniformly: Guimond et al. 2022 (wet enstatite 200, dry olivine 300)."""
+
+INTERIOR_INITIAL_TEMPERATURE_CAP_K = 3500.0
+"""float: The hottest a mantle is, K: fully molten, a magma ocean radiates away what is above its liquidus within some million years,
+so the assembly energy (`interior_heat.binding_energy_j`) and the 26Al of the first Myr never push it higher. A STAND-IN picked within
+the literature (the liquidus of a deep magma ocean is about 3500 K, the solidus at depth about 2000); a rheology as stiff as the
+slowest cooler of Guimond et al. 2022 stays near it for a gigayear. GEN.699 labels it in the gap plan registry."""
 
 ROGUE_TIDAL_FLUX_RANGE_W_M2 = (1e-4, 1e-2)
 """tuple: Tidal heating, W/m^2, drawn log-uniformly for a rocky rogue

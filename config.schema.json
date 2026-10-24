@@ -4,7 +4,7 @@
       "properties": {
         "max_mb": {
           "default": 1024,
-          "description": "How much disk the site's stored caches (today the Galaxy Map's tiles) may use, in all. When it is full the warm-up stops, the tiles it built ahead stay, and the tiles a visit asked for are dropped, the least recently visited first (0 turns the disk caches off).",
+          "description": "How much disk the site's stored caches (today the Galaxy Map's nodes and stages) may use, in all. When it is full the warm-up stops, the nodes it built ahead stay, and the nodes a visit asked for are dropped, the least recently visited first (0 turns the disk caches off).",
           "minimum": 0,
           "title": "Max Mb",
           "type": "number",
@@ -901,7 +901,7 @@
         },
         "maintenance_workers": {
           "default": 1,
-          "description": "How many workers run the cache warm-up, the tile prefetch and the database check while a generation run is live. They are taken out of the generation worker count (a generation worker finishes its unit and leaves when they are needed), so the host's total does not grow; with no generation run live they may use the whole count.",
+          "description": "How many workers run the cache warm-up, the node prefetch and the database check while a generation run is live. They are taken out of the generation worker count (a generation worker finishes its unit and leaves when they are needed), so the host's total does not grow; with no generation run live they may use the whole count.",
           "maximum": 64,
           "minimum": 1,
           "title": "Maintenance Workers",
@@ -918,6 +918,27 @@
           "x-secret": false,
           "x-slider": null,
           "x-summary": "How many workers keep the caches and checks going while a generation run is live.",
+          "x-unit": "workers"
+        },
+        "max_host_workers": {
+          "default": 0,
+          "description": "The most worker processes planetgen may run on this host at once, every queue and command together: a start that would pass it is refused and said in the log. 0 sizes it from the host: 60 percent of its memory in workers of 300 MB each, no more than four per core, and never fewer than the cores plus four. It stops a burst of requests, or several commands starting workers together, from filling the memory and getting MySQL killed.",
+          "maximum": 512,
+          "minimum": 0,
+          "title": "Max Host Workers",
+          "type": "integer",
+          "x-advanced": false,
+          "x-choice-labels": null,
+          "x-control": null,
+          "x-editable": true,
+          "x-group": "speed",
+          "x-label": "Most workers on this host",
+          "x-min_role": "admin",
+          "x-multiline": false,
+          "x-restart": false,
+          "x-secret": false,
+          "x-slider": null,
+          "x-summary": "The most worker processes planetgen runs at once on this host; 0 sizes it from memory and cores.",
           "x-unit": "workers"
         },
         "unit_ceiling_seconds": {
@@ -1040,7 +1061,7 @@
         },
         "galaxy_tiles": {
           "default": "600 per minute",
-          "description": "Limit on /galaxy/tiles, /galaxy/nodes, /galaxy/stage, /galaxy/window and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
+          "description": "Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
           "title": "Galaxy Tiles",
           "type": "string",
           "x-advanced": false,
@@ -1048,13 +1069,13 @@
           "x-control": "rate",
           "x-editable": true,
           "x-group": "protection",
-          "x-label": "Map tile limit",
+          "x-label": "Map data limit",
           "x-min_role": "admin",
           "x-multiline": false,
           "x-restart": true,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How fast one visitor may load map tiles while moving the map; empty turns the limit off."
+          "x-summary": "How fast one visitor may load map data while moving the map; empty turns the limit off."
         },
         "health": {
           "default": "60 per minute",
@@ -1502,7 +1523,7 @@
       "properties": {
         "dir": {
           "default": "",
-          "description": "Where the Galaxy Map's tiles are cached on disk; empty means /var/cache/planetgen/tiles.",
+          "description": "Where the Galaxy Map's nodes are cached on disk; empty means /var/cache/planetgen/tiles.",
           "title": "Dir",
           "type": "string",
           "x-advanced": false,
@@ -1511,17 +1532,17 @@
           "x-editable": false,
           "x-env": "PLANETGEN_TILE_CACHE_DIR",
           "x-group": "paths",
-          "x-label": "Tile cache folder",
+          "x-label": "Map cache folder",
           "x-min_role": "admin",
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "Where the Galaxy Map's tiles are cached; empty uses /var/cache/planetgen/tiles."
+          "x-summary": "Where the Galaxy Map's nodes are cached; empty uses /var/cache/planetgen/tiles."
         },
         "prefetch_max_queued": {
           "default": 8,
-          "description": "The background build queues nothing while this many of its jobs (16 tiles each) or other upkeep work already wait.",
+          "description": "The background build queues nothing while this many of its jobs (16 nodes each) or other upkeep work already wait.",
           "minimum": 1,
           "title": "Prefetch Max Queued",
           "type": "integer",
@@ -1541,7 +1562,7 @@
         },
         "prefetch_per_minute": {
           "default": 600,
-          "description": "Most tiles the background build queues in a minute, all requests together.",
+          "description": "Most nodes the background build queues in a minute, all requests together.",
           "minimum": 0,
           "title": "Prefetch Per Minute",
           "type": "integer",
@@ -1550,18 +1571,18 @@
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
-          "x-label": "Tiles prefetched per minute",
+          "x-label": "Nodes prefetched per minute",
           "x-min_role": "admin",
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "Most tiles the background build queues in a minute, all visitors together.",
-          "x-unit": "tiles"
+          "x-summary": "Most nodes the background build queues in a minute, all visitors together.",
+          "x-unit": "nodes"
         },
         "prefetch_per_visit": {
           "default": 128,
-          "description": "Most tiles one request for tiles queues to be built in the background: the next few zoom steps along the camera's line, then the neighbours of the tiles it asked for and the next level inside them (0 turns the background build off).",
+          "description": "Most nodes one request for nodes queues to be built in the background: the children of the nodes it asked for, then their parents and the parents' other children (0 turns the background build off).",
           "minimum": 0,
           "title": "Prefetch Per Visit",
           "type": "integer",
@@ -1570,56 +1591,35 @@
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
-          "x-label": "Tiles prefetched per visit",
+          "x-label": "Nodes prefetched per visit",
           "x-min_role": "admin",
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "Most tiles one visit queues to be built ahead in the background (0 turns it off).",
-          "x-unit": "tiles"
+          "x-summary": "Most nodes one visit queues to be built ahead in the background (0 turns it off).",
+          "x-unit": "nodes"
         },
-        "warm_levels": {
-          "default": 8,
-          "description": "How many levels of the Galaxy Map's tile octree `planetgen warm` builds in full, coarsest first (level 8 is tiles 2,048 pc across; every level is eight times the tiles of the one above; 0 builds none).",
-          "maximum": 15,
-          "minimum": 0,
-          "title": "Warm Levels",
+        "warm_zoom_floor": {
+          "default": 9,
+          "description": "Finest block level of the zoom run `planetgen warm` builds from the opening view in to the galaxy's centre, on top of the populated blocks it builds in full (9 is blocks of nine shells, about 36 pc across; the run covers blocks of that size and bigger; 243 or more builds no run).",
+          "maximum": 177147,
+          "minimum": 1,
+          "title": "Warm Zoom Floor",
           "type": "integer",
           "x-advanced": false,
           "x-choice-labels": null,
           "x-control": null,
           "x-editable": true,
           "x-group": "speed",
-          "x-label": "Map levels built in full",
+          "x-label": "Closest map block built ahead",
           "x-min_role": "admin",
           "x-multiline": false,
           "x-restart": false,
           "x-secret": false,
           "x-slider": null,
-          "x-summary": "How many of the map's coarsest tile levels are built ahead (0 builds none).",
-          "x-unit": "levels"
-        },
-        "warm_zoom_levels": {
-          "default": 14,
-          "description": "Finest tile level of the zoom run `planetgen warm` builds from the opening view in to the galaxy's centre, on top of the levels above (level 14 is tiles 32 pc across and the finest the map's cut uses; at most 15; 0 builds no run).",
-          "maximum": 15,
-          "minimum": 0,
-          "title": "Warm Zoom Levels",
-          "type": "integer",
-          "x-advanced": false,
-          "x-choice-labels": null,
-          "x-control": null,
-          "x-editable": true,
-          "x-group": "speed",
-          "x-label": "Closest map level built ahead",
-          "x-min_role": "admin",
-          "x-multiline": false,
-          "x-restart": false,
-          "x-secret": false,
-          "x-slider": null,
-          "x-summary": "How far in the map is prepared; level 14 is tiles 32 pc wide, 0 skips it.",
-          "x-unit": "levels"
+          "x-summary": "How far in the map is prepared: blocks of this many shells; 243 or more skips it.",
+          "x-unit": "shells"
         }
       },
       "title": "TileCache",
@@ -2014,6 +2014,7 @@
         "long_job_seconds": 60.0,
         "long_workers": 1,
         "maintenance_workers": 1,
+        "max_host_workers": 0,
         "unit_ceiling_seconds": 300.0,
         "wait_minutes": 60.0
       }
@@ -2115,8 +2116,7 @@
         "prefetch_max_queued": 8,
         "prefetch_per_minute": 600,
         "prefetch_per_visit": 128,
-        "warm_levels": 8,
-        "warm_zoom_levels": 14
+        "warm_zoom_floor": 9
       }
     },
     "web": {

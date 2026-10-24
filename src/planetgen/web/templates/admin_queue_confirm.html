@@ -1,5 +1,5 @@
 {#- planetgen/web/templates/admin_queue_confirm.html -- confirms a work queue
-control before it runs (ADM.10). -#}
+control before it runs (ADM.10, PERF.99). -#}
 {% extends "base.html" %}
 {% block content %}
 <section class="panel" aria-labelledby="confirm-heading">
@@ -8,9 +8,8 @@ control before it runs (ADM.10). -#}
   <form method="post" action="{{ url_for('web.admin_queue_action') }}" class="table-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="{{ action }}">
-    <input type="hidden" name="node" value="{{ node_id }}">
-    {%- if task_id %}<input type="hidden" name="task" value="{{ task_id }}">{% endif %}
-    <button type="submit" class="btn{% if action in ('cancel', 'delete', 'queue-pause', 'clear-lease', 'clear-finished') %} btn-danger{% endif %}">{{ button }}</button>
+    <input type="hidden" name="run" value="{{ run_id }}">
+    <button type="submit" class="btn{% if action in ('cancel', 'clear', 'delete', 'queue-pause', 'clear-finished') %} btn-danger{% endif %}">{{ button }}</button>
     <a href="{{ back }}">Go back</a>
   </form>
 </section>

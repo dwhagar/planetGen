@@ -2,7 +2,7 @@
 
 """
 UX.177: every kind of object page, walked on the small generated database `test_web_a11y.py` builds: each star, planet,
-moon, belt and comet the database holds opens its page (property sheet, places, tree), each tree row's link opens the
+moon, belt, comet and facility the database holds opens its page (property sheet, places, tree), each tree row's link opens the
 page it names, a planet with no moons has no tree, and an object that does not exist is a 404.
 
 Skipped without the MySQL test server. The browser behaviour of the tree is in `test_web_browser_object_tree.py`, the
@@ -27,6 +27,8 @@ def _bodies(client):
         found["star"] += [f"star:{row['id']}" for row in detail["stars"]]
         found["belt"] += [f"belt:{row['id']}" for row in detail["belts"]]
         found["comet"] += [f"comet:{row['id']}" for row in detail["comets"]]
+        found["facility"] += [f"facility:{row['id']}" for row in client.get(f"/api/systems/{system['id']}/facilities")
+                              .get_json()["items"]]
         for planet in detail["planets"]:
             found["planet"].append(f"planet:{planet['id']}")
             found["moon"] += [f"moon:{moon['id']}" for moon in planet.get("moons") or []]

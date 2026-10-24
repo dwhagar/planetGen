@@ -47,6 +47,7 @@ VALUES_FUNCTION_ALLOWED = {
         "spiral_reference_angle_rad", "k_norm", "edge_pc", "expected_system_count_at_density_1",
         "outer_shell_index",
     },
+    "planetgen/db/migrations/versions/0148_habitable_worlds_per_system.py": {"habitable_worlds"},
     "planetgen/population/model.py": {"scanned_planet_id"},
     "planetgen/generation/stats.py": {"__expr__", "bytes_per_system", "systems", "total_bytes"},
 }

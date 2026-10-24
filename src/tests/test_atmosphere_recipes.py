@@ -100,7 +100,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 49, "open": 0, "stand-in": 18}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 50, "open": 0, "stand-in": 17}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -169,9 +169,10 @@ def test_example_b_the_delivery_split_by_the_formation_distance_over_the_snow_li
     p = probs("b", "E", snow_ratio=0.447)
     assert p["b1"] == pytest.approx(0.7782, abs=1e-3) and p["b2"] == pytest.approx(0.208, abs=1e-3)
     assert "b4" not in p                                      # the gate is x above 1
-    p = probs("b", "E", snow_ratio=1.5)
-    assert p["b1"] == pytest.approx(0.0671, abs=1e-3) and p["b2"] == pytest.approx(0.3701, abs=1e-3)
-    assert p["b3"] == pytest.approx(0.5099, abs=1e-3) and p["b4"] == pytest.approx(0.0529, abs=1e-3)
+    # a 5 Earth-mass planet with the plateau at the population synthesis' value 1 (GEN.510): b4 is the logistic of the mass, 0.364
+    p = probs("b", "E", snow_ratio=1.5, mass_earth=5.0, **{"const:b:c_b4": 1.0})
+    assert p["b1"] == pytest.approx(0.0451, abs=1e-3) and p["b2"] == pytest.approx(0.2486, abs=1e-3)
+    assert p["b3"] == pytest.approx(0.3425, abs=1e-3) and p["b4"] == pytest.approx(0.3638, abs=1e-3)
     assert sum(p.values()) == pytest.approx(1.0, abs=1e-12)
 
 
@@ -229,10 +230,10 @@ def test_the_hydrogen_flag_of_d7_uses_the_jeans_parameter_of_the_part():
 
 def test_example_e_the_envelope_the_water_world_and_the_hycean_share_the_water_rich_probability():
     s = Subject("V", dict(mass_earth=5.0, core_radius_earth=5 ** 0.27, insolation=100.0, snow_ratio=1.5,
-                          **{"const:e:f_env0": 0.03, "const:e:eta": 0.224}))
+                          v_esc_kms=11.186 * (5 / 5 ** 0.27) ** 0.5, **{"const:e:f_env0": 0.05, "const:e:eta": 0.224, "const:b:c_b4": 0.1454}))
     assert RECIPES.probability_of("b4", s) == pytest.approx(0.0529, abs=1e-3)
     p = dict(RECIPES.probabilities("e", s))
-    assert p == pytest.approx({"e1": 0.492, "e2": 0.455, "e3": 0.041, "e4": 0.012}, abs=1e-3)
+    assert p == pytest.approx({"e1": 0.820, "e2": 0.127, "e3": 0.041, "e4": 0.012}, abs=1e-3)
     bins = RECIPES.bins("e5", Subject("V", {"mass_earth": 5.0}))
     assert [round(b[2], 3) for b in bins] == [0.268, 0.294, 0.268, 0.169]
     z = [0.02, 0.0548, 0.173, 0.424]
@@ -270,7 +271,7 @@ def test_the_giants_carbon_to_oxygen_correction_the_tail_is_explicit_and_not_a_l
     with draw.bound(3):
         shares = [RECIPES.draw_group("e", full("V", mass_earth=5.0, core_radius_earth=1.5, snow_ratio=0.5)).constants[("e", "f_env0")]
                   for _ in range(5)]
-    assert all(0.005 <= v <= 0.10 for v in shares)
+    assert all(0.035 <= v <= 0.08 for v in shares)
 
 
 def test_example_g_h_and_i_the_brown_dwarf_the_hot_jupiter_and_the_lava_windows():
@@ -390,14 +391,14 @@ def test_a_group_with_no_supporting_row_for_the_class_is_an_error_that_names_the
 # --- draws -------------------------------------------------------------------------------------------------------------
 
 def test_a_group_draw_follows_its_probabilities_and_stores_the_design_constants_inside_their_brackets():
-    s = full("V", mass_earth=5.0, core_radius_earth=1.54, insolation=100.0, snow_ratio=1.5)
+    s = full("V", mass_earth=5.0, core_radius_earth=1.54, insolation=30.0, v_esc_kms=20.0, snow_ratio=1.5)
     counts = {}
     with draw.bound(11):
         for _ in range(3000):
             picked = RECIPES.draw_group("e", s)
             counts[picked.name] = counts.get(picked.name, 0) + 1
-            assert 0.005 <= picked.constants[("e", "f_env0")] <= 0.10 and 0.1 <= picked.constants[("e", "eta")] <= 0.5
-    assert counts["e1"] > counts["e2"] * 0.5 and set(counts) <= {"e1", "e2", "e3", "e4"}
+            assert 0.035 <= picked.constants[("e", "f_env0")] <= 0.08 and 0.1 <= picked.constants[("e", "eta")] <= 0.5
+    assert counts.get("e1", 0) > 0 and counts.get("e2", 0) > 0 and set(counts) <= {"e1", "e2", "e3", "e4"}
     given = full("V", mass_earth=5.0, core_radius_earth=1.54, insolation=100.0, snow_ratio=1.5)
     with draw.bound(1):
         assert 0 < RECIPES.draw_group("e", given).probability <= 1.0

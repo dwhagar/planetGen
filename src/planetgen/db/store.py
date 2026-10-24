@@ -74,7 +74,7 @@ from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
+from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
 from planetgen.physics import activity, aerosols, atmosphere, bulk_composition, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
@@ -2927,6 +2927,7 @@ BODY_FIELDS = (
     object_rows.each(magnetism.BODY_FIELDS),
     object_rows.each(hydrosphere.HYDROSPHERE_FIELDS),
     object_rows.each(radiogenic.BODY_FIELDS),
+    object_rows.each((*interior_heat.BODY_FIELDS, *interior_heat.OUTPUT_FIELDS)),
     object_rows.each(bulk_composition.COLUMN_FIELDS),
     object_rows.computed("carbon_rock", lambda body, context: _tristate(body.carbon_rock),
                          lambda row: {"carbon_rock": _tristate_from_db(row["carbon_rock"])}),
@@ -3894,7 +3895,7 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
                 refresh_nearest_systems(conn, [sector_id])
                 # The galaxy's content stamp (`db.query.galaxy_content_state`)
                 # only sees sectors and systems; without this, a phenomenon
-                # added from the command line never reaches a cached tile
+                # added from the command line never reaches a cached node
                 # or page (TEST.42).
                 touch_sector(conn, sector_id)
             return row_id
@@ -6771,7 +6772,7 @@ one with every sector deleted. `query.galaxy_content_state` reads it where it us
 def note_sector_deleted(conn):
     """
     PERF.38: a sector was deleted. Moves the deletion epoch up in the
-    deleting transaction, so a cache that remembers the epoch knows a tile
+    deleting transaction, so a cache that remembers the epoch knows a node
     may have lost a sector (a deletion leaves no row to find) without a
     linear count of the placed sectors on every check. The row survives a
     `planetgen reset`, like every `id_counters` row, so it only goes up.

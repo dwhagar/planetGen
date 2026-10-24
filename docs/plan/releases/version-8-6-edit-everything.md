@@ -37,7 +37,7 @@ The foundations every editor stands on: the change plan and its store, the unit 
 | ADM.59 | Change plan store: save, load and list plans, and mark them stale | ADM.58 |  |
 | ADM.82 | Unit finalizer: validate a system or sector, write it in one transaction, correct only a clashing name and derived columns, or reject with reasons |  | Shared with 8.9 (API.8) |
 | ADM.60 | Apply, undo and audit a plan: one job, one activity-log entry per operation | ADM.59, ADM.82 | Uses the update guard (OPS.41, OPS.53, OPS.54) |
-| ADM.61 | Edits survive repair and regeneration: replay the journal after a sector is rebuilt from its seed or from parity | ADM.60, DB.17, DB.9, GEN.57 | Boss dropped GEN.59 (daily merge into a JSON file); this keeps the journal in the database |
+| ADM.61 | Edits survive repair and regeneration: replay the journal after a sector is rebuilt from its seed or from parity | ADM.60, DB.17, DB.9 | Boss dropped GEN.59 (daily merge into a JSON file); this keeps the journal in the database |
 
 ### Aspects
 

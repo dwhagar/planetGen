@@ -45,7 +45,7 @@ from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
-from planetgen.physics import equipment, habitability, habitability_world
+from planetgen.physics import equipment, habitability, habitability_world, life_scores
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types
 from planetgen.generation.star import compressed_heliosphere_radius
@@ -65,14 +65,6 @@ from planetgen.galaxy import objectref as object_ref
 from planetgen.galaxy import object_uid
 from planetgen.names import naming_key
 from planetgen.galaxy.sector import classify_octant
-from planetgen.galaxy.viewport import (
-    TILE_MAX_LEVEL,
-    TILE_ROOT_EXTRA_LEVELS,
-    parse_tile_key,
-    planned_slots_in_tile,
-    tile_bounds_pc,
-    tile_keys_containing,
-)
 from planetgen.galaxy.window import check_width, parse_window_key, window_cells
 from planetgen.galaxy.drill import (
     DRILL_STEP, STAGE_TOP, DrillBlock, drill_block_sectors, drill_chain_of, drill_children, format_drill_key,
@@ -1470,6 +1462,8 @@ def _nav_endpoint(conn, ref):
     kind, object_id = object_ref.parse(ref)
     if kind == "sector":
         raise NavUnavailable("a sector is not an endpoint; pick a system or something in one")
+    if kind in object_ref.CONTAINER_KINDS:
+        raise NavUnavailable("a cluster or a superbubble is not an endpoint; pick a system or something in one")
     obj = resolve_object(conn, kind, object_id)
     if kind in object_ref.PHENOMENON_KINDS:
         anchor = ("phenomenon", object_id, kind)
@@ -2580,8 +2574,11 @@ def keep_out_radius(conn, kind, object_id):
     if kind in ("nebula", "supernova_remnant", "asteroid_field"):
         row(_PHENOMENON_TYPE_TO_TABLE[kind], "id")
         return keepout.KeepOut(None, "none", keepout.PASS_THROUGH_NOTE)
-    if kind in ("belt", "comet", "interstellar_comet"):
+    if kind in ("belt", "comet", "interstellar_comet", "facility"):
         row(object_ref.TABLES.get(kind) or _PHENOMENON_TYPE_TO_TABLE[kind], "id")
+        return keepout.NO_KEEP_OUT
+    if kind in object_ref.CONTAINER_KINDS:     # a place in the galaxy, not a body: nothing to keep out of
+        row("galaxy_containers", "id")
         return keepout.NO_KEEP_OUT
     raise ValueError(f"no keep-out radius for a {kind}")
 
@@ -2696,6 +2693,54 @@ def resolve_object(conn, kind, object_id):
         if row["center_x_pc"] is not None:
             positions["galaxy_pc"] = [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
         siblings, truncated = [], False
+    elif kind in object_ref.CONTAINER_KINDS:    # UX.184
+        row = one("galaxy_containers", object_id, "name, kind, center_x_pc, center_y_pc, center_z_pc")
+        if row["kind"] != kind:
+            raise ValueError(f"no {kind} with id {object_id}")
+        name, parents = row["name"], [galaxy]
+        positions["galaxy_pc"] = [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
+        siblings, truncated = _sibling_refs(conn, kind, "galaxy_containers", "kind = ?", (kind,), object_id)
+    elif kind == "facility":    # UX.183
+        row = one("facilities", object_id,
+                  "name, host_type, star_system_id, star_id, planet_id, moon_id, asteroid_belt_id, asteroid_field_id, "
+                  "sector_id, center_x_pc, center_y_pc, center_z_pc")
+        name = row["name"]
+        host_column = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
+                       "asteroid_field": "asteroid_field_id", "space": "sector_id"}[row["host_type"]]
+        if row["star_system_id"] is not None:
+            parents, positions = system_parents_and_positions(row["star_system_id"])
+            host_kind, host_table = {"star": ("star", "stars"), "planet": ("planet", "planets"), "moon": ("moon", "moons"),
+                                     "asteroid_belt": ("belt", "asteroid_belts")}.get(row["host_type"], (None, None))
+            host_id = row[host_column]
+            if host_kind == "moon":     # its planet is above it in the chain
+                planet = one("moons", host_id, "planet_id")["planet_id"]
+                if planet is not None:
+                    parents.append({"ref": object_ref.format("planet", planet), "kind": "planet",
+                                    "name": one("planets", planet, "name")["name"]})
+            if host_kind is not None:
+                host_name = (f"Asteroid belt {one(host_table, host_id, 'orbital_index')['orbital_index'] + 1}"
+                             if host_kind == "belt" else one(host_table, host_id, "name")["name"])
+                parents.append({"ref": object_ref.format(host_kind, host_id), "kind": host_kind, "name": host_name})
+        else:
+            parents = [galaxy]
+            field_sector = None
+            if row["asteroid_field_id"] is not None:
+                field = one("asteroid_fields", row["asteroid_field_id"], "name, sector_id")
+                field_sector = field["sector_id"]
+            sector_id = row["sector_id"] if row["sector_id"] is not None else field_sector
+            if sector_id is not None:
+                parents.append({"ref": object_ref.format("sector", sector_id), "kind": "sector",
+                                "name": one("sectors", sector_id, "name")["name"]})
+            if row["asteroid_field_id"] is not None:
+                parents.append({"ref": object_ref.format("asteroid_field", row["asteroid_field_id"]),
+                                "kind": "asteroid_field", "name": field["name"]})
+            if row["center_x_pc"] is not None:
+                positions["galaxy_pc"] = [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
+        if row["star_system_id"] is not None:
+            siblings, truncated = _sibling_refs(conn, kind, "facilities", f"{host_column} = ?", (row[host_column],), object_id)
+        else:
+            siblings, truncated = _sibling_refs(conn, kind, "facilities", "star_system_id IS NULL AND sector_id <=> ?",
+                                                (row["sector_id"],), object_id)
     else:
         table = object_ref.TABLES[kind]
         columns = {
@@ -2899,6 +2944,18 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     if table == "rogue_planets":
         detail["gravity_g"] = rogue_planet_gravity_g(detail.get("mass_kg"), detail.get("radius_km"))
     detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
+    free = " AND star_id IS NULL" if "star_id" in detail else ""    # a black hole or neutron star of a system is not a free one
+    for key, op, order in (("previous", "<", "DESC"), ("next", ">", "ASC")):
+        peer = conn.execute(f"SELECT uid, name FROM {table} WHERE id {op} ?{free} ORDER BY id {order} LIMIT 1",
+                            (phenomenon_id,)).fetchone()
+        detail[key] = None if peer is None else {"id": _with_printed_uid(peer)["uid"], "name": peer["name"]}
+    if table == "supernova_remnants":
+        centre = (("black_holes", detail.get("compact_remnant_black_hole_id")),
+                  ("neutron_stars", detail.get("compact_remnant_neutron_star_id")))
+        for centre_table, centre_id in centre:
+            if centre_id is not None:
+                found = conn.execute(f"SELECT name FROM {centre_table} WHERE id = ?", (centre_id,)).fetchone()
+                detail["compact_remnant_name"] = found["name"] if found else None
     if phenomenon_type in ("black_hole", "neutron_star", "rogue_planet"):
         # The Einstein radius (GEN.154) is seen from the galaxy's reference radius: no home position is stored (GEN.404).
         skeleton = get_galaxy_shape(conn)
@@ -3259,7 +3316,8 @@ def system_detail(conn, system_id):
             relative to the primary -- NULL for a single star; see
             `schema.sql`'s "v14"/"v15" notes), `stars` (id/role/name/
             star_type/mass_kg/radius_km/temperature_k/luminosity_w/
-            heliosphere_radius_km --
+            heliosphere_radius_km/offset_x_au/offset_y_au/offset_z_au, the
+            offsets set for a `member` star only --
             `id` matches a `'wide'` binary's `planets`/`belts` rows' own
             `star_id`, disambiguating which star each orbits), `planets`
             (each a `planets` row, including its own `star_id`, plus its
@@ -3288,7 +3346,8 @@ def system_detail(conn, system_id):
         raise ValueError(f"no star_systems row with id {system_id}")
 
     stars = conn.execute(
-        "SELECT id, role, name, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km"
+        "SELECT id, role, name, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, heliosphere_radius_km,"
+        " offset_x_au, offset_y_au, offset_z_au"
         " FROM stars WHERE star_system_id = ?"
         " ORDER BY CASE role WHEN 'primary' THEN 0 WHEN 'single' THEN 0 WHEN 'secondary' THEN 1 ELSE 2 END, id",
         (system_id,),
@@ -3564,11 +3623,9 @@ def galaxy_density_shape(conn):
 
 # ---------------------------------------------------------------------
 # Interactive 3D Galaxy Map viewport queries -- the placed-sector shape
-# the cube tiles below reuse. Unlike `galaxy_placed_sectors`/`galaxy_density_shape` above (each
+# the node readers below reuse. Unlike `galaxy_placed_sectors`/`galaxy_density_shape` above (each
 # called once per page load for the flat, whole-galaxy overview map),
-# these are scoped to a moving viewport -- see `planetgen.galaxy.
-# viewport`'s own module docstring for the three content tiers
-# (placed/planned/density) this combines.
+# these are scoped to a moving viewport.
 # ---------------------------------------------------------------------
 
 GALAXY_VIEW_MAX_PLACED = 2000
@@ -3656,38 +3713,34 @@ def galaxy_sectors_in_view(conn, center_x_pc, center_y_pc, center_z_pc, radius_p
 
 
 # ---------------------------------------------------------------------
-# Cube tiles -- backs GET /api/galaxy/tiles and GET /api/galaxy/stamp. See
-# `planetgen.galaxy.viewport`'s "Cube tiles" section for the model.
+# Box readers -- what `db.nodes.galaxy_nodes` reads a node's box with (GET /api/galaxy/nodes), and GET
+# /api/galaxy/stamp. The `GALAXY_TILE_*` names are the readers' caps, kept from the cube tiles: each cap now applies to
+# one node's box.
 # ---------------------------------------------------------------------
 
 GALAXY_TILE_MAX_PLACED = 250
-"""int: Most placed sectors one tile returns. Past this, a tile returns an
+"""int: Most placed sectors one box returns. Past this, a box returns an
 evenly spaced sample (every Nth sector by id, so the same sample every
 time) -- a zoomed-out view can't show thousands of sub-pixel sectors
-anyway, and zooming in switches to smaller tiles that hold the rest.
+anyway, and zooming in switches to smaller nodes that hold the rest.
 
 The sample has to be spread out, not just the first ids: a local
 neighborhood is generated in order outward from the core, so its lowest
 ids are its core-facing side. Taking the lowest 250 used to draw a
 generated 100 ly sphere as a core-facing bowl, cut off flat where the cap
-ran out. A fully generated tile can hold thousands of sectors, so this
+ran out. A fully generated node can hold thousands of sectors, so this
 isn't only a far-zoomed-out case."""
 
 GALAXY_TILE_MAX_CLOUDS = 200
-"""int: Most nebulae and supernova remnants one tile lists
-(`galaxy_clouds_in_box`), the largest first. A tile wide enough to hold
+"""int: Most nebulae and supernova remnants one node lists
+(`galaxy_clouds_in_box`), the largest first. A node wide enough to hold
 more shows the map at a scale where the smaller ones are under a pixel
 anyway."""
-
-MAX_TILES_PER_REQUEST = 128
-"""int: Most tiles one `/api/galaxy/tiles` request may ask for. The map
-needs at most 27 view tiles plus about 64 planned tiles at once."""
-
 
 def galaxy_sectors_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_PLACED):
     """
     Placed sectors whose center lies in the half-open box `[lo, hi)`,
-    ordered by id, at most `limit` -- the "placed" half of one tile. When
+    ordered by id, at most `limit` -- the "placed" half of one node. When
     the box holds more than `limit`, it's every Nth of them by id, `N =
     ceil(count / limit)` (see `GALAXY_TILE_MAX_PLACED` for why not the
     lowest ids).
@@ -3764,9 +3817,9 @@ def _placed_sector_entry(r, system_count):
 def galaxy_sector_count_in_box(conn, lo, hi):
     """
     How many placed sectors have their center in the half-open box
-    `[lo, hi)`: unlike a tile's `placed` list, nothing is left out, so the
-    generated-star budget a tile shares out (`generated_star_budget`) goes
-    by every sector the tile holds.
+    `[lo, hi)`: unlike a node's `placed` list, nothing is left out, so the
+    generated-star budget a node shares out (`generated_star_budget`) goes
+    by every sector the node holds.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -3795,7 +3848,7 @@ at galaxy scale (an asteroid field is far smaller)."""
 def _cloud_margins_pc(conn):
     """`{table: widest placed radius in pc}` for each `_CLOUD_TABLES`
     table with a placed row -- `galaxy_clouds_in_box`'s prefilter margin,
-    read once per tile request."""
+    read once per node request."""
     margins = {}
     for table, _type_label, _descriptor_column in _CLOUD_TABLES:
         widest = conn.execute(
@@ -3810,7 +3863,7 @@ def galaxy_clouds_in_box(conn, lo, hi, max_clouds=GALAXY_TILE_MAX_CLOUDS, margin
     """
     Every placed nebula and supernova remnant whose sphere reaches into the
     box `[lo, hi)` -- not just the ones centered there, so a big cloud
-    shows from every tile it covers (the map drops the repeats by type and
+    shows from every node it covers (the map drops the repeats by type and
     id). The Galaxy Map (`static/galaxymap3d.js`) draws each as a
     translucent cloud.
 
@@ -3865,25 +3918,25 @@ def galaxy_clouds_in_box(conn, lo, hi, max_clouds=GALAXY_TILE_MAX_CLOUDS, margin
 
 
 GALAXY_TILE_BRIGHTEST_SAMPLE = 100000
-"""int: How many of the galaxy's most luminous bright stars `galaxy_tiles`
-reads in one go (once per request, only when a tile needs it) to answer
-tiles too big to query on their own -- see
-`GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET`. A tile of a few kiloparsecs holds a
-few hundred of them, so zoomed out every tile still fills its
+"""int: How many of the galaxy's most luminous bright stars `db.nodes.galaxy_nodes`
+reads in one go (once per request, only when a node needs it) to answer
+nodes too big to query on their own -- see
+`GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET`. A node of a few kiloparsecs holds a
+few hundred of them, so zoomed out every node still fills its
 `GALAXY_TILE_BRIGHT_BUDGET`."""
 
 GALAXY_TILE_BRIGHT_STAR_ROW_BUDGET = 50000
-"""int: Most `bright_stars` rows one tile's own query may expect to read
-(the cheaper of `galaxy_bright_stars_in_box`'s two ways). A tile that
-would read more -- a big tile with millions of stars, or one mostly past
+"""int: Most `bright_stars` rows one node's own query may expect to read
+(the cheaper of `galaxy_bright_stars_in_box`'s two ways). A node that
+would read more -- a big node with millions of stars, or one mostly past
 the galaxy's edge, where the luminosity walk finds few stars inside --
 takes its stars from the galaxy-wide sample instead: the brightest
 stars inside it, thinned by luminosity when the sample holds fewer than
-the tile's cap there. Before this a zoomed-out request could run past
+the node's cap there. Before this a zoomed-out request could run past
 the web app's 30 s API timeout and the stars vanished (MAP.47)."""
 
 BRIGHT_STAR_MAX_EXACT_RANGES = 2000
-"""int: Most `(shell, band)` index ranges one tile's bright-star query
+"""int: Most `(shell, band)` index ranges one node's bright-star query
 lists (each with its wedges) before it reads each shell's bands in one range
 instead."""
 
@@ -3972,8 +4025,9 @@ def _bright_star_bands(conn, lo, hi, edge_pc):
         inner, outer = spherical.shell_bounds_pc(shell, edge_pc)
         cos_north = 1.0 if hi[2] > 0 and inner <= 0 else (min(1.0, hi[2] / inner) if hi[2] > 0 else hi[2] / outer)
         cos_south = -1.0 if lo[2] < 0 and inner <= 0 else (max(-1.0, lo[2] / inner) if lo[2] < 0 else lo[2] / outer)
-        north = max(theta_north, math.acos(cos_north)) - 1e-9
-        south = min(theta_south, math.acos(cos_south)) + 1e-9
+        # A block's box can lie wholly above or below a thin shell's reach in z (the ratio then passes 1).
+        north = max(theta_north, math.acos(max(-1.0, min(1.0, cos_north)))) - 1e-9
+        south = min(theta_south, math.acos(max(-1.0, min(1.0, cos_south)))) + 1e-9
         if north > south:
             continue
         low = spherical.band_at(shell, south)
@@ -4089,7 +4143,7 @@ def scatter_member_tree(conn, table, row_id):
 def _member_fields(row):
     """
     `member_count` (0 for a single object) and `system_mass_solar` (the mass the point carries, `None` for a single
-    object) of a scatter row (UX.114). Only the readers that ask for the two columns carry them: the map tiles, which
+    object) of a scatter row (UX.114). Only the readers that ask for the two columns carry them: the map nodes, which
     read thousands of rows, leave them out and the keys are absent.
     """
     if "member_count" not in row.keys():
@@ -4379,8 +4433,8 @@ weight (MAP.154). Ranking by luminosity alone puts the young blue stars first
 and leaves no room for the old giants of the bulge and the thick disk, which
 top out near 2,500 Lsun while a young star reaches a million; the weights
 bring the top of each population to about the same key (400 x 2,500 =
-1,000,000). One key for every tile level is what makes the lists nested: a
-child tile lists every star its parent listed inside the child's box."""
+1,000,000). One key for every node level is what makes the lists nested: a
+child node lists every star its parent listed inside the child's box."""
 
 
 LOWEST_PRIORITY_TIER = {"halo": 1, "satellite": 2, "satellite_young": 2, "satellite_intermediate": 2}
@@ -4388,7 +4442,7 @@ LOWEST_PRIORITY_TIER = {"halo": 1, "satellite": 2, "satellite_young": 2, "satell
 stellar halo (tier 1) and of the satellite galaxies (tier 2) are the lowest priority of any star budget: a list that
 cannot hold every star drops the satellite galaxies' first, then the halo's, and only then a star of the disc, the
 bulge, the nuclei or a globular cluster, whatever the brightness. The tier comes before `_map_key`, so the order is
-still one for every tile level and the lists stay nested."""
+still one for every node level and the lists stay nested."""
 
 
 def _map_tier(star):
@@ -4418,7 +4472,7 @@ the cut falls in has more candidates than it gets slots and the cut has somethin
 
 def _thin_number(token):
     """A fixed number in [0, 1) for an object (from its id and kind): the same object gets the same number in every
-    tile at every level, so a list that grows keeps every object a shorter one had (the lists stay nested)."""
+    node at every level, so a list that grows keeps every object a shorter one had (the lists stay nested)."""
     mixed = (zlib.crc32(str(token).encode("utf-8")) * 2654435761) & 0xFFFFFFFF
     return mixed / 4294967296.0
 
@@ -4430,7 +4484,7 @@ def _even_pick(items, limit, order, band, token, tier=lambda item: 0):
     go last), and inside the band the cut falls in the lowest `_thin_number(token(item))` first, so that band loses
     the same share of its objects everywhere; the first `EVEN_DROP_ANCHOR_SHARE` of the slots, at least one, go to
     the best by `order` whatever the band. Returned in (`tier`, `order`) order, `order` ascending. A pure
-    function of `items`, and one order for every tile level, so the lists stay nested wherever the database hands
+    function of `items`, and one order for every node level, so the lists stay nested wherever the database hands
     over the same candidates.
     """
     if len(items) <= limit:
@@ -4453,9 +4507,9 @@ def _decade_band(value):
 def _top_by_key(stars, limit, even=True):
     """
     At most `limit` of `stars`: the lowest `_map_tier` first (the halo and the satellite galaxies come last), then
-    the highest `_map_key` first (ties by descending id). With `even` (the tiles') the band of the key the cut falls
+    the highest `_map_key` first (ties by descending id). With `even` (the nodes') the band of the key the cut falls
     in is thinned evenly (`_even_pick`, MAP.251); without it the list is the plain best `limit` (the galaxy-wide
-    sample's). The order of the list is the same at every tile level.
+    sample's). The order of the list is the same at every node level.
     """
     if not even:
         return sorted(stars, key=lambda star: (_map_tier(star), _star_order(star)))[:limit]
@@ -4467,7 +4521,7 @@ def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
     """
     The galaxy's bright stars with the highest map key
     (`BRIGHT_STAR_POPULATION_WEIGHT`), highest first (ties by descending
-    id) -- `galaxy_tiles`' sample for tiles too big to query on their own.
+    id) -- `db.nodes.galaxy_nodes`' sample for nodes too big to query on their own.
     One walk down `idx_bright_stars_population` per population and height:
     the `count` most luminous of each, ranked together by the weighted key and
     cut to `count` (the old giants never reach the young stars' luminosity, so
@@ -4533,7 +4587,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
         lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
         hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
         edge_pc (float): The sector edge, parsecs.
-        limit (int or None): See `GALAXY_TILE_BRIGHT_BUDGET`; `None` is the coarsest level's.
+        limit (int or None): The most stars; `None` is `GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS`.
         unfilled_only (bool): Only the stars whose sector hasn't been
             filled yet (`system_id` is `None`) -- what a page listing the
             stars still waiting in a box shows.
@@ -4552,7 +4606,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
             sector is filled, else `None`).
     """
     if limit is None:
-        limit = GALAXY_TILE_BRIGHT_BUDGET[0]
+        limit = GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS
     total = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM bright_stars").fetchone()["n"])
     if not total:
         return []
@@ -4596,7 +4650,7 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
                "star_type, population, yerkes_class, shell_index, band_index, wedge_index, star_system_id")
     # Both keys descending, so the luminosity path walks its index
     # backwards and stops at `limit`: with `id` ascending MariaDB and MySQL
-    # sort every star in the box first, millions in a zoomed-out tile.
+    # sort every star in the box first, millions in a zoomed-out node.
     order = "luminosity_w DESC, id DESC"
     if _luminosity_walk_is_cheaper(total, cell_share, angle_share, limit):
         # One walk per population and height down (population, off_plane,
@@ -4642,105 +4696,28 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=None, unfilled_only=
 
 
 GALAXY_TILE_MAX_DETAIL_STARS = 1200
-"""int: Most stars of generated systems a finest tile (`TILE_MAX_LEVEL`,
+"""int: Most stars of generated systems a finest node (`TILE_MAX_LEVEL`,
 16 pc) lists (MAP.80): the map fetches these around a sector it is
-zoomed to, so the sector shows every star it holds (a 16 pc tile of a
-filled region holds a few hundred). Only a tile deep in the bulge holds
+zoomed to, so the sector shows every star it holds (a 16 pc node of a
+filled region holds a few hundred). Only a node deep in the bulge holds
 more, and then its faintest are left out."""
 
 GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS = 300
-"""int: Most pre-placed bright stars a finest tile lists."""
+"""int: Most pre-placed bright stars a finest node lists."""
 
 GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET = 1500
-"""int: Most generated sectors one tile reads stars from. A coarse tile
+"""int: Most generated sectors one node reads stars from. A coarse node
 over a large filled region reads an even sample of its sectors (every
 k-th, by a hash of the id) instead, so the request stays bounded; zooming in reaches
-tiles small enough to read all of them."""
+nodes small enough to read all of them."""
 
-
-GALAXY_TILE_STAR_BUDGET = {level + TILE_ROOT_EXTRA_LEVELS: stars for level, stars in
-                           {3: 30, 4: 40, 5: 40, 6: 60, 7: 80, 8: 100, 9: 100, 10: 130, 11: 160}.items()}
-"""dict: How many generated stars a Galaxy Map tile lists, by tile level
-(MAP.116, refit by MAP.152 for tiles chosen by distance), the brightest
-first and with no brightness floor: a tile is as sparse or as full as its
-budget says. A distance cut (`viewport.distance_cut_tiles`) holds a dozen
-or two tiles of the coarsest levels and up to about sixty of each level
-finer, so the budgets are set (nearer, finer tiles list the most) until
-the cut's caps add up to under `GALAXY_VIEW_MAX_STARS`
-(`galaxy_view_star_cap`). Tiles coarser than
-8,192 pc (level 3 of the 65,536 pc root this was set for; the keys are shifted by `TILE_ROOT_EXTRA_LEVELS`, MAP.239) list none: the pre-placed bright stars show everything that bright.
-A finest tile lists up to `GALAXY_TILE_MAX_DETAIL_STARS` instead."""
-
-GALAXY_TILE_BRIGHT_BUDGET = {**dict.fromkeys(range(TILE_ROOT_EXTRA_LEVELS), 300),
-                             **{level + TILE_ROOT_EXTRA_LEVELS: stars for level, stars in
-                                {0: 300, 1: 300, 2: 300, 3: 300, 4: 120, 5: 100, 6: 60, 7: 50, 8: 40, 9: 40, 10: 40,
-                                 11: 40}.items()}}
-"""dict: Most pre-placed bright stars (`bright_stars`, v43) a tile lists by
-level, the most luminous first (MAP.152 settles the old flat 400 a tile,
-which a cut of hundreds of tiles cannot afford). The map draws each as a
-point of light the same few pixels across at every zoom, so the coarsest
-tiles, which trace the spiral arms from far out, keep the most. A finest
-tile lists up to `GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS`."""
 
 SECTOR_ALLOWANCE_FUDGE = 3
-"""int: A tile's budget is shared out by sector: each generated sector may
+"""int: A node's budget is shared out by sector: each generated sector may
 put `SECTOR_ALLOWANCE_FUDGE * budget / sectors` stars (at least one) on
-the tile, its brightest, so one dense sector can't take the whole budget
+the node, its brightest, so one dense sector can't take the whole budget
 while a sparse sector, which has fewer stars than that, keeps all it has
 and the leftover room goes to the brighter stars of the dense ones."""
-
-GALAXY_TILE_POINT_BUDGET = {level + TILE_ROOT_EXTRA_LEVELS: points for level, points in
-                            {8: 30, 9: 40, 10: 40, 11: 100}.items()}
-"""dict: Most point phenomena (black holes, neutron stars, quasars) a tile
-of that level lists (MAP.116); a finest tile lists up to
-`GALAXY_TILE_MAX_POINTS`. The most luminous come first, so a remnant shows
-where the budget reaches it."""
-
-
-GALAXY_VIEW_MAX_STARS = 45000
-"""int: MAP.109's stated cap on the stars (pre-placed and generated) one
-view's tiles can carry (MAP.157: about 19 MB of JSON before compression at the
-old 270 bytes a star, about 100 bytes a star trimmed). It holds by
-construction -- every tile's lists are capped (`GALAXY_TILE_BRIGHT_BUDGET`,
-`GALAXY_TILE_STAR_BUDGET`, `GALAXY_TILE_MAX_DETAIL_STARS`) -- and
-`galaxy_view_star_cap` adds those caps up over a view's tiles, so a test
-fails when a budget is raised past it. A real view carries far less: the
-caps are for a tile packed with stars, and most of the galaxy's tiles are not.
-70,000 until MAP.249, whose coarser, narrower distance cut fetches about half
-the tiles (the worst of the sample cameras fell from about 63,000 to 40,000)."""
-
-
-def galaxy_tile_star_cap(level):
-    """The most stars (pre-placed and generated) one tile of `level` lists."""
-    if level >= TILE_MAX_LEVEL:
-        return GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS + GALAXY_TILE_MAX_DETAIL_STARS
-    return GALAXY_TILE_BRIGHT_BUDGET[level] + GALAXY_TILE_STAR_BUDGET.get(level, 0)
-
-
-def galaxy_view_star_cap(tile_keys):
-    """
-    The most stars a view of `tile_keys` (a distance cut plus its detail
-    tiles) can fetch: the sum of every tile's cap, `galaxy_tile_star_cap`.
-    """
-    return sum(galaxy_tile_star_cap(parse_tile_key(key)[0]) for key in tile_keys)
-
-
-def generated_star_budget(level, sector_count):
-    """
-    `(tile budget, per-sector allowance)` for the generated stars of a tile of
-    `level` holding `sector_count` generated sectors -- `GALAXY_TILE_STAR_BUDGET`
-    shared by `SECTOR_ALLOWANCE_FUDGE`; `(0, None)` for a level with no
-    budget. A finest tile lists up to `GALAXY_TILE_MAX_DETAIL_STARS` with no
-    per-sector allowance.
-    """
-    if level >= TILE_MAX_LEVEL:
-        return GALAXY_TILE_MAX_DETAIL_STARS, None
-    budget = GALAXY_TILE_STAR_BUDGET.get(level, 0)
-    if not budget:
-        return 0, None
-    allowance = max(1, int(math.ceil(SECTOR_ALLOWANCE_FUDGE * budget / float(max(1, sector_count)))))
-    return budget, allowance
-
 
 def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count,
                                   limit=GALAXY_TILE_MAX_DETAIL_STARS, per_sector=None):
@@ -4830,17 +4807,9 @@ def _generated_star_entry(row):
     }
 
 
-POINT_PHENOMENON_MIN_LEVEL = 8 + TILE_ROOT_EXTRA_LEVELS
-"""int: The coarsest tile level (256 pc tiles) that lists the point-like
-phenomena -- black holes, neutron stars (pulsars) and quasars (MAP.80).
-Since MAP.155 that is 256 pc, not 64 pc: a black hole or neutron star comes
-in with the stars around it, through its tile's share (`static/starfade.js`),
-instead of appearing all at once at sector depth. Tiles coarser than this list only
-the biggest scattered classes (`SCATTERED_POINT_COARSE_CLASSES`)."""
-
 GALAXY_TILE_MAX_POINTS = 200
-"""int: Most point-like phenomena one tile lists, the most luminous
-first. A 64 pc tile holds a handful."""
+"""int: Most point-like phenomena one node lists, the most luminous
+first. A 64 pc node holds a handful."""
 
 _POINT_PHENOMENON_TABLES = (
     ("black_holes", "black_hole", "(CASE WHEN has_accretion_disk THEN 'accreting' ELSE 'quiescent' END)", "mass_solar"),
@@ -4967,12 +4936,12 @@ SCATTERED_SIZE_BAND = 0.1
 """float: The width of the size share bands a list of scattered points is cut by (`_even_pick`, MAP.251)."""
 
 SCATTERED_POINT_COARSE_CLASSES = 3
-"""int: Tiles coarser than `POINT_PHENOMENON_MIN_LEVEL` list only this many
+"""int: Nodes coarser than `POINT_PHENOMENON_MIN_LEVEL` list only this many
 of the biggest `SCATTERED_POINT_CLASSES` (the nucleus, quasar or black hole, and
 intermediate-mass black holes), so the largest are visible from the whole-galaxy view."""
 
 GALAXY_TILE_MAX_SCATTERED_POINTS = 60
-"""int: Most scattered points one coarse tile lists."""
+"""int: Most scattered points one coarse node lists."""
 
 
 SCATTERED_MAX_SHELL_RANGES = 1000
@@ -4983,7 +4952,7 @@ shell, with the bands the box reaches there, reads only those. It was 64."""
 
 
 def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
-    """The scattered black holes, neutron stars and quasars (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`, biggest class first, at most `limit` -- drawn as points before their sector is filled (MAP.164). Each point has `charted`: true once its sector is built (a coarse tile lists those too), so "Charted only" dims the others (MAP.111)."""
+    """The scattered black holes, neutron stars and quasars (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`, biggest class first, at most `limit` -- drawn as points before their sector is filled (MAP.164). Each point has `charted`: true once its sector is built (a coarse node lists those too), so "Charted only" dims the others (MAP.111)."""
     classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
     bands, _share = _bright_star_bands(conn, lo, hi, edge_pc)
     if not bands:
@@ -5031,13 +5000,13 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
 
 
 TILE_PIECE_SECONDS = 3.0
-"""float: The statement time limit of each piece of a Galaxy Map tile (PERF.76): placed sectors, sector count,
+"""float: The statement time limit of each piece of a Galaxy Map node (PERF.76): placed sectors, sector count,
 clouds, bright stars, generated stars, points and scattered points. A piece that runs past it is left out of
-the tile, which is served marked `incomplete`."""
+the node, which is served marked `incomplete`."""
 
 
 def _tile_piece(conn, incomplete, name, compute, default):
-    """One piece of a tile under `TILE_PIECE_SECONDS`: its value, or `default` (and `name` added to
+    """One piece of a node under `TILE_PIECE_SECONDS`: its value, or `default` (and `name` added to
     `incomplete`) when the database stopped it for taking too long."""
     try:
         with conn.statement_limit(TILE_PIECE_SECONDS):
@@ -5047,110 +5016,6 @@ def _tile_piece(conn, incomplete, name, compute, default):
             incomplete.append(name)
             return default
         raise
-
-
-def galaxy_tiles(conn, tile_keys):
-    """
-    The contents of each requested cube tile -- the interactive 3D Galaxy
-    Map's data source. Every part of
-    the result depends only on its tile key and the database's contents
-    (see `galaxy_content_stamp`), so callers can cache each part by key.
-
-    Args:
-        conn (planetgen.db.store.Connection): An open, read-only connection.
-        tile_keys (list[str]): `"level/ix/iy/iz"` keys (see
-            `galaxy.viewport.parse_tile_key`), at most
-            `MAX_TILES_PER_REQUEST`.
-
-    Returns:
-        dict: `tiles` (`{key: {"placed": [...], "planned": [...],
-            "sector_count": n, "clouds": [...], "stars": [...],
-            "generated": [...], "points": [...], "worlds": [...]}}`, see `galaxy_sectors_in_box`,
-            `galaxy.viewport.planned_slots_in_tile`, `galaxy_sector_count_in_box`,
-            `galaxy_clouds_in_box`, `galaxy_bright_stars_in_box` and
-            `galaxy_generated_stars_in_box` (its floor from
-            `GALAXY_TILE_STAR_BUDGET`, a finest tile up to
-            `GALAXY_TILE_MAX_DETAIL_STARS`) and
-            `galaxy_point_phenomena_in_box` and `galaxy_habitable_systems_in_box` (tiles of
-            `POINT_PHENOMENON_MIN_LEVEL` and finer)),
-            `edge_pc`, `has_shape`. Predicted density isn't served: the
-            page evaluates the shape itself (`static/galaxyprisms.js`).
-
-    Raises:
-        ValueError: On a malformed key or too many keys.
-    """
-    parsed = [(key, parse_tile_key(key)) for key in dict.fromkeys(tile_keys)]
-    if len(parsed) > MAX_TILES_PER_REQUEST:
-        raise ValueError(f"at most {MAX_TILES_PER_REQUEST} tiles per request, got {len(parsed)}")
-
-    skeleton = get_galaxy_shape(conn)
-    if skeleton is not None:
-        edge_pc = skeleton.edge_pc
-        shape = skeleton.shape
-        expected_system_count = skeleton.expected_system_count_at_density_1
-        bounds = get_galaxy_bounds(conn) if parsed else None
-    else:
-        edge_pc = ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
-        shape = None
-        expected_system_count = None
-        bounds = None
-
-    cloud_margins = _cloud_margins_pc(conn) if parsed else {}
-    sample = []
-
-    def brightest():
-        if not sample:
-            sample.append(galaxy_brightest_stars(conn))
-        return sample[0]
-
-    tiles = {}
-    for key, (level, ix, iy, iz) in parsed:
-        lo, hi = tile_bounds_pc(level, ix, iy, iz)
-        incomplete = []
-
-        def piece(name, compute, default):
-            return _tile_piece(conn, incomplete, name, compute, default)
-
-        placed = piece("placed", lambda: galaxy_sectors_in_box(conn, lo, hi), [])
-        exclude_addresses = {
-            address for address in (sector_address(sector) for sector in placed) if address is not None
-        }
-        planned = planned_slots_in_tile(
-            level, ix, iy, iz, edge_pc, shape, expected_system_count, exclude_addresses, bounds,
-        )
-        sector_count = piece("sector_count", lambda: galaxy_sector_count_in_box(conn, lo, hi), 0)
-        clouds = piece("clouds", lambda: galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins), [])
-        bright_limit = (GALAXY_TILE_MAX_DETAIL_BRIGHT_STARS if level >= TILE_MAX_LEVEL
-                        else GALAXY_TILE_BRIGHT_BUDGET[level])
-        stars = piece("stars", lambda: galaxy_bright_stars_in_box(
-            conn, lo, hi, edge_pc, limit=bright_limit, brightest=brightest), [])
-        limit, per_sector = generated_star_budget(level, 0)
-        generated = []
-        if limit:
-            limit, per_sector = generated_star_budget(level, sector_count)
-            generated = piece("generated", lambda: galaxy_generated_stars_in_box(
-                conn, lo, hi, 0.0, sector_count, limit=limit, per_sector=per_sector), [])
-        points = (piece("points", lambda: galaxy_point_phenomena_in_box(
-            conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS)), [])
-            if level >= POINT_PHENOMENON_MIN_LEVEL else [])
-        # MAP.164: scattered ones not yet built into a sector, the biggest
-        # classes at every level so the largest show from the whole galaxy.
-        coarse_scatter = level < POINT_PHENOMENON_MIN_LEVEL
-        points = points + piece("scattered", lambda: galaxy_scattered_points_in_box(
-            conn, lo, hi, edge_pc,
-            GALAXY_TILE_MAX_SCATTERED_POINTS if coarse_scatter else GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS),
-            coarse_scatter), [])
-        worlds = (piece("worlds", lambda: galaxy_habitable_systems_in_box(
-            conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS)), [])
-            if level >= POINT_PHENOMENON_MIN_LEVEL else [])
-        tiles[key] = {
-            "placed": placed, "planned": planned, "sector_count": sector_count, "clouds": clouds, "stars": stars,
-            "generated": generated, "points": points, "worlds": worlds,
-        }
-        if incomplete:
-            tiles[key]["incomplete"] = incomplete
-
-    return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
 
 
 def galaxy_edge_pc(conn):
@@ -5610,17 +5475,18 @@ def galaxy_node_keys(shell, band, wedge):
     return [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)]
 
 
-TILE_FORMAT = 2
-"""int: The version of what the Galaxy Map's stored tiles and drill-down stages hold and how they are packed
-(`web/lib/tilecache.trim_tile`, `tilepack`, `galaxy_tiles`, `galaxy_stage`). A change that alters those bytes for the
-same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored tiles are rebuilt once;
-a release that does not alter them leaves every stored tile valid (PERF.133). 2: the block ladder's levels above 243 (MAP.258)
-moved the rows and wedges of every level, so a stored stage names other blocks."""
+TILE_FORMAT = 3
+"""int: The version of what the Galaxy Map's stored nodes and drill-down stages hold and how they are packed
+(`web/lib/tilecache.trim_node`, `tilepack`, `db.nodes.galaxy_nodes`, `galaxy_stage`). A change that alters those bytes for
+the same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored files are rebuilt once;
+a release that does not alter them leaves every stored node valid (PERF.133). 2: the block ladder's levels above 243
+(MAP.258) moved the rows and wedges of every level, so a stored stage names other blocks. 3: nodes replace the cube tiles
+(MAP.262), whose files are dropped with the generation."""
 
 GALAXY_CHANGES_MAX_SECTORS = 1000
-"""int: Most changed sectors `galaxy_changes` lists tiles for. More than
+"""int: Most changed sectors `galaxy_changes` lists nodes for. More than
 that (a big generation run, say) reports `full` instead -- refetching
-everything is cheaper than invalidating tens of thousands of tiles one
+everything is cheaper than invalidating tens of thousands of nodes one
 by one."""
 
 _STATE_TOKEN_RE = re.compile(r"^([0-9a-f]{16})\.([0-9a-f]{16})\.(\d+)\.(\d+)\.(\d{17}|0)\.(\d+)\.(\d+)$")
@@ -5667,18 +5533,18 @@ def _timestamp_literal(digits):
 
 def galaxy_content_state(conn):
     """
-    Everything `galaxy_tiles`' output depends on, summarized as a handful
+    Everything `db.nodes.galaxy_nodes`' output depends on, summarized as a handful
     of numbers:
 
     - `base`: a hash of the stored galaxy shape, the bright-star scatter
       (`bright_stars`' highest id and the scatter's seed) and this code's
       version. Planned slots, density clouds, `edge_pc` and `has_shape`
-      depend on the shape, every tile's `stars` on the scatter, so a new
+      depend on the shape, every node's `stars` on the scatter, so a new
       `base` means every page and count cached by the stamp is stale.
     - `tile_base`: the same without the release: the shape, the scatter's
       seed, the naming key, `TILE_FORMAT` and the generator epoch. The
-      stored tiles follow this one, so a release that changes neither the
-      tile format nor what the generator makes keeps every stored tile
+      stored nodes follow this one, so a release that changes neither the
+      node format nor what the generator makes keeps every stored node
       (PERF.133).
     - `deletions`/`sector_max_id`: the deletion epoch (`store.
       note_sector_deleted`, PERF.38: it goes up with every sector deleted,
@@ -5692,7 +5558,7 @@ def galaxy_content_state(conn):
       backfill runs, so it is kept out of `base` and `galaxy_changes`
       reports it as `busy` rather than `full` (PERF.34).
     - `system_max_id`: the highest star-system id. A new system changes
-      its sector's system count. System edits don't touch a tile (tiles
+      its sector's system count. System edits don't touch a node (nodes
       only show the count), so `star_systems.modified_at` isn't used.
 
     Cheap by design -- one primary-key read and four index-only maxima --
@@ -5713,7 +5579,7 @@ def galaxy_content_state(conn):
     base = hashlib.sha256(json.dumps(
         {"shape": galaxy_density_shape(conn), "version": __version__,
          "bright_stars": bright["seed"],
-         # GEN.70: the naming key renames the codec-named objects in every tile and page.
+         # GEN.70: the naming key renames the codec-named objects in every node and page.
          "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     tile_base = hashlib.sha256(json.dumps(
@@ -5733,9 +5599,9 @@ def galaxy_content_state(conn):
 
 def galaxy_content_stamp(conn, state=None):
     """
-    A short token that changes whenever anything `galaxy_tiles` returns
+    A short token that changes whenever anything `db.nodes.galaxy_nodes` returns
     could change -- a hash of `galaxy_content_state`. The web layer and
-    the browser key their tile caches by it, so a stale tile is never
+    the browser key their node caches by it, so a stale node is never
     served after sectors are generated, renamed or deleted.
 
     Args:
@@ -5751,7 +5617,7 @@ def galaxy_content_stamp(conn, state=None):
 
 def galaxy_tile_stamp(state):
     """
-    `galaxy_content_stamp`'s counterpart for the stored tiles: it changes when a tile could change, and not with the
+    `galaxy_content_stamp`'s counterpart for the stored nodes: it changes when a node could change, and not with the
     release alone (see `galaxy_content_state`'s `tile_base`).
 
     Args:
@@ -5766,21 +5632,21 @@ def galaxy_tile_stamp(state):
 
 def galaxy_changes(conn, since=None):
     """
-    What changed in the galaxy's tiles since an earlier state -- how the
-    web layer's tile cache refreshes only the cubes an edit touched
-    instead of throwing every cached tile away.
+    What changed in the galaxy's nodes and stages since an earlier state -- how the
+    web layer's node cache refreshes only the blocks an edit touched
+    instead of throwing every cached node away.
 
     Uses v27's `sectors.modified_at` (see `galaxy_content_state`): each
     sector edited since `since`, each new sector, and each sector that
-    gained a system is "changed", and so is the one tile per level that
-    holds its center (`galaxy.viewport.tile_keys_containing`). A sector
-    never moves once placed, so its center is where it was before too.
+    gained a system is "changed", and so is every block over it
+    (`galaxy_node_keys`, `galaxy_stage_keys`). A sector
+    never moves once placed, so its address is where it was before too.
 
     Deletions leave no row behind, so a deleted sector can't be located;
     the deletion epoch moves, and the answer is `full` instead. So is a new
-    shape, tile format or generator epoch (`tile_base`), an unreadable `since`, or more than
+    shape, node format or generator epoch (`tile_base`), an unreadable `since`, or more than
     `GALAXY_CHANGES_MAX_SECTORS` changed sectors. A new release alone (`base`) makes `full` true for what is cached by
-    `stamp` (pages, counts) but not `tile_full`, which is what the stored tiles follow (PERF.133).
+    `stamp` (pages, counts) but not `tile_full`, which is what the stored nodes follow (PERF.133).
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -5789,16 +5655,15 @@ def galaxy_changes(conn, since=None):
 
     Returns:
         dict: `stamp` (`galaxy_content_stamp` at the call), `tile_stamp`
-            (`galaxy_tile_stamp`: what the stored tiles are keyed by),
+            (`galaxy_tile_stamp`: what the stored nodes are keyed by),
             `state` (the token to pass as `since` next time), `full`
             (everything cached by `stamp` may have changed), `tile_full`
-            (every tile may have changed), `tiles` (sorted keys of the
-            changed tiles; empty when `tile_full`), `stages` (sorted
+            (every node may have changed), `stages` (sorted
             keys of the drill-down stages whose counts changed,
             `galaxy_stage_keys`; empty when `tile_full`), `nodes` (sorted keys of the nodes that changed,
             `galaxy_node_keys`: every block over a changed sector; empty when `tile_full`), and, only when true, `busy`: `full` because so much
             changed at once (a generation run, a backfill), not because
-            something was deleted, so a cache may keep its tiles a while
+            something was deleted, so a cache may keep its nodes a while
             longer instead of refetching all of them under that load
             (PERF.34). Unless `full`, also `sector_ids` (the row ids of the
             sectors edited, added or given a system since `since`, for the
@@ -5808,7 +5673,7 @@ def galaxy_changes(conn, since=None):
     state = galaxy_content_state(conn)
     result = {
         "stamp": galaxy_content_stamp(conn, state), "tile_stamp": galaxy_tile_stamp(state),
-        "state": _state_token(state), "full": False, "tile_full": False, "tiles": [], "stages": [], "nodes": [],
+        "state": _state_token(state), "full": False, "tile_full": False, "stages": [], "nodes": [],
     }
 
     def everything(busy=False):
@@ -5821,15 +5686,15 @@ def galaxy_changes(conn, since=None):
     if previous is None or previous["tile_base"] != state["tile_base"]:
         return everything()
     if previous["base"] != state["base"]:
-        # A release that changes neither the tile format nor the generator epoch: whatever else is cached by
-        # `stamp` (pages, counts) is stale, the stored tiles are not (PERF.133). The tiles that changed are
+        # A release that changes neither the node format nor the generator epoch: whatever else is cached by
+        # `stamp` (pages, counts) is stale, the stored nodes are not (PERF.133). The nodes that changed are
         # still listed below.
         result["full"] = True
     if previous == state:
         return result
     if previous["bright_max_id"] != state["bright_max_id"]:
         # A backfill is adding stars to cells all over (PERF.34): which
-        # tiles they touch isn't worked out, so everything counts as changed.
+        # nodes they touch isn't worked out, so everything counts as changed.
         return everything(busy=True)
 
     if previous["deletions"] != state["deletions"]:
@@ -5852,7 +5717,6 @@ def galaxy_changes(conn, since=None):
     if len(rows) > GALAXY_CHANGES_MAX_SECTORS:
         return everything(busy=True)
 
-    keys = set()
     stages = set()
     node_keys = set()
     # The page cache tags every sector, placed or not (PERF.104).
@@ -5870,11 +5734,9 @@ def galaxy_changes(conn, since=None):
     result["grew"] = (previous["sector_max_id"] != state["sector_max_id"]
                       or previous["system_max_id"] != state["system_max_id"])
     for r in rows:
-        keys.update(tile_keys_containing((r["center_x_pc"], r["center_y_pc"], r["center_z_pc"])))
         if sector_address(r) is not None:
             stages.update(galaxy_stage_keys(*sector_address(r)))
             node_keys.update(galaxy_node_keys(*sector_address(r)))
-    result["tiles"] = sorted(keys)
     result["stages"] = sorted(stages)
     result["nodes"] = sorted(node_keys)
     return result
@@ -6399,8 +6261,9 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
 
 
 def _tier_columns():
-    """The stored habitability of a planet or moon (UX.100): `phi4` and the six `tier_<domain>` columns."""
-    return ("phi4", *(f"tier_{domain}" for domain in habitability_world.DOMAINS))
+    """The stored habitability of a planet or moon (UX.100, UX.152): `phi4`, the six `tier_<domain>` columns and the four
+    life scores."""
+    return ("phi4", *(f"tier_{domain}" for domain in habitability_world.DOMAINS), *life_scores.FIELDS)
 
 
 def _tiers(alias):

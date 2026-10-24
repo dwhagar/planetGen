@@ -1,15 +1,15 @@
 # planetgen/web/lib/singleflight.py
 
 """
-One build of each Galaxy Map tile or stage at a time (PERF.38).
+One build of each Galaxy Map node or stage at a time (PERF.38).
 
-When a map is opened or a fill makes tiles stale, several browsers and web
-processes ask for the same missing tile at once, and each of them used to
+When a map is opened or a fill makes nodes stale, several browsers and web
+processes ask for the same missing node at once, and each of them used to
 build it: the API runs the same expensive query once per request, and the
 database is already busy with the fill. Here a request first *claims* the
-tiles it is about to fetch with a Redis `SET NX EX`; a tile somebody else
+nodes it is about to fetch with a Redis `SET NX EX`; a node somebody else
 claimed is waited for instead (`wait`, polling the disk cache the claimant
-writes to), and only a tile whose claimant never delivered is built after
+writes to), and only a node whose claimant never delivered is built after
 all.
 
 Everything fails open: with no Redis server (or one that doesn't answer in
@@ -27,14 +27,14 @@ LOCK_SECONDS = 60
 """int: How long a claim lives if its owner dies without releasing it."""
 
 WAIT_SECONDS = 20.0
-"""float: The longest a request waits for the claimant of a tile before
+"""float: The longest a request waits for the claimant of a node before
 building it itself."""
 
 POLL_SECONDS = 0.1
 
 SOCKET_SECONDS = 0.5
 """float: Connect and read timeout of the Redis connection: a lock service
-that is slow is worth less than building the tile."""
+that is slow is worth less than building the node."""
 
 _PREFIX = "planetgen:build:"
 
@@ -47,7 +47,7 @@ def _client():
 
 def claim(names, seconds=LOCK_SECONDS):
     """
-    Claims the builds `names` (strings naming a tile or stage of one
+    Claims the builds `names` (strings naming a node or stage of one
     generation).
 
     Args:

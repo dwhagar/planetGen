@@ -24,13 +24,16 @@ from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.physics import constants, habitability_world, unit_registry
+from planetgen.population import facility_ratings
 from planetgen.util.format import format_number
 
 TABLES = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "asteroid_belts", "comet": "comets",
           "nebula": "nebulae", "asteroid_field": "asteroid_fields", "black_hole": "black_holes",
           "neutron_star": "neutron_stars", "supernova_remnant": "supernova_remnants", "rogue_planet": "rogue_planets",
-          "interstellar_comet": "interstellar_comets", "quasar": "quasars"}
-"""dict: The table each kind of the sheet is stored in: a body of a system, or a phenomenon (UX.175)."""
+          "interstellar_comet": "interstellar_comets", "quasar": "quasars", "facility": "facilities",
+          "globular_cluster": "galaxy_containers", "superbubble": "galaxy_containers"}
+"""dict: The table each kind of the sheet is stored in: a body of a system, a phenomenon (UX.175), a facility (UX.183)
+or a galaxy container (UX.184; a cluster and a superbubble share a table)."""
 
 GROUPS = {
     "identity": "Identity", "orbit": "Orbit", "physical": "Physical", "rotation": "Rotation",
@@ -38,6 +41,7 @@ GROUPS = {
     "magnetism": "Magnetic field", "radiation": "Radiation", "habitability": "Habitability", "life": "Life",
     "zones": "Zones and limits", "stellar": "Stellar activity", "galactic": "Galactic orbit", "disk": "Debris disk",
     "radiogenic": "Radiogenic heat", "gas": "Gas and light", "compact": "Compact object", "activity": "Activity",
+    "ratings": "Ratings",
 }
 """dict: Every group key of a sheet and its heading, in the order the page shows them."""
 
@@ -51,9 +55,9 @@ REGISTRY_QUANTITIES = {
 """dict: A unit registry kind, to the Document quantity kind that shows it with its ladder. Any other kind is written
 as a number and the unit's symbol."""
 
-TEXT, FLAG, TIER, AUTO = "text", "flag", "tier", "auto"
-"""str: How a column is shown besides a ladder quantity: as stored text, as Yes or No, as a PHI-6 colour, or from its
-unit (`AUTO`)."""
+TEXT, FLAG, TIER, RATING, AUTO = "text", "flag", "tier", "rating", "auto"
+"""str: How a column is shown besides a ladder quantity: as stored text, as Yes or No, as a PHI-6 colour, as a facility
+rating (1 Green to 3 Red, `population/facility_ratings.py`), or from its unit (`AUTO`)."""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -180,7 +184,9 @@ _BODY_GROUPS = (
            ("l_solv", "Solvent suitability"), ("l_chem", "Chemistry suitability"), ("l_ener", "Energy suitability"),
            ("l_rad", "Radiation tolerance")),
     *_rows("radiogenic", ("c_k0_ppm", "Potassium at formation"), ("c_th0_ppm", "Thorium at formation"),
-           ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 ratio"), ("urey_ratio", "Urey ratio")),
+           ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 ratio"), ("urey_ratio", "Urey ratio"),
+           ("internal_heat_flux_w_m2", "Heat flowing out of the interior"), ("mantle_eta0_pa_s", "Mantle viscosity prefactor"),
+           ("mantle_activation_kj_mol", "Mantle viscosity activation energy")),
 )
 
 _PLANET = _MOON = _BODY_GROUPS
@@ -289,7 +295,24 @@ _QUASAR = (
     *_DISTANCE,
 )
 
-SPECS = {"star": _STAR, "planet": _PLANET, "moon": _MOON, "belt": _BELT, "comet": _COMET, "nebula": _NEBULA,
+_FACILITY = (
+    *_rows("identity", ("kind", "Kind", TEXT), ("placement", "Placement", TEXT), ("host_type", "Built on", TEXT),
+           ("affiliation_name", "Affiliation", TEXT)),
+    *_rows("physical", ("mass_kg", "Mass")),
+    *_rows("orbit", ("orbit_distance_km", "Orbit distance"), ("orbit_period_years", "Orbital period"),
+           ("orbital_speed_kms", "Orbital speed"), ("orbit_phase_deg", "Orbital phase")),
+    *_rows("ratings", ("rating_crime", "Crime", RATING), ("rating_housing", "Housing", RATING),
+           ("rating_resources", "Resources", RATING), ("rating_maintenance", "Maintenance", RATING),
+           ("rating_health", "Health", RATING), ("ratings_source", "Rated by", TEXT), ("ratings_note", "Rating note", TEXT)),
+    *_DISTANCE,
+)
+
+_CONTAINER = (
+    *_rows("physical", ("extent_pc", "Radius of its sphere")),
+    *_rows("identity", ("shell_index", "Birth shell"), ("band_index", "Birth band"), ("wedge_index", "Birth wedge")),
+)
+
+SPECS = {"globular_cluster": _CONTAINER, "superbubble": _CONTAINER, "facility": _FACILITY, "star": _STAR, "planet": _PLANET, "moon": _MOON, "belt": _BELT, "comet": _COMET, "nebula": _NEBULA,
          "asteroid_field": _ASTEROID_FIELD, "black_hole": _BLACK_HOLE, "neutron_star": _NEUTRON_STAR,
          "supernova_remnant": _SUPERNOVA_REMNANT, "rogue_planet": _ROGUE_PLANET,
          "interstellar_comet": _INTERSTELLAR_COMET, "quasar": _QUASAR}
@@ -367,6 +390,20 @@ _BODY_NOT_SHOWN = {
               _EQUIPMENT),
 }
 
+def _container_not_shown():
+    """The columns of `galaxy_containers` a cluster's or a superbubble's sheet leaves out."""
+    return {
+        **_excuse(("id", "uid", "name")),
+        "kind": "the kind of the page; the header and the About text name it",
+        "component_id": "the cluster's galaxy component; the About text gives its mass, age and metallicity",
+        "bubble_col": "the superbubble's cell in the bubble grid; bookkeeping",
+        "bubble_row": "the superbubble's cell in the bubble grid; bookkeeping",
+        "bubble_n": "the superbubble's number in its cell; bookkeeping",
+        "created_at": "when the row was written; bookkeeping",
+        **{f"center_{axis}_pc": "its position in the galaxy frame; the Location block shows it" for axis in "xyz"},
+    }
+
+
 NOT_SHOWN = {
     "star": {
         **_excuse(("id", "uid", "star_system_id", "parent_type", "parent_id", "epoch_unix",
@@ -411,6 +448,25 @@ NOT_SHOWN = {
     "rogue_planet": _phenomenon_not_shown("rogue_planet"),
     "interstellar_comet": _phenomenon_not_shown("interstellar_comet"),
     "quasar": _phenomenon_not_shown("quasar"),
+    "globular_cluster": _container_not_shown(),
+    "superbubble": _container_not_shown(),
+    "facility": {
+        **_excuse(("id", "uid", "name", "star_system_id", "star_id", "epoch_unix", "next_update_due")),
+        "planet_id": "the planet it stands on, a link in the Location chain",
+        "moon_id": "the moon it stands on, a link in the Location chain",
+        "asteroid_belt_id": "the belt it is built in, a link in the Location chain",
+        "asteroid_field_id": "the asteroid field it is built in, a link in the Location chain",
+        "sector_id": "the sector, a link in the Location chain",
+        "type_id": "the facility type, named in the page's About text",
+        "affiliation_polity_id": "the polity it belongs to; the Affiliation row names it",
+        "description": "the page's paragraph text",
+        "ratings_set_at": "when the ratings were set; bookkeeping",
+        "cell_key": "the index cell it is filed under; bookkeeping",
+        "created_at": "when the row was written; bookkeeping",
+        "modified_at": "when the row last changed; bookkeeping",
+        **{f"center_{axis}_pc": "its position in the galaxy frame; the Location block and the maps show it" for axis in "xyz"},
+        **{f"velocity_{axis}_kms": "a component of its galactic motion; the orbit rows summarise it" for axis in "xyz"},
+    },
 }
 """dict: For each kind, the columns of its table the sheet does not show, each with why."""
 
@@ -456,6 +512,8 @@ def _value(spec, table, stored):
         return [text[:1].upper() + text[1:]]
     if quantity == FLAG:
         return ["Yes" if stored else "No"]
+    if quantity == RATING:
+        return [facility_ratings.COLORS[int(stored) - 1].capitalize()] if 1 <= int(stored) <= 3 else [str(stored)]
     if quantity == TIER:
         names = habitability_world.TIER_NAMES
         return [names[int(stored)]] if 0 <= int(stored) < len(names) else [str(stored)]

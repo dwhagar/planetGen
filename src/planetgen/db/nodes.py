@@ -10,8 +10,9 @@ to draw it before it opens it into its children:
   sectors (`stats`, `galaxy_block_stats`) and the light of the pre-placed objects nothing was built from (`lights`,
   `galaxy_block_lights`, MAP.259). Its nebula cover is not in it: the cover changes without a sector changing, so it is
   read live beside the node (`query.galaxy_nebula_cover`, as a stage's is), never from the node cache;
-* `stars`, `generated`, `points` and `clouds`: the brightest objects of each kind inside the block, `NODE_*` of
-  each (a sector lists every object it holds up to a larger budget), in the same ranking the cube tiles use
+* `stars`, `generated`, `points`, `clouds` and `worlds` (the star systems with a habitable world, MAP.220,
+  `query.galaxy_habitable_systems_in_box`; none for a block bigger than `COARSE_ABOVE`): the brightest objects of each kind inside the block, `NODE_*` of
+  each (a sector lists every object it holds up to a larger budget), in the ranking `db.query` gives every box list
   (`query.galaxy_bright_stars_in_box`, `galaxy_generated_stars_in_box`, `galaxy_point_phenomena_in_box`,
   `galaxy_scattered_points_in_box`, `galaxy_clouds_in_box`: one key for every block, so a child lists every object
   of its parent that lies inside it, MAP.154), with the unlisted rest summed in the aggregate's lights;
@@ -19,18 +20,19 @@ to draw it before it opens it into its children:
   tint.
 
 An object is a member of the block it lies in: a pre-placed star and a generated star by the address of its sector,
-a point by the sector its position falls in (`spherical.sector_address_at`). The tile readers take a box, so a block
+a point by the sector its position falls in (`spherical.sector_address_at`). The node readers take a box, so a block
 is read by its bounding box (`block_box`) and the objects outside the block itself are dropped (`address_in_block`);
 each reader is asked for `POOL` times the budget first so the cut still has `NODE_*` of them to keep.
 
 Every part of a node depends only on its key and the database's contents (`query.galaxy_content_stamp`), so the
-node cache keys each node by key and stamp as the tiles were.
+node cache keys each node by key and stamp.
 """
 
 import math
 
 from planetgen.db import block_lights, query
 from planetgen.galaxy import spherical
+from planetgen.galaxy.nodecut import block_box
 from planetgen.galaxy.drill import (
     DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_block_bounds, drill_parent, format_drill_key, parse_node_key)
 from planetgen.physics.units import ly_to_pc
@@ -66,35 +68,10 @@ PLACED_LEVELS = (DRILL_STEP, 1)
 """tuple: The levels that list their generated sectors."""
 
 COARSE_ABOVE = 81
-"""int: A block bigger than this lists only the biggest classes of scattered points and no placed point phenomena, as
-tiles coarser than 256 pc did (`query.POINT_PHENOMENON_MIN_LEVEL`)."""
+"""int: A block bigger than this lists only the biggest classes of scattered points and no placed point phenomena."""
 
 MAX_NODES_PER_REQUEST = 128
 """int: Most nodes one request may ask for."""
-
-def block_box(block, edge_pc):
-    """
-    The axis-aligned box `(lo, hi)` (parsecs, galaxy frame) that holds a block: the extremes of
-    `radius * (sin(colatitude) * cos(longitude), sin(colatitude) * sin(longitude), cos(colatitude))` over the block's
-    bounds (`drill.drill_block_bounds`), widened by a thousandth of a parsec so a point on the edge is inside.
-    """
-    (inner, outer), (north, south), (start, end) = drill_block_bounds(tuple(block), edge_pc)
-    cos_north, cos_south = math.cos(north), math.cos(south)
-    z_low = min(inner * cos_south, outer * cos_south)
-    z_high = max(inner * cos_north, outer * cos_north)
-    sin_low = min(math.sin(north), math.sin(south))
-    sin_high = 1.0 if north <= math.pi / 2 <= south else max(math.sin(north), math.sin(south))
-    rho_low, rho_high = inner * sin_low, outer * sin_high
-    angles = [start, end]
-    turn = math.ceil(start / (math.pi / 2)) * (math.pi / 2)
-    while turn <= end:
-        angles.append(turn)
-        turn += math.pi / 2
-    xs = [rho * math.cos(angle) for angle in angles for rho in (rho_low, rho_high)]
-    ys = [rho * math.sin(angle) for angle in angles for rho in (rho_low, rho_high)]
-    margin = 1e-3
-    return ((min(xs) - margin, min(ys) - margin, z_low - margin), (max(xs) + margin, max(ys) + margin, z_high + margin))
-
 
 def ancestor_at(address, m, memo=None):
     """The block of size `m` that holds the sector `address` (`(shell, band, wedge)`), by walking `drill_parent`;
@@ -204,8 +181,8 @@ def galaxy_nodes(conn, node_keys):
         node_keys (list[str]): `m.shell.band.wedge` keys (`drill.parse_node_key`), at most `MAX_NODES_PER_REQUEST`.
 
     Returns:
-        dict: `nodes` (`{key: {"aggregate", "stars", "generated", "points", "clouds", "placed"}}`, `placed` only for
-            a level-3 block and a sector; `incomplete` names the pieces a statement limit cut, as a tile's does),
+        dict: `nodes` (`{key: {"aggregate", "stars", "generated", "points", "clouds", "worlds", "placed"}}`, `placed` only for
+            a level-3 block and a sector; `incomplete` names the pieces a statement limit cut, as a node's does),
             `edge_pc` and `has_shape`.
 
     Raises:
@@ -265,9 +242,13 @@ def galaxy_nodes(conn, node_keys):
                 conn, lo, hi, edge_pc, points_limit * POOL, coarse)
             if inside(_point_address(point, edge_pc))], [])
         points = (points + scattered)[:points_limit]
+        worlds = [] if coarse else piece("worlds", lambda: [
+            system for system in query.galaxy_habitable_systems_in_box(conn, lo, hi, limit=points_limit * POOL)
+            if inside(_point_address(system, edge_pc))][:points_limit], [])
         clouds = piece("clouds", lambda: query.galaxy_clouds_in_box(
             conn, lo, hi, max_clouds=NODE_CLOUDS, margins=margins), [])
-        node = {"aggregate": aggregate, "stars": stars, "generated": generated, "points": points, "clouds": clouds}
+        node = {"aggregate": aggregate, "stars": stars, "generated": generated, "points": points, "clouds": clouds,
+                "worlds": worlds}
         if block.m in PLACED_LEVELS:
             node["placed"] = piece("placed", lambda: [
                 sector for sector in query.galaxy_sectors_in_box(conn, lo, hi, limit=NODE_PLACED_MAX * POOL)

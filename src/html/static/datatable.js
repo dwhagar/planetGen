@@ -77,7 +77,30 @@ function helpLink(helpUrl, anchor, node) {
   return link;
 }
 
-function symbolRow(symbols, iconUrl, helpUrl) {
+// The four life scores of a `symbols` cell: `[{name, score, label, anchor}]`, the markup `habitability_symbols.life_html` draws.
+function lifeCluster(life, iconUrl, helpUrl) {
+  const cluster = el("span", "hab-life-cluster");
+  life.forEach((entry) => {
+    const node = el("span", entry.score === 0 ? "hab-life hab-life-none" : "hab-life");
+    node.setAttribute("role", "img");
+    node.setAttribute("aria-label", entry.label);
+    node.title = entry.label;
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "icon hab-life-shape");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    const use = document.createElementNS(SVG_NS, "use");
+    use.setAttribute("href", `${iconUrl}#life-${entry.name}`);
+    svg.append(use);
+    const score = el("span", "hab-life-score", String(entry.score));
+    score.setAttribute("aria-hidden", "true");
+    node.append(svg, score);
+    cluster.append(helpLink(helpUrl, entry.anchor, node));
+  });
+  return cluster;
+}
+
+function symbolRow(symbols, iconUrl, helpUrl, life) {
   const row = el("span", "hab-symbols");
   symbols.forEach((symbol) => {
     const svg = document.createElementNS(SVG_NS, "svg");
@@ -91,6 +114,7 @@ function symbolRow(symbols, iconUrl, helpUrl) {
     svg.append(title, use);
     row.append(helpLink(helpUrl, symbol.anchor, svg));
   });
+  if (life) row.append(lifeCluster(life, iconUrl, helpUrl));
   return row;
 }
 
@@ -198,7 +222,7 @@ function cellNode(cell, iconUrl, helpUrl) {
     td.append(form);
   } else if (cell.symbols) {
     // The habitability symbols (UX.100), drawn from the icon sprite as the page draws them with no scripts.
-    td.append(symbolRow(cell.symbols, iconUrl, helpUrl));
+    td.append(symbolRow(cell.symbols, iconUrl, helpUrl, cell.life));
   } else if (cell.chips) {
     // The equipment chips (UX.154): solid for a required item, outlined for a recommended one, in the colour of the
     // PHI-6 domain it comes from.

@@ -20,7 +20,7 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     base_url,
     browser,
     sample_job,
-    sample_job_tree,
+    sample_run,
     sample_params,
     site_app,
     site_db,

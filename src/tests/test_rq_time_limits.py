@@ -9,7 +9,7 @@ expires the entry of a job whose worker was killed, and ends a job that hangs. T
   kind's recorded seconds;
 * the Generate page's job (`jobs._spawn`): the sum of its steps' recorded times;
 * an API job (`api_jobs.submit`): the route's estimate, else a fixed limit;
-* the tile prefetch and rebuild (`tileprefetch._enqueue_chunks`): the size of the chunk.
+* the node prefetch and rebuild (`tileprefetch._enqueue_chunks`): the size of the chunk.
 
 `redisqueue.TimedQueue` refuses a job without a limit, and no module makes an RQ queue or job of its own.
 """
@@ -332,7 +332,7 @@ def test_an_api_jobs_estimate_is_read_from_the_recorded_task_seconds(monkeypatch
     assert api_jobs.recorded_task_seconds("sector") is None
 
 
-def test_a_tile_chunk_gets_a_limit_from_its_size(redis_server, limits):
+def test_a_node_chunk_gets_a_limit_from_its_size(redis_server, limits):
     assert tileprefetch.chunk_timeout(1) == tileprefetch.MIN_JOB_SECONDS
     assert tileprefetch.chunk_timeout(10 ** 6) == redisqueue.MAX_TIMEOUT_SECONDS
     connection = redisqueue.connect(redis_server)

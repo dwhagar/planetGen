@@ -22,6 +22,7 @@ from planetgen.generation.stats import (
     Bucket, DiskSpace, GenerationStats, bucket_bounds, bucket_index, check_disk, estimate, format_bytes,
     format_duration,
 )
+from tests import first_fill
 from tests.test_galaxy_gen import _all_sectors, _mysql_argv, _plan_wide_galaxy, _run_cli
 
 
@@ -367,6 +368,7 @@ def test_a_run_records_its_speed_and_the_databases_size(control_config, monkeypa
     # Without the GEN.23 bright-star backfill each sector holds exactly
     # its --num-systems, so the per-task counts below are exact.
     monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *args, **kwargs: {"blocks": 0, "stars": 0})
+    first_fill.without_the_deepest_floor(monkeypatch)   # nor the first fill's own draw (GEN.633)
     _plan_wide_galaxy(control_config)
     _run_cli(FIRST_THREE + _mysql_argv(control_config))
     stats = GenerationStats(control_config)

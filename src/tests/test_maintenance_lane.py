@@ -26,6 +26,7 @@ def lane(redis_server, key_prefix, monkeypatch):
     monkeypatch.setattr(workers.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
     monkeypatch.setattr(workers.command, "send_shutdown_command", lambda conn, name: told.append(name))
     monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 3)
+    monkeypatch.setattr(workers, "host_worker_processes", lambda: 0)         # the host's own processes are not the test's
     connection.delete(workers.WANTED_KEY)
     made = []
 
@@ -44,6 +45,7 @@ def lane(redis_server, key_prefix, monkeypatch):
     for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE):
         redisqueue.queue(name, connection).empty()
         connection.delete(workers.STARTING_PREFIX + name)
+    connection.delete(workers.DECIDING_KEY, workers.REFUSED_KEY, workers.REFUSED_NOTE_KEY)
     for worker in made:
         connection.delete(workers.LENT_PREFIX + worker.name)
 
@@ -131,3 +133,97 @@ def test_shed_bulk_asks_idle_workers_first_and_never_twice(lane):
     assert workers.shed_bulk(connection, 1) == 1 and told == [idle.name]
     assert workers.shed_bulk(connection, 1) == 0 and told == [idle.name]            # it is leaving: counted as gone
     assert workers.shed_bulk(connection, 0) == 1 and told == [idle.name, busy.name]
+
+
+def test_perf181_many_callers_at_once_start_no_more_workers_than_the_cap(lane):
+    """PERF.181: the web app asks for upkeep workers from every request thread. A burst of threads (a map being
+    dragged during a run) each read "none starting" before any wrote its start, so each started the whole cap: on
+    2026-10-24 about 130 workers of 125 MB took a 16 GB host and the kernel killed MySQL."""
+    import threading
+    connection, started, told, register = lane
+    _queue(connection, redisqueue.MAINTENANCE_QUEUE, 10)
+    _generation_run(connection)
+    assert workers.maintenance_cap(connection) == 1
+    gate = threading.Barrier(24)
+
+    def ask():
+        own = redisqueue.connect()
+        gate.wait()
+        workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, own)
+
+    threads = [threading.Thread(target=ask) for _ in range(24)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert len(started) == 1
+
+
+def test_perf181_a_worker_that_is_slow_to_register_is_counted_for_longer_than_a_few_seconds(lane):
+    """PERF.181: a worker on a host short of memory can take far longer than 15 s to import and register. Until it
+    does it counts as starting, so asking again does not start another for the same need."""
+    connection, started, told, register = lane
+    _queue(connection, redisqueue.MAINTENANCE_QUEUE, 10)
+    _generation_run(connection)
+    assert workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 1
+    assert connection.ttl(workers.STARTING_PREFIX + redisqueue.MAINTENANCE_QUEUE) > 60
+    assert workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection) == 0
+    assert len(started) == 1
+
+
+def test_perf185_the_host_cap_is_sized_from_memory_and_cores_unless_set(monkeypatch):
+    """PERF.185: 60 percent of memory in 300 MB workers, no more than four a core, never fewer than cores plus four."""
+    monkeypatch.setattr(settings.get_settings().queue, "max_host_workers", 0)
+    monkeypatch.setattr(workers.work, "cpu_count", lambda: 8)
+    monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: int(15.6 * 2 ** 30))
+    assert workers.host_worker_cap() == 31                          # a 16 GB droplet: 31 by memory, 32 by cores
+    monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 2 * 2 ** 30)
+    assert workers.host_worker_cap() == 12                          # a small host keeps the cores plus four
+    monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 256 * 2 ** 30)
+    assert workers.host_worker_cap() == 32                          # a big one is held to four a core
+    monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: None)
+    assert workers.host_worker_cap() == 32
+    monkeypatch.setattr(settings.get_settings().queue, "max_host_workers", 5)
+    assert workers.host_worker_cap() == 5
+
+
+def test_perf185_a_work_horse_is_not_a_second_worker():
+    """PERF.185: the horse a worker forks has its command line; only the worker counts."""
+    listing = "\n".join([
+        "1 0 /sbin/init",
+        "100 1 /venv/bin/python -m planetgen.cli.worker --url redis://x planetgen-bulk",
+        "101 100 /venv/bin/python -m planetgen.cli.worker --url redis://x planetgen-bulk",       # its horse
+        "200 1 /venv/bin/python -m planetgen.cli.worker --url redis://x planetgen-maintenance",
+        "300 1 grep planetgen",
+    ])
+    assert workers.count_worker_processes(listing) == 2
+
+
+def test_perf185_many_callers_together_never_pass_the_host_cap(lane, monkeypatch):
+    """PERF.185: workers of every queue count against one cap; a start past it is refused, counted and logged once."""
+    import threading
+    connection, started, told, register = lane
+    monkeypatch.setattr(workers, "host_worker_cap", lambda: 4)
+    monkeypatch.setattr(workers, "host_worker_processes", lambda: len(started))       # a started worker is a process
+    monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 10)
+    _queue(connection, redisqueue.BULK_QUEUE, 50)
+    _queue(connection, redisqueue.MAINTENANCE_QUEUE, 50)
+    lines = []
+    monkeypatch.setattr(workers.log, "normal", lines.append)
+    gate = threading.Barrier(16)
+
+    def ask(name):
+        own = redisqueue.connect()
+        gate.wait()
+        for _ in range(3):
+            workers.ensure_workers(name, own)
+
+    threads = [threading.Thread(target=ask, args=(name,)) for name in
+               [redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE] * 8]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert len(started) == 4
+    assert int(connection.get(workers.REFUSED_KEY)) >= 1
+    assert len(lines) == 1 and "cap is 4" in lines[0]                                 # said once, not at every poll

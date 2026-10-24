@@ -4,7 +4,7 @@
 Brute-force and property tests for the galaxy's spherical sector grid
 (`planetgen/galaxy/spherical.py`: shells, bands and wedges), its planned
 outline (`skeleton.py`), the density model (`density.py`) and the Galaxy
-Map's tile math (`viewport.py`) -- the geometry every planning, placing and
+Map's block ladder (`drill.py`) -- the geometry every planning, placing and
 map request stands on.
 
 Each test states one invariant and lets hypothesis hunt for the address,
@@ -24,7 +24,7 @@ from hypothesis import strategies as st
 
 from planetgen.physics import constants as physical_constants
 from planetgen.galaxy import (
-    density as galaxyDensity, skeleton as galaxySkeleton, spherical, viewport as gv,
+    density as galaxyDensity, drill, skeleton as galaxySkeleton, spherical,
 )
 from planetgen.physics.units import ly_to_pc
 from tests.fuzz_support import finite
@@ -666,102 +666,34 @@ def test_empty_bounds_are_falsy_and_hold_nothing():
     assert not bounds.qualifies(0, 0)
 
 
-# --- tiles ---------------------------------------------------------------------
+# --- node keys ------------------------------------------------------------------
 
-TILE = st.integers(0, gv.TILE_MAX_LEVEL).flatmap(
-    lambda level: st.tuples(st.just(level), *[st.integers(0, 2 ** level - 1)] * 3)
-)
-
-
-@given(TILE)
-def test_tile_keys_round_trip(tile):
-    assert gv.parse_tile_key(gv.tile_key(*tile)) == tile
+@given(addresses())
+def test_the_node_keys_over_a_sector_round_trip_and_nest(address):
+    chain = drill.drill_chain_of(*address)
+    assert chain[-1] == (1, *address) and chain[0].m == drill.DRILL_LEVELS[0]
+    assert [block.m for block in chain] == list(drill.DRILL_LEVELS)
+    for block in chain:
+        assert drill.parse_node_key(drill.format_drill_key(block)) == block
+    for parent, child in zip(chain, chain[1:]):
+        assert drill.drill_parent(child) == parent
+    assert drill.drill_parent(chain[0]) is None
 
 
 @given(st.text(max_size=40))
 @example("")
-@example("0/0/0")
-@example("0/0/0/0/0")
-@example("13/0/0/0")
-@example("-1/0/0/0")
-@example("1/2/0/0")
-@example("1/-1/0/0")
-@example("1e3/0/0/0")
-@example("99999999999999999999/0/0/0")
-def test_parse_tile_key_only_ever_raises_value_error(text):
+@example("1.0.0")
+@example("1.0.0.0.0")
+@example("2.0.0.0")
+@example("-1.0.0.0")
+@example("243.-1.0.0")
+@example("243.0.99.0")
+@example("1e3.0.0.0")
+@example("99999999999999999999.0.0.0")
+def test_parse_node_key_only_ever_raises_value_error(text):
     try:
-        level, ix, iy, iz = gv.parse_tile_key(text)
+        block = drill.parse_node_key(text)
     except ValueError:
         return
-    assert 0 <= level <= gv.TILE_MAX_LEVEL
-    assert all(0 <= i < 2 ** level for i in (ix, iy, iz))
-
-
-@given(TILE)
-def test_tile_boxes_nest_inside_their_parent(tile):
-    level, ix, iy, iz = tile
-    lo, hi = gv.tile_bounds_pc(level, ix, iy, iz)
-    assert all(h - l == pytest.approx(gv.tile_edge_pc(level)) for l, h in zip(lo, hi))
-    if level:
-        plo, phi = gv.tile_bounds_pc(level - 1, ix // 2, iy // 2, iz // 2)
-        assert all(pl <= l and h <= ph for pl, l, h, ph in zip(plo, lo, hi, phi))
-
-
-HALF_ROOT = gv.TILE_ROOT_EDGE_PC / 2
-
-
-@given(st.tuples(*[st.floats(-HALF_ROOT * 1.1, HALF_ROOT * 1.1)] * 3))
-@example((-HALF_ROOT, -HALF_ROOT, -HALF_ROOT))  # the root cube's closed corner
-@example((HALF_ROOT, 0.0, 0.0))  # the open face: outside
-@example((0.0, 0.0, 0.0))
-def test_tile_keys_containing_really_contain_the_point(point):
-    keys = gv.tile_keys_containing(point)
-    inside_root = all(-HALF_ROOT <= v < HALF_ROOT for v in point)
-    if not inside_root:
-        assert keys == []
-        return
-    assert len(keys) == gv.TILE_MAX_LEVEL + 1
-    for level, key in enumerate(keys):
-        parsed = gv.parse_tile_key(key)
-        assert parsed[0] == level
-        lo, hi = gv.tile_bounds_pc(*parsed)
-        assert all(l <= v < h for l, v, h in zip(lo, point, hi))
-
-
-@settings(max_examples=40)
-@given(
-    st.integers(0, 5),
-    st.tuples(*[st.floats(-HALF_ROOT * 1.2, HALF_ROOT * 1.2)] * 3),
-    st.floats(0, HALF_ROOT),
-)
-def test_tiles_intersecting_sphere_match_brute_force(level, center, radius):
-    span = 2 ** level
-    expected = set()
-    for ix in range(span):
-        for iy in range(span):
-            for iz in range(span):
-                lo, hi = gv.tile_bounds_pc(level, ix, iy, iz)
-                d2 = sum((c - min(max(c, l), h)) ** 2 for c, l, h in zip(center, lo, hi))
-                if d2 <= radius * radius:
-                    expected.add(gv.tile_key(level, ix, iy, iz))
-    got = gv.tiles_intersecting_sphere(level, center, radius)
-    assert len(got) == len(set(got))
-    assert set(got) <= expected
-    # Boxes are half-open, so a tile the sphere only touches along its
-    # open upper face is rightly left out; nothing else may be.
-    for key in expected - set(got):
-        lo, hi = gv.tile_bounds_pc(*gv.parse_tile_key(key))
-        d2 = sum((c - min(max(c, l), h)) ** 2 for c, l, h in zip(center, lo, hi))
-        assert d2 == pytest.approx(radius * radius, abs=1e-6)
-
-
-@given(TILE.filter(lambda t: t[0] >= 6), st.sampled_from([4.0]))
-def test_planned_slots_in_a_tile_lie_in_that_tile(tile, edge):
-    shape = galaxyDensity.build_galaxy_shape(3000, 300, 500, 5, 2, 0.2, 0.5)
-    e = galaxySkeleton.expected_system_count_at_density_1()
-    slots = gv.planned_slots_in_tile(*tile, edge, shape, e, set())
-    lo, hi = gv.tile_bounds_pc(*tile)
-    for slot in slots:
-        position = spherical.sector_position_pc(slot["shell_index"], slot["band_index"], slot["wedge_index"], edge)
-        assert position == pytest.approx((slot["x"], slot["y"], slot["z"]))
-        assert all(l <= v < h for l, v, h in zip(lo, position, hi))
+    assert block.m in drill.DRILL_LEVELS and block.shell >= 0
+    assert drill.parse_node_key(drill.format_drill_key(block)) == block

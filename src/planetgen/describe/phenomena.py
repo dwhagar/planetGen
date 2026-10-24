@@ -209,6 +209,8 @@ def _supernova_remnant(remnant):
     if centre is not None:
         sentences.append(inline(f"At its centre lies the collapsed core of the progenitor star, {centre.name}."))
         children.append(_compact(centre))
+    elif getattr(remnant, "compact_remnant_name", None):    # a stored remnant: the centre has a page of its own
+        sentences.append(inline(f"At its centre lies the collapsed core of the progenitor star, {remnant.compact_remnant_name}."))
     elif remnant.progenitor_type == "core-collapse":
         sentences.append(inline("Whatever compact remnant the collapse left behind, if any, has not been found in the "
                                 "debris."))

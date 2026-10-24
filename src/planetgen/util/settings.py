@@ -157,11 +157,11 @@ class RatePages(_Section):
                       summary="How often one visitor may open the Galaxy Map page; empty turns the "
                               "limit off.",
                       control="rate")
-    galaxy_tiles: str = opt("600 per minute", "Limit on /galaxy/tiles, /galaxy/nodes, /galaxy/stage, /galaxy/window and /galaxy/territories, "
+    galaxy_tiles: str = opt("600 per minute", "Limit on /galaxy/nodes, /galaxy/stage, /galaxy/window and /galaxy/territories, "
                             "fetched as the map's camera moves. Empty turns it off.", restart=True,
                             group="protection",
-                            label="Map tile limit",
-                            summary="How fast one visitor may load map tiles while moving the map; "
+                            label="Map data limit",
+                            summary="How fast one visitor may load map data while moving the map; "
                                     "empty turns the limit off.",
                             control="rate")
     health: str = opt("60 per minute", "Limit on /api/health. Empty turns it off.", restart=True,
@@ -239,8 +239,8 @@ class PasswordHash(_Section):
 
 
 class Cache(_Section):
-    max_mb: float = opt(1024, "How much disk the site's stored caches (today the Galaxy Map's tiles) may use, in all. "
-                        "When it is full the warm-up stops, the tiles it built ahead stay, and the tiles a visit "
+    max_mb: float = opt(1024, "How much disk the site's stored caches (today the Galaxy Map's nodes and stages) may use, in all. "
+                        "When it is full the warm-up stops, the nodes it built ahead stay, and the nodes a visit "
                         "asked for are dropped, the least recently visited first (0 turns the disk caches off).",
                         env="PLANETGEN_CACHE_MAX_MB", unit="MB", group="speed", ge=0,
                         label="Disk cache size",
@@ -268,36 +268,31 @@ class Cache(_Section):
 
 
 class TileCache(_Section):
-    dir: str = opt("", "Where the Galaxy Map's tiles are cached on disk; empty means /var/cache/planetgen/tiles.",
+    dir: str = opt("", "Where the Galaxy Map's nodes are cached on disk; empty means /var/cache/planetgen/tiles.",
                    env="PLANETGEN_TILE_CACHE_DIR", editable=False, group="paths",
-                   label="Tile cache folder",
-                   summary="Where the Galaxy Map's tiles are cached; empty uses "
+                   label="Map cache folder",
+                   summary="Where the Galaxy Map's nodes are cached; empty uses "
                            "/var/cache/planetgen/tiles.")
-    warm_levels: int = opt(8, "How many levels of the Galaxy Map's tile octree `planetgen warm` builds in full, "
-                           "coarsest first (level 8 is tiles 2,048 pc across; every level is eight times the tiles "
-                           "of the one above; 0 builds none).", unit="levels", group="speed", ge=0, le=15,
-                           label="Map levels built in full",
-                           summary="How many of the map's coarsest tile levels are built ahead (0 "
-                                   "builds none).")
-    warm_zoom_levels: int = opt(14, "Finest tile level of the zoom run `planetgen warm` builds from the opening "
-                                "view in to the galaxy's centre, on top of the levels above (level 14 is tiles 32 pc "
-                                "across and the finest the map's cut uses; at most 15; 0 builds no run).",
-                                unit="levels", group="speed", ge=0, le=15,
-                                label="Closest map level built ahead",
-                                summary="How far in the map is prepared; level 14 is tiles 32 pc "
-                                        "wide, 0 skips it.")
-    prefetch_per_visit: int = opt(128, "Most tiles one request for tiles queues to be built in the background: the "
-                                  "next few zoom steps along the camera's line, then the neighbours of the tiles it "
-                                  "asked for and the next level inside them (0 turns the background build off).", unit="tiles", group="speed", ge=0,
-                                  label="Tiles prefetched per visit",
-                                  summary="Most tiles one visit queues to be built ahead in the "
+    warm_zoom_floor: int = opt(9, "Finest block level of the zoom run `planetgen warm` builds from the opening view in to "
+                               "the galaxy's centre, on top of the populated blocks it builds in full (9 is blocks of "
+                               "nine shells, about 36 pc across; the run covers blocks of that size and bigger; "
+                               "243 or more builds no run).",
+                               unit="shells", group="speed", ge=1, le=177147,
+                               label="Closest map block built ahead",
+                               summary="How far in the map is prepared: blocks of this many shells; "
+                                       "243 or more skips it.")
+    prefetch_per_visit: int = opt(128, "Most nodes one request for nodes queues to be built in the background: "
+                                  "the children of the nodes it asked for, then their parents and the parents' other "
+                                  "children (0 turns the background build off).", unit="nodes", group="speed", ge=0,
+                                  label="Nodes prefetched per visit",
+                                  summary="Most nodes one visit queues to be built ahead in the "
                                           "background (0 turns it off).")
-    prefetch_per_minute: int = opt(600, "Most tiles the background build queues in a minute, all requests together.",
-                                   unit="tiles", group="speed", ge=0,
-                                   label="Tiles prefetched per minute",
-                                   summary="Most tiles the background build queues in a minute, all "
+    prefetch_per_minute: int = opt(600, "Most nodes the background build queues in a minute, all requests together.",
+                                   unit="nodes", group="speed", ge=0,
+                                   label="Nodes prefetched per minute",
+                                   summary="Most nodes the background build queues in a minute, all "
                                            "visitors together.")
-    prefetch_max_queued: int = opt(8, "The background build queues nothing while this many of its jobs (16 tiles "
+    prefetch_max_queued: int = opt(8, "The background build queues nothing while this many of its jobs (16 nodes "
                                    "each) or other upkeep work already wait.", unit="jobs", group="speed", ge=1,
                                    label="Prefetch queue limit",
                                    summary="The background build waits while this many of its jobs "
@@ -378,12 +373,20 @@ class Queue(_Section):
         label="Workers for short jobs",
         summary="How many workers are reserved for short jobs; generation work never takes them.")
     maintenance_workers: int = opt(
-        1, "How many workers run the cache warm-up, the tile prefetch and the database check while a generation run "
+        1, "How many workers run the cache warm-up, the node prefetch and the database check while a generation run "
         "is live. They are taken out of the generation worker count (a generation worker finishes its unit and "
         "leaves when they are needed), so the host's total does not grow; with no generation run live they may use "
         "the whole count.", unit="workers", group="speed", ge=1, le=64,
         label="Workers for upkeep during a run",
         summary="How many workers keep the caches and checks going while a generation run is live.")
+    max_host_workers: int = opt(
+        0, "The most worker processes planetgen may run on this host at once, every queue and command together: a "
+        "start that would pass it is refused and said in the log. 0 sizes it from the host: 60 percent of its memory "
+        "in workers of 300 MB each, no more than four per core, and never fewer than the cores plus four. It stops a "
+        "burst of requests, or several commands starting workers together, from filling the memory and getting "
+        "MySQL killed.", unit="workers", group="speed", ge=0, le=512,
+        label="Most workers on this host",
+        summary="The most worker processes planetgen runs at once on this host; 0 sizes it from memory and cores.")
     long_workers: int = opt(
         1, "How many workers run the jobs expected to take longer than the long job limit (a neighbourhood or a "
         "large settle, which can run for hours). They have a lane of their own so a long job can never hold the "

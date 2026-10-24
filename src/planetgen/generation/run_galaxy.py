@@ -342,6 +342,9 @@ def _fill_context(args, address):
                 # own: they are dark, below the cap, and part of what it leaves unresolved.
                 expected = profile.expected_systems
                 below_cut = brightStars.BelowCut(tuple(address), min_mass_solar, seed, expected)
+        if not resolution.capped:
+            _take_to_the_deepest_floor(store.mysql_config_from_args(args), skeleton, address, limits, backfill_seed)
+            conn.commit()   # the draw ran on a connection of its own: this one's snapshot must see its stars
         level = store.bright_star_fill_level(conn, *address)
         mass_limit = store.bright_star_fill_mass_limit(conn, *address)
         emission_hosts = _emission_hosts(conn, skeleton, address, profile)
@@ -358,6 +361,41 @@ def _fill_context(args, address):
                                    phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit,
                                    resolution=resolution, emission_hosts=emission_hosts, member_trees=member_trees,
                                    orbit_epoch_unix=orbit_epoch_unix)
+
+
+def _take_to_the_deepest_floor(config, skeleton, address, limits, seed):
+    """
+    GEN.633: before a sector is filled, takes its pre-placed bright stars down to the deepest floor the mass backfill
+    ever uses (the first of `BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`), whatever the backfill has reached so far. The
+    backfill skips a sector once it is filled, so without this a sector the backfill reached first held the dimmer
+    stars of its ring and one generated before the backfill reached it did not, and its contents depended on the order
+    the sectors were generated in. A sector's draw is seeded from the scatter's seed, its address and fixed mass
+    bands, so the stars drawn here are the ones the backfill would have drawn, and a sector the backfill already took
+    to a heavier floor is topped up with only the masses it lacks. A sector at or below the floor (a band whose mass
+    limit already reaches it) is left alone.
+
+    The draw runs on a connection of its own at READ COMMITTED and starts over after a deadlock or lock wait timeout
+    (`store.RETRYABLE_ERRORS`): the fills of several workers write `bright_stars` rows at once.
+    """
+    floor = float(min(program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL))
+    mass_limit = limits.mass_limit_at(address[0], address[1])
+    if mass_limit is not None and mass_limit <= floor:
+        return
+    for attempt in range(1, store.SECTOR_SAVE_ATTEMPTS + 1):
+        conn = store.get_connection(config)
+        try:
+            conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+            run_plan._draw_sector_masses(conn, skeleton, {tuple(address): floor}, limits, seed)
+            return
+        except pymysql.err.OperationalError as exc:
+            if not exc.args or exc.args[0] not in store.RETRYABLE_ERRORS or attempt == store.SECTOR_SAVE_ATTEMPTS:
+                raise
+            conn.rollback()
+            log.debug(f"The first fill of {tuple(address)} hit MySQL error {exc.args[0]}; trying again "
+                      f"({attempt}/{store.SECTOR_SAVE_ATTEMPTS - 1}).")
+            time.sleep((0.05 + os.getpid() % 8 * 0.03) * attempt)   # not a draw: the process id spreads the workers
+        finally:
+            conn.close()
 
 
 def backfill_step_targets(addresses, bounds, step_masses=None):

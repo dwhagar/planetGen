@@ -56,6 +56,7 @@ ID_PATHS = {
     "api.phenomena": {"items[].id": "phenomenon"},
     "api.phenomenon": {"id": "phenomenon", "inside.id": "phenomenon", **_NEAREST},
     "api.phenomenon_contents": {"items[].id": "by-kind"},
+    "api.container_contents": {"items[].id": "by-kind", "container.id": "by-kind"},
     "api.uncharted_phenomenon": {"target.id": "by-kind"},
     "api.object_sheet_route": {},
     "api.object_children_route": {"items[].id": "by-kind"},
@@ -73,12 +74,6 @@ ID_PATHS = {
     "api.near": {"rows[].id": "by-kind"},
     "api.galaxy_sectors": {"items[].id": "sector"},
     "api.galaxy_stage_route": {"sectors[].id": "sector"},
-    "api.galaxy_tiles_route": {
-        "tiles.*.placed[].id": "sector",
-        "tiles.*.generated[].id": "star",
-        "tiles.*.clouds[].id": "phenomenon",
-        "tiles.*.points[].id": "phenomenon",
-    },
     "api.galaxy_nodes_route": {
         "nodes.*.placed[].id": "sector",
         "nodes.*.generated[].id": "star",

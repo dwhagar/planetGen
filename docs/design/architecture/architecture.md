@@ -253,6 +253,7 @@ The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The se
 | [`keepout.py`](../../../src/planetgen/galaxy/keepout.py) | The keep-out radius of an object (NAV.24): how close a course should come before it counts as entering the object's gravity. |
 | [`nav_graph.py`](../../../src/planetgen/galaxy/nav_graph.py) | A k-nearest-neighbor graph over systems' positions and its shortest hop-by-hop path (Dijkstra): the "optimal route via adjacent systems" half of NAV. |
 | [`navigation.py`](../../../src/planetgen/galaxy/navigation.py) | Pure math for the NAV feature: the course (distance, bearing, mark) between two absolute 3D positions, and warp and fold travel times along that distance. |
+| [`nodecut.py`](../../../src/planetgen/galaxy/nodecut.py) | Which sector-block nodes the Galaxy Map fetches and draws for a camera (MAP.261): the blocks opened by projected size, the hand-over weights, the budget; `static/galaxynodecut.js` is its twin. |
 | [`nebula_field.py`](../../../src/planetgen/galaxy/nebula_field.py) | Dark-family nebulae (giant molecular clouds, dark clouds, Bok globules and star-forming cores, classes M-Q) are tens of light-years across, far bigger than a 13 ly sector. |
 | [`nebula_shape.py`](../../../src/planetgen/galaxy/nebula_shape.py) | A nebula's irregular shape: a few warped metaballs, its triangle mesh and its containment test (GEN.75). |
 | [`object_uid.py`](../../../src/planetgen/galaxy/object_uid.py) | The object ID (GEN.170, docs/design/architecture/object-id-options.md section 0): one fixed-length ID for every object in the galaxy, made of where it was born and which birth it was. |
@@ -270,7 +271,6 @@ The galaxy: sector grid, density, outline, seeds, object IDs, navigation. The se
 | [`version_check.py`](../../../src/planetgen/galaxy/version_check.py) | The mixed-version warning (DB.7): a galaxy extended by a different release holds sectors made by more than one version, and reproduces only sector by sector. |
 | [`version_history.py`](../../../src/planetgen/galaxy/version_history.py) | The version keys an update has run under (OPS.13; docs/design/generation/reproducible-galaxies.md). |
 | [`version_key.py`](../../../src/planetgen/galaxy/version_key.py) | The version key (DB.6; docs/design/generation/reproducible-galaxies.md, section 4): 22 uppercase hex digits naming exactly what a galaxy seed needs to make the same galaxy again -- the PlanetGen release and the environment it ran in. |
-| [`viewport.py`](../../../src/planetgen/galaxy/viewport.py) | The Galaxy Map's cube-tile arithmetic (the octree of 16 pc to 524,288 pc cubes, the grid's whole reach, tile keys) and viewport queries. |
 | [`window.py`](../../../src/planetgen/galaxy/window.py) | The Galaxy Map's data windows (MAP.151): `g` cells across, a ball of the centre block's size, found in closed form per shell. |
 
 #### src/planetgen/population/
@@ -356,6 +356,8 @@ The work queue and the API's long jobs, on Redis with RQ.
 | [`runeta.py`](../../../src/planetgen/queue/runeta.py) | The time left in a run (PERF.96, PERF.33), a pure function of the counters `runrecord.read_run` returns, shared by the terminal bar, the Generate and Queue pages and the banner. |
 | [`hourdisplay.py`](../../../src/planetgen/queue/hourdisplay.py) | The time left as whole hours for the galaxy banner (UX.3): the top of the likely range rounded up, never below one hour; it falls as the estimate falls and rises only when even the low end is longer than the figure shown. |
 | [`runrecord.py`](../../../src/planetgen/queue/runrecord.py) | A run's record in Redis (PERF.96, step 2 of the work queue rebuild, docs/design/operations/redis-and-the-work-queue.md 5.1 and 5.2): the one place a run lives. |
+| [`runcontrol.py`](../../../src/planetgen/queue/runcontrol.py) | What an admin does to a run in Redis (PERF.99, docs/design/operations/redis-and-the-work-queue.md 5.5 and 5.6): cancel it through the stop command, clear one that stopped answering, delete finished ones and keep the last 20 run logs. |
+| [`runview.py`](../../../src/planetgen/queue/runview.py) | A run as the pages show it (PERF.99): `runrecord.read_run`'s dict as plain JSON-able numbers and words, shared by the Queue page, its API and the Generate page. |
 | [`work.py`](../../../src/planetgen/queue/work.py) | The generation work queue (PERF.8): runs independent units of work (a sector to fill, a run of shells to scatter) on a pool of worker processes, at most about 80% of the machine's cores. |
 | [`workers.py`](../../../src/planetgen/queue/workers.py) | The workers of the two shared queues (PERF.95, folding in PERF.40, PERF.78 and ADM.15): who starts them, how many there are, and how a running job is stopped. |
 
@@ -448,7 +450,7 @@ The JSON API under `/api` (see [api.md](../../reference/api.md)).
 | [`routes.py`](../../../src/planetgen/api/routes.py) | Every `/api/...` content route: databases, sectors, systems (detail, text, sections, near), nav, `/api/galaxy/*` (sectors, phenomena, shape with its `bright_stars` status, cell, tiles, stage, stamp, changes, locate), phenomena, search, facilities, and the admin writes (edit, delete, generate-neighborhood, `POST /api/systems` with an optional `sector_id` to add a system to a stored sector, `PATCH /api/systems/<id>` with `regenerate` to rebuild one in place). |
 | [`schemas.py`](../../../src/planetgen/api/schemas.py) | Request bodies as Pydantic models (ADM.21). |
 | [`version.py`](../../../src/planetgen/api/version.py) | The API version (API.22): one sequential integer, like the database schema number. |
-| [`workqueue.py`](../../../src/planetgen/api/workqueue.py) | Admin endpoints behind the work queue page (ADM.10, `web/queue_page.py`): the queue's state (workers active, the server's load, the lease, the whole-queue pause), the job trees (ADM.12, `planetgen/queue/work.py`) and the controls on them. |
+| [`workqueue.py`](../../../src/planetgen/api/workqueue.py) | Admin endpoints behind the work queue page (ADM.10, `web/queue_page.py`): the queue's state (workers active, the server's load, the machine's holder, the whole-queue pause), the runs in Redis (PERF.99) with their stages and log, and cancel, clear and delete on them. |
 
 #### src/planetgen/web/
 
@@ -475,7 +477,7 @@ The HTML pages (see [html-interface.md](../../reference/html-interface.md)). `te
 | [`nav_page.py`](../../../src/planetgen/web/nav_page.py) | `/nav`: pick two endpoints, show course, route and NAV map, with "Show on Galaxy Map" (`galaxy_course` builds the course's waypoints for `/galaxy?course=`). |
 | [`nearby_page.py`](../../../src/planetgen/web/nearby_page.py) | The What's nearby page, `/nearby` (NAV.44): pick a place, type a distance in parsecs, list what is there. |
 | [`population_pages.py`](../../../src/planetgen/web/population_pages.py) | The population pages (POP.1 to POP.4), read from the population API (`api/population.py`, schema v44): |
-| [`queue_page.py`](../../../src/planetgen/web/queue_page.py) | The admin work queue page (ADM.10): `/admin/queue` lists the job trees newest first, `/admin/queue/<id>` shows one. |
+| [`queue_page.py`](../../../src/planetgen/web/queue_page.py) | The admin work queue page (ADM.10, PERF.99): `/admin/queue` lists the runs in Redis newest first, `/admin/queue/<run id>` shows one with its stages and log tail, and cancel, clear and delete act on a run. |
 | [`searchpage.py`](../../../src/planetgen/web/searchpage.py) | Search page request parsing and URL building. |
 | [`sector_page.py`](../../../src/planetgen/web/sector_page.py) | `/sector/<id>`: Sector Map, contents table (with octants, nearest systems and facilities), admin actions (generate neighborhood), and the NAV pick mode (`?pick=from` or `?pick=to`, a "Choosing a destination" banner and "Use as destination" links). |
 | [`system_facilities.py`](../../../src/planetgen/web/system_facilities.py) | The system page's Facilities panel and the admin facility form: `preview` (placement rules and orbit, nothing saved), `save` (`POST /api/facilities`) and `remove` (`DELETE /api/facilities/<id>`). |
@@ -509,11 +511,11 @@ Shared page-building code.
 | [`xfetch.py`](../../../src/planetgen/web/lib/xfetch.py) | Fetching a costly value shortly before it expires (PERF.110, XFetch): `xfetch_early` is the decision, `AgedCache` the in-process cache the admin Stats page's database figures use; the page cache uses the decision for its own costly entries. |
 | [`pagination.py`](../../../src/planetgen/web/lib/pagination.py) | The site's one pager. |
 | [`privatedir.py`](../../../src/planetgen/web/lib/privatedir.py) | Safe private fallback directories in the system temp folder. |
-| [`singleflight.py`](../../../src/planetgen/web/lib/singleflight.py) | One build of each Galaxy Map tile or stage at a time (PERF.38). |
+| [`singleflight.py`](../../../src/planetgen/web/lib/singleflight.py) | One build of each Galaxy Map node or stage at a time (PERF.38). |
 | [`systempage.py`](../../../src/planetgen/web/lib/systempage.py) | The system page's body list and data tables. |
 | [`tabledisplay.py`](../../../src/planetgen/web/lib/tabledisplay.py) | Star and planet display strings computed from raw columns. |
-| [`tilecache.py`](../../../src/planetgen/web/lib/tilecache.py) | On-disk cache of Galaxy Map tiles and drill stages, invalidated by `/api/galaxy/changes`. |
-| [`tilepack.py`](../../../src/planetgen/web/lib/tilepack.py) | The packed form of a Galaxy Map tile (MAP.159): what the tile cache stores and what `/galaxy/tiles` sends. |
+| [`tilecache.py`](../../../src/planetgen/web/lib/tilecache.py) | On-disk cache of Galaxy Map nodes and drill stages, invalidated by `/api/galaxy/changes`. |
+| [`tilepack.py`](../../../src/planetgen/web/lib/tilepack.py) | The packed form of a Galaxy Map node (MAP.159): what the tile cache stores and what `/galaxy/tiles` sends. |
 
 #### src/planetgen/web/maps/
 
@@ -523,7 +525,7 @@ The map panels and their data.
 |---|---|
 | [`__init__.py`](../../../src/planetgen/web/maps/__init__.py) | The map panels. |
 | [`galaxymap.py`](../../../src/planetgen/web/maps/galaxymap.py) | Quadrant and Zone classification of sectors. |
-| [`galaxymap3d.py`](../../../src/planetgen/web/maps/galaxymap3d.py) | Builds the Galaxy Map panel and its first embedded tiles. |
+| [`galaxymap3d.py`](../../../src/planetgen/web/maps/galaxymap3d.py) | Builds the Galaxy Map panel and its first embedded nodes. |
 | [`navmap.py`](../../../src/planetgen/web/maps/navmap.py) | The NAV page's top-down SVG of origin, destination and route. |
 | [`phenomenonmap.py`](../../../src/planetgen/web/maps/phenomenonmap.py) | A phenomenon's AU-scale SVG diagram (now only for nebulae and supernova remnants). |
 | [`phenomenonrender.py`](../../../src/planetgen/web/maps/phenomenonrender.py) | The phenomenon page's View panel: which view suits each type (`view_kind`), the numbers for the three.js render, and a static SVG still for no JavaScript. Asteroid fields get no view. |
@@ -543,7 +545,7 @@ The map panels and their data.
 
 | Path | What it holds |
 |---|---|
-| [`galaxymap3d.js`](../../../src/html/static/galaxymap3d.js) | The 3D Galaxy Map (three.js): scene, the Free look camera, tile fetching from `/galaxy/tiles` into an IndexedDB tile store, bright stars and clouds, the NAV course line and the Territories overlay. Hands the drill-down to `galaxystageview.js`. |
+| [`galaxymap3d.js`](../../../src/html/static/galaxymap3d.js) | The 3D Galaxy Map (three.js): scene, the Free look camera, node fetching from `/galaxy/nodes` into an IndexedDB node store, bright stars and clouds, the NAV course line and the Territories overlay. Hands the drill-down to `galaxystageview.js`. |
 | `galaxystages.js` | The drill-down's stage rules with no drawing: which blocks a stage holds, the address (`?cam=` the camera, `&sector=`, `&open=1`; MAP.228) and the stage a camera looks at, breadcrumb, labels, the flight path. No three.js import; tested under node. |
 | `galaxystageview.js` | The drill-down drawn and driven: the stages from galaxy to sector (the block ladder on shells), camera flights, breadcrumb with sibling menus, tooltip, keys, touch, and the address bar. Created by `galaxymap3d.js`, which opens on it. |
 | `galaxyprisms.js` | Sector-grid cells, block level of detail, density shading and the `drill*` ladder rules (the page's copy of `galaxy/spherical.py`, `galaxy/drill.py` and `galaxy/window.py`; `tests/test_galaxyprisms.py` and `tests/test_galaxydrill.py` hold them equal). No three.js import, so tests run it under node. |
@@ -575,7 +577,7 @@ The map panels and their data.
 | `dialogmenus.js` | What picking a menu item does: opens a dialog or goes to a page (UX.26, UX.27, UX.31). |
 | `facilityform.js` | The system page's "Place a facility" form (web/templates/system.html, web/system_facilities.py). |
 | `galaxysystem.js` | A star system opened in place on the Galaxy Map (MAP.125), using `systemview3d.js` at the system's position. |
-| `galaxytilecut.js` | The tiles the Galaxy Map fetches for a camera, chosen by distance (MAP.152). |
+| `galaxynodecut.js` | The sector-block nodes the Galaxy Map fetches and draws for a camera, opened by projected size, and the hand-over weight of each (MAP.261; twin of `galaxy/nodecut.py`). |
 | `sectorreach.js` | Which sector's own scene the camera wants up in a window of sectors, and how much of it shows (MAP.152). |
 | `systemreach.js` | Which star's system the camera wants up in an opened sector, by the size of its disc, and how much of it shows (MAP.152). |
 | `groupfade.js` | Draws a scene group at a share of its strength: the fade of a sector's or a system's scene coming in (MAP.152). |
@@ -607,14 +609,14 @@ The map panels and their data.
 | `picker.js` | The one selection every map and page shares: a reference to an object, moved by one of four calls (NAV.13). |
 | `shoelace-theme.css` | Shoelace in the site's own colours. |
 | `shoelaceicons.js` | Points Shoelace's icons at the files under `vendor/shoelace/assets/`. |
-| `starfade.js` | Stars fade in and out as the camera nears or leaves the tile that lists them (MAP.152, MAP.153). |
+| `starfade.js` | Stars fade in and out as the camera nears or leaves the node that lists them (MAP.152, MAP.153). |
 | `starlight.js` | How much brighter a star's point of light is drawn than its luminosity alone would make it (MAP.87). |
 | `starmagnitude.js` | The Galaxy Map's star visibility law: opacity follows apparent magnitude against a limiting magnitude (MAP.148). |
 | `systemnav.js` | The NAV buttons of a body's info panel on the System Map, in both views (NAV.50). |
 | `systempage3d.js` | The system page's switch between the Diagram and the 3D view (MAP.74). |
 | `systemscale.js` | How the 3D system view maps real kilometres to what is drawn (MAP.71). |
 | `systemview3d.js` | The 3D system view: one star system from `GET /api/systems/<id>/scene` drawn with three.js (MAP.72, MAP.73). |
-| `tilepack.js` | Reads the packed Galaxy Map tiles `/galaxy/tiles` sends and the tile store keeps (MAP.159). |
+| `tilepack.js` | Reads the packed Galaxy Map nodes `/galaxy/nodes` sends and the node store keeps (MAP.159, MAP.260). |
 | `unitpreference.js` | The reader's unit preference: Automatic, Metric only or Customary (UX.78). |
 | `units.js` | Shows every server-rendered measurement in the reader's unit system (UX.78). |
 | `vendor/` | Vendored three.js and its license notices. |
@@ -925,12 +927,15 @@ with `DELETE /api/facilities/<id>`, each a plain CSRF-checked POST with a
 shell grid, and the sector page's Sector Map is the same map locked to its
 sector. The pieces:
 
-- **Tiles.** `static/galaxymap3d.js` fetches tiles from `/galaxy/tiles`, a
-  packed binary body (`web/lib/tilepack.py` writes it, `static/tilepack.js`
-  reads it; MAP.159), and keeps them in IndexedDB (`planetgen-tiles`), with
-  only a small record of the cache stamp in `localStorage`. Tiles are cubes
-  of space (the octree of `galaxy/viewport.py`), not sectors, so they do not
-  depend on the sector grid.
+- **Nodes.** `static/galaxymap3d.js` fetches the sector-block nodes that
+  `static/galaxynodecut.js` picks for the camera (a block opens into its
+  children as it grows on screen; MAP.261) from `/galaxy/nodes`, a packed
+  binary body (`web/lib/tilepack.py` writes it, `static/tilepack.js` reads it;
+  MAP.159), and keeps them in IndexedDB (`planetgen-nodes`), with only a small
+  record of the cache stamp in `localStorage`. A node is a block of the ladder
+  below, not a cube of space; its glow comes from the stored
+  `galaxy_block_lights` table (`db/block_lights.py`, MAP.259) and its read is
+  `db/nodes.py` (MAP.260).
 - **The block ladder.** The drill-down's stages (`/galaxy/stage`) and data
   windows (`/galaxy/window`, MAP.151) are blocks of 243, 81, 27, 9 and 3
   shells (`galaxy/drill.py`, `galaxy/window.py`, `docs/design/galaxy/spherical-block-ladder.md`).
@@ -953,26 +958,26 @@ sector. The pieces:
 
 ```mermaid
 flowchart TD
-    JS["static/galaxymap3d.js"] --> LS{"tile in<br/>IndexedDB?"}
+    JS["static/galaxymap3d.js"] --> LS{"node in<br/>IndexedDB?"}
     LS -->|"yes"| Draw["draw<br/>(tilepack.js, galaxyblocks.js)"]
-    LS -->|"no"| GT["GET /galaxy/tiles<br/>web/galaxy_views.py"]
-    GT --> TC["lib/tilecache.fetch_tiles_wire"]
+    LS -->|"no"| GT["GET /galaxy/nodes<br/>web/galaxy_views.py"]
+    GT --> TC["lib/tilecache.fetch_nodes_wire"]
     TC --> Stamp["current_stamp<br/>(at most once per 60 s:<br/>GET /api/galaxy/changes)"]
-    Stamp --> Disk{"tile on disk for<br/>this generation?"}
-    Disk -->|"yes"| Out["JSON tiles"]
-    Disk -->|"no"| API["apiclient.get_galaxy_tiles<br/>GET /api/galaxy/tiles"]
-    API --> QT["db.query.galaxy_tiles<br/>galaxy.viewport tile keys"]
+    Stamp --> Disk{"node on disk for<br/>this generation?"}
+    Disk -->|"yes"| Out["packed nodes"]
+    Disk -->|"no"| API["apiclient.get_galaxy_nodes<br/>GET /api/galaxy/nodes"]
+    API --> QT["db.nodes.galaxy_nodes"]
     QT --> DB[("content schema")]
-    API --> Write["write tile file"]
+    API --> Write["write node file"]
     Write --> Out
     Out --> Draw
 ```
 
-There are three cache levels. The browser keeps tiles in IndexedDB, keyed
-by the cache generation. The web process keeps tile files under
+There are three cache levels. The browser keeps nodes in IndexedDB, keyed
+by the cache generation. The web process keeps node files under
 `tile_cache.dir` (`planetgen/web/lib/tilecache.py`). The database is the source.
 Freshness comes from `db.query.galaxy_changes`, which reads the
-`modified_at` columns and names only the tiles that changed; a change it
+`modified_at` columns and names only the nodes that changed; a change it
 cannot pin down starts a new generation. `update.sh` ends by warming the
 map's opening view (`planetgen warm`, MAP.134).
 

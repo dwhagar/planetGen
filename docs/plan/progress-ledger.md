@@ -1338,3 +1338,37 @@ Baseline: PR #1817.
 | GEN.709 | 8.1 | Bugs and flaky tests |
 | GEN.704 | 8.1 | Habitability system |
 | GEN.700 | 8.1 | Habitability system |
+| GEN.713 | 8.1 | Surface and small bodies |
+| GEN.509 | 8.1 | Tuned draws and selection models |
+| TEST.334 | 8.1 | Bugs and flaky tests |
+| TEST.303 | 8.1 | Bugs and flaky tests |
+| PERF.99 | 8.1 | Queue, caches and performance |
+| PERF.181 | 8.1 | Queue, caches and performance |
+| GEN.710 | 8.1 | Bugs and flaky tests |
+| GEN.675 | 8.1 | Mixture and stored values |
+| UX.153 | 8.1 | Habitability system |
+| UX.152 | 8.1 | Habitability system |
+| GEN.452 | 8.1 | Radiation chain for habitability (GEN.445) |
+| PERF.185 | 8.1 | The headline closes |
+| GEN.633 | 8.1 | Reproducible galaxies |
+| GEN.57 | 8.1 | Reproducible galaxies |
+| GEN.699 | 8.1 | Radiation chain for habitability (GEN.445) |
+| UX.185 | 8.1 | Habitability system |
+| API.26 | 8.1 | Admin and API housekeeping |
+| API.31 | 8.1 | Admin and API housekeeping |
+| UX.121 | 8.1 | Admin and API housekeeping |
+| TEST.347 | 8.1 | Bugs and flaky tests |
+| TEST.348 | 8.1 | Bugs and flaky tests |
+| DOC.75 | 8.1 | Habitability system |
+| GEN.272 | 8.1 | Multi-star and compact systems |
+| MAP.290 | 8.1 | Fly-through map |
+| UX.183 | 8.1 | Habitability system |
+| TEST.351 | 8.1 | Bugs and flaky tests |
+| GEN.672 | 8.1 | Mixture and stored values |
+| UX.175 | 8.1 | Habitability system |
+| UX.184 | 8.1 | Habitability system |
+| TEST.349 | 8.1 | Bugs and flaky tests |
+| MAP.261 | 8.1 | Fly-through map |
+| MAP.262 | 8.1 | Fly-through map |
+| TEST.343 | 8.1 | Bugs and flaky tests |
+| GEN.674 | 8.1 | Mixture and stored values |

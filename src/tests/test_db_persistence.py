@@ -1728,7 +1728,7 @@ def _assert_whole_bands_above_the_cut(queryDb, listed, everything, limit):
 
 def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_config):
     """MAP.154: one key for every box -- an old giant that is 400 times fainter than a young star
-    ranks beside it -- in a tile that reads its own addresses, one that walks the luminosity index
+    ranks beside it -- in a node that reads its own addresses, one that walks the luminosity index
     and the galaxy-wide sample."""
     from planetgen.db import query as queryDb
 
@@ -1761,7 +1761,7 @@ def test_bright_stars_are_listed_by_luminosity_times_population_weight(mysql_con
 
 def test_halo_and_satellite_stars_are_listed_last_whatever_their_brightness(mysql_config):
     """MAP.250: a list that cannot hold every star drops the satellite galaxies' first, then the halo's, and only then
-    a star of the disc or the bulge -- in a tile that reads its own addresses, one that walks the luminosity index and
+    a star of the disc or the bulge -- in a node that reads its own addresses, one that walks the luminosity index and
     the galaxy-wide sample, and the lists stay nested."""
     from planetgen.db import query as queryDb
 
@@ -1819,7 +1819,7 @@ def test_halo_and_satellite_stars_are_listed_last_whatever_their_brightness(mysq
         conn.close()
 
 
-def test_a_child_tile_lists_every_star_of_its_parent_inside_it(mysql_config):
+def test_a_child_node_lists_every_star_of_its_parent_inside_it(mysql_config):
     """MAP.154: the bright lists are nested -- walking down a chain of boxes, each box lists all
     the stars of the one around it that lie inside it (the budget never falls)."""
     from planetgen.db import query as queryDb

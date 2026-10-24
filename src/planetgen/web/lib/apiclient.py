@@ -33,6 +33,7 @@ import urllib.parse
 import urllib.request
 
 from planetgen.util import log
+from planetgen.util.user_agent import user_agent
 from planetgen.util.settings import get_settings
 
 from planetgen.web.lib import pagecache, slowpages
@@ -170,7 +171,8 @@ def _cache_db(params):
 
 def _http_transport(method, target, data, headers, timeout):
     """The default transport: a real HTTP request to `API_BASE_URL`."""
-    request = urllib.request.Request(f"{API_BASE_URL}{target}", data=data, headers=headers, method=method)
+    request = urllib.request.Request(f"{API_BASE_URL}{target}", data=data, headers={"User-Agent": user_agent(), **headers},
+                                     method=method)
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:
             return TransportResponse(
@@ -624,21 +626,6 @@ def get_galaxy_profile(db, shell_index, band_index, wedge_index):
     return _request("/galaxy/profile", {"db": db, "shell": shell_index, "band": band_index, "wedge": wedge_index})
 
 
-def get_galaxy_tiles(db, tile_keys):
-    """
-    Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`edge_pc`/
-    `has_shape` -- see `db.query.galaxy_tiles`). Callers go
-    through `planetgen/web/lib/tilecache.py`, which only asks for tiles it hasn't
-    already cached on disk.
-
-    Args:
-        db (str): The `?db=` value.
-        tile_keys (list[str]): `level/ix/iy/iz` keys.
-    """
-    _require_db(db)
-    return _request("/galaxy/tiles", {"db": db, "tiles": ",".join(tile_keys)})
-
-
 def get_galaxy_nodes(db, node_keys):
     """
     Returns `GET /api/galaxy/nodes`' payload (`nodes`/`edge_pc`/`has_shape` -- see `db.nodes.galaxy_nodes`). Callers go
@@ -797,9 +784,9 @@ def get_nebula_surroundings(db, nebula_id):
 
 def get_galaxy_changes(db, since=None):
     """Returns `GET /api/galaxy/changes`' payload (`stamp`/`state`/`full`/
-    `tiles`/`stages`/`nodes`) -- which cube tiles, drill-down stages and nodes changed since `since`, an earlier call's
+    `stages`/`nodes`) -- which drill-down stages and nodes changed since `since`, an earlier call's
     `state` (see `db.query.galaxy_changes`). `planetgen/web/lib/tilecache.py` uses it to
-    refresh only the tiles an edit touched."""
+    refresh only the nodes an edit touched."""
     _require_db(db)
     return _request("/galaxy/changes", {"db": db, "since": since})
 
@@ -1217,8 +1204,7 @@ def admin_reset_generation_stats(cookie_header):
 
 
 def admin_work(cookie_header, limit=None, offset=None):
-    """`GET /api/admin/work?limit=&offset=` -- the work queue's state and
-    one page of job trees (ADM.10)."""
+    """`GET /api/admin/work?limit=&offset=` -- the work queue's state and one page of runs (ADM.10, PERF.99)."""
     query = _build_query({"limit": limit, "offset": offset})
     body, _set_cookie_headers = _auth_request("GET", f"/admin/work?{query}", cookie_header=cookie_header)
     return body
@@ -1231,30 +1217,37 @@ def admin_work_warm(cookie_header, database):
     return body
 
 
-def admin_work_tree(cookie_header, node_id):
-    """`GET /api/admin/work/<id>` -- the whole job tree holding a node."""
-    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(node_id), safe='')}",
+def admin_work_run(cookie_header, run_id):
+    """`GET /api/admin/work/<id>` -- one run with its stages and the last events of its log (PERF.99)."""
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}",
                                               cookie_header=cookie_header)
     return body
 
 
-def admin_work_control(cookie_header, node_id, action):
-    """`POST /api/admin/work/<id>/control` -- pause, resume or cancel a
-    node and its subtree. Returns whether it took."""
-    body, _set_cookie_headers = _auth_request("POST", f"/admin/work/{urllib.parse.quote(str(node_id), safe='')}/control",
+def admin_work_run_log(cookie_header, run_id):
+    """`GET /api/admin/work/<id>/log` -- the run's whole log as text."""
+    body, _set_cookie_headers = _auth_request("GET", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}/log",
+                                              cookie_header=cookie_header)
+    return body["text"]
+
+
+def admin_work_control(cookie_header, run_id, action):
+    """`POST /api/admin/work/<id>/control` -- cancels a live run or clears one that stopped answering. Returns whether it
+    took."""
+    body, _set_cookie_headers = _auth_request("POST", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}/control",
                                               cookie_header=cookie_header, json_body={"action": action})
     return body["ok"]
 
 
-def admin_work_delete(cookie_header, node_id):
-    """`POST /api/admin/work/<id>/delete` -- deletes a finished tree."""
-    body, _set_cookie_headers = _auth_request("POST", f"/admin/work/{urllib.parse.quote(str(node_id), safe='')}/delete",
+def admin_work_delete(cookie_header, run_id):
+    """`POST /api/admin/work/<id>/delete` -- deletes a finished run's record."""
+    body, _set_cookie_headers = _auth_request("POST", f"/admin/work/{urllib.parse.quote(str(run_id), safe='')}/delete",
                                               cookie_header=cookie_header)
     return body["ok"]
 
 
 def admin_work_clear_finished(cookie_header):
-    """`POST /api/admin/work/clear-finished` -- deletes every finished tree; returns how many."""
+    """`POST /api/admin/work/clear-finished` -- deletes every finished run's record; returns how many."""
     body, _set_cookie_headers = _auth_request("POST", "/admin/work/clear-finished", cookie_header=cookie_header)
     return body["cleared"]
 
@@ -1275,13 +1268,6 @@ def admin_work_workers(cookie_header, count=None, ludicrous=False):
         body, _set_cookie_headers = _auth_request("POST", "/admin/work/workers", cookie_header=cookie_header,
                                                   json_body={"ludicrous": True} if ludicrous else {"count": count})
     return body
-
-
-def admin_work_clear_lease(cookie_header):
-    """`POST /api/admin/work/lease/clear` -- frees a stale lease; returns
-    the holder it cleared, or `None`."""
-    body, _set_cookie_headers = _auth_request("POST", "/admin/work/lease/clear", cookie_header=cookie_header)
-    return body["cleared"]
 
 
 def admin_lift_lockout(cookie_header, scope=None, subject=None, lift_all=False):
@@ -1327,6 +1313,24 @@ def get_sector_facilities(db, sector_id):
     fields."""
     _require_db(db)
     return _request(f"/sectors/{sector_id}/facilities", {"db": db})["items"]
+
+
+def get_container(db, printed_id):
+    """Returns `GET /api/containers/<ID>`'s dict -- one globular cluster or superbubble (`db.containers.get`'s shape)."""
+    _require_db(db)
+    return _request(f"/containers/{printed_id}", {"db": db})
+
+
+def get_container_contents(db, printed_id, limit=None):
+    """Returns `GET /api/containers/<ID>/contents`'s dict: `counts` by kind, `total` and the first `items`."""
+    _require_db(db)
+    return _request(f"/containers/{printed_id}/contents", {"db": db, "limit": limit})
+
+
+def get_facility(db, facility_id):
+    """Returns `GET /api/facilities/<id>`'s dict -- one facility (`db.query._facility_dict`'s shape)."""
+    _require_db(db)
+    return _request(f"/facilities/{facility_id}", {"db": db})
 
 
 def get_facility_orbit(db, host_type, host_id, distance_km=None):

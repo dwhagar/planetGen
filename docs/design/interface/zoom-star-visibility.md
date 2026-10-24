@@ -1,5 +1,7 @@
 # Smoother star and object visibility while zooming the Galaxy Map
 
+**Superseded in part by MAP.258 to MAP.262 (2026-10-24):** the map is no longer cut into cube tiles. `/galaxy/tiles`, `viewport.distance_cut_tiles` and `galaxytilecut.js` are gone; the map fetches sector-block nodes (`/galaxy/nodes`, keys `m.shell.band.wedge`) chosen by projected size (`planetgen.galaxy.nodecut`, `static/galaxynodecut.js`), and a star's fade is its node's weight (`weightCalculator`). Read "tile" below as the cube tile the map had before; the wire format, packing and cache carry over to nodes unchanged.
+
 How stars (and the other objects drawn as points) come and go as the camera zooms, why it happens in bursts today, and a way to make it a steady trickle. Boss asked (2026-10-09 22:30Z): "research different ways to step up and down the # of visible stars smoother than what we have now, I want a very smooth transition where stars and objects are slowly added as one zooms in."
 
 Informs: MAP.147 (the wire format; nothing here depends on its answer), MAP.146 (it changes the tile keys; the rule below is written against "a list of stars per tile, most luminous first", whatever the tile shapes are). Builds on MAP.48, MAP.51, MAP.80, MAP.87, MAP.109, MAP.116 and MAP.123 (all done).

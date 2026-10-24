@@ -7,10 +7,10 @@
 // from a CDN). Unlike a sector's scene (every star/cloud in one JSON the
 // sector's own route answers, camera always orbiting a fixed origin),
 // this camera's own orbit TARGET moves freely through the galaxy -- most
-// of what's drawn is fetched live from /galaxy/tiles (the JSON's
-// fetchPath) as the camera moves, one fixed cube of space ("tile") at a time,
+// of what's drawn is fetched live from /galaxy/nodes (the JSON's
+// fetchPath) as the camera moves, one sector block ("node") at a time,
 // never baked into the page beyond the very first frame
-// (#galaxymap3d-data's own "initial" payload) -- see the "Cube tiles"
+// (#galaxymap3d-data's own "initial" payload) -- see the "Sector-block nodes"
 // section below.
 //
 // Coordinate convention: every position here is the design doc's own
@@ -34,7 +34,7 @@
 // sectors is amber and grows more solid with their share (MAP.37).
 //
 // Nebulae and supernova remnants are drawn over the blocks as soft
-// translucent spheres their real size (each tile lists the ones reaching
+// translucent spheres their real size (each node lists the ones reaching
 // into it); clicking one shows it and links to its page -- see "Clouds".
 //
 // Stars are points of light a few pixels across with a soft glow, the
@@ -53,8 +53,8 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
-  cellCoordinates, cellVertices, drillBandCount, drillBlockBounds, drillWedgeCount, isFullTurn, sectorAddressAt,
-  sectorDesignation,
+  cellCoordinates, cellVertices, drillBandCount, drillBlockBounds, drillParent, drillWedgeCount, isFullTurn,
+  sectorAddressAt, sectorDesignation,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
@@ -69,7 +69,7 @@ const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VER
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
-const { drawnSignature, entriesInTiles } = await import(`./tileview.js${VERSION_QUERY}`);
+const { drawnSignature, nodeRevision } = await import(`./nodeview.js${VERSION_QUERY}`);
 const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
 } = await import(`./nearfield.js${VERSION_QUERY}`);
@@ -80,8 +80,8 @@ const {
   GROWN_WHITEN, POINT_PX, POINT_WHITEN, STAR_POINT_GLSL, UNCHARTED_FAR_GLSL, UNCHARTED_FAR_KEEP, massRampShare,
   unchartedKeep, phenomenonLuminositySol, pointBrightness, pointHaloGlow, pointHaloPx,
 } = await import(`./starpoint.js${VERSION_QUERY}`);
-const { fetchCutTiles, tileBoxOf } = await import(`./galaxytilecut.js${VERSION_QUERY}`);
-const { unpackResponse, unpackTile } = await import(`./tilepack.js${VERSION_QUERY}`);
+const { nodeCut, parseNodeKey, settledExpanded, weightCalculator } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
+const { unpackResponse, unpackNode } = await import(`./tilepack.js${VERSION_QUERY}`);
 const {
   STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
   approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, RAMP,
@@ -870,12 +870,6 @@ function initGalaxyMap3d(canvasEl, data) {
   };
   var localBlockScene = createBlockScene(blockSceneConfig);
 
-  // The view ball for the camera at orbit radius `radius` around `center`
-  // (the fetched tiles' reach).
-  function viewRadiusFor(radius) {
-    return Math.max(MIN_RADIUS, Math.min(MAX_RADIUS * FETCH_RADIUS_FACTOR, radius * FETCH_RADIUS_FACTOR));
-  }
-
   // One packed part (galaxyblocks' pack) as a mesh with the block shader,
   // keeping the part for picking.
   function makeBlockMesh(part, translucent) {
@@ -894,86 +888,32 @@ function initGalaxyMap3d(canvasEl, data) {
     return mesh;
   }
 
-  // --- Cube tiles ----------------------------------------------------------
+  // --- Sector-block nodes --------------------------------------------------
   //
-  // The map asks for fixed cubes of space ("tiles") rather than "everything
-  // within R of the camera target" -- see planetgen.galaxy.viewport's
-  // "Cube tiles" section. Space is an octree: level 0 is one cube
-  // tileRootEdgePc on a side centered on the galactic origin, each level
-  // halves the edge, and a tile's key is "level/ix/iy/iz". neededTiles()
-  // picks the smallest level whose tiles are at least the view radius
-  // across (so at most 27 tiles cover the view). planetgen/web/maps/galaxymap3d.py's
-  // initial_tile_request does the same in Python for the first frame.
-  // Once the view's own tiles are in and the camera has been still a
-  // moment, the tiles one click-zoom step in are fetched too
-  // (prefetchTiles), so zooming in never waits on them; not on a metered
-  // or slow connection.
+  // The map asks for the nodes of its cut rather than "everything within R of the
+  // camera target": the blocks of the sector ladder (a block of 3 to 177,147 shells, or
+  // a sector; planetgen.galaxy.drill) that the camera needs, big ones far and small
+  // ones near, chosen by their size on screen (static/galaxynodecut.js, and
+  // planetgen.galaxy.nodecut for the server's first frame). A node's key is
+  // "m.shell.band.wedge". The cut opens blocks, biggest on screen first, until
+  // NODE_BUDGET nodes are held; a block hands its place over to its children as it
+  // grows on screen, so neither pops. Once the view's own nodes are in and the camera
+  // has been still a moment, the nodes one click-zoom step in are fetched too
+  // (prefetchNodes), so zooming in never waits on them; not on a metered or slow
+  // connection.
   //
-  // A tile's contents depend only on its key and the database's content
-  // stamp, so tiles are cached three ways: in memory here, in this
-  // browser's IndexedDB (so a revisit or reload doesn't refetch them),
-  // and on the server's disk (planetgen/web/lib/tilecache.py) -- only tiles in none of
-  // those reach the API and database. Every response carries the current
-  // stamp; when it differs from ours, the response also lists which tiles
-  // changed since (history), and only those are dropped and refetched. A
-  // change the history can't account for (a deleted sector, a new
-  // release, a stamp older than the history) drops every cached tile.
+  // A node's contents depend only on its key and the database's content stamp, so
+  // nodes are cached three ways: in memory here, in this browser's IndexedDB (so a
+  // revisit or reload doesn't refetch them), and on the server's disk
+  // (planetgen/web/lib/tilecache.py) -- only nodes in none of those reach the API and
+  // database. Every response carries the current stamp; when it differs from ours,
+  // the response also lists which nodes changed since (history), and only those are
+  // dropped and refetched. A change the history can't account for (a deleted
+  // sector, a new release, a stamp older than the history) drops every cached node.
 
-  var TILE_ROOT = data.tileRootEdgePc || 524288;
-  var TILE_MAX_LEVEL = data.tileMaxLevel != null ? data.tileMaxLevel : 15;
-  var FETCH_RADIUS_FACTOR = data.fetchRadiusFactor || 1.6;
-  var MAX_TILES_PER_REQUEST = data.maxTilesPerRequest || 128;
-
-  function tileEdge(level) {
-    return TILE_ROOT / Math.pow(2, level);
-  }
-
-  // Nearest first, matching galaxyViewport.tiles_intersecting_sphere.
-  function tilesIntersectingSphere(level, center, radius) {
-    var edge = tileEdge(level);
-    var origin = -TILE_ROOT / 2;
-    var span = Math.pow(2, level);
-    var c = [center.x, center.y, center.z];
-    var lo = [];
-    var hi = [];
-    for (var axis = 0; axis < 3; axis++) {
-      lo.push(Math.max(0, Math.floor((c[axis] - radius - origin) / edge)));
-      hi.push(Math.min(span - 1, Math.floor((c[axis] + radius - origin) / edge)));
-    }
-    var found = [];
-    for (var ix = lo[0]; ix <= hi[0]; ix++) {
-      for (var iy = lo[1]; iy <= hi[1]; iy++) {
-        for (var iz = lo[2]; iz <= hi[2]; iz++) {
-          var index = [ix, iy, iz];
-          var distanceSq = 0;
-          for (var a = 0; a < 3; a++) {
-            var boxLo = origin + index[a] * edge;
-            var nearest = Math.min(Math.max(c[a], boxLo), boxLo + edge);
-            distanceSq += (c[a] - nearest) * (c[a] - nearest);
-          }
-          if (distanceSq <= radius * radius) {
-            found.push({ d: distanceSq, key: level + "/" + ix + "/" + iy + "/" + iz });
-          }
-        }
-      }
-    }
-    found.sort(function (p, q) { return p.d - q.d; });
-    return found.map(function (f) { return f.key; });
-  }
-
-  // MAP.152: the tiles are chosen by distance from the camera
-  // (static/galaxytilecut.js, planetgen.galaxy.viewport.fetch_cut_tiles),
-  // near ones small and far ones big, inside the cone the camera looks along.
-  // MAP.80: zoomed in to about a sector (a camera this near the target), the
-  // finest tiles within DETAIL_RADIUS_PC of the target are fetched too:
-  // they list every star (queryDb.galaxy_tiles), so the sector shows all
-  // of its own while the cut's tiles keep the rest thinned.
-  var DETAIL_CAMERA_PC = 120;
-  var DETAIL_RADIUS_PC = 8;
-  var TILE_CUT_CONFIG = {
-    rootEdge: TILE_ROOT, finestLevel: TILE_MAX_LEVEL - 1, bounds: data.tileBoundsPc || null,
-  };
-  var FINEST_CUT_LEVEL = TILE_MAX_LEVEL - 1;
+  var NODE_EDGE_PC = data.nodeEdgePc;
+  var MAX_NODES_PER_REQUEST = data.maxNodesPerRequest || 128;
+  var NODE_CUT_CONFIG = { edgePc: NODE_EDGE_PC, bounds: data.nodeBoundsPc || null, maxNodes: data.nodeBudget || 1200 };
 
   // Where the camera would be at `radius` from the target along its present
   // line of sight. The stage view turns the camera freely (`setCamera`), so
@@ -985,34 +925,48 @@ function initGalaxyMap3d(canvasEl, data) {
     return [target.x + offset.x, target.y + offset.y, target.z + offset.z];
   }
 
-  // The tiles the camera at orbit radius `radius` (default: where it is)
-  // needs, the finest (detail) ones first.
-  function neededTiles(radius) {
-    var orbitRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, radius || orbit.radius));
-    var cam = cameraAtRadius(orbitRadius);
-    var keys = fetchCutTiles(cam, [target.x, target.y, target.z], TILE_CUT_CONFIG);
-    var detail = [];
-    if (orbitRadius <= DETAIL_CAMERA_PC) {
-      detail = tilesIntersectingSphere(TILE_MAX_LEVEL, target, DETAIL_RADIUS_PC);
-      keys = detail.concat(keys);
-    }
-    return { keys: keys, detail: new Set(detail), viewRadius: viewRadiusFor(orbitRadius) };
+  // The camera's focal length in pixels, which turns a block's size into its size on screen.
+  function focalPixels() {
+    var height = canvasEl && canvasEl.clientHeight ? canvasEl.clientHeight : 800;
+    return height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
   }
 
-  // --- Tile caches ---------------------------------------------------------
+  // The cut of the camera at orbit radius `radius` (default: where it is): `keys` are its nodes, nearest first, and
+  // `expanded` the blocks it opened (galaxynodecut.nodeCut). Fresh unless the camera has moved by only a few hundredths
+  // of its distance from the target since the last cut at its own radius (and `fresh` is not asked for): the cut is the
+  // costly part of a frame.
+  var cutMemo = null;
+  function neededNodes(radius, fresh) {
+    var own = radius === undefined;
+    var orbitRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, own ? orbit.radius : radius));
+    var cam = own ? camera.position.toArray() : cameraAtRadius(orbitRadius);
+    var look = [target.x, target.y, target.z];
+    var focal = focalPixels();
+    var span = 0.03 * orbitRadius;
+    if (own && !fresh && cutMemo && cutMemo.focal === focal
+        && [0, 1, 2].every(function (a) { return Math.abs(cam[a] - cutMemo.cam[a]) <= span && Math.abs(look[a] - cutMemo.look[a]) <= span; })) {
+      return cutMemo.need;
+    }
+    var cut = nodeCut(cam, look, Object.assign({ focalPx: focal }, NODE_CUT_CONFIG));
+    if (own) {
+      cutMemo = { cam: cam, look: look, focal: focal, need: cut };
+    }
+    return cut;
+  }
 
-  var TILE_MEMORY_MAX = 2000;
-  // Keyed by database name, the same as before the page moved to
-  // /galaxy, so a visitor's stored tiles carry over.
-  var STORAGE_PREFIX = "planetgen:tile:" + data.storageKey + ":";
-  // Where the stamp our stored tiles are at is kept, and the generation
-  // (the label our stored tiles are filed under since they last all went
+  // --- Node caches ---------------------------------------------------------
+
+  var NODE_MEMORY_MAX = 4000;
+  // Keyed by database name.
+  var STORAGE_PREFIX = "planetgen:node:" + data.storageKey + ":";
+  // Where the stamp our stored nodes are at is kept, and the generation
+  // (the label our stored nodes are filed under since they last all went
   // stale).
   var STAMP_RECORD = STORAGE_PREFIX + "@stamp";
   var remembered = readStampRecord();
   var currentStamp = remembered.stamp || "";
   var currentGeneration = remembered.generation || "";
-  var tileMemory = new Map();
+  var nodeMemory = new Map();
 
   // Map iteration order is insertion order, so re-inserting on every hit
   // and evicting from the front makes these LRU caches.
@@ -1034,7 +988,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
-  // The small record of where our stored tiles are at lives in localStorage,
+  // The small record of where our stored nodes are at lives in localStorage,
   // which can be missing or throw on any access (private browsing, blocked
   // site data): every use is wrapped, and the map works the same without
   // it, just refetching from the server cache.
@@ -1068,36 +1022,36 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
-  // The tiles themselves live in IndexedDB (MAP.158), which holds far more
+  // The nodes themselves live in IndexedDB (MAP.158), which holds far more
   // than localStorage's few megabytes (one sector link fills that). Every
   // use fails open to "nothing stored". Reads are asynchronous, so the
-  // memory cache stays the one `getTile` reads; a tile missing from it is
-  // looked up here (loadStoredTiles) before the server is asked.
-  var TILE_DB_NAME = "planetgen-tiles";
-  var TILE_DB_STORE = "tiles";
-  // The most packed tile bytes kept, oldest use first out.
-  var TILE_DB_MAX_BYTES = 64 * 1024 * 1024;
-  var TILE_DB_TRIM_MS = 30000;
-  var tileDbPromise = null;
-  var tileDbTrimmedAt = 0;
+  // memory cache stays the one `getNode` reads; a node missing from it is
+  // looked up here (loadStoredNodes) before the server is asked.
+  var NODE_DB_NAME = "planetgen-nodes";
+  var NODE_DB_STORE = "nodes";
+  // The most packed node bytes kept, oldest use first out.
+  var NODE_DB_MAX_BYTES = 64 * 1024 * 1024;
+  var NODE_DB_TRIM_MS = 30000;
+  var nodeDbPromise = null;
+  var nodeDbTrimmedAt = 0;
 
-  function openTileDb() {
-    if (!tileDbPromise) {
-      tileDbPromise = new Promise(function (resolve) {
+  function openNodeDb() {
+    if (!nodeDbPromise) {
+      nodeDbPromise = new Promise(function (resolve) {
         try {
           if (typeof indexedDB === "undefined" || !indexedDB) {
             resolve(null);
             return;
           }
-          var request = indexedDB.open(TILE_DB_NAME, 1);
+          var request = indexedDB.open(NODE_DB_NAME, 1);
           request.onupgradeneeded = function () {
             var db = request.result;
-            var tiles = db.createObjectStore(TILE_DB_STORE, { keyPath: "id" });
+            var nodes = db.createObjectStore(NODE_DB_STORE, { keyPath: "id" });
             // gen: this database's generation ("db|generation"); at: when
-            // the tile was last stored or read.
-            tiles.createIndex("gen", "gen");
-            tiles.createIndex("scope", "scope");
-            tiles.createIndex("at", "at");
+            // the node was last stored or read.
+            nodes.createIndex("gen", "gen");
+            nodes.createIndex("scope", "scope");
+            nodes.createIndex("at", "at");
           };
           request.onsuccess = function () { resolve(request.result); };
           request.onerror = function () { resolve(null); };
@@ -1107,32 +1061,32 @@ function initGalaxyMap3d(canvasEl, data) {
         }
       });
     }
-    return tileDbPromise;
+    return nodeDbPromise;
   }
 
   function generationName(generation) {
     return data.storageKey + "|" + generation;
   }
 
-  function tileRecordId(generation, key) {
+  function nodeRecordId(generation, key) {
     return generationName(generation) + "|" + key;
   }
 
-  // Runs `work(store, done)` in one transaction on the tile store and
+  // Runs `work(store, done)` in one transaction on the node store and
   // resolves with whatever `done` was given (undefined on any failure).
-  function tileDbRun(mode, work) {
-    return openTileDb().then(function (db) {
+  function nodeDbRun(mode, work) {
+    return openNodeDb().then(function (db) {
       if (!db) {
         return undefined;
       }
       return new Promise(function (resolve) {
         var result;
         try {
-          var tx = db.transaction(TILE_DB_STORE, mode);
+          var tx = db.transaction(NODE_DB_STORE, mode);
           tx.oncomplete = function () { resolve(result); };
           tx.onerror = function () { resolve(undefined); };
           tx.onabort = function () { resolve(undefined); };
-          work(tx.objectStore(TILE_DB_STORE), function (value) { result = value; });
+          work(tx.objectStore(NODE_DB_STORE), function (value) { result = value; });
         } catch (err) {
           resolve(undefined);
         }
@@ -1140,17 +1094,17 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
-  // The stored tiles among `keys` for `generation`, as a Map key -> packed
+  // The stored nodes among `keys` for `generation`, as a Map key -> packed
   // bytes (tilepack.js reads them).
-  function readStoredTiles(generation, keys) {
+  function readStoredNodes(generation, keys) {
     if (!generation || !keys.length) {
       return Promise.resolve(new Map());
     }
-    return tileDbRun("readwrite", function (store, done) {
+    return nodeDbRun("readwrite", function (store, done) {
       var found = new Map();
       var now = Date.now();
       keys.forEach(function (key) {
-        var request = store.get(tileRecordId(generation, key));
+        var request = store.get(nodeRecordId(generation, key));
         request.onsuccess = function () {
           var record = request.result;
           if (record && record.bytes) {
@@ -1164,34 +1118,34 @@ function initGalaxyMap3d(canvasEl, data) {
     }).then(function (found) { return found || new Map(); });
   }
 
-  function writeStoredTiles(generation, tiles) {
-    if (!generation || !tiles.length) {
+  function writeStoredNodes(generation, nodes) {
+    if (!generation || !nodes.length) {
       return;
     }
     var now = Date.now();
-    tileDbRun("readwrite", function (store) {
-      tiles.forEach(function (entry) {
+    nodeDbRun("readwrite", function (store) {
+      nodes.forEach(function (entry) {
         store.put({
-          id: tileRecordId(generation, entry.key), scope: data.storageKey, gen: generationName(generation),
+          id: nodeRecordId(generation, entry.key), scope: data.storageKey, gen: generationName(generation),
           key: entry.key, at: now, size: entry.bytes.length, bytes: entry.bytes,
         });
       });
-    }).then(trimStoredTiles);
+    }).then(trimStoredNodes);
   }
 
-  function removeStoredTiles(generation, keys) {
+  function removeStoredNodes(generation, keys) {
     if (!generation || !keys.length) {
       return;
     }
-    tileDbRun("readwrite", function (store) {
-      keys.forEach(function (key) { store.delete(tileRecordId(generation, key)); });
+    nodeDbRun("readwrite", function (store) {
+      keys.forEach(function (key) { store.delete(nodeRecordId(generation, key)); });
     });
   }
 
-  // Drops this database's stored tiles of every other generation (and of
+  // Drops this database's stored nodes of every other generation (and of
   // this one too when `keepCurrent` is false).
-  function purgeStoredTiles(keepCurrent) {
-    tileDbRun("readwrite", function (store) {
+  function purgeStoredNodes(keepCurrent) {
+    nodeDbRun("readwrite", function (store) {
       var request = store.index("scope").openCursor(IDBKeyRange.only(data.storageKey));
       request.onsuccess = function () {
         var cursor = request.result;
@@ -1206,15 +1160,15 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
-  // Keeps the store under TILE_DB_MAX_BYTES by dropping the tiles used
-  // longest ago, at most every TILE_DB_TRIM_MS.
-  function trimStoredTiles() {
+  // Keeps the store under NODE_DB_MAX_BYTES by dropping the nodes used
+  // longest ago, at most every NODE_DB_TRIM_MS.
+  function trimStoredNodes() {
     var now = Date.now();
-    if (now - tileDbTrimmedAt < TILE_DB_TRIM_MS) {
+    if (now - nodeDbTrimmedAt < NODE_DB_TRIM_MS) {
       return;
     }
-    tileDbTrimmedAt = now;
-    tileDbRun("readwrite", function (store) {
+    nodeDbTrimmedAt = now;
+    nodeDbRun("readwrite", function (store) {
       var kept = 0;
       var request = store.index("at").openCursor(null, "prev");
       request.onsuccess = function () {
@@ -1223,7 +1177,7 @@ function initGalaxyMap3d(canvasEl, data) {
           return;
         }
         kept += cursor.value.size || 0;
-        if (kept > TILE_DB_MAX_BYTES) {
+        if (kept > NODE_DB_MAX_BYTES) {
           cursor.delete();
         }
         cursor.continue();
@@ -1231,8 +1185,16 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
-  // What localStorage held before the tiles moved to IndexedDB.
-  function dropLocalStorageTiles() {
+  // What the browser held before nodes replaced cube tiles: the old stamp record and any tiles localStorage held, and
+  // the old IndexedDB database.
+  function dropOldTileEntries() {
+    try {
+      if (typeof indexedDB !== "undefined" && indexedDB) {
+        indexedDB.deleteDatabase("planetgen-tiles");
+      }
+    } catch (err) {
+      // Nothing more to do.
+    }
     var store = storage();
     if (!store) {
       return;
@@ -1251,55 +1213,55 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
-  // Looks the tiles that are not in memory up in IndexedDB and puts what it
+  // Looks the nodes that are not in memory up in IndexedDB and puts what it
   // has into memory. Resolves with how many it found; a result for a
   // generation that has since changed is dropped.
-  function loadStoredTiles(keys) {
+  function loadStoredNodes(keys) {
     var generation = currentGeneration;
-    return readStoredTiles(generation, keys).then(function (found) {
+    return readStoredNodes(generation, keys).then(function (found) {
       if (generation !== currentGeneration) {
         return 0;
       }
       var loaded = 0;
       found.forEach(function (bytes, key) {
-        if (memoryGet(tileMemory, key) !== undefined) {
+        if (memoryGet(nodeMemory, key) !== undefined) {
           return;
         }
         try {
-          memorySet(tileMemory, key, unpackTile(bytes), TILE_MEMORY_MAX);
+          memorySet(nodeMemory, key, unpackNode(bytes), NODE_MEMORY_MAX);
           loaded += 1;
         } catch (err) {
           // A damaged record is fetched again, and replaced.
-          removeStoredTiles(generation, [key]);
+          removeStoredNodes(generation, [key]);
         }
       });
       return loaded;
     });
   }
 
-  function getTile(key) {
-    return memoryGet(tileMemory, key);
+  function getNode(key) {
+    return memoryGet(nodeMemory, key);
   }
 
-  // Remembers tiles from a response in memory and, once, in IndexedDB (as
+  // Remembers nodes from a response in memory and, once, in IndexedDB (as
   // the packed bytes the server sent: `packed` maps a key to them; the
-  // page's own opening tile has none and is only kept in memory).
-  function putTiles(tiles, packed) {
+  // page's own opening nodes have none and is only kept in memory).
+  function putNodes(nodes, packed) {
     var entries = [];
-    Object.keys(tiles).forEach(function (key) {
-      var tile = tiles[key];
-      memorySet(tileMemory, key, tile, TILE_MEMORY_MAX);
-      // A tile the database was too busy to finish (PERF.76) is drawn as it is
+    Object.keys(nodes).forEach(function (key) {
+      var node = nodes[key];
+      memorySet(nodeMemory, key, node, NODE_MEMORY_MAX);
+      // A node the database was too busy to finish (PERF.76) is drawn as it is
       // but not kept for the next visit; it is asked for again below.
-      if (!tile.incomplete && packed && packed.has(key)) {
+      if (!node.incomplete && packed && packed.has(key)) {
         entries.push({ key: key, bytes: packed.get(key) });
       }
     });
-    writeStoredTiles(currentGeneration, entries);
+    writeStoredNodes(currentGeneration, entries);
   }
 
-  // The tile keys that changed between fromStamp and toStamp, from a
-  // response's history (checks oldest first, each {from, to, tiles}), or
+  // The node keys that changed between fromStamp and toStamp, from a
+  // response's history (checks oldest first, each {from, to, nodes}), or
   // null when the history doesn't reach back to fromStamp unbroken.
   function staleKeys(fromStamp, toStamp, history) {
     if (!fromStamp || !Array.isArray(history)) {
@@ -1319,10 +1281,10 @@ function initGalaxyMap3d(canvasEl, data) {
     var at = fromStamp;
     for (var j = start; j < history.length; j++) {
       var entry = history[j];
-      if (!entry || entry.from !== at || !Array.isArray(entry.tiles)) {
+      if (!entry || entry.from !== at || !Array.isArray(entry.nodes)) {
         return null;
       }
-      keys = keys.concat(entry.tiles);
+      keys = keys.concat(entry.nodes);
       at = entry.to;
     }
     return at === toStamp ? keys : null;
@@ -1341,13 +1303,13 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     if (stale) {
       stale.forEach(function (key) {
-        tileMemory.delete(key);
+        nodeMemory.delete(key);
       });
-      removeStoredTiles(currentGeneration, stale);
+      removeStoredNodes(currentGeneration, stale);
     } else {
       currentGeneration = payload.generation || stamp;
-      tileMemory.clear();
-      purgeStoredTiles(true);
+      nodeMemory.clear();
+      purgeStoredNodes(true);
     }
     rememberStamp();
     return true;
@@ -1358,17 +1320,17 @@ function initGalaxyMap3d(canvasEl, data) {
       return false;
     }
     var stampChanged = adoptStamp(payload);
-    putTiles(payload.tiles || {}, packed);
+    putNodes(payload.nodes || {}, packed);
     return stampChanged;
   }
 
   absorb(data.initial);
-  purgeStoredTiles(true);
-  dropLocalStorageTiles();
+  purgeStoredNodes(true);
+  dropOldTileEntries();
 
   // --- Clouds ----------------------------------------------------------------
   //
-  // Each tile lists the nebulae and supernova remnants that reach into it
+  // Each node lists the nebulae and supernova remnants that reach into it
   // (queryDb.galaxy_clouds_in_box); a cloud is a sprite the size of its
   // sphere, drawn over the blocks without a depth test (a flat sprite
   // through a cloud's middle would otherwise be cut in half by the blocks
@@ -1525,11 +1487,11 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- Stars ---------------------------------------------------------------
   //
-  // Each tile lists its most luminous pre-placed stars (bright_stars, v43:
+  // Each node lists its most luminous pre-placed stars (bright_stars, v43:
   // every star of 500 L☉ or more, placed before any sector is filled), so
   // the arms show before anything is generated, and (MAP.51) the most
   // luminous stars of its generated systems down to a floor that drops
-  // fourfold with each finer tile level (queryDb.generated_star_floor_sol):
+  // fourfold with each finer node level (queryDb.generated_star_floor_sol):
   // closing in on filled sectors brings out fainter and fainter stars,
   // down to the red dwarfs at sector depth. Boss: "no matter how far the
   // user zooms in they should be very small with a big glow", and "rough
@@ -1595,9 +1557,9 @@ function initGalaxyMap3d(canvasEl, data) {
       "attribute float starBorn;",
       "uniform float now;",
       "uniform float fadeIn;",
-      // MAP.152: the share of the tile that lists the star (static/starfade.js),
+      // MAP.152: the share of the node that lists the star (static/starfade.js),
       // worked out on the page as the camera moves (updateStarShares).
-      "attribute float starTile;",
+      "attribute float starNode;",
       "uniform float zoomFadeOn;",
       // MAP.148: the apparent-magnitude law (static/starmagnitude.js's twin).
       "attribute float starAbsMag;",
@@ -1631,7 +1593,7 @@ function initGalaxyMap3d(canvasEl, data) {
       "varying float vWhiten;",
       "void main() {",
       "  vColor = starColor;",
-      "  float zoomShown = starTile;",
+      "  float zoomShown = starNode;",
       "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0) * mix(1.0, zoomShown, zoomFadeOn);",
       "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
       // MAP.187: stars are not part of the near field -- it thins the blocks'
@@ -1720,17 +1682,17 @@ function initGalaxyMap3d(canvasEl, data) {
     return THREE.MathUtils.clamp((Math.log10(Math.max(value, 1e-12)) - range[0]) / (range[1] - range[0]), 0, 1);
   }
 
-  // The tile fade (static/starfade.js) of each drawn star, as
-  // [tile low corner, edge] (MAP.152), in the order of starList; and the
-  // drawn entries ({ id, star, fade }) the next tile set carries over.
+  // The node fade (static/starfade.js) of each drawn star, as the node's
+  // block (MAP.152), in the order of starList; and the
+  // drawn entries ({ id, star, fade }).
   var starEntries = [];
   // Counts the star sets drawn, so a new set is noticed by the magnitude limit (MAP.148).
   var starSetVersion = 0;
   var starFadeList = [];
 
-  // Draws exactly `entries` ({ id, star, fade }: one per star per tile that
-  // lists it, so a star in a tile and its parent shows once from each, the
-  // two shares adding up to one), each with the tile fade it carries.
+  // Draws exactly `entries` ({ id, star, fade }: one per star per node that
+  // lists it, so a star in a node and its child shows once from each, the
+  // two shares adding up to one), each with the node fade it carries.
   function setStars(entries) {
     starSetVersion += 1;
     starEntries = entries;
@@ -1763,7 +1725,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var absMags = new Float32Array(n);
     var tierMags = new Float32Array(n);
     var keeps = new Float32Array(n);
-    var tileShares = new Float32Array(n);
+    var nodeShares = new Float32Array(n);
     var pointBrights = new Float32Array(n);
     // MAP.208: a phenomenon is never drawn brighter than the brightest star here.
     var brightestSol = 0;
@@ -1809,7 +1771,7 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
     geometry.setAttribute("starClipped", new THREE.BufferAttribute(new Float32Array(n), 1));
     geometry.setAttribute("starKeep", new THREE.BufferAttribute(keeps, 1));
-    geometry.setAttribute("starTile", new THREE.BufferAttribute(tileShares, 1));
+    geometry.setAttribute("starNode", new THREE.BufferAttribute(nodeShares, 1));
     starShareSignature = "";
     starPoints.geometry.dispose();
     starPoints.geometry = geometry;
@@ -1824,7 +1786,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // screen are counted by apparent magnitude, weighted by the zoom opacity
   // MAP.153 gives them, and the limit is set where the count reaches the
   // target; the shader eases toward it, so the picture never jumps.
-  // The share of the tile each drawn star is listed in (MAP.152), by star in
+  // The share of the node each drawn star is listed in (MAP.152), by star in
   // starList's order; redone when the camera moves or the stars change.
   var starShares = new Float32Array(0);
   var starShareSignature = "";
@@ -1838,21 +1800,21 @@ function initGalaxyMap3d(canvasEl, data) {
     if (starShares.length !== n) {
       starShares = new Float32Array(n);
     }
-    var cam = camera.position.toArray();
-    var byTile = new Map();
+    var weigh = drawnSettled ? weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled) : null;
+    var byNode = new Map();
     for (var i = 0; i < n; i++) {
       var fade = starFadeList[i];
       var share = 1;
-      if (fade) {
-        share = byTile.get(fade);
+      if (fade && weigh) {
+        share = byNode.get(fade);
         if (share === undefined) {
-          share = starShare(fade, cam, TILE_ROOT, FINEST_CUT_LEVEL);
-          byTile.set(fade, share);
+          share = starShare(fade, weigh);
+          byNode.set(fade, share);
         }
       }
       starShares[i] = share;
     }
-    var attribute = starPoints.geometry.getAttribute("starTile");
+    var attribute = starPoints.geometry.getAttribute("starNode");
     if (attribute) {
       attribute.array.set(starShares);
       attribute.needsUpdate = true;
@@ -1951,18 +1913,18 @@ function initGalaxyMap3d(canvasEl, data) {
     return { vertex: starMaterial.vertexShader, uniforms: Object.keys(starMaterial.uniforms) };
   };
 
-  // For tests (MAP.153, MAP.152): the sum of the drawn stars' tile shares if
+  // For tests (MAP.153, MAP.152): the sum of the drawn stars' node shares if
   // the camera orbited at `radius` pc (the same arithmetic as the shader's),
   // and how many of them show more than half, so a test bounds the change
   // in the picture over a small zoom step without reading pixels.
   canvasEl.galaxyStarOpacity = function (radius) {
-    var cam = cameraAtRadius(radius);
+    var weigh = weightCalculator(cameraAtRadius(radius), NODE_EDGE_PC, focalPixels(), drawnSettled || undefined);
     var fade = starFadeList;
     var shown = 0;
     fade.forEach(function (f) {
-      if (starShare(f, cam, TILE_ROOT, FINEST_CUT_LEVEL) > 0.5) shown++;
+      if (starShare(f, weigh) > 0.5) shown++;
     });
-    return { sum: opacitySum(fade, cam, TILE_ROOT, FINEST_CUT_LEVEL), shown: shown, count: fade.length, camera: orbit.radius };
+    return { sum: opacitySum(fade, weigh), shown: shown, count: fade.length, camera: orbit.radius };
   };
 
   // For tests (MAP.252): the share of its light each drawn object keeps under "Charted only" (1 for a charted one)
@@ -2031,83 +1993,28 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.setChartedOnly(on);
   }
 
-  // --- Drawing from tiles --------------------------------------------------
+  // --- Drawing from nodes --------------------------------------------------
 
   var starSignature = "";
 
-  // A tile's box, [lo, hi] in parsecs.
-  function tileBox(key) {
-    var parts = key.split("/").map(Number);
-    var edge = tileEdge(parts[0]);
-    var origin = -TILE_ROOT / 2;
-    var lo = [origin + parts[1] * edge, origin + parts[2] * edge, origin + parts[3] * edge];
-    return [lo, [lo[0] + edge, lo[1] + edge, lo[2] + edge]];
-  }
-
-  function inBox(box, star) {
-    return star.x >= box[0][0] && star.x < box[1][0] && star.y >= box[0][1] && star.y < box[1][1]
-      && star.z >= box[0][2] && star.z < box[1][2];
-  }
-
-  // The nearest cached tile holding `key`'s box (a coarser level), as
-  // { key, tile }, or undefined. Looks in memory only, without touching its
-  // LRU order.
-  function cachedAncestor(key) {
-    var parts = key.split("/").map(Number);
-    for (var level = parts[0] - 1; level >= 0; level--) {
-      var shift = Math.pow(2, parts[0] - level);
-      var ancestorKey = level + "/" + Math.floor(parts[1] / shift) + "/" + Math.floor(parts[2] / shift)
-        + "/" + Math.floor(parts[3] / shift);
-      var tile = tileMemory.get(ancestorKey);
-      if (tile !== undefined) {
-        return { key: ancestorKey, tile: tile };
-      }
-    }
-    return undefined;
-  }
-
-  // A tile's fade (static/starfade.js): which tile it is, and whether it
-  // is a detail tile.
-  function tileFade(key, detail) {
-    return { parts: key.split("/").map(Number), detail: !!detail };
-  }
-
-  // Stars to show in a tile that hasn't arrived yet (MAP.48): the ones
-  // already drawn there, and a cached coarser tile's there, so a zoom
-  // keeps what was on screen instead of blanking until the new tiles come.
-  // They are whole (no tile share) until the tile arrives and takes over.
-  function carriedStars(key, into) {
-    var box = tileBox(key);
-    var ancestor = cachedAncestor(key);
-    if (!ancestor) {
-      return;
-    }
-    tileStars(ancestor.tile).forEach(function (star) {
-      var id = "a" + starKey(star) + "@" + key;
-      if (inBox(box, star) && !into.has(id)) {
-        into.set(id, { id: id, star: star, fade: POINT_FADE });
-      }
-    });
-  }
-
-  // A tile's stars, bright and generated (each generated one marked),
+  // A node's stars, bright and generated (each generated one marked),
   // and its black holes, neutron stars and quasars (MAP.80, marked
   // `phenomenon`, drawn as stars in their own colors), or none for a
-  // missing tile.
-  function tileStars(tile) {
-    if (!tile) {
+  // missing node.
+  function nodeStars(node) {
+    if (!node) {
       return [];
     }
-    if (!tile.allStars) {
-      Object.defineProperty(tile, "allStars", {
-        value: (tile.stars || []).concat((tile.generated || []).map(function (star) {
+    if (!node.allStars) {
+      Object.defineProperty(node, "allStars", {
+        value: (node.stars || []).concat((node.generated || []).map(function (star) {
           return Object.assign({ generated: true }, star);
-        }), (tile.points || []).map(function (point) {
+        }), (node.points || []).map(function (point) {
           return Object.assign({ phenomenon: true }, point);
         })),
       });
     }
-    return tile.allStars;
+    return node.allStars;
   }
 
   // MAP.123: whether the star filters (classes hidden, dimmest star shown)
@@ -2127,23 +2034,23 @@ function initGalaxyMap3d(canvasEl, data) {
     return !(floor > 0) || (star.luminosity_sol || 0) >= floor;
   }
   // The dimmest and brightest luminosity of the stars at this zoom (the
-  // needed tiles' stars, whatever the filters), the luminosity slider's
+  // drawn nodes' stars, whatever the filters), the luminosity slider's
   // ends. Null with none loaded.
-  var tileLumRange = null;
-  function noteLuminosityRange(need) {
+  var nodeLumRange = null;
+  function noteLuminosityRange(keys) {
     var lo = Infinity, hi = 0;
-    need.keys.forEach(function (key) {
-      var tile = getTile(key);
-      if (tile === undefined) return;
-      tileStars(tile).forEach(function (star) {
+    keys.forEach(function (key) {
+      var node = getNode(key);
+      if (node === undefined) return;
+      nodeStars(node).forEach(function (star) {
         if (star.phenomenon) return;
         var lum = star.luminosity_sol;
         if (lum > 0) { lo = Math.min(lo, lum); hi = Math.max(hi, lum); }
       });
     });
-    // Whatever the tiles of this view carry: at galaxy scale their per-tile
+    // Whatever the nodes of this view carry: far out their per-node
     // star caps leave only the brightest stars, and the scale follows that.
-    tileLumRange = hi > 0 ? [lo, hi] : null;
+    nodeLumRange = hi > 0 ? [lo, hi] : null;
     if (typeof updateLumSlider === "function") updateLumSlider();
   }
   // Draws the stars again after a filter changed.
@@ -2152,67 +2059,62 @@ function initGalaxyMap3d(canvasEl, data) {
     if (lastNeed) renderFromCache(lastNeed);
   }
 
-  // Takes the filled sectors from whatever of the needed tiles is already
-  // cached (the blocks are rebuilt from them when they change); returns
-  // what's still missing.
+  // Draws what is in hand of the cut `need` (neededNodes) and returns the keys of its nodes still to fetch. A node is
+  // drawn for the share the cut gives it (galaxynodecut.weightCalculator): a block hands over to its children only
+  // once they are all in hand (settledExpanded), so there is never a hole where the children are on their way; the
+  // children of a node that is being drawn are in the buffer too, at no share yet, so they are there as the hand-over
+  // reaches them.
+  var drawnSettled = null;
   function renderFromCache(need) {
     lastNeed = need;
     markersDirty = true;
-    // MAP.249: a view whose tiles are the ones already drawn (a fetch that brought nothing new, a settled camera)
-    // is known from the tiles alone, so nothing is built or sorted.
-    var view = drawnSignature(need.keys, need.detail, getTile);
-    var tilesDrawn = currentStamp + "|" + filterStamp() + "|" + view.signature;
-    if (!view.missing.length && tilesDrawn === starSignature) {
-      return [];
+    // MAP.249: a view whose nodes are the ones already drawn (a fetch that brought nothing new, a settled camera)
+    // is known from the nodes alone, so nothing is built or sorted.
+    var view = drawnSignature(need.keys, getNode);
+    var settled = settledExpanded(need, function (key) { return getNode(key) !== undefined; });
+    var weigh = weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), settled);
+    var held = need.keys.filter(function (key) { return getNode(key) !== undefined; });
+    var drawn = held.filter(function (key) {
+      var block = parseNodeKey(key);
+      if (weigh(block) > 0) return true;
+      var parent = drillParent(block);
+      return parent !== null && weigh(parent) > 0;
+    });
+    var nodesDrawn = currentStamp + "|" + filterStamp() + "|" + drawn.map(function (key) {
+      return key + "#" + nodeRevision(getNode(key));
+    }).sort().join(";");
+    drawnSettled = settled;
+    if (nodesDrawn === starSignature) {
+      return view.missing;
     }
-    var missing = [];
     var clouds = new Map();
     var stars = new Map();
-    var drawn = [];
-    need.keys.forEach(function (key) {
-      var tile = getTile(key);
-      if (tile === undefined) {
-        missing.push(key);
-        return;
-      }
-      (tile.clouds || []).forEach(function (cloud) {
+    drawn.forEach(function (key) {
+      var node = getNode(key);
+      (node.clouds || []).forEach(function (cloud) {
         clouds.set(cloudKey(cloud), cloud);
       });
-      // MAP.152: each star takes its tile's fade, so a star listed in a
-      // tile and its parent shows once from each as the two shares trade places.
-      var detail = need.detail && need.detail.has(key);
-      var fade = tileFade(key, detail);
-      drawn.push(key + (detail ? "d" : ""));
-      tileStars(tile).forEach(function (star) {
+      // MAP.152: each star takes its node's share, so a star listed in a node and in its children
+      // shows once from each as the shares trade places.
+      var fade = { block: parseNodeKey(key) };
+      nodeStars(node).forEach(function (star) {
         if (!starShown(star)) return;
         var id = starKey(star) + "@" + key;
         stars.set(id, { id: id, star: star, fade: fade });
       });
     });
-    // The stars drawn there now (one pass over them, MAP.249), then a cached coarser tile's.
-    entriesInTiles(starEntries, missing, TILE_ROOT, function (id) { return stars.has(id); }).forEach(function (entry) {
-      stars.set(entry.id, { id: entry.id, star: entry.star, fade: POINT_FADE });
-    });
-    missing.forEach(function (key) {
-      carriedStars(key, stars);
-    });
-    noteLuminosityRange(need);
-    var starKeys = missing.length
-      ? currentStamp + "|" + filterStamp() + "|" + drawn.join(";") + "|" + Array.from(stars.keys()).sort().join(",")
-      : tilesDrawn;
-    if (starKeys !== starSignature) {
-      starSignature = starKeys;
-      setStars(Array.from(stars.values()));
-    }
+    noteLuminosityRange(drawn);
+    starSignature = nodesDrawn;
+    setStars(Array.from(stars.values()));
     var cloudKeys = Array.from(clouds.keys()).sort().join(",");
     if (cloudKeys !== cloudSignature) {
       cloudSignature = cloudKeys;
       setClouds(Array.from(clouds.values()));
     }
-    return missing;
+    return view.missing;
   }
 
-  // --- Live tile fetching --------------------------------------------------
+  // --- Live node fetching --------------------------------------------------
 
   var FETCH_DEBOUNCE_MS = 300;
   var fetchTimer = null;
@@ -2231,7 +2133,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // follows it -- clicking faster than the cap still feels instant, it
   // just falls back to the standard debounced delay below instead of
   // firing right away, so a rapid burst still settles on exactly one
-  // fetch shortly after it stops. (With tiles, an aborted request's work
+  // fetch shortly after it stops. (With nodes, an aborted request's work
   // isn't wasted either: the server caches whatever it computed.)
   var MAX_CLICKS_PER_SECOND = 4;
   var MIN_MS_BETWEEN_IMMEDIATE_FETCHES = 1000 / MAX_CLICKS_PER_SECOND;
@@ -2262,19 +2164,19 @@ function initGalaxyMap3d(canvasEl, data) {
 
   function doFetch() {
     fetchTimer = null;
-    var missing = renderFromCache(neededTiles());
+    var missing = renderFromCache(neededNodes(undefined, true));
     if (!missing.length) {
       schedulePrefetch();
       return;
     }
     var round = ++fetchRound;
     // What this browser kept from an earlier visit first (MAP.158).
-    loadStoredTiles(missing).then(function (found) {
+    loadStoredNodes(missing).then(function (found) {
       if (round !== fetchRound) {
         return;
       }
       if (found) {
-        missing = renderFromCache(neededTiles());
+        missing = renderFromCache(neededNodes());
       }
       if (!missing.length) {
         schedulePrefetch();
@@ -2291,15 +2193,11 @@ function initGalaxyMap3d(canvasEl, data) {
     var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
     activeAbort = controller;
     var params = new URLSearchParams({
-      tiles: missing.slice(0, MAX_TILES_PER_REQUEST).join(","),
+      keys: missing.slice(0, MAX_NODES_PER_REQUEST).join(","),
     });
     if (currentStamp) {
       params.set("stamp", currentStamp);
     }
-    // Where the camera is and what it looks at, so the server can build the next zoom steps' tiles ahead (PERF.132).
-    params.set("at", cameraAtRadius(Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, orbit.radius)))
-      .concat([target.x, target.y, target.z])
-      .map(function (value) { return Math.round(value * 10) / 10; }).join(","));
     fetch(data.fetchPath + "?" + params.toString(), controller ? { signal: controller.signal } : undefined)
       .then(function (response) {
         if (!response.ok) {
@@ -2309,17 +2207,17 @@ function initGalaxyMap3d(canvasEl, data) {
       })
       .then(function (body) {
         var unpacked = unpackResponse(body);
-        var payload = Object.assign({ tiles: unpacked.tiles }, unpacked.header);
+        var payload = Object.assign({ nodes: unpacked.nodes }, unpacked.header);
         if (activeAbort === controller) {
           activeAbort = null;
         }
         fetchFailures = 0;
         var stampChanged = absorb(payload, unpacked.packed);
-        askAgainForIncomplete(payload.tiles || {});
-        var stillMissing = renderFromCache(neededTiles());
-        // A new stamp dropped changed (or all) cached tiles, and a view
-        // needing more than one request's worth of tiles has more to
-        // fetch -- either way, go again (tiles already fetched are
+        askAgainForIncomplete(payload.nodes || {});
+        var stillMissing = renderFromCache(neededNodes(undefined, true));
+        // A new stamp dropped changed (or all) cached nodes, and a view
+        // needing more than one request's worth of nodes has more to
+        // fetch -- either way, go again (nodes already fetched are
         // cached by now).
         if (stampChanged || stillMissing.length) {
           scheduleFetch(false);
@@ -2348,16 +2246,16 @@ function initGalaxyMap3d(canvasEl, data) {
   }
   var fetchFailures = 0;
 
-  // PERF.76: a tile whose slowest piece timed out arrives marked `incomplete`
+  // PERF.76: a node whose slowest piece timed out arrives marked `incomplete`
   // (the map shows what it has). Its pieces are fetched again after a growing
   // pause (5 s, 10 s ... 30 s), up to INCOMPLETE_ROUNDS times, while the
   // database catches up.
   var INCOMPLETE_ROUNDS = 6;
   var incompleteRounds = 0;
   var incompleteTimer = null;
-  function askAgainForIncomplete(tiles) {
-    var partial = Object.keys(tiles).filter(function (key) {
-      return tiles[key] && tiles[key].incomplete;
+  function askAgainForIncomplete(nodes) {
+    var partial = Object.keys(nodes).filter(function (key) {
+      return nodes[key] && nodes[key].incomplete;
     });
     if (incompleteTimer) {
       clearTimeout(incompleteTimer);
@@ -2377,13 +2275,13 @@ function initGalaxyMap3d(canvasEl, data) {
     }, Math.min(30000, 5000 * incompleteRounds));
   }
 
-  // The tiles one pick in (about PREFETCH_ZOOM times closer), fetched at low
+  // The nodes one pick in (about PREFETCH_ZOOM times closer), fetched at low
   // priority once the view's own are in and the camera has been still for
   // PREFETCH_IDLE_MS (MAP.158). Zooming out needs a coarser, smaller view
   // the page mostly holds already, so only the way in is fetched ahead.
   // Not on a metered or slow connection, and no more than
   // PREFETCH_MAX_BYTES a page visit. One prefetch runs at a time and a real
-  // fetch never waits on or cancels it (or the other way round); its tiles
+  // fetch never waits on or cancels it (or the other way round); its nodes
   // just land in the cache.
   var prefetching = false;
   var prefetchTimer = null;
@@ -2391,7 +2289,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var PREFETCH_ZOOM = 3;
   var PREFETCH_IDLE_MS = 1500;
   var PREFETCH_MAX_BYTES = 1536 * 1024;
-  var PREFETCH_MAX_TILES = 12;
+  var PREFETCH_MAX_NODES = 12;
 
   function prefetchAllowed() {
     var connection = typeof navigator !== "undefined" ? navigator.connection : null;
@@ -2413,31 +2311,31 @@ function initGalaxyMap3d(canvasEl, data) {
     if (prefetching || activeAbort || !prefetchAllowed()) {
       return;
     }
-    prefetchTimer = setTimeout(prefetchTiles, PREFETCH_IDLE_MS);
+    prefetchTimer = setTimeout(prefetchNodes, PREFETCH_IDLE_MS);
   }
 
-  function prefetchTiles() {
+  function prefetchNodes() {
     prefetchTimer = null;
     if (prefetching || activeAbort || !prefetchAllowed()) {
       return;
     }
-    var missing = neededTiles(Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, orbit.radius / PREFETCH_ZOOM))).keys
-      .filter(function (key) { return getTile(key) === undefined; });
+    var missing = neededNodes(Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, orbit.radius / PREFETCH_ZOOM)), true).keys
+      .filter(function (key) { return getNode(key) === undefined; });
     if (!missing.length) {
       return;
     }
     prefetching = true;
-    loadStoredTiles(missing).then(function () {
-      missing = missing.filter(function (key) { return getTile(key) === undefined; });
+    loadStoredNodes(missing).then(function () {
+      missing = missing.filter(function (key) { return getNode(key) === undefined; });
       if (!missing.length || fetchTimer || activeAbort) {
         prefetching = false;
         return undefined;
       }
-      var params = new URLSearchParams({ tiles: missing.slice(0, PREFETCH_MAX_TILES).join(",") });
+      var params = new URLSearchParams({ keys: missing.slice(0, PREFETCH_MAX_NODES).join(",") });
       if (currentStamp) {
         params.set("stamp", currentStamp);
       }
-      return fetch(data.fetchPath + "?" + params.toString(), { priority: "low" })
+      return fetch(data.fetchPath + "?" + params.toString(), { priority: "low", headers: { "X-Map-Prefetch": "1" } })
         .then(function (response) {
           if (!response.ok) {
             throw new Error(data.fetchPath + " returned " + response.status);
@@ -2448,8 +2346,8 @@ function initGalaxyMap3d(canvasEl, data) {
           var unpacked = unpackResponse(body);
           prefetching = false;
           prefetchedBytes += body.byteLength;
-          // A new stamp means the view's own tiles may be stale too.
-          if (absorb(Object.assign({ tiles: unpacked.tiles }, unpacked.header), unpacked.packed)) {
+          // A new stamp means the view's own nodes may be stale too.
+          if (absorb(Object.assign({ nodes: unpacked.nodes }, unpacked.header), unpacked.packed)) {
             scheduleFetch(false);
           } else {
             schedulePrefetch();
@@ -2461,10 +2359,10 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
-  // Normally every tile is already cached (the page embeds them), so this
-  // only fetches if the page's own tile fetch came up short.
-  // First frame's tiles, then (normally nothing is missing) the prefetch.
-  renderFromCache(neededTiles());
+  // Normally every node of the first frame is already cached (the page embeds them), so this
+  // only fetches if the page's own node fetch came up short.
+  // First frame's nodes, then (normally nothing is missing) the prefetch.
+  renderFromCache(neededNodes(undefined, true));
   scheduleFetch(false);
 
   // --- Territories -----------------------------------------------------------
@@ -2844,7 +2742,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // The map opens on the drill-down (galaxystageview.js): the whole
   // galaxy in 3D, a window of level-27 blocks around the block clicked, and
   // so on down to a window of sectors. Pointer and key input goes to the
-  // stage view; tiles (stars, clouds) follow the camera.
+  // stage view; nodes (stars, clouds) follow the camera.
   var picker = createPicker(camera, canvasEl);
 
   // The sector page's Contents "Show on map" buttons (MAP.46) name a
@@ -2911,13 +2809,13 @@ function initGalaxyMap3d(canvasEl, data) {
   // MAP.123: the star classes shown (a toggle each, all on to begin with) and
   // the dimmest star shown (a slider on a log scale: 0 is every star).
   // The slider spans the dimmest to the brightest star at the current zoom
-  // (an open sector's stars, else the loaded tiles'), on a log scale:
+  // (an open sector's stars, else the loaded nodes'), on a log scale:
   // step 1 is the dimmest star there is, the last step the brightest.
   var LUM_STEPS = 100;
   var lumSliderEl = null;
   var lumTextEl = null;
   function lumRange() {
-    var range = (typeof stageView !== "undefined" && stageView && stageView.sectorLuminosityRange()) || tileLumRange;
+    var range = (typeof stageView !== "undefined" && stageView && stageView.sectorLuminosityRange()) || nodeLumRange;
     return range || [1e-5, 1e6];
   }
   function lumFromStep(step) {
@@ -2941,7 +2839,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (lumTextEl) lumTextEl.textContent = "Dimmest star shown: " + floorText(stageView.minLuminosity());
   }
   // MAP.166: "every star" only when the view holds every star there is, which
-  // only an open sector's scene does. A galaxy view's tiles are capped and
+  // only an open sector's scene does. A galaxy view's nodes are capped and
   // budgeted (and sectors may be unmade), so with the floor at 0 it names
   // the dimmest star it actually carries.
   function viewIsComplete() {
@@ -2950,7 +2848,7 @@ function initGalaxyMap3d(canvasEl, data) {
   function floorText(lum) {
     if (lum > 0) return formatLum(lum);
     if (viewIsComplete()) return "every star";
-    return tileLumRange ? formatLum(tileLumRange[0]) : "no stars in view";
+    return nodeLumRange ? formatLum(nodeLumRange[0]) : "no stars in view";
   }
   function formatLum(lum) {
     if (!(lum > 0)) return "every star";
@@ -3250,7 +3148,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var markerFrustum = new THREE.Frustum();
   var markerMatrix = new THREE.Matrix4();
   var markerPoint = new THREE.Vector3();
-  // Chooses what the marker layer draws from the tiles of this view (galaxymarkers.selectMarkers): the kinds that are
+  // Chooses what the marker layer draws from the nodes of this view (galaxymarkers.selectMarkers): the kinds that are
   // on, the items in front of the camera and outside any clipped wedge, no more than the budget.
   function refreshMarkers() {
     if (!markerLayer) return;
@@ -3258,11 +3156,11 @@ function initGalaxyMap3d(canvasEl, data) {
     camera.updateMatrixWorld();
     markerMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     markerFrustum.setFromProjectionMatrix(markerMatrix);
-    var tiles = neededTiles().keys.map(function (key) { return { key: key, tile: getTile(key) }; });
+    var nodes = neededNodes().keys.map(function (key) { return { key: key, node: getNode(key) }; });
     markerLayer.set(selectMarkers({
       kinds: markerKinds.kinds(),
       isOn: function (id) { return stageView.layers.isOn(id); },
-      tiles: tiles,
+      nodes: nodes,
       inView: function (item) {
         return markerFrustum.containsPoint(markerPoint.set(item.x, item.y, item.z)) && drawnByTheGalaxy(item.x, item.y, item.z);
       },
@@ -3534,20 +3432,28 @@ function initGalaxyMap3d(canvasEl, data) {
   stageView.setActive(true);
 
   // Every frame: the drill-down's camera move, then (when the view moved)
-  // the stars and clouds from cached tiles and a fetch for missing ones.
+  // the stars and clouds from cached nodes and a fetch for missing ones.
   var lastViewSignature = "";
+  var lastRenderAt = 0;
+  // A camera that has not left the cut it has still moves the nodes' shares, and so which nodes are drawn, slowly.
+  var RENDER_EVERY_MS = 100;
 
   (function animate(now) {
     requestAnimationFrame(animate);
     now = now || performance.now();
     stageView.step(now);
-    var viewSignature = [target.x, target.y, target.z, orbit.radius, canvasEl.clientHeight].join(",");
+    var viewSignature = [camera.position.x, camera.position.y, camera.position.z, target.x, target.y, target.z,
+      canvasEl.clientHeight].join(",");
     if (viewSignature !== lastViewSignature) {
-      lastViewSignature = viewSignature;
-      markersDirty = true;
-      var missing = renderFromCache(neededTiles());
-      if (missing.length && !fetchTimer && !activeAbort) {
-        scheduleFetch(false);
+      var need = neededNodes();
+      if (need !== lastNeed || now - lastRenderAt >= RENDER_EVERY_MS) {
+        lastViewSignature = viewSignature;
+        markersDirty = true;
+        lastRenderAt = now;
+        var missing = renderFromCache(need);
+        if (missing.length && !fetchTimer && !activeAbort) {
+          scheduleFetch(false);
+        }
       }
     }
     starMaterial.uniforms.now.value = starClock();

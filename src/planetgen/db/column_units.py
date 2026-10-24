@@ -60,6 +60,7 @@ LOCAL_UNITS = {
     "ppm": LocalUnit("mass fraction", 1e-6), "mSv/yr": LocalUnit("dose rate", 1e-3 / _YEAR_S), "A*m2": LocalUnit("magnetic moment", 1.0),
     "DU": LocalUnit("column density", 2.687e20),
     "g/cm2": LocalUnit("column mass", 10.0),
+    "Pa*s": LocalUnit("dynamic viscosity", 1.0), "kJ/mol": LocalUnit("molar energy", 1000.0),
     "xuv-earth": LocalUnit("flux"), "R_planet": LocalUnit("length"), "nebula-radius": LocalUnit("length"),
     "dex": LocalUnit("logarithmic"), "mag": LocalUnit("magnitude"), "pH": LocalUnit("logarithmic"),
     # no unit
@@ -80,7 +81,7 @@ def unit_info(key):
 
 
 SUFFIXES = (
-    ("_j_per_kg", "J/kg"), ("_ppm", "ppm"), ("_msv_yr", "mSv/yr"), ("_du", "DU"), ("_per_gyr", "1/Gy"), ("_per_yr", "1/yr"), ("_w_m2", "W_m2"), ("_a_m2", "A*m2"),
+    ("_j_per_kg", "J/kg"), ("_ppm", "ppm"), ("_msv_yr", "mSv/yr"), ("_du", "DU"), ("_per_gyr", "1/Gy"), ("_per_yr", "1/yr"), ("_w_m2", "W_m2"), ("_a_m2", "A*m2"), ("_pa_s", "Pa*s"), ("_kj_mol", "kJ/mol"),
     ("_g_cm3", "g_cm3"), ("_light_days", "ld"), ("_gauss", "G"), ("_myr", "Myr"), ("_ms", "ms"), ("_us", "us"), ("_mj", "Mjup"),
     ("_km3", "km3"), ("_pc3", "pc3"), ("_kms", "km_s"), ("_km", "km"), ("_pc", "pc"), ("_mpc", "mpc"), ("_au", "au"),
     ("_ly", "ly"), ("_deg", "deg"), ("_rad", "rad"), ("_years", "yr"), ("_yr", "yr"), ("_gyr", "Gyr"), ("_gy", "Gyr"),
@@ -401,7 +402,9 @@ TABLES = {
         "DU": ("ozone_column_du",),
         "flag": ("ozone_loss_flag", "born_beyond_snow_line", "carbon_rock"),
         "rad": ("l_rad",),
-        "W_m2": ("energy_flux_w_m2", "tidal_flux_w_m2"),
+        "W_m2": ("energy_flux_w_m2", "tidal_flux_w_m2", "internal_heat_flux_w_m2"),
+        "Pa*s": ("mantle_eta0_pa_s",),
+        "kJ/mol": ("mantle_activation_kj_mol",),
     },
     "nearest_systems": {
         "id": ("id", "sector_id", "object_id", "star_system_id", "neighbor_system_id"),
@@ -615,7 +618,9 @@ TABLES = {
         "DU": ("ozone_column_du",),
         "flag": ("ozone_loss_flag", "born_beyond_snow_line", "carbon_rock"),
         "rad": ("l_rad",),
-        "W_m2": ("energy_flux_w_m2", "tidal_flux_w_m2"),
+        "W_m2": ("energy_flux_w_m2", "tidal_flux_w_m2", "internal_heat_flux_w_m2"),
+        "Pa*s": ("mantle_eta0_pa_s",),
+        "kJ/mol": ("mantle_activation_kj_mol",),
     },
     "polities": {
         "id": ("id", "species_id", "capital_system_id"),

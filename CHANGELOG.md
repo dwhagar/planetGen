@@ -2,6 +2,255 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2239] - 2026-10-24
+
+**Headline:** The facility and population system page tests follow what UX.173 and UX.176 moved to the body's own page.
+
+### Fixed
+- **Eighteen tests of `test_web_facilities.py` and two of `test_web_population.py` failed on main (TEST.350).** Their fake API did not answer the calls the system page's tree now makes (`get_object_children`, `get_object_sheet`, and for the facilities page `get_system_habitable_species` and `get_system_text`), so the page answered 502. The fakes now answer them.
+- **Four of those tests looked for rows UX.176 removed from the system page.** The per-body facility list, the Inhabited chip and the dominant species are on the body's own page. The facility and colony tests now read the planet's page for them; the system page keeps the Facilities table and the territory. A new test in `test_item_pages.py` covers the dominant species on a life world's page (a lifeless body is never looked up).
+TODO items resolved: none (TEST.350 stays open for its browser case). Added: none.
+
+## [8.0.2238] - 2026-10-24
+
+**Headline:** The atmosphere recipe draw no longer gives a far comet a rocky planet's gas, and an ocean world with plate tectonics no longer draws a carbon dioxide and sulfur air.
+
+### Fixed
+- **Atmosphere recipe gaps (GEN.674).** A comet beyond the coma's perihelion now has no gas (it fell through to the rocky rows). In the groups whose fallback is "none applies" (evolved terrestrial `j`, coma `k`) the weights are probabilities of occurrence, so a frost row far outside its window is no longer normalised to certain, and the Venus-like and abiotic-oxygen shares mean what their brackets say. A body with an ocean and a long-lived geology keeps only 1e-5 to 1e-2 of its outgassed carbon and sulfur in the air. The recipe draw is not called by the generator yet, so no generated value changes.
+
+## [8.0.2237] - 2026-10-24
+
+**Headline:** The habitable-systems table is on the lists the schema tests keep, so three tests that failed since MAP.220 pass.
+
+### Fixed
+- **`test_every_table_holding_an_object_is_on_exactly_one_list` and `test_no_table_inside_a_system_stores_an_absolute_position` failed on main (TEST.343).** `habitable_systems` (MAP.220) holds a copy of a system's galactic point for the Galaxy Map tiles and is not an object, so it is now on `point_columns.NOT_BODIES` with its reason, next to `object_index`.
+- **`test_sql_portability` failed on the `VALUES(habitable_worlds)` in migration 0148 (TEST.343).** The migration is shipped and stays as it is; its one use is on the lint's list of allowed `VALUES()` uses, with the others.
+TODO items resolved: TEST.343. Added: none.
+
+## [8.0.2236] - 2026-10-24
+
+**Headline:** The Galaxy Map now draws the sector-block nodes by their size on screen and the cube tiles are gone, so a zoom no longer swaps one set of tiles for another.
+
+### Changed
+- **The map draws nodes, not cube tiles (MAP.261).** `static/galaxynodecut.js` (twin of `planetgen.galaxy.nodecut`) picks the blocks to fetch and draw by projected size: a block opens into its children as it grows on screen, between 70 and 140 px, inside the cone the camera looks along and a budget of nodes, nearest first. Each node has a weight that its ancestors' hand-over leaves it, a block whose children are not yet loaded keeps all of its weight, and `starfade.js` shows a star at the weight of the node that lists it, so a parent and its children always add up to one and a star never dips while the children arrive. The page fetches the children of what it shows before they are needed (still camera, at most 12 nodes, header `X-Map-Prefetch`) and holds nodes in IndexedDB `planetgen-nodes` and in local storage under `planetgen:node:`.
+- **Warm-up settings.** `tile_cache.warm_zoom_floor` (default 9, the finest block level of the zoom run) replaces `tile_cache.warm_levels` and `tile_cache.warm_zoom_levels`; the admin settings page has one stepper for it. `planetgen warm` has the families `galaxy-nodes` and `galaxy-deep-nodes` and the phases `built-levels` and `deep-nodes`; the `warm-galaxy-tiles` and `warm-galaxy-deep-tiles` commands are gone.
+- **`TILE_FORMAT` is 3.** Every stored map file is built again once, as the cache folder fills. The folder, the `tile_cache` settings section and the packed form keep their names.
+
+### Removed
+- **Cube tiles (MAP.262).** `GET /galaxy/tiles`, `GET /api/galaxy/tiles`, `viewport.distance_cut_tiles` and its twin `galaxytilecut.js`, the tile read in `db/query.py`, the tile-keyed cache files and the tile entries of the change feed (`/api/galaxy/changes` no longer has `tiles`; it has `nodes`). The API version is 8. The rate limit `galaxy_tiles` ("Map data limit") now covers `/galaxy/nodes`.
+
+### Fixed
+- **A block wholly above or below a thin shell no longer errors.** The bright-star band read took the arc cosine of a ratio that passes 1 for such a block; the opening request of `/galaxy` answered 400 and the page 502. The ratio is clamped.
+
+## [8.0.2235] - 2026-10-24
+
+**Headline:** The browser tests' shared sample fixture no longer errors at setup on a fresh galaxy.
+
+### Fixed
+- **Twenty browser tests errored at setup with `KeyError: 'planets'` (TEST.349).** The shared `sample_params` fixture of `test_web_a11y.py` asked `/api/systems/<id>` for the detail of up to 100 systems to find one with planets. The API answers 50 requests an hour (`RATELIMIT_DEFAULT`), the sample galaxy holds about 375 systems in its sector and most have no planets, so after 50 calls every answer was `429 rate limit exceeded`, read as "no planets", and the next line indexed a body that was an error. The fixture now finds the system with one SQL query and makes one API call.
+TODO items resolved: TEST.349. Added: none.
+
+## [8.0.2234] - 2026-10-24
+
+**Headline:** Every globular cluster and superbubble now has a page of its own.
+
+### Changed
+- `/object/globular_cluster:<ID>` and `/object/superbubble:<ID>` show where a cluster or a superbubble lies in the galaxy, its stored properties (the radius of its sphere and where it was born), and an "About" text that says what it is, where its centre is, a cluster's mass, age and metallicity, and lists the star systems, nebulae and other objects inside it, each linked to its own page (UX.184).
+- A globular cluster and a superbubble are now kinds an object reference can name: `globular_cluster:<ID>` and `superbubble:<ID>` resolve in `GET /api/objects/<ref>`, and their sheet and children (none) are served. A cluster's ID is never taken for a superbubble's.
+- `GET /api/containers/<ID>` gives a cluster's mass, age and metallicity as `component`, and the contents list prints each object's own ID.
+
+## [8.0.2233] - 2026-10-24
+
+**Headline:** The atmosphere chemistry now has one equilibrium solver and one thermodynamic data table instead of two.
+
+### Removed
+- **The first equilibrium module (GEN.672).** `physics/equilibrium.py`, its data file `thermo_nasa7.json` and `scripts/build_thermo_table.py` held the same NASA data as `gas_equilibrium.py` with `species_thermo.py`. The three hot-Jupiter regime edges (methane to carbon monoxide, water survival, hydrogen dissociation) now run on the one solver in `physics/equilibrium_edges.py` and give the same temperatures; no generated value changes.
+
+## [8.0.2232] - 2026-10-24
+
+**Headline:** Every facility now has a page of its own, reached from the lists that name it.
+
+### Changed
+- `/object/facility:<ID>` shows a facility's place (galaxy, sector, system, and the planet, moon, star or belt it is built on), all its stored properties with the ratings (Green, Yellow or Red), and an "About" text with its type, affiliation, description and rating chips. A stand-alone facility parked in a sector has a page too (UX.183).
+- A facility is now a kind an object reference can name: `facility:<ID>` resolves in `GET /api/objects/<ref>`, and its sheet and children (none) are served.
+- The Facilities table on a system page and the facilities listed on a body's page link each name to its page.
+
+## [8.0.2231] - 2026-10-24
+
+**Headline:** A planet's or moon's page now shows the heat flowing out of its interior and the two draws behind it.
+
+### Fixed
+- **`test_property_sheet` failed on main (TEST.351).** GEN.699 added `internal_heat_flux_w_m2`, `mantle_eta0_pa_s` and `mantle_activation_kj_mol` to planets and moons without a row on the property sheet or an entry in `NOT_SHOWN`. They now have rows in the radiogenic group, after the Urey ratio.
+TODO items resolved: TEST.351. Added: none.
+
+## [8.0.2230] - 2026-10-24
+
+**Headline:** Neutron stars and black holes now have the accreting companions astronomers see: high-mass and low-mass X-ray binaries, microquasars, spider millisecond pulsars and compact triples, each with an X-ray luminosity under its Eddington limit.
+
+### Added
+- **High-mass X-ray binaries.** 40% of the compact companions of living massive stars accrete; 60% of those are Be/X-ray binaries (young systems only), the rest wind-fed supergiant binaries.
+- **Low-mass X-ray binaries.** 5e-5 of neutron stars and 1e-3 of black holes have a low-mass star on a tight orbit, and 1% of those accrete from a donor filling its lobe at a period of 4 to 24 hours.
+- **Microquasars.** One in ten accreting neutron stars and black holes launches jets (new member flag `microquasar`).
+- **Spider millisecond pulsars.** Recycled pulsars have black widow (6%), redback (3%) and other (2%) companions with the observed masses and periods of hours (new member flag `ablating`).
+- **X-ray luminosity.** A tree derives the luminosity of each accreting pair from the gas it captures, never above the accretor's Eddington limit.
+- **Dormant companions and compact triples.** Detached neutron star and black hole pairs with a star are listed as dormant (the Gaia kind), and 30% of neutron star and black hole binaries now have a third member (black holes only before).
+
+### Changed
+- **Generated systems change.** A neutron star or black hole pair no longer accretes by chance geometry; the recycled pulsar companion odds follow the registry classes. Every galaxy regenerates differently (generator epoch recorded).
+
+generation-output: changed
+
+## [8.0.2229] - 2026-10-24
+
+**Headline:** The 2D System Map now shows the stars beyond the pair of a triple or larger system, each with its own planets.
+
+### Changed
+- **Further stars on the 2D System Map (MAP.290).** In a system of three or more stars, the 2D System Map draws each star beyond the pair as a star marker on the whole-system view, in the direction it lies from the middle (at a fixed distance, as a wide pair's second star already is, and stepped in where two would overlap). Clicking it opens a view of its own with the planets and belts that orbit it, named through the label engine, and a Back button returns to the whole system. Before, only the pair was drawn; the table, text and 3D view already had them.
+
+TODO items resolved: MAP.290. Added: none.
+
+## [8.0.2228] - 2026-10-24
+
+**Headline:** A planet's details now show where its radiation comes from, term by term, with the air, magnetic field, ozone and rock that set each one.
+
+### Changed
+- **GEN.445 and DOC.75: the Radiation rating explains itself.** A rocky planet or moon gets a Radiation table in its details: the total dose, which of the dose and the ultraviolet sets the rating, the cosmic rays (with the column of air above and the gases in it, and the magnetic cutoff), the stellar particles, the ground (with the potassium, thorium and uranium of its rock) and the ultraviolet as a multiple of Earth's (with its ozone). The habitability help page has a new section, Where the radiation comes from, with the limits read from the score. Nothing generated changes.
+
+## [8.0.2227] - 2026-10-24
+
+**Headline:** The admin edit tests post to the body's own page, and the phenomenon class-link tests stub the property sheet the page now reads.
+
+### Fixed
+- **`test_system_page_regenerates_a_planet` and `test_system_page_changes_a_class` failed on main (TEST.347).** UX.173 moved a planet's Admin menu from the system page to the planet's own page, so the system page now refuses a planet target ("That isn't something on this page") and has no Change class button. The tests now post to `/object/planet:<id>` and look for Change class there; the system page still has Change star.
+- **`test_phenomenon_page_links_its_class` (five cases) and `test_phenomenon_unknown_class_stays_text` failed on main with a 502 (TEST.348).** The phenomenon page reads the object's property sheet (`get_object_sheet`), which the fake API of `test_class_pages.py` did not stub, so the page's own call went to a missing server. The fake now answers it with no groups.
+TODO items resolved: TEST.347, TEST.348. Added: none.
+
+## [8.0.2226] - 2026-10-24
+
+**Headline:** The program has one log record and one way to write it, ready for every log to move onto.
+
+### Changed
+- **The logging layer and the written standard (UX.121).** A log record is a UTC time, an RFC 5424 severity, a short component name, a message and `key=value` fields. It is written as a file line (logfmt, always UTC), a JSON line, or a display line (local time labelled with its zone; the command line's plain text has no time). A stage's start, finish and failure have one wording and one divider. Nothing in the program writes through it yet; the command line, the job logs and the download move in UX.122, the web displays and `update.sh` in UX.123. The standard and the list of every place the program logs are in `docs/design/operations/logging-standard.md`.
+
+## [8.0.2225] - 2026-10-24
+
+**Headline:** The API version is 7 and records the shell, band and wedge address change, and every outgoing request now sends the standard User-Agent (the page scripts send the API version header).
+
+### Changed
+- **`API_VERSION` is 7 (API.26).** The switch of every sector address to `shell`/`band`/`wedge` (2026-10-15) never raised the version, and versions 4, 5 and 6 were taken by later changes, so 7 carries it; `docs/reference/api.md` lists it and the route snapshot moves with it. No route that takes the old `ring`/`layer`/`slot` names is kept.
+- **One User-Agent everywhere (API.31).** `planetgen.util.user_agent.user_agent()` (release, project URL, API version) was already used by the dataset downloads; the web pages' API client and `scripts/build_element_tables.py` now send it too.
+- **The page scripts send the API version.** A browser script cannot set `User-Agent`, so `static/apiversion.js`, loaded first by every page, adds `X-PlanetGen-API-Version` to each `fetch` and `XMLHttpRequest` to the site's own `/api/`. The server keeps answering with the header (API.22).
+- `tests/test_user_agent.py` pins the format (product tokens, release, URL comment, API version), that it follows both versions, that every outgoing path calls the one function and that no other module opens a URL; `tests/js/apiversion.test.mjs` covers the page script.
+
+TODO items resolved: API.26, API.31. Added: none.
+
+## [8.0.2224] - 2026-10-24
+
+**Headline:** A planet's inner heat is now the heat its rock makes plus the heat it was born with, so a young world is much hotter than an old one and no longer a fixed share radiogenic.
+
+### Changed
+- **Formation heat modelled (GEN.699).** `planetgen.physics.interior_heat` follows a body's mantle from its making: it starts as hot as the energy of assembling the body allows (a magma ocean for a planet, cold for a planetesimal), then cools by convection through the mantle's boundary layer while its radioactive rock (the stored potassium, thorium, uranium and aluminium-26 of GEN.459) heats it. It is the stagnant-lid model of Guimond, Rudge and Shorttle 2022. The heat out is the radiogenic heat plus the cooling of the interior.
+- **The Urey ratio is an output.** It is no longer drawn between 0.1 and 0.9; it is the radiogenic share of the heat that comes out. An Earth-mass twin gives 27 to 37 TW and a ratio of 0.57 to 0.76 over the published range of mantle rheologies, and a body of 0.1 billion years gives four to thirty times more heat than at 4.5.
+- **Stored (schema 153).** `planets` and `moons` gain `mantle_eta0_pa_s` and `mantle_activation_kj_mol` (the two draws of the mantle's rheology) and `internal_heat_flux_w_m2` (the heat flow at the body's surface); `urey_ratio` keeps its column and is now computed. NULL on rows made before this release.
+- The heat flow of every rocky planet, moon and rogue changes, and with it the ice shell, the ocean, the volcanism gate and the habitability score that read it.
+- Generator epoch bump (numbered at merge).
+
+generation-output: changed
+
+## [8.0.2223] - 2026-10-24
+
+**Headline:** Every phenomenon page now says what the object is in words, and links to the phenomenon before and after it.
+
+### Changed
+- A stored nebula, quasar, rogue planet, interstellar comet, asteroid field, supernova remnant, black hole or neutron star page has an "About" paragraph, built from the stored row by the same sentences the generator's description uses (UX.185). A row too bare to describe shows no paragraph.
+- Each phenomenon page has Previous and Next links to the free phenomenon of its type before and after it. The API answer for a phenomenon carries them as `previous` and `next`, and a supernova remnant's centre as `compact_remnant_name`.
+- The neighbour links wrap on a narrow screen.
+
+## [8.0.2222] - 2026-10-24
+
+**Headline:** A sector holds the same stars and systems whichever order a galaxy's sectors are generated in.
+
+### Changed
+- **The first fill takes a sector to the backfill's deepest floor (GEN.633).** A `galaxy` run backfills dimmer bright stars around the sectors it generates, but that backfill skipped a sector that was already filled, so a sector generated before the backfill reached it held fewer systems than one the backfill reached first. The first fill of a sector now draws its bright stars down to the backfill's deepest floor itself, so no later pass adds stars and a sector comes out the same in either order (GEN.57). Sectors in a capped cell (GEN.281) are left as they were.
+
+generation-output: changed
+
+## [8.0.2221] - 2026-10-24
+
+**Headline:** Where an atmosphere freezes out is now worked out from the checked saturation curves, so hydrogen sulphide, carbon dioxide and sulphur dioxide land at the right temperatures.
+
+### Changed
+- **The freeze-out cap reads the checked saturation curves (GEN.452).** `physics/atmosphere.py` no longer carries the two-point condensation table, whose hydrogen sulphide row was a copy of sulphur dioxide's and which put carbon dioxide, sulphur dioxide and the cold gases 2 to 20 K off. The most a gas can be vapour at the surface temperature is now its saturation pressure from `physics/saturation.py` (the Fray and Schmitt and laboratory solid curves, the Span and Wagner carbon dioxide curve, the Wagner liquid curves, nothing above the critical temperature). Hydrogen sulphide boils at 213 K at 100 kPa instead of 263 K, nitrogen at 37 K holds 1.2 Pa (Pluto's air) instead of 10 Pa, and the cold gases follow the laboratory curves of the cold ends. New `saturation.condensation_temperature_k` gives the inverse. The cloud condensation of `physics/aerosols.py` reads the same curves. Stored partial pressures and total surface pressures change for cold bodies.
+
+generation-output: changed
+
+## [8.0.2220] - 2026-10-24
+
+**Headline:** The server now refuses to run more worker processes than its memory and cores can hold, whatever starts them.
+
+### Added
+- **PERF.185: a cap on all planetgen worker processes on one host.** A start of a worker for any queue is refused once the host already runs `queue.max_host_workers` of them (0, the default, sizes it from the host: 60 percent of its memory in workers of 300 MB each, no more than four a core, never fewer than the cores plus four; a 16 GB, 8 core host gets 31). The count comes from the process list, so a worker still importing its libraries counts. The refusal is logged once a minute and counted, and the Queue page shows the cap, how many run and how many starts were refused in the last hour. This is the second guard behind PERF.181: even if something else starts workers in a burst, the host cannot be filled.
+
+## [8.0.2219] - 2026-10-24
+
+**Headline:** Every planet and moon list, system tree, object page and API answer now shows the four life scores (Microbial, Flora, Fauna, Sentient, 0 to 9) beside the PHI-6 symbols.
+
+### Changed
+- The Habitability cell of the search and object lists, the system and sector trees and the object pages draw the cluster of four life icons with their 0 to 9 numbers after the six PHI-6 symbols, each linked to its row of the habitability help page (UX.152).
+- The object answer and the child summaries of the API carry `life_microbial`, `life_flora`, `life_fauna` and `life_sentient` next to `phi4` and the `tier_<domain>` ratings.
+- A browser test checks the cluster on a list with and without scripts (the life half of TEST.300).
+- The help text for a category row of the PHI-6 paragraph in the design note now shows the "Required:" wording the pages already use (UX.153).
+
+## [8.0.2218] - 2026-10-24
+
+**Headline:** Every guessed number in the atmosphere mixture draw is now listed with what it rests on and what will replace it.
+
+### Added
+- **The stand-in registry of the atmosphere mixture draw (GEN.675).** `docs/design/research/gap-filling-plan.md` section 6.7 gives each bracket, width and ratio of the mixture draw a row (kind, evidence, knobs, validity, the test that checks it, the item that replaces it), and a test fails on a row naming a constant or test that does not exist. No generated value changes.
+
+## [8.0.2217] - 2026-10-24
+
+**Headline:** A hot star's nebula is lit by the star the place drew, not by whichever star of its system is heaviest.
+
+### Changed
+- **A nebula follows the row's star, not the system's primary (GEN.710).** When a hot star had a companion heavier than it, the heavier star took first place in the system and the nebula was rolled from that one, so the nebula built in the sector disagreed with the one the star's page and the uncharted sector's scene had shown from the row. The nebula is now rolled from the star the place drew (`StarSystem.placed_star`), so the page, the scene and the built sector agree. Systems whose placed star has a heavier companion get a different nebula (or none) than before.
+
+generation-output: changed
+
+## [8.0.2216] - 2026-10-24
+
+**Headline:** A burst of map requests can no longer start over a hundred queue workers and run the server out of memory.
+
+### Fixed
+- **PERF.181: the server ran out of memory and the kernel killed MySQL during a New galaxy run.** Every Galaxy Map request that queues a tile asked the worker starter for upkeep workers, and requests arriving together each counted "none starting" before any of them recorded its own start, so each launched the whole set. On 2026-10-24 about 130 workers of 125 MB took all 16 GB of a host with no swap. Only one caller at a time now counts and starts the workers of a queue, and a started worker counts as starting for 90 seconds (it was 15) so a host that is slow to load a worker is not given a second one for the same need.
+
+### Added
+- **`scripts/enable-swap.sh`** makes a swap file (8 GB by default), switches it on and adds it to `/etc/fstab` so it stays on after a reboot; it does nothing when swap is already on. `install.sh` and `update.sh` warn when the host has no swap, and INSTALL.md has a Swap section and a requirements row.
+
+## [8.0.2215] - 2026-10-24
+
+**Headline:** The Queue page lists the runs in Redis with their stages and time left, cancel stops a run at once, and a stuck run can be cleared.
+
+### Changed
+- **The Queue page shows runs, not job trees (PERF.99).** `/admin/queue` lists the runs in Redis newest first, each with its stage, how far it is, the time left and whether it has stopped answering. `/admin/queue/<run id>` shows one run's stages and the tail of its log, with cancel, clear and delete. The old job tree pages and the lease clear are gone; API version 6 (`/api/admin/work` returns runs, `/log` is new).
+- **Cancel is instant (PERF.99).** Cancelling a run takes its waiting units off the queue and sends the stop command to the started ones in one pass (0.1 s for 4,000 units), and the machine is free at once. A run that has stopped answering, or whose follower process is gone, can be cleared from the page.
+- **Run logs are kept (PERF.99).** Each run's event stream is written to `runs/<run id>.log` in the jobs directory when it ends, the last 20 kept, with a download link on the run's page.
+- **The Generate page lists a job's runs (PERF.99).** The job page has a Runs panel linking each run and its log, and Cancel job cancels the job's live runs at once instead of waiting for the step to notice.
+
+## [8.0.2214] - 2026-10-24
+
+**Headline:** The chance that a planet is a water world now rises with its mass as in the Bern population synthesis.
+
+### Changed
+- **Row b4 (GEN.510).** The water-rich share depends on mass through the logistic fitted to the Bern synthesis (6.1 Earth masses is the centre), with a flagged plateau bracket of 0 to 1; it was a snow-line weight with no mass dependence. The comparison with the observed densities of M-dwarf planets is still open. The recipes are not read by the generator yet, so no generated value changes.
+
+## [8.0.2213] - 2026-10-24
+
+**Headline:** The envelope rows of the atmosphere recipes are tuned to the observed radius valley.
+
+### Added
+- **Rows e1 and e2 are tuned to the Kepler radius valley (GEN.509).** A simulated Kepler survey (`physics/radius_valley.py`) reproduces the published valley slope (-0.11) and its radius at 10 days (1.84 Earth radii) along one degenerate ridge of the starting envelope and the loss efficiency; the rows draw on that ridge. Two new tuning targets. The recipes are not read by the generator yet, so no generated value changes.
+
 ## [8.0.2212] - 2026-10-24
 
 **Headline:** The database layer and the edit pages convert AU, km, years and parsecs through the one unit registry, with the same numbers.

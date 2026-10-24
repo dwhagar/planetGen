@@ -50,9 +50,9 @@ def facility_row(facility):
     }
 
 
-def facilities_html(facilities):
-    """The facilities a body hosts as a list for its own page,
-    or `""` for none."""
+def facilities_html(facilities, link=None):
+    """The facilities a body hosts as a list for its own page, or `""` for none. `link` turns a facility into the URL of
+    its own page (UX.183), and its name into a link to it."""
     if not facilities:
         return ""
     items = []
@@ -62,7 +62,8 @@ def facilities_html(facilities):
         if row["distance"]:
             where += f' at {row["distance"]}'
             where += "".join(f", {part}" for part in (row["period"], row["speed"]) if part)
-        items.append(f'<li><span class="facility-name">{row["name"]}</span> '
+        name = f'<a href="{esc(link(facility))}">{row["name"]}</a>' if link else row["name"]
+        items.append(f'<li><span class="facility-name">{name}</span> '
                      f'<span class="stat">{row["kind"]}</span> {where}</li>')
     return f'<ul class="facility-list" aria-label="Facilities">{"".join(items)}</ul>'
 

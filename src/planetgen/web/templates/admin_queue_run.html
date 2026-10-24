@@ -1,0 +1,59 @@
+{#- planetgen/web/templates/admin_queue_run.html -- /admin/queue/<run id> (ADM.10, PERF.99). -#}
+{% extends "base.html" %}
+{% block content %}
+{%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
+{%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+<section class="panel" aria-labelledby="run-heading">
+  <h2 id="run-heading"><span class="badge job-{{ run.state }}">{{ run.state_label }}</span> {{ run.title }}</h2>
+  <dl class="queue-facts">
+    <div><dt>Kind</dt><dd>{{ run.kind }}</dd></div>
+    {%- if run.who %}<div><dt>Started by</dt><dd>{{ run.who }}</dd></div>{% endif %}
+    <div><dt>Started</dt><dd>{{ utc_time(run.started_at) if run.started_at else "not yet" }}</dd></div>
+    <div><dt>Ended</dt><dd>{{ utc_time(run.finished_at) if run.finished_at else ("running" if run.live else "") }}</dd></div>
+    <div><dt>Duration</dt><dd>{{ run.duration }}</dd></div>
+    {%- if run.progress %}<div><dt>Progress</dt><dd>{{ run.progress }}{% if run.percent is not none %} ({{ run.percent }}%){% endif %}</dd></div>{% endif %}
+    {%- if run.eta %}<div><dt>Time left</dt><dd>{{ run.eta if run.eta in ('estimating', 'waiting on progress') else 'about ' ~ run.eta }}</dd></div>{% endif %}
+    {%- if run.job_url %}<div><dt>Job</dt><dd><a href="{{ run.job_url }}">Generate page job and its output</a></dd></div>{% endif %}
+  </dl>
+  {%- if run.error %}<p class="error">{{ run.error }}</p>{% endif %}
+  {%- if run.stale %}<p class="error">This run has not been heard from for too long: it has stopped answering.</p>{% endif %}
+  <p class="queue-actions">
+    {%- for action, label in run.actions %}
+    <a class="btn{% if action in ('cancel', 'clear', 'delete') %} btn-danger{% endif %}" href="{{ url_for('web.admin_queue_confirm', action=action, run=run.id) }}">{{ label }}</a>
+    {%- endfor %}
+    <a class="btn btn-secondary" href="{{ run.log_url }}">Download the log</a>
+  </p>
+</section>
+<section class="panel" aria-labelledby="stages-heading">
+  <h2 id="stages-heading">Stages</h2>
+  <div class="table-scroll" tabindex="0">
+  <table>
+    <caption class="sr-only">The run's stages, in the order they run</caption>
+    <thead><tr><th scope="col">Stage</th><th scope="col">State</th><th scope="col">Units done</th><th scope="col">Started</th><th scope="col">Duration</th><th scope="col">Longest unit</th></tr></thead>
+    <tbody>
+    {%- for stage in stages %}
+      <tr id="stage-{{ stage.number }}">
+        <th scope="row">{{ stage.number }}. {{ stage.label }}</th>
+        <td>{{ stage.state_label }}</td>
+        <td>{{ stage.units }}</td>
+        <td>{{ utc_time(stage.started) if stage.started else "" }}</td>
+        <td>{{ stage.duration }}</td>
+        <td>{{ stage.longest }}</td>
+      </tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+</section>
+<section class="panel" aria-labelledby="log-heading">
+  <h2 id="log-heading">Log</h2>
+  {%- if events %}
+  <p class="hint">The last {{ events|length }} lines; the download has them all.</p>
+  <pre class="job-log" tabindex="0" aria-label="The last lines of the run's log">{% for event in events %}{{ utc_time(event.time) }} {{ event.level|upper }} {{ event.message }}
+{% endfor %}</pre>
+  {%- else %}
+  <p class="hint">Nothing has been logged for this run.</p>
+  {%- endif %}
+</section>
+<p><a href="{{ url_for('web.admin_queue_run', run_id=run.id) }}">Refresh</a> · <a href="{{ url_for('web.admin_queue') }}">Back to the queue</a></p>
+{% endblock %}

@@ -24,7 +24,7 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     admin_token,
     base_url,
     sample_job,
-    sample_job_tree,
+    sample_run,
     sample_params,
     site_app,
     site_db,
@@ -690,6 +690,73 @@ def test_system_page_names_its_bodies_through_the_label_engine_with_one_switch(p
     assert page.locator("#sysmap-root.sysmap-hide-labels").count() == 1
     assert "label-body" in page.url
     assert not page.locator("text.sysmap-label").first.is_visible()
+
+
+@pytest.mark.fresh_database
+@pytest.mark.parametrize("wide", [False, True])
+def test_system_map_diagram_draws_each_star_beyond_the_pair_with_its_planets(page, mysql_config, wide):
+    """MAP.290: a system of three on the 2D System Map shows its third star as a marker that opens a scene of its own
+    with the planets that orbit it, and Back returns to the whole system."""
+    from planetgen.api.config import Config
+    from planetgen.db import store
+    from planetgen.galaxy.sector import SpaceSector
+    from planetgen.web.app import create_app
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    from tests.publicids import pid
+    from tests.served import served
+
+    for seed in range(400):    # a system of three stars of the asked pair with planets round a further star
+        cfg = SystemConfig()
+        cfg.STARS = 3
+        with draw.bound(seed):
+            system = StarSystem(system_config=cfg)
+        if any(body.body_type != "a" for bodies in system.member_planets for body in bodies) and (system.binary_type == "wide") == wide:
+            break
+    else:
+        pytest.fail("no three-star system with planets round a further star in 400 draws")
+    sector = SpaceSector("Member Map Sector", edge_ly=10.0)
+    sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
+    sector_id = store.save_sector(sector, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
+        member = conn.execute("SELECT id, name FROM stars WHERE star_system_id = ? AND role = 'member'",
+                              (system_id,)).fetchone()
+        member_planets = [r["name"] for r in conn.execute(
+            "SELECT name FROM planets WHERE star_id = ?", (member["id"],)).fetchall()]
+    finally:
+        conn.close()
+    assert member_planets
+
+    class RealConfig(Config):
+        MYSQL_CONFIG = mysql_config
+        WRITE_MYSQL_CONFIG = mysql_config
+        CONTROL_MYSQL_CONFIG = mysql_config
+        SESSION_COOKIE_SECURE = False
+        SECRET_KEY = "test-secret"
+
+    app = create_app(RealConfig)
+    app.testing = True
+    with served(app) as base_url:
+        _open(page, f"{base_url}/system/{pid('system', system_id)}", '#sysmap-root[data-ready="true"]')
+        page.evaluate("window.localStorage.setItem('planetgen.systemView', 'diagram')")
+        page.goto(f"{base_url}/system/{pid('system', system_id)}", wait_until="load")
+        page.wait_for_selector('#sysmap-root[data-ready="true"]', state="attached")
+        if page.locator("#sysmap-diagram").is_hidden():
+            page.click("#sysmap-view-diagram")
+        assert _active_scene(page) == "system"
+        marker = page.locator(f'#sysmap-root .sysmap-svg:not(.sysmap-hidden) [data-kind="star"][data-name="{member["name"]}"]')
+        assert marker.count() == 1 and marker.get_attribute("data-scene").startswith("star-")
+        marker.dispatch_event("click")
+        assert _active_scene(page).startswith("star-")
+        shown = page.evaluate("""() => [...document.querySelectorAll('#sysmap-root .sysmap-svg:not(.sysmap-orbits-layer):not(.sysmap-hidden) .sysmap-planet')]
+            .map((e) => e.dataset.name)""")
+        assert sorted(shown) == sorted(member_planets), (shown, member_planets)
+        assert page.locator(".sysmap-crumb-current").inner_text() == f"Planets of {member['name']}"
+        page.click(".sysmap-back-btn")
+        assert _active_scene(page) == "system"
 
 
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):

@@ -1,109 +1,92 @@
 # planetgen/api/workqueue.py
 
 """
-Admin endpoints behind the work queue page (ADM.10, `web/queue_page.py`):
-the queue's state (workers active, the server's load, the lease, the
-whole-queue pause), the job trees (ADM.12, `planetgen/queue/work.py`)
-and the controls on them. Every route needs a logged-in admin past the
-forced credential change; every change is written to the audit and
-activity logs (`audit`).
+Admin endpoints behind the work queue page (ADM.10, `web/queue_page.py`), reading and controlling the runs in Redis
+(PERF.99, `planetgen/queue/runrecord.py`): the queue's state (workers active, the server's load, the run that owns the
+machine, the whole-queue pause), the runs with their stages, and the controls on them (cancel, clear a run that stopped
+answering, delete a finished one). Every route needs a logged-in admin past the forced credential change; every change
+is written to the audit and activity logs (`audit`).
 
-Rerunning a job (Retry) starts a Generate page job, so it lives with the
-page (`web/queue_page.py`), not here.
+Rerunning a run (Retry) starts a Generate page job, so it lives with the page (`web/queue_page.py`), not here.
 """
 
 import re
+import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.generation import stats as generationStats
-from planetgen.queue import load as systemLoad, pause as queuePause, redisqueue, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import load as systemLoad, pause as queuePause, redisqueue, runcontrol, runrecord, runview, warmphases, work as workQueue, workers as queueWorkers
 
 from .authz import audit, require_admin
-from .common import ApiError, get_control_db, require_json_body
+from .common import ApiError, require_json_body
 from .routes import _paginate
-from .schemas import QueueAction, WorkAction, WorkerCount, parse_body
+from .schemas import QueueAction, RunAction, WorkerCount, parse_body
 
 bp = Blueprint("workqueue", __name__, url_prefix="/api/admin/work")
 
+EVENTS_SHOWN = 300
+"""int: How many of a run's last events its detail carries."""
 
-def _available(conn):
-    """Whether the control schema has the job tree (v7)."""
+
+def _connection():
+    """A Redis client that answers, or `None`."""
     try:
-        conn.execute("SELECT control FROM work_jobs LIMIT 1").fetchall()
-        conn.execute("SELECT holder FROM work_lease LIMIT 1").fetchall()
-        conn.rollback()
-        return True
-    except Exception:  # noqa: BLE001 -- update.sh not run yet
-        conn.rollback()
-        return False
+        connection = redisqueue.connect()
+        connection.ping()
+        return connection
+    except Exception:  # noqa: BLE001 -- any connection failure
+        return None
 
 
-def _node_id(value):
-    if not isinstance(value, str) or not workQueue.NODE_ID_RE.match(value):
-        raise ApiError("No such job.", 404)
+def _run_id(value):
+    if not isinstance(value, str) or not runrecord.RUN_ID_RE.match(value):
+        raise ApiError("No such run.", 404)
     return value
 
 
-def _summary(node):
-    """A root as the list shows it: its row and totals, no children."""
-    return {key: value for key, value in node.items() if key not in ("children", "tasks")}
+def _status(connection, now):
+    """The queue's state for the page: the pause, the run that owns the machine and whether it has gone quiet, the
+    workers and the runs live now."""
+    paused = queuePause.state(connection)
+    holder = runrecord.active_run(connection)
+    held = runrecord.read_run(connection, holder) if holder else None
+    live = [run_id for kind in runrecord.KINDS for run_id in [runrecord.active_run(connection, kind)] if run_id]
+    heard = None if held is None else max(now - (held["updated"] or held["started"] or now), 0.0)
+    return {
+        "paused": paused["paused"], "paused_by": paused["by"], "paused_at": paused["at"],
+        "holder": holder, "holder_title": held["title"] if held else None, "heartbeat_age_s": heard,
+        "stale": runrecord.is_stale(held, now) if held else False,
+        "workers_active": sum(queueWorkers.live_worker_count(redisqueue.queue(name, connection))
+                              for name in (redisqueue.BULK_QUEUE, redisqueue.MAINTENANCE_QUEUE)),
+        "runs_active": len(live),
+    }
 
 
 @bp.route("")
 @require_admin(fresh=True)
 def work():
     """
-    `GET /api/admin/work[?limit=&offset=]` -- the queue and one page of
-    job trees, newest first: `{"available", "status": {...queue_status,
-    "load": systemLoad.load_average()}, "items": [roots with totals],
-    "total", "limit", "offset"}`. `available` is false (and the rest
-    empty) before `update.sh` brings the control schema to v7.
+    `GET /api/admin/work[?limit=&offset=]` -- the queue and one page of runs, newest first: `{"available", "status":
+    {...`_status`, "load": systemLoad.load_average()}, "items": [`runview.summary`], "total", "limit", "offset"}`.
+    `available` is false (and the rest empty) when no Redis server answers.
     """
     limit, offset = _paginate(request.args)
     load = systemLoad.load_average()
-    conn = get_control_db()
-    if not _available(conn):
+    connection = _connection()
+    if connection is None:
         return jsonify({"available": False, "status": {"load": load}, "items": [], "total": 0,
                         "limit": limit, "offset": offset})
-    status = workQueue.queue_status(conn)
+    now = time.time()
+    status = _status(connection, now)
     status["load"] = load
-    roots, total = workQueue.list_roots(conn, limit=limit, offset=offset)
+    ids = runrecord.recent_runs(connection, limit=10_000)
     items = []
-    recorded = _recorded_task_seconds(conn)
-    unstarted = _unstarted_steps(conn)
-    for root in roots:
-        tree = workQueue.load_tree(conn, root["id"], max_tasks=0, recorded_task_seconds=recorded,
-                                   unstarted_steps=unstarted)
-        items.append(_summary(tree if tree is not None else root))
-    return jsonify({"available": True, "status": status, "items": items, "total": total,
-                    "limit": limit, "offset": offset})
-
-
-def _recorded_task_seconds(conn):
-    """`(task kind, workers) -> seconds one task took a worker in earlier runs` (PERF.33), or `None` when
-    nothing was recorded or the stats can't be read."""
-    try:
-        stats = generationStats.GenerationStats().read(conn)
-    except Exception:  # noqa: BLE001 -- an older control schema: the run's own pace alone
-        return None
-    kinds = workQueue.STATS_KIND
-    return lambda kind, workers: stats.seconds_per_task(kinds[kind], workers) if kind in kinds else None
-
-
-def _unstarted_steps(conn):
-    """`(root) -> [seconds or None]` for each step of a web job that has not started (PERF.33): what earlier
-    runs of that step took."""
-    recorded = workQueue.recorded_step_seconds(conn)
-
-    def unstarted(root):
-        from planetgen.web import jobs    # the jobs directory is the web layer's
-        job = jobs.get_job(root["web_job_id"]) if root.get("web_job_id") else None
-        if job is None:
-            return []
-        started = sum(1 for child in root["children"] if child["kind"] == "step")
-        return [recorded.get(label) for label in job["steps"][started:]]
-    return unstarted
+    for run_id in ids[offset:offset + limit]:
+        run = runrecord.read_run(connection, run_id)
+        if run is not None:
+            items.append(runview.summary(run, now))
+    return jsonify({"available": True, "status": status, "items": items, "total": len(ids), "limit": limit,
+                    "offset": offset})
 
 
 DATABASE_RE = re.compile(r"^[A-Za-z0-9_$]{1,64}$")
@@ -126,64 +109,103 @@ def warm():
     return jsonify(warmphases.read(database, warmup.PHASES))
 
 
-@bp.route("/<node_id>")
+@bp.route("/<run_id>")
 @require_admin(fresh=True)
-def tree(node_id):
-    """`GET /api/admin/work/<id>` -- the whole tree holding that node
-    (`workQueue.load_tree`), as `{"tree": ..., "node_id": id}`."""
-    conn = get_control_db()
-    node = workQueue.get_node(conn, _node_id(node_id))
-    if node is None:
-        raise ApiError("No such job.", 404)
-    return jsonify({"tree": workQueue.load_tree(conn, node["root_id"],
-                                                recorded_task_seconds=_recorded_task_seconds(conn),
-                                                unstarted_steps=_unstarted_steps(conn)),
-                    "node_id": node_id})
-
-
-@bp.route("/<node_id>/control", methods=["POST"])
-@require_admin(fresh=True)
-def control(node_id):
+def run_detail(run_id):
     """
-    `POST /api/admin/work/<id>/control` `{"action": "pause"|"resume"|
-    "cancel"}` asks a live node and everything under it to pause (finish
-    the running tasks, then stand by without blocking other jobs), resume
-    or cancel. Returns `{"ok": bool}`: false when the node has finished
-    or already does that.
+    `GET /api/admin/work/<id>` -- one run with its stages and the last events of its log:
+    `{"run": `runview.detail`, "events": [{"id", "t", "level", "kind", "message"}], "log": bool}`. `log` is whether the
+    log can be downloaded (`/log`).
     """
-    action = parse_body(WorkAction, require_json_body()).action
-    conn = get_control_db()
-    node = workQueue.get_node(conn, _node_id(node_id))
-    if node is None:
-        raise ApiError("No such job.", 404)
-    ok = workQueue.request_control(conn, node_id, action)
-    if ok:
-        audit(f"work.{action}", target=f"job:{node_id}", detail=node["title"][:200])
-    return jsonify({"ok": ok})
+    run_id = _run_id(run_id)
+    connection = _connection()
+    run = runrecord.read_run(connection, run_id) if connection is not None else None
+    if run is None:
+        raise ApiError("No such run.", 404)
+    events = runrecord.read_events(connection, run_id, count=100_000)[-EVENTS_SHOWN:]
+    return jsonify({"run": runview.detail(run, time.time()), "log": True,
+                    "events": [{"id": entry_id, "t": float(fields.get("t", 0)), "level": fields.get("level", "info"),
+                                "kind": fields.get("kind", "log"), "message": fields.get("message", "")}
+                               for entry_id, fields in events]})
 
 
-@bp.route("/<node_id>/delete", methods=["POST"])
+@bp.route("/<run_id>/log")
 @require_admin(fresh=True)
-def delete(node_id):
-    """`POST /api/admin/work/<id>/delete` deletes a finished job tree
-    (its root's id) with its tasks. `{"ok": bool}`: false for a live
-    tree or a node that isn't a root."""
-    conn = get_control_db()
-    ok = workQueue.delete_tree(conn, _node_id(node_id))
+def run_log(run_id):
+    """`GET /api/admin/work/<id>/log` -- the run's whole log as `{"text": ...}`, one line to an event: from Redis while its
+    record lasts, else the file kept in the jobs directory (the last `runcontrol.KEEP_LOGS`)."""
+    run_id = _run_id(run_id)
+    connection = _connection()
+    if connection is not None and runrecord.read_run(connection, run_id) is not None:
+        lines, after = [], "0"
+        while True:
+            rows = runrecord.read_events(connection, run_id, after)
+            if not rows:
+                break
+            for entry_id, fields in rows:
+                stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(float(fields.get("t", 0))))
+                lines.append(f"{stamp} {fields.get('level', 'info').upper():<5} {fields.get('message', '')}\n")
+                after = entry_id
+        text = "".join(lines)
+    else:
+        path = runcontrol.log_path(run_id)
+        try:
+            with open(path, "r", encoding="utf-8") as handle:
+                text = handle.read()
+        except (OSError, TypeError):
+            raise ApiError("No such run.", 404) from None
+    return jsonify({"text": text})
+
+
+@bp.route("/<run_id>/control", methods=["POST"])
+@require_admin(fresh=True)
+def control(run_id):
+    """
+    `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"}`. Cancel stops a live run now (its waiting units are
+    taken off the queue, its started ones sent the stop command, the machine is freed); clear ends a run that has stopped
+    answering (`runcontrol.is_clearable`) and frees the machine. Returns `{"ok": bool, "cancelled", "stopped"}`: false
+    when the run is over or, for clear, still answering.
+    """
+    action = parse_body(RunAction, require_json_body()).action
+    run_id = _run_id(run_id)
+    connection = _connection()
+    if connection is None:
+        raise ApiError("Redis is not answering.", 503)
+    run = runrecord.read_run(connection, run_id)
+    if run is None:
+        raise ApiError("No such run.", 404)
+    who = g.admin_user["username"]
+    stopped = (runcontrol.cancel_run if action == "cancel" else runcontrol.clear_run)(connection, run_id, who=who)
+    if stopped is not None:
+        audit(f"work.{action}", target=f"run:{run_id}", detail=run["title"][:200])
+    return jsonify({"ok": stopped is not None, **(stopped or {})})
+
+
+@bp.route("/<run_id>/delete", methods=["POST"])
+@require_admin(fresh=True)
+def delete(run_id):
+    """`POST /api/admin/work/<id>/delete` deletes a finished run's record. `{"ok": bool}`: false for a live run."""
+    run_id = _run_id(run_id)
+    connection = _connection()
+    if connection is None:
+        raise ApiError("Redis is not answering.", 503)
+    ok = runrecord.delete_run(connection, run_id)
     if ok:
-        audit("work.delete", target=f"job:{node_id}")
+        audit("work.delete", target=f"run:{run_id}")
     return jsonify({"ok": ok})
 
 
 @bp.route("/clear-finished", methods=["POST"])
 @require_admin(fresh=True)
 def clear_finished():
-    """`POST /api/admin/work/clear-finished` deletes every finished job
-    tree with its tasks (ADM.41). `{"cleared": <count>}`; live jobs stay."""
-    conn = get_control_db()
-    cleared = workQueue.clear_finished(conn)
+    """`POST /api/admin/work/clear-finished` deletes every finished run's record (ADM.41). `{"cleared": <count>}`;
+    live runs stay."""
+    connection = _connection()
+    if connection is None:
+        raise ApiError("Redis is not answering.", 503)
+    cleared = runcontrol.clear_finished(connection)
     if cleared:
-        audit("work.clear", detail=f"{cleared} finished jobs")
+        audit("work.clear", detail=f"{cleared} finished runs")
     return jsonify({"cleared": cleared})
 
 
@@ -207,21 +229,12 @@ def queue():
     return jsonify({"ok": ok})
 
 
-@bp.route("/lease/clear", methods=["POST"])
-@require_admin(fresh=True)
-def clear_lease():
-    """`POST /api/admin/work/lease/clear` frees a lease whose holder
-    stopped refreshing it. `{"cleared": holder or null}`."""
-    holder = workQueue.clear_stale_lease(get_control_db())
-    if holder:
-        audit("work.lease.clear", target="lease", detail=holder[:200])
-    return jsonify({"cleared": holder})
-
-
 def _workers_state(connection):
     queue = redisqueue.queue(redisqueue.BULK_QUEUE, connection)
     return {"wanted": queueWorkers.wanted(connection), "live": queueWorkers.live_worker_count(queue),
-            "ludicrous": queueWorkers.ludicrous_count(), "cpus": workQueue.cpu_count()}
+            "ludicrous": queueWorkers.ludicrous_count(), "cpus": workQueue.cpu_count(),
+            "host_cap": queueWorkers.host_worker_cap(), "host_running": queueWorkers.host_worker_processes(),
+            "host_refused": int(connection.get(queueWorkers.REFUSED_KEY) or 0)}
 
 
 def _redis():

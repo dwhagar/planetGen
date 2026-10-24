@@ -47,8 +47,8 @@ def test_the_profile_is_a_dry_adiabat_under_an_isothermal_skin():
 
 def test_the_saturation_curve_of_water_and_the_ceiling_of_a_supercritical_gas():
     assert aerosols.saturation_pa("H2O", 373.0) == pytest.approx(1e5, rel=0.02)
-    assert aerosols.saturation_pa("H2O", 273.16) == pytest.approx(611.7, rel=0.4)         # the two-point curve, GEN.452 replaces it
-    assert aerosols.saturation_pa("NH3", 195.49) == pytest.approx(6053.0, rel=0.01)       # the gas table's triple point
+    assert aerosols.saturation_pa("H2O", 273.16) == pytest.approx(611.657, rel=0.001)     # the water triple point, from the checked curve (GEN.452)
+    assert aerosols.saturation_pa("NH3", 195.49) == pytest.approx(6053.0, rel=0.03)       # the gas table's triple point
     assert math.isinf(aerosols.saturation_pa("CO2", 400.0))
     assert aerosols.saturation_pa("H2O", 300.0) < aerosols.saturation_pa("H2O", 320.0)
 

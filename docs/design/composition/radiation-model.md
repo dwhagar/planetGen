@@ -116,7 +116,8 @@ E(lambda) at the ground = direct + diffuse + ground-reflected, from section 3. U
 | `proton_cutoff_gv` range law `R = 0.0022 E^1.77` | NIST PSTAR range tables | GEN.453. **Built:** `physics/proton_range.py` (mixtures by Bragg's rule for GEN.444) |
 | `helio_multiplier` 1 + 1.5 exp(-X/100) c (no source) | dropped or sourced | GEN.453, GEN.256 |
 | `sep_dose_msv_yr`, `free_sep_msv_yr` (20 mSv/yr, R0 0.2 GV, range law 0.0022 E^1.77) | Band spectrum, PSTAR inversion, fluence law (R14) | GEN.444 |
-| habitability.py second GCR curve (0.45 exp(-X/22) + 0.05 exp(-X/200) + 0.002 Sv/yr) | reads the derived dose | GEN.445 |
+| habitability.py second GCR curve (0.45 exp(-X/22) + 0.05 exp(-X/200) + 0.002 Sv/yr) | reads the derived dose | GEN.445. **Built (epoch 78):** `habitability.bare_cosmic_ray_dose_sv_yr` reads `radiation.no_field_dose_msv_yr`; the second curve is gone |
+| the Radiation row said a dose and nothing of what made it | the terms and the composition behind each | GEN.445. **Built:** `physics/habitability_explain.radiation_terms(body)` gives cosmic rays, stellar particles, the ground and the ultraviolet with the air column and gases, the cutoff, the stored potassium, thorium and uranium and the ozone, and which of the dose and the ultraviolet sets the rating; the planet's details carry them as a Radiation table (`describe/build._radiation_block`) and `/help/habitability` says what sets each (`habitability_ref.radiation_text`); tests move a gas, the ozone, the air column, the field and the ground's potassium and check the terms and the rating follow |
 | planets.py per-class `greenhouse_multiplier_range` times the molar-mass ratio to 0.04345, ceiling 500 | mixture-derived tau0 and the check (R10) | GEN.423 with GEN.443 |
 
 Descriptions of the dose, the UV and the transmission read only these derived values (GEN.446). `magnetism.py` (dipole share, standoff, XUV, wind pressure) stays and feeds the field and the ionising band.

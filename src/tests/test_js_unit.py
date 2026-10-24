@@ -18,6 +18,7 @@ src/tests/js/<name>.test.mjs` (from `src/`).
 """
 
 import glob
+import hashlib
 import json
 import math
 import os
@@ -75,8 +76,8 @@ def fixtures():
         "shape": shape,
         "designations": designations,
         "orbitPositions": orbit_positions(),
-        "tilePack": tile_pack(),
-        "tileCut": tile_cut(),
+        "nodePack": node_pack(),
+        "nodeCut": node_cut(),
         "galaxyControls": {
             "public": actions(render_galaxy_map3d_panel("db", None, EDGE_PC, view)),
             "admin": actions(render_galaxy_map3d_panel("db", None, EDGE_PC, view, generate={"url": "/x"})),
@@ -134,11 +135,11 @@ def universal_steps():
     return cases
 
 
-def tile_pack():
-    """MAP.159's packed `/galaxy/tiles` answer (`tilepack.pack_response`) of three
-    tiles -- stars with and without a temperature, radius, class and
+def node_pack():
+    """MAP.159's packed `/galaxy/nodes` answer (`tilepack.pack_response`) of four
+    nodes -- stars with and without a temperature, radius, class and
     system, an id past 32 bits, generated stars with printed IDs, clouds,
-    points, an incomplete tile, an empty one and one with mixed ids -- as base64, with the tiles
+    points, an incomplete node, an empty one and one with mixed ids -- as base64, with the nodes
     `tilepack.unpack_response` reads from it, for static/tilepack.js to
     match."""
     import base64
@@ -158,25 +159,24 @@ def tile_pack():
         "generated": [star("FE81000A2B-0000005-000", 1.0, 2.0, 3.0, 0.85, temperature_k=5200, star_type="K", system_id=12),
                       star("FE81000A2B-0000006-000", 1.5, 2.0, 3.0, 0.5, star_type="M")],
     }
-    parts = [("3/1/2/3", tilepack.pack_tile(full)),
-             ("3/1/2/4", tilepack.pack_tile({"stars": [star(1, 5.0, 5.0, 5.0, 1.0)], "incomplete": ["stars"]})),
-             ("3/1/2/5", tilepack.pack_tile({})),
-             ("3/1/2/6", tilepack.pack_tile({"stars": [star(3, 1.0, 1.0, 1.0, 1.0), star("odd", 2.0, 2.0, 2.0, 1.0)]}))]
+    parts = [("3.1.2.3", tilepack.pack_node(full)),
+             ("3.1.2.4", tilepack.pack_node({"stars": [star(1, 5.0, 5.0, 5.0, 1.0)], "incomplete": ["stars"]})),
+             ("3.1.2.5", tilepack.pack_node({})),
+             ("3.1.2.6", tilepack.pack_node({"stars": [star(3, 1.0, 1.0, 1.0, 1.0), star("odd", 2.0, 2.0, 2.0, 1.0)]}))]
     body = tilepack.pack_response({"stamp": "0123456789abcdef", "generation": "g1", "edge_pc": 4.0}, parts)
-    header, tiles = tilepack.unpack_response(body)
-    return {"body": base64.b64encode(body).decode("ascii"), "header": header, "tiles": tiles,
+    header, nodes = tilepack.unpack_response(body)
+    return {"body": base64.b64encode(body).decode("ascii"), "header": header, "nodes": nodes,
             "sizes": {key: len(raw) for key, raw in parts}}
 
 
-def tile_cut():
-    """MAP.152: the distance cut and the tiles to fetch for a few cameras, which
-    `static/galaxytilecut.js` must reproduce key for key."""
-    from planetgen.galaxy.viewport import (
-        DISTANCE_CUT_EDGES, DISTANCE_CUT_FADE_BAND, TILE_MAX_LEVEL, TILE_ROOT_EDGE_PC,
-        distance_cut_tiles, fetch_cut_tiles,
-    )
+def node_cut():
+    """MAP.261: the node cut and the weights of its nodes for a few cameras, which
+    `static/galaxynodecut.js` must reproduce key for key."""
+    from planetgen.galaxy import nodecut
+    from planetgen.galaxy.drill import parse_node_key
 
     bounds = ((-12600.0, -12600.0, -960.0), (12600.0, 12600.0, 960.0))
+    focal = nodecut.DEFAULT_FOCAL_PX
     cases = []
     for camera, look in (
         ((34000.0, -20000.0, 28000.0), (0.0, 0.0, 0.0)),
@@ -185,13 +185,17 @@ def tile_cut():
         ((0.0, 0.0, 0.0), (1.0, 1.0, 0.0)),
         ((-5000.0, 3000.0, 700.0), (-5100.0, 3000.0, 700.0)),
     ):
+        # A budget of 300 nodes keeps the fixtures small; the full budget is compared by a digest of its keys.
+        cut = nodecut.node_cut(camera, look, EDGE_PC, focal, bounds, max_nodes=300)
+        weigh = nodecut.weight_calculator(camera, EDGE_PC, focal, cut.expanded)
+        full = nodecut.node_cut(camera, look, EDGE_PC, focal, bounds)
         cases.append({
-            "camera": camera, "look": look, "bounds": bounds,
-            "cut": distance_cut_tiles(camera, look, bounds),
-            "fetch": fetch_cut_tiles(camera, look, bounds),
+            "camera": camera, "look": look, "bounds": bounds, "keys": cut.keys, "expanded": sorted(cut.expanded),
+            "weights": {key: weigh(parse_node_key(key)) for key in cut.keys},
+            "fullCount": len(full.keys), "fullDigest": hashlib.sha256(",".join(full.keys).encode()).hexdigest(),
         })
-    return {"edges": DISTANCE_CUT_EDGES, "band": DISTANCE_CUT_FADE_BAND, "root": TILE_ROOT_EDGE_PC,
-            "finestLevel": TILE_MAX_LEVEL - 1, "cases": cases}
+    return {"edge": EDGE_PC, "focal": focal, "handover": list(nodecut.HANDOVER_PX), "fetchFrom": nodecut.FETCH_FROM_PX,
+            "maxNodes": nodecut.MAX_NODES, "smallBudget": 300, "halfAngle": nodecut.CONE_HALF_ANGLE_DEG, "cases": cases}
 
 
 def star_light():

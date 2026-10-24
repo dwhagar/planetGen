@@ -47,7 +47,7 @@ CACHE_DIR_ENV = "PLANETGEN_DATA_DIR"
 """str: The environment variable that moves the cache folder."""
 
 DEFAULT_CACHE_DIR = "/var/cache/planetgen/datasets"
-"""str: Where the downloaded files are kept (beside the tile cache, outside the checkout); `update.sh` fills it as root
+"""str: Where the downloaded files are kept (beside the node cache, outside the checkout); `update.sh` fills it as root
 and makes it world-readable, since the web app only reads."""
 
 TIMEOUT_SECONDS = 30

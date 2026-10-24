@@ -109,8 +109,11 @@ def family_of(recipe, subject):
         return "hot-jupiter"
     if "f" in groups:
         return "giant"
-    if "k" in groups and groups["k"].name != "none":
-        return "coma"
+    if "k" in groups:
+        if groups["k"].name != "none":
+            return "coma"
+        if subject.body_class == "comet":
+            return "airless"        # a comet beyond the coma's perihelion has no gas; an asteroid goes on to the rocky rows (GEN.674)
     if "l" in groups:
         if groups["l"].name == "l2":
             return "airless"

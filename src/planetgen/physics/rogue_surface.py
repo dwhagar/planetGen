@@ -10,8 +10,8 @@ Guillot 2005, Abbot & Switzer 2011, Turcotte & Schubert 2014). This
 module follows that research's four steps:
 
 1. Internal heat flux: radioactive decay (`radiogenic`, the host-less
-   draw: a rogue's parent star is unknown) plus leftover formation heat,
-   the radiogenic share being the drawn Urey ratio, for a rocky rogue (plus tides if it kept a moon), Kelvin-Helmholtz
+   draw: a rogue's parent star is unknown) plus the heat the body was born with, its mantle's cooling
+   (`interior_heat`, GEN.699), for a rocky rogue (plus tides if it kept a moon), Kelvin-Helmholtz
    cooling for a giant or brown dwarf.
 2. Effective temperature: sigma T_eff^4 = F_int + sigma T_CMB^4.
 3. Atmosphere: a hydrogen envelope stays only if the planet can hold it
@@ -26,7 +26,7 @@ a new `RoguePlanet` and back-fills stored rows (`store._migrate_v47_to_v48`).
 
 import math
 
-from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, radiogenic, relations, saturation, water_layer
+from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, interior_heat, radiogenic, relations, saturation, water_layer
 from planetgen import tuning
 from planetgen.util.random import log_uniform
 from planetgen.util import draw
@@ -201,7 +201,9 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
 
     # Step 1: radioactive heat, leftover heat in Earth's proportion, tides.
     content = radiogenic.draw_content(None, rng=rng)
-    flux = radiogenic.heat_flow_w_m2(content, mass_kg, radius_km, age_gy)
+    rock = radiogenic.Rock(pc.RADIOGENIC_SILICATE_MASS_FRACTION, 1.0 - pc.RADIOGENIC_SILICATE_MASS_FRACTION, 0.0,
+                           radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
+    flux = interior_heat.heat_flow(content, interior_heat.draw_interior(rng), mass_kg, radius_km, age_gy, rock).flux_w_m2
     if has_moons:
         flux += log_uniform(*pc.ROGUE_TIDAL_FLUX_RANGE_W_M2, rng=rng)
     # Step 2.

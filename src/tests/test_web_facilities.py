@@ -126,6 +126,19 @@ class FakeData:
     def get_facility_types(self, db, active_only=True):
         return self.types
 
+    def get_object_children(self, db, ref, limit=None, after=None):
+        """The system page's tree (UX.173) reads the children of the system and of each body; this one has none."""
+        return {"ref": ref, "kind": ref.partition(":")[0], "total": 0, "items": [], "next": None}
+
+    def get_object_sheet(self, db, ref):
+        return {"kind": ref.partition(":")[0], "groups": []}
+
+    def get_system_habitable_species(self, db, system_id):
+        return []
+
+    def get_system_text(self, db, system_id, fmt):
+        return {"id": system_id, "format": fmt, "content": ""}
+
     def get_system_owner(self, db, system_id):
         return self.owner
 
@@ -168,7 +181,8 @@ class FakeData:
         self.calls.append(("delete", db, facility_id))
 
 
-_FAKED = ("get_system", "get_system_description", "get_system_facilities", "auth_me",
+_FAKED = ("get_system", "get_system_description", "get_system_facilities", "auth_me", "get_object_children",
+          "get_object_sheet", "get_system_habitable_species", "get_system_text",
           "get_facility_orbit", "create_facility", "delete_facility", "get_facility_types", "get_system_owner",
           "update_facility", "suggest_facility_ratings")
 
@@ -234,11 +248,9 @@ def test_system_page_lists_facilities(client, fake):
         assert text in panel, text
     # Visitors get no form and no Remove buttons.
     assert 'name="facility_action"' not in html
-    # Each facility also sits in its host's row of the system list.
-    terra_row = html[html.index('<span class="body-name">Terra</span>'):]
-    terra_row = terra_row[:terra_row.index("</details>")]
-    assert "1 facility" in terra_row and "New Hope" in terra_row and "High" not in terra_row
-    assert '<ul class="facility-list" aria-label="Facilities">' in html
+    # UX.176: a facility is listed on its host's own page, not in a row of the system page
+    # (tests/test_item_pages.py::test_a_planets_page_lists_the_facilities_it_hosts_and_its_chips).
+    assert 'class="body-name"' not in html and 'class="facility-list"' not in html
     assert ("get_system_facilities", DB, "5") in fake.calls
 
 
@@ -544,13 +556,12 @@ def test_real_colony_makes_its_world_inhabited(db_app, mysql_config):
     others = [p for p in detail["planets"] if p["id"] != ids["terrestrial"]]
     assert all(p["inhabited"] == (p["life_stage"] == "technological_civilization") for p in others)
 
-    html = db_app.test_client().get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
-    # The page escapes the name: some draws have an apostrophe in it
-    # ("Illata Ch'Oba I"), which a raw search missed (TEST.69).
-    row = html[html.index(f'<span class="body-name">{escape(planet["name"])}</span>'):]
-    row = row[:row.index("</summary>")]
-    assert '<span class="flag flag-yes">Inhabited</span>' in row
+    client = db_app.test_client()
+    html = client.get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
     assert "New Hope" in _panel(html)
+    # UX.176: the Inhabited chip and the facilities a body hosts are on the body's own page.
+    page = client.get(f"/object/planet:{pid('planet', planet['id'])}").get_data(as_text=True)
+    assert '<span class="flag flag-yes">Inhabited</span>' in page and "New Hope" in page
 
 
 def _login_fresh_admin(client, mysql_config):

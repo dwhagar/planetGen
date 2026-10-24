@@ -90,8 +90,8 @@ def test_the_same_sectors_come_out_in_either_order(make_database, monkeypatch):
 def test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order(make_database, monkeypatch):
     """The first run generates one sector and backfills the bright stars around it (the `backfill` command), so the
     sectors after it are reached by that backfill; they then come out the same in whichever order they are
-    generated. (A sector generated before the backfill reaches its cell does not get those stars, so it differs from
-    one the backfill reached first: that dependence is open, GEN.57's backfill clause.)"""
+    generated. The case where the backfill reaches a sector that is already generated is the last test of the file
+    (GEN.633)."""
     first, rest = SECTORS[:1], SECTORS[1:]
     results = []
     for order in (rest, rest[::-1]):
@@ -141,4 +141,18 @@ def test_sectors_sharing_an_id_cell_come_out_the_same_in_either_order(make_datab
             conn.close()
         collisions.append({row["wedge_index"]: objectId.collision(int(row["name"], 16)) for row in rows})
     assert collisions[0] == collisions[1] == {0: 0, 1: 1, 2: 2}
+    _assert_same(*results)
+
+
+def test_a_sector_comes_out_the_same_whether_the_backfill_reached_it_first_or_not(make_database, monkeypatch):
+    """GEN.633: each run backfills the bright stars around its sector (the default `--backfill-from edge`), which used to
+    reach only sectors not yet generated, so a sector generated before the backfill reached it held fewer systems. The
+    first fill now takes a sector to the backfill's deepest floor itself, so the four sectors hold the same systems in
+    either order."""
+    results = []
+    for order in (SECTORS, SECTORS[::-1]):
+        config = _galaxy(make_database)
+        _generate_in_order(config, order, monkeypatch, backfill="edge")
+        results.append(_fingerprint(config))
+    assert len(results[0][0].sectors) == len(SECTORS)
     _assert_same(*results)

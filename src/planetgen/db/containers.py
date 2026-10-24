@@ -69,9 +69,15 @@ def _public(row):
     return out
 
 
+COMPONENT_COLUMNS = ("mass_solar", "age_gy", "metallicity_fe_h", "half_mass_radius_pc", "tidal_radius_pc", "king_w0",
+                     "core_collapsed")
+"""tuple: The columns of a cluster's `galaxy_components` row that `get` carries as `component` (UX.184)."""
+
+
 def get(conn, container_id=None, uid=None):
     """
-    One container by row id or by printed object ID (`FE81000A2B-0000005-000`), or `None`.
+    One container by row id or by printed object ID (`FE81000A2B-0000005-000`), or `None`. A cluster also carries
+    `component`: the `COMPONENT_COLUMNS` of its galaxy component, which hold its mass, age and metallicity.
 
     Raises:
         ValueError: For a printed ID that is not an object ID, or when neither is given.
@@ -83,7 +89,15 @@ def get(conn, container_id=None, uid=None):
         row = conn.execute("SELECT * FROM galaxy_containers WHERE uid = ?", (object_uid.to_bytes(value),)).fetchone()
     else:
         raise ValueError("a container is asked for by its row id or its object ID")
-    return None if row is None else _public(row)
+    if row is None:
+        return None
+    found = _public(row)
+    if row["component_id"] is not None:
+        component = conn.execute(
+            f"SELECT {', '.join(COMPONENT_COLUMNS)} FROM galaxy_components WHERE id = ?", (row["component_id"],)).fetchone()
+        if component is not None:
+            found["component"] = {name: component[name] for name in COMPONENT_COLUMNS}
+    return found
 
 
 def listing(conn, kind=None):

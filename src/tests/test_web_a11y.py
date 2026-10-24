@@ -60,6 +60,7 @@ from planetgen.db.store import MySQLConfig  # noqa: E402
 
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli  # noqa: E402
 from tests import dbpool  # noqa: E402
+from tests.publicids import pid  # noqa: E402
 from tests.served import served  # noqa: E402
 from tests.conftest import _test_server_kwargs  # noqa: E402
 
@@ -373,20 +374,26 @@ def sample_job(tmp_path_factory):
 
 
 @pytest.fixture(scope="module")
-def sample_job_tree(admin_token, site_db):
-    """One finished job tree (`/admin/queue/<node_id>`, ADM.10) with a
-    work queue and a task under it."""
-    from planetgen.queue import work as workQueue
+def sample_run(admin_token):
+    """One finished run in Redis (`/admin/queue/<run_id>`, ADM.10, PERF.99), with two stages and a line of log. A test
+    that takes it has no key prefix of its own (`conftest._run_queue_inline`), so the page finds the run."""
+    from planetgen.queue import redisqueue, runrecord
 
-    with workQueue.job_node("galaxy", "planetgen galaxy --shell 1", site_db,
-                            argv=["galaxy", "--shell", "1"]) as root:
-        with workQueue.WorkQueue("Sectors (shell 1)", workers=1) as queue:
-            queue.submit("sector", "1,0,0", int, "7")
-    return root.id
+    conn = redisqueue.connect()
+    run_id = runrecord.start_run(conn, "planetgen galaxy --shell 1", [runrecord.Stage("sectors", "Sectors", units=3),
+                                                                      runrecord.Stage("settle", "Settle", units=1)],
+                                 who="admin", argv=["galaxy", "--shell", "1"])
+    runrecord.begin_stage(conn, run_id, 0)
+    for unit in range(3):
+        runrecord.unit_done(conn, run_id, 0, unit, seconds=1.0)
+    runrecord.log(conn, run_id, "sector 1,0,0 saved")
+    runrecord.finish_run(conn, run_id, "done")
+    yield run_id
+    runrecord.delete_run(conn, run_id)
 
 
 @pytest.fixture(scope="module")
-def sample_params(site_app, sample_job, sample_job_tree):
+def sample_params(site_app, sample_job, sample_run):
     """
     A value for every URL parameter a page route may take, drawn from the
     generated database through the JSON API. Add an entry here when a
@@ -402,15 +409,20 @@ def sample_params(site_app, sample_job, sample_job_tree):
     sectors = [s for s in items("/api/sectors?limit=100") if s["system_count"]]
     sector = sectors[0]
     systems = items(f"/api/systems?sector_id={sector['id']}&limit=100")
-    everywhere = items("/api/systems?limit=100")
-    def detail(system):
-        resp = client.get(f"/api/systems/{system['id']}")
-        assert resp.status_code == 200, (system["id"], resp.status_code, resp.get_data(as_text=True)[:300])
-        return resp.get_json()
-
-    with_bodies = [s for s in everywhere if detail(s).get("planets")]
-    sample_system = (with_bodies or systems)[0]   # the pages' sample system has planets for the body-row tests
-    planet = detail(sample_system)["planets"][0]
+    # TEST.349: the pages' sample system has planets for the body-row tests. It is found in the database, not by asking
+    # the API for the detail of each system in turn: the API answers 50 requests an hour (`RATELIMIT_DEFAULT`), a
+    # sector holds hundreds of systems, most of them without planets, and the 429 answers read as "no planets".
+    conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
+    try:
+        row = (conn.execute("SELECT s.id FROM star_systems s JOIN planets p ON p.star_system_id = s.id"
+                            " ORDER BY (s.sector_id IS NULL), s.id LIMIT 1").fetchone())
+        assert row is not None, "the sample galaxy has no planet"
+        sample_system = {"id": pid("system", row["id"], conn)}
+    finally:
+        conn.close()
+    resp = client.get(f"/api/systems/{sample_system['id']}")
+    assert resp.status_code == 200, (sample_system["id"], resp.status_code, resp.get_data(as_text=True)[:300])
+    planet = resp.get_json()["planets"][0]
     phenomena = items("/api/phenomena?limit=100")
     phenomenon = phenomena[0]
     conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
@@ -439,7 +451,7 @@ def sample_params(site_app, sample_job, sample_job_tree):
         "code": "D",
         "species_id": items("/api/species")[0]["id"],
         "polity_id": items("/api/polities")[0]["id"],
-        "node_id": sample_job_tree,  # web.admin_queue_tree
+        "run_id": sample_run,  # web.admin_queue_run, web.admin_queue_log
         "action": "queue-pause",  # web.admin_queue_confirm
         "key": "scatters",  # web.generate_task (the other tasks are checked in test_web_generate_flow_browser.py)
         # web.admin_backup: no backup exists here, so it answers 404 and is skipped (NO_SAMPLE_OBJECT); the real page is

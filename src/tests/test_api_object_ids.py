@@ -30,6 +30,7 @@ def api(mysql_config):
     sector.add_system(StarSystem(system_config=cfg), position=(1.0, 1.0, 1.0), system_config=cfg)
     sector.add_system(StarSystem(system_config=cfg), position=(-2.0, 0.5, 3.0), system_config=cfg)
     sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet")
+    sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet")
     store.save_sector(sector, config=mysql_config)
 
     class TestConfig(Config):
@@ -62,6 +63,16 @@ def test_lists_and_details_carry_printed_ids(api):
     assert phenomena and all(_printed(row["id"]) for row in phenomena)
     one = api.get(f"/api/phenomena/{phenomena[0]['type']}/{phenomena[0]['id']}").get_json()
     assert one["id"] == phenomena[0]["id"]
+
+
+def test_a_phenomenons_neighbours_carry_printed_ids(api):
+    """UX.185: the previous and next phenomenon of the type are named by object ID, the first has no previous."""
+    rogues = sorted((row["id"] for row in api.get("/api/phenomena").get_json()["items"] if row["type"] == "rogue_planet"))
+    assert len(rogues) == 2
+    first, second = (api.get(f"/api/phenomena/rogue_planet/{printed}").get_json() for printed in rogues)
+    assert first["previous"] is None and second["next"] is None
+    assert _printed(first["next"]["id"]) and first["next"]["id"] == second["id"]
+    assert _printed(second["previous"]["id"]) and second["previous"]["id"] == first["id"]
 
 
 def test_a_row_number_names_nothing(api):
@@ -184,9 +195,8 @@ def test_pages_link_to_objects_by_id_and_never_by_row_number(bodies):
         assert found == [], (path, found[:5])
 
 
-def test_the_galaxy_stage_and_tiles_carry_sector_ids_the_map_can_open(mysql_config):
-    """The Galaxy Map opens `/sector/<id>/scene` with the ids from the stage payload and the tiles."""
-    from planetgen.galaxy.viewport import TILE_ROOT_EXTRA_LEVELS, tiles_intersecting_sphere
+def test_the_galaxy_stage_and_nodes_carry_sector_ids_the_map_can_open(mysql_config):
+    """The Galaxy Map opens `/sector/<id>/scene` with the ids from the stage payload and the nodes."""
     from tests.test_api import _generated_sectors, _rebuild_block_stats
 
     _generated_sectors(mysql_config, [0.5, 5.0, 40.0])
@@ -200,12 +210,6 @@ def test_the_galaxy_stage_and_tiles_carry_sector_ids_the_map_can_open(mysql_conf
     app = create_app(TestConfig)
     app.testing = True
     client = app.test_client()
-    keys = tiles_intersecting_sphere(9 + TILE_ROOT_EXTRA_LEVELS, (60.0, 60.0, 60.0), 130.0)
-    tiles = client.get("/api/galaxy/tiles?tiles=" + ",".join(keys)).get_json()["tiles"]
-    placed = [row for tile in tiles.values() for row in tile["placed"]]
-    assert placed and all(isinstance(row["id"], str) for row in placed)
-    assert client.get(f"/sector/{placed[0]['id']}/scene").status_code == 200
-
     at = None
     for _ in range(6):
         stage = client.get("/api/galaxy/stage" + (f"?at={at}" if at else "")).get_json()
@@ -218,6 +222,10 @@ def test_the_galaxy_stage_and_tiles_carry_sector_ids_the_map_can_open(mysql_conf
     assert stage.get("sectors"), "no stage with sectors reached"
     assert all(isinstance(row["id"], str) for row in stage["sectors"])
     assert client.get(f"/sector/{stage['sectors'][0]['id']}/scene").status_code == 200
+    nodes = client.get(f"/api/galaxy/nodes?keys={at}").get_json()["nodes"]
+    placed = nodes[at]["placed"]
+    assert placed and all(isinstance(row["id"], str) for row in placed)
+    assert client.get(f"/sector/{placed[0]['id']}/scene").status_code == 200
 
 
 def test_a_rogue_planet_inside_a_nebula_names_the_nebula_by_id(mysql_config):

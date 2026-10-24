@@ -19,7 +19,7 @@
 // - the HISTOGRAM limit: the magnitude at which the stars on screen,
 //   counted by the zoom opacity MAP.153 already gives them, reach the
 //   target (20,000; 8,000 on a phone), and
-// - the CALIBRATION limit: where the dimmest stars the tiles carry still
+// - the CALIBRATION limit: where the dimmest stars the nodes carry still
 //   show whole at the focus distance D. So the law only dims what stands
 //   much farther than the thing looked at, and never thins the same stars
 //   twice with MAP.153's rank birth radius.
@@ -38,7 +38,7 @@ export function tierMagnitudePenalty(tier) {
   return TIER_MAGNITUDE_PENALTY[tier] || 0;
 }
 
-// The width of the opacity ramp (1.5 magnitudes: the factor 4 the tile floors step by).
+// The width of the opacity ramp (1.5 magnitudes: the factor 4 the node floors step by).
 export const RAMP = 1.5;
 export const TARGET_STARS = 20000;
 export const TARGET_STARS_PHONE = 8000;

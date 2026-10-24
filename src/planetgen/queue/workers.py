@@ -23,6 +23,7 @@ many there are, and how a running job is stopped. Section 5.4 of docs/design/ope
 
 import os
 import socket
+import subprocess
 import sys
 
 import rq
@@ -36,9 +37,34 @@ WANTED_KEY = "planetgen:workers:wanted"
 """str: The admin's worker count for the bulk queue, a number in Redis (no expiry)."""
 
 STARTING_PREFIX = "planetgen:workers:starting:"
-STARTING_SECONDS = 15
+STARTING_SECONDS = 90
 """The Redis counter, per queue, of workers started but not yet registered with RQ, which expires this long after
-the last start: counted with the live ones so a burst of jobs doesn't start more than wanted."""
+the last start: counted with the live ones so a burst of jobs doesn't start more than wanted. A worker on a host that
+is short of memory or busy can take far longer than a few seconds to import and register, and a window shorter than
+that starts a second worker for the same need, and a third (PERF.181)."""
+
+DECIDING_KEY = "planetgen:workers:deciding"
+DECIDING_SECONDS = 20
+"""The Redis lock, one for the host, held by the caller that counts the workers and starts the missing ones. Callers come from
+every thread of the web app (each map request that queues a tile), so several counted "none starting" at the same
+moment and each started the whole cap: about 130 workers of 125 MB took a 16 GB host on 2026-10-24 and the kernel
+killed MySQL (PERF.181). A caller that does not get the lock leaves the starting to the one that has it. The lock is
+the host's, not the queue's, so the cap on all the host's workers (`host_worker_cap`) is checked and used up in one place."""
+
+WORKER_COMMAND = "planetgen.cli.worker"
+"""str: What every planetgen worker process has in its command line."""
+
+WORKER_MEMORY_MB = 300
+"""int: What one worker takes (its libraries, sampling tables and the work horse it forks), for sizing the host cap."""
+
+HOST_MEMORY_SHARE = 0.6
+"""float: The share of the host's memory the workers may take at most; the rest is for MySQL, Redis and the web server."""
+
+REFUSED_KEY = "planetgen:workers:refused"
+REFUSED_NOTE_KEY = "planetgen:workers:refused-note"
+REFUSED_NOTE_SECONDS = 60
+"""The Redis counter of starts the host cap refused (kept an hour after the last), and the key that lets the log line
+about it out once a minute instead of at every poll."""
 
 LENT_PREFIX = "planetgen:workers:lent:"
 LENT_SECONDS = 3600
@@ -158,6 +184,20 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
     waiting = queue.count
     if not waiting:
         return 0
+    if not connection.set(DECIDING_KEY, str(os.getpid()), nx=True, ex=DECIDING_SECONDS):
+        return 0            # another caller is counting and starting on this host (PERF.181)
+    try:
+        need = _start_missing(queue, queue_name, connection, url, mysql_host, count, waiting)
+    finally:
+        connection.delete(DECIDING_KEY)
+    if queue_name == redisqueue.MAINTENANCE_QUEUE:
+        shed_bulk(connection, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
+    return max(0, need)
+
+
+def _start_missing(queue, queue_name, connection, url, mysql_host, count, waiting):
+    """The counting and starting of `ensure_workers`, run by the one caller that holds the queue's lock. Returns how many
+    workers it started."""
     starting_key = STARTING_PREFIX + queue_name
     starting = int(connection.get(starting_key) or 0)
     if queue_name == redisqueue.MAINTENANCE_QUEUE:
@@ -170,15 +210,81 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
     need = min(waiting, cap) - live - starting
     log.trace(f"workers for {queue_name}: {waiting} job(s) waiting, cap {cap}, {live} live, {starting} starting; "
               f"{max(0, need)} to start", area="queue")
+    started = 0
     for _ in range(max(0, need)):
+        running, host_cap = host_worker_processes(), host_worker_cap()
+        if running >= host_cap:
+            _note_refused(connection, queue_name, running, host_cap)
+            break
         connection.incr(starting_key)
         connection.expire(starting_key, STARTING_SECONDS)
         proc = redisqueue.start_detached(
             redisqueue.worker_argv([queue_name], url, python=sys.executable, burst=False), REPO_DIR)
+        started += 1
         log.trace(f"workers for {queue_name}: started worker process {getattr(proc, 'pid', '?')}", area="queue")
-    if queue_name == redisqueue.MAINTENANCE_QUEUE:
-        shed_bulk(connection, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
-    return max(0, need)
+    return started
+
+
+def _physical_memory_bytes():
+    """The host's memory in bytes, or `None` where the OS does not say."""
+    try:
+        return os.sysconf("SC_PAGE_SIZE") * os.sysconf("SC_PHYS_PAGES")
+    except (ValueError, OSError, AttributeError):
+        return None
+
+
+def host_worker_cap():
+    """
+    The most planetgen worker processes this host may run at once, all lanes and commands together (PERF.185):
+    `queue.max_host_workers` when set, else `HOST_MEMORY_SHARE` of the host's memory in workers of `WORKER_MEMORY_MB`
+    each, no more than four per core, and never fewer than a core per bulk worker plus the other lanes (`cores + 4`).
+    A 16 GB host with 8 cores gets 31.
+    """
+    from planetgen.util.settings import get_settings
+    configured = get_settings().queue.max_host_workers
+    if configured:
+        return configured
+    cores = work.cpu_count()
+    floor = cores + 4
+    total = _physical_memory_bytes()
+    if total is None:
+        return max(floor, 4 * cores)
+    by_memory = int(total * HOST_MEMORY_SHARE / (WORKER_MEMORY_MB * 2 ** 20))
+    return max(floor, min(by_memory, 4 * cores))
+
+
+def count_worker_processes(listing):
+    """
+    How many worker processes `listing` (the output of `ps -axo pid=,ppid=,args=`) holds. A work horse is a fork of
+    its worker with the same command line, so a worker's children do not count again.
+    """
+    rows = []
+    for line in listing.splitlines():
+        parts = line.split(None, 2)
+        if len(parts) == 3 and parts[0].isdigit() and parts[1].isdigit() and WORKER_COMMAND in parts[2]:
+            rows.append((int(parts[0]), int(parts[1])))
+    pids = {pid for pid, _parent in rows}
+    return sum(1 for _pid, parent in rows if parent not in pids)
+
+
+def host_worker_processes():
+    """How many planetgen worker processes run on this host now, started by anyone and registered or not (read from
+    the process list, so a worker still importing its libraries counts too). 0 when the list cannot be read."""
+    try:
+        listing = subprocess.run(["ps", "-axo", "pid=,ppid=,args="], capture_output=True, text=True, timeout=10,
+                                 check=False).stdout
+    except (OSError, subprocess.SubprocessError):
+        return 0
+    return count_worker_processes(listing)
+
+
+def _note_refused(connection, queue_name, running, host_cap):
+    """Counts a start the host cap refused and says so in the log, once a minute."""
+    connection.incr(REFUSED_KEY)
+    connection.expire(REFUSED_KEY, 3600)
+    if connection.set(REFUSED_NOTE_KEY, "1", nx=True, ex=REFUSED_NOTE_SECONDS):
+        log.normal(f"Worker start refused for {queue_name}: {running} planetgen worker processes already run on this "
+                   f"host, and the cap is {host_cap} (queue.max_host_workers, 0 sizes it from memory and cores).")
 
 
 def maintenance_cap(connection, mysql_host=None):

@@ -95,14 +95,14 @@ export function pointBrightness(luminosityShare) {
 // A phenomenon is drawn as bright as a star of its mass, never brighter
 // than the brightest star drawn (`brightestSol`, or none when there is no star):
 // the luminosity to draw it at, solar luminosities. The server works out
-// `luminositySol` (a tile point's `map_luminosity_sol`, planetgen.physics.stellar_evolution.phenomenon_map_luminosity_sol:
+// `luminositySol` (a node point's `map_luminosity_sol`, planetgen.physics.stellar_evolution.phenomenon_map_luminosity_sol:
 // a star of its mass, a black hole a little dimmer, no mass a one solar mass star).
 export function phenomenonLuminositySol(luminositySol, brightestSol) {
   const own = luminositySol > 0 ? luminositySol : 1;
   return brightestSol > 0 ? Math.min(own, brightestSol) : own;
 }
 
-// Whether "Charted only" (MAP.111) dims this tile entry: a star outside a charted
+// Whether "Charted only" (MAP.111) dims this node entry: a star outside a charted
 // sector, or a scattered phenomenon whose sector is not built yet. A generated star
 // and a phenomenon of a built sector are in a filled sector. The server marks a
 // scattered point `charted` once its sector is built (`galaxy_scattered_points_in_box`).

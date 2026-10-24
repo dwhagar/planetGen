@@ -117,6 +117,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [atmosphere-colour.md](composition/atmosphere-colour.md) | Atmosphere colour, the 9.0 feature: one gas and compound table, the mixture that sets the molar density, stored albedo and greenhouse values, ozone, haze, dust and cloud, then the absolute colour of the air, with the chain that builds it | approved 2026-10-17 (9:40 to 9:55 PM EDT) (GEN.409) |
 | [bulk-composition.md](composition/bulk-composition.md) | The bulk composition of every body (GEN.426): the bulk fractions, the equation of state and the reference solver, the draws, density, mass and gravity, moons and small bodies, the inverse and the migration | approved 2026-10-17 (9:40 to 9:55 PM EDT) (GEN.426) |
 | [planet-mass-law.md](composition/planet-mass-law.md) | How heavy a planet is once no class supplies the mass: isolation mass at the formation distance, giant-impact assembly, and the core-accretion runaway to a gas giant (GEN.650) | built as a pure law, not wired in (class lane, 2026-10-24); stand-ins to tune with GEN.509 and GEN.510 |
+| [interior-heat.md](composition/interior-heat.md) | The heat of a rocky body's interior (GEN.699): radiogenic plus primordial heat from one thermal history of the mantle, the Urey ratio as an output, the two rheology draws, the stand-ins | built (lane H, 2026-10-24) |
 | [composition-spine-contracts.md](composition/composition-spine-contracts.md) | The interfaces of the composition spine: the bulk composition and mixture accessors, the structure kernels, the bulk draw, the boundaries with the other lanes | contracts of lane I, kept in step with the code (GEN.428, GEN.429, GEN.411) |
 | [giant-interiors.md](composition/giant-interiors.md) | The interior of a giant planet, an ice giant and a brown dwarf (GEN.641, GEN.642): the layers, metallic hydrogen and helium rain, dilute and compact cores, with the state of every source |
 | [giant-heavy-element-law.md](composition/giant-heavy-element-law.md) | The heavy-element mass of a giant: Chachan et al. 2025 read from the paper, against Thorngren et al. 2016 (GEN.460's input) |
@@ -140,6 +141,8 @@ A note's own status line, at its top, is the authority; this page only points at
 | [retention-tuning.md](composition/retention-tuning.md) | The check of the retention and lava-world rows d1, i6 and j1 (GEN.511) | built |
 | [wd-redox-tuning.md](composition/wd-redox-tuning.md) | The retune of the white-dwarf redox rows a3 and a4 with the detection model (GEN.513) | built |
 | [radioisotope-tuning.md](composition/radioisotope-tuning.md) | The retune of the radioisotope rows o2, o4 and o6 (GEN.514) | built |
+| [radius-valley-tuning.md](composition/radius-valley-tuning.md) | The tuning of the envelope rows e1 and e2 to the Kepler radius valley (GEN.509) | built |
+| [water-delivery-tuning.md](composition/water-delivery-tuning.md) | The mass law of the water-rich row b4 from the Bern population synthesis (GEN.510) | built |
 | [giant-planet-tuning.md](composition/giant-planet-tuning.md) | The retune of the giant enrichment and C/O rows f5 and f7 (GEN.516) | built |
 | [brown-dwarf-types.md](composition/brown-dwarf-types.md) | The brown-dwarf type map from the Kirkpatrick 2021 temperature polynomials, rows g1 to g5 (GEN.517) | built |
 | [aerosol-tuning.md](composition/aerosol-tuning.md) | The titanium cold-trap step, row h4, and what waits for the chemistry module (GEN.519) | built |
@@ -210,6 +213,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [cache-warm-up.md](operations/cache-warm-up.md) | The page cache shared through Redis, the data tags each answer reads and each change bumps, and the warm-up that fills it after an update (PERF.104) | built (Core 2, 2026-10-16) |
+| [logging-standard.md](operations/logging-standard.md) | One log record (time, RFC 5424 severity, component, message, fields), its file, JSON and display writings, the one wording of a stage's start, finish and failure, and every place the program logs today | partly built (the layer is built, UX.121; the places move in UX.122, UX.123, TEST.183) |
 | [slow-page-answers.md](operations/slow-page-answers.md) | A page request that is slow to build queues one job that stores the answer in the tagged page cache, with a cost rule, a status route, a node on the queue page, a cancel and a fallback (PERF.105) | built (Core 2, 2026-10-17; the search and phenomena pages use it, UX.118, #2089) |
 | [backups-and-repair.md](operations/backups-and-repair.md) | One bz2 archive of the settings, the control database and the parity data, and restore and repair from it (settings 8.1, chain 8.9) | plan |
 | [redis-and-the-work-queue.md](operations/redis-and-the-work-queue.md) | How Redis is used and what to change (PERF.86) | research (decided; being built) |
