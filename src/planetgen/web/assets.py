@@ -110,14 +110,17 @@ def _check_svg(data):
     return None
 
 
+PICTURE_FORMATS = {"PNG": "png", "JPEG": "jpg", "ICO": "ico"}
+"""dict: The picture formats an upload may be (Pillow's name -> the file kind). Pillow is only asked to try these (SEC.35)."""
+
+
 def _image_info(data):
-    """`(format, width, height)` of a PNG, JPEG or ICO, checked by decoding it."""
+    """`(format, width, height)` of a PNG, JPEG or ICO, checked by decoding it. Pillow tries no other decoder on the
+    upload (TIFF, GIF, PPM and the rest are not read at all), so a file of another format is "not a readable picture"."""
     from PIL import Image, UnidentifiedImageError
     try:
-        with Image.open(io.BytesIO(data)) as image:
-            kind = {"PNG": "png", "JPEG": "jpg", "ICO": "ico"}.get(image.format)
-            if kind is None:
-                raise AssetError(f"That is a {image.format or 'unknown'} file; use a PNG, JPEG or ICO.")
+        with Image.open(io.BytesIO(data), formats=list(PICTURE_FORMATS)) as image:
+            kind = PICTURE_FORMATS[image.format]
             image.load()
             width, height = image.size
             if kind == "ico":

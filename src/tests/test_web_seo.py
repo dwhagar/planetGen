@@ -49,6 +49,13 @@ def _jpeg(width=1200, height=630):
     return buffer.getvalue()
 
 
+def _other_format(name):
+    """A picture in a format Pillow reads but the upload does not take (SEC.35)."""
+    buffer = io.BytesIO()
+    Image.new("RGB", (8, 8), (10, 20, 30)).save(buffer, name)
+    return buffer.getvalue()
+
+
 SVG = b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4" fill="#fc0"/></svg>'
 
 
@@ -389,6 +396,9 @@ def test_icons_appear_in_the_head(site, config):
 @pytest.mark.parametrize("kind, data, why", [
     ("default_image", b"", "empty"),
     ("default_image", b"not a picture", "not a readable picture"),
+    pytest.param("default_image", _other_format("TIFF"), "not a readable picture", id="tiff-is-not-read"),
+    pytest.param("default_image", _other_format("GIF"), "not a readable picture", id="gif-is-not-read"),
+    pytest.param("default_image", _other_format("PPM"), "not a readable picture", id="ppm-is-not-read"),
     ("default_image", _png(300, 100), "at least 600 by 315"),
     ("default_image", SVG, "PNG or JPG"),
     ("apple_touch_icon", _png(180, 120), "must be square"),
