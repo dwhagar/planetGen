@@ -101,3 +101,25 @@ def test_the_jump_box_begins_a_name_sorted_list_at_a_name(site):
     assert "_from" in client.get("/lists/star").get_data(as_text=True)
     client.get("/table/list-star?from=Tr&limit=2")
     assert seen[-1]["start"] == "Tr"
+
+
+def test_a_slow_table_read_answers_202_with_the_job_and_where_to_poll_it(site, monkeypatch):
+    """UX.136: the table route waits on a page job like the pages do; `X-Slow-Retry` reaches the cost rule."""
+    from planetgen.web.lib import apiclient, slowpages
+
+    job = {"id": "0123456789abcdef", "state": "running", "done": 300, "total": 1000, "eta_seconds": 5.0, "error": None}
+    seen = []
+
+    def slow(db, kind, **kwargs):
+        seen.append(slowpages._retrying.get())
+        raise slowpages.Pending(job, "/lists/planet")
+
+    monkeypatch.setattr(apiclient, "get_object_list", slow)
+    client, _seen = site
+    response = client.get("/table/list-planet")
+    assert response.status_code == 202 and response.headers["Cache-Control"] == "no-store"
+    body = response.get_json()
+    assert body["pending"] is True and body["job"] == job and body["percent"] == 30
+    assert body["status_url"] == "/api/page-jobs/0123456789abcdef"
+    client.get("/table/list-planet", headers={"X-Slow-Retry": "1"})
+    assert seen == [False, True]

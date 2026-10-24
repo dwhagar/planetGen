@@ -85,34 +85,97 @@ export function busyPause(attempt) {
   return Math.min(30000, 2000 * Math.pow(2, Math.max(1, Math.min(attempt, 5)) - 1));
 }
 
-// Fetches with `request()` (a promise of a Response), asking again after `busyPause` while the answer is a 504,
-// for as long as `wanted()` says the page is still wanted. `onBusy(true)` is called when a retry begins waiting
-// and `onBusy(false)` once an answer other than a 504 arrives (or the page is no longer wanted), so the page can
-// show "database busy, trying again". Any other failing status throws as before.
-export function fetchWhileBusy(request, wanted, onBusy, sleep) {
+// How long to wait between asks of a job that builds a slow table answer (UX.136), the pages' pace (slowload.js).
+export var JOB_POLL_MS = 1000;
+
+// Fetches with `request(retry)` (a promise of a Response; `retry` is true when a failed job is to be replaced),
+// asking again after `busyPause` while the answer is a 504, for as long as `wanted()` says the page is still
+// wanted. `onBusy(true)` is called when a retry begins waiting and `onBusy(false)` once an answer other than a 504
+// arrives (or the page is no longer wanted), so the page can show "database busy, trying again". Any other failing
+// status throws as before.
+//
+// An answer of 202 (UX.136) says a queued job is building a slow answer: `jobs.show(job)` is called with the job
+// (`{state, percent, eta_seconds, error ...}`) as it is polled at `body.status_url` through `jobs.poll(url)` (a
+// promise of a Response, `fetch` by default), until it has succeeded, and then the table asks again. A failed or
+// cancelled job leaves the last `show` on the screen and throws; `jobs.stopped()` true ("Stop waiting") ends the
+// wait the same way. `jobs.show(null)` clears the display.
+export function fetchWhileBusy(request, wanted, onBusy, sleep, jobs) {
   var wait = sleep || function (ms) {
     return new Promise(function (resolve) { setTimeout(resolve, ms); });
   };
-  function attempt(count) {
-    return request().then(function (response) {
+  function waitForJob(body, count, retry) {
+    var job = body.job;
+    jobs.show(Object.assign({}, job, { percent: body.percent }));
+    if (jobs.stopped()) {
+      return Promise.reject(new Error("table wait stopped"));
+    }
+    if (job.state === "failed" || job.state === "cancelled") {
+      return Promise.reject(new Error("table job " + job.state));
+    }
+    if (job.state === "succeeded") {
+      return attempt(count, false);
+    }
+    return wait(JOB_POLL_MS).then(function () {
+      if (!wanted()) {
+        jobs.show(null);
+        return Promise.reject(new Error("table no longer wanted"));
+      }
+      var poll = jobs.poll || function (url) { return fetch(url, { cache: "no-store", headers: { Accept: "application/json" } }); };
+      return poll(body.status_url).then(function (response) {
+        if (response.status === 404) {
+          // The job is gone (finished long ago, or expired): ask for the rows themselves.
+          jobs.show(null);
+          return attempt(count, false);
+        }
+        if (!response.ok) {
+          throw new Error("table job " + response.status);
+        }
+        return response.json().then(function (next) {
+          return waitForJob({ job: next, percent: percentOf(next), status_url: body.status_url }, count, retry);
+        });
+      });
+    });
+  }
+  function attempt(count, retry) {
+    return request(retry).then(function (response) {
+      if (response.status === 202 && jobs) {
+        onBusy(false);
+        return response.json().then(function (body) {
+          return waitForJob(body, count, retry);
+        });
+      }
       if (response.status === 504 && wanted()) {
         onBusy(true);
         return wait(busyPause(count + 1)).then(function () {
           if (wanted()) {
-            return attempt(count + 1);
+            return attempt(count + 1, retry);
           }
           onBusy(false);
           return Promise.reject(new Error("table no longer wanted"));
         });
       }
       onBusy(false);
+      if (jobs) {
+        jobs.show(null);
+      }
       if (!response.ok) {
         throw new Error("table " + response.status);
       }
       return response.json();
     });
   }
-  return attempt(0);
+  return attempt(0, Boolean(jobs && jobs.retry));
+}
+
+// The bar's value, 0 to 100, for a job's status, or null when it can't say (queued, or its size is not known).
+export function percentOf(job) {
+  if (job.state === "succeeded") {
+    return 100;
+  }
+  if (job.state !== "running" || !job.total || job.done == null) {
+    return null;
+  }
+  return Math.min(99, Math.floor(100 * job.done / job.total));
 }
 
 // The rows fetched so far, by page. `fetchPage(page, generation)` returns a

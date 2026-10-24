@@ -190,6 +190,7 @@ function enhance(root) {
   const headers = Array.from(tableEl.querySelectorAll("th[data-col]"));
   const countLine = root.querySelector(".datatable-count-line");
   const busyLine = root.querySelector(".datatable-busy");
+  const jobPanel = root.querySelector("[data-table-job]");
   const filterForm = root.querySelector(".datatable-filters");
   const facetNodes = Array.from(root.querySelectorAll(".datatable-facet"));
   const noun = (count) => (count === 1 ? root.dataset.nounOne : root.dataset.nounMany);
@@ -270,9 +271,66 @@ function enhance(root) {
     // The filter-menu counts come in a request of their own (loadFacets), so a slow count never holds the rows back.
     const address = `${source}${source.includes("?") ? "&" : "?"}${dataQuery(currentState(), page * PAGE_SIZE, PAGE_SIZE, false, after)}`;
     // A database too busy to answer (a 504) keeps the rows already loaded and asks again after a growing pause (UX.96).
-    return fetchWhileBusy(() => fetch(address, { headers: { Accept: "application/json" } }),
-      () => !store.stale(generation), (busy) => showBusy(page, busy));
+    // A slow answer (a 202) is built by a queued job: the table shows its progress and asks again when it is ready (UX.136).
+    const retry = retryJob;
+    retryJob = false;
+    return fetchWhileBusy((again) => fetch(address, { headers: again ? { Accept: "application/json", "X-Slow-Retry": "1" } : { Accept: "application/json" } }),
+      () => !store.stale(generation), (busy) => showBusy(page, busy), undefined, jobs(retry));
   });
+
+  let retryJob = false;       // the next fetch replaces a failed job (Try again)
+  let stoppedWaiting = false;
+  function jobs(retry) {
+    return { retry, show: showJob, stopped: () => stoppedWaiting };
+  }
+  function jobPart(name) {
+    return jobPanel && jobPanel.querySelector(`[data-job-${name}]`);
+  }
+  function showJob(job) {
+    if (!jobPanel) {
+      return;
+    }
+    jobPanel.hidden = !job;
+    if (!job) {
+      return;
+    }
+    const failed = job.state === "failed" || job.state === "cancelled";
+    const bar = jobPart("bar");
+    if (job.percent == null) {
+      bar.removeAttribute("value");
+    } else {
+      bar.value = job.percent;
+    }
+    jobPart("percent").textContent = job.percent == null ? "" : `${job.percent}%`;
+    const left = job.eta_seconds == null ? "still working" : `about ${Math.max(1, Math.round(job.eta_seconds))} s left`;
+    jobPart("status").textContent = failed || stoppedWaiting ? "" : job.state === "running" && job.percent != null
+      ? `About ${job.percent}% (an estimate), ${left}.` : job.state === "queued" ? "Waiting for a worker to start building these rows." : "Building these rows.";
+    const error = jobPart("error");
+    error.hidden = !failed;
+    error.textContent = !failed ? "" : job.state === "failed" ? job.error || "These rows could not be built." : "An administrator stopped building these rows.";
+    jobPart("stop").hidden = failed || stoppedWaiting;
+    jobPart("resume").hidden = !stoppedWaiting;
+    jobPart("retry").hidden = !failed;
+    if (stoppedWaiting) {
+      jobPart("status").textContent = "Stopped waiting. The rows are still being built for anyone else who asked; check again when you like.";
+    }
+  }
+  if (jobPanel) {
+    jobPart("stop").addEventListener("click", () => {
+      stoppedWaiting = true;
+    });
+    // Before the table has its own rows (the first fetch was slow) asking again is the first fetch again.
+    const askAgain = () => (root.dataset.enhanced === "true" ? reload() : start());
+    jobPart("resume").addEventListener("click", () => {
+      stoppedWaiting = false;
+      askAgain();
+    });
+    jobPart("retry").addEventListener("click", () => {
+      stoppedWaiting = false;
+      retryJob = true;
+      askAgain();
+    });
+  }
 
   const busyPages = new Set();
   function showBusy(page, busy) {
@@ -474,6 +532,7 @@ function enhance(root) {
   let reloadFailed = false;
 
   function reload() {
+    stoppedWaiting = false;
     loadToken += 1;
     const mine = loadToken;
     store.reset();
@@ -511,7 +570,7 @@ function enhance(root) {
     return fetchWhileBusy(() => fetch(address, { headers: { Accept: "application/json" } }),
       () => mine === loadToken, (busy) => showBusy("facets", busy))
       .then((body) => {
-        if (mine === loadToken) {
+        if (mine === loadToken && !body.pending) {
           updateFacets(body.facets);
         }
       }, () => {});
@@ -593,21 +652,24 @@ function enhance(root) {
 
   // The first fetch decides it: the rows the server rendered stay until the
   // table has its own, so a failed fetch leaves a working static table.
-  store.ensure(0).then((loaded) => {
-    if (!loaded) {
-      return;
-    }
-    root.classList.add("datatable-enhanced");
-    root.dataset.enhanced = "true";
-    virtualizer.setOptions({ ...virtualizer.options, count: store.total });
-    virtualizer._willUpdate();
-    showCount();
-    render();
-    const first = tbody.querySelector("tr[data-index]");
-    if (first) {
-      rowHeight = first.getBoundingClientRect().height || ROW_HEIGHT_ESTIMATE;
-    }
-  });
+  function start() {
+    return store.ensure(0).then((loaded) => {
+      if (!loaded) {
+        return;
+      }
+      root.classList.add("datatable-enhanced");
+      root.dataset.enhanced = "true";
+      virtualizer.setOptions({ ...virtualizer.options, count: store.total });
+      virtualizer._willUpdate();
+      showCount();
+      render();
+      const first = tbody.querySelector("tr[data-index]");
+      if (first) {
+        rowHeight = first.getBoundingClientRect().height || ROW_HEIGHT_ESTIMATE;
+      }
+    });
+  }
+  start();
 }
 
 document.querySelectorAll("[data-datatable]").forEach(enhance);

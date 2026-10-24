@@ -12,7 +12,8 @@ from flask import jsonify, request, url_for
 
 from planetgen.util import log
 from planetgen.web.errors import RETRY_AFTER_SECONDS
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, slowpages
+from planetgen.web.lib.slowroute import RETRY_HEADER, percent
 from planetgen.web.lib.datatable import parse_state, view
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset
 
@@ -72,7 +73,9 @@ def table_data(name):
     `{"rows", "total", "capped", "next", "facets", "note"}`; rows are lists of cells (see
     `lib/datatable.py`). An unknown table is a 404, a read that hit the database's statement time limit a 504
     with `Retry-After` (and `"busy": true`, so the table keeps its rows and asks again), and any other API
-    failure a 502, all as `{"error": ...}`.
+    failure a 502, all as `{"error": ...}`. A slow read (`slowpages.cost`) is not held in the request: the answer is
+    `202` with `{"pending": true, "job": {...}, "status_url", "percent"}` (the job's `pagejobs.status`), and the table
+    polls `status_url` and asks again when the job has succeeded (UX.136). `X-Slow-Retry: 1` replaces a failed job.
     """
     table = TABLES.get(name)
     if table is None:
@@ -80,9 +83,19 @@ def table_data(name):
     state = parse_state(table, request.args, prefix="")
     limit = min(_whole(request.args.get("limit"), PAGE_SIZE, 1), PAGE_SIZE)
     offset = _whole(request.args.get("offset"), 0, 0)
+    slowpages.take_notice()      # one left from another request on this thread isn't this table's
     try:
-        result = table.load(state, limit, offset, request.args.get("facets") == "1",
-                            **({"after": request.args.get("after") or None} if table.keyset else {}))
+        with slowpages.allow_pending(retry=request.headers.get(RETRY_HEADER) == "1"):
+            result = table.load(state, limit, offset, request.args.get("facets") == "1",
+                                **({"after": request.args.get("after") or None} if table.keyset else {}))
+    except slowpages.Pending as pending:
+        job = pending.job
+        response = jsonify({"pending": True, "job": job, "percent": percent(job),
+                            "status_url": url_for("api.page_job_status_route", job_id=job["id"])})
+        response.status_code = 202
+        response.headers["Cache-Control"] = "no-store"
+        response.headers["Retry-After"] = "2"
+        return response
     except apiclient.ApiError as exc:
         if exc.status_code == 504:
             log.debug(f"The {name} table hit the statement time limit: {exc}")

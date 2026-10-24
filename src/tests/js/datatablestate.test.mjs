@@ -169,3 +169,63 @@ test("the store keeps the note of the page it fetched and forgets it on reset (P
   await plain.ensure(0);
   assert.equal(plain.note, "");
 });
+
+import { JOB_POLL_MS, percentOf } from "../../html/static/datatablestate.js";
+
+const pending = (state, extra = {}) => answer(202, { pending: true, percent: null, status_url: "/api/page-jobs/j1", job: { id: "j1", state, ...extra } });
+
+function jobsFor(statuses, log) {
+  return {
+    shown: [], stopped: () => false, retry: false,
+    show(job) { log.push(job && job.state); },
+    poll: async (url) => { log.push(url); return statuses.length > 1 ? statuses.shift() : statuses[0]; },
+  };
+}
+
+test("a 202 waits on the job, polling its status address, and asks for the rows again when it has succeeded", async () => {
+  const log = [];
+  const sleeps = [];
+  const answers = [pending("queued"), answer(200, { rows: [1], total: 1 })];
+  const jobs = jobsFor([answer(200, { id: "j1", state: "running", done: 50, total: 100 }), answer(200, { id: "j1", state: "succeeded" })], log);
+  const body = await fetchWhileBusy(async () => answers.shift(), () => true, () => {}, async (ms) => { sleeps.push(ms); }, jobs);
+  assert.deepEqual(body, { rows: [1], total: 1 });
+  assert.deepEqual(log, ["queued", "/api/page-jobs/j1", "running", "/api/page-jobs/j1", "succeeded", null]);
+  assert.deepEqual(sleeps, [JOB_POLL_MS, JOB_POLL_MS]);
+});
+
+test("a failed or cancelled job stays on the screen and the fetch fails", async () => {
+  for (const state of ["failed", "cancelled"]) {
+    const log = [];
+    await assert.rejects(fetchWhileBusy(async () => pending(state, { error: "Disk full" }), () => true, () => {}, async () => {}, jobsFor([], log)),
+      new RegExp(state));
+    assert.deepEqual(log, [state]);
+  }
+});
+
+test("Stop waiting ends the wait and a table no longer wanted clears the display", async () => {
+  const log = [];
+  const stopping = { ...jobsFor([], log), stopped: () => true };
+  await assert.rejects(fetchWhileBusy(async () => pending("running"), () => true, () => {}, async () => {}, stopping), /stopped/);
+  const logged = [];
+  await assert.rejects(fetchWhileBusy(async () => pending("running"), () => false, () => {}, async () => {}, jobsFor([], logged)), /no longer wanted/);
+  assert.deepEqual(logged, ["running", null]);
+});
+
+test("a job that has expired (404) is skipped: the rows are asked for again", async () => {
+  const answers = [pending("running"), answer(200, { rows: [], total: 0 })];
+  const body = await fetchWhileBusy(async () => answers.shift(), () => true, () => {}, async () => {}, jobsFor([answer(404, {})], []));
+  assert.deepEqual(body, { rows: [], total: 0 });
+});
+
+test("the first ask carries the retry flag when the visitor pressed Try again", async () => {
+  const asked = [];
+  await fetchWhileBusy(async (retry) => { asked.push(retry); return answer(200, { rows: [] }); }, () => true, () => {}, async () => {}, { ...jobsFor([], []), retry: true });
+  assert.deepEqual(asked, [true]);
+});
+
+test("the bar's value is a percent of rows done, 99 at most until it has succeeded, and unknown while queued", () => {
+  assert.equal(percentOf({ state: "running", done: 300, total: 1000 }), 30);
+  assert.equal(percentOf({ state: "running", done: 1000, total: 1000 }), 99);
+  assert.equal(percentOf({ state: "queued" }), null);
+  assert.equal(percentOf({ state: "succeeded" }), 100);
+});
