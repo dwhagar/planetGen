@@ -14,7 +14,8 @@ Usage:
     python scripts/vendor_shoelace.py package
 
 To use another component, add it to COMPONENTS and run the script again;
-add icons to ICONS the same way. It rewrites the whole destination folder.
+add icons to ICONS the same way. It rewrites the whole destination folder, then `vendor/VENDORED.json` (OPS.35,
+`scripts/vendor_lock.py`: set the new version there first).
 """
 
 import json
@@ -98,6 +99,10 @@ def main(package):
     write_system_icons(cdn, dest)
     shutil.copyfile(os.path.join(package, "LICENSE.md"), os.path.join(dest, "LICENSE.md"))
     print(f"{len(files)} files copied to {dest}")
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import vendor_lock    # OPS.35: the lock of what the site ships; bump Shoelace's version in its PACKAGES first
+    vendor_lock.refresh()
+    print("rewrote vendor/VENDORED.json")
 
 
 if __name__ == "__main__":
