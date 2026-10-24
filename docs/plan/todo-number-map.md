@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.195 |
-| MAP | MAP.294 |
+| MAP | MAP.295 |
 | NAV | NAV.63 |
 | GEN | GEN.764 |
 | PERF | PERF.194 |
@@ -1786,6 +1786,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.291 | Galaxy view map window does not use the full page width or the page height (bug) | none | done, PR #3132 |
 | MAP.292 | Galaxy Map scroll zoom gets stuck and never reaches a sector, a system or a star (bug) | none | done, PR #3104 |
 | MAP.293 | Colour by Habitable worlds no longer fills any sector since MAP.267: the legend shows but the sectors keep their normal colour (bug) | none | open |
+| MAP.294 | The sector page map fails to compile its vertex shader at phone width: camHigh, starLow, camLow and viewRotation are undeclared (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2383,11 +2384,11 @@ Parents marked "new parent" had no old number of their own.
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output | none | open |
 | UX.188 | Captain-first object pages, step C0: the GLANCE registry, the At a glance panel partial and its test (every key is in the sheet; the page renders the panel above the sheet) | none | done, PR #3116 |
 | UX.189 | Captain-first object pages, step C1: planet and moon pages | none | done, PR #3116 |
-| UX.190 | Captain-first object pages, step C2: star and star system pages | none | open |
-| UX.191 | Captain-first object pages, step C3: sector pages | none | open |
-| UX.192 | Captain-first object pages, step C4: phenomenon pages | none | open |
-| UX.193 | Captain-first object pages, step C5: belt, comet, facility, cluster and superbubble pages | none | open |
-| UX.194 | Captain-first object pages, step C6: galaxy page | none | open |
+| UX.190 | Captain-first object pages, step C2: star and star system pages | none | done, PR #3134 |
+| UX.191 | Captain-first object pages, step C3: sector pages | none | done, PR #3134 |
+| UX.192 | Captain-first object pages, step C4: phenomenon pages | none | done, PR #3134 |
+| UX.193 | Captain-first object pages, step C5: belt, comet, facility, cluster and superbubble pages | none | done, PR #3134 |
+| UX.194 | Captain-first object pages, step C6: galaxy page | none | done, PR #3134 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

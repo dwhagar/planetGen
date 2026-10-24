@@ -940,82 +940,6 @@ with `clamp()`.
   Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
   GEN.430, GEN.445.
 
-- [ ] **UX.190 Captain-first object pages, step C2: star and star system pages**
-  Step C2 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
-  2026-10-24: every object info page puts the most basic critical
-  information first, then details, from the view of a starship captain
-  using a nav system; absent values are listed only when the absence
-  matters). Do: star and star system pages: At a glance with a
-  best-destination row and a hazard row. Uses the GLANCE registry and
-  panel of UX.188. Each step is a small PR (template, sheet registry,
-  test, docs/reference/html-interface.md line, release note). Design
-  draft:
-  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
-  Data that needs a new computation uses existing queries first; where
-  none exists the row is left out and filed as its own item. Owner: Aux
-  11 (Lane 3, pages and markers).
-  Prerequisites: none. Related: UX.187, UX.188, UX.143, UX.144.
-
-- [ ] **UX.191 Captain-first object pages, step C3: sector pages**
-  Step C3 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
-  2026-10-24: every object info page puts the most basic critical
-  information first, then details, from the view of a starship captain
-  using a nav system; absent values are listed only when the absence
-  matters). Do: sector pages: At a glance (counts, hazards, habitable
-  worlds) above Contents. Uses the GLANCE registry and panel of UX.188.
-  Each step is a small PR (template, sheet registry, test,
-  docs/reference/html-interface.md line, release note). Design draft:
-  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
-  Data that needs a new computation uses existing queries first; where
-  none exists the row is left out and filed as its own item. Owner: Aux
-  11 (Lane 3, pages and markers).
-  Prerequisites: none. Related: UX.187, UX.188, UX.143, UX.144.
-
-- [ ] **UX.192 Captain-first object pages, step C4: phenomenon pages**
-  Step C4 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
-  2026-10-24: every object info page puts the most basic critical
-  information first, then details, from the view of a starship captain
-  using a nav system; absent values are listed only when the absence
-  matters). Do: phenomenon pages: At a glance with the keep-out distance
-  and the hazard first. Uses the GLANCE registry and panel of UX.188.
-  Each step is a small PR (template, sheet registry, test,
-  docs/reference/html-interface.md line, release note). Design draft:
-  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
-  Data that needs a new computation uses existing queries first; where
-  none exists the row is left out and filed as its own item. Owner: Aux
-  11 (Lane 3, pages and markers).
-  Prerequisites: none. Related: UX.187, UX.188, UX.143, UX.144.
-
-- [ ] **UX.193 Captain-first object pages, step C5: belt, comet, facility, cluster and superbubble pages**
-  Step C5 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
-  2026-10-24: every object info page puts the most basic critical
-  information first, then details, from the view of a starship captain
-  using a nav system; absent values are listed only when the absence
-  matters). Do: belt, comet, facility, cluster and superbubble pages: At
-  a glance. Uses the GLANCE registry and panel of UX.188. Each step is a
-  small PR (template, sheet registry, test,
-  docs/reference/html-interface.md line, release note). Design draft:
-  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
-  Data that needs a new computation uses existing queries first; where
-  none exists the row is left out and filed as its own item. Owner: Aux
-  11 (Lane 3, pages and markers).
-  Prerequisites: none. Related: UX.187, UX.188, UX.143, UX.144.
-
-- [ ] **UX.194 Captain-first object pages, step C6: galaxy page**
-  Step C6 of the captain-first chain (Boss, 5:50 PM EDT and 5:51 PM EDT
-  2026-10-24: every object info page puts the most basic critical
-  information first, then details, from the view of a starship captain
-  using a nav system; absent values are listed only when the absence
-  matters). Do: galaxy page: a summary At a glance. Uses the GLANCE
-  registry and panel of UX.188. Each step is a small PR (template, sheet
-  registry, test, docs/reference/html-interface.md line, release note).
-  Design draft:
-  /mnt/project-files/design-drafts/captain-first-object-pages-2026-10-24.md.
-  Data that needs a new computation uses existing queries first; where
-  none exists the row is left out and filed as its own item. Owner: Aux
-  11 (Lane 3, pages and markers).
-  Prerequisites: none. Related: UX.187, UX.188, UX.143, UX.144.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2584,6 +2508,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   red on main until this is fixed. Owner: Aux 10 (Map nodes; it wrote
   MAP.267), before it retires.
   Prerequisites: none. Related: MAP.267, MAP.131, TEST.300.
+
+- [ ] **MAP.294 The sector page map fails to compile its vertex shader at phone width: camHigh, starLow, camLow and viewRotation are undeclared (bug)**
+  Found by Aux 11 (6:40 PM EDT 2026-10-24 as the lane reported) on main:
+  test_web_a11y on the sector page at phone width fails with a WebGL
+  vertex
+  shader error because camHigh, starLow, camLow and viewRotation are
+  undeclared. These names come from the relative-to-eye star buffer
+  (src/html/static/starbuffer.js, MAP.267 #3114, edited again by MAP.291
+  #3132), so the sector page's shader and the star buffer are out of
+  step.
+  Find which shader the sector page compiles, declare or feed the new
+  uniforms and attributes the same way the Galaxy Map does, and keep the
+  a11y test. Owner: Aux 10 (it wrote MAP.267), with MAP.293.
+  Prerequisites: none. Related: MAP.267, MAP.291, MAP.293.
 
 ## NAV: Navigation and courses
 

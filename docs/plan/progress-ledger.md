@@ -1413,3 +1413,8 @@ Baseline: PR #1817.
 | TEST.360 | 8.1 | The headline closes |
 | MAP.287 | 8.1 | Fly-through map |
 | MAP.291 | 8.1 | Fly-through map |
+| UX.194 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.193 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.192 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.191 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.190 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
