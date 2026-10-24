@@ -10,6 +10,7 @@ import re
 import urllib.error
 
 import pytest
+import rich.console
 
 from planetgen.cli import datasets as datasets_cli
 from planetgen.datasets import catalogue, fetch
@@ -402,3 +403,101 @@ def test_status_of_a_stale_derived_dataset_names_the_archive_to_download(cache, 
     monkeypatch.setattr(catalogue, "ALL", (dataset,))
     assert datasets_cli.main(["status"]) == 1
     assert dataset.pieces[0].url in capsys.readouterr().out
+
+
+# ---- a slow or stalling host never leaves the update hanging (the 126 MB ozone archive on a slow link) ----
+
+class _Dribble(io.BytesIO):
+    """A response that gives `step` bytes a read and moves the fake clock `tick` seconds each time, then ends or fails."""
+
+    def __init__(self, payload, clock, tick, fail_after=None):
+        super().__init__(payload)
+        self.clock, self.tick, self.fail_after, self.reads = clock, tick, fail_after, 0
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
+
+    def read(self, size=-1):
+        self.reads += 1
+        self.clock[0] += self.tick
+        if self.fail_after is not None and self.reads > self.fail_after:
+            raise TimeoutError("timed out")
+        return super().read(min(size, 1000) if size > 0 else size)
+
+
+def test_a_host_that_trickles_is_given_up_after_the_stall_window_and_resumed_where_it_stopped(cache, monkeypatch):
+    payload = bytes(range(256)) * 2000
+    dataset = _dataset(payload)
+    clock = [0.0]
+    monkeypatch.setattr(fetch, "_now", lambda: clock[0])
+    monkeypatch.setattr(fetch, "STALL_MIN_BYTES", 5000)
+    requests = []
+
+    def opener(request, timeout=None):
+        headers = dict(request.header_items())
+        requests.append(headers.get("Range"))
+        if len(requests) == 1:
+            return _Dribble(payload[: 20 * 1000], clock, tick=fetch.STALL_WINDOW_SECONDS / 4 + 1)      # 1000 bytes a read, slowly
+        start = int(headers["Range"].split("=")[1].rstrip("-"))
+        response = _Dribble(payload[start:], clock, tick=0.001)
+        response.status = 206
+        return response
+
+    result = fetch.fetch(dataset, opener=opener)
+    assert result.status == "fetched"
+    assert requests[0] is None and requests[1].startswith("bytes=") and int(requests[1][6:-1]) > 0
+    assert (cache / "fixture" / "part0.dat").read_bytes() == payload
+
+
+def test_a_host_that_ignores_the_range_request_is_started_over(cache):
+    payload = b"0123456789" * 3000
+    dataset = _dataset(payload)
+    calls = []
+
+    def opener(request, timeout=None):
+        calls.append(dict(request.header_items()).get("Range"))
+        if len(calls) == 1:
+            return _Dribble(payload, [0.0], 0.0, fail_after=3)      # fails after some bytes
+        return _Response(payload)      # a plain 200 with the whole file
+
+    result = fetch.fetch(dataset, opener=opener)
+    assert result.status == "fetched" and calls[1] is not None
+    assert (cache / "fixture" / "part0.dat").read_bytes() == payload
+
+
+def test_a_download_that_never_improves_gives_missing_and_not_a_hang(cache, monkeypatch):
+    dataset = _dataset(b"abcdef" * 100)
+    clock = [0.0]
+    monkeypatch.setattr(fetch, "_now", lambda: clock[0])
+    result = fetch.fetch(dataset, opener=lambda request, timeout=None: _Dribble(b"abcdef" * 100, clock, tick=fetch.STALL_WINDOW_SECONDS + 1))
+    assert result.status == "missing" and "stalled" in result.reasons[0]
+    assert not list((cache / "fixture").glob(".*"))
+
+
+def test_a_large_file_says_what_it_is_doing(cache, monkeypatch):
+    payload = b"x" * 1000
+    dataset = _dataset(payload)
+    monkeypatch.setattr(fetch, "PROGRESS_MIN_BYTES", 10)
+    monkeypatch.setattr(fetch, "PROGRESS_SECONDS", 0)
+    said = []
+    result = fetch.fetch(dataset, opener=_serve(dataset, payload), progress=fetch.PlainProgress(said.append))
+    assert result.status == "fetched"
+    assert said[0].strip().startswith("downloading part0.dat") and "example.org/fixture/part0.dat" in said[0]
+    assert any("%" in line for line in said[1:])
+
+
+def test_the_command_draws_a_bar_on_a_terminal_and_plain_lines_elsewhere(monkeypatch):
+    assert isinstance(datasets_cli._download_progress(), fetch.PlainProgress)      # the test's output is not a terminal
+    monkeypatch.setattr(rich.console.Console, "is_terminal", property(lambda self: True))
+    assert isinstance(datasets_cli._download_progress(), datasets_cli._Bars)
+
+
+def test_the_bars_follow_a_download_and_take_the_bar_away_when_it_ends(cache):
+    payload = b"y" * 5000
+    dataset = _dataset(payload)
+    bars = datasets_cli._Bars(rich.console.Console(file=io.StringIO(), force_terminal=True, width=100))
+    result = fetch.fetch(dataset, opener=_serve(dataset, payload), progress=bars)
+    assert result.status == "fetched" and not bars._tasks

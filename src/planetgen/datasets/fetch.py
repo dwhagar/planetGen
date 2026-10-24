@@ -53,8 +53,20 @@ and makes it world-readable, since the web app only reads."""
 TIMEOUT_SECONDS = 30
 """int: How long one request may wait for the host before the dataset is given up as missing."""
 
-ATTEMPTS = 3
-"""int: How many times a file is requested when the host does not answer (a wrong size or hash is never retried)."""
+ATTEMPTS = 4
+"""int: How many times a file is requested when the host does not answer or stalls (a wrong size or hash is never retried). A
+retry asks for the rest of the file (a `Range` request) and starts over only when the host does not honour it."""
+
+STALL_WINDOW_SECONDS = 60
+"""int: A download that brings fewer than `STALL_MIN_BYTES` in this long is given up as stalled (the socket timeout does not catch a
+host that trickles a few bytes a minute) and retried from where it stopped."""
+
+STALL_MIN_BYTES = 1 << 17
+"""int: The least a download must bring in `STALL_WINDOW_SECONDS` (about 2 kB/s)."""
+
+PROGRESS_SECONDS = 10
+"""int: How often the plain progress (`PlainProgress`, output that is not a terminal) says how far a download has come, so a slow one is
+not mistaken for a hang."""
 
 RETRY_WAIT_SECONDS = 3
 """int: The wait between two attempts."""
@@ -63,6 +75,9 @@ STAMP = ".derived.json"
 """str: The record `fetch` keeps in a dataset's folder when it derives files."""
 
 CHUNK_BYTES = 1 << 16
+
+PROGRESS_MIN_BYTES = 1 << 22
+"""int: A file at least this big gets a line when its download starts (and one every `PROGRESS_SECONDS`) from `PlainProgress`."""
 
 _SHA256 = re.compile(r"[0-9a-f]{64}")
 _FILE_NAME = re.compile(r"[A-Za-z0-9][A-Za-z0-9._-]*")
@@ -351,47 +366,118 @@ class DownloadError(Exception):
     """One file could not be had; the message says why."""
 
 
-def _request(piece, opener, out):
-    """Streams the piece into the open file `out`; returns its byte count and sha256. Raises `DownloadError`."""
-    request = urllib.request.Request(piece.url, headers={"User-Agent": user_agent()})
+def _now():
+    return time.monotonic()
+
+
+class PlainProgress:
+    """
+    The progress of a download as plain lines, for output that is not a terminal (a log file, a pipe): a line when a file of at least
+    `PROGRESS_MIN_BYTES` starts and one every `PROGRESS_SECONDS` with the bytes, the speed and the time left. `fetch(progress=)` takes this or
+    any object with the same four methods (the update command's bars, `planetgen.cli.datasets`).
+    """
+
+    def __init__(self, write):
+        self._write = write
+        self._began = {}
+        self._said = {}
+
+    def begin(self, piece):
+        if piece.size >= PROGRESS_MIN_BYTES:
+            self._write(f"    downloading {piece.name} ({_megabytes(piece.size)}) from {piece.url}")
+        self._began[piece.name] = self._said[piece.name] = _now()
+
+    def update(self, piece, count):
+        now = _now()
+        if piece.size < PROGRESS_MIN_BYTES or now - self._said.get(piece.name, now) < PROGRESS_SECONDS:
+            return
+        self._said[piece.name] = now
+        speed = count / max(now - self._began[piece.name], 1e-9)
+        left = f", about {int((piece.size - count) / speed)} s left" if speed > 0 and count < piece.size else ""
+        self._write(f"    {piece.name}: {_megabytes(count)} of {_megabytes(piece.size)} ({100 * count // max(piece.size, 1)}%), "
+                    f"{speed / 1e6:.2f} MB/s{left}")
+
+    def note(self, text):
+        self._write(f"    {text}")
+
+    def end(self, piece):
+        self._began.pop(piece.name, None)
+        self._said.pop(piece.name, None)
+
+
+def _megabytes(count):
+    return f"{count / 1e6:.1f} MB"
+
+
+def _request(piece, opener, out, progress=None):
+    """Streams the piece into the open file `out` from where it ends (a `Range` request when it already holds a start); returns the
+    byte count the file holds. Raises `DownloadError`, also when the host stalls (`STALL_MIN_BYTES` in `STALL_WINDOW_SECONDS`)."""
+    out.seek(0, os.SEEK_END)
+    count = out.tell()
+    headers = {"User-Agent": user_agent()}
+    if count:
+        headers["Range"] = f"bytes={count}-"
+    request = urllib.request.Request(piece.url, headers=headers)
     limit = piece.size + 1
-    digest, count = hashlib.sha256(), 0
     try:
         with opener(request, timeout=TIMEOUT_SECONDS) as response:
+            if count and getattr(response, "status", 200) != 206:
+                out.seek(0)
+                out.truncate()
+                count = 0
+            window_start = _now()
+            window_count = count
             while count < limit:
                 block = response.read(min(CHUNK_BYTES, limit - count))
                 if not block:
                     break
-                digest.update(block)
                 out.write(block)
                 count += len(block)
+                now = _now()
+                if now - window_start >= STALL_WINDOW_SECONDS:
+                    if count - window_count < STALL_MIN_BYTES:
+                        raise DownloadError(f"{piece.url}: stalled at {_megabytes(count)} of {_megabytes(piece.size)}")
+                    window_start, window_count = now, count
+                if progress:
+                    progress.update(piece, count)
     except urllib.error.HTTPError as exc:
         raise DownloadError(f"{piece.url}: the host answered {exc.code} {exc.reason}") from exc
     except (urllib.error.URLError, OSError, http.client.HTTPException) as exc:
         raise DownloadError(f"{piece.url}: {getattr(exc, 'reason', None) or exc}") from exc
-    return count, digest.hexdigest()
+    return count
 
 
 class _WrongBytes(DownloadError):
     """The host answered, but with the wrong file: never retried."""
 
 
-def _download(piece, path, opener):
+def _sha256_of_open(out):
+    out.seek(0)
+    digest = hashlib.sha256()
+    for block in iter(lambda: out.read(CHUNK_BYTES), b""):
+        digest.update(block)
+    return digest.hexdigest()
+
+
+def _download(piece, path, opener, progress=None):
     handle, temporary = tempfile.mkstemp(prefix=f".{piece.name}.", dir=os.path.dirname(path))
     try:
-        with os.fdopen(handle, "wb") as out:
+        with os.fdopen(handle, "w+b") as out:
+            if progress:
+                progress.begin(piece)
             for attempt in range(ATTEMPTS):
-                out.seek(0)
-                out.truncate()
                 try:
-                    count, found = _request(piece, opener, out)
+                    count = _request(piece, opener, out, progress)
                     break
-                except DownloadError:
+                except DownloadError as exc:
                     if attempt == ATTEMPTS - 1:
                         raise
+                    if progress:
+                        progress.note(f"{exc}; trying again ({attempt + 2} of {ATTEMPTS})")
                     time.sleep(RETRY_WAIT_SECONDS)
-        if count != piece.size:
-            raise _WrongBytes(f"{piece.url}: expected {piece.size} bytes, got {'more' if count > piece.size else count}")
+            if count != piece.size:
+                raise _WrongBytes(f"{piece.url}: expected {piece.size} bytes, got {'more' if count > piece.size else count}")
+            found = _sha256_of_open(out)
         if found != piece.sha256:
             raise _WrongBytes(f"{piece.url}: sha256 is {found}, the catalogue says {piece.sha256}; not kept")
         os.chmod(temporary, 0o644)
@@ -402,6 +488,9 @@ def _download(piece, path, opener):
     except BaseException:
         _unlink(temporary)
         raise
+    finally:
+        if progress:
+            progress.end(piece)
 
 
 def _unlink(path):
@@ -440,11 +529,12 @@ def _derive(dataset):
             _unlink(os.path.join(where, piece.name))
 
 
-def fetch(dataset, *, opener=None):
+def fetch(dataset, *, opener=None, progress=None):
     """Brings the dataset's files into the cache folder. A file already there with the right size and sha256 is left
     alone; a different one is replaced. Never raises for a network or disk problem: the result is `missing` with a
     reason per file that could not be had, and the files that were fine stay. A dataset with a derive function whose
-    derived files are current does not download its archive again. `Result.pieces` says what happened to each file."""
+    derived files are current does not download its archive again. `Result.pieces` says what happened to each file. `progress`, when
+    given (`PlainProgress`, or an object with its `begin`, `update`, `note` and `end`), is told how each download goes."""
     opener = opener or urllib.request.urlopen
     where = folder(dataset)
     try:
@@ -462,7 +552,7 @@ def fetch(dataset, *, opener=None):
             handled.append(PieceResult(piece, "kept"))
             continue
         try:
-            _download(piece, path, opener)
+            _download(piece, path, opener, progress)
             changed = True
             handled.append(PieceResult(piece, "fetched"))
         except DownloadError as exc:
