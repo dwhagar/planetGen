@@ -174,9 +174,9 @@
    "fallback": "none",
    "constants": {
     "c_j1": [
-     0.1,
+     0.0,
      1.0,
-     "log"
+     "uniform"
     ],
     "c_j5": [
      0.05,
@@ -2482,7 +2482,7 @@
     "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2, Beta interval 0.29 to 0.99; GEN.511)",
+   "limit": "2 of 2 molten-dayside ultra-short-period planets keep volatiles (N=2): the bracket is the 95 percent interval 0.29 to 0.99 of Beta(3, 1) (GEN.511)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -2504,8 +2504,8 @@
    ],
    "constants": {
     "c_i6": [
-     0.1,
-     0.9,
+     0.29,
+     0.99,
      "log"
     ]
    },
@@ -2532,7 +2532,7 @@
     "DESIGN"
    ],
    "state": "partly verified",
-   "limit": "the runaway gate is Kopparapu 2013 (READ); the retained fraction is a design residual in [0, 1] (GEN.511)",
+   "limit": "the runaway gate is Kopparapu 2013 (READ); the retained fraction is a design residual that must allow 0, since 0 of 2 bare M-dwarf planets (TRAPPIST-1 b, c) cannot be forbidden (GEN.511)",
    "replacement": "",
    "items": [],
    "classes": [

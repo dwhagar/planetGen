@@ -192,6 +192,8 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.514, lane M, 2026-10-23):** rows o2, o4 and o6 are retuned (`docs/design/radioisotope-tuning.md`): the thorium scale of non-thin-disc hosts is the 32-star Hypatia statistic (-0.063 dex, 0.19), Th/U follows the published formula with the planet's age (3.04 to 5.39 at 4.5 Gyr), and the aluminium-26 share bracket is 0.04 to 0.66. Row o3 stays a stand-in (Solar System only).
 
+**Built (GEN.511, lane M, 2026-10-23):** rows d1, i6 and j1 are checked (`docs/design/retention-tuning.md`): the shoreline row d1 already follows the published logistic and is now pinned by a test, the molten-dayside share i6 takes the 95 percent Beta(3, 1) interval 0.29 to 0.99, and the retained fraction j1 is drawn uniform from 0 to 1 so that a bare planet is possible.
+
 ## 5. NO FIXED CONTENT: where the Solar System alone constrains a knob
 
 Tuning a knob to these would break the rule; keep them as test points or flagged stand-ins.

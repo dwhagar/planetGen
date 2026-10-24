@@ -114,3 +114,27 @@ def test_the_thorium_to_uranium_ratio_grows_with_the_planets_age_and_follows_the
 def test_the_enriched_aluminium_share_bracket_is_the_published_one():
     constant = RECIPES.entry("o6").constants["c_o6"]
     assert (constant[0], constant[1]) == (0.04, 0.66), "at least 4 percent of systems (Curry 2022) to the white-dwarf upper estimate"
+
+
+# --- retention and lava worlds (GEN.511) ---------------------------------------------------------------------------------------
+
+
+def test_the_shoreline_is_the_published_logistic():
+    from planetgen.generation.possibility_table import Subject
+
+    def bare(insolation, v_esc_kms=11.186, luminosity=1.0):
+        s = Subject("A", {"insolation": insolation, "v_esc_kms": v_esc_kms, "luminosity_solar": luminosity})
+        return dict(RECIPES.probabilities("d", s)).get("d1", 0.0)
+    # log10 f0 = 2.62 at the Earth's escape velocity and a solar luminosity (Berta-Thompson 2025): half the planets keep an atmosphere
+    assert bare(10 ** 2.62) == pytest.approx(0.5, abs=1e-6)
+    assert bare(10 ** (2.62 + 0.247)) == pytest.approx(1.0 / (1.0 + 10 ** -1.0), abs=1e-6), "one width above the line"
+    assert bare(10 ** 2.62 * 10 ** 5.9, v_esc_kms=11.186 * 10.0) == pytest.approx(0.5, abs=1e-6), "p = 5.9 in the escape velocity"
+    assert bare(10 ** 2.62 * 10 ** 1.17, luminosity=10.0) == pytest.approx(0.5, abs=1e-6), "q = 1.17 in the luminosity"
+    assert bare(1.0) < 1e-9, "the Earth's flux is far below the line"
+
+
+def test_the_retained_share_may_be_zero_and_the_lava_world_share_is_the_beta_interval():
+    j1 = RECIPES.groups["j"].constants["c_j1"]
+    assert j1[0] == 0.0 and j1[1] == 1.0 and j1[2] == "uniform", "0 of 2 bare M-dwarf planets cannot be forbidden"
+    i6 = RECIPES.entry("i6").constants["c_i6"]
+    assert (i6[0], i6[1]) == (0.29, 0.99), "the 95 percent interval of Beta(3, 1), 2 volatile-bearing of 2 molten planets"
