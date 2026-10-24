@@ -1445,6 +1445,8 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `induced_moment_a_m2` | DOUBLE | nullable | Added in v87 (DB.26, GEN.178), placed after `dipole_class`. The induced magnetic moment in A m2; NULL when not computed or none. |
 | `phi4_water`, `phi4_suitability` | DOUBLE | nullable | Added in v87 (DB.26, GEN.207, PHI-6), beside `phi4_air`. The water score and the suitability (the lowest of water, food and shelter). NULL until regenerated. |
 | `tier_water`, `tier_suitability` | TINYINT | nullable | Added in v87 (DB.26, GEN.207). The colour of each, 0 Blue to 3 Red like the other tiers. |
+| `bond_albedo`, `greenhouse_factor` | DOUBLE | nullable | Added in v142 (GEN.412). The two draws the surface temperature is made of: the Bond albedo A and the greenhouse quantity G, with T_e = ((1 - A) S / (4 sigma))^(1/4) and T_s = T_e (1 + G)^(1/4) (S the starlight at the orbit; a moon's is its planet's; never below 2.725 K). G is 0 for a body with no air. |
+| `albedo_basis` | TINYINT UNSIGNED | nullable | Added in v142 (GEN.412). Where the two came from: 0 recorded at generation, 1 the exact inverse of a row saved without them (from its stored scale height), 2 a seeded draw from the class range where the inverse had no solution. NULL for a row with no temperature or no starlight to work from. |
 
 ### `moon_reflection_spectrum`
 
@@ -2192,6 +2194,10 @@ Migration 0135 adds `ozone_column_du` (DOUBLE, nullable) at the end of `planets`
 ### v139 (MAP.143): `habitable_worlds` on `sector_stats` and `galaxy_block_stats`
 
 Migration 0139 adds `sector_stats.habitable_worlds` (INT, nullable: the planets and moons in the sector's systems that are potentially habitable: an overall PHI-6 score that is Blue or Green, `habitability.POTENTIALLY_HABITABLE_MIN_SCORE`, read from the stored `phi4`) and `galaxy_block_stats.habitable_worlds` (BIGINT UNSIGNED, not null, default 0: their sum over the block's generated sectors). `store.record_sector_stats` writes the sector's count when it is filled (`store.sector_habitable_worlds`), `forget_sector_fill` clears it, and `db/block_stats.py` adds it up the ladder like the other sums; the stage API (`query.galaxy_stage`, `galaxy_block_stats`) reports it as `stats.habitable_worlds`, which the Galaxy Map's Color by Habitable worlds reads. The migration counts every filled sector from the scores already stored, a shell at a time, and rebuilds the block totals. The version is detected from `sector_stats.habitable_worlds`.
+
+### v142 (GEN.412): the albedo and the greenhouse quantity on a planet or moon
+
+Migration 0142 adds `bond_albedo`, `greenhouse_factor` (both DOUBLE, nullable) and `albedo_basis` (TINYINT UNSIGNED, nullable) to `planets` and `moons`, at the end of each table. The generator keeps the two numbers it draws for the temperature (`planetgen/physics/climate_draws.py`; [atmosphere-colour.md](../design/composition/atmosphere-colour.md) sections 5 and 8). A row saved before the revision gets them back with no draw: its stored scale height holds the temperature it would have with no air, so `1 - A = 4 sigma T_e^4 / S` and `G = (T_s / T_e)^4 - 1` follow (`albedo_basis` 1). Where there is no solution (no starlight, a temperature on the 2.725 K floor, an albedo outside 0 to 1, a pressure above the barometric law) the albedo is a seeded draw from the class range and G is worked out from the stored temperature, which never moves (`albedo_basis` 2). A stopped run can be started again; the version is detected from `planets.bond_albedo`.
 
 ### v134 (GEN.267): the star count, its cap and the multi-star prevalence on a stored config
 

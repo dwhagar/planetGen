@@ -330,6 +330,11 @@
       "epoch": 67,
       "first_release": "8.0.2129",
       "reason": "A rocky body draws its potassium, thorium, uranium and aluminium-26 content from its host star's abundances and a potassium depletion, a Urey ratio and an Al-26 ratio, and its interior heat and ground dose read that one content; the old Turcotte and Schubert mantle values, the 0.67 Urey ratio and the a_rad draw are gone, so every rocky body's heat flux, ground dose and the draws after them move (GEN.459)"
+    },
+    {
+      "epoch": 68,
+      "first_release": "8.0.2135",
+      "reason": "Close-binary types: contact binaries, Algols, blue stragglers, merger products, Be stars with a stripped companion, R Coronae Borealis, FK Comae and Thorne-Zytkow stars are drawn inside the member tree, and the tight tail of the period law is weighted for solar-type pairs, so star systems and their companions change (GEN.270)"
     }
   ]
 }

@@ -209,7 +209,7 @@ connectivity to that specific schema rather than the default one.
   "Wiki publishing" below), `stars`, `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable`,
   `life_stage` — the furthest evolutionary milestone its timeline reached,
-  or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 [R2]`, the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
+  or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 H3 [R2]`, `required_line` and `recommended_line` (UX.163; a line with nothing in it is empty), the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
   `{component, concentration}` largest share first), `comets`, `sector_siblings`
   (`{id, name}` for every system in the same sector), and
   `nearest_neighbors` (`{id, name, distance_ly}` for the up-to-3 closest
@@ -280,7 +280,7 @@ connectivity to that specific schema rather than the default one.
   `sector_ly` (light-years from the sector's center) and `system_km`
   (kilometers from the system's origin), each `[x, y, z]` or `null` where
   the object has none (a body inside a system takes the system's galaxy and
-  sector positions; a belt is a ring with no `system_km`). A bad reference
+  sector positions; a belt is a ring with no `system_km`; a moon of a free planet (DB.94) has `rogue_planet` as its parent after the galaxy, the rogue planet's galaxy point, no `system_km`, and the planet's other moons as siblings). A bad reference
   or a missing row is a `404`. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100). `keep_out` (NAV.24) is the object's keep-out
   radius for course planning: `{radius_km, basis, note}`, `basis` one of
   `hill` (a planet or moon), `perimeter` (a star or system: the widest

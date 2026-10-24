@@ -26,5 +26,5 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | POP.11 | Scatter space vessels and stations for the races in their territories | USR.29 |  |
 | USR.30 | Add a ship or station from a page and see it and its track on the maps | USR.29 | Split from USR.10. |
 | USR.10 | Users add their own objects (ships and stations) and track their movement on the map | USR.29, USR.30 |  |
-| MAP.221 | Station and vessel icons on the Galaxy Map | MAP.219, USR.29, POP.11 | Split from MAP.132. |
-| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | MAP.219, MAP.220, MAP.221 | Later (Boss 2026-10-08 01:59Z colors). |
+| MAP.221 | Station and vessel icons on the Galaxy Map | USR.29, POP.11 | Split from MAP.132. |
+| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | MAP.220, MAP.221 | Later (Boss 2026-10-08 01:59Z colors). |

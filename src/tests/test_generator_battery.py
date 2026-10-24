@@ -104,3 +104,25 @@ def test_tree_turns_objects_into_fields_and_sorts_sets():
 
 def test_tree_leaves_the_clocks_out_of_dicts():
     assert battery.tree({"epoch_unix": 1.0, "next_update_due": 2.0, "kept": 3}) == {"kept": 3}
+
+
+def test_the_digest_started_in_a_process_of_its_own_is_the_one_made_here(baseline, monkeypatch):
+    """PERF.176: a plan works the digest out while it does other work; the digest it then stores is the same."""
+    monkeypatch.setattr(battery, "_running", None)
+    finish = battery.start_running_digest()
+    assert battery._running is None, "nothing is kept until the caller waits for it"
+    finish()
+    assert battery._running == baseline
+    assert battery.running_digest() is battery._running
+    assert battery.start_running_digest()() is None, "a digest already kept starts nothing"
+
+
+def test_a_digest_that_cannot_be_started_elsewhere_is_worked_out_where_it_is_asked_for(baseline, monkeypatch):
+    def refuse(*args, **kwargs):
+        raise OSError("no process")
+
+    monkeypatch.setattr(battery, "_running", None)
+    monkeypatch.setattr(battery.concurrent.futures, "ProcessPoolExecutor", refuse)
+    battery.start_running_digest()()
+    assert battery._running is None
+    assert battery.running_digest() == baseline

@@ -35,7 +35,9 @@ from dataclasses import dataclass
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import constants, relations, stability
+from planetgen.physics import constants, relations, stability, unit_registry as units
+
+_yr_to_s = units.converter("yr", "s")
 
 FLOOR_DIAMETER_M = 10.0
 """float: The smallest satellite's diameter (Boss's card S5: the 10 m floor)."""
@@ -203,7 +205,7 @@ def tidal_survival_radius_m(moon_density_kg_m3, planet_mass_kg, moon_orbit_radiu
     if not (moon_density_kg_m3 > 0 and planet_mass_kg > 0 and moon_orbit_radius_m > 0 and submoon_mass_kg > 0
             and love_number > 0 and tidal_q > 0 and age_yr > 0):
         raise HostingError("the tidal gate needs positive numbers")
-    seconds = age_yr * constants.SECONDS_PER_YEAR
+    seconds = _yr_to_s(age_yr)
     density_term = 3.0 * planet_mass_kg / (SUBMOON_HILL_FRACTION * moon_orbit_radius_m) ** 3
     bracket = (39.0 * submoon_mass_kg * love_number * seconds * math.sqrt(constants.G)
                / (2.0 * (4.0 * math.pi * moon_density_kg_m3) ** (8.0 / 3.0) * tidal_q) * density_term ** (13.0 / 6.0))

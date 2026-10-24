@@ -194,46 +194,60 @@ test("the View button is the first action of the panel", () => {
   assert.equal(links[0].getAttribute("href"), "/object/planet:1");
 });
 
-test("the info box over the map shows the basics when the map has room (MAP.139)", () => {
+test("the panel is a popup in the map's window: the whole selection with a Close, and no second copy (MAP.288)", () => {
   installDom("http://localhost/");
   const viewport = h("div", {});
-  const boxEl = h("div", { id: "box" });
-  boxEl.hidden = true;
-  viewport.append(boxEl);
-  viewport.clientWidth = MP.BOX_MIN_WIDTH + 100;
-  viewport.clientHeight = MP.BOX_MIN_HEIGHT + 100;
-  const panelEl = h("aside", { "data-infobox": "box" });
-  panelEl.dataset = { infobox: "box" };
-  document.body.append(viewport, panelEl);
+  const panelEl = h("aside", { "data-overlay": "" });
+  panelEl.dataset = { overlay: "" };
+  viewport.append(panelEl);
+  document.body.append(viewport);
   const panel = MP.infoPanelOf(panelEl);
+  assert.equal(panelEl.dataset.state, "rest", "nothing picked: not drawn");
   panel.show({
     title: "Sol",
     fields: [["Star type", "G2V"], ["A", "1"], ["B", "2"], ["C", "3"], ["D", "4"], ["Octant", null]],
     view: { href: "/system/1", label: "View system →" },
   });
-  assert.equal(boxEl.hidden, false);
-  assert.equal(boxEl.querySelector("h3").textContent, "Sol");
-  assert.equal(boxEl.querySelectorAll("dt").length, MP.BOX_FIELDS, "only the first few rows");
-  assert.deepEqual(boxEl.querySelectorAll("a").map((a) => a.textContent), ["View system →"]);
-  assert.deepEqual(boxEl.querySelectorAll("button").map((b) => b.textContent), ["Details", "Close"]);
-  boxEl.querySelector(".map-info-close").click();
-  assert.equal(boxEl.hidden, true, "closed for this selection");
+  assert.equal(panelEl.dataset.state, "selected");
+  assert.equal(panelEl.dataset.corner, "top-right", "the upper right until the pointer has been used");
+  assert.equal(panelEl.querySelector("h3").textContent, "Sol");
+  assert.equal(panelEl.querySelectorAll("dt").length, 5, "every row, not the first few");
+  assert.deepEqual(panelEl.querySelectorAll("a").map((a) => a.textContent), ["View system →"]);
+  assert.deepEqual(panelEl.querySelectorAll("button").map((b) => b.textContent), ["Close"]);
+  panelEl.querySelector(".map-info-close").click();
+  assert.equal(panelEl.dataset.state, "closed");
   panel.show({ title: "Alpha" });
-  assert.equal(boxEl.hidden, false, "a new selection opens it again");
+  assert.equal(panelEl.dataset.state, "selected", "a new selection opens it again");
   panel.hint("Click a star.");
-  assert.equal(boxEl.hidden, true, "nothing selected: no box");
+  assert.equal(panelEl.dataset.state, "rest", "nothing selected: not drawn");
 });
 
-test("the info box stays away from a map with no room", () => {
+test("a popup that serves two viewports moves into the one that is showing", () => {
+  installDom("http://localhost/");
+  const diagram = h("div", { id: "diagram" });
+  const solid = h("div", { id: "solid" });
+  diagram.getClientRects = () => [];
+  solid.getClientRects = () => [{}];
+  const panelEl = h("aside", {});
+  panelEl.dataset = { overlay: "diagram solid" };
+  panelEl.setAttribute("data-overlay", "diagram solid");
+  diagram.append(panelEl);
+  document.body.append(diagram, solid);
+  MP.infoPanelOf(panelEl).show({ title: "Sol" });
+  assert.equal(panelEl.parentElement, solid);
+});
+
+test("a map's own text in the popup is drawn with a Close by reveal()", () => {
   installDom("http://localhost/");
   const viewport = h("div", {});
-  const boxEl = h("div", { id: "box" });
-  viewport.append(boxEl);
-  viewport.clientWidth = MP.BOX_MIN_WIDTH - 1;
-  viewport.clientHeight = 900;
-  const panelEl = h("aside", {});
-  panelEl.dataset = { infobox: "box" };
-  document.body.append(viewport, panelEl);
-  MP.infoPanelOf(panelEl).show({ title: "Sol" });
-  assert.equal(boxEl.hidden, true);
+  const panelEl = h("aside", { "data-overlay": "" });
+  panelEl.dataset = { overlay: "" };
+  viewport.append(panelEl);
+  document.body.append(viewport);
+  const panel = MP.infoPanelOf(panelEl);
+  panelEl.append(h("p", {}, ["Click two bodies."]));
+  panel.reveal();
+  panel.reveal();
+  assert.equal(panelEl.dataset.state, "selected");
+  assert.equal(panelEl.querySelectorAll(".map-info-close").length, 1);
 });

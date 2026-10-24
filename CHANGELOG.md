@@ -2,6 +2,128 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2143] - 2026-10-24
+
+**Headline:** Twelve physics files now convert astronomical units, years, light-years and parsecs through the one unit registry, with the same numbers.
+
+### Changed
+- `unit_registry.converter(from_key, to_key)` returns a function for one conversion, looked up once when a module loads: a multiply by the larger-to-smaller ratio or a divide by the smaller-to-larger one, a power of ten taken as the exact power, so it gives the same float as the hand-written `* 1000.0`, `/ AU_TO_KM` or `* SECONDS_PER_YEAR` it replaces.
+- Twelve files (`activity`, `body_positions`, `body_state`, `formation`, `hosting_gate`, `kepler`, `orbits`, `planet_survival`, `planet_zones`, `pre_main_sequence`, `stability`, `system_tree`) use it for their AU, km, m, light-year, parsec, year, second and Gyr conversions (GEN.571, first file group). `tests/test_unit_converters.py` holds each conversion against the expression it replaced on 7,000 inputs, bit for bit. The module-level `AU_KM` of `body_positions` and `system_tree`, `SECONDS_PER_YEAR` of `system_tree` and `YEAR_S` of `pre_main_sequence` are gone; nothing else read them.
+
+## [8.0.2142] - 2026-10-24
+
+**Headline:** The habitability symbols are solid colour-shaded shapes you can read in both themes, and the radiation symbol is a trefoil.
+
+### Fixed
+- **Every icon of the sprite drew as a solid black shape.** The sprite set its outline in a style element of its own, which the site's Content-Security-Policy (`default-src 'self'`) refuses, so the shapes took the default black fill and the PHI-6 symbols showed only a tiny coloured dot (Boss, 9:07 PM EDT 2026-10-23). The outline is now the `.icon` rule of `style.css`.
+- **The PHI-6 symbols are solid shapes with no border (Boss, 9:10 PM EDT).** Each is filled in its rating colour with its inner details cut out, at 0.8 opacity so the page behind shades the colour in the light and the dark theme, and a little larger (1.45em). The accessible labels are unchanged.
+- **The four life symbols are solid and borderless too (UX.151).** Microbial, Flora, Fauna and Sentient are filled shapes at 0.8 opacity like the PHI-6 ones; the number beside each is unchanged.
+- **The radiation symbol is a trefoil.** A dot and three blades replace the three arcs that could not be read as radiation.
+- **The icons were black in Firefox behind an extra policy header (UX.166, Boss).** Firefox refused the sprite's own style where Chrome did not, so the symbols and every other icon (the pencil, the menus) drew as solid black shapes there. With the outline and fill in `style.css` they draw the same in both browsers; a browser test now draws every symbol and icon under the site's policy plus a second header, in Chromium and Firefox.
+
+## [8.0.2141] - 2026-10-24
+
+**Headline:** One wheel scroll now runs from the whole galaxy down to a sector without stopping, and the map no longer swoops to a preset view or throws away your turn.
+
+### Changed
+- **The wheel carries on across stages (MAP.263).** Scrolling in past the end of a window's zoom takes the block under the pointer (the window one size down, or the sector) and scrolling out takes the parent, with no pause between one stage and the next, no gesture cooldown, and no flight to a preset camera: the camera stays where it is, with the turn you gave it and its distance, and the next window's blocks fade in over it. The next window's data is asked for before the zoom reaches the end of its range, so the crossing tick finds it. The map's middle can be moved anywhere: the limit of 1.5 fits from the stage's own middle is gone. Opening a sector or a system with the wheel keeps the camera too. Clicking a block, Up, Home, Back and the breadcrumb still fly to their view.
+
+TODO items resolved: MAP.263. Added: none.
+
+## [8.0.2140] - 2026-10-24
+
+**Headline:** The Galaxy Map has a marker layer: a glyph drawn over each black hole in view, with a Menu toggle, a legend line, and a click or hover that names it.
+
+### Changed
+- **A marker layer for the Galaxy Map (MAP.219).** Notable things are drawn as small glyphs that never shrink below 2 px and stay readable at any zoom, in a kind registry so later kinds (habitable worlds, chosen classes) are one entry each. Black holes are the first kind. Each kind has a Menu toggle (from the shared layer registry, `hide=<kind>` in the address when off), a legend line while on, a zoom budget so a crowded view shows the nearest and brightest first, and a hidden button per marker for keyboard and screen reader users. A click or hover picks a marker before the point of light under it, and a black hole shows its own card as before.
+
+## [8.0.2139] - 2026-10-24
+
+**Headline:** The search icon in the top bar goes straight to the Search page instead of dropping a box down.
+
+### Changed
+- **The search icon opens the Search page (UX.160, Boss's live observation).** The header's search control was an icon button that dropped a small name box down (UX.146). It is now a plain icon link to `/search`, whose own Name box and filters do the searching. `static/headersearch.js` and the dropdown's styles are gone. Tests in `test_web_header_menus.py`, `test_web_pages.py` and `test_web_search.py`.
+TODO items resolved: UX.160. Added: none.
+
+## [8.0.2138] - 2026-10-24
+
+**Headline:** After a galaxy reset the Home page's counts drop to zero at once instead of showing the old galaxy's figures.
+
+### Fixed
+- **Home showed the old counts after a reset (UX.161, Boss's live observation).** A stored count (`countcache`, PERF.64) made before the reset was served once more while the next one was made, and the page cache (PERF.104) kept that answer; with the galaxy wiped, nothing moved the content stamp again to replace it. The stored counts are now keyed by the sector deletion epoch, which a reset moves up, so no count made before a reset is served after it, and `planetgen reset` tells the page cache at once (`dataversion.record(..., "everything")`), as a generation run does when it finishes. Test in `test_reset_counts.py`, with the caches on and off.
+TODO items resolved: UX.161. Added: none.
+
+## [8.0.2137] - 2026-10-24
+
+**Headline:** Cosmic-ray worlds like Mars and the Moon now require a hardened suit, and every planet and moon page shows a Required line, a Recommended line (each left off when empty) and the per-item specs.
+
+### Changed
+- **A hardened suit against cosmic rays (GEN.671).** Where no ordinary garment or vest brings the yearly dose under the Green edge, the hardened suit is required and the hardened habitat is recommended. Mars is now "Required: hardened pressure suit + dust-tight seals. Recommended: hardened habitat." Run `planetgen rescore-habitability` to update stored worlds.
+- **A Required line and a Recommended line (UX.163).** A planet or moon's details head the habitability rating with a Required line and a Recommended line (a line with nothing in it is left off), followed by a Survival equipment table with each item's severity, category and tech level, and the shelter's shielding and hours outside. The API's `equipment` object gains `required_line` and `recommended_line`.
+
+## [8.0.2136] - 2026-10-24
+
+**Headline:** A moon of a free (rogue) planet can now be found by name, looked up by its ID and opened on its own page.
+
+### Changed
+- **Moons of free planets are read where other moons are (DB.94).** The object index, the object lookup (`GET /api/objects/<ref>`), the Search page's Moons panel and the moon's own page all handle a moon that orbits a free planet instead of a star: the lookup names the rogue planet as its parent and gives its galaxy point, Search lists it with the free planet where a planet's name goes (and no system), and its page links to the free planet in place of a system. Nothing generates such moons yet.
+
+## [8.0.2135] - 2026-10-24
+
+**Headline:** Close binaries now come in their observed kinds: contact binaries, Algols, blue stragglers, merger products, Be stars with a stripped companion, and the rare R Coronae Borealis, FK Comae and Thorne-Zytkow stars.
+
+### Added
+- **Contact binaries and Algols follow their gates.** A contact binary of a solar-type primary needs an age of at least 0.1 Gy, an Algol an age under 3 Gy, and neither holds a contracting or substellar object. The donor of an Algol that was the heavier at birth carries `mass_reversed`, and the lighter star is a `mass_gainer`. The tight tail of the period law is calibrated (`tight_tail_weight` 6.0): about 0.5% of FGK systems hold a contact binary, and 60% of contact binaries have a tertiary.
+- **Merger products and mass gainers.** 8% of young massive stars are merger products with one star fewer and a rejuvenated age, 0.5% of older stars are blue stragglers, and 20% of young massive stars are mass gainers.
+- **Be stars.** 20% of young B stars are Be stars, and 30% of those have a stripped helium companion that spun them up.
+- **R Coronae Borealis, FK Comae and Thorne-Zytkow stars.** Old giants take these at the catalogue's Galaxy counts; a Thorne-Zytkow object is a single member flagged theoretical.
+- **Eclipsing and spectroscopic pairs** are derived from a tree (`MemberTree.eclipsing_nodes`, `spectroscopic_nodes`), not stored.
+
+### Changed
+- **Generated systems change.** The period law, the gates and the new draws move the draws of star systems, so every galaxy regenerates differently (generator epoch recorded).
+
+generation-output: changed
+
+## [8.0.2134] - 2026-10-24
+
+**Headline:** The plan no longer prints its table of where the time went unless asked.
+
+### Changed
+- **The "Where the plan's time went" table is printed only with `--timing` or `--debug` (UX.162).** Every galaxy plan ended with a step table made for finding slow steps (PERF.163). A plain plan's text is back to what it was before; `planetgen plan --timing` prints the same table.
+
+## [8.0.2133] - 2026-10-24
+
+**Headline:** A galaxy plan takes about half as long, because the digest it stores with the galaxy is worked out alongside the plan.
+
+### Changed
+- **A new galaxy's plan no longer stops for the generator battery (PERF.176).** The plan records a digest of the generator with a new galaxy, and worked it out in the middle of storing the shape: 8 to 20 seconds of a 15 to 39 second plan. It is now worked out in a process of its own while the rest of the plan runs; the plan waits under a second for it. The digest stored is the same.
+
+## [8.0.2132] - 2026-10-24
+
+**Headline:** Every map shows what you pick in one popup over the map, and the panel beside the map is gone, so the map gets the room.
+
+### Changed
+- **No info panel beside the maps (MAP.288).** The Galaxy Map, the sector view and the System Map (diagram and 3D) show a picked thing's information only as a popup inside the map's window, at every screen width: the heading, every row, the View button to the item's own page, Start Here, End Here, the ☆ and a Close button, in the corner away from where you last pressed. It is not drawn until something is picked. The map window now takes the width the panel used. The System Map's measurement results use the same popup. The small box with the first four rows and a Details button, and the column beside the System Map, are removed.
+
+TODO items resolved: MAP.288. Added: none.
+
+## [8.0.2131] - 2026-10-24
+
+**Headline:** A planet or moon keeps the Bond albedo and the greenhouse quantity its surface temperature is made of, so the temperature can be read back from them exactly.
+
+### Changed
+- **The generator records its albedo and greenhouse draws (GEN.412).** `calculate_atmospheric_conditions` drew an albedo from the class range and a greenhouse quantity from the air and the class multiplier, and kept only the temperature. It now keeps both on the body (`bond_albedo`, `greenhouse_factor`, with `albedo_basis` 0), and the temperature is `T_s = T_e (1 + G)^(1/4)` through the new `planetgen/physics/climate_draws.py`, floored at the cosmic microwave background as before. A body with no air records G as 0. Nothing is drawn differently, so there is no generator epoch.
+- **Migration 0142, schema v142.** `planets` and `moons` gain the three columns. A galaxy made earlier gets the draws back exactly from each body's stored scale height (`albedo_basis` 1); a row with no solution (no starlight, a temperature on the background floor, an albedo outside 0 to 1, an edited pressure) takes a seeded draw from the class range with the greenhouse quantity worked out from its stored temperature, which never moves (`albedo_basis` 2).
+
+## [8.0.2130] - 2026-10-24
+
+**Headline:** The retired `/<name>.py` page addresses and the old NAV parameter style now answer 404 instead of redirecting.
+
+### Removed
+- The `/<name>.py` redirects (`index.py`, `search.py`, `sector.py` and the rest) and `web/old_urls.py`; those addresses now give the normal 404 page.
+- The old NAV parameters (`from_id`, `to_id`, `from_kind`, `to_kind`, `from_type`, `to_type`), which used to redirect to the current `from`/`to` form.
+- The redirect tests for both, about 190 cases; the 404, header, malformed-body, HEAD and OPTIONS sweeps stay.
+
 ## [8.0.2129] - 2026-10-24
 
 **Headline:** A rocky body's interior heat and its ground radiation now come from one set of potassium, thorium and uranium drawn from its star.

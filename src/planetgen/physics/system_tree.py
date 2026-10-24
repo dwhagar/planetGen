@@ -25,12 +25,12 @@ rows takes this same tree over.
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
 from planetgen.physics.kepler import comet_orbital_state, wrapped_turn_deg
 
-AU_KM = constants.AU_TO_KM
-SECONDS_PER_YEAR = constants.SECONDS_PER_YEAR
-_KM_PER_S_TO_AU_PER_S = 1.0 / AU_KM
+_km_to_au = units.converter("km", "au")
+_yr_to_s = units.converter("yr", "s")
+_KM_PER_S_TO_AU_PER_S = _km_to_au(1.0)
 
 
 @dataclass(frozen=True)
@@ -69,10 +69,10 @@ class TreeMember:
 def node_relative_au(node, unix):
     """The slot-1 child's position relative to the slot-0 child at `unix`, in AU, in the system's frame."""
     if node.period_years > 0:
-        anomaly = node.mean_anomaly_deg + wrapped_turn_deg(unix - node.epoch_unix, node.period_years * SECONDS_PER_YEAR)
+        anomaly = node.mean_anomaly_deg + wrapped_turn_deg(unix - node.epoch_unix, _yr_to_s(node.period_years))
     else:
         anomaly = node.mean_anomaly_deg
-    axis_au = node.separation_km / AU_KM
+    axis_au = _km_to_au(node.separation_km)
     state = comet_orbital_state(
         "elliptical", axis_au * (1.0 - node.eccentricity), node.eccentricity, node.inclination_deg,
         node.arg_periapsis_deg, node.ascending_node_deg, node.mass_solar,

@@ -165,11 +165,13 @@ SCORE_RULE = (
 EQUIPMENT_RULE = (
     "A planet's equipment line lists only what a visitor needs, never what is not needed. Each item is required "
     "(past the physical limit) or recommended (in the band before it, where a person is impaired or at risk, or "
-    "where only a region or the night asks for it); a world that needs nothing shows no line. The line follows the "
+    "where only a region or the night asks for it); a body gives a Required line and a Recommended line, and leaves off one with nothing in it. The line follows the "
     "physics, so it can be stricter than a domain's colour: a gas past its immediate danger limit needs sealed "
     "air even where the score only says Yellow. Radiation goes up in steps: a shielded garment, a storm vest, a "
     "hardened suit, then a shielded shelter and a hardened habitat, each worked out from how much of the dose is "
-    f"cosmic rays and how much is storm particles. Air hotter than {limit('heat_shielded_c'):g} C burns a mask-only "
+    "cosmic rays and how much is storm particles. Where no lighter gear brings the year under the Green edge (cosmic "
+    "rays on Mars or the Moon) the hardened suit is required and the hardened habitat recommended. "
+    f"Air hotter than {limit('heat_shielded_c'):g} C burns a mask-only "
     "visitor's skin at the seal, so it needs a heat-shielded suit."
 )
 

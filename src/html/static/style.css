@@ -2057,14 +2057,27 @@ a.btn.btn-secondary.btn-active:visited {
   height: 1.1em;
   vertical-align: -0.15em;
   flex: none;
+  /* The outline every symbol of the sprite is drawn with. It is set here and not in the sprite's own <style>:
+     the Content-Security-Policy (default-src 'self') the sprite is served under refuses that inline style, which left
+     every icon a solid black shape. The values are inherited into the <use> content. */
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* UX.101: a PHI-6 symbol (`habitability_symbol(name, tier)`), drawn in the tier-blue .. tier-red color of its
    rating; the rating is also in its words, so the color is never the only sign. */
 .hab-symbol {
-  width: 1.25em;
-  height: 1.25em;
-  vertical-align: -0.25em;
+  width: 1.45em;
+  height: 1.45em;
+  vertical-align: -0.35em;
+  /* Boss, 9:10 PM EDT 2026-10-23: a coloured symbol is a solid shape in its rating colour with no border (what is
+     inside it is cut out of it), a little transparent so the page behind it shades the colour in both themes. */
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.8;
 }
 
 .hab-symbols {
@@ -2087,6 +2100,13 @@ a.btn.btn-secondary.btn-active:visited {
   display: inline-flex;
   align-items: center;
   gap: 0.1em;
+}
+
+.hab-life-shape {
+  /* Solid like the PHI-6 symbols (Boss, 9:10 PM EDT 2026-10-23): no border, a little transparent over the page. */
+  fill: currentColor;
+  stroke: none;
+  opacity: 0.8;
 }
 
 .hab-life-score {
@@ -2323,15 +2343,6 @@ code {
 .sysmap-nebula-dark { --nebula-wash: rgba(0, 0, 0, 0.3); }
 .sysmap-nebula-other { --nebula-wash: rgba(201, 168, 224, 0.14); }
 
-/* UX.15: the info panel sits beside the map when the panel has room for
-   both a usable map (about 26rem) and a readable text column (18-26rem,
-   roughly 45-65 characters); otherwise it stays below. A container query
-   on the layout, not the window, decides; the viewport keeps its square
-   aspect ratio either way, so nothing moves while the render loads. */
-.sysmap-layout {
-  container: sysmap-layout / inline-size;
-}
-
 /* The map and, under it, its button row (UX.61). */
 .sysmap-map-col {
   display: flex;
@@ -2341,16 +2352,8 @@ code {
   min-width: 0;
 }
 
-@container sysmap-layout (min-width: 46rem) {
-  .sysmap-layout > .sysmap-map-col {
-    flex: 1 1 0;
-    width: auto;
-    min-width: 0;
-  }
-
-  .sysmap-layout > .starmap-side {
-    flex: 0 0 clamp(18rem, 36%, 26rem);
-  }
+.sysmap-layout > .starmap-side {
+  flex: 1 1 100%;
 }
 
 .sysmap-svg {
@@ -2610,6 +2613,11 @@ code {
   vertical-align: -0.1rem;
   border-radius: 2px;
 }
+.map-layer-legend-swatch.map-marker-swatch {
+  border-radius: 50%;
+  border: 2px solid var(--bg-subtle);
+  box-shadow: 0 0 0 1px var(--text-muted);
+}
 .map-layer-legend-swatch.sysmap-legend-facility {
   width: 0.5rem;
   height: 0.5rem;
@@ -2702,8 +2710,7 @@ code {
 
 /* MAP.30: the map is 4:3 (wider than tall) and no taller than the window
    under the header; 1:1 on a phone. MAP.55: the info panel (a picked
-   sector's address and designation) sits beside the map when the row has
-   room for it, and wraps below the map when it hasn't. */
+   sector's address and designation) is a popup over the map (MAP.256, MAP.288). */
 .galaxymap3d-panel .galaxy-map-row {
   display: flex;
   flex-wrap: wrap;
@@ -2714,9 +2721,7 @@ code {
 }
 
 .galaxymap3d-panel .galaxy-map-main {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.75rem;
+  position: relative;
   min-width: 0;
   flex: 0 1 calc(min(100%, (100svh - 9rem) * 4 / 3));
 }
@@ -2728,9 +2733,8 @@ code {
 }
 
 .galaxymap3d-panel .starmap-viewport {
-  flex: 1 1 auto;
   min-width: 0;
-  width: auto;
+  width: 100%;
   aspect-ratio: 4 / 3;
 }
 
@@ -2758,11 +2762,6 @@ code {
 .galaxymap3d-panel .starmap-controls > details > summary.starmap-btn {
   padding: 0.25rem 0.55rem;
   font-size: 0.9rem;
-}
-
-.galaxymap3d-panel .starmap-info {
-  flex: 1 1 16rem;
-  min-width: 0;
 }
 
 /* MAP.60: the Galaxy Map's one scale line wraps on a phone instead of
@@ -2889,132 +2888,54 @@ code {
   color: var(--text-muted);
 }
 
-/* The maps' hover tooltip (static/mappick.js, MAP.65). */
-/* MAP.139: the one info box over a map (mappick.js), shown when the map has room: the selection's basics and its
-   View, Details and Close buttons, in the corner of the map farthest from where it was last pressed (the upper right to start with). */
-.map-infobox {
+/* MAP.256, MAP.288: the Galaxy Map's selection panel is a popup inside the map's window (static/mappick.js,
+   `data-overlay`), at every width: drawn over the map, in the corner farthest from where the reader pressed, with a Close
+   button, and not at all until something is picked. The map under it stays pickable: only its buttons and links take
+   the pointer. */
+.starmap-info[data-overlay] {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
-  z-index: 3;
+  z-index: 10;
   width: min(18rem, calc(100% - 1.5rem));
   max-height: calc(100% - 1.5rem);
   overflow: auto;
   padding: 0.6rem 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg-subtle);
   font-size: 0.85rem;
-  /* The map under it stays pickable: only its buttons and links take the pointer. */
   pointer-events: none;
 }
-.map-infobox a,
-.map-infobox button {
+
+.starmap-info[data-overlay] a,
+.starmap-info[data-overlay] button,
+.starmap-info[data-overlay] summary,
+.starmap-info[data-overlay] input,
+.starmap-info[data-overlay] select {
   pointer-events: auto;
 }
-.map-infobox[data-corner="top-left"] {
+
+.starmap-info[data-corner="top-left"] {
   right: auto;
   left: 0.75rem;
 }
-.map-infobox[data-corner="bottom-left"] {
+
+.starmap-info[data-corner="bottom-left"] {
   top: auto;
   right: auto;
   bottom: 0.75rem;
   left: 0.75rem;
 }
-.map-infobox[data-corner="bottom-right"] {
+
+.starmap-info[data-corner="bottom-right"] {
   top: auto;
   bottom: 0.75rem;
 }
-.map-infobox[hidden] {
-  display: none;
-}
-.map-infobox h3 {
-  margin: 0 0 0.4rem;
-  font-size: 0.95rem;
-}
-.map-infobox dl {
-  margin: 0 0 0.5rem;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.15rem 0.5rem;
-}
-.map-infobox dt {
-  color: var(--text-muted);
-  font-weight: 600;
-}
-.map-infobox dd {
-  margin: 0;
-}
-.map-infobox .map-info-actions {
-  margin: 0;
-}
 
-/* MAP.256: the Galaxy Map's selection panel sits inside the map's window (static/mappick.js, `data-overlay`). Where the
-   window is 600px wide or more it is drawn over the map, in the corner farthest from where the reader pressed, and not
-   at all until something is picked; under that it is a block under the map, as before. The map under it stays pickable:
-   only its buttons and links take the pointer. */
-.galaxymap3d-panel .galaxy-map-main {
-  display: block;
-}
-
-.galaxymap3d-panel .galaxy-map-main > .starmap-viewport {
-  width: 100%;
-}
-
-.galaxymap3d-panel .galaxy-map-main > .starmap-info {
-  margin-top: 0.75rem;
-  min-width: 0;
-}
-
-.starmap-info .map-info-close {
+.starmap-info[data-state="rest"],
+.starmap-info[data-state="closed"] {
   display: none;
 }
 
-@media (min-width: 600px) {
-  .galaxy-map-main > .starmap-info[data-overlay] {
-    position: absolute;
-    top: 0.75rem;
-    right: 0.75rem;
-    z-index: 3;
-    margin-top: 0;
-    width: min(18rem, calc(100% - 1.5rem));
-    max-height: calc(100% - 1.5rem);
-    overflow: auto;
-    padding: 0.6rem 0.8rem;
-    font-size: 0.85rem;
-    pointer-events: none;
-  }
-  .galaxy-map-main > .starmap-info[data-overlay] a,
-  .galaxy-map-main > .starmap-info[data-overlay] button,
-  .galaxy-map-main > .starmap-info[data-overlay] summary,
-  .galaxy-map-main > .starmap-info[data-overlay] input,
-  .galaxy-map-main > .starmap-info[data-overlay] select {
-    pointer-events: auto;
-  }
-  .galaxy-map-main > .starmap-info[data-corner="top-left"] {
-    right: auto;
-    left: 0.75rem;
-  }
-  .galaxy-map-main > .starmap-info[data-corner="bottom-left"] {
-    top: auto;
-    right: auto;
-    bottom: 0.75rem;
-    left: 0.75rem;
-  }
-  .galaxy-map-main > .starmap-info[data-corner="bottom-right"] {
-    top: auto;
-    bottom: 0.75rem;
-  }
-  .galaxy-map-main > .starmap-info[data-state="rest"],
-  .galaxy-map-main > .starmap-info[data-state="closed"] {
-    display: none;
-  }
-  .galaxy-map-main > .starmap-info .map-info-close {
-    display: inline-flex;
-  }
-}
-
+/* The maps' hover tooltip (static/mappick.js, MAP.65). */
 .map-tooltip {
   position: absolute;
   z-index: 3;
@@ -3332,44 +3253,6 @@ body.app {
   display: none;
 }
 
-/* The search control (UX.146): an icon button in the bar that drops this
-   form down. */
-.app .site-search {
-  display: flex;
-  align-items: stretch;
-  margin: 0;
-}
-
-.app .site-search input {
-  flex: 1;
-  min-width: 12rem;
-  font: inherit;
-  font-size: 0.9rem;
-  color: var(--text);
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-right: none;
-  border-radius: 8px 0 0 8px;
-  padding: 0.4rem 0.65rem;
-}
-
-.app .site-search input:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: -1px;
-}
-
-.app .site-search button {
-  font: inherit;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--accent-contrast);
-  background: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 0 8px 8px 0;
-  padding: 0.4rem 0.75rem;
-  cursor: pointer;
-}
-
 /* The Nav section's button (UX.146) and the Help button (UX.180) look like the other
    section links, with a caret to show they open a menu. */
 .app .site-nav-trigger,
@@ -3471,8 +3354,7 @@ body.app {
 .app .site-menu,
 .app .site-gear,
 .app .site-nav-menu,
-.app .site-help-menu,
-.app .site-search-menu {
+.app .site-help-menu {
   position: static;
 }
 
@@ -3484,8 +3366,7 @@ body.app {
 }
 
 .app .site-menu-panel,
-.app .site-gear-panel,
-.app .site-search-panel {
+.app .site-gear-panel {
   padding: 0.75rem 1rem 1rem;
   display: flex;
   flex-direction: column;
@@ -3493,10 +3374,6 @@ body.app {
   width: max-content;
   min-width: 10rem;
   max-width: min(22rem, calc(100vw - 1rem));
-}
-
-.app .site-search-panel {
-  padding: 0.75rem;
 }
 
 .app .site-menu-panel ul,
@@ -4094,10 +3971,6 @@ body.app {
 .crumb-menu button[aria-current] {
   font-weight: 600;
   color: var(--text);
-}
-
-.galaxymap3d-panel .galaxy-map-main {
-  position: relative;
 }
 
 /* The Galaxy Map's address bar (drill-down section 9.3). */

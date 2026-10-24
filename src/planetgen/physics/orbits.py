@@ -14,8 +14,12 @@ close approach is (GEN.108).
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants as physical_constants
+from planetgen.physics import constants as physical_constants, unit_registry as units
 from planetgen.util.checks import finite_domain
+
+
+_au_to_km = units.converter("au", "km")
+_yr_to_s = units.converter("yr", "s")
 
 
 KOPPARAPU_TEFF_RANGE_K = (2600.0, 7200.0)
@@ -347,8 +351,8 @@ def circular_orbital_speed_kms(distance_au, period_years):
     Returns:
         float: Orbital speed, in km/s.
     """
-    circumference_km = 2 * math.pi * distance_au * physical_constants.AU_TO_KM
-    period_seconds = period_years * physical_constants.SECONDS_PER_YEAR
+    circumference_km = _au_to_km(2 * math.pi * distance_au)
+    period_seconds = _yr_to_s(period_years)
     return circumference_km / period_seconds
 
 

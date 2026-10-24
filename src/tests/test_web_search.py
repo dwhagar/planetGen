@@ -236,10 +236,10 @@ def test_no_results_message(client, fake):
     assert "No sectors, systems, stars, planets or moons match." in html
 
 
-def test_header_search_box_submits_to_search(client, fake):
-    html = client.get("/").get_data(as_text=True)
-    assert '<form class="site-search" role="search" method="get" action="/search">' in html
-    assert 'name="q" placeholder="Search names"' in html
+def test_the_header_search_icon_links_to_search(client, fake):
+    """UX.160: the header's search icon is a link to this page, and this page leaves it out."""
+    assert 'class="site-search-link" name="search" label="Search" title="Search" href="/search"' in client.get("/").get_data(as_text=True)
+    assert "site-search-link" not in client.get("/search").get_data(as_text=True)
 
 
 # --- Real database, in-process ---------------------------------------------------------

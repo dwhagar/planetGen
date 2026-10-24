@@ -61,6 +61,10 @@ const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+const {
+  BLACK_HOLE_KIND, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, selectMarkers,
+} = await import(`./galaxymarkers.js${VERSION_QUERY}`);
+const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
@@ -2135,6 +2139,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // what's still missing.
   function renderFromCache(need) {
     lastNeed = need;
+    markersDirty = true;
     // MAP.249: a view whose tiles are the ones already drawn (a fetch that brought nothing new, a settled camera)
     // is known from the tiles alone, so nothing is built or sorted.
     var view = drawnSignature(need.keys, need.detail, getTile);
@@ -3161,6 +3166,54 @@ function initGalaxyMap3d(canvasEl, data) {
   var layerLegendEl = document.getElementById("galaxymap3d-layer-legend");
   if (layerLegendEl) stageView.layers.renderLegend(layerLegendEl);
   canvasEl.__mapLayers = stageView.layers;
+  // MAP.219: the marker layer (galaxymarkers.js): glyphs over the notable things, a toggle and a legend line per kind.
+  var markerKinds = createMarkerKinds();
+  var markerLayer = null;
+  var markersDirty = true;
+  if (!data.pinned) {
+    markerKinds.register(BLACK_HOLE_KIND);
+    markerLayer = createMarkerLayer(scene, camera, canvasEl, isLightBackground() ? "#ffffff" : "#0b0d14", {
+      listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
+    });
+    markerKinds.kinds().forEach(function (kind) {
+      stageView.layers.register({
+        id: kind.id, label: kind.label, modes: ["galaxy"], group: "Markers", data: { marker: kind.glyph },
+        defaultOn: kind.defaultOn, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+        title: "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
+      });
+    });
+    // The registry forgets ids nobody registered when it read the address, so read it again for these.
+    stageView.layers.readUrl(location.search);
+    stageView.layers.refresh();   // the Menu and legend were drawn before these kinds existed
+    stageView.layers.onChange(function (id) { if (markerKinds.get(id)) markersDirty = true; });
+    canvasEl.__mapMarkers = markerLayer;    // the browser tests read what is drawn
+  }
+  // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
+  function chooseMarker(entry) {
+    highlightPosition(entry.x, entry.y, entry.z);
+    if (entry.item.type) showPointInfo(entry.item);
+  }
+  var markerFrustum = new THREE.Frustum();
+  var markerMatrix = new THREE.Matrix4();
+  var markerPoint = new THREE.Vector3();
+  // Chooses what the marker layer draws from the tiles of this view (galaxymarkers.selectMarkers): the kinds that are
+  // on, the items in front of the camera and outside any clipped wedge, no more than the budget.
+  function refreshMarkers() {
+    if (!markerLayer) return;
+    markersDirty = false;
+    camera.updateMatrixWorld();
+    markerMatrix.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    markerFrustum.setFromProjectionMatrix(markerMatrix);
+    var tiles = neededTiles().keys.map(function (key) { return { key: key, tile: getTile(key) }; });
+    markerLayer.set(selectMarkers({
+      kinds: markerKinds.kinds(),
+      isOn: function (id) { return stageView.layers.isOn(id); },
+      tiles: tiles,
+      inView: function (item) {
+        return markerFrustum.containsPoint(markerPoint.set(item.x, item.y, item.z)) && inWedgeClip(item.x, item.y, item.z);
+      },
+    }));
+  }
   // MAP.200: the on-map zoom slider and direction star.
   if (viewport) navPad = createNavPad(viewport, stageView, document.getElementById("galaxymap3d-centre"));
 
@@ -3248,6 +3301,21 @@ function initGalaxyMap3d(canvasEl, data) {
       else showHaloStarInfo(point);
     },
   });
+
+  // MAP.219: a click or hover on a marker picks it before the point of light under it (a black hole shows its own page
+  // card, as the point does).
+  if (markerLayer) {
+    picker.addLayer({
+      name: "markers",
+      priority: -1,
+      enabled: function () { return markerLayer.entries().length > 0; },
+      points: function () { return markerLayer.entries(); },
+      reach: function () { return MARKER_PX / 2 + 3; },
+      tooltip: function (entry) { return entry.kind.describe(entry.item); },
+      hover: function (entry) { phenomenonHover(entry); },
+      select: function (entry) { chooseMarker(entry); },
+    });
+  }
 
   // No right-click action any more (see this file's own module
   // docstring) -- the browser's own default context menu is left alone,
@@ -3422,6 +3490,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var viewSignature = [target.x, target.y, target.z, orbit.radius, canvasEl.clientHeight].join(",");
     if (viewSignature !== lastViewSignature) {
       lastViewSignature = viewSignature;
+      markersDirty = true;
       var missing = renderFromCache(neededTiles());
       if (missing.length && !fetchTimer && !activeAbort) {
         scheduleFetch(false);
@@ -3434,6 +3503,10 @@ function initGalaxyMap3d(canvasEl, data) {
     selectionRing.update();
     hoverRing.update();
     updateCourseMarkers();
+    if (markerLayer) {
+      if (markersDirty) refreshMarkers();
+      markerLayer.update();
+    }
     renderer.render(scene, camera);
   })();
 }

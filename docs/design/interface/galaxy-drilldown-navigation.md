@@ -322,9 +322,9 @@ of a level-3 block.
   toward the bottom, decision 6).
 - **Turning and moving** (below the galaxy and its quarters): drag turns
   the view (tilt up to 80° from straight down), right-drag or
-  Shift-drag moves it (its middle stays within 1.5 fits of the stage's
-  own), and the wheel or a pinch zooms from an eighth of the stage's fit
-  to 2.5 times it. A drag never picks. Where the view can be turned, a
+  Shift-drag moves it (anywhere: MAP.263 took the pan clamp away), and the wheel or a pinch zooms from an eighth of the stage's fit
+  to 2.5 times it; a wheel tick past either end carries on into the next stage or the parent with no stop and no
+  flight, the camera's middle, turn and distance kept (MAP.263). A drag never picks. Where the view can be turned, a
   layer can also be clicked on the map (the block under the pointer
   picks its layer). Reset view flies back to the stage's own view, and
   every step to another stage (into a pick, Up, Back, a crumb) opens on

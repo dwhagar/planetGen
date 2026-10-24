@@ -35,7 +35,7 @@ EXAMPLES = {
                                 chaotropicity_kj_kg=90, ph=8, inventories={"C": 0.05, "N": 0.01, "H": 0.05},
                                 phosphate_umol_l=0.5, energy_flux_w_m2=40, water_source="ice",
                                 relative_humidity=0.05),
-                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.3999, 0.006, 0.0, 0.458, "B4p F100 S2 [R2]"),
+                          ("Red", "Red", "Green", "Red", "Yellow", "Red"), 0.3999, 0.006, 0.0, 0.458, "B4p F100 S2 H3 [R2]"),
     "Dune world": (World(90, 45, {"N2": 0.78, "O2": 0.21, "CO2": 0.001}, relative_humidity=0.05, water_activity=0.7,
                          ph=8, water_source="vapour", inventories={"C": 0.5, "N": 0.5, "H": 0.05},
                          life_stage="macroscopic"),
