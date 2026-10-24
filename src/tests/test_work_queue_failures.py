@@ -510,7 +510,7 @@ def _sector_counts(config):
         sectors = conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
         short = conn.execute(
             "SELECT s.id, COUNT(ss.id) AS n FROM sectors s LEFT JOIN star_systems ss ON ss.sector_id = s.id"
-            " GROUP BY s.id HAVING n <> ?", (NUM_SYSTEMS,)).fetchall()
+            " GROUP BY s.id HAVING n < ?", (NUM_SYSTEMS,)).fetchall()   # a first fill adds bright stars' systems (GEN.633)
         orphans = conn.execute(
             "SELECT COUNT(*) AS n FROM star_systems ss LEFT JOIN sectors s ON s.id = ss.sector_id"
             " WHERE ss.sector_id IS NOT NULL AND s.id IS NULL").fetchone()["n"]

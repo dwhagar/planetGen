@@ -9,6 +9,7 @@ single planet.
 
 import pytest
 
+from tests import first_fill
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
 from tests.test_galaxy_gen import REFERENCE_SHAPE_ARGV
 
@@ -25,7 +26,8 @@ def test_a_system_at_the_galactic_center_still_has_a_hill_sphere():
 
 
 @pytest.mark.db
-def test_core_ball_batch_fill_makes_planets(mysql_config):
+def test_core_ball_batch_fill_makes_planets(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # the three systems asked for, no more (GEN.633)
     target = mysql_argv(mysql_config)
     run_cli("plan", ["--quiet", "--nuclear-amplitude", "0"] + REFERENCE_SHAPE_ARGV + target)
     with forced_system_config(PLANETS=True):

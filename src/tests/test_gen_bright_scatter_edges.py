@@ -31,7 +31,7 @@ from planetgen.galaxy import spherical
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen import tuning
 
-from tests import worker_patches
+from tests import first_fill, worker_patches
 from tests.test_bright_star_scatter import (
     light_steps,  # noqa: F401  (autouse: quick backfill steps)
     E_VALUE, EDGE_PC, EXTENTS, SHAPE, THRESHOLD, _scatter_args, _seed_galaxy,
@@ -400,6 +400,7 @@ def test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star(mysql_c
     # level anywhere, yet stars), or a later fill there would build them
     # as well as the backfill's stars (every bright star twice).
     _seed_galaxy(mysql_config)
+    first_fill.without_the_deepest_floor(monkeypatch)   # this is about the scatter's leftovers, not the first fill's draw
     undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_shell",
                                            "tests.test_gen_bright_scatter_edges:shell_fails", shell=FAILING_SHELL)
     with pytest.raises(RuntimeError, match="scatter worker died"):
@@ -444,6 +445,7 @@ def test_a_fill_after_a_shell_failed_mid_scatter_builds_no_leftover_star(mysql_c
 
 def test_a_fill_after_failed_commits_clears_the_reached_sectors_leftovers(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
+    first_fill.without_the_deepest_floor(monkeypatch)   # this is about the scatter's leftovers, not the first fill's draw
     _interrupt_after_commits(mysql_config, monkeypatch)
     leftovers = _leftover_cells(mysql_config)
     # The heaviest shell's equator cell with the fewest leftovers, so the fill stays small

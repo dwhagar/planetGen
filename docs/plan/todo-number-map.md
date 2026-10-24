@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.186 |
 | MAP | MAP.293 |
 | NAV | NAV.63 |
-| GEN | GEN.723 |
+| GEN | GEN.724 |
 | PERF | PERF.186 |
 | DB | DB.101 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.347 |
+| TEST | TEST.349 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.80 |
@@ -1179,7 +1179,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.449 | The companion table for mid and early B stars is raised to the observed frequencies | none | done, PR #2100, #2101, #2102 |
 | GEN.450 | The star-formation profile's radial slope: reconcile the Schmidt index with the observed gradient, with the choice named | none | done, PR #2776 |
 | GEN.451 | The mantle redox mean follows the meteorite building blocks: a young rocky planet starts reduced, not at the modern Earth's 3.5 above the iron-wuestite buffer | none | done, PR #2820 |
-| GEN.452 | The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug) | none | open |
+| GEN.452 | The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug) | none | done, PR #3041 |
 | GEN.453 | The radiation constants are corrected: the dipole cutoff scales with moment over radius squared, the dose curve against the column and the field factor follow the measured and simulated tables (bug) | none | done, PR #2726 |
 | GEN.454 | Giant planets, ice giants and brown dwarfs draw their atmosphere mixture from the equilibrium chemistry sequence: by temperature, pressure, metallicity and quench | none | done, PR #2820 |
 | GEN.455 | Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates | none | open |
@@ -1402,7 +1402,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.672 | Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver | none | open |
 | GEN.673 | Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on | none | open |
 | GEN.674 | Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug) | none | open |
-| GEN.675 | Register the atmosphere mixture stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each | none | open |
+| GEN.675 | Register the atmosphere mixture stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each | none | done, PR #3037 |
 | GEN.676 | Check the NH3 photolysis activity factor (1.078) against the published Huebner photodissociation table and replace the Boss-supplied value | none | dropped (Boss, 11:53 PM EDT 2026-10-23: the gap cannot be filled, no source is reachable; the factor 1.078 stays as a labelled stand-in) |
 | GEN.677 | The phenomena scatter places about 86,000 stellar black holes per shell pair and no ordinary neutron stars (only magnetars) (bug) | none | done, PR #2968 |
 | GEN.678 | The bright-star units expected about 23,000 stars but placed 1,000 to 3,000, so the run placed 229,596 stars against 365,093 expected and took 20 minutes (bug) | none | done, PR #2997 |
@@ -1450,6 +1450,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.720 | star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug) | none | open |
 | GEN.721 | A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model | none | open |
 | GEN.722 | Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins | none | open |
+| GEN.723 | Refresh the hot-Jupiter recipe rows h1 to h3: their edge points were computed with the deleted gas-equilibrium module and sit up to 16 K (0.6 percent) above the surviving solver | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2059,7 +2060,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.182 | Finish an incomplete run: resume a New galaxy run that died partway from the stage it stopped in | none | open |
 | PERF.183 | Nightly New galaxy smoke: stage times and peak memory per stage, fail above a budget | none | open |
 | PERF.184 | Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug) | none | open |
-| PERF.185 | A hard host-wide cap on the total number of planetgen worker processes, across every lane and command, as a second guard against memory exhaustion | none | open |
+| PERF.185 | A hard host-wide cap on the total number of planetgen worker processes, across every lane and command, as a second guard against memory exhaustion | none | done, PR #3040 |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -2291,8 +2292,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.149 | Chemical names and formulas in the HTML output use subscripts and superscripts, as water (H2O) with a subscript 2 (bug) | none | done, PR #2767 |
 | UX.150 | Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table | none | open |
 | UX.151 | Icons for Microbial, Flora, Fauna and Sentient life, with a 0 to 9 digit, drawn as a small cluster next to the PHI-6 icons, both themes | none | done, PR #2733 |
-| UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes | none | open |
-| UX.153 | Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none | none | open |
+| UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes | none | done, PR #3038 |
+| UX.153 | Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none | none | done, PR #3038 |
 | UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | done, PR #2844 |
 | UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) | none | done, PR #2784 |
 | UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | done, PR #2784 |
@@ -2777,6 +2778,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.344 | Gate: browser and WebGL tests run as their own serial phase, with a worker cap by free memory | none | open |
 | TEST.345 | test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug) | none | open |
 | TEST.346 | web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug) | none | open |
+| TEST.347 | test_admin_edits::test_system_page_regenerates_a_planet and ::test_system_page_changes_a_class fail alone on main: the system page lacks the 'Regenerated ...' and 'Change class' text (bug) | none | open |
+| TEST.348 | test_class_pages: test_phenomenon_page_links_its_class (5 cases) and test_phenomenon_unknown_class_stays_text fail on clean main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

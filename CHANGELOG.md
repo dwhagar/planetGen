@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2222] - 2026-10-24
+
+**Headline:** A sector holds the same stars and systems whichever order a galaxy's sectors are generated in.
+
+### Changed
+- **The first fill takes a sector to the backfill's deepest floor (GEN.633).** A `galaxy` run backfills dimmer bright stars around the sectors it generates, but that backfill skipped a sector that was already filled, so a sector generated before the backfill reached it held fewer systems than one the backfill reached first. The first fill of a sector now draws its bright stars down to the backfill's deepest floor itself, so no later pass adds stars and a sector comes out the same in either order (GEN.57). Sectors in a capped cell (GEN.281) are left as they were.
+
+generation-output: changed
+
+## [8.0.2221] - 2026-10-24
+
+**Headline:** Where an atmosphere freezes out is now worked out from the checked saturation curves, so hydrogen sulphide, carbon dioxide and sulphur dioxide land at the right temperatures.
+
+### Changed
+- **The freeze-out cap reads the checked saturation curves (GEN.452).** `physics/atmosphere.py` no longer carries the two-point condensation table, whose hydrogen sulphide row was a copy of sulphur dioxide's and which put carbon dioxide, sulphur dioxide and the cold gases 2 to 20 K off. The most a gas can be vapour at the surface temperature is now its saturation pressure from `physics/saturation.py` (the Fray and Schmitt and laboratory solid curves, the Span and Wagner carbon dioxide curve, the Wagner liquid curves, nothing above the critical temperature). Hydrogen sulphide boils at 213 K at 100 kPa instead of 263 K, nitrogen at 37 K holds 1.2 Pa (Pluto's air) instead of 10 Pa, and the cold gases follow the laboratory curves of the cold ends. New `saturation.condensation_temperature_k` gives the inverse. The cloud condensation of `physics/aerosols.py` reads the same curves. Stored partial pressures and total surface pressures change for cold bodies.
+
+generation-output: changed
+
+## [8.0.2220] - 2026-10-24
+
+**Headline:** The server now refuses to run more worker processes than its memory and cores can hold, whatever starts them.
+
+### Added
+- **PERF.185: a cap on all planetgen worker processes on one host.** A start of a worker for any queue is refused once the host already runs `queue.max_host_workers` of them (0, the default, sizes it from the host: 60 percent of its memory in workers of 300 MB each, no more than four a core, never fewer than the cores plus four; a 16 GB, 8 core host gets 31). The count comes from the process list, so a worker still importing its libraries counts. The refusal is logged once a minute and counted, and the Queue page shows the cap, how many run and how many starts were refused in the last hour. This is the second guard behind PERF.181: even if something else starts workers in a burst, the host cannot be filled.
+
 ## [8.0.2219] - 2026-10-24
 
 **Headline:** Every planet and moon list, system tree, object page and API answer now shows the four life scores (Microbial, Flora, Fauna, Sentient, 0 to 9) beside the PHI-6 symbols.

@@ -1345,3 +1345,8 @@ Baseline: PR #1817.
 | PERF.99 | 8.1 | Queue, caches and performance |
 | PERF.181 | 8.1 | Queue, caches and performance |
 | GEN.710 | 8.1 | Bugs and flaky tests |
+| GEN.675 | 8.1 | Mixture and stored values |
+| UX.153 | 8.1 | Habitability system |
+| UX.152 | 8.1 | Habitability system |
+| GEN.452 | 8.1 | Radiation chain for habitability (GEN.445) |
+| PERF.185 | 8.1 | The headline closes |

@@ -48,6 +48,7 @@ from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen import tuning
+from tests import first_fill
 from tests.toy_shape import toy_shape
 from tests.publicids import pid
 from planetgen.galaxy import spherical
@@ -192,7 +193,10 @@ def _placed_count(html):
     return int(match.group(1))
 
 
-def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
+def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config, monkeypatch):
+    # A run that adds bright stars makes the tile check answer `busy` and keep the old stamp for ten minutes
+    # (PERF.34); this is about a run that adds only sectors, so the first fill draws no deeper stars (GEN.633).
+    first_fill.without_the_deepest_floor(monkeypatch)
     _plan_galaxy(mysql_config)
     _generate(mysql_config, "sectors", "--shell", "1", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)

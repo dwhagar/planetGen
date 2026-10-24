@@ -42,7 +42,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import air_column, atmosphere, atmospheric_radiation, constants, gases
+from planetgen.physics import air_column, atmospheric_radiation, constants, gases, saturation
 from planetgen.util import draw
 
 SKIN_FACTOR = 2.0 ** -0.25
@@ -150,23 +150,20 @@ def _cp_j_mol_k(column, temperature_k):
 
 def saturation_pa(formula, temperature_k):
     """
-    The vapour pressure over the condensate of `formula` at `temperature_k`, Pa. The two-point Clausius-Clapeyron through
-    `atmosphere.CONDENSATION_K` where it has the gas (GEN.452 replaces it with the checked curves), else through the gas table's triple
-    point and latent heat (ammonia). Infinite at and above the critical temperature, where nothing condenses.
+    The vapour pressure over the condensate of `formula` at `temperature_k`, Pa: the checked saturation curve of `physics/saturation.py`
+    where the gas has one (GEN.452), else a Clausius-Clapeyron line through the gas table's triple point and latent heat. Infinite at
+    and above the critical temperature, where nothing condenses.
     """
     gas = gases.gas(formula)
     if gas.critical_temperature_k and temperature_k >= gas.critical_temperature_k:
         return math.inf
-    key = formula.lower()
-    if key in atmosphere.CONDENSATION_K:
-        value = atmosphere.vapour_pressure_kpa(key, temperature_k) * 1000.0
-    else:
-        heat = gas.latent_heat_sublimation_kj_mol if temperature_k < gas.triple_point_k else gas.latent_heat_vaporisation_kj_mol
-        if isinstance(heat, (list, tuple)):
-            heat = 0.5 * (heat[0] + heat[1])
-        heat = heat or gas.latent_heat_vaporisation_kj_mol
-        value = gas.triple_point_pa * math.exp(-heat * 1000.0 / constants.R * (1.0 / temperature_k - 1.0 / gas.triple_point_k))
-    return value
+    if saturation.has(formula):
+        return saturation.pressure_pa(formula, temperature_k)
+    heat = gas.latent_heat_sublimation_kj_mol if temperature_k < gas.triple_point_k else gas.latent_heat_vaporisation_kj_mol
+    if isinstance(heat, (list, tuple)):
+        heat = 0.5 * (heat[0] + heat[1])
+    heat = heat or gas.latent_heat_vaporisation_kj_mol
+    return gas.triple_point_pa * math.exp(-heat * 1000.0 / constants.R * (1.0 / temperature_k - 1.0 / gas.triple_point_k))
 
 
 def profile(column, temperature_k, levels=240, decades=8.0):
