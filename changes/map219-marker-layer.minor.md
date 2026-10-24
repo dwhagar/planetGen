@@ -1,0 +1,4 @@
+**Headline:** The Galaxy Map has a marker layer: a glyph drawn over each black hole in view, with a Menu toggle, a legend line, and a click or hover that names it.
+
+### Changed
+- **A marker layer for the Galaxy Map (MAP.219).** Notable things are drawn as small glyphs that never shrink below 2 px and stay readable at any zoom, in a kind registry so later kinds (habitable worlds, chosen classes) are one entry each. Black holes are the first kind. Each kind has a Menu toggle (from the shared layer registry, `hide=<kind>` in the address when off), a legend line while on, a zoom budget so a crowded view shows the nearest and brightest first, and a hidden button per marker for keyboard and screen reader users. A click or hover picks a marker before the point of light under it, and a black hole shows its own card as before.

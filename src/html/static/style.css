@@ -2593,6 +2593,11 @@ code {
   vertical-align: -0.1rem;
   border-radius: 2px;
 }
+.map-layer-legend-swatch.map-marker-swatch {
+  border-radius: 50%;
+  border: 2px solid var(--bg-subtle);
+  box-shadow: 0 0 0 1px var(--text-muted);
+}
 .map-layer-legend-swatch.sysmap-legend-facility {
   width: 0.5rem;
   height: 0.5rem;
