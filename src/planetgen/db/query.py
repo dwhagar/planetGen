@@ -1960,8 +1960,8 @@ def interstellar_debris_count(star_count):
     kilometers across) drift through a sector holding `star_count` stars:
     `INTERSTELLAR_DEBRIS_DENSITY_PC3` scales with stellar density like
     every other interstellar object, so it's a fixed number per star
-    (~7e12). Far too many to be rows -- a figure for the sector page
-    ("about 10^13 interstellar comets and planetesimals"); the
+    (~7e15). Far too many to be rows -- a figure for the sector page
+    ("about 10^16 interstellar comets and planetesimals"); the
     `interstellar_comets` rows are only the notable ones.
 
     Returns:
