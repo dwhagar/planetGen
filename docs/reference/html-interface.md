@@ -71,7 +71,7 @@ itself, which needs `pymysql` and a database account.
 | File | Purpose |
 |---|---|
 | `../src/html/wsgi.py` | The WSGI entry point (loaded by mod_wsgi or gunicorn): the Flask app serving the API under `/api` and every page. |
-| `../src/planetgen/web/` | The pages: routes, templates and helpers (see "Flask pages" below). `web/old_urls.py` answers the old `/<name>.py` CGI URLs with a 301 to the page that replaced them. |
+| `../src/planetgen/web/` | The pages: routes, templates and helpers (see "Flask pages" below). |
 | `../src/planetgen/web/lib/pagination.py` | The site's one pager, used under every paged table (Browse's two tables, Phenomena, a sector's Contents table, a Galaxy Map Quadrant's sector list, each Search result panel, the admin API key list and the admin stats page's duplicate-names list): a "Showing X-Y of Z" summary, then First/Prev, numbered pages and Next/Last, 50 rows a page. Each table has its own page parameter (e.g. `sectors_page`), a plain GET link, and changing a Search filter starts its results back at page 1. |
 | `../src/planetgen/web/lib/apiclient.py` | The API client every page calls instead of querying MySQL directly -- one typed wrapper function per read endpoint, plus `auth_*` wrappers (the admin pages) supporting POST/DELETE, a request body, and `Cookie`/`Set-Cookie` relay, and `NotFoundError`/`ApiError` (`web/errors.py` turns these into a 404/502 page; `ApiError.status_code` lets `auth_me`/the admin pages branch on a 401 without string-matching). Inside the Flask app it runs in-process (`web/transport.py`); elsewhere it uses HTTP to `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`). Not web-accessible. |
 | `../src/planetgen/web/lib/fmt.py` | HTML-escaping and small formatting helpers (`esc`, `linkify_location`/`nearest_neighbors_location` -- which take a `system_url(system_id)` hook for the neighbour links -- `format_density`, and `static_url`, the versioned `static/` URL every page uses) with nothing to do with fetching data. Not web-accessible. |
@@ -131,7 +131,7 @@ itself, which needs `pymysql` and a database account.
 | `../src/html/static/systemscale.js` | True and compressed scale (MAP.71): where and how large each body is drawn, and the note saying which is shown. |
 | `../src/html/static/orbitpositions.js`, `../src/html/static/orbitclock.js` | Positions of every body at any time and the time control (MAP.70); `orbitpositions.js` is the twin of `physics/body_positions.py`. |
 | `../src/html/static/mapcore.js` | The helpers the Galaxy Map, the Sector Map and the System Map share (MAP.63): reading the panel's scene JSON, theme colors, info-panel fields, a sector's address, the highlight ring's texture, the scale bar's nice numbers and screen span, fitting the renderer to its canvas, and picking a point of light on screen. Served directly, same as `style.css`. |
-| `../src/html/static/mappick.js` | The picking, hover and info-panel layer the Galaxy Map and the Sector Map share (MAP.65): a picker that holds each map's layers in priority order (points of light picked on screen, meshes raycast, or a map's own test) and gives back what is under the pointer, a solid layer hiding what is behind it; the hover tooltip (`.map-tooltip`, kept inside the map); the selection and hover rings, a size on screen for a point of light or round a body in the scene; and the info panel both maps fill the same way: a heading, rows, the NAV buttons ("Start Here" and "End Here", or the one for the end being picked, `navpick.js`), the ☆ Bookmark button (`bookmarks.js`), page links, buttons and Generate buttons. The panel's `view` spec is the View button to the item's own page (UX.143, MAP.254), first among the actions on every map and kind; and where the panel names an overlay (`data-infobox`, MAP.139) the same spec is shown in a small `.map-infobox` over the map when it is at least 480 by 320 px, with the first four rows, View, Details (takes the reader to the panel) and Close. No map builds a panel or a box of its own (`tests/test_info_box.py`). The Sector Map gains a hover tooltip and ring and a ☆ for a system, phenomenon or generated neighbor; the Galaxy Map's black holes, neutron stars, quasars and clouds gain a tooltip, a hover ring, the NAV links and a ☆. Served directly, same as `style.css`. |
+| `../src/html/static/mappick.js` | The picking, hover and info-panel layer the Galaxy Map and the Sector Map share (MAP.65): a picker that holds each map's layers in priority order (points of light picked on screen, meshes raycast, or a map's own test) and gives back what is under the pointer, a solid layer hiding what is behind it; the hover tooltip (`.map-tooltip`, kept inside the map); the selection and hover rings, a size on screen for a point of light or round a body in the scene; and the info panel both maps fill the same way: a heading, rows, the NAV buttons ("Start Here" and "End Here", or the one for the end being picked, `navpick.js`), the ☆ Bookmark button (`bookmarks.js`), page links, buttons and Generate buttons. The panel's `view` spec is the View button to the item's own page (UX.143, MAP.254), first among the actions on every map and kind; and the panel is a popup inside the map's window at every width (`data-overlay`, MAP.256, MAP.288), never a column beside the map or a second box over it: the whole spec with a Close button, drawn in the corner farthest from where the reader last pressed and not drawn until something is picked (the System Map's panel moves between its diagram's and its 3D view's windows, and `reveal()` draws a map's own text, its measurement, the same way). No map builds a panel of its own (`tests/test_info_box.py`). The Sector Map gains a hover tooltip and ring and a ☆ for a system, phenomenon or generated neighbor; the Galaxy Map's black holes, neutron stars, quasars and clouds gain a tooltip, a hover ring, the NAV links and a ☆. Served directly, same as `style.css`. |
 | `../src/html/static/navpick.js` | The NAV course pick the maps share (NAV.29, NAV.33): which end is being chosen and the end already chosen, the `?pick=` query every map URL carries, the info panel's "Start Here" and "End Here" buttons (a link to `/nav` with both ends once one is chosen, else a button that keeps the user on the map and asks for the other end), the info panel's "What's within 10 pc" link to the What's nearby page with the object, a sector or a cell's middle filled in (NAV.45; none while a course is being picked), and the banner's words. Served directly. |
 | `../src/html/static/mapcontrol.js` | The camera and input controller the Galaxy Map's drill-down and the Sector Map share (MAP.64): turning and moving an orbit camera, zoom policies (free, a short range, or locked), the wheel, a two-finger pinch, the arrow keys, and telling a drag from a click. Served directly, same as `style.css`. |
 | `../src/html/static/starlight.js` | The brightness boost for faint stars (MAP.87), the Galaxy Map's twin of `planetgen/web/maps/starmap.py`'s `star_light_boost`, which sizes the Sector Map's points: up to four times the halo light at the dim end, none from 1000 L☉ up. Served directly, same as `style.css`. |
@@ -387,21 +387,6 @@ shows the slider only for "in orbit" and reads out its distance, period
 and speed as it moves; without it the form still works and the server
 refuses a host that doesn't fit.
 
-**Old URLs.** `web/old_urls.py` answers a GET of an old CGI page's URL
-(`/<name>.py`) with `301 Moved Permanently` to the page that replaced it,
-so old links and bookmarks still land somewhere sensible. The query
-string is carried over minus `db` and empty values (the new pages kept
-the old parameter names: `sectors_page`, `quadrant`, `page`, the search
-filters, ...). `/sector.py?id=N` goes to `/sector/N` (keeping
-`contents_page`), `/system.py?id=N` to `/system/N` (keeping `code`),
-`/phenomenon.py?type=T&id=N` to `/phenomenon/T/N`, each falling back to
-its list page without a valid id; `/nav.py`'s old `from=12&from_kind=
-phenomenon&from_type=nebula` becomes `from=nebula:12`. `galaxy3d.py` and
-`galaxy_view.py` (older Galaxy Map scripts) go to `/galaxy`. Any other
-`.py` name, `wsgi.py` included, gets the 404 page. An old form POSTed to
-a `.py` URL is not replayed (it fails the CSRF check like any stale
-form).
-
 The Galaxy Map's disk tile cache (`planetgen/web/lib/tilecache.py`) is written by the
 WSGI daemon. A tile cache location or size set only with `SetEnv
 PLANETGEN_TILE_CACHE_DIR`/`_MAX_MB` in the vhost does not reach it: put it
@@ -621,7 +606,6 @@ src/planetgen/web/
   transport.py        in-process transport for planetgen/web/lib/apiclient.py
   csrf.py             CSRF tokens for POST forms
   errors.py           HTML 404/502/500 pages, and the 503/504 pages
-  old_urls.py         301s from the old /<name>.py URLs
   templates/          base.html + one template per page (+ partials/)
 ```
 

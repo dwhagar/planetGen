@@ -2826,6 +2826,16 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
 def test_a_selection_is_shown_once_and_over_the_map(page, map_site):
     """MAP.256: an opened sector (selected on opening) and a system picked in it each show their information in one
     place, inside the map's window, not also in a box beside it; Close takes it away and the next pick brings it back."""
+    _check_a_selection_is_a_popup(page, map_site, pick=True)
+
+
+@pytest.mark.viewport(390, 844)
+def test_a_selection_is_a_popup_over_the_map_on_a_phone_too(page, map_site):
+    """MAP.288: there is no panel beside or under the map at any width: on a phone the selection is the same popup."""
+    _check_a_selection_is_a_popup(page, map_site)
+
+
+def _check_a_selection_is_a_popup(page, map_site, pick=False):
     _open_galaxy(page, map_site, OPEN_PRIME)
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     info = page.locator("#galaxymap3d-info")
@@ -2839,6 +2849,10 @@ def test_a_selection_is_shown_once_and_over_the_map(page, map_site):
 
     assert _selection_displays(page) == ["galaxymap3d-info"] and inside_the_window()
     assert info.locator("h3").inner_text() == "Fixture Prime"
+    info.locator("button", has_text="Close").click()   # the popup is drawn into the map's picture: clear it to look for stars
+    assert _selection_displays(page) == []
+    if not pick:
+        return
     page.wait_for_timeout(500)
     picked = None
     for x, y in _bright_spots(page, GALAXY_CANVAS):

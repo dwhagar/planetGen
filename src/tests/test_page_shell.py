@@ -180,10 +180,9 @@ def test_one_shared_rule_spaces_every_button_group():
 
 
 def test_data_sits_beside_the_render_when_there_is_room():
-    """UX.15: container queries (not viewport ones) put the System Map's
-    info panel and a phenomenon's data beside the render."""
+    """UX.15: a container query (not a viewport one) puts a phenomenon's data beside the render. (The System Map's
+    info panel is a popup over the map now, MAP.288.)"""
     css = _stylesheet()
-    assert "container: sysmap-layout / inline-size;" in css
-    assert "@container sysmap-layout (min-width: 46rem)" in css
+    assert "@container sysmap-layout" not in css
     assert "container: object-view / inline-size;" in css
     assert "@container object-view (min-width: 50rem)" in css

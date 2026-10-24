@@ -2,6 +2,46 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2134] - 2026-10-24
+
+**Headline:** The plan no longer prints its table of where the time went unless asked.
+
+### Changed
+- **The "Where the plan's time went" table is printed only with `--timing` or `--debug` (UX.162).** Every galaxy plan ended with a step table made for finding slow steps (PERF.163). A plain plan's text is back to what it was before; `planetgen plan --timing` prints the same table.
+
+## [8.0.2133] - 2026-10-24
+
+**Headline:** A galaxy plan takes about half as long, because the digest it stores with the galaxy is worked out alongside the plan.
+
+### Changed
+- **A new galaxy's plan no longer stops for the generator battery (PERF.176).** The plan records a digest of the generator with a new galaxy, and worked it out in the middle of storing the shape: 8 to 20 seconds of a 15 to 39 second plan. It is now worked out in a process of its own while the rest of the plan runs; the plan waits under a second for it. The digest stored is the same.
+
+## [8.0.2132] - 2026-10-24
+
+**Headline:** Every map shows what you pick in one popup over the map, and the panel beside the map is gone, so the map gets the room.
+
+### Changed
+- **No info panel beside the maps (MAP.288).** The Galaxy Map, the sector view and the System Map (diagram and 3D) show a picked thing's information only as a popup inside the map's window, at every screen width: the heading, every row, the View button to the item's own page, Start Here, End Here, the ☆ and a Close button, in the corner away from where you last pressed. It is not drawn until something is picked. The map window now takes the width the panel used. The System Map's measurement results use the same popup. The small box with the first four rows and a Details button, and the column beside the System Map, are removed.
+
+TODO items resolved: MAP.288. Added: none.
+
+## [8.0.2131] - 2026-10-24
+
+**Headline:** A planet or moon keeps the Bond albedo and the greenhouse quantity its surface temperature is made of, so the temperature can be read back from them exactly.
+
+### Changed
+- **The generator records its albedo and greenhouse draws (GEN.412).** `calculate_atmospheric_conditions` drew an albedo from the class range and a greenhouse quantity from the air and the class multiplier, and kept only the temperature. It now keeps both on the body (`bond_albedo`, `greenhouse_factor`, with `albedo_basis` 0), and the temperature is `T_s = T_e (1 + G)^(1/4)` through the new `planetgen/physics/climate_draws.py`, floored at the cosmic microwave background as before. A body with no air records G as 0. Nothing is drawn differently, so there is no generator epoch.
+- **Migration 0142, schema v142.** `planets` and `moons` gain the three columns. A galaxy made earlier gets the draws back exactly from each body's stored scale height (`albedo_basis` 1); a row with no solution (no starlight, a temperature on the background floor, an albedo outside 0 to 1, an edited pressure) takes a seeded draw from the class range with the greenhouse quantity worked out from its stored temperature, which never moves (`albedo_basis` 2).
+
+## [8.0.2130] - 2026-10-24
+
+**Headline:** The retired `/<name>.py` page addresses and the old NAV parameter style now answer 404 instead of redirecting.
+
+### Removed
+- The `/<name>.py` redirects (`index.py`, `search.py`, `sector.py` and the rest) and `web/old_urls.py`; those addresses now give the normal 404 page.
+- The old NAV parameters (`from_id`, `to_id`, `from_kind`, `to_kind`, `from_type`, `to_type`), which used to redirect to the current `from`/`to` form.
+- The redirect tests for both, about 190 cases; the 404, header, malformed-body, HEAD and OPTIONS sweeps stay.
+
 ## [8.0.2129] - 2026-10-24
 
 **Headline:** A rocky body's interior heat and its ground radiation now come from one set of potassium, thorium and uranium drawn from its star.

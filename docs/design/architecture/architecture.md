@@ -488,7 +488,6 @@ The HTML pages (see [html-interface.md](../../reference/html-interface.md)). `te
 | [`galaxy_status_page.py`](../../../src/planetgen/web/galaxy_status_page.py) | `/galaxy-status` (UX.3): public JSON saying whether a background run is changing the galaxy, which `static/galaxybanner.js` polls every 30 s. |
 | [`nav_page.py`](../../../src/planetgen/web/nav_page.py) | `/nav`: pick two endpoints, show course, route and NAV map, with "Show on Galaxy Map" (`galaxy_course` builds the course's waypoints for `/galaxy?course=`). |
 | [`nearby_page.py`](../../../src/planetgen/web/nearby_page.py) | The What's nearby page, `/nearby` (NAV.44): pick a place, type a distance in parsecs, list what is there. |
-| [`old_urls.py`](../../../src/planetgen/web/old_urls.py) | 301 redirects from the old CGI `/<name>.py` URLs. |
 | [`population_pages.py`](../../../src/planetgen/web/population_pages.py) | The population pages (POP.1 to POP.4), read from the population API (`api/population.py`, schema v44): |
 | [`queue_page.py`](../../../src/planetgen/web/queue_page.py) | The admin work queue page (ADM.10): `/admin/queue` lists the job trees newest first, `/admin/queue/<id>` shows one. |
 | [`searchpage.py`](../../../src/planetgen/web/searchpage.py) | Search page request parsing and URL building. |

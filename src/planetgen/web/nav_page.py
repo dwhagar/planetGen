@@ -25,11 +25,7 @@ to or from a body adds legs inside its system (see `db.query.nav_course`).
 then carries it along, so choosing an origin lands on the course.
 
 Build links with `nav_url(origin, destination)` / `endpoint(kind, id)`
-below, or in a template `page_url('nav', **{'from': 'system:12'})`. The
-older parameter style (`from_id`/`to_id`, or `from`/`to` with
-`from_kind`/`to_kind="phenomenon"` and `from_type`/`to_type`, what
-`nav.py` read and `page_url("nav", from_id=...)` produced) still works:
-it redirects to the canonical URL.
+below, or in a template `page_url('nav', **{'from': 'system:12'})`.
 
 A phenomenon or body is never offered in the pickers (there is no bounded,
 dropdown-friendly list of every phenomenon); it becomes an endpoint only
@@ -37,7 +33,6 @@ through a link from its own page.
 """
 
 import re
-from urllib.parse import urlencode
 
 from flask import redirect, request, url_for
 
@@ -62,8 +57,6 @@ FRAME_LABELS = {
     "system": "System Local Frame: 000 mark 000 points at the star",
 }
 """dict: Each `navigation.Course.frame` value's line on the course panel."""
-
-_LEGACY_PARAMS = ("from_id", "to_id", "from_kind", "to_kind", "from_type", "to_type")
 
 
 def endpoint(kind, entity_id):
@@ -99,27 +92,6 @@ def parse_endpoint(raw):
     if kind in (None, "sector"):
         raise apiclient.NotFoundError(f"No such system, body or phenomenon: {raw!r}")
     return kind, entity_id
-
-
-def _legacy_redirect(args):
-    """
-    The canonical URL for a request using the old parameter style, or
-    `None` when the request already uses the new one.
-    """
-    if not any(name in args for name in _LEGACY_PARAMS):
-        return None
-    params = []
-    for prefix in ("from", "to"):
-        raw = (args.get(f"{prefix}_id") or args.get(prefix) or "").strip()
-        if not raw:
-            continue
-        if raw.isdecimal():  # an old row number names nothing since objects have IDs (API.23)
-            continue
-        params.append((prefix, raw))
-    for name in ("from_sector", "to_sector"):
-        if args.get(name):
-            params.append((name, args[name]))
-    return url_for("web.nav") + (f"?{urlencode(params, safe=':')}" if params else "")
 
 
 def _sector_id(raw):
@@ -606,10 +578,6 @@ def _unavailable_reason(origin):
 @bp.route("/nav")
 def nav():
     """The NAV page; see the module docstring for its URL scheme."""
-    canonical = _legacy_redirect(request.args)
-    if canonical is not None:
-        return redirect(canonical, code=301)
-
     from_raw = (request.args.get("from") or "").strip()
     to_raw = (request.args.get("to") or "").strip()
     page = {"section": "nav", "description": "Plot a course between two star systems or phenomena."}

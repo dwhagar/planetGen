@@ -1434,13 +1434,6 @@ def test_regression_databases_listing_survives_an_unopenable_schema(app, fuzz_db
     assert [(item["sector_count"], item["system_count"]) for item in vanished] == [(None, None)]
 
 
-# B3 (fixed): web/nav_page.py _legacy_redirect uses str.isdigit() then int(); '²' passes isdigit -> ValueError -> 500
-@pytest.mark.parametrize("value", ["²", "¹⁰", "①"])
-def test_regression_nav_legacy_param_unicode_digit(app, fuzz_db, value):
-    response = app.test_client().get("/nav", query_string={"from_id": value, "to_id": "1"})
-    assert response.status_code < 500
-
-
 # B5 (fixed): /api/search size bounds accept nan/inf and pass them to pymysql -> 500
 @pytest.mark.parametrize("param", ["star_min_radius_km", "planet_max_radius_km", "moon_max_radius_km"])
 @pytest.mark.parametrize("value", ["nan", "inf", "1e309"])
