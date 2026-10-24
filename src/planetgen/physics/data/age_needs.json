@@ -1,0 +1,25 @@
+{
+  "title": "The youngest a star can be and still host a body (GEN.686)",
+  "version": 1,
+  "status": "planetGen defaults: the ages are the old class tables' minimums (tuning.PLANET_CLASSES age_ranges, planetGen values with no source), now asked of the body's stored conditions instead of its class letter. A body needs the time its settling takes: a young star can host a giant, an airless rock, a small barren world, or a molten one; a world with air, water and a settled surface needs the star to be old enough for that, longer on a star that evolves slowly.",
+  "tiers": {
+    "none": {"fast": 0.0, "normal": 0.0, "slow": 0.0, "words": "needs no settling time"},
+    "molten": {"fast": 0.005, "normal": 0.5, "slow": 3.0, "words": "a young, hot or still-outgassing world"},
+    "settled": {"fast": 0.015, "normal": 1.5, "slow": 8.0, "words": "a settled surface with air"},
+    "watered": {"fast": 0.05, "normal": 4.0, "slow": 25.0, "words": "air and liquid water long enough to settle"},
+    "frozen": {"fast": 0.08, "normal": 8.0, "slow": 45.0, "words": "a glaciated world, the oldest tier"}
+  },
+  "rows": [
+    {"tier": "none", "name": "giants", "when": [{"quantity": "body_type", "equals": "g"}]},
+    {"tier": "none", "name": "airless bodies", "when": [{"quantity": "pressure_pa", "lt": 10.0}]},
+    {"tier": "none", "name": "small worlds", "when": [{"quantity": "gravity_g", "lt": 0.5}]},
+    {"tier": "molten", "name": "dense hot air", "when": [{"quantity": "pressure_pa", "min": 1000000.0}]},
+    {"tier": "molten", "name": "reducing air", "when": [{"quantity": "share_o2", "lt": 0.03}, {"quantity": "reducing_share", "min": 0.05}]},
+    {"tier": "frozen", "name": "cold worlds", "when": [{"quantity": "temperature_k", "lt": 210.0}]},
+    {"tier": "settled", "name": "heavy worlds", "when": [{"quantity": "gravity_g", "min": 1.25}]},
+    {"tier": "settled", "name": "cold thin air", "when": [{"quantity": "pressure_pa", "lt": 3000.0}, {"quantity": "temperature_k", "lt": 273.15}]},
+    {"tier": "watered", "name": "thin oxygen air", "when": [{"quantity": "pressure_pa", "lt": 3000.0}]},
+    {"tier": "settled", "name": "carbon dioxide air", "when": [{"quantity": "share_co2", "min": 0.2}]},
+    {"tier": "watered", "name": "temperate worlds", "when": []}
+  ]
+}
