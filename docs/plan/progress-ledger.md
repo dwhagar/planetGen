@@ -1272,3 +1272,4 @@ Baseline: PR #1817.
 | GEN.443 | 8.1 | Radiation chain for habitability (GEN.445) |
 | MAP.258 | 8.1 | Fly-through map |
 | GEN.631 | 8.1 | Multi-star and compact systems |
+| GEN.643 | 8.1 | Habitability system |
