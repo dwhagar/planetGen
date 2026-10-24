@@ -18678,35 +18678,6 @@ clears each one.
   TEST.334, TEST.339. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.334, TEST.339.
 
-- [ ] **TEST.342 test_api::test_galaxy_tiles_carry_no_comets_rogue_planets_or_asteroid_fields fails on unmodified main (bug)**
-  Reported by Lane 4 (9:16 AM EDT 2026-10-24, as the lane reported) when
-  merging DB.83 (#2960): fails on unmodified main. The TODO thread could
-  not run it, so recheck on current main first. Do: reproduce; find
-  whether the galaxy tile now carries a comet, rogue planet or asteroid
-  field row (a change from the small-body composition work GEN.442 or
-  GEN.477, or a tile builder change) or whether the test's data changed;
-  fix the product or the test with the reason recorded. Done: the test
-  passes on main. Related: TEST.337, TEST.338, TEST.340 (the other
-  failures Lane 4 listed are already filed there). Owner: Bug Hunt
-  (proposed).
-  Research (2026-10-09, Update): The wiki strip lane (9:37 AM EDT
-  2026-10-24, as the lane reported) sees the same failure on main and
-  reports the cause: the tile answer has an extra 'worlds' key. Not from
-  #2963.
-  Research (2026-10-09, 10-24 lane 4): Also seen by lane 4 at 10:02 AM
-  EDT (as the lane reported):
-  test_gen_member_stars::test_the_system_page_and_its_map_draw_a_system_of_three[False]
-  failed once under load with an extra "worlds" key in a key set and
-  passed alone. Same cause as above (the MAP.220 worlds key); fix both
-  together.
-  Research (2026-10-09, 10-24 Core 1): Core 1 (12:43 PM EDT 2026-10-24
-  as the lane reported) sees it fail every time on main 8.0.2205 with
-  the lane test env and the datasets fetched.
-  Research (2026-10-09, 10-24 Bug Hunt): Bug Hunt takes this (12:53 PM
-  EDT 2026-10-24 as the lane reported): a one-line key-set fix (the tile
-  now carries worlds, MAP.220), fixed and green, in its next PR.
-  Prerequisites: none. Related: TEST.337, TEST.338, TEST.340.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -19442,6 +19413,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   machine because the test MySQL user lacks GRANT OPTION (Boss
   authorised it per lane, 8:07 PM EDT 10-23); add it to the environment
   script with the other items.
+  Research (2026-10-09, 10-24 Bug Hunt): Bug Hunt (1:02 PM EDT
+  2026-10-24 as the lane reported): after a container restart MySQL can
+  fail to start because of stale /var/run/mysqld/*.lock files; remove
+  them and run service mysql start. Add this to the lane machine checks.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
