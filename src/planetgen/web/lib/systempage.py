@@ -20,18 +20,18 @@ Class labels (a star's type, a planet's class) link to their class
 reference pages (`/classes/...`) through an optional `class_url(type_slug,
 code)` hook, the way `fmt`'s location helpers take a `system_url` hook:
 it returns the page's URL or `None`, and without it the labels stay
-plain text. A link never goes in a row's `<summary>` (a link inside the
-disclosure button would be a control nested in a control); it opens the
-row's detail instead.
+plain text. A class's own letter or name in a row's `<summary>` is the link
+(UX.182): there is no separate "Planet class M" line. The symbols and chips
+beside it link into the habitability page the same way (UX.181).
 """
 
 from planetgen.describe.html import blocks_html
 from planetgen.physics.habitability_world import DOMAINS, TIER_NAMES
-from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
+from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes, star_type_split
 from planetgen.web.lib.fmt import (
     distance_km_html, esc, format_gravity_g_short, format_number, measured_html, period_years_html, speed_kms_html,
 )
-from planetgen.web.lib.habitability_symbols import symbol_row
+from planetgen.web.lib.habitability_symbols import CHIP_ANCHORS, PHI6_CHIP_ANCHOR, equipment_anchor, help_link, symbol_row
 from planetgen.web.lib.tabledisplay import format_star_radius
 
 
@@ -61,9 +61,21 @@ def _star_class_urls(star_type, class_url):
     return class_url("star-spectral", classes[0]), class_url("star-luminosity", classes[1])
 
 
+def _star_type_html(star_type, class_url):
+    """A star type as HTML (UX.182): with `class_url`, its spectral part ("G2") links to its spectral class page and its
+    luminosity part ("V") to its luminosity class page, the words after them stay plain; unlinked where either page
+    is missing or the type does not parse."""
+    parts = star_type_split(star_type) if class_url else None
+    if parts is None:
+        return esc(star_type)
+    spectral_url, luminosity_url = _star_class_urls(star_type, class_url)
+    spectral, luminosity, rest = parts
+    return f"{_link(spectral_url, esc(spectral))}{_link(luminosity_url, esc(luminosity))}{esc(rest)}"
+
+
 def stars_html(stars, class_url=None, notes_html=""):
     """The Stars table. With `class_url` (see the module docstring), a
-    star's type links to its spectral class page. `notes_html`
+    star's type links to its spectral and luminosity class pages. `notes_html`
     (`star_notes_html`) goes under the table."""
     # UX.53: "single" says nothing; the Role column is for binaries and multiples.
     show_role = any(star["role"] != "single" for star in stars)
@@ -71,7 +83,7 @@ def stars_html(stars, class_url=None, notes_html=""):
         "<tr>"
         + (f'<td data-label="Role">{esc(star["role"])}</td>' if show_role else "")
         + f'<td class="stack-title">{esc(star["name"])}</td>'
-        f'<td data-label="Type">{_link(_star_class_urls(star["star_type"], class_url)[0], esc(star["star_type"]))}</td>'
+        f'<td data-label="Type">{_star_type_html(star["star_type"], class_url)}</td>'
         # Not esc()'d: these are built entirely from floats and fixed unit
         # literals (never database TEXT), and legitimately contain a raw
         # `<sup>exponent</sup>` -- see `tabledisplay.py`.
@@ -105,27 +117,17 @@ def _star_has_list_row(system, star, by_host):
 
 def star_notes_html(system, sections, class_url=None, facilities=()):
     """What the System list's star rows used to say, for the stars that have
-    no row any more (UX.53): each one's description and its spectral and
-    luminosity class links, under the Stars table."""
+    no row any more (UX.53): each one's description, under the Stars table."""
     by_host = _facilities_by_host(facilities)
     notes = []
     for star in system["stars"]:
         if _star_has_list_row(system, star, by_host):
             continue
         blocks = sections["stars"].get(str(star["id"]))
-        links = []
-        classes = star_type_classes(star["star_type"]) if class_url else None
-        if classes:
-            spectral_url, luminosity_url = _star_class_urls(star["star_type"], class_url)
-            links = [_link(spectral_url, f"Spectral class {esc(classes[0])}") if spectral_url else "",
-                     _link(luminosity_url, f"Luminosity class {esc(classes[1])}") if luminosity_url else ""]
-        links = [link for link in links if link]
-        if not blocks and not links:
+        if not blocks:
             continue
         heading = f"<h3>{esc(star['name'])}</h3>" if len(system["stars"]) > 1 else ""
-        link_line = f'<p class="class-links">{" &middot; ".join(links)}</p>' if links else ""
-        body = _document_html(blocks)
-        notes.append(f'<div class="star-note prose">{heading}{body}{link_line}</div>')
+        notes.append(f'<div class="star-note prose">{heading}{_document_html(blocks)}</div>')
     return "".join(notes)
 
 
@@ -255,36 +257,36 @@ def _row_html(title, stats, blocks, children_html="", children_visible=False, li
 
 
 def _star_row_html(star, sections, children_html="", class_url=None, by_host=None):
-    stats = [f'<span class="stat">{esc(star["star_type"])}</span>']
+    stats = [f'<span class="stat">{_star_type_html(star["star_type"], class_url)}</span>']
     if star["role"] != "single":
         stats.append(f'<span class="stat">{esc(star["role"].capitalize())}</span>')
-    links = []
-    classes = star_type_classes(star["star_type"]) if class_url else None
-    if classes:
-        spectral_url, luminosity_url = _star_class_urls(star["star_type"], class_url)
-        links = [_link(spectral_url, f"Spectral class {esc(classes[0])}") if spectral_url else "",
-                 _link(luminosity_url, f"Luminosity class {esc(classes[1])}") if luminosity_url else ""]
     return _row_html(
         esc(star["name"]), stats, sections["stars"].get(str(star["id"])), children_html, children_visible=True,
-        links=links, facilities=(by_host or {}).get(("star", star["id"])), anchor=body_anchor("star", star["id"]),
+        facilities=(by_host or {}).get(("star", star["id"])), anchor=body_anchor("star", star["id"]),
     )
 
 
-def _habitable_chip(body):
+def _flag_chip(text, help_url):
+    """A "flag-yes" chip (UX.181), linked to its entry on the habitability page when `help_url` is given."""
+    return help_link(f'<span class="flag flag-yes">{text}</span>', help_url, CHIP_ANCHORS[text.lower()])
+
+
+def _habitable_chip(body, help_url=None):
     """The "Habitable class" chip (the class can carry life, which says nothing of its PHI-6 rating), or `""`. The
     row names the class and no Terrestrial or Gas Giant label (UX.32)."""
-    return '<span class="flag flag-yes">Habitable class</span>' if body["habitable"] else ""
+    return _flag_chip("Habitable class", help_url) if body["habitable"] else ""
 
 
 def _stat(text):
     return f'<span class="stat">{text}</span>' if text else ""
 
 
-def _habitability_chip(body):
+def _habitability_chip(body, help_url=None):
     """GEN.89, GEN.655, UX.154: the equipment a human needs on this body as one chip per item, solid for a required item
     and outlined for a recommended one, each in the colour of the PHI-6 domain it comes from; a body that needs nothing
     shows one chip of its worst PHI-6 domain's colour; empty for a gas giant or a body not scored. The ratings
-    themselves are the symbols beside it (UX.100)."""
+    themselves are the symbols beside it (UX.100). With `help_url` each chip links to the habitability page's entry for
+    its item (UX.181)."""
     levels = body.get("equipment")
     if levels is None:
         return ""
@@ -293,10 +295,12 @@ def _habitability_chip(body):
         tier = body.get(f"tier_{item['domain'].lower()}") or 0
         text = item["item"][:1].upper() + item["item"][1:]
         hidden = ' <span class="sr-only">(recommended)</span>' if item["severity"] == "recommended" else ""
-        chips.append(f'<span class="flag flag-eq flag-eq-{item["severity"]} flag-tier flag-tier-{tier}">{esc(text)}{hidden}</span>')
+        chip = f'<span class="flag flag-eq flag-eq-{item["severity"]} flag-tier flag-tier-{tier}">{esc(text)}{hidden}</span>'
+        chips.append(help_link(chip, help_url, equipment_anchor(item["item"])))
     if not chips:
         worst = max(body.get(f"tier_{domain}") or 0 for domain in DOMAINS)
-        return f'<span class="flag flag-tier flag-tier-{worst}">PHI-6 {TIER_NAMES[worst]}</span>'
+        return help_link(f'<span class="flag flag-tier flag-tier-{worst}">PHI-6 {TIER_NAMES[worst]}</span>', help_url,
+                         PHI6_CHIP_ANCHOR)
     return f'<span class="eq-chips">{"".join(chips)}</span>'
 
 
@@ -305,25 +309,29 @@ def _gravity_text(gravity_g):
 
 
 def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None, species=None, admin_rows=None,
-                     sprite_url=None):
+                     sprite_url=None, help_url=None):
     """
     A planet's (or moon's) row: its class, a "Habitable class" chip for a
     habitable class, a "Habitable-class moon" chip when one of its moons is
     habitable, "Inhabited" when it is, its moon count, its distance, period
     and gravity, and the equipment chip and the PHI-6 symbols (UX.100; none
-    where `sprite_url` is not given or the body is unscored). The zone is
+    where `sprite_url` is not given or the body is unscored). The class letter
+    links to its class page (UX.182); the chips and symbols link into the
+    habitability page at `help_url` (UX.181). The zone is
     left to the body's own page. A planet's moons follow in their own "N
     moons" group right under its row, collapsed, needing no script.
     """
     moons = [] if is_moon else (body.get("moons") or [])
+    class_code = body["planet_class"]
+    class_text = _link(class_url("planet", class_code) if class_url and class_code else None, esc(class_code))
     stats = [
-        _stat(f'Class {esc(body["planet_class"])}' if body["planet_class"] else ""),
-        _habitable_chip(body),
+        _stat(f"Class {class_text}" if class_code else ""),
+        _habitable_chip(body, help_url),
     ]
     if any(moon["habitable"] for moon in moons):
-        stats.append('<span class="flag flag-yes">Habitable-class moon</span>')
+        stats.append(_flag_chip("Habitable-class moon", help_url))
     if body["inhabited"]:
-        stats.append('<span class="flag flag-yes">Inhabited</span>')
+        stats.append(_flag_chip("Inhabited", help_url))
     if moons:
         stats.append(_stat(f'{len(moons)} moon{"s" if len(moons) != 1 else ""}'))
     stats += [
@@ -331,31 +339,27 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
         _stat(distance_km_html(body["distance_km"])),
         _stat(period_years_html(body["period_years"]) if body.get("period_years") is not None else ""),
         _stat(_gravity_text(body.get("gravity_g"))),
-        _habitability_chip(body),
-        symbol_row(body, sprite_url) if sprite_url else "",
+        _habitability_chip(body, help_url),
+        symbol_row(body, sprite_url, help_url=help_url) if sprite_url else "",
     ]
     section = sections["moons" if is_moon else "planets"]
     after_html = ""
     if moons:
         label = f'{len(moons)} moon{"s" if len(moons) != 1 else ""}'
         moon_rows = "".join(_planet_row_html(moon, sections, is_moon=True, class_url=class_url, by_host=by_host,
-                                              admin_rows=admin_rows, sprite_url=sprite_url)
+                                              admin_rows=admin_rows, sprite_url=sprite_url, help_url=help_url)
                             for moon in moons)
         after_html += (
             f'<details class="moon-group"><summary>{label} of {esc(body["name"])}</summary>'
             f'<ul class="system-list">{moon_rows}</ul></details>'
         )
-    class_link = ""
-    planet_url = class_url("planet", body["planet_class"]) if class_url and body["planet_class"] else None
-    if planet_url:
-        class_link = _link(planet_url, f'Planet class {esc(body["planet_class"])}')
     dominant = None if is_moon else (species or {}).get(body["id"])
     species_link = ""
     if dominant:
         stats.insert(2, f'<span class="stat">Species: {esc(dominant["name"])}</span>')
         species_link = f'Dominant species: {_link(dominant["url"], esc(dominant["name"]))}'
     return _row_html(esc(body["name"]), stats, section.get(str(body["id"])), after_html, children_visible=True,
-                     links=[class_link, species_link], facilities=(by_host or {}).get(("moon" if is_moon else "planet", body["id"])),
+                     links=[species_link], facilities=(by_host or {}).get(("moon" if is_moon else "planet", body["id"])),
                      admin=_row_admin_html(admin_rows, "moon" if is_moon else "planet", body["id"]),
                      anchor=body_anchor("moon" if is_moon else "planet", body["id"]))
 
@@ -409,23 +413,22 @@ def comet_orbit_key_km(comet):
 
 def _comet_row_html(comet, sections, class_url=None):
     kind = "Elliptical" if comet["orbit_type"] == "elliptical" else "Parabolic"
+    # UX.29: every comet has a class, a parabolic one too; UX.182: its name is the link.
+    code = comet.get("period_class") if comet["orbit_type"] == "elliptical" else PARABOLIC_COMET_CLASS
+    period_url = class_url("comet", code) if class_url and code else None
     stats = [
-        _stat(f"{kind} comet"),
+        _stat(_link(period_url, esc(class_entry("comet", code)["name"])) if period_url else f"{kind} comet"),
         _stat("Active" if comet["is_active"] else "Dormant"),
         _stat(f'Perihelion {distance_km_html(comet["perihelion_distance_km"])}'),
         _stat(period_years_html(comet["orbital_period_years"]) if comet.get("orbital_period_years") is not None
               else "Single apparition"),
     ]
-    # UX.29: every comet links its class, a parabolic one too.
-    code = comet.get("period_class") if comet["orbit_type"] == "elliptical" else PARABOLIC_COMET_CLASS
-    period_url = class_url("comet", code) if class_url and code else None
-    links = [_link(period_url, esc(class_entry("comet", code)["name"]))] if period_url else []
-    return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])), links=links,
+    return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])),
                      anchor=body_anchor("comet", comet["id"]))
 
 
 def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_host=None, species=None, admin_rows=None,
-                        sprite_url=None):
+                        sprite_url=None, help_url=None):
     """
     A star's (or a close pair's) own bodies in their order out from the
     star: planets and belts by their shared `orbital_index`, and each comet
@@ -443,7 +446,7 @@ def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_hos
             rows.append(_comet_row_html(pending.pop(0), sections, class_url))
         if kind == "planet":
             rows.append(_planet_row_html(body, sections, class_url=class_url, by_host=by_host, species=species,
-                                         admin_rows=admin_rows, sprite_url=sprite_url))
+                                         admin_rows=admin_rows, sprite_url=sprite_url, help_url=help_url))
         else:
             rows.append(_belt_row_html(body, sections, by_host, admin_rows))
     rows.extend(_comet_row_html(comet, sections, class_url) for comet in pending)
@@ -469,8 +472,8 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
     in their host's own row, and `species` (`{planet_id: {"name", "url"}}`)
     names each life world's dominant species in its row. `admin_rows`
     (`_row_admin_html`) gives each planet, moon and belt row its Admin menu.
-    `habitability_url` (UX.90) adds a visible "Habitability levels" link above
-    the list when any body shows an equipment level; `sprite_url` (the icon
+    `habitability_url` (UX.181) is the habitability page: each chip and PHI-6
+    symbol in a row links to its section there. `sprite_url` (the icon
     sprite, UX.100) draws each scored planet's and moon's PHI-6 symbols in its row.
     """
     stars, planets, belts, comets = system["stars"], system["planets"], system["belts"], system["comets"]
@@ -488,6 +491,7 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
                 species,
                 admin_rows,
                 sprite_url,
+                habitability_url,
             )
             children_html = f'<ul class="system-list">{children}</ul>' if children else ""
             rows.append(_star_row_html(star, sections, children_html, class_url, by_host))
@@ -499,14 +503,10 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
         rows_html = "".join(_star_row_html(star, sections, class_url=class_url, by_host=by_host)
                             for star in stars if _star_has_list_row(system, star, by_host))
         rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host, species, admin_rows,
-                                         sprite_url)
+                                         sprite_url, habitability_url)
 
     overview_html = _document_html(sections["overview"])
-    scored = any(body.get("equipment") is not None
-                 for planet in planets for body in [planet, *(planet.get("moons") or [])])
-    help_html = (f'<p class="hint inline-links"><a href="{esc(habitability_url)}">Habitability levels</a>: what the equipment '
-                 "labels and their colours mean.</p>") if habitability_url and scored else ""
     return f"""
 <div class="prose system-overview">{overview_html}</div>
-{help_html}<ul class="system-list system-list-root">{rows_html}</ul>
+<ul class="system-list system-list-root">{rows_html}</ul>
 """

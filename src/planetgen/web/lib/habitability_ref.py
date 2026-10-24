@@ -1,7 +1,7 @@
 # planetgen/web/lib/habitability_ref.py
 
 """
-The text of the habitability levels page (`/classes/habitability`, UX.90):
+The text of the habitability page (`/help/habitability`, UX.90, UX.180):
 the survival equipment items, the six PHI-6 domains with their Blue, Green,
 Yellow and Red thresholds, the compact-host rule and the chips a planet row
 shows. The equipment items come from `planetgen.physics.equipment`;
@@ -42,6 +42,26 @@ EQUIPMENT_ITEMS = (
 )
 """tuple: `(item, what makes it needed)` for the survival equipment line (GEN.655; UX.153 builds the page from the
 limits table)."""
+
+EQUIPMENT_ROW_IDS = {
+    "Clothing": "equipment-clothing",
+    "Thermal suit": "equipment-thermal-suit",
+    "Sealed suit": "equipment-sealed-suit",
+    "Pressure suit": "equipment-pressure-suit",
+    "Armoured suit": "equipment-armoured-suit",
+    "Vehicle only": "equipment-vehicle",
+    "Powered frame": "equipment-powered-frame",
+    "Dust filter or seals": "equipment-dust",
+    "Gas filter, full-face or powered": "equipment-gas-filter",
+    "CO2 scrubber": "equipment-co2-scrubber",
+    "Gas-mix mask": "equipment-gas-mix-mask",
+    "Self-contained air": "equipment-self-contained-air",
+    "Mixed-gas rig and isolated air": "equipment-mixed-gas",
+    "Shielded garment, storm vest, hardened suit": "equipment-radiation-garment",
+    "Shielded shelter and hardened habitat": "equipment-shelter",
+}
+"""dict: The id of each `EQUIPMENT_ITEMS` row on the page, the target of the equipment chips (UX.181). The rows an item
+name reaches are `habitability_symbols.EQUIPMENT_ANCHORS`."""
 
 DOMAIN_TIERS = (
     ("Blue", "The best band: a visitor notices nothing wrong."),
@@ -167,6 +187,9 @@ CHIPS = (
 )
 """tuple: The chips a planet or moon row can show beside its equipment level."""
 
+CHIP_IDS = {chip: habitability_symbols.CHIP_ANCHORS[chip.lower()] for chip, _meaning in CHIPS}
+"""dict: The id of each `CHIPS` entry on the page, the target of the flag chips (UX.181)."""
+
 
 SYMBOL_INTRO = (
     "Lists show a rating as a small shape drawn in its colour. The shape says which domain it is, and its tooltip "
@@ -237,10 +260,15 @@ def page():
         "zone_text": zone_text(),
         "tier_numbers": tuple(range(len(habitability_symbols.TIER_CLASSES))),
         "equipment": EQUIPMENT_ITEMS,
+        "equipment_ids": EQUIPMENT_ROW_IDS,
         "domain_tiers": DOMAIN_TIERS,
         "domains": domains(),
         "score_rule": SCORE_RULE,
         "equipment_rule": EQUIPMENT_RULE,
         "compact_host_rule": COMPACT_HOST_RULE,
         "chips": CHIPS,
+        "chip_ids": CHIP_IDS,
+        "domain_ids": habitability_symbols.DOMAIN_ANCHORS,
+        "life_ids": habitability_symbols.LIFE_ANCHORS,
+        "overall_id": habitability_symbols.SYMBOL_ANCHORS[habitability_symbols.OVERALL],
     }

@@ -168,3 +168,19 @@ def test_equipment_chips_are_solid_when_required_and_outlined_when_recommended()
     assert 'flag-eq-recommended flag-tier flag-tier-3">Hardened habitat <span class="sr-only">(recommended)</span>' in html
     body["equipment"]["items"] = []
     assert "PHI-6 Red" in _planet_row_html(body, {"planets": {}, "moons": {}}, sprite_url=_SPRITE)
+
+
+def test_the_chips_link_to_their_sections_of_the_habitability_page():
+    """UX.181: the habitable and equipment chips and the symbols are the links; none without the page's URL."""
+    url = "/help/habitability"
+    body = _scored(_body(1, "Rocky", 1.0, habitable=True))
+    html = _planet_row_html(body, {"planets": {}, "moons": {}}, sprite_url=_SPRITE, help_url=url)
+    assert (f'<a class="help-link" href="{url}#chip-habitable-class"><span class="flag flag-yes">Habitable class</span></a>'
+            in html)
+    assert f'<a class="help-link" href="{url}#equipment-gas-mix-mask"><span class="flag flag-eq' in html
+    assert html.count('class="help-link"') == 2 + 7
+    body["equipment"]["items"] = []
+    assert f'href="{url}#overall"><span class="flag flag-tier flag-tier-0">PHI-6 Blue</span>' in _planet_row_html(
+        body, {"planets": {}, "moons": {}}, help_url=url)
+    assert "help-link" not in _planet_row_html(_scored(_body(1, "Rocky", 1.0, habitable=True)),
+                                               {"planets": {}, "moons": {}}, sprite_url=_SPRITE)

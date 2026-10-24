@@ -352,7 +352,8 @@ def test_the_equipment_cell_draws_one_chip_per_item_in_its_domains_colour():
            "equipment_items": [{"item": "gas-mix mask", "severity": "required", "domain": "Air"},
                                {"item": "hardened habitat", "severity": "recommended", "domain": "Radiation"}]}
     cell = habitability_cells.equipment_cell(row)
-    assert cell["chips"] == [{"text": "gas-mix mask", "severity": "required", "tier": 2},
-                             {"text": "hardened habitat", "severity": "recommended", "tier": 3}]
+    assert cell["chips"] == [{"text": "gas-mix mask", "severity": "required", "tier": 2, "anchor": "equipment-gas-mix-mask"},
+                             {"text": "hardened habitat", "severity": "recommended", "tier": 3,
+                              "anchor": "equipment-shelter"}]
     assert cell["text"] == row["equipment"]
     assert habitability_cells.equipment_cell({"equipment": "", "equipment_items": []}) == {"text": "—", "muted": True}

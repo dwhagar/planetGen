@@ -57,7 +57,7 @@ from planetgen.util.settings import get_settings  # noqa: E402
 from planetgen.util import chem, settings_view  # noqa: E402
 
 from . import adminregistry, csrf, errors, seo, transport  # noqa: E402
-from .helpers import NAV_MENU, current_admin, page_url, visible_sections  # noqa: E402
+from .helpers import HELP_MENU, HELP_SECTIONS, NAV_MENU, current_admin, page_url, visible_sections  # noqa: E402
 
 # `default-src 'self'` covers scripts, styles, images, fonts and fetch():
 # the pages only load same-origin `static/` files, the map pages build
@@ -134,31 +134,40 @@ def icon(name):
                   f'<use href="{escape(static_url("icons.svg"))}#{name}"></use></svg>')
 
 
-def habitability_symbol(name, tier, detail=None):
+def _habitability_help_url(link):
+    """The habitability page's URL for a symbol that links there (UX.181), `None` for one that does not (`link`
+    false: the page's own legend)."""
+    return page_url("habitability_levels") if link else None
+
+
+def habitability_symbol(name, tier, detail=None, link=True):
     """
     One PHI-6 symbol (UX.101) as markup: `name` is a pressure, temperature, air, water, radiation, suitability or
     overall symbol (`habitability_symbols.SYMBOL_NAMES`), `tier` the stored rating (0 Blue to 3 Red) that colours it
     and names it in its words, and `detail` the figure that follows the rating in them ("Pressure: Blue, 101 kPa").
+    The symbol links to its section of the habitability page unless `link` is false.
 
     Raises:
         ValueError: `name` or `tier` is not one the symbols have.
     """
-    return Markup(habitability_symbols.symbol_html(name, tier, static_url("icons.svg"), detail))
+    return Markup(habitability_symbols.symbol_html(name, tier, static_url("icons.svg"), detail, _habitability_help_url(link)))
 
 
 def habitability_symbol_row(body, with_overall=True, with_life=True):
-    """The symbols of one body's row (`habitability_symbols.symbol_row`), overall first and the life cluster last;
-    empty for an unscored body."""
-    return Markup(habitability_symbols.symbol_row(body, static_url("icons.svg"), with_overall, with_life))
+    """The symbols of one body's row (`habitability_symbols.symbol_row`), overall first and the life cluster last,
+    each linked to its section of the habitability page (UX.181); empty for an unscored body."""
+    return Markup(habitability_symbols.symbol_row(body, static_url("icons.svg"), with_overall, with_life,
+                                                  _habitability_help_url(True)))
 
 
-def habitability_life(name, score):
+def habitability_life(name, score, link=True):
     """One life score (UX.101) as markup: `name` is microbial, flora, fauna or sentient, `score` a whole number 0 to 9.
+    It links to its row of the habitability page unless `link` is false.
 
     Raises:
         ValueError: `name` or `score` is not one the life symbols have.
     """
-    return Markup(habitability_symbols.life_html(name, score, static_url("icons.svg")))
+    return Markup(habitability_symbols.life_html(name, score, static_url("icons.svg"), _habitability_help_url(link)))
 
 
 def math_check_failures():
@@ -191,6 +200,8 @@ def _template_globals():
         "privacy_note": get_settings().seo.privacy_note,
         "sections": visible_sections,
         "nav_menu": NAV_MENU,
+        "help_menu": HELP_MENU,
+        "help_sections": HELP_SECTIONS,
         "static_url": static_url,
         "module_graph": module_graph,
         "icon": icon,

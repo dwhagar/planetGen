@@ -1,8 +1,8 @@
 """
 UX.146: the top menu bar in a real browser.
 
-Lists is under the gear, the search is one icon-only button that drops the search box down, and Nearby is under Nav,
-which opens Plot Course then Nearby Search. Loaded in headless Chromium at five window sizes in both themes: the header
+Lists is under the gear, the search is one icon-only button that drops the search box down, Nearby is under Nav,
+which opens Plot Course then Nearby Search, and Help (UX.180), left of the search button, opens Classes then Habitability. Loaded in headless Chromium at five window sizes in both themes: the header
 shows no Lists or Nearby link, every control lies inside the window with nothing wider than it, the search button has
 an accessible name and no text, the gear lists Lists, and the Nav menu (or, where the sections are folded into the
 Menu, the Menu's Nav group) opens its two entries in order and works from the keyboard. Menus open under their button
@@ -125,6 +125,27 @@ def test_the_top_bar_menus(browser, base_url, size, scheme):
         if first != "Lists":
             problems.append(f"the gear's first entry is {first!r}, not Lists")
         _close(page, "header sl-dropdown.site-gear")
+
+        # Help (UX.180): Classes and Habitability, beside the search button (a book icon on the narrowest phones).
+        help_button = page.locator("header sl-dropdown.site-help-menu > [slot=trigger]")
+        items = page.locator("header sl-dropdown.site-help-menu sl-menu-item")
+        if help_button.get_attribute("aria-haspopup") != "menu" or help_button.inner_text().strip() != "Help":
+            if width >= 352:
+                problems.append("the Help button does not read Help")
+        help_box = help_button.bounding_box()
+        search_box = search.bounding_box()
+        if not help_box or help_box["x"] + help_box["width"] > search_box["x"] + SLACK_PX:
+            problems.append(f"the Help button {help_box} is not left of the search button {search_box}")
+        box = _open(page, help_button, items.first)
+        labels = [item.inner_text().strip() for item in items.all()]
+        if labels != ["Classes", "Habitability"]:
+            problems.append(f"the Help menu holds {labels}")
+        panel = page.locator("header sl-dropdown.site-help-menu .dropdown__panel").bounding_box()
+        if _inside(panel, width, height) or not _attached(panel, box):
+            problems.append(f"the Help panel {panel} is not at its button {box} inside the window")
+        items.nth(1).click()
+        page.wait_for_url("**/help/habitability")
+        _load(page, base_url + "/")
 
         # Nav.
         if state["wide"]:

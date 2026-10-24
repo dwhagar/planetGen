@@ -83,7 +83,10 @@ def test_planet_and_moon_lists_have_a_habitability_column_of_symbols(site, monke
     assert [symbol["name"] for symbol in served[0][4]["symbols"]] == [
         "overall", "pressure", "temperature", "air", "water", "radiation", "suitability"]
     assert served[1][4] == {"text": "—", "muted": True}
-    assert "habitability" not in client.get("/lists/star").get_data(as_text=True)
+    assert 'data-col="habitability"' not in client.get("/lists/star").get_data(as_text=True)
+    # UX.181: each symbol of the page's rows, and of the rows the table serves, links to its habitability section.
+    assert 'href="/help/habitability#domain-radiation"' in body
+    assert [symbol["anchor"] for symbol in served[0][4]["symbols"]][:3] == ["overall", "domain-pressure", "domain-temperature"]
 
 
 def test_an_unknown_kind_has_no_page_or_table(site):

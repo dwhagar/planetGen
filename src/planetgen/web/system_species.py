@@ -10,6 +10,7 @@ does the scoring; this builds the rows.
 from planetgen.physics.habitability_world import DOMAINS
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import esc
+from planetgen.web.lib.habitability_symbols import DOMAIN_ANCHORS, help_link
 
 from .helpers import page_url, population_status, trusted_html
 
@@ -18,10 +19,13 @@ TIER_INDEX = {"Blue": 0, "Green": 1, "Yellow": 2, "Red": 3}
 
 
 def _chips(domains):
-    """The six domains as chips, each with its name, its colour as a word and its class, so no colour stands alone."""
-    return trusted_html("".join(
+    """The six domains as chips, each with its name, its colour as a word and its class, so no colour stands alone,
+    and each linked to its domain on the habitability page (UX.181)."""
+    help_url = page_url("habitability_levels")
+    return trusted_html("".join(help_link(
         f'<span class="flag flag-tier flag-tier-{TIER_INDEX[domains[name]["tier"]]}">'
-        f'{esc(name.capitalize())}: {esc(domains[name]["tier"])}</span>' for name in DOMAINS))
+        f'{esc(name.capitalize())}: {esc(domains[name]["tier"])}</span>', help_url, DOMAIN_ANCHORS[name])
+        for name in DOMAINS))
 
 
 def _species_rows(entries):
