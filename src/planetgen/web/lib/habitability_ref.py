@@ -9,6 +9,7 @@ the thresholds are read from `planetgen.physics.habitability` and `protection_li
 their sources (`domains`), so the tables cannot disagree with the score.
 """
 
+from planetgen import tuning
 from planetgen.physics import atmosphere, constants, habitability, orbits
 from planetgen.physics.habitability_world import LETHAL_DOSE_SV_YR
 from planetgen.physics.protection_limits import limit
@@ -209,6 +210,26 @@ LIFE_INTRO = (
     "surface conditions and the stage life has reached on that world, and is drawn as a shape with the number next to it."
 )
 
+LIFE_NEEDS = (
+    ("microbial", "Any step of life at all, from abiogenesis on. How much comes from how kind the surface is to microbes."),
+    ("flora", (f"From photosynthesis. Until life is multicellular it is mats and algae and stays at "
+               f"{tuning.LIFE_SCORE_SIMPLE_FLORA_MAX} or less; after that it follows how kind the surface is to complex life.")),
+    ("fauna", ("From multicellular life. How much comes from how kind the surface is to complex life, and never more "
+               "than the Flora the animals feed on.")),
+    ("sentient", ("Only where a technological civilization has arisen. It takes Fauna's number and scales it by how long "
+                  f"the civilization has existed, in full after {tuning.LIFE_SCORE_SENTIENT_FULL_GYR * 1000:g} million "
+                  "years; never below 1 once there is one.")),
+)
+"""tuple: `(life score name, what it needs and what sets how much)`, the numbers read from `planetgen.tuning`."""
+
+LIFE_FOOD = (
+    "A 0 means none of that kind. A world with a life chemistry always has a timeline, so these four read where it "
+    "got to. Food for a visitor comes from the same numbers: any Flora is good food, Flora together with Fauna is "
+    "better, Fauna on its own counts, and microbes alone are poor food. Ice over the life puts it out of reach. "
+    f"The scale tops out at {tuning.LIFE_SCORE_MAX}; a surface too hostile to a kind of life scores it 0, whatever stage "
+    "the world reached."
+)
+
 LIFE_ROWS = tuple((habitability_symbols.LIFE_NAMES[index], habitability_symbols.LIFE_LABELS[name],
                    habitability_symbols.LIFE_SHAPES[name])
                   for index, name in enumerate(habitability_symbols.LIFE_NAMES))
@@ -316,6 +337,8 @@ def page():
         "life_intro": LIFE_INTRO,
         "life_rows": LIFE_ROWS,
         "life_scores": (0, 3, 9),
+        "life_needs": dict(LIFE_NEEDS),
+        "life_food": LIFE_FOOD,
         "where_intro": WHERE_INTRO,
         "where_rows": WHERE_ROWS,
         "map_intro": MAP_INTRO,
