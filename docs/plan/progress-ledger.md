@@ -1249,3 +1249,6 @@ Baseline: PR #1817.
 | DB.94 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.671 | 8.1 | Habitability system |
 | UX.163 | 8.1 | Habitability system |
+| UX.160 | 8.1 | Habitability system |
+| UX.161 | 8.1 | Habitability system |
+| TEST.306 | 8.1 | Bugs and flaky tests |
