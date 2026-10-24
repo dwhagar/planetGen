@@ -18821,6 +18821,11 @@ clears each one.
   the ### Changed section or delete the heading, and run `python3
   scripts/bump_version.py --check-pr`. Done: the check passes on main.
   Owner: Map nodes lane (it wrote the file; MAP.261/MAP.262 work).
+  Second red (2026-10-09): Update 5:22 PM EDT 2026-10-24: Lane Debug (as
+  the lane reported) also sees test_no_todo_codes_shown red on main:
+  db/point_columns.py line 177 shows the code MAP.220 in a user-visible
+  string. Same owner (Map nodes lane): reword the string in the same
+  small PR. Done adds that test passing.
   Prerequisites: none. Related: MAP.262.
 
 ## USR: User accounts
@@ -19476,96 +19481,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   lists the step in its log.
   Prerequisites: ADM.88, DB.40. Related: OPS.16, ADM.87,
   ADM.91.
-
-- [ ] **OPS.62 The cloud environment setup script fails at its verify step because it imports `markdown`, which nothing uses (bug)**
-  Found by Core 3 (4:23 PM EDT 2026-10-21 as the coordinator relayed
-  Core 3's note), filed by the TODO thread.
-  `examples/cloud-environment/setup-planetgen-env.sh` (line 260) prints
-  a verify line that imports `flask, pymysql, redis, rq, numba, scipy,
-  skimage, markdown, pytest, xdist, hypothesis, playwright, nltk` and
-  prints the `markdown` version; no requirements file and no code uses
-  `markdown`, so a fresh machine exits 1 at the verify step (the failure
-  that stopped a new thread starting at 1:00 PM EDT). Workaround: `pip
-  install markdown`. Decided (Boss, 9:05 PM EDT 2026-10-21, tapped "Add
-  markdown to the requirements", card cmsg_01RuNTFUNB92A8cm5CbojQAi
-  MYJwm2dfDuwgBEf8JuSxKD): add `markdown` to the requirements, so the
-  verify step stays as it is; no shim. Do: add `markdown` to the
-  requirements file the setup script installs from. Done: the script
-  exits 0 on a fresh machine. Owner: the Debug mode lane, after OPS.66
-  (coordinator, 10:07 AM EDT 2026-10-24; the environment settings copy
-  of the script is Boss's, so the lane edits the example and tells the
-  coordinator).
-  Second reason it matters (Core 5, relayed 2:50 PM EDT 2026-10-23 as
-  the lane's clock reads): current main needs the `argon2-cffi` package
-  (SEC.32; in setup.py and requirements-server.lock), but a lane
-  machine's setup did not install it, so every test module that imports
-  the web app failed at collection (ModuleNotFoundError: argon2) until
-  it was installed by hand. The setup script should install from the
-  lock file, so a fresh machine has every package main needs. Core 3 and
-  Core 2 hit the same on 2026-10-23.
-  Update (2026-10-09): Lane M (2026-10-23): two more gotchas on lane
-  machines: the test MySQL user needs GRANT OPTION (Boss authorised it
-  per lane, 8:07 PM EDT), and the NLTK words corpus must be installed
-  with NLTK_ALLOW_PROXIED_URLOPEN=1. Add both to the environment script.
-  Research (2026-10-09, Update): Update 3:27 AM EDT 2026-10-24 (as lane
-  A reported on #2890, UX.157 and UX.166): the new Firefox browser test
-  skips until `python -m playwright install firefox` has been run, so
-  the environment script should run it too (Chromium is already there).
-  Without it the Firefox check never runs on a lane machine.
-  Research (2026-10-09, Update): Habitability lane C (7:17 AM EDT
-  2026-10-24, as the lane reported): a fresh lane machine also needs the
-  ozone_uv dataset fetched (python3 -m planetgen.cli.datasets fetch
-  ozone_uv) or test_migration_habitable_worlds fails with DataMissing;
-  add it to the setup script.
-  Research (2026-10-09, Update): Bug Hunt (7:22 AM EDT 2026-10-24, as
-  the lane reported): GEN.445 means every test machine needs the
-  ozone_uv dataset fetched (python3 -m planetgen.cli.datasets fetch
-  ozone_uv) or generation tests raise DataMissing.
-  Research (2026-10-09, Update): Lane 4 (7:40 AM EDT 2026-10-24, as the
-  lane reported): a fresh machine without the AD9 download (ozone_uv)
-  sees 6 test_body_radiation failures (DataMissing); environment only.
-  Research (2026-10-09, 10-24 log analysis): Seen again by the log
-  analysis lane (coordinator relay, 10:05 AM EDT as the relay reported):
-  the setup verify step still exits 1 on "markdown". Not moot after the
-  wiki strip (OPS.69): no code imports the markdown package, and the
-  Markdown export uses describe/markdown.py, so Boss's decision stands
-  (add it to the requirements the script installs). Same lane saw
-  test_plan_scatter_stores_stars_and_fill_builds_their_systems fail
-  (TEST.338, built mass 3.44e30 vs stored 4.98e30).
-  Research (2026-10-09, 10-24 lane H): Lane H (12:19 PM EDT 2026-10-24
-  as the lane reported): test_update_database_step fails on a lane
-  machine because the test MySQL user lacks GRANT OPTION (Boss
-  authorised it per lane, 8:07 PM EDT 10-23); add it to the environment
-  script with the other items.
-  Research (2026-10-09, 10-24 Bug Hunt): Bug Hunt (1:02 PM EDT
-  2026-10-24 as the lane reported): after a container restart MySQL can
-  fail to start because of stale /var/run/mysqld/*.lock files; remove
-  them and run service mysql start. Add this to the lane machine checks.
-  Research (2026-10-09, 10-24 Debug mode): Lesson from the Debug mode
-  thread (2:21 PM EDT 2026-10-24 as the lane reported): a lane or cloud
-  setup must export PLANETGEN_TEST_REDIS_URL
-  (/etc/profile.d/planetgen-test.sh does); without it the inline queue
-  is off and a test run silently uses real workers, which look like
-  hangs and "DID NOT RAISE" (TEST.334, dropped). The test MySQL user
-  also needs GRANT OPTION or
-  test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version
-  fails (TEST.303, dropped).
-  Research (2026-10-09, DatabaseLoginError on lanes): Update 3:38 PM EDT
-  2026-10-24 (Core 2 and Core 4, as the lanes reported):
-  test_web_pages::test_in_process_transport_skips_http_inside_a_request
-  fails with DatabaseLoginError on lane machines, the same missing-GRANT
-  cause as test_update_database_step. The setup script should give the
-  lane user the grants the tests need.
-  Lane setup (2026-10-09): Update 4:57 PM EDT 2026-10-24: the TODO
-  thread reproduced a class of false reds on lane machines: tests such
-  as test_prevalence fail with DataMissing for ozone_uv (AD9) and some
-  with a missing NLTK words resource, because a lane machine has not run
-  the dataset fetch that update.sh runs at setup. Several 'red on clean
-  main' reports this afternoon may be this. Lanes run `python3 -m
-  planetgen.cli.datasets fetch ozone_uv` (and the other fetches) before
-  reporting a test red on main; the lane setup script should do it too.
-  Noted in status/README.md.
-  Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
   Asked for by Boss for 8.2. Today the version
