@@ -1327,3 +1327,8 @@ Baseline: PR #1817.
 | UX.169 | 8.1 | Habitability system |
 | UX.168 | 8.1 | Habitability system |
 | TEST.342 | 8.1 | Bugs and flaky tests |
+| UX.178 | 8.1 | Habitability system |
+| UX.177 | 8.1 | Habitability system |
+| UX.176 | 8.1 | Habitability system |
+| UX.174 | 8.1 | Habitability system |
+| UX.173 | 8.1 | Habitability system |
