@@ -1169,3 +1169,4 @@ Baseline: PR #1817.
 | PERF.161 | 8.1 | The headline closes |
 | PERF.171 | 8.1 | The headline closes |
 | UX.151 | 8.1 | Habitability system |
+| UX.149 | 8.1 | Generate page and directives |
