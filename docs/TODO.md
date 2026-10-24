@@ -18796,6 +18796,12 @@ clears each one.
   lane's clock reads): test_web_browser_sector_open fails under load on
   main and passes alone (the MAP.209 retest area); treat as a load flake
   of the same kind.
+  Research (2026-10-09, Update): Bug Hunt (7:38 AM EDT 2026-10-24, as
+  the lane reported): test_web_browser_fixture_maps.py alone on a fresh
+  four-core machine at main c2cf8b97 plus #2945 passes 103 of 103 in 15
+  min 47 s, so the 41 sector-map browser failures (TEST.305, TEST.323,
+  both closed as not reproduced) are load-bound, the known
+  browser-under-load flake of this item.
   Prerequisites: none.
 
 - [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
@@ -18816,18 +18822,6 @@ clears each one.
   setup script (OPS.62) grants it, or the test skips with a stated
   reason when the grant is missing.
   Prerequisites: none. Related: TEST.302, OPS.62.
-
-- [ ] **TEST.305 The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug)**
-  Found by the regression test review thread (2026-10-23): on a fresh
-  4-core box (MySQL 8.0.46, Chromium 153 via playwright 1.63) 41 tests
-  in test_web_browser_fixture_maps.py failed waiting 120 s for
-  ".starmap-sr-list button" (test_sector_map_*, bookmarks, pick mode,
-  breadcrumb, help dialog); test_sector_map_click_picks_a_star also
-  fails alone there. Not diagnosed and it may be that box. Done: a
-  normal lane runs the file and reports; if it passes there, close with
-  the box difference named; if it fails, the cause is found and fixed
-  without loosening a test. Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.126.
 
 - [ ] **TEST.307 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug)**
   Found by Habitability lane F (relayed 2026-10-23, 9:25 PM EDT): this
@@ -18923,25 +18917,6 @@ clears each one.
   fixed sleeps. Done: the test passes under load 9 in repeated gates.
   Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.317.
-
-- [ ] **TEST.323 test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug)**
-  Found by Core 5 at 1:17 AM EDT 2026-10-24 (as the lane reported): on
-  its lane machine every run of
-  src/tests/test_web_browser_fixture_maps.py fails, 41 tests, with
-  'Page.wait_for_selector: .starmap-sr-list button timed out (120 s)' or
-  'nothing to click on the Galaxy Map'; Core 5 checked a clean main
-  worktree and it fails there too. Reproducer: python3 -m pytest
-  src/tests/test_web_browser_fixture_maps.py::test_sector_map_click_picks_a_star.
-  Possibly already cured by #2742 (the fixture map site now answers the
-  nebula cover) or by MAP.256 (#2852, the selection panel moved) if the
-  lane machine's main was older; recheck on current main first. Do:
-  reproduce on current main, find the cause (the selector or the fixture
-  site), fix. Done: the 41 tests pass on current main. Owner: Bug Hunt.
-  Research (2026-10-09, Update): Core 3 (5:30 AM EDT 2026-10-24, as the
-  lane reported) saw the same 41 failures on main while merging GEN.631:
-  still red on a lane machine at that time. See
-  /mnt/project-files/reports/gen631-findings-2026-10-24.md.
-  Prerequisites: none. Related: MAP.256, MAP.143.
 
 - [ ] **TEST.324 test_web_header_menus top-bar [1280x720-light] times out under load (bug)**
   Found by Core 5 at 1:17 AM EDT 2026-10-24 (as the lane reported):
