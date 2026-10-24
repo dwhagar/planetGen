@@ -1342,3 +1342,4 @@ Baseline: PR #1817.
 | GEN.509 | 8.1 | Tuned draws and selection models |
 | TEST.334 | 8.1 | Bugs and flaky tests |
 | TEST.303 | 8.1 | Bugs and flaky tests |
+| PERF.99 | 8.1 | Queue, caches and performance |
