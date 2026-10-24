@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2068] - 2026-10-24
+
+**Headline:** The life-linked trace gases of the atmosphere recipes are labelled design flags, off unless the life stage allows them.
+
+### Changed
+- Rows m3 (N2O), m4 (PH3) and m11 (NO2) of the atmosphere recipes are registered as design flags: a labelled bracket that is zero unless the life stage or the named process allows it, never tuned to a Solar System value. Phosphine is now off unless the life stage is chemical or later. The recipes are not yet read by the generator, so no generated value changes.
+
 ## [8.0.2067] - 2026-10-24
 
 **Headline:** The titanium oxide presence on hot Jupiters is a step in temperature between the last non-detection and the detection.
