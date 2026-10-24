@@ -742,7 +742,9 @@ def _backfilled_rows(config, monkeypatch, unit_cells):
     from planetgen.db import store
     from planetgen.generation import run_galaxy
     from planetgen.galaxy.spherical import sector_position_pc
+    from tests import first_fill
     from tests.test_bright_star_scatter import EDGE_PC, EXTENTS, SEED, SHAPE, _database_now
+    first_fill.without_the_deepest_floor(monkeypatch)   # the rows below are the backfill's alone (GEN.633)
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,      # a sparse toy galaxy: a quick draw
                             expected_system_count_at_density_1=100.0, config=config, cell_star_ceiling=1e12,
                             galaxy_seed=SEED)

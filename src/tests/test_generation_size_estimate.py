@@ -13,6 +13,7 @@ import pytest
 
 from planetgen.db import store
 from planetgen.generation import stats as generationStats
+from tests import first_fill
 from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy, _run_cli
 
 # These measure the bytes a fill adds, so they need a database no earlier test has grown (TEST.139 stage 3).
@@ -36,9 +37,10 @@ def _table_bytes(conn):
 
 
 @pytest.fixture
-def filled(mysql_config):
+def filled(mysql_config, monkeypatch):
     """A planned galaxy before and after a fill of 12 sectors of 40
     systems each."""
+    first_fill.without_the_deepest_floor(monkeypatch)   # exactly the 40 systems asked for in each sector (GEN.633)
     _plan_wide_galaxy(mysql_config)
     conn = store.get_connection(mysql_config)
     try:

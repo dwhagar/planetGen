@@ -29,6 +29,7 @@ from planetgen.galaxy.profile import profile_at
 from planetgen.galaxy.spherical import neighbor_addresses, sector_address_at, sector_position_pc
 from planetgen.physics.units import ly_to_pc
 from planetgen import tuning
+from tests import first_fill
 from tests.toy_shape import toy_shape
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
@@ -260,6 +261,8 @@ def test_going_down_a_band_keeps_the_old_stars_and_adds_only_the_band(mysql_conf
     # No GEN.23 backfill here: in this small galaxy it would reach every
     # block (the next test covers a band after a backfill).
     monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *_args, **_kwargs: {"sectors": 0, "stars": 0})
+    # Nor the first fill's own draw down to the backfill's deepest floor (GEN.633).
+    first_fill.without_the_deepest_floor(monkeypatch)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 1
     address = (0, 0, 0)
@@ -567,10 +570,12 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_step_masses(mysql_
     address = (3, 0, 4)
     position = sector_position_pc(*address, EDGE_PC)
     started = _database_now(mysql_config)
-    _sector_id, _name, sector = run_galaxy.generate_and_save_sector_at(args, address, position, EDGE_PC)
+    _sector_id, _name, _sector = run_galaxy.generate_and_save_sector_at(args, address, position, EDGE_PC)
     conn = store.get_connection(mysql_config)
     try:
-        assert _mass_rows(conn) == {}  # GEN.30: nothing until the run is done
+        # GEN.30: nothing around it until the run is done; the sector itself went to the deepest floor at its fill
+        # (GEN.633).
+        assert _mass_rows(conn) == {address: STEP_MASSES[0]}
     finally:
         conn.close()
 
@@ -581,10 +586,10 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_step_masses(mysql_
     try:
         masses = _mass_rows(conn)
         # GEN.187: each step a face further out takes the next mass up.
-        assert masses == run_galaxy.backfill_step_targets({address}, store.get_galaxy_bounds(conn))
+        assert masses == {**run_galaxy.backfill_step_targets({address}, store.get_galaxy_bounds(conn)),
+                          address: STEP_MASSES[0]}
         assert set(masses.values()) == set(STEP_MASSES)
         assert _level_rows(conn) == {}  # no scatter, so no luminosity level to record
-        assert _cell_stars(conn, address) == 0  # the generated sector itself never gets backfilled stars
         assert store.bright_stars_for_sector(conn, *address) == []
         assert store.get_sector_stats(conn, *address)["bright_level_sol"] == 0.0
         for row in conn.execute("SELECT initial_mass_sol, shell_index, band_index, wedge_index"
@@ -592,7 +597,6 @@ def test_the_backfill_waits_for_the_run_and_fills_down_to_the_step_masses(mysql_
             assert row["initial_mass_sol"] >= masses[(row["shell_index"], row["band_index"], row["wedge_index"])]
     finally:
         conn.close()
-    assert not [entry for entry in sector.entries if getattr(entry, "bright_star_id", None) is not None]
 
     neighbor = (3, 0, 5)
     fill = run_galaxy._fill_context(args, neighbor)
@@ -860,7 +864,9 @@ def test_backfill_runs_from_the_edge_of_every_generated_sector(mysql_config):
         expected = run_galaxy.backfill_step_targets({near, far}, store.get_galaxy_bounds(conn))
     finally:
         conn.close()
-    # The union of both runs' steps, the nearer step winning where they overlap.
+    # The union of both runs' steps, the nearer step winning where they overlap; each generated sector went to the
+    # deepest floor at its own fill (GEN.633).
+    expected = {**expected, near: STEP_MASSES[0], far: STEP_MASSES[0]}
     assert every == expected
     assert every[min(neighbor_addresses(*near))] == STEP_MASSES[0]
     assert every[min(neighbor_addresses(*far))] == STEP_MASSES[0]

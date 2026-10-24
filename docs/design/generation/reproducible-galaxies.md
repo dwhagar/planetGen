@@ -253,7 +253,11 @@ full key text living on the `generation_runs` row. Detail:
   in a name collision the sector with the lower address keeps the name
   and the other is renamed from its own seeded stream (with GEN.46);
   population seeds stop keying on row ids; the backfill stops depending
-  on which sectors are already filled (with GEN.44).
+  on which sectors are already filled (with GEN.44). Done for the
+  backfill (GEN.633): the first fill of a sector draws its bright stars
+  down to the backfill's deepest floor, so a later pass never adds stars
+  to a filled sector (TEST.181 compares the four sectors (1,0,0),
+  (1,0,5), (1,0,11), (1,1,0) in both orders).
 - **Deterministic-math helpers (proposed item, no ID yet).** Measured:
   `math.hypot` and `math.dist` give different results on Python 3.9 and
   3.10 and later, and `sum()` of three or more floats differs between 3.11

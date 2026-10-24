@@ -21,6 +21,7 @@ from planetgen.generation import phenomenon_scatter as scatter
 from planetgen.generation import run_galaxy, run_plan, run_sector
 from planetgen.physics import black_hole_formation, stellar_evolution
 from planetgen.physics.units import ly_to_pc
+from tests import first_fill
 from tests.toy_shape import toy_shape
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
@@ -290,7 +291,8 @@ def test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it(mysq
     assert [row["id"] for row in again][0] == 1
 
 
-def test_the_scatter_leaves_filled_sectors_out(mysql_config):
+def test_the_scatter_leaves_filled_sectors_out(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # the toy galaxy's first fill would draw its thousands of stars (GEN.633)
     _seed_galaxy(mysql_config)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 1
