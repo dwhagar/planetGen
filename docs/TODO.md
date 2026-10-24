@@ -1082,6 +1082,60 @@ with `clamp()`.
   UX.187, TEST.358, GEN.430.
   Prerequisites: none. Related: UX.187, TEST.358, GEN.430.
 
+- [ ] **UX.203 Pages state a missing thing in one sentence instead of a table of zeros: no life, no atmosphere (0 Pa), effectively no water**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), Boss: "if a planet has no life, just make a note in the
+  description and don't show the table full of 0's, same for atmosphere
+  if it is 0 Pa just put 'None' for atmosphere, also if there is
+  effectively no water on the planet then put that in the description
+  and omit that section to avoid all the 0's." Do: (1) a world with no
+  life (all four life scores 0, no life stage) gets one sentence in the
+  description and no Life table; (2) a world whose surface pressure is 0
+  Pa (or below the registry's vacuum limit) shows the Atmosphere entry
+  as "None" and no Atmosphere section or gas rows; (3) a world with
+  effectively no water (hydrosphere none or ocean and ice fraction below
+  the registry's limit, and no vapour) says so in the description and
+  the Water section is omitted; the limits are named constants in one
+  place. This extends the absent-value rule of UX.188 to UX.194 to whole
+  sections. Done: page tests on a barren airless dry world find no Life
+  table, no Atmosphere section, no Water section and the three
+  sentences; a world with a thin atmosphere or a trace of water still
+  shows its section. Owner: Aux 11. Related: UX.188, UX.198, UX.199,
+  GEN.766.
+  Prerequisites: none. Related: UX.188, UX.198, UX.199, GEN.766.
+
+- [ ] **UX.204 Every collapsible section on an object page starts collapsed**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), Boss: "all sections that can be collapsed should be
+  collapsed at start". Do: every collapsible section (property sheet
+  groups, the long text blocks, the tables) starts collapsed when the
+  page loads, on planet, moon, star, system and every other object page;
+  the headings stay visible and the table of contents (UX.196) still
+  opens a section when its link is followed; a section the visitor
+  opened stays open while they use the page. Done: a browser test loads
+  a planet page and finds every collapsible section collapsed, follows a
+  contents link and finds that section open. Owner: Aux 11. Related:
+  UX.195, UX.196.
+  Prerequisites: none. Related: UX.195, UX.196.
+
+- [ ] **UX.205 Object pages show the day and night time shares, moons with the extra night from their planet**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), the display half of the day and night shares request.
+  Do: planet and moon pages show the share of time in daylight and in
+  night (and for a moon the extra night in its parent's shadow, with the
+  length of the longest eclipse) in the rotation group and in one
+  sentence of the description; a tidally locked world says so (day side,
+  terminator, night side); an object with no day or night (a star, a
+  free body with no rotation stored) shows nothing; also replaces the
+  "Hours of daylight a person can be outside: not stored" row (UX.199)
+  with these shares. Done: page tests on Earth-like, locked and moon
+  cases find the shares and the sentence. Owner: Aux 11, after GEN.767
+  supplies the columns. Related: UX.199, GEN.767.
+  Prerequisites: GEN.767. Related: UX.199, UX.203.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -3646,199 +3700,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the backfill still records every sector. Weeding sectors out by
   density is this item.
   Prerequisites: TEST.182.
-
-- [ ] **GEN.55 Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal)**
-  Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
-  the database, and put it in the log at the top of any generation, also
-  populate the TODO upward from here to eventually build a system that a
-  version number and a seed value would reproduce the same galaxy by the
-  end of the phases."
-  Changed by Boss (2026-10-09 20:42Z): "remove the idea of us letting
-  the USER regenerate an entire galaxy from the seed and version, we'll
-  use that internally, but no need for it to go anywhere else." The seed
-  stays as an internal mechanism: parallel workers, fills, backfills, the
-  phenomenon scatter and its sector fill, and the settle step all rely on
-  the same seed and address giving the same data. There is no user-facing
-  rebuild of a galaxy from a seed and a version: no `generate.py
-  reproduce`, no seed and version pages, no JSON net-difference file, no
-  daily merge or backup slots. This item is done when its last internal
-  sub-item is. Order:
-  - Phase 0: GEN.39 (per-unit seeds, after PERF.21) with DB.6 and
-    OPS.10 (done).
-  - Phase 1: GEN.56 (every draw seeded), GEN.57 (a sector's contents
-    depend only on the seed, the version and its address), DB.7 (the
-    version kept with each sector), GEN.58 (a fingerprint), TEST.77 (the
-    golden-seed test), OPS.13 (each update records the key, keeping the
-    last 10) and OPS.14 (a warning when the running key differs from the
-    galaxy's). GEN.47's nebula field (done, PR #419) uses the derived
-    seeds.
-  - Phase 2: PERF.18 and GEN.42 give the one-process stars for one seed
-    (already in their Done text); OPS.15 has each update say whether it
-    changes generated output.
-  - Phase 3: API.17 makes a remote run produce what the server would
-    (kept for remote generation; open question for Boss).
-  Anything that draws new randomness later (GEN.42, PERF.18, API.12,
-  API.13) uses the derived seeds and keeps TEST.77 green.
-  Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-
-  - [ ] **OPS.16 A daily maintenance script for Linux and macOS, with its lock helper**
-    Boss (2026-10-02 02:28Z): "We're going to have to build a
-    maintenance script for powershell and bash that will run the
-    positional update script, then kick off this delta script ..."
-    Scope cut by Boss (2026-10-09 20:42Z): the delta merge and the
-    18-slot JSON backups (GEN.61, OPS.18) are dropped with the user-facing
-    galaxy rebuild, so this script runs the positional update only (and
-    any later daily step). Decided (Boss, 2026-10-09 20:52Z): keep the
-    daily positional update.
-    Done: `scripts/maintenance.sh` (Linux and macOS) runs once a day:
-    the positional update (a step list of the PERF.118 wrapper, replacing `planetgen.cli.orbits`). A lock keeps two
-    runs
-    from overlapping, every step logs to the normal log, and the script
-    exits non-zero on any failure. Optionally it also runs OPS.15's
-    fingerprint check, so changed output is noticed daily. A test runs
-    it on a small galaxy and checks a second run started during the
-    first exits at once. Prerequisites: none.
-    Research (2026-10-09, db-check-and-parity-repair.md): the parity
-    export and checksum must not cover the columns the orbit update
-    rewrites, or the daily run invalidates all of them; the run also
-    refiles systems and phenomena into other sectors, so sector
-    membership of placed objects changes daily.
-    Research (2026-10-09, ops-scheduling-and-rotation.md): restructure:
-    implement the logic once as a step list of the PERF.118 wrapper (this research named `planetgen.cli.nightly`; see the Decided note below)
-    (`planetgen.cli.maintenance` already exists: maintenance mode on and
-    off, UX.112) (steps,
-    lock, `--if-due`, `--dry-run`, `--only STEP`, rotating log file,
-    exit codes 0/1/2/75) and make `scripts/maintenance.sh` and `.ps1`
-    thin launchers that find the right Python and run it as the web
-    user. Take `locks/maintenance.lock` plus a check of
-    `jobs.active_job()`; exit 75 when skipped; alert after N skipped
-    days. Treat Redis as optional. Iterate every galaxy database. Run
-    orbits in-process or as `planetgen.cli.orbits` (this item's text
-    says `updateOrbits.py`, which no longer exists). Decided (Boss,
-    2026-10-10 18:44Z, defaults approved; default: skip the day while a
-    Generate job runs, exit 75,
-    alert after 3 skipped days).
-    Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
-    2026-10-10 04:25Z).
-    The lock helper (OPS.30, folded in) is built first; the thread order
-    is OPS.16, OPS.17.
-    Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-    2026-10-17): OPS.30 folded in. The lock helper comes first in this
-    item: `planetgen/util/locks.py` with `filelock`, a sidecar info
-    file, `timeout=0` helpers and `PermissionError` handling, plus a
-    two-process test on Linux and macOS (the Windows parts are dropped
-    by OPS.39).
-    Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT
-    2026-10-21 "Apply all 29", as the coordinator reported it): the
-    nightly run is not a `planetgen.cli.nightly` command and not
-    `cli.orbits`: it is a step list of the PERF.118 wrapper, and the
-    steps are the single-purpose commands that replace `cli.orbits` (the
-    orbital update of GEN.105 and the other one-job commands of
-    docs/design/architecture/command-inventory.md). `scripts/maintenance.sh` stays a
-    thin launcher of that wrapper run; `cli.nightly` is not built as
-    a second wrapper. The decision of Boss, 2026-10-17, 4:19 PM EDT
-    (every command does one thing, the order lives only in the wrapper
-    step list) is filed on GEN.105.
-    Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-
-  - [ ] **OPS.17 Install and update set up the daily maintenance schedule**
-    Done: `install.sh`, `install.ps1`, `update.sh` and `update.ps1`
-    (with `deploy-common.*`) set up OPS.16's daily run: a systemd timer
-    or cron entry on Linux, launchd on macOS, Task Scheduler on
-    Windows. Update leaves an existing schedule as it is and adds a
-    missing one. The deployment docs say how to change the time or turn
-    it off. Same scripts as OPS.7, OPS.8 and OPS.13, so it lands after
-    them. Prerequisite: OPS.16.
-    Research (2026-10-09, ops-scheduling-and-rotation.md): re-scope to
-    extending `examples/maintenance/install-maintenance-timer.sh` and
-    `install-maintenance-task.ps1` (they exist) and calling them from
-    install and update with the rules create if missing, leave if
-    present, refresh the service text by version stamp. Default per OS:
-    systemd timer (UTC `OnCalendar`, `Persistent=true`), cron.d
-    fallback, launchd with `RunAtLoad` and `--if-due`, Task Scheduler as
-    SYSTEM with `StartWhenAvailable`. Retire the monthly
-    `planetgen-orbits@` timers, tasks and plists when the daily run is
-    installed. Keep the monthly `planetgen-update.timer` (it takes the
-    maintenance lock and waits up to 30 minutes; open question for
-    Boss). Add `maintenance.schedule: auto|off` to `config.json`. Fix
-    and test `org.planetgen.update.plist`, and correct
-    `docs/deployment/macos.md` (an asleep Mac runs at wake; only a
-    powered-off Mac skips).
-    Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
-    2026-10-10 04:25Z).
-    Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-
-  - [ ] **TEST.77 A golden-seed regression test**
-    Done: a fixed 128-bit seed builds a small galaxy (plan, a few
-    sectors, a scatter and a backfill) at 1 and 4 workers, and its
-    fingerprint (GEN.58) must match the one pinned in
-    `src/tests/golden/`, pinned per release with the version it was made
-    on. When generation
-    output changes, the test fails until the PR updates the pinned
-    fingerprint and its `changes/` note says generation output changed
-    (`bump_version.py --check` checks the two go together). It runs on
-    every CI Python leg. Prerequisite: none (GEN.57 done). [generation, infra]
-    Research (2026-10-09, reproducible-galaxies.md): replace "pinned per
-    release with the version it was made on" with "pinned per
-    `generator_epoch`, one golden for all legs". Add tier A (the
-    database-free battery, 3 to 5 s) to the Windows and macOS CI jobs
-    (`ci.yml`'s matrix is Linux only; `macos-latest` is Apple Silicon);
-    keep 1 against 4 workers as tier B and the hash-seed and locale
-    probe as tier C; add one full-text "Rosetta" sector for readable
-    diffs. The epoch item owns the `golden_update` tool and the
-    `--check-pr` rule. Needs the deterministic math helpers first. Once
-    GEN.42 lands, include one block-first backfill in the golden galaxy.
-    Generator epoch (Core 2, #1927, 2026-10-16, 9:42 PM EDT): GEN.135
-    made the generator epoch 2 (nebula shapes and the last bits of
-    positions differ); the epoch and golden-files rule is waived until
-    this item is built.
-    Generator epoch 3 (GEN.306, #1942, 11:28 PM EDT as the lane
-    reported): population streams are keyed on the homeworld's unique
-    ID; the golden files still do not exist, so the epoch and its note
-    went in together, as for epoch 2.
-    Epoch plan (Core 3, as the coordinator reported at 11:42 PM EDT):
-    the horizontal branch change (GEN.286, GEN.287, #1932) shipped
-    without an epoch entry (the golden files do not exist yet, so the PR
-    rule did not fail). A small PR carrying GEN.286/287's note and the
-    GEN.407 constants takes generator epoch 4 with the
-    `generation-output: changed` line; GEN.322 (which adds rows) takes
-    epoch 5.
-    Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-  Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-    Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-    is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-    earlier owner line).
-    Prerequisites: none.
-
-  - [ ] **API.17 Remote generation reproduces what the server would make**
-    Done: a remote run (API.12's download, API.13's generation without a
-    database) with the same seed and release produces exactly what the
-    server would for those sectors, checked by fingerprint (GEN.58); and
-    API.8 can verify an upload by re-running a sample of its sectors on
-    the server and comparing. Prerequisites: API.12, API.13, GEN.57,
-    API.8.
-    Decided (Boss, 2026-10-09 20:52Z): keep the fingerprint check. This
-    is remote generation matching the server, not a user rebuild of a
-    galaxy from a seed and version.
-    Research (2026-10-09, reproducible-galaxies.md): the remote path
-    calls the same pure generation function; compare fingerprints at 9
-    digits; per api-design-standards.md the handshake compares epoch and
-    battery digest rather than the full version key. A remote machine
-    with a different OS, architecture or Python micro version cannot
-    match the fingerprint unless the key is loosened or the check is
-    advisory.
-    Needs API.8, because its Done changes the verification flow (API.8
-    verifies an upload by re-running a sample of its sectors on the
-    server and comparing) (2026-10-16 review).
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-    Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-    Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-    2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core
-    1 held it before; this replaces any earlier owner line).
 
 - [ ] **GEN.90 Refactor the planet classes around the habitability index**
   Boss (2026-10-03 05:38Z): "Refactor all planetary classes to better
@@ -14524,6 +14385,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   what the scores hold. Owner: Aux 3 (it owns the life model), with Aux
   4 (Lane E) for the wording. Related: GEN.765.
   Prerequisites: none. Related: GEN.765, GEN.207, GEN.649.
+
+- [ ] **GEN.767 Day and night time shares for every object that has a day or night, with the extra night when the parent planet blocks the sun**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), Boss: "I want day/night time shares for each object that
+  has a day or night including moons that accounts for any extra night
+  from the sun being blocked by their planet." TODO checked the code:
+  the day and night temperature swing exists (GEN.656) and the eclipse
+  of a binary star pair (GEN.270), but there is no stored fraction of
+  time in daylight and no eclipse of a moon by its planet;
+  `outside_hours` is the dose-limited hours of a working year outside
+  (physics/equipment.py), not daylight. Do: derive, from the rotation
+  period, the orbital period, the axial tilt, the star's angular size
+  and the lock state, the share of the day the star is above the horizon
+  (at the equator and as a planet mean, polar day and night where the
+  tilt gives them, 100 percent or 0 percent on the two sides of a
+  tidally locked world with libration noted); for a moon add the share
+  of its orbit spent in its parent's shadow (the eclipse fraction from
+  the parent radius, the moon's orbital distance and inclination and the
+  star's size) and the extra night this adds, both for a moon locked to
+  its planet and for a free one; store the shares as columns
+  (db/column_units.py in the same PR, one migration, one epoch), numbers
+  from a named function in one module, no stand-in value. Done: tests
+  with a hand-computed Earth (about 50 percent at the equator, longer
+  polar day and night by tilt), a locked planet (day side 100, night
+  side 0), Io-like and Moon-like moons with their eclipse fractions, and
+  a moon whose planet never blocks the sun (inclined orbit) at zero
+  extra night. Owner: Aux 5 (Lane H: heat, surface dose, GEN.656
+  regional temperatures). Related: GEN.656, GEN.270, GEN.444.
+  Prerequisites: none. Related: GEN.656, GEN.270, GEN.444, UX.205.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
