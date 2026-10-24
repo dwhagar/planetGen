@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2170] - 2026-10-24
+
+**Headline:** Every test that drives headless Chromium now runs in the browser phase of the test runner, not beside the all-core tests.
+
+### Changed
+- **Eleven Playwright test files were not marked `browser` (TEST.304).** `conftest.py` marked only `test_web_a11y.py` and `test_web_browser_*.py`, so `test_architecture_map`, `test_web_admin_menu_fits`, `test_web_adminshell_browser`, `test_web_edit_menu`, `test_web_generate_alignment`, `test_web_generate_flow_browser`, `test_web_header_menus`, `test_web_job_terminal`, `test_web_settings_browser`, `test_web_system_nav_row` and `test_web_ui_fields_browser` started Chromium in the all-core phase. A test is now marked by what it does: its file imports Playwright, or it takes a browser fixture (`conftest._uses_playwright`), so a new browser file cannot miss the marker. Test in `test_browser_marker.py`.
+TODO items resolved: TEST.304. Added: none.
+
 ## [8.0.2169] - 2026-10-24
 
 **Headline:** The Galaxy Map can mark the star systems that hold a habitable world: turn on "Habitable worlds" in the Menu and each gets a glyph you can hover (how many) and click (its card and page).
