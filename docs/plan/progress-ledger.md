@@ -1424,3 +1424,4 @@ Baseline: PR #1817.
 | TEST.335 | 8.1 | Bugs and flaky tests |
 | TEST.365 | 8.1 | The headline closes |
 | TEST.366 | 8.1 | The headline closes |
+| GEN.564 | 8.1 | Bulk composition |
