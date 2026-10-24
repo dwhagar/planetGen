@@ -2302,12 +2302,12 @@ Parents marked "new parent" had no old number of their own.
 | UX.170 | Rebuild item.html: header, Location chain with the Inside remainder, siblings, property sheet, description and children | none | done, PR #3003 |
 | UX.171 | bodyview.js: the page rendered example from data-look, with the colour note and a browser test | none | done, PR #3003 |
 | UX.172 | Tree component: partial, script, keyboard and screen-reader behaviour, no-script fallback and narrow-screen layout | none | done, PR #3003 |
-| UX.173 | System page: stars table and body list become the tree; remove the dropdown rows and move species, facilities and the admin menu to the object page | none | open |
-| UX.174 | Sector page: Contents rows expand into the tree, keeping facets, sort, jump and paging at the top level | none | open |
+| UX.173 | System page: stars table and body list become the tree; remove the dropdown rows and move species, facilities and the admin menu to the object page | none | done, PR #3011 |
+| UX.174 | Sector page: Contents rows expand into the tree, keeping facets, sort, jump and paging at the top level | none | done, PR #3011 |
 | UX.175 | The same page anatomy for phenomena, facilities, clusters and regions (absorbs the UX.143 remainder) | none | open |
-| UX.176 | Link sweep: object_url, search, lists, describer references and the map popup View button all open /object/<ref>; delete body_anchor, bodyanchor.js and the row-highlight styles | none | open |
-| UX.177 | Tests for the object pages: a page-walk for every kind, tree browser tests, accessibility, no-script, a huge sector, a moon of a moon-less planet and an unknown ID | none | open |
-| UX.178 | Docs for the object pages: docs/design/interface/object-pages.md, the route list, body-rendering.md and the sheet registry rules | none | open |
+| UX.176 | Link sweep: object_url, search, lists, describer references and the map popup View button all open /object/<ref>; delete body_anchor, bodyanchor.js and the row-highlight styles | none | done, PR #3011 |
+| UX.177 | Tests for the object pages: a page-walk for every kind, tree browser tests, accessibility, no-script, a huge sector, a moon of a moon-less planet and an unknown ID | none | done, PR #3011 |
+| UX.178 | Docs for the object pages: docs/design/interface/object-pages.md, the route list, body-rendering.md and the sheet registry rules | none | done, PR #3011 |
 | UX.179 | Sitemap entries and an Open Graph image for object pages (optional, can wait) | none | open |
 | UX.180 | A Help menu in the top bar on the search-icon side that holds Classes and Habitability; the separate Habitability levels links go away | none | done, PR #2867 |
 | UX.181 | Every habitability symbol, life score and equipment or Habitable chip links straight to its section of the habitability page | none | done, PR #2867 |
