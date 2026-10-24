@@ -10,7 +10,7 @@ spacefaring species, and splits the generated systems around them into
 territories. See `docs/design/habitability/population-and-politics.md`.
 
 Everything here works from what is already stored -- the planets'
-evolutionary paragraphs (`evolution.get_evolutionary_timeline`) and the
+evolutionary paragraphs (`evolution.get_evolutionary_state`) and the
 systems' positions -- so it runs as its own pass (`planetgen
 population`, and after every `galaxy`/`sector` run) on a galaxy that was
 generated before it existed. Nothing in system generation changes.

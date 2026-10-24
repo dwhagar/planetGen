@@ -2381,7 +2381,7 @@ list: A list of planet class codes that are considered habitable.
 
 PLANET_CLASS_MAX_LIFE_STAGE = {
     # Each habitable class's OWN "description" text above already commits
-    # to a life-complexity ceiling -- `evolution.get_evolutionary_timeline`
+    # to a life-complexity ceiling -- `evolution.get_evolutionary_state`
     # used to have no idea what `planet_class` even was, so a Class G
     # planet (description: "simple life") could still roll all the way to
     # "Technological Civilization" if the star was old/fast-evolving
@@ -2416,7 +2416,7 @@ PLANET_CLASS_MAX_LIFE_STAGE = {
 """
 dict[str, str]: Maps a habitable planet class code to the highest
 `EVOLUTIONARY_TIMELINES`-milestone key its own generated description text
-is consistent with -- see `evolution.get_evolutionary_timeline`'s
+is consistent with -- see `evolution.get_evolutionary_state`'s
 `planet_class` parameter, the only reader of this mapping. A class not
 present here is uncapped (full range, up to and including a technological
 civilization).

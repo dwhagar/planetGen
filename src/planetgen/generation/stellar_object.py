@@ -427,7 +427,7 @@ def get_star_evolutionary_profile(star):
     ]
     if not reachable_scales:
         # Even the fastest pace doesn't fit -- still return it so callers have
-        # something to work with, mirroring the fallback in get_evolutionary_timeline.
+        # something to work with, mirroring the fallback in get_evolutionary_state.
         reachable_scales = ["fast"]
 
     return {**base_info, "supported_evolutionary_scales": reachable_scales}
