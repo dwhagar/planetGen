@@ -1368,7 +1368,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.640 | GEN.316 part (c): delete BinaryStarProxy, WideBinaryPair and the writers of the binary_* columns, once circumbinary and S-type planets come from the tree | none | open |
 | GEN.641 | Research: the interior of a giant planet, ice giant and brown dwarf: the layers (molecular, liquid and metallic hydrogen and helium, helium rain, a dilute core), whether there is a rocky or icy core, and what the core is made of | none | done, PR #2800 |
 | GEN.642 | Giants, ice giants and brown dwarfs get a full interior composition: the molecular envelope, the liquid and metallic hydrogen and helium layers, the dilute zone, and a rocky, iron or icy core with its own composition, drawn and described | none | open |
-| GEN.643 | Habitable means PHI-6 overall Blue or Green: one rule, one function, read by the sector counts, the markers, the lists, the search and the descriptions | none | open |
+| GEN.643 | Habitable means PHI-6 overall Blue or Green: one rule, one function, read by the sector counts, the markers, the lists, the search and the descriptions | none | done, PR #2886 |
 | GEN.644 | Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree | none | open |
 | GEN.645 | Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91 | none | open |
 | GEN.646 | Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter | none | open |

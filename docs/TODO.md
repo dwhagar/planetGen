@@ -13141,31 +13141,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radius needs lane I's water-world and envelope kernels (GEN.429); this
   is a decision-list item.
 
-- [ ] **GEN.643 Habitable means PHI-6 overall Blue or Green: one rule, one function, read by the sector counts, the markers, the lists, the search and the descriptions**
-  Boss, 6:02 PM EDT 2026-10-23: 'Yes, now Habitable should now be based
-  on the PHI-6 score which must be Blue or Green overall. Also, I think
-  we probably want to tie the PHI-6 into the planet classifications?'
-  Owner: Habitability lane D (model). Define habitable once as
-  habitability.overall_score being Blue or Green
-  (docs/design/habitability/habitability-index.md, the overall caps), stored as a
-  flag beside the stored score so every reader uses the same test;
-  replace any other meaning of 'habitable' in code, text and settings
-  (the habitable zone stays a separate, orbital idea and keeps its
-  name). The readers are MAP.143 (sector colouring), MAP.220 (markers),
-  MAP.132, UX.100 (lists), search and the planet and moon descriptions.
-  Changes stored values only if the flag is stored (then it rides the
-  habitability epoch; testing mode allows a new one). Done: one
-  predicate is_habitable(body), every reader calls it, a test that lists
-  a Blue, a Green, a Yellow and a Red body and gets the first two only,
-  and no other 'habitable' test remains.
-  Prerequisites: none. Related: GEN.639, MAP.143, MAP.220, UX.100,
-  GEN.89.
-  Boss, 6:54 PM EDT 2026-10-23: habitable stays Blue or Green overall
-  for the counts, markers and lists; GEN.648 may, as an error condition
-  when it must, accept a Yellow overall provided Suitability is at least
-  Yellow (technically habitable); the predicate returns the grade so a
-  reader can tell the fallback.
-
 - [ ] **GEN.644 Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree**
   Boss, 6:02 PM EDT 2026-10-23: 'Yes, now Habitable should now be based
   on the PHI-6 score which must be Blue or Green overall. Also, I think
@@ -13182,7 +13157,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stored values, the API and the maps. The build items (new epoch,
   database version, tests, docs) are filed after Boss answers. Done: the
   note and the card exist and Boss has answered it.
-  Prerequisites: GEN.643. Related: GEN.643, GEN.89, GEN.27, GEN.350.
+  Prerequisites: none. Related: GEN.643, GEN.89, GEN.27, GEN.350.
   Decided (Boss, 6:09 PM EDT 2026-10-23, option 3, 'A then D'): leave
   the class designation out of generation; assign classes after the body
   is complete from the atmosphere composition and pressure (even none),
@@ -13224,7 +13199,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which become inputs (the retention module GEN.355 is an input). Done:
   the note, the rule table with test cases per rule, and a list of
   replaced items with Boss's card if any is not obvious.
-  Prerequisites: GEN.644, GEN.643. Related: GEN.644, GEN.643, GEN.90,
+  Prerequisites: GEN.644. Related: GEN.644, GEN.643, GEN.90,
   GEN.28, GEN.350, GEN.355, GEN.356.
   Owner: Habitability lane D keeps the design, with the class lane
   (design draft condition-based-classes-2026-10-23.md, C1 to C5 and C13
@@ -13427,7 +13402,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   'there is no recalculation never redraws composition rule, at least I
   don't remember one' (bulk-composition.md decision 31 / F10 was a lane
   default, not Boss's rule; it does not block this item).
-  Prerequisites: GEN.646, GEN.643. Related: GEN.643, GEN.646.
+  Prerequisites: GEN.646. Related: GEN.643, GEN.646.
   Error condition (Boss, 6:54 PM EDT 2026-10-23): the request aims for a
   PHI-6 overall of Blue or Green; if it MUST, a Yellow overall is
   accepted as technically habitable so long as the sustainability factor
