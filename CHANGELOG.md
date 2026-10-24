@@ -2,6 +2,29 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2075] - 2026-10-24
+
+**Headline:** Chemical formulas on the pages, in Markdown, wikitext and the terminal are written with subscripts and superscripts (H₂O, Fe²⁺, ³He), through one shared formatter.
+
+### Fixed
+- **Formulas printed as plain text, as H2O for water (UX.149).** A new `planetgen/util/chem.py` is the one writer: counts are subscripts, ion charges superscripts after the formula (`Fe2+`, `NH4+`, `SO4^2-`, `e-`), isotope mass numbers superscripts before the symbol (`3He`, `14C`), a hydrate keeps its coefficient on the line (`CaSO4·2H2O`), and brackets, decimal counts and `x`/`y` counts are read. `chem.html` gives `<sub>`/`<sup>` HTML (also what Markdown and wikitext get) and `chem.text` its Unicode twin for a terminal. It takes one formula, never free text: a caller that prints a text naming chemicals uses `chem.split`, which marks only the formulas of the gas and material tables or a charged element. The web pages get the Jinja filters `formula` and `chem`, and the system Document a `chem` inline item every renderer writes. Used where formulas are printed today: a nebula's and remnant's Contents and summary on the class pages, a nebula's Dominant Gas and Dominant Species, and the species page's environment limits (whose label also read "Inspired o2 min"; it now reads Inspired O₂ min). Stored values and the API are unchanged. `test_chem_formulas.py` covers counts, charges, isotopes, hydrates, brackets, the renderers and that no template types a bare formula; `test_web_formulas.py` checks that no page of the sample galaxy shows one unwritten.
+
+TODO items resolved: UX.149. Added: none.
+
+## [8.0.2074] - 2026-10-24
+
+**Headline:** The host star's rotation track is a uniform percentile through the published tracks, not three invented weights.
+
+### Changed
+- Atmosphere recipe row p6 draws the initial rotation percentile uniform from 0.02 to 0.98 and derives the saturation time from it through the three published tracks, in place of picking one of three tracks with weights 0.25, 0.5 and 0.25. The recipes are not yet read by the generator, so no generated value changes.
+
+## [8.0.2073] - 2026-10-24
+
+**Headline:** The hot-Jupiter chemistry regimes follow computed equilibrium lines at the pressure of the layer, not fixed temperatures.
+
+### Changed
+- A gas-phase equilibrium module (Gibbs minimisation with the NASA TM-4513 polynomials) computes the methane to carbon monoxide line and the water and hydrogen dissociation temperatures at a pressure and a metallicity; it agrees with an independent computation within 0.6 percent. Atmosphere recipe rows h1, h2 and h3 take their edges from it as functions of the photospheric pressure, in place of 1500 and 2200 K. The recipes are not yet read by the generator, so no generated value changes.
+
 ## [8.0.2072] - 2026-10-24
 
 **Headline:** A world's four life scores, Microbial, Flora, Fauna and Sentient, now have their own symbols with a number from 0 to 9.

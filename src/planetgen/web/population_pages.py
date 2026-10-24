@@ -19,8 +19,10 @@ no Species section (`helpers.population_status`).
 """
 
 from flask import abort, request
+from markupsafe import Markup
 
 from planetgen.physics.quantity import Quantity
+from planetgen.util import chem
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_number
 from planetgen.web.lib.datatable import Column, Facet, Result, Table
@@ -182,12 +184,14 @@ _LIMIT_SUFFIXES = ("_kpa", "_sv_yr", "_sv", "_c")
 
 
 def _limit_label(name):
-    """A limit's key as a label: `comfort_high_c` is "Comfort high"."""
+    """A limit's key as a label: `comfort_high_c` is "Comfort high", `inspired_o2_min_kpa` "Inspired O<sub>2</sub> min"
+    (a gas in the key keeps its formula, UX.149)."""
     for suffix in _LIMIT_SUFFIXES:
         if name.endswith(suffix):
             name = name[:-len(suffix)]
             break
-    return name.replace("_", " ").capitalize()
+    text = " ".join(word.upper() if chem.is_formula(word.upper()) else word for word in name.split("_"))
+    return Markup(chem.mark_html(text[:1].upper() + text[1:]))
 
 
 def _limit_value(value, unit):
@@ -199,7 +203,7 @@ def _limit_value(value, unit):
 def _limit_rows(limits):
     """POP.12: the species page's environment limits table rows."""
     return [{"label": _limit_label(row["name"]), "human": _limit_value(row["human"], row["unit"]),
-             "value": _limit_value(row["value"], row["unit"]), "differs": row["changed"], "meaning": row["meaning"]}
+             "value": _limit_value(row["value"], row["unit"]), "differs": row["changed"], "meaning": Markup(chem.mark_html(row["meaning"]))}
             for row in limits]
 
 
