@@ -17446,6 +17446,10 @@ clears each one.
   Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
   is in reports/8-1-core-queues-2026-10-22.md; this replaces any
   earlier owner line).
+  Research (2026-10-09, Update): Update 3:49 AM EDT 2026-10-24 (as lane
+  4 reported on #2899): it did not reproduce in 12 repeats under load,
+  so it stays open with that note; the connection pool race fixed in
+  TEST.218 may have been the cause, so recheck after the next full gate.
   Prerequisites: none.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -18540,23 +18544,6 @@ clears each one.
   within-system comet shape) is kept as a flagged stand-in with the
   replacement item GEN.595.
 
-- [ ] **TEST.218 `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug)**
-  Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
-  gate), filed by the TODO thread.
-  `src/tests/test_db_schema_race.py::test_first_control_connections_at_once`
-  leaves 3 idle connections (state Sleep, not from a pool) on
-  `planetgen_test_*` when its fixture ends; the new drop warning of
-  TEST.193 names them and ends them, so nothing hangs, but the test
-  should close its own connections. Do: the test closes the connections
-  it opens (in a finally or a fixture finalizer), and the drop warning
-  no longer names it in a full run. Done: a full run of the file prints
-  no drop warning for it, and a test asserts no connection of the test's
-  own stays open at the fixture's end. Fails on main: yes (after #1997).
-  Frequency: every full run (the warning is in the gate log).
-  Reproducer: `python -m pytest -q src/tests/test_db_schema_race.py` and
-  read the drop warning. Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.193, TEST.208.
-
 - [ ] **TEST.219 Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster**
   Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
   gate), filed by the TODO thread. The new TEST.193 warnings list
@@ -18688,35 +18675,6 @@ clears each one.
   is on this item and the browser phase shows no multi-minute stall in a
   gate. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.126, TEST.171, TEST.172.
-
-- [ ] **TEST.233 test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30] failed once in a loaded gate and passed 13 of 13 alone: its seed changes every run (bug)**
-  Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
-  GEN.321's third gate), filed by the TODO thread.
-  `src/tests/test_prevalence.py::test_a_measured_feature_moves_by_the_percentage[asteroid_belt-30]`
-  failed once with a share of 0.752 against 0.7891 within 0.0365 (the
-  band is 4 standard deviations of 2,000 systems). The TODO thread
-  (2026-10-17, 8:31 to 8:38 PM EDT) ran it alone 13 times with different
-  hash seeds (13 passed) and measured the unchanged asteroid-belt share
-  over 6 seeds of 2,000 systems at 0.6088 against
-  `PREVALENCE_BASE_SHARES` 0.607 (one standard deviation of the mean
-  0.0045), so the generator did not drift. The cause of the
-  irreproducibility: the test seeds its run with `hash((feature,
-  percent)) % 1000`, and `hash()` of a tuple holding a string differs in
-  every Python process (hash randomisation), so each run draws a
-  different sample from the 4-sigma band and a failure cannot be
-  replayed. A 4-sigma miss on one sample is rare (about 6 in 100,000 per
-  test per run) but there are 7 such cases in the file and every gate
-  runs them. Fails on main: not run on main. Frequency: once in about 14
-  runs seen. Reproducer: none for the failing sample; the seed is not
-  recorded. Do: seed every case with a stable value (for example
-  `zlib.crc32(f"{feature}:{percent}".encode()) % 1000`) so a failure
-  repeats, and print the seed in the assert message; if the stable seeds
-  all pass keep the 4-sigma band, and if one lands outside it re-measure
-  that feature's response to the percentage (a belt share at +30% may
-  not be exactly 1.3 times the base). Done: the seeds are stable, the
-  assert names its seed, and each case passes 30 of 30 runs. Owner: Core
-  3 (found it; proposed).
-  Prerequisites: none. Related: GEN.448.
 
 - [ ] **TEST.234 test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug)**
   Found by Core 3 (2026-10-17, about 8:28 PM EDT as the lane reported;
@@ -19100,23 +19058,6 @@ clears each one.
   recurrence, or file the cause from the new failure message (pointer
   event times) if one appears.
   Prerequisites: none. Related: TEST.252.
-
-- [ ] **TEST.273 test_the_index_takes_its_size_off_the_tile_cache_budget fails once in a full run: max_cache_bytes 1073577984 against 1073741824 (flake)**
-  Found by Core 2 (relayed 12:52 PM EDT 2026-10-22 as the lane's clock
-  reads, in a full run for UX.144), filed by the TODO thread. Kind:
-  flake. Test: test_the_index_takes_its_size_off_the_tile_cache_budget.
-  Failure: it compared max_cache_bytes 1073577984 against 1073741824
-  (the cache.max_mb budget of 1024 MB) and failed in a full run; it
-  passes alone. Fails on main: not checked. Frequency: 1 sighting.
-  Reproducer: a full `scripts/test.py changed` gate; not reproducible
-  alone. It looks like state left by another test in the cache area (the
-  tile cache budget, PERF.140 and `planetgen warm`). Do: find which test
-  or fixture leaves the cache budget or `max_cache_bytes` changed for
-  this worker and make that test restore it, or give this test its own
-  configuration; no retry loop that hides the cause. Done: the cause is
-  on this item and the test passes in 20 full-gate runs. Owner: Bug Hunt
-  (proposed; a test-flake finding of the TEST.265 family).
-  Prerequisites: none. Related: TEST.265, TEST.270, PERF.140.
 
 - [ ] **TEST.276 test_clearing_a_scatter_with_nothing_stored_says_so_and_changes_nothing fails once under parallel load with empty captured output (flake)**
   Found by the Admin redesign lane (relayed 2:41 PM EDT 2026-10-22 as
