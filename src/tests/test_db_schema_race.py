@@ -10,11 +10,24 @@ find it current.
 
 import threading
 
+import pymysql
 import pytest
 
 from planetgen.db import store
+from tests import dbpool
+from tests.conftest import _test_server_kwargs
 
 _CONNECTIONS = 6
+
+
+def _holder_ids(database):
+    """The ids of the other connections whose current database is `database`."""
+    server = pymysql.connect(**_test_server_kwargs())
+    try:
+        with server.cursor() as cur:
+            return {row[0] for row in dbpool.database_holders(cur, database, owned_only=True)}
+    finally:
+        server.close()
 
 
 def _run_together(count, work):
@@ -73,14 +86,21 @@ def test_first_control_connections_at_once(mysql_config):
     def work(_index):
         store.get_control_connection(control, ensure_schema=True).close()
 
-    errors = _run_together(_CONNECTIONS, work)
-    assert not errors, errors
-    conn = store.get_connection(control, ensure_schema=False)
+    before = _holder_ids(control.database)
     try:
-        rows = conn.execute("SELECT version FROM control_schema_migrations").fetchall()
+        errors = _run_together(_CONNECTIONS, work)
+        assert not errors, errors
+        conn = store.get_connection(control, ensure_schema=False)
+        try:
+            rows = conn.execute("SELECT version FROM control_schema_migrations").fetchall()
+        finally:
+            conn.close()
+        assert [row["version"] for row in rows] == [store.CONTROL_SCHEMA_VERSION]
     finally:
-        conn.close()
-    assert [row["version"] for row in rows] == [store.CONTROL_SCHEMA_VERSION]
+        # TEST.218: a closed connection goes back to the pool and stays open there; the threads above filled the
+        # pool with several, so the test ends the pool itself rather than leave them to the fixture's drop.
+        store.close_pool(control)
+    assert _holder_ids(control.database) - before == set(), "the test left a connection of its own open"
 
 
 def test_a_first_connection_waits_for_the_schema_lock(mysql_config):
