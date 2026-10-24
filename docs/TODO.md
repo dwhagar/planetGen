@@ -13626,6 +13626,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   word on the data source and licence.
   Prerequisites: none. Related: GEN.703, GEN.423.
 
+- [ ] **GEN.716 add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug)**
+  Found by Bug Hunt (10:41 AM EDT 2026-10-24 as the lane reported, while
+  fixing TEST.338). After GEN.631 a system built around a scattered star
+  is a tree: the row star is member 0, and the primary and secondary
+  roles belong to the top pair of the tree shape, so in about 2 of 7
+  systems the row star has role "member" (for example row B0V 2.71e31 kg
+  is a member while the primary is a lighter B1V).
+  run_sector.add_star_hosted_nebulae lights a nebula from stars[0],
+  which is the structural primary. The GEN.530 row_nebula prediction,
+  the star page and the uncharted scene use the row star. So the built
+  nebula can differ in class, size or existence from the predicted one
+  whenever a stored-tree row star is not the top pair. Do: light the
+  nebula from the row star (the member the bright_star row links to), or
+  have the prediction read the primary; pick one and make both read the
+  same star. Done: a test that builds systems whose row star is a member
+  and finds the built nebula equal to the predicted one; the epoch is
+  bumped if a drawn value changes (next free at merge). May need a Boss
+  decision on which star hosts the nebula; if the lane finds the two
+  readings equally defensible, ask the coordinator with the plain-words
+  question. Owner: not assigned (Bug Hunt found it; the star scatter
+  lane, Core 3 or Core 1, is the nearest owner).
+  Prerequisites: none. Related: GEN.530, GEN.631, TEST.338.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18785,78 +18808,6 @@ clears each one.
   environment fault as TEST.319); recheck with the dataset fetched
   before looking for a code cause.
   Prerequisites: none. Related: DB.98, GEN.631, GEN.271.
-
-- [ ] **TEST.337 test_gen_cell_resolution::test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further fails on unmodified main: minimum luminosity 5.4e28 against the required 1.9e29 (bug)**
-  Reported by Lane 4 at 7:40 AM EDT 2026-10-24 (as the lane reported)
-  when merging OPS.37 (#2950): fails on unmodified main with a minimum
-  luminosity of 5.4e28 where the test requires at least 1.9e29. The TODO
-  thread could not run it (the test skips on this machine), so recheck
-  on current main first. Do: reproduce on current main; find whether the
-  fill now draws stars below the cap (a change from the star tree,
-  GEN.631, the backfill path, GEN.309, or the composition-first star
-  draw) or the test's bound is stale, and fix the product or the test
-  with the reason recorded. Done: the test passes on main. Owner: Bug
-  Hunt (proposed).
-  Prerequisites: none. Related: GEN.309, GEN.631.
-
-- [ ] **TEST.338 test_bright_star_scatter::test_plan_scatter_stores_stars_and_fill_builds_their_systems fails on main: the built primary differs from the stored row in 2 of 7 systems (bug)**
-  Reported by the Composition-first stars lane (Lane A, 7:55 AM EDT
-  2026-10-24, as the lane reported): fails on plain main since the
-  GEN.631 tree draw. The built primary's luminosity differs from the
-  stored row's in 2 of 7 systems (for example stored 1.1e30 W, built
-  9.6e28 W). Do: reproduce on current main; find why the fill rebuilds a
-  primary that is not the stored star (the stored star is not carried
-  into the build through the tree path, or a draw order differs); fix
-  the product, not the bound. Done: the built primary equals the stored
-  row in every system and the test passes. Related to TEST.337 (same
-  GEN.631 draw change); check whether one cause covers both. Owner: Bug
-  Hunt (proposed).
-  Research (2026-10-09, Update): Habitability lane E (7:36 AM EDT
-  2026-10-24, as the lane reported) sees the same shape in three more
-  tests: filed together as the next TEST item (see Related).
-  Research (2026-10-09, 10-24 lane D): Seen again at the #2930 gate by
-  lane D (10:27 AM EDT as the lane reported).
-  Prerequisites: none. Related: GEN.631, TEST.337.
-
-- [ ] **TEST.339 test_systems::test_asteroid_belt_forcing_is_reliable fails about 1 run in 4: 2 of 60 trials without a belt, not seeded (bug)**
-  Reported by the Composition-first stars lane (Lane A, 7:55 AM EDT
-  2026-10-24, as the lane reported): the test fails about 1 run in 4,
-  with 2 of 60 trials ending without a belt. The trials are not seeded,
-  so each run differs. Do: find which systems cannot hold a forced belt
-  (no room between the planets, or the draw is capped) and either make
-  the forcing reliable or make the forcing report that the system cannot
-  take one; seed the trials so the test is repeatable. Done: 100
-  consecutive runs pass, and a system that cannot hold a belt says so.
-  Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
-  lane reported) also saw a belt forcing flake, 1 trial in 60, passing
-  on rerun.
-  Related: TEST.333 (forced belt). Owner: Bug Hunt (proposed).
-  Prerequisites: none. Related: TEST.333.
-
-- [ ] **TEST.340 Three more tests fail on clean main, likely the same cause as TEST.338: test_gen_stored_trees fill_builds_each_row, test_hosted_nebula_rows pre_placed_star, test_emission_members pre_placed_hot_star (bug)**
-  Reported by Habitability lane E (7:36 AM EDT 2026-10-24, as the lane
-  reported) when merging GEN.445 slice 2 (#2954): test_gen_stored_trees
-  (fill_builds_each_row), test_hosted_nebula_rows (pre_placed_star) and
-  test_emission_members (pre_placed_hot_star) fail on clean main, not
-  caused by GEN.445. Suspects: the GEN.631 tree draw, GEN.651 (#2952,
-  birth [Fe/H] first) or the epoch 75 backfill; they share the shape of
-  TEST.338 (a pre-placed or stored star is not the star that gets
-  built). Recheck on current main first (the TODO thread could not run
-  them). Do: find whether one cause covers TEST.338 and these three, fix
-  the product, and keep each test's intent. Done: all four pass on main.
-  Owner: Bug Hunt (proposed), with TEST.338.
-  Research (2026-10-09, Update): Core 4 (9:55 AM EDT 2026-10-24, as the
-  lane reported) fixed test_gen_stored_trees (the N-star exact
-  eccentricity) and test_migration_bulk_composition in #2968; still red
-  on main: test_emission_members (hot star) and test_bright_star_scatter
-  (TEST.338). Details in reports/core4-gen677-report-2026-10-24.md.
-  Research (2026-10-09, 10-24 lane D): Lane D (10:27 AM EDT as the lane
-  reported) saw
-  test_emission_members::test_a_pre_placed_hot_star_rolls_the_same_region_as_the_star_its_sector_builds
-  and
-  test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree_and_spends_the_rows_of_the_trees_it_built
-  fail on plain main at the #2930 gate (after Core 4's #2968).
-  Prerequisites: none. Related: TEST.338, TEST.337, GEN.651, GEN.631.
 
 - [ ] **TEST.341 A spatial-position test failed once with "no system matching" in the lane gate and passed on rerun (bug)**
   Seen once by Habitability lane K (7:50 AM EDT 2026-10-24, as the lane
