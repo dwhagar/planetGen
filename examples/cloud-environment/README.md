@@ -2,7 +2,7 @@
 
 This folder (`examples/cloud-environment/`) holds `setup-planetgen-env.sh` and this README.
 
-`setup-planetgen-env.sh` gives every new Claude cloud session a ready PlanetGen test machine: MySQL 8, Apache 2 with mod_wsgi, Redis, Flask and every other Python dependency, the NLTK words corpus, and a Playwright that matches the Chromium already in the image. It runs on Ubuntu 24.04 and 26.04 LTS; on 26.04 the packages are Ubuntu's own newer ones (Python 3.14, MySQL 8.4, Redis 8, Apache 2.4.66), and the same script works on both.
+`setup-planetgen-env.sh` gives every new Claude cloud session a ready PlanetGen test machine: MySQL 8, Apache 2 with mod_wsgi, Redis, Flask and every other Python dependency, the NLTK words corpus, the static datasets the generator reads, and a Playwright that matches the Chromium already in the image (Firefox is added, because the icon test runs in both). It runs on Ubuntu 24.04 and 26.04 LTS; on 26.04 the packages are Ubuntu's own newer ones (Python 3.14, MySQL 8.4, Redis 8, Apache 2.4.66), and the same script works on both.
 
 ## Where to paste it
 
@@ -46,7 +46,8 @@ The script also tries to make this automatic two ways, neither of which I could 
 | Redis | Preinstalled in the image; installed only if missing. Started per session with no persistence. |
 | Python | `pip install --ignore-installed -r requirements-server.lock` (exact pinned versions), then `.[test,api,browser]` from `setup.py` with `playwright==1.56.0` pinned to match the image's Chromium 1194. PlanetGen itself is removed from the snapshot and installed editable per session so it always points at that session's checkout. |
 | NLTK | The `words` corpus in `/usr/local/share/nltk_data`, fetched with `NLTK_ALLOW_PROXIED_URLOPEN=1` (the agent proxy blocks it otherwise). |
-| Playwright | Never downloads a browser. If the image's Chromium revision ever changes, set `PLAYWRIGHT_VERSION` on the environment to the matching Playwright release. |
+| Playwright | Never downloads Chromium. If the image's Chromium revision ever changes, set `PLAYWRIGHT_VERSION` on the environment to the matching Playwright release. Firefox is downloaded with `playwright install firefox` and `install-deps firefox`; if that fails the script warns and the Firefox half of `test_web_icons_under_csp_browser.py` skips. |
+| Datasets | `python3 -m planetgen.cli.datasets fetch` from the checkout's source, into `/var/cache/planetgen/datasets` (about 10 MB). Generation tests raise `DataMissing` without them; a failed download only warns. |
 
 ## Where the requirements come from
 

@@ -1,0 +1,4 @@
+**Headline:** The example cloud setup script now leaves a fresh machine with Firefox and the static datasets, so the browser and generation tests run.
+
+### Changed
+- **`examples/cloud-environment/setup-planetgen-env.sh` installs Firefox and fetches the datasets (OPS.62).** The lock install, the NLTK variable, the test Redis URL and the MySQL grant option were already there. It now also runs `playwright install firefox` (and its system libraries) so the Firefox half of the icon browser test no longer skips, and runs `planetgen.cli.datasets fetch` so generation tests no longer raise `DataMissing`. A failure of either download only warns; the snapshot is still kept. The README table and the note the script writes into Claude's `CLAUDE.md` say the same. Only the example changes: a copy pasted into the environment settings is the owner's own and needs the same two additions by hand.
