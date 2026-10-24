@@ -5,4 +5,4 @@
 
 ### Changed
 - **Generator epoch.** The bodies now carry five more stored values, drawn on their own stream so no other draw moves; the golden record is regenerated for it.
-  generation-output: changed
+generation-output: changed
