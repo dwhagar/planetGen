@@ -350,7 +350,9 @@ def test_system_page_regenerates_a_planet(web_app, mysql_config):
                   if p.body_type != 'a' and p.db_id == planet.db_id)
     assert planet.name == "Ilq'Ot"
     client = _web_admin(web_app, mysql_config)
-    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "regenerate", f"planet:{pid('planet', planet.db_id)}")
+    # UX.173: a body's Admin menu is on its own page, which takes the POST; the system page only takes the system's.
+    response = _edit(web_app, client, f"/object/planet:{pid('planet', planet.db_id)}", "regenerate",
+                     f"planet:{pid('planet', planet.db_id)}")
     assert response.status_code == 303
     page = client.get(response.headers["Location"]).get_data(as_text=True)
     assert f"Regenerated {escape(planet.name)}" in page
@@ -595,18 +597,18 @@ def test_system_page_changes_a_class(web_app, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_reclassable_planet)
     planet = _first_planet(_load(mysql_config, system_id))
     client = _web_admin(web_app, mysql_config)
-    html = client.get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
-    assert "Change class" in html and "Change star" in html
+    planet_url = f"/object/planet:{pid('planet', planet.db_id)}"   # UX.173: Change class is on the body's own page
+    assert "Change class" in client.get(planet_url).get_data(as_text=True)
+    assert "Change star" in client.get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
     other = next(c for c in sorted(tuning.PLANET_CLASSES)
                  if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
-    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "class", f"planet:{pid('planet', planet.db_id)}",
-                     planet_class=other)
+    response = _edit(web_app, client, planet_url, "class", f"planet:{pid('planet', planet.db_id)}", planet_class=other)
     assert response.status_code == 303
     page = client.get(response.headers["Location"]).get_data(as_text=True)
     assert planet.planet_class != other
     if f"to class {other}" not in page:  # not a recommended class: it asks, and nothing changed (ADM.51)
         assert "tick “Set it anyway”" in page
-        response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "class",
+        response = _edit(web_app, client, planet_url, "class",
                          f"planet:{pid('planet', planet.db_id)}", planet_class=other, confirm_class="1")
         assert response.status_code == 303
         page = client.get(response.headers["Location"]).get_data(as_text=True)
