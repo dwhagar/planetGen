@@ -3576,7 +3576,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.309, TEST.182.
+  Research (2026-10-09, Update): Core 5 (6:51 AM EDT 2026-10-24, as the
+  lane's clock reads): GEN.309 merged as #2934 (generator epoch 75) as
+  the path part only: the backfill in the thin outer regions draws one
+  count for a whole block of cells, about 20 times faster there (3.9 ms
+  to 0.19 ms per sector). Its line 'visits fewer sectors' is NOT met:
+  the backfill still records every sector. Weeding sectors out by
+  density is this item.
+  Prerequisites: TEST.182.
 
 - [ ] **GEN.55 Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal)**
   Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
@@ -5800,22 +5807,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   builder of the adaptive per-cell cap (GEN.280 is the core density);
   the "that GEN.280 builds" wording is replaced.
   Prerequisites: none. Related: GEN.281, GEN.283, ADM.43.
-
-- [ ] **GEN.309 The backfill picks the draw path per block and gives the same stars wherever it lands**
-  Split from GEN.42 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). In the backfill driver, choose per
-  block: the candidate path (child a) when the expected candidates are
-  under about 5 percent of the block's cells, the per-cell path
-  otherwise. Done: the pass runs inside the backfill, the backfill
-  visits fewer sectors, and a test of order, partition and sub-region
-  identity shows the same stars for the same seed whichever way a region
-  is reached or split; PERF.31 measures the SQL part at scale (2 ms per
-  sector warm, a `sector_stats` row per visited sector) and the number
-  goes in the PR.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.42.
 
 - [ ] **GEN.310 Fill a whole block of the shell ladder: planetgen generate --block and the queue job**
   Split from GEN.231 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -18823,6 +18814,10 @@ clears each one.
   failed in the parallel pass of a full --check and was not rerun alone;
   treat as a load flake until it fails alone. test_update_database_step
   is TEST.303.
+  Research (2026-10-09, Update): Core 5 (6:51 AM EDT 2026-10-24, as the
+  lane's clock reads): test_web_browser_sector_open fails under load on
+  main and passes alone (the MAP.209 retest area); treat as a load flake
+  of the same kind.
   Prerequisites: none.
 
 - [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
@@ -19056,6 +19051,10 @@ clears each one.
   focusable descendants). Cause: the help-link change of UX.180 to
   UX.182 (#2867) put links inside the row summary. Owner: the detail
   pages lane (UX.173 deletes those rows), else Bug Hunt.
+  Research (2026-10-09, Update): Core 5 (6:51 AM EDT 2026-10-24, as the
+  lane's clock reads) saw the same four system page a11y failures on
+  main (link-in-text-block and nested-interactive on planet class links
+  inside summary.body-stats).
   Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
 
 - [ ] **TEST.330 test_web_formulas::test_no_page_shows_a_formula_that_is_not_written_out fails on (/classes/habitability, CO2) (bug)**
@@ -19083,6 +19082,10 @@ clears each one.
   2026-10-24, as the lane reported): the search symbols test also fails
   alone on main (the lane called it TEST.327, which is retired; this
   item is the open one).
+  Research (2026-10-09, Update): Core 5 (6:51 AM EDT 2026-10-24, as the
+  lane's clock reads) saw the same failure on main:
+  test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts
+  finds 0 help links where 7 are expected.
   Prerequisites: none. Related: TEST.329, UX.163.
 
 - [ ] **TEST.332 test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug)**
@@ -19150,6 +19153,19 @@ clears each one.
   time (or pass the time in). Done: the test passes 50 runs in a row on
   main. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.302.
+
+- [ ] **TEST.336 test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug)**
+  Reported by Core 5 at 6:51 AM EDT 2026-10-24 (as the lane's clock
+  reads) as failing on main too while merging GEN.309 (#2934): the
+  assertion shows 142 == 138. The TODO thread could not run it (the test
+  skips on this machine for lack of the database grants), so recheck on
+  current main first. Do: reproduce on current main; the count differs
+  by 4, so find which draw or migration step changed the number of
+  planets and moons the v135 fixture galaxy holds (a draw change from
+  GEN.631 or GEN.271, or the DB.98 fixture clean-up #2931, are the
+  likely sources) and fix the test or the migration. Done: the test
+  passes on main. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: DB.98, GEN.631, GEN.271.
 
 ## USR: User accounts
 
