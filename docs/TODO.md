@@ -7777,7 +7777,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star and atmosphere is made of, from real science, and the colour of
   the air and the radiation that follow). A major version needs Boss's
   word.
-  Prerequisites: DOC.64, GEN.446, TEST.209, TEST.210,
+  Prerequisites: GEN.446, TEST.209, TEST.210,
   TEST.211, TEST.212, DOC.66. Related: GEN.416,
   GEN.417, GEN.418, GEN.419, DOC.63.
 
@@ -21421,16 +21421,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Done: the pages name each stored value and where it comes from.
   Prerequisites: TEST.209. Related: DB.67, DB.68.
 
-- [ ] **DOC.64 Docs: the atmosphere colour, its method and its sources**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): The API page, the description
-  document page and the physics pages explain the atmosphere colour, the
-  method (Rayleigh from the mixture, ozone, aerosols, the thick-air
-  limit, the reference level of a giant), what the colour does not
-  include (sunsets, twilight and the day strip, which belong to the view
-  from a planet) and the sources. Done: each page says so.
-  Prerequisites: MAP.244. Related: DOC.63.
-
 - [ ] **DOC.65 Docs: bulk composition, the materials table and how density, mass and gravity follow**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -21472,8 +21462,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: TEST.212, TEST.211, DOC.63, DOC.65. Related: DOC.64,
-  DB.70.
+  Prerequisites: TEST.212, TEST.211, DOC.63, DOC.65. Related: DB.70.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
 
