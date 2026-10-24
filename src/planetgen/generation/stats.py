@@ -60,7 +60,7 @@ MAX_DISK_SHARE = 0.25
 MIN_FREE_BYTES = 5 * 10 ** 9
 """int: A run may not leave less than this free (5 GB)."""
 
-DEFAULT_SECONDS_PER_SYSTEM = 0.2
+DEFAULT_SECONDS_PER_SYSTEM = 0.35
 """float: Worker time per star system before anything was measured.
 Measured 2026-10-01 on a 4-core test server with MariaDB on the same
 machine: 0.04 s with one worker, 0.17 s each with three (they wait on
@@ -78,6 +78,9 @@ the whole database, galaxy-wide tables and empty ones included."""
 GALAXY_WIDE_TABLES = frozenset({
     "bright_stars", "galaxy_shape", "galaxy_shape_pins", "galaxy_shell", "generation_runs", "id_blocks",
     "schema_migrations", "sector_stats",
+    # PERF.178: the scatter's other tables (the log's 24 million black holes made a 33 GB estimate for 105 sectors)
+    "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_members", "scatter_nodes",
+    "galaxy_block_stats", "galaxy_block_lights", "galaxy_components", "galaxy_containers",
 })
 """frozenset: Tables a plan or the bright-star scatter fills for the
 whole galaxy at once, left out of the size per system."""

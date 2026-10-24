@@ -202,7 +202,7 @@ def reset_database(config, dry_run=False, assume_yes=False):
         dataversion.record(config.database, "everything")
         _purge_page_cache(config.database)
 
-        print(f"Wiped {len(tables)} table(s) (about {total_rows:,} row(s)) from '{config.database}'.")
+        print(f"Wiped {len(tables)} table(s) from '{config.database}'.")
         print("Ready for a new galaxy -- e.g.:")
         print("  planetgen plan ...   # rebuild the density skeleton")
         print("  planetgen galaxy ... # generate sectors into it")
