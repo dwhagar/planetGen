@@ -453,8 +453,7 @@
     },
     {
       "epoch": 92,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2243",
       "reason": "A star's minimum age for its planets is read from each planet's stored conditions (physics/age_needs.py) instead of its class letter: about 0.6 percent of bodies need a different age tier than the class table gave"
     }
   ]
