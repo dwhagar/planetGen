@@ -1300,3 +1300,4 @@ Baseline: PR #1817.
 | GEN.642 | 8.1 | Bulk composition |
 | GEN.677 | 8.1 | Mixture and stored values |
 | GEN.658 | 8.1 | Mixture and stored values |
+| PERF.111 | 8.1 | Bugs and flaky tests |

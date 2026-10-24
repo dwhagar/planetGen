@@ -13967,36 +13967,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   delete list and the "no old code" Done line carry that exception.
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
-- [ ] **PERF.111 `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug)**
-  Found by Core 2 (2026-10-17, 6:31 AM EDT as the lane reported, MAP.217
-  gate unit phase), filed by the TODO thread, who read the code.
-  `src/planetgen/web/lib/pagecache.py` `ResponseCache.put`: the `db is
-  None` branch stores the entry and returns without the `while
-  len(self._entries) > self._max_entries: popitem()` that the keyed
-  branch (and `_recall`) have, so entries of the no-database kind are
-  never evicted. Test:
-  `src/tests/test_caches_threads.py::test_page_cache_fills_reads_and_clears_from_many_threads`
-  failed with `assert 51 <= 50`. Fails on main: yes (deterministic).
-  Frequency: 1 of 1 in the MAP.217 gate unit phase (1 failed, 18,311
-  passed, 3,793 s); it passes alone 3 of 3 because it fails only when
-  the last put of the run is a db=None one. Reproducer, no threads:
-  `cache = pagecache.ResponseCache(lambda db, since: {"stamp": "s",
-  "state": None}, dict(pagecache.DEFAULTS, max_entries=3,
-  stamp_seconds=0))`, then 6 times `cache.put(None, f"/x/{n}", "body",
-  cache.begin(None))`: `len(cache)` is 6, should be 3. Do: the same trim
-  loop in the db-None branch (inside the lock, after the store), and a
-  deterministic test of the reproducer above next to the thread test.
-  Done: the reproducer gives 3, the thread test passes whatever the last
-  put is, and a test asserts the bound for db=None puts alone. Owner:
-  Core 2 (proposed; it offered to carry the three lines in its next PR,
-  which is the cheapest route).
-  Checked by the TODO thread (2026-10-17, 6:28 AM EDT, main with #2004):
-  the reproducer above gives len(cache) 6 with max_entries 3, so the
-  finding stands.
-  Owner: Bug Hunt (bugs only, Boss, 2026-10-17, 10:06 AM EDT). This
-  replaces any earlier owner line on this item.
-  Prerequisites: none. Related: PERF.104, TEST.54.
-
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
   Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
   process, all the scatter phases, are individual commands, then a
@@ -19042,6 +19012,12 @@ clears each one.
   2026-10-24, as the lane reported) sees the same failure on main and
   reports the cause: the tile answer has an extra 'worlds' key. Not from
   #2963.
+  Research (2026-10-09, 10-24 lane 4): Also seen by lane 4 at 10:02 AM
+  EDT (as the lane reported):
+  test_gen_member_stars::test_the_system_page_and_its_map_draw_a_system_of_three[False]
+  failed once under load with an extra "worlds" key in a key set and
+  passed alone. Same cause as above (the MAP.220 worlds key); fix both
+  together.
   Prerequisites: none. Related: TEST.337, TEST.338, TEST.340.
 
 ## USR: User accounts

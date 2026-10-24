@@ -1972,7 +1972,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.108 | The backfill as queue units: chunks of at least 10,000 cells, one enumeration (folds in PERF.18) | none | done, PR #2305 |
 | PERF.109 | Cache the Generate page estimate | none | done, PR #2050 |
 | PERF.110 | XFetch refresh for costly entries that expire by age | none | done, PR #2050 |
-| PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) | none | open |
+| PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) | none | done, PR #2974 |
 | PERF.112 | The uncharted-star count runs a full COUNT(*) on every request: keep the count so the page and the API do not scan bright_stars each time (performance) | none | done, PR #2154 |
 | PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | done, PR #2846 |
 | PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | done, PR #2846 |
