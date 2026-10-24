@@ -10,6 +10,7 @@ import pytest
 from planetgen.db import store
 from planetgen.generation import object_timing, run_sector
 
+from tests import first_fill
 from tests.test_galaxy_gen import REFERENCE_SHAPE_ARGV
 from tests.test_sector_gen import _real_sector_args
 
@@ -158,6 +159,7 @@ def test_a_galaxy_run_saves_each_sectors_timings_under_its_run(mysql_config, mon
     from planetgen.galaxy import seed as galaxySeed
     from tests.test_version_key import SEED, _generate
     monkeypatch.setenv("PLANETGEN_GENERATION_STATS", "1")
+    first_fill.without_the_deepest_floor(monkeypatch)   # the counts below are of the systems asked for (GEN.633)
     _generate(mysql_config, monkeypatch, "plan", "--nuclear-amplitude", "0", "--edge=160pc",
               "--seed", galaxySeed.format_seed(SEED), *REFERENCE_SHAPE_ARGV)
     _generate(mysql_config, monkeypatch, "sectors", "--shell", "1", "--limit", "2", "--num-systems", "2")

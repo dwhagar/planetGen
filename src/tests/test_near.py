@@ -17,6 +17,7 @@ from planetgen.generation import run_galaxy
 from planetgen.physics.units import ly_to_pc, mpc_to_pc
 from planetgen.web.app import create_app
 from planetgen import tuning
+from tests import first_fill
 from tests.toy_shape import toy_shape
 from tests.publicids import pid
 
@@ -32,7 +33,8 @@ ADDRESSES = [(2, 0, 0), (2, 0, 1), (3, 0, 4)]
 
 
 @pytest.fixture
-def galaxy(mysql_config):
+def galaxy(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # the four systems asked for, not the deep floor's thousands (GEN.633)
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
                             expected_system_count_at_density_1=E_VALUE, config=mysql_config, cell_star_ceiling=1e12)
     store.replace_galaxy_shells(EXTENTS, config=mysql_config)
