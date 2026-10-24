@@ -11585,84 +11585,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.557, GEN.442. Related: GEN.550, GEN.520.
 
-- [ ] **GEN.560 Research list for the chain: ejection survival of moons, circumplanetary disks of isolated planetary-mass objects, failed-supernova and direct-collapse shares, the size law of interstellar objects**
-  Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
-  the coordinator relayed). Design draft
-  /mnt/project-files/design-drafts/unified-star-like-objects.md (the design thread 'Unify star-like objects (2026-10-17)'; now docs/design/architecture/unified-star-like-objects.md, approved by Boss's eight cards on the design draft, taps 11:28 to 11:31 PM EDT, 2026-10-17, as the coordinator relayed (each the draft's recommended option)). Owners are Boss's card D7. U15 of the draft, a read-only research
-  item with no behaviour change. For each: find the source, read it,
-  verify the citation and the number before any lane uses it (the
-  standing source rules: verified wins, the newest verified wins, the
-  widest permission wins between two in doubt). Recalled and still
-  unverified: Debes and Sigurdsson 2007 and Hong et al. 2018 (moons of
-  ejected planets), O'Connor and Ott 2011, Sukhbold et al. 2016 and
-  Fryer et al. 2012 (explosion and remnant maps, failed-supernova and
-  direct-collapse shares), Do, Tucker and Tonry 2018 and Jewitt and
-  Seligman 2023 (the interstellar object density and size law); a paper
-  only Boss can supply is a request to him (the network refuses ADS,
-  Science, OUP, ScienceDirect and A&A; arXiv, doi.org, NTRS and Crossref
-  are open). Done: a note under docs/design/ lists each source with its
-  verified numbers and what is still missing, and U5, U9 and U10 read
-  from it. Owner: proposed, not assigned by D7 (the draft proposes a read-only research lane), 8.1 phase 1, no behaviour change (the coordinator, 11:31 PM EDT, relaying Boss's wish for foundations in 8.1). Standing rules for the whole chain: NO
-  FIXED CONTENT (nothing copied from the Solar System or the Milky Way),
-  the database schema is not a constraint, no backward-compatibility
-  shims, every draw through the one wrapper `util/draw.py` (GEN.56),
-  every recalled source verified by a lane before use under the standing
-  source rules, and any change to a drawn value bumps the generator
-  epoch (OPS.56 rule).
-  Lane (coordinator, 11:44 PM EDT as relayed): a read-only research
-  thread 'Black hole formation research (2026-10-18)' (effort high) runs
-  the black hole part first, because GEN.563 and so GEN.301 wait on it;
-  its findings go to
-  /mnt/project-files/handoffs/gen560-black-hole-formation-2026-10-18.md
-  and the coordinator relays them. The other research parts of this item
-  (moons of ejected planets, disks of isolated planetary-mass objects,
-  the interstellar size law) have no lane yet.
-  Extension (U15a, GEN.566): the size-frequency law of belts, Kuiper
-  belt objects and comets joins the interstellar size law of this item's
-  research list.
-  Finding (research thread 'Black hole formation research (2026-10-18)',
-  11:55 PM EDT as the lane reported; note
-  docs/design/systems/black-hole-formation-sources.md): O'Connor and Ott 2011
-  (ApJ 730, 70), Sukhbold et al. 2016 (ApJ 821, 38) and Fryer et al.
-  2012 (ApJ 749, 91) are verified (arXiv text read, Crossref DOIs
-  checked; Fryer's published text not compared with arXiv v1); also
-  read: Ebinger et al. 2020, Neustadt et al. 2021, Byrne and Fraser 2022
-  (text), Maltsev 2025, Luo 2025, Zapartas 2021, Patton and Sukhbold
-  2020 (abstract level for the last three). The failed-supernova share
-  of stars of 8 to 150 Msun is 0 to 45% (solar metallicity: 0 to 7%
-  O'Connor and Ott, 5 to 21% Ebinger, 26 to 45% Sukhbold; low
-  metallicity 15 to 32%; observations allow 0 to about 0.4), more at low
-  metallicity, so the black hole share of stars born is 0 to 0.29% and
-  the density 0 to 4.0e-4 per pc^3; no single central value exists. The
-  present 7e-5 per pc^3 (0.05%) equals f = 7.8%: inside the verified
-  range, near its low end. Remnant: birth baryonic mass 2.1 to 2.5 Msun,
-  then 7.7 to 9.2 Msun (helium core) or 13.2 to 13.8 Msun (whole star)
-  on average (Sukhbold); gravitational mass 0.9 of baryonic (Fryer). The
-  0.17% in the design thread's quick check counted every progenitor of
-  20 to 100 Msun, not a failed-supernova share. Still not verified: the
-  kick-escape share, Zhang 2008, Smartt 2009, Kochanek 2015, Ugliano
-  2012. This item stays open for the moons, isolated-disk and size-law
-  parts.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): O'Connor
-  and Ott 2011, Sukhbold et al. 2016 and Fryer et al. 2012 are verified
-  (finding of 2026-10-17, 11:55 PM EDT); the Do list's "recalled and
-  unverified" no longer applies to them. The kick-escape share stays
-  unverified.
-  Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Research (2026-10-09, Update): Update 3:38 AM EDT 2026-10-24 (as lane
-  J asked): the black hole part and the interstellar size law
-  (small-body-size-laws.md) are done in pieces. Lane J may take the
-  rest: audit the ejection survival of moons and the circumplanetary
-  disks of isolated planetary-mass objects, verify the sources before
-  any use (standing source rules), write the note under docs/design/,
-  and close the item when each of the four research parts has its
-  verified numbers or a stated gap. Owner: the unit registry lane, if no one else
-  started it (TODO found no other owner line).
-  Prerequisites: none. Related: GEN.550.
-
 - [ ] **GEN.564 A refill job for a galaxy under an older generator epoch: clear the fill-level rows of every sector and rebuild them without a rescatter**
   Filed proposed, not assigned, from Core 1's read-only code audit of
   main at 5c49fc42 (11:50 PM EDT as the lane reported; a helper read it,
@@ -12028,6 +11950,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane takes further groups, and GEN.587's later groups, which need an
   epoch. Owner: the unit registry lane (taken from the pool, checked unstarted
   elsewhere).
+  Research (2026-10-09, Update): Unit registry lane (6:10 AM EDT
+  2026-10-24, as the lane reported): second file group merged as #2924:
+  23 more files in generation, galaxy and population (binary, multistar,
+  galactic_orbit, ejecta_field and similar) convert AU, km, light-years,
+  parsecs, days and years through the unit registry; every number is
+  bit-for-bit the same. Item stays open for the remaining groups.
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
 
@@ -14691,32 +14619,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: PERF.119, PERF.99. Related: PERF.98, PERF.99,
   PERF.100, PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
-- [ ] **PERF.155 A unit-length ceiling: no unit of a stage runs longer than a set time (default 5 minutes) unless the stage is one unit; longer stages are split (F6)**
-  Fair job scheduling, items F1 to F6 of the design report are PERF.150 to PERF.155 in that order
-  (design report
-  /mnt/project-files/reports/fair-job-scheduling-2026-10-22.md, section
-  6; Boss answered five cards 5:08 to 5:10 PM EDT 2026-10-22, as the
-  fair-scheduling design thread relayed at 5:11 PM EDT as the lane's
-  clock reads: build F1 to F4 now; a one-sector regenerate waits in line
-  and shows its position; the run line holds up to 8 runs, a setting;
-  jobs expected over 60 s go to a long lane; the wait bound defaults to
-  60 minutes, a setting). No Alembic revision and no generator epoch;
-  the same seed must still give the same sectors at 1 and 4 workers.
-  Every new setting needs the settings model, `config.schema.json`, the
-  admin settings page entry (ADM.84) and `docs/reference/cli.md`. F6, size M. No
-  unit of a stage is expected to run longer than a ceiling (default 5
-  minutes, a setting) unless the stage is a one-unit command; longer
-  ones are split (PERF.113 to PERF.117 decide the splits). It bounds the
-  lend wait of F1 and the cancel wait. The number is chosen from the
-  unit lengths PERF.146 measures. Done: a test fails when a registered
-  stage has a unit expected over the ceiling; the splits keep the same
-  stored rows for the same seed. Owner: none for now, returned to the
-  pool (the coordinator, relayed 11:13 PM EDT 2026-10-22, when the Fair
-  scheduling lane retired; this replaces the earlier proposal of the
-  Performance thread). Its prerequisite PERF.146 has merged (#2559).
-  Prerequisites: none. Related: PERF.98, PERF.99, PERF.100,
-  PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
-
 - [ ] **PERF.162 Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word**
   Found by the Performance lane in PERF.146 (relayed 7:31 PM EDT
   2026-10-22 as the lane's clock reads), measured at release 8.0.1930
@@ -14850,6 +14752,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   progress line is not cut at the log's width. Owner: Generation-log
   analysis lane (proposed by the lane).
   Prerequisites: none.
+
+- [ ] **PERF.180 Single-unit stages already past the unit ceiling on big galaxies: clearing the bright stars (211 s on the medium galaxy) and the cache-warm families (one unit each, minutes on a large galaxy)**
+  Found by the Performance lane while merging PERF.155 (#2923, the
+  unit-length ceiling queue.unit_ceiling_seconds, 300 s), as the lane
+  reported at 6:10 AM EDT 2026-10-24. Every queued command now says it
+  is one unit by nature or declares its longest unit, but two stages are
+  single units that already pass the ceiling: the clearing of the bright
+  stars (a delete of every row, 211 s on the medium galaxy, so longer on
+  a large one) and the cache-warm families (one unit each, minutes on a
+  large galaxy). The run's log names the stage when a unit goes over.
+  Do: split the bright-star clear into id-range chunks (or replace the
+  row-by-row delete with a cheaper reset, as PERF.167 and PERF.171 did
+  for the scatters), and split each cache-warm family into chunks of
+  sectors; measure both on the medium and large galaxies. Done: no unit
+  of either stage runs longer than the ceiling on the large galaxy, and
+  the declared longest units in the command table are updated. Owner:
+  Performance lane (proposed; it is retiring, so the pool or Core 5 if
+  it has already gone).
+  Prerequisites: none. Related: PERF.155, PERF.167, PERF.171, PERF.123.
 
 ## DB: Database and schema
 
@@ -19144,6 +19065,20 @@ clears each one.
   stale, and fix the page or the test to match what the rows should
   show. Done: the test passes on main. Owner: Bug Hunt (proposed).
   Prerequisites: none. Related: TEST.329, UX.163.
+
+- [ ] **TEST.332 test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug)**
+  Reported by the unit registry lane at 6:10 AM EDT 2026-10-24 (as the
+  lane reported) as failing on main while merging #2924: the comet is
+  missing from the set of row kinds the test checks (it asserts {planet,
+  moon, belt, comet}). The TODO thread could not confirm the cause: on
+  its machine the test fails for another reason (NLTK data download
+  refused by the proxy), so recheck on current main first. Do: reproduce
+  on current main, find why a system built by the test holds no comet (a
+  draw change from the star tree, GEN.631, or the belt fix, TEST.313,
+  are the likely sources) and make the test force a comet the way
+  test_systems forces a belt. Done: the test passes. Owner: Bug Hunt
+  (proposed).
+  Prerequisites: none. Related: GEN.631, TEST.313.
 
 ## USR: User accounts
 

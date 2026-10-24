@@ -1275,3 +1275,5 @@ Baseline: PR #1817.
 | GEN.643 | 8.1 | Habitability system |
 | TEST.313 | 8.1 | Bugs and flaky tests |
 | GEN.702 | 8.1 | Habitability system |
+| PERF.155 | 8.1 | The headline closes |
+| GEN.560 | 8.1 | Composition research and design |
