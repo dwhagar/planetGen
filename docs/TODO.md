@@ -8679,6 +8679,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
   lane reported): the moon origin and disk composition module merged in
   #2956 but is UNWIRED (no draw uses it yet). Do not mark done.
+  Research (2026-10-09, Update): Lane K (8:56 AM EDT 2026-10-24, as the
+  lane reported): the wiring waits on the class cut-over GEN.646,
+  because a class-first moon draw contradicts an origin composition. The
+  moon inclination range blocks captured moons: filed as GEN.714.
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -9039,6 +9043,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   asteroid fields draw a family taxa mixture. The item stays open until
   the belt half is confirmed against the Done line; Lane K to say what
   remains.
+  Research (2026-10-09, Update): Lane K (8:56 AM EDT 2026-10-24, as the
+  lane reported): belt half remaining: (E2) belt density from mass per
+  area, which needs a belt mass and a depletion factor against the disc
+  surface density and has no source yet (a design question), and the
+  stored taxon-share and component columns (DB.70). Taxa, four-level
+  words and fields are done.
 
 - [ ] **GEN.479 The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug)**
   Atmosphere research lane, update of about 2:00 AM EDT as the lane
@@ -13820,6 +13830,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replace the value with the cited figure and label the range. Done: the
   row cites its source, the density matches it, a test pins the value,
   and the epoch is bumped if a drawn value changes. Owner: Lane K.
+  Research (2026-10-09, Update): Lane K (8:56 AM EDT 2026-10-24, as the
+  lane reported): could not read Choukroun 2020; Blum and Bischoff 2022
+  give organics 1000 to 2000 kg/m3 and say the density is unknown, so
+  Lane K moves the comets to the table's 1.5 g/cm3 (epoch 80, gate
+  running). The item closes when that merges, unless a read of Choukroun
+  2020 says otherwise.
   Prerequisites: none. Related: GEN.442.
 
 - [ ] **GEN.713 Research the size law and the cut for long-period and interstellar comets (blocks GEN.559)**
@@ -13836,6 +13852,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.559's text updated by the TODO thread. Owner: none (pool), a short
   read-only research thread.
   Prerequisites: none. Related: GEN.559, GEN.550.
+
+- [ ] **GEN.714 Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug)**
+  Found by Habitability lane K (8:56 AM EDT 2026-10-24, as the lane
+  reported; details in
+  /mnt/project-files/reports/lane-k-contracts-2026-10-23.md) while
+  wiring GEN.466 (moon origin and disk composition): the moon
+  inclination draw spans 0 to 25 degrees, so a captured (irregular)
+  moon, which can be highly inclined or retrograde, can never be drawn,
+  and an origin type of captured contradicts the orbit. Do: draw the
+  inclination from the moon's origin type (regular moons near the
+  planet's equator, captured moons over the full range including
+  retrograde) with the source for each range, labelling any stand-in in
+  the gap plan registry. Changes drawn values: a generator epoch.
+  Prerequisite of the GEN.466 wiring. Owner: none (pool); Lane K
+  proposed after the class cut-over.
+  Prerequisites: none. Related: GEN.466, GEN.646.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
