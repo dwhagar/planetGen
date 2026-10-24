@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.183 |
 | MAP | MAP.289 |
 | NAV | NAV.63 |
-| GEN | GEN.700 |
+| GEN | GEN.702 |
 | PERF | PERF.180 |
 | DB | DB.100 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.325 |
+| TEST | TEST.326 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -1137,7 +1137,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model | none | done, PR #2063 |
 | GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | none | done, PR #2508 |
 | GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | none | open |
-| GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | none | open |
+| GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | none | done, PR #2812 |
 | GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | none | done, PR #2761 |
 | GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | none | done, PR #2856 |
 | GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | none | open |
@@ -1425,6 +1425,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.697 | The generator records an origin quantity stripped_core for a small hot body that began as a giant | none | dropped (Boss, 1:22 AM EDT 2026-10-24: class B never has hydrogen or helium) |
 | GEN.698 | Recipe rows for the stripped core: a hydrogen and helium envelope share for a small hot body, replacing the gating of rows e1 to e6 that stops at 1 Earth mass | none | dropped (Boss, 1:22 AM EDT 2026-10-24: class B never has hydrogen or helium; lane L's research note stays as reports/stripped-core-envelope-2026-10-24.md) |
 | GEN.699 | Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9 | none | open |
+| GEN.700 | Tidal heating of moons counts in the energy term of the habitability score: keep the tidal flux on the moon and add it to the heat flow | none | open |
+| GEN.701 | Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2714,6 +2716,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.322 | test_no_todo_codes_shown fails on main: planetgen/db/point_columns.py:189 shows the item code DB.73 in a string the code shows (bug) | none | open |
 | TEST.323 | test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug) | none | open |
 | TEST.324 | test_web_header_menus top-bar [1280x720-light] times out under load (bug) | none | open |
+| TEST.325 | test_migration_habitable_worlds: the v135 galaxy count test fails on main because it downgrades to v138 while the DB.73 v140 marker still reads 140 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
