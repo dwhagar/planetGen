@@ -1,7 +1,0 @@
-**Headline:** A world is now called habitable when its overall PHI-6 colour is Blue or Green, in one place, instead of by its class letter.
-
-### Changed
-- **One definition of habitable (GEN.643).** `habitability.is_habitable(phi4)` is true for an overall Blue or Green score. The API's `habitable` flag, the Habitable and Habitable moon chips on the system page, the per-system `hab_count` and the description's count all use it. The old class test is served as `habitable_class` (the "Habitable class" chip stays).
-- **The request for a habitable world still steers by the class list.** The generator draws the class before the score, so `+habitable_world` guarantees a world of a life class (`StarSystem.habitable_class_count`), which may score below Green. The sector directive `habitable>=N` counts the same. This changes when the classes are derived from conditions.
-- No stored value or draw changes, so there is no generator epoch and no migration.
-- **The fallback for a request that falls short (Boss, 2026-10-23).** `habitability.habitable_request_result(overall, suitability)` says `"aim"` for a Blue or Green world and `"fallback"` for an overall Yellow whose Suitability (the sustainability factor) is at least Yellow. `StarSystem.habitable_request` (also set on a loaded system) is `"aim"`, `"fallback"` or `"unmet"` for a system generated with a habitable world requested, `None` otherwise. The generation retry does not steer on it yet (that needs a regenerate under restricted draws), so `"unmet"` still happens.
