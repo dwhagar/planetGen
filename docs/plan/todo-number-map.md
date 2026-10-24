@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.183 |
 | MAP | MAP.289 |
 | NAV | NAV.63 |
-| GEN | GEN.704 |
+| GEN | GEN.705 |
 | PERF | PERF.180 |
 | DB | DB.100 |
 | API | API.33 |
@@ -1429,6 +1429,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.701 | Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields | none | open |
 | GEN.702 | Some equipment items sit in the wrong habitability row: self-contained air under a Blue Air row on cold worlds, and a hardened pressure suit under Radiation while the Pressure row names no gear (bug) | none | open |
 | GEN.703 | The greenhouse optical depth (tau0) comes from the stored mixture and the band opacities, replacing the per-gas strengths | none | open |
+| GEN.704 | Moons of a moved planet keep the dose, solar particle exposure, UV and habitability of their old distance from the star (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
