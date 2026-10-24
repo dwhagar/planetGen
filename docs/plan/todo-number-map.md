@@ -1699,7 +1699,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.262 | N5: retire the cube tiles | none | open |
 | MAP.263 | S1: the camera is the only state: stages follow the camera, with no gesture gate, preset flights, per-stage zoom range or pan clamp | none | done, PR #2888 |
 | MAP.264 | S2: nothing is clipped when you zoom: drop setWedgeClip and markClippedStars | none | done, PR #2903 |
-| MAP.265 | S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick | none | open |
+| MAP.265 | S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick | none | done, PR #2941 |
 | MAP.266 | S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu | none | open |
 | MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | none | open |
 | MAP.268 | S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales | none | open |

@@ -2652,7 +2652,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones, anything in the galaxy can be reached by zooming to it, and
   Boss confirms it by retest. Owner: the design thread first (report),
   then Core 2 (maps).
-  Prerequisites: MAP.261, MAP.262, MAP.265, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
+  Prerequisites: MAP.261, MAP.262, MAP.266, MAP.267, MAP.268. Related: MAP.146, MAP.249, MAP.209, MAP.210.
   Decision (Boss, 5:51 PM EDT 2026-10-23, answering the four zoom
   cards): 1 the full single space, 2 only a sector plus an optional grid
   tool, 3 a soft glow switchable, 4 sector-block nodes first (not the
@@ -2701,23 +2701,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxystageview.js (rebase on its merges and tell it before each PR).
   Prerequisites: MAP.261. Related: MAP.257, MAP.146, MAP.249.
 
-- [ ] **MAP.265 S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick**
-  Zoom design (reports in
-  /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
-  sections 5.2 and 8). Boss, 5:51 PM EDT 2026-10-23, answered the four
-  cards: 1 the full single space, 2 only a sector plus an optional grid
-  tool, 3 a soft glow switchable in the layers menu, 4 move to
-  sector-block nodes FIRST (not the default). Part of MAP.257. Replace
-  the window meshes with the hover and selected sector outline (a sector
-  is the only cell the user sees) plus the optional grid tool (Boss card
-  2); pick the cell under the ray in closed form; the charted tint
-  stays; block prisms are no longer drawn; the window stops being a
-  display source (/galaxy/window stays as an admin read). Size M. Done:
-  no translucent prisms, any sector is selectable from any distance, and
-  a browser test selects a sector from the galaxy view. Owner: Core 2
-  (maps).
-  Prerequisites: none. Related: MAP.257, MAP.146, MAP.249.
-
 - [ ] **MAP.266 S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu**
   Zoom design (reports in
   /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
@@ -2734,7 +2717,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   5:53 PM EDT as the lane reported), with Core 2 as owner of
   galaxymap3d.js and galaxystageview.js (rebase on its merges and tell
   it before each PR).
-  Prerequisites: MAP.261, MAP.265. Related: MAP.257, MAP.146,
+  Prerequisites: MAP.261. Related: MAP.257, MAP.146,
   MAP.249.
 
 - [ ] **MAP.267 S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in)**
@@ -2765,7 +2748,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   query, not against stages, and select by object ID at any scale. Size
   M. Done: labels and selection work from the galaxy to a planet with no
   stage, and a browser test covers both. Owner: Core 2 (maps).
-  Prerequisites: MAP.265. Related: MAP.257, MAP.146,
+  Prerequisites: none. Related: MAP.257, MAP.146,
   MAP.249.
 
 - [ ] **MAP.269 Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug)**
@@ -13908,6 +13891,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   50 runs in a row. This may change generator output, so it takes the
   next free generator epoch. Owner: Core 3 (it owns GEN.630 and GEN.631;
   proposed).
+  Research (2026-10-09, Update): Core 3 accepted this (6:58 AM EDT
+  2026-10-24, as the lane reported): it takes GEN.709 right after
+  GEN.332 slice 1 merges and takes the next free generator epoch at
+  merge.
   Prerequisites: none. Related: TEST.130, GEN.630, GEN.631.
 
 ## PERF: Speed, caching, bulk generation and parallel work
