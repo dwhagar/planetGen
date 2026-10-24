@@ -1202,3 +1202,5 @@ Baseline: PR #1817.
 | GEN.655 | 8.1 | Habitability system |
 | DB.93 | 8.1 | Habitability system |
 | POP.15 | 8.1 | Habitability system |
+| GEN.665 | 8.1 | Tuned draws and selection models |
+| GEN.664 | 8.1 | Tuned draws and selection models |
