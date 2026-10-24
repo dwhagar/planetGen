@@ -16076,20 +16076,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: GEN.418, GEN.419.
 
-- [ ] **DB.97 Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message**
-  Follows the DB.4 marker detection. Next in the regression-test cleanup
-  lane. Source: reports/regression-test-review-2026-10-23.md (Boss
-  approved A1, B1, C1, D1, E1), relayed by the regression-test cleanup
-  lane at 10:24 PM EDT 2026-10-23 as the lane reported.
-  Prerequisites: none.
-
 - [ ] **DB.98 Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test**
   Last in the regression-test cleanup lane, after the item that removes
   detect_schema_version. Source:
   reports/regression-test-review-2026-10-23.md (Boss approved A1, B1,
   C1, D1, E1), relayed by the regression-test cleanup lane at 10:24 PM
   EDT 2026-10-23 as the lane reported.
-  Prerequisites: DB.97.
+  Prerequisites: none.
 
 - [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
   One migration, one generator epoch and the column_units.py entries.
@@ -19601,6 +19594,12 @@ clears each one.
   of these tests; do this after DB.98 and only for what is left. Done:
   adding a migration needs no edit to those tests. Owner: none (pool);
   the regression-test cleanup lane proposed, after DB.98.
+  Research (2026-10-09, Update): Update 4:18 AM EDT 2026-10-24 (as the
+  regression test lane reported on DB.97, #2905):
+  store.detect_schema_version and _VERSION_MARKERS are gone, so a
+  migration test that rewinds a database must record the rewound version
+  itself (DELETE FROM schema_migrations, then INSERT the version). The
+  shared helper of this item should do exactly that.
   Prerequisites: none. Related: DB.98.
 
 - [ ] **TEST.329 test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug)**
