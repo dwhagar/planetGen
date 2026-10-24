@@ -14,7 +14,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.generation import bright_stars as brightStars, nebula_contents, run_sector
+from planetgen.generation import bright_stars as brightStars, nebula_contents, run_sector, stored_trees
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import hii, stellar_evolution as evolution
@@ -170,7 +170,9 @@ def test_the_sector_that_lights_a_region_and_the_one_beside_it_give_the_same_mem
 
 
 def test_a_pre_placed_hot_star_rolls_the_same_region_as_the_star_its_sector_builds():
-    """`row_host` reads only the row, and the sector that builds the row's star rolls the same region."""
+    """`row_host` reads only the row, and the sector that builds the row's star rolls the same region. The star is built as the
+    fill builds a row with no stored members (`stored_trees.SINGLE`): a plain `StarSystem` draws a tree of its own (GEN.631),
+    and a heavier companion drawn there took `stars[0]` (TEST.340)."""
     done = 0
     for k, mass in enumerate(np.linspace(14.0, 40.0, 400)):
         age_gy = 0.002
@@ -185,7 +187,8 @@ def test_a_pre_placed_hot_star_rolls_the_same_region_as_the_star_its_sector_buil
         config = SystemConfig()
         config.POPULATION = "young"
         with draw.bound(1000 + k):
-            system = StarSystem(system_config=config, primary_star_params=brightStars.star_params(row))
+            system = StarSystem(system_config=config, primary_star_params=brightStars.star_params(row),
+                                member_tree=stored_trees.SINGLE)
         built = nebula_contents.hosted_nebula_of(system.stars[0])
         found = nebula_contents.row_host(row)
         if built is None or built.nebula_class not in "DE":
