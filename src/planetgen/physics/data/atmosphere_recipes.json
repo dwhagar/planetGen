@@ -66,9 +66,9 @@
    "fallback": null,
    "constants": {
     "c_b4": [
-     0.05,
-     0.4,
-     "log"
+     0.0,
+     1.0,
+     "uniform"
     ]
    }
   },
@@ -721,23 +721,20 @@
    "option": "Water-rich, ocean world (>=10 wt% water)",
    "gate_text": "ROCKY, S, V, or sub-Neptune (I, R[P]) with x>1",
    "weight_text": "c[0.05,0.4] s^3",
-   "source": "hycean needs >=10 wt% water (Madhusudhan 2021 READ); refractories >50 wt% of solids caps water+ices at 50 wt% (Thiabaud 2014 READ); c DESIGN",
+   "source": "Bern NGPPS NG76 nominal population (Emsenhuber 2021; Burn 2024, arXiv:2401.04380), window 0.5 < P < 100 d, 0.5 to 30 Earth masses (2076 planets, 490 water-rich): P(water-rich | mass) = 1/(1 + exp(-6.28 (log10 M - 0.788))), centre 6.1 Earth masses (bootstrap 5.9 to 6.3), slope 6.0 to 6.6 per dex (COMPUTED by the group 2 worker, tunable-gaps-sources/group2-delivery-retention.md section 2.2). Bin fractions in physics/data/ngpps_water_fraction.json",
    "status": "DESIGN",
    "research": [
     "R2",
     "R1"
    ],
-   "notes": "feeds e3, e4",
-   "replacement": "GEN.510",
+   "notes": "feeds e3, e4 Replaced 2026-10-24 (GEN.510): the weight c_b4 s^3 of the snow-line ratio alone, with c_b4 log-uniform from 0.05 to 0.4, had no mass dependence; the migration that brings water in grows with mass (a 1 Earth-mass planet is 2 percent water-rich, a 12 Earth-mass planet 91 percent). The weight is q/(1 - q) with q = c_b4 L(mass), so that, as the weights of b1 to b3 sum to 1, the probability of b4 is q.",
    "labels": [
-    "READ",
-    "DESIGN"
+    "COMPUTED"
    ],
-   "state": "stand-in",
-   "limit": "",
-   "items": [
-    "GEN.510"
-   ],
+   "state": "partly verified",
+   "limit": "a MODEL label: the water-rich share against mass is the logistic fitted to the Bern population synthesis (NGPPS, Zenodo 10527170), not an observation; the plateau c_b4 (model value 1, the logistic as fitted) is bracketed 0 to 1 because published shares run from at most 3 percent (Rogers 2025) to 87 percent (decision D1) and the model's own plateau is 0.92; the logistic centre and slope are not tuned to the Luque and Palle densities (GEN.510)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "A",
     "B",
@@ -768,9 +765,9 @@
     }
    ],
    "group": "b",
-   "weight": "c_b4*s**3",
+   "weight": "q/(1 - q)",
    "lets": {
-    "s": "1/(1 + exp(-log(snow_ratio)/0.4))"
+    "q": "min(0.999, c_b4/(1 + exp(-6.28*(log10(mass_earth) - 0.788))))"
    }
   },
   {

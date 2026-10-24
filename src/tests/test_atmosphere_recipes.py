@@ -100,7 +100,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 49, "open": 0, "stand-in": 18}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 50, "open": 0, "stand-in": 17}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -169,9 +169,10 @@ def test_example_b_the_delivery_split_by_the_formation_distance_over_the_snow_li
     p = probs("b", "E", snow_ratio=0.447)
     assert p["b1"] == pytest.approx(0.7782, abs=1e-3) and p["b2"] == pytest.approx(0.208, abs=1e-3)
     assert "b4" not in p                                      # the gate is x above 1
-    p = probs("b", "E", snow_ratio=1.5)
-    assert p["b1"] == pytest.approx(0.0671, abs=1e-3) and p["b2"] == pytest.approx(0.3701, abs=1e-3)
-    assert p["b3"] == pytest.approx(0.5099, abs=1e-3) and p["b4"] == pytest.approx(0.0529, abs=1e-3)
+    # a 5 Earth-mass planet with the plateau at the population synthesis' value 1 (GEN.510): b4 is the logistic of the mass, 0.364
+    p = probs("b", "E", snow_ratio=1.5, mass_earth=5.0, **{"const:b:c_b4": 1.0})
+    assert p["b1"] == pytest.approx(0.0451, abs=1e-3) and p["b2"] == pytest.approx(0.2486, abs=1e-3)
+    assert p["b3"] == pytest.approx(0.3425, abs=1e-3) and p["b4"] == pytest.approx(0.3638, abs=1e-3)
     assert sum(p.values()) == pytest.approx(1.0, abs=1e-12)
 
 
@@ -229,7 +230,7 @@ def test_the_hydrogen_flag_of_d7_uses_the_jeans_parameter_of_the_part():
 
 def test_example_e_the_envelope_the_water_world_and_the_hycean_share_the_water_rich_probability():
     s = Subject("V", dict(mass_earth=5.0, core_radius_earth=5 ** 0.27, insolation=100.0, snow_ratio=1.5,
-                          v_esc_kms=11.186 * (5 / 5 ** 0.27) ** 0.5, **{"const:e:f_env0": 0.05, "const:e:eta": 0.224}))
+                          v_esc_kms=11.186 * (5 / 5 ** 0.27) ** 0.5, **{"const:e:f_env0": 0.05, "const:e:eta": 0.224, "const:b:c_b4": 0.1454}))
     assert RECIPES.probability_of("b4", s) == pytest.approx(0.0529, abs=1e-3)
     p = dict(RECIPES.probabilities("e", s))
     assert p == pytest.approx({"e1": 0.820, "e2": 0.127, "e3": 0.041, "e4": 0.012}, abs=1e-3)

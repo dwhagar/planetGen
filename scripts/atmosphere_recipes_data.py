@@ -51,7 +51,7 @@ def drawn(group, *ids):
 GROUPS = {
     "a": {"rows": ["a5", "a6", "a7"], "fallback": None},
     "b": {"rows": ["b1", "b2", "b3", "b4"], "fallback": None,
-          "constants": {"c_b4": [0.05, 0.4, "log"]}},
+          "constants": {"c_b4": [0.0, 1.0, "uniform"]}},
     "c": {"rows": ["c1", "c2", "c3", "c4"], "fallback": None},
     "c-after": {"rows": ["c5", "c6"], "fallback": "c6"},
     "d": {"rows": ["d1", "d2", "d3", "d4", "d5"], "fallback": "d1"},
@@ -111,8 +111,15 @@ MACHINE = {
                lets={"s": "1/(1 + exp(-log(snow_ratio)/0.4))"}),
     "b3": dict(state="stand-in", replacement="GEN.510", kind="option", group="b", classes=ROCKY, weight="s**2",
                lets={"s": "1/(1 + exp(-log(snow_ratio)/0.4))"}),
-    "b4": dict(state="stand-in", replacement="GEN.510", kind="option", group="b", classes=ROCKY + ["I"], when=[c("snow_ratio", minimum=1.0)],
-               weight="c_b4*s**3", lets={"s": "1/(1 + exp(-log(snow_ratio)/0.4))"}),
+    "b4": dict(state="partly verified", limit="a MODEL label: the water-rich share against mass is the logistic fitted to the Bern population synthesis (NGPPS, Zenodo 10527170), not an observation; the plateau c_b4 (model value 1, the logistic as fitted) is bracketed 0 to 1 because published shares run from at most 3 percent (Rogers 2025) to 87 percent (decision D1) and the model's own plateau is 0.92; the logistic centre and slope are not tuned to the Luque and Palle densities (GEN.510)",
+               kind="option", group="b", classes=ROCKY + ["I"], when=[c("snow_ratio", minimum=1.0)],
+               weight="q/(1 - q)", lets={"q": "min(0.999, c_b4/(1 + exp(-6.28*(log10(mass_earth) - 0.788))))"},
+               source="Bern NGPPS NG76 nominal population (Emsenhuber 2021; Burn 2024, arXiv:2401.04380), window 0.5 < P < 100 d, 0.5 to 30 Earth masses (2076 planets, 490 water-rich): "
+                      "P(water-rich | mass) = 1/(1 + exp(-6.28 (log10 M - 0.788))), centre 6.1 Earth masses (bootstrap 5.9 to 6.3), slope 6.0 to 6.6 per dex (COMPUTED by the group 2 worker, "
+                      "tunable-gaps-sources/group2-delivery-retention.md section 2.2). Bin fractions in physics/data/ngpps_water_fraction.json",
+               correction="Replaced 2026-10-24 (GEN.510): the weight c_b4 s^3 of the snow-line ratio alone, with c_b4 log-uniform from 0.05 to 0.4, had no mass dependence; "
+                          "the migration that brings water in grows with mass (a 1 Earth-mass planet is 2 percent water-rich, a 12 Earth-mass planet 91 percent). "
+                          "The weight is q/(1 - q) with q = c_b4 L(mass), so that, as the weights of b1 to b3 sum to 1, the probability of b4 is q."),
     "b5": dict(state="stand-in", replacement="GEN.510", kind="param", classes=ROCKY, when=[drawn("b", "b2", "b3")],
                dist={"kind": "loguniform", "lo": 5e-4, "hi": 5e-3}),
     "b6": dict(state="stand-in", replacement="GEN.510", kind="binary", classes=["C", "D", "S", "I"], when=[c("zone", equals="r")],
