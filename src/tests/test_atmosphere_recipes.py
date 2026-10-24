@@ -279,8 +279,9 @@ def test_example_g_h_and_i_the_brown_dwarf_the_hot_jupiter_and_the_lava_windows(
         {"h2": 0.0013, "h3": 0.9987}, abs=1e-4)
     assert main(RECIPES.probabilities("h", Subject("J", {"tday_k": 2150.0, "zone": "h"}))) == pytest.approx(
         {"h2": 0.6915, "h3": 0.3085}, abs=1e-4)
-    s = Subject("J", {"tday_k": 2150.0, "zone": "h", "grain_um": 1.0, "drawn.h": "h2"})
-    assert RECIPES.probability("h4", s) == pytest.approx(0.44)
+    s = Subject("J", {"tday_k": 2150.0, "zone": "h", "teq_k": 2350.0, "drawn.h": "h2"})
+    assert RECIPES.probability("h4", s) == 0.0, "TiO is not seen at 2350 K and below"
+    assert RECIPES.probability("h4", Subject("J", dict(s.quantities, teq_k=2641.0))) == 1.0, "and is seen at 2641 K"
     lava = lambda t: dict(RECIPES.probabilities("i", Subject("A", {"tp_k": t, "zone": "h"})))  # noqa: E731
     assert main(lava(2060.0)) == pytest.approx({"i1": 0.326, "i2": 0.674}, abs=1e-3)
     assert main(lava(2500.0)) == pytest.approx({"i2": 0.929, "i3": 0.071}, abs=1e-3)

@@ -221,8 +221,8 @@ MACHINE = {
                weight="window(tday_k, 1500, 2200, 100)"),
     "h3": dict(state="stand-in", replacement="GEN.518", kind="option", group="h", classes=GIANT, when=[c("zone", equals="h")],
                weight="window(tday_k, 2200, None, 100)"),
-    "h4": dict(state="partly verified", limit="a Ti threshold between 2350 and 2640 K from N=3 to 6 planets; no population measures Kzz (GEN.519)", kind="binary", classes=GIANT, when=[c("zone", equals="h"), drawn("h", "h2", "h3")],
-               weight="clamp((11 - (7.48 + 3.52*(log10(grain_um) + 1)/2))/4, 0, 1)"),
+    "h4": dict(state="partly verified", limit="a Ti threshold between 2350 and 2641 K from N=5 planets (TiO seen at 2641 K, not at 2210, 2250, 2260 and 2350 K); no population measures Kzz, so none is drawn (GEN.519)", kind="binary", classes=GIANT, when=[c("zone", equals="h"), drawn("h", "h2", "h3")],
+               constants={"c_h4": [2350.0, 2641.0, "uniform"]}, weight="1 if teq_k >= c_h4 else 0"),
     "h5": dict(kind="binary", classes=GIANT, when=[c("zone", equals="h")], weight="pdist('f7', 1.0, None)"),
 
     # ---- i. lava worlds ----

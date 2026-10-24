@@ -138,3 +138,24 @@ def test_the_retained_share_may_be_zero_and_the_lava_world_share_is_the_beta_int
     assert j1[0] == 0.0 and j1[1] == 1.0 and j1[2] == "uniform", "0 of 2 bare M-dwarf planets cannot be forbidden"
     i6 = RECIPES.entry("i6").constants["c_i6"]
     assert (i6[0], i6[1]) == (0.29, 0.99), "the 95 percent interval of Beta(3, 1), 2 volatile-bearing of 2 molten planets"
+
+
+# --- aerosols and the titanium cold trap (GEN.519) ---------------------------------------------------------------------------
+
+
+def test_titanium_oxide_is_seen_above_a_drawn_temperature_between_the_last_non_detection_and_the_detection():
+    from planetgen.generation.possibility_table import Subject
+    from planetgen.util import draw
+
+    def share(teq_k, n=400):
+        s = Subject("J", {"teq_k": teq_k, "zone": "h", "tday_k": 2500.0, "drawn.h": "h3"})
+        k = 0
+        for i in range(n):
+            with draw.bound(draw.Stream(f"h4-test:{teq_k}:{i}")):
+                k += RECIPES.draw_binary("h4", s)[0]
+        return k / n
+
+    assert RECIPES.entry("h4").constants["c_h4"] == (2350.0, 2641.0, "uniform"), "no TiO at 2350 K, TiO at 2641 K (N=5)"
+    assert share(2349.0) == 0.0 and share(2641.0) == 1.0
+    assert share(2350.0 + 291.0 / 2) == pytest.approx(0.5, abs=0.08), "a uniform threshold: half the worlds at the middle"
+    assert share(2350.0 + 291.0 / 4) == pytest.approx(0.25, abs=0.08)
