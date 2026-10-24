@@ -35,3 +35,7 @@ there, so a stopped revision can be run again:
 - `exists_table`, `exists_column`, `exists_index`, `index_columns`, `column_type`: the checks.
 - `lock_wait_timeout` (a block), `require_no_long_transactions` (refuses to start an index build behind a
   transaction open for a minute or more) and a retry of a statement that timed out waiting for a lock.
+
+**`sectors` is not instant (DB.84).** Its FULLTEXT index on `name` forces a full table rebuild (`ALGORITHM=COPY`) for any
+column change, with room needed for a second copy of the table. Batch every change to `sectors` that a version needs into
+one revision, say in that revision's docstring that it rebuilds `sectors`, and keep the index.
