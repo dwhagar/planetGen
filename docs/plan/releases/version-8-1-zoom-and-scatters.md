@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 12:21 AM EDT 2026-10-24: 823 of 1237 items finished (66.5 percent), 414 open, 24 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 116, phase 2 44, phase 3 26, phase 4 13, phase 5 81, phase 6 28, phase 7 25, phase 8 4, phase 9 29, phase 10 2, phase 11 33, phase 12 13 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 12:25 AM EDT 2026-10-24: 827 of 1237 items finished (66.8 percent), 410 open, 24 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 114, phase 2 44, phase 3 26, phase 4 13, phase 5 81, phase 6 28, phase 7 25, phase 8 4, phase 9 29, phase 10 2, phase 11 31, phase 12 13 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -24,8 +24,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 |---|---|---|---|
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
 | PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply |  |  |
-| PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants |  | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
-| PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants |  | Audit of 2026-10-17, 4:06 PM EDT (Boss). |
 | PERF.98 | Work queue step 4: the remaining stages and the sector and backfill units on the new queue |  | PERF.86 step 4 |
 | PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | PERF.98 | Boss, 2026-10-17, 4:12 PM EDT: every start path uses the wrapper. |
 | PERF.149 | A map visit queues the missing sector as a run instead of generating it in the web request, and the Galaxy View is closed while a galaxy generation runs | PERF.119 |  |
@@ -708,9 +706,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.510 | Tuned draw builder B2: delivery and water worlds |  | Tunable gaps report: Tuned draw builder B2: delivery and water worlds. |
 | GEN.512 | Tuned draw builder B4: the iron branch |  | Tunable gaps report: Tuned draw builder B4: the iron branch. |
 | GEN.515 | Tuned draw builder B7: ground and petrology |  | Tunable gaps report: Tuned draw builder B7: ground and petrology. |
-| GEN.518 | Tuned draw builder B10: the chemistry module |  | Tunable gaps report: Tuned draw builder B10: the chemistry module. |
 | GEN.519 | Tuned draw builder B11: aerosol amplitude |  | Tunable gaps report: Tuned draw builder B11: aerosol amplitude. |
-| GEN.520 | Tuned draw builder B12: the comet sampler |  | Tunable gaps report: Tuned draw builder B12: the comet sampler. |
 | GEN.595 | Replace the Solar System comet population shape (GEN.520 D6) with a derived distribution |  | Boss, 2026-10-18 (fork 8, flagged stand-ins only). |
 | GEN.521 | Tuned draw builder B13: belts |  | Tunable gaps report: Tuned draw builder B13: belts. |
 | GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects |  | Tunable gaps report: Tuned draw builder B14: moons and Kuiper belt objects. |

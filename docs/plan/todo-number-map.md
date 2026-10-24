@@ -1243,9 +1243,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.515 | Tuned draw builder B7: ground and petrology | none | open |
 | GEN.516 | Tuned draw builder B8: giant planets | none | done, PR #2756 |
 | GEN.517 | Tuned draw builder B9: brown dwarfs | none | done, PR #2756 |
-| GEN.518 | Tuned draw builder B10: the chemistry module | none | open |
+| GEN.518 | Tuned draw builder B10: the chemistry module | none | done, PR #2765 |
 | GEN.519 | Tuned draw builder B11: aerosol amplitude | none | open |
-| GEN.520 | Tuned draw builder B12: the comet sampler | none | open |
+| GEN.520 | Tuned draw builder B12: the comet sampler | none | done, PR #2760 |
 | GEN.521 | Tuned draw builder B13: belts | none | open |
 | GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects | none | open |
 | GEN.523 | Tuned draw builder B15: host-star activity | none | open |
@@ -1949,8 +1949,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.110 | XFetch refresh for costly entries that expire by age | none | done, PR #2050 |
 | PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) | none | open |
 | PERF.112 | The uncharted-star count runs a full COUNT(*) on every request: keep the count so the page and the API do not scan bright_stars each time (performance) | none | done, PR #2154 |
-| PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
-| PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
+| PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | done, PR #2846 |
+| PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | done, PR #2846 |
 | PERF.115 | The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | done, PR #2794 |
 | PERF.116 | The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants | none | done, PR #2794 |
 | PERF.117 | The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants | none | done, PR #2794 |

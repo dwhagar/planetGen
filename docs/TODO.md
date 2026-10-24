@@ -10629,38 +10629,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
-- [ ] **GEN.518 Tuned draw builder B10: the chemistry module**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B10 of section 4 (one worker). Rows:
-  h2, h3, n6 crossover, f8, m7 to m9, n1 to n4, m2. Shared data and fit:
-  easyCHEM or own Gibbs solver with NASA-format polynomials. Needs: record the licence of the polynomial source, no audit. Finding: the 1500 K and 2200 K
-  edges are pressure-dependent outputs (CH4 = CO at 966 to 1907 K for
-  0.1 to 100 bar; half the water dissociated at 2570 to 3600 K for 1
-  mbar to 1 bar), computed by a Gibbs solver and not fixed edges. Do:
-  replace the seeded bracket of each DESIGN row of GEN.478 in these rows
-  by a seeded draw whose knobs are tuned through the harness to the
-  published statistics of section 3 of the report (knob, statistic,
-  target with N, uncertainty, source and label), inside the validity
-  range of the data and flagged outside it; rows of class P become
-  formulas of their inputs and rows of class S or X are not tuned. Solar
-  System values are test points only (NO FIXED CONTENT). Done: every
-  tuned row has a target-table entry the loader checks, the
-  simulate-and-compare test passes within the stated sigma, no value
-  rests on a Solar System body alone, and the part 09 row carries its
-  state (Decided 3:02 AM EDT rule). A retune changes the table version
-  and is a generator epoch bump. Owner: Core 4 (proposed, with the
-  composition chain).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the "Needs: licence
-  check on the polynomial source" blocker becomes "record the licence,
-  no audit" (no licence audit gates the data, Boss, 2026-10-17, 2:35 PM EDT, as GEN.410 records it).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
 - [ ] **GEN.519 Tuned draw builder B11: aerosol amplitude**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
@@ -10699,47 +10667,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   step is built; n6 (the crossover equilibrium temperature) needs the
   chemistry module GEN.518 and n7 (the haze yield) needs a haze
   amplitude model, so the item stays open for those two.
+  Research (2026-10-09, Update): Update 12:23 AM EDT 2026-10-24 (as lane
+  M reported): lane M finished and retired. Row n6 (crossover Teq) needs
+  a cloud model (GEN.414 aerosol storage, DB.68) and row n7 (haze yield)
+  needs a haze amplitude model. Owner: the Source and tune atmosphere
+  draws lane (handoff reports/lane-m-handoff-2026-10-24.md).
   Prerequisites: GEN.506. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
-- [ ] **GEN.520 Tuned draw builder B12: the comet sampler**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B12 of section 4 (one worker). Rows: k1
-  to k5, k7, T15, T16. Shared data and fit: Robinson database (CC BY
-  4.0), HP22 Table 4, Willacy 2025, interstellar objects. Needs:
-  decision D6; the three review papers. Decision D6 (default): accept
-  the Solar System population as the within-system shape plus a
-  per-system offset knob bracketed by the two interstellar objects.
-  Finding: replace the k1 to k3 weights 0.5, 1/3, 0.1 by the printed
-  counts 13, 9, 3 of 25 and an r_h term. Do: replace the seeded bracket
-  of each DESIGN row of GEN.478 in these rows by a seeded draw whose
-  knobs are tuned through the harness to the published statistics of
-  section 3 of the report (knob, statistic, target with N, uncertainty,
-  source and label), inside the validity range of the data and flagged
-  outside it; rows of class P become formulas of their inputs and rows
-  of class S or X are not tuned. Solar System values are test points
-  only (NO FIXED CONTENT). Done: every tuned row has a target-table
-  entry the loader checks, the simulate-and-compare test passes within
-  the stated sigma, no value rests on a Solar System body alone, and the
-  part 09 row carries its state (Decided 3:02 AM EDT rule). A retune
-  changes the table version and is a generator epoch bump. Owner: Core 4
-  (proposed, with the composition chain).
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 8, "Flagged
-  stand-ins only": a measured Solar System shape may enter a generator
-  table only as a row flagged `stand-in` that names an existing
-  replacement item; unflagged Solar System sourced rows and the
-  calibration targets (Earth, Mars, Moon, Galilean moons, Sirius B) are
-  never a table source. TEST.215's assertion exempts rows flagged
-  `stand-in` with a replacement item and fails on any other Solar System
-  sourced row. GEN.520 D6 (the Solar System population as the
-  within-system comet shape) is kept as a flagged stand-in with the
-  replacement item GEN.595.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.507. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
 - [ ] **GEN.521 Tuned draw builder B13: belts**
@@ -10822,6 +10755,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
+  Research (2026-10-09, Update): Update 12:23 AM EDT 2026-10-24 (as lane
+  M reported): lane M finished and retired. The rotation track for row
+  p6 merged in #2765; the Mors rotation tracks and the population
+  consistency tests remain. Owner: the Source and tune atmosphere draws
+  lane (handoff reports/lane-m-handoff-2026-10-24.md).
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
@@ -14900,52 +14838,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bug Hunt (bugs only, Boss, 2026-10-17, 10:06 AM EDT). This
   replaces any earlier owner line on this item.
   Prerequisites: none. Related: PERF.104, TEST.54.
-
-- [ ] **PERF.113 The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
-  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
-  parallelized in a way that helps (a thread per chunk for scatters, a
-  worker per sector for sector generation). Audit finding: `link`
-  (`store.link_sector_neighbors`, db/store.py, called by the `galaxy`
-  command) runs on one connection in one process in batches of
-  LINK_BATCH_SECTORS, and PERF.107 only moves it onto the queue as ONE
-  one-shot unit. Done: the stage is timed and the figure recorded; if it
-  justifies it, `link` becomes static chunks of sectors (each chunk
-  writes only its own sectors' neighbour rows, so chunks cannot
-  collide), with the run-record barrier before `population`. Same rule
-  for every stage: measure first. Time the stage on an idle box for a
-  galaxy of the size a real run makes and write the figure in the PR;
-  split it into parallel units only if that time is large enough to
-  matter (about a minute or more), otherwise leave it as one unit and
-  say so in the PR. Either way the result must be identical for the same
-  seed at 1 and at 4 workers (a test that compares the stored rows), and
-  the units are static chunks, not a work-stealing split, so a rerun
-  gives the same chunks.
-  Owner: Performance (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the
-  queue is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: PERF.98, PERF.107.
-
-- [ ] **PERF.114 The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants**
-  Boss, 2026-10-17, 4:06 PM EDT: all generation tasks should be
-  parallelized in a way that helps (a thread per chunk for scatters, a
-  worker per sector for sector generation). Audit finding:
-  `run_population` (generation/run_population.py) calls `model.run_pass`
-  in one process, and PERF.107 only moves it onto the queue as ONE
-  one-shot unit. Done: the stage is timed and the figure recorded; if it
-  justifies it, the pass runs as static chunks of sectors after the
-  `link` barrier, with the pass's draws depending only on the seed and
-  the system's own address. Same rule for every stage: measure first.
-  Time the stage on an idle box for a galaxy of the size a real run
-  makes and write the figure in the PR; split it into parallel units
-  only if that time is large enough to matter (about a minute or more),
-  otherwise leave it as one unit and say so in the PR. Either way the
-  result must be identical for the same seed at 1 and at 4 workers (a
-  test that compares the stored rows), and the units are static chunks,
-  not a work-stealing split, so a rerun gives the same chunks.
-  Owner: Performance (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the
-  queue is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-  earlier owner line).
-  Prerequisites: none. Related: PERF.98, PERF.107.
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
   Boss, 2026-10-17, 4:12 PM EDT: "Rework so every part of the generate
