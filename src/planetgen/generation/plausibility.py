@@ -69,6 +69,7 @@ import math
 import statistics
 from collections import defaultdict
 
+from planetgen.physics import bulk_draw
 from planetgen.physics import constants as pc
 from planetgen.physics import planets as planetPhysics, relations
 from planetgen import tuning as prog_c
@@ -141,8 +142,9 @@ def theoretical_gravity_bounds_g(cls):
     `g = G * mass / radius_m^2`, and `mass = volume(radius) * density`, so
     `g = (4/3) * pi * G * density_kg_m3 * radius_m` -- linear in radius and
     in density, so its extremes are at the corners of the radius and
-    density ranges. A gas giant without its own `density_range` takes its
-    radius from its mass instead (GEN.34; see the branch below).
+    density ranges. A gas giant takes its radius from its mass instead (GEN.34), and
+    a terrestrial class the mass its composition needs for its radius (GEN.428);
+    see the branches below.
 
     Returns:
         tuple: (min_gravity_g, max_gravity_g).
@@ -162,21 +164,18 @@ def theoretical_gravity_bounds_g(cls):
     # mirror planetPhysics.py's own per-class density_range lookup exactly,
     # or this bound would flag legitimate override values as violations.
     values = []
-    if ptype == "t":
-        min_d, max_d = data.get("density_range", pc.PLANET_DENSITY["t"])  # g/cm^3
+    if ptype == "t" and "density_range" in data:
+        min_d, max_d = data["density_range"]  # g/cm^3: a class worked back from a density (class S)
         densities_kgm3 = (min_d * 1000, max_d * 1000)
         for radius_m, density_kgm3 in _corners(radii_m, densities_kgm3):
             values.append(gravity_g(radius_m, density_kgm3))
-    elif "density_range" in data:
-        # A class with its own density_range skips the core/envelope blend
-        # entirely in planetPhysics.py -- see
-        # generate_planet_properties' matching `if planet.body_type == 'g'
-        # and "density_range" not in class_data` guard -- so its declared
-        # range alone bounds gravity here too.
-        min_d, max_d = data["density_range"]  # g/cm^3
-        densities_kgm3 = (min_d * 1000, max_d * 1000)
-        for radius_m, density_kgm3 in _corners(radii_m, densities_kgm3):
-            values.append(gravity_g(radius_m, density_kgm3))
+    elif ptype == "t":
+        # The class sets the radius and the composition the mass (GEN.428), so the bounds are the densities no composition passes:
+        # the lightest body is ice with the greatest porosity of a small body, the heaviest pure iron at 20 Earth masses
+        # (`bulk_draw.DENSITY_BOUNDS_G_CM3`); g is linear in radius and density, so the extremes are the smallest radius with the
+        # lightest and the largest with the heaviest.
+        min_d, max_d = bulk_draw.DENSITY_BOUNDS_G_CM3
+        values.extend((gravity_g(radii_m[0], min_d * 1000), gravity_g(radii_m[1], max_d * 1000)))
     else:
         # A giant's radius follows its mass (planetPhysics' giant mass-radius
         # relation, GEN.34): g = G*M/R^2 with R = relation(M) times a

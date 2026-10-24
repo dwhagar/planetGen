@@ -12,6 +12,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants, hydrosphere as hy
 from planetgen.util import draw
+from planetgen.util.random import log_uniform
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -65,6 +66,7 @@ def test_ocean_classes_follow_the_rules():
 
 def _body(planet_class, temperature, pressure_pa, mass_earth=1.0, radius_km=6371.0, **extra):
     fields = dict(body_type="t", planet_class=planet_class, mass=mass_earth * EARTH, radius=radius_km,
+                  water_mass_fraction=log_uniform(*hy.WATER_MASS_FRACTION[planet_class]),
                   gravity=mass_earth / (radius_km / 6371.0) ** 2, surface_temperature=temperature,
                   atmospheric_pressure=pressure_pa, is_moon=False, mantle_redox="intermediate",
                   p_co2_kpa=0.04, p_so2_kpa=0.0, p_h2_kpa=0.0)
@@ -91,9 +93,10 @@ def test_states_by_temperature_and_pressure():
     hycean = _body("O", 300.0, 1e6, p_h2_kpa=900.0)
     hy.generate_hydrosphere(hycean, 0.087)
     assert hycean.hydrosphere == "hycean"
-    giant = types.SimpleNamespace(body_type="g")
+    giant = types.SimpleNamespace(body_type="g", water_mass_fraction=0.3)
     hy.generate_hydrosphere(giant, 1.0)
-    assert all(getattr(giant, field) is None for field in hy.HYDROSPHERE_FIELDS)
+    assert giant.water_mass_fraction == 0.3
+    assert all(getattr(giant, field) is None for field in hy.HYDROSPHERE_FIELDS if field != "water_mass_fraction")
 
 
 def test_ocean_worlds_are_mostly_ice_sealed():
@@ -117,7 +120,8 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
                 continue
             for body in [planet, *planet.moons]:
                 if body.body_type == "g":
-                    assert all(getattr(body, field) is None for field in hy.HYDROSPHERE_FIELDS)
+                    assert all(getattr(body, field) is None for field in hy.HYDROSPHERE_FIELDS
+                               if field != "water_mass_fraction")
                     continue
                 seen.add(body.hydrosphere)
                 assert body.hydrosphere in hy.HYDROSPHERE_STATES

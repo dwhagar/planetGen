@@ -19,7 +19,7 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import body_state, constants, metallicity
+from planetgen.physics import body_state, bulk_draw, constants, metallicity
 from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, magnetism, radiation, radiogenic, relations, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
@@ -51,10 +51,8 @@ def _sample_class_radius(cls, min_radius, max_radius):
 
 def uses_giant_mass_radius(cls):
     """Whether class `cls` gets its mass and radius from the giant-planet
-    mass-radius relation (GEN.34): every gas-giant class without its own
-    `"density_range"`."""
-    data = tuning.PLANET_CLASSES[cls]
-    return data["type"] == "g" and "density_range" not in data
+    mass-radius relation (GEN.34): every gas-giant class."""
+    return tuning.PLANET_CLASSES[cls]["type"] == "g"
 
 
 def giant_mass_range_kg(cls):
@@ -490,14 +488,11 @@ def generate_planet_properties(planet, zone_override=None):
 
     if uses_giant_mass_radius(planet.planet_class):
         _apply_giant_mass_and_radius(planet, radius_given, mass_given)
+        bulk_draw.draw_giant(planet)
     else:
-        # Class-specific density range if declared (e.g. a brown-dwarf-like
-        # sub-stellar class -- see get_planet_mass_ranges above and
-        # tuning.PLANET_CLASSES), else the default range shared by
-        # every other class of this body type.
-        default_density = constants.PLANET_DENSITY[planet.body_type]
-        min_density, max_density = class_data.get("density_range", default_density)
-        planet.density = draw.uniform(min_density, max_density)
+        # The composition comes first and the mass, density and gravity follow
+        # from it (GEN.428, GEN.429; `bulk_draw`).
+        bulk_draw.draw_terrestrial(planet, radius_given, mass_given)
 
     if class_data["atmosphere"] is None:
         planet.atmosphere = "None"
@@ -525,11 +520,11 @@ def generate_planet_properties(planet, zone_override=None):
         min_am_density, max_am_density = class_data.get("atm_molar_density_range", default_am_density)
         planet.atm_molar_density = draw.uniform(min_am_density, max_am_density)
 
-    planet.volume, planet.mass = calculate_object_mass(planet.planet_class, planet.radius, tuning.PLANET_CLASSES, constants.PLANET_DENSITY,
-                                              planet.density)
+    planet.volume = (4 / 3) * math.pi * planet.radius ** 3
     # GEN.459: the potassium, thorium, uranium and aluminium-26 the interior heat and the ground's dose both read (a stored draw of the
     # body, so the later recalculation of its air and water, which moves nothing in its rock, does not redraw it).
-    radiogenic.generate_content(planet)
+    # GEN.428: Th and U go with the rock's Al2O3 (part E 2.8b), the body's over the bulk silicate Earth's.
+    radiogenic.generate_content(planet, refractory_enrichment=radiogenic.rock_inputs(planet)[1] / radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
 
     update_hill_sphere(planet)
 
@@ -543,7 +538,7 @@ def _apply_giant_mass_and_radius(planet, radius_given, mass_given):
     relation; with only a mass, the relation's radius for it; with only
     a radius, the relation's mass for it (`_giant_mass_for_radius_kg`);
     with both, those two. The density is whatever the mass and radius make,
-    so `calculate_object_mass` gives the same mass back.
+    so the mass and the volume agree.
     """
     if not mass_given:
         if radius_given:
@@ -757,7 +752,8 @@ def internal_heat_flux_w_m2(planet):
     if content is None:
         return 0.0
     age_gy = getattr(planet.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
-    return radiogenic.heat_flow_w_m2(content, planet.mass, planet.radius, age_gy)
+    silicate_fraction, aluminium = radiogenic.rock_inputs(planet)
+    return radiogenic.heat_flow_w_m2(content, planet.mass, planet.radius, age_gy, silicate_fraction, aluminium)
 
 
 def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_period_hours):
@@ -1236,33 +1232,3 @@ def generate_moons(planet, moon_count=None):
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons]
         )
-
-
-def calculate_object_mass(object_class, object_radius, planet_classes, planet_density, object_density=None):
-    """
-    Calculates the mass of a celestial object in kilograms.
-
-    This function computes the mass based on the object's radius and density.
-    If the density is not provided, it is randomly determined based on the
-    object's class and type.
-
-    Args:
-        object_class (str): The class of the object (e.g., 'M', 'N').
-        object_radius (float): The radius of the object in kilometers.
-        planet_classes (dict): A dictionary defining the properties of planet classes.
-        planet_density (dict): A dictionary of density ranges for planet types.
-        object_density (float, optional): The density of the object in g/cm³.
-
-    Returns:
-        tuple: A tuple containing the volume in km³ and the mass in kg.
-    """
-    if object_density is None:
-        min_density, max_density = planet_density[planet_classes[object_class]['type']]
-        p_density = draw.uniform(min_density, max_density)
-    else:
-        p_density = object_density
-
-    volume_km3 = (4 / 3) * math.pi * object_radius ** 3
-    volume_m3 = volume_km3 * constants.KM_TO_M_FACTOR ** 3
-    mass = volume_m3 * p_density * 1000
-    return volume_km3, mass

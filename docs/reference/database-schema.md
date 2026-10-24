@@ -1445,6 +1445,12 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `induced_moment_a_m2` | DOUBLE | nullable | Added in v87 (DB.26, GEN.178), placed after `dipole_class`. The induced magnetic moment in A m2; NULL when not computed or none. |
 | `phi4_water`, `phi4_suitability` | DOUBLE | nullable | Added in v87 (DB.26, GEN.207, PHI-6), beside `phi4_air`. The water score and the suitability (the lowest of water, food and shelter). NULL until regenerated. |
 | `tier_water`, `tier_suitability` | TINYINT | nullable | Added in v87 (DB.26, GEN.207). The colour of each, 0 Blue to 3 Red like the other tiers. |
+| `metal_mass_fraction`, `rock_mass_fraction`, `ice_mass_fraction`, `envelope_mass_fraction` | DOUBLE | nullable | Added in v144 (DB.69, GEN.428). The body's bulk composition as shares of the whole mass: the iron-rich core (light elements included), the rock, every ice other than water, and the hydrogen and helium envelope. With `water_mass_fraction` they add up to 1. NULL on a row saved before v135. Read through `planetgen.physics.bulk_composition.bulk_fractions`. |
+| `rock_feo_fraction`, `rock_al2o3_fraction`, `rock_mg_si_ratio` | DOUBLE | nullable | Added in v144. FeO and Al2O3 as mass fractions of the rock, and the rock's molar Mg/Si. NULL for a giant's rock-less composition and on a row saved before v135. |
+| `envelope_helium_fraction`, `envelope_z_fraction` | DOUBLE | nullable | Added in v144. Y and the heavy elements as mass fractions of the envelope; NULL for a body without one. |
+| `porosity` | DOUBLE | nullable | Added in v144. The void share of a small icy body's volume; NULL for a body that has none. |
+| `carbon_rock`, `composition_origin` | BOOLEAN, VARCHAR(8) (CHECK drawn / inverse) | nullable | Added in v144. Whether the rock is silicon carbide and graphite (a star of C/O 0.8 or more, or class C), and whether the composition was drawn first (`drawn`) or worked back from a given mass and radius (`inverse`). |
+
 | `bond_albedo`, `greenhouse_factor` | DOUBLE | nullable | Added in v142 (GEN.412). The two draws the surface temperature is made of: the Bond albedo A and the greenhouse quantity G, with T_e = ((1 - A) S / (4 sigma))^(1/4) and T_s = T_e (1 + G)^(1/4) (S the starlight at the orbit; a moon's is its planet's; never below 2.725 K). G is 0 for a body with no air. |
 | `albedo_basis` | TINYINT UNSIGNED | nullable | Added in v142 (GEN.412). Where the two came from: 0 recorded at generation, 1 the exact inverse of a row saved without them (from its stored scale height), 2 a seeded draw from the class range where the inverse had no solution. NULL for a row with no temperature or no starlight to work from. |
 
@@ -2164,6 +2170,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v144 (DB.69, GEN.428): the bulk composition of every planet and moon
+
+Migration 0144 adds to `planets` and `moons`: `metal_mass_fraction`, `rock_mass_fraction`, `ice_mass_fraction`, `envelope_mass_fraction` (DOUBLE, nullable; with `water_mass_fraction` they add up to 1), `rock_feo_fraction`, `rock_al2o3_fraction`, `rock_mg_si_ratio`, `envelope_helium_fraction`, `envelope_z_fraction`, `porosity` (DOUBLE, nullable), `carbon_rock` (BOOLEAN, nullable) and `composition_origin` (VARCHAR(8), nullable, CHECK drawn / inverse), each at the end of the table. Nothing is backfilled: a composition needs the star's abundances and the draws, so a row made before the revision keeps NULL and the regenerated galaxy of the generator epoch replaces it. A stopped run can be started again; the version is detected from `planets.composition_origin`. The mass, radius and density of a body now follow from the composition ([bulk-composition.md](../design/composition/bulk-composition.md)); `water_mass_fraction` is drawn with the rest and `hydrosphere` reads it.
 
 ### v143 (GEN.666): `evolutionary_speed` is gone, the pace is stored once
 
