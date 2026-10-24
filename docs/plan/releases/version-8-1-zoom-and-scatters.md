@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 1:17 AM EDT 2026-10-24: 837 of 1266 items finished (66.1 percent), 429 open, 24 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 120, phase 2 43, phase 3 26, phase 4 13, phase 5 94, phase 6 28, phase 7 28, phase 8 4, phase 9 28, phase 10 2, phase 11 31, phase 12 12 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 1:23 AM EDT 2026-10-24: 840 of 1262 items finished (66.6 percent), 422 open, 28 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 120, phase 2 43, phase 3 26, phase 4 13, phase 5 91, phase 6 28, phase 7 24, phase 8 4, phase 9 28, phase 10 2, phase 11 31, phase 12 12 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -380,9 +380,6 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) |  | Boss bug 9:07 PM EDT |
-| UX.182 | The standalone Planet class, Spectral class and Luminosity class links go away and the class text itself links to its section | UX.180 |  |
-| UX.181 | Every habitability symbol, life score and equipment or Habitable chip links straight to its section of the habitability page | UX.180 |  |
-| UX.180 | A Help menu in the top bar on the search-icon side that holds Classes and Habitability; the separate Habitability levels links go away |  |  |
 | UX.178 | Docs for the object pages: docs/design/interface/object-pages.md, the route list, body-rendering.md and the sheet registry rules | UX.168, UX.169, UX.170, UX.171, UX.172, UX.173, UX.174 |  |
 | UX.177 | Tests for the object pages: a page-walk for every kind, tree browser tests, accessibility, no-script, a huge sector, a moon of a moon-less planet and an unknown ID | UX.170, UX.171, UX.172, UX.173, UX.174 |  |
 | UX.176 | Link sweep: object_url, search, lists, describer references and the map popup View button all open /object/<ref>; delete body_anchor, bodyanchor.js and the row-highlight styles | UX.170, MAP.288 |  |
@@ -573,10 +570,6 @@ Moved into 8.1 from 8.4 phase 2 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.479 | The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug) | GEN.411 | Atmosphere lane part 09 conflicts 3 to 8 with the code, checked on main; replaced by the recipe tables. Core 4 proposed. |
-| GEN.698 | Recipe rows for the stripped core: a hydrogen and helium envelope share for a small hot body, replacing the gating of rows e1 to e6 that stops at 1 Earth mass | GEN.696, GEN.697, GEN.479 |  |
-| GEN.697 | The generator records an origin quantity stripped_core for a small hot body that began as a giant |  |  |
-| GEN.696 | Research source: the leftover envelope mass fraction of a stripped giant core |  |  |
-| GEN.695 | Class B keeps some hydrogen and helium in its atmosphere mix next to the sodium and oxygen of a molten world | GEN.479 |  |
 | GEN.678 | The bright-star units expected about 23,000 stars but placed 1,000 to 3,000, so the run placed 229,596 stars against 365,093 expected and took 20 minutes (bug) |  | Boss run log. |
 | GEN.677 | The phenomena scatter places about 86,000 stellar black holes per shell pair and no ordinary neutron stars (only magnetars) (bug) |  | Boss run log. |
 | GEN.675 | Register the atmosphere mixture stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each |  | Lane L finding 11:32 PM EDT 2026-10-23. |
