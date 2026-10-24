@@ -33,14 +33,11 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    (`radiogenic.SURFACE_RESERVOIRS`, a stand-in for the ground type of GEN.441); the dose is the open-air, full-time effective dose
    of a reference person (radiation-model.md R12). Radon has no pressure gate (R16): its flux is drawn between 1 and
    `sqrt(P0 / P)` times the 1-bar value.
-5. **UV (`uv_surface_index`).** Earth's DNA-weighted surface UV is 1. A
-   star's 200 to 300 nm blackbody power against the Sun's (floored at 0.1:
-   cool dwarfs have chromospheric UV) times the bolometric flux against
-   Earth's, times `(O3 / O3_Earth)^-1.6` (at most 1e3, bare ground), with
-   `O3 / O3_Earth` the stored ozone column (`ozone_column_du`, GEN.413: the Kozakis
-   fit by oxygen and host star, `physics/ozone.py`) over 300 DU, the Earth
-   figure that makes the index 1 for Earth (a calibration of the index, not a
-   value the generator uses elsewhere); GEN.445 replaces the index.
+5. **UV (`uv_surface_index`).** The Setlow DNA-damage dose at the ground as a multiple of Earth's (Earth is 1 by definition, GEN.87), from
+   the two-stream spectrum below the body's own air, ozone column (`ozone_column_du`, GEN.413: the Kozakis fit by oxygen and host star,
+   `physics/ozone.py`), haze, dust and cloud, lit by the star's own spectrum with its stored UV-C share (`physics/body_radiation.py`, GEN.443); a
+   body with no air reads the star's unfiltered light (GEN.445; docs/design/composition/radiation-model.md section 7). There is no proxy: no
+   ratio to the Sun, no ozone exponent.
 6. **Ozone loss (`ozone_loss_flag`).** True when there is ozone and either
    the system's lethal galactic events exceed one per 100 Myr or particle
    events deliver 100 mSv/yr at the ozone layer (X = 10 g/cm2).
@@ -56,11 +53,9 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants, magnetism, ozone, proton_range, radiogenic
+from planetgen.physics import body_radiation, constants, magnetism, ozone, proton_range, radiogenic
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
-
-PLANCK_J_S = 2 * math.pi * constants.REDUCED_PLANCK
 
 BODY_FIELDS = (
     "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr", "dose_helio_mult",
@@ -146,15 +141,8 @@ RADON_SV_PER_BQ_H_M3 = 9e-9
 RADON_EQUILIBRIUM_OUTDOORS = 0.6
 """float: The dose of 9 nSv per Bq h/m3 of radon at 0.6 of equilibrium outdoors (UNSCEAR; part 07 2.10)."""
 
-UV_FLOOR = 0.1
-UV_EXPONENT = -1.6
-UV_MAX = 1e3
-EARTH_OZONE_DU = 300.0
-"""float: The ozone column that makes the UV index 1, DU: Earth's, measured (279 to 313 DU in the models and 300 DU in
-the record). The index is Earth-relative by definition (GEN.87); the generator draws its columns in `physics/ozone.py`."""
 OZONE_LAYER_G_CM2 = 10.0
 OZONE_SEP_MSV_YR = 100.0
-SUN_TEMPERATURE_K = 5772.0
 
 LETHAL_EVENT_LIMIT_PER_GYR = 10.0
 """float: One lethal event per 100 Myr: the rate above which galactic hazards
@@ -336,54 +324,6 @@ def radon_diffusion_factor(pressure_pa, unit):
     return (constants.STANDARD_ATMOSPHERE_PA / pressure_pa) ** unit
 
 
-def _band_fraction(temperature_k):
-    """The share of a blackbody's power between 200 and 300 nm."""
-    if temperature_k <= 0:
-        return 0.0
-    c1 = 2 * PLANCK_J_S * constants.SPEED_OF_LIGHT_M_S ** 2
-    c2 = PLANCK_J_S * constants.SPEED_OF_LIGHT_M_S / (constants.BOLTZMANN * temperature_k)
-    steps = 40
-    low, high = 200e-9, 300e-9
-    width = (high - low) / steps
-    total = 0.0
-    for i in range(steps + 1):
-        wavelength = low + i * width
-        x = c2 / wavelength
-        radiance = 0.0 if x > 700 else c1 / (wavelength ** 5 * (math.exp(x) - 1.0))
-        total += radiance * (0.5 if i in (0, steps) else 1.0) * width
-    return total * math.pi / (constants.STEFAN_BOLTZMANN_CONSTANT * temperature_k ** 4)
-
-
-_SUN_BAND = _band_fraction(SUN_TEMPERATURE_K)
-
-
-def uv_ratio(temperature_k):
-    """A star's 200 to 300 nm power per unit luminosity against the Sun's,
-    floored at `UV_FLOOR`."""
-    if not temperature_k:
-        return UV_FLOOR
-    return max(_band_fraction(temperature_k) / _SUN_BAND, UV_FLOOR)
-
-
-def ozone_ratio(column_du):
-    """The ozone column against Earth's (`EARTH_OZONE_DU`); 0 with none."""
-    if not column_du or column_du <= 0:
-        return 0.0
-    return column_du / EARTH_OZONE_DU
-
-
-def uv_index(star, distance_au, ozone_column_du):
-    """Rule 5, or `None` without a star temperature."""
-    temperature = getattr(star, "temperature", None)
-    luminosity = getattr(star, "luminosity", None)
-    if not temperature or not luminosity or not distance_au:
-        return None
-    flux = luminosity / constants.SOLAR_LUMINOSITY / distance_au ** 2
-    ozone = ozone_ratio(ozone_column_du)
-    shield = UV_MAX if ozone <= 0 else min(UV_MAX, ozone ** UV_EXPONENT)
-    return uv_ratio(temperature) * flux * shield
-
-
 def _clear(body):
     for field in BODY_FIELDS:
         setattr(body, field, None)
@@ -434,7 +374,7 @@ def generate_dose(body):
     body.dose_ground_msv_yr = ground
     body.dose_helio_mult = 1.0
     body.surface_dose_msv_yr = gcr + sep + ground
-    body.uv_surface_index = uv_index(star, distance, body.ozone_column_du)
+    body.uv_surface_index = body_radiation.dna_dose_index(body)
     hazard = getattr(star, "lethal_event_rate_per_gyr", None)
     ozone_sep = sep_dose_msv_yr(free, OZONE_LAYER_G_CM2, cutoff)
     body.ozone_loss_flag = bool(body.ozone_column_du > 0.0 and (
