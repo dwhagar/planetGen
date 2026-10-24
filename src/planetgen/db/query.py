@@ -4898,6 +4898,38 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
                       lambda point: (point["type"], point["id"]))
 
 
+def galaxy_habitable_systems_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
+    """
+    The star systems with at least one habitable world (an overall PHI-6 Blue or Green) whose position lies in the box
+    `[lo, hi)` (MAP.220), at most `limit`, most worlds first (ties by id), read from `habitable_systems` by its
+    position key.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        lo (tuple): `(x, y, z)` inclusive lower corner, parsecs.
+        hi (tuple): `(x, y, z)` exclusive upper corner, parsecs.
+        limit (int): See `GALAXY_TILE_MAX_POINTS`.
+
+    Returns:
+        list[dict]: `id`, `name`, `worlds` (how many habitable worlds the system holds) and `x`/`y`/`z` (parsecs).
+    """
+    rows = conn.execute(
+        """
+        SELECT h.star_system_id, ss.name, h.habitable_worlds, h.galaxy_x_pc, h.galaxy_y_pc, h.galaxy_z_pc
+        FROM habitable_systems h FORCE INDEX (idx_habitable_systems_position)
+        JOIN star_systems ss ON ss.id = h.star_system_id
+        WHERE h.galaxy_x_pc >= ? AND h.galaxy_x_pc < ? AND h.galaxy_y_pc >= ? AND h.galaxy_y_pc < ?
+          AND h.galaxy_z_pc >= ? AND h.galaxy_z_pc < ?
+        ORDER BY h.habitable_worlds DESC, h.star_system_id
+        LIMIT ?
+        """,
+        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], int(limit)),
+    ).fetchall()
+    return [{"id": row["star_system_id"], "name": row["name"], "worlds": int(row["habitable_worlds"]),
+             "x": round(row["galaxy_x_pc"], 3), "y": round(row["galaxy_y_pc"], 3), "z": round(row["galaxy_z_pc"], 3)}
+            for row in rows]
+
+
 SCATTERED_POINT_CLASSES = (
     ("quasar", None, "quasar", 1.0),
     ("black-hole", "supermassive", "black_hole", 1.0),
@@ -5032,13 +5064,13 @@ def galaxy_tiles(conn, tile_keys):
     Returns:
         dict: `tiles` (`{key: {"placed": [...], "planned": [...],
             "sector_count": n, "clouds": [...], "stars": [...],
-            "generated": [...], "points": [...]}}`, see `galaxy_sectors_in_box`,
+            "generated": [...], "points": [...], "worlds": [...]}}`, see `galaxy_sectors_in_box`,
             `galaxy.viewport.planned_slots_in_tile`, `galaxy_sector_count_in_box`,
             `galaxy_clouds_in_box`, `galaxy_bright_stars_in_box` and
             `galaxy_generated_stars_in_box` (its floor from
             `GALAXY_TILE_STAR_BUDGET`, a finest tile up to
             `GALAXY_TILE_MAX_DETAIL_STARS`) and
-            `galaxy_point_phenomena_in_box` (tiles of
+            `galaxy_point_phenomena_in_box` and `galaxy_habitable_systems_in_box` (tiles of
             `POINT_PHENOMENON_MIN_LEVEL` and finer)),
             `edge_pc`, `has_shape`. Predicted density isn't served: the
             page evaluates the shape itself (`static/galaxyprisms.js`).
@@ -5107,9 +5139,12 @@ def galaxy_tiles(conn, tile_keys):
             conn, lo, hi, edge_pc,
             GALAXY_TILE_MAX_SCATTERED_POINTS if coarse_scatter else GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS),
             coarse_scatter), [])
+        worlds = (piece("worlds", lambda: galaxy_habitable_systems_in_box(
+            conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS)), [])
+            if level >= POINT_PHENOMENON_MIN_LEVEL else [])
         tiles[key] = {
             "placed": placed, "planned": planned, "sector_count": sector_count, "clouds": clouds, "stars": stars,
-            "generated": generated, "points": points,
+            "generated": generated, "points": points, "worlds": worlds,
         }
         if incomplete:
             tiles[key]["incomplete"] = incomplete

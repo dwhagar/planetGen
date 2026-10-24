@@ -109,7 +109,7 @@ _TILE_STAR_KEYS = ("id", "x", "y", "z", "luminosity_sol", "temperature_k", "radi
 """tuple: The only fields of a tile's star the page's script reads (MAP.157;
 `tileStars`, `setStars` and `starShown` in `static/galaxymap3d.js`)."""
 
-_TILE_KEEP_SECTIONS = ("clouds", "stars", "generated", "points", "incomplete")
+_TILE_KEEP_SECTIONS = ("clouds", "stars", "generated", "points", "worlds", "incomplete")
 _NODE_KEEP_SECTIONS = ("aggregate", "clouds", "stars", "generated", "points", "placed", "incomplete")
 """tuple: The sections of a tile the page reads; `placed`, `planned` and
 `sector_count` (9 to 35% of every tile) are not served. `incomplete` (PERF.76) names the pieces the database was too busy
@@ -810,7 +810,7 @@ def fetch_tiles(db, tile_keys, known_stamp=None, ahead=False):
             keys its own cache by the generation), `history` (only when
             `known_stamp` isn't current: the changed tiles the browser
             hasn't seen, see `_stale_since`), `tiles` (`{key: {"clouds",
-            "stars", "generated", "points"}}`, a star's `system_id` as `charted`), `edge_pc`, `has_shape`, and `cached` (how many of the
+            "stars", "generated", "points", "worlds"}}`, a star's `system_id` as `charted`), `edge_pc`, `has_shape`, and `cached` (how many of the
             requested parts came from disk -- for diagnostics).
 
     Raises:

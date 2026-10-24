@@ -62,7 +62,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, selectMarkers,
+  BLACK_HOLE_KIND, HABITABLE_KIND, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
@@ -462,6 +462,23 @@ function showPointInfo(point) {
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
     ]),
   }, phenomenonActions(point)));
+}
+
+// A star system with habitable worlds on the map (MAP.220, queryDb.galaxy_habitable_systems_in_box): how many, where,
+// and its page.
+function showHabitableSystemInfo(system) {
+  var spec = {
+    title: system.name || "Star system",
+    fields: [
+      ["Habitable worlds", String(system.worlds)],
+      ["Position x, y, z", [system.x, system.y, system.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
+      ["Distance from core", formatDistancePc(Math.hypot(system.x, system.y, system.z))],
+    ],
+  };
+  if (sceneData.systemUrl) {
+    spec.view = { href: String(sceneData.systemUrl).replace("{id}", encodeURIComponent(system.id)), label: "View system →" };
+  }
+  showInfo(spec);
 }
 
 // MAP.243: a star beyond the galaxy's outline (the halo, a satellite galaxy), where no block or sector of the
@@ -3171,6 +3188,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var markersDirty = true;
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
+    markerKinds.register(HABITABLE_KIND);
     markerLayer = createMarkerLayer(scene, camera, canvasEl, isLightBackground() ? "#ffffff" : "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
     });
@@ -3191,6 +3209,7 @@ function initGalaxyMap3d(canvasEl, data) {
   function chooseMarker(entry) {
     highlightPosition(entry.x, entry.y, entry.z);
     if (entry.item.type) showPointInfo(entry.item);
+    else showHabitableSystemInfo(entry.item);
   }
   var markerFrustum = new THREE.Frustum();
   var markerMatrix = new THREE.Matrix4();

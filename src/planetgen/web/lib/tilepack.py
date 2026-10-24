@@ -5,14 +5,14 @@ what `/galaxy/tiles` sends.
 A tile's stars are most of its bytes, and as JSON each costs about 150 bytes
 (28 gzipped). Packed, a star is 19 bytes in columns (about 12 gzipped), which
 is what the 78% cut in docs/design/interface/galaxy-map-wire-format.md measures. Clouds,
-points and the `incomplete` list stay JSON: they are few and carry text.
+points, habitable-world systems and the `incomplete` list stay JSON: they are few and carry text.
 
 One tile (all numbers little-endian)::
 
     "PGT1"                        4 bytes, the format
     meta_length                   u32
     meta                          UTF-8 JSON: the sections that are not stars
-                                  (`clouds`, `points`, `incomplete`), or `{}`
+                                  (`clouds`, `points`, `worlds`, `incomplete`), or `{}`
     then `stars`, then `generated`, each:
     count                         u32
     if count > 0:
@@ -63,7 +63,7 @@ TEMPERATURE_LOG_RANGE = (2.0, 6.0)
 RADIUS_LOG_RANGE = (-3.0, 4.0)
 
 # The sections that stay JSON.
-_META_SECTIONS = ("clouds", "points", "incomplete", "aggregate", "placed")
+_META_SECTIONS = ("clouds", "points", "worlds", "incomplete", "aggregate", "placed")
 _STAR_SECTIONS = ("stars", "generated")
 _U16 = 65535
 _U8 = 255
@@ -150,7 +150,7 @@ def pack_tile(tile):
         tile (dict): `stars` and `generated` (lists of star dicts with
             `id`, `x`, `y`, `z`, `luminosity_sol` and optionally
             `temperature_k`, `radius_sol`, `star_type`, `system_id`, `tier`) and the
-            JSON sections `clouds`, `points` and `incomplete`.
+            JSON sections `clouds`, `points`, `worlds` and `incomplete`.
 
     Returns:
         bytes: The packed tile.
