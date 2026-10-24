@@ -1671,7 +1671,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.273 | Ocean, land and ice painter on stored data: sea level from the ocean fraction, caps from temperature, land hues from temperature and class family, with an estimate line in the info panel | none | done, PR #2789 |
 | MAP.274 | Land colour from the bulk composition: oxidation and rock type | none | open |
 | MAP.275 | Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons | none | open |
-| MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | none | open |
+| MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | none | done, PR #2793 |
 | MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator | none | open |
 | MAP.278 | Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data | none | open |
 | MAP.279 | Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape | none | open |
@@ -1924,9 +1924,9 @@ Parents marked "new parent" had no old number of their own.
 | PERF.112 | The uncharted-star count runs a full COUNT(*) on every request: keep the count so the page and the API do not scan bright_stars each time (performance) | none | done, PR #2154 |
 | PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
 | PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
-| PERF.115 | The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
-| PERF.116 | The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants | none | open |
-| PERF.117 | The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants | none | open |
+| PERF.115 | The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | done, PR #2794 |
+| PERF.116 | The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants | none | done, PR #2794 |
+| PERF.117 | The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants | none | done, PR #2794 |
 | PERF.118 | Generation as commands: every stage is its own command, and one wrapper builds the command list and queues each command as one queue item | none | done, PR #2159 |
 | PERF.119 | The Generate page, the API and the one-off sector and system commands start their runs through the wrapper | none | open |
 | PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point | none | open |
