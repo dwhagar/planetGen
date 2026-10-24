@@ -2899,13 +2899,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
   Prerequisites: DB.96.
 
-- [ ] **MAP.278 Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data**
-  Drawn from stored data and classes; comet species need GEN.488. Design
-  draft design-drafts/body-rendering-from-composition-2026-10-24.md
-  (section 7), filed by the body-rendering design thread, 10:18 PM EDT
-  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Prerequisites: none.
-
 - [ ] **MAP.279 Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape**
   Spheres above the threshold. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
@@ -2934,7 +2927,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: MAP.278, GEN.488.
+  Prerequisites: GEN.488.
 
 - [ ] **MAP.284 Night-side thermal glow on hot worlds, with no city lights until 9.2**
    Design draft
@@ -2947,6 +2940,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
   Prerequisites: VIEW.14.
+
+- [ ] **MAP.286 Supernova remnant shells drawn by age on the maps**
+  MAP.278 painted every phenomenon from stored data except the remnant
+  shells by age, because the sector scene payload carries no remnant
+  age. Do: add the age to phenomena_near_sector and sectorscene, then
+  paint the shell from it, with a test. From the body-rendering build
+  lane's retirement report (10:52 PM EDT 2026-10-23 as the lane
+  reported); design doc docs/design/interface/body-rendering.md.
+  Prerequisites: none.
+
+- [ ] **MAP.287 The 3D system view takes the body look record: systemscene.py still colours by class_color**
+  MAP.271 to MAP.278 moved the maps and pages to the server look record,
+  but systemscene.py (the 3D system view) still colours bodies by
+  class_color. Do: build its bodies from the look record and the shared
+  painter, and retire the class colour table there with no shim. From
+  the body-rendering build lane's retirement report (10:52 PM EDT
+  2026-10-23 as the lane reported); design doc
+  docs/design/interface/body-rendering.md.
+  Prerequisites: none.
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -20369,6 +20381,13 @@ clears each one.
   (reports/blocker-5-status-2026-10-24.md, PR #2778). Do: run the
   affected tests on current main with a working environment and report
   which, if any, are real failures. Also confirm the ops tests behind PR #2786 (update.sh download fix, OPS.68), which merged without a full green run because MySQL died on the bands lane's machine (159 of 160 errors pass alone). Owner: the Blocker 6 lane (Boss, 10:41 PM EDT 2026-10-23).
+  Prerequisites: none.
+
+- [ ] **TEST.311 test_hosted_nebula_rows::test_a_pre_placed_star_rolls_the_nebula_its_sector_builds fails on main (bug)**
+  Seen failing on main by the body-rendering build lane (10:52 PM EDT
+  2026-10-23 as the lane reported); not caused by its changes. Do:
+  reproduce it on a machine with MySQL and Redis, find the cause, fix it
+  or make it deterministic, no skip. Owner: Bug Hunt.
   Prerequisites: none.
 
 ## USR: User accounts
