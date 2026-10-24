@@ -407,49 +407,6 @@ with `clamp()`.
   any of it (UX.93, done).
   Prerequisite: MAP.168. Related: MAP.167.
 
-- [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
-  GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
-  (Boss, 2026-10-11 01:34Z): "The habitability notes are too much in the
-  planet and moon list. Just use just symbols instead." Overall rating a
-  coloured star, pressure a coloured trapezoid, radiation a square,
-  temperature a thermometer, chemistry a beaker, all simple vector
-  shapes from the icon library. Superseded in part by the PHI-6 symbols
-  of GitHub issue
-  [#1221](https://github.com/dwhagar/planetGen/issues/1221) (UX.101);
-  this item removes the notes from the lists and builds the symbol
-  column, UX.101 swaps in the final shapes. Boss, 2026-10-11 01:35Z: the
-  description text at the end should be in paragraph form, simply saying
-  for each category where the planet falls and why, with no extra
-  information (GEN.208). Owner: UX (moved from the
-  retired Bugfixes lane 2, Boss 2026-10-15 05:39Z), in its queue order.
-  Prerequisites: UX.101. Related: UX.30, UX.105, UX.101, GEN.208.
-  Scope after the review (2026-10-16 review): removes the notes, builds
-  the symbol column from UX.101's shapes and sets the description in
-  paragraph form (GEN.208); needs UX.101.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): UX.32 folded in. Planet rows show the class only (Boss,
-  2026-10-01 23:53Z): the row shows the class (linked to its reference
-  page) and no Terrestrial/Gas Giant chip or moon label, and the moons
-  stay reachable from a small count on the row; the Habitable chip stays
-  (Boss, 2026-10-10 19:12Z: keep it, revisit with a habitable-class-only
-  chip later). Coordinate with GEN.220.
-  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
-  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
-  right now to build it, I want the habitability system finished before
-  8.1 is ready'; this overrides the 8.1-only pause for it and any
-  earlier owner line. Owner: Habitability lane B (planet and moon
-  lists). Lane B also files the related pages it finds (system pages,
-  body pages, search results, API fields) as sub-items through the TODO
-  thread.
-  Decided (Boss, 6:02 PM EDT 2026-10-23): 'habitable' means the PHI-6
-  overall score is Blue or Green; the one rule is GEN.643 (a single
-  is_habitable predicate, this item reads it when it lands; until then
-  use the stored overall score and the same test). Tying the PHI-6 into
-  the planet classes is GEN.644 (Habitability lane D, proposal first).
-  Boss, 6:14 PM EDT 2026-10-23: lists show the four life scores
-  (Microbial, Flora, Fauna, Sentient, 0 to 9) in a cluster next to the
-  symbols; UX.152 does it, human operability is removed (GEN.649).
-
 - [ ] **UX.102 One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere**
   (Boss, 2026-10-14 14:16Z): "Add a TODO item to standardize all user
   output logs, timestamps, same formatting, same style, dividers, step
@@ -1029,25 +986,6 @@ with `clamp()`.
   Owner: Survival equipment lane (thread 'Survival equipment fields').
   Prerequisites: GEN.655, DB.93, UX.153. Related: UX.101, UX.152,
   UX.100.
-
-- [ ] **UX.155 The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2)**
-  Sub-item of UX.100, filed by the TODO thread from lane B's report of
-  8:08 PM EDT 2026-10-23 (as the lane reported): UX.100 part 1 merged as
-  #2737 (system page and Search panels). Do: the /lists planet and moon
-  pages get the Habitability symbols column through the shared data
-  table symbols cell type of #2737, and the list API rows carry phi4 and
-  the six tier_<domain> ratings. Done: the lists show the overall and
-  six domain symbols and no notes, with a browser test. Owner:
-  Habitability lane B (planet and moon lists).
-  Prerequisites: none. Related: UX.100, UX.101, UX.152.
-
-- [ ] **UX.156 The planet and moon item pages show the PHI-6 symbols (UX.100 part 3)**
-  Sub-item of UX.100, filed by the TODO thread from lane B's report of
-  8:08 PM EDT 2026-10-23 (as the lane reported). Do: the planet and moon
-  pages show the overall and six domain symbols from the UX.101 helper
-  in place of the notes. Done: the pages show the symbols, with a test.
-  Owner: Habitability lane B (planet and moon lists).
-  Prerequisites: none. Related: UX.100, UX.101.
 
 - [ ] **UX.157 Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug)**
   Boss live observation (relayed 2026-10-23, 9:07 and 9:10 PM EDT),
@@ -5858,7 +5796,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, UX.100, MAP.143, MAP.220,
+  Prerequisites: SEC.33, TEST.261, MAP.143, MAP.220,
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -20120,7 +20058,7 @@ clears each one.
   fixtures they share. Done: the four checks pass 10 times in a row at
   -n 4 under load. Owner: Habitability lane E (Boss, 5:38 PM EDT
   2026-10-23).
-  Prerequisites: UX.100, MAP.143, MAP.220. Related: UX.100, MAP.143, MAP.220.
+  Prerequisites: MAP.143, MAP.220. Related: UX.100, MAP.143, MAP.220.
 
 - [ ] **TEST.301 Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -21672,7 +21610,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   page example). Done: the help page and design section exist, every
   symbol and layer links to them, and the docs link check passes. Owner:
   Habitability lane E (Boss, 5:38 PM EDT 2026-10-23).
-  Prerequisites: UX.100, MAP.143, MAP.220, GEN.639. Related: UX.101,
+  Prerequisites: MAP.143, MAP.220, GEN.639. Related: UX.101,
   DOC.13.
   Boss, 6:14 PM EDT 2026-10-23: the help describes the four life scores
   0 to 9 and no longer a human operability score; DOC.77 does this part.
@@ -21717,22 +21655,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Habitability lane E. Done: the help (DOC.75) and the design and schema
   docs state it and no text names human operability as a score.
   Prerequisites: GEN.649, UX.152. Related: DOC.75, GEN.649.
-
-- [ ] **DOC.78 One end-to-end draw-order table from the star to the PHI-6 for the contracts file: blocks, streams and the reproducibility rule**
-  Gap found by the pipeline report
-  /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
-  (filed by the TODO thread at the coordinator's word, 6:33 PM EDT
-  2026-10-23). Section 5.2 of the report is a synthesis nobody has
-  signed off: per star (origin, birth, state, composition key, motion,
-  snow line, disc), per body (formation, mass, bulk, derived,
-  radiogenic, atmosphere, albedo and greenhouse, fixed point,
-  hydrosphere and the rest, moons, after: classify, PHI-6 and the life
-  scores). Lane I confirms or amends it and adds it to
-  /mnt/project-files/reports/composition-spine-contracts-2026-10-23.md,
-  then it moves to docs/design. Owner: Habitability lane I. Done: the
-  table is signed by lanes I, J, K and L in the file and a test or note
-  says what changes seeds when a block moves.
-  Prerequisites: none. Related: GEN.428, GEN.646.
 
 ## VIEW: The view from a planet
 

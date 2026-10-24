@@ -1195,3 +1195,7 @@ Baseline: PR #1817.
 | MAP.244 | 8.1 | Descriptions and maps |
 | DOC.64 | 8.1 | Descriptions and maps |
 | TEST.312 | 8.1 | Bugs and flaky tests |
+| UX.100 | 8.1 | Habitability system |
+| UX.155 | 8.1 | Habitability system |
+| UX.156 | 8.1 | Habitability system |
+| DOC.78 | 8.1 | Habitability system |

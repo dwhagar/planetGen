@@ -725,7 +725,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.75 | Help and docs text for the whole habitability system: the score, the symbols, the lists, the sector colouring and the map markers | none | open |
 | DOC.76 | Docs for the condition-based classes: the rule table, the planet class pages and the help | none | open |
 | DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document | none | open |
-| DOC.78 | One end-to-end draw-order table from the star to the PHI-6 for the contracts file: blocks, streams and the reproducibility rule | none | open |
+| DOC.78 | One end-to-end draw-order table from the star to the PHI-6 for the contracts file: blocks, streams and the reproducibility rule | none | done, PR #2813 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -2169,7 +2169,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | done, PR #1315 |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) | none | done, PR #1369 |
 | UX.99 | Rogue planets do not show their surface gravity (bug) | none | done, PR #1355 |
-| UX.100 | Planet and moon lists show habitability as symbols, not notes | none | open |
+| UX.100 | Planet and moon lists show habitability as symbols, not notes | none | done, PR #2784 |
 | UX.101 | The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating | none | done, PR #2706 |
 | UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | open |
 | UX.103 | Design note for the description layer | none | done, PR #1496 |
@@ -2224,8 +2224,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes | none | open |
 | UX.153 | Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none | none | open |
 | UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | open |
-| UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) | none | open |
-| UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | open |
+| UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) | none | done, PR #2784 |
+| UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | done, PR #2784 |
 | UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | open |
 | UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality | none | open |
 | UX.159 | Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests | none | open |
