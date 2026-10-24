@@ -8575,6 +8575,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the report; record both in the registry (GEN.725) in the same PR that
   uses the value. Nothing changes a generated world until the owning
   item uses it.
+  Sources (2026-10-09): Update 4:22 PM EDT 2026-10-24, from
+  reports/secondhand-citations-2026-10-24.md (written 4:25 PM EDT as the
+  lane reported; second-hand citations thread): Gaillard and Scaillet
+  2014 and Gaillard 2022 (HAL) are open first-hand, plus Putirka and Xu
+  supplement tables and Zeleznik 1991 (NIST); the fO2 exponents can now
+  be read from the primary papers, which moves the redox stand-in toward
+  Verified.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
@@ -12597,6 +12604,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   carries its source tier and tweak level in the report; record both in
   the registry (GEN.725) in the same PR that uses the value. Nothing
   changes a generated world until the owning item uses it.
+  Sources (2026-10-09): Update 4:22 PM EDT 2026-10-24, from
+  reports/secondhand-citations-2026-10-24.md (written 4:25 PM EDT as the
+  lane reported; second-hand citations thread): ExoMol CoYuTe ammonia
+  (Irwin 2019) is open first-hand and resolves the visible-ammonia gap
+  of D2; a data job at setup, licence note only in DATA-LICENSE.md.
 
 - [ ] **GEN.673 Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on**
   Found by lane L (atmosphere mixture), report
@@ -13125,6 +13137,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the gaps. Owner: pool (the lane that did GEN.675, Lane L, knows the
   registry; otherwise the first free atmosphere lane). Related: GEN.675,
   GEN.707, GEN.711, GEN.724.
+  Sources (2026-10-09): Update 4:22 PM EDT 2026-10-24, from
+  reports/secondhand-citations-2026-10-24.md (written 4:25 PM EDT as the
+  lane reported; second-hand citations thread): registry input: the
+  report proposes a tier per second-hand find (mostly Confident
+  Unverified): ICRP 103 wR and wT, SLB via BurnMan, Fray and Schmitt
+  coefficients via the Arrokoth supplement, French 2009 via Mazevet and
+  AQUA, Hapke via Hammond 2025, Myhre via IPCC TAR, Ayers via Gao 2014,
+  JPL via GEOS-Chem (labelled JPL 15-10, not 19-5). Two flags to resolve
+  in gap-filling-plan.md: the CFC-12 coefficient is 0.32 in IPCC TAR
+  Table 6.2 but 0.33 at line 272, and the NH3 factor 1.078 at line 294
+  differs from Irwin 2019. Still not found: Bogaard and King factors,
+  Fray validity windows, Frost 1991 constants, Wolff 2009, dose depth
+  tables. The warm-giant 0.35 percent figure is not found (Unverified);
+  the flare exponent 1.99 is found (Capistrant and Dittmann 2025).
+  Boss's reference list has two author errors (Zhu 2020 is Yang, Xie and
+  Zhou 2020; HAZMAT VII is Loyd et al.).
   Prerequisites: none. Related: GEN.675, GEN.707, GEN.711, GEN.724.
 
 - [ ] **GEN.726 Surface pressure supply law: atmosphere mass from delivered volatiles, degassing, escape and sinks, then pressure from mass and gravity**
@@ -13301,6 +13329,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   report; record both in the registry (GEN.725) in the same PR that uses
   the value. Nothing changes a generated world until the owning item
   uses it.
+  Sources (2026-10-09): Update 4:22 PM EDT 2026-10-24, from
+  reports/secondhand-citations-2026-10-24.md (written 4:25 PM EDT as the
+  lane reported; second-hand citations thread): the Chabrier, Mazevet
+  and Soubiran 2019 and 2021 hydrogen-helium equation-of-state tables
+  are open and downloadable (perso.ens-lyon.fr/gilles.chabrier/DirEOS),
+  so the data source for this item exists. Download at setup, raw tables
+  never in the repository, licence note only in DATA-LICENSE.md (Boss
+  manages it).
   Prerequisites: none. Related: GEN.642, GEN.460.
 
 - [ ] **GEN.734 Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance**
@@ -13584,6 +13620,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   carries its source tier and tweak level in the report; record both in
   the registry (GEN.725) in the same PR that uses the value. Nothing
   changes a generated world until the owning item uses it.
+  Sources (2026-10-09): Update 4:22 PM EDT 2026-10-24, from
+  reports/secondhand-citations-2026-10-24.md (written 4:25 PM EDT as the
+  lane reported; second-hand citations thread): a CSV of 47 solar
+  particle events (Tylka and Dietrich via Vainio 2017) is in
+  reports/secondhand-citations-2026-10-24-files/, a second-hand find
+  proposed at Confident Unverified; use it as a cross-check on the 255
+  NOAA events.
   Prerequisites: none. Related: GEN.436, GEN.444.
 
 - [ ] **GEN.748 Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's**
