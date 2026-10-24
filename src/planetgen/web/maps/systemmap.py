@@ -1677,12 +1677,12 @@ def _is_bad_number(value):
     return isinstance(value, float) and not math.isfinite(value)
 
 
-def _finite_row(row):
+def finite_row(row):
     """A copy of `row` with every NaN or infinite float set to `None`."""
     return {key: None if _is_bad_number(value) else value for key, value in row.items()}
 
 
-def _put_star_temperatures(stars, planets):
+def put_star_temperatures(stars, planets):
     """MAP.244: each planet and moon row carries `_star_temperature_k`, the effective temperature of the star it orbits (the primary for
     a close pair, whose planets have no `star_id`), which `bodylook.air_colour` needs for the colour of its air."""
     if not stars:
@@ -1696,10 +1696,10 @@ def _put_star_temperatures(stars, planets):
 
 
 def _finite_body(row):
-    """`_finite_row` for a planet or moon (and its moons), or `None` when
+    """`finite_row` for a planet or moon (and its moons), or `None` when
     it has no usable position or distance left to draw it at."""
     lost = any(_is_bad_number(row.get(key)) for key in _POSITION_KEYS)
-    body = _finite_row(row)
+    body = finite_row(row)
     if lost:
         distance = body.get("distance_km")
         if not distance or distance <= 0:
@@ -1764,12 +1764,12 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
     Returns:
         str: A complete `<section class="panel">` block.
     """
-    system = _finite_row(system)
-    stars = [_finite_row(star) for star in stars]
+    system = finite_row(system)
+    stars = [finite_row(star) for star in stars]
     planets = [planet for planet in map(_finite_body, planets) if planet is not None]
-    belts = [_finite_row(belt) for belt in belts]
-    facilities = [_finite_row(facility) for facility in facilities] if facilities else facilities
-    _put_star_temperatures(stars, planets)
+    belts = [finite_row(belt) for belt in belts]
+    facilities = [finite_row(facility) for facility in facilities] if facilities else facilities
+    put_star_temperatures(stars, planets)
     # MAP.290: a system's stars beyond the pair (`role` "member") are companion markers in the whole-system scene,
     # each with a scene of its own; the pair, its planets and belts make the scene as for any pair.
     members = [(star, [p for p in planets if p.get("star_id") == star["id"]],

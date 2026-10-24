@@ -1,0 +1,4 @@
+**Headline:** The 3D system view draws every star, planet and moon from its look record, the same one the System Map paints from, instead of colouring it by class letter.
+
+### Changed
+- **The 3D system view takes the body look record (MAP.287).** The system's scene (`/api/systems/<id>/scene`) carries each star, planet and moon's `look` (`bodylook.py`) in place of the colour it took from the class letter (`color` is gone from them; a comet keeps its nucleus `color`). The view paints a star and a solid world with the System Map's painters (`starpaint.js`, `solidpaint.js`) at the size its distance calls for, gives a gas giant its bands and a planet with air its glow shell, and colours the dots, trails and lights from the same record. The Galaxy Map's system stage shows the same bodies. `systemmap.finite_row` and `systemmap.put_star_temperatures` are public now, for the scene to use.

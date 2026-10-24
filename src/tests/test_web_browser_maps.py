@@ -823,6 +823,28 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     assert page.locator("#sysview3d").is_hidden() and page.locator("#sysmap-diagram").is_visible()
 
 
+def test_system_page_3d_view_paints_its_bodies_from_the_look_record(page, base_url, site_app):
+    """MAP.287: the 3D system view takes the body look record the System Map takes: a star, planet and moon is drawn
+    from its `look` (seeded, composition-led), and once the painters have run a star and a solid world show a painted
+    texture of their own seed, where the view used to tint every body by its class letter."""
+    system_id, scene = _system_with_planets(site_app.test_client())
+    assert all("color" not in body for body in scene["stars"] + scene["planets"])
+    star = scene["stars"][0]
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    page.evaluate("window.localStorage.clear()")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    # A body is painted once it is big enough on screen to show it: fly to the star, then to a planet.
+    for body in [star, next(p for p in scene["planets"] if p["look"]["body"] == "solid")]:
+        page.evaluate("(ref) => document.querySelector('#sysview3d-canvas').systemFlyTo(ref)", body["ref"])
+        page.wait_for_function(
+            """(ref) => document.querySelector('#sysview3d-canvas').systemBodies()
+                .some((b) => b.ref === ref && b.texture)""", arg=body["ref"], timeout=20000)
+        shown = next(b for b in page.evaluate("document.querySelector('#sysview3d-canvas').systemBodies()")
+                     if b["ref"] == body["ref"])
+        assert shown["texture"].split(":")[0] == str(body["look"]["seed"]), (body["ref"], shown)
+
+
 def _inside_window(page, selector):
     box = page.evaluate("""(sel) => {
         const r = document.querySelector(sel).getBoundingClientRect();

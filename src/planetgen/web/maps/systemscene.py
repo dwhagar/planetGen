@@ -32,6 +32,10 @@ whose second star orbits the first and whose own bodies orbit each star.
 each the relative orbit of its slot-1 child about its slot-0 child, with its own epoch), `members` (one per star: `ref`,
 `member_no`, `parent_node_no`, `slot`, `mass_solar`) and `origin`, the ref of the star at the origin (a wide binary's
 first star) or `None` for the barycenter. `physics.body_positions.positions_at` places the stars from it.
+
+A star, planet or moon carries `look` (MAP.287), the same body look record the System Map's `data-look` holds
+(`bodylook.star_look`, `bodylook.planet_look`), which the client colours and paints the sphere from; a comet carries
+`color`, its nucleus colour.
 """
 
 import dataclasses
@@ -39,8 +43,8 @@ from datetime import datetime, timezone
 
 from planetgen.db import orbit_trees, query
 from planetgen.physics import constants
-from planetgen.web.maps.starmap import star_color
-from planetgen.web.maps.systemmap import class_color
+from planetgen.web.maps.bodylook import comet_nucleus_color, planet_look, star_look
+from planetgen.web.maps.systemmap import finite_row, put_star_temperatures
 from planetgen.physics import unit_registry as units
 
 _au_to_km = units.converter("au", "km")
@@ -94,11 +98,10 @@ def _stars(conn, system_id, stars, row):
     out = []
     for star in stars:
         ref = f"star:{star['id']}"
-        fill, _stroke = star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
         item = {
             "ref": ref, "id": star["id"], "kind": "star", "name": star["name"], "role": star["role"],
             "star_type": star["star_type"], "radius_km": star["radius_km"], "mass_kg": star["mass_kg"],
-            "temperature_k": star["temperature_k"], "luminosity_w": star["luminosity_w"], "color": fill,
+            "temperature_k": star["temperature_k"], "luminosity_w": star["luminosity_w"], "look": star_look(finite_row(star)),
             "position_km": [0.0, 0.0, 0.0], "orbit": None,
         }
         if row["is_binary"] and star["role"] == "secondary":
@@ -142,7 +145,7 @@ def _planet(planet, around, kind="planet", parent=None):
     item = {
         "ref": f"{kind}:{planet['id']}", "id": planet["id"], "kind": kind, "name": planet["name"],
         "planet_class": planet.get("planet_class"), "radius_km": planet["radius_km"], "mass_kg": planet.get("mass_kg"),
-        "color": class_color(planet.get("planet_class")), "orbit": _orbit(planet, around),
+        "look": planet_look(finite_row(planet), kind), "orbit": _orbit(planet, around),
         "position_km": _xyz(planet),
         "habitable": bool(planet.get("habitable")), "inhabited": bool(planet.get("inhabited")),
     }
@@ -162,7 +165,7 @@ def _belt(belt, around):
 def _comet(comet, around):
     return {
         "ref": f"comet:{comet['id']}", "id": comet["id"], "kind": "comet", "name": comet["name"],
-        "radius_km": comet["nucleus_diameter_km"] / 2, "color": "#b9d6e8", "is_active": bool(comet["is_active"]),
+        "radius_km": comet["nucleus_diameter_km"] / 2, "color": comet_nucleus_color(comet), "is_active": bool(comet["is_active"]),
         "orbit": {
             "around": around, "type": comet["orbit_type"],
             "kepler": {
@@ -210,6 +213,7 @@ def build_scene(conn, system_id):
     detail = query.system_detail(conn, system_id)
     row = dict(conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone())
     stars = detail["stars"]
+    put_star_temperatures(stars, detail["planets"])
     planets = []
     for planet in detail["planets"]:
         item = _planet(planet, _star_around(planet, stars, row))

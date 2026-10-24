@@ -7,6 +7,7 @@ radius, colour, orbit elements and position at the epoch. Needs MySQL
 (`mysql_config`).
 """
 
+import json
 import pytest
 
 from planetgen.api.config import Config
@@ -69,16 +70,20 @@ def test_the_scene_has_every_body_with_orbit_elements(saved):
     assert sum(len(p["moons"]) for p in scene["planets"]) == detail_counts["moons"]
     assert len(scene["comets"]) == detail_counts["comets"]
     star = scene["stars"][0]
-    assert star["ref"].startswith("star:") and star["position_km"] == [0.0, 0.0, 0.0] and star["color"].startswith("#")
+    assert star["ref"].startswith("star:") and star["position_km"] == [0.0, 0.0, 0.0] and star["look"]["color"].startswith("#")
     planet = scene["planets"][0]
     assert planet["ref"].startswith("planet:") and planet["orbit"]["around"] == star["ref"]
     assert set(planet["orbit"]) >= {"distance_km", "period_years", "inclination_deg", "ascending_node_deg",
                                     "position_km", "velocity_kms", "epoch_unix"}
     assert "phase_deg" not in planet["orbit"]  # GEN.289: a planet is its state vector, not a phase
     assert planet["orbit"]["position_km"] == planet["position_km"] and len(planet["orbit"]["velocity_kms"]) == 3
-    assert len(planet["position_km"]) == 3 and planet["radius_km"] > 0 and planet["color"].startswith("#")
+    assert len(planet["position_km"]) == 3 and planet["radius_km"] > 0 and planet["look"]["color"].startswith("#")
     moon = next(m for p in scene["planets"] for m in p["moons"])
     assert moon["ref"].startswith("moon:") and moon["orbit"]["around"] == moon["parent"]
+    assert star["look"]["body"] == "star" and star["look"]["seed"] and "color" not in star
+    assert planet["look"]["body"] in ("solid", "gas") and planet["look"]["seed"] and "color" not in planet
+    assert moon["look"]["kind"] == "moon" and moon["look"]["body"] == "solid" and "color" not in moon
+    json.dumps(scene, allow_nan=False)    # a look record never carries a NaN or an infinity
     comet = scene["comets"][0]
     assert comet["ref"].startswith("comet:") and comet["orbit"]["kepler"]["eccentricity"] >= 0
     assert len(comet["position_km"]) == 3

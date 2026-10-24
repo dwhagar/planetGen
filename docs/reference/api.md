@@ -40,6 +40,7 @@ this API instead.
 
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here.
 
+- **9** (MAP.287): `GET /api/systems/<id>/scene`: a star, planet and moon no longer has `color`; it has `look`, the body look record (`bodylook.py`), which holds its `color` and everything the painters need. A comet keeps `color`.
 - **8** (MAP.262): `GET /api/galaxy/tiles` is gone: the map's data is read by sector-block node (`GET /api/galaxy/nodes`), and `GET /api/galaxy/changes` no longer has `tiles` (it has `nodes`).
 - **7** (API.26): every sector address in a request or an answer is `shell`/`band`/`wedge` (`shell_index`/`band_index`/`wedge_index` in answers), where it was `ring`/`layer`/`slot` (`ring_index`/`layer_index`/`ring_slot_index`). The switch to shells, bands and wedges was made on 2026-10-15 without raising the version, so 4, 5 and 6 were taken by later changes and this one carries it. No route that takes the old names is kept.
 - **6** (PERF.99): `GET /api/admin/work` and `GET /api/admin/work/<id>` return the runs in Redis (`items` are runs with their stage, units and time left, not job tree roots; `<id>` is a run id and answers the run with its stages and log), `POST /api/admin/work/<id>/control` takes `cancel` or `clear` (`pause` and `resume` of a node are gone), `POST /api/admin/work/<id>/delete` and `clear-finished` delete runs, `GET /api/admin/work/<id>/log` is new, and `POST /api/admin/work/lease/clear` is gone (clear the run instead).
@@ -258,7 +259,7 @@ connectivity to that specific schema rather than the default one.
   `orbit_nodes` row with its own epoch, `members`, one per star with its
   `parent_node_no`, `slot` and `mass_solar`, and `origin`, the star at the
   origin of a wide pair or `null`), `belts` and `comets`. Every object has a `ref` (`star:3`, `planet:12`,
-  `moon:40`, `belt:5`, `comet:8`), `radius_km`, `color`, `position_km`
+  `moon:40`, `belt:5`, `comet:8`), `radius_km`, `look` (a star, planet or moon) or `color` (a comet), `position_km`
   relative to what it orbits, and an `orbit` (`around`, `distance_km`,
   `period_years`, `inclination_deg`, `ascending_node_deg`, `phase_deg`; a
   comet's holds its Kepler elements under `kepler`).

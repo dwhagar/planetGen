@@ -310,6 +310,7 @@ export function createSystemStage(host) {
     if (!open) return;
     open.clock.tick(nowMs);
     open.built.update(open.clock.years());
+    open.built.paintTick();
     syncWorld(open);
     [[selectionRing, open.selected], [hoverRing, open.hovered]].forEach(function (pair) {
       if (pair[1]) pair[0].at(pair[1].x, pair[1].y, pair[1].z, { px: 22 });

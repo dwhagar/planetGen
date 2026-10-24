@@ -34,7 +34,7 @@
 // get a second, separate instance of it.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
-const { glowInnerRatio, makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { glowInnerRatio, makeBandTexture, makeGasRingTexture, makeGlowMaterial, paintedTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { makeCache, makeQueue, parseLook, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
 const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
@@ -60,68 +60,6 @@ function classField(el) {
 // sectorscene.js's own star/nebula/asteroid-field/black-hole/neutron-star
 // spheres -- imported above (makeGlowMaterial)
 // rather than duplicated here.
-
-function hexToRgba(hex, alpha) {
-  var c = new THREE.Color(hex);
-  return "rgba(" + Math.round(c.r * 255) + "," + Math.round(c.g * 255) + "," + Math.round(c.b * 255) + "," + alpha + ")";
-}
-
-// A gas giant's banding is turbulent, not a mechanical stripe grid --
-// layered sine waves at different frequencies/phases give each band a
-// slightly irregular width/edge, closer to a real Jupiter/Saturn photo's
-// look than evenly-spaced rings would. Height-only (width 4px, repeated)
-// since SphereGeometry's default UVs vary banding by latitude (v), not
-// longitude (u) -- a real horizontally-banded planet has no longitude
-// dependence to texture in the first place.
-function makeBandTexture(baseColorHex) {
-  var width = 4;
-  var height = 256;
-  var canvasEl = document.createElement("canvas");
-  canvasEl.width = width;
-  canvasEl.height = height;
-  var ctx = canvasEl.getContext("2d");
-  var base = new THREE.Color(baseColorHex);
-  for (var y = 0; y < height; y++) {
-    var t = y / height;
-    var shade = 0.85 + 0.15 * Math.sin(t * Math.PI * 10) + 0.08 * Math.sin(t * Math.PI * 23 + 1.7);
-    var r = Math.min(255, Math.round(base.r * 255 * shade));
-    var g = Math.min(255, Math.round(base.g * 255 * shade));
-    var b = Math.min(255, Math.round(base.b * 255 * shade));
-    ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
-    ctx.fillRect(0, y, width, 1);
-  }
-  var texture = new THREE.CanvasTexture(canvasEl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
-// A ring's own inner-to-outer alpha profile, painted along
-// RingGeometry's `v` axis (0 at the inner radius, 1 at the outer) -- a
-// plain vertical gradient, not a 2D radial one, since that's the axis its
-// polar UV mapping actually varies along. The alternating opaque/faint
-// bands are a cheap "Cassini division"-style gap cue, not a real
-// particle-density simulation.
-function makeRingTexture(baseColorHex) {
-  var width = 4;
-  var height = 128;
-  var canvasEl = document.createElement("canvas");
-  canvasEl.width = width;
-  canvasEl.height = height;
-  var ctx = canvasEl.getContext("2d");
-  var gradient = ctx.createLinearGradient(0, 0, 0, height);
-  gradient.addColorStop(0.0, "rgba(0,0,0,0)");
-  gradient.addColorStop(0.12, hexToRgba(baseColorHex, 0.85));
-  gradient.addColorStop(0.45, hexToRgba(baseColorHex, 0.3));
-  gradient.addColorStop(0.6, hexToRgba(baseColorHex, 0.75));
-  gradient.addColorStop(0.85, hexToRgba(baseColorHex, 0.25));
-  gradient.addColorStop(1.0, "rgba(0,0,0,0)");
-  ctx.fillStyle = gradient;
-  ctx.fillRect(0, 0, width, height);
-  var texture = new THREE.CanvasTexture(canvasEl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
 
 // The diagram's coordinate space when a scene has no viewBox to read --
 // `planetgen/web/maps/systemmap.py`'s own `_VIEW_SIZE_PX`. A scene's viewBox is usually
@@ -239,17 +177,7 @@ function initSphereField(canvasEl) {
   var paintQueue = makeQueue();
 
   function paintTexture(marker, tier) {
-    var size = TIER_SIZES[tier];
-    var canvas = document.createElement("canvas");
-    canvas.width = size[0];
-    canvas.height = size[1];
-    var ctx = canvas.getContext("2d");
-    var image = ctx.createImageData(size[0], size[1]);
-    image.data.set((marker.isStar ? paintStar : paintSolid)(marker.look, size[0], size[1]));
-    ctx.putImageData(image, 0, 0);
-    var texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    return texture;
+    return paintedTexture(THREE, marker.isStar ? paintStar : paintSolid, marker.look, TIER_SIZES[tier]);
   }
 
   // The texture this marker should show at its current size, or null while it is still being painted.
@@ -475,8 +403,8 @@ function gatherSphereMarkers(sceneEl) {
       rotation: Math.random() * Math.PI * 2, // dephased so a scene's spheres don't all spin in lockstep
     };
     if (isGasGiant) {
-      marker.bandTexture = makeBandTexture(marker.color);
-      marker.ringTexture = makeRingTexture(marker.color);
+      marker.bandTexture = makeBandTexture(THREE, marker.color);
+      marker.ringTexture = makeGasRingTexture(THREE, marker.color);
     }
     el.classList.add("sysmap-sphere-active");
     markers.push(marker);
