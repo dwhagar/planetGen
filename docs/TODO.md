@@ -5577,7 +5577,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: PERF.99. Related: GEN.231.
+  Research (2026-10-09, 10-24 Core 5): Unblocked: PERF.99 merged
+  (#3030). Core 5 is on it now.
+  Prerequisites: none. Related: GEN.231.
 
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
   Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -13579,40 +13581,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.98 stays open until PERF.100 lands.
   Prerequisites: none. Related: PERF.86.
 
-- [ ] **PERF.99 Work queue step 5: the Generate page, Queue page and job log read Redis; cancel now through the stop command**
-  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
-  docs/design/operations/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
-  the only place a run lives; each scatter its own queue item run in
-  order; counters plus an event stream for progress; cancel in about 0.5
-  s; the MySQL job tree retired); Redis required for every run including
-  one worker; workers on demand with an idle timeout and no always-on
-  service; one Redis instance; no Redis password while it binds
-  loopback; stage timing into the existing MySQL stage tables from the
-  completing unit; the event stream is the live log, written to the jobs
-  directory at run end with the last 20 kept. Each step leaves main
-  working, one PR, Foundations lane 1. Section 5.5 and 5.11 step 5. The
-  Generate page, the Queue page and the job log read the run record, counters and event stream; cancel sets
-  the run to cancelling, cancels the waiting units, sends the stop
-  command to the started ones and clears planetgen:run:active (about 0.5
-  s); the stale-run Clear action (section 5.6) is added; the event
-  stream is the live log and is written to the jobs directory at run end
-  for the download link, last 20 kept. Done when: the pages need no
-  MySQL job tree and cancel is measured under a second on a 75-job run.
-  The all-visitors banner is not in this step: it is UX.3 (UX),
-  built on the run record after PERF.96 (decided by the
-  coordinator, 2026-10-15).
-  Owner: Core 2 (Boss, 2026-10-16, 3:00 PM EDT: the old Core queue runs
-  after the new top 5 work, routed by area): PERF.97 right after the 8.1
-  phase 1 top 5, PERF.98 to PERF.100 after the infinite zoom tree.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Prerequisites: PERF.98, PERF.119. Related: PERF.86, UX.3.
-
 - [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
   docs/design/operations/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
@@ -13650,6 +13618,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-18, 5:14 PM EDT) keeps it cut down to the detached starter
   that only starts the run and does not build or order commands. The
   delete list and the "no old code" Done line carry that exception.
+  Research (2026-10-09, 10-24 Core 5): PERF.99 merged (#3030, 2:30 PM
+  EDT 2026-10-24 as the lane reported). Left for this item with the
+  work_* tables: progress.json and progress_file.py, the work.py
+  writers, the job runner's step estimates from work_jobs, the update
+  guard's reads of them.
   Prerequisites: DB.29. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
 - [ ] **PERF.119 The Generate page, the API and the one-off sector and system commands start their runs through the wrapper**
@@ -14044,7 +14017,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retired. PERF.150 left an interim wait in queue/runwait.py; this item
   lands with Core 5 and removes that file when the waiting list
   replaces it.
-  Prerequisites: PERF.119, PERF.99. Related: PERF.98, PERF.99,
+  Prerequisites: PERF.119. Related: PERF.98, PERF.99,
   PERF.100, PERF.119, PERF.123, PERF.146, PERF.147, ADM.119, ADM.123.
 
 - [ ] **PERF.162 Member-tree drawing is 53 percent of a band unit, and speeding it changes values, so it needs a generator epoch and Boss's word**
@@ -14388,7 +14361,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   command, after which the check uses them. PERF.100 (which deletes the
   old work tables with a migration) must pass through this check too.
   Owner: Database, after DB.28 (done, PR #1476) and before PERF.100.
-  Prerequisites: PERF.99. Related: PERF.95 (done, PR #1506), PERF.96
+  Prerequisites: none. Related: PERF.95 (done, PR #1506), PERF.96
   (done, PR #1553), PERF.99, PERF.100, OPS.48, DB.18, DB.27 (done, PR
   #1446), DB.28 (done, PR #1476).
   Owner: Core 1, in its bug phase after the global top chain (Boss,
@@ -18584,6 +18557,33 @@ clears each one.
   failures, and the load-flake items it covers are closed or
   re-measured. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.229, TEST.126, TEST.190.
+
+- [ ] **TEST.345 test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug)**
+  Reported by Core 5 from its PERF.99 gate (#3030, 2:30 PM EDT
+  2026-10-24 as the lane reported): this test fails on main and not
+  because of PERF.99. TODO could not reproduce it (the test skips
+  without the database here). Kind: failing test on main. Likely related
+  to GEN.710 (a pre-placed row with a stored tree can have a member
+  heavier than the primary), which Core 3 is working. Do: reproduce on
+  main with the database, capture the failure text, and either fix it
+  with GEN.710 or file the cause. Done: the test passes on main. Owner:
+  Core 3 (it owns the stored-tree fill).
+  Prerequisites: none. Related: GEN.710.
+
+- [ ] **TEST.346 web.system a11y variants (desktop and phone, light and dark) fail on lane machines of Core 3 and Core 5 but pass for Bug Hunt (bug)**
+  Reported by Core 3 (1:50 PM EDT 2026-10-24, "link contrast and nested
+  summary") and Core 5 (2:30 PM EDT, four variants), both as red on
+  main; Bug Hunt ran test_web_a11y.py -k web.system on main b76a44df7 at
+  about 1:20 PM EDT and got 8 passed, 4 skipped. TEST.329 (the class
+  link contrast) is retired. Possible causes: a change since (#3013 to
+  #3030), a lane machine difference (data set files such as the AD9
+  ozone data, fonts, Playwright browser version), or the nested summary
+  being a new defect. Do: Bug Hunt runs the four variants on current
+  main on its own machine and on a second lane machine, finds which
+  assertion fails (contrast or nested summary), and fixes it or files
+  the machine difference. Done: web.system passes on every lane machine
+  or the difference is documented. Owner: Bug Hunt.
+  Prerequisites: none. Related: TEST.329.
 
 ## USR: User accounts
 
