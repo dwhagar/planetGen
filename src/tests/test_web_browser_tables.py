@@ -491,7 +491,7 @@ def test_the_systems_jump_box_begins_the_list_at_a_typed_name(page, table_site):
     assert page.goto(f"{table_site}/systems", wait_until="load").status == 200
     page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
     box = page.locator("#systems-table .datatable-jump input[type='text']")
-    assert box.is_visible()
+    box.wait_for(state="visible", timeout=15000)   # the field is drawn once Shoelace has defined it (UX.124)
     box.fill("Drifting 100")
     page.locator("#systems-table .datatable-jump button").click()
     page.locator("#systems-table .datatable-count-line", has_text="30 systems from \u201cDrifting 100\u201d") \
