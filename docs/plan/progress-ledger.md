@@ -1385,3 +1385,6 @@ Baseline: PR #1817.
 | OPS.66 | 8.1 | Bugs and flaky tests |
 | OPS.67 | 8.1 | Bugs and flaky tests |
 | OPS.62 | 8.1 | Bugs and flaky tests |
+| TEST.356 | 8.1 | Radiation chain for habitability (GEN.445) |
+| TEST.355 | 8.1 | Radiation chain for habitability (GEN.445) |
+| TEST.354 | 8.1 | Radiation chain for habitability (GEN.445) |
