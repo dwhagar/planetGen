@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2102] - 2026-10-24
+
+**Headline:** The tuning targets now state which wrong values they can refuse, and the thorium rows share one scale.
+
+### Changed
+- **The thick-disc thorium row o2 is on the solar-twin scale of row o1 (GEN.664).** Its centre moves from -0.063 to 0.061 dex (the Hypatia thick-minus-thin offset of -0.019 added to +0.08), its target with it. The recipes are not read by the generator yet, so no generated value changes.
+
+### Added
+- **A power check for every tuning target (GEN.665).** `tuning_harness.power` tells whether a factor-2 error is refused; two weak targets are named, and the white-dwarf redox and mass-radius notes record why the width 0.22 and the weak cut stay.
+
 ## [8.0.2101] - 2026-10-24
 
 **Headline:** A world's survival equipment is a list of what a visitor needs, item by item, from the physics, instead of one tier from 0 to 4.
