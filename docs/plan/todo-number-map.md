@@ -1815,7 +1815,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | dropped (Boss, 2026-10-09 20:42Z) |
 | OPS.13 | Every update records the version key, keeping the last 10 | none | done, PR #810 |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | done, PR #876 |
-| OPS.15 | Each update says whether it changes generated output | none | open |
+| OPS.15 | Each update says whether it changes generated output | none | done, PR #3015 |
 | OPS.16 | A daily maintenance script for Linux and macOS, with its lock helper | none | open |
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | dropped (Boss, 2026-10-09 20:42Z) |

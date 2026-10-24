@@ -3420,27 +3420,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   left, and this item stays open on it; Boss chose at 8:29 AM EDT 2026-10-23 to fix it before 8.1.
   Prerequisites: GEN.633.
 
-  - [ ] **OPS.15 Each update says whether it changes generated output**
-    The second half of Boss's update "sweep". Done: after OPS.13's row
-    is written, the update script runs `generator_battery_digest()`
-    under the new code, compares its per-case digests (OPS.57) with the
-    newest history row, stores the new digest, and reports "generated
-    output unchanged" or names the first differing case. The live galaxy
-    is not touched. A test runs it across a
-    change that alters a sector.
-    Research (2026-10-09, reproducible-galaxies.md): the compared
-    fingerprint is the battery digest from the epoch item
-    (`generator_battery_digest()`), compared with the epoch and the
-    previous history row.
-    Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-    Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-    is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-    earlier owner line).
-    Research (2026-10-09, 10-24 lane 4): Lane 4 takes this next (12:21
-    PM EDT 2026-10-24 as the lane asked; nobody had reported starting
-    it).
-    Prerequisites: none.
-
   - [ ] **OPS.16 A daily maintenance script for Linux and macOS, with its lock helper**
     Boss (2026-10-02 02:28Z): "We're going to have to build a
     maintenance script for powershell and bash that will run the
@@ -18527,6 +18506,9 @@ clears each one.
   clock, and make the order of backfill and consumption independent of
   time (or pass the time in). Done: the test passes 50 runs in a row on
   main. Owner: Bug Hunt (proposed).
+  Research (2026-10-09, 10-24 Lane 4): Seen again (Lane 4, #3015 gate,
+  1:41 PM EDT 2026-10-24 as the lane reported): failed in the gate under
+  load, passes alone, not touched by that PR.
   Prerequisites: none. Related: TEST.302.
 
 - [ ] **TEST.336 test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug)**
