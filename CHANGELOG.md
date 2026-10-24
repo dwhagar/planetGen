@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2279] - 2026-10-24
+
+**Headline:** The habitability icons now open the habitability section of the planet's own page.
+
+### Changed
+- On a planet's or moon's page, in the lists and in the summary trees, the habitability symbols and the four life scores link to the Habitability and Life sections of that body's page (`/object/<ref>#habitability`), not to the help page. The Habitability section has a link on to the page that explains the colours and symbols (UX.197).
+
 ## [8.0.2278] - 2026-10-24
 
 **Headline:** The class page tests' fake property sheet names its kind, so the six phenomenon page tests pass again.
