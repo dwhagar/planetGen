@@ -2,7 +2,7 @@
 
 Asked by Boss, 10:15 PM EDT 2026-10-23: the 3D rendered objects get texture, colour and atmospheric glow from composition and the other computed factors. Planets with oceans get a very rough vector-style picture of ocean, cloud and land colours; gas giants show colour and layers like Jupiter and Saturn, roughly; all rendered planets and moons are replaced with newly rendered surfaces; stars get a full paint job from luminosity and spectral class; phenomena (comets, rogue planets, nebulae, remnants) use as much of the calculated data as possible.
 
-Status: approved by Boss (10:28 PM EDT 2026-10-23, decisions in section 10). Built so far: R1 `bodylook.py` (MAP.271), R3 `bodytexture.js` (MAP.272), R4a `solidpaint.js` (MAP.273) and R7 `starpaint.js` (MAP.276) on the System Map; the rest follows the plan in section 11. Items: MAP.270 to MAP.285, DB.96, DB.99, GEN.670, UX.158.
+Status: approved by Boss (10:28 PM EDT 2026-10-23, decisions in section 10). Built so far: R1 `bodylook.py` (MAP.271), R3 `bodytexture.js` (MAP.272), R4a `solidpaint.js` (MAP.273) and R7 `starpaint.js` (MAP.276) on the System Map, and R9a (MAP.278: rogue planet, comet, black hole, neutron star and asteroid field looks from stored data; remnant shells by age still open); the rest follows the plan in section 11. Items: MAP.270 to MAP.285, DB.96, DB.99, GEN.670, UX.158.
 
 ## 1. What renders today (read from the repo)
 

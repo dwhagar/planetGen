@@ -187,7 +187,7 @@ function makeNebulaTexture(coreColor, edgeColor) {
 // scales each clump to that *element's* own farthest-corner distance from
 // its center, not a fixed fraction of the sprite's radius the way this
 // does), just the same "mottled rocky scatter" read at a glance.
-function makeAsteroidTexture() {
+function makeAsteroidTexture(grainColor) {
   var size = 128;
   var canvasEl = document.createElement("canvas");
   canvasEl.width = canvasEl.height = size;
@@ -205,8 +205,9 @@ function makeAsteroidTexture() {
   }
 
   var base = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
-  base.addColorStop(0, "#b89a6ea0");
-  base.addColorStop(0.55, "#b89a6e50");
+  var grain = /^#[0-9a-f]{6}$/i.test(grainColor || "") ? grainColor : "#b89a6e";
+  base.addColorStop(0, grain + "a0");
+  base.addColorStop(0.55, grain + "50");
   base.addColorStop(0.78, "rgba(0,0,0,0)");
   ctx.fillStyle = base;
   ctx.fillRect(0, 0, size, size);
@@ -278,7 +279,7 @@ function textureForCloud(cloud) {
     return makeNebulaTexture(cloud.coreColor, cloud.edgeColor);
   }
   var recipe = CLOUD_KIND_RECIPES[cloud.kind];
-  return recipe ? recipe() : makeNebulaTexture("#c9a8e090", "#c9a8e030");
+  return recipe ? recipe(cloud.grainColor) : makeNebulaTexture("#c9a8e090", "#c9a8e030");
 }
 
 // Extra fresnel glow shell layered over each body's own core texture
@@ -310,7 +311,11 @@ function glowRecipeForCloud(cloud) {
     var core = (cloud.coreColor || "#c9a8e090").slice(0, 7);
     return { color: core, power: 2.2, strength: 1.3, scale: 1.3 };
   }
-  return CLOUD_GLOW_RECIPES[cloud.kind] || CLOUD_GLOW_RECIPES.asteroidField;
+  var recipe = CLOUD_GLOW_RECIPES[cloud.kind] || CLOUD_GLOW_RECIPES.asteroidField;
+  if (cloud.kind === "asteroidField" && /^#[0-9a-f]{6}$/i.test(cloud.grainColor || "")) {
+    return Object.assign({}, recipe, { color: cloud.grainColor });
+  }
+  return recipe;
 }
 
 // How much fainter a neighboring sector's cloud reaching into this one
