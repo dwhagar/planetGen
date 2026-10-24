@@ -79,6 +79,11 @@ model exists. Earth gives hydrogen 15 against 54 (gone) and helium at 0.2 percen
 vapour, the ice-supported air and the Titan-like air (whose hydrogen is a photochemical steady state) are not filtered. The total
 pressure is not changed here.
 
+The oxygen cap (`mixture_oxygen`, Boss 10-24): no air is pure oxygen. A lifeless world that lost its water (the abiotic-oxygen family) is
+capped at 95 percent oxygen with at least 0.5 percent nitrogen plus argon; a living world is capped at 35 percent (`BIOTIC_O2_MAX`, from the
+Phanerozoic peak and the fire limit), for the life stage that sets the oxygen of a living world to apply with `cap_oxygen`. The analysis is
+in `/mnt/project-files/reports/pure-oxygen-atmosphere-2026-10-24.md`.
+
 The lava vapour reproduces Kite et al. 2016's vapour pressure over a BSE melt (1.8e-4 bar at 2000 K, 1.1e-2 bar at 2500 K against 2e-4
 and 8e-3) and the sequence of Miguel et al. 2011: Na and K first, then SiO, Mg and Fe from 2000 to 2500 K, SiO above O2 beyond about 2900 K,
 mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with the alkali oxides' activity coefficient of 3e-9 to 3e-8

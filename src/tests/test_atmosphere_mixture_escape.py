@@ -76,3 +76,33 @@ def test_a_missing_escape_speed_is_refused_by_name():
 
 def test_the_escape_inputs_are_required_inputs_of_a_rocky_class():
     assert {"v_esc_kms", "teq_k", "age_gy"} <= set(md.required_inputs("M"))
+
+
+def test_a_lifeless_oxygen_world_is_capped_at_95_percent_with_a_nitrogen_argon_floor():
+    from planetgen.physics import mixture_oxygen as oxygen
+    capped = oxygen.cap_oxygen({"O2": 0.99, "CO2": 0.01}, oxygen.ABIOTIC_O2_MAX)
+    assert capped["O2"] == pytest.approx(0.945)
+    assert capped["N2"] + capped.get("Ar", 0.0) == pytest.approx(0.005)
+    assert sum(capped.values()) == pytest.approx(1.0)
+    pure = oxygen.cap_oxygen({"O2": 1.0}, oxygen.ABIOTIC_O2_MAX)
+    assert pure["O2"] == pytest.approx(0.95) and pure["N2"] == pytest.approx(0.05)
+    inside = {"O2": 0.5, "N2": 0.4, "Ar": 0.1}
+    assert oxygen.cap_oxygen(inside, oxygen.ABIOTIC_O2_MAX) is inside
+
+
+def test_a_living_world_is_capped_at_35_percent_and_keeps_the_ratios_of_the_other_gases():
+    from planetgen.physics import mixture_oxygen as oxygen
+    capped = oxygen.cap_oxygen({"O2": 0.6, "N2": 0.3, "CO2": 0.1}, oxygen.BIOTIC_O2_MAX)
+    assert capped["O2"] == pytest.approx(0.35)
+    assert capped["N2"] / capped["CO2"] == pytest.approx(3.0)
+
+
+def test_no_abiotic_oxygen_world_is_drawn_above_95_percent_oxygen():
+    from tests.test_atmosphere_mixture_evolved import ABIOTIC, BASE
+    top = 0.0
+    for seed in range(300):
+        with draw.bound(seed):
+            result = md.draw_mixture(Subject("Z", {**BASE, **ABIOTIC}))
+        top = max(top, result.mole_fractions.get("O2", 0.0))
+        assert sum(result.mole_fractions.values()) == pytest.approx(1.0)
+    assert 0.5 < top <= 0.95 + 1e-12
