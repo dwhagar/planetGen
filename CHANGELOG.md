@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2233] - 2026-10-24
+
+**Headline:** The atmosphere chemistry now has one equilibrium solver and one thermodynamic data table instead of two.
+
+### Removed
+- **The first equilibrium module (GEN.672).** `physics/equilibrium.py`, its data file `thermo_nasa7.json` and `scripts/build_thermo_table.py` held the same NASA data as `gas_equilibrium.py` with `species_thermo.py`. The three hot-Jupiter regime edges (methane to carbon monoxide, water survival, hydrogen dissociation) now run on the one solver in `physics/equilibrium_edges.py` and give the same temperatures; no generated value changes.
+
 ## [8.0.2232] - 2026-10-24
 
 **Headline:** Every facility now has a page of its own, reached from the lists that name it.
