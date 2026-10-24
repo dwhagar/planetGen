@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2217] - 2026-10-24
+
+**Headline:** A hot star's nebula is lit by the star the place drew, not by whichever star of its system is heaviest.
+
+### Changed
+- **A nebula follows the row's star, not the system's primary (GEN.710).** When a hot star had a companion heavier than it, the heavier star took first place in the system and the nebula was rolled from that one, so the nebula built in the sector disagreed with the one the star's page and the uncharted sector's scene had shown from the row. The nebula is now rolled from the star the place drew (`StarSystem.placed_star`), so the page, the scene and the built sector agree. Systems whose placed star has a heavier companion get a different nebula (or none) than before.
+
+generation-output: changed
+
 ## [8.0.2216] - 2026-10-24
 
 **Headline:** A burst of map requests can no longer start over a hundred queue workers and run the server out of memory.
