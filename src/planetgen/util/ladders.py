@@ -428,6 +428,8 @@ _BY_KIND = dict(zip(
     ("length", "speed", "duration", "temperature", "pressure", "acceleration", "mass", "power", "flux", "number_density",
      "magnetic_field"), LADDERS))
 _BY_KIND_OF_LADDER = {ladder.quantity: kind for kind, ladder in _BY_KIND.items()}
+LADDER_OF_KIND = {kind: ladder.quantity for kind, ladder in _BY_KIND.items()}
+"""dict: The name of the ladder each registry kind is shown on (`unitladders.js` `LADDER_OF_KIND`)."""
 
 
 def for_kind(kind):

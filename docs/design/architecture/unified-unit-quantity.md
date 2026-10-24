@@ -342,3 +342,19 @@ estimate). The browser sweep of the other conversions and the JavaScript `Quanti
 `MassObject.FIELD_UNITS` is the one table of a family: each persisted attribute with the unit its instance holds it in, a key of the unit registry for a quantity or a word of `mass_object.PLAIN` (`text`, `ratio`, `count`, `index`, `flag`, `dex`, `unit-vector`, `id`) for a field that holds none. `SERIALIZABLE_FIELDS` is the table's names (`list(FIELD_UNITS)`), so the persisted list and the units cannot disagree, and the shared groups (galactic motion, spin, star activity, the disk descriptor) are declared once in their modules (`GALACTIC_MOTION_UNITS`, `spin.SPIN_UNITS`, `activity.STAR_ACTIVITY_UNITS`, `pre_main_sequence.DISK_UNITS`) and spread into each family's table. An instance still holds a plain float; `obj.quantity("mass")` builds the `Quantity` in the declared native unit (a pair such as the habitable zone as a tuple), so `star.quantity("mass").Msun` works and nothing in a constructor changed: the sector-fill path does no more work than before, the class-level dict is read only at the edges.
 
 Done for `StellarObject` (`Star`), `BlackHole`, `NeutronStar` and `BinaryStarProxy`, and for the small bodies and the free planet (`Comet`, `InterstellarComet`, `AsteroidField`, `RoguePlanet`); the rogue surface fields are declared in `rogue_surface.ROGUE_SURFACE_UNITS`. `tests/test_field_units.py` fails when a persisted field has no declaration, when a declaration is neither a registry unit nor a plain word, when a name's unit suffix and its declaration disagree (card Q4), and when a declared unit measures something other than the column the attribute is stored in (the `Field` lists of `store.py` against `db/column_units.py`); the family still to declare (`Planet`, with the atmosphere, magnetism, hydrosphere, radiation and habitability groups, several in units the registry does not hold yet) is listed in the test and must leave the list when it declares. Declaring found the quantities held under two units that GEN.575 unifies: a remnant's `mass_solar` beside the inherited `mass` in kg, its `event_horizon_radius_km` beside `radius`. The registry gained the rate units `1/s`, `1/yr` and `1/Gy` (frequency), which the column registry no longer holds locally.
+
+
+## Built: the Quantity in the browser (UX.128)
+
+`html/static/quantity.js` is the mirror of `physics/quantity.py`: `new Quantity(kind, value, unit)` holds a number as given,
+`as(unit)` answers in any unit of its kind (lazily, kept after the first read), `base()`, `set`, `toJSON` and `fromJSON`, and a
+value outside its kind's bounds or a unit of another kind throws, as Python raises. `held(unit, value)` takes the kind from the
+unit. `unitladder.js` gains `formatMeasure(quantity)` (`format_measure`), and its `format*` names read the registry unit they are
+for (`formatIn("km", value)`, Python's `_format_in`); its exported `KM_M`, `AU_M`, `LIGHTYEAR_M`, `PARSEC_M`, `SECONDS_PER_YEAR`,
+`STANDARD_*` and `SOLAR_*` factors are gone. The ladder of a kind is found by `LADDER_OF_KIND` (generated beside the ladders).
+`galaxymap3d.js` and `generatebuttons.js` (light-years to parsecs), `orbitclock.js` (a day, the speed steps), `limitsliders.js`
+(seconds to minutes and hours), `settingspage.js` (the words for a duration) and `systemscale.js` (the Sun's radius) convert through
+the registry. The map side panels get their gravity, temperature and pressure as text from the server (already through the
+registry since GEN.348), so they hold no number to convert. `tests/test_quantity_js.py` compares the browser's Quantity, bounds
+and text with Python's through Node; the grep test of UX.140 also fails on the day and hour factors. Left: a byte count (MB, GB) is
+not a registry kind.
