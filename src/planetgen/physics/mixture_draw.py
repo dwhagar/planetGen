@@ -41,7 +41,7 @@ The families, by what the recipe drew:
 
 import dataclasses
 
-from planetgen.physics import atmosphere_recipes, mixture_coma, mixture_evolved, mixture_giant, mixture_lava, mixture_rocky
+from planetgen.physics import atmosphere_recipes, mixture_coma, mixture_escape, mixture_evolved, mixture_giant, mixture_lava, mixture_rocky
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureDraw, MixtureError, NotApplicable  # noqa: F401  (the public names of the result)
 
@@ -52,7 +52,7 @@ life stage (`o2_pal`), so they are drawn after it (`mixture_trace.draw_trace_gas
 ultraviolet regime `p` by their own lanes, all from the same stream."""
 
 
-ROCKY_INPUTS = ("ts_k", "pressure_bar", "mass_earth", "age_gy")
+ROCKY_INPUTS = ("ts_k", "pressure_bar", "mass_earth", "age_gy", "v_esc_kms", "teq_k", "xuv_index")
 """tuple: What the rocky chemistry reads besides what the recipe rows read."""
 
 GIANT_INPUTS = ("radius_km", "t_layer_k")
@@ -171,4 +171,5 @@ def draw_mixture(subject):
                                              log_enrichment=mixture_giant.enrichment_of_mass_fraction(z))
     else:
         result = mixture_giant.giant_mixture(subject, recipe, family=family)
+    result = mixture_escape.apply(subject, result)
     return dataclasses.replace(result, recipe=recipe)

@@ -30,10 +30,11 @@ rocky family and gives the pieces their own seeded design brackets, each a stand
   where the air has 3e-3, so the methane that the air holds sits in methane-rich ice; the bracket spans both.
 """
 
+import dataclasses
 import math
 
 from planetgen.physics import gas_equilibrium, saturation
-from planetgen.physics import mixture_rocky
+from planetgen.physics import mixture_oxygen, mixture_rocky
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureDraw, NotApplicable, atoms_of, bracket, finish, require
 
@@ -125,8 +126,12 @@ def evolved_oxidised(subject, recipe, row):
         atoms["O"] -= (lost / 2.0) * bracket(constants, "oxygen_sink", OXYGEN_SINK)
     atoms = {symbol: value for symbol, value in atoms.items() if value > 0.0}
     result = mixture_rocky.cool(atoms, subject, constants, held_diw=held, quenched=False)
-    return finish(result, family=FAMILY_OF_ROW[row], drawn={group: drawn.name for group, drawn in recipe.groups.items()},
-                  redox_diw=redox, inventory=inventory, constants=constants)
+    draw_result = finish(result, family=FAMILY_OF_ROW[row], drawn={group: drawn.name for group, drawn in recipe.groups.items()},
+                         redox_diw=redox, inventory=inventory, constants=constants)
+    if row == "j5":
+        capped = mixture_oxygen.cap_oxygen(draw_result.mole_fractions, mixture_oxygen.ABIOTIC_O2_MAX)
+        draw_result = dataclasses.replace(draw_result, mole_fractions=capped)
+    return draw_result
 
 
 def titan_like(subject, recipe):
