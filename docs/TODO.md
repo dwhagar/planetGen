@@ -2104,6 +2104,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is_habitable predicate, this item reads it when it lands; until then
   use the stored overall score and the same test). Tying the PHI-6 into
   the planet classes is GEN.644 (Habitability lane D, proposal first).
+  Research (2026-10-09, Update): Habitability lane C (7:17 AM EDT
+  2026-10-24, as the lane reported): the habitable worlds half merged as
+  #2943 (schema v148, migration 0148, no epoch, no marker row). The
+  Galaxy Map has an opt-in 'Habitable worlds' marker kind (Menu toggle
+  or show=marker-habitable): a glyph over each system with a Blue or
+  Green world, hover shows the count, click shows the system card. New
+  side table habitable_systems (star_systems has a FULLTEXT key so no
+  column); tiles carry a new `worlds` section; the count uses the stored
+  phi4 floor, which equals habitability.is_habitable. NOT done, and this
+  item stays open for it: the 'chosen classes' markers (a kind registry
+  entry plus a class filter), which wait on GEN.645 to GEN.648. The lane
+  retired; the item needs a new owner when GEN.645 to GEN.648 land.
 
 - [ ] **MAP.221 Station and vessel icons on the Galaxy Map**
   Split from MAP.132 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -19126,6 +19138,13 @@ clears each one.
   GEN.631 or GEN.271, or the DB.98 fixture clean-up #2931, are the
   likely sources) and fix the test or the migration. Done: the test
   passes on main. Owner: Bug Hunt (proposed).
+  Research (2026-10-09, Update): Habitability lane C (7:17 AM EDT
+  2026-10-24, as the lane reported): test_migration_habitable_worlds
+  fails with DataMissing on a fresh lane machine until the ozone_uv
+  dataset is fetched (python3 -m planetgen.cli.datasets fetch ozone_uv).
+  That may be the whole cause of this red on lane machines (the same
+  environment fault as TEST.319); recheck with the dataset fetched
+  before looking for a code cause.
   Prerequisites: none. Related: DB.98, GEN.631, GEN.271.
 
 ## USR: User accounts
@@ -19867,6 +19886,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   skips until `python -m playwright install firefox` has been run, so
   the environment script should run it too (Chromium is already there).
   Without it the Firefox check never runs on a lane machine.
+  Research (2026-10-09, Update): Habitability lane C (7:17 AM EDT
+  2026-10-24, as the lane reported): a fresh lane machine also needs the
+  ozone_uv dataset fetched (python3 -m planetgen.cli.datasets fetch
+  ozone_uv) or test_migration_habitable_worlds fails with DataMissing;
+  add it to the setup script.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
