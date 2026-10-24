@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2196] - 2026-10-24
+
+**Headline:** The greenhouse optical depth of an atmosphere is now worked out from its gases as a spectrum, and a bug that made very thick atmospheres far too hot in the greenhouse closure is fixed; nothing a visitor sees changes yet.
+
+### Changed
+- **GEN.703: the infrared optical depth (tau0) of an air comes from its mixture.** A new module (`physics/infrared_opacity.py`) builds the depth on a wavenumber grid from each gas's bands, their far wings, the water vapour continuum and the collision-induced pairs, as the equivalent grey thickness at the surface temperature, instead of one fixed strength per gas. A trace gas on a cold world now counts through its saturated bands, a band far from the surface's Planck peak counts for nothing, and the opacity follows the temperature. `atmosphere_state.greenhouse_warming` uses it (the per-gas strengths are gone). Earth's air gives `G` 0.65 (measured 0.625), a Venus-like air 76 (99.6), a Mars-like air 0.075 (0.10 to 0.21). The band and wing strengths are labelled stand-ins until real line data are in. It is not on the generation path yet, so no generated value moves.
+- **The greenhouse closure no longer overheats very thick atmospheres.** Above an optical depth of about 500 the integral of `greenhouse.surface_temperature_k` stepped over the part that counts and returned temperatures several times too high; it now matches the published table from 1 to 200,000, and is a few times faster.
+
 ## [8.0.2195] - 2026-10-24
 
 **Headline:** The libraries the site ships itself are now locked: a test fails when a vendored file is edited by accident.
