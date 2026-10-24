@@ -33,3 +33,4 @@ Commit each file came from:
 - v147: 838b83e (MAP.259 block lights, before MAP.220)
 - v148: 0a0a15e (MAP.220 habitable systems, before the wiki removal)
 - v149: cc0d201 (OPS.69 wiki links removed, before GEN.649 life scores)
+- v150: e229208 (GEN.649 life scores, before GEN.461)

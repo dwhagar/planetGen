@@ -26,7 +26,7 @@ a new `RoguePlanet` and back-fills stored rows (`store._migrate_v47_to_v48`).
 
 import math
 
-from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, radiogenic, relations, saturation
+from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, radiogenic, relations, saturation, water_layer
 from planetgen import tuning
 from planetgen.util.random import log_uniform
 from planetgen.util import draw
@@ -229,17 +229,17 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
         regime = "frozen-atmosphere" if had_air else "bare-rock"
 
     if water_fraction is not None:
-        depth_km = hydrosphere.water_layer_depth_km(mass_kg, radius_km, water_fraction)
-        split = None
+        water_kg = water_fraction * mass_kg
+        column = None
         if surface_k < hydrosphere.WATER_MELTING_K:
             shell_km = hydrosphere.pressure_melted_shell_km(flux, surface_k, gravity)
-            split = hydrosphere.split_column(depth_km, shell_km, hydrosphere.WATER_MELTING_K, gravity)
+            column = water_layer.column(mass_kg, radius_km, water_kg, shell_km=shell_km,
+                                        bottom_temperature_k=hydrosphere.WATER_MELTING_K, pressure_pa=pressure_pa)
         elif surface_k < hydrosphere.water_boiling_k(pressure_pa):
-            split = hydrosphere.split_column(depth_km, 0.0, surface_k, gravity)
-        if split is not None:
-            shell_km, liquid_km, hp_km = split
-            result.update({"ice_shell_thickness_km": shell_km or None, "ocean_depth_km": liquid_km,
-                           "hp_ice_km": hp_km or None, "has_liquid_water": bool(liquid_km)})
+            column = water_layer.column(mass_kg, radius_km, water_kg, bottom_temperature_k=surface_k, pressure_pa=pressure_pa)
+        if column is not None:
+            result.update({"ice_shell_thickness_km": column.ice_shell_km or None, "ocean_depth_km": column.liquid_km or None,
+                           "hp_ice_km": column.hp_ice_km or None, "has_liquid_water": bool(column.liquid_km)})
         if regime == "hydrogen-envelope":
             if result["has_liquid_water"] and not result["hp_ice_km"]:
                 regime = "hycean"
