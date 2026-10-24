@@ -13050,6 +13050,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Blocker 5 lane (build lane for the top blockers, 2026-10-24), moved from lane E at 10:05 PM EDT 2026-10-23: lane E had only read it, had not started it, and handed it over; it has no open prerequisites and 22 items wait behind it. Warning from lane E: lane I's #2751 edits generation/planet.py SERIALIZABLE_FIELDS and planets.py, so the Planet slice rebases on it.
+  Slice f (2026-10-09): Slice f merged as #2778 (about 10:40 PM EDT
+  2026-10-23 as the lane reported, a34e275, no epoch, no stored change):
+  generation/planetary_object.py, the PlanetaryObject family class;
+  Planet (planet or moon) and RoguePlanet subclass it, with shared
+  is_giant and parent_kind. GEN.565 stays open for the remnant classes
+  folding into states and the DB.74 table revision (stored names
+  body_type and planet_type, mass and mass_kg). Report:
+  reports/blocker-5-status-2026-10-24.md.
 - [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
   Part of the unified orbited-body chain (GEN.550; design note
   docs/design/architecture/mass-object-class.md, decided: Boss's cards, as the
@@ -20493,6 +20501,15 @@ clears each one.
   reasoning recorded, and 50 repeated runs pass. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: GEN.413.
+
+- [ ] **TEST.310 Re-run the 16 tests that failed in the Blocker 5 gate on current main in an environment with MySQL and Redis, and report**
+  The Blocker 5 lane had no MySQL or Redis (connection refused), so its
+  scripts/test.py changed run showed 17,619 passed and 16 failed or
+  errored, never confirmed as environmental
+  (reports/blocker-5-status-2026-10-24.md, PR #2778). Do: run the
+  affected tests on current main with a working environment and report
+  which, if any, are real failures. Owner: Bug Hunt.
+  Prerequisites: none.
 
 ## USR: User accounts
 
