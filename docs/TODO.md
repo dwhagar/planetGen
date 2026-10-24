@@ -2570,24 +2570,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane, with MAP.260 (the warm-up), which it builds next.
   Prerequisites: none. Related: MAP.258, MAP.260.
 
-- [ ] **MAP.291 Galaxy view map window does not use the full page width or the page height (bug)**
-  Boss live observation (1:50 PM EDT 2026-10-24). The Galaxy view map
-  window does not use the full page width; it should. Its height should
-  scale to the page height, leaving room for the toolbar, the search and
-  the view window, and the aspect ratio of the map should match the
-  viewing window. Do: size the map container to the full width of the
-  page and to the page height minus the toolbar, search and view window,
-  and set the render aspect ratio from the container so nothing is
-  stretched. Done: at desktop and phone widths the map fills the width,
-  the toolbar and search stay visible without page scroll, and a test
-  checks the container fills the available width and height. Owner: Core
-  2 after MAP.290.
-  Research (2026-10-09, 10-24 Boss): Related UX.142 (8.2 phase 2: the
-  viewing windows scale to the browser window so the controls are always
-  in view). MAP.291 is the live fix for the Galaxy view now; UX.142
-  covers every viewer later, so build MAP.291 so UX.142 can reuse the
-  same sizing.
-  Prerequisites: none. Related: MAP.290.
+- [ ] **MAP.293 Colour by Habitable worlds no longer fills any sector since MAP.267: the legend shows but the sectors keep their normal colour (bug)**
+  Found by Aux 4 with test_habitability_end_to_end_browser.py::
+  test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count
+  (TEST.300), bisected: it passes at 1e79ee02c~1 (and at MAP.261,
+  MAP.266
+  and MAP.292) and fails at 1e79ee02c (MAP.267, #3114) and on main.
+  Picking
+  Color by Habitable worlds in a 3-sector window still shows the legend,
+  but no sector is filled (the patch round the habitable sector does not
+  change colour; the screenshot shows only the labels and a cross), and
+  turning the cell grid on does not help. The test is correct and stays
+  red on main until this is fixed. Owner: Aux 10 (Map nodes; it wrote
+  MAP.267), before it retires.
+  Prerequisites: none. Related: MAP.267, MAP.131, TEST.300.
 
 ## NAV: Navigation and courses
 
@@ -16769,6 +16765,32 @@ Design: [docs/design/operations/login-brute-force-protection.md](design/operatio
   specifically authorizes an exception.
   Prerequisites: none. Related: TEST.261.
 
+- [ ] **SEC.34 Upgrade Pillow from 12.3.0 to 13.0.0 in both lock files (37 advisories fixed in 13.0.0)**
+  Found by Bug 1 in its TEST.261 prep sweeps
+  (reports/test261-pre-audit-sweeps-2026-10-24.md finding 1, pip-audit
+  at
+  main 02651a05, 6:36 PM EDT 2026-10-24 as the lane reported): all 37
+  advisories are in the TIFF, GIF, PPM and PDF decoders (out-of-bounds
+  reads, zero-width images) and are reachable only through the admin
+  picture upload. Do: move pillow to 13.0.0 in requirements.lock and
+  requirements-server.lock, check that every use of Pillow still works
+  (the picture upload, the map and render code that imports PIL), and
+  re-run pip-audit. Done when pip-audit lists no Pillow advisory. Owner:
+  Bug 1 (offered to take it). Merged before the audit so SEC.33 does not
+  find it again.
+  Prerequisites: none. Related: SEC.33, TEST.261.
+
+- [ ] **SEC.35 The picture upload opens the file with every format Pillow knows before refusing all but PNG, JPEG and ICO: restrict the formats on open**
+  Found by Bug 1 in its TEST.261 prep sweeps
+  (reports/test261-pre-audit-sweeps-2026-10-24.md finding 2, 6:36 PM EDT
+  2026-10-24 as the lane reported): web/assets.py::_image_info calls
+  Image.open without a format list, so a TIFF, PPM or GIF header is
+  parsed
+  before the format check refuses it. Do: call Image.open with
+  formats=["PNG", "JPEG", "ICO"] and add a test that a TIFF is refused.
+  Owner: Bug 1 (offered to take it). Merged before the audit.
+  Prerequisites: none. Related: SEC.33, TEST.261.
+
 ## TEST: The test suite
 
 From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
@@ -19134,6 +19156,43 @@ clears each one.
   right after the life score and radiation changes, fix the other, and
   record which. Owner: Bug 1.
   Prerequisites: none. Related: GEN.762.
+
+- [ ] **TEST.364 Clean up the unused imports, unused variables and redefinitions that ruff and vulture report (82 ruff F findings, 12 vulture hits)**
+  Found by Bug 1 in its TEST.261 prep sweeps
+  (reports/test261-pre-audit-sweeps-2026-10-24.md, dead and unused code,
+  6:36 PM EDT 2026-10-24 as the lane reported): ruff F reports 82
+  findings
+  (56 unused imports, 13 unused variables, 12 redefinitions while
+  unused,
+  1 loop variable shadowing an import, 68 auto-fixable) and vulture at
+  80
+  percent reports 12 lines. Do: remove them (no shims; where an import
+  is
+  kept for a re-export, make the re-export explicit), keep behaviour the
+  same, and add a ruff F check to the fast checks if one is not there.
+  Owner: Bug 1 after the two SEC items; not a security fix.
+  Prerequisites: none. Related: SEC.33, TEST.261.
+
+- [ ] **TEST.365 Six phenomenon-page tests in test_class_pages.py fail on clean main (bug)**
+  Reported by Aux 4 (Lane E) at 6:37 PM EDT 2026-10-24 as the lane
+  reported: six phenomenon-page tests in test_class_pages.py are red on
+  clean main and are not from its changes. Find the cause (a stale
+  expectation after the colour or look changes, or a real page defect),
+  fix it and record which. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.346.
+
+- [ ] **TEST.366 test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug)**
+  Reported by Aux 8 (Lane L) and Core 2 while merging GEN.756, GEN.757
+  and MAP.291 (6:34 and 6:37 PM EDT 2026-10-24 as the lanes reported):
+  the
+  test expects [('Holds', 'step')] and gets [('Holds', 'm...lds',
+  'step')].
+  Lane L's reading: it counts the host's MySQL memory. Make the memory
+  watch count only the step's own processes (or the test isolate the
+  watch from the host), without loosening the budget check. Owner: Bug 1
+  (PERF.183 and PERF.186 code, so ask Bug 2's report if it is not
+  clear).
+  Prerequisites: none. Related: PERF.183, PERF.186.
 
 ## USR: User accounts
 

@@ -1412,3 +1412,4 @@ Baseline: PR #1817.
 | TEST.361 | 8.1 | The headline closes |
 | TEST.360 | 8.1 | The headline closes |
 | MAP.287 | 8.1 | Fly-through map |
+| MAP.291 | 8.1 | Fly-through map |
