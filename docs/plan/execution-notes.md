@@ -299,3 +299,5 @@ Update 3:08 PM EDT 2026-10-24: API.26 and API.31 (#3047) retired; filed TEST.349
 Update 3:15 PM EDT 2026-10-24: UX.121 (#3049) retired. Boss reported at 3:13 PM EDT that Cancel does not cancel and python workers saturate his host; filed PERF.186 (CRITICAL: working Stop everything with a pause flag), Lane OOM, ahead of PERF.183. Fixed a broken link in docs/reference/api.md (the gap plan lives under design/research). 952 of 1321 8.1 items finished (72.1 percent), 369 open.
 
 Update 3:16 PM EDT 2026-10-24: TEST.347 and TEST.348 (#3050) retired. Bug Hunt is on TEST.349, then TEST.343 and TEST.344; it could not reproduce the browser fixture KeyError 'planets' (PR #3009 made the fixture assert status 200), so any lane still seeing it should send Bug Hunt the first error line. 954 of 1321 8.1 items finished (72.2 percent), 367 open.
+
+Update 3:21 PM EDT 2026-10-24: DOC.75 retired and GEN.445 noted (#3052, no epoch, no migration; toxicity reads still wait on GEN.411). Filed TEST.350 (facility, population and web.system button tests red on main, Bug Hunt). 955 of 1322 8.1 items finished (72.2 percent), 367 open.
