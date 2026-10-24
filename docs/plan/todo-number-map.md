@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.355 |
+| TEST | TEST.357 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.80 |
@@ -1372,7 +1372,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.642 | Giants, ice giants and brown dwarfs get a full interior composition: the molecular envelope, the liquid and metallic hydrogen and helium layers, the dilute zone, and a rocky, iron or icy core with its own composition, drawn and described | none | done, PR #2912 |
 | GEN.643 | Habitable means PHI-6 overall Blue or Green: one rule, one function, read by the sector counts, the markers, the lists, the search and the descriptions | none | done, PR #2886 |
 | GEN.644 | Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree | none | open |
-| GEN.645 | Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91 | none | open |
+| GEN.645 | Design: condition-based planet and moon classes: the rule table, the inputs, the legacy letters and what happens to GEN.28, GEN.90 and GEN.91 | none | done, PR #3080 |
 | GEN.646 | Class designation leaves generation: planets and moons are drawn from their zone, mass, formation distance and composition recipes with no class letter | none | open |
 | GEN.647 | The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons | none | open |
 | GEN.648 | The generation request for a habitable world (+habitable_world) steers by conditions, not by a class list: redraw water, life, temperature and atmosphere inside their ranges until the PHI-6 overall is Blue or Green | none | open |
@@ -1413,7 +1413,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.683 | Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range | none | open |
 | GEN.684 | Albedo and greenhouse come from the composition; delete the two class ranges | none | open |
 | GEN.685 | Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class] | none | open |
-| GEN.686 | Age needs come from the processes; delete age_ranges | none | open |
+| GEN.686 | Age needs come from the processes; delete age_ranges | none | done, PR #3080 |
 | GEN.687 | Rogue planets get their class from classify; delete choose_rogue_planet_class | none | open |
 | GEN.688 | Generation requests name conditions, not class letters: slots and the admin class change take conditions, +habitable_world steers on the PHI-6, the directive counts is_habitable | none | open |
 | GEN.689 | The class cut-over: classify at the end of generation, validation becomes total and derived, one generator epoch, a migration backfills the column | none | open |
@@ -2817,6 +2817,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.352 | test_db_column_round_trip::test_every_column_is_written fails on main: the star columns disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au are now written, so they must leave NULL_IN_THIS_GALAXY (bug) | none | open |
 | TEST.353 | test_interior_heat::test_every_generated_rocky_body_stores_its_draws_and_an_urey_ratio_that_is_an_output is red on main: a generated body has urey_ratio 2.09 and the test caps it at 1.5 (bug) | none | open |
 | TEST.354 | test_api.py::test_the_description_splits_into_every_body is red on clean main: the facts section appears twice (facts, prose, composition, ratings, facts) (bug) | none | open |
+| TEST.355 | test_class_pages: the phenomenon link (nebula D) is red on clean main (bug) | none | open |
+| TEST.356 | test_web_search: the star result link is red on clean main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
