@@ -24,7 +24,9 @@ real MySQL service for this reason, but a contributor without one locally
 can still run everything else.
 """
 
+import functools
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -163,6 +165,28 @@ def _generation_refs():
     return [ref for ref in refs if ref is not None]
 
 
+PLAYWRIGHT_IMPORT = re.compile(r"""importorskip\(\s*["']playwright|^\s*(?:from|import)\s+playwright\b""", re.M)
+"""re.Pattern: A test file's own import of Playwright."""
+
+BROWSER_FIXTURES = frozenset({"browser", "gl_browser"})
+"""frozenset: The Playwright browser fixtures (`test_web_a11y.py`, `test_web_browser_fixture_maps.py`), for a file
+that borrows one without importing Playwright itself."""
+
+
+@functools.lru_cache(maxsize=None)
+def _imports_playwright(path):
+    with open(path, encoding="utf-8") as handle:
+        return bool(PLAYWRIGHT_IMPORT.search(handle.read()))
+
+
+def _uses_playwright(item):
+    """
+    Whether `item` drives headless Chromium (TEST.304): its file imports Playwright or it takes a browser fixture.
+    So the all-core phase of `scripts/test.py` never starts Chromium, whatever the file is called.
+    """
+    return bool(BROWSER_FIXTURES & set(getattr(item, "fixturenames", ()))) or _imports_playwright(str(item.path))
+
+
 def pytest_collection_modifyitems(config, items):
     """Suite markers (registered in pytest.ini), so a run can pick a slice:
     `-m "not db"` without a database, `-m "not slow"` for a quick loop,
@@ -173,8 +197,7 @@ def pytest_collection_modifyitems(config, items):
       through another fixture).
     - `slow`: the brute-force and seeded-sweep files (`test_fuzz_*`,
       `test_bughunt_*`), whose cost is in their number of examples.
-    - `browser`: `test_web_a11y.py` and `test_web_browser_*.py` (headless
-      Chromium).
+    - `browser`: every test that drives headless Chromium (`_uses_playwright`, TEST.304).
     - `mathcheck`: `test_math_check.py`, moved to the front of the run.
     - `generation`: files that run generation (`generate`, the work queue
       or `bughunt_support.run_cli`), which CI also runs at several worker
@@ -202,7 +225,7 @@ def pytest_collection_modifyitems(config, items):
             item.add_marker(pytest.mark.heavy)
         if name.startswith(("test_fuzz_", "test_bughunt_")):
             item.add_marker(pytest.mark.slow)
-        if name == "test_web_a11y.py" or name.startswith("test_web_browser"):
+        if _uses_playwright(item):
             item.add_marker(pytest.mark.browser)
         module = getattr(item, "module", None)
         if module is not None and any(value is ref for value in vars(module).values() for ref in generation_refs):

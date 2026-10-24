@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 from planetgen.db import hostednebula, query, store
-from planetgen.generation import nebula_contents
+from planetgen.generation import nebula_contents, stored_trees
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import stellar_evolution as evolution
@@ -37,11 +37,18 @@ def _row(k, params=None):
 
 
 def _built_star(row, k):
+    """The star a sector fill builds from `row`, as `run_sector._add_preplaced_systems` builds it: a row with no stored
+    members (`stored_trees.SINGLE`, what `FillContext.stored_plan` gives it) is one star. Without the plan the system
+    would draw a tree of its own (GEN.631), which the fill never does, and a heavier companion drawn there took
+    `stars[0]` and lit, or did not light, a nebula the row knows nothing of (TEST.311)."""
     from planetgen.generation import bright_stars as brightStarsGen
     config = SystemConfig()
     config.POPULATION = "young"
     with draw.bound(1000 + k):
-        return StarSystem(system_config=config, primary_star_params=brightStarsGen.star_params(row)).stars[0]
+        system = StarSystem(system_config=config, primary_star_params=brightStarsGen.star_params(row),
+                            member_tree=stored_trees.SINGLE)
+    assert len(system.stars) == 1
+    return system.stars[0]
 
 
 def test_a_pre_placed_star_rolls_the_nebula_its_sector_builds():
