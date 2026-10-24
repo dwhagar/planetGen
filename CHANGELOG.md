@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2199] - 2026-10-24
+
+**Headline:** A data table whose rows are slow to build shows a progress bar instead of stalling.
+
+### Changed
+- **The tables' scroll and sort wait on a page job (UX.136).** When a table's data route (`/table/<name>`) would take long, it answers `202` with the job (`pending`, `job`, `percent`, `status_url`) as the pages do; `static/datatable.js` shows the same bar and estimate above the rows (the rows already loaded stay), polls `/api/page-jobs/<id>`, and asks again when the job has succeeded. A failed or cancelled job shows why with Try again (which replaces it); Stop waiting ends the polling and Check again picks the job up. Browser tests cover a slow scroll and a slow sort, in both themes and at phone width.
+
 ## [8.0.2198] - 2026-10-24
 
 **Headline:** The star scatter's units for globular clusters and satellite galaxies now say how many stars they will place, so the log and the progress bar no longer promise ten to twenty times too many.
