@@ -1141,6 +1141,43 @@ def test_cancel_of_a_finished_job_does_nothing(jobs_root, redis_server):
     assert not os.path.exists(os.path.join(jobs_root, job_id, jobs.CANCEL_NAME))
 
 
+def test_cancel_of_a_job_cancels_the_runs_it_started_at_once(site, client, jobs_root, redis_server):
+    """PERF.99: the runs the job's step started are cancelled by the cancel itself, through the stop command, not left to
+    the step noticing; the machine is free before the step is gone."""
+    from planetgen.queue import runrecord
+    from planetgen.queue.runrecord import Stage
+
+    job_id = jobs.start_job("galaxy", "Slow", [_step("Sleeps", "import time; print('sleeping', flush=True); time.sleep(60)")])
+    deadline = time.time() + 20
+    while "sleeping" not in (jobs.log_tail(job_id) or ""):
+        assert time.time() < deadline
+        time.sleep(0.05)
+    connection = redisqueue.connect(redis_server)
+    run_id = runrecord.start_run(connection, "Started by the step", [Stage("s", "S", units=2)], job=job_id)
+    other = runrecord.start_run(connection, "Not this job's", [Stage("s", "S", units=1)], job="20261024-000000-ffff",
+                                kind=runrecord.CHECK)
+    resp = client.post("/admin/generate", data={"action": "cancel", "job": job_id, "csrf_token": _token(client)})
+    assert resp.status_code == 303
+    run = runrecord.read_run(connection, run_id)
+    assert run["state"] == "cancelled" and run["error"] == "cancelled by boss"
+    assert runrecord.read_run(connection, other)["state"] in runrecord.LIVE_STATES
+    assert _wait_finished(job_id, jobs_root)["status"] == "cancelled"
+
+
+def test_the_job_page_lists_the_runs_the_job_started(site, client, jobs_root, redis_server):
+    from planetgen.queue import runrecord
+    from planetgen.queue.runrecord import Stage
+
+    job_id = jobs.start_job("galaxy", "Quick", [_step("x", "pass")], spawn=False)
+    html = client.get(f"/admin/generate/jobs/{job_id}").get_data(as_text=True)
+    assert "/admin/queue/" not in html
+    connection = redisqueue.connect(redis_server)
+    run_id = runrecord.start_run(connection, "Stars of the shell", [Stage("s", "S", units=2)], job=job_id)
+    runrecord.finish_run(connection, run_id, "done")
+    html = client.get(f"/admin/generate/jobs/{job_id}").get_data(as_text=True)
+    assert f"/admin/queue/{run_id}" in html and f"/admin/queue/{run_id}/log" in html and "Stars of the shell" in html
+
+
 def test_runner_liveness_on_this_platform(jobs_root):
     """The page's liveness check sees this process as alive and a pid
     that has exited as dead."""

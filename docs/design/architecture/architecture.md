@@ -356,6 +356,8 @@ The work queue and the API's long jobs, on Redis with RQ.
 | [`runeta.py`](../../../src/planetgen/queue/runeta.py) | The time left in a run (PERF.96, PERF.33), a pure function of the counters `runrecord.read_run` returns, shared by the terminal bar, the Generate and Queue pages and the banner. |
 | [`hourdisplay.py`](../../../src/planetgen/queue/hourdisplay.py) | The time left as whole hours for the galaxy banner (UX.3): the top of the likely range rounded up, never below one hour; it falls as the estimate falls and rises only when even the low end is longer than the figure shown. |
 | [`runrecord.py`](../../../src/planetgen/queue/runrecord.py) | A run's record in Redis (PERF.96, step 2 of the work queue rebuild, docs/design/operations/redis-and-the-work-queue.md 5.1 and 5.2): the one place a run lives. |
+| [`runcontrol.py`](../../../src/planetgen/queue/runcontrol.py) | What an admin does to a run in Redis (PERF.99, docs/design/operations/redis-and-the-work-queue.md 5.5 and 5.6): cancel it through the stop command, clear one that stopped answering, delete finished ones and keep the last 20 run logs. |
+| [`runview.py`](../../../src/planetgen/queue/runview.py) | A run as the pages show it (PERF.99): `runrecord.read_run`'s dict as plain JSON-able numbers and words, shared by the Queue page, its API and the Generate page. |
 | [`work.py`](../../../src/planetgen/queue/work.py) | The generation work queue (PERF.8): runs independent units of work (a sector to fill, a run of shells to scatter) on a pool of worker processes, at most about 80% of the machine's cores. |
 | [`workers.py`](../../../src/planetgen/queue/workers.py) | The workers of the two shared queues (PERF.95, folding in PERF.40, PERF.78 and ADM.15): who starts them, how many there are, and how a running job is stopped. |
 
@@ -448,7 +450,7 @@ The JSON API under `/api` (see [api.md](../../reference/api.md)).
 | [`routes.py`](../../../src/planetgen/api/routes.py) | Every `/api/...` content route: databases, sectors, systems (detail, text, sections, near), nav, `/api/galaxy/*` (sectors, phenomena, shape with its `bright_stars` status, cell, tiles, stage, stamp, changes, locate), phenomena, search, facilities, and the admin writes (edit, delete, generate-neighborhood, `POST /api/systems` with an optional `sector_id` to add a system to a stored sector, `PATCH /api/systems/<id>` with `regenerate` to rebuild one in place). |
 | [`schemas.py`](../../../src/planetgen/api/schemas.py) | Request bodies as Pydantic models (ADM.21). |
 | [`version.py`](../../../src/planetgen/api/version.py) | The API version (API.22): one sequential integer, like the database schema number. |
-| [`workqueue.py`](../../../src/planetgen/api/workqueue.py) | Admin endpoints behind the work queue page (ADM.10, `web/queue_page.py`): the queue's state (workers active, the server's load, the lease, the whole-queue pause), the job trees (ADM.12, `planetgen/queue/work.py`) and the controls on them. |
+| [`workqueue.py`](../../../src/planetgen/api/workqueue.py) | Admin endpoints behind the work queue page (ADM.10, `web/queue_page.py`): the queue's state (workers active, the server's load, the machine's holder, the whole-queue pause), the runs in Redis (PERF.99) with their stages and log, and cancel, clear and delete on them. |
 
 #### src/planetgen/web/
 
@@ -475,7 +477,7 @@ The HTML pages (see [html-interface.md](../../reference/html-interface.md)). `te
 | [`nav_page.py`](../../../src/planetgen/web/nav_page.py) | `/nav`: pick two endpoints, show course, route and NAV map, with "Show on Galaxy Map" (`galaxy_course` builds the course's waypoints for `/galaxy?course=`). |
 | [`nearby_page.py`](../../../src/planetgen/web/nearby_page.py) | The What's nearby page, `/nearby` (NAV.44): pick a place, type a distance in parsecs, list what is there. |
 | [`population_pages.py`](../../../src/planetgen/web/population_pages.py) | The population pages (POP.1 to POP.4), read from the population API (`api/population.py`, schema v44): |
-| [`queue_page.py`](../../../src/planetgen/web/queue_page.py) | The admin work queue page (ADM.10): `/admin/queue` lists the job trees newest first, `/admin/queue/<id>` shows one. |
+| [`queue_page.py`](../../../src/planetgen/web/queue_page.py) | The admin work queue page (ADM.10, PERF.99): `/admin/queue` lists the runs in Redis newest first, `/admin/queue/<run id>` shows one with its stages and log tail, and cancel, clear and delete act on a run. |
 | [`searchpage.py`](../../../src/planetgen/web/searchpage.py) | Search page request parsing and URL building. |
 | [`sector_page.py`](../../../src/planetgen/web/sector_page.py) | `/sector/<id>`: Sector Map, contents table (with octants, nearest systems and facilities), admin actions (generate neighborhood), and the NAV pick mode (`?pick=from` or `?pick=to`, a "Choosing a destination" banner and "Use as destination" links). |
 | [`system_facilities.py`](../../../src/planetgen/web/system_facilities.py) | The system page's Facilities panel and the admin facility form: `preview` (placement rules and orbit, nothing saved), `save` (`POST /api/facilities`) and `remove` (`DELETE /api/facilities/<id>`). |

@@ -40,6 +40,7 @@ this API instead.
 
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here.
 
+- **6** (PERF.99): `GET /api/admin/work` and `GET /api/admin/work/<id>` return the runs in Redis (`items` are runs with their stage, units and time left, not job tree roots; `<id>` is a run id and answers the run with its stages and log), `POST /api/admin/work/<id>/control` takes `cancel` or `clear` (`pause` and `resume` of a node are gone), `POST /api/admin/work/<id>/delete` and `clear-finished` delete runs, `GET /api/admin/work/<id>/log` is new, and `POST /api/admin/work/lease/clear` is gone (clear the run instead).
 - **5** (DB.51): `GET /api/systems/<uid>/sections` is gone: the description is a document built from stored data, not a table of paragraphs.
 - **4** (ADM.50): `GET /api/admin/galaxy-settings` and `GET /api/admin/galaxy-settings/<name>` are gone with the galaxy settings files.
 - **3** (API.23, stage 2): stars, planets, moons, asteroid belts, comets and facilities are named by their object ID too, in the same way: `id`, `star_id`, `planet_id`, `moon_id`, `belt_id`, `comet_id`, `host_id` and `homeworld_planet_id` fields, `<kind>:<ID>` references (including the keys of `class-options` and the `around`/`parent` fields of a system scene), the `ref` of every section and link of `/api/systems/<id>/description`, and the URLs (`/api/planets/<id>`, `/api/moons/<id>/class`, `/api/facilities/<id>`, ...). A facility's `host_id` (on `POST /api/facilities` and `GET /api/facilities/orbit`) is the host's ID: a sector's for `host_type` `space`. A row number is refused.
@@ -869,14 +870,22 @@ forced credential change. They back the admin stats page
   phoneme codec names takes a new name at once and no row is rewritten.
   409 before the galaxy is planned. Audited as `naming-key.change`. On the
   Stats page.
-- `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10):
+- `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10, PERF.99):
   `{"available", "status": {"workers_active", "runs_active", "paused",
-  "paused_by", "paused_at", "holder", "job_id", "heartbeat_age_s",
-  "stale", "load": {"values", "kind", "text"}}, "items": [job tree
-  roots, newest first, each with "totals"], "total", "limit",
-  "offset"}`. `load.kind` is `load` (the 1, 5 and 15 minute load
-  average); `load.values` is null where the system has no load average.
-  `available` is false until `update.sh` has added control schema v7.
+  "paused_by", "paused_at", "holder", "holder_title", "heartbeat_age_s",
+  "stale", "load": {"values", "kind", "text"}}, "items": [runs, newest
+  first], "total", "limit", "offset"}`. A run is `{"id", "title", "kind"
+  ("generation", "maintenance" or "check"), "who", "database", "job" (the
+  Generate page job that started it), "argv", "state" ("running",
+  "cancelling", "done", "failed" or "cancelled"), "error", "live", "stale",
+  "created", "started", "updated", "finished", "seconds", "stage": {"index",
+  "count", "label", "state"}, "units", "units_done", "percent", "eta":
+  {"seconds", "low", "high", "source", "from_earlier_runs", "partial",
+  "stalled"} or null}`, all read from the run record in Redis (`holder` is
+  the run that owns the machine; `stale` says it has not been heard from
+  for `max(120 s, 3 x its longest unit)`). `load.kind` is `load` (the 1, 5
+  and 15 minute load average); `load.values` is null where the system has
+  no load average. `available` is false when no Redis server answers.
 - `GET /api/admin/work/warm?database=NAME` — what the cache warm-up has done on that database, phase by phase (PERF.141):
   `{"available", "run": {"state", "started_at", "finished_at", "reason", "error"} or null, "phases": [{"name", "text",
   "families", "state", "state_text", "line", "built", "cached", "left_out", "seconds", "started_at", "finished_at"}],
@@ -892,28 +901,30 @@ forced credential change. They back the admin stats page
   POST needs a fresh admin login, is audited as `work.workers.set`, and
   lowering the count asks the extra workers to finish their unit and exit.
   503 when Redis does not answer.
-- `GET /api/admin/work/<id>` — the whole job tree holding node `<id>`
-  (ADM.12): every node's `kind`, `title`, `state`, `status` (`interrupted`
-  for a run that stopped answering), Unix-time `created_at`,
-  `started_at`, `finished_at`, `seconds`, `control`, `children`, a queue
-  node's `tasks` (up to 200, failed first) and `totals` (`tasks`,
-  `queued`, `running`, `done`, `failed`, `cancelled`, `work_seconds`,
-  `eta_seconds`) added up from the children.
-- `POST /api/admin/work/<id>/control` `{"action": "pause"|"resume"|"cancel"}`
-  — asks a live node and everything under it to pause (running tasks
-  finish, then it stands by without the lease, so other jobs run),
-  resume, or cancel. `POST /api/admin/work/<id>/delete` deletes a
-  finished tree by its root; `POST /api/admin/work/clear-finished`
-  deletes every finished tree and answers `{"cleared": count}`.
-  `POST /api/admin/work/queue`
+- `GET /api/admin/work/<id>` — one run (PERF.99): `{"run": the run above with
+  "stages": [{"key", "label", "state" ("waiting", "running" or "done"),
+  "units", "done", "cost", "cost_done", "started", "ended", "seconds",
+  "longest_unit"}], "events": the last 300 lines of its log [{"id", "t",
+  "level", "kind", "message"}], "log": true}`; 404 for an unknown run.
+  `GET /api/admin/work/<id>/log` answers the whole log as `{"text": ...}`,
+  from Redis while the run's record lasts (30 days) and from the file in the
+  jobs directory's `runs` folder after (the last 20 are kept).
+- `POST /api/admin/work/<id>/control` `{"action": "cancel"|"clear"}` —
+  cancel stops a live run now: its waiting units are taken off the queue,
+  its started units are sent RQ's stop command, and the machine is free
+  (measured under a second for a run of 4,000 units); clear ends a run that
+  has stopped answering (its process is gone, or it is stale) as failed and
+  frees the machine, and is refused for a run that still answers.
+  Answers `{"ok": bool, "cancelled": n, "stopped": n}`.
+  `POST /api/admin/work/<id>/delete` deletes a finished run's record;
+  `POST /api/admin/work/clear-finished` deletes every finished run and
+  answers `{"cleared": count}`. `POST /api/admin/work/queue`
   `{"action": "pause"|"resume"}` pauses the whole queue (a flag in Redis,
   `planetgen:queue:paused`: the workers of a run's units and of the maintenance work take no job
   until it is cleared, a unit already running finishes, and the two API lanes are never held; PERF.152)
-  or resumes it; `503` when Redis does not answer. `POST /api/admin/work/lease/clear`
-  frees a lease whose holder stopped refreshing it. Each answers
-  `{"ok": bool}` (`{"cleared": holder}` for the lease) and writes the
-  change to the audit and activity logs (`work.pause`, `work.queue.pause`,
-  ...).
+  or resumes it; `503` when Redis does not answer. Each answers
+  `{"ok": bool}` and writes the change to the audit and activity logs
+  (`work.cancel`, `work.clear`, `work.delete`, `work.queue.pause`, ...).
 - `GET /api/admin/settings` — the configuration page's data (ADM.84):
   `{"file_hash", "problem", "file_error", "groups", "options",
   "pending_restart"}`. Each option is `{"path", "title", "description",

@@ -242,12 +242,11 @@ def table_site():
 ADMIN = {"username": "boss", "must_change_credentials": False}
 KEYS = [{"id": i, "label": f"key {i:03d}", "created_at": f"2026-01-{1 + i % 28:02d} 00:00:00", "last_used_at": None,
          "revoked_at": "2026-02-01 00:00:00" if i % 5 == 0 else None} for i in range(1, 121)]
-JOBS = [{"id": f"20260101-000000-{i:08d}", "kind": "galaxy", "title": f"Job {i:03d}", "status": "done",
-         "state": "done", "control": None, "live": False, "started_at": None, "created_at": "2026-01-01 00:00:00",
-         "finished_at": None, "seconds": 5.0, "age_seconds": 5.0, "workers": None, "holder": None,
-         "web_job_id": None, "children": [], "tasks": [],
-         "totals": {"tasks": 4, "queued": 0, "running": 0, "done": 4, "failed": 0, "cancelled": 0,
-                    "work_seconds": 0, "eta_seconds": None}} for i in range(120)]
+JOBS = [{"id": f"20260101-000000-{i:08x}", "title": f"Job {i:03d}", "kind": "generation", "who": "boss", "database": None,
+         "job": None, "argv": [], "state": "done", "error": None, "live": False, "stale": False,
+         "created": 1767225600.0, "started": 1767225600.0, "updated": 1767225605.0, "finished": 1767225605.0,
+         "seconds": 5.0, "stage": {"index": 0, "count": 1, "label": "Stage", "state": "done"}, "units": 4,
+         "units_done": 4, "percent": 100.0, "eta": None} for i in range(120)]
 
 
 def _fake_work(cookie_header, limit=None, offset=None):
@@ -668,7 +667,7 @@ def test_a_table_with_no_sortable_columns_still_scrolls(page, admin_site):
     _sign_in(page, admin_site)
     assert page.goto(f"{admin_site}/admin/queue", wait_until="load").status == 200
     page.locator("#jobs [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
-    assert page.locator("#jobs .datatable-count-line").inner_text() == "120 jobs"
+    assert page.locator("#jobs .datatable-count-line").inner_text() == "120 runs"
     page.locator("#jobs .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
     page.locator("#jobs tbody tr[data-index]", has_text="Job 119").wait_for(state="attached", timeout=10000)
     assert page.locator("#jobs th a.datatable-sort").count() == 0

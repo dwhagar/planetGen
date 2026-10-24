@@ -58,7 +58,7 @@ from flask import (Response, abort, current_app, jsonify, make_response, redirec
 
 from pydantic import Field, TypeAdapter, ValidationError
 
-from planetgen.queue import api_jobs, progress_rate
+from planetgen.queue import api_jobs, progress_rate, redisqueue, runrecord, runview
 from planetgen.queue.commands import DEEP_CHECKS, STAGED_COMMANDS
 from planetgen.web import limit_sliders
 from planetgen.web.lib import apiclient, estimatecache
@@ -1114,6 +1114,24 @@ def _job_view(job):
     return view
 
 
+def job_runs(job_id):
+    """
+    The runs the job started (PERF.99), read from their records in Redis, in the order they started: each as the
+    Queue page shows a run (`queue_page.run_view`), with its page and its log. `[]` for a job that started none, or
+    when no Redis answers.
+    """
+    from .queue_page import run_view
+
+    try:
+        connection = redisqueue.connect()
+        now = time.time()
+        found = [runview.read(connection, run_id, now) for run_id in runrecord.job_runs(connection, job_id)]
+    except Exception as exc:  # noqa: BLE001 -- the job page is the job's output; the runs are an extra
+        log.debug(f"Generate page: the runs of job {job_id} were not read ({exc}).")
+        return []
+    return [run_view(run) for run in found if run is not None]
+
+
 def _back_to_page():
     """The admin page the strip's button was pressed on (the referrer, when it is this site), else Generate."""
     parts = urlsplit(request.referrer or "")
@@ -1374,7 +1392,7 @@ def generate():
     if action == "cancel":
         job_id = request.form.get("job") or ""
         try:
-            if jobs.cancel_job(job_id):
+            if jobs.cancel_job(job_id, who=admin.get("username")):
                 activity_log.event("GEN", "job.cancel", user=admin.get("username"), job=job_id)
         except OSError as exc:
             log.error(f"Could not cancel job {job_id}: {exc}")
@@ -1722,6 +1740,7 @@ def generate_job(job_id):
         breadcrumbs=[crumb("Admin", "admin"), crumb("Generate", "generate"), crumb(job["title"] or "Job")],
         admin=admin,
         job=_job_view(job),
+        runs=job_runs(job_id),
         output=jobs.log_tail(job_id, max_bytes=256 * 1024, root=root),
     ))
 

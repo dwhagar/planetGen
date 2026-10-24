@@ -24,7 +24,7 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     admin_token,
     base_url,
     sample_job,
-    sample_job_tree,
+    sample_run,
     sample_params,
     site_app,
     site_db,

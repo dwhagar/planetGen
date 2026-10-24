@@ -742,10 +742,30 @@ def _start_detached(path, argv):
         f.write(str(proc.pid))
 
 
-def cancel_job(job_id, root=None):
+def cancel_runs(job_id, who=None):
     """
-    Asks a running job to stop: writes a `cancel` file into its
-    directory, which the runner checks for while a step runs. It then
+    Cancels the live runs the job started, now (PERF.99, `planetgen.queue.runcontrol.cancel_run`): their waiting units
+    are taken off the queue, their started units are sent the stop command and the machine is free, without waiting
+    for the step that follows them to notice. Best effort: with no Redis the step's own stop is all there is.
+
+    Returns:
+        int: How many runs were cancelled.
+    """
+    try:
+        from planetgen.queue import runcontrol, runrecord
+
+        connection = redisqueue.connect()
+        return sum(runcontrol.cancel_run(connection, run_id, who=who) is not None
+                   for run_id in runrecord.job_runs(connection, job_id))
+    except Exception as exc:  # noqa: BLE001 -- the runner's own stop still follows
+        log.debug("Cancel of job %s: its runs were not cancelled (%s)", job_id, exc)
+        return 0
+
+
+def cancel_job(job_id, root=None, who=None):
+    """
+    Asks a running job to stop: writes a `cancel` file into its directory, which the runner checks for while a step
+    runs, and cancels the job's live runs through the stop command (`cancel_runs`). The runner then
     stops the step and everything the step started, and marks the job
     cancelled. (A file rather than a signal, so the runner stops the step
     and releases the lock itself.)
@@ -766,6 +786,7 @@ def cancel_job(job_id, root=None):
             f.write(str(time.time()))
     except OSError:
         return False
+    cancel_runs(job_id, who)        # after the file: the step that finds its run stopped is then a cancelled one, not a failed one
     log.debug("Cancel requested for job %s (runner pid %s)", job_id, pid)
     return True
 
