@@ -1227,3 +1227,5 @@ Baseline: PR #1817.
 | PERF.177 | 8.1 | The headline closes |
 | TEST.316 | 8.1 | Bugs and flaky tests |
 | MAP.256 | 8.1 | Fly-through map |
+| GEN.414 | 8.1 | Radiation chain for habitability (GEN.445) |
+| DB.68 | 8.1 | Consistency |

@@ -2836,7 +2836,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: DB.96, GEN.414.
+  Prerequisites: DB.96.
 
 - [ ] **MAP.281 Giant chemistry bands once the band strengths exist**
    Design draft
@@ -7546,146 +7546,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane D (model).
-- [ ] **GEN.414 Haze, dust and cloud: derived or drawn optical depths for every planet and moon**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): "I also want you to build into
-  the calculations haze, dust, etc, so add reasonable draws or
-  derivations for these." Nothing is stored today. Do: derive cloud from
-  the water vapour pressure against its saturation pressure at the
-  surface temperature (`vapour_pressure_kpa`) and from the albedo of
-  GEN.412; dust from pressure, gravity and dryness (low ocean fraction);
-  photochemical haze from methane plus nitrogen plus UV; and draw the
-  remaining scatter inside the physical range, seeded. Store optical
-  depth at 550 nm for each kind and an absorption slope (iron-oxide dust
-  and organic haze absorb blue) so Mars, Venus and Titan come out as
-  they are without being named. Sources check (GEN.408, section 5 of the
-  report): dust is nearly grey (Angstrom exponent near 0, radius 1 to 2
-  micron, optical depth 0.5 to 1 typical, 1 to 1.5 for local storms,
-  about 7 to 11 percent less at 440 than 880 nm); haze extinction goes as
-  lambda^-1 to lambda^-2.3, steeper aloft; cloud depth for a Venus-like
-  deck is about 20 to 30 and an Earth cloud about 10 (grey); the dust's
-  colour (single scattering albedo), the haze's absolute depth and the
-  condensation curves of ammonia, water and methane are open and are
-  Boss's to research. Done: a clear Earth-like world with
-  oceans has cloud and little dust, a dry thin-air world has dust, a
-  methane and nitrogen world under UV has haze; a test pins each rule
-  with a physical range, nothing is fixed per class.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Merged research (2026-10-17): part 06 holds the condensation fits, the
-  cloud-base rule, the optical table for 47 materials (density,
-  refractive index, single-scattering albedo, colour slope from Mie
-  runs), the haze yields and sizes (part 04 for the yields) and dust
-  lofting and settling by pressure and gravity. Flagged: the Mg2SiO4
-  saturation constant printed in a standard source is likely a misprint
-  (4.88 printed, 14.88 fits), the SiO2 constant is labelled made up in
-  its own code, and the FeS optical row looks suspect (master finding
-  6); the design checks these before coding the table. The Mars dust and
-  Titan haze optical spectra are open (master section 6 item 4), so part
-  06's flagged parametrisation stands in with a seeded range.
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): Mars dust single-scattering albedo about
-  0.92 to 0.95 at 670 nm and an imaginary index above 0.01 below 350 nm
-  (Wolff 2009, Ockert-Bell 1997, Lemmon 2004, Tomasko 1999); Titan haze
-  as fractal aggregates needing Rayleigh-Debye-Gans scattering, with
-  equivalent-sphere Mie underpredicting forward scattering by up to 40
-  percent (Tomasko 2008, Doose 2016); an organic haze threshold of
-  CH4/CO2 above 0.1 (Arney 2016, as the lane read it); volatile SO2
-  aerosol optics. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/composition/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Checked by the Body composition research lane (part F, 1:28 AM EDT as
-  the lane reported): Boss's row that gives the Mars dust albedo of 0.92
-  to 0.95 near 670 nm under 'volcanic SO2 aerosol' with Lemmon 2004 and
-  Tomasko 1999 is misattributed; those are Mars dust papers and give no
-  SO2 aerosol optics (a Mars dust gap of the atmosphere sources check).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.412. Related: GEN.413, DB.68,
-  GEN.418.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. Mars dust: the single-scattering albedo 0.92 to
-  0.95 is the solar-band mean and not the 670 nm value (about 0.975,
-  second-hand), and it hides a UV drop; use red and near-infrared 0.93
-  to 0.975, solar mean 0.89 to 0.94 and UV band 0.67 to 0.74, with the
-  imaginary index 0.013 at 0.30 micrometre falling to about 1e-3 at 0.7
-  to 0.8 (a digitised figure); the iron(III) attribution is in no text
-  read. Titan haze: the absolute extinction laws are confirmed (above 80
-  km 1.012e7 lambda^-2.339, 30 to 80 km 2.029e4 lambda^-1.409, below 30
-  km 6.27e2 lambda^-0.9706, lambda in nm; total optical depth 9.6 at 500
-  nm; from the DISR team slides); the 40 percent forward-scattering
-  underprediction has no source; aggregates of about 3000 to 4000
-  monomers fit, not equivalent spheres. The cloud, haze and dust rows
-  are category n of part 09 (GEN.478).
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the Mars dust albedo and
-  effective radii, the CH4/CO2 haze threshold of about 0.1 and the haze
-  extinction index of 2 to 4.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): aerosol ranges are in
-  finding 28 (dust effective radius and single-scattering albedo, haze
-  threshold); the Mars dust albedo and Titan haze figures of the note
-  are only partly confirmed.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/research/gap-filling-plan.md section 8): AD3 correlated-k tables
-  (HITRAN, ExoMol). Data from HITRAN, ExoMol, Brewer 2016 or Hypatia is
-  downloaded at build time and no derived table is stored in the
-  repository, so builds need the network; the design states how tests
-  run offline (fixtures built by the test or a cache of earlier
-  downloads kept outside the repository, plan 6.5), and the data work of
-  group X9 waits on that design, not on the licence read.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/research/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): AD3: Myhre et al. 1998 (greenhouse
-  forcing law, GRL 25, 2715) is on list B.
-  Boss (2026-10-17, 11:33 AM EDT, API.31): Outgoing requests: the
-  downloads this item makes at build time send the standard User-Agent
-  of API.31 (one function builds it).
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AD3 filled: Myhre 1998 Table 3, dF in
-  W m^-2: CO2 5.35 ln(C/C0) (C in ppmv), CH4 0.036 (sqrt M - sqrt M0) -
-  (f(M,N0) - f(M0,N0)), N2O 0.12 (sqrt N - sqrt N0) - (f(M0,N) -
-  f(M0,N0)), CFC-11 0.25 (X - X0), CFC-12 0.33 (X - X0), f(M,N) = 0.47
-  ln[1 + 2.01e-5 (MN)^0.75 + 5.31e-15 M (MN)^1.52]; assumed
-  uncertainties 1 percent CO2, 10 CH4, 5 N2O and CFC-11, 3 CFC-12; a CO2
-  doubling gives 3.71 W m^-2 [V, R]. Label correction for the lane that
-  owns the parts file: the values 5.35 and 0.12 are Myhre 1998 and not
-  'IPCC 1990' (IPCC 1990 had 6.3 and 0.14, printed in the same table).
-  The paper states no validity range; its Table 2 total 2.247 does not
-  equal its 15 rows (2.2537). The infrared opacity grids (correlated-k)
-  stay a build-time download job from the line lists.
-  Download timing (Boss, 12:46 and 12:47 AM EDT on 2026-10-18, as the
-  coordinator relayed): a download this item makes is a static file
-  fetched at setup by the shared step that GEN.548 builds first
-  (User-Agent, sha256, cache outside the repository, labelled stand-in,
-  offline fixtures), never at run time; a run-time fetch would have to
-  say why the data needs constant updates.
-  Download policy note (Blocker 1, reported 9:46 AM EDT 2026-10-18;
-  Boss's 'Require the data' answer, 9:38 AM EDT, covers star composition
-  only, GEN.590): the shared download catalogue now treats every dataset
-  as required, so this item's design should say whether a missing file
-  refuses to start or falls back to a labelled stand-in, and why.
-  Decided (Boss, 2026-10-21, 5:54 PM EDT, as the coordinator relayed;
-  this replaces the download policy note above): a missing file refuses
-  the run by default, naming the file, its URL and the setup command;
-  with the explicit disregard option (GEN.599) the run uses this
-  dataset's best possible fallback and prints it in the run header;
-  never a silent fallback. See GEN.594.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane G (bands).
 - [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
   Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
   docs/design/composition/sky-colour-analysis.md): "By the end I want all of the
@@ -8591,7 +8451,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.414. Related: GEN.444,
+  Prerequisites: none. Related: GEN.444,
   GEN.445, GEN.423, GEN.412, GEN.418.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
@@ -8641,6 +8501,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Remaining: the composition-side infrared opacity (needs the infrared
   data download and lane D's stored multiplier), owner lane E; the
   ultraviolet wiring is lane G's PR 4 (GEN.414 first).
+  Research (2026-10-09, Update): Update 12:43 AM EDT 2026-10-24 (as lane
+  G reported): GEN.414 and DB.68 merged as #2856 (migration 0138, schema
+  v138, epoch 66), so the aerosol depths are stored; lane G's PR 4
+  (body_radiation, stars.uv_c_share) renumbers to migration 0139 and
+  epoch 67.
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -14259,7 +14124,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
   build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
   Owner: Survival equipment lane (thread 'Survival equipment fields').
-  Prerequisites: GEN.414. Related: GEN.414.
+  Prerequisites: none. Related: GEN.414.
 
 - [ ] **GEN.660 The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug)**
   Found by Habitability lane K (relayed 8:21 PM EDT 2026-10-23 as the
@@ -14503,7 +14368,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the ground and air composition (GEN.412, GEN.462, GEN.414);
   delete the two class ranges. Done: no class range for albedo or
   greenhouse is left. Owner: Composition K and L.
-  Prerequisites: GEN.412, GEN.462, GEN.414, GEN.422.
+  Prerequisites: GEN.412, GEN.462, GEN.422.
 
 - [ ] **GEN.685 Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class]**
   Step C10 of the condition-based classes build (design draft
@@ -15919,31 +15784,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   DB.68 take the next free ids in the order they merge, so the numbers
   above are the order, not the ids.
 
-- [ ] **DB.68 Planets and moons store the ozone column and the haze, dust and cloud optical depths**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): The columns that hold the values
-  of GEN.413 and GEN.414 (ozone column, cloud, dust and haze optical
-  depth at 550 nm and the absorption slope) on `planets` and `moons`,
-  filled for old rows by the same derivations (a migration only, in the
-  revision after DB.67). Done: every row has the values; a test checks
-  them against the stored mixture.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Migration revision shift (Core 3, GEN.324 #1993 merged about 4:55 AM
-  EDT as the lane reported): GEN.324 took 0105_satellite_stars because
-  main's head was 0104 and alembic_runner requires contiguous ids
-  (SCHEMA_VERSION is now 105), so the queue behind it moves up one:
-  0106 DB.65 (merged, #2025), DB.69 0107, DB.67 0108, DB.70 0109, DB.68 0110, in the
-  order they merge.
-  Update (TODO thread, 2026-10-17, 5:52 PM EDT): 0107 went to GEN.526
-  (satellite ages), 0108 to DB.72 (#2060) and 0109 to GEN.289 (#2108);
-  the head is 0109 and the next free is 0110. DB.69, DB.67, DB.70 and
-  DB.68 take the next free ids in the order they merge, so the numbers
-  above are the order, not the ids.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.414, DB.67. Related: DB.67.
-
 - [ ] **DB.69 Planets and moons store the composition fractions**
   Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
   stores the composition of a body and that composition drives the mass
@@ -16567,7 +16407,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Prerequisites: GEN.414, GEN.418, GEN.419.
+  Prerequisites: GEN.418, GEN.419.
 
 - [ ] **DB.97 Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message**
   Follows the DB.4 marker detection. Next in the regression-test cleanup
@@ -18754,7 +18594,7 @@ clears each one.
   mixture. Runs in the `changed` gate for the files involved. Done: it
   passes on a generated galaxy and fails when any one rule is broken (a
   test that breaks each rule in turn).
-  Prerequisites: GEN.411, GEN.412, GEN.414, GEN.415, DB.67,
+  Prerequisites: GEN.411, GEN.412, GEN.415, DB.67,
   DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): one shared fixture: a generated galaxy holding every
@@ -20058,6 +19898,19 @@ clears each one.
   2 (the test belongs to the sector reach work), or Bug Hunt if Core 2
   is busy.
   Prerequisites: none. Related: TEST.313.
+
+- [ ] **TEST.318 test_web_generate_size::test_the_line_is_the_estimate_only_output_for_the_same_values fails on untouched main: refused True vs False (bug)**
+  Found by lane G at 12:43 AM EDT 2026-10-24 (as the lane reported)
+  during the gate of #2856: the test fails on untouched main, the
+  estimate-only output and the real line disagree on whether the plan is
+  refused (True against False), run time 23 s. Fails on main: yes.
+  Likely from the estimate wording change of PERF.178 (#2831) or the
+  Redis memory change of #2836; the Generation-log analysis lane owns
+  that area. Do: find which change made the two outputs disagree, fix
+  the code or the test so the line is the estimate only output for the
+  same values, without loosening what it checks. Done: the test passes
+  on main. Owner: Generation-log analysis lane (PERF.178 owner).
+  Prerequisites: none. Related: PERF.178.
 
 ## USR: User accounts
 
