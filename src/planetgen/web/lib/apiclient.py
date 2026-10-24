@@ -1328,6 +1328,12 @@ def get_sector_facilities(db, sector_id):
     return _request(f"/sectors/{sector_id}/facilities", {"db": db})["items"]
 
 
+def get_facility(db, facility_id):
+    """Returns `GET /api/facilities/<id>`'s dict -- one facility (`db.query._facility_dict`'s shape)."""
+    _require_db(db)
+    return _request(f"/facilities/{facility_id}", {"db": db})
+
+
 def get_facility_orbit(db, host_type, host_id, distance_km=None):
     """
     `GET /api/facilities/orbit` -- the orbit an orbital facility would get

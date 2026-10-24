@@ -1,4 +1,4 @@
-{#- One star, planet, moon, belt or comet (/object/<ref>, web/item_pages.py, UX.143, UX.170): where it is, its property
+{#- One star, planet, moon, belt, comet or facility (/object/<ref>, web/item_pages.py, UX.143, UX.170): where it is, its property
     sheet, what the description says about it and the tree of what belongs to it. -#}
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
@@ -95,7 +95,7 @@
   {% if facts %}<div class="prose">{{ facts }}</div>{% elif not (species or facilities) %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
   {%- if system_url %}
   <p>Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
-  {%- else %}
+  {%- elif owner_url %}
   <p><a href="{{ owner_url }}">Open the free planet {{ owner_name }}</a>.</p>
   {%- endif %}
 </section>

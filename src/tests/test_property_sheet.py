@@ -41,10 +41,11 @@ def test_a_row_has_a_label_a_known_group_and_one_place(kind):
             assert (sheet.TABLES[kind], spec.stored_column()) in column_units.COLUMNS, f"{kind}.{spec.key} has no unit"
 
 
-def test_the_kinds_are_the_bodies_and_phenomena_a_page_exists_for():
+def test_the_kinds_are_the_bodies_phenomena_and_facilities_a_page_exists_for():
     from planetgen.galaxy import objectref
 
-    assert sorted(sheet.SPECS) == sorted(objectref.BODY_KINDS + objectref.PHENOMENON_KINDS) == sorted(sheet.TABLES)
+    assert sorted(sheet.SPECS) == sorted(objectref.BODY_KINDS + objectref.PHENOMENON_KINDS + objectref.FACILITY_KINDS) \
+        == sorted(sheet.TABLES)
 
 
 def test_a_unit_decides_how_a_number_is_shown():
