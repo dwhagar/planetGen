@@ -1485,8 +1485,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | none | open |
 | GEN.754 | Wiring guard: the stand-in registry says what the generator reads, and a test fails for a table or module nothing reads | none | open |
 | GEN.755 | Check whether the downloaded MIST grid holds post-main-sequence phases; if not, add a setup fetch under GEN.741 | none | open |
-| GEN.756 | Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py) | none | open |
-| GEN.757 | Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py) | none | open |
+| GEN.756 | Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py) | none | done, PR #3129 |
+| GEN.757 | Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py) | none | done, PR #3129 |
 | GEN.758 | Piece of GEN.411: mechanical test fixes for the deleted class ranges | none | open |
 | GEN.759 | Wire the r-process Th/U enrichment (rprocess_enrichment, GEN.663) into the radiogenic heat module | none | open |
 | GEN.760 | Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw | none | open |
@@ -1779,7 +1779,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.284 | Night-side thermal glow on hot worlds, with no city lights until 9.2 | none | open |
 | MAP.285 | Close-up tier: fragment-shader detail over about 500 px, shared with the sky view | none | open |
 | MAP.286 | Supernova remnant shells drawn by age on the maps | none | open |
-| MAP.287 | The 3D system view takes the body look record: systemscene.py still colours by class_color | none | open |
+| MAP.287 | The 3D system view takes the body look record: systemscene.py still colours by class_color | none | done, PR #3130 |
 | MAP.288 | Do away with the info panel at the side of the galaxy and sector views: the popup alone, in a map window that takes the full width | none | done, PR #2875 |
 | MAP.289 | The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug) | none | open |
 | MAP.290 | The System Map draws only the close pair of a triple or larger system, not a scene for each extra star | none | done, PR #3054 |
@@ -2850,8 +2850,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.357 | changes/map-unresolved-glow.minor.md has a '### Tests' heading, so bump_version.py --check-pr fails on main (bug) | none | done, PR #3103 |
 | TEST.358 | test_property_sheet planet and moon "every column shown or excused" fails on main for the interior columns of GEN.642 and DB.89 (bug) | none | done, PR #3123 |
 | TEST.359 | test_object_page_walk fixtures error on main: the system detail has no "stars" (bug) | none | done, PR #3118 |
-| TEST.360 | test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug) | none | open |
-| TEST.361 | test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug) | none | open |
+| TEST.360 | test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug) | none | dropped (not reproduced on main by Bug 1, 6:35 PM EDT 2026-10-24 as the lane reported) |
+| TEST.361 | test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug) | none | dropped (not reproduced on main by Bug 1, 6:35 PM EDT 2026-10-24 as the lane reported) |
 | TEST.362 | test_object_rows read-back fails on main with KeyError partial_pa (bug) | none | open |
 | TEST.363 | test_protection describer disagrees with habitability_explain on main (bug) | none | open |
 | USR.1.1 | USR.2 |

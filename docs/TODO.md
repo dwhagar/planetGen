@@ -2472,6 +2472,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), after GEN.411 (4c, Aux 1).
   Prerequisites: GEN.411.
 
 - [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
@@ -2480,6 +2483,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   5), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), after GEN.670 (GEN.419 is done); nobody has started it.
   Prerequisites: GEN.670, GEN.419.
 
 - [ ] **MAP.277 Atmosphere glow from pressure and composition, and the day and night terminator**
@@ -2487,6 +2493,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
   as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), when DB.96 merges (DB.96 is with Aux 12 after DB.100 and
+  GEN.701); nobody has started it.
   Prerequisites: DB.96.
 
 - [ ] **MAP.279 Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape**
@@ -2499,18 +2509,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), when DB.96 merges; nobody has started it.
   Prerequisites: DB.96.
 
 - [ ] **MAP.281 Giant chemistry bands once the band strengths exist**
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), after MAP.275 and GEN.422 (4c, Aux 1).
   Prerequisites: GEN.422, MAP.275.
 
 - [ ] **MAP.282 Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry**
   Stand-in until sourced by GEN.670. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130), after GEN.670 and MAP.280.
   Prerequisites: GEN.670, MAP.280.
 
 - [ ] **MAP.283 Comet colour from the coma species**
@@ -2538,21 +2557,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   paint the shell from it, with a test. From the body-rendering build
   lane's retirement report (10:52 PM EDT 2026-10-23 as the lane
   reported); design doc docs/design/interface/body-rendering.md.
-  Prerequisites: none.
-
-- [ ] **MAP.287 The 3D system view takes the body look record: systemscene.py still colours by class_color**
-  MAP.271 to MAP.278 moved the maps and pages to the server look record,
-  but systemscene.py (the 3D system view) still colours bodies by
-  class_color. Do: build its bodies from the look record and the shared
-  painter, and retire the class colour table there with no shim. From
-  the body-rendering build lane's retirement report (10:52 PM EDT
-  2026-10-23 as the lane reported); design doc
-  docs/design/interface/body-rendering.md.
-  Research (2026-10-09, Owner): Owner (TODO, 2026-10-24 5:36 PM EDT,
-  wiring request from Boss via the coordinator): Lane Map nodes after
-  MAP.289, or the rendering lane when the coordinator starts it; whoever
-  takes it confirms with TODO that nobody started it. Needs the body
-  look record (MAP.274 and the stored colour DB.99 chain).
   Prerequisites: none.
 
 - [ ] **MAP.289 The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug)**
@@ -12637,6 +12641,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane reported; second-hand citations thread): ExoMol CoYuTe ammonia
   (Irwin 2019) is open first-hand and resolves the visible-ammonia gap
   of D2; a data job at setup, licence note only in DATA-LICENSE.md.
+  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
+  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
+  (#3130); first in its rendering chain; nobody has started it.
 
 - [ ] **GEN.673 Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on**
   Found by lane L (atmosphere mixture), report
@@ -13975,38 +13982,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to go forward without correcting the physics"); it is a prerequisite
   of the headline GEN.301.
   Prerequisites: GEN.652. Related: GEN.741, GEN.553.
-
-- [ ] **GEN.756 Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py)**
-  Piece of GEN.411 (4c), split out so Lane L builds it in parallel with
-  Lane I. One function turns a planet or moon record (mass, radius,
-  gravity, equilibrium temperature, star and formation distance, class
-  if known, bulk composition when stored) into the subject the mixture
-  draw reads, so the mixture, the pressure and the molar density are
-  drawn from one description of the body. Pure function in a new module
-  physics/mixture_subject.py, planets and moons both, no random draw
-  inside it, unit test per body kind. GEN.411 reads it and is not
-  finished until this and the two sibling pieces have merged. Requested
-  by the coordinator for Boss (about 5:26 PM EDT 10-24, as the
-  coordinator relayed). Owner: Lane L (nobody else has started it; TODO
-  checked the TODO file and physics/ for any existing item or module).
-  Prerequisites: none. Related: GEN.411, GEN.726.
-
-- [ ] **GEN.757 Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py)**
-  Piece of GEN.411 (4c), split out so Lane L builds it in parallel. Two
-  pure functions in a new module physics/mixture_sinks.py: (1) the most
-  water vapour an atmosphere over an ocean can hold at the surface
-  temperature and pressure (saturation, from published vapour-pressure
-  data), so the drawn mixture never exceeds it; (2) the sulfur uptake,
-  how much sulfur gas the surface and any ocean remove from the mixture.
-  The sources and stand-ins are recorded with their tier and tweak level
-  in the registry (GEN.725). Boundary with the supply law: GEN.726 (Lane
-  I) owns how much is outgassed and the ocean and carbonate sinks of the
-  inventory; this piece only limits what the drawn mixture can show;
-  Lane L and Lane I confirm the boundary before writing so nothing is
-  built twice. GEN.411 is not finished until it and its sibling pieces
-  merge. Requested by the coordinator for Boss (about 5:26 PM EDT
-  10-24). Owner: Lane L (nobody else has started it).
-  Prerequisites: none. Related: GEN.411, GEN.726, GEN.674, GEN.725.
 
 - [ ] **GEN.758 Piece of GEN.411: mechanical test fixes for the deleted class ranges**
   Piece of GEN.411 (4c). When Lane I step 4b merges and the class ranges
@@ -19140,21 +19115,6 @@ clears each one.
   the machine difference. Done: web.system passes on every lane machine
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
-
-- [ ] **TEST.360 test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug)**
-  Reported by Bug 2 while merging #3125 (PERF.187): the test fails on
-  main and is not from that change. Find the cause (a stale expectation
-  or
-  a real totals bug), fix it and record which. Owner: Bug 1.
-  Prerequisites: none. Related: PERF.187.
-
-- [ ] **TEST.361 test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug)**
-  Reported by Bug 2 while merging #3125 (PERF.187): the test that no
-  screen text names a TODO code fails on main, and the lane traced it to
-  MAP.220 in `db/point_columns.py` near line 177. Locate the shown text
-  that names MAP.220, rewrite it in plain words, and keep the test.
-  Owner: Bug 1.
-  Prerequisites: none. Related: MAP.220.
 
 - [ ] **TEST.362 test_object_rows read-back fails on main with KeyError partial_pa (bug)**
   Reported by Aux 13 while merging GEN.762 (#3128, 6:33 PM EDT as the
