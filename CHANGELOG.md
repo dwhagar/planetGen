@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2198] - 2026-10-24
+
+**Headline:** The star scatter's units for globular clusters and satellite galaxies now say how many stars they will place, so the log and the progress bar no longer promise ten to twenty times too many.
+
+### Changed
+- **A component unit's expected stars are the stars its place keeps.** The log read "components 3 of 8, about 23,119 stars expected: added 1,323" because the expectation counted every candidate at the share of the nearest tier, while a cluster or satellite lies in the tier of its own place, which keeps a few percent as many. The expectation is now the stars the tiers keep at the places the component lies; the stars placed are unchanged.
+
 ## [8.0.2197] - 2026-10-24
 
 **Headline:** A comet's organic material now has one density, the shared table's, so a comet nucleus is a little lighter than before.
