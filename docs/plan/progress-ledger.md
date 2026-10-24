@@ -1281,3 +1281,6 @@ Baseline: PR #1817.
 | GEN.271 | 8.1 | Multi-star and compact systems |
 | DB.98 | 8.1 | Reproducible galaxies |
 | GEN.309 | 8.1 | Queue, caches and performance |
+| GEN.632 | 8.1 | Mixture and stored values |
+| MAP.259 | 8.1 | Fly-through map |
+| MAP.260 | 8.1 | Fly-through map |

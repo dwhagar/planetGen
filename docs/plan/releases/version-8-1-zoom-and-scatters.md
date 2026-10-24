@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 6:50 AM EDT 2026-10-24: 884 of 1284 items finished (68.8 percent), 400 open, 30 dropped (TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 117, phase 2 40, phase 3 25, phase 4 13, phase 5 80, phase 6 26, phase 7 24, phase 8 4, phase 9 28, phase 10 2, phase 11 31, phase 12 10 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 6:55 AM EDT 2026-10-24: 887 of 1284 items finished (69.1 percent), 397 open, 30 dropped (TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 117, phase 2 38, phase 3 25, phase 4 13, phase 5 80, phase 6 26, phase 7 23, phase 8 4, phase 9 28, phase 10 2, phase 11 31, phase 12 10 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -202,19 +202,17 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.249 | The Galaxy Map is laggy and slow, and changing zoom level slogs the whole page (bug) |  | Boss 6:45 PM EDT; Core 2 profiles first. |
-| MAP.259 | N2: node aggregates for the pre-placed bright stars and scattered phenomena |  |  |
 | MAP.289 | The warm-up count of warm sectors always reads one answer built, because /galaxy/profile is answered fresh on each warm run for addressed sectors (bug) |  |  |
-| MAP.260 | N3: node read and cache: GET /galaxy/nodes, the node cache, the change feed and the warm-up | MAP.259 |  |
-| MAP.261 | N4: the node cut on the page: galaxynodecut.js replaces the tile cut | MAP.260 |  |
+| MAP.261 | N4: the node cut on the page: galaxynodecut.js replaces the tile cut |  |  |
 | MAP.262 | N5: retire the cube tiles | MAP.261 |  |
 | MAP.265 | S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick |  |  |
-| MAP.266 | S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu | MAP.259, MAP.261, MAP.265 |  |
+| MAP.266 | S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu | MAP.261, MAP.265 |  |
 | MAP.269 | Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug) |  | Boss bug 8:51 PM EDT |
 | MAP.287 | The 3D system view takes the body look record: systemscene.py still colours by class_color |  | Body rendering follow-up; lane report. |
 | MAP.286 | Supernova remnant shells drawn by age on the maps |  | Body rendering follow-up (R9a rest); lane report. |
 | MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | MAP.261 |  |
 | MAP.268 | S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales | MAP.265 |  |
-| MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | MAP.259, MAP.260, MAP.261, MAP.262, MAP.265, MAP.266, MAP.267, MAP.268 |  |
+| MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | MAP.261, MAP.262, MAP.265, MAP.266, MAP.267, MAP.268 |  |
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") |  | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
@@ -556,7 +554,6 @@ Moved into 8.1 from 8.4 phase 2 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.674 | Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug) |  | Lane L finding 11:32 PM EDT 2026-10-23. |
 | GEN.673 | Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on | GEN.411 | Lane L finding 11:32 PM EDT 2026-10-23. |
 | GEN.672 | Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver |  | Lane L finding 11:32 PM EDT 2026-10-23. |
-| GEN.632 | Two code paths still hold their own vapour-pressure constants: rogue_surface.nitrogen_vapor_pressure_pa and the water curve in hydrosphere.py should read the one saturation function | GEN.452 | Pool; rides the 8.4 epoch |
 | GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | GEN.411, GEN.452 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.594 | Each AD dataset (AD1 to AD8) ships its best possible fallback, used only when a run is told explicitly to disregard missing files |  |  |
 | GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | GEN.411 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |

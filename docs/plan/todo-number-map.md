@@ -1357,7 +1357,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.629 | The comet volatile ratio S=(CO+CO2)/H2O scatters by only 0.1 dex, too narrow against single comets: 67P's 7.8 percent is 3.6 sigma low, so the draw seldom gives its CO and CO2 together | none | done, PR #2744 |
 | GEN.630 | GEN.316 part (a): the N-star StarSystem host and the stars.role 'member' migration, still building only the pairs, with readers and loaders updated | none | done, PR #2689 |
 | GEN.631 | GEN.316 part (b), narrowed: stages D and G draw their members from draw_member_tree, trees of 3 or more stars build as member stars, and the old companion draw and the two-star probability table are deleted | none | done, PR #2915 |
-| GEN.632 | Two code paths still hold their own vapour-pressure constants: rogue_surface.nitrogen_vapor_pressure_pa and the water curve in hydrosphere.py should read the one saturation function | none | open |
+| GEN.632 | Two code paths still hold their own vapour-pressure constants: rogue_surface.nitrogen_vapor_pressure_pa and the water curve in hydrosphere.py should read the one saturation function | none | done, PR #2938 |
 | GEN.633 | The backfill after a run puts its dimmer bright stars only in sectors not yet generated, so a sector holds different systems depending on the order the sectors were generated in (bug) | none | open |
 | GEN.634 | The plan outline takes a whole shell in by its highest band, so the candidate sector count is 3.5 billion where about 1.0 billion expect a system (interval outline) | none | open |
 | GEN.635 | The cluster system has no radial profile yet, and the dwarf end of the globular cluster count uses no occupation draw (the Carlsten fits are not built in GEN.403) | none | open |
@@ -1692,8 +1692,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.256 | The map shows the information box twice when an object is selected: once in the window and once to its right (bug) | none | done, PR #2852 |
 | MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | none | open |
 | MAP.258 | N1: the sector-block ladder above 243 sectors and drillChildren in JavaScript | none | done, PR #2896 |
-| MAP.259 | N2: node aggregates for the pre-placed bright stars and scattered phenomena | none | open |
-| MAP.260 | N3: node read and cache: GET /galaxy/nodes, the node cache, the change feed and the warm-up | none | open |
+| MAP.259 | N2: node aggregates for the pre-placed bright stars and scattered phenomena | none | done, PR #2937 |
+| MAP.260 | N3: node read and cache: GET /galaxy/nodes, the node cache, the change feed and the warm-up | none | done, PR #2937 |
 | MAP.261 | N4: the node cut on the page: galaxynodecut.js replaces the tile cut | none | open |
 | MAP.262 | N5: retire the cube tiles | none | open |
 | MAP.263 | S1: the camera is the only state: stages follow the camera, with no gesture gate, preset flights, per-stage zoom range or pan clamp | none | done, PR #2888 |
