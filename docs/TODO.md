@@ -1082,6 +1082,60 @@ with `clamp()`.
   UX.187, TEST.358, GEN.430.
   Prerequisites: none. Related: UX.187, TEST.358, GEN.430.
 
+- [ ] **UX.203 Pages state a missing thing in one sentence instead of a table of zeros: no life, no atmosphere (0 Pa), effectively no water**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), Boss: "if a planet has no life, just make a note in the
+  description and don't show the table full of 0's, same for atmosphere
+  if it is 0 Pa just put 'None' for atmosphere, also if there is
+  effectively no water on the planet then put that in the description
+  and omit that section to avoid all the 0's." Do: (1) a world with no
+  life (all four life scores 0, no life stage) gets one sentence in the
+  description and no Life table; (2) a world whose surface pressure is 0
+  Pa (or below the registry's vacuum limit) shows the Atmosphere entry
+  as "None" and no Atmosphere section or gas rows; (3) a world with
+  effectively no water (hydrosphere none or ocean and ice fraction below
+  the registry's limit, and no vapour) says so in the description and
+  the Water section is omitted; the limits are named constants in one
+  place. This extends the absent-value rule of UX.188 to UX.194 to whole
+  sections. Done: page tests on a barren airless dry world find no Life
+  table, no Atmosphere section, no Water section and the three
+  sentences; a world with a thin atmosphere or a trace of water still
+  shows its section. Owner: Aux 11. Related: UX.188, UX.198, UX.199,
+  GEN.766.
+  Prerequisites: none. Related: UX.188, UX.198, UX.199, GEN.766.
+
+- [ ] **UX.204 Every collapsible section on an object page starts collapsed**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), Boss: "all sections that can be collapsed should be
+  collapsed at start". Do: every collapsible section (property sheet
+  groups, the long text blocks, the tables) starts collapsed when the
+  page loads, on planet, moon, star, system and every other object page;
+  the headings stay visible and the table of contents (UX.196) still
+  opens a section when its link is followed; a section the visitor
+  opened stays open while they use the page. Done: a browser test loads
+  a planet page and finds every collapsible section collapsed, follows a
+  contents link and finds that section open. Owner: Aux 11. Related:
+  UX.195, UX.196.
+  Prerequisites: none. Related: UX.195, UX.196.
+
+- [ ] **UX.205 Object pages show the day and night time shares, moons with the extra night from their planet**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), the display half of the day and night shares request.
+  Do: planet and moon pages show the share of time in daylight and in
+  night (and for a moon the extra night in its parent's shadow, with the
+  length of the longest eclipse) in the rotation group and in one
+  sentence of the description; a tidally locked world says so (day side,
+  terminator, night side); an object with no day or night (a star, a
+  free body with no rotation stored) shows nothing; also replaces the
+  "Hours of daylight a person can be outside: not stored" row (UX.199)
+  with these shares. Done: page tests on Earth-like, locked and moon
+  cases find the shares and the sentence. Owner: Aux 11, after GEN.767
+  supplies the columns. Related: UX.199, GEN.767.
+  Prerequisites: GEN.767. Related: UX.199, UX.203.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14331,6 +14385,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   what the scores hold. Owner: Aux 3 (it owns the life model), with Aux
   4 (Lane E) for the wording. Related: GEN.765.
   Prerequisites: none. Related: GEN.765, GEN.207, GEN.649.
+
+- [ ] **GEN.767 Day and night time shares for every object that has a day or night, with the extra night when the parent planet blocks the sun**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), Boss: "I want day/night time shares for each object that
+  has a day or night including moons that accounts for any extra night
+  from the sun being blocked by their planet." TODO checked the code:
+  the day and night temperature swing exists (GEN.656) and the eclipse
+  of a binary star pair (GEN.270), but there is no stored fraction of
+  time in daylight and no eclipse of a moon by its planet;
+  `outside_hours` is the dose-limited hours of a working year outside
+  (physics/equipment.py), not daylight. Do: derive, from the rotation
+  period, the orbital period, the axial tilt, the star's angular size
+  and the lock state, the share of the day the star is above the horizon
+  (at the equator and as a planet mean, polar day and night where the
+  tilt gives them, 100 percent or 0 percent on the two sides of a
+  tidally locked world with libration noted); for a moon add the share
+  of its orbit spent in its parent's shadow (the eclipse fraction from
+  the parent radius, the moon's orbital distance and inclination and the
+  star's size) and the extra night this adds, both for a moon locked to
+  its planet and for a free one; store the shares as columns
+  (db/column_units.py in the same PR, one migration, one epoch), numbers
+  from a named function in one module, no stand-in value. Done: tests
+  with a hand-computed Earth (about 50 percent at the equator, longer
+  polar day and night by tilt), a locked planet (day side 100, night
+  side 0), Io-like and Moon-like moons with their eclipse fractions, and
+  a moon whose planet never blocks the sun (inclined orbit) at zero
+  extra night. Owner: Aux 5 (Lane H: heat, surface dose, GEN.656
+  regional temperatures). Related: GEN.656, GEN.270, GEN.444.
+  Prerequisites: none. Related: GEN.656, GEN.270, GEN.444, UX.205.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
