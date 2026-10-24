@@ -15799,39 +15799,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   scope).
   Prerequisites: USR.26.
 
-- [ ] **API.15 Log every API call with its user, how it came in, and its HTTP response code**
-  Boss (2026-10-02 01:31Z): "all api call logs should log the user that
-  called for it and if it was called through an api key or someone
-  logged into the web site or from the console (console user will just
-  be called god). Standard will have all API calls logged and what
-  response they generated back (use HTTP responses codes and note in
-  documentation that you're using HTTP response codes for parity with
-  web logs)." Done: by default every API call is logged with the time,
-  the route, the account that made it (the key's owner for an API key,
-  the signed-in user for the web site, and "god" for the console), how
-  it came in (API key, web session or console), and the HTTP response
-  code it got back; the API docs say that HTTP response codes are used
-  for parity with the web server's logs; a test makes a call each way
-  and checks the log rows. Needs no user accounts: it logs today's admin
-  accounts (and "god"), so it is placed in phase 0, ahead of API.6; once
-  user accounts exist (USR.1) the logged user can be any account.
-  Research (2026-10-09, api-design-standards.md): log through the
-  activity log first (a new `API` category in `CATEGORIES` and
-  `docs/reference/config.md`), with `X-Request-Id`, an `after_request` hook,
-  `internal=1` for in-process page calls (about 6 per page view) and an
-  `api_log.internal` setting, and the privacy and retention paragraph
-  (open question for Boss, default 30 days full IP, then truncated, 13
-  months total). An `api_calls` table with a background writer only when
-  an admin page needs queries. "Console" in `god` means API-shaped
-  actions run by CLI tools without a request; existing `GEN` lines
-  unchanged.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-
 - [ ] **API.8 Verify uploaded data before it is finalized**
   Boss (2026-10-01 19:32Z): "the API will have to have a reliable method
   of syncing and making sure uploaded data is verified good before it
@@ -19117,6 +19084,14 @@ clears each one.
   clean main and are not from its changes. Find the cause (a stale
   expectation after the colour or look changes, or a real page defect),
   fix it and record which. Owner: Bug 1.
+  Research (2026-10-09, Update 6:43 PM EDT): Update 6:43 PM EDT
+  2026-10-24 (Core 1, as the lane reported): the same failures fail
+  identically on origin/main on its lane:
+  test_phenomenon_page_links_its_class (5 params, HTTP 502 on
+  /phenomenon/<kind>/4) and test_phenomenon_unknown_class_stays_text
+  (AttributeError: 'NoneType' object has no attribute 'capitalize').
+  Run: pytest src/tests/test_class_pages.py -k "links_its_class or
+  unknown_class".
   Prerequisites: none. Related: TEST.346.
 
 - [ ] **TEST.366 test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug)**
@@ -19131,6 +19106,21 @@ clears each one.
   (PERF.183 and PERF.186 code, so ask Bug 2's report if it is not
   clear).
   Prerequisites: none. Related: PERF.183, PERF.186.
+
+- [ ] **TEST.367 Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug)**
+  Reported by Core 1 while merging API.15 (#3136, 6:43 PM EDT 2026-10-24
+  as the lane reported); they fail identically on origin/main on its
+  lane:
+  test_admin_edits.py::test_system_page_regenerates_a_planet and
+  ::test_system_page_changes_a_class, and test_api_auth_sweep.py::
+  test_admin_pages_send_an_admin_on_seeded_credentials_to_account and
+  ::test_admin_pages_send_anonymous_visitors_to_login (302 where 403 is
+  expected for /admin/queue/<run_id>/log). Find whether the tests are
+  stale
+  after the recent page and queue changes or the pages are wrong, fix
+  and
+  record which. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.365, API.15.
 
 ## USR: User accounts
 
