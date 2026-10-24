@@ -284,7 +284,7 @@ kept galaxy of the same build (`plan`, the three scatters and the band run one b
   `CREATE OR REPLACE VIEW`), 861 times over the band step, about 130 s of server time. The suite's `--keep` is accepted but the
   scratch databases are dropped on success (so a kept galaxy has to be built command by command, as here).
 
-## The settle stage in units (PERF.115)
+## The link and settle stages in units (PERF.113, PERF.114, PERF.115)
 
 Measured on the kept `medium` galaxy with `planetgen galaxy --shell 100 --limit 100 --population` (100 sectors, 3,370
 systems, 25,550 sector paths, 3 workers, one run each, release 8.0.2070):
@@ -292,7 +292,7 @@ systems, 25,550 sector paths, 3 workers, one run each, release 8.0.2070):
 | Stage | Seconds | Per sector | One unit before? |
 |---|---|---|---|
 | Generate the sectors | 324.6 | 3.2 s | no, a unit per run of sectors |
-| Link the neighbours | 7.0 | 70 ms | yes (`link-neighbours`) |
+| Link the neighbours | 7.0 | 70 ms | yes (`link-neighbours`), cut into chunks by PERF.113 |
 | Backfill | 7.0 | 3.5 ms (2,018 sectors) | no |
 | Population | 0.2 | | yes, but it had no species to name here |
 | Settle the sector paths | 18.2 | 182 ms | yes (`settle-sector-paths`) |
@@ -305,6 +305,17 @@ masses of the sectors around its own and is written with its own sector, so the 
 `settle` on the 100 sectors gave the same 51,100 knot rows (a checksum of the stored rows before and after) with the stage
 at 11 s instead of 18 s on 3 workers. A stage of at most 100 sectors stays one unit and keeps its `--workers` for a crowded
 sector's bodies (PERF.80); a longer one gives each unit one process.
+
+The link (PERF.113) is cut the same way, into chunks of `LINK_UNIT_SECTORS` (500, about 35 s) sectors in neighbourhood order
+(`store.link_order`), each unit linking its chunk with the run's other sectors as `skip`. Linking is serial by design: every
+batch of 20 sectors holds the neighbour lock (`store.link_sector_neighbors`), so units take turns and the cut bounds a unit's
+length, it does not shorten the stage (15 units of 7 sectors took 17 s against 7 s as one unit; at 500 sectors the overhead
+is a few seconds in 35). The stored links are the same whichever order the units run: a sector's lists are computed whole from
+the placed systems, and a system merged into the lists around it is the same whichever batch merges it. Checked on the 100
+sectors: all 76,749 `nearest_systems` rows deleted and linked again in units, the checksum of the rows is the one before.
+
+The population pass (PERF.114) took 0.2 s here because the sample has no species to name (`0 new species`); it stays one inline
+stage and is to be measured again when generation produces species.
 
 The fill of the map luminosity (PERF.117) and the habitability re-score (PERF.116) are already a unit per run of ids
 (`fill-map-luminosity`, `rescore-habitability`), as PERF.160 found.

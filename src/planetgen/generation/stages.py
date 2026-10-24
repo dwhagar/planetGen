@@ -6,8 +6,7 @@ them (UX.89).
 
 A command that does several things in turn (`galaxy`) declares its
 stages up front with `begin`; each is entered with `enter(key)` as the run
-reaches it. A stage the run will not do (the scatter without `--then-scatter`,
-the backfill with `--backfill-from none`, no shells to scatter) is still
+reaches it. A stage the run will not do (no shells to scatter, no sector made to link) is still
 numbered and announced, as "skipped" with its reason, so the count of stages is
 always the whole list. Each announcement is a log line ("Stage 4 of 9: ...")
 and goes into the progress file (`progress_file.set_stage`), where the Generate
@@ -76,20 +75,14 @@ def sectors_stages(args):
 
 def galaxy_stages(args):
     """The stages of one `planetgen galaxy` run, in order."""
-    then_scatter = getattr(args, "then_scatter", False)
-    no_scatter = None if then_scatter else "the star and phenomena scatter was not asked for"
     return sectors_stages(args) + [
         Stage("link", "Link the neighbours"),
-        Stage("mass", "Scatter the massive stars", no_scatter),
-        Stage("luminosity", "Scatter the bright stars", no_scatter),
-        Stage("phenomena", "Scatter the phenomena", no_scatter),
-        Stage("backfill", "Scatter the massive stars from the neighborhood",
-              "backfill was turned off (--backfill-from none)"
-              if (getattr(args, "backfill_from", "edge") or "edge") == "none" else None),
-        Stage("population", "Run the population pass",
-              None if getattr(args, "population", False) else "the population pass was not asked for"),
-        Stage("settle", "Save the sector paths",
-              "turned off with --no-settle" if getattr(args, "no_settle", False) else None),
+        Stage("mass", "Scatter the massive stars"),
+        Stage("luminosity", "Scatter the bright stars"),
+        Stage("phenomena", "Scatter the phenomena"),
+        Stage("backfill", "Scatter the massive stars from the neighborhood"),
+        Stage("population", "Run the population pass"),
+        Stage("settle", "Save the sector paths"),
     ]
 
 
@@ -209,8 +202,6 @@ def stage_settings(key, args):
         settings["compact_limit_sol"] = mass if compact in (None, tuning.COMPACT_MIN_MASS_STAR) else float(compact)
     elif key in CLEAR_KEYS:
         settings = {"part": key[len("clear-"):]}
-    elif key == "backfill":
-        settings["backfill_from"] = getattr(args, "backfill_from", "edge") or "edge"
     elif key == "skeleton":
         for name in ("edge", "seed"):
             value = getattr(args, name, None)

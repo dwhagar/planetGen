@@ -36,14 +36,14 @@ def test_the_stages_of_a_sectors_run_are_the_sectors_alone():
     assert all(step.kind in commands.REGISTRY for step in wrapper.steps_for("sectors", _args("sectors")))
 
 
-def test_the_sector_options_are_the_same_on_sectors_and_galaxy_and_the_later_stages_are_only_on_galaxy(capsys):
+def test_the_sector_options_are_the_same_on_sectors_and_galaxy_and_neither_leaves_a_later_stage_out(capsys):
     sectors_help = generate.build_parser()[1]["sectors"].format_help()
     galaxy_help = generate.build_parser()[1]["galaxy"].format_help()
     for option in ("--shell", "--band", "--wedge", "--shells", "--course", "--center-sector",
                    "--radius-pc", "--neighborhoods", "--estimate-only", "--limit"):
         assert option in sectors_help and option in galaxy_help, option
     for option in ("--then-scatter", "--no-settle", "--backfill-from"):
-        assert option in galaxy_help and option not in sectors_help, option
+        assert option not in galaxy_help and option not in sectors_help, option
     with pytest.raises(SystemExit):
         generate.build_parser()[0].parse_args(["sectors", "--then-scatter"])
 
@@ -117,3 +117,36 @@ def test_a_shell_run_hands_its_stage_the_arguments_that_name_the_sectors_not_the
     [(key, params)] = seen
     assert key == "sectors" and params["items"] == [] and params["planned"] == "addresses"
     assert len(_all_sectors(mysql_config)) == 2
+
+
+def _start_params(mysql_config, run_seed, index=0, taken=(), *argv):
+    from planetgen.generation import run_common, run_galaxy
+    args = _args("sectors", "--num-systems", "1", *argv)
+    return {"database": wrapper.database_args(mysql_config), "args": run_galaxy._sector_args_json(args),
+            "edge_pc": run_common._edge_pc(), "items": [], "planned": "start", "run_seed": run_seed,
+            "start_index": index, "taken": [list(place) for place in taken]}
+
+
+def test_the_start_stage_picks_its_random_start_from_the_runs_seed(mysql_config):
+    from planetgen.generation import run_galaxy
+    _plan_wide_galaxy(mysql_config)
+    seeds = [1, 2, 3, 4, 5]
+    picks = {seed: run_galaxy.planned_items(_start_params(mysql_config, seed)) for seed in seeds}
+    for seed in seeds:
+        (items, suffixes) = picks[seed]
+        assert len(items) == 3 and suffixes == [""]
+        assert run_galaxy.planned_items(_start_params(mysql_config, seed)) == picks[seed], "the same seed, the same start"
+    assert len({tuple(items) for items, _suffixes in picks.values()}) > 1, "another seed picks another start"
+    expansion = run_galaxy.expand_generate_sectors(_start_params(mysql_config, 1))
+    assert [unit["items"] for unit, _cost in expansion.units] == [picks[1][0]]
+
+
+def test_each_of_several_neighborhoods_has_its_own_start_and_keeps_away_from_the_ones_before(mysql_config):
+    from planetgen.generation import run_common, run_galaxy
+    from planetgen.galaxy.spherical import sector_position_pc
+    _plan_wide_galaxy(mysql_config)
+    edge_pc = run_common._edge_pc()
+    first, _ = run_galaxy.planned_items(_start_params(mysql_config, 7, 0, (), "--neighborhoods", "2"))
+    place = sector_position_pc(*first, edge_pc)
+    second, _ = run_galaxy.planned_items(_start_params(mysql_config, 7, 1, [place], "--neighborhoods", "2"))
+    assert len(second) == 3 and second != first

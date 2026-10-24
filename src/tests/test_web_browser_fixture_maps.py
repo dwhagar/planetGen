@@ -103,6 +103,13 @@ def _open_sector(page, base, query=""):
     page.wait_for_selector(".starmap-sr-list button", state="attached")
 
 
+def _selection_displays(page):
+    """The ids of the selection displays drawn on the page right now: a panel or box that is on the screen and holds
+    a picked thing's heading (MAP.256: one, never two)."""
+    return page.evaluate("""() => [...document.querySelectorAll('.starmap-info, .map-infobox')]
+        .filter((e) => e.getClientRects().length && e.querySelector('h3')).map((e) => e.id)""")
+
+
 def _info_title(page):
     heading = page.locator("#galaxymap3d-info h3")
     return heading.inner_text() if heading.count() else None
@@ -164,15 +171,12 @@ def test_sector_map_click_picks_a_star(page, map_site):
     nav = [b.inner_text() for b in info.locator("button").all()]
     assert "Start Here" in nav and "End Here" in nav
     assert _shot(page, SECTOR_CANVAS) != before, "the picked star gets a highlight ring"
-    # MAP.139: the same spec in the box over the map, with View, Details and Close.
-    box = page.locator("#galaxymap3d-infobox")
-    assert box.is_visible()
-    assert name in box.locator("h3").inner_text()
-    view = box.locator("a", has_text="View system")
-    assert view.count() == 1 and view.get_attribute("href").endswith(f"/system/{system_id}")
-    assert [b.inner_text() for b in box.locator("button").all()] == ["Details", "Close"]
-    box.locator("button", has_text="Close").click()
-    assert not box.is_visible()
+    # MAP.256: the selection is shown once, over the map window, with a Close button; there is no second box.
+    assert _selection_displays(page) == ["galaxymap3d-info"]
+    assert page.locator("#galaxymap3d-infobox").count() == 0
+    assert info.locator("h3").inner_text() == name
+    info.locator("button", has_text="Close").click()
+    assert _selection_displays(page) == []
 
 
 def test_sector_map_hover_names_what_is_under_the_pointer(page, map_site):
@@ -1235,12 +1239,12 @@ def test_sector_map_pick_mode_offers_only_the_pick_button(page, map_site):
     _open_sector(page, map_site, "?pick=to")
     _x, _y, name = _click_a_star(page)
     info = page.locator("#galaxymap3d-info")
-    buttons = [b.inner_text() for b in info.locator(".map-info-actions button:not(.map-info-bookmark)").all()]
+    buttons = [b.inner_text() for b in info.locator(".map-info-actions button:not(.map-info-bookmark):not(.map-info-close)").all()]
     assert info.locator("a", has_text="View").count() == 0
     assert buttons == ["End Here"], buttons
     page.locator(".starmap-sr-list button", has_text="Fixture Pulsar").evaluate("b => b.click()")
     assert info.locator("a", has_text="View").count() == 0
-    assert [b.inner_text() for b in info.locator(".map-info-actions button:not(.map-info-bookmark)").all()] == ["End Here"]
+    assert [b.inner_text() for b in info.locator(".map-info-actions button:not(.map-info-bookmark):not(.map-info-close)").all()] == ["End Here"]
 
 
 def test_start_here_keeps_the_view_and_end_here_opens_the_course(page, map_site):
@@ -2037,6 +2041,9 @@ def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
     page.wait_for_timeout(1000)
     names = {point["name"]: point for point in POINT_FIELD}
     tip = page.locator("#galaxymap3d-tooltip")
+    close = page.locator("#galaxymap3d-info .map-info-close")
+    if close.is_visible():   # MAP.256: the panel over the map covers the points until it is closed
+        close.click()
     for x, y in _point_colored_spots(page, GALAXY_CANVAS):
         page.mouse.move(x, y)
         text = tip.inner_text() if tip.is_visible() else ""
@@ -2048,7 +2055,7 @@ def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
         info = page.locator("#galaxymap3d-info")
         assert info.locator("h3").inner_text() == name
         endpoint = f'{point["type"]}:{point["id"]}'
-        assert [b.inner_text() for b in info.locator(".map-info-actions button:not(.map-info-bookmark)").all()] == ["Start Here", "End Here"]
+        assert [b.inner_text() for b in info.locator(".map-info-actions button:not(.map-info-bookmark):not(.map-info-close)").all()] == ["Start Here", "End Here"]
         assert info.locator(".map-info-bookmark").inner_text() == "☆"
         info.locator("button", has_text="Start Here").click()
         assert parse_qs(urlparse(page.url).query)["from"] == [endpoint], page.url
@@ -2468,7 +2475,7 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     legend = page.locator("#galaxymap3d-legend")
     assert legend.is_hidden()
     page.locator("#galaxymap3d-menu > summary").click()
-    for mode in ("density", "age", "luminosity", "stars"):
+    for mode in ("density", "age", "luminosity", "stars", "habitable"):
         page.select_option("#galaxymap3d-color-by", mode)
         _settle(page)
         assert f"color={mode}" in _query(page)
@@ -2478,7 +2485,7 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     # Reload on the address: the select and the mode follow it.
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
-    assert page.input_value("#galaxymap3d-color-by") == "stars"
+    assert page.input_value("#galaxymap3d-color-by") == "habitable"
     legend.wait_for(state="visible", timeout=15000)  # drawn once the tiles are back; under load that is not instant (TEST.126)
     assert legend.is_visible()
     page.locator("#galaxymap3d-menu > summary").click()
@@ -2813,3 +2820,34 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
     assert len(crumbs) >= 6 and crumbs[0] == "Galaxy", crumbs
     camera = _camera(page)
     assert math.dist(camera["target"], point) < 2000.0, (camera["target"], point)
+
+
+@pytest.mark.viewport(1280, 900)
+def test_a_selection_is_shown_once_and_over_the_map(page, map_site):
+    """MAP.256: an opened sector (selected on opening) and a system picked in it each show their information in one
+    place, inside the map's window, not also in a box beside it; Close takes it away and the next pick brings it back."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    info = page.locator("#galaxymap3d-info")
+    canvas = page.locator(GALAXY_CANVAS).bounding_box()
+
+    def inside_the_window():
+        box = info.bounding_box()
+        return (box["x"] >= canvas["x"] - 1 and box["y"] >= canvas["y"] - 1
+                and box["x"] + box["width"] <= canvas["x"] + canvas["width"] + 1
+                and box["y"] + box["height"] <= canvas["y"] + canvas["height"] + 1)
+
+    assert _selection_displays(page) == ["galaxymap3d-info"] and inside_the_window()
+    assert info.locator("h3").inner_text() == "Fixture Prime"
+    page.wait_for_timeout(500)
+    picked = None
+    for x, y in _bright_spots(page, GALAXY_CANVAS):
+        page.mouse.click(x, y)
+        heading = info.locator("h3").inner_text() if info.locator("h3").count() else None
+        if heading in SYSTEM_NAMES:
+            picked = heading
+            break
+    assert picked, "no click on the opened sector picked a star"
+    assert _selection_displays(page) == ["galaxymap3d-info"] and inside_the_window()
+    info.locator("button", has_text="Close").click()
+    assert _selection_displays(page) == []

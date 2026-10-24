@@ -18,7 +18,7 @@ The row drew Th/U uniformly from 3.8 to 4.5, the Solar System value at 4.5 Gyr, 
 
 ## 3. o3 and o6
 
-- **o3 (K/U)** stays a labelled stand-in: planetary potassium is volatile-depleted and only Solar System bodies give the depletion. The sodium proxy of Harrison 2021 needs Boss's acceptance; it is listed as an open choice.
+- **o3 (K/U)** stays a labelled stand-in: planetary potassium is volatile-depleted and only Solar System bodies give the depletion. **Decided (Boss, 2026-10-24, 12:39 AM EDT, card answer relayed in words by the coordinator): keep the stand-in; the Harrison 2021 sodium proxy is not used.** The row stays a labelled stand-in in the gap plan registry (replacement GEN.514) until a measurement of planetary potassium exists.
 - **o6 (aluminium-26 present)** drew a share log-uniform from 0.1 to 1. The evidence is a mixture and not one distribution: at least 4 percent of systems enriched (Curry 2022), 9 to 28 percent of discs in cluster models (Lichtenberg 2016), tens of percent for white-dwarf debris, 66 percent differentiated (Bonsor 2020). The bracket is now 0.04 to 0.66 and no target exists (nothing states a count of a defined sample); the bracket is pinned by a test.
 
 ## 4. What it does not do

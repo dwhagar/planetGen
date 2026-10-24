@@ -10,8 +10,9 @@ is missing. One older than the Alembic baseline (v61) is refused.
 import pytest
 
 from planetgen.db import alembic_runner, store
-from planetgen.physics import equipment
+from planetgen.physics import equipment, regional_temperature
 from tests.db_schema_support import load_old_schema, old_schema_versions
+from tests.test_migration_parent_link import undo_parent_link
 
 # A fresh database with no schema, which these tests build and migrate themselves (TEST.139 stage 3).
 pytestmark = pytest.mark.fresh_database
@@ -41,7 +42,17 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        for table in ("planets", "moons"):  # v141 (GEN.459)
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN c_k0_ppm, DROP COLUMN c_th0_ppm, DROP COLUMN c_u0_ppm, DROP COLUMN al26_ratio,"
+                         " DROP COLUMN urey_ratio, ALGORITHM=COPY")
+        undo_parent_link(conn)  # v140 (DB.73)
+        conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139
+        conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN tau_haze, DROP COLUMN tau_dust, DROP COLUMN tau_cloud, DROP COLUMN cloud_cover,"
+                         " DROP COLUMN aerosol_draw, ALGORITHM=COPY")  # v138
+            conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in regional_temperature.FIELDS)
+                         + ", ALGORITHM=COPY")  # v137
             conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in EQUIPMENT_COLUMNS)
                          + ", ALGORITHM=COPY")  # v136
             conn.execute(f"ALTER TABLE {table} DROP COLUMN ozone_column_du, ALGORITHM=COPY")  # v135

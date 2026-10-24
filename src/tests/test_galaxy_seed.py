@@ -150,8 +150,7 @@ def test_a_new_seed_replaces_the_old_only_before_any_sector(mysql_config, monkey
     other = "F" * 32
     _plan(mysql_config, monkeypatch, "--seed", other)
     assert _stored_seed(mysql_config) == bytes.fromhex(other)
-    monkeypatch.setattr(sys, "argv", ["planetgen", "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1",
-                                      "--backfill-from", "none"] + _mysql_argv(mysql_config))
+    monkeypatch.setattr(sys, "argv", ["planetgen", "sectors", "--shell", "1", "--limit", "1", "--num-systems", "1"] + _mysql_argv(mysql_config))
     generate_cli.main()
     with pytest.raises(SystemExit) as raised:
         _plan(mysql_config, monkeypatch, "--seed", SEED_HEX)

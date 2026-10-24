@@ -186,6 +186,9 @@ ABSOLUTE_WITH_A_PARENT = {
     "black_holes": "a remnant is placed free, at its own galactic point; `star_id` only names the star it replaced. "
                    "A remnant that joins a system takes a parent-relative state with the 8.4 revision",
     "neutron_stars": "the same as black_holes",
+    "rogue_planets": "a free planet: its parent link is always `free` and it keeps its own galactic point (DB.73); one that "
+                     "joins a system takes a parent-relative state with the 8.4 revision",
+    "interstellar_comets": "the same as rogue_planets",
     "facilities": "a facility keeps a free galactic point until the 8.4 revision gives it a parent-relative "
                   "state; no 8.1 item stores a position for one",
 }

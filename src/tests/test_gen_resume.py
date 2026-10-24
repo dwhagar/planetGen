@@ -83,7 +83,7 @@ _Interrupted = worker_patches.Interrupted
 
 
 def _galaxy(config, mode_argv):
-    run_cli("galaxy", [*mode_argv, "--num-systems", str(NUM_SYSTEMS), *mysql_argv(config)])
+    run_cli("sectors", [*mode_argv, "--num-systems", str(NUM_SYSTEMS), *mysql_argv(config)])
 
 
 def _snapshot(config):
@@ -198,11 +198,11 @@ def test_resuming_with_limit_steps_fills_each_sector_once(mysql_config, second_m
     _seed_skeleton(mysql_config, shells=SHELLS)
     total = sum(wedge_count(3, band) for band in (-1, 0, 1))
     for _ in range(-(-total // 4)):
-        run_cli("galaxy", [*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS),
+        run_cli("sectors", [*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS),
                            *mysql_argv(mysql_config)])
     # One more step has nothing left to do.
     before, *_rest = _snapshot(mysql_config)
-    run_cli("galaxy", [*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS),
+    run_cli("sectors", [*MODES["shell"], "--limit", "4", "--num-systems", str(NUM_SYSTEMS),
                        *mysql_argv(mysql_config)])
     assert _snapshot(mysql_config)[0] == before
     assert len(before) == total
@@ -264,8 +264,9 @@ def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config
     assert _cell_counts(mysql_config, PRE_FILLED) == {address: (0, 0) for address in PRE_FILLED}
 
     # The band's first wedges, around and between the skipped sectors.
-    run_cli("galaxy", ["--shell", str(FORCE_SHELL), "--band", str(FORCE_BAND), "--limit", str(LIMIT), "--num-systems", "1",
-                       *mysql_argv(mysql_config)])
+    run_cli("sectors", ["--shell", str(FORCE_SHELL), "--band", str(FORCE_BAND), "--limit", str(LIMIT), "--num-systems", "1",
+                        *mysql_argv(mysql_config)])
+    run_cli("backfill", mysql_argv(mysql_config))
 
     after = _sector_rows(mysql_config)
     new = sorted(set(after) - set(before))

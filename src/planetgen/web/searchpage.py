@@ -33,7 +33,7 @@ from planetgen.physics import equipment
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table
 from planetgen.web.lib.fmt import format_number
-from planetgen.web.lib.habitability_cells import habitability_cell
+from planetgen.web.lib.habitability_cells import equipment_cell, habitability_cell
 from planetgen.web.lib.pagination import PAGE_SIZE, page_offset, parse_page
 
 from . import tables
@@ -255,8 +255,6 @@ def tag_groups(state, facets):
             continue
         groups.append({
             "title": FACET_TITLES[facet],
-            "help": ({"text": "What the equipment levels mean", "url": page_url("habitability_levels")}
-                     if facet in ("equipment", "moon_equipment") else None),
             "options": [{
                 "label": option["label"],
                 "count": option["count"],
@@ -383,7 +381,7 @@ def _cells(panel, row):
     if panel in ("planets", "moons"):
         cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
                  {"text": row["life_chemical"] or "—"},
-                 {"text": row.get("equipment") or "—"},
+                 equipment_cell(row),
                  habitability_cell(row)]
         if panel == "moons":
             cells.append({"text": row["planet_name"]})

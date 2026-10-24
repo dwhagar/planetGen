@@ -5,6 +5,7 @@ every generated body stores and the containment pass that updates the
 heliosphere multiplier.
 """
 
+import math
 import types
 
 import pytest
@@ -14,7 +15,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
-from planetgen.physics import activity, constants, proton_range, radiation as rad
+from planetgen.physics import activity, constants, proton_range, radiation as rad, radiogenic
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -113,13 +114,30 @@ def test_the_heliosphere_only_matters_for_thin_air_and_a_squeezed_star():
     assert 0.0 < rad.heliosphere_compression(85.0, 10.0) < 1.0
 
 
-def test_the_crust_ages_like_the_radiogenic_heat():
-    earth = constants.EARTH_MASS_TO_KG
-    young = rad.ground_dose_msv_yr(0.5, earth, 6371.0, 1.0, False)
-    now = rad.ground_dose_msv_yr(4.5, earth, 6371.0, 1.0, False)
-    assert now == pytest.approx(0.48, rel=0.02)
-    assert young == pytest.approx(0.48 * 3.5, rel=0.25)
-    assert rad.ground_dose_msv_yr(4.5, earth, 6371.0, 1.0, True) == pytest.approx(0.98, rel=0.02)
+def test_the_ground_dose_reads_the_same_concentrations_as_the_heat():
+    """GEN.459: no independent draw of the ground; doubling the thorium and uranium doubles the heat from them and the gamma dose."""
+    k, th, u = radiogenic.BULK_SILICATE_EARTH
+    one = radiogenic.Content(k * 1.0, th * radiogenic.formation_mix("Th")[1], u * radiogenic.formation_mix("U")[1], 0.0, 0.5)
+    two = radiogenic.Content(one.k0_ppm, 2 * one.th0_ppm, 2 * one.u0_ppm, 0.0, 0.5)
+    base = rad.gamma_dose_msv_yr(radiogenic.surface_content(one, 0.0), 4.568)
+    doubled = rad.gamma_dose_msv_yr(radiogenic.surface_content(two, 0.0), 4.568)
+    k_part = rad.gamma_dose_msv_yr(radiogenic.surface_content(radiogenic.Content(one.k0_ppm, 0.0, 0.0, 0.0, 0.5), 0.0), 4.568)
+    assert doubled - k_part == pytest.approx(2 * (base - k_part), rel=1e-9)
+    assert radiogenic.heat_w_per_kg(two, 4.568) > radiogenic.heat_w_per_kg(one, 4.568)
+
+
+def test_the_gamma_dose_falls_under_a_dense_gas_and_the_radon_needs_air():
+    rock = radiogenic.Content(17000.0, 11.0, 2.7, 0.0, 0.5)
+    open_air = rad.gamma_dose_msv_yr(rock, 4.568)
+    assert rad.gamma_dose_msv_yr(rock, 4.568, gas_g_cm3=0.0012) == pytest.approx(open_air * math.exp(-0.0637 * 0.0012 * 100), rel=1e-12)
+    assert rad.gamma_dose_msv_yr(rock, 4.568, gas_g_cm3=0.065) < 0.7 * open_air
+    assert rad.radon_dose_msv_yr(rock, 4.568, None) == 0.0
+    assert rad.radon_dose_msv_yr(rock, 4.568, 8.5) > 0.0
+    thin = rad.radon_dose_msv_yr(rock, 4.568, 8.5, diffusion_factor=100.0)
+    assert thin == pytest.approx(10.0 * rad.radon_dose_msv_yr(rock, 4.568, 8.5), rel=1e-9)
+    assert rad.radon_diffusion_factor(101325.0, 0.7) == 1.0
+    assert rad.radon_diffusion_factor(1013.25, 1.0) == pytest.approx(100.0)
+    assert rad.radon_diffusion_factor(1013.25, 0.0) == 1.0
 
 
 def test_uv_follows_the_star_and_the_ozone_layer():

@@ -88,3 +88,8 @@ Commit each file came from:
 - v133: 6f0754dda (GEN.630 star members) (before GEN.267)
 - v134: e15c1bc (GEN.267 star count settings, before GEN.413)
 - v135: 9f96ca8 (GEN.413 ozone column) (before GEN.655)
+- v136: 11e5784 (GEN.655 survival equipment, before GEN.656)
+- v137: ce50ec2 (GEN.656 regional temperatures, before GEN.414)
+- v138: f65a213 (before MAP.143)
+- v139: 3daf30ba3 (before DB.73)
+- v140: 2ae3043 (DB.73 parent link) (before GEN.459)

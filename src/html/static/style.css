@@ -651,6 +651,17 @@ tbody tr:last-child td {
 .flag-tier-2 { color: var(--tier-yellow); border-color: var(--tier-yellow); }
 .flag-tier-3 { color: var(--tier-red); border-color: var(--tier-red); }
 
+/* UX.154: the equipment chips of a body, one per item: solid for a required item, outlined for a recommended one, in the
+   colour of the PHI-6 domain the item comes from (the words carry the same information, "recommended" is read aloud). */
+.eq-chips { display: inline-flex; flex-wrap: wrap; gap: 0.2rem 0.3rem; }
+.flag-eq { white-space: nowrap; }
+.flag-eq-required { color: var(--bg); }
+.flag-eq-required.flag-tier-0 { background: var(--tier-blue); }
+.flag-eq-required.flag-tier-1 { background: var(--tier-green); }
+.flag-eq-required.flag-tier-2 { background: var(--tier-yellow); }
+.flag-eq-required.flag-tier-3 { background: var(--tier-red); }
+.flag-eq-recommended { background: transparent; border-style: dashed; font-weight: 400; }
+
 /* UX.119: a Document written as HTML (planetgen/describe/html.py). Colours come from the tokens above, so both themes
    and the data-theme override follow them; the row headers read as labels, not as column headings. */
 .doc-section { margin: 0 0 1.25rem; }
@@ -2088,6 +2099,21 @@ a.btn.btn-secondary.btn-active:visited {
   color: var(--text-muted);
 }
 
+/* UX.181: a symbol, life score or chip that opens its section of the habitability page. The link adds nothing to
+   the shape's own look (no underline, no link colour); a hover or keyboard focus rings it. */
+a.help-link,
+a.help-link:visited {
+  color: inherit;
+  text-decoration: none;
+  border-radius: 4px;
+}
+
+a.help-link:hover,
+a.help-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
 /* A button that is only an icon; its words are its aria-label and title
    tooltip. Touch screens get a 44 px target. */
 .icon-btn {
@@ -2924,6 +2950,71 @@ code {
   margin: 0;
 }
 
+/* MAP.256: the Galaxy Map's selection panel sits inside the map's window (static/mappick.js, `data-overlay`). Where the
+   window is 600px wide or more it is drawn over the map, in the corner farthest from where the reader pressed, and not
+   at all until something is picked; under that it is a block under the map, as before. The map under it stays pickable:
+   only its buttons and links take the pointer. */
+.galaxymap3d-panel .galaxy-map-main {
+  display: block;
+}
+
+.galaxymap3d-panel .galaxy-map-main > .starmap-viewport {
+  width: 100%;
+}
+
+.galaxymap3d-panel .galaxy-map-main > .starmap-info {
+  margin-top: 0.75rem;
+  min-width: 0;
+}
+
+.starmap-info .map-info-close {
+  display: none;
+}
+
+@media (min-width: 600px) {
+  .galaxy-map-main > .starmap-info[data-overlay] {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    z-index: 3;
+    margin-top: 0;
+    width: min(18rem, calc(100% - 1.5rem));
+    max-height: calc(100% - 1.5rem);
+    overflow: auto;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+  .galaxy-map-main > .starmap-info[data-overlay] a,
+  .galaxy-map-main > .starmap-info[data-overlay] button,
+  .galaxy-map-main > .starmap-info[data-overlay] summary,
+  .galaxy-map-main > .starmap-info[data-overlay] input,
+  .galaxy-map-main > .starmap-info[data-overlay] select {
+    pointer-events: auto;
+  }
+  .galaxy-map-main > .starmap-info[data-corner="top-left"] {
+    right: auto;
+    left: 0.75rem;
+  }
+  .galaxy-map-main > .starmap-info[data-corner="bottom-left"] {
+    top: auto;
+    right: auto;
+    bottom: 0.75rem;
+    left: 0.75rem;
+  }
+  .galaxy-map-main > .starmap-info[data-corner="bottom-right"] {
+    top: auto;
+    bottom: 0.75rem;
+  }
+  .galaxy-map-main > .starmap-info[data-state="rest"],
+  .galaxy-map-main > .starmap-info[data-state="closed"] {
+    display: none;
+  }
+  .galaxy-map-main > .starmap-info .map-info-close {
+    display: inline-flex;
+  }
+}
+
 .map-tooltip {
   position: absolute;
   z-index: 3;
@@ -3279,9 +3370,10 @@ body.app {
   cursor: pointer;
 }
 
-/* The Nav section's button (UX.146) looks like the other section links,
-   with a caret to show it opens a menu. */
-.app .site-nav-trigger {
+/* The Nav section's button (UX.146) and the Help button (UX.180) look like the other
+   section links, with a caret to show they open a menu. */
+.app .site-nav-trigger,
+.app .site-help-trigger {
   display: block;
   padding: 0.4rem 0.7rem;
   border: 0;
@@ -3295,7 +3387,8 @@ body.app {
   cursor: pointer;
 }
 
-.app .site-nav-trigger::after {
+.app .site-nav-trigger::after,
+.app .site-help-trigger::after {
   content: "";
   display: inline-block;
   margin-left: 0.35rem;
@@ -3306,21 +3399,54 @@ body.app {
 }
 
 .app .site-nav-trigger:hover,
-.app .site-nav-trigger[aria-expanded="true"] {
+.app .site-help-trigger:hover,
+.app .site-nav-trigger[aria-expanded="true"],
+.app .site-help-trigger[aria-expanded="true"] {
   background: var(--bg-subtle);
   color: var(--link);
 }
 
-.app .site-nav-trigger[aria-current="page"] {
+.app .site-nav-trigger[aria-current="page"],
+.app .site-help-trigger[aria-current="page"] {
   /* As the section links: --link, not --accent (contrast on --bg-subtle). */
   color: var(--link);
   background: var(--bg-subtle);
   box-shadow: inset 0 -2px 0 var(--accent);
 }
 
-.app .site-nav-trigger:focus-visible {
+.app .site-nav-trigger:focus-visible,
+.app .site-help-trigger:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 1px;
+}
+
+/* The Help button is the word, or on the narrowest phones (under 22rem) a book icon with the word read aloud. */
+.app .site-help-icon {
+  display: none;
+}
+
+@container site-header (max-width: 22rem) {
+  .app .site-help-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .app .site-help-icon {
+    display: inline-block;
+    vertical-align: -0.15em;
+  }
+
+  .app .site-header-inner .site-help-trigger {
+    padding-inline: 0.2rem;
+  }
+
+  .app .site-help-trigger::after {
+    display: none;
+  }
 }
 
 /* In the narrow Menu panel Nav is a label over its two links. */
@@ -3345,6 +3471,7 @@ body.app {
 .app .site-menu,
 .app .site-gear,
 .app .site-nav-menu,
+.app .site-help-menu,
 .app .site-search-menu {
   position: static;
 }
@@ -3470,9 +3597,25 @@ body.app {
   color: var(--link);
 }
 
+/* UX.181: a link to a section of a page (a symbol or chip to its entry on the habitability page) stops below the
+   sticky header, not under it. */
+.app .app-main [id] {
+  scroll-margin-top: 4.5rem;
+}
+
 @media (max-width: 40rem) {
   .app .site-header-inner {
     padding: 0.5rem 1rem;
+    gap: 0.5rem;
+  }
+
+  /* Help sits beside the search button, so on a phone it keeps to a snug button. */
+  .app .site-help-trigger {
+    padding-inline: 0.45rem;
+  }
+
+  .app .site-help-trigger::after {
+    margin-left: 0.2rem;
   }
 
   .app .app-main {

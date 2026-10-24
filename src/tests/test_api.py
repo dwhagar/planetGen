@@ -1510,17 +1510,17 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
     addresses = [home] + others
     for n, address in enumerate(addresses):
         _place_sector(mysql_config, f"Look {n}", sector_position_pc(*address, 4.0), address=address)
-    # (systems, expected, stars, mean age Gy, summed luminosity); the last has no stars.
-    rows = [(4, 3.0, 6, 2.0, 10.0), (2, 5.0, 2, 8.0, 0.5), (0, 1.5, 0, None, None)]
+    # (systems, expected, stars, mean age Gy, summed luminosity, habitable worlds); the last has no stars.
+    rows = [(4, 3.0, 6, 2.0, 10.0, 3), (2, 5.0, 2, 8.0, 0.5, 1), (0, 1.5, 0, None, None, 0)]
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
             for address, row in zip(addresses, rows):
                 conn.execute(
                     "INSERT INTO sector_stats (shell_index, band_index, wedge_index, bright_level_sol,"
-                    " actual_systems, expected_systems, actual_stars, mean_age_gy, total_luminosity_sol)"
-                    " VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE actual_systems = ?,"
-                    " expected_systems = ?, actual_stars = ?, mean_age_gy = ?, total_luminosity_sol = ?",
+                    " actual_systems, expected_systems, actual_stars, mean_age_gy, total_luminosity_sol, habitable_worlds)"
+                    " VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE actual_systems = ?,"
+                    " expected_systems = ?, actual_stars = ?, mean_age_gy = ?, total_luminosity_sol = ?, habitable_worlds = ?",
                     (*address, *row, *row),
                 )
     finally:
@@ -1528,7 +1528,8 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
     _rebuild_block_stats(mysql_config)
 
     total = {"systems": 6, "expected_systems": pytest.approx(9.5), "stars": 8,
-             "mean_age_gy": pytest.approx((6 * 2.0 + 2 * 8.0) / 8), "luminosity_sol": pytest.approx(10.5)}
+             "mean_age_gy": pytest.approx((6 * 2.0 + 2 * 8.0) / 8), "luminosity_sol": pytest.approx(10.5),
+             "habitable_worlds": 4}
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[1])}").get_json()
     [child] = stage["children"]
     assert child["generated"] == 3
@@ -1541,9 +1542,9 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[4])}").get_json()
     by_address = {(s["shell"], s["band"], s["wedge"]): s["stats"] for s in stage["sectors"]}
     assert by_address[home] == {"systems": 4, "expected_systems": 3.0, "stars": 6, "mean_age_gy": 2.0,
-                                "luminosity_sol": 10.0}
+                                "luminosity_sol": 10.0, "habitable_worlds": 3}
     assert by_address[addresses[2]] == {"systems": 0, "expected_systems": 1.5, "stars": 0, "mean_age_gy": None,
-                                        "luminosity_sol": 0.0}
+                                        "luminosity_sol": 0.0, "habitable_worlds": 0}
 
 
 def test_galaxy_locate_finds_sectors_and_systems_by_name(client, mysql_config):

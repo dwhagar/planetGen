@@ -235,7 +235,7 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
         assert rows
         for row in rows:
             assert row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01)
-            again = hw.compute(dict(row))
+            again = hw.compute({**dict(row), "native_life": store._stored_native_life(row)})
             assert row["eq_body"] == 4  # an airless world needs a pressure suit
             for name in hw.SCORE_FIELDS:
                 assert row[name] == pytest.approx(again[name]), name
@@ -260,19 +260,23 @@ def test_the_search_finds_bodies_by_the_kit_they_need(db_client, mysql_config): 
     names = {p.name for p in planets if p.eq_body == level}
     assert names and all(name in panel for name in names)
     sample = next(p for p in planets if p.eq_body == level)
-    assert equipment.line({name: getattr(sample, name) for name in equipment.FIELDS}) in panel
+    for name in equipment.required_names({name: getattr(sample, name) for name in equipment.FIELDS}):
+        assert "flag-eq-required" in panel, panel[panel.index("<tbody"):][:3000]
+        assert name[:1].upper() + name[1:] in panel  # UX.154: one chip per item
     others = {p.name for p in planets if p.eq_body != level}
     assert not any(f">{name}<" in panel for name in others)
     # A stray value filters nothing in and does not crash.
     assert db_client.get("/search?equipment=9").status_code in (200, 302)
 
 
-def test_the_page_chip_lists_what_is_required_and_takes_the_worst_domains_colour():
+def test_the_page_chips_are_solid_for_required_and_outlined_for_recommended_in_their_domains_colour():
     from planetgen.web.lib import systempage
     scored = hw.compute(_earth(p_co2_kpa=3.0, surface_dose_msv_yr=500.0))
     body = {**scored, "equipment": equipment.summary(scored)}
     chip = systempage._habitability_chip(body)
-    assert "flag-tier-2" in chip and "CO<sub>2</sub> scrubber" in chip and "title=" not in chip
+    assert "flag-eq-required" in chip and "CO2 scrubber" in chip and "title=" not in chip
+    assert "flag-tier-2" in chip  # the CO2 scrubber comes from the Air domain, which is Yellow here
+    assert chip.count("flag-eq-recommended") == len(equipment.recommended_names(scored))
     assert systempage._habitability_chip({"equipment": None}) == ""
     assert systempage._habitability_chip({}) == ""
 
@@ -339,3 +343,17 @@ def test_life_is_drawn_after_the_score_and_the_score_is_redone_with_it():
             assert body.phi4_suitability <= food + 1e-9, (body.name, stage)
             assert hw.TIER_INDEX["Red"] == body.tier_suitability or body.phi4_suitability >= 0.4
     assert stages - {"none"}, stages
+
+
+def test_the_equipment_cell_draws_one_chip_per_item_in_its_domains_colour():
+    """UX.154: the search cell carries `chips` (solid when required, outlined when recommended) and a muted dash for none."""
+    from planetgen.web.lib import habitability_cells
+    row = {"equipment": "Required: gas-mix mask. Recommended: hardened habitat.", "tier_air": 2, "tier_radiation": 3,
+           "equipment_items": [{"item": "gas-mix mask", "severity": "required", "domain": "Air"},
+                               {"item": "hardened habitat", "severity": "recommended", "domain": "Radiation"}]}
+    cell = habitability_cells.equipment_cell(row)
+    assert cell["chips"] == [{"text": "gas-mix mask", "severity": "required", "tier": 2, "anchor": "equipment-gas-mix-mask"},
+                             {"text": "hardened habitat", "severity": "recommended", "tier": 3,
+                              "anchor": "equipment-shelter"}]
+    assert cell["text"] == row["equipment"]
+    assert habitability_cells.equipment_cell({"equipment": "", "equipment_items": []}) == {"text": "—", "muted": True}

@@ -527,3 +527,70 @@ def test_density_matches_the_python_model_with_the_nuclear_structures_and_a_dens
     got = _run(f"console.log(JSON.stringify({json.dumps(points)}.map(p => P.relativeDensity(...p, shape))));", shape)
     for point, value in zip(points, got):
         assert value == pytest.approx(relative_density(point, shape), rel=1e-9)
+
+
+# --- MAP.143: blocks colored by the habitable worlds their sectors hold ----------
+
+HABITABLE_SETUP = STATS_SETUP + """
+const worlds = (n, filled = 1) => cell(filled, filled, {...stats(40, 60, 4.5, 500), habitable_worlds: n});
+const none = worlds(0);
+const few = worlds(2);
+const some = worlds(20);
+const many = worlds(2000);
+const set = [none, few, some, many];
+const r = B.statsRanges(set);
+const unfilledColor = [0.1, 0.2, 0.4];
+"""
+
+
+def test_habitable_worlds_color_is_one_hue_in_five_steps_that_rise_with_the_count():
+    out = _run(HABITABLE_SETUP + """
+const colors = set.map((c) => B.statsColor(c, unfilledColor, r, "habitable"));
+const luminance = (c) => 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+console.log(JSON.stringify({colors, lum: colors.map(luminance), legend: B.legendFor("habitable", r),
+  bins: [0, 0.19, 0.2, 0.5, 0.99, 1].map((s) => B.binOf(s, 5)), ramp: [0, 1, 2, 3, 4].map(B.habitableBinColor)}));
+""")
+    # Zero worlds: drawn as unfilled space; the others climb in light, one step per bin at most.
+    assert out["colors"][0] == [0.1, 0.2, 0.4]
+    lum = out["lum"][1:]
+    assert lum == sorted(lum) and len(set(lum)) == 3
+    assert out["bins"] == [0, 0, 1, 2, 4, 4]
+    # Every step is greener than it is red or blue except the last, which may drift toward yellow-green.
+    assert all(c[1] > c[2] for c in out["ramp"]) and [sum(c) for c in out["ramp"]] == sorted(sum(c) for c in out["ramp"])
+    legend = out["legend"]
+    assert legend["label"] == "Habitable worlds" and "per charted sector" in legend["unit"]
+    assert len(legend["stops"]) == 10 and legend["lowText"] != legend["highText"]
+
+
+def test_a_cell_with_no_habitable_world_has_no_fill_but_a_charted_one_with_some_does():
+    out = _run(HABITABLE_SETUP + """
+const scene = B.createBlockScene({shape: null, palette: {dim: [0.1, 0.1, 0.1], accent: [0.2, 0.3, 0.4], hot: [1, 1, 1],
+  placedLow: [0.1, 0.1, 0.1], placedHigh: [0.3, 0.3, 0.3]}});
+const geometry = (c) => ({...c, r0: 1000, r1: 1010, c0: 1.5, c1: 1.6, t0: 0, t1: 0.01});
+const cells = set.map(geometry);
+const built = scene.buildCells(cells, [0, 0, 0], null, "habitable");
+const drawn = built.cells[0].concat(built.cells[1]);
+console.log(JSON.stringify({
+  fills: drawn.map((c) => [c.stats.habitable_worlds, c.noFill, c.opacity]),
+  unfilled: B.unfilledOpacity(cells[0]), stats: B.statsOpacity(cells[1]),
+  legend: built.legend && built.legend.label,
+  plain: scene.buildCells(cells.map(geometry), [0, 0, 0], null, "stars").cells[1].map((c) => c.noFill),
+}));
+""")
+    by_count = {row[0]: row for row in out["fills"]}
+    assert by_count[0][1] is True and by_count[0][2] == pytest.approx(out["unfilled"])
+    assert by_count[2][1] is False and by_count[2][2] == pytest.approx(out["stats"])
+    assert out["legend"] == "Habitable worlds"
+    assert not any(out["plain"])
+
+
+def test_habitable_worlds_are_compared_per_charted_sector_so_a_block_and_a_sector_share_a_scale():
+    out = _run(HABITABLE_SETUP + """
+const sector = worlds(8, 1);
+const block = worlds(8000, 1000);
+console.log(JSON.stringify({sector: B.COLOR_MODES.habitable.value(sector.stats, 1), block: B.COLOR_MODES.habitable.value(block.stats, 1000),
+  ranges: B.statsRanges([none, sector, block]).habitable}));
+""")
+    assert out["sector"] == pytest.approx(math.log10(8))
+    assert out["block"] == pytest.approx(math.log10(8))
+    assert out["ranges"]["count"] == 2

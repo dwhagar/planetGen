@@ -7,6 +7,8 @@ Status: partly built. The classifier, its rule file, the shadow sweep and the cl
 - 6:09 PM, GEN.644 option 3: a class is not drawn. Once a planet or moon is complete, its class is worked out from its air (pressure and mixture, none included), its mean surface temperature, its terrestrial or gas composition. The reason he gave for the old way: he did not know how to get the compositions right.
 - 6:23 PM: classes are also classed by physical properties (size, surface gravity).
 - 6:24 to 6:30 PM: keep the class letters as close to today's as possible, M above all (it is culturally identifiable); never retire a letter without asking him, and think of a replacement class that makes more sense first; letters already free stay in reserve for new designations. **Core classes: H, P, O, J, M, I, C, D and N.**
+- 12:39 AM, 2026-10-24 (class card, option 1): keep all 20 letters A to V, redefined by conditions, with K, L, Q, S and V kept; R, U, W, X, Y and Z stay in reserve. This is what the rule file already does.
+- 12:39 AM, 2026-10-24 (class B card, option 1): a stripped giant core keeps some hydrogen and helium. The class B template changes (cut-over, C13): its text "a thin mix of helium, sodium, and oxygen" gains hydrogen, and its "occasionally the stripped core of a former gas giant" origin is drawn into the body's mixture by the atmosphere chain (lanes J and L: GEN.411/412/454) as a retained H/He share, not a fixed string. Class I's note about hot-Neptune stripping points at the same B origin. The classifier rule for B (under 0.5 g, with air, above 210 K, no sealed ocean) does not change.
 - Habitable is not a class: it is the overall habitability colour Blue or Green (GEN.643).
 - Testing mode: new epochs, database versions and API versions are fine.
 

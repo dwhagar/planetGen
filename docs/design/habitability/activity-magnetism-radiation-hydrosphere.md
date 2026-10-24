@@ -350,10 +350,9 @@ equivalent with human limits; the `L_rad` term uses absorbed dose in Gy.
    times too long at 10 GeV); `R0` = 0.2 GV is calibrated on the
    1956 ground-level event [R]. Polar-cap fraction
    `1 - sqrt(1 - sqrt(R_eff / Rc0))`, `R_eff = max(0.5 p_cut, 0.2 GV)` [R]. GEN.444 replaces this with the Band spectrum.
-4. **Crust and radon:** `D_crust = 0.48 mSv/yr * a_rad * H(age) / H(4.5 Gyr)`,
-   with `H` the radiogenic heating from `tuning.ROGUE_RADIOGENIC_ISOTOPES`
-   (relative 3.5 at 0.5 Gyr, 1.9 at 2, 1.0 at 4.5, 0.51 at 10 [C]). Radon adds
-   1.26 mSv/yr (Earth) only with air and porous rock; 0.5 outdoors.
+4. **Crust and radon (replaced by GEN.459, 2026-10-23):** the gamma dose in air over the surface rock and the radon of its
+   uranium, from the body's stored potassium, thorium and uranium (`physics/radiogenic.py`, docs/design/composition/radiation-model.md
+   R15, R16 and section 6); the former `0.48 mSv/yr * a_rad * H(age)` and the flat radon term are gone.
 5. **Shielding by ground or water:** the GCR(X) curve with `X = rho * depth`:
    1 m of regolith (1.5 g/cc) is X = 150, 10 m of water X = 1000 [R]. Muons set
    the floor.
@@ -456,9 +455,8 @@ leave open:
   after generation, so `store.refresh_containment` (and an edit) re-derives
   it from the cloud's `compressed_heliosphere_radius`, with `compression` =
   `ln(R_open / R) / ln(R_open)` capped at 1, and rewrites the total.
-- The crust draws `a_rad` log-uniform over
-  `tuning.ROGUE_RADIOGENIC_ABUNDANCE_RANGE` once per body; radon needs 1 kPa
-  of air and some land (`land_fraction`).
+- The crust's dose reads the body's stored potassium, thorium and uranium (GEN.459); radon needs air and some land
+  (`land_fraction`), with no pressure gate.
 - Ozone: `O3 / O3_Earth = sqrt(pO2 / 21.2 kPa)` (none under 0.02 kPa).
 - `ozone_loss_flag` is set when ozone exists and either the star's
   `lethal_event_rate_per_gyr` (1.5 x `exp((8 kpc - R) / 1.45 kpc)`, at most 250

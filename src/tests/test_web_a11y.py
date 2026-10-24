@@ -274,7 +274,9 @@ def site_db(_mysql_server_available):
             run_cli("plan", ["--quiet", "--nuclear-amplitude", "0"] + target)
             _add_bright_stars(config)
             with forced_system_config(PLANETS=True):
-                run_cli("galaxy", ["--shell", "0", "--band", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
+                run_cli("sectors", ["--shell", "0", "--band", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
+                for root in ("link", "backfill", "settle"):
+                    run_cli(root, ["--quiet"] + target)
             with forced_system_config(PLANETS=True):   # the sector fill above makes planet-less systems (GEN.227)
                 run_cli("system", ["--quiet"] + target)
             _seat_loose_systems(config)

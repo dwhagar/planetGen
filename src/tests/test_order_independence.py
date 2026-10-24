@@ -67,11 +67,14 @@ def _galaxy(make_database):
     return config
 
 
-def _generate_in_order(config, order, monkeypatch, backfill="none"):
-    """One `galaxy` run a sector, in `order` (a span of that one cell, 4 systems), then each run's backfill."""
+def _generate_in_order(config, order, monkeypatch, backfill=False):
+    """One `sectors` run a sector, in `order` (a span of that one cell, 4 systems), then each run's backfill when
+    `backfill` (the `backfill` command, for the sectors that run saved)."""
     for shell, band, wedge in order:
-        _run("galaxy", ["--shells", str(shell), "--bands", str(band), "--wedges", str(wedge), "--num-systems", "4",
-                        "--workers", "1", "--backfill-from", backfill], config, monkeypatch)
+        _run("sectors", ["--shells", str(shell), "--bands", str(band), "--wedges", str(wedge), "--num-systems", "4",
+                         "--workers", "1"], config, monkeypatch)
+        if backfill:
+            _run("backfill", [], config, monkeypatch)
 
 
 def test_the_same_sectors_come_out_in_either_order(make_database, monkeypatch):
@@ -85,7 +88,7 @@ def test_the_same_sectors_come_out_in_either_order(make_database, monkeypatch):
 
 
 def test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order(make_database, monkeypatch):
-    """The first run generates one sector and backfills the bright stars around it (`--backfill-from edge`), so the
+    """The first run generates one sector and backfills the bright stars around it (the `backfill` command), so the
     sectors after it are reached by that backfill; they then come out the same in whichever order they are
     generated. (A sector generated before the backfill reaches its cell does not get those stars, so it differs from
     one the backfill reached first: that dependence is open, GEN.57's backfill clause.)"""
@@ -93,7 +96,7 @@ def test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order(mak
     results = []
     for order in (rest, rest[::-1]):
         config = _galaxy(make_database)
-        _generate_in_order(config, first, monkeypatch, backfill="edge")
+        _generate_in_order(config, first, monkeypatch, backfill=True)
         _generate_in_order(config, order, monkeypatch)
         results.append(_fingerprint(config))
     assert len(results[0][0].sectors) == len(SECTORS)
@@ -105,7 +108,7 @@ def test_the_same_sectors_come_out_at_one_worker_and_several(make_database, monk
     results = []
     for count in (1, workers):
         config = _galaxy(make_database)
-        _run("galaxy", ["--shells", "1", "--num-systems", "4", "--workers", str(count), "--backfill-from", "none"], config, monkeypatch)
+        _run("sectors", ["--shells", "1", "--num-systems", "4", "--workers", str(count)], config, monkeypatch)
         results.append(_fingerprint(config))
     assert len(results[0][0].sectors) == len(SECTORS)
     _assert_same(*results)

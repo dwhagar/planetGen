@@ -68,6 +68,22 @@ class letter (`mixture_draw` module text has the table). Each family is one modu
 | `lava` (`i` at `tp_k >= 1400 K`, `l1`) | `mixture_lava` | the vapour over an ideal-solution BSE melt: element potentials from the melt's oxides and the held oxygen fugacity, every gas of those elements at its own partial pressure, no iteration |
 | `airless` (`l2`, `l1` below 1400 K) | | no gas: `mole_fractions` is empty |
 
+After the family's chemistry, `mixture_escape.apply` (GEN.693) removes the gases a small warm body cannot keep, for the families that
+outgas (`rocky`, `venus`, `mars`, `abiotic-oxygen`). The Jeans parameter `lambda = m v_esc^2 / (2 k T_exo)` of each gas against `lambda =
+54` (the escape speed at six times the rms speed, kept for 4.5 Gyr, moved by `ln(age/4.5)`) gives the share that stays, a logistic of
+width 4; a gas of which less than 0.1 percent stays is gone, the rest is renormalised, and an air of which less than 1 percent stays
+is airless. The exobase temperature is a stand-in (`EXOBASE_RATIO`: 4 times the equilibrium temperature, 1.3 for an air that is half
+carbon dioxide, times the XUV flux to the 0.25, clamped to 0.5 to 3) fitted to Earth, Mars and Venus and replaced when a thermosphere
+model exists. Earth gives hydrogen 15 against 54 (gone) and helium at 0.2 percent kept (a few ppm, as measured); a 3.5 km/s world at
+310 K keeps none of its outgassed hydrogen, carbon monoxide or carbonyl sulfide and is airless. The giants, the envelopes, the lava
+vapour, the ice-supported air and the Titan-like air (whose hydrogen is a photochemical steady state) are not filtered. The total
+pressure is not changed here.
+
+The oxygen cap (`mixture_oxygen`, Boss 10-24): no air is pure oxygen. A lifeless world that lost its water (the abiotic-oxygen family) is
+capped at 95 percent oxygen with at least 0.5 percent nitrogen plus argon; a living world is capped at 35 percent (`BIOTIC_O2_MAX`, from the
+Phanerozoic peak and the fire limit), for the life stage that sets the oxygen of a living world to apply with `cap_oxygen`. The analysis is
+in `/mnt/project-files/reports/pure-oxygen-atmosphere-2026-10-24.md`.
+
 The lava vapour reproduces Kite et al. 2016's vapour pressure over a BSE melt (1.8e-4 bar at 2000 K, 1.1e-2 bar at 2500 K against 2e-4
 and 8e-3) and the sequence of Miguel et al. 2011: Na and K first, then SiO, Mg and Fe from 2000 to 2500 K, SiO above O2 beyond about 2900 K,
 mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with the alkali oxides' activity coefficient of 3e-9 to 3e-8

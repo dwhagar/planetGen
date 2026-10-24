@@ -56,7 +56,7 @@ from planetgen.galaxy import density as galaxyDensity, sector as spaceSector, sp
 from planetgen.physics import constants as pc, kepler, stellar_evolution
 from planetgen import tuning
 from planetgen.util import log
-from planetgen.physics import planets
+from planetgen.physics import planets, radiogenic
 from planetgen.util import detmath
 
 SEED = 20261001
@@ -296,6 +296,25 @@ are not kept): the radius the Sun's own galactic orbit is checked at. A test ref
 position (GEN.404)."""
 
 
+def _formation_content(k_ppm, th_ppm, u_ppm):
+    """A `radiogenic.Content` whose silicate has these K, Th and U today (ppm), as drawn at formation."""
+    return radiogenic.Content(k_ppm * radiogenic.formation_mix("K")[1], th_ppm * radiogenic.formation_mix("Th")[1],
+                              u_ppm * radiogenic.formation_mix("U")[1], 0.0, 0.5)
+
+
+def _bulk_silicate_earth():
+    return _formation_content(*radiogenic.BULK_SILICATE_EARTH)
+
+
+def _ci_chondrite():
+    return _formation_content(546.0, 0.030, 0.0081)
+
+
+def _upper_crust():
+    return _formation_content(*radiogenic.SURFACE_RESERVOIRS["felsic"].ppm)
+
+
+
 def _reference_checks():
     sun_kg = pc.SOLAR_MASS_TO_KG
     period = planets.calculate_orbital_period_years
@@ -338,6 +357,17 @@ def _reference_checks():
               lambda: orbits.calculate_habitable_zone(pc.SOLAR_LUMINOSITY, 5772.0)[1], 1.68, 0.01,
               "outer habitable zone edge for the Sun, about 1.68 AU (the maximum greenhouse limit: Kopparapu et al. 2014)",
               unit="AU"),
+        Check("bulk_silicate_earth_radiogenic_heat", "reference", "radiogenic.heat_w(bulk silicate Earth, 4.042e24 kg, 4.568 Gyr)",
+              lambda: radiogenic.heat_w(_bulk_silicate_earth(), 4.042e24, radiogenic.REFERENCE_AGE_GY) / 1e12, 21.0, 0.03,
+              "21.0 TW for the bulk silicate Earth of Palme and O'Neill 2003 edition (K 260 ppm, Th 83.4 ppb, U 21.8 ppb); "
+              "docs/design/radiation-model.md section 6 (Dye 2012 equation 6 for the heat of each isotope)", unit="TW"),
+        Check("chondrite_radiogenic_heat", "reference", "radiogenic.heat_w_per_kg(CI chondrite, 4.568 Gyr)",
+              lambda: radiogenic.heat_w_per_kg(_ci_chondrite(), radiogenic.REFERENCE_AGE_GY) * 1e12, 3.5, 0.05,
+              "3.5 pW/kg for CI chondrites (K 546, Th 0.030, U 0.0081 ppm; design-drafts/parts/E section 2.8b)", unit="pW/kg"),
+        Check("upper_crust_gamma_dose", "reference", "radiogenic.gamma_ngy_per_hour(upper continental crust, 4.568 Gyr)",
+              lambda: radiogenic.gamma_ngy_per_hour(_upper_crust(), radiogenic.REFERENCE_AGE_GY), 71.5, 0.03,
+              "71.5 nGy/h in air over the upper continental crust (Rudnick and Gao 2014 Table 11: U 2.7, Th 10.5 ppm, K2O 2.80 weight "
+              "percent; UNSCEAR coefficients)", unit="nGy/h"),
         Check("snow_line_1_lsun", "reference", "formation.snow_line_au(L_sun)",
               lambda: formation.snow_line_au(pc.SOLAR_LUMINOSITY), 2.68, 0.005,
               "blackbody snow line at 170 K, 2.68 AU for 1 L_sun (Kennedy and Kenyon 2008)", unit="AU"),

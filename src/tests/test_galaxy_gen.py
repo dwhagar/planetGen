@@ -174,14 +174,14 @@ def _mysql_argv(mysql_config):
 
 
 def _run_cli(argv, planets=None):
-    """Runs `generate.main()` with the `galaxy` subcommand and the given
-    argv (excluding argv[0]), restoring `sys.argv` afterward. `planets=False`
+    """Runs `generate.main()` with the `sectors` subcommand (PERF.123: `galaxy` does every stage after the sectors, which
+    these tests do not want) and the given argv (excluding argv[0]), restoring `sys.argv` afterward. `planets=False`
     makes every system planet-less (cheap), as `-planets` did before galaxy
     runs lost their forcing options (GEN.51)."""
     old_argv = sys.argv
     forced = {} if planets is None else {"PLANETS": planets}
     try:
-        sys.argv = ["planetgen", "galaxy"] + argv
+        sys.argv = ["planetgen", "sectors"] + argv
         with forced_system_config(**forced):
             generate_cli.main()
     finally:

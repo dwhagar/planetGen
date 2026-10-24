@@ -21,7 +21,7 @@ from planetgen.generation import evolution
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.names.bodies import close_pair_label
-from planetgen.physics import atmosphere as atmosphere_physics, atmosphere_colour, equipment, habitability, pre_main_sequence, protection, unit_registry
+from planetgen.physics import atmosphere as atmosphere_physics, atmosphere_colour, equipment, habitability, pre_main_sequence, protection, regional_temperature, unit_registry
 from planetgen.physics.quantity import Quantity
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
@@ -392,7 +392,8 @@ def _ratings_block(planet):
     scored = planet.habitability_world()
     if scored is None:
         return None
-    result = protection.rating(*scored)
+    regions = {field: getattr(planet, field, None) for field in regional_temperature.FIELDS}
+    result = protection.rating(*scored, regions=regions)
     rows = [{"domain": row["domain"], "tier": row["tier"], "score": row["score"], "text": inline([row["text"]])}
             for row in result["rows"]]
     return model.ratings({"name": "PHI-6", "score": result["overall"], "tier": habitability.tier(result["overall"])},

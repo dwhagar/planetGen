@@ -8,6 +8,8 @@ once when the site starts, from the generator's own tables):
 - `/classes/<type_slug>`: one type's classes, each linking to its page.
 - `/classes/<type_slug>/<code>`: one class's facts.
 
+The habitability page (`/help/habitability`) is under the Help menu with the class pages.
+
 An unknown type or code is a 404. `class_url` is what the system,
 phenomenon and other pages use to link a class label here.
 """
@@ -56,7 +58,6 @@ def classes():
         breadcrumbs=[crumb("Classes")],
         description="Every class of star, planet, nebula and other object this galaxy survey assigns.",
         rows=rows,
-        habitability_url=page_url("habitability_levels"),
         population=_population_links(),
     )
 
@@ -73,14 +74,15 @@ def _population_links():
     return links
 
 
-@bp.route("/classes/habitability")
+@bp.route("/help/habitability")
 def habitability_levels():
-    """UX.90: what the equipment levels and PHI-6 colours on the planet pages mean."""
+    """UX.90, UX.180: what the equipment levels and PHI-6 colours on the planet pages mean. The symbols, life scores
+    and chips on every page link to its sections (UX.181)."""
     return render_page(
         "habitability.html",
-        title="Habitability Levels",
-        section="classes",
-        breadcrumbs=[crumb("Classes", "classes"), crumb("Habitability Levels")],
+        title="Habitability",
+        section="help",
+        breadcrumbs=[crumb("Habitability")],
         description="What the equipment levels, the Blue to Red domain colours and the Habitable chips mean.",
         **habitability_ref.page(),
     )

@@ -1932,7 +1932,7 @@ def sector_detail(conn, sector_id):
 
 SECTOR_STATS_FIELDS = (
     "bright_level_sol", "relative_density", "expected_systems", "actual_systems", "actual_stars",
-    "mean_temperature_k", "mean_luminosity_sol", "mean_age_gy", "total_luminosity_sol",
+    "mean_temperature_k", "mean_luminosity_sol", "mean_age_gy", "total_luminosity_sol", "habitable_worlds",
 )
 """tuple: The `sector_stats` columns `sector_stats` reads (PERF.11)."""
 
@@ -5133,7 +5133,7 @@ def galaxy_stage(conn, at=None):
             name, system_count, stats}]` at `child_m = 1`, else `None`).
             `stats` is what the generated sectors hold, from `sector_stats`
             (DB.14, `_stage_stats`): `{systems, expected_systems, stars,
-            mean_age_gy, luminosity_sol}`.
+            mean_age_gy, luminosity_sol, habitable_worlds}`.
 
     Raises:
         ValueError: On a malformed or impossible `at`.
@@ -5180,6 +5180,7 @@ def galaxy_stage(conn, at=None):
             _add_stage_sums(counts, DrillBlock(1, r["shell_index"], r["band_index"], r["wedge_index"]), {
                 "n": 1, "systems": r["actual_systems"], "expected": r["expected_systems"], "stars": r["actual_stars"],
                 "age_sum": (r["mean_age_gy"] or 0.0) * (r["actual_stars"] or 0), "luminosity": r["total_luminosity_sol"],
+                "habitable": r["habitable_worlds"],
             })
         return {"at": format_drill_key(block), "child_m": 1, "children": _stage_children(counts), "sectors": sectors, "edge_pc": edge_pc}
 
@@ -5211,7 +5212,7 @@ def _sectors_where(sectors):
 
 _BLOCK_STATS_COLUMNS = (
     "shell_index, band_index, wedge_index, sector_count AS n, systems, expected_systems AS expected, stars, age_sum,"
-    " luminosity_sol AS luminosity"
+    " luminosity_sol AS luminosity, habitable_worlds AS habitable"
 )
 
 
@@ -5232,7 +5233,7 @@ def _block_rows(conn, m, cells=None):
 def galaxy_block_sums(conn, block):
     """
     The sums of the generated sectors inside one block (DB.25): `[sectors, systems, expected systems, stars, stars
-    times mean age, luminosity]` (`_add_stage_sums`' order), or `None` for a block with no generated sector. A
+    times mean age, luminosity, habitable worlds]` (`_add_stage_sums`' order), or `None` for a block with no generated sector. A
     level-3 block adds up its sectors from `sectors` and `sector_stats`; a bigger one adds up the stored rows of its
     children, so a refresh climbs the ladder one level at a time and never reads a block's sectors in one go.
     """
@@ -5363,17 +5364,17 @@ def _sector_sums(row):
     """One sector's sums, in `_add_stage_sums`' order, for its own `stats`."""
     stars = row["actual_stars"] or 0
     return [1, row["actual_systems"] or 0, row["expected_systems"] or 0.0, stars,
-            (row["mean_age_gy"] or 0.0) * stars, row["total_luminosity_sol"] or 0.0]
+            (row["mean_age_gy"] or 0.0) * stars, row["total_luminosity_sol"] or 0.0, row["habitable_worlds"] or 0]
 
 
 def _stage_sectors_with_stats(where, extra=""):
     """The placed sectors matching `where` (on `sectors`' own columns),
     each with the `sector_stats` the map colors from (DB.14):
-    `actual_systems`, `expected_systems`, `actual_stars`, `mean_age_gy`
-    and `total_luminosity_sol` (NULL without a row or a fill)."""
+    `actual_systems`, `expected_systems`, `actual_stars`, `mean_age_gy`,
+    `total_luminosity_sol` and `habitable_worlds` (NULL without a row or a fill)."""
     return (
         f"SELECT {extra}s.shell_index, s.band_index, s.wedge_index, st.actual_systems, st.expected_systems,"
-        " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol"
+        " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds"
         f" FROM (SELECT * FROM sectors WHERE {where}) s LEFT JOIN sector_stats st"
         " ON st.shell_index = s.shell_index AND st.band_index = s.band_index"
         " AND st.wedge_index = s.wedge_index"
@@ -5383,7 +5384,7 @@ def _stage_sectors_with_stats(where, extra=""):
 _STAGE_LOOK_SUMS = (
     "COUNT(*) AS n, SUM(COALESCE(actual_systems, 0)) AS systems, SUM(COALESCE(expected_systems, 0)) AS expected,"
     " SUM(COALESCE(actual_stars, 0)) AS stars, SUM(COALESCE(mean_age_gy, 0) * COALESCE(actual_stars, 0)) AS age_sum,"
-    " SUM(COALESCE(total_luminosity_sol, 0)) AS luminosity"
+    " SUM(COALESCE(total_luminosity_sol, 0)) AS luminosity, SUM(COALESCE(habitable_worlds, 0)) AS habitable"
 )
 """The per-group sums `galaxy_stage` folds into each child's stats."""
 
@@ -5391,29 +5392,32 @@ _STAGE_LOOK_SUMS = (
 def _add_stage_sums(counts, child, row):
     """Adds one group's sums (`_STAGE_LOOK_SUMS`) to `counts[child]`:
     `[sectors, systems, expected systems, stars, stars times mean age,
-    luminosity]`."""
-    sums = counts.setdefault(child, [0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    luminosity, habitable worlds]`."""
+    sums = counts.setdefault(child, [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     sums[0] += int(row["n"])
     sums[1] += float(row["systems"] or 0.0)
     sums[2] += float(row["expected"] or 0.0)
     sums[3] += float(row["stars"] or 0.0)
     sums[4] += float(row["age_sum"] or 0.0)
     sums[5] += float(row["luminosity"] or 0.0)
+    sums[6] += float(row["habitable"] or 0.0)
 
 
 def _stage_stats(sums):
     """A child's `stats` from its sums (DB.14): the `systems` and `stars`
     its generated sectors hold, the `expected_systems` the density model
     gave them, `mean_age_gy` (the stars' mean age, each sector's mean
-    weighted by its star count; `None` without stars) and
-    `luminosity_sol` (the sum of their luminosity)."""
-    _n, systems, expected, stars, age_sum, luminosity = sums
+    weighted by its star count; `None` without stars),
+    `luminosity_sol` (the sum of their luminosity) and `habitable_worlds`
+    (MAP.143: the Blue or Green planets and moons they hold)."""
+    _n, systems, expected, stars, age_sum, luminosity, habitable = sums
     return {
         "systems": int(systems),
         "expected_systems": round(expected, 3),
         "stars": int(stars),
         "mean_age_gy": round(age_sum / stars, 4) if stars else None,
         "luminosity_sol": luminosity,
+        "habitable_worlds": int(habitable),
     }
 
 
@@ -6344,9 +6348,12 @@ def _equipment_columns(alias):
 
 
 def _with_equipment(row):
-    """A search row with its equipment line (`equipment.line`, empty for a body that needs nothing) and the levels
-    it was worked out from taken out."""
+    """A search row with its equipment line (`equipment.line`, empty for a body that needs nothing), its items
+    (`equipment_items`: `item`, `severity` and the PHI-6 `domain` of each, which the chips are drawn from, UX.154) and the
+    levels it was worked out from taken out."""
     row["equipment"] = equipment.line(row)
+    row["equipment_items"] = [{"item": item.name, "severity": item.severity, "domain": item.domain}
+                              for item in equipment.items(row)]
     for column in equipment.FIELDS:
         row.pop(column, None)
     return row

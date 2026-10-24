@@ -45,10 +45,14 @@ def run_population(args):
 
 
 def run_population_after(args):
-    """The population pass after a `sector` or `galaxy` run, only with
+    """The population pass after a `sector` run, only with
     `--population` (off by default, Boss 2026-10-01)."""
-    if not getattr(args, "population", False):
-        return
+    if getattr(args, "population", False):
+        run_population_stage(args)
+
+
+def run_population_stage(args):
+    """The population pass as a stage of a `galaxy` run (PERF.123: the run does every stage)."""
     stages.enter("population")
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:

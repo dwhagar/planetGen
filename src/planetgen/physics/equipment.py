@@ -26,7 +26,7 @@ the stored levels alone (`items`, `required_names`, `recommended_names`, `code`,
 import math
 from collections import namedtuple
 
-from planetgen.physics import constants, habitability, radiation
+from planetgen.physics import constants, habitability, radiation, regional_temperature
 from planetgen.physics.protection_limits import RADIATION_STEPS, TOXIC, limit
 
 FIELDS = (
@@ -559,7 +559,7 @@ def summary(levels):
                   for item in items(levels)],
         "line": line(levels), "required_line": lines(levels)[0], "recommended_line": lines(levels)[1],
         "shelter_column_g_cm2": levels.get("shelter_column_g_cm2"),
-        "outside_hours": levels.get("outside_hours"),
+        "outside_hours": levels.get("outside_hours"), "regions": regional_temperature.summary(levels),
     }
 
 
