@@ -108,6 +108,13 @@ PUBCHEM_DENSITY = {
     "co2_ice": (1.56, "about 194 K, solid"),
 }
 
+# Solid densities computed by part D (section 2.1) from the COD crystal cell of the same formula (label COMPUTED): id:
+# (value g/cm3, basis)
+COD_DENSITY = {
+    "ch3oh_ice": (1.028, "122 K, COD crystal cell (0.991 at 160 K)"),
+    "h2s_ice": (1.2, "COD crystal cell, one entry, about"),
+}
+
 # Seager et al. 2007 (ApJ 669, 1279; arXiv:0707.2895) Table 1: K0 and K0' of the Vinet (V) or Birch-Murnaghan (BME) fits at
 # zero pressure and 300 K, with the rho0 of the table. id: (model, order, rho0 kg/m3, K0 GPa, +-, K0', +-, note)
 SEAGER_TABLE_1 = {

@@ -23,7 +23,7 @@ import math
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import hosts
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, spin
+from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
@@ -391,15 +391,16 @@ class InterstellarComet(SmallBody):
             objects are cataloged as `1I/...`, `2I/...`, etc. -- this
             generator's own name is purely descriptive/narrative).
         nucleus_diameter_km (float): Nucleus diameter in kilometers.
-        composition (list): A list of composition component strings,
-            sampled from `tuning.COMET_COMPOSITION`.
+        mass_kg (float): The nucleus's mass, kg: its sphere at the bulk density of its makeup (GEN.442).
+        composition (list): The names of the three largest components of `makeup`.
+        makeup (SmallBodyMakeup): The drawn composition (`physics/small_body_composition.py`).
         velocity_kms (float): Hyperbolic excess speed, in km/s.
         is_active (bool): Whether it currently shows a coma/tail from
             sublimating ices.
     """
 
     FIELD_UNITS = {
-        "name": "text", "nucleus_diameter_km": "km", "velocity_kms": "km_s", "is_active": "flag",
+        "name": "text", "nucleus_diameter_km": "km", "mass_kg": "kg", "velocity_kms": "km_s", "is_active": "flag",
         **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
@@ -432,8 +433,10 @@ class InterstellarComet(SmallBody):
                    f"roll against INTERSTELLAR_COMET_ACTIVE_CHANCE "
                    f"({tuning.INTERSTELLAR_COMET_ACTIVE_CHANCE})")
 
-        num_components = min(3, len(tuning.COMET_COMPOSITION))
-        self.composition = draw.sample(tuning.COMET_COMPOSITION, k=num_components)
+        # GEN.442: an interstellar comet's ices and refractories, the wider carbon-oxide ranges of its class.
+        self.makeup = small_body_composition.draw_comet(interstellar=True)
+        self.composition = small_body_composition.component_names(self.makeup)
+        self.mass_kg = self.makeup.mass_kg(self.nucleus_diameter_km)
 
         self.set_galactic_motion()
         # GEN.104: a small body's spin, YORP-tilted from the galactic pole.

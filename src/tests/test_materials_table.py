@@ -179,14 +179,6 @@ def test_every_asteroid_component_is_a_row():
     assert not missing, f"not in materials.json: {missing}"
 
 
-def test_every_field_family_and_comet_component_is_a_row():
-    names = list(tuning.COMET_COMPOSITION)
-    for family in tuning.ASTEROID_FIELD_COMPOSITIONS.values():
-        names += family["components"] or []  # None: any asteroid component, already covered
-    missing = sorted({name for name in names if not materials.has(name)})
-    assert not missing, f"not in materials.json: {missing}"
-
-
 def test_every_class_composition_text_is_mapped_to_rows():
     texts = {data["composition"] for data in tuning.PLANET_CLASSES.values()}
     assert len(texts) == 11

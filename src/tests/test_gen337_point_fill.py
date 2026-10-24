@@ -69,7 +69,7 @@ def test_a_comet_takes_the_mass_of_its_nucleus(mysql_config):
                            (system_id,)).fetchone()
     finally:
         conn.close()
-    assert row["mass_kg"] == pytest.approx(bulk_mass.comet_nucleus_mass_kg(row["nucleus_diameter_km"]), rel=1e-9)
+    assert row["mass_kg"] == pytest.approx(comet.makeup.mass_kg(row["nucleus_diameter_km"]), rel=1e-9)
     assert row["mass_kg"] > 0
 
 

@@ -89,7 +89,7 @@ def test_the_bulk_mass_of_a_cloud_or_a_comet_is_derived_and_a_field_has_a_stated
         conn.close()
     assert masses[0] == pytest.approx(bulk_mass.gas_cloud_mass_kg(nebula.density_cm3, nebula.radius_ly))
     assert masses[1] == pytest.approx(bulk_mass.gas_cloud_mass_kg(remnant.density_cm3, remnant.radius_ly))
-    assert masses[2] == pytest.approx(bulk_mass.comet_nucleus_mass_kg(comet.nucleus_diameter_km))
+    assert masses[2] == pytest.approx(comet.makeup.mass_kg(comet.nucleus_diameter_km))
     assert masses[3] == 0.0
 
 

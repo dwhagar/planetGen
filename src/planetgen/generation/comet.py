@@ -38,7 +38,7 @@ why that's out of scope for this pass).
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import constants as physical_constants, kepler, spin
+from planetgen.physics import constants as physical_constants, kepler, small_body_composition, spin
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -139,8 +139,9 @@ class Comet(SmallBody):
             `"long_period"`); `None` for a parabolic comet (no period to
             classify).
         nucleus_diameter_km (float): Nucleus diameter, in kilometers.
-        composition (list): A list of composition component strings,
-            sampled from `tuning.COMET_COMPOSITION`.
+        mass_kg (float): The nucleus's mass, kg: its sphere at the bulk density of its makeup (GEN.442).
+        composition (list): The names of the three largest components of `makeup`.
+        makeup (SmallBodyMakeup): The drawn composition (`physics/small_body_composition.py`).
         perihelion_distance_au (float): Perihelion distance `q`, in AU.
         eccentricity (float): Orbital eccentricity.
         inclination_deg (float): Orbital plane tilt, in degrees.
@@ -179,7 +180,7 @@ class Comet(SmallBody):
     """
 
     FIELD_UNITS = {
-        "name": "text", "orbit_type": "text", "period_class": "text", "nucleus_diameter_km": "km",
+        "name": "text", "orbit_type": "text", "period_class": "text", "nucleus_diameter_km": "km", "mass_kg": "kg",
         "perihelion_distance_au": "au", "eccentricity": "ratio", "inclination_deg": "deg",
         "arg_periapsis_deg": "deg", "ascending_node_deg": "deg", "orbital_period_years": "yr",
         "mean_anomaly_deg": "deg", "parabolic_mean_anomaly": "ratio", "min_update_interval_years": "yr",
@@ -239,8 +240,6 @@ class Comet(SmallBody):
                        f"roll against COMET_PARABOLIC_CHANCE ({tuning.COMET_PARABOLIC_CHANCE})")
 
         self.nucleus_diameter_km = draw.uniform(*tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM)
-        num_components = min(3, len(tuning.COMET_COMPOSITION))
-        self.composition = draw.sample(tuning.COMET_COMPOSITION, k=num_components)
 
         self.perihelion_distance_au = draw.uniform(*tuning.COMET_PERIHELION_DISTANCE_RANGE_AU)
         self.arg_periapsis_deg = draw.uniform(0, 360)
@@ -285,6 +284,11 @@ class Comet(SmallBody):
             # at perihelion itself.
             self.parabolic_mean_anomaly = draw.uniform(-3.0, 3.0)
             self.min_update_interval_years = None
+
+        # GEN.442: the ices and refractories of the nucleus, its porosity and the mass they make (period class: how volatile-rich).
+        self.makeup = small_body_composition.draw_comet(self.period_class)
+        self.composition = small_body_composition.component_names(self.makeup)
+        self.mass_kg = self.makeup.mass_kg(self.nucleus_diameter_km)
 
         self.update_orbital_state()
         activity_chance = _activity_chance(self.perihelion_distance_au)

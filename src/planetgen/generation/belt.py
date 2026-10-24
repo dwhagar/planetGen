@@ -8,8 +8,7 @@ This module contains the `AsteroidBelt` class, which provides a representation
 for asteroid belts within a star system. It also includes utility functions
 related to planet mass ranges, which are used by both planets and asteroid belts.
 
-`generate_asteroid_composition`/`format_composition_summary` are shared,
-module-level extractions of `AsteroidBelt`'s own composition-generation/
+`format_composition_summary` is a shared, module-level extraction of `AsteroidBelt`'s own
 formatting logic, reused as-is by `asteroidFieldData.AsteroidField` -- a
 standalone asteroid field encountered in open space is physically the same
 thing (density + mineral composition), just without a host star/orbit --
@@ -19,44 +18,10 @@ this module's logic.
 
 
 from planetgen.generation.config import SystemConfig
-from planetgen import tuning
+from planetgen.physics import small_body_composition
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-
-
-def generate_asteroid_composition():
-    """
-    Generates a list of common compounds for an asteroid belt/field by
-    sampling a random, unique subset of `tuning.ASTEROID_COMPONENTS`
-    (up to 4) and assigning each an ordered concentration level, from "high"
-    down to "trace".
-
-    Returns:
-        list: A list of (component, concentration) tuples, e.g.
-              [("iron", "high"), ("nickel", "moderate")].
-    """
-    all_concentrations = ["high", "moderate", "small", "trace"]
-
-    # Determine how many components to select (up to 4)
-    num_components_to_select = min(len(all_concentrations), len(tuning.ASTEROID_COMPONENTS))
-
-    # Select unique components
-    selected_components = draw.sample(tuning.ASTEROID_COMPONENTS, k=num_components_to_select)
-
-    # Shuffle selected components to randomize which concentration they get
-    draw.shuffle(selected_components)
-
-    # Take only the necessary number of concentrations
-    concentrations_for_use = all_concentrations[:num_components_to_select]
-
-    composition_data = []
-    for i in range(num_components_to_select):
-        component = selected_components[i]
-        concentration = concentrations_for_use[i]
-        composition_data.append((component, concentration))
-
-    return composition_data
 
 
 def format_composition_summary(composition):
@@ -64,7 +29,7 @@ def format_composition_summary(composition):
     Builds the human-readable composition summary sentence fragment (e.g.
     "high concentrations of iron, moderate concentrations of nickel, and
     trace amounts of platinum") for a (component, concentration) list in
-    the shape `generate_asteroid_composition` produces.
+    the shape `small_body_composition.describe` produces.
 
     Args:
         composition (list): A list of (component, concentration) tuples.
@@ -109,22 +74,27 @@ class AsteroidBelt:
         density (str): The density of the asteroid belt ('dense', 'sparse', 'typical').
         composition (list): A list of (component, concentration) tuples -- contrast
                             `Planet.composition`, a descriptive string (same name,
-                            unrelated shape, on the two classes).
+                            unrelated shape, on the two classes). The words of the
+                            makeup below (`small_body_composition.describe`).
+        makeup (SmallBodyMakeup or None): The drawn composition the words come from (GEN.442):
+                            taxon shares, grain mixture, porosity, bulk density and albedo.
+                            None for a belt read back from a store that predates it.
     """
 
     SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density"]
     """
     Every attribute set by `__init__`, excluding `system_config` (a shared
-    back-reference) and `composition` (handled separately in `to_dict`/
-    `from_dict`, since it's a list of tuples -- JSON has no tuple type).
+    back-reference), `composition` (handled separately in `to_dict`/
+    `from_dict`, since it's a list of tuples -- JSON has no tuple type) and `makeup`.
     """
 
-    def __init__(self, system_config: SystemConfig, distance, lower_limit, upper_limit): # Added system_config
+    def __init__(self, system_config: SystemConfig, star, distance, lower_limit, upper_limit): # Added system_config
         """
         Initializes an AsteroidBelt object.
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object for the system.
+            star: The star (or binary proxy) the belt orbits; its stored snow line decides the taxa (GEN.442).
             distance (float): The average distance from the star in AU.
             lower_limit (float): The inner boundary of the belt in AU.
             upper_limit (float): The outer boundary of the belt in AU.
@@ -136,7 +106,8 @@ class AsteroidBelt:
         self.body_type = 'a'
         self.density = draw.choice(["dense", "sparse", "typical"])
         log.choice("Asteroid belt density", self.density, "uniform draw among dense/sparse/typical")
-        self.composition = generate_asteroid_composition()
+        self.makeup = small_body_composition.draw_belt(distance, star.snow_line_au)
+        self.composition = small_body_composition.describe(self.makeup)
 
     def to_dict(self):
         """
@@ -150,6 +121,7 @@ class AsteroidBelt:
         """
         data = fields_to_dict(self, self.SERIALIZABLE_FIELDS)
         data["composition"] = [list(pair) for pair in self.composition]
+        data["makeup"] = self.makeup.to_dict() if self.makeup is not None else None
         return data
 
     @classmethod
@@ -170,6 +142,7 @@ class AsteroidBelt:
         belt.system_config = system_config
         fields_from_dict(belt, data, cls.SERIALIZABLE_FIELDS)
         belt.composition = [tuple(pair) for pair in data["composition"]]
+        belt.makeup = small_body_composition.SmallBodyMakeup.from_dict(data["makeup"]) if data.get("makeup") else None
         return belt
 
     def get_composition_summary(self):

@@ -126,7 +126,7 @@ _RUNTIME_ONLY = {
     Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed"},
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
              "primary_mass_kg", "_star_distance_au"},
-    AsteroidBelt: {"system_config", "composition"},
+    AsteroidBelt: {"system_config", "composition", "makeup"},
 }
 
 

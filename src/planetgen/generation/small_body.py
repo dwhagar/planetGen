@@ -15,6 +15,7 @@ Nothing here draws a random number.
 
 from planetgen.generation.mass_object import MassObject
 from planetgen.names.wordsalad import LazySaladName
+from planetgen.physics.small_body_composition import SmallBodyMakeup
 
 
 class SmallBody(LazySaladName, MassObject):
@@ -35,8 +36,14 @@ class SmallBody(LazySaladName, MassObject):
         self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
+    makeup = None
+    """SmallBodyMakeup or None: What it is made of as the draw made it (GEN.442): the grain mixture, the porosity, the bulk
+    density. `composition` holds the words taken from it. None for a body read back from a store that has not got it."""
+
     def _encode(self, data):
         data["composition"] = list(self.composition)
+        data["makeup"] = self.makeup.to_dict() if self.makeup is not None else None
 
     def _decode(self, data):
         self.composition = list(data["composition"])
+        self.makeup = SmallBodyMakeup.from_dict(data["makeup"]) if data.get("makeup") else None

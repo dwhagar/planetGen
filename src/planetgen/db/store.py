@@ -3207,7 +3207,7 @@ COMET_FIELDS = (
     object_rows.attr("orbital_speed_kms"),
     object_rows.attr("velocity_x_kms"), object_rows.attr("velocity_y_kms"), object_rows.attr("velocity_z_kms"),
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
-    object_rows.computed("mass_kg", lambda comet, context: bulk_mass.comet_nucleus_mass_kg(comet.nucleus_diameter_km)),
+    object_rows.attr("mass_kg"),
 )
 """tuple: The `Field`s of a `comets` row."""
 
@@ -3641,7 +3641,7 @@ INTERSTELLAR_COMET_FIELDS = (
     object_rows.attr("velocity_kms"), object_rows.computed("is_active", lambda comet, context: int(comet.is_active)),
     object_rows.computed("composition_summary", lambda comet, context: comet.get_composition_summary()),
     _FREE_VECTOR_FIELD,
-    object_rows.computed("mass_kg", lambda comet, context: bulk_mass.comet_nucleus_mass_kg(comet.nucleus_diameter_km)),
+    object_rows.attr("mass_kg"),
     _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD, object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
 )
 """tuple: The `Field`s of an `interstellar_comets` row."""

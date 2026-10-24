@@ -22,6 +22,7 @@
   "hp2011-burnman": "Holland and Powell 2011 data set as read in burnman HP_2011_ds62 (diamond), second-hand (part B table 2.1b)",
   "journaux2020": "Journaux et al. 2020, JGR Planets, Gibbs-energy splines as distributed in SeaFreeze 1.1.3 (spline data only), evaluated in part C section 2.3 (computed from second-hand data)",
   "blum-bischoff": "Blum and Bischoff, arXiv:2207.12731, as read in part C section 2.3 (comet densities)",
+  "cod-part-d": "Part D of the body composition research, section 2.1: densities computed from the Crystallography Open Database cell of the same formula (rho = Z M / (N_A V)), label COMPUTED; not a measurement of the solid at the body's temperature",
   "ideal-gas": "The ideal gas law rho = P M / (R T); exact, no constants of its own"
  },
  "legacy_names": {
@@ -5145,6 +5146,92 @@
    "source": "part E of the body composition research (row listed with no value yet)",
    "state": "partly verified",
    "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "ch3oh_ice",
+   "name": "methanol ice",
+   "family": "ice",
+   "formula": "CH3OH",
+   "composition": "",
+   "aliases": [
+    "methanol ice",
+    "methanol"
+   ],
+   "members": null,
+   "gas_formula": "CH3OH",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.028,
+     "unit": "g/cm3",
+     "source": "cod-part-d",
+     "code": "C",
+     "basis": "122 K, COD crystal cell (0.991 at 160 K)"
+    }
+   },
+   "eos": [],
+   "labels": "rho=C",
+   "note": "",
+   "source": "cod-part-d",
+   "state": "verified",
+   "limit": ""
+  },
+  {
+   "id": "c2h6_ice",
+   "name": "ethane ice",
+   "family": "ice",
+   "formula": "C2H6",
+   "composition": "",
+   "aliases": [
+    "ethane ice",
+    "ethane"
+   ],
+   "members": null,
+   "gas_formula": "C2H6",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": null,
+     "unit": "g/cm3",
+     "source": null,
+     "code": "N"
+    }
+   },
+   "eos": [],
+   "labels": "rho=N",
+   "note": "No solid density was reached (part D lists no cell for the solid).",
+   "source": "part E of the body composition research (row listed with no value yet)",
+   "state": "partly verified",
+   "limit": "rho_grain_g_cm3: no source"
+  },
+  {
+   "id": "h2s_ice",
+   "name": "hydrogen sulfide ice",
+   "family": "ice",
+   "formula": "H2S",
+   "composition": "",
+   "aliases": [
+    "hydrogen sulfide ice",
+    "hydrogen sulfide"
+   ],
+   "members": null,
+   "gas_formula": "H2S",
+   "gate": "any",
+   "props": {
+    "rho_grain_g_cm3": {
+     "value": 1.2,
+     "unit": "g/cm3",
+     "source": "cod-part-d",
+     "code": "C",
+     "basis": "COD crystal cell, one entry, about"
+    }
+   },
+   "eos": [],
+   "labels": "rho=C",
+   "note": "",
+   "source": "cod-part-d",
+   "state": "verified",
+   "limit": ""
   },
   {
    "id": "amorphous_carbon",

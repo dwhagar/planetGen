@@ -25,7 +25,7 @@ import pytest
 
 from planetgen.db import store
 from tests import render_support
-from planetgen.physics import constants, neutron_star
+from planetgen.physics import constants, materials, neutron_star, small_body_composition
 from planetgen import tuning
 from planetgen.galaxy import structure as galaxyStructure
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
@@ -311,7 +311,8 @@ def test_interstellar_comet_within_configured_ranges():
         assert tuning.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM[0] <= comet.nucleus_diameter_km <= tuning.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM[1]
         assert tuning.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE[0] <= comet.velocity_kms <= tuning.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE[1]
         assert 0 < len(comet.composition) <= 3
-        assert all(component in tuning.COMET_COMPOSITION for component in comet.composition)
+        assert all(materials.has(component) for component in comet.composition)
+        assert comet.makeup is not None and comet.mass_kg == pytest.approx(comet.makeup.mass_kg(comet.nucleus_diameter_km))
 
 
 def test_asteroid_field_within_configured_ranges():
@@ -321,7 +322,7 @@ def test_asteroid_field_within_configured_ranges():
         assert field.density in ("dense", "sparse", "typical")
         assert 0 < len(field.composition) <= 4
         for component, concentration in field.composition:
-            assert component in tuning.ASTEROID_COMPONENTS + tuning.COMET_COMPOSITION
+            assert component == small_body_composition.METAL_LABEL or materials.has(component)
             assert concentration in ("high", "moderate", "small", "trace")
 
 

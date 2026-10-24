@@ -1107,7 +1107,7 @@ class StarSystem:
                 # An explicit per-slot specification takes priority over all of the
                 # normal random/forced generation logic below.
                 if slot_spec is not None:
-                    obj = self.generate_slot_object(slot_spec, estimated_distance, planets=planets)
+                    obj = self.generate_slot_object(star, slot_spec, estimated_distance, planets=planets)
                     if getattr(obj, 'planet_class', None) in tuning.HABITABLE_PLANET_CLASSES:
                         found_hab = True
                     if getattr(obj, 'body_type', None) == 'a':
@@ -1191,7 +1191,7 @@ class StarSystem:
                     log.choice("Orbital slot object", "asteroid belt", f"slot {i}: {belt_reason}")
                     min_distance = estimated_distance
                     max_distance = estimated_distance * draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
-                    planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config
+                    planets.append(AsteroidBelt(self.system_config, star, estimated_distance, min_distance, max_distance)) # Pass system_config
                     found_belt = True
                 else:
                     planet = Planet(self.system_config, star, habitable_zone, estimated_distance) # Pass system_config
@@ -1605,12 +1605,13 @@ class StarSystem:
 
         return system
 
-    def generate_slot_object(self, slot_spec, estimated_distance, planets=None):
+    def generate_slot_object(self, star, slot_spec, estimated_distance, planets=None):
         """
         Builds the celestial object explicitly requested for one orbital slot
         by `system_config.SLOTS`.
 
         Args:
+            star: The star the slot orbits (a belt reads its stored snow line, GEN.442).
             slot_spec (dict): The slot specification, with a required "type"
                               key ("planet" or "asteroid_belt") and optional
                               "planet_class"/"moons" keys (see `SystemConfig.SLOTS`).
@@ -1632,7 +1633,7 @@ class StarSystem:
         if slot_type == "asteroid_belt":
             min_distance = estimated_distance
             max_distance = estimated_distance * draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
-            return AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)
+            return AsteroidBelt(self.system_config, star, estimated_distance, min_distance, max_distance)
 
         if slot_type == "planet":
             planet_class = slot_spec.get("planet_class")
