@@ -711,7 +711,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.61 | Docs: how the bubbles shape the stars, the setting values and what the drawn layer now is | none | open |
 | DOC.62 | Docs: the generation cost figures and the redo scope are stale (the phenomena cut, rows, bytes and time; `--redo-scatters` leaves satellites and clusters alone) | none | done, PR #2070 |
 | DOC.63 | Docs: the atmosphere data model, the gas table and how the values agree | none | open |
-| DOC.64 | Docs: the atmosphere colour, its method and its sources | none | open |
+| DOC.64 | Docs: the atmosphere colour, its method and its sources | none | done, PR #2808 |
 | DOC.65 | Docs: bulk composition, the materials table and how density, mass and gravity follow | none | open |
 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | none | open |
 | DOC.67 | An architecture map Boss can drill down: project areas, modules and functions with the call flow between them, generated from the code | none | done, PR #2154 |
