@@ -220,16 +220,13 @@ def test_the_map_rebuild_that_cannot_reopen_the_site_fails_loudly(state_file, mo
     monkeypatch.setattr(warm_cli, "_site_database", lambda: "x")
     monkeypatch.setattr(warmup, "warm_family", lambda db, family, cap=None, app=None, config=None: {
         "family": family, "warmed": 1, "left_out": 0, "seconds": 0.0, "line": f"{family}: ok"})
-    monkeypatch.setattr(warmup, "expand_warm_galaxy_tiles", lambda params: commands.Expansion(
-        [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
-    monkeypatch.setattr(warmup, "warm_galaxy_tiles_unit", lambda args, report: warmup._warm_unit("galaxy-tiles", args))
     monkeypatch.setattr(warmup, "expand_warm_galaxy_nodes", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     monkeypatch.setattr(warmup, "warm_galaxy_nodes_unit", lambda args, report: warmup._warm_unit("galaxy-nodes", args))
-    monkeypatch.setattr(warmup, "expand_warm_galaxy_deep_tiles", lambda params: commands.Expansion(
+    monkeypatch.setattr(warmup, "expand_warm_galaxy_deep_nodes", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
-    monkeypatch.setattr(warmup, "warm_galaxy_deep_tiles_unit",
-                        lambda args, report: warmup._warm_unit("galaxy-deep-tiles", args))
+    monkeypatch.setattr(warmup, "warm_galaxy_deep_nodes_unit",
+                        lambda args, report: warmup._warm_unit("galaxy-deep-nodes", args))
     monkeypatch.setattr(warmup, "warm_object_index_unit", lambda args, report: warmup._warm_unit("object-index", args))
     parser, _parsers = generate_cli.build_parser()
     with pytest.raises(SystemExit) as exit_info:

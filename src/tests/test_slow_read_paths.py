@@ -6,7 +6,7 @@ The pages that timed out on a big galaxy (PERF.68, PERF.70, PERF.74):
 - the Systems list sorted by Sector, Octant or Binary is read a group at a time (no sort of the table) and
   returns the same page the full sort would, for every offset, direction and filter;
 - the Sectors list reads each sector's system count from `sector_system_counts`;
-- the coarse tile's scattered-point query has an index of its own.
+- the scattered-point query of a coarse node has an index of its own.
 """
 
 import pytest
@@ -91,7 +91,7 @@ def test_the_scattered_point_query_has_an_index_of_its_own(galaxy):
     assert "idx_phenomenon_scatter_class" in names
 
 
-# --- PERF.76: a tile piece that runs past its limit leaves the tile incomplete ---------------------------
+# --- PERF.76: a node piece that runs past its limit leaves the node incomplete ---------------------------
 
 SLOW = "SELECT COUNT(*) AS n FROM (SELECT SLEEP(3)) slow"
 
@@ -117,7 +117,8 @@ def test_a_statement_limit_lowers_the_limit_for_the_block_and_restores_it(mysql_
         limited.close()
 
 
-def test_a_tile_whose_slowest_piece_times_out_is_served_marked_incomplete(galaxy, monkeypatch):
+def test_a_node_whose_slowest_piece_times_out_is_served_marked_incomplete(galaxy, monkeypatch):
+    from planetgen.db import nodes
     monkeypatch.setattr(queryDb, "TILE_PIECE_SECONDS", 0.4)
     real = queryDb.galaxy_scattered_points_in_box
 
@@ -125,11 +126,12 @@ def test_a_tile_whose_slowest_piece_times_out_is_served_marked_incomplete(galaxy
         conn.execute(SLOW).fetchone()
         return real(conn, *args, **kwargs)
 
+    keys = ["243.1.1.1", "81.2.1.1"]
     monkeypatch.setattr(queryDb, "galaxy_scattered_points_in_box", slow)
-    tiles = queryDb.galaxy_tiles(galaxy, ["2/0/0/0", "10/0/0/0"])["tiles"]
-    assert all(tile["incomplete"] == ["scattered"] for tile in tiles.values())
+    found = nodes.galaxy_nodes(galaxy, keys)["nodes"]
+    assert all(node["incomplete"] == ["scattered"] for node in found.values())
     monkeypatch.setattr(queryDb, "galaxy_scattered_points_in_box", real)
-    assert "incomplete" not in queryDb.galaxy_tiles(galaxy, ["2/0/0/0"])["tiles"]["2/0/0/0"]
+    assert "incomplete" not in nodes.galaxy_nodes(galaxy, keys[:1])["nodes"][keys[0]]
 
 
 # --- PERF.77: a count nobody has stored stops at the cap -------------------------------------------------

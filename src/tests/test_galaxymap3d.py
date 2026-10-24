@@ -1,10 +1,10 @@
 """
 planetgen/web/maps/galaxymap3d.py regression tests -- the interactive 3D Galaxy
 Map's server-side panel builder (the `/galaxy` view, `web/galaxy_views.py`, calls `view_radius_bounds`
-to pick its starting radius, `initial_tile_request` for the first
-frame's tiles, then `render_galaxy_map3d_panel` to build the page). No
+to pick its starting radius, `initial_node_request` for the first
+frame's nodes, then `render_galaxy_map3d_panel` to build the page). No
 database needed -- every function takes plain data, the same shape
-`apiclient.get_galaxy_shape`/`tilecache.fetch_tiles` return.
+`apiclient.get_galaxy_shape`/`tilecache.fetch_nodes` return.
 
 Run with: pytest src/tests/test_galaxymap3d.py
 """
@@ -21,29 +21,25 @@ from planetgen.web.maps.galaxymap3d import (  # noqa: E402
     CLICK_ZOOM_FACTOR_MIN,
     DENSITY_SHAPE_FIELDS,
     MODEL_TERM_FIELDS,
-    INITIAL_TILE_LIMIT,
+    INITIAL_NODE_LIMIT,
     MIN_VIEW_RADIUS_FLOOR_PC,
     camera_position_pc,
     galaxy_extent_pc,
-    initial_tile_request,
+    initial_node_request,
     render_galaxy_map3d_panel,
-    tile_bounds_pc,
+    node_bounds_pc,
     view_radius_bounds,
 )
 
-from planetgen.galaxy.viewport import (  # noqa: E402
-    TILE_MAX_LEVEL,
-    fetch_cut_tiles,
-    parse_tile_key,
-    tiles_intersecting_sphere,
-)
+from planetgen.galaxy.drill import parse_node_key  # noqa: E402
+from planetgen.galaxy.nodecut import MAX_NODES, node_cut  # noqa: E402
 from planetgen.tuning import GALAXY_RADIUS_PC  # noqa: E402
 
 EDGE_PC = 4.0
 
 
 def _empty_view(edge_pc=EDGE_PC, has_shape=False):
-    return {"stamp": "0123456789abcdef", "tiles": {}, "edge_pc": edge_pc, "has_shape": has_shape}
+    return {"stamp": "0123456789abcdef", "nodes": {}, "edge_pc": edge_pc, "has_shape": has_shape}
 
 
 def _json_payload(html):
@@ -199,19 +195,21 @@ def test_panel_has_the_bookmarks_menu():
 def test_panel_json_payload_has_every_field_the_client_reads():
     view = _empty_view(has_shape=True)
     html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 50}, EDGE_PC, view,
-                                     fetch_path="/galaxy/tiles", sector_url="/sector/{id}")
+                                     fetch_path="/galaxy/nodes", sector_url="/sector/{id}")
     data = _json_payload(html)
 
     assert data["storageKey"] == "mydb"
     assert "db" not in data
-    assert data["fetchPath"] == "/galaxy/tiles"
+    assert data["fetchPath"] == "/galaxy/nodes"
     assert data["stagePath"] == "/galaxy/stage"
     assert data["windowPath"] == "/galaxy/window"
     assert data["territoryPath"] == "/galaxy/territories"
     assert data["sectorUrl"] == "/sector/{id}"
     assert data["hasShape"] is True
-    for field in ("tileRootEdgePc", "tileMaxLevel", "fetchRadiusFactor", "maxTilesPerRequest"):
+    for field in ("nodeEdgePc", "nodeBoundsPc", "nodeBudget", "maxNodesPerRequest"):
         assert field in data
+    for gone in ("tileRootEdgePc", "tileMaxLevel", "fetchRadiusFactor", "maxTilesPerRequest"):
+        assert gone not in data
     # The block ladder fixes block sizes (docs/design/galaxy/spherical-block-ladder.md): nothing to tune per view.
     assert "blockMinPx" not in data and "blockBudget" not in data and "galaxyEdgePc" not in data
     assert data["edgePc"] == pytest.approx(EDGE_PC)
@@ -276,9 +274,9 @@ def test_panel_json_is_safely_escaped_against_script_breakout():
     assert data["storageKey"] == "weird</script><script>alert(1)</script>db"
 
 
-def test_panel_includes_the_initial_views_tiles():
+def test_panel_includes_the_initial_views_nodes():
     view = _empty_view(has_shape=True)
-    view["tiles"]["1/1/1/1"] = {
+    view["nodes"]["243.1.1.1"] = {
         "placed": [{"id": 1, "name": "Real Sector", "x": 1.0, "y": 2.0, "z": 3.0,
                      "galactic_radius_pc": 3.7, "shell_index": 1, "band_index": 0, "wedge_index": 0,
                      "designation": "ABC", "system_count": 4}],
@@ -287,35 +285,32 @@ def test_panel_includes_the_initial_views_tiles():
     }
     html = render_galaxy_map3d_panel("mydb", {"outer_shell_index": 10}, EDGE_PC, view)
     data = _json_payload(html)
-    assert data["initial"]["tiles"]["1/1/1/1"]["placed"][0]["name"] == "Real Sector"
-    assert data["initial"]["tiles"]["1/1/1/1"]["filled"]["cells"][0][5] == "Real Sector"
+    assert data["initial"]["nodes"]["243.1.1.1"]["placed"][0]["name"] == "Real Sector"
+    assert data["initial"]["nodes"]["243.1.1.1"]["filled"]["cells"][0][5] == "Real Sector"
     assert data["initial"]["stamp"] == "0123456789abcdef"
 
 
-# --- initial_tile_request ----------------------------------------------------
+# --- initial_node_request ----------------------------------------------------
 
 @pytest.mark.parametrize("orbit_radius", [34000.0, 16000.0, 900.0, 120.0, 30.0, 5.3])
-def test_initial_tile_request_is_the_distance_cut_round_the_starting_camera(orbit_radius):
-    """MAP.152: the first frame's tiles are the fetch set round the starting camera
-    (what the page's `neededTiles` asks for), plus the finest tiles round the target
-    when the camera starts close, at most `INITIAL_TILE_LIMIT`."""
+def test_initial_node_request_is_the_cut_round_the_starting_camera_coarsest_first(orbit_radius):
+    """MAP.261: the first frame's nodes are the cut round the starting camera (what the page's `neededNodes` asks
+    for), the coarsest first, at most `INITIAL_NODE_LIMIT`."""
     center = (321.0, -45.0, 6.0)
-    bounds = tile_bounds_pc(EDGE_PC, {"outer_shell_index": 3750})
-    keys = initial_tile_request(orbit_radius, center, bounds)
-    cut = fetch_cut_tiles(camera_position_pc(orbit_radius, center), center, bounds)
-    detail = tiles_intersecting_sphere(TILE_MAX_LEVEL, center, 8.0) if orbit_radius <= 120.0 else []
-    assert keys == (detail + cut)[:INITIAL_TILE_LIMIT]
-    assert len(keys) <= INITIAL_TILE_LIMIT <= 128
-    for key in keys:
-        parse_tile_key(key)
+    bounds = node_bounds_pc(EDGE_PC, {"outer_shell_index": 3750})
+    keys = initial_node_request(orbit_radius, center, EDGE_PC, bounds)
+    cut = node_cut(camera_position_pc(orbit_radius, center), center, EDGE_PC, bounds_pc=bounds, max_nodes=MAX_NODES).keys
+    assert set(keys) <= set(cut) and len(keys) <= INITIAL_NODE_LIMIT <= 128
+    levels = [parse_node_key(key).m for key in keys]
+    assert levels == sorted(levels, reverse=True)
 
 
-def test_the_tile_bounds_are_a_box_round_the_galaxys_ball():
+def test_the_node_bounds_are_a_box_round_the_galaxys_ball():
     """The shells are balls, so the polar caps reach as far above the plane as the plane's edge reaches out."""
     radius = galaxy_extent_pc(EDGE_PC, {"outer_shell_index": 3750})
-    low, high = tile_bounds_pc(EDGE_PC, {"outer_shell_index": 3750, "half_height_pc": 1500.0})
+    low, high = node_bounds_pc(EDGE_PC, {"outer_shell_index": 3750, "half_height_pc": 1500.0})
     assert low == (-radius, -radius, -radius) and high == (radius, radius, radius)
-    assert tile_bounds_pc(EDGE_PC, None)[1] == (galaxy_extent_pc(EDGE_PC, None),) * 3
+    assert node_bounds_pc(EDGE_PC, None)[1] == (galaxy_extent_pc(EDGE_PC, None),) * 3
 
 
 def test_stars_are_not_part_of_the_near_field():

@@ -1,12 +1,12 @@
 # tests/test_web_galaxy.py
 
 """
-The Flask-served Galaxy Map (`/galaxy`) and its tile JSON
-(`/galaxy/tiles`), `planetgen/web/galaxy_views.py`, plus the old `galaxy.py`/
-`galaxy_tiles.py` URLs that redirect there.
+The Flask-served Galaxy Map (`/galaxy`) and its node data
+(`/galaxy/nodes`), `planetgen/web/galaxy_views.py`, plus the old `galaxy.py`
+URL that redirects there.
 
 Most tests fake the data layer (the `apiclient` functions the view calls,
-and the two `tilecache` uses for tiles), the same way
+and the `tilecache` uses for nodes), the same way
 `test_web_pages.py` does. The tests at the bottom run against a real
 throwaway database in-process and are skipped without a MySQL server.
 """
@@ -24,7 +24,7 @@ from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402
-from tests.tile_support import tile_payload  # noqa: E402
+from tests.node_support import node_payload  # noqa: E402
 from planetgen.db import store as _db  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.web import csrf  # noqa: E402
@@ -57,9 +57,8 @@ class FakeData:
         self.sectors = [_placed(1), _placed(2, x=-100.0), _placed(3, x=-100.0, y=-50.0)]
         self.shape = {"edge_pc": 3.526, "outer_shell_index": 400}
         self.dbs = set()
-        self.tile_calls = []
         self.node_calls = []
-        self.fail_tiles = None
+        self.fail_nodes = None
         self.stage_calls = []
         self.window_calls = []
         self.cover_calls = []
@@ -86,23 +85,12 @@ class FakeData:
 
     def get_galaxy_changes(self, db, since=None):
         self.dbs.add(db)
-        return {"stamp": STAMP, "state": "s", "full": since is None, "tiles": []}
-
-    def get_galaxy_tiles(self, db, tile_keys):
-        self.dbs.add(db)
-        if self.fail_tiles:
-            raise self.fail_tiles
-        self.tile_calls.append(list(tile_keys))
-        return {
-            "tiles": {key: {"placed": [{"id": 1, "name": "T", "x": 1.0, "y": 0.0, "z": 0.0}], "planned": []}
-                      for key in tile_keys},
-            "edge_pc": 3.526, "has_shape": True,
-        }
+        return {"stamp": STAMP, "state": "s", "full": since is None, "nodes": []}
 
     def get_galaxy_nodes(self, db, node_keys):
         self.dbs.add(db)
-        if self.fail_tiles:
-            raise self.fail_tiles
+        if self.fail_nodes:
+            raise self.fail_nodes
         self.node_calls.append(list(node_keys))
         return {"nodes": {key: {"aggregate": {"generated": 2}, "stars": [], "points": [], "clouds": []}
                           for key in node_keys}, "edge_pc": 3.526, "has_shape": True}
@@ -139,7 +127,6 @@ def fake(monkeypatch, tmp_path):
                  "get_galaxy_nebula_cover"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     monkeypatch.setattr(tilecache, "get_galaxy_changes", data.get_galaxy_changes)
-    monkeypatch.setattr(tilecache, "get_galaxy_tiles", data.get_galaxy_tiles)
     monkeypatch.setattr(tilecache, "get_galaxy_nodes", data.get_galaxy_nodes)
     monkeypatch.setattr(tilecache, "get_galaxy_stage", data.get_galaxy_stage)
     monkeypatch.setattr(tilecache, "get_galaxy_window", data.get_galaxy_window)
@@ -206,9 +193,9 @@ def test_galaxy_page_renders_map_and_quadrant_summary(client, fake, app):
 
 def test_galaxy_scene_data_points_at_new_urls(client, fake, app):
     scene = _scene(client.get("/galaxy").get_data(as_text=True))
-    assert scene["fetchPath"] == "/galaxy/tiles"
+    assert scene["fetchPath"] == "/galaxy/nodes"
     assert "db" not in scene
-    assert scene["storageKey"] == DB  # the browser's tile cache keeps its old key
+    assert scene["storageKey"] == DB  # the browser's node cache keeps its old key
     assert "{id}" in scene["sectorUrl"]
     with app.test_request_context("/"):
         assert scene["sectorUrl"].replace("{id}", "5") == page_url("sector", sector_id=5)
@@ -218,7 +205,7 @@ def test_galaxy_scene_data_points_at_new_urls(client, fake, app):
         assert scene["stagePath"] == url_for("web.galaxy_stage")
         assert scene["nearbyUrl"] == url_for("web.nearby")  # NAV.45: "What's within 10 pc" on the map's panels
     assert scene["initial"]["stamp"] == STAMP
-    assert scene["initial"]["tiles"]
+    assert scene["initial"]["nodes"]
     # Visitors get no Generate buttons.
     assert scene["generate"] is None
 
@@ -234,18 +221,18 @@ def test_galaxy_scene_data_gives_an_admin_the_generate_target(client, fake, monk
 
 def test_galaxy_first_view_is_written_to_the_disk_cache(client, fake):
     client.get("/galaxy")
-    assert len(fake.tile_calls) == 1
+    assert len(fake.node_calls) == 1
     files = [name for _root, _dirs, names in os.walk(fake.cache_root) for name in names]
-    assert "stamp.json" in files and any(name.startswith("t") for name in files)
+    assert "stamp.json" in files and any(name.startswith("n") for name in files)
     client.get("/galaxy")
-    assert len(fake.tile_calls) == 1  # second view served from disk
+    assert len(fake.node_calls) == 1  # second view served from disk
 
 
 def test_galaxy_without_shape_shows_hint(client, fake):
     fake.shape = None
     html = client.get("/galaxy").get_data(as_text=True)
     assert "density skeleton hasn" in html
-    assert _scene(html)["hasShape"] is True  # from the tiles' own has_shape
+    assert _scene(html)["hasShape"] is True  # from the nodes' own has_shape
 
 
 def test_galaxy_quadrant_lists_its_sectors_nearest_first(client, fake):
@@ -335,11 +322,13 @@ def test_nodes_endpoint_serves_and_caches(client, fake):
     first = client.get(query)
     assert first.status_code == 200 and first.mimetype == "application/vnd.planetgen.tiles"
     assert first.headers["Cache-Control"] == "no-store"
-    body = tile_payload(first)
-    assert set(body["tiles"]) == {"243.4.1.2", "1.5.0.3"} and body["cached"] == 0 and body["stamp"] == STAMP
-    assert body["tiles"]["243.4.1.2"]["aggregate"] == {"generated": 2}
-    second = tile_payload(client.get(query + f"&stamp={STAMP}"))
-    assert second["cached"] == 2 and second["tiles"] == body["tiles"] and "history" not in second
+    assert first.headers["Content-Security-Policy"] == "default-src 'none'"
+    body = node_payload(first)
+    assert "history" in body  # no stamp sent: the browser gets the history
+    assert set(body["nodes"]) == {"243.4.1.2", "1.5.0.3"} and body["cached"] == 0 and body["stamp"] == STAMP
+    assert body["nodes"]["243.4.1.2"]["aggregate"] == {"generated": 2}
+    second = node_payload(client.get(query + f"&stamp={STAMP}"))
+    assert second["cached"] == 2 and second["nodes"] == body["nodes"] and "history" not in second
     assert len(fake.node_calls) == 1 and fake.dbs == {DB}
 
 
@@ -354,52 +343,9 @@ def test_nodes_endpoint_ignores_db_param_and_rejects_bad_keys(client, fake):
 
 
 def test_nodes_endpoint_api_failure_is_json(client, fake):
-    fake.fail_tiles = apiclient.ApiError("secret detail")
+    fake.fail_nodes = apiclient.ApiError("secret detail")
     resp = client.get("/galaxy/nodes?keys=243.1.1.1")
     assert resp.status_code == 502 and resp.mimetype == "application/json"
-    assert "secret detail" not in resp.get_data(as_text=True)
-
-
-# --- /galaxy/tiles -----------------------------------------------------------------------
-
-def test_tiles_endpoint_serves_and_caches(client, fake):
-    query = "/galaxy/tiles?tiles=12/2048/2048/2048,1/1/1/1"
-    first = client.get(query)
-    assert first.status_code == 200
-    assert first.mimetype == "application/vnd.planetgen.tiles"
-    assert first.headers["Cache-Control"] == "no-store"
-    assert first.headers["Content-Security-Policy"] == "default-src 'none'"
-    body = tile_payload(first)
-    assert set(body["tiles"]) == {"12/2048/2048/2048", "1/1/1/1"}
-    assert body["cached"] == 0 and body["stamp"] == STAMP
-    assert "history" in body  # no stamp sent: the browser gets the history
-
-    second = tile_payload(client.get(query + f"&stamp={STAMP}"))
-    assert second["cached"] == 2
-    assert second["tiles"] == body["tiles"]
-    assert "history" not in second
-    assert len(fake.tile_calls) == 1
-    assert fake.dbs == {DB}
-
-
-def test_tiles_endpoint_ignores_db_param(client, fake):
-    client.get("/galaxy/tiles?tiles=1/1/1/1&db=someone_else")
-    assert fake.dbs == {DB}
-
-
-def test_tiles_endpoint_rejects_bad_keys(client, fake):
-    resp = client.get("/galaxy/tiles?tiles=99/0/0/0")
-    assert resp.status_code == 400
-    assert "error" in resp.get_json()
-    too_many = ",".join(f"12/{i}/0/0" for i in range(tilecache.MAX_TILES_PER_REQUEST + 1))
-    assert client.get(f"/galaxy/tiles?tiles={too_many}").status_code == 400
-
-
-def test_tiles_endpoint_api_failure_is_json(client, fake):
-    fake.fail_tiles = apiclient.ApiError("secret detail")
-    resp = client.get("/galaxy/tiles?tiles=1/1/1/1")
-    assert resp.status_code == 502
-    assert resp.mimetype == "application/json"
     assert "secret detail" not in resp.get_data(as_text=True)
 
 
@@ -777,17 +723,19 @@ def _place_sector(mysql_config, name, address=(5, 1, 20)):
         conn.close()
 
 
-def test_real_galaxy_page_and_tiles(db_client, mysql_config, tmp_path):
+def test_real_galaxy_page_and_nodes(db_client, mysql_config, tmp_path):
+    from planetgen.galaxy.drill import drill_chain_of, format_drill_key
+
     sector_id = _place_sector(mysql_config, "Real <Placed>")
     resp = db_client.get("/galaxy")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     assert "1 placed sector" in html
     scene = _scene(html)
-    assert scene["fetchPath"] == "/galaxy/tiles"
-    assert scene["initial"]["tiles"], "the opening tiles are embedded"
-    assert not any(section in tile for tile in scene["initial"]["tiles"].values()
-                   for section in ("placed", "planned", "filled")), "MAP.157: sections the page never reads"
+    assert scene["fetchPath"] == "/galaxy/nodes"
+    assert scene["initial"]["nodes"], "the opening nodes are embedded"
+    assert not any(section in node for node in scene["initial"]["nodes"].values()
+                   for section in ("planned", "filled")), "MAP.157: sections the page never reads"
     assert sector_id
 
     quadrant = re.search(r'href="/galaxy\?quadrant=(I|II|III|IV)#galaxy-table">Quadrant \1</a></td>\s*<td data-label="Sectors">1<',
@@ -795,11 +743,12 @@ def test_real_galaxy_page_and_tiles(db_client, mysql_config, tmp_path):
     listing = db_client.get(f"/galaxy?quadrant={quadrant}").get_data(as_text=True)
     assert "Real &lt;Placed&gt;" in listing
 
-    query = "/galaxy/tiles?tiles=12/2048/2048/2048,1/1/1/1"
-    first = tile_payload(db_client.get(query))
-    assert set(first["tiles"]) == {"12/2048/2048/2048", "1/1/1/1"}
+    root = format_drill_key(drill_chain_of(5, 1, 20)[0])
+    query = f"/galaxy/nodes?keys={root},1.5.1.20"
+    first = node_payload(db_client.get(query))
+    assert set(first["nodes"]) == {root, "1.5.1.20"}
     assert len(first["stamp"]) == 16
-    second = tile_payload(db_client.get(query))
+    second = node_payload(db_client.get(query))
     assert second["cached"] == 2
     assert any(names for _root, _dirs, names in os.walk(tmp_path / "tiles"))
 

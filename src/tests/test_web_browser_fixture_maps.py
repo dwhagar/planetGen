@@ -23,7 +23,6 @@ import pytest
 sync_api = pytest.importorskip("playwright.sync_api")
 Image = pytest.importorskip("PIL.Image")
 
-from planetgen.galaxy.viewport import TILE_MAX_LEVEL  # noqa: E402
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD,
@@ -2062,23 +2061,20 @@ def test_galaxy_map_camera_presets_at_each_zoom_step(page, map_site):
 
 # --- MAP.80: every star of the sector at sector zoom ------------------------------------
 
-def test_galaxy_map_fetches_the_finest_tiles_around_a_sector_it_shows(page, map_site):
-    """MAP.80: shown a sector, the map also fetches the finest tiles
-    around it (they list every star and point phenomenon), not just the
-    view's thinned coarser ones."""
+def test_galaxy_map_fetches_the_sector_nodes_around_a_sector_it_shows(page, map_site):
+    """MAP.80, MAP.261: shown a sector, the map also fetches the finest nodes around it (they list every star and
+    point phenomenon), not just the view's coarser ones."""
     urls = []
-    page.on("request", lambda request: urls.append(request.url) if "/galaxy/tiles" in request.url else None)
+    page.on("request", lambda request: urls.append(request.url) if "/galaxy/nodes" in request.url else None)
     # Straight to the sector: a visit to its page first would leave the
-    # tiles in the browser's cache.
+    # nodes in the browser's cache.
     _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
     page.wait_for_timeout(2500)
-    requests = [[int(key.split("/")[0]) for key in parse_qs(urlparse(url).query)["tiles"][0].split(",")]
+    requests = [[int(key.split(".")[0]) for key in parse_qs(urlparse(url).query)["keys"][0].split(",")]
                 for url in urls]
-    # The finest tiles around the sector are asked for first, and only then
-    # (the rest of the view is the distance cut, which stops one level short).
-    assert requests[0][0] == TILE_MAX_LEVEL, requests
-    assert any(0 < min(levels) < TILE_MAX_LEVEL - 1 for levels in requests), requests
-    assert not any(TILE_MAX_LEVEL in levels for levels in requests[1:]), requests
+    assert requests, "the map asked for nodes"
+    assert any(1 in levels for levels in requests), requests
+    assert any(min(levels) > 1 for levels in requests), requests
 
 
 def _point_colored_spots(page, selector, limit=80):
@@ -2116,7 +2112,7 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     page.wait_for_timeout(1000)
     # One step in, so the glow of the bright stars around them (every star of
-    # a tile comes in together, MAP.152) leaves the dark blue neutron star clear.
+    # a node comes in together, MAP.152) leaves the dark blue neutron star clear.
     # The wheel zooms toward what is under the pointer (MAP.225): Shift-click the
     # neutron star to center the view on it, then step in with the pointer on the center.
     pulsar = next(point for point in POINT_FIELD if point["type"] == "neutron_star")
@@ -2319,9 +2315,8 @@ def test_galaxy_map_stars_are_drawn_camera_relative(page, map_site):
 
 
 def test_galaxy_map_stars_fade_in_with_the_zoom(page, map_site):
-    """MAP.153: each star has a birth radius from its rank in its tile's
-    list, so the opacity on screen changes by a small share over a 9% zoom
-    step instead of the whole set arriving at once."""
+    """MAP.153, MAP.261: each star comes in with the weight of its node, so the opacity on screen changes by a
+    small share over a zoom step instead of the whole set arriving at once."""
     problems = []
     page.on("console", lambda message: problems.append(message.text) if message.type == "error" else None)
     _open_galaxy(page, map_site)
@@ -2332,20 +2327,15 @@ def test_galaxy_map_stars_fade_in_with_the_zoom(page, map_site):
     here = page.evaluate(opacity, 1.0)
     camera = here["camera"]
     assert here["count"] > 0 and here["camera"] > 0, here
-    # Out to 1.4 times the camera's distance: further out the cut would hand the stars over to coarser tiles (the
-    # tile root reaches 262 kpc, MAP.239) that this view has not fetched, so the loaded tiles alone fade out there.
+    # Out to 1.4 times the camera's distance: further out the cut would hand the stars over to coarser nodes that
+    # this view has not fetched, so the loaded nodes alone fade out there.
     steps = [camera * 2 ** (k / 8) for k in range(-8, 5)]
     sums = [page.evaluate(opacity, r)["sum"] for r in steps]
     assert all(0 <= s <= here["count"] + 1e-6 for s in sums), sums
-    # A tile's whole share rises over the fade band (a 1.32 ratio of distance, about 3 zoom steps, MAP.152), so a view
-    # whose stars sit in a few tiles moves most of the set within one step at the steepest part of the ramp, and the
-    # early tail of the ramp is a large rise of a small sum (MAP.249's factor 3 puts that tail inside the sweep). What
-    # must hold is that no step brings in the whole set, measured against the full count, and that the set arrives
-    # over several steps.
-    for before, after in zip(sums, sums[1:]):
-        assert abs(after - before) <= 0.7 * here["count"], sums
-    rising = [step for step, (before, after) in enumerate(zip(sums, sums[1:])) if after - before > 0.02 * here["count"]]
-    assert len(rising) >= 3, sums
+    # A star listed in a node and in the nodes under it keeps its whole share as the weights hand over (the unit test
+    # `starfade.test.mjs` bounds the same for a field whose parents drop stars their children list): `count` is the
+    # entries (a star once for every node that lists it), and the opacity on screen is the stars, whatever the step.
+    assert sums[0] > 0 and all(abs(s - sums[0]) <= 0.02 * sums[0] for s in sums), f"{here['count']} entries: {sums}"
 
 
 def test_galaxy_map_near_field_thins_what_stands_between_the_camera_and_the_focus(page, map_site):
@@ -2730,7 +2720,7 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     assert page.input_value("#galaxymap3d-color-by") == "habitable"
-    legend.wait_for(state="visible", timeout=15000)  # drawn once the tiles are back; under load that is not instant (TEST.126)
+    legend.wait_for(state="visible", timeout=15000)  # drawn once the nodes are back; under load that is not instant (TEST.126)
     assert legend.is_visible()
     page.locator("#galaxymap3d-menu > summary").click()
     page.select_option("#galaxymap3d-color-by", "default")
@@ -2835,7 +2825,7 @@ def test_sector_map_highlight_draws_a_phenomenon_kind_larger_and_keeps_it_in_the
 
 def test_galaxy_map_star_filters_apply_to_the_stars_drawn_at_galaxy_scale(page, map_site):
     """MAP.123: with no sector open the Menu still offers the star classes and
-    the luminosity floor, and they thin the stars the tiles draw."""
+    the luminosity floor, and they thin the stars the nodes draw."""
     _open_galaxy(page, map_site)
     _settle(page)
     count = "() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count"
@@ -2859,86 +2849,94 @@ def test_galaxy_map_star_filters_apply_to_the_stars_drawn_at_galaxy_scale(page, 
     assert page.evaluate(count) < before
 
 
-# --- MAP.158: tiles kept in IndexedDB, a gentler prefetch ---------------------------------
+# --- MAP.158: nodes kept in IndexedDB, a gentler prefetch ---------------------------------
 
-STORED_TILES = """() => new Promise(resolve => {
-    const open = indexedDB.open("planetgen-tiles");
+STORED_NODES = """() => new Promise(resolve => {
+    const open = indexedDB.open("planetgen-nodes");
     open.onerror = () => resolve(-1);
     open.onsuccess = () => {
-        const count = open.result.transaction("tiles").objectStore("tiles").count();
+        const count = open.result.transaction("nodes").objectStore("nodes").count();
         count.onsuccess = () => resolve(count.result);
         count.onerror = () => resolve(-1);
     };
 })"""
 
 
-def _tile_requests(page):
-    """A list that fills with (seconds since now, [tile keys]) for each /galaxy/tiles request."""
+def _node_requests(page):
+    """A list that fills with (seconds since now, [node keys]) for each /galaxy/nodes request."""
     import time
     began = time.monotonic()
     found = []
 
     def note(request):
-        if "/galaxy/tiles" in request.url:
-            keys = parse_qs(urlparse(request.url).query)["tiles"][0].split(",")
+        if "/galaxy/nodes" in request.url:
+            keys = parse_qs(urlparse(request.url).query)["keys"][0].split(",")
             found.append((time.monotonic() - began, keys))
     page.on("request", note)
     return found
 
 
-def test_galaxy_map_keeps_its_tiles_in_indexeddb_for_a_revisit(page, map_site):
-    """MAP.158: the tiles fetched on a visit are stored in IndexedDB (not
+def test_galaxy_map_keeps_its_nodes_in_indexeddb_for_a_revisit(page, map_site):
+    """MAP.158: the nodes fetched on a visit are stored in IndexedDB (not
     localStorage), so a reload finds them and asks the server for none of them."""
-    first = _tile_requests(page)
+    first = _node_requests(page)
     _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
     page.wait_for_timeout(2500)
     asked = {key for _at, keys in first for key in keys}
-    assert asked, "the first visit fetched tiles"
-    # The tiles are written to IndexedDB after they arrive; under load the fixed wait above is not always enough (TEST.126).
+    assert asked, "the first visit fetched nodes"
+    # The nodes are written to IndexedDB after they arrive; under load the fixed wait above is not always enough (TEST.126).
     deadline = time.monotonic() + 20
-    while page.evaluate(STORED_TILES) < len(asked) and time.monotonic() < deadline:
+    while page.evaluate(STORED_NODES) < len(asked) and time.monotonic() < deadline:
         page.wait_for_timeout(250)
-    assert page.evaluate(STORED_TILES) >= len(asked)
-    assert not page.evaluate("Object.keys(localStorage).filter(k => k.startsWith('planetgen:tile:') && !k.endsWith('@stamp'))"), \
-        "no tile is kept in localStorage any more"
+    assert page.evaluate(STORED_NODES) >= len(asked)
+    assert not page.evaluate("Object.keys(localStorage).filter(k => k.startsWith('planetgen:node:') && !k.endsWith('@stamp'))"), \
+        "no node is kept in localStorage any more"
 
-    again = _tile_requests(page)
+    again = _node_requests(page)
     page.reload(wait_until="load")
     page.wait_for_selector(GALAXY_CANVAS, state="attached")
     _settle(page)
     page.wait_for_timeout(2500)
-    assert not asked & {key for _at, keys in again for key in keys}, "a revisit found the tiles it kept"
+    assert not asked & {key for _at, keys in again for key in keys}, "a revisit found the nodes it kept"
 
 
 def test_galaxy_map_prefetches_only_the_way_in_and_only_when_still(page, map_site):
-    """MAP.158: after the view's own tiles are in and the camera has been still
-    a moment, the tiles one zoom step IN are fetched; nothing for the way out."""
-    from planetgen.galaxy.viewport import fetch_cut_tiles
-    from planetgen.web.maps.galaxymap3d import tile_bounds_pc
+    """MAP.158: after the view's own nodes are in and the camera has been still
+    a moment, the nodes one zoom step IN are fetched; nothing for the way out."""
+    import math
+
+    from planetgen.galaxy.nodecut import node_cut
+    from planetgen.galaxy.nodecut import MAX_NODES
+    from planetgen.web.maps.galaxymap3d import CAMERA_FOV_DEG, camera_position_pc, node_bounds_pc, view_radius_bounds
     from tests.map_site_support import EDGE_PC, galaxy_shape
 
-    requests = _tile_requests(page)
+    requests = _node_requests(page)
     _open_galaxy(page, map_site, f"?sector={PRIME_CODE}")
     page.wait_for_timeout(3500)
     near = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyNearField()")
     target, camera = near["target"], near["camera"]
-    bounds = tile_bounds_pc(EDGE_PC, galaxy_shape())
+    bounds = node_bounds_pc(EDGE_PC, galaxy_shape())
+    height = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').clientHeight")
+    focal = height / (2 * math.tan(math.radians(CAMERA_FOV_DEG) / 2))
 
-    def cut_at(scale):
-        eye = [target[i] + (camera[i] - target[i]) * scale for i in range(3)]
-        return set(fetch_cut_tiles(eye, target, bounds))
+    def cut_at(eye, scale=1.0, look=target):
+        eye = [look[i] + (eye[i] - look[i]) * scale for i in range(3)]
+        return set(node_cut(eye, look, EDGE_PC, focal_px=focal, bounds_pc=bounds, max_nodes=MAX_NODES).keys)
 
-    asked = {key for _at, keys in requests for key in keys if not key.startswith(f"{TILE_MAX_LEVEL}/")}
-    here, in_one, out_one = cut_at(1.0), cut_at(1.0 / 3.0), cut_at(3.0)
-    way_out = out_one - here - in_one
-    assert way_out, "the way out needs tiles of its own for this test to mean anything"
+    asked = {key for _at, keys in requests for key in keys}
+    here, in_one, out_one = cut_at(camera), cut_at(camera, 1.0 / 3.0), cut_at(camera, 3.0)
+    # The page also loads the opening view (the whole galaxy from its farthest camera) before it settles on the sector.
+    centre = (0.0, 0.0, 0.0)
+    opening = cut_at(camera_position_pc(view_radius_bounds(EDGE_PC, galaxy_shape())[1], centre), look=centre)
+    way_out = out_one - here - in_one - opening
+    assert way_out, "the way out needs nodes of its own for this test to mean anything"
     assert not asked & way_out, f"no zoom-out prefetch: {sorted(asked & way_out)}"
-    assert asked <= here | in_one, sorted(asked - (here | in_one))
+    assert asked <= here | in_one | opening, sorted(asked - (here | in_one | opening))
 
 
 def test_galaxy_map_does_not_prefetch_on_a_data_saving_connection(page, map_site):
-    """MAP.158: `navigator.connection.saveData` turns the prefetch off: the same
-    visit asks for fewer tiles than it does without it."""
+    """MAP.158: `navigator.connection.saveData` turns the prefetch off: a visit that settles asks for the nodes one
+    zoom step in (a request marked `X-Map-Prefetch`), and a data saving one does not."""
     def visit(save_data):
         context = page.context.browser.new_context(viewport=VIEWPORT, device_scale_factor=1, reduced_motion="reduce")
         try:
@@ -2946,16 +2944,26 @@ def test_galaxy_map_does_not_prefetch_on_a_data_saving_connection(page, map_site
             if save_data:
                 tab.add_init_script(
                     "Object.defineProperty(navigator, 'connection', {value: {saveData: true}, configurable: true})")
-            requests = _tile_requests(tab)
+            requests, prefetches = _node_requests(tab), []
+            tab.on("request", lambda request: prefetches.append(request.url)
+                   if "/galaxy/nodes" in request.url and request.headers.get("x-map-prefetch") else None)
             _open(tab, f"{map_site}/galaxy", GALAXY_CANVAS)
-            tab.wait_for_timeout(4000)
-            return {key for _at, keys in requests for key in keys}
+            # The view's own nodes first (batches can pause for seconds on a busy machine), then the prefetch, which
+            # waits for the camera to be still; a data saving visit gets the same time and no prefetch.
+            deadline = time.monotonic() + 45
+            seen, quiet_since = 0, time.monotonic()
+            while time.monotonic() < deadline and not prefetches:
+                tab.wait_for_timeout(500)
+                if len(requests) != seen:
+                    seen, quiet_since = len(requests), time.monotonic()
+                elif save_data and requests and time.monotonic() - quiet_since > 8.0:
+                    break
+            return prefetches
         finally:
             context.close()
 
-    normal = visit(False)
-    saving = visit(True)
-    assert saving < normal, f"saving: {sorted(saving)}, normal: {sorted(normal)}"
+    assert visit(False), "a visit that settles prefetches the way in"
+    assert not visit(True), "a data saving connection prefetches nothing"
 
 
 # --- MAP.161: the map's modules are preloaded, each fetched once ---------------------------
@@ -3071,7 +3079,7 @@ def _tooltip(page):
 
 def _hover_spot(page, point):
     """Moves the pointer over the point of the scene `point` and returns where it is on the page, once the tooltip
-    names something (the map takes a moment after its tiles arrive)."""
+    names something (the map takes a moment after its nodes arrive)."""
     for _ in range(40):
         spot = _screen_of(page, point)
         assert spot, f"{point} is not on the map"

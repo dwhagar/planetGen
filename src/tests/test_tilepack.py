@@ -1,7 +1,7 @@
 """
-MAP.159: the packed Galaxy Map tile (`planetgen/web/lib/tilepack.py`).
+MAP.159: the packed Galaxy Map node (`planetgen/web/lib/tilepack.py`).
 static/tilepack.js reads the same bytes (tests/js/tilepack.test.mjs, fed
-by `test_js_unit.tile_pack`).
+by `test_js_unit.node_pack`).
 """
 
 import json
@@ -16,13 +16,13 @@ def star(star_id, x, y, z, luminosity, **rest):
     return {"id": star_id, "x": x, "y": y, "z": z, "luminosity_sol": luminosity, **rest}
 
 
-def test_a_tile_comes_back_with_its_stars_in_order_and_close_to_what_went_in():
-    tile = {"clouds": [{"id": 1, "type": "nebula"}], "stars": [
+def test_a_node_comes_back_with_its_stars_in_order_and_close_to_what_went_in():
+    node = {"clouds": [{"id": 1, "type": "nebula"}], "stars": [
         star(5, 100.001, -2000.5, 7.25, 1.5e5, temperature_k=21500, radius_sol=14.0, star_type="B", system_id=9),
         star(2 ** 40 + 1, 100.5, -2001.0, 8.0, 0.0004, star_type="M"),
     ], "generated": [star(6, 1.0, 1.0, 1.0, 1.0, temperature_k=5778, radius_sol=1.0, star_type="G")]}
-    back = tilepack.unpack_tile(tilepack.pack_tile(tile))
-    assert back["clouds"] == tile["clouds"]
+    back = tilepack.unpack_node(tilepack.pack_node(node))
+    assert back["clouds"] == node["clouds"]
     assert [s["id"] for s in back["stars"]] == [5, 2 ** 40 + 1]
     first, second = back["stars"]
     assert first["x"] == pytest.approx(100.001, abs=0.5 / 65535 * 2 + 1e-9)
@@ -40,70 +40,70 @@ def test_the_tier_of_a_halo_or_satellite_star_rides_with_the_charted_flag():
     carries them beside `charted` and a star of the disc has no `tier`."""
     stars = [star(1, 1.0, 1.0, 1.0, 1.0, tier=1), star(2, 2.0, 1.0, 1.0, 1.0, tier=2, system_id=4),
              star(3, 3.0, 1.0, 1.0, 1.0), star(4, 4.0, 1.0, 1.0, 1.0, system_id=5)]
-    back = tilepack.unpack_tile(tilepack.pack_tile({"stars": stars}))["stars"]
+    back = tilepack.unpack_node(tilepack.pack_node({"stars": stars}))["stars"]
     assert [(s.get("tier"), s["charted"]) for s in back] == [(1, False), (2, True), (None, False), (None, True)]
-    trimmed = tilecache.trim_tile({"stars": [dict(stars[1], system_id=None, tier=2), dict(stars[2], tier=0)]})["stars"]
+    trimmed = tilecache.trim_node({"stars": [dict(stars[1], system_id=None, tier=2), dict(stars[2], tier=0)]})["stars"]
     assert trimmed[0]["tier"] == 2 and "tier" not in trimmed[1]
 
 
 def test_a_star_costs_about_twenty_bytes_where_json_costs_over_a_hundred():
     stars = [star(i, i * 0.37, -i * 0.11, i * 0.02, 1.0 + i, temperature_k=5000 + i, radius_sol=1.0 + i / 100,
                   star_type="G", system_id=i) for i in range(1000)]
-    packed = tilepack.pack_tile({"stars": stars})
-    as_json = json.dumps(tilecache.trim_tile({"stars": stars}), separators=(",", ":"))
+    packed = tilepack.pack_node({"stars": stars})
+    as_json = json.dumps(tilecache.trim_node({"stars": stars}), separators=(",", ":"))
     assert len(packed) < 21 * len(stars) + 200
     assert len(packed) * 5 < len(as_json)
 
 
-def test_an_empty_tile_and_one_with_no_stars_are_whole():
-    for tile in ({}, {"clouds": [], "stars": [], "generated": []}):
-        packed = tilepack.pack_tile(tile)
+def test_an_empty_node_and_one_with_no_stars_are_whole():
+    for node in ({}, {"clouds": [], "stars": [], "generated": []}):
+        packed = tilepack.pack_node(node)
         assert tilepack.is_whole(packed)
-        back = tilepack.unpack_tile(packed)
+        back = tilepack.unpack_node(packed)
         assert back["stars"] == [] and back["generated"] == []
 
 
-def test_a_star_alone_in_its_tile_keeps_its_place():
-    back = tilepack.unpack_tile(tilepack.pack_tile({"stars": [star(1, 12.5, -3.25, 99.0, 2.0)]}))
+def test_a_star_alone_in_its_node_keeps_its_place():
+    back = tilepack.unpack_node(tilepack.pack_node({"stars": [star(1, 12.5, -3.25, 99.0, 2.0)]}))
     assert (back["stars"][0]["x"], back["stars"][0]["y"], back["stars"][0]["z"]) == (12.5, -3.25, 99.0)
 
 
 def test_luminosity_codes_hold_the_dimmest_and_brightest_stars():
     luminosities = [1e-6, 3e-5, 1.0, 9.0e5, 2.5e7]
-    back = tilepack.unpack_tile(tilepack.pack_tile(
+    back = tilepack.unpack_node(tilepack.pack_node(
         {"stars": [star(i, float(i), 0.0, 0.0, value) for i, value in enumerate(luminosities)]}))
     for want, got in zip(luminosities, back["stars"]):
         assert got["luminosity_sol"] == pytest.approx(want, rel=1e-3)
 
 
 def test_a_dark_or_missing_luminosity_is_zero_and_never_a_crash():
-    back = tilepack.unpack_tile(tilepack.pack_tile({"stars": [star(1, 0.0, 0.0, 0.0, 0.0), star(2, 1.0, 1.0, 1.0, -3.0)]}))
+    back = tilepack.unpack_node(tilepack.pack_node({"stars": [star(1, 0.0, 0.0, 0.0, 0.0), star(2, 1.0, 1.0, 1.0, -3.0)]}))
     assert [s["luminosity_sol"] for s in back["stars"]] == [0.0, 0.0]
 
 
 def test_the_incomplete_flag_is_read_from_the_bytes():
-    assert tilepack.is_incomplete(tilepack.pack_tile({"stars": [], "incomplete": ["stars"]}))
-    assert not tilepack.is_incomplete(tilepack.pack_tile({"stars": [star(1, 0.0, 0.0, 0.0, 1.0)]}))
+    assert tilepack.is_incomplete(tilepack.pack_node({"stars": [], "incomplete": ["stars"]}))
+    assert not tilepack.is_incomplete(tilepack.pack_node({"stars": [star(1, 0.0, 0.0, 0.0, 1.0)]}))
 
 
 def test_torn_foreign_and_overlong_bytes_are_not_whole():
-    packed = tilepack.pack_tile({"stars": [star(i, float(i), 0.0, 0.0, 1.0) for i in range(5)]})
+    packed = tilepack.pack_node({"stars": [star(i, float(i), 0.0, 0.0, 1.0) for i in range(5)]})
     assert tilepack.is_whole(packed)
     assert not tilepack.is_whole(packed[:-1]) and not tilepack.is_whole(packed + b"x")
     assert not tilepack.is_whole(b'{"stars":[]}') and not tilepack.is_whole(b"")
     for bad in (packed[:-1], b"PGT1", b'{"stars":[]}'):
         with pytest.raises(tilepack.TilePackError):
-            tilepack.unpack_tile(bad)
+            tilepack.unpack_node(bad)
 
 
 def test_a_response_carries_its_header_and_each_tile_in_order():
-    a = tilepack.pack_tile({"stars": [star(1, 0.0, 0.0, 0.0, 1.0)]})
-    b = tilepack.pack_tile({})
-    body = tilepack.pack_response({"stamp": "s", "edge_pc": 4.0}, [("1/0/0/0", a), ("1/1/0/0", b)])
-    header, tiles = tilepack.unpack_response(body)
-    assert header == {"stamp": "s", "edge_pc": 4.0} and list(tiles) == ["1/0/0/0", "1/1/0/0"]
-    assert len(tiles["1/0/0/0"]["stars"]) == 1
-    assert body.endswith(a + b), "the tiles follow the header one after the other"
+    a = tilepack.pack_node({"stars": [star(1, 0.0, 0.0, 0.0, 1.0)]})
+    b = tilepack.pack_node({})
+    body = tilepack.pack_response({"stamp": "s", "edge_pc": 4.0}, [("243.0.0.0", a), ("243.1.0.0", b)])
+    header, nodes = tilepack.unpack_response(body)
+    assert header == {"stamp": "s", "edge_pc": 4.0} and list(nodes) == ["243.0.0.0", "243.1.0.0"]
+    assert len(nodes["243.0.0.0"]["stars"]) == 1
+    assert body.endswith(a + b), "the nodes follow the header one after the other"
 
 
 def test_the_ranges_cover_what_the_generator_makes():
@@ -123,7 +123,7 @@ def test_the_ranges_cover_what_the_generator_makes():
 ], ids=["numbers", "printed object ids", "mixed", "texts of different lengths"])
 def test_an_id_comes_back_as_it_went_in_whatever_it_is(ids):
     stars = [star(i, float(n), 0.0, 0.0, 1.0) for n, i in enumerate(ids)]
-    packed = tilepack.pack_tile({"stars": stars, "generated": stars})
+    packed = tilepack.pack_node({"stars": stars, "generated": stars})
     assert tilepack.is_whole(packed) and not tilepack.is_whole(packed[:-1])
-    back = tilepack.unpack_tile(packed)
+    back = tilepack.unpack_node(packed)
     assert [s["id"] for s in back["stars"]] == ids and [s["id"] for s in back["generated"]] == ids

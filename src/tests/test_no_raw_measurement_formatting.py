@@ -26,6 +26,8 @@ ALLOWED = {
     ("galaxystages.js", "toLocaleString"),
     # The camera in the address is a coordinate to ten digits, read back exactly, not a reading (MAP.228).
     ("galaxystages.js", "toPrecision"),
+    # The cut's sort keys are rounded to nine digits so the order does not follow the last bits (twin of nodecut._quantized, MAP.261).
+    ("galaxynodecut.js", "toPrecision"),
 }
 """set: `(file, method)` pairs that are not measurements."""
 

@@ -5,7 +5,7 @@ Security hardening of the Flask app that needs no database:
 
 - per-IP rate limits on the HTML pages and `/api/health` (`api/limiter.py`'s
   page limits, configured by `RATELIMIT_PAGES`), with a 429 that is an
-  HTML page for a page and JSON under `/api` and for `/galaxy/tiles`;
+  HTML page for a page and JSON under `/api` and for `/galaxy/nodes`;
 - `Strict-Transport-Security` on every HTTPS response, never on HTTP;
 - behind a reverse proxy (`proxy_fix`), the client address and scheme
   come from `X-Forwarded-For`/`X-Forwarded-Proto`, and never when it's off;
@@ -87,11 +87,11 @@ def test_search_is_limited_per_ip_with_a_friendly_html_page():
     assert _get(client, "/search?q=x", ip="10.0.0.2").status_code != 429
 
 
-def test_galaxy_page_and_tiles_have_their_own_limits():
+def test_galaxy_page_and_nodes_have_their_own_limits():
     client = _app({"galaxy": "2 per minute", "galaxy_tiles": "3 per minute"}).test_client()
     assert _statuses(client, "/galaxy", 3)[-1] == 429
-    assert 429 not in _statuses(client, "/galaxy/tiles?tiles=bad", 3)
-    response = _get(client, "/galaxy/tiles?tiles=bad")
+    assert 429 not in _statuses(client, "/galaxy/nodes?keys=bad", 3)
+    response = _get(client, "/galaxy/nodes?keys=bad")
     assert response.status_code == 429
     # The map's script reads this one as JSON, like the API.
     assert response.mimetype == "application/json"

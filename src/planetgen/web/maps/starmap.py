@@ -1124,7 +1124,7 @@ def map_scene_data(
                 shift_x = shift_y = primary_r * _BINARY_OFFSET_FRACTION
                 shift_z = 0.0
             else:
-                # The real gap, by the rule the Galaxy Map's tiles use too (MAP.186).
+                # The real gap, by the rule the Galaxy Map's nodes use too (MAP.186).
                 shift_pc = (binary_companion_offset_pc(system.get("binary_separation_km"))
                             if binary_companion_offset_pc else (0.0, 0.0, 0.0))
                 scale = _SCENE_HALF_PX / (half_edge / 1000.0)

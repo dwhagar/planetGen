@@ -101,7 +101,7 @@ production Apache serves `/static/` itself (examples/apache/)."""
 
 bp = Blueprint("web", __name__, template_folder="templates")
 # Every page shares one generous per-IP limit; /search, /galaxy and
-# /galaxy/tiles have their own (see api/limiter.py's page limits).
+# /galaxy/nodes have their own (see api/limiter.py's page limits).
 page_limit("other")(bp)
 
 
@@ -248,7 +248,7 @@ errors.register(bp)
 from . import views  # noqa: E402,F401 -- registers the routes on bp
 from . import system_pages  # noqa: E402,F401 -- /system, /phenomena, /phenomenon
 from . import admin_pages  # noqa: E402,F401 -- /login, /logout, /account, /admin, /admin/stats
-from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/tiles
+from . import galaxy_views  # noqa: E402,F401 -- /galaxy, /galaxy/nodes
 from . import nav_page, nearby_page, sector_page  # noqa: E402,F401 -- /nav, /nearby, /sector/<id>
 from . import generate_page  # noqa: E402,F401 -- /admin/generate
 from . import queue_page  # noqa: E402,F401 -- /admin/queue

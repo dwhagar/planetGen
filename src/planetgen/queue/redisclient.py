@@ -11,7 +11,7 @@ build their own pool with their own settings (or none):
 
 * a connect and a read timeout, so a hung Redis fails a call quickly instead
   of hanging the web thread that made it (`SOCKET_SECONDS`; a caller that
-  would rather build the tile itself asks for less);
+  would rather build the node itself asks for less);
 * a retry with a short backoff on a dropped connection or a timeout
   (`RETRIES`), which also covers a Redis that restarts between two calls;
 * a health check on a connection idle for `HEALTH_CHECK_SECONDS`, so a stale

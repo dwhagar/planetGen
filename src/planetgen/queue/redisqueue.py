@@ -46,7 +46,7 @@ settle, which can run for hours. Its own workers serve it, so a long job never h
 ones on `INTERACTIVE_QUEUE`."""
 
 MAINTENANCE_QUEUE = "planetgen-maintenance"
-"""str: The units of a `MAINTENANCE` or `CHECK` run (the cache warm-up, the database check) and the tile prefetch and
+"""str: The units of a `MAINTENANCE` or `CHECK` run (the cache warm-up, the database check) and the node prefetch and
 rebuild jobs (PERF.150). Its workers have a cap of their own (`workers.maintenance_cap`) and share the host's worker
 count with the bulk workers, so a generation stage that queued thousands of units on `BULK_QUEUE` never makes this
 work wait for them."""

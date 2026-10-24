@@ -5,7 +5,7 @@ The JSON API over the planetGen database (served under `/api`).
 
 The reads are `routes.py` (sectors, systems, planets and moons, display
 detail with `planetgen.db.query`'s `sector_detail` and `system_detail`, a
-faceted `search`, the Galaxy Map's tiles, stages and windows, navigation
+faceted `search`, the Galaxy Map's nodes, stages and windows, navigation
 courses), `population.py` (species, polities and territories) and
 `facility_types.py` (facility types and their fields). The writes are
 `edits.py` (an admin's edits to stored systems), `workqueue.py` (the work

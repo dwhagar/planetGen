@@ -1,21 +1,19 @@
 # planetgen/web/galaxy_views.py
 
 """
-The Galaxy Map page (`/galaxy`, was `galaxy.py`) and the JSON tile
-endpoint its script fetches as the camera moves (`/galaxy/tiles`, was
-`galaxy_tiles.py`).
+The Galaxy Map page (`/galaxy`, was `galaxy.py`) and the endpoint its script fetches as the camera moves
+(`/galaxy/nodes`: the sector-block nodes of the map's cut).
 
 The page renders the 3D map panel (`planetgen/web/maps/galaxymap3d.py`, drawn by
 `static/galaxymap3d.js`) with the zoomed-all-the-way-out starting view's
-tiles embedded, plus a plain-text table under it: a per-Quadrant summary,
+nodes embedded, plus a plain-text table under it: a per-Quadrant summary,
 or with `?quadrant=I|II|III|IV` that Quadrant's placed sectors nearest
 the core first (paged with `?page=N`).
 
-Tiles go through `planetgen/web/lib/tilecache.py`'s disk cache in this (the WSGI)
-process: only tiles not already cached reach the API (in-process), and
+Nodes go through `planetgen/web/lib/tilecache.py`'s disk cache in this (the WSGI)
+process: only nodes not already cached reach the API (in-process), and
 whatever the API returns is written to the cache. The browser keeps its
-own copy in `localStorage`, keyed as before, so a visitor's cached tiles
-survive the move.
+own copy in IndexedDB, so a visitor's cached nodes survive a reload.
 """
 
 
@@ -36,7 +34,7 @@ from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.web.lib import tileprefetch
 from planetgen.web.lib import tilecache
 from planetgen.web.lib.tilecache import (
-    TileRequestError, fetch_nodes_wire, fetch_stage, fetch_tiles, fetch_tiles_wire, fetch_window)
+    TileRequestError, fetch_nodes, fetch_nodes_wire, fetch_stage, fetch_window)
 
 from planetgen.api.limiter import page_limit
 
@@ -194,13 +192,13 @@ def galaxy():
     sectors = apiclient.get_galaxy_sectors(db)
     galaxy_shape = apiclient.get_galaxy_shape(db)
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
-    initial_view = fetch_tiles(db, opening_request(galaxy_shape))
+    initial_view = fetch_nodes(db, opening_request(galaxy_shape))
     course = _course_from_args()
     made = _made_from_args()
     pick = _pick_from_args()
     map_html = render_galaxy_map3d_panel(
         db, galaxy_shape, edge_pc, initial_view,
-        fetch_path=url_for("web.galaxy_tiles"),
+        fetch_path=url_for("web.galaxy_nodes"),
         stage_path=url_for("web.galaxy_stage"),
         window_path=url_for("web.galaxy_window"),
         locate_path=url_for("web.galaxy_locate"),
@@ -299,39 +297,6 @@ def _json_error(message, status):
     return response
 
 
-@bp.route("/galaxy/tiles")
-@page_limit("galaxy_tiles")
-def galaxy_tiles():
-    """
-    The tiles for the map's script: `?tiles=<level/ix/iy/iz,...>` and optional
-    `&stamp=<the browser cache's stamp>`. Returns
-    `tilecache.fetch_tiles`' payload packed (`tilepack`, MAP.159) and sent as the
-    stored bytes; a malformed request is a 400, an API failure a 502, both
-    as `{"error": ...}` JSON.
-    """
-    tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
-    known_stamp = request.args.get("stamp") or None
-    db_name_asked = db_name()
-    try:
-        body = fetch_tiles_wire(db_name_asked, tile_keys, known_stamp)
-    except TileRequestError as exc:
-        return _json_error(str(exc), 400)
-    except apiclient.NotFoundError as exc:
-        return _json_error(str(exc) or "Not found.", 404)
-    except apiclient.ApiError as exc:
-        log.exception(f"API error while fetching galaxy tiles: {exc}")
-        return _json_error("The tiles could not be loaded. Please try again shortly.", 502)
-    response = Response(body, mimetype=tilepack.MIMETYPE)
-    # Freshness is the tile cache's job (stamps); never let a shared
-    # cache hand one visitor's stale answer to another.
-    response.headers["Cache-Control"] = "no-store"
-    # Once the visitor has their answer, the tiles around it are built in the background (PERF.132).
-    app = current_app._get_current_object()
-    at = _camera_asked(request.args.get("at"))
-    response.call_on_close(lambda: _prefetch_around(app, db_name_asked, tile_keys, at))
-    return response
-
-
 @bp.route("/galaxy/nodes")
 @page_limit("galaxy_tiles")
 def galaxy_nodes():
@@ -355,53 +320,24 @@ def galaxy_nodes():
     response = Response(body, mimetype=tilepack.MIMETYPE)
     response.headers["Cache-Control"] = "no-store"
     app = current_app._get_current_object()
-    response.call_on_close(lambda: _prefetch_nodes_around(app, db_name_asked, node_keys))
+    response.call_on_close(lambda: _prefetch_around(app, db_name_asked, node_keys))
     return response
 
 
-def _prefetch_nodes_around(app, db, node_keys):
-    """Queues the nodes around a request that has been answered, as `_prefetch_around` does for tiles; never an error
-    for the visitor."""
-    try:
-        with app.test_request_context("/"):
-            generation, changed = tilecache.take_node_rebuilds(db)
-            if changed:
-                tileprefetch.rebuild_nodes(db, generation, changed)      # what a change touched, built again at once
-            tileprefetch.schedule_nodes(db, node_keys)
-    except Exception as exc:  # noqa: BLE001 -- a background nicety, never a failure of the request
-        log.debug(f"Node prefetch: not scheduled ({exc}).")
-
-
-galaxy_nodes.json_only = True  # not a page: tests/test_web_a11y.py skips it
-
-
-def _camera_asked(text):
-    """The `?at=cx,cy,cz,tx,ty,tz` the page sends (its camera and target, parsecs) as six floats, or `None` when
-    it is missing or not that."""
-    try:
-        numbers = tuple(float(part) for part in (text or "").split(","))
-    except ValueError:
-        return None
-    if len(numbers) != 6 or not all(abs(number) <= 1e7 for number in numbers):     # also refuses nan and inf
-        return None
-    return numbers
-
-
-def _prefetch_around(app, db, tile_keys, at=None):
-    """Queues the tiles around a request that has been answered (the response has gone, so the request's context
-    with it: the tile cache reads its stamp through the API in process, which needs one); never an error for the
-    visitor."""
+def _prefetch_around(app, db, node_keys):
+    """Queues the nodes around a request that has been answered (the response has gone, so the request's context
+    with it: the cache reads its stamp through the API in process, which needs one); never an error for the visitor."""
     try:
         with app.test_request_context("/"):
             generation, changed = tilecache.take_rebuilds(db)
             if changed:
                 tileprefetch.rebuild(db, generation, changed)      # what a change touched, built again at once
-            tileprefetch.schedule(db, tile_keys, at)
+            tileprefetch.schedule(db, node_keys)
     except Exception as exc:  # noqa: BLE001 -- a background nicety, never a failure of the request
-        log.debug(f"Tile prefetch: not scheduled ({exc}).")
+        log.debug(f"Node prefetch: not scheduled ({exc}).")
 
 
-galaxy_tiles.json_only = True  # not a page: tests/test_web_a11y.py skips it
+galaxy_nodes.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 def _with_nebula_cover(payload, db, at, g=None):

@@ -3895,7 +3895,7 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
                 refresh_nearest_systems(conn, [sector_id])
                 # The galaxy's content stamp (`db.query.galaxy_content_state`)
                 # only sees sectors and systems; without this, a phenomenon
-                # added from the command line never reaches a cached tile
+                # added from the command line never reaches a cached node
                 # or page (TEST.42).
                 touch_sector(conn, sector_id)
             return row_id
@@ -6772,7 +6772,7 @@ one with every sector deleted. `query.galaxy_content_state` reads it where it us
 def note_sector_deleted(conn):
     """
     PERF.38: a sector was deleted. Moves the deletion epoch up in the
-    deleting transaction, so a cache that remembers the epoch knows a tile
+    deleting transaction, so a cache that remembers the epoch knows a node
     may have lost a sector (a deletion leaves no row to find) without a
     linear count of the placed sectors on every check. The row survives a
     `planetgen reset`, like every `id_counters` row, so it only goes up.

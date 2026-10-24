@@ -200,7 +200,7 @@ def phenomenon_map_luminosity_sol(map_type, mass_sol=None):
     physical light, so a 10 Msun black hole is about as bright as a 10 Msun
     star. A black hole is `BLACK_HOLE_MAP_BRIGHTNESS` of that; an object with no
     mass takes `MASSLESS_MARKER_MASS_SOL`. The one function the three maps share:
-    the Galaxy Map's tiles and the Sector Map's lights both start from it.
+    the Galaxy Map's nodes and the Sector Map's lights both start from it.
 
     Args:
         map_type (str): "black_hole", "neutron_star", "quasar" or anything else.

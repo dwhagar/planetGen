@@ -78,7 +78,7 @@ def binary_companion_offset_pc(separation_km):
     """
     Where a binary's secondary star sits from its primary, galaxy frame,
     parsecs: the stored `binary_separation_km` along `BINARY_PAIR_DIRECTION`
-    (MAP.186), the one rule the Galaxy Map's tiles and the Sector Map's
+    (MAP.186), the one rule the Galaxy Map's nodes and the Sector Map's
     scene share. `(0, 0, 0)` when the separation is unknown.
     """
     scale = _km_to_pc(separation_km or 0.0)

@@ -360,11 +360,11 @@ def _replacement(kind, value, container, maps, context):
 
 
 class _Rules(dict):
-    """`rules` plus the patterns of its wildcard paths: a `*` stands for one dotted key (`tiles.*.placed[].id`)."""
+    """`rules` plus the patterns of its wildcard paths: a `*` stands for one key, which may itself hold dots (`nodes.*.placed[].id`, key `1.3.4.2`)."""
 
     def __init__(self, rules):
         super().__init__(rules)
-        self.wild = [(re.compile("^" + re.escape(path).replace(r"\*", r"[^.\[\]]+") + "$"), kind)
+        self.wild = [(re.compile("^" + re.escape(path).replace(r"\*", r"[^\[\]]+") + "$"), kind)
                      for path, kind in rules.items() if "*" in path]
 
 

@@ -184,3 +184,14 @@ def test_a_generated_sector_is_listed_by_every_node_above_it_and_by_its_own(mysq
             assert node["generated"] == [] and node["aggregate"] == {} and node["placed"] == []
     finally:
         conn.close()
+
+
+def test_a_box_wholly_above_a_thin_shells_reach_is_skipped_not_an_error(mysql_config):
+    """A block's box can lie above or below what a small shell reaches in z (the colatitude ratio passes 1)."""
+    conn = store.get_connection(mysql_config)
+    try:
+        for lo, hi in (((0.0, 0.0, 5000.0), (10.0, 10.0, 6000.0)), ((0.0, 0.0, -6000.0), (10.0, 10.0, -5000.0))):
+            bands, _share = query._bright_star_bands(conn, lo, hi, EDGE)
+            assert all(shell != 1 for shell, _low, _high in bands)
+    finally:
+        conn.close()

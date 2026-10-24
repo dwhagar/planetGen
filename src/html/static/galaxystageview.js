@@ -18,7 +18,7 @@
 // - setCamera({target: [x, y, z], dist, quaternion}): moves the camera
 //   to `dist` from `target` along the quaternion's back (+z) axis, turned
 //   by it
-//   (and the tiles, scale bar and wedge lines with it);
+//   (and the nodes, scale bar and wedge lines with it);
 // - fetchStage(query): a Promise of GET /galaxy/stage's JSON for a
 //   container ("?at=m.shell.band.wedge", or "" for the galaxy);
 // - fetchWindow(query): a Promise of GET /galaxy/window's JSON for a window

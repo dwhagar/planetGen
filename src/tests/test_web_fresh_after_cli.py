@@ -9,20 +9,20 @@ command-line run happens in another process, so the only things that
 can notice it are the galaxy's content stamp (`GET /api/galaxy/changes`)
 -- checked at most once per `page_cache.stamp_seconds` by the page cache
 (`planetgen/web/lib/pagecache.py`) and once per `STAMP_TTL_SECONDS` by the Galaxy Map's
-disk tile cache (`planetgen/web/lib/tilecache.py`) -- and the page cache's age limit.
+disk node cache (`planetgen/web/lib/tilecache.py`) -- and the page cache's age limit.
 
 Each test warms the pages and both caches, runs `planetgen` through
 its real entry point (`main()`, via `sys.argv`, as
 `test_galaxy_gen.py` does) against the same throwaway database, lets the
 stamp checks fall due (a fake clock for the page cache, `stamp.json`'s
-mtime moved back for the tile cache), and fetches again:
+mtime moved back for the node cache), and fetches again:
 
-- `/galaxy`, `/galaxy/tiles` and `/api/galaxy/tiles` show sectors the
+- `/galaxy`, `/galaxy/nodes` and `/api/galaxy/nodes` show sectors the
   `galaxy` subcommand placed;
 - `/sector/<id>` links the neighbors generated next to it;
 - `/sectors` and `/systems` list a new unplaced sector, and `/systems`
   a new standalone system;
-- `/sector/<id>` and the tiles show a nebula `phenomenon --sector-id`
+- `/sector/<id>` and the nodes show a nebula `phenomenon --sector-id`
   added to it.
 
 Before the stamp check falls due the old answer is still served -- that
@@ -53,8 +53,8 @@ from tests.toy_shape import toy_shape
 from tests.publicids import pid
 from planetgen.galaxy import spherical
 from planetgen.physics.units import ly_to_pc  # noqa: E402
-from tests.publicids import pid
-from tests.tile_support import tile_payload
+from tests.publicids import pid, pids
+from tests.node_support import node_payload
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 
@@ -65,7 +65,8 @@ _SHAPE = toy_shape(
     bulge_amplitude=2.0, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4,
 )
 
-WHOLE_GALAXY_TILE = "0/0/0/0"
+ROOTS = "177147.0.0.0,177147.0.0.1,177147.0.0.2"
+"""str: The three root nodes of the block ladder, which between them hold every sector."""
 
 
 class _Clock:
@@ -78,7 +79,7 @@ class _Clock:
 
 class Site:
     """The Flask app on the fixture's database, with its page cache on a
-    fake clock and its tile cache in `tile_root`."""
+    fake clock and its node cache in `tile_root`."""
 
     def __init__(self, app, clock, tile_root, mysql_config):
         self.app = app
@@ -102,7 +103,7 @@ class Site:
     def let_stamp_checks_fall_due(self):
         """Time passes: past the page cache's `stamp_seconds` (but well
         short of `max_age_seconds`, so only the stamp can drop an entry)
-        and past the tile cache's `STAMP_TTL_SECONDS`."""
+        and past the node cache's `STAMP_TTL_SECONDS`."""
         self.clock.now += self.page_cache._stamp_seconds + 1
         assert self.page_cache._stamp_seconds + 1 < self.page_cache._max_age
         past = os.path.getmtime(self._stamp_file()) - tilecache.STAMP_TTL_SECONDS - 1
@@ -112,7 +113,7 @@ class Site:
         root = tilecache.cache_dir()
         assert root == str(self.tile_root)
         path = os.path.join(tilecache._db_dir(root, self.mysql_config.database), "stamp.json")
-        assert os.path.exists(path), "the tile cache was never warmed"
+        assert os.path.exists(path), "the node cache was never warmed"
         return path
 
 
@@ -183,8 +184,17 @@ def _sectors(mysql_config):
     return _rows(mysql_config, "SELECT id, name, center_x_pc FROM sectors ORDER BY id")
 
 
-def _placed_ids(tile):
-    return sorted(entry["id"] for entry in tile["placed"])
+def _sector_node_keys(mysql_config):
+    """The node key of each placed sector, by id order."""
+    return [f"1.{row['shell_index']}.{row['band_index']}.{row['wedge_index']}" for row in _rows(
+        mysql_config, "SELECT shell_index, band_index, wedge_index FROM sectors WHERE shell_index IS NOT NULL ORDER BY id")]
+
+
+def _placed_ids(site, mysql_config):
+    """The ids the API's sector nodes list as placed, sorted."""
+    keys = _sector_node_keys(mysql_config)
+    nodes = site.get("/api/galaxy/nodes?keys=" + ",".join(keys)).get_json()["nodes"]
+    return sorted(entry["id"] for key in keys for entry in nodes[key]["placed"])
 
 
 def _placed_count(html):
@@ -193,22 +203,21 @@ def _placed_count(html):
     return int(match.group(1))
 
 
-def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config, monkeypatch):
-    # A run that adds bright stars makes the tile check answer `busy` and keep the old stamp for ten minutes
+def test_galaxy_map_and_nodes_show_sectors_the_cli_placed(site, mysql_config, monkeypatch):
+    # A run that adds bright stars makes the node check answer `busy` and keep the old stamp for ten minutes
     # (PERF.34); this is about a run that adds only sectors, so the first fill draws no deeper stars (GEN.633).
     first_fill.without_the_deepest_floor(monkeypatch)
     _plan_galaxy(mysql_config)
     _generate(mysql_config, "sectors", "--shell", "1", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)
 
-    tiles_url = f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"
-    api_tiles_url = f"/api/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"
-    # Warm the page cache and the disk tile cache.
+    nodes_url = f"/galaxy/nodes?keys={ROOTS}"
+    # Warm the page cache and the disk node cache.
     assert _placed_count(site.html("/galaxy")) == 1
-    warm = tile_payload(site.get(tiles_url))
-    assert "placed" not in warm["tiles"][WHOLE_GALAXY_TILE], "MAP.157: the web tile carries only what the page reads"
-    assert tile_payload(site.get(tiles_url))["cached"] == 1
-    assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == [pid("sector", first["id"], mysql_config)]
+    warm = node_payload(site.get(nodes_url))
+    assert all("placed" not in node for node in warm["nodes"].values()), "the root nodes list no sectors"
+    assert node_payload(site.get(nodes_url))["cached"] == 3
+    assert _placed_ids(site, mysql_config) == [pid("sector", first["id"], mysql_config)]
 
     _generate(mysql_config, "sectors", "--shell", "1", "--limit", "2", "--num-systems", "1")
     sectors = _sectors(mysql_config)
@@ -216,27 +225,26 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config, mo
     all_ids = sorted(pid("sector", row["id"], mysql_config) for row in sectors)
 
     # The API itself caches nothing: fresh at once.
-    assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == all_ids
+    assert _placed_ids(site, mysql_config) == all_ids
     # The run recorded what it changed (PERF.104), so the page cache shows the new sectors at once...
     assert _placed_count(site.html("/galaxy")) == 3
-    # ...but the tile cache still trusts its last stamp check...
-    stale = tile_payload(site.get(tiles_url))
-    assert stale["cached"] == 1 and stale["stamp"] == warm["stamp"]
+    # ...but the node cache still trusts its last stamp check...
+    stale = node_payload(site.get(nodes_url))
+    assert stale["cached"] == 3 and stale["stamp"] == warm["stamp"]
 
     # ...until it falls due, and then shows them too.
     site.let_stamp_checks_fall_due()
-    page = site.html("/galaxy")
-    assert _placed_count(page) == 3
-    fresh = tile_payload(site.get(tiles_url))
+    fresh = node_payload(site.get(nodes_url))        # before the page, whose own first frame asks for the roots too
     assert fresh["stamp"] != warm["stamp"]
-    assert fresh["cached"] == 0
-    # The changed tile was cached again.
-    again = tile_payload(site.get(tiles_url))
-    assert again["cached"] == 1 and again["stamp"] == fresh["stamp"]
-    # The browser holding the old stamp is told which tiles to drop.
-    told = tile_payload(site.get(f"{tiles_url}&stamp={warm['stamp']}"))
-    assert WHOLE_GALAXY_TILE in [key for entry in told["history"] for key in entry["tiles"]]
-    assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == all_ids
+    assert fresh["cached"] < 3, "the roots over the new sectors were built again"
+    assert _placed_count(site.html("/galaxy")) == 3
+    # The changed nodes were cached again.
+    again = node_payload(site.get(nodes_url))
+    assert again["cached"] == 3 and again["stamp"] == fresh["stamp"]
+    # The browser holding the old stamp is told which nodes to drop.
+    told = node_payload(site.get(f"{nodes_url}&stamp={warm['stamp']}"))
+    assert set(ROOTS.split(",")) & {key for entry in told["history"] for key in entry["nodes"]}
+    assert _placed_ids(site, mysql_config) == all_ids
 
 
 def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
@@ -269,7 +277,7 @@ def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config
     systems_before = site.html("/systems")
     assert escape(first["name"]) in sectors_before
     assert all(escape(name) in systems_before for name in old_systems)
-    tile_payload(site.get(f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"))
+    node_payload(site.get(f"/galaxy/nodes?keys={ROOTS}"))
 
     _generate(mysql_config, "sector", "--name", "Fresh From The Shell", "--num-systems", "2")
     _generate(mysql_config, "system", "--name", "Lonely Shell Star", "-planets")
@@ -287,28 +295,29 @@ def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config
 
 
 
-def test_sector_page_and_tiles_show_a_phenomenon_the_cli_added(site, mysql_config):
+def test_sector_page_and_nodes_show_a_phenomenon_the_cli_added(site, mysql_config):
     """`planetgen phenomenon --sector-id` adds a row to no table the
     stamp reads, so it must touch its sector (`store.save_phenomenon`):
     before it did, the sector page stayed stale until the page cache's age
-    limit, and a cached tile never showed the new cloud at all."""
+    limit, and a cached node never showed the new cloud at all."""
     _plan_galaxy(mysql_config)
     _generate(mysql_config, "sectors", "--shell", "0", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)
     page_url = f"/sector/{pid('sector', first['id'])}"
-    tiles_url = f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"
+    nodes_url = f"/galaxy/nodes?keys={ROOTS}"
     before = site.html(page_url)
-    warm = tile_payload(site.get(tiles_url))
+    warm = node_payload(site.get(nodes_url))
     assert "Shell Cloud" not in before
-    # The plan and the sector are drawn unseeded, so a nebula of the draw may sit in the whole-galaxy tile (TEST.257):
+    # The plan and the sector are drawn unseeded, so a nebula of the draw may sit in the root nodes (TEST.257):
     # what the test checks is that the cloud the CLI adds appears, and nothing else changes.
-    drawn = [cloud["name"] for cloud in warm["tiles"][WHOLE_GALAXY_TILE]["clouds"]]
+    drawn = sorted(cloud["name"] for node in warm["nodes"].values() for cloud in node["clouds"])
     assert "Shell Cloud" not in drawn
 
     _generate(mysql_config, "phenomenon", "--type", "nebula", "--sector-id", str(first["id"]),
               "--name", "Shell Cloud")
     site.let_stamp_checks_fall_due()
     assert "Shell Cloud" in site.html(page_url)
-    fresh = tile_payload(site.get(tiles_url))
+    fresh = node_payload(site.get(nodes_url))
     assert fresh["stamp"] != warm["stamp"]
-    assert sorted(cloud["name"] for cloud in fresh["tiles"][WHOLE_GALAXY_TILE]["clouds"]) == sorted(drawn + ["Shell Cloud"])
+    names = sorted(cloud["name"] for node in fresh["nodes"].values() for cloud in node["clouds"])
+    assert "Shell Cloud" in names and [name for name in names if name != "Shell Cloud"] == drawn

@@ -74,12 +74,6 @@ ID_PATHS = {
     "api.near": {"rows[].id": "by-kind"},
     "api.galaxy_sectors": {"items[].id": "sector"},
     "api.galaxy_stage_route": {"sectors[].id": "sector"},
-    "api.galaxy_tiles_route": {
-        "tiles.*.placed[].id": "sector",
-        "tiles.*.generated[].id": "star",
-        "tiles.*.clouds[].id": "phenomenon",
-        "tiles.*.points[].id": "phenomenon",
-    },
     "api.galaxy_nodes_route": {
         "nodes.*.placed[].id": "sector",
         "nodes.*.generated[].id": "star",

@@ -111,7 +111,7 @@ def release(database, pid=None, client=None):
 
 
 def _cache_owner():
-    """`(uid, gid)` of the tile cache's directory when this process is root and the directory belongs to another user
+    """`(uid, gid)` of the node cache's directory when this process is root and the directory belongs to another user
     (Apache's), else `None`: the warm-up runs as the user the web server reads the files as."""
     if os.geteuid() != 0:
         return None

@@ -224,8 +224,8 @@ def table_site():
         patch.setattr(apiclient, "get_sector_facilities", lambda db, sector_id: [])
         patch.setattr(apiclient, "get_object_children", _fake_children)
         patch.setattr(apiclient, "get_galaxy_shape", lambda db: None)
-        patch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
-            "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
+        patch.setattr(sector_page, "fetch_nodes", lambda db, keys, known_stamp=None: {
+            "stamp": "0" * 16, "nodes": {}, "edge_pc": 3.066, "has_shape": False})
         app = create_app(_SiteConfig)
         app.testing = True
         server = make_quiet_server("127.0.0.1", 0, app, threaded=True)
