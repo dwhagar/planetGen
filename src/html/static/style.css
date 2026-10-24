@@ -5187,7 +5187,8 @@ p.hint a {
 .map-label[data-kind="sector"] { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
   .map-label { transition: none; }
-=======
+}
+
 /* UX.172: the summary tree (web/lib/objecttree.py, static/objecttree.js): a row is the toggle (a button, drawn once the
    script runs), the kind's mark, the name (a link to the object's page) and its summary line; the list of a row's
    children is indented under it. */
