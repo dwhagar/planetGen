@@ -8067,7 +8067,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fractions and the main elements), a body's surface and small-body
   composition, and the surface radiation (the dose, the ultraviolet and
   the atmosphere's transmission with the terms behind them), in every
-  output (text, markdown, wikitext, JSON and the web page), never naming
+  output (text, markdown, JSON and the web page), never naming
   a material the body does not hold. Done: a test generates stars and
   bodies of every kind and checks that every material named is in the
   stored or derived composition above a stated share and that the quoted
@@ -15425,6 +15425,29 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
   Prerequisites: MAP.274.
 
+- [ ] **DB.100 Store all the life and evolutionary data of a world in the database and build the life paragraph from the stored results**
+  Boss, 9:07 AM EDT 2026-10-24 (relayed by the coordinator): "Let's go
+  ahead and store all the life and evolutionary data in the database.
+  Since it's drawn and we want to be canonical, let's go ahead and store
+  the results and build the paragraph from that." Today the generator
+  draws the chemistry, the pace and the timeline once and stores part of
+  it (life.apply_life_data; describe/life_facts.py resolves it and
+  build.py writes the paragraphs). Do: list every life and evolution
+  value that is drawn or derived (chemistry, pace, timeline milestones
+  and ages, the stage reached, visible and non-visible life, the four
+  life scores of GEN.649 and DB.91, the evolutionary path) and store
+  every one as a column or row with its Alembic revision, schema version
+  and db/column_units.py entry in the same PR; the describer and the API
+  read only the stored values and never redraw or recompute them; the
+  rebuild step for older rows regenerates them (testing mode allows a
+  new epoch and schema); the schema document lists them. Done: a round
+  trip test, a test that the life paragraph and the timeline paragraph
+  are the same text from the stored row with no generator call, and the
+  epoch and migration are taken. Owner: the lane "Store life and
+  evolution results in database" (started 2026-10-24). Related: GEN.649,
+  DB.91, DB.73, UX.152, DOC.77.
+  Prerequisites: none. Related: GEN.649, DB.91, DB.73, UX.152, DOC.77.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -15887,8 +15910,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the API version from `planetgen/api/version.py`. One function builds
   the string (the only place that spells it), so a test checks the
   format and that it follows both versions when they change; the
-  outgoing callers are `web/lib/apiclient.py`, `wiki/mediawiki.py`,
-  `wiki/wikijs.py`, the CLI tools that fetch, any later API client (the
+  outgoing callers are `web/lib/apiclient.py`, the CLI tools that fetch, any later API client (the
   remote generate client of API.30) and the data downloads at build time
   of the gap-filling plan (GEN.439, GEN.440, GEN.463, GEN.413, GEN.414,
   GEN.485, GEN.499 and the atmosphere data of group X9), which must use
@@ -19908,6 +19930,31 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   file only. Remaining work: one line in the debug mode docs saying so;
   then close.
   Prerequisites: none. Related: OPS.65.
+
+- [ ] **OPS.69 Remove all wiki functionality: the upload and download code, the wikitext renderer, the wiki routes, UI, settings and columns; the export to Markdown stays**
+  Boss, 9:07 AM EDT 2026-10-24 (relayed by the coordinator): "strip out
+  all of the wiki functionality. We're going in a different direction."
+  Boss, 9:08 AM EDT, to be clear: this removes all the code that uploads
+  to or downloads from a wiki and all the wiki text code, but he still
+  wants an export to Markdown function. Do: delete src/planetgen/wiki
+  (the MediaWiki and Wiki.js clients), the wikitext renderer and the
+  wikitext output format (API, CLI and the page buttons), POST
+  /api/systems|sectors/<id>/wiki, GET /api/wiki-config, the Upload to
+  Wiki UI and the Admin hub sector wiki link form (UX.73), the wiki
+  settings section and its environment variables, the wiki_url,
+  wikijs_url and mediawiki_url columns (a new Alembic migration, the
+  schema document and db/column_units.py in step), and the wiki mentions
+  in the docs and help pages. KEEP and test the Markdown output
+  everywhere it exists today (API Markdown, CLI --markdown, the Markdown
+  button of UX.67), and make sure a Markdown export of a sector, system,
+  planet and moon works on its own without any wiki setting. No shim, no
+  compatibility flag. Done: nothing in the code, settings, API or docs
+  names a wiki except the history; Markdown export tests pass; the
+  migration test and docs gate pass. Owner: the lane "Strip out all wiki
+  functionality" (started 9:07 AM EDT 2026-10-24, merge authorization
+  applies). Related: API.25, UX.67, UX.73, UX.106, API.31, GEN.446.
+  Prerequisites: none. Related: API.25, UX.67, UX.73, UX.106, API.31,
+  GEN.446.
 
 ## DOC: Documentation
 
