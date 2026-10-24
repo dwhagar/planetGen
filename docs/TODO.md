@@ -1009,6 +1009,105 @@ with `clamp()`.
   help-link work).
   Prerequisites: none. Related: UX.181, UX.195, TEST.331, DOC.6, UX.189.
 
+- [ ] **UX.198 The Atmosphere section of the planet property sheet shows 14 empty rows (bug)**
+  Boss, 7:45 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
+  coordinator), live observation from the page of Enuakyadas IV (object
+  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: in the page
+  text the Atmosphere section of the property sheet lists 14 rows with
+  no label and no value, between the Composition and Climate sections
+  (the planet does have an atmosphere: the About block lists nitrogen
+  69.9 percent, oxygen 29 percent, argon and trace gases). Do: find
+  whether the sheet registry rows for the gas-by-gas values (after the
+  4b gas table, migration 0155) are rendering with empty labels for a
+  world, or the section lists gases that have no row; make the section
+  show the atmosphere in plain rows (total pressure, the main gases with
+  their shares, the mean molecular mass, the scale height) and show
+  nothing for a gas with no value. If the cause is the stored gas rows
+  themselves, hand that part to Aux 1. Done: a page test on a planet
+  with an atmosphere finds every row in the Atmosphere section with a
+  label and a value and no empty row. Owner: Aux 11 (property sheet and
+  pages); Aux 1 if the cause is data. Related: UX.187, TEST.358.
+  Prerequisites: none. Related: UX.187, TEST.358, UX.173.
+
+- [ ] **UX.199 Pages show raw or placeholder values: "not stored" rows in At a glance, and a raw key such as Technological_civilization (bug)**
+  Boss, 7:45 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
+  coordinator), live observation from the page of Enuakyadas IV (object
+  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: two display
+  faults in the same paste. (1) "Hours of daylight a person can be
+  outside: not stored" appears in the At a glance table and again in the
+  Rotation section, although the rule (Boss, 10-24, UX.188 to UX.194) is
+  that a value that is none or zero is left out unless its absence
+  matters. Do: leave out a "not stored" row unless the absence matters
+  to a captain, and where it does matter say why in a sentence
+  ("Daylight hours need the planet's rotation and a stored day length").
+  (2) The Life section shows "Life stage: Technological_civilization",
+  the stored key. Do: show the name a person reads ("Technological
+  civilization", the label the text already uses) for every stored key
+  that reaches a page (life stage, evolutionary pace, hydrosphere,
+  dynamical state and the rest), through the sheet registry's label for
+  the value, and add a test that lists every enumerated stored value
+  shown and fails on an underscore or capitalised key. Owner: Aux 11.
+  Related: UX.188, UX.187.
+  Prerequisites: none. Related: UX.188, UX.190, UX.187.
+
+- [ ] **UX.200 The Location block lists a system and its star separately when they share a name, shows "not inside any nebula" style lines, and links the Galaxy (bug)**
+  Boss, 7:48 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy, relayed by the
+  coordinator), live observation of the Location block on an object
+  page, so a bug: Boss: "the system and star can both be listed which
+  they have the same name, so its location should be in the system, the
+  star doesn't need to be listed separately. Instead of saying 'not
+  inside any nebula' or similar just don't put that line at all. We also
+  don't need the 'Galaxy' link, we can figure out it's in the galaxy."
+  Do: (1) when a star and its system share a name (a single star
+  system), the Location block lists only the system, and the star's own
+  page gives its place as in that system; (2) a Location line that says
+  there is nothing ("Not inside any nebula or supernova remnant" and
+  every sibling) is left out entirely, so a line appears only when it
+  holds a place; (3) remove the Galaxy link from the block. Done: a page
+  test on a single-star system finds one line for the system and none
+  for the star, a test on a star outside any nebula finds no "not
+  inside" wording, and no Galaxy link is in the block. Owner: Aux 11
+  (object pages). Related: UX.188, UX.195.
+  Prerequisites: none. Related: UX.188, UX.195, UX.187.
+
+- [ ] **UX.201 A Nav button on object pages opens one menu: navigate from here, navigate to here, nearby locations (bug)**
+  Boss, 7:48 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy, relayed by the
+  coordinator), live observation of the Location block on an object
+  page, so a bug: Boss: "Make a Nav button that opens a menu with the
+  nav from here, to here, and nearby locations." Do: replace the
+  separate Navigate from and Navigate to links on object pages with one
+  Nav button that opens a small menu with three entries: navigate from
+  here, navigate to here, and nearby locations (the nearest systems or
+  objects, each a link). The menu opens by keyboard and click, closes on
+  escape, and works on a phone width. Done: a browser test opens the
+  menu on a system page, finds the three entries, follows nearby
+  locations to another object, and the old separate links are gone.
+  Owner: Aux 11. Related: UX.200, MAP.293.
+  Prerequisites: none. Related: UX.200, UX.187.
+
+- [ ] **UX.202 Remove the "How the composition was found" line from the object pages (bug)**
+  Boss, 7:49 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy was the Location
+  note; this one is cmsg_01RuNTFUNB92A8cm5CbojQAi8J89Q4swLrpuV9PJ6FR7HG,
+  relayed by the coordinator), live observation, so a bug: "UX, 'how the
+  composition was found' line needs to be removed". Cause: the row
+  `composition_origin` ("How the composition was found") in the
+  Composition group of the property sheet registry (describe/sheet.py
+  line 185). Do: remove the row from the sheet and from every page that
+  shows it (planet, moon, star), keeping the stored column and the
+  composition paragraph (GEN.430, GEN.642 text is Aux 6's and is not
+  changed by this item). Done: a page test finds no "How the composition
+  was found" on a planet, moon or star page, and the sheet test's "every
+  column shown or excused" excuses composition_origin as stored but not
+  shown. Owner: Aux 11 (object pages); Aux 6 (Lane J, composition) is
+  told so its composition text does not re-add the line. Related:
+  UX.187, TEST.358, GEN.430.
+  Prerequisites: none. Related: UX.187, TEST.358, GEN.430.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14388,6 +14487,69 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the refill, not a rescatter) are carried in Core 1's design draft,
   /mnt/project-files/design-drafts/bring-a-galaxy-to-the-current-epoch-2026-10-24.md.
   Owner Core 1 as decided above.
+
+- [ ] **GEN.765 A world with Flora 5, Fauna 5 and Sentient 5 scores Suitability Red with "no food readily available": the food rung ignores the life the scores say is there (bug)**
+  Boss, 7:45 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
+  coordinator), live observation from the page of Enuakyadas IV (object
+  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: the planet
+  shows Microbial, Flora, Fauna and Sentient scores of 5 and a
+  technological civilization, yet its Suitability reads "There is no
+  food readily available, and only limited water" (score 0.2, Red).
+  Boss: "there should be food if there is flora and fauna and a sentient
+  species. So we need to figure out why sustainability says there is no
+  food." Cause found by TODO in the code (the owner verifies it by
+  running the planet): physics/habitability_world.py line 325 sets
+  `life_on_surface = hydrosphere != "ice-covered ocean"`, and
+  `food_score` (physics/habitability.py line 537) turns the food stage
+  into "none" when it is false. The planet's hydrosphere is "Ice-covered
+  ocean" with 79 percent of its surface above sea level and a 243 K
+  mean, so the rule treats all life as living only under the ice, while
+  the life scores (life_scores.scores, GEN.649) draw Flora, Fauna and
+  Sentient without that condition and the page text describes forests
+  and farms. The two rules disagree. Do: make one rule. Life lives where
+  the surface allows it, so decide from the stored conditions (land
+  fraction above sea level, the temperature range, the pressure) whether
+  the life is on the surface, under the ice, or both, and use that same
+  answer for the life scores, the food rung, the shelter wording and the
+  page text; a world whose sentient species farms has food. Done: a test
+  builds this planet (an ice-covered ocean with land) and gets
+  Suitability from its food (not Red for lack of food), a test keeps the
+  under-ice-only case (a fully frozen ocean world with no land) at no
+  surface food with Flora and Fauna capped to what lives under the ice,
+  and no stored world has a sentient score above 0 with the food rung at
+  none. Owner: Aux 3 (Lane D, habitability model; it wrote the rungs).
+  Related: GEN.653, GEN.649, GEN.207.
+  Prerequisites: none. Related: GEN.653, GEN.649, GEN.207, GEN.643.
+
+- [ ] **GEN.766 Generated life text states what is detected, in the present tense: no "speculative", "could", "would" or "boasts" (bug)**
+  Boss, 7:45 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
+  coordinator), live observation from the page of Enuakyadas IV (object
+  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: the Life
+  and timeline paragraphs of the planet page say "Life based on melanin
+  could arise on this planet, and it would evolve at a standard pace",
+  "On a speculative timeline at that pace, the system is about 13.8 Gyr
+  old. Its latest milestone would be technological civilization..." and
+  "The planet boasts a fully mature...". Boss: "Whatever we decide, the
+  planet data should match, and stop saying speculative, if it's
+  generated we're going to say that's what is detected on the planet."
+  Do: rewrite the life describer (describe/build.py
+  `_timeline_sentences` and the life sentence, describe/life_facts.py)
+  so a generated world's life is stated as fact in the present tense
+  ("Life based on melanin has arisen here and evolves at a standard
+  pace"; "The system is about 13.8 Gyr old. The latest milestone is
+  technological civilization, reached when the system was 4.5 Gyr
+  old."), with no speculative, could, would or boasts wording; the
+  paragraph must match the stored data and the four scores (GEN.765: if
+  the scores say Fauna 5 the text names fauna and its food), and no
+  milestone sentence when none is reached. The module and design wording
+  that calls the timelines speculative (generation/evolution.py, the
+  docs) is changed to match. Done: a test over generated planets of each
+  life stage finds none of those words in the text, and the text names
+  what the scores hold. Owner: Aux 3 (it owns the life model), with Aux
+  4 (Lane E) for the wording. Related: GEN.765.
+  Prerequisites: none. Related: GEN.765, GEN.207, GEN.649.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
