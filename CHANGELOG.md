@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2130] - 2026-10-24
+
+**Headline:** The retired `/<name>.py` page addresses and the old NAV parameter style now answer 404 instead of redirecting.
+
+### Removed
+- The `/<name>.py` redirects (`index.py`, `search.py`, `sector.py` and the rest) and `web/old_urls.py`; those addresses now give the normal 404 page.
+- The old NAV parameters (`from_id`, `to_id`, `from_kind`, `to_kind`, `from_type`, `to_type`), which used to redirect to the current `from`/`to` form.
+- The redirect tests for both, about 190 cases; the 404, header, malformed-body, HEAD and OPTIONS sweeps stay.
+
 ## [8.0.2129] - 2026-10-24
 
 **Headline:** A rocky body's interior heat and its ground radiation now come from one set of potassium, thorium and uranium drawn from its star.
