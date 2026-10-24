@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2174] - 2026-10-24
+
+**Headline:** The admin status page and the API health check now show the generator version, the one number that says which rules made a galaxy.
+
+### Added
+- **The generator version (OPS.37).** `GET /api/health` and the database figures of `GET /api/admin/stats` carry `generator_version`, the current generator epoch (OPS.28), and the admin Stats page shows it as "Generator version" beside the schema row. It is the same counter as the generator epoch, not a second one; an added field, not a breaking change.
+
 ## [8.0.2173] - 2026-10-24
 
 **Headline:** The planet mass law without a class letter is built: a planet's mass comes from the disc's solids at its formation distance, giant impacts and core accretion.
