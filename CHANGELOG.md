@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2100] - 2026-10-24
+
+**Headline:** One table now shows the order of every random draw from a star to its planets' habitability rating.
+
+### Changed
+
+- **One draw-order table from the star to the PHI-6 (DOC.78).** `docs/design/composition/composition-spine-contracts.md` gains section 4: every star and body block in the order its draws are made, which stream each uses, and the rule for changing the order. Documentation only; no generator change.
+
 ## [8.0.2099] - 2026-10-24
 
 **Headline:** The real-data checks of the downloaded data sets now wait for every data set, so a machine that updated before the ozone file was added no longer shows a failing test.
