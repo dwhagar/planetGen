@@ -439,12 +439,33 @@ reset_jobs_once() {
     fi
 }
 
+# `update.sh --kill-all` (PERF.186): the full stop, `planetgen queue stop-all --no-hold` (`planetgen.queue.stopall`, the
+# same routine as the Queue page's Stop everything): cancels every run and job, empties the queues, ends every planetgen
+# worker and command process on the host and what they started. It runs before the guard and again after the pull
+# if the checkout did not have it the first time (the first update that brings it).
+kill_all_once() {
+    if (( ! ${KILL_ALL:-0} || ${KILL_ALL_DONE:-0} )); then
+        return 0
+    fi
+    if [[ ! -f "$SCRIPT_DIR/src/planetgen/cli/queue.py" || ! -x "$VENV/bin/python" ]]; then
+        return 0
+    fi
+    if (cd / && PYTHONPATH="$SCRIPT_DIR/src${PYTHONPATH:+:$PYTHONPATH}" \
+            "$VENV/bin/python" -m planetgen.cli.queue stop-all --no-hold); then
+        KILL_ALL_DONE=1
+    else
+        echo "warning: some planetgen processes could not be ended (see above); the update goes on." >&2
+        KILL_ALL_DONE=1
+    fi
+}
+
 # Takes the guard if it is not held yet. Before the pull the checkout may not
 # have the guard (the first update that brings it) and a new machine may have
 # no virtual environment: then this does nothing, and is called again after
 # the pull and after step 2. With the argument "required" it fails the update
 # instead of doing nothing. Needs CANCEL_RUNNING (an array, maybe empty).
 ensure_update_guard() {
+    kill_all_once
     if (( UPDATE_GUARD_HELD )); then
         return 0
     fi

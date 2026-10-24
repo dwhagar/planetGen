@@ -15,7 +15,7 @@ import time
 
 from flask import Blueprint, g, jsonify, request
 
-from planetgen.queue import load as systemLoad, pause as queuePause, redisqueue, runcontrol, runrecord, runview, warmphases, work as workQueue, workers as queueWorkers
+from planetgen.queue import load as systemLoad, pause as queuePause, redisqueue, runcontrol, runrecord, runview, stopall, warmphases, work as workQueue, workers as queueWorkers
 
 from .authz import audit, require_admin
 from .common import ApiError, require_json_body
@@ -74,8 +74,8 @@ def work():
     load = systemLoad.load_average()
     connection = _connection()
     if connection is None:
-        return jsonify({"available": False, "status": {"load": load}, "items": [], "total": 0,
-                        "limit": limit, "offset": offset})
+        return jsonify({"available": False, "status": {"load": load}, "stopped": stopall.state(), "items": [],
+                        "total": 0, "limit": limit, "offset": offset})
     now = time.time()
     status = _status(connection, now)
     status["load"] = load
@@ -85,8 +85,8 @@ def work():
         run = runrecord.read_run(connection, run_id)
         if run is not None:
             items.append(runview.summary(run, now))
-    return jsonify({"available": True, "status": status, "items": items, "total": len(ids), "limit": limit,
-                    "offset": offset})
+    return jsonify({"available": True, "status": status, "stopped": stopall.state(), "items": items,
+                    "total": len(ids), "limit": limit, "offset": offset})
 
 
 DATABASE_RE = re.compile(r"^[A-Za-z0-9_$]{1,64}$")
@@ -213,12 +213,27 @@ def clear_finished():
 @require_admin(fresh=True)
 def queue():
     """
-    `POST /api/admin/work/queue` `{"action": "pause"|"resume"}` pauses
+    `POST /api/admin/work/queue` `{"action": "pause"|"resume"|"stop-all"|"resume-all"}` pauses
     the whole queue (the workers of the generation and maintenance lanes take no job
     until it's resumed; running tasks finish; PERF.152) or resumes it. `{"ok": bool}`: false when it
     already was.
+
+    `stop-all` (PERF.186, `stopall.stop_all`) stops everything: the hold, every run and job cancelled, every queue
+    emptied, every planetgen worker and command process on the host ended, and nothing starts until `resume-all`
+    lifts the hold. It works with no Redis answering. `{"ok": true, "summary": {"runs", "queued", "job", "killed",
+    "survivors", "already"}}`; `resume-all` returns `{"ok": whether it was stopped}`.
     """
     action = parse_body(QueueAction, require_json_body()).action
+    if action == "stop-all":
+        summary = stopall.stop_all(g.admin_user["username"], connection=_connection())
+        audit("work.queue.stop-all", target="queue",
+              detail=f"{summary['runs']} runs, {summary['queued']} queued, {summary['killed']} processes")
+        return jsonify({"ok": True, "summary": summary})
+    if action == "resume-all":
+        ok = stopall.resume_all(_connection())
+        if ok:
+            audit("work.queue.resume-all", target="queue")
+        return jsonify({"ok": ok})
     connection = _redis()
     if action == "pause":
         ok = queuePause.pause(g.admin_user["username"], connection)

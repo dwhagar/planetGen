@@ -353,6 +353,13 @@ restarts it when it just enabled a module); only if Apache is not running,
 or with nginx or Caddy in front of gunicorn, does it print the command to
 run. On macOS it prints the `SIGHUP` to send to gunicorn.
 
+`sudo ./update.sh --kill-all` first does a full stop (`planetgen queue stop-all --no-hold`, the same routine
+as Stop everything on the admin Queue page): it cancels every run and job, empties the queues and ends every planetgen
+worker and command process, including ones nothing lists any more. It only does so when you give it; without it the
+update stops only the work it lists, and refuses while other work runs unless you answer y or add `--cancel-running`.
+To stop everything and keep it stopped, use `sudo planetgen queue stop-all` (or the Queue page) and
+`planetgen queue resume` when you are ready.
+
 Do not use a plain `git pull`: it skips the migration and can drop the
 scripts' executable bits.
 
@@ -368,6 +375,20 @@ sudo examples/maintenance/install-maintenance-timer.sh --skip-update-timer  # or
 
 An unattended update deploys whatever is on the tracked branch with no review, and
 keeps the data when a migration is pending.
+
+#### Nightly memory smoke run
+
+```bash
+sudo examples/maintenance/install-maintenance-timer.sh --with-smoke-timer   # Linux (systemd)
+python -m planetgen.cli.smoke                                               # once, by hand
+```
+
+It builds the Generate page's New galaxy job for a small neighborhood (12 pc) in scratch databases, runs every step,
+and watches the memory of MySQL, the planetgen workers, each step and the host while each one runs (a `Memory peak:`
+line after each step in every job log, and `memory.json` in the job folder). It exits 1 when a step peaked above a
+budget (`tuning.SMOKE_BUDGET_MB`; `--budget mysql=2000` overrides one) and 2 when a step failed. Run it on a quiet
+host with a database account that may create and drop databases. The timer fires at 04:30 every night; the report is
+in `journalctl -u planetgen-smoke.service`.
 
 ## Command line only
 

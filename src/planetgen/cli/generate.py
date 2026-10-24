@@ -47,7 +47,7 @@ import time
 
 import pymysql
 from planetgen.cli import benchmark
-from planetgen.cli import checkdb as checkdb_cli, warm as warm_cli
+from planetgen.cli import checkdb as checkdb_cli, queue as queue_cli, warm as warm_cli
 
 from planetgen.queue import commands as queueCommands, work as workQueue
 from planetgen.db import fingerprint, store
@@ -1505,6 +1505,15 @@ def build_parser():
     warm_cli.add_warm_arguments(warm_parser)
     add_logging_arguments(warm_parser)
 
+    queue_parser = subparsers.add_parser(
+        'queue',
+        description="Stops everything and holds the host until told otherwise (stop-all: cancels every run and job, "
+                    "empties the queues, ends every planetgen worker and command process; nothing starts until "
+                    "resume), lifts the hold (resume) or shows it (status). Run it as root.",
+        help="Stop everything, resume, or show the hold.")
+    queue_cli.add_queue_arguments(queue_parser)
+    add_logging_arguments(queue_parser)
+
     commands_parser = subparsers.add_parser(
         'commands',
         description="Lists every command the work queue can run: its name, whether it runs as units on the "
@@ -1527,6 +1536,7 @@ def build_parser():
         'commands': commands_parser,
         'command-run': command_run_parser,
         'warm': warm_parser,
+        'queue': queue_parser,
         'benchmark': benchmark_parser,
         'system': system_parser,
         'sector': sector_parser,
@@ -1660,7 +1670,7 @@ def run_command_unit(args):
     log.normal(json.dumps(result, sort_keys=True))
 
 
-READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark", "commands", "command-run", "warm")
+READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark", "commands", "command-run", "warm", "queue")
 """tuple: Subcommands that write nothing generated (`warm` only builds caches), so they aren't logged as runs
 (no activity log lines, job tree node or run history)."""
 
@@ -1683,6 +1693,7 @@ _COMMAND_HANDLERS = {
     'commands': run_commands,
     'command-run': run_command_unit,
     'warm': warm_cli.run_warm,
+    'queue': lambda args: sys.exit(queue_cli.run_queue(args) or 0),
     'check-math': run_check_math,
     'versions': run_versions,
     'check-db': checkdb_cli.run_check_db,

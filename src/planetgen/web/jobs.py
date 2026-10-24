@@ -43,6 +43,7 @@ import os
 import re
 import secrets
 import shutil
+import signal
 import sys
 import tempfile
 import time
@@ -762,6 +763,52 @@ def cancel_runs(job_id, who=None):
         return 0
 
 
+def _end_orphan(root, path, job_id, who):
+    """
+    Cancel of a job whose runner is gone (killed by the out-of-memory killer, a restart or a crash; PERF.186): its step
+    and the processes of that step's group were started apart from the runner and run on, so they are ended here
+    (SIGTERM, then SIGKILL), its live runs are cancelled, and the job is marked cancelled and its lock freed. Before
+    this, Cancel on such a job did nothing, and the page showed it as interrupted while its processes kept the host busy.
+
+    Returns:
+        bool: Whether there was something to end or the job was not marked yet.
+    """
+    state_path = os.path.join(path, "state.json")
+    state = _read_json(state_path) or {}
+    did = False
+    step_pid = state.get("step_pid")
+    if isinstance(step_pid, int) and step_pid > 1:
+        for number, wait in ((signal.SIGTERM, 5.0), (signal.SIGKILL, 2.0)):
+            try:
+                os.killpg(step_pid, number)
+            except OSError:
+                break
+            did = True
+            deadline = time.time() + wait
+            while time.time() < deadline:
+                try:
+                    os.killpg(step_pid, 0)
+                except OSError:
+                    break
+                time.sleep(0.1)
+            else:
+                continue
+            break
+    did = bool(cancel_runs(job_id, who)) or did
+    if state.get("status") in (None, "running"):
+        state.update(status="cancelled", finished_at=time.time(), error=f"Cancelled by {who or 'an admin'} after its runner "
+                                                                         "had stopped.")
+        state.pop("step_pid", None)
+        try:
+            with open(state_path, "w", encoding="utf-8") as f:
+                json.dump(state, f)
+            did = True
+        except OSError:
+            pass
+    _release_lock(root, job_id)
+    return did
+
+
 def cancel_job(job_id, root=None, who=None):
     """
     Asks a running job to stop: writes a `cancel` file into its directory, which the runner checks for while a step
@@ -775,12 +822,12 @@ def cancel_job(job_id, root=None, who=None):
     """
     root = root or jobs_dir()
     job = get_job(job_id, root)
-    if job is None or job["finished"]:
+    if job is None or (job["finished"] and job["status"] != "interrupted"):
         return False
     path = _job_dir(root, job_id)
     pid = _runner_pid(path, _read_json(os.path.join(path, "state.json")))
     if not _runner_alive(pid, job_id):
-        return False
+        return _end_orphan(root, path, job_id, who)
     try:
         with open(os.path.join(path, CANCEL_NAME), "w", encoding="utf-8") as f:
             f.write(str(time.time()))
