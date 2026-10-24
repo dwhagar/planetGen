@@ -140,6 +140,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [retention-tuning.md](composition/retention-tuning.md) | The check of the retention and lava-world rows d1, i6 and j1 (GEN.511) | built |
 | [wd-redox-tuning.md](composition/wd-redox-tuning.md) | The retune of the white-dwarf redox rows a3 and a4 with the detection model (GEN.513) | built |
 | [radioisotope-tuning.md](composition/radioisotope-tuning.md) | The retune of the radioisotope rows o2, o4 and o6 (GEN.514) | built |
+| [radius-valley-tuning.md](composition/radius-valley-tuning.md) | The tuning of the envelope rows e1 and e2 to the Kepler radius valley (GEN.509) | built |
 | [giant-planet-tuning.md](composition/giant-planet-tuning.md) | The retune of the giant enrichment and C/O rows f5 and f7 (GEN.516) | built |
 | [brown-dwarf-types.md](composition/brown-dwarf-types.md) | The brown-dwarf type map from the Kirkpatrick 2021 temperature polynomials, rows g1 to g5 (GEN.517) | built |
 | [aerosol-tuning.md](composition/aerosol-tuning.md) | The titanium cold-trap step, row h4, and what waits for the chemistry module (GEN.519) | built |

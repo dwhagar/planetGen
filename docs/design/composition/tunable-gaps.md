@@ -190,7 +190,7 @@ The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against
 
 **Built (GEN.517, lane M, 2026-10-23):** rows g1 to g5 now take their edges and softness from the Kirkpatrick 2021 temperature map (`planetgen/physics/brown_dwarf_types.py`, `docs/design/composition/brown-dwarf-types.md`): 2238, 1273, 686 and 460 K with scatter 134 and 79 K, in place of the design edges 2200, 1300, 700 and 500 K at 100 K. The type is a derived function of the temperature, so there is no target to tune; the test pins the recipe to the map.
 
-**Built (GEN.514, lane M, 2026-10-23):** rows o2, o4 and o6 are retuned (`docs/design/composition/radioisotope-tuning.md`): the thorium scale of non-thin-disc hosts is the 32-star Hypatia statistic (-0.063 dex, 0.19), Th/U follows the published formula with the planet's age (3.04 to 5.39 at 4.5 Gyr), and the aluminium-26 share bracket is 0.04 to 0.66. Row o3 stays a stand-in (Solar System only).
+**Built (GEN.514, lane M, 2026-10-23):** rows o2, o4 and o6 are retuned (`docs/design/composition/radioisotope-tuning.md`): the thorium scale of non-thin-disc hosts is the 32-star Hypatia thick-thin offset put on the solar-twin scale of row o1 (0.061 dex, 0.19; GEN.664), Th/U follows the published formula with the planet's age and the enrichment factor of the disc's history (GEN.663), and the aluminium-26 share bracket is 0.04 to 0.66. Row o3 stays a stand-in (Solar System only).
 
 **Built (GEN.511, lane M, 2026-10-23):** rows d1, i6 and j1 are checked (`docs/design/composition/retention-tuning.md`): the shoreline row d1 already follows the published logistic and is now pinned by a test, the molten-dayside share i6 takes the 95 percent Beta(3, 1) interval 0.29 to 0.99, and the retained fraction j1 is drawn uniform from 0 to 1 so that a bare planet is possible.
 
@@ -292,3 +292,5 @@ All under `docs/design/composition/tunable-gaps-sources/` (copied unchanged from
 ## The power of a target (GEN.665)
 
 `tuning_harness.power(target, comparison)` asks whether a value wrong by a factor of 2 (0.301 dex on a log scale; 0.25 for a proportion) lies outside 2 sigma of the comparison. Every shipped target refuses both sides except two, listed in `WEAK_TARGETS` of `test_tuned_draws.py`: `k5-mean` (3 comets, refuses neither side) and `k7-H2S-sd` (refuses a doubled spread, not a halved one). A new target that is weak in this sense must be listed there with the reason.
+
+**Built (GEN.509, 2026-10-24):** rows e1 and e2 are tuned to the Kepler radius valley (`docs/design/composition/radius-valley-tuning.md`): `f_env0` log-uniform 0.035 to 0.08 with the loss efficiency 10 f_env0, one degenerate ridge; two targets (slope -0.11, radius 1.84 at 10 d).

@@ -111,8 +111,8 @@
    "fallback": "e1",
    "constants": {
     "f_env0": [
-     0.005,
-     0.1,
+     0.035,
+     0.08,
      "log"
     ],
     "eta": [
@@ -1532,7 +1532,7 @@
     "2ND-HAND"
    ],
    "state": "partly verified",
-   "limit": "part of the weight source is 2ND-HAND (its edge widths or constants are design choices)",
+   "limit": "f_env0 and the loss efficiency are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d) along a degenerate ridge eta = 10 f_env0; the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -1548,10 +1548,11 @@
      "maximum": 30
     }
    ],
+   "tunable": true,
    "group": "e",
    "weight": "(1 - p('b4'))*min(1, f_lost/f_env0)",
    "lets": {
-    "f_lost": "0.1*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"
+    "f_lost": "10*f_env0*(15/v_esc_kms)**2*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"
    }
   },
   {
@@ -1589,7 +1590,7 @@
    "group": "e",
    "weight": "(1 - p('b4'))*(1 - min(1, f_lost/f_env0))",
    "lets": {
-    "f_lost": "0.1*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"
+    "f_lost": "10*f_env0*(15/v_esc_kms)**2*pi*(core_radius_earth*R_EARTH_M)**3*3.1e16*insolation/(G*(mass_earth*M_EARTH_KG)**2)"
    }
   },
   {
