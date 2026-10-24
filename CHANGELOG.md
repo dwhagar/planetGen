@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2118] - 2026-10-24
+
+**Headline:** The neighbour link of a large run is cut into units of 500 sectors, so no single unit runs for long.
+
+### Changed
+- **The link stage of a run is cut into units of 500 sectors (PERF.113).** A run linked every sector it made to its neighbours in one unit (70 ms a sector at the default galaxy size, so one unit of several minutes for a run of thousands of sectors). The sectors are found once, put in neighbourhood order and linked in chunks. The links stored are the same; the stage is not faster, because linking takes the neighbour lock one batch at a time.
+
 ## [8.0.2117] - 2026-10-24
 
 **Headline:** The planet lists and the system page now show each piece of survival equipment as its own chip, solid when required and outlined when only recommended.
