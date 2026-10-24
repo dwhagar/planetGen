@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2101] - 2026-10-24
+
+**Headline:** A world's survival equipment is a list of what a visitor needs, item by item, from the physics, instead of one tier from 0 to 4.
+
+### Changed
+- **The equipment line (GEN.655, DB.93).** `equipment_tier` is gone. Each planet and moon now stores the levels of four slots (body protection, air filter or scrubber, air supply, radiation protection) as `eq_*` columns (schema v136) and shows what a human needs, required or recommended, and nothing for a world that needs nothing: "Required: pressure suit + dust-tight seals. Recommended: hardened habitat." with a short code (`B4p F100 S2 [R2]`). The radiation ladder is a shielded garment, a storm vest, a hardened suit, a shielded shelter and a hardened habitat, run through the dose curves. The PHI-6 scores are unchanged. The search page has one tick per item, the species fit reads a tech level per item (`tuning.SPECIES_EQUIPMENT_TECH`), and the description and the habitability levels page use the same list. Run `planetgen rescore-habitability` to fill the levels of an existing galaxy. Design: `docs/design/survival-equipment-fields.md`.
+
 ## [8.0.2100] - 2026-10-24
 
 **Headline:** One table now shows the order of every random draw from a star to its planets' habitability rating.
