@@ -1089,6 +1089,25 @@ with `clamp()`.
   Owner: Aux 11. Related: UX.200, MAP.293.
   Prerequisites: none. Related: UX.200, UX.187.
 
+- [ ] **UX.202 Remove the "How the composition was found" line from the object pages (bug)**
+  Boss, 7:49 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy was the Location
+  note; this one is cmsg_01RuNTFUNB92A8cm5CbojQAi8J89Q4swLrpuV9PJ6FR7HG,
+  relayed by the coordinator), live observation, so a bug: "UX, 'how the
+  composition was found' line needs to be removed". Cause: the row
+  `composition_origin` ("How the composition was found") in the
+  Composition group of the property sheet registry (describe/sheet.py
+  line 185). Do: remove the row from the sheet and from every page that
+  shows it (planet, moon, star), keeping the stored column and the
+  composition paragraph (GEN.430, GEN.642 text is Aux 6's and is not
+  changed by this item). Done: a page test finds no "How the composition
+  was found" on a planet, moon or star page, and the sheet test's "every
+  column shown or excused" excuses composition_origin as stored but not
+  shown. Owner: Aux 11 (object pages); Aux 6 (Lane J, composition) is
+  told so its composition text does not re-add the line. Related:
+  UX.187, TEST.358, GEN.430.
+  Prerequisites: none. Related: UX.187, TEST.358, GEN.430.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.

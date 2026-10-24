@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.202 |
+| UX | UX.203 |
 | MAP | MAP.308 |
 | NAV | NAV.63 |
 | GEN | GEN.767 |
@@ -2415,6 +2415,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.199 | Pages show raw or placeholder values: "not stored" rows in At a glance, and a raw key such as Technological_civilization (bug) | none | open |
 | UX.200 | The Location block lists a system and its star separately when they share a name, shows "not inside any nebula" style lines, and links the Galaxy (bug) | none | open |
 | UX.201 | A Nav button on object pages opens one menu: navigate from here, navigate to here, nearby locations (bug) | none | open |
+| UX.202 | Remove the "How the composition was found" line from the object pages (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
