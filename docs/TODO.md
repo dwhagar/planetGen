@@ -20508,7 +20508,7 @@ clears each one.
   errored, never confirmed as environmental
   (reports/blocker-5-status-2026-10-24.md, PR #2778). Do: run the
   affected tests on current main with a working environment and report
-  which, if any, are real failures. Owner: Bug Hunt.
+  which, if any, are real failures. Owner: the Blocker 6 lane (Boss, 10:41 PM EDT 2026-10-23).
   Prerequisites: none.
 
 ## USR: User accounts

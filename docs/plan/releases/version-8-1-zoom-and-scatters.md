@@ -118,7 +118,7 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) |  | Lane 2 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) |  | Flake, fix the cause |
-| TEST.310 | Re-run the 16 tests that failed in the Blocker 5 gate on current main in an environment with MySQL and Redis, and report |  | Coordinator relay 10:37 PM EDT; Bug Hunt. |
+| TEST.310 | Re-run the 16 tests that failed in the Blocker 5 gate on current main in an environment with MySQL and Redis, and report |  | Coordinator relay 10:37 PM EDT; Blocker 6 lane (Boss, 10:41 PM EDT). |
 | TEST.306 | Five physics modules are imported only by tests and no item names them |  | Owner or delete |
 | TEST.305 | The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug) |  | Run on a normal lane first |
 | TEST.304 | Nine Playwright test files are not marked browser, so they run in the all-core phase |  | Marker fix |
