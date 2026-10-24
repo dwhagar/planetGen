@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2181] - 2026-10-24
+
+**Headline:** The air's density, scale height and greenhouse warming can now be worked out from its gases.
+
+### Added
+- **`physics/atmosphere_state.py` (GEN.423).** From a mixture, a temperature and a gravity it gives the mean molar mass, density, scale
+  height, column mass, the infrared optical depth of each gas and the greenhouse warming (the repo's `G`). Nothing calls it yet: the
+  generator still draws these apart until lane I's GEN.411 wiring, so no generated value changes.
+
 ## [8.0.2180] - 2026-10-24
 
 **Headline:** A giant planet's radius, heavy elements and layered interior are now drawn together, from the star's own light and age.
