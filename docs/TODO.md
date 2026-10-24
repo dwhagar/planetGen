@@ -898,51 +898,6 @@ with `clamp()`.
   test filters by class and by colour.
   Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
 
-- [ ] **UX.152 Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes**
-  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
-  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
-  replace this with: Microbial, Flora, Fauna, Sentient and let's add
-  that to the icon design so that the # scores for these (based on the
-  evolutionary path and surface conditions), each icon goes with a small
-  number in a small cluster next to the PHI-6 icons. These will be a
-  score from 0 (none) to 9 (abundant) for each based on surface
-  conditions and current evolutionary stage.' Human operability goes
-  away. Replaces HABITABILITY_SCORES in web/lib/systempage.py and the
-  planet and moon pages and lists (UX.100) with the cluster of the icon
-  item; the API names the four fields; old fields are removed with no
-  shim. Owner: Habitability lane B. Done: every page shows the cluster,
-  no page shows human operability, and a browser test (TEST.300) checks
-  the cluster on a list and a page.
-  Prerequisites: none. Related: UX.151, UX.100,
-  TEST.300.
-
-- [ ] **UX.153 Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none**
-  Section 11 item 3 of the design draft. Do: the single Equipment a
-  Human Needs search facet becomes a Needs tick per item (garment,
-  thermal suit, sealed suit, pressure suit, armoured suit, vehicle,
-  shielded garment, storm vest, hardened suit, dust, gas filter, CO2
-  scrubber, gas-mix mask, sealed supply, shielded shelter, hardened
-  habitat) in db/query.py and web/searchpage.py; the levels page (UX.90)
-  is rewritten from the same limit rows; the describer sentences come
-  from the needs list. Done: no page or sentence lists an item that is
-  not needed, and the wording test agrees with the index. Design:
-  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
-  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
-  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
-  Owner: Survival equipment lane (thread 'Survival equipment fields').
-  Part 1 (2026-10-09): Minimal part merged in #2766 (about 11:28 PM EDT
-  2026-10-23 as the lane reported): the search ticks, the help page and
-  the describer headline. The rest of UX.153 is with the Habitable rule
-  and life scores lane.
-  Research (2026-10-09, Update): The 'Habitable rule and life scores'
-  lane owns the remainder (9:57 AM EDT 2026-10-24, as the lane
-  reported). No Boss word is needed: Boss's 10-15 example lines are
-  pinned in test_protection.py and already read per row from the needs
-  list (UX.163 and GEN.702 merged); the only leftovers are a stale
-  example line in docs/design/habitability/habitability-index.md (line
-  556), which the lane fixes, and the help text it already merged.
-  Prerequisites: none. Related: UX.90, GEN.216, GEN.218.
-
 - [ ] **UX.158 Info panel line: how this colour was worked out, which inputs and whether partial or full quality**
   A short line in the info panel naming the inputs. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
@@ -12971,21 +12926,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   has a test or a stated reason it stays. Owner: none for now (pool).
   Prerequisites: none.
 
-- [ ] **GEN.675 Register the atmosphere mixture stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each**
-  Found by lane L (atmosphere mixture), report
-  reports/lane-l-findings-2026-10-24.md, relayed 11:32 PM EDT 2026-10-23
-  (as the lane reported). The stand-ins are WATER_RESIDUAL, SULFUR_SINK,
-  WATER_PHOTOLYSED, OCEAN_WATER_WT_PERCENT, CARBON_PER_OCEAN_WATER,
-  OXYGEN_SINK, TITAN_HUMIDITY, TITAN_HYDROGEN, FROST_ICE,
-  ALKALI_ACTIVITY_COEFFICIENT (3e-9 to 3e-8), COMPOSITION_SCATTER, the
-  k1 to k3 ordering rule and the trace-gas amount brackets. Do: add each
-  to the stand-in registry of docs/design/research/gap-filling-plan.md
-  with fill id, kind (D, B, T, P), evidence label, assumptions, knobs,
-  validity range and falsifier test, so none is silent. Done: every
-  constant above has a registry row. Owner: lane L (it knows the
-  values).
-  Prerequisites: none.
-
 - [ ] **GEN.681 The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw**
   Step C6 of the condition-based classes build (design draft
   design-drafts/condition-based-classes-2026-10-23.md section 7, from
@@ -13415,6 +13355,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registered as labelled stand-ins. Owner: Lane Draws (after GEN.510 and
   GEN.512).
   Prerequisites: none. Related: GEN.509, GEN.510.
+
+- [ ] **GEN.723 Refresh the hot-Jupiter recipe rows h1 to h3: their edge points were computed with the deleted gas-equilibrium module and sit up to 16 K (0.6 percent) above the surviving solver**
+  Found by Lane L in GEN.672 (relayed 2:47 PM EDT 2026-10-24 as the lane
+  reported; filed by the TODO thread). Kind: accuracy, value-changing,
+  optional (the difference is inside the rows' 100 K softness). Do:
+  recompute the edge points of recipe rows h1 to h3 with the surviving
+  solver and update the table and its tests; this changes drawn values,
+  so it needs an epoch. Done: the rows agree with the solver to the
+  table's rounding. Owner: pool (Lane L is retiring; first free
+  atmosphere lane takes it). Prerequisites: GEN.672.
+  Prerequisites: GEN.672. Related: GEN.672, GEN.674.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18588,6 +18539,29 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
+- [ ] **TEST.347 test_admin_edits::test_system_page_regenerates_a_planet and ::test_system_page_changes_a_class fail alone on main: the system page lacks the 'Regenerated ...' and 'Change class' text (bug)**
+  Found by Lane D (relayed 2:47 PM EDT 2026-10-24 as the lane reported,
+  on origin/main 35a7961; filed by the TODO thread). Kind: failing test
+  on main, not reproduced by the TODO thread. Both tests fail when run
+  alone: the rendered system page does not contain the text 'Regenerated
+  ...' after a planet regenerate nor the 'Change class' control. Do:
+  find whether a recent merge removed or renamed that text and the
+  controls (the class lane's work and the map or system page changes are
+  the likely causes) or whether the tests are stale; fix the page or the
+  tests without weakening them. Done: both pass on main, alone and in
+  the suite. Owner: Bug Hunt (main-green rule), who may hand it to the
+  admin lane.
+  Prerequisites: none. Related: TEST.343.
+
+- [ ] **TEST.348 test_class_pages: test_phenomenon_page_links_its_class (5 cases) and test_phenomenon_unknown_class_stays_text fail on clean main (bug)**
+  Found by Lane 3 (relayed 2:47 PM EDT 2026-10-24 as the lane reported,
+  while merging UX.152 as #3038; filed by the TODO thread). Kind:
+  failing test on main, not reproduced by the TODO thread. Do: find
+  which merge changed the phenomenon page's class link and fix the page
+  or the stale test without weakening it. Done: all six pass on main,
+  alone and in the suite. Owner: Bug Hunt (main-green rule).
+  Prerequisites: none. Related: TEST.347, UX.152.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20083,7 +20057,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   conditions), the cluster, and that human operability is gone. Owner:
   Habitability lane E. Done: the help (DOC.75) and the design and schema
   docs state it and no text names human operability as a score.
-  Prerequisites: UX.152. Related: DOC.75, GEN.649.
+  Prerequisites: none. Related: DOC.75, GEN.649.
 
 - [ ] **DOC.79 The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C**
   Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
