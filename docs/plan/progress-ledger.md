@@ -1338,3 +1338,4 @@ Baseline: PR #1817.
 | GEN.709 | 8.1 | Bugs and flaky tests |
 | GEN.704 | 8.1 | Habitability system |
 | GEN.700 | 8.1 | Habitability system |
+| GEN.713 | 8.1 | Surface and small bodies |
