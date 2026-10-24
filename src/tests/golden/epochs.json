@@ -615,6 +615,13 @@
       "first_release": "8.0.2327",
       "reason": "A terrestrial rogue planet carries the habitability score of its surface (PHI-6, tiers, life scores and survival kit), so the objects a seed gives for a rogue planet hold values they did not before (GEN.701)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 104,
+      "first_release": null,
+      "pending": true,
+      "reason": "A moon's metal, rock, water and ice shares, rock porosity and mass follow from its origin (a disk moon gains ice past its giant's ice line, an impact moon is nearly dry, a captured moon is a rock and ice mix) in place of its class's water range, and a moon lighter than 1e21 kg takes its mass from the tapered compaction law, so every moon's mass, density, gravity and water change (GEN.466)",
+      "affects": ["fill"]
     }
   ]
 }

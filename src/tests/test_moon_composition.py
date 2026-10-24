@@ -202,3 +202,79 @@ def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it()
         else:
             assert all(i <= constants.MOON_ORBITAL_INCLINATION_MAX_DEG for i in values)
     assert any(i > 130.0 for i in origins["captured"])
+
+
+@pytest.fixture(scope="module")
+def generated_moons():
+    """The moons of 40 seeded systems, each with the origin and disk it was generated from (GEN.466)."""
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    moons = []
+    with draw.bound(8):
+        for _ in range(40):
+            config = SystemConfig()
+            config.MOONS = True
+            system = StarSystem(system_config=config)
+            for planet in system.planets + system.secondary_planets:
+                if planet.body_type != "a":
+                    moons.extend(planet.moons)
+    return moons
+
+
+def test_every_generated_moon_has_a_composition_from_its_origin(generated_moons):
+    origins = {moon.moon_origin for moon in generated_moons}
+    assert {"disk", "impact", "captured"} <= origins
+    for moon in generated_moons:
+        shares = [moon.metal_mass_fraction, moon.rock_mass_fraction, moon.water_mass_fraction, moon.ice_mass_fraction,
+                  moon.envelope_mass_fraction]
+        assert sum(shares) == pytest.approx(1.0, abs=1e-9)
+        assert moon.envelope_mass_fraction == 0.0
+    impact = [moon for moon in generated_moons if moon.moon_origin == "impact"]
+    assert all(moon.water_mass_fraction < 1e-3 and moon.ice_mass_fraction == 0.0 for moon in impact)
+    assert all(0.0 < moon.metal_mass_fraction <= 0.06 for moon in impact)
+
+
+def test_a_disk_moon_gains_ice_past_its_disks_ice_line(generated_moons):
+    disk = [moon for moon in generated_moons if moon.moon_origin == "disk"]
+    near = [m.water_mass_fraction for m in disk if m.distance * 1.495978707e8 < 0.3 * m.moon_disk_system.ice_line_km]
+    far = [m.water_mass_fraction for m in disk if m.distance * 1.495978707e8 > 1.5 * m.moon_disk_system.ice_line_km]
+    assert near and far
+    assert max(near) < 0.05
+    assert sum(far) / len(far) > sum(near) / len(near) + 0.1
+
+
+def test_a_small_moons_density_follows_the_tapered_compaction_law(generated_moons):
+    from planetgen.physics import compaction
+    small = [moon for moon in generated_moons if moon.mass < compaction.TAPER_END_KG]
+    assert small
+    checked = 0
+    for moon in small:
+        rock = min(max(moon.metal_mass_fraction + moon.rock_mass_fraction, compaction.ROCK_FRACTION_RANGE[0]),
+                   compaction.ROCK_FRACTION_RANGE[1])
+        try:
+            expected = compaction.compacted_density_kg_m3(moon.radius, rock) / 1000.0
+        except compaction.OutOfRange:
+            continue  # a moon just under 1e21 kg whose radius the table does not reach: the structure solver made it
+        assert moon.density == pytest.approx(expected, rel=1e-6)
+        assert moon.porosity is not None and 0.0 <= moon.porosity < 1.0
+        checked += 1
+    assert checked
+    big = [moon for moon in generated_moons if moon.mass >= compaction.TAPER_END_KG]
+    assert big and all(moon.porosity is None for moon in big)
+
+
+def test_the_same_seed_gives_the_same_moons():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+
+    def masses():
+        out = []
+        with draw.bound(33):
+            for _ in range(6):
+                config = SystemConfig()
+                config.MOONS = True
+                system = StarSystem(system_config=config)
+                out.extend((moon.moon_origin, moon.mass, moon.orbital_inclination_deg)
+                           for planet in system.planets if planet.body_type != "a" for moon in planet.moons)
+        return out
+    assert masses() == masses()
