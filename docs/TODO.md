@@ -1313,6 +1313,75 @@ with `clamp()`.
   a shared link shows the image.
   Prerequisites: UX.170.
 
+- [ ] **UX.180 A Help menu in the top bar on the search-icon side that holds Classes and Habitability; the separate Habitability levels links go away**
+  Boss, 12:47 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT, relayed by the
+  coordinator): instead of the habitability levels as a link, the icons
+  and chips link directly to the appropriate parts of the habitability
+  page; move that page from Classes to Help as a link, move Classes to
+  the same menu and put it near the search icon's side of the top menu
+  bar; the same for class links and other similar links: remove them and
+  make the class letter, class name or similar link directly to the
+  appropriate page and section. Filed 12:49 AM EDT from the thread 'Link
+  icons and chips to help sections' (root
+  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT). Web only: no
+  generator change, no epoch, no migration. Owner: the Link icons and
+  chips to help sections thread (it asked to take them). Do: add a Help
+  menu to the top bar next to the search icon holding the Classes page
+  and the Habitability page (moved from Classes); Classes leaves the
+  main section row; every standalone 'Habitability levels' link is
+  removed. Done: a test that the top bar has the Help menu with both
+  pages, no page keeps the old link, and the menu works in Chromium and
+  Firefox and on a narrow screen.
+  Prerequisites: none. Related: UX.153, DOC.6.
+
+- [ ] **UX.181 Every habitability symbol, life score and equipment or Habitable chip links straight to its section of the habitability page**
+  Boss, 12:47 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT, relayed by the
+  coordinator): instead of the habitability levels as a link, the icons
+  and chips link directly to the appropriate parts of the habitability
+  page; move that page from Classes to Help as a link, move Classes to
+  the same menu and put it near the search icon's side of the top menu
+  bar; the same for class links and other similar links: remove them and
+  make the class letter, class name or similar link directly to the
+  appropriate page and section. Filed 12:49 AM EDT from the thread 'Link
+  icons and chips to help sections' (root
+  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT). Web only: no
+  generator change, no epoch, no migration. Owner: the Link icons and
+  chips to help sections thread (it asked to take them). Do: every PHI-6
+  symbol, life score and equipment chip or Habitable chip (system rows,
+  planet and moon lists, search results, object pages, datatable.js)
+  links to its anchor on the habitability page; the shared link helpers
+  live in habitability_symbols.py and classref so the detail pages items
+  (UX.173) can reuse them; each symbol and chip has a stable anchor on
+  the page. Done: a test that every symbol and chip kind has a link to
+  an anchor that exists, and a browser test of one click.
+  Prerequisites: UX.180. Related: UX.166, UX.173.
+
+- [ ] **UX.182 The standalone Planet class, Spectral class and Luminosity class links go away and the class text itself links to its section**
+  Boss, 12:47 AM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT, relayed by the
+  coordinator): instead of the habitability levels as a link, the icons
+  and chips link directly to the appropriate parts of the habitability
+  page; move that page from Classes to Help as a link, move Classes to
+  the same menu and put it near the search icon's side of the top menu
+  bar; the same for class links and other similar links: remove them and
+  make the class letter, class name or similar link directly to the
+  appropriate page and section. Filed 12:49 AM EDT from the thread 'Link
+  icons and chips to help sections' (root
+  cmsg_01RuNTFUNB92A8cm5CbojQAiMauzxHzz4M7tAxDMVxmSRT). Web only: no
+  generator change, no epoch, no migration. Owner: the Link icons and
+  chips to help sections thread (it asked to take them). Do: remove the
+  standalone 'Planet class X', 'Spectral class' and 'Luminosity class'
+  links in system rows (and the same kind of side links elsewhere); the
+  class letter, class name or similar text is itself the link to the
+  matching page and section, using the shared helper of the chip item.
+  The system page dropdown rewrite is the detail pages item UX.173; this
+  item keeps out of it and only changes the link. Done: a test that no
+  page has a standalone class link and that each class text links to an
+  existing anchor.
+  Prerequisites: UX.180. Related: UX.173.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
