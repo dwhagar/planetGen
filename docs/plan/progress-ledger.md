@@ -1229,3 +1229,4 @@ Baseline: PR #1817.
 | MAP.256 | 8.1 | Fly-through map |
 | GEN.414 | 8.1 | Radiation chain for habitability (GEN.445) |
 | DB.68 | 8.1 | Consistency |
+| MAP.143 | 8.1 | Habitability system |

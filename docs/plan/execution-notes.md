@@ -99,3 +99,5 @@ Update 11:58 PM EDT 2026-10-23: the condition-based classes lane merged #2833 (G
 Update 12:21 AM EDT 2026-10-24: #2844 (GEN.656, lane 3) took schema v137 and migration 0137, no epoch. Next free migration is 0138 (lane D's GEN.412, GEN.649, tides and rogue score, lane B's DB.73 and lane G's GEN.414 and PR 4 renumber at merge; lane G's PR 4 had planned v137).
 
 Update 12:44 AM EDT 2026-10-24: #2856 (GEN.414, DB.68, lane G) took migration 0138, schema v138 and epoch 66. Next free migration is 0139 and next free epoch is 67 (lane G's PR 4, lane I's GEN.428, GEN.429 and DB.69, lane A's GEN.651, lane D's GEN.649, Core 4's GEN.270 renumber at merge).
+
+Update 12:48 AM EDT 2026-10-24: #2742 (MAP.143, Habitability C) took migration 0139 and schema v139, no epoch. Next free migration is 0140 and next free epoch is 67 (lane G's PR 4, lane I, lane A, lane D, lane B's DB.73 and Core 4's GEN.270 renumber at merge). Lane machines fail test_update_database_step on MySQL grants (a lane machine setup issue, not a code bug; the Habitability C lane reported it).

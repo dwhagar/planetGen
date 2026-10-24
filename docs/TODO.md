@@ -1537,31 +1537,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   colour MAP.181, the grouped regions MAP.176 and the individual clouds
   MAP.178). This item keeps the fuzzy-boundary shape work.
 
-- [ ] **MAP.143 Color sectors by their number of habitable locations**
-  Boss (GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717), 2026-10-09 00:44Z): "Coloring option
-  available for sectors based on the number of habitable locations."
-  Done: the Galaxy Map's Color by switch (MAP.131) gains a Habitable
-  worlds choice that colours each sector and block by how many planets
-  and moons score as habitable, with a legend; it needs the habitability
-  score of GEN.89 and the sector stats to hold the count.
-  Research (2026-10-09, map-ui-and-frontend-libraries.md): a single-hue
-  sequential ramp that survives greyscale, 4 to 5 bins with a legend,
-  zero habitable worlds drawn with no fill; blocks never fully opaque
-  (Boss).
-  Moved into 8.1 phase 5 (Habitability system) by Boss, 5:38 PM EDT
-  2026-10-23: he first tapped Move to 8.2, then wrote 'start 5 threads
-  right now to build it, I want the habitability system finished before
-  8.1 is ready'; this overrides the 8.1-only pause for it and any
-  earlier owner line. Owner: Habitability lane C (map). Needs a stored
-  per-sector count; the lane says whether that needs a migration (next
-  free 0135, GEN.412 holds it) and whether the PERF.116 re-score feeds
-  it.
-  Decided (Boss, 6:02 PM EDT 2026-10-23): 'habitable' means the PHI-6
-  overall score is Blue or Green; the one rule is GEN.643 (a single
-  is_habitable predicate, this item reads it when it lands; until then
-  use the stored overall score and the same test). Tying the PHI-6 into
-  the planet classes is GEN.644 (Habitability lane D, proposal first).
-
 - [ ] **MAP.145 A sky and Galaxy Map drawing rule for neighbour galaxies**
   An extended sprite with computed magnitude and size and a
   surface-brightness cut at about 23 mag/arcsec^2; the Magellanic Clouds
@@ -6006,7 +5981,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.143, MAP.220,
+  Prerequisites: SEC.33, TEST.261, MAP.220,
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -8739,6 +8714,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   v138, epoch 66), so the aerosol depths are stored; lane G's PR 4
   (body_radiation, stars.uv_c_share) renumbers to migration 0139 and
   epoch 67.
+  Research (2026-10-09, Update): Update 12:48 AM EDT 2026-10-24: the
+  ozone_uv dataset arrival broke test_datasets_real when the file is not
+  downloaded; filed as a bug in the next test item; owner for the fix is
+  Bug Hunt or lane E.
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -19960,7 +19939,7 @@ clears each one.
   fixtures they share. Done: the four checks pass 10 times in a row at
   -n 4 under load. Owner: Habitability lane E (Boss, 5:38 PM EDT
   2026-10-23).
-  Prerequisites: MAP.143, MAP.220. Related: UX.100, MAP.143, MAP.220.
+  Prerequisites: MAP.220. Related: UX.100, MAP.143, MAP.220.
 
 - [ ] **TEST.301 Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -20153,6 +20132,36 @@ clears each one.
   same values, without loosening what it checks. Done: the test passes
   on main. Owner: Generation-log analysis lane (PERF.178 owner).
   Prerequisites: none. Related: PERF.178.
+
+- [ ] **TEST.319 test_datasets_real::test_the_catalogue_reports_nothing_missing fails when the ozone_uv file is not downloaded (bug)**
+  Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as
+  the lane reported) during the gate of #2742: the catalogue test fails
+  when the ozone_uv data file is not downloaded on the machine (the
+  dataset arrived with GEN.443). Do: either make the test skip a dataset
+  whose download is optional and not yet run, or make the gate fetch it,
+  following how the other real-dataset tests decide; the rule is the
+  existing one for datasets fetched at setup. Done: the test passes on a
+  machine without the file and still fails when a required file is
+  missing. Owner: Bug Hunt or lane E (GEN.443).
+  Prerequisites: none. Related: GEN.443.
+
+- [ ] **TEST.320 test_db_batching::test_sector_rows_are_written_in_a_few_multi_row_inserts fails once in a full gate and passes alone (bug)**
+  Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as
+  the lane reported): it failed once in a full gate and passes alone; it
+  depends on how many bodies the generated system happens to have. Do:
+  make the expected statement count independent of the generated body
+  count (derive it from the rows written), without loosening the check
+  that rows are batched. Done: the test passes in repeated full gates.
+  Owner: Bug Hunt.
+  Prerequisites: none. Related: TEST.313.
+
+- [ ] **TEST.321 test_web_browser_tables: the jump box test flakes under load (bug)**
+  Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as
+  the lane reported): the jump box test in test_web_browser_tables fails
+  only under heavy machine load. Do: wait on the table state instead of
+  fixed sleeps. Done: the test passes under load 9 in repeated gates.
+  Owner: Bug Hunt.
+  Prerequisites: none. Related: TEST.317.
 
 ## USR: User accounts
 
@@ -21551,7 +21560,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   page example). Done: the help page and design section exist, every
   symbol and layer links to them, and the docs link check passes. Owner:
   Habitability lane E (Boss, 5:38 PM EDT 2026-10-23).
-  Prerequisites: MAP.143, MAP.220, GEN.639. Related: UX.101,
+  Prerequisites: MAP.220, GEN.639. Related: UX.101,
   DOC.13.
   Boss, 6:14 PM EDT 2026-10-23: the help describes the four life scores
   0 to 9 and no longer a human operability score; DOC.77 does this part.
