@@ -111,7 +111,7 @@ _SPRITE = "/static/icons.svg"
 
 def _scored(body, phi4=0.8, **tiers):
     values = {f"tier_{domain}": 0 for domain in ("pressure", "temperature", "air", "water", "radiation", "suitability")}
-    body.update(equipment_tier=1, phi4=phi4, **{**values, **{f"tier_{k}": v for k, v in tiers.items()}})
+    body.update(equipment={"required": ["gas-mix mask"], "recommended": [], "line": "Required: gas-mix mask.", "code": "S1"}, phi4=phi4, **{**values, **{f"tier_{k}": v for k, v in tiers.items()}})
     return body
 
 

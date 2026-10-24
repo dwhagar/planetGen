@@ -26,7 +26,7 @@ row's detail instead.
 """
 
 from planetgen.describe.html import blocks_html
-from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS
+from planetgen.physics.habitability_world import DOMAINS, TIER_NAMES
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
 from planetgen.web.lib.fmt import (
     distance_km_html, esc, format_gravity_g_short, format_number, measured_html, period_years_html, speed_kms_html,
@@ -281,14 +281,15 @@ def _stat(text):
 
 
 def _habitability_chip(body):
-    """GEN.89: the equipment a human needs on this body, coloured by its
-    worst PHI-6 domain (Blue to Red); empty for a gas giant or a body saved
-    before v76. The ratings themselves are the symbols beside it (UX.100)."""
-    tier = body.get("equipment_tier")
-    if tier is None:
+    """GEN.89, GEN.655: the equipment a human needs on this body (the required items, else the recommended; a body that
+    needs nothing shows its PHI-6 colour), coloured by its worst PHI-6 domain (Blue to Red); empty for a gas giant or a
+    body not scored. The ratings themselves are the symbols beside it (UX.100)."""
+    levels = body.get("equipment")
+    if levels is None:
         return ""
     worst = max(body.get(f"tier_{domain}") or 0 for domain in DOMAINS)
-    return f'<span class="flag flag-tier flag-tier-{worst}">{esc(EQUIPMENT_LABELS[tier])}</span>'
+    text = " + ".join(levels["required"]) or " + ".join(levels["recommended"]) or f"PHI-6 {TIER_NAMES[worst]}"
+    return f'<span class="flag flag-tier flag-tier-{worst}">{esc(text[:1].upper() + text[1:])}</span>'
 
 
 def _gravity_text(gravity_g):
@@ -493,7 +494,7 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
                                          sprite_url)
 
     overview_html = _document_html(sections["overview"])
-    scored = any(body.get("equipment_tier") is not None
+    scored = any(body.get("equipment") is not None
                  for planet in planets for body in [planet, *(planet.get("moons") or [])])
     help_html = (f'<p class="hint inline-links"><a href="{esc(habitability_url)}">Habitability levels</a>: what the equipment '
                  "labels and their colours mean.</p>") if habitability_url and scored else ""

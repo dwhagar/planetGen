@@ -11,7 +11,7 @@ Suitability, the long-term one), each a score in [0, 1] and a colour tier
 mixes the colour gates with their geometric mean (`phi4`) -- and the three
 numbers behind it from the Xenobiology document: PHI_bio
 (microbial life), PHI_cpx (complex, animal life) and Phi_tech (human
-operability with equipment). `equipment` names the kit a human needs.
+operability with equipment). The kit a human needs is worked out in `physics/equipment.py`.
 
 Everything here is a pure function of a `World` (the inputs GEN.85 to
 GEN.88 will store for every planet and moon); GEN.89 computes and stores
@@ -293,7 +293,10 @@ class World:
     is the stable surface or subsurface liquid ("water", "hydrocarbon",
     "sulfuric" or None); `habitat_dose_sv_yr` is the dose where that liquid
     is (the surface dose for surface water, about the ground's for an ocean
-    under ice); `water_source` is what a base can draw water from."""
+    under ice); `water_source` is what a base can draw water from. The three dose parts (the cosmic rays
+    with the heliosphere's multiplier, the stellar particles and the ground, Sv/yr; `None` when unknown, then the whole
+    dose counts as cosmic rays), the dipole's `cutoff_gv` and the DNA-weighted `uv_index` are what the survival
+    equipment (`physics/equipment.py`) reads beyond the score's own inputs."""
     pressure_kpa: float
     temperature_c: float
     gases: dict
@@ -312,6 +315,11 @@ class World:
     water_source: str = "liquid"
     life_stage: str = "none"
     life_on_surface: bool = True
+    dose_gcr_sv_yr: float = None
+    dose_sep_sv_yr: float = None
+    dose_ground_sv_yr: float = None
+    cutoff_gv: float = 0.0
+    uv_index: float = 0.0
 
     def partial_kpa(self, gas):
         return self.gases.get(gas, 0.0) * self.pressure_kpa
@@ -617,30 +625,6 @@ def phi4(world, limits=HUMAN):
     return result
 
 
-def equipment(world, limits=HUMAN):
-    """The kit a human visitor needs: "ideal", "breathing mask", "mask
-    with scrubber", "environment suit" (a pressure suit, or a suit
-    against a Red temperature or air, a temperature past the Green heat or cold edge, or too much oxygen) or "full life support with
-    radiation hardening", from the worst of Pressure, Temperature, Air and
-    Radiation and what made it so. (Water chemistry and Suitability are
-    about drinking and eating, not the kit.)"""
-    scores = {"Pressure": pressure_score(world, limits), "Temperature": temperature_score(world, limits),
-              "Air": air_score(world, limits), "Radiation": radiation_score(world, limits)}
-    gases = _gas_scores(world, limits)
-    if scores["Radiation"] < 0.4:
-        return "full life support with radiation hardening"
-    if scores["Pressure"] < 0.75 or min(scores.values()) < 0.4:
-        return "environment suit"
-    cold_suit_c, heat_garment_c = limits.temperature[1], limits.temperature[5]
-    if not cold_suit_c <= world.temperature_c <= heat_garment_c or inspired_o2_kpa(world, limits) > limits.o2_chronic:
-        return "environment suit"  # the same suit the description asks for past the Green heat or cold, or too much oxygen
-    if min(gases[g] for g in ("CO2", "CO", "H2S", "SO2")) < 1.0:
-        return "mask with scrubber"
-    if gases["O2"] < 1.0 or scores["Pressure"] < 1.0:
-        return "breathing mask"
-    return "ideal"
-
-
 # --- PHI_bio, PHI_cpx, Phi_tech ------------------------------------------------------------
 
 def l_solv(world):
@@ -750,5 +734,4 @@ def scores(world):
         ("L_solv", l_solv), ("L_chem", l_chem), ("L_ener", l_ener), ("L_rad", l_rad),
         ("PHI_bio", phi_bio), ("PHI_cpx", phi_cpx), ("Phi_tech", phi_tech))}
     out.update(phi4(world))
-    out["equipment"] = equipment(world)
     return out

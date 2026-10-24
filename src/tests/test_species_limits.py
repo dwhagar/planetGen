@@ -10,7 +10,6 @@ import dataclasses
 
 import pytest
 
-from planetgen import tuning
 from planetgen.cli import species_check
 from planetgen.db import species_fit, store
 from planetgen.physics import atmosphere, habitability, species_limits
@@ -146,7 +145,7 @@ def test_a_human_like_species_could_live_on_earth_unaided_and_not_on_a_hot_high_
 
 def test_with_equipment_needs_the_tech_level_for_the_kit():
     harsh = _world(temperature_c=150.0, surface_dose_sv_yr=50.0)
-    kit_level = tuning.SPECIES_EQUIPMENT_MIN_TECH[4]
+    kit_level = 4.0  # a hardened habitat is the heaviest item the world asks for
     assert species_limits.assess(harsh, {}, kit_level)["equipped"]
     assert not species_limits.assess(harsh, {}, kit_level - 0.1)["equipped"]
     assert not species_limits.assess(harsh, {}, None)["equipped"]
@@ -200,7 +199,7 @@ def galaxy(mysql_config):
         _earthlike(conn, earth)
         _earthlike(conn, hot, surface_temperature_k=423.15, atmospheric_pressure_pa=3_000_000.0,
                    surface_dose_msv_yr=40_000.0, p_o2_kpa=150.0, p_n2_kpa=2850.0, p_h2o_kpa=20.0)
-        _earthlike(conn, harsh, surface_temperature_k=900.0, atmospheric_pressure_pa=101325.0,
+        _earthlike(conn, harsh, surface_temperature_k=550.0, atmospheric_pressure_pa=101325.0,
                    surface_dose_msv_yr=5_000_000.0)
         humans = _species(conn, earth, system_id, "Terrans", 5.0)
         hot_ones = _species(conn, hot, system_id, "Scalders", 5.0)

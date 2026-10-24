@@ -177,7 +177,7 @@ def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=N
                                                            "suitability"))}
         planets = [{"id": i, "name": f"World {i:03d}", "planet_class": "M", "body_type": "t", "life_chemical": None,
                     "radius_km": 6371.0, "star_system_id": 7, "system_name": "Kepler-42", "sector_id": None,
-                    "equipment_tier": 1, "phi4": 0.5, **tiers} for i in range(120)]
+                    "equipment": "Required: gas-mix mask.", "phi4": 0.5, **tiers} for i in range(120)]
         results = {name: None for name in results}
         results["planets"] = {"rows": planets[offsets.get("planets", 0):][:limit], "total": 120, "total_capped": False,
                               "limit": limit, "offset": offsets.get("planets", 0), "truncated": False}

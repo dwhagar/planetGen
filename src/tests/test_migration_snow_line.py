@@ -11,7 +11,7 @@ import pytest
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, formation
+from planetgen.physics import constants, equipment, formation
 from planetgen.util import draw
 
 pytestmark = pytest.mark.fresh_database
@@ -64,6 +64,8 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in equipment.FIELDS)
+                         + ", ADD COLUMN equipment_tier TINYINT NULL, ALGORITHM=COPY")  # v136 (GEN.655)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN ozone_column_du, ALGORITHM=COPY")  # v135 (GEN.413)
         conn.execute("ALTER TABLE system_configs DROP COLUMN stars, DROP COLUMN max_stars, DROP COLUMN prevalence_multi_star,"
                      " ALGORITHM=COPY")  # v134 (GEN.267)

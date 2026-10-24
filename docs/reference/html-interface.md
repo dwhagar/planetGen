@@ -41,8 +41,7 @@ The sweep of the existing wording is done (PR #1049).
 Each rocky planet's and moon's description also carries the PHI-6 rating (UX.91, GEN.218, `physics/protection.py`): the score and the equipment a visitor needs, then one short sentence per category with its colour, score and the value that sets it.
 
 Planet and moon rows carry habitability chips (GEN.89, design in
-`docs/design/habitability/habitability-index.md`): an equipment label (Ideal, formerly Shirtsleeve;
-Mask, Mask and scrubber, Environment suit, Full life support), a colour chip
+`docs/design/habitability/habitability-index.md`): an equipment chip (the survival equipment line, GEN.655: what a visitor needs, such as "pressure suit + dust-tight seals"; none for a world that needs nothing), a colour chip
 that comes from the six PHI-6 domains (pressure, temperature, air, water,
 radiation, suitability; Blue, Green, Yellow, Red) under the gates of GEN.207, and the Habitable,
 Habitable moon and Inhabited chips. Planets around pulsars, neutron stars
@@ -276,7 +275,7 @@ a help link on each page and a test that every page has one); until then the pag
 | `/classes` | (new) | The class reference: every class type (star spectral and luminosity classes, planets, nebulae, supernova remnants, asteroid fields, black holes, rogue planets, comets) with how many classes it has. |
 | `/classes/<type>` | (new) | One type's classes, each linking to its page, plus notes (an asteroid field's size digit, for one). `<type>` is `star-spectral`, `star-luminosity`, `planet`, `nebula`, `supernova-remnant`, `asteroid-field`, `black-hole`, `rogue-planet` or `comet`; anything else is a 404. |
 | `/classes/<type>/<code>` | (new) | One class's facts, e.g. `/classes/planet/M`, `/classes/star-luminosity/IA+`, `/classes/comet/halley_type`. An unknown code is a 404. The system page links a star's type and a planet's or comet's class here, and the phenomenon page its Class (an asteroid field's `C3` by its letter) and a rogue planet's Mass Class. |
-| `/classes/habitability` | (new) | What the equipment levels and PHI-6 colours on the planet pages mean (UX.90): the five equipment levels, the PHI-6 symbols in each rating colour (UX.101), the six domains with their Blue, Green, Yellow and Red thresholds, and the chips a planet row shows. |
+| `/classes/habitability` | (new) | What the equipment levels and PHI-6 colours on the planet pages mean (UX.90): the survival equipment items and when each is needed, the PHI-6 symbols in each rating colour (UX.101), the six domains with their Blue, Green, Yellow and Red thresholds, and the chips a planet row shows. |
 | `/species` | (new) | Every species, paged with `?species_page=N`; `?spacefaring=1` or `0` filters. Until a population pass has made species (`GET /api/population`) the page answers 200 with a line that says the pass has not run, and the header's Species section is hidden; a species page for an id that does not exist is a 404. |
 | `/species/<id>` | (new) | One species: homeworld, body plan, era, civilization age and polity, and its environment limits (POP.12): each limit of the habitability table with the species' value, the human value and whether they differ. |
 | `/polities` | (new) | Every polity (`?polities_page=N`): species, government, capital, systems held, reach. Until there are polities the page answers 200 with a line that says so (the pass has not run, or no species founded a polity). |
@@ -479,7 +478,7 @@ parameter, so a search is a bookmarkable URL:
 | `q` | The main name search, and what the header search box sends. Searches sector, system, star, planet and moon names at once. With an Object Type tag active it searches only those object types (not sectors and systems). |
 | `sector_q`, `system_q`, `star_q`, `planet_q`, `moon_q` | A name search for one kind of object; replaces `q` for that kind. Under "Search by object and size", each with a `<datalist>` of existing names. |
 | `star_min_radius_km`, `star_max_radius_km` (and `planet_`, `moon_`) | A size range; a bound that isn't a number is ignored. |
-| `type`, `spectral`, `luminosity`, `class`, `body`, `life`, `equipment`, `moon_class`, `moon_body`, `moon_life`, `moon_equipment`, `density`, `phenomenon`, `phenomenon_class` | Tag facets, repeated once per selected value (`spectral=G&spectral=K`). `equipment` and `moon_equipment` are the equipment level a human needs (0 to 4, linked to the habitability levels page); `phenomenon` and `phenomenon_class` pick exotic phenomena by type and class. |
+| `type`, `spectral`, `luminosity`, `class`, `body`, `life`, `equipment`, `moon_class`, `moon_body`, `moon_life`, `moon_equipment`, `density`, `phenomenon`, `phenomenon_class` | Tag facets, repeated once per selected value (`spectral=G&spectral=K`). `equipment` and `moon_equipment` are the survival equipment items a human needs (one tick per item, linked to the habitability levels page); `phenomenon` and `phenomenon_class` pick exotic phenomena by type and class. |
 | `sectors_page`, `systems_page`, `stars_page`, `planets_page`, `moons_page`, `belts_page`, `phenomena_page` | Each result panel's page; each pager keeps the search and the other panels' pages. |
 
 Tags, "remove filter" chips and "Clear all" are plain links to the same

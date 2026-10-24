@@ -551,7 +551,7 @@ class Planet(PlanetaryObject):
         (`None` for an ordinary star), or `None` for a gas giant or a body saved without scores. A planet
         of a pulsar, neutron star or black hole is rated as a lethal dose, as its stored score was.
         """
-        if self.body_type != "t" or getattr(self, "equipment_tier", None) is None:
+        if self.body_type != "t" or getattr(self, "eq_body", None) is None:
             return None
         values = habitability_world.values_from_body(self)
         if values.get("surface_temperature_k") is None:
