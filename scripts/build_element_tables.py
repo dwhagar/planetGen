@@ -35,6 +35,9 @@ import sys
 import urllib.request
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(HERE, "..", "src"))  # the standard User-Agent comes from the package (API.31)
+
+from planetgen.util.user_agent import user_agent  # noqa: E402
 DATA = os.path.join(HERE, "..", "src", "planetgen", "physics", "data")
 RETRIEVED = "2026-10-17"
 
@@ -110,7 +113,7 @@ def _fetch(name, source_dir):
     if path and os.path.exists(path):
         with open(path, encoding="utf-8", errors="replace") as handle:
             return handle.read()
-    request = urllib.request.Request(URLS[name], headers={"User-Agent": "planetGen-build-element-tables"})
+    request = urllib.request.Request(URLS[name], headers={"User-Agent": user_agent()})
     with urllib.request.urlopen(request, timeout=120) as response:
         return response.read().decode("utf-8", errors="replace")
 
