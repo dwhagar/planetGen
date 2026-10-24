@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.63 |
 | GEN | GEN.764 |
 | PERF | PERF.194 |
-| DB | DB.102 |
+| DB | DB.103 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.36 |
@@ -650,6 +650,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.99 | Store the ground colour and the ice fraction on planets and moons | none | open |
 | DB.100 | Store all the life and evolutionary data of a world in the database and build the life paragraph from the stored results | none | open |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item | none | open |
+| DB.102 | The version key stored with the galaxy seed carries the API version, the database schema and the generator epoch after the release version, with the zero padding shortened to make room | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
