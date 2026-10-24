@@ -48,6 +48,7 @@ from planetgen.generation.phenomena.compact_remnant import hawking_luminosity_w,
 from planetgen.generation.phenomena.rogue import format_comet_composition_summary
 from planetgen.tuning import NEBULA_CLASSES
 from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
+from planetgen.util import chem
 
 from . import bp, static_url, tables
 from . import edit_actions, item_pages, system_facilities, system_species
@@ -692,7 +693,7 @@ def _cloud_class_text(value):
 # The contents a nebula or supernova remnant carries (schema v38). An
 # unset value is stored as 0 or ''; those rows are left out.
 _CLOUD_CONTENTS = [
-    ("dominant_species", "Dominant Species", lambda v: v or None),
+    ("dominant_species", "Dominant Species", lambda v: Markup(chem.mark_html(v)) if v else None),
     ("density_cm3", "Density", lambda v: measured_html("cm-3", v) if v else None),
     ("temperature_k", "Gas Temperature", lambda v: f"{format_number(v, ',.0f')} K" if v else None),
     ("extinction_av", "Extinction", lambda v: f"{format_number(v, ',.2f')} magnitudes (visual)" if v else None),
