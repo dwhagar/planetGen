@@ -31,6 +31,10 @@ from planetgen.generation import life as planetLife
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
+from planetgen.physics import unit_registry as units
+
+_km_to_au = units.converter("km", "au")
+_au_to_km = units.converter("au", "km")
 
 RELATIVE_TOLERANCE = 1e-9
 """float: Slack the checks allow on a distance comparison, so a body the
@@ -128,7 +132,7 @@ def min_distance_past_belt_au(planet, belt):
     so a body heavy enough to make that unsolvable still gets a large
     but finite distance.
     """
-    c = (planet.hill_radius / constants.AU_TO_KM) / planet.distance
+    c = _km_to_au(planet.hill_radius) / planet.distance
     k = min(5 * c, 0.9)
     return (belt.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION) / (1 - k)
 
@@ -620,7 +624,7 @@ def check_lunar_system(planet):
         if moon.radius is not None and moon.radius > largest_km * (1 + RELATIVE_TOLERANCE):
             problems.append(Problem(name, f"it is too large for {_label(planet)} to hold "
                                           f"({moon.radius:.4g} km, at most {largest_km:.4g} km)"))
-        distance_km = moon.distance * constants.AU_TO_KM
+        distance_km = _au_to_km(moon.distance)
         if _below(distance_km, low_km) or distance_km > high_km * (1 + RELATIVE_TOLERANCE):
             problems.append(Problem(name, f"its orbit ({distance_km:.4g} km) is outside {_label(planet)}'s stable "
                                           f"range for moons ({low_km:.4g}-{high_km:.4g} km)"))
@@ -733,7 +737,7 @@ def stabilize_lunar_system(planet):
         return []
     planet.moons.sort(key=lambda m: m.distance)
     low_km, _high_km = planetPhysics.moon_orbit_bounds_km(planet)
-    floor_au = low_km / constants.AU_TO_KM
+    floor_au = _km_to_au(low_km)
     moved = []
     last = None
     for moon in planet.moons:

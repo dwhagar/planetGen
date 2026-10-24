@@ -2,6 +2,139 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2161] - 2026-10-24
+
+**Headline:** Debug mode now writes every decision of a run, the queue workers' included, to stdout and to the debug log.
+
+### Changed
+- **Debug mode writes everything to stdout, and every command takes it (Boss).** `planetgen system --debug` printed 3 lines because the generator runs in a queue worker whose stdout goes nowhere; the decisions, draws and SQL of every unit reached only the debug log file. A debug run (`--debug`, or `"debug": true` in `config.json`) now relays the lines of its workers through Redis to the command that started the run, which prints them as they are written, in one ISO-timestamp line format shared with the debug log. A command whose result goes to stdout (`--output -`) writes its debug lines to stderr.
+- **More of what a run decides is logged.** Draws on a `draw.Stream` a generator holds (the scatters, the sampling helpers), bulk draws, gamma and Dirichlet draws and new streams with their seeds; the run's stages, units, worker starts and the machine's lease; SQL transactions and pooled connections; page, tile and component-field cache hits and misses; the worker's own start, restart and exit.
+- **Every command takes `--debug` and `--debug-areas`.** All 24 `planetgen` subcommands already did; so do now the 18 `python3 -m planetgen.cli.*` commands and the worker, and the Generate page has a Debug box that adds `--debug` to every step of a job, so the job log shows the decisions.
+- **`--debug-areas`, `"debug_areas"` and `PLANETGEN_DEBUG_AREAS` limit the output.** Areas: `decision`, `draw`, `sql`, `queue`, `cache`, `web`, `lib`; a leading `-` leaves one out. Empty, the default, writes everything but `branch`. Errors and normal output always show.
+- **A new `branch` area logs every conditional jump in our own code (Boss), off unless named.** `--debug-areas branch` (or `all,branch`) writes, for each `if`, loop test and conditional expression the program runs, its source line, whether the jump was taken, the line it went to and the values the line refers to; the decisions that are neither random nor narrated. It uses `sys.monitoring`, writes about 750,000 lines for one system and runs about 15 times slower.
+
+## [8.0.2160] - 2026-10-24
+
+**Headline:** Twenty-three more files in generation, galaxy and population convert lengths and times through the one unit registry, with the same numbers.
+
+### Changed
+- Thirteen generation files (`binary`, `comet`, `companion_classes`, `multistar`, `open_clusters`, `phenomena_plausibility`, `place_terms`, `plausibility`, `pulsar_planets`, `stellar_object`, `stored_trees`, `validation`, `wide_binary`), nine galaxy files (`ejecta_field`, `frame`, `galactic_orbit`, `influence`, `keepout`, `mass_chain`, `sector`, `straight_line`, `system_position`) and `population/facilities` call `unit_registry.converter` for their AU, km, m, light-year, parsec, kiloparsec, day, year and Gyr conversions instead of a typed factor (GEN.571, second file group). Every replaced expression gives the same float bit for bit, pinned by `tests/test_unit_converters.py`. The module-level `KM_PER_PC` of `galaxy/straight_line` and `galaxy/frame` and the one of `galaxy/ejecta_field` are gone; nothing else read them.
+
+## [8.0.2159] - 2026-10-24
+
+**Headline:** The research behind the moons of ejected and isolated planets is written down with its sources and its gaps.
+
+### Added
+- `docs/design/systems/wanderer-moon-sources.md` (GEN.560, the remaining parts): the share of moons that stay bound when their planet is ejected (Debes and Sigurdsson 2007, Rabago and Steffen 2018, Huang and Lai 2026: about 0.7 to 0.85 inside 0.01 Hill radii, 0.48 at 0.1) and the disks of isolated planetary-mass objects (disk fraction 42 to 46 percent, dust mass 0.07 to 0.63 Earth masses at 12 Jupiter masses). The recalled "Hong et al. 2018" is not a paper that has the numbers and is replaced; the disk size limit stays a stand-in. No behaviour change.
+
+## [8.0.2158] - 2026-10-24
+
+**Headline:** A generation stage whose longest unit ran over five minutes is now reported in the run's log.
+
+### Changed
+- **A unit-length ceiling (PERF.155).** New setting `queue.unit_ceiling_seconds` (default 300, "Unit length ceiling" under Speed and disk): the longest one unit of a generation stage is meant to run. When a stage ends and its longest unit ran longer, the run's log says so, naming the stage and how many units it was cut into.
+- Every queued command now says whether its stage is one unit by nature or how long its longest unit runs at the default galaxy size, and a test fails for a new command that says neither, or says more than the ceiling.
+
+## [8.0.2157] - 2026-10-24
+
+**Headline:** Survival equipment now sits under the habitability rows that ask for it, not under a Blue one.
+
+### Fixed
+- **Equipment items in the wrong rows (GEN.702).** An item names every PHI-6 category it can come from and is listed under those that are not Blue: a cold world's self-contained air is under Temperature, not under a Blue Air row; a hardened pressure suit is under Pressure and Radiation; and a suit that seals (pressure, armoured) is also listed under Temperature and Air where those ask for gear. The API's equipment items gain `domains`.
+
+## [8.0.2156] - 2026-10-24
+
+**Headline:** A system asked to have both an asteroid belt and a habitable world no longer loses the belt on a small red dwarf now and then.
+
+### Fixed
+- **A forced asteroid belt or habitable world could be trimmed away after the planet attempts had kept it (TEST.313).** The star's age settles after the attempts and only rises; the survival limit falls with age, so the last trim sometimes took the belt of an M5V star (about 2 systems in 300). The planet attempts now run once more under the settled age before the request is given up as unmet.
+
+## [8.0.2155] - 2026-10-24
+
+**Headline:** A world is now called habitable when its overall PHI-6 colour is Blue or Green, in one place, instead of by its class letter.
+
+### Changed
+- **One definition of habitable (GEN.643).** `habitability.is_habitable(phi4)` is true for an overall Blue or Green score. The API's `habitable` flag, the Habitable and Habitable moon chips on the system page, the per-system `hab_count` and the description's count all use it. The old class test is served as `habitable_class` (the "Habitable class" chip stays).
+- **The request for a habitable world still steers by the class list.** The generator draws the class before the score, so `+habitable_world` guarantees a world of a life class (`StarSystem.habitable_class_count`), which may score below Green. The sector directive `habitable>=N` counts the same. This changes when the classes are derived from conditions.
+- No stored value or draw changes, so there is no generator epoch and no migration.
+- **The fallback for a request that falls short (Boss, 2026-10-23).** `habitability.habitable_request_result(overall, suitability)` says `"aim"` for a Blue or Green world and `"fallback"` for an overall Yellow whose Suitability (the sustainability factor) is at least Yellow. `StarSystem.habitable_request` (also set on a loaded system) is `"aim"`, `"fallback"` or `"unmet"` for a system generated with a habitable world requested, `None` otherwise. The generation retry does not steer on it yet (that needs a regenerate under restricted draws), so `"unmet"` still happens.
+
+## [8.0.2154] - 2026-10-24
+
+**Headline:** The stars of a system are drawn as a tree, so systems of three or more stars now come out of the fill.
+
+### Changed
+- **A system draws its stars from the `star-count` table (GEN.631).** The one-companion draw and its per-class chances are gone: the primary's stars and the orbits between them are one tree (`draw_member_tree`), with the number of stars the table gives for its class (most O and B stars are not alone, and a G star has three or more stars in about a tenth of systems). The two stars of the tree's pair are the primary and secondary as before, and each further star is a member of the system, stored and shown with its place in the tree; members have no planets of their own yet. A brown dwarf, a neutron star or a black hole among a living star's companions is left out, since none can be built as a star of a pair. The widest orbit is still the place's, and `+binary_system`, `+wide_binary` and the binary prevalences ask for the same things. The system's seed gives different stars than before.
+- **A stored tree of three or more stars is built.** A scattered star whose members are all ordinary stars is built with all of them, not the first alone, and its stored rows are spent.
+- **The pair's kind follows its axis.** A pair is a `close` (circumbinary) pair under 0.25 AU and a `wide` pair otherwise, whatever the tree called the orbit; its node carries that kind.
+- **The shares of binaries and wide pairs the Generate page starts from** are remeasured: 23.9% of systems have a pair and 81.0% of the pairs are wide.
+
+- **The star count settings reach the draw (GEN.267).** `--stars N` forces the number of stars (a count the tree cannot give a star, such as a pair around a star at the hydrogen-burning limit, is reported as unmet), `--max-stars` caps the tree, and the `multi_star` prevalence scales the chance of five or more.
+
+### Removed
+- **The metallicity factor on close companions** (GEN.103) no longer reaches the fill, and its audit (TEST.196) is removed with the draw it checked; the tree does not take the factor yet.
+
+generation-output: changed
+
+## [8.0.2153] - 2026-10-24
+
+**Headline:** The Galaxy Map's block ladder now runs up from 243 sectors to a root of three blocks, the nodes the single-space map will be drawn from.
+
+### Changed
+- **The block ladder has a root (MAP.258).** `galaxy/drill.py` and the page's `galaxyprisms.js` go 177,147, 59,049, 19,683, 6,561, 2,187, 729, 243, 81, 27, 9, 3 shells deep and then a sector (every size three times its child). The 177,147 root is one row cut into three wedges and holds the whole grid. The page gets `drillChildren` and `drillBlockSectors` (twins of `drill_children` and `drill_block_sectors`, held equal by `test_galaxyprisms.py`). The stages and map windows keep their level-243 top through `STAGE_LEVELS`, `STAGE_TOP` and `stage_parent`; a stage or window key above 243 is refused.
+- **Blocks below 243 moved.** A level's rows and wedges are its parent's counts times a rounded ratio, so the new levels above change the rows and wedges of 243, 81, 27, 9 and 3: a block key names another block than before, and a bookmarked stage address lands somewhere else.
+- **Schema v146 (migration 0146).** `galaxy_block_stats.m` is INT UNSIGNED and the table is filled again with a row for every level; the nebula block tables are made again from the nebulae when they were filled. The migration reads every generated sector once and can take a while on a big galaxy. `TILE_FORMAT` goes to 2 so the stored stages are rebuilt once.
+
+## [8.0.2152] - 2026-10-24
+
+**Headline:** Every star now carries its own ultraviolet-C share, and a planet or moon's ground light and UV index can be read from what it stores.
+
+### Added
+- **GEN.443: the ground light of a stored body.** `physics/body_radiation.py` turns a planet's or moon's record (its air, its star and distance, its ozone column and its haze, dust and cloud) into the band spectrum at its ground with the two-stream model, and gives its UV index and DNA dose. Migration 0145 adds `stars.uv_c_share` (schema v145), the share of the star's blackbody UV-C it gives off, drawn once from the star's own stream (log-uniform 0.1 to 1); a row saved before it keeps NULL and reads as the blackbody until the galaxy is regenerated.
+
+### Changed
+- **Generator epoch.** Each ordinary star carries one more stored value, drawn on its own stream so no other draw moves; the golden record is regenerated for it.
+generation-output: changed
+
+## [8.0.2151] - 2026-10-24
+
+**Headline:** A body's radius, density and gravity can be worked out from its mass and bulk composition: a reference solver and the fast fits for dry rock, water worlds and sub-Neptunes.
+
+### Added
+- **Bulk structure kernels (GEN.429).** `planetgen.physics.bulk_structure` gives `structure(bulk, mass_kg)`: the radius at the 1 bar level, mean density, surface gravity and escape speed of a body from its `BulkFractions`. The reference solver `layered_structure` integrates an iron core, a silicate mantle and a water layer (liquid water from IAPWS-95, the ice VI, VII and X points of the materials table and the Seager polytrope above 1 TPa) and reproduces part B's check numbers (Earth-sized planet 0.9996 Earth radii, moment of inertia 0.331) and part C's water-world radii within 1 percent. The fast forms are part B's fit for dry rock (0.1 to 20 Earth masses), part C's closed form for water-bearing bodies (0.3 to 20) and Lopez and Fortney's core and envelope laws (1 to 20); outside them the solver runs, below 1e21 kg the zero-pressure mixing rule gives a heap of grains, and a giant is refused (GEN.460). Inverses give the core fraction or water fraction from a mass and radius (route 1).
+- Pure functions with no draws: nothing is generated or stored differently, so no generator epoch. `DATA-LICENSE.md` records the NIST WebBook water isotherm.
+
+## [8.0.2150] - 2026-10-24
+
+**Headline:** Every planet and moon now has a bulk composition (iron, rock, water, other ices, envelope) drawn from its star's own abundances, and its mass, density and gravity follow from it.
+
+### Changed
+- **The composition comes first (GEN.428, GEN.429).** `planetgen.physics.bulk_draw` takes the host star's own number ratios (Fe, Si, Al, Ca and Ni against Mg, and C/O, from `stellar_abundances` for the star's abundance key) and builds the rock (MgO, SiO2, CaO, Al2O3 and FeO) and the iron core (the Fe the mantle does not hold, Ni, and light elements) from them: a Sun-like star gives a core mass fraction near 0.3 and an iron-rich star a bigger one. The class still sets the radius; the mass is the one that radius holds for that composition (`bulk_structure.structure`, found by bisection), so density and gravity are results and no longer a draw from the class's density range. A body given a mass keeps it and its radius follows; a body given both, and class S, work the core fraction back from them (`composition_origin` is `inverse`).
+- **What is drawn** is only what the star cannot say: the kind of rock (silicate, or silicon carbide and graphite for a star of C/O 0.8 or more and for class C, through the new gated table `bulk-rock-kind`), the water share (the same class ranges as before, now drawn with the composition and read by the hydrosphere), the other ices of an icy class (from the comet volatile proportions), the mantle's FeO, the core's light elements, a small body's porosity and a carbon body's graphite. Giants get a stand-in envelope and heavy-element core until the giant interiors (GEN.460).
+- **Stored (DB.69, schema 144).** `planets` and `moons` gain `metal_mass_fraction`, `rock_mass_fraction`, `ice_mass_fraction`, `envelope_mass_fraction` (with `water_mass_fraction` they add up to 1), `rock_feo_fraction`, `rock_al2o3_fraction`, `rock_mg_si_ratio`, `envelope_helium_fraction`, `envelope_z_fraction`, `porosity`, `carbon_rock` and `composition_origin`. Rows saved before the migration keep them empty; `bulk_composition.bulk_fractions(body)` returns `None` for them.
+- The unused `calculate_object_mass` is gone; `hydrosphere.generate_hydrosphere` no longer draws the water share (it reads the body's).
+- Generator epoch 70: every planet's and moon's mass, density, gravity and water share are new draws, the planet draws that follow them move, and the radiogenic heat reads the body's own rock share and Al2O3.
+
+generation-output: changed
+
+## [8.0.2149] - 2026-10-24
+
+**Headline:** The rows of a planet's habitability table now name the gear their category needs, from the same list as the Required and Recommended line above them.
+
+### Changed
+- **UX.167: the category sentences are written from the equipment needs list.** A row used to say "so a pressure suit is needed" from its own table of gear, which could differ from the headline's Required and Recommended line. Each row now ends with `Required: a + b. Recommended: c.` listing the items whose PHI-6 category is that row (`equipment.items`, `item.domain`), so every item of the headline line appears in exactly one row and a line with nothing in it is left off (never "none"). A Green row can therefore say a mask is required. The rows of Water still say whether the water can be drunk, and Pressure and Temperature keep "so no gear is needed" when nothing is listed.
+
+## [8.0.2148] - 2026-10-24
+
+**Headline:** A database that has its tables but no recorded schema version is now refused with a clear message instead of being guessed at.
+
+### Removed
+- `store.detect_schema_version` and the `_VERSION_MARKERS` table (DB.4): the code no longer works out a version from the shape of the tables, and a new migration no longer needs a marker row.
+- The "tables look like schema version N" line of `planetgen.cli.checkdb`; the recorded version, the Alembic revision and the model comparison still cover it.
+
+### Changed
+- A database with the galaxy tables but an empty or missing `schema_migrations` raises `SchemaVersionMissingError` from every connection, `migrate --status` and `migrate`, before any change is made. Restore it from a backup, or drop it and run `update.sh`.
+
 ## [8.0.2147] - 2026-10-24
 
 **Headline:** Zooming into a window of the Galaxy Map no longer hides the stars and clouds outside it.

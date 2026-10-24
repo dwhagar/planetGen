@@ -18,6 +18,21 @@ from planetgen.db import store
 OLD_SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "old_schemas")
 
 
+BULK_COMPOSITION_COLUMNS = (
+    "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "envelope_mass_fraction", "rock_feo_fraction",
+    "rock_al2o3_fraction", "rock_mg_si_ratio", "envelope_helium_fraction", "envelope_z_fraction", "porosity", "carbon_rock",
+    "composition_origin",
+)
+"""tuple: What migration 0144 (DB.69) added to `planets` and `moons`."""
+
+
+def drop_bulk_composition(conn):
+    """Makes the database older than v135: the bulk composition columns and their check gone."""
+    for table in ("planets", "moons"):
+        columns = ", ".join(f"DROP COLUMN {column}" for column in BULK_COMPOSITION_COLUMNS)
+        conn.execute(f"ALTER TABLE {table} DROP CHECK {table}_chk_8, {columns}, ALGORITHM=COPY")
+
+
 def old_schema_versions():
     """Every version with a checked-in schema, oldest first."""
     versions = []

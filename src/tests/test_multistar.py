@@ -314,7 +314,6 @@ def test_the_b_star_rows_reproduce_moe_and_di_stefanos_table_13_fractions():
         assert table[0] == pytest.approx(bin_["single"], abs=1e-4)
         assert table[1] == pytest.approx(bin_["binary"], abs=1e-4)
         assert sum(table[2:]) == pytest.approx(bin_["multiple"], abs=1e-4)
-        assert tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS[row] == pytest.approx(1.0 - bin_["single"])
 
 
 def test_the_table_13_bins_hold_their_own_totals_and_rise_with_mass():
@@ -335,8 +334,8 @@ def test_the_companion_class_splits_the_b_stars_by_birth_mass(mass, letter, key)
 
 
 def test_the_chance_of_a_companion_rises_through_the_b_sub_classes_to_o():
-    table = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS
-    chain = [table[k] for k in ("A", "B", "B-mid", "B-early", "O")]
+    chain = [1.0 - hosts.STAR_COUNT_PROBABILITIES[k][0] / sum(hosts.STAR_COUNT_PROBABILITIES[k])
+             for k in ("A", "B", "B-mid", "B-early", "O")]
     assert chain == sorted(chain) and chain[2] == pytest.approx(0.76) and chain[3] == pytest.approx(0.84)
 
 

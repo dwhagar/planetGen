@@ -26,3 +26,5 @@ Commit each file came from:
 - v140: 2ae3043 (DB.73 parent link) (before GEN.459)
 - v141: 7cbd9d6 (GEN.459 radiogenic module, before GEN.412)
 - v142: 77fdfbb96 (GEN.412 albedo and greenhouse, before GEN.666)
+- v143: 4b9d639 (GEN.666 evolutionary pace stored once, before DB.69)
+- v145: 3a09727 (GEN.443 star UV-C share) (before MAP.258 block ladder root)

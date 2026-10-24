@@ -1864,3 +1864,22 @@ def test_the_disregard_box_is_on_the_task_and_review_pages_and_reaches_the_job(s
     assert steps[generate_page.DATA_CHECK_LABEL][-1] == "--disregard-missing-data"
     generating = [argv for label, argv in steps.items() if label != generate_page.DATA_CHECK_LABEL]
     assert generating and all(argv[-1] == "--disregard-missing-data" for argv in generating)
+
+
+def test_the_debug_box_is_on_the_task_and_review_pages_and_reaches_every_step_of_the_job(site, client, no_spawn, monkeypatch,
+                                                                                         jobs_root):
+    """Boss, 5:35 PM EDT 10-23: every job can run in debug mode; ticked, every step of it (the data check too) gets `--debug`."""
+    monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: dict(_ESTIMATE))
+    for key in ("new-galaxy", "add-sectors", "scatters", "check", "wipe"):
+        assert 'name="debug"' in _task_html(client, key), key
+    asked = {"what": "grid", "mode": "shell", "shell_index": "40", "review": "1"}
+    plain = client.get("/admin/generate/task/add-sectors", query_string=asked).get_data(as_text=True)
+    assert 'name="debug"' in plain, "the Review step offers the box when the task page did not carry it"
+    ticked = client.get("/admin/generate/task/add-sectors", query_string={**asked, "debug": "1"}).get_data(as_text=True)
+    assert 'type="hidden" name="debug" value="1"' in ticked
+    assert 'name="debug" value="1" checked' not in ticked.split("generate-review")[1], "carried once, not offered twice"
+    resp = _post(client, action="galaxy", what="grid", mode="shell", shell_index="40", shell_limit="200",
+                 debug="1", **{generate_page.ESTIMATE_CONFIRM_FIELD: "1"})
+    assert resp.status_code == 303
+    (job,) = no_spawn
+    assert job["steps"] and all(step["argv"][-1] == "--debug" for step in job["steps"])

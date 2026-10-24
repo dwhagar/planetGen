@@ -161,6 +161,13 @@ GIANT_IMPACT_SURVIVAL_FRACTION = 0.4
 # neighbor's spacing to protect one body's zone in place.
 MAX_SYSTEM_GENERATION_ATTEMPTS = 8
 
+# How many trees of stars a system draws (GEN.631) while looking for one that is what its directives and its place need: the
+# kind of pair `WIDE_BINARY` or a `wide_binary` prevalence asks for, a pair at all under `BINARY_SYSTEM`, a close pair whose
+# circumbinary limit leaves room for the habitable world `HABITABLE_WORLD` forces. After this many a forced pair keeps the
+# last tree and any other system is its star alone. A forced close pair is the rare draw (about 1 in 14 pairs has an axis
+# under 0.25 AU), so the count is large; the first draw is kept whenever nothing is asked.
+COMPANION_DRAW_ATTEMPTS = 200
+
 # How many whole systems (star and all) `planetgen system` builds while
 # looking for one that meets every forced option (`StarSystem.
 # unmet_requirements`) before it gives up with an error and saves nothing.
@@ -503,12 +510,6 @@ and two or more (triples and quadruples). The chance of a companion is 1 - `sing
 B_SUBCLASS_LOWER_MASS_SOL = (("B-early", 9.0), ("B-mid", 5.0))
 """tuple: The birth mass at which the B-star sub-classes begin, heaviest first (Table 13's bins); a B star below the
 last is late B and keeps the letter's row."""
-
-BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS = {
-    'O': 0.90, 'B': 0.65, 'A': 0.55, 'F': 0.47, 'G': 0.44, 'K': 0.40, 'M': 0.26,
-    'B-mid': round(1.0 - MULTIPLICITY_BY_PRIMARY_MASS_BIN["mid B"]["single"], 2),
-    'B-early': round(1.0 - MULTIPLICITY_BY_PRIMARY_MASS_BIN["early B"]["single"], 2),
-}
 
 # --- Star population model (stellarEvolution.py) ---
 # A random star is drawn as physics, not from a letter table: a mass from
@@ -3144,7 +3145,7 @@ ROGUE_EARTH_REFERENCE_AGE_GY = 4.5
 
 RADIOGENIC_SILICATE_MASS_FRACTION = 0.675
 """float: The heat-producing (bulk silicate) share of a rocky body's mass: the Earth's 1 minus its core mass fraction 0.325 (part E
-2.8e). A stand-in for every body until GEN.428 draws the body's own core and mantle."""
+2.8e). The stand-in for a body with no stored composition; `radiogenic.rock_inputs` reads the drawn one (GEN.428)."""
 
 GCR_SOLAR_MODULATION_RANGE = (0.5, 1.64)
 """tuple: The cosmic-ray dose as a fraction of its mean over the solar cycle, drawn log-uniformly per body (GEN.453): the
@@ -3459,16 +3460,18 @@ SYSTEM_COMET_CHANCE = 0.3
 # GEN.449 changed the companions and 2026-10-18 after GEN.404 moved a system with
 # no place to the galaxy's half-mass radius; habitable_world alone remeasured
 # 2026-10-23 after GEN.146 widened the zone to the Kopparapu edges, the same
-# 20,000 systems: 0.4216 where it was 0.253). A sector or galaxy run's
+# 20,000 systems: 0.4216 where it was 0.253; all four remeasured 2026-10-23 over
+# 20,000 systems, four seeds of 5,000, after GEN.631 drew a system's stars as a
+# tree: its pairs are closer, so fewer have room for planets). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.422,   # a habitable planet or moon
-    "asteroid_belt": 0.582,     # an asteroid belt
-    "large_star": 0.051,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
-    "planets": 0.953,           # at least one planet or belt
+    "habitable_world": 0.402,   # a habitable planet or moon
+    "asteroid_belt": 0.549,     # an asteroid belt
+    "large_star": 0.049,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
+    "planets": 0.941,           # at least one planet or belt
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
@@ -3476,13 +3479,16 @@ PREVALENCE_BASE_SHARES = {
 # 10,000 systems with default options (four seeds of 2,500; 2026-10-08;
 # comets, binary_system and wide_binary remeasured 2026-10-17 over 20,000
 # systems, four seeds of 5,000: GEN.448 puts 93% of the binaries in the wide
-# class, the close class being the 0.05 to 0.25 AU range only).
+# class, the close class being the 0.05 to 0.25 AU range only; binary_system and
+# wide_binary remeasured 2026-10-23 over 20,000 systems, four seeds of 5,000,
+# after GEN.631 drew a system's stars as a tree: 0.239 have a pair, 0.810 of the
+# pairs have an axis over 0.25 AU).
 # Each is a share of the things in its comment, not always of systems.
 # Remeasure with PREVALENCE_BASE_SHARES.
 PREVALENCE_DRAW_SHARES = {
     "comets": 0.321,            # systems with comets (each star of a wide pair draws)
-    "binary_system": 0.260,     # systems with two stars
-    "wide_binary": 0.928,       # binaries that are wide pairs
+    "binary_system": 0.239,     # systems with a pair (the two stars of a system of more than two count)
+    "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
     "multi_star": 0.0045,       # systems with five or more stars (see below)

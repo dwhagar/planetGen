@@ -30,6 +30,7 @@ from rq import command, worker_registration
 
 from planetgen.admin import updateguard
 from planetgen.queue import redisqueue, runrecord, work
+from planetgen.util import log
 
 WANTED_KEY = "planetgen:workers:wanted"
 """str: The admin's worker count for the bulk queue, a number in Redis (no expiry)."""
@@ -167,11 +168,14 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
             cap = min(cap, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
     live = live_worker_count(queue)
     need = min(waiting, cap) - live - starting
+    log.trace(f"workers for {queue_name}: {waiting} job(s) waiting, cap {cap}, {live} live, {starting} starting; "
+              f"{max(0, need)} to start", area="queue")
     for _ in range(max(0, need)):
         connection.incr(starting_key)
         connection.expire(starting_key, STARTING_SECONDS)
-        redisqueue.start_detached(
+        proc = redisqueue.start_detached(
             redisqueue.worker_argv([queue_name], url, python=sys.executable, burst=False), REPO_DIR)
+        log.trace(f"workers for {queue_name}: started worker process {getattr(proc, 'pid', '?')}", area="queue")
     if queue_name == redisqueue.MAINTENANCE_QUEUE:
         shed_bulk(connection, max(1, wanted(connection, mysql_host) - maintenance_share(connection, mysql_host)))
     return max(0, need)

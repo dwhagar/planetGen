@@ -24,7 +24,7 @@ all.
 
 One solid of blocks shows everything (`static/galaxyprisms.js`): each
 block is a cell of the block ladder (`docs/design/galaxy/spherical-block-ladder.md`,
-`planetgen.galaxy.drill`): a part of 243, 81, 27, 9 or 3 shells of whole
+`planetgen.galaxy.drill`): a part of 243, 81, 27, 9 or 3 shells (the stages' levels) of whole
 sectors, sized to the stage and shaded by the galaxy's predicted density,
 which the browser computes itself from the shape parameters the panel
 embeds as `densityShape`. Unfilled space is translucent; a block grows

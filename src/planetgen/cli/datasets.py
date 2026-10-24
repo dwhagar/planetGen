@@ -24,6 +24,7 @@ from rich.console import Console
 from rich.progress import BarColumn, DownloadColumn, Progress, TextColumn, TimeRemainingColumn, TransferSpeedColumn
 
 from planetgen.datasets import catalogue, fetch
+from planetgen.util import log
 
 
 _CONSEQUENCE = " -- generation will not start until it is fetched (it replaces: {})"
@@ -93,7 +94,9 @@ def main(argv=None):
     parser.add_argument("--disregard-missing-data", action="store_true",
                         help="status: say that a missing dataset with a fallback is taken as one and exit 0 for it (the "
                              "Generate page's data check when the run was told to disregard missing data)")
+    log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
+    log.apply_debug_arguments(args, parser)
     datasets = _chosen(args.keys)
     if not datasets:
         print("No datasets are registered yet.")

@@ -25,6 +25,7 @@ import sys
 
 from planetgen import backup
 from planetgen.cli import config as config_cli
+from planetgen.util import log
 
 
 def _size(value):
@@ -109,7 +110,9 @@ def main(argv=None):
     restore.add_argument("archive")
     restore.add_argument("--part", action="append", help="restore only this part (repeatable)")
     add_mysql_connection_args(restore)
+    log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
+    log.apply_debug_arguments(args, parser)
     return {"take": lambda: run_take(args), "list": run_list, "parts": run_parts,
             "verify": lambda: run_verify(args), "restore": lambda: run_restore(args)}[args.command]()
 

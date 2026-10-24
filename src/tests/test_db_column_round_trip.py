@@ -77,6 +77,8 @@ NULL_IN_THIS_GALAXY = {
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
        ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "water_activity")},
+    # A moon with a gas envelope (a class I, J or T moon) is rare: the envelope split is stored for every body that has one.
+    **{("moons", column): CHANCE for column in ("envelope_helium_fraction", "envelope_z_fraction")},
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
     **{("facilities", column): "facility hosts used" for column in
        ("star_id", "moon_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",
@@ -184,9 +186,10 @@ NEVER_READ = {
     ("facilities", "mass_kg"): "read by the gravity sum (GEN.294 chain)",
     **{("sectors", column): "read by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "read by the DB.53 chain" for column in ("decay_age_yr", "epoch_unix", "state")},
-    # GEN.630: only the system scene reads where a star hangs in the tree (node and slot) and a member's offset.
+    # GEN.630: only the system scene reads a member's offset; the loader reads where a star hangs (node and slot, GEN.631).
     **{("stars", column): "read by the system scene (GEN.630)" for column in (
-        "offset_x_au", "offset_y_au", "offset_z_au", "parent_node_id", "slot")},
+        "offset_x_au", "offset_y_au", "offset_z_au")},
+    **{("stars", column): CHANCE for column in ("parent_node_id", "slot")},    # read back for a system of 3 stars or more
     # DB.73: the link is stored for the readers of 8.4 (the unified object); a system loader rebuilds the tree from parent_node_id.
     **{("stars", column): "stored for the parent-link readers (DB.73)" for column in ("parent_type", "parent_id")},
     # GEN.329: read back only for a system saved as a runaway, which this galaxy may not hold.

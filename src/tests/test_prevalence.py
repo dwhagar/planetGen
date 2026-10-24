@@ -26,7 +26,7 @@ SYSTEMS = 2000
 def _features(system):
     planets, belts, _moons = system.count_objects()
     return {
-        "habitable_world": system.count_habitable()[0] > 0,
+        "habitable_world": system.count_habitable_class_worlds() > 0,
         "asteroid_belt": belts > 0,
         "large_star": (system.primary_star.initial_mass_sol or 0.0) >= tuning.LARGE_STAR_MIN_MASS_SOL,
         "planets": planets + belts > 0,

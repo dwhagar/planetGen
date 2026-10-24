@@ -31,6 +31,13 @@ REPLACED = [
     ("km_s", "m_s", lambda x: x * 1000.0),
     ("km", "m", lambda x: x * 1000.0),
     ("m", "km", lambda x: x / 1000.0),
+    ("pc", "m", lambda x: x * constants.PARSEC_M),
+    ("yr", "d", lambda x: 365.25 * x),
+    ("d", "yr", lambda x: x / 365.25),
+    ("kpc", "m", lambda x: x * (constants.PARSEC_M * 1000.0)),
+    ("km", "pc", lambda x: x / (constants.PARSEC_M / 1000.0)),
+    ("ly", "au", lambda x: x * constants.LY_TO_AU),
+    ("yr", "Gyr", lambda x: x / 1e9),
     ("au_yr", "km_s", lambda x: x * (constants.AU_TO_KM / SECONDS_PER_YEAR)),
 ]
 

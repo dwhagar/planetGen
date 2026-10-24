@@ -86,6 +86,8 @@ LIFE_ANCHORS = {name: f"life-{name}" for name in LIFE_NAMES}
 """dict: The id of each life score's row on the habitability page."""
 
 CHIP_ANCHORS = {
+    "habitable": "chip-habitable",
+    "habitable moon": "chip-habitable-moon",
     "habitable class": "chip-habitable-class",
     "habitable-class moon": "chip-habitable-class-moon",
     "inhabited": "chip-inhabited",

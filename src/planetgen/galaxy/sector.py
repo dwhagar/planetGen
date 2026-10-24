@@ -203,6 +203,10 @@ from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
 from planetgen.util import detmath
+from planetgen.physics import unit_registry as units
+
+_ly_to_m = units.converter("ly", "m")
+_m_to_pc = units.converter("m", "pc")
 
 
 _PHENOMENON_CLASSES_BY_TYPE = {
@@ -863,7 +867,7 @@ class SpaceSector:
         stay, their galactic ones follow.
         """
         self.center_galactic_ly = tuple(float(v) for v in center_ly)
-        self.sector_edge_pc = self.edge_ly * physical_constants.LIGHTYEAR_M / physical_constants.PARSEC_M
+        self.sector_edge_pc = _m_to_pc(_ly_to_m(self.edge_ly))
         for entry in list(self.entries) + list(self.phenomena):
             entry.spatial.set_sector_edge_pc(self.sector_edge_pc)
             entry.spatial.carry_sector_center(self.center_galactic_ly)

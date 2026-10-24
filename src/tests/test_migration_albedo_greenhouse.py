@@ -13,6 +13,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import climate_draws, constants
 from planetgen.util import draw
+from tests import db_schema_support
 
 pytestmark = pytest.mark.fresh_database
 
@@ -85,6 +86,7 @@ def test_a_v141_galaxy_gets_the_draws_back_and_keeps_its_temperatures(mysql_conf
     # make it a v141 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
+        db_schema_support.drop_bulk_composition(conn)  # v144
         for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor,"
@@ -133,6 +135,7 @@ def test_a_row_with_no_solution_takes_a_seeded_class_draw(mysql_config):
         pytest.skip("the system has no planet with air")
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
+        db_schema_support.drop_bulk_composition(conn)  # v144
         for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor,"

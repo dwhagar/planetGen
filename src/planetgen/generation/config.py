@@ -140,11 +140,10 @@ class SystemConfig:
         """
         bool or None: If True, the system generation will attempt to create a
         binary star system. If False, a single star system is generated. If
-        None, whether the system is binary is rolled against real
+        None, the stars of the system are drawn as a tree against real
         stellar-multiplicity statistics for the primary star's own spectral
-        type (see `planetgen.tuning.
-        BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`, used by
-        `StarSystem._companion`) rather than always coming out
+        type (the `star-count` table of `planetgen.generation.phenomena.hosts`,
+        used by `StarSystem._drawn_plan`) rather than always coming out
         single. Defaults to None.
         """
 
@@ -161,16 +160,16 @@ class SystemConfig:
         binary behavior this generator had before this option existed,
         where the two stars are merged into one effective star
         (`binary.BinaryStarProxy`) for the purposes of planet
-        placement. If None, one of the two is chosen at random by the primary's companions per
-        decade of period (`generation.companion_classes`). Defaults to None.
+        placement. If None, the pair is P-type when the tree puts its axis under
+        `tuning.WIDE_BINARY_SEPARATION_MIN_AU` and S-type otherwise. Defaults to None.
         """
 
         self.STARS = None
         """
         int or None: Forces the number of stars in the system (`--stars N`, the system file's `stars`, GEN.267), from 1
-        to MAX_STARS. 1 is a single star, 2 a pair, and more a member tree whose levels the member-tree host builds
-        (GEN.630). None leaves the count to the `star-count` table. Not read by the host until GEN.630 lands; carried
-        in the config, the plan and the `system_configs` row so a stored config regenerates with the same count.
+        to MAX_STARS. 1 is a single star, 2 a pair, and more a pair with member stars (GEN.630, GEN.631). None leaves
+        the count to the `star-count` table. Read by `StarSystem._drawn_plan`; carried in the config, the plan and the
+        `system_configs` row so a stored config regenerates with the same count.
         `generation.run_system.stars_conflict` refuses a count that contradicts BINARY_SYSTEM or WIDE_BINARY.
         Defaults to None.
         """
@@ -216,7 +215,7 @@ class SystemConfig:
         Features left out keep their normal chance. The tri-state flags
         above force a feature; this only shifts how often it happens.
         "multi_star" scales the chance of five or more stars
-        (`prevalence.multi_star_scale`, which the member-tree host passes as
+        (`prevalence.multi_star_scale`, which `StarSystem._drawn_plan` passes as
         the `prevalence` of `multistar.draw_member_tree`).
         """
 

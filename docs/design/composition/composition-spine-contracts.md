@@ -2,7 +2,7 @@
 
 Owner: lane I (thread "Composition spine for habitability"). Items: GEN.565 (PlanetaryObject part), GEN.557, GEN.428 with DB.69, GEN.429, GEN.452 part 2, GEN.411 with DB.71 and GEN.424. Everything after GEN.428 (GEN.430, 441, 442, 460, 461, 466 and the rest) belongs to the lanes named in the plan, not to this lane. Designs: docs/design/composition/composition-model.md, bulk-composition.md, atmosphere-composition.md, atmosphere-colour.md section 7.
 
-Status: DRAFT 1. Names below are final unless a downstream lane objects in its first reply. The accessors of section 1 land in PR "spine-contracts" first (no behaviour change, no epoch), so lanes can import them today from that branch and from main once it merges.
+Status: the accessors of section 1 are in PR 1 (no behaviour change, no epoch); sections 2.1 and 2.2 describe the code as built in the GEN.429 and GEN.428 PR.
 
 ## 0. Order of work (and one change to the order the plan gives)
 
@@ -58,40 +58,41 @@ Stored consistency (tested in PR 4): `sum(partial_pressures_pa) == atmospheric_p
 
 ## 2. Step contracts
 
-### 2.1 GEN.429 kernels: `planetgen.physics.bulk_structure` (PR 2, pure)
+### 2.1 GEN.429 kernels: `planetgen.physics.bulk_structure` (pure; as built)
 
 All SI unless named. No draws, no state.
 
 ```python
-rocky_structure(mass_earth, cmf, x_fe, core_scale=1.0, p_surface_pa=1e5) -> RockyStructure
-    # radius_earth, central_pressure_gpa, cmb_pressure_gpa, gravity_m_s2, escape_kms, moment_of_inertia_factor
-    # (part B 3.8 verbatim, standard library; valid 0.1 to 20 Earth masses)
-radius_fit_earth(mass_earth, cmf, x_fe, core_scale=1.0) -> float            # B closed form
-water_world_radius_earth(mass_earth, cmf, water_fraction) -> float          # C closed form
-envelope_radius_earth(mass_earth, envelope_fraction, flux_earth, age_gy) -> float   # Lopez and Fortney, tables from lf14.csv
-small_body_density_kg_m3(fractions, mass_kg) -> float                       # 1/sum(w_i/rho_i), (1 - porosity), brittle compaction below the taper
-structure(fractions, mass_kg, *, flux_earth, age_gy, temperature_k) -> Structure
-    # radius_km, density_g_cm3, gravity_g, escape_kms, moment_of_inertia_factor, branch ("rocky"|"water"|"envelope"|"giant"|"small")
+structure(bulk, mass_kg, *, flux_earth=1.0, age_gy=4.5, temperature_k=None, x_fe=None, core_scale=1.0, prefer_solver=False) -> Structure
+    # radius_km, density_g_cm3, gravity_g, escape_kms, moment_of_inertia, cmb_pressure_gpa, method
+    # method: "closed-dry" | "closed-water" | "closed-small" | "closed-envelope" | "solver" | "mixing"
+layered_structure(mass_earth, metal, rock, water, x_fe, core_scale, ...) -> dict          # the reference solver (iron, silicate, water)
+radius_fit_earth(mass_earth, cmf, x_fe, core_scale) -> float                              # part B closed form, 0.1 to 20 Earth masses
+water_world_radius_earth(mass_earth, cmf, water) -> float                                 # part C closed form, 0.3 to 20
+small_body_radius_earth(mass_earth, cmf, water) -> float                                  # fit over 1.5e-4 to 0.3 Earth masses
+envelope_radius_earth(mass_earth, envelope, flux_earth, age_gy, ...) -> float             # Lopez and Fortney 2014, 1 to 20
+mixing_density_kg_m3(metal, rock, water, ice, porosity) -> float                          # below 1e21 kg
+cmf_from_mass_radius(mass_earth, radius_earth, ...) / water_fraction_from_mass_radius(...) # route 1 inverses
+x_fe_from_feo_mass_fraction(feo) -> float                                                 # the mantle's Fe/(Fe+Mg) from FeO
 ```
 
-`structure` picks the branch from the fractions and the mass and stays inside each form's stated range; outside it uses the solver. Inverse for route 1: `fractions_from_mass_radius(mass_kg, radius_km, ...)` returns `BulkFractions` with `origin="inverse"`.
+Water and ice together under 0.1 percent of the mass are solved as dry. A giant (envelope over 0.5) raises `OutsideRange`: the giant radius law of GEN.34 is `physics/planets.py`'s until GEN.460.
 
-### 2.2 GEN.428: `planetgen.physics.bulk_composition.draw_bulk(subject, class_gate)` (PR 3)
+### 2.2 GEN.428: `planetgen.physics.bulk_draw` (as built)
 
 ```python
-@dataclass
-class BulkSubject:
-    planet_class: str | None; is_moon: bool; zone: str
-    formation_au: float; snow_line_au: float; born_beyond_snow_line: bool
-    star_fe_h: float; star_age_gy: float; star_mass_sol: float; star_makeup: StarMakeup  # physics.stellar_composition
-    host_mass_kg: float | None       # moon: its planet's mass
-    mass_kg: float | None            # given or None (then the class mass range, flagged stand-in, decision 28)
-    radius_km: float | None          # given or None
+host_ratios(star) -> HostRatios     # fe, si, al, ca, ni (atoms per Mg), c_over_o, y_envelope, z; from the star's abundance key
+dry_partition(ratios, rock_feo, light_elements, carbon_rock, graphite_over_rock=0.0) -> DryPartition   # metal, rock, rock_feo, rock_al2o3, rock_mg_si
+draw_terrestrial(body, radius_given, mass_given)   # sets the BulkFractions attributes, mass, radius, density
+draw_giant(body)                                   # a stand-in envelope and core until GEN.460
+ROCK_KIND_TABLE                                    # gated GEN.472 table "bulk-rock-kind": silicate | carbide-graphite | carbide-graphite-by-class
 ```
 
-Draw order (a change is an epoch change; fixed): star ratios from `star_makeup` (once per star) -> born beyond or migrant (stored `born_beyond_snow_line`) -> water share -> dry part (Fe/Mg, Si/Mg, branch, w_FeO, core O and S) -> mass (decision 28) -> envelope fraction and loss -> derive structure (GEN.429). Rows come from gated GEN.472 tables registered as `bulk-*`; the class letter is an input to the gate while GEN.90 is open, never the cause. A recalculation never redraws a stored composition (F10).
+The body needs `planet_class`, `radius` (or `mass`), `star` (with `metallicity_fe_h`, `age`, `mass`, `galactic_center_dist_ly`) and `is_moon`. Draw order (a change is an epoch change): rock kind, water share, other ices (class D), FeO, core light elements, porosity (class D), graphite (carbon rock). The mass is then solved from the class radius; class S and a body given both a mass and a radius are worked back from them (`origin` is `inverse`). Columns (DB.69, schema 144): `metal_mass_fraction`, `rock_mass_fraction`, `ice_mass_fraction`, `envelope_mass_fraction`, `rock_feo_fraction`, `rock_al2o3_fraction`, `rock_mg_si_ratio`, `envelope_helium_fraction`, `envelope_z_fraction`, `porosity`, `carbon_rock`, `composition_origin`, with the existing `water_mass_fraction`; read them through `bulk_composition.bulk_fractions(body)`, which returns `None` for a row saved before schema 144.
 
-Hook points in `generate_planet_properties` after PR 3 (so other lanes know where to add draws): (a) bulk composition, (b) lane H `radiogenic.draw_content(planet, silicate_mass_fraction=..., refractory_enrichment=...)` immediately after (a), (c) `calculate_atmospheric_conditions` (lane D's albedo and greenhouse, then GEN.411), (d) hydrosphere. Draws come from the ambient bound stream in that order; each module draws in a fixed order of its own.
+Hook points in `generate_planet_properties` after PR 3 (so other lanes know where to add draws): (a) bulk composition (`bulk_draw`), (b) lane H `radiogenic.draw_content(planet, silicate_mass_fraction=..., refractory_enrichment=...)` immediately after (a), (c) `calculate_atmospheric_conditions` (lane D's albedo and greenhouse, then GEN.411), (d) hydrosphere (reads the water share the bulk draw made). Draws come from the ambient bound stream in that order; each module draws in a fixed order of its own.
+
+Extension coming: giant interiors (GEN.641, GEN.642, DB.89, lane J) add layers and a core to the giant composition; the five whole-body fractions stay the totals.
 
 ### 2.3 GEN.452 part 2 + GEN.411 (PR 4)
 
@@ -151,3 +152,13 @@ Until GEN.646 lands the class letter is still an input at the count, formation a
 1. A new draw goes after the hook it belongs to, or on a stream of its own if it must not move later draws. Say so in the PR.
 2. Moving a draw, or changing a table's rows or weights, is an epoch bump with a migration, numbered at merge.
 3. Whoever changes a row in this table updates it in the same PR.
+
+## 5. Boundaries agreed with other lanes
+
+### L boundary (lane L, 2026-10-23): who writes the mixture
+
+Agreed as lane L proposed (/mnt/project-files/reports/lane-l-boundary-2026-10-23.md). Lane L writes `planetgen/physics/mixture_draw.py`: `draw_mixture(subject) -> MixtureDraw(mole_fractions: {gas-table formula: fraction, sum 1}, regimes drawn, redox_diw)`, a pure function of a `recipes.Subject` (inputs named in `atmosphere_recipes.INPUTS`), with no pressure logic and no storage. Lane I (PR 4) keeps the total pressure (retention row d), the saturation caps and freeze-out (GEN.452, GEN.422 order), the sum of partial pressures, the mean molar mass, the storage and DB.71. PR 4 calls `draw_mixture` in place of `CLASS_MIXES` and deletes `CLASS_MIXES` in the same PR (GEN.479's done-line), so GEN.479 merges before PR 4 or in step with it. Lane L does not edit `planets.py`, `atmosphere.py` or `mixture.py`; until `draw_mixture` is on main PR 4 builds against its signature above.
+
+### K boundary (lane K, 2026-10-23): the small-body density
+
+Agreed. Lane K writes `physics/compaction.py` (`small_body_density_kg_m3(mass_fractions_by_component, porosity)`, `compacted_density_kg_m3(radius_km, rock_fraction)`, the 1e19 to 1e21 kg taper). `bulk_structure.structure` keeps the rocky, water and envelope branches and the solver above 1e21 kg; its `mixing` branch (below 1e21 kg) is the zero-pressure mixing rule with porosity (`mixing_density_kg_m3`) until `compaction.py` is on main, and the first PR after that replaces the branch with a call to lane K's functions and deletes `mixing_density_kg_m3`. Lane K's comet, belt and icy-body draws return `BulkFractions` with `porosity` set.

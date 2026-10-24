@@ -28,8 +28,10 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.generation import multistar, place_terms
-from planetgen.physics import constants
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_yr_to_d = units.converter("yr", "d")
 
 CLOSE_RANGE_AU = (0.05, 0.25)
 """tuple: The separations of a close (P-type) pair, `generation.binary.BinaryStarProxy`."""
@@ -40,7 +42,7 @@ INNER_LIMIT_AU = 10.0
 _GRID_POINTS = 801
 """int: Points of the grid over log P that the distribution is integrated and inverted on."""
 
-_DAYS_PER_YEAR = constants.SECONDS_PER_YEAR / 86400.0
+_DAYS_PER_YEAR = _yr_to_d(1.0)
 
 
 def mean_mass_ratio():

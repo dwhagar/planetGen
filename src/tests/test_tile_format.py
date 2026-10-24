@@ -25,6 +25,7 @@ TILE = {
 
 DIGESTS = {
     1: "528fedbb24ba4ff5e32246d8d579b3ef",
+    2: "528fedbb24ba4ff5e32246d8d579b3ef",   # the same bytes: stages name other blocks since the ladder's levels above 243
 }
 """dict: `TILE_FORMAT` to the SHA-256 (first 32 hex) of `TILE`'s stored bytes under it."""
 

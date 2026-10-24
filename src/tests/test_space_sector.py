@@ -317,7 +317,7 @@ def test_reload_without_generated_key_falls_back_to_recipe_regeneration():
 
     assert rebuilt_system.name == "Sol"
     assert rebuilt_system.star.type == system.star.type
-    assert rebuilt_system.hab_count >= 1
+    assert rebuilt_system.habitable_class_count >= 1
 
 
 def test_reload_pins_an_unset_name_to_the_originally_generated_one():

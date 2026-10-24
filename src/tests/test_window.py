@@ -5,7 +5,7 @@ import math
 import pytest
 
 from planetgen.galaxy import spherical
-from planetgen.galaxy.drill import DRILL_LEVELS, DrillBlock, drill_band_count, drill_parent, drill_wedge_count
+from planetgen.galaxy.drill import STAGE_LEVELS, DrillBlock, drill_band_count, drill_parent, drill_wedge_count
 from planetgen.galaxy.window import (
     DEFAULT_WINDOW, WINDOW_WIDTHS, cell_position_pc, cells_in_ball, check_width, crop_stages, parse_window_key,
     window_cells, window_parents,
@@ -54,7 +54,7 @@ def test_the_closed_form_ball_equals_a_walk_of_every_cell(m, shell, band, wedge,
     assert got == sorted(got, key=lambda c: (c.shell, -c.band, c.wedge)), "in shell, band and wedge order"
 
 
-@pytest.mark.parametrize("m", DRILL_LEVELS)
+@pytest.mark.parametrize("m", STAGE_LEVELS)
 def test_a_window_holds_its_centre_and_is_about_a_ball_of_cells(m):
     shell = 40 if m < 243 else 3
     if m == 1:

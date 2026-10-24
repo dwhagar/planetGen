@@ -17,6 +17,12 @@ from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util.checks import finite_domain
 from planetgen.util.format import format_period_years, format_speed_kms
+from planetgen.physics import unit_registry as units
+
+_ly_to_m = units.converter("ly", "m")
+_km_to_m = units.converter("km", "m")
+_s_to_yr = units.converter("s", "yr")
+_yr_to_gyr = units.converter("yr", "Gyr")
 
 
 # -inf is just "not positive" (the documented (0.0, 0.0)); +inf fails the result check.
@@ -61,9 +67,9 @@ def calculate_galactic_orbit(distance_ly):
         * distance_pc / math.sqrt(distance_pc ** 2 + core_radius_pc ** 2)
     )
 
-    circumference_m = 2 * math.pi * distance_ly * physical_constants.LY_TO_M
-    orbital_period_s = circumference_m / (orbital_speed_kms * physical_constants.KM_TO_M_FACTOR)
-    orbital_period_gy = (orbital_period_s / physical_constants.SECONDS_PER_YEAR) / 1e9
+    circumference_m = _ly_to_m(2 * math.pi * distance_ly)
+    orbital_period_s = circumference_m / _km_to_m(orbital_speed_kms)
+    orbital_period_gy = _yr_to_gyr(_s_to_yr(orbital_period_s))
 
     return orbital_speed_kms, orbital_period_gy
 

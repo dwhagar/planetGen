@@ -50,11 +50,12 @@ import tempfile
 import threading
 import time
 
+from planetgen.util import log
 from planetgen.web.lib import apiclient, singleflight, tilepack
 from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles, get_galaxy_window
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util.settings import get_settings
-from planetgen.galaxy.drill import format_drill_key, parse_drill_key
+from planetgen.galaxy.drill import format_drill_key, parse_stage_key
 from planetgen.galaxy.window import DEFAULT_WINDOW, check_width, crop_stages, parse_window_key, window_cells, window_parents
 from planetgen.galaxy.viewport import parse_tile_key, tile_key
 
@@ -289,7 +290,7 @@ def _stage_filename(key):
     else `s<m>_<shell>_<band>_<wedge>.json`."""
     if key == "galaxy":
         return "sgalaxy.json"
-    return "s" + format_drill_key(parse_drill_key(key)).replace(".", "_") + ".json"
+    return "s" + format_drill_key(parse_stage_key(key)).replace(".", "_") + ".json"
 
 
 def _delete_stages(generation_dir, stage_keys):
@@ -619,6 +620,10 @@ def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
 
     cached_count = len(stored)
     missing = [key for key in tile_keys if key not in stored]
+    if log.debug_log_active():
+        log.trace(f"tile cache: {cached_count} of {len(tile_keys)} tile(s) found stored in database {db} "
+                  f"(generation {generation}); {len(missing)} to build" + (" (ahead of any visitor)" if ahead else ""),
+                  area="cache")
 
     if missing or not isinstance(meta, dict):
         # One build of each tile at a time (PERF.38): what another request
@@ -743,7 +748,7 @@ def fetch_stage(db, at=None):
         apiclient.ApiError / NotFoundError: If the API is needed and fails.
     """
     try:
-        key = format_drill_key(parse_drill_key(at)) if at else "galaxy"
+        key = format_drill_key(parse_stage_key(at)) if at else "galaxy"
     except ValueError as exc:
         raise TileRequestError(str(exc))
     root = cache_dir()

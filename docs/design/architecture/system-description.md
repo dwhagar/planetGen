@@ -189,8 +189,8 @@ Document is not cached in the database; the page cache (`web/lib/pagecache.py`) 
 - No filler joins ("of a mix of", "which is expected to", "approximately" before a computed value). Lists use "A, B and C".
 - Ages and durations use the ladder (Gyr, Myr after UX.81); "Billion Years" goes.
 - Moons and planets share templates with a noun parameter; no regex rewriting of planet wording into moon wording.
-- "Habitable" in a sentence means the PHI-6 rating (overall Green or Blue is "potentially habitable", default, Boss may move
-  the line). The class flag is called "habitable class". The zone keeps its name ("habitable zone").
+- "Habitable" in a sentence means the PHI-6 rating: overall Green or Blue (Boss, 2026-10-23; `habitability.is_habitable`
+  is the one definition the API, lists, search, map and counts use). The class flag is called "habitable class". The zone keeps its name ("habitable zone").
 - The index is PHI-6 everywhere a person reads it. Stored column names (`phi4`, `phi4_<domain>`) are internal and stay
   (default; renaming is an optional migration).
 

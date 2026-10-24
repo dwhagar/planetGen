@@ -48,7 +48,7 @@ class _FakeConfig(Config):
 
 def _moon():
     return {"id": 30, "name": "Luna", "planet_class": "D", "body_type": "t", "habitable": False,
-            "inhabited": False, "zone": "e", "distance_km": 384_400.0, "period_years": 0.075, "gravity_g": 0.17,
+            "habitable_class": False, "inhabited": False, "zone": "e", "distance_km": 384_400.0, "period_years": 0.075, "gravity_g": 0.17,
             "mass_kg": 7.35e22, "hill_radius_km": 61_500.0,
             "orbital_index": 0, "radius_km": 1737.0, "position_x_km": 384_400.0, "position_y_km": 0.0,
             "life_chemical": None}
@@ -56,7 +56,7 @@ def _moon():
 
 def _planet(planet_id, name, body_type, distance_au, moons=()):
     return {"id": planet_id, "name": name, "planet_class": "M" if body_type == "t" else "J", "body_type": body_type,
-            "habitable": body_type == "t", "inhabited": False, "zone": "e", "distance_km": distance_au * AU_KM,
+            "habitable": body_type == "t", "habitable_class": body_type == "t", "inhabited": False, "zone": "e", "distance_km": distance_au * AU_KM,
             "period_years": distance_au ** 1.5, "gravity_g": 1.0, "orbital_index": planet_id, "star_id": 1,
             "radius_km": 6371.0 if body_type == "t" else 69_911.0, "position_x_km": distance_au * AU_KM,
             "mass_kg": 5.97e24 if body_type == "t" else 1.898e27,

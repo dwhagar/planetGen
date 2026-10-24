@@ -15,6 +15,7 @@ from planetgen.generation import multistar, run_galaxy, run_plan, stored_trees
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
+from planetgen import tuning
 from planetgen.physics import constants, stellar_evolution as evolution
 from planetgen.physics.system_tree import OrbitNode
 from planetgen.util import draw
@@ -66,11 +67,16 @@ def _build(seed, tree, age_yr, mass=1.0, plan=None, **config):
         return StarSystem(cfg, primary_star_params=_primary_params(mass, age_yr, seed), member_tree=plan)
 
 
+def _pair_kind(node):
+    """The kind of pair (`close` P-type, `wide` S-type) a node with this axis builds (GEN.631)."""
+    return "close" if node.separation_km / constants.AU_TO_KM < tuning.WIDE_BINARY_SEPARATION_MIN_AU else "wide"
+
+
 def _pair(kind, start=1):
-    """A seed, tree and age of a pair whose node is `kind`."""
-    for seed in range(start, start + 2000):
+    """A seed, tree and age of a pair that builds as a pair of this `kind`."""
+    for seed in range(start, start + 4000):
         tree, age_yr = _tree_of(2, seed)
-        if tree is not None and tree.nodes[0].kind == kind and tree.members[1].kind in stored_trees.PAIR_STAR_KINDS:
+        if tree is not None and _pair_kind(tree.nodes[0]) == kind and tree.members[1].kind in stored_trees.PAIR_STAR_KINDS:
             return seed, tree, age_yr
     pytest.skip(f"no seed drew a {kind} pair")
 
@@ -81,22 +87,29 @@ def _pair(kind, start=1):
 def test_a_row_without_members_is_a_single_star_that_draws_no_companion():
     assert stored_trees.plan(None) is stored_trees.SINGLE
     assert stored_trees.plan(scatter_systems.StoredTree((), ())) is stored_trees.SINGLE
-    assert stored_trees.SINGLE.complete and stored_trees.SINGLE.companion is None and stored_trees.SINGLE.node is None
+    assert stored_trees.SINGLE.complete and stored_trees.SINGLE.members == () and stored_trees.SINGLE.nodes == ()
 
 
 @pytest.mark.parametrize("kind", ["close", "wide"])
 def test_two_stars_and_one_node_are_a_pair_plan(kind):
     _seed, tree, _age = _pair(kind)
     plan = stored_trees.plan(_stored(tree), EPOCH)
-    assert plan.complete and plan.companion.member_no == 1 and plan.node.kind == kind
+    assert plan.complete and [m.member_no for m in plan.members] == [0, 1] and plan.pair_node_no() == 0
+    assert plan.nodes[0].node_no == 0 and _pair_kind(plan.nodes[0]) == kind
 
 
-def test_three_members_a_remnant_or_a_brown_dwarf_build_the_placed_star_alone():
+def test_three_stars_are_a_plan_numbered_from_zero_and_a_remnant_or_a_brown_dwarf_build_the_placed_star_alone():
     _seed, three, _age = _tree(3)
     plan = stored_trees.plan(_stored(three), EPOCH)
-    assert not plan.complete and plan.companion is None and plan.node is None
+    assert plan.complete == all(m.kind in stored_trees.PAIR_STAR_KINDS for m in three.members[1:])
+    if plan.complete:
+        assert [n.node_no for n in plan.nodes] == [0, 1] and plan.nodes[0].parent_node_no is None
+        assert plan.nodes[1].parent_node_no == 0 and {m.parent_node_no for m in plan.members} <= {0, 1}
+        assert plan.pair_node_no() in (0, 1)
+    else:
+        assert plan.members == () and plan.nodes == ()
     pair = _stored(_pair("close")[1])
-    for kind in ("neutron-star", "black-hole", "brown-dwarf"):
+    for kind in stored_trees.UNBUILT_KINDS:
         members = (pair.members[0], pair.members[1]._replace(kind=kind))
         assert not stored_trees.plan(scatter_systems.StoredTree(members, pair.nodes), EPOCH).complete
 
@@ -133,7 +146,11 @@ def test_a_pair_is_the_stored_stars_on_the_stored_orbit(kind):
     masses = sorted(star.mass / SOLAR for star in system.stars)
     assert masses == pytest.approx(sorted(m.mass_solar for m in tree.members), rel=1e-6)
     (node,) = system.orbit_nodes
-    assert node == stored.nodes[0]    # the same epoch, so the very same node
+    # the same epoch, so the very same orbit, numbered from 0 and of the kind the pair builds as
+    # (a P-type pair is tracked on a circle)
+    assert node == dataclasses.replace(stored.nodes[0], node_no=0, kind=kind,
+                                       eccentricity=0.0 if kind == "close" else min(
+                                           stored.nodes[0].eccentricity, tuning.WIDE_BINARY_ECCENTRICITY_MAX * (1.0 - 1.0e-9)))
     pair = system.star if kind == "close" else system.wide_binary
     if kind == "close":
         assert pair.binary_separation_au * constants.AU_TO_KM == pytest.approx(node.separation_km)
@@ -189,9 +206,11 @@ def test_the_stored_kind_stands_when_a_habitable_world_is_asked_of_a_close_pair(
     assert system.binary_type == "close"
 
 
-def test_a_tree_the_pair_classes_cannot_hold_builds_the_placed_star_alone_and_keeps_its_rows():
-    seed, tree, age_yr = _tree(3)
-    plan = stored_trees.plan(_stored(tree), EPOCH)
+def test_a_tree_with_a_remnant_builds_the_placed_star_alone_and_keeps_its_rows():
+    seed, tree, age_yr = _pair("wide")
+    stored = _stored(tree)
+    plan = stored_trees.plan(
+        scatter_systems.StoredTree((stored.members[0], stored.members[1]._replace(kind="neutron-star")), stored.nodes), EPOCH)
     system = _build(seed, tree, age_yr, plan=plan, BINARY_SYSTEM=True)
     assert not system.tree_built and system.binary_type is None and len(system.stars) == 1
     assert system.orbit_nodes == ()
@@ -228,7 +247,7 @@ def test_a_fill_builds_each_row_from_its_stored_tree_and_spends_the_rows_of_the_
     finally:
         conn.close()
     plans = {row["id"]: stored_trees.plan(trees.get(row["id"]), epoch) for row in rows}
-    assert any(plan.companion is not None for plan in plans.values()), "the toy galaxy drew no pair to build"
+    assert any(plan.members for plan in plans.values()), "the toy galaxy drew no pair to build"
 
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 0
@@ -245,14 +264,21 @@ def test_a_fill_builds_each_row_from_its_stored_tree_and_spends_the_rows_of_the_
                                  (system_id,)).fetchall()
             nodes = conn.execute("SELECT * FROM orbit_nodes WHERE star_system_id = ?", (system_id,)).fetchall()
             left = scatter_systems.read_stored_trees(conn, "bright_stars", [row["id"]])
-            if plan.companion is not None:
-                assert [s["role"] for s in stars] == ["primary", "secondary"]
+            if plan.members:
+                assert sorted(s["role"] for s in stars) == sorted(
+                    ["primary", "secondary"] + ["member"] * (len(plan.members) - 2))
                 expected = sorted((m.mass_solar for m in trees[row["id"]].members), reverse=True)
                 assert [s["mass_kg"] / SOLAR for s in stars] == pytest.approx(expected, rel=1e-6)
-                (node,) = nodes
-                for field in ("separation_km", "eccentricity", "inclination_deg", "ascending_node_deg", "period_years",
-                              "kind", "interaction", "flags"):
-                    assert node[field] == pytest.approx(getattr(plan.node, field))
+                assert len(nodes) == len(plan.nodes)
+                for node, planned in zip(sorted(nodes, key=lambda n: n["node_no"]), plan.nodes):
+                    for field in ("separation_km", "eccentricity", "inclination_deg", "ascending_node_deg", "period_years",
+                                  "interaction", "flags"):
+                        if field == "eccentricity" and node[field] == 0.0 and planned.kind == "close":
+                            continue  # a P-type pair is built, and tracked, on a circle
+                        if field == "eccentricity" and planned.eccentricity > tuning.WIDE_BINARY_ECCENTRICITY_MAX:
+                            assert node[field] == pytest.approx(tuning.WIDE_BINARY_ECCENTRICITY_MAX, rel=1e-6)
+                            continue  # a wide pair is held under the eccentricity limit
+                        assert node[field] == pytest.approx(getattr(planned, field))
                 assert not left
             elif plan.complete:
                 assert [s["role"] for s in stars] == ["single"] and not nodes and not left
@@ -273,7 +299,7 @@ def test_the_uncharted_route_builds_the_stored_tree_and_spends_it(mysql_config):
         trees = scatter_systems.read_stored_trees(conn, "bright_stars", [r["id"] for r in rows])
     finally:
         conn.close()
-    chosen = next((i for i, tree in trees.items() if stored_trees.plan(tree).companion is not None), None)
+    chosen = next((i for i, tree in trees.items() if stored_trees.plan(tree).members), None)
     assert chosen is not None, "the toy galaxy drew no star with one companion star"
     routes.generate_uncharted_system_job(mysql_config, chosen)
     conn = store.get_connection(mysql_config)

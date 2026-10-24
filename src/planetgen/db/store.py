@@ -75,11 +75,11 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import activity, aerosols, atmosphere, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
+from planetgen.physics import activity, aerosols, atmosphere, bulk_composition, bulk_mass, constants as physical_constants, habitability_world, hydrosphere, insolation, kepler, magnetism, pre_main_sequence, radiation, spin
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
-from planetgen.generation import multistar, steps
+from planetgen.generation import multistar, steps, stored_trees
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -953,11 +953,11 @@ class Connection:
                                    seconds=f"{time.perf_counter() - start:.1f}", sql=_sql_for_log(sql, params)[:800])
             if traced:
                 log.trace(f"SQL failed after {(time.perf_counter() - start) * 1000:.2f}ms: "
-                          f"{_sql_for_log(sql, params)} -> {type(exc).__name__}: {exc}", stacklevel=4)
+                          f"{_sql_for_log(sql, params)} -> {type(exc).__name__}: {exc}", area="sql", stacklevel=4)
             raise
         if traced:
             log.trace(f"SQL {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): "
-                      f"{_sql_for_log(sql, params)}", stacklevel=4)
+                      f"{_sql_for_log(sql, params)}", area="sql", stacklevel=4)
         return _Cursor(cur)
 
     @contextlib.contextmanager
@@ -1086,7 +1086,7 @@ class Connection:
                 statements += 1
         if log.debug_log_active():
             log.trace(f"SQL batch {(time.perf_counter() - start) * 1000:.2f}ms: "
-                      f"{sum(len(rows) for rows in batch.values())} row(s) in {statements} INSERT(s)", stacklevel=3)
+                      f"{sum(len(rows) for rows in batch.values())} row(s) in {statements} INSERT(s)", area="sql", stacklevel=3)
 
     def executemany(self, sql, seq_of_params):
         """
@@ -1105,7 +1105,8 @@ class Connection:
         cur.executemany(sql.replace("?", "%s"), rows)
         if log.debug_log_active():
             log.trace(f"SQL executemany {(time.perf_counter() - start) * 1000:.2f}ms, {len(rows)} parameter "
-                      f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", stacklevel=3)
+                      f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", area="sql",
+                      stacklevel=3)
         return _Cursor(cur)
 
     def execute_literal(self, sql):
@@ -1119,7 +1120,7 @@ class Connection:
         cur.execute(sql)
         if log.debug_log_active():
             log.trace(f"SQL literal {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): {sql[:120]}",
-                      stacklevel=3)
+                      area="sql", stacklevel=3)
         return _Cursor(cur)
 
     def executescript(self, script):
@@ -1142,6 +1143,8 @@ class Connection:
         for statement in "\n".join(statements).split(";"):
             statement = statement.strip()
             if statement:
+                if log.debug_log_active():
+                    log.trace(f"SQL script statement: {statement[:200]}", area="sql")
                 self._conn.cursor().execute(statement)
         self._conn.commit()
 
@@ -1187,8 +1190,13 @@ class Connection:
         self.flush()
         self._conn.commit()
         self._release_txn_locks()
+        if log.debug_log_active():
+            log.trace("SQL commit", area="sql")
 
     def rollback(self):
+        if log.debug_log_active():
+            log.trace(f"SQL rollback ({sum(len(rows) for rows in self._batch.values()) if self._batch else 0} "
+                      f"held-back row(s) dropped)", area="sql")
         if self._batch:
             self._batch = {}
         try:
@@ -1309,6 +1317,11 @@ def get_connection(config=None, ensure_schema=True, statement_timeout_s=None):
     """
     config = config or DEFAULT_MYSQL_CONFIG
     conn = Connection(_get_pool(config, statement_timeout_s).connect(), config)
+    if log.debug_log_active():
+        log.trace(f"SQL connection from the pool: {config.database}@{config.host}:{config.port} as {config.user}"
+                  f"{'' if statement_timeout_s is None else f', statement limit {statement_timeout_s}s'}"
+                  f"{', schema checked' if ensure_schema and config._key() not in _schema_ensured else ''}",
+                  area="sql")
     if ensure_schema and config._key() not in _schema_ensured:
         try:
             _ensure_schema(conn)
@@ -2906,6 +2919,9 @@ BODY_FIELDS = (
     object_rows.each(magnetism.BODY_FIELDS),
     object_rows.each(hydrosphere.HYDROSPHERE_FIELDS),
     object_rows.each(radiogenic.BODY_FIELDS),
+    object_rows.each(bulk_composition.COLUMN_FIELDS),
+    object_rows.computed("carbon_rock", lambda body, context: _tristate(body.carbon_rock),
+                         lambda row: {"carbon_rock": _tristate_from_db(row["carbon_rock"])}),
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
     object_rows.each(habitability_world.BODY_FIELDS),
     object_rows.each(aerosols.BODY_FIELDS),
@@ -4267,7 +4283,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     # GEN.311: the system's tree of orbits. A generated binary is one node, made from its pair; a tree the system was
     # given (`orbit_nodes`) is stored as it is. The phases hold at the database's orbit epoch (now, before any update).
     nodes = tuple(star_system.orbit_nodes)
-    if not nodes and star_system.binary_type is not None:
+    generated = bool(nodes) and nodes[0].epoch_unix == stored_trees.GENERATED_EPOCH_UNIX    # GEN.631: a drawn tree
+    if (not nodes and star_system.binary_type is not None) or generated:
         orbit_epoch = conn.orbit_epoch_unix if conn._batch is not None else None
         if orbit_epoch is None:
             orbit_epoch = get_orbit_epoch_unix(conn)
@@ -4275,7 +4292,10 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
                 orbit_epoch = int(time.time())
             if conn._batch is not None:
                 conn.orbit_epoch_unix = orbit_epoch
-        nodes = orbit_trees.binary_nodes(star_system, orbit_epoch)
+        if generated:
+            nodes = tuple(dataclasses.replace(node, epoch_unix=float(orbit_epoch)) for node in nodes)
+        else:
+            nodes = orbit_trees.binary_nodes(star_system, orbit_epoch)
     orbit_trees.write_nodes(conn, star_system_id, nodes, replace=False)
     star_system.orbit_nodes = nodes
     places = orbit_trees.star_places(star_system)
@@ -7925,7 +7945,9 @@ def _component_field(conn, edge_pc, expected_at_density_1):
     if field is not None:
         with contextlib.suppress(KeyError):       # another thread dropped it meanwhile
             _FIELD_BY_SIGNATURE.move_to_end(key)
+        log.trace(f"component field: cache hit for {row['n']} stored components (database {row['db']})", area="cache")
         return field
+    log.trace(f"component field: cache miss, reading {row['n']} stored components (database {row['db']})", area="cache")
     found = tuple(c for c in get_galaxy_components(conn) if c.kind in componentField.KINDS_IN_THE_GATE)
     if not found:
         return None
@@ -9055,6 +9077,8 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.runaway_origin = _runaway_origin(conn, star_system_id) if row["runaway_class"] == "runaway" else None
     system.planet_count, system.belt_count, system.moon_count = system.count_objects()
     system.hab_count, system.m_count = system.count_habitable()
+    system.habitable_class_count = system.count_habitable_class_worlds()
+    system.habitable_request = system.habitable_request_status()
     system.comet_count = system.count_comets()
 
     return system

@@ -147,25 +147,6 @@ def requirements(world):
             "Water": water_need(world), "Radiation": radiation_need(world)}
 
 
-SHORT_GEAR = {
-    "a full gas-pressurised suit": "a pressure suit", "a counterpressure or pressurised suit": "a pressure suit",
-    "a hyperbaric pressure suit": "a hyperbaric suit", "a rigid armoured pressure suit": "an armoured suit",
-    "an environment suit with active heating": "an environment suit", "an actively cooled environment suit": "an environment suit",
-    "a heat-shielded suit with a liquid cooling garment": "an environment suit",
-    "a breathing mask with supplied oxygen": "a breathing mask", "an environment suit with its own air": "an environment suit",
-    "a shielded shelter for long stays": "a shielded shelter", "a hardened, shielded habitat": "a hardened habitat",
-}
-"""dict: The gear in the short words a description uses ("so a pressure suit is needed")."""
-
-def _be(gear):
-    """"are" for gear named in the plural ("cooling garments"), else "is"."""
-    return "are" if gear.endswith("garments") else "is"
-
-
-def _short(gear):
-    return SHORT_GEAR.get(gear, gear)
-
-
 def gear_clause(levels):
     """The survival equipment as the two lines that follow a rating's headline, from its stored levels
     (`equipment.compute`): "Required: a + b. Recommended: c."; a line with nothing in it is left off."""
@@ -224,31 +205,46 @@ def rating(world, compact_host=None, regions=None):
     """
     scores = habitability.phi4(world)
     needs = requirements(world)
+    levels = equipment.compute(world)
+    listed = equipment.items(levels)
+    colours = {name: scores[name][1] for name in habitability.DOMAINS}
     rows = []
     for name in habitability.DOMAINS:
         value, colour = scores[name]
-        sentence = _suitability_clause(world) if name == "Suitability" else _clause(name, world, needs[name], compact_host)
+        sentence = _suitability_clause(world) if name == "Suitability" else _clause(
+            name, world, needs[name], compact_host, [item for item in listed if name in item.rows(colours)])
         if name == "Temperature" and regions:
             sentence = " ".join(part for part in (sentence, regional_sentence(world, regions)) if part)
         rows.append({"domain": name, "tier": colour, "score": value, "text": sentence})
-    return {"overall": scores["PHI-4"], "gear": gear_clause(equipment.compute(world)), "rows": rows}
+    return {"overall": scores["PHI-4"], "gear": gear_clause(levels), "rows": rows}
 
 
-def _clause(name, world, need, compact_host):
-    """One category's sentence: the number, then the gear it asks for."""
+def _listed(items):
+    """The `Item`s of one category as the two lines that follow its number: "Required: a + b. Recommended: c."; a line with
+    nothing in it is left off (never "none")."""
+    required = [item.name for item in items if item.severity == equipment.REQUIRED]
+    recommended = [item.name for item in items if item.severity == equipment.RECOMMENDED]
+    return " ".join(line for line in (("Required: " + " + ".join(required) + ".") if required else "",
+                                      ("Recommended: " + " + ".join(recommended) + ".") if recommended else "") if line)
+
+
+def _clause(name, world, need, compact_host, items):
+    """
+    One category's sentence: the number, then the gear it asks for. `items` are the `equipment.items` whose PHI-6 domain
+    is this category, so the row says what the headline's equipment line says (a Green row may ask for a mask). Water has
+    no equipment of its own: it says whether the water can be drunk.
+    """
     rank, gear, why = need
     text = why[0].upper() + why[1:]
-    if name == "Air" and not habitability.has_atmosphere(world):
-        gear = None
-    elif name == "Water" and world.solvent != "water":
-        gear = None
-    elif name == "Radiation" and rank != "hardened":
-        gear = None
-    if gear:
-        text += f", so {_short(gear)} {_be(gear)} needed" if name != "Water" else f", so {gear}"
+    listed = _listed(items)
+    if name == "Water":
+        text += f", so {gear}." if gear and world.solvent == "water" else "."
+    elif listed:
+        text += f". {listed}"
     elif name in ("Pressure", "Temperature") and rank == "none":
-        text += ", so no gear is needed"
-    text += "."
+        text += ", so no gear is needed."
+    else:
+        text += "."
     if name == "Radiation" and compact_host:
         text += f" A planet of a {compact_host} is rated as a lethal dose."
     return text

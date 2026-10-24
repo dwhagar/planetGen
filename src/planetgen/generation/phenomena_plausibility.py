@@ -49,6 +49,9 @@ from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, rogue_planet_classes
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant, sedov_taylor_radius_ly
 from planetgen.util.random import power_law_share
+from planetgen.physics import unit_registry as units
+
+_km_to_m = units.converter("km", "m")
 
 PHENOMENON_TYPES = prog_c.PHENOMENON_TYPE_CHOICES
 """tuple: The eight phenomenon types this module can generate/check --
@@ -415,7 +418,7 @@ def check_hard_invariants(record):
             )
         if record["pulsar_type"] not in ("young", "millisecond", "magnetar", "non-pulsing"):
             issues.append(f"pulsar_type={record['pulsar_type']!r} is not a recognized value")
-        radius_m = record["radius_km"] * pc.KM_TO_M_FACTOR
+        radius_m = _km_to_m(record["radius_km"])
         expected_luminosity_w = (
             pc.STEFAN_BOLTZMANN_CONSTANT * 4 * math.pi * radius_m ** 2
             * record["surface_temperature_k"] ** 4

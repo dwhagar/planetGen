@@ -24,6 +24,7 @@ import redis
 from planetgen.admin import throttle
 from planetgen.api.config import RATELIMIT_KEY_PREFIX, ratelimit_storage_uri
 from planetgen.api.loginguard import REDIS_SCHEMES
+from planetgen.util import log
 
 
 def redis_store():
@@ -40,7 +41,8 @@ def redis_store():
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="List the login lockouts (per address and per username).")
-    parser.parse_args(argv)
+    log.add_debug_arguments(parser)
+    log.apply_debug_arguments(parser.parse_args(argv), parser)
     store = redis_store()
     if store is None:
         return 1

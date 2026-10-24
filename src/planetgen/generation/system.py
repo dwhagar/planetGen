@@ -18,6 +18,7 @@ number of celestial objects, and generating a detailed string representation of
 the system.
 """
 
+import collections
 import dataclasses
 import math
 
@@ -27,9 +28,10 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import (
-    companion_classes, life as planetLife, multistar, place_terms, prevalence, stored_trees, validation,
+    life as planetLife, multistar, place_terms, prevalence, stored_trees, validation,
 )
-from planetgen.physics import constants, insolation, magnetism, mass_loss, metallicity, pre_main_sequence, wolf_rayet
+from planetgen.physics import stellar_evolution as evolution
+from planetgen.physics import constants, habitability, insolation, magnetism, mass_loss, metallicity, pre_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -142,7 +144,9 @@ class StarSystem:
         belt_count (int): The total number of asteroid belts in the system.
         comet_count (int): The total number of comets in the system.
         moon_count (int): The total number of moons in the system.
-        hab_count (int): The total number of potentially habitable worlds.
+        hab_count (int): The total number of habitable worlds (overall PHI-6 Blue or Green, `habitability.is_habitable`).
+        habitable_class_count (int): The planets and moons of a class that can carry life (`count_habitable_class_worlds`).
+        habitable_request (str or None): How the system answers `system_config.HABITABLE_WORLD` (`habitable_request_status`).
         m_count (int): The total number of Class M worlds.
         system_flavor_count (int): Tracks the total number of flavor texts added across the system.
         system_flavor_text (str or None): The system-level flavor text sentence,
@@ -152,23 +156,23 @@ class StarSystem:
     orbit_nodes = ()
     """tuple of `physics.system_tree.OrbitNode`: The tree of orbits the stars hang in (GEN.311). Empty until the system is
     saved (a generated binary's one node is made from its pair then, `db.orbit_trees.binary_nodes`) or for a single star;
-    a loaded system has the tree that was stored. A system built from a stored tree (`member_tree`) has the stored node
-    from the start."""
+    a loaded system has the tree that was stored. A system built from a tree (drawn, GEN.631, or a stored row's,
+    `member_tree`) has its nodes from the start, a drawn tree's at `stored_trees.GENERATED_EPOCH_UNIX` until the save."""
 
     member_stars = ()
     """tuple of Star: The stars beyond the pair (`stars[2:]`) of a system of more than two stars (GEN.630); empty for a
-    single star and a pair, which is every system the fill builds until GEN.631. Each is stored as a `member` row of
+    single star and a pair. Each is stored as a `member` row of
     `stars` and has no planets of its own yet (an S-type window around it is GEN.332's)."""
 
     star_slots = None
     """tuple or None: Where each star of `stars` hangs in `orbit_nodes`, as `(node_no, slot)` in `stars` order (slot 0 or
     1: the child of that node); `None` for a single star and for a pair on the one root node (the primary in slot 0, the
-    secondary in slot 1), which is every system the fill builds. A system with `member_stars` says it."""
+    secondary in slot 1). A system with `member_stars` says it."""
 
     tree_built = False
     """bool: The system was built from the tree its scatter row stored and holds every member of it (GEN.315): the
     save deletes the row's stored members and nodes. False for a system generated whole and for a stored tree the
-    build could not hold (3 or more members, a compact or brown-dwarf member)."""
+    build could not hold (a compact or brown-dwarf member)."""
 
     runaway_class = None
     """str or None: `"runaway"` or `"hypervelocity"` when the system moves
@@ -264,11 +268,11 @@ class StarSystem:
                 (companion, planets, moons, belts, comets) is generated as
                 usual around it.
             member_tree (stored_trees.StoredPlan, optional): The tree a scattered row stored (GEN.315), with
-                `primary_star_params`: the system takes its second star and the orbit between the two from the
-                tree and draws no companion of its own (`BINARY_SYSTEM` and `WIDE_BINARY` are not read). The second
-                star is built from its stored seed, birth mass and the primary's age. A plan that is not
-                `complete` (a tree the pair classes cannot hold) builds the primary alone. `None`: the system draws
-                its own companion as before.
+                `primary_star_params`: the system takes its other stars and the orbits between them from the tree and
+                draws none of its own (`BINARY_SYSTEM` and `WIDE_BINARY` are not read). Each star is built from its
+                stored seed, birth mass and the primary's age. A plan that is not `complete` (a tree with a member that
+                cannot be built as a star) builds the primary alone. `None`: the system draws its own tree of stars
+                (`_drawn_plan`, GEN.631).
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
         # A run's prevalences (GEN.52) decide the measured features' flags
@@ -304,90 +308,27 @@ class StarSystem:
         self.stars = [self.primary_star] # Keep track of individual stars
 
         self.tree_built = member_tree is not None and member_tree.complete
-        stored_secondary = None
-        if member_tree is not None:
-            companion, mass_ratio, companion_reason = self._stored_companion(
-                member_tree, galactic_center_dist_ly, galactic_orbital_phase_deg)
-            stored_secondary = self._stored_secondary
+        placed_star = self.primary_star
+        drawn = member_tree is None and compact_remnant is None
+        plan = stored_trees.SINGLE if member_tree is None else member_tree
+        wanted_kind = self._wanted_pair_kind() if drawn else None
+        attempts = tuning.COMPANION_DRAW_ATTEMPTS if drawn else 1
+        for attempt in range(attempts):
+            if drawn:
+                plan = self._drawn_plan()
+            self._add_companions(plan, galactic_center_dist_ly, galactic_orbital_phase_deg)
+            if not drawn or self._companions_fit(wanted_kind):
+                break
+            if attempt + 1 < attempts:
+                self._remove_companions(placed_star)
         else:
-            companion, mass_ratio, companion_reason = (None, None, None) if compact_remnant is not None \
-                else self._companion()
-        if companion is not None:
-            # The secondary star must not be biased toward a large star the
-            # same way the primary can be, so LARGE_STAR is forced off for
-            # its own generation call -- but only transiently, on the same
-            # shared `system_config` object (restored right after), rather
-            # than handing it its own `copy.deepcopy`d config (a copy would fork every field).
-            original_large_star = self.system_config.LARGE_STAR
-            self.system_config.LARGE_STAR = False
-
-            if stored_secondary is not None:
-                self.secondary_star = stored_secondary
-            else:
-                # The secondary is born with the primary (same age, GEN.53) at a
-                # mass ratio q of its initial mass, and evolves by the population
-                # model -- so its class, luminosity and temperature follow from
-                # its own mass (GEN.54). A specified-type primary has no model
-                # initial mass; its present mass stands in for it.
-                primary_initial_mass_sol = self.primary_star.initial_mass_sol
-                if primary_initial_mass_sol is None:
-                    primary_initial_mass_sol = self.primary_star.mass / constants.SOLAR_MASS_TO_KG
-                # GEN.158: born from the same gas, the pair shares one [Fe/H].
-                star_kwargs = {"initial_mass_sol": primary_initial_mass_sol * mass_ratio,
-                               "age_gy": self.primary_star.age,
-                               "metallicity_fe_h": getattr(self.primary_star, "metallicity_fe_h", None)}
-                with log.timed_phase("secondary star generation"):
-                    # Named properly by assign_names below, once the pair's star words exist.
-                    self.secondary_star = Star(self.system_config, name=self.primary_star.name,
-                                                galactic_center_dist_ly=galactic_center_dist_ly,
-                                                galactic_orbital_phase_deg=galactic_orbital_phase_deg,
-                                                **star_kwargs)
-            self.system_config.LARGE_STAR = original_large_star
-            # The primary may already be a white dwarf lighter than its
-            # companion, so the secondary can come out heavier. The primary
-            # is by definition the heavier star, so swap the pair's roles
-            # then; names come later from assign_names, so nothing else
-            # needs moving.
-            if self.secondary_star.mass > self.primary_star.mass:
-                log.choice("Binary primary", "swapped",
-                           f"secondary {self.secondary_star.mass / constants.SOLAR_MASS_TO_KG:.3g} Msun "
-                           f"outweighs primary {self.primary_star.mass / constants.SOLAR_MASS_TO_KG:.3g} Msun")
-                self.primary_star, self.secondary_star = self.secondary_star, self.primary_star
-                self.star = self.primary_star
-                self.stars = [self.primary_star]
-            self.stars.append(self.secondary_star)
-
-            # Which of the two real binary configurations this pair becomes
-            # was rolled with the companion itself (`_companion`).
-            self.binary_type = companion
-            log.choice("Binary type", self.binary_type, companion_reason)
-
-            if self.binary_type == "close":
-                self.star = BinaryStarProxy(self.system_config, self.primary_star, self.secondary_star,
-                                             galactic_center_dist_ly=galactic_center_dist_ly,
-                                             galactic_orbital_phase_deg=galactic_orbital_phase_deg,
-                                             orbit=None if member_tree is None else member_tree.node) # self.star now points to the proxy
-                # A close pair whose whole habitable zone lies inside its
-                # circumbinary stability limit can't host a habitable world;
-                # when one is required and the binary type wasn't forced,
-                # make the pair wide instead.
-                if (member_tree is None and self.system_config.HABITABLE_WORLD is True
-                        and self.system_config.WIDE_BINARY is None
-                        and self._orbit_floor_au(self.star) >= self.star.habitable_zone[1]):
-                    log.choice("Binary type", "wide", "HABITABLE_WORLD is required and this close pair's habitable "
-                               "zone lies inside its circumbinary stability limit")
-                    self.binary_type = "wide"
-                    self.star = self.primary_star
-
-            if self.binary_type == "wide":
-                # An S-type pair never merges into one effective star --
-                # self.star stays the primary Star itself (set above), and
-                # WideBinaryPair.__init__ sets primary_star.a_crit_au /
-                # secondary_star.a_crit_au directly on the two Star
-                # instances (see Star.a_crit_au's own docstring).
-                self.wide_binary = WideBinaryPair(self.system_config, self.primary_star, self.secondary_star,
-                                                  inner_boost=self._wide_inner_boost,
-                                                  orbit=None if member_tree is None else member_tree.node)
+            # No draw fit what the directives and the place asked: a forced pair is kept as the last draw made it (of the
+            # kind `WIDE_BINARY` asks for, whatever its axis), any other system is the star alone.
+            if (self._forced_star_count() or 1) < 2:
+                self._remove_companions(placed_star)
+            elif self.system_config.WIDE_BINARY is not None and self.binary_type != wanted_kind:
+                self._remove_companions(placed_star)
+                self._add_companions(plan, galactic_center_dist_ly, galactic_orbital_phase_deg, kind=wanted_kind)
 
         # Removed: self.system_flavor_count = 0 # Initialize system flavor count
         # `validate_system`'s orbital-overlap correction can, in rare cases,
@@ -407,79 +348,89 @@ class StarSystem:
         # list's outermost planet if the two stars' own disks would
         # otherwise gravitationally encroach on each other -- see that
         # method's docstring.
-        for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
-            with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
-                primary_ceiling_au = self._orbit_ceiling_au(self.star)
-                self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
-                self._clear_circumbinary_floor(self.planets)
-                self.validate_system(self.planets)
-                # validate_system only ever pushes a body's distance further
-                # OUTWARD to resolve a spacing collision with its inner
-                # neighbor, never closer -- for the galactic-Hill-sphere
-                # ceiling this correction is negligible next to a light-year-
-                # scale boundary, but a much tighter S-type a_crit ceiling
-                # makes it a real possibility, so re-trim afterward using each
-                # body's own final position.
-                self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
-                self._apply_star_history(self.planets, self.star)
-                # GEN.318: a white dwarf's survivors move out; the Hill spacing is over the lighter star now
-                if remnant_orbits.widen_for_mass_loss(self.planets, self.star, self._explicit_request()):
+        # TEST.313: the age settled below only rises, and the survival limit falls with age (GEN.325), so the final
+        # trim can take the forced belt or habitable world that the attempts above kept. The attempts then run again
+        # once, placing under the settled age, before the request is given up as unmet.
+        for _round in range(2):
+            for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
+                with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
+                    primary_ceiling_au = self._orbit_ceiling_au(self.star)
+                    self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
+                    self._clear_circumbinary_floor(self.planets)
                     self.validate_system(self.planets)
+                    # validate_system only ever pushes a body's distance further
+                    # OUTWARD to resolve a spacing collision with its inner
+                    # neighbor, never closer -- for the galactic-Hill-sphere
+                    # ceiling this correction is negligible next to a light-year-
+                    # scale boundary, but a much tighter S-type a_crit ceiling
+                    # makes it a real possibility, so re-trim afterward using each
+                    # body's own final position.
                     self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
+                    self._apply_star_history(self.planets, self.star)
+                    # GEN.318: a white dwarf's survivors move out; the Hill spacing is over the lighter star now
+                    if remnant_orbits.widen_for_mass_loss(self.planets, self.star, self._explicit_request()):
+                        self.validate_system(self.planets)
+                        self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
 
-                self.secondary_planets = []
-                if self.binary_type == "wide":
-                    secondary_ceiling_au = self._orbit_ceiling_au(self.secondary_star)
-                    self.secondary_planets = self._generate_planets(
-                        self.secondary_star, self.secondary_star.habitable_zone,
-                        secondary_ceiling_au, apply_guarantees=False,
-                    )
-                    self.validate_system(self.secondary_planets)
-                    self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
-                    self._apply_star_history(self.secondary_planets, self.secondary_star)
-                    if remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star,
-                                                          self._explicit_request()):
+                    self.secondary_planets = []
+                    if self.binary_type == "wide":
+                        secondary_ceiling_au = self._orbit_ceiling_au(self.secondary_star)
+                        self.secondary_planets = self._generate_planets(
+                            self.secondary_star, self.secondary_star.habitable_zone,
+                            secondary_ceiling_au, apply_guarantees=False,
+                        )
                         self.validate_system(self.secondary_planets)
                         self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
-                    # Runs last, once both lists reflect their own truly final
-                    # (post-validate_system, post-trim) positions -- see this
-                    # method's own docstring.
-                    self._validate_cross_star_clearance()
+                        self._apply_star_history(self.secondary_planets, self.secondary_star)
+                        if remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star,
+                                                              self._explicit_request()):
+                            self.validate_system(self.secondary_planets)
+                            self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
+                        # Runs last, once both lists reflect their own truly final
+                        # (post-validate_system, post-trim) positions -- see this
+                        # method's own docstring.
+                        self._validate_cross_star_clearance()
 
-                habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable(self.planets)[0] > 0
-                belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
-            if habitable_satisfied and belt_satisfied:
-                log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
-                          f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
-                          f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
+                    habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
+                    belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
+                if habitable_satisfied and belt_satisfied:
+                    log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
+                              f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
+                              f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
+                    break
+                log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
+                          f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
+                          f"required and found: {belt_satisfied})")
+
+            if remnant_orbits.is_post_agb_pair(self.star):
+                remnant_orbits.post_agb_disk(self.primary_star, self._orbit_floor_au(self.star))
+
+            # A pair's two stars share one age (GEN.53): a close pair's proxy
+            # settles it for both, a wide pair's from both stars' own planets.
+            if self.binary_type == "wide":
+                adjust_pair_age_for_planets(self.primary_star, self.secondary_star, self.planets, self.secondary_planets)
+            else:
+                self.star.adjust_age_for_planets(self.planets)
+
+            # The age above only ever rises, and the place's survival limit falls with age (GEN.325), so a body placed
+            # under the provisional age can sit past the ceiling of the final one: trim to it, and judge the forced
+            # habitable world and belt on what is left.
+            self._trim_to_orbit_ceiling(self.planets, self._orbit_ceiling_au(self.star))
+            if self.binary_type == "wide":
+                self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
+            habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
+            belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
+            if (habitable_satisfied and belt_satisfied) or _round:
                 break
-            log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
-                      f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
-                      f"required and found: {belt_satisfied})")
-
-        if remnant_orbits.is_post_agb_pair(self.star):
-            remnant_orbits.post_agb_disk(self.primary_star, self._orbit_floor_au(self.star))
-
-        # A pair's two stars share one age (GEN.53): a close pair's proxy
-        # settles it for both, a wide pair's from both stars' own planets.
-        if self.binary_type == "wide":
-            adjust_pair_age_for_planets(self.primary_star, self.secondary_star, self.planets, self.secondary_planets)
-        else:
-            self.star.adjust_age_for_planets(self.planets)
-
-        # The age above only ever rises, and the place's survival limit falls with age (GEN.325), so a body placed
-        # under the provisional age can sit past the ceiling of the final one: trim to it, and judge the forced
-        # habitable world and belt on what is left.
-        self._trim_to_orbit_ceiling(self.planets, self._orbit_ceiling_au(self.star))
-        if self.binary_type == "wide":
-            self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
-        habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable(self.planets)[0] > 0
-        belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
         self.unmet_requirements = []
         if not habitable_satisfied:
             self.unmet_requirements.append("a habitable world")
         if not belt_satisfied:
             self.unmet_requirements.append("an asteroid belt")
+        forced = self._forced_star_count()
+        if forced is not None and len(self.stars) != forced and forced > 1:
+            # A star at the hydrogen-burning limit has no lighter star to be its companion (GEN.631).
+            self.unmet_requirements.append("a companion star" if forced == 2 else f"{forced} stars")
         if self.unmet_requirements:
             log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                       f"without {' or '.join(self.unmet_requirements)}")
@@ -573,6 +524,8 @@ class StarSystem:
 
         self.planet_count, self.belt_count, self.moon_count = self.count_objects()
         self.hab_count, self.m_count = self.count_habitable()
+        self.habitable_class_count = self.count_habitable_class_worlds()
+        self.habitable_request = self.habitable_request_status()
         self.comet_count = self.count_comets()
         log.debug(f"System {self.name!r} finished: binary={self.binary_type or 'no'}, "
                   f"{self.planet_count} planets, {self.belt_count} belts, {self.moon_count} moons, "
@@ -638,6 +591,8 @@ class StarSystem:
                 self.primary_star.name = f"{first_word} {primary_word}"
                 self.secondary_star.name = f"{first_word} {secondary_word}"
                 hosts = [(first_word, self.planets), (secondary_word, self.secondary_planets)]
+        for index, member in enumerate(self.member_stars):    # C, D, ... after the pair's A and B (GEN.631)
+            member.name = f"{system_name} {chr(ord(CLOSE_PAIR_LETTERS[1]) + 1 + index)}"
         for prefix, bodies in hosts:
             name_bodies(prefix, bodies)
 
@@ -725,110 +680,230 @@ class StarSystem:
         """
         return [(p.mass, p.position_x, p.position_y, p.position_z) for p in planets if p.body_type != 'a']
 
-    def _stored_companion(self, plan, galactic_center_dist_ly, galactic_orbital_phase_deg):
+    def _special_companion_chance(self):
         """
-        The companion a scattered row stored, in the shape `_companion` returns (GEN.315): the kind of the pair
-        (`close` or `wide`, the stored node's), no mass ratio (the star is built here, `self._stored_secondary`, from
-        the member's seed, its birth mass and the primary's age and [Fe/H]), and the words for the log. A plan with no
-        companion gives none. A built star that is not the stored member (its mass differs: the tree records a change
-        a birth mass and an age do not give) leaves the primary alone and the plan unspent (`tree_built` false).
+        The chance of a companion the primary's own kind sets in place of the star-count table's (`None`: the table's):
+        a protostar has the multiplicity of Perseus' Class 0 and Class I protostars (GEN.242), a Wolf-Rayet star a companion
+        in 52% (WN) or 90% (WC and WO) of cases (GEN.243).
+        """
+        primary = self.primary_star
+        initial_mass = getattr(primary, "initial_mass_sol", None)
+        protostar_chance = (None if initial_mass is None or primary.age is None else
+                            pre_main_sequence.companion_chance(initial_mass, primary.age * 1.0e9))
+        if protostar_chance is not None:
+            return protostar_chance
+        if getattr(primary, "yerkes_class", None) == wolf_rayet.CLASS:
+            return wolf_rayet.companion_chance(primary.type)
+        return None
 
-        Sets `orbit_nodes` to the stored node when the pair is built.
+    def _wanted_pair_kind(self):
         """
-        self._wide_inner_boost = 1.0
-        self._stored_secondary = None
-        if plan.companion is None:
-            return None, None, None
+        The kind of pair (`close` or `wide`) this system's directives ask for, `None` for whatever the tree draws:
+        `WIDE_BINARY` forces it, and a `wide_binary` prevalence (ADM.45) moves the share of wide pairs among the pairs.
+        """
         config = self.system_config
+        if config.WIDE_BINARY is not None:
+            return "wide" if config.WIDE_BINARY else "close"
+        if prevalence.percent(config, "wide_binary"):
+            chance = prevalence.scaled_chance(config, "wide_binary", prevalence.USUAL_SHARES["wide_binary"])
+            return "wide" if draw.random() < chance else "close"
+        return None
+
+    def _drawn_plan(self):
+        """
+        The tree of stars around the primary this system draws for itself (`multistar.draw_member_tree`, at the odds of the
+        `star-count` table), as a `stored_trees.StoredPlan`: the members a build cannot make from a birth mass and an age
+        (a brown dwarf, a neutron star, a black hole) are taken out of it first. `BINARY_SYSTEM` forces no companion
+        (`False`) or a pair (`True`); a protostar's or Wolf-Rayet star's own chance of a companion (`_special_companion_chance`)
+        and a `binary_system` prevalence move how many systems have one.
+        """
+        config = self.system_config
+        primary = self.primary_star
+        if config.BINARY_SYSTEM is False or primary.age is None:
+            return stored_trees.SINGLE
+        count = self._forced_star_count()
+        at_least_two = False
+        special = self._special_companion_chance()
+        percent = prevalence.percent(config, "binary_system")
+        placed = multistar.Placed("star", primary.mass / constants.SOLAR_MASS_TO_KG, place_terms.born_mass_solar(primary))
+        if count is not None:
+            pass
+        elif special is not None:
+            if draw.random() < special:
+                at_least_two = True
+            else:
+                count = 1
+        elif percent < 0.0:
+            if draw.random() < -percent / 100.0:
+                count = 1
+        elif percent > 0.0:
+            weights = multistar.star_count_weights(placed.birth_mass_solar)
+            share = 1.0 - weights[0] / sum(weights)     # this star's usual chance of a companion
+            at_least_two = draw.random() < min(1.0, (percent / 100.0) * share / max(1.0 - share, 1.0e-9))
+        age_yr = primary.age * 1.0e9
+
+        # The widest axis the place keeps (GEN.103), for a pair of the primary and a companion of the mean mass ratio.
+        terms = getattr(config, "PLACE_TERMS", None) or place_terms.SOLAR_NEIGHBOURHOOD
+        limit_au = place_terms.wide_axis_limit_au(
+            terms, placed.birth_mass_solar * (1.0 + sum(tuning.BINARY_MASS_RATIO_RANGE) / 2.0), primary.age)
+
+        # A star of a type the directives named can be older than the model's lifetime for its mass: the tree is drawn at
+        # the end of that lifetime, the star itself keeps its age.
+        draw_age_yr = min(age_yr, 0.95 * evolution.main_sequence_lifetime_gy(placed.birth_mass_solar) * 1.0e9)
+
+        # A forced count keeps a brown dwarf as a star at the hydrogen-burning limit, as a forced pair always had one.
+        unbuilt = (tuple(kind for kind in stored_trees.UNBUILT_KINDS if kind != "brown-dwarf")
+                   if count is not None else stored_trees.UNBUILT_KINDS)
+
+        def tree(n_stars):
+            for tree_age_yr in (age_yr, draw_age_yr):
+                try:
+                    return multistar.without_members(
+                        multistar.draw_member_tree(placed, tree_age_yr, max_stars=config.MAX_STARS, n_stars=n_stars,
+                                               prevalence=prevalence.multi_star_scale(config), max_axis_au=limit_au,
+                                               pair_placed=True),
+                        unbuilt)
+                except ValueError:    # the placed star has collapsed by this age
+                    continue
+            return multistar.draw_member_tree(placed, 0.0, n_stars=1)
+
+        drawn = tree(count)
+        if at_least_two and drawn.member_count < 2:
+            drawn = tree(2)
+        return stored_trees.drawn(drawn)
+
+    def _forced_star_count(self):
+        """The number of stars the directives force (`STARS`, else two for `BINARY_SYSTEM`), `None` to leave it to the table."""
+        config = self.system_config
+        if config.STARS is not None:
+            return config.STARS
+        return 2 if config.BINARY_SYSTEM is True else None
+
+    def _companions_fit(self, wanted_kind):
+        """Whether the companions just added are what the directives and the place need (see `__init__`'s loop)."""
+        config = self.system_config
+        forced = self._forced_star_count()
+        if forced is not None and len(self.stars) != forced:
+            return False
+        if self.binary_type is None:
+            return True
+        if wanted_kind is not None and self.binary_type != wanted_kind:
+            return False
+        # A close pair whose whole habitable zone lies inside its circumbinary stability limit can't host a habitable world.
+        return not (self.binary_type == "close" and config.HABITABLE_WORLD is True and config.WIDE_BINARY is None
+                    and self._orbit_floor_au(self.star) >= self.star.habitable_zone[1])
+
+    def _remove_companions(self, placed_star):
+        """Takes the companions back out: the system is `placed_star` alone again."""
+        self.primary_star = self.star = placed_star
+        self.stars = [placed_star]
+        self.__dict__.pop("secondary_star", None)
+        self.binary_type = None
+        self.wide_binary = None
+        self.member_stars = ()
+        self.star_slots = None
+        self.orbit_nodes = ()
+
+    def _add_companions(self, plan, galactic_center_dist_ly, galactic_orbital_phase_deg, kind=None):
+        """
+        Builds the other stars of `plan` around the primary (member 0 of the tree, already built) and hangs them all in the
+        plan's nodes (GEN.315, GEN.631): each from its own seed, birth mass and the primary's age and [Fe/H]. The pair is
+        the two stars of the plan's pair node (`StoredPlan.pair_node_no`), the heavier the primary; every other star is one of
+        `member_stars`. Sets `orbit_nodes` and, for a system of more than two stars, `star_slots`.
+
+        A stored plan whose built star is not the stored member (its mass differs: the tree records a change a birth mass and
+        an age do not give) leaves the primary alone and the plan unspent (`tree_built` false); a plan that is not `exact`
+        corrects its nodes to the masses the stars came out with. A plan with no members builds nothing. `kind` forces
+        the kind of the pair (`close` or `wide`) whatever its axis.
+        """
+        if not plan.members:
+            return
+        config = self.system_config
+        placed = self.primary_star
+        built = {0: placed}
         original_large_star = config.LARGE_STAR
-        config.LARGE_STAR = False  # the secondary is not biased toward a large star (see __init__)
+        config.LARGE_STAR = False  # the others are not biased toward a large star (see above)
         try:
-            with log.timed_phase("stored secondary star generation"), draw.bound(plan.companion.seed):
-                secondary = Star(config, name=self.primary_star.name, galactic_center_dist_ly=galactic_center_dist_ly,
-                                 galactic_orbital_phase_deg=galactic_orbital_phase_deg,
-                                 initial_mass_sol=plan.companion.initial_mass_solar, age_gy=self.primary_star.age,
-                                 metallicity_fe_h=getattr(self.primary_star, "metallicity_fe_h", None))
+            for member in plan.members[1:]:
+                with log.timed_phase("companion star generation"), draw.bound(member.seed):
+                    built[member.member_no] = Star(
+                        config, name=placed.name, galactic_center_dist_ly=galactic_center_dist_ly,
+                        galactic_orbital_phase_deg=galactic_orbital_phase_deg,
+                        initial_mass_sol=member.initial_mass_solar, age_gy=placed.age,
+                        metallicity_fe_h=getattr(placed, "metallicity_fe_h", None))
+                if plan.exact and not stored_trees.matches(built[member.member_no], member):
+                    log.choice("Stored companion", "left out", f"a star of its birth mass {member.initial_mass_solar:.4g}"
+                               f" Msun at {placed.age:.4g} Gy is not the stored {member.mass_solar:.4g} Msun")
+                    self.tree_built = False
+                    return
         finally:
             config.LARGE_STAR = original_large_star
-        if not stored_trees.matches(secondary, plan.companion):
-            log.choice("Stored companion", "left out", f"a star of its birth mass {plan.companion.initial_mass_solar:.4g}"
-                       f" Msun at {self.primary_star.age:.4g} Gy is not the stored {plan.companion.mass_solar:.4g} Msun")
-            self.tree_built = False
-            return None, None, None
-        self._stored_secondary = secondary
-        self.orbit_nodes = (plan.node,)
-        return plan.node.kind, None, f"the {plan.node.kind} node its scatter row stored"
-
-    def _companion(self):
-        """
-        Decides whether this system gets a secondary star, and which kind (GEN.103), in one roll. Honors
-        `system_config.BINARY_SYSTEM`'s tri-state contract the same way every other tri-state flag
-        (`HABITABLE_WORLD`, `ASTEROID_BELT`, etc.) does: `False` forces none, `True` forces a companion, `None`
-        (the default) rolls real chance; `WIDE_BINARY` then forces the kind of a companion that exists.
-
-        The chances are the primary's: `tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS`, keyed by its spectral
-        letter (real stellar-multiplicity surveys -- Duchene & Kraus 2013; Raghavan et al. 2010; Moe & Di Stefano
-        2017, cited on that table -- find companionship rising sharply with primary mass, from ~26% for M dwarfs up
-        to ~90%+ for O stars), split between the close, inner and outer ranges of separation by Moe & Di Stefano's
-        companions per decade of period (`companion_classes`, GEN.448). The close and inner shares (a < 10 AU) follow
-        the primary's own [Fe/H] (`place_terms.scaled_close_chance`, every mass: Moe, Kratter & Badenes 2019, on the
-        odds); the outer share does not, and gives way only where they together would pass 1. A wide pair the place
-        cannot keep (its widest surviving axis is under `WIDE_BINARY_SEPARATION_MIN_AU`: passing stars and the tide,
-        `place_terms.wide_axis_limit_au`) is lost from the chances, and becomes a close pair when a companion is
-        forced, else the primary alone. This runs after the primary star already exists (`__init__` constructs `self.star`/
-        `self.primary_star` first) specifically so its real, already-rolled spectral type, [Fe/H] and age can drive it.
-
-        Returns:
-            tuple: `(kind, mass_ratio, reason)`: `"close"`, `"wide"` or `None`; the mass ratio q of the
-                companion (drawn here, `None` with no companion); and the words for the log.
-        """
-        config = self.system_config
-        self._wide_inner_boost = 1.0
-        if config.BINARY_SYSTEM is False:
-            return None, None, None
-        letter = self.primary_star.type[0] if self.primary_star.type else 'G'
-        primary_mass = place_terms.born_mass_solar(self.primary_star)
-        field_chance = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(
-            multistar.companion_class(primary_mass, letter), 0.44)
-        # GEN.242: a protostar has the multiplicity of Perseus' Class 0 and Class I protostars, not the field's.
-        initial_mass = getattr(self.primary_star, "initial_mass_sol", None)
-        protostar_chance = (None if initial_mass is None or self.primary_star.age is None else
-                            pre_main_sequence.companion_chance(initial_mass, self.primary_star.age * 1.0e9))
-        # GEN.243: a Wolf-Rayet star has a companion in 52% (WN) or 90% (WC and WO) of cases, not the field's rate.
-        special_chance = protostar_chance if protostar_chance is not None else (
-            wolf_rayet.companion_chance(self.primary_star.type)
-            if getattr(self.primary_star, "yerkes_class", None) == wolf_rayet.CLASS
-            else None)
-        chance = prevalence.scaled_chance(config, "binary_system", field_chance if special_chance is None else special_chance)
-        fe_h = getattr(self.primary_star, "metallicity_fe_h", None)
-        terms = getattr(config, "PLACE_TERMS", None) or place_terms.SOLAR_NEIGHBOURHOOD
-        limit = place_terms.wide_axis_limit_au(
-            terms, primary_mass * (1.0 + companion_classes.mean_mass_ratio()), self.primary_star.age)
-        chances = companion_classes.odds(primary_mass, chance, fe_h, limit,
-                                         lambda share: prevalence.scaled_chance(config, "wide_binary", share))
-        close, wide = chances.close, chances.wide
-        self._wide_inner_boost = chances.inner_boost
-        reason = (f"roll against close {close:g} and wide {wide:g} (BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS "
-                  f"{chance:g}, the companions-per-decade lines of Moe & Di Stefano 2017, [Fe/H] odds factor "
-                  f"{place_terms.close_companion_factor(fe_h):.3g}, widest axis kept {limit:.3g} AU)")
-        if config.BINARY_SYSTEM is True:
-            kind = "wide" if close + wide > 0.0 and draw.random() * (close + wide) >= close else "close"
-            reason = "forced by +binary_system, kind by " + reason
+        nodes = list(plan.nodes)
+        if not plan.exact:
+            nodes = self._fit_nodes(plan, built)
+        pair_no = plan.pair_node_no()
+        slots = {member.member_no: (member.parent_node_no, member.slot) for member in plan.members}
+        low, high = sorted((member.member_no for member in plan.members if member.parent_node_no == pair_no),
+                           key=lambda member_no: slots[member_no][1])
+        first, second = low, high
+        if built[second].mass > built[first].mass:
+            # The primary is by definition the heavier star, so the pair's roles swap: the heavier takes slot 0, and the
+            # orbit of the slot-1 star about it is the old one turned half way round.
+            log.choice("Binary primary", "swapped",
+                       f"secondary {built[second].mass / constants.SOLAR_MASS_TO_KG:.3g} Msun "
+                       f"outweighs primary {built[first].mass / constants.SOLAR_MASS_TO_KG:.3g} Msun")
+            first, second = second, first
+            slots[low], slots[high] = slots[high], slots[low]
+            nodes[pair_no] = dataclasses.replace(
+                nodes[pair_no], arg_periapsis_deg=(nodes[pair_no].arg_periapsis_deg + 180.0) % 360.0)
+        primary, secondary = built[first], built[second]
+        # The pair is a P-type pair (`close`) where its axis is under the least a wide pair has, else an S-type one (`wide`);
+        # its node says which, the other nodes of the tree keep the kind the tree drew them with.
+        # A P-type pair is tracked on a circle (`BinaryStarProxy`).
+        pair_node = nodes[pair_no]
+        if kind is None:
+            kind = "close" if pair_node.separation_km / constants.AU_TO_KM < tuning.WIDE_BINARY_SEPARATION_MIN_AU else "wide"
+        if kind == "close":
+            pair_node = dataclasses.replace(pair_node, kind="close", eccentricity=0.0)
         else:
-            roll = draw.random()
-            if roll >= close + wide:
-                return None, None, None
-            kind = "close" if roll < close else "wide"
-        mass_ratio = draw.uniform(*tuning.BINARY_MASS_RATIO_RANGE)
-        if config.WIDE_BINARY is not None:
-            return ("wide" if config.WIDE_BINARY else "close"), mass_ratio, "forced by +wide_binary/-wide_binary"
-        if kind == "wide" and limit < tuning.WIDE_BINARY_SEPARATION_MIN_AU:
-            log.choice("Wide pair", "dissolved", f"its place keeps no axis over {limit:.3g} AU, under "
-                       f"{tuning.WIDE_BINARY_SEPARATION_MIN_AU:g} AU")
-            if config.BINARY_SYSTEM is True:
-                return "close", mass_ratio, "BINARY_SYSTEM forced and the place keeps no wide pair"
-            return None, None, None
-        return kind, mass_ratio, reason
+            # (the wide pair holds eccentricities under `WIDE_BINARY_ECCENTRICITY_MAX`, where its stability limit is good)
+            pair_node = dataclasses.replace(pair_node, kind="wide", eccentricity=min(
+                pair_node.eccentricity, tuning.WIDE_BINARY_ECCENTRICITY_MAX * (1.0 - 1.0e-9)))
+        nodes[pair_no] = pair_node
+        others = [member for member in plan.members if member.parent_node_no != pair_no]
+        self.primary_star, self.secondary_star = primary, secondary
+        self.star = primary
+        self.member_stars = tuple(built[member.member_no] for member in others)
+        self.stars = [primary, secondary, *self.member_stars]
+        self.orbit_nodes = tuple(nodes)
+        if others:
+            self.star_slots = tuple(slots[member_no] for member_no in (first, second, *(m.member_no for m in others)))
+        # Which of the two real binary configurations the pair is was drawn with its node.
+        self.binary_type = pair_node.kind
+        log.choice("Binary type", self.binary_type, f"the {pair_node.kind} node of a tree of {len(plan.members)} stars")
+        if self.binary_type == "close":
+            self.star = BinaryStarProxy(config, primary, secondary, galactic_center_dist_ly=galactic_center_dist_ly,
+                                        galactic_orbital_phase_deg=galactic_orbital_phase_deg, orbit=pair_node)
+        else:
+            # An S-type pair never merges into one effective star -- self.star stays the primary Star itself, and
+            # WideBinaryPair.__init__ sets primary_star.a_crit_au / secondary_star.a_crit_au directly on the two Star
+            # instances (see Star.a_crit_au's own docstring).
+            self.wide_binary = WideBinaryPair(config, primary, secondary, orbit=pair_node)
+
+    @staticmethod
+    def _fit_nodes(plan, built):
+        """`plan`'s nodes with the mass of each the built stars below it make, and the period of its own axis about it."""
+        mass = {member.member_no: built[member.member_no].mass / constants.SOLAR_MASS_TO_KG for member in plan.members}
+        children = collections.defaultdict(list)
+        for member in plan.members:
+            children[member.parent_node_no].append(mass[member.member_no])
+        total = {}
+        for node in reversed(plan.nodes):    # children are numbered after their parents
+            total[node.node_no] = sum(children[node.node_no]) + sum(
+                total[child.node_no] for child in plan.nodes if child.parent_node_no == node.node_no)
+        return [dataclasses.replace(node, mass_solar=total[node.node_no],
+                                    period_years=math.sqrt((node.separation_km / constants.AU_TO_KM) ** 3
+                                                           / total[node.node_no])) for node in plan.nodes]
 
     @staticmethod
     def _first_slot_distance_au(habitable_zone):
@@ -1524,6 +1599,8 @@ class StarSystem:
 
         system.planet_count, system.belt_count, system.moon_count = system.count_objects()
         system.hab_count, system.m_count = system.count_habitable()
+        system.habitable_class_count = system.count_habitable_class_worlds()
+        system.habitable_request = system.habitable_request_status()
         system.comet_count = system.count_comets()
 
         return system
@@ -1788,38 +1865,71 @@ class StarSystem:
 
     def count_habitable(self, planets=None):
         """
-        Counts the number of potentially habitable worlds in the system.
-
-        This method iterates through all planets and their moons, checking their
-        classification against `tuning.HABITABLE_PLANET_CLASSES` to
-        determine if they are potentially habitable, and also keeps a separate
-        count of Class M worlds, which are considered the most Earth-like. This
-        is used for the system summary output.
+        Counts the habitable worlds in the system: the planets and moons whose overall PHI-6 score is Blue or Green
+        (`habitability.is_habitable`; Boss, 2026-10-23), and separately the Class M worlds, which are considered the
+        most Earth-like. This is used for the system summary output.
 
         Args:
             planets (list, optional): See `count_objects`'s identical
                 parameter -- defaults to both stars' combined lists.
 
         Returns:
-            tuple: A tuple containing the total number of potentially habitable
-                   worlds and the total number of Class M worlds, in that order.
+            tuple: A tuple containing the total number of habitable worlds and
+                   the total number of Class M worlds, in that order.
         """
         if planets is None:
             planets = self.planets + self.secondary_planets
-        habitable_classes = tuning.HABITABLE_PLANET_CLASSES
         hab_count, m_count = 0, 0
         for planet in planets:
             if planet.body_type != 'a':
-                if planet.planet_class in habitable_classes:
-                    hab_count += 1
-                if planet.planet_class == "M":
-                    m_count += 1
-                for moon in planet.moons:
-                    if moon.planet_class in habitable_classes:
+                for body in (planet, *planet.moons):
+                    if habitability.is_habitable(getattr(body, "phi4", None)):
                         hab_count += 1
-                    if moon.planet_class == "M":
+                    if body.planet_class == "M":
                         m_count += 1
         return hab_count, m_count
+
+    def habitable_request_status(self, planets=None):
+        """
+        How the system answers a request for a habitable world (`system_config.HABITABLE_WORLD`), `None` when none was made:
+        `"aim"` when a planet or moon is habitable (overall PHI-6 Blue or Green), `"fallback"` when the best it has is overall
+        Yellow with Suitability at least Yellow (Boss, 2026-10-23: accepted when the request must fall short), else
+        `"unmet"`. The generation retry still steers by life class (`count_habitable_class_worlds`), so `"unmet"` is possible
+        until the world is regenerated under restricted draws.
+        """
+        if getattr(getattr(self, "system_config", None), "HABITABLE_WORLD", None) is not True:
+            return None
+        if planets is None:
+            planets = self.planets + self.secondary_planets
+        best = "unmet"
+        for planet in planets:
+            if planet.body_type == 'a':
+                continue
+            for body in (planet, *planet.moons):
+                result = habitability.habitable_request_result(
+                    getattr(body, "phi4", None), getattr(body, "phi4_suitability", None))
+                if result == "aim":
+                    return "aim"
+                if result == "fallback":
+                    best = "fallback"
+        return best
+
+    def count_habitable_class_worlds(self, planets=None):
+        """
+        Counts the planets and moons whose class can carry life (`tuning.HABITABLE_PLANET_CLASSES`). This is what a request
+        for a habitable world steers by while the class is drawn before the score is known: the planet is placed by its
+        class, and `count_habitable` says how it scored.
+
+        Args:
+            planets (list, optional): See `count_objects`'s identical parameter.
+
+        Returns:
+            int: The number of planets and moons of a life class.
+        """
+        if planets is None:
+            planets = self.planets + self.secondary_planets
+        return sum(1 for planet in planets if planet.body_type != 'a'
+                   for body in (planet, *planet.moons) if body.planet_class in tuning.HABITABLE_PLANET_CLASSES)
 
     def count_comets(self, comets=None):
         """

@@ -25,6 +25,11 @@ from planetgen.names.wordsalad import LazySaladName
 from planetgen.physics import activity, constants, pre_main_sequence, spin
 from planetgen.physics.orbits import calculate_hill_sphere
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_ly_to_m = units.converter("ly", "m")
+_m_to_pc = units.converter("m", "pc")
+_m_to_au = units.converter("m", "au")
 
 
 class StellarObject(LazySaladName, MassObject):
@@ -323,9 +328,9 @@ class StellarObject(LazySaladName, MassObject):
         """
         if galactic_center_dist_ly is None:
             galactic_center_dist_ly = scales.default_galactocentric_ly()
-        galactic_center_dist_m = max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY) * constants.LY_TO_M
-        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, enclosed_mass.current_enclosed_mass_kg(galactic_center_dist_m / constants.PARSEC_M))
-        return hill_radius_m / constants.AU_TO_M
+        galactic_center_dist_m = _ly_to_m(max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY))
+        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, self.mass, enclosed_mass.current_enclosed_mass_kg(_m_to_pc(galactic_center_dist_m)))
+        return _m_to_au(hill_radius_m)
 
     def calculate_galactic_orbit(self, galactic_center_dist_ly=None):
         """

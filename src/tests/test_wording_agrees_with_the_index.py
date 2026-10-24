@@ -62,6 +62,26 @@ def test_the_gear_clause_and_the_equipment_line_name_the_same_items():
             assert name in clause and name in line, (name, clause, line)
 
 
+def test_each_row_lists_the_gear_of_its_category_and_the_rows_list_the_whole_equipment_line():
+    """The category sentences are written from the equipment items: a row lists the items whose domains include it and whose
+    colour is not Blue (`Item.rows`, GEN.702), every item of the headline's line is in at least one row, and a list with
+    nothing in it is left off."""
+    for world in _all_worlds():
+        levels = equipment.compute(world)
+        rows = protection.rating(world)["rows"]
+        colours = {row["domain"]: row["tier"] for row in rows}
+        said = []
+        for row in rows:
+            assert "none" not in row["text"].lower().replace("no gear is needed", ""), row
+            for severity, label in ((equipment.REQUIRED, "Required"), (equipment.RECOMMENDED, "Recommended")):
+                named = re.search(label + r": ([^.]*)\.", row["text"])
+                expected = [item.name for item in equipment.items(levels) if row["domain"] in item.rows(colours)
+                            and item.severity == severity]
+                assert (named.group(1).split(" + ") if named else []) == expected, (row, expected)
+                said += expected
+        assert set(said) == set(equipment.required_names(levels) + equipment.recommended_names(levels))
+
+
 def test_an_airless_body_is_never_better_than_red_in_air():
     airless = [dataclasses.replace(world, pressure_kpa=pressure, gases={})
                for world in _worlds(40) for pressure in (0.0, 1e-9, 1e-6)]

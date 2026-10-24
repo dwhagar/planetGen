@@ -29,6 +29,12 @@ from planetgen.physics.orbits import (
     calculate_habitable_zone, calculate_hill_sphere, circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au,
 )
 from planetgen.util.checks import finite_domain
+from planetgen.physics import unit_registry as units
+
+_km_to_au = units.converter("km", "au")
+_ly_to_m = units.converter("ly", "m")
+_m_to_pc = units.converter("m", "pc")
+_m_to_au = units.converter("m", "au")
 
 class BinaryStarProxy(StellarObject):
     """
@@ -149,10 +155,10 @@ class BinaryStarProxy(StellarObject):
             base_separation = draw.uniform(0.05, 0.25)
             # Convert star radii from kilometers to AU before adding to separation
             self._binary_separation_au = base_separation + \
-                                         (self._primary.radius / constants.AU_TO_KM) + \
-                                         (self._secondary.radius / constants.AU_TO_KM)
+                                         _km_to_au(self._primary.radius) + \
+                                         _km_to_au(self._secondary.radius)
         else:
-            self._binary_separation_au = orbit.separation_km / constants.AU_TO_KM
+            self._binary_separation_au = _km_to_au(orbit.separation_km)
 
         # Override base Star properties with effective values
         # Use only the primary star's own bare name for the system name --
@@ -401,9 +407,9 @@ class BinaryStarProxy(StellarObject):
         """
         if galactic_center_dist_ly is None:
             galactic_center_dist_ly = scales.default_galactocentric_ly()
-        galactic_center_dist_m = max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY) * constants.LY_TO_M
-        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, enclosed_mass.current_enclosed_mass_kg(galactic_center_dist_m / constants.PARSEC_M))
-        return hill_radius_m / constants.AU_TO_M
+        galactic_center_dist_m = _ly_to_m(max(galactic_center_dist_ly, constants.MIN_TIDAL_DISTANCE_LY))
+        hill_radius_m = calculate_hill_sphere(galactic_center_dist_m, mass, enclosed_mass.current_enclosed_mass_kg(_m_to_pc(galactic_center_dist_m)))
+        return _m_to_au(hill_radius_m)
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
 object_timing.track(BinaryStarProxy, "binary-star")

@@ -378,3 +378,41 @@ suite's `--step-timeout`, 240 minutes by default; the run used 60.
 The warm-up's `202` failure (1a), the deep-tile row reads (1b), the band scatter's 348,000 single-row updates (2), the
 supervisor's serial expansion (4) and the map-luminosity update (5) are filed as items. The bright-star unit's
 `tier_at` per candidate in the reach scatter (6) is filed with them.
+
+## The unit-length ceiling (PERF.155)
+
+No unit of a stage is expected to run longer than `queue.unit_ceiling_seconds` (default 300, 5 minutes) unless the stage is one
+unit by nature. The ceiling bounds how long a worker keeps its place when a lane that needs it asks for it (the lend rule of
+PERF.150) and how long a cancel waits for a running unit. It is held three ways:
+
+* Every queued command in `queue/commands.py` is either `whole=True` (the stage is one unit: the skeleton plan, the clear of a
+  scatter, one system, the cache-warm families, the database checks) or declares `unit_seconds`, the seconds its longest unit
+  runs at the default galaxy size. `test_unit_ceiling.py` fails for a command that is neither, and for one whose figure is over
+  the setting's default.
+* The run record keeps the longest unit of every stage (`longest_unit` in the stage hash, set by `runrecord.unit_done`). When
+  a stage ends, `wrapper.finish_stage` writes a warning to the run's log (kind `unit.long`) if that unit ran longer than the
+  setting, naming the stage and how many units it was cut into. That check is the one that holds at any galaxy size: a stage
+  cut into units of a fixed size has longer units when something in each unit grows.
+* The splits themselves are PERF.113 to PERF.117, PERF.159 and PERF.115; this item adds no new split.
+
+Measured on the kept `medium` galaxy (4e9 solar masses, 100 sectors of shell 100, 3 workers, release 8.0.2132). The figures
+declared in the registry are these rounded up:
+
+| Stage | Units | Longest unit (s) | Declared |
+|---|---|---|---|
+| Massive stars | 415 | 7.7 | 10 |
+| Bright stars | 371 | 3.0 | 5 |
+| Phenomena | 456 | 4.1 | 6 |
+| Dimmer band | 422 | 24.3 | 30 |
+| Nebula field | 174 | 4.7 | 6 |
+| Map luminosity | 19 | 0.8 | 2 |
+| Habitability re-score | 13 | 19.2 | 25 |
+| Sectors | 100 (one sector each) | 16.6 | 20 |
+| Link the neighbours | 1 (chunks of 500 sectors) | 17.2 for 100 sectors | 90 for 500 |
+| Backfill | 1 | 8.8 | 12 |
+| Settle | 2 (chunks of 100 sectors) | 16.4 | 20 |
+| Warm tiles, 128 per unit | | 64 at the slowest tile rate (`TILE_SECONDS`) | 64 |
+
+The one-unit stages are exempt by definition but the long ones are worth knowing: clearing the bright stars took 211 s on this
+galaxy (it deletes every row, so it grows with the galaxy and passes 5 minutes on a large one), the skeleton plan 15 s, and the
+cache-warm families of a large galaxy run for minutes in one unit each. Splitting them is not part of this item.
