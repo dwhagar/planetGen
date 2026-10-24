@@ -13834,6 +13834,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   age plus the history terms already built or designed (engulfment,
   white dwarf expansion, the star's XUV history, GEN.639 runaway,
   cumulative XUV loss, isotope decay), with no host luminosity history.
+  Research (2026-10-09, Decided): Decided (Boss, 12:43 AM EDT 2026-10-24
+  (message cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq, relayed
+  by the coordinator)), question 5 of
+  reports/planet-generation-pipeline-2026-10-23.md (item 10), option 1:
+  planets get a snapshot at the star's present age plus the history
+  terms already built or designed (engulfment, white dwarf expansion,
+  the star's XUV history, GEN.639 runaway, cumulative XUV loss, isotope
+  decay); no host luminosity history and no time-stepped history. It
+  confirms the provisional option.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -20719,6 +20728,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   relayed, the helper streams through the same Redis relay while the
   starting command waits, with a cap. Boss decision (a card, option 1
   the default). Owner: none (pool).
+  Research (2026-10-09, Decided): Decided (Boss, 12:43 AM EDT 2026-10-24
+  (message cmsg_01RuNTFUNB92A8cm5CbojQAi4dRxcfhF9DdeTRzuf3HXzq, relayed
+  by the coordinator)), item 11, option 1: the detached helpers keep
+  writing the debug log file only; they do not relay to stdout. Nothing
+  to build for the relay; the item can close once the debug mode docs
+  say so. Owner: none (pool), closes with OPS.65.
   Prerequisites: OPS.65. Related: OPS.65.
 
 ## DOC: Documentation
