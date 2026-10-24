@@ -14714,29 +14714,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry until then. Owner: Composition lane M (after its builders).
   Prerequisites: none. Related: GEN.514, GEN.553.
 
-- [ ] **GEN.664 The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044)**
-  Found by Composition lane M (relayed 2026-10-23, 9:02 PM EDT): the
-  thin-disc row o1 uses +0.08 dex from the Botelho solar twins, and the
-  Hypatia catalogue's thin-disc statistic is -0.044; they differ by 0.12
-  dex because they are on different abundance scales. Done: one scale is
-  chosen and written down (the differences between catalogues are named
-  in the target table), row o1 and its target use it, and the choice is
-  recorded in docs/design/composition. Owner: Composition lane M.
-  Prerequisites: none. Related: GEN.514.
-
-- [ ] **GEN.665 Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters**
-  Found by Composition lane M (relayed 2026-10-23, 9:02 PM EDT): (1) the
-  white-dwarf redox sample has 7 stars with both bounds, not 8 of 24;
-  the whole-sample error model over-disperses and the intrinsic width is
-  not identified (0 to about 0.38 accepted), so the recipe sigma of 0.45
-  was too wide and is now 0.22; (2) the mass-radius cut (GEN.505) is a
-  weak filter, because the relative error is nearly independent of
-  signal. Done: each target's power is measured by a test that fails a
-  wrong value, the 0.22 width is kept or replaced with the reasoning
-  recorded, and GEN.505's cut is either strengthened or its weakness is
-  written into the tuning notes. Owner: Composition lane M.
-  Prerequisites: none. Related: GEN.505, GEN.508.
-
 - [ ] **GEN.666 The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug)**
   Boss live observation (relayed 2026-10-23, 9:11 PM EDT): on a planet
   page paragraph 1 said melanin life 'would evolve at a normal pace' and

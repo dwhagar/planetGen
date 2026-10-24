@@ -1389,8 +1389,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.661 | Bright-star counts still use the reference-composition fraction (stand-in, bug) | none | open |
 | GEN.662 | Cluster and satellite stars draw a halo [Fe/H] for their lifetimes (stand-in, bug) | none | open |
 | GEN.663 | A chemical-evolution birth-epoch model for thorium and uranium: row o4 draws the formation time from 3 to 13 Gyr | none | open |
-| GEN.664 | The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044) | none | open |
-| GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | open |
+| GEN.664 | The thin-disc offset rows disagree by 0.12 dex: Botelho solar twins (+0.08 dex) against the Hypatia thin-disc statistic (-0.044) | none | done, PR #2815 |
+| GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | done, PR #2815 |
 | GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | open |
 | GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | none | open |
 | GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | open |
