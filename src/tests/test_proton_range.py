@@ -1,6 +1,6 @@
 """
 Proton range in a column (GEN.453, `planetgen.physics.proton_range`): the NIST PSTAR table against the values
-docs/design/atmosphere-composition-parts/07-radiation-shielding-and-ground-sources.md section 2.5 prints, the inverse,
+docs/design/composition/atmosphere-composition-parts/07-radiation-shielding-and-ground-sources.md section 2.5 prints, the inverse,
 the Bragg sum for mixtures and the file's checks.
 """
 

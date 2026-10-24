@@ -227,7 +227,7 @@ connectivity to that specific schema rather than the default one.
   `planetgen.db.store.load_star_system(...).to_dict()` as `/api/sectors/<id>`
   above.
 - `GET /api/systems/<id>/description` — the system's description (API.25,
-  `planetgen/describe/`, `docs/design/system-description.md`): `{"kind":
+  `planetgen/describe/`, `docs/design/architecture/system-description.md`): `{"kind":
   "system", "ref", "title", "sections": [...]}`. A section has a `kind`
   (`system`, `star`, `pair`, `planet`, `moon`, `belt`, `comet`), a `ref`
   (`planet:<ID>`, or `null` for a pair), a `title`, `blocks` and `children`.
@@ -448,7 +448,7 @@ connectivity to that specific schema rather than the default one.
   MAP.151b, MAP.205): how many generated sectors each child block holds, with
   the `sector_stats` sums. A block key is `m.shell.band.wedge` with `m` one of
   243, 81, 27, 9, 3 (a sector is `1.shell.band.wedge`), as
-  `design/spherical-block-ladder.md` defines the ladder (`galaxy/drill.py`).
+  `design/galaxy/spherical-block-ladder.md` defines the ladder (`galaxy/drill.py`).
   A stage answers `{"at", "edge_pc", "child_m", "children", "sectors"}`: `at`
   is the canonical key (`null` when `at` is left out: the galaxy, which lists the
   level-243 blocks that hold a generated sector), `children` is
@@ -643,7 +643,7 @@ connectivity to that specific schema rather than the default one.
   the matching flag is false (`population.population_status`).
 - `GET /api/species?spacefaring=true|false&limit=<n>&offset=<n>` — the
   dominant species of every life world, by name, paginated (see
-  docs/design/population-and-politics.md). Each item has its homeworld
+  docs/design/habitability/population-and-politics.md). Each item has its homeworld
   (`homeworld_planet_id`, `homeworld_name`, `star_system_id`,
   `system_name`), `life_chemical`, `life_stage` (`multicellularity` or
   `technological_civilization`), `build`/`climate`/`size`,
@@ -1154,7 +1154,7 @@ database's orbit epoch. `GET /api/nav/chart` still reckons the direct jump.
 course from its stop to the next: `bearing_deg`, `mark_deg`, `elevation_deg`
 and `frame`, worked out in the Sector Local Frame when both stops are systems
 of one sector and in the Galactic Frame otherwise
-(`docs/design/navigation-frames.md`). `route.stop_places` has one
+(`docs/design/orbits/navigation-frames.md`). `route.stop_places` has one
 `{node, sector_id, sector_position_ly}` per id in `path` (both `null` for a
 phenomenon end). The NAV page shows each course as `045 mark 012, 3.2 ly`.
 
@@ -1216,7 +1216,7 @@ A belt is placed at its mean radius.
   endpoints to share a sector, or both to have a galaxy placement"`.
 
 **Course convention.** Courses use Boss's nested reference frames
-(`docs/design/navigation-frames.md`, `planetgen/galaxy/navigation.py`):
+(`docs/design/orbits/navigation-frames.md`, `planetgen/galaxy/navigation.py`):
 `bearing_deg` is 0-360 with 0 pointing from `from` toward the frame's
 center (flattened onto the galactic plane) and 90 to the East (North x Up);
 `elevation_deg` is -90 to +90 above or below the galactic plane, and
@@ -1703,7 +1703,7 @@ means no Redis server answered.
 ### Slow page answers (PERF.105)
 
 A page whose answer is slow to build does not build it in the request: it queues one job that stores the answer in the
-page cache and polls these routes (design in [slow-page-answers.md](../design/slow-page-answers.md)).
+page cache and polls these routes (design in [slow-page-answers.md](../design/operations/slow-page-answers.md)).
 
 - `GET /api/table-estimates?db=` — `{"tables": {name: rows}}`, the database's own estimate (from `information_schema`;
   instant, within some tens of percent) of every table's row count. The pages read it about once a minute to tell which

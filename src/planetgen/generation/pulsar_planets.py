@@ -1,7 +1,7 @@
 # planetgen/generation/pulsar_planets.py
 
 """
-Planets of a millisecond pulsar (GEN.317; docs/design/exotic-environments-planets-and-compact-binaries.md section 2.1)
+Planets of a millisecond pulsar (GEN.317; docs/design/systems/exotic-environments-planets-and-compact-binaries.md section 2.1)
 =====================================================================================================================
 
 Whether a pulsar holds planets at all is the remnant satellite table's (`phenomena.hosts`: 0.7% of millisecond pulsars,

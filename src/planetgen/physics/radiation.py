@@ -3,7 +3,7 @@
 """
 Surface radiation dose, UV and galactic hazards (GEN.87).
 
-The rules are docs/design/activity-magnetism-radiation-hydrosphere.md
+The rules are docs/design/habitability/activity-magnetism-radiation-hydrosphere.md
 section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
 
     surface = gcr * helio_mult + sep + ground
@@ -100,7 +100,7 @@ MUON_MEV_PER_G = 2.0
 MUON_J_PER_MEV = 1.602176634e-13
 SECONDS_PER_YEAR = 3.15576e7
 """The Crouch fit of the vertical muon intensity (cm-2 s-1 sr-1) at depth h in hg/cm2 (m of water): `exp(-11.22 - 0.00262 h)
-+ exp(-14.10 - 0.001213 h) + 2.17e-13` (docs/design/radiation-model.md section 5), valid from about 1 km of water; the dose is
++ exp(-14.10 - 0.001213 h) + 2.17e-13` (docs/design/composition/radiation-model.md section 5), valid from about 1 km of water; the dose is
 pi I times 2 MeV cm2/g. It is 9 times below Sittler 2019 at Titan (10 850 g/cm2), so it is a floor under the table's tail."""
 
 EARTH_DIPOLE_A_M2 = 7.768e22

@@ -1,7 +1,7 @@
 # planetgen/galaxy/shape_draw.py
 
 """
-The shape of a spiral galaxy, drawn from its seed (GEN.401; docs/design/intergalactic-and-halo-contents.md, section
+The shape of a spiral galaxy, drawn from its seed (GEN.401; docs/design/galaxy/intergalactic-and-halo-contents.md, section
 5.13, rows 4 to 6).
 
 The stellar mass comes from the mass chain (`galaxy.mass_chain`, GEN.400). Everything here follows from it and from

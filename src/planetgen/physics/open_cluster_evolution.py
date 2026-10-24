@@ -1,7 +1,7 @@
 # planetgen/physics/open_cluster_evolution.py
 
 """
-How a young open cluster forms, loses mass and sizes itself (GEN.244; docs/design/intergalactic-and-halo-contents.md
+How a young open cluster forms, loses mass and sizes itself (GEN.244; docs/design/galaxy/intergalactic-and-halo-contents.md
 5.14). Pure functions on numpy arrays, each from a paper whose number is in `tuning` ("a generated galaxy's young open
 clusters"): `generation/open_clusters.py` draws the clusters with them.
 

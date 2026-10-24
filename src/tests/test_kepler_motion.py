@@ -5,7 +5,7 @@ Kepler/Barker orbital-mechanics regression tests
 Covers `planetgen/physics/kepler.py`'s two-body propagation for
 eccentric (elliptical) and parabolic orbits -- the physics
 `cometData.Comet` relies on for realistic, non-uniform-angular-speed
-orbital motion (see docs/design/comet-orbital-realism.md).
+orbital motion (see docs/design/systems/comet-orbital-realism.md).
 
 Run with: pytest src/tests/test_kepler_motion.py
 """

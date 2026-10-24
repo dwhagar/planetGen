@@ -1,7 +1,7 @@
 # planetgen/physics/air_column.py
 
 """
-The air above one place, as the light meets it (GEN.417, GEN.443; docs/design/radiation-model.md section 3).
+The air above one place, as the light meets it (GEN.417, GEN.443; docs/design/composition/radiation-model.md section 3).
 
 An `AirColumn` is the mixture, the gravity and the total pressure: from them follow the column mass `X = P / g`
 (g/cm2), the mean molar mass and the number of molecules of each gas above a square centimetre. Every optical depth

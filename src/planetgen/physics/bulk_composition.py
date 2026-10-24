@@ -1,8 +1,8 @@
 # planetgen/physics/bulk_composition.py
 
 """
-The bulk composition of a planet or moon (GEN.428, docs/design/bulk-composition.md, the contracts of
-docs/design/composition-spine-contracts.md)
+The bulk composition of a planet or moon (GEN.428, docs/design/composition/bulk-composition.md, the contracts of
+docs/design/composition/composition-spine-contracts.md)
 =============================================================================================================
 
 What a body is made of in bulk, as mass fractions of the whole body, read through one accessor so no

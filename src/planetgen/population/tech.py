@@ -6,7 +6,7 @@ Tech levels of technological species (POP.7 to POP.9)
 
 Six domain indices, each an integer 0 to 7 (Energy, Materials, Information, Medical, Propulsion, Defense),
 drawn from a species' age, and the tech level as their weighted sum. See "Tech levels" in
-`docs/design/population-and-politics.md` for the model and its evidence, and Boss's Technological Assessment
+`docs/design/habitability/population-and-politics.md` for the model and its evidence, and Boss's Technological Assessment
 for the six scales and the weights.
 
 The functions take no database. `draw_indices` draws from a stream of its own (callers use

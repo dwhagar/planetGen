@@ -1,6 +1,6 @@
 """
 The nebula rates stay inside what the Milky Way has (TEST.136, GEN.152, GEN.203, GEN.204): the counts and fillings
-the tuning produces are held to the bands of docs/design/nebula-density-vs-reality.md, the field keeps its survivors'
+the tuning produces are held to the bands of docs/design/systems/nebula-density-vs-reality.md, the field keeps its survivors'
 positions and object IDs, and an O star hosts an H II region about one time in four.
 """
 

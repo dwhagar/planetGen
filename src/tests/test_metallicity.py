@@ -3,7 +3,7 @@
 """
 GEN.158: one [Fe/H] per star (`planetgen/physics/metallicity.py`), drawn from
 the star's population and its distance from the galactic centre, and the
-planet-occurrence factors it feeds (docs/design/globular-clusters.md 5 and 7).
+planet-occurrence factors it feeds (docs/design/galaxy/globular-clusters.md 5 and 7).
 """
 
 import statistics

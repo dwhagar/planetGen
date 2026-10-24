@@ -1,7 +1,7 @@
 # planetgen/queue/units.py
 
 """
-A stage of a run on the new work queue (PERF.97, step 3 of the rebuild, docs/design/redis-and-the-work-queue.md
+A stage of a run on the new work queue (PERF.97, step 3 of the rebuild, docs/design/operations/redis-and-the-work-queue.md
 5.1): the units of one stage queued on the bulk queue, run by the idle-timeout workers (`workers.ensure_workers`),
 and followed by the process that started the run until the stage is done. The wrapper (`queue/wrapper.py`, PERF.118)
 cuts a stage into its units and starts a run; this file queues, runs and follows them.

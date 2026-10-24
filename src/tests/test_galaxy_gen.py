@@ -2,7 +2,7 @@
 
 """
 End-to-end tests for `planetgen`'s `galaxy` subcommand -- the
-galaxy-scale sector generation logic (`docs/design/spherical-sector-coordinates.md`,
+galaxy-scale sector generation logic (`docs/design/galaxy/spherical-sector-coordinates.md`,
 `docs/TODO.md` Phase 4). `test_galaxy_spherical.py` already covers
 `galaxy/spherical.py`'s pure functions (shell/band/wedge math, the
 enumeration primitive) in isolation; this file is the missing piece --

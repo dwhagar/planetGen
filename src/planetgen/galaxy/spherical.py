@@ -5,7 +5,7 @@ Galaxy-Scale Spherical Sector Grid
 ====================================
 
 Every galaxy-placed sector is one cell of a grid of spherical shells centred
-on the galactic origin (`docs/design/spherical-sector-coordinates.md`, the
+on the galactic origin (`docs/design/galaxy/spherical-sector-coordinates.md`, the
 plan; Boss, 2026-10-15). A cell is named by three integers, `(shell, band,
 wedge)`, and the three words mean:
 

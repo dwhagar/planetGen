@@ -4,7 +4,7 @@
 GEN.265: the nightly motion of a scattered multi-star system. The barycentre is the scatter point and moves with the
 rest of the galaxy; the members are computed on read from the stored node phases, so the update writes no member or
 node row (`planetgen/physics/system_tree.py`, `planetgen/db/scatter_systems.py`,
-docs/design/multi-star-systems.md section 7).
+docs/design/systems/multi-star-systems.md section 7).
 """
 
 import math

@@ -159,7 +159,7 @@ pytest -n auto -m area_api                # one part of the program
 ### The slice picker, `scripts/test.py`
 
 `scripts/test.py` builds those pytest commands for you (TEST.139,
-[design/test-suite-rebuild.md](../design/test-suite-rebuild.md)):
+[design/operations/test-suite-rebuild.md](../design/operations/test-suite-rebuild.md)):
 
 ```sh
 scripts/test.py quick           # not database, browser or heavy tests

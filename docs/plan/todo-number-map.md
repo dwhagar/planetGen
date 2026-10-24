@@ -668,10 +668,10 @@ Parents marked "new parent" had no old number of their own.
 | DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | done, PR #1599 |
 | DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged | none | done, PR #1599 |
 | DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments | none | done, PR #2086 |
-| DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions | none | done, PR #1594 |
+| DOC.25 | Refresh docs/design/architecture/design-decisions.md: mark the reversed and built decisions | none | done, PR #1594 |
 | DOC.26 | Give every design note a status line and refresh the stale ones | none | done, PR #1596 |
 | DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md | none | done, PR #1628 |
-| DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages | none | done, PR #1628 |
+| DOC.28 | Rewrite the code map in docs/design/architecture/architecture.md for the planetgen packages | none | done, PR #1628 |
 | DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet | none | done, PR #1581 |
 | DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names | none | done, PR #1586 |
 | DOC.31 | Fix docs/reference/html-interface.md: routes, header sections, search parameters, error pages and rate limits | none | done, PR #1625 |
@@ -690,7 +690,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it | none | done, PR #1584 |
 | DOC.45 | Reference docs follow the description layer | none | done, PR #2240 |
 | DOC.46 | Docs for the spherical sector grid | none | done, PR #1627 |
-| DOC.47 | Rebuild docs/design/architecture.html from the new architecture.md | none | done, PR #2037 |
+| DOC.47 | Rebuild docs/design/architecture/architecture.html from the new architecture.md | none | done, PR #2037 |
 | DOC.48 | Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes | none | open |
 | DOC.49 | Docs: point the rate, anomaly, multi-star and nebula notes at the phenomena catalogue | none | merged into DOC.50 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | none | open |
@@ -720,7 +720,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.74 | Design part 01, section 7.4: the CO2 row and its recommended CO2-2 sublimation fit are wrong in the cold; the table now says to use CO2-1 below 195.3 K (bug) | none | open |
 | DOC.75 | Help and docs text for the whole habitability system: the score, the symbols, the lists, the sector colouring and the map markers | none | open |
 | DOC.76 | Docs for the condition-based classes: the rule table, the planet class pages and the help | none | open |
-| DOC.77 | Docs for the four life scores: the help text, docs/design/habitability-index.md and the database schema document | none | open |
+| DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document | none | open |
 | DOC.78 | One end-to-end draw-order table from the star to the PHI-6 for the contracts file: blocks, streams and the reproducibility rule | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
@@ -747,7 +747,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.23 | Generate a smaller sphere, then backfill bright stars around it per sector block | none | done (schema v49, PR #226) |
 | GEN.24 | Generate the galactic core on layer 0 | none | dropped (Boss, 2026-10-16, 3:00 PM EDT; superseded: layers are gone and the core is shell 0, filled by the shell mode) |
 | GEN.25 | A moon reclassified after its planet moves can be too large for its planet (bug) | none | done, PR #350 |
-| GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/rogue-planet-surface.md) |
+| GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/systems/rogue-planet-surface.md) |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | open |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | open |
 | GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | open |
@@ -1722,7 +1722,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.8 | Update reloads Apache itself when run as root | none | done, PR #808 |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | done, PR #448 |
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | done, PR #391 |
-| OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |
+| OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/generation/reproducible-galaxies.md) |
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | dropped (Boss, 2026-10-09 20:42Z) |
 | OPS.13 | Every update records the version key, keeping the last 10 | none | done, PR #810 |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | done, PR #876 |
@@ -2628,7 +2628,7 @@ Each citation below resolves to one item by its date.
 | 7.16.1 | "TODO item 43" | GEN.18 |
 | 7.18.1 | "TODO items 40 and 41" | GEN.15, GEN.16 |
 | 5.46.34, 5.46.35 | describe the 2026-09-24 compaction and first numbering | (no item) |
-| 7.49.0 | "Design: docs/design/population-and-politics.md (TODO 51-54)" | POP.1 to POP.4 |
+| 7.49.0 | "Design: docs/design/habitability/population-and-politics.md (TODO 51-54)" | POP.1 to POP.4 |
 
 ### Commit and PR titles
 
@@ -2705,10 +2705,10 @@ Each citation below resolves to one item by its date.
 
 | Where | Text | Date (UTC) | New ID |
 |---|---|---|---|
-| [navigation-frames.md](../design/navigation-frames.md) | "TODO items 33 and 34" (first written as "items 28 and 29" at 18:14Z) | 2026-09-30 18:39Z | NAV.1, NAV.2 |
-| [interstellar-object-rates.md](../design/interstellar-object-rates.md) | "TODO items 5 (rates) and 6", "TODO item 27" | 2026-09-30 20:27Z | GEN.1, GEN.2, GEN.10 |
-| [nebula-and-asteroid-field-classes.md](../design/nebula-and-asteroid-field-classes.md) | "items 27-31", "item 28" ... "item 31" | 2026-09-30 18:39Z | GEN.10 to GEN.14 |
-| [galaxy-drilldown-navigation.md](../design/galaxy-drilldown-navigation.md) | "items 64-73", then "items 70-79" and the build-order table; "TODO 19"; "TODO 63" | 2026-10-01 02:24Z, 02:27Z | MAP.16 to MAP.29; MAP.1; MAP.3 |
+| [navigation-frames.md](../design/orbits/navigation-frames.md) | "TODO items 33 and 34" (first written as "items 28 and 29" at 18:14Z) | 2026-09-30 18:39Z | NAV.1, NAV.2 |
+| [interstellar-object-rates.md](../design/systems/interstellar-object-rates.md) | "TODO items 5 (rates) and 6", "TODO item 27" | 2026-09-30 20:27Z | GEN.1, GEN.2, GEN.10 |
+| [nebula-and-asteroid-field-classes.md](../design/systems/nebula-and-asteroid-field-classes.md) | "items 27-31", "item 28" ... "item 31" | 2026-09-30 18:39Z | GEN.10 to GEN.14 |
+| [galaxy-drilldown-navigation.md](../design/interface/galaxy-drilldown-navigation.md) | "items 64-73", then "items 70-79" and the build-order table; "TODO 19"; "TODO 63" | 2026-10-01 02:24Z, 02:27Z | MAP.16 to MAP.29; MAP.1; MAP.3 |
 | Windows and macOS hosting guides | "item 50"; "item 54" | 2026-09-30 20:48Z to 20:50Z | OPS.3; OPS.4 |
 | Installer scripts | "See docs/TODO.md item 50" | 2026-09-30 20:43Z | OPS.3 |
 | `program_constants.py`, `generate.py` | "TODO item 28", "TODO item 31", "TODO item 27", "docs/TODO.md item 5" | 2026-09-30 18:14Z to 2026-10-01 01:04Z | GEN.11, GEN.14, GEN.10, GEN.1 |
@@ -2720,7 +2720,7 @@ Each citation below resolves to one item by its date.
 | `test_local_time.py` | "docs/TODO.md item 22" | 2026-10-01 00:07Z | UX.10 |
 | `test_star_type_rendering.py` | "TODO 55" | 2026-10-01 00:08Z | MAP.13 (note 5) |
 | `test_bright_star_sampling.py` | "TODO items 55 and 56" | 2026-09-30 23:46Z | GEN.21, GEN.22 (note 2) |
-| [population-and-politics.md](../design/population-and-politics.md), `population.py`, `api/population.py`, `_db.py`, `schema.sql`, `program_constants.py`, `generate.py`, `test_population.py`, `docs/reference/database-schema.md` | "TODO 51-54", "TODO items 51-54" | 2026-10-01 04:09Z to 05:28Z | POP.1 to POP.4 |
+| [population-and-politics.md](../design/habitability/population-and-politics.md), `population.py`, `api/population.py`, `_db.py`, `schema.sql`, `program_constants.py`, `generate.py`, `test_population.py`, `docs/reference/database-schema.md` | "TODO 51-54", "TODO items 51-54" | 2026-10-01 04:09Z to 05:28Z | POP.1 to POP.4 |
 | `lib/pagecache.py`, `web/__init__.py`, `test_page_cache.py` | "TODO 8" | 2026-10-01 04:30Z | PERF.2 |
 | `lib/phenomenonrender.py`, `test_phenomenon_views.py` | "TODO 25" | 2026-10-01 04:15Z | UX.17 |
 | `static/style.css` | "TODO 63" | 2026-10-01 04:21Z | MAP.3 |

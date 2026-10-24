@@ -1,7 +1,7 @@
 # planetgen/physics/quantity.py
 
 """
-The Quantity value class (GEN.569; docs/design/unified-unit-quantity.md, section 4.3)
+The Quantity value class (GEN.569; docs/design/architecture/unified-unit-quantity.md, section 4.3)
 =====================================================================================
 
 A number in one unit of the registry (`unit_registry`), kept as given and answered in every other unit of its kind. It is

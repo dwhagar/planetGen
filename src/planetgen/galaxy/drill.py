@@ -2,7 +2,7 @@
 planetgen/galaxy/drill.py
 
 The Galaxy Map's block ladder on the spherical sector grid
-(docs/design/spherical-block-ladder.md; the grid is `galaxy/spherical.py`).
+(docs/design/galaxy/spherical-block-ladder.md; the grid is `galaxy/spherical.py`).
 Blocks are `m` shells deep, `m` = 243, 81, 27, 9 and 3, and a block of one is
 a sector; each block sits wholly inside one block of the next size up.
 `static/galaxyprisms.js`'s `drill*` functions are the same rules for the page;

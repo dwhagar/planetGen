@@ -975,7 +975,7 @@ def cell_band_rate(shape, address, edge_pc, expected_at_density_1, shares):
 
 def block_candidates(seed, shell_index, band_index, chunk, k, bound, rate_of):
     """
-    The stars a luminosity band puts in one block of a band, drawn block first (GEN.308; docs/design/sampling-backfill-and-resume.md
+    The stars a luminosity band puts in one block of a band, drawn block first (GEN.308; docs/design/generation/sampling-backfill-and-resume.md
     section 2): one Poisson count from the block's `bound`, each candidate a uniform cell of the block kept with the
     chance `rate / bound` of its own cell. Exact thinning of a Poisson process: a cell ends up with a Poisson count of
     its own mean `rate`, independent of every other cell, so no cell's chance is altered; a block with no

@@ -117,7 +117,7 @@ def test_format_course(bearing, mark, text):
     assert format_course(bearing, mark) == text
 
 
-# Boss's tables (docs/design/navigation-frames.md, "Travel speeds"): factor,
+# Boss's tables (docs/design/orbits/navigation-frames.md, "Travel speeds"): factor,
 # speed in c (1 decimal), and days per kpc (1 kpc = 3,261.56 ly, 1 ly per
 # 365.25 days at 1c; the table rounded with a slightly longer kpc, so the
 # day counts match to 1e-5).

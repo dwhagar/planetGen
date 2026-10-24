@@ -18,7 +18,7 @@ A shell's bands are drawn as numpy arrays (PERF.63, `_band_rows`), about
 seven times faster than walking the objects one by one; the random numbers
 still come from the shell's `draw.Stream`, in bulk.
 
-The mass cut (GEN.167, docs/design/phenomenon-scatter-mass-cut.md): only
+The mass cut (GEN.167, docs/design/systems/phenomenon-scatter-mass-cut.md): only
 the neutron stars and black holes at or above `--phenomenon-min-mass`
 (`tuning.PHENOMENON_MIN_MASS_SOLAR`, 14 solar masses) are scattered, each
 kind's mean times its share above the cut (`share_above`), and each built

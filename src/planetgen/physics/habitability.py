@@ -2,7 +2,7 @@
 
 """
 The planetary habitability index (GEN.84): the reference maths of
-docs/design/habitability-index.md section 7, every constant with its source.
+docs/design/habitability/habitability-index.md section 7, every constant with its source.
 
 Two layers, as Boss chose (2026-10-07 17:11Z): the PHI-6 display -- since
 GEN.207 six domains (Pressure, Temperature, Air, Water, Radiation and

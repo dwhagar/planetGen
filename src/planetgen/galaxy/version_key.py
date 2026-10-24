@@ -1,7 +1,7 @@
 # planetgen/galaxy/version_key.py
 
 """
-The version key (DB.6; docs/design/reproducible-galaxies.md, section 4):
+The version key (DB.6; docs/design/generation/reproducible-galaxies.md, section 4):
 22 uppercase hex digits naming exactly what a galaxy seed needs to make
 the same galaxy again -- the PlanetGen release and the environment it ran
 in. One helper (`version_key`) computes it from the running code, so the

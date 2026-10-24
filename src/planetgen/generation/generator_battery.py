@@ -7,7 +7,7 @@ The generator battery (OPS.57)
 `generator_battery_digest()` runs a fixed battery of tiny canned cases, with no database and no network, and returns
 one digest of the lot together with a digest for each case, so a tool can say that the generator still makes what it
 made (OPS.15, OPS.14's mismatch check, TEST.77's tier A) and, when it does not, which case first differs
-(docs/design/generation-determinism.md section 5.4).
+(docs/design/generation/generation-determinism.md section 5.4).
 
 The cases, each from a fixed seed:
 
@@ -23,7 +23,7 @@ A case is turned into a tree of plain values (`tree`: objects by their fields, s
 `db.fingerprint_tree.CLOCK_KEYS` left out) and hashed with the encoder of GEN.304 (`util.fingerprint_encoding`) into
 a `full`, a `structural` (floats written as `~`) and a `floats` digest. The overall digest is over the cases' full
 digests in the order of `CASES`. A structural difference is a change of the code; a difference in the floats alone is
-a change of the platform or its libraries (docs/design/reproducible-galaxies.md).
+a change of the platform or its libraries (docs/design/generation/reproducible-galaxies.md).
 
 Nothing here reads the clock, the environment or a stored file, and every case runs on a stream of its own, so the
 result does not depend on what ran before or on the hash seed.

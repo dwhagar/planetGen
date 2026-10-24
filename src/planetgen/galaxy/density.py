@@ -5,7 +5,7 @@ Galaxy Disk/Spiral Density Model
 ====================================
 
 Implements the galaxy density model from
-`docs/design/galaxy-disk-density.md`: an exponential thin disk carrying
+`docs/design/galaxy/galaxy-disk-density.md`: an exponential thin disk carrying
 the spiral arms, an exponential thick disk, a boxy bar bulge and a stellar
 halo, each fitted to published Milky Way structure (GEN.118, GEN.119, GEN.234; sources in
 `tuning`'s "galaxy density model" block).
@@ -529,7 +529,7 @@ def component_values(position_pc, shape):
 def _raw_density(position_pc, shape):
     """
     `relative_density` before the `k_norm` normalization is applied --
-    see `docs/design/galaxy-disk-density.md`, section 1.
+    see `docs/design/galaxy/galaxy-disk-density.md`, section 1.
 
     Args:
         position_pc (tuple): `(x, y, z)`, galaxy-frame parsecs.

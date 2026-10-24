@@ -1,7 +1,7 @@
 # planetgen/physics/materials.py
 
 """
-The shared materials and components table (GEN.427, docs/design/bulk-composition.md section 3, composition-model.md section 4b)
+The shared materials and components table (GEN.427, docs/design/composition/bulk-composition.md section 3, composition-model.md section 4b)
 ================================================================================================================================
 
 The one table of every element, mineral, ice, organic and alloy a body can contain: its formula, molar mass, grain density,

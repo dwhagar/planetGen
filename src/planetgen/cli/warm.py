@@ -31,7 +31,7 @@ not answer, or an update still running when the run would start, is an error pri
 for a running update to finish before it queues anything.
 
 The answers go to Redis and to the disk cache the web server reads, so they are the ones a visitor gets; each is kept
-only while the data it read is unchanged (docs/design/cache-warm-up.md). A list of every family ends with the command
+only while the data it read is unchanged (docs/design/operations/cache-warm-up.md). A list of every family ends with the command
 that opens the site after the sector-grid switch closed it (`maintenance.SECTOR_SWITCH`, UX.112): the site is closed
 only while the maps are being rebuilt.
 """

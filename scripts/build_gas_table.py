@@ -6,7 +6,7 @@ Builds the gas and compound constants file (GEN.410) from the atmosphere researc
     python scripts/build_gas_table.py --check    # build in memory and fail if the committed file differs
 
 The file is `src/planetgen/physics/data/gases.json`. The numbers are read from the markdown tables of the research parts
-(`docs/design/atmosphere-composition-parts/`): T1 identity, T2 phase points and T3 heat capacity of part 01, and the
+(`docs/design/composition/atmosphere-composition-parts/`): T1 identity, T2 phase points and T3 heat capacity of part 01, and the
 Rayleigh tables 2.1a and 2.1b of part 02; part 01 sections 8 (Henry constants) and 9 (viscosity) add two more blocks; part 03
 table 2.1 gives the infrared bands and part 02 section 2.3 the ultraviolet and visible absorption bins (GEN.410 third slice). The names, the choice of which Rayleigh row is adopted for a gas, and the
 reference temperature of each refractivity fit are typed in below, each with the reason. Nothing is fitted or invented
@@ -20,7 +20,7 @@ import re
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-PARTS = os.path.join(HERE, "..", "docs", "design", "atmosphere-composition-parts")
+PARTS = os.path.join(HERE, "..", "docs", "design", "composition", "atmosphere-composition-parts")
 OUT = os.path.join(HERE, "..", "src", "planetgen", "physics", "data", "gases.json")
 
 PART_01 = "01-gas-table-thermodynamics.md"
@@ -561,7 +561,7 @@ def build():
         state, limit = state_of(blocks)
         row["state"] = state
         row["limit"] = limit
-        row["source"] = (f"docs/design/atmosphere-composition-parts/{PART_01} T1, T2, T3 (section 5 for the species it adds)"
+        row["source"] = (f"docs/design/composition/atmosphere-composition-parts/{PART_01} T1, T2, T3 (section 5 for the species it adds)"
                          + (f" and {PART_02} table 2.1" if formula in rayleigh else "")
                          + (f"; {PART_01} section 8" if formula in henry else "")
                          + (f"; {PART_01} section 9" if formula in viscosity else "")

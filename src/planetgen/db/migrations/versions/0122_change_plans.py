@@ -1,6 +1,6 @@
 """Change plans, their operations and the edit journal (DB.36).
 
-Schema v122. The tables of the 8.6 headline (docs/design/edit-everything.md): every admin change is a plan, an ordered list of
+Schema v122. The tables of the 8.6 headline (docs/design/interface/edit-everything.md): every admin change is a plan, an ordered list of
 operations on stored objects, approved before anything is written, then applied as one job and journaled.
 
 `change_plans` is one row per plan: who asked and in which role (`requester_id` is the account's id in the control database,

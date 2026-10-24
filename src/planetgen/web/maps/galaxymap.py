@@ -50,7 +50,7 @@ def sector_quadrant(x_pc, y_pc):
     Labels a galaxy-frame `(x, y)` position with its Quadrant:
     `planetgen.galaxy.spherical.sector_quadrant`'s 1-4 (four 90-degree
     bands of `theta = atan2(y, x)` starting at `+X`, matching
-    `docs/design/galaxy-coordinate-system.md`'s own theta convention) as
+    `docs/design/galaxy/galaxy-coordinate-system.md`'s own theta convention) as
     `"I"`-`"IV"`. Blind to `z`/height by design -- a Quadrant is purely
     azimuthal, the same way real astronomical galactic quadrants are.
 

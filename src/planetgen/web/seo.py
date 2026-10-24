@@ -1,7 +1,7 @@
 # planetgen/web/seo.py
 
 """
-Web, Open Graph and search-engine settings at request time (ADM.44, `docs/design/settings-seo-and-accounts.md` A8).
+Web, Open Graph and search-engine settings at request time (ADM.44, `docs/design/interface/settings-seo-and-accounts.md` A8).
 
 Everything here reads `get_settings()` per request, so a change saved on the settings page applies to the next page
 view with no restart.

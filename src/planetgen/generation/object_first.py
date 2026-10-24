@@ -12,7 +12,7 @@ edge cubes), gives each of the `N` candidates a band in proportion to that
 probability `true density / M_b`. That is exactly a Poisson process with the
 true density, so the counts and the spatial distribution match a band-by-band
 walk; an empty shell costs only its majorant. Study:
-`docs/design/scatter-queue-feasibility.md`.
+`docs/design/generation/scatter-queue-feasibility.md`.
 
 A sector can take several objects (`sector_capacity`): independent draws, a
 count per sector, and an object past the sector's capacity dropped. The

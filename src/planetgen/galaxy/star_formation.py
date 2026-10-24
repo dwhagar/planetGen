@@ -5,7 +5,7 @@ Recent Star Formation by Galactic Radius
 ========================================
 
 How much of the thin disk's young and intermediate stars (the ones formed in the last few billion years) a place
-holds, against the disk's own average (GEN.134, `docs/design/star-types-by-galactic-radius.md`). Derived from the
+holds, against the disk's own average (GEN.134, `docs/design/galaxy/star-types-by-galactic-radius.md`). Derived from the
 galaxy's own shape, with no value taken from the Milky Way's star-formation profile (those are the test targets of
 `tests/test_star_formation_profile.py`, never inputs):
 

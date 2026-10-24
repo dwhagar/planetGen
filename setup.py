@@ -97,7 +97,7 @@ setup(
         # (TimeElapsedColumn/TimeRemainingColumn; see _generation_progress
         # in planetgen/generation/run_common.py).
         'rich>=13.7.0',
-        # The library migration (OPS.20, docs/design/library-migration.md):
+        # The library migration (OPS.20, docs/design/architecture/library-migration.md):
         # pinned here first (OPS.21) so each swap PR only changes code.
         # The work queue and web jobs on Redis (PERF.24), and Redis as
         # Flask-Limiter's storage (SEC.30).

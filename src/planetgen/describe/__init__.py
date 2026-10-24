@@ -2,7 +2,7 @@
 
 """
 One description of a star system, for every output that shows one
-(docs/design/system-description.md, UX.104).
+(docs/design/architecture/system-description.md, UX.104).
 
 `describe(system)` turns a `StarSystem` (generated, or rebuilt from the
 database) into a Document: a tree of sections whose blocks are fact tables,

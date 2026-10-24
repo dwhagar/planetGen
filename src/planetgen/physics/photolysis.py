@@ -23,7 +23,7 @@ of the temperature between the three templates (4000 K, the Sun at 5772 K, 10000
 * **The active-Sun factor is only for the species whose value was read** (H2O 1.68, CO2 2.35, NH3 1.075, HCN 2.1 from
   a search snippet). For the others `active_sun=True` raises `NoData` rather than assume one.
 * **Shielding is not included**: CO and N2 self-shield in a dense inner coma and in a thick air column, and the lifetimes
-  in an atmosphere are longer (docs/design/atmosphere-composition-parts/04-photochemistry-lifetimes-escape.md).
+  in an atmosphere are longer (docs/design/composition/atmosphere-composition-parts/04-photochemistry-lifetimes-escape.md).
 * **Source values** are labelled in the file: the quiet-Sun lifetime of H2O, CO, CO2, HCN, CH3OH and CH2O is the
   comet-community value, of CH4, C2H6, H2S and N2 the Heays 2017 total (a factor 2 for C2H6, H2S and N2), and NH3
   6.7e3 s (1.5e-4 per s), not the 5.6e3 s that is a mean of quiet and active Sun.

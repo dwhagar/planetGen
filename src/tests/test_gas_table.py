@@ -14,7 +14,7 @@ from planetgen.physics import atmosphere, elements, gases, habitability_world
 from planetgen.physics.elements import DataError
 
 REPO = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..")
-TOXICITY_NOTE = os.path.join(REPO, "docs", "design", "Atmospheric Toxicity.md")
+TOXICITY_NOTE = os.path.join(REPO, "docs", "design", "research", "imported", "atmospheric-toxicity.md")
 
 
 # --- The file states where each row comes from -----------------------------------------------------------------
@@ -497,4 +497,4 @@ def test_every_gas_the_toxicity_note_names_is_in_the_table():
         formulas = _formulas_in(handle.read())
     assert {"CO2", "CO", "SO2", "H2S", "CH4"} <= formulas
     missing = sorted(formula for formula in formulas if not gases.has(formula))
-    assert not missing, f"gases named in docs/design/Atmospheric Toxicity.md and missing from the table: {missing}"
+    assert not missing, f"gases named in docs/design/research/imported/atmospheric-toxicity.md and missing from the table: {missing}"

@@ -1,7 +1,7 @@
 # planetgen/physics/proton_range.py
 
 """
-Proton range in a column of gas or rock (GEN.453, docs/design/radiation-model.md section 5)
+Proton range in a column of gas or rock (GEN.453, docs/design/composition/radiation-model.md section 5)
 ============================================================================================
 
 The kinetic energy a vertical proton needs to cross `X` g/cm2 of a material, from the CSDA range and total stopping power

@@ -2,7 +2,7 @@
 
 """
 PERF.104: a stale copy is never served as current, whatever changed it, and a change rebuilds
-only the caches that read it (docs/design/cache-warm-up.md).
+only the caches that read it (docs/design/operations/cache-warm-up.md).
 
 The pages of a real app on a throwaway database are read twice around each kind of change:
 a write through the API (a sector rename, a system rename, a deletion), a change the command

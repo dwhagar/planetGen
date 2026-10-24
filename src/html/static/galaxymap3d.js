@@ -14,7 +14,7 @@
 // section below.
 //
 // Coordinate convention: every position here is the design doc's own
-// galaxy-frame parsecs (docs/design/galaxy-coordinate-system.md), passed
+// galaxy-frame parsecs (docs/design/galaxy/galaxy-coordinate-system.md), passed
 // straight through as three.js world units with NO axis flip/remap --
 // x/y span the galactic plane, +z is galactic north. `camera.up` is set
 // to (0, 0, 1) once, at scene setup, specifically so that convention
@@ -608,7 +608,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var initialRadius = data.initialRadiusPc;
 
   // theta: azimuth from +x in the xy-plane; phi: polar angle from +z --
-  // the same (r, theta, phi) convention docs/design/galaxy-coordinate-
+  // the same (r, theta, phi) convention docs/design/galaxy/galaxy-coordinate-
   // system.md and planetgen.galaxy.geometry.sector_position_pc use,
   // deliberately not THREE.Spherical (which assumes a +y-up world).
   var orbit = { radius: initialRadius, theta: THREE.MathUtils.degToRad(-32), phi: THREE.MathUtils.degToRad(60) };
@@ -2438,7 +2438,7 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // --- Territories -----------------------------------------------------------
   //
-  // The Territories button draws who holds what (docs/design/population-
+  // The Territories button draws who holds what (docs/design/habitability/population-
   // and-politics.md): each polity's reach as a translucent ball around
   // its capital, and the systems it owns as small dots in its own color
   // (/galaxy/territories, at most 20,000 nearest their capitals). Both

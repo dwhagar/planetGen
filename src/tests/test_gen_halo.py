@@ -84,7 +84,7 @@ def test_far_above_the_disk_only_the_halo_is_left():
     assert densities["halo"] < 1e-6    # nowhere near the old floor's 1e-3
 
 
-# The design note's table (docs/design/intergalactic-and-halo-contents.md section 4), relative density in the plane.
+# The design note's table (docs/design/galaxy/intergalactic-and-halo-contents.md section 4), relative density in the plane.
 @pytest.mark.parametrize("radius_kpc, relative", [(8.2, 1.8e-3), (50.0, 5.0e-6), (100.0, 2.2e-7), (262.0, 2.9e-9)])
 def test_the_halo_matches_the_design_notes_table(radius_kpc, relative):
     # The table was worked out at the recalled 0.4 solar masses a system; the derived mean (GEN.545) scales the density.

@@ -1,7 +1,7 @@
 # planetgen/describe/html.py
 
 """
-A Document as HTML for the web page (docs/design/system-description.md, section 4, UX.119): the fourth renderer beside
+A Document as HTML for the web page (docs/design/architecture/system-description.md, section 4, UX.119): the fourth renderer beside
 text, markdown and wikitext.
 
 Every number is a `<span class="qty" data-q="length" data-si="...">` (the markup `web/lib/fmt.quantity_html` writes), so

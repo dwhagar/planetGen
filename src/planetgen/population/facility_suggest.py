@@ -9,7 +9,7 @@ first rule set that fills the ones nobody set: each dimension gets a score from 
 richness, how far the system is from its polity's capital), a stable draw of up to `tuning.FACILITY_RATING_NOISE`
 either way is added (seeded from the facility, so a rerun gives the same answer), and the score becomes Green at
 `FACILITY_RATING_GREEN` or above, Yellow at `FACILITY_RATING_YELLOW` or above, Red below. See
-`docs/design/population-and-politics.md`, "Setting ratings".
+`docs/design/habitability/population-and-politics.md`, "Setting ratings".
 
 | Rating | Score |
 |---|---|

@@ -6,7 +6,7 @@ Redis, no clock of its own (`now` is passed), so the terminal bar, the Generate 
 (UX.3) and a migration bar all show the same number and a test can drive it with a fake clock.
 
 For each stage the estimate is, in the order of what is known (section 2.3 of
-docs/design/performance-eta-queue-and-caching.md):
+docs/design/operations/performance-eta-queue-and-caching.md):
 
 1. a **rate**: the stage's live rate (cost finished per second, the decayed sums the units update) blended with
    the rate recorded for this kind of work, `progress_rate.blended_rate`; the time left is the cost left over the

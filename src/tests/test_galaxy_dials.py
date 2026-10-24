@@ -171,7 +171,7 @@ def test_no_help_text_quotes_a_milky_way_number():
 
 
 def test_the_gap_filling_plan_carries_the_range_registry_as_built():
-    text = (ROOT / "docs" / "design" / "gap-filling-plan.md").read_text(encoding="utf-8")
+    text = (ROOT / "docs" / "design" / "research" / "gap-filling-plan.md").read_text(encoding="utf-8")
     start = text.index(dials.REGISTRY_BEGIN.split(" (")[0])
     end = text.index(dials.REGISTRY_END) + len(dials.REGISTRY_END)
     assert text[start:end] == dials.registry_block(), "the plan is stale: run python3 -m planetgen.galaxy.dials --write"

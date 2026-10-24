@@ -1,7 +1,7 @@
 # planetgen/describe/quantity.py
 
 """
-Writes a Document's inline text and quantities as a string (docs/design/system-description.md,
+Writes a Document's inline text and quantities as a string (docs/design/architecture/system-description.md,
 section 4). A quantity goes through the site's one formatter (`util/format.format_quantity`, so
 it reads the same as every page and as `static/unitladder.js`); the page formats differ only in
 how a power of ten and emphasis are marked.

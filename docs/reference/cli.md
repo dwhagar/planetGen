@@ -146,7 +146,7 @@ Each run saves the whole generated sector — every system, star, planet, moon, 
 
 ### Sector-Level Exotic Phenomena
 
-Every generated sector also seeds a realistically sparse population of exotic phenomena: black holes, neutron stars, nebulae (including molecular clouds and planetary nebulae), supernova remnants, rogue planets and free-floating brown dwarfs, and interstellar comets. Each type is drawn per star from the research densities in [`design/interstellar-object-rates.md`](../design/interstellar-object-rates.md) (`program_constants.PHENOMENON_DENSITY_PC3`, with a `PHENOMENON_RATE_SCALE` dial per type), so most sectors hold none of the rarer kinds, as real space this size usually doesn't. Isolated asteroid fields are not generated in sectors (they disperse); `planetgen phenomenon --type asteroid-field` still makes one on request. In a galaxy, molecular clouds (classes M-Q) belong to the galaxy rather than to one sector: they are drawn per 50 pc cell from the galaxy seed, more on the spiral arms and near the plane, and a sector gets every cloud that reaches it, stored once whichever sector it reaches is generated first (GEN.47). On an arm at the Sun's distance about one sector in eight sits in one, between the arms about one in twenty-five. Nebulae come with the stars that make them: every O star and half the B0-B2 stars sit in an H II region, and every planetary nebula has its own new hot white dwarf at the center. A galaxy's nucleus is active 10% of the time (`program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`): then the core ball (shell 0) gets a quasar at the galactic center; otherwise it gets a quiescent supermassive black hole.
+Every generated sector also seeds a realistically sparse population of exotic phenomena: black holes, neutron stars, nebulae (including molecular clouds and planetary nebulae), supernova remnants, rogue planets and free-floating brown dwarfs, and interstellar comets. Each type is drawn per star from the research densities in [`design/systems/interstellar-object-rates.md`](../design/systems/interstellar-object-rates.md) (`program_constants.PHENOMENON_DENSITY_PC3`, with a `PHENOMENON_RATE_SCALE` dial per type), so most sectors hold none of the rarer kinds, as real space this size usually doesn't. Isolated asteroid fields are not generated in sectors (they disperse); `planetgen phenomenon --type asteroid-field` still makes one on request. In a galaxy, molecular clouds (classes M-Q) belong to the galaxy rather than to one sector: they are drawn per 50 pc cell from the galaxy seed, more on the spiral arms and near the plane, and a sector gets every cloud that reaches it, stored once whichever sector it reaches is generated first (GEN.47). On an arm at the Sun's distance about one sector in eight sits in one, between the arms about one in twenty-five. Nebulae come with the stars that make them: every O star and half the B0-B2 stars sit in an H II region, and every planetary nebula has its own new hot white dwarf at the center. A galaxy's nucleus is active 10% of the time (`program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE`): then the core ball (shell 0) gets a quasar at the galactic center; otherwise it gets a quiescent supermassive black hole.
 
 Black holes and neutron stars are real, stellar-mass gravitating bodies, so they're placed the same Hill-sphere-aware way every star system itself already is: never within a neighboring star system's or another compact remnant's own Hill sphere (see "Minimum separation (Hill spheres)" in `planetgen/galaxy/sector.py`'s own module docstring). Every other phenomenon type has no comparable gravitational footprint at this scale and is placed at a random point in the sector's cell instead.
 
@@ -154,7 +154,7 @@ Black holes and neutron stars are real, stellar-mass gravitating bodies, so they
 
 `planetgen galaxy` generates and persists many sectors as one galaxy, placed
 in real galaxy-frame 3D space (see
-[`docs/design/spherical-sector-coordinates.md`](../design/spherical-sector-coordinates.md)):
+[`docs/design/galaxy/spherical-sector-coordinates.md`](../design/galaxy/spherical-sector-coordinates.md)):
 
 ```bash
 planetgen galaxy --shell I [--band J [--wedge K [--radius-pc R]]] [--limit N | --yes] [options]
@@ -211,7 +211,7 @@ one band; a range whose first is past its last wraps through wedge 0, as in
 `--bands` alone fills those bands out to the galaxy's edge.
 `--block M.I.S.SLAB` was the old drill-down's block key (size M, ring I, wedge
 S, slab SLAB) and is refused: the Galaxy Map's blocks are now keyed
-`m.shell.band.wedge` (`docs/design/spherical-block-ladder.md`), and the
+`m.shell.band.wedge` (`docs/design/galaxy/spherical-block-ladder.md`), and the
 command does not take those yet. Fill a shell, a band or a span instead.
 `--center-sector ID --radius-pc R` generates every not-yet-generated sector
 within R parsecs of an already placed sector's own center, the sector at the
@@ -455,7 +455,7 @@ example `Galaxy seed 3F2A...C901, PlanetGen 7.127.352
 first plan; OPS.10). It goes to the console, the `--debug` file and the
 debug log, and a Generate page job's log starts with the same line for
 the job before its first step. Design:
-[`design/reproducible-galaxies.md`](../design/reproducible-galaxies.md).
+[`design/generation/reproducible-galaxies.md`](../design/generation/reproducible-galaxies.md).
 
 `planetgen plan` draws the shape of the galaxy from its seed (GEN.401). Every shape option is **Auto**
 until given: left out, the seed draws it through its law, and a given value replaces only its own draw while
@@ -466,7 +466,7 @@ refused with the allowed range and its source; a length takes its unit (`--disk-
 `2600pc`) and a bare number is refused. The galaxy's stellar mass comes from the seed
 (`galaxy/mass_chain.py`), the disk length from the size-mass relation of late-type galaxies, the height from the
 length, the bulge's share and size from the galaxy's stage and the arm count and pitch angle from the arm statistics
-([`design/intergalactic-and-halo-contents.md`](../design/intergalactic-and-halo-contents.md),
+([`design/galaxy/intergalactic-and-halo-contents.md`](../design/galaxy/intergalactic-and-halo-contents.md),
 section 5.13, rows 4 to 6). The plan prints what was drawn.
 
 <!-- dials:begin (generated by planetgen.galaxy.dials; python3 -m planetgen.galaxy.dials --write) -->
@@ -546,7 +546,7 @@ setting, clear it and draw it again; to change the mass limit, clear `--luminosi
 `--mass` and `--luminosity`. Clearing a kind with nothing stored says so and changes nothing.
 
 
-`--cell-star-ceiling` and `--fill-luminosity-cap` (GEN.281, `plan`) set, for the whole galaxy, how deep a crowded cell is filled: a cell that expects more systems than the ceiling (default 5,000) is filled only with the stars at or above the cap (default 100 solar luminosities, raised for a cell those stars would still fill past the ceiling, never under the brightest white dwarf), and the rest is reported as unresolved on its sector page and in the API (`unresolved`). Ordinary space never reaches the ceiling. Both are stored with the galaxy and apply to sectors generated afterwards. `--core-min-luminosity`, `--core-mass-limit` and `--halo-min-luminosity` (DB.54, `plan`) store the scatter limits by place: the core's luminosity floor and mass limit (unset, they are the baseline's times 1.1, 9,900 and 15.4 at the defaults) and the halo's luminosity floor (default 500, from 50 to 4,000,000; the halo has no mass limit of its own). The tiers that read them are GEN.333's. The satellites and clusters (`galaxy_components`) are drawn only by a full `plan`, so a galaxy planned before GEN.159 and GEN.237 has an empty component table until a full plan runs. The measured cost of a full scatter is in [generation-performance-study.md](../design/generation-performance-study.md).
+`--cell-star-ceiling` and `--fill-luminosity-cap` (GEN.281, `plan`) set, for the whole galaxy, how deep a crowded cell is filled: a cell that expects more systems than the ceiling (default 5,000) is filled only with the stars at or above the cap (default 100 solar luminosities, raised for a cell those stars would still fill past the ceiling, never under the brightest white dwarf), and the rest is reported as unresolved on its sector page and in the API (`unresolved`). Ordinary space never reaches the ceiling. Both are stored with the galaxy and apply to sectors generated afterwards. `--core-min-luminosity`, `--core-mass-limit` and `--halo-min-luminosity` (DB.54, `plan`) store the scatter limits by place: the core's luminosity floor and mass limit (unset, they are the baseline's times 1.1, 9,900 and 15.4 at the defaults) and the halo's luminosity floor (default 500, from 50 to 4,000,000; the halo has no mass limit of its own). The tiers that read them are GEN.333's. The satellites and clusters (`galaxy_components`) are drawn only by a full `plan`, so a galaxy planned before GEN.159 and GEN.237 has an empty component table until a full plan runs. The measured cost of a full scatter is in [generation-performance-study.md](../design/generation/generation-performance-study.md).
 
 `planetgen clean-nebula-field` (GEN.205) brings an existing galaxy's stored molecular clouds in line with the current nebula keep rates (`tuning.NEBULA_FIELD_KEEP`): without `--apply` it counts, per class, the stored field clouds the rule now rejects and changes nothing; `--apply` deletes them (everything inside them loses its `inside_nebula_id`, and containment is refreshed in the sectors they reached). A nebula that was not made by the field is left alone. `planetgen scatter --nebula-field` then draws the `nebula_field` table again.
 
@@ -628,7 +628,7 @@ without asking). The website hides species, polities and the Galaxy
 Map's Territories overlay until it has made something to show
 (`GET /api/population`). The `--mysql-*`, `--debug` and `--quiet`
 options work as on the other subcommands. Design and decisions:
-[`design/population-and-politics.md`](../design/population-and-politics.md).
+[`design/habitability/population-and-politics.md`](../design/habitability/population-and-politics.md).
 
 ## Fingerprint
 
@@ -645,7 +645,7 @@ planetgen fingerprint --shell 3 --shell 4  # every sector in shells 3 and 4
 planetgen fingerprint --sector 12 3 0      # one sector: shell 12, band 3, wedge 0 (repeatable)
 ```
 
-It compares what [`design/reproducible-galaxies.md`](../design/reproducible-galaxies.md)
+It compares what [`design/generation/reproducible-galaxies.md`](../design/generation/reproducible-galaxies.md)
 section 2 defines: every object's address, position, properties and
 name, with their child rows and the cell's bright stars and phenomenon
 scatter. Row ids, timestamps, each row's update clock, the nearest
@@ -711,11 +711,11 @@ planetgen benchmark --suite --size small --steps plan,scatter-mass
 *   Each step prints a line when it ends, so a run that is stopped (a container restart, a closed terminal) keeps what finished. A run in which a step failed, did not finish or was stopped leaves its scratch databases (`planetgen_suite_<SUFFIX>_r0` and `planetgen_suite_control_<SUFFIX>`, the suffix printed at the start). `--resume SUFFIX` carries on in them: give `--steps` the steps left to run (a step that was stopped in the middle may need `planetgen clear-scatter` of its kind first). Drop the two databases by hand when done.
 *   Each step records the wall time and its share of the run, the CPU the machine spent (less the database server's and Redis's own share), the statements and rows the database server counted, the peak memory of the generation processes (together and the largest), what it made (stars, systems, rows) and the time per thing made, and the stage rows the command stored.
 
-The suite stops the queue workers before and after each step, so every step starts with cold ones, and it turns the automatic cache warm-up off (`PLANETGEN_WARM_ON_CHANGE=0`). The machine must be the suite's alone while it runs: the CPU and database counters are the machine's, and the Redis queue is the real one. It needs Linux (`/proc`), the Redis queue and a database account that can create databases. The numbers of a run, the ranked costs and the optimizations they led to are in [design/generation-performance.md](../design/generation-performance.md).
+The suite stops the queue workers before and after each step, so every step starts with cold ones, and it turns the automatic cache warm-up off (`PLANETGEN_WARM_ON_CHANGE=0`). The machine must be the suite's alone while it runs: the CPU and database counters are the machine's, and the Redis queue is the real one. It needs Linux (`/proc`), the Redis queue and a database account that can create databases. The numbers of a run, the ranked costs and the optimizations they led to are in [design/generation/generation-performance.md](../design/generation/generation-performance.md).
 
 ## Warm the caches
 
-`planetgen warm` builds the site's caches so the first visitor after a release does not wait for them (MAP.134, PERF.104, PERF.127; design in [cache-warm-up.md](../design/cache-warm-up.md)). `update.sh` runs it in the background after every update; run it by hand after clearing a cache, as the web server's user so Apache can read what it writes. Each cache family is a command of its own, listed by `planetgen commands` and runnable alone with `planetgen command-run KIND ARGS`: `warm-object-index` (the object index: one row per object of every kind the site lists, written when it changed since the last run; built whole after `planetgen orbits` or a new epoch, because those move objects between sectors without touching their rows' `modified_at`; PERF.140), `warm-galaxy-map` (the opening tiles and stage, the shape, the sector and phenomena lists), `warm-galaxy-tiles` (the Galaxy Map's tiles: the first `tile_cache.warm_levels` levels of the tile octree in full, cut into chunks of 128 tiles that the workers build; PERF.130), `warm-galaxy-deep-tiles` (the zoom run in to the galaxy's centre, down to level `tile_cache.warm_zoom_levels`; PERF.141), `warm-lists` (the first page of every list and its counts), `warm-sectors`, `warm-systems` and `warm-phenomena` (every page of that kind, nearest the galaxy centre first, up to `page_cache.warm_max_objects` of each) and `warm-search`. `planetgen warm` only builds the list of them (every family in that order, or the families named) and hands it to the wrapper, which queues them one after the other on the Redis queue as a maintenance run: it does not wait for a generation run, holds none up and shows no banner to visitors. A list of every family ends with `end-map-rebuild-maintenance`, which opens the site if the sector-grid switch closed it (UX.112). It waits for a running update to finish, prints one line per family (how many pages it warmed, how many answers it built, how many were already cached and how many the cap left out), and exits 1 naming the command that failed, or when Redis does not answer or another warm-up is running; there is no silent skip.
+`planetgen warm` builds the site's caches so the first visitor after a release does not wait for them (MAP.134, PERF.104, PERF.127; design in [cache-warm-up.md](../design/operations/cache-warm-up.md)). `update.sh` runs it in the background after every update; run it by hand after clearing a cache, as the web server's user so Apache can read what it writes. Each cache family is a command of its own, listed by `planetgen commands` and runnable alone with `planetgen command-run KIND ARGS`: `warm-object-index` (the object index: one row per object of every kind the site lists, written when it changed since the last run; built whole after `planetgen orbits` or a new epoch, because those move objects between sectors without touching their rows' `modified_at`; PERF.140), `warm-galaxy-map` (the opening tiles and stage, the shape, the sector and phenomena lists), `warm-galaxy-tiles` (the Galaxy Map's tiles: the first `tile_cache.warm_levels` levels of the tile octree in full, cut into chunks of 128 tiles that the workers build; PERF.130), `warm-galaxy-deep-tiles` (the zoom run in to the galaxy's centre, down to level `tile_cache.warm_zoom_levels`; PERF.141), `warm-lists` (the first page of every list and its counts), `warm-sectors`, `warm-systems` and `warm-phenomena` (every page of that kind, nearest the galaxy centre first, up to `page_cache.warm_max_objects` of each) and `warm-search`. `planetgen warm` only builds the list of them (every family in that order, or the families named) and hands it to the wrapper, which queues them one after the other on the Redis queue as a maintenance run: it does not wait for a generation run, holds none up and shows no banner to visitors. A list of every family ends with `end-map-rebuild-maintenance`, which opens the site if the sector-grid switch closed it (UX.112). It waits for a running update to finish, prints one line per family (how many pages it warmed, how many answers it built, how many were already cached and how many the cap left out), and exits 1 naming the command that failed, or when Redis does not answer or another warm-up is running; there is no silent skip.
 
 ```bash
 planetgen warm [FAMILY|PHASE ...] [--cap N]
@@ -864,7 +864,7 @@ A restore verifies the archive, backs up what it is about to replace in a safety
 ## Planned commands
 
 Not built yet. Each names its TODO item and phase; the design is in
-[`design/reproducible-galaxies.md`](../design/reproducible-galaxies.md).
+[`design/generation/reproducible-galaxies.md`](../design/generation/reproducible-galaxies.md).
 
 | Command or option | Item | Phase | What it will do |
 |---|---|---|---|

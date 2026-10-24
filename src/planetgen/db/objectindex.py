@@ -1,7 +1,7 @@
 # planetgen/db/objectindex.py
 
 """
-The object index builder (PERF.140, docs/design/cache-warm-up.md; the table is DB.79).
+The object index builder (PERF.140, docs/design/operations/cache-warm-up.md; the table is DB.79).
 
 `object_index` has one row per object of every kind the site lists. This module fills it from the live tables and keeps
 it in step:

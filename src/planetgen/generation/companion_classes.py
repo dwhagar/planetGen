@@ -1,7 +1,7 @@
 # generation/companion_classes.py
 
 """
-Which kind of companion a star gets and how far away it is (GEN.448; docs/design/multistar-and-compact-systems.md
+Which kind of companion a star gets and how far away it is (GEN.448; docs/design/systems/multistar-and-compact-systems.md
 section 4 and placement-by-population.md 3.1): one distribution of companions over orbital period for the whole range,
 in place of the coin flip between a close pair (0.05 to 0.25 AU) and a wide pair (50 AU and out) with nothing between.
 

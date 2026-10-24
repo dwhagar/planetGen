@@ -1,7 +1,7 @@
 // html/static/systemreach.js
 //
 // Which star's system the Galaxy Map has up while the camera is in an opened sector, and how much of it shows
-// (MAP.152, docs/design/fly-through-view-distance.md sections 4.4 and 4.7): a system's disc becomes drawable when it
+// (MAP.152, docs/design/interface/fly-through-view-distance.md sections 4.4 and 4.7): a system's disc becomes drawable when it
 // subtends about `LOAD_PX` pixels, fades in to `FULL_PX`, and is dropped below `UNLOAD_PX`. The gap between the
 // two ends is the hysteresis: a camera hovering near the size does not load and drop the system again and
 // again. A system's real size is not known until its scene is loaded, so until then it is `NOMINAL_RADIUS_PC`

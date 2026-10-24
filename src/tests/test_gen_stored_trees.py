@@ -1,6 +1,6 @@
 """
 GEN.315: a system built from the tree its scatter row stored (`planetgen.generation.stored_trees`,
-`StarSystem(member_tree=...)`, docs/design/multi-star-systems.md section 6). A scattered star with one companion star is
+`StarSystem(member_tree=...)`, docs/design/systems/multi-star-systems.md section 6). A scattered star with one companion star is
 that pair, on the stored orbit; a single star draws no companion of its own; a tree the pair classes cannot hold builds
 the placed object alone and keeps its rows; a built row's members and nodes are deleted in the save.
 """

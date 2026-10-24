@@ -1,6 +1,6 @@
 # tests/test_photolysis.py
 
-"""GEN.496: the photolysis lifetime table, against docs/design/body-composition-parts/G1-comets.md sections G1.2 and 2.2."""
+"""GEN.496: the photolysis lifetime table, against docs/design/composition/body-composition-parts/G1-comets.md sections G1.2 and 2.2."""
 
 import json
 import math

@@ -5,7 +5,7 @@ The Thin Disk's Star Formation History (GEN.469)
 ================================================
 
 How the thin disk's stars are spread over their ages, worked out from the disk's own gas instead of typed in
-(`docs/design/disk-star-formation-history.md`). The disk's three populations (`young`, `intermediate`, `old`) share its
+(`docs/design/galaxy/disk-star-formation-history.md`). The disk's three populations (`young`, `intermediate`, `old`) share its
 stars in proportion to how much star formation fell in their age windows; a flat history gave each window's length over
 the disk's age, and this module gives what the gas gives.
 

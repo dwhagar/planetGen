@@ -1,5 +1,5 @@
 // tests/js/systemreach.test.mjs -- static/systemreach.js (MAP.152): which star's system the camera wants up in an
-// opened sector, and how much of it shows. The spec is docs/design/fly-through-view-distance.md 4.4 and 4.7: a system's
+// opened sector, and how much of it shows. The spec is docs/design/interface/fly-through-view-distance.md 4.4 and 4.7: a system's
 // disc appears at about 20 pixels, is whole at 40 and is dropped below 10.
 
 import { test } from "node:test";

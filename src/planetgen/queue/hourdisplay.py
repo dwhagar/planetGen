@@ -1,7 +1,7 @@
 # planetgen/queue/hourdisplay.py
 
 """
-The time left shown as whole hours (UX.3), by the rule of section 2.4 of docs/design/performance-eta-queue-and-caching.md.
+The time left shown as whole hours (UX.3), by the rule of section 2.4 of docs/design/operations/performance-eta-queue-and-caching.md.
 
 Boss asked for "an ETA until it will be finished to the nearest hour rounding up". Rounding each estimate up on
 its own makes the figure jump: on a 10 hour run `ceil(eta / 1 h)` rose 9 to 18 times and showed fewer hours than

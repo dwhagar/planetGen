@@ -54,7 +54,7 @@ GALACTIC_MOTION_FIELDS = list(GALACTIC_MOTION_UNITS)
 
 @dataclasses.dataclass(frozen=True)
 class KinematicRecord:
-    """The kinematic record of a mass object (GEN.565, card S16 of docs/design/unified-system-barycentre.md): what the
+    """The kinematic record of a mass object (GEN.565, card S16 of docs/design/architecture/unified-system-barycentre.md): what the
     stored point of every body holds, all relative to its parent in the shared non-rotating (galactic) axes. A field is
     `None` where the body has not got it yet (no position, an object saved before the spin was drawn)."""
 

@@ -8,7 +8,7 @@ A planet's light is a sum, `S = sum(L_i / d_i^2)`, over every star. For a planet
 `<1/d^2> = 1 / (a^2 sqrt(1 - e^2))`, and the total swings between the companion's periapsis and apoapsis.
 For a circumbinary (P-type) planet the two stars' lights are summed at the barycentre and the total
 varies with the pair's period because the brighter star is not at the barycentre
-(`docs/design/multistar-and-compact-systems.md` 6.5).
+(`docs/design/systems/multistar-and-compact-systems.md` 6.5).
 
 `flux_variation` is the fractional peak-to-peak swing of a planet's total insolation, 0 for a lone
 star. Luminosities may be in any one unit and distances in AU.

@@ -3,7 +3,7 @@
 Schema v125. Two columns on `sectors`, added at the end of the table: `density_multiplier_used` (DECIMAL(10,4), NULL) is the
 multiplier of the region density override (DB.38) that applied when the sector was filled, and `override_id` (BIGINT
 UNSIGNED, NULL, the `id` of that row of `region_density_overrides`; no foreign key, since an override row is never deleted
-and `sectors` is made before the table in a new galaxy) names that override, so a rebuilt galaxy can tell which setting a sector was filled under (docs/design/map-ui-and-frontend-libraries.md
+and `sectors` is made before the table in a new galaxy) names that override, so a rebuilt galaxy can tell which setting a sector was filled under (docs/design/interface/map-ui-and-frontend-libraries.md
 section 8). Both are NULL for a sector filled with no override, and for every sector saved before this revision. No row is
 touched and nothing writes or reads the columns yet.
 

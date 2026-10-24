@@ -1,7 +1,7 @@
 # planetgen.queue.warmphases
 
 """
-What the warm-up has done, phase by phase, for the admin page (PERF.141, docs/design/cache-warm-up.md).
+What the warm-up has done, phase by phase, for the admin page (PERF.141, docs/design/operations/cache-warm-up.md).
 
 `planetgen warm` writes, per database, the Redis hash `planetgen:warm:phases:<database>`: one field per phase (`opening`,
 `built-levels`, ...) holding a JSON object, and `_run`, the state of the run as a whole. The admin queue page reads it

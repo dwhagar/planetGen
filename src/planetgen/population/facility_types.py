@@ -11,7 +11,7 @@ value for. Everything here takes an open connection and the caller owns the
 transaction. Rules broken raise `FacilityTypeError`, whose `status` is the
 HTTP status the API answers with.
 
-See `docs/design/population-and-politics.md`, "Facility types and ratings".
+See `docs/design/habitability/population-and-politics.md`, "Facility types and ratings".
 """
 
 import math

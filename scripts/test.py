@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Picks and runs a slice of the test suite (TEST.139, docs/design/test-suite-rebuild.md).
+Picks and runs a slice of the test suite (TEST.139, docs/design/operations/test-suite-rebuild.md).
 
     scripts/test.py quick                 not database, browser or heavy tests (the fast loop)
     scripts/test.py area web db           the tests of those areas (src/tests/areas.py)

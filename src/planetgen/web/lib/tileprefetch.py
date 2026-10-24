@@ -2,7 +2,7 @@
 
 """
 Builds the Galaxy Map's tiles around a visit before the visitor asks for them (PERF.132; design in
-docs/design/cache-warm-up.md).
+docs/design/operations/cache-warm-up.md).
 
 A request for tiles (`GET /galaxy/tiles`, `schedule` runs when its response has gone) names the view the visitor is
 in, and the page says where its camera and target are (`at`). The tiles the next move needs are (1) the next zoom

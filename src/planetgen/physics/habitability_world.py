@@ -5,7 +5,7 @@ The habitability score of every planet and moon (GEN.89): turns a body's
 stored air, water, temperature, radiation and light into the `World` that
 `habitability.scores` reads (GEN.84) and stores the result.
 
-The mapping, every rule a planetGen default (docs/design/habitability-index.md
+The mapping, every rule a planetGen default (docs/design/habitability/habitability-index.md
 section 8):
 
 * **Air.** Total pressure, temperature and gravity as stored; each species

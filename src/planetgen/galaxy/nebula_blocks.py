@@ -1,7 +1,7 @@
 """
 planetgen/galaxy/nebula_blocks.py
 
-Nebula aggregates for the Galaxy Map's block ladder (MAP.172, docs/design/nebula-map-visibility.md sections 3.1
+Nebula aggregates for the Galaxy Map's block ladder (MAP.172, docs/design/interface/nebula-map-visibility.md sections 3.1
 and 5.1). Every block of the ladder (`galaxy/drill.py`, levels 243, 81, 27, 9 and 3) keeps what the nebulae in it
 add up to, so the map can shade a block by how much of it is gas and group the clouds of a block into one region,
 for blocks no sector has been generated in too: the numbers come from the seed's nebulae, not from the sectors.

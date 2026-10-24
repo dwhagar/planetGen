@@ -5,7 +5,7 @@ Where neutron stars and black holes are, against where stars are (GEN.132).
 
 The generator places remnants in proportion to the stellar density, which is
 right on average but not by region. The research in
-`docs/design/compact-remnant-regions.md` finds, against stars:
+`docs/design/systems/compact-remnant-regions.md` finds, against stars:
 
 - Neutron stars sit in a layer about three times as thick (birth kicks), black
   holes about two and a half times (smaller kicks), so each is rarer in the

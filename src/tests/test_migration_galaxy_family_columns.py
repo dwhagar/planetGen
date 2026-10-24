@@ -1,7 +1,7 @@
 # tests/test_migration_galaxy_family_columns.py
 
 """
-DB.66: migration 0117 adds `galaxy_shape.family` and the component columns of docs/design/galaxy-types.md section 10. A
+DB.66: migration 0117 adds `galaxy_shape.family` and the component columns of docs/design/galaxy/galaxy-types.md section 10. A
 galaxy planned before the revision becomes a `spiral` with no spheroid and no clump share and keeps every other number,
 the checks refuse a family or a number the design does not allow, and a migration run again leaves the columns as they are.
 """

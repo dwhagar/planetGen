@@ -1,7 +1,7 @@
 # planetgen/physics/mass_loss.py
 
 """
-Orbits around a star that lost mass (GEN.318; docs/design/exotic-environments-planets-and-compact-binaries.md 1.2)
+Orbits around a star that lost mass (GEN.318; docs/design/systems/exotic-environments-planets-and-compact-binaries.md 1.2)
 ===================================================================================================================
 
 A star of M_initial solar masses that becomes a white dwarf of M_final loses the difference on its giant branches, slowly

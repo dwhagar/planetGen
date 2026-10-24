@@ -473,7 +473,7 @@ def end_session(conn, raw_token):
 
 
 SCOPES = ("read", "generate", "upload", "admin")
-"""tuple[str]: What an API key may hold (API.9, docs/design/api-design-standards.md
+"""tuple[str]: What an API key may hold (API.9, docs/design/operations/api-design-standards.md
 section 5). `admin` implies all the others; `generate` and `upload` imply `read`."""
 
 SCOPE_IMPLIES = {

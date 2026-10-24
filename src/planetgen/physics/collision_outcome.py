@@ -1,7 +1,7 @@
 # planetgen/physics/collision_outcome.py
 
 """
-What a collision does (GEN.345; docs/design/collisions-and-mergers.md sections 4 and 5.1)
+What a collision does (GEN.345; docs/design/orbits/collisions-and-mergers.md sections 4 and 5.1)
 =========================================================================================
 
 One pure function, `resolve`, from two bodies that have just come within `R1 + R2` of each other (found by

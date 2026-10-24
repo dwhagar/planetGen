@@ -1,7 +1,7 @@
 # planetgen/describe/build.py
 
 """
-`describe(system)`: the Document of a star system (docs/design/system-description.md).
+`describe(system)`: the Document of a star system (docs/design/architecture/system-description.md).
 
 A pure function of the `StarSystem` object graph, whether it was generated a
 moment ago or rebuilt from the database (`db.store.load_star_system`). Every

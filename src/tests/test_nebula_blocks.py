@@ -2,7 +2,7 @@
 MAP.172: the nebula aggregates of the Galaxy Map's block ladder (`galaxy/nebula_blocks.py`). A point is found in the same
 block `drill.py` bounds describe, the blocks of a level tile a shell, the counts, volumes and cover add up through the
 ladder, and the stored cover is within 5% of the true cover found by throwing random points at the block
-(docs/design/nebula-map-visibility.md section 9).
+(docs/design/interface/nebula-map-visibility.md section 9).
 """
 
 import math

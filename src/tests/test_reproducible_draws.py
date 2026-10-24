@@ -3,7 +3,7 @@
 """
 GEN.56: every random draw in generation comes from the derived seeds,
 through `planetgen.util.draw`'s helpers built on `random()` alone (see
-docs/design/reproducible-galaxies.md, section 5).
+docs/design/generation/reproducible-galaxies.md, section 5).
 
 - The helpers' own recipes are pinned, so a change to one shows up here
   rather than as a quietly different galaxy.
