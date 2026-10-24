@@ -93,8 +93,13 @@ def _open(page, url, ready):
 
 
 def _shot(page, selector):
+    """The picture of `selector` without the names laid over it (the label engine's, MAP.231, fade and move)."""
     page.wait_for_timeout(150)
-    return page.locator(selector).screenshot()
+    page.evaluate("() => document.querySelectorAll('.map-labels').forEach((e) => { e.style.visibility = 'hidden'; })")
+    try:
+        return page.locator(selector).screenshot()
+    finally:
+        page.evaluate("() => document.querySelectorAll('.map-labels').forEach((e) => { e.style.visibility = ''; })")
 
 
 # --- The Sector Map -------------------------------------------------------------------
@@ -1360,6 +1365,22 @@ def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
 
 
 LABELS = "() => (document.querySelector('#galaxymap3d-canvas').__mapLabels.shown())"
+
+
+def test_sector_map_names_its_systems_through_the_label_engine_with_the_system_names_switch(page, map_site):
+    """MAP.231: a sector's own page names its stars through the label engine (DOM names, none over another, never
+    picking), with no text sprites in the scene; the System names switch (the address's `hide`) takes them away."""
+    _open_sector(page, map_site)
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'system')")
+    shown = page.evaluate(LABELS)
+    assert all(label["kind"] in ("system", "sector") for label in shown), shown
+    rects = page.evaluate("() => [...document.querySelectorAll('.map-label')].map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })")
+    for i, a in enumerate(rects):
+        for b in rects[i + 1:]:
+            assert not (a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]), (a, b)
+    _open_sector(page, map_site, "?hide=label-system")
+    page.wait_for_timeout(600)
+    assert not [label for label in page.evaluate(LABELS) if label["kind"] == "system"]
 
 
 def test_galaxy_map_names_a_nebula_where_it_is_large_enough_and_not_beyond(page, map_site):

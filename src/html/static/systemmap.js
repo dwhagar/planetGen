@@ -43,6 +43,7 @@ const { addField } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERSION_QUERY}`);
 const { infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
+const { placeBoxes } = await import(`./maplabels.js${VERSION_QUERY}`);
 
 function classField(el) {
   var cls = el.dataset.class;
@@ -533,21 +534,9 @@ function resetInfo(panel) {
 //
 // planetgen/web/maps/systemmap.py places each name with an estimated text width (the
 // no-script layout). Once a scene is shown, the real text is measured
-// here: a label that overlaps another label or any marker but its own is
-// nudged up or down a line, and hidden if neither clears (its name is
-// still the marker's aria-label and shows on hover or focus). Star names
-// are placed first. A label with a leader line only stays or hides, since
-// moving it would pull it off its line.
-
-function boxesOverlap(a, b) {
-  return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-}
-
-function circleHitsBox(c, box) {
-  var nx = Math.max(box.x, Math.min(c.x, box.x + box.w));
-  var ny = Math.max(box.y, Math.min(c.y, box.y + box.h));
-  return Math.hypot(c.x - nx, c.y - ny) < c.r;
-}
+// here and placed by the label engine (maplabels.js, MAP.231): a label that overlaps another label or any marker but
+// its own is nudged up or down a line, and hidden if neither clears (its name is still the marker's aria-label and
+// shows on hover or focus). Star names are placed first.
 
 function layoutLabels(sceneEl) {
   var labels = Array.prototype.slice.call(sceneEl.querySelectorAll("text.sysmap-label"));
@@ -557,28 +546,21 @@ function layoutLabels(sceneEl) {
   labels.sort(function (a, b) {
     return (b.classList.contains("sysmap-star-label") ? 1 : 0) - (a.classList.contains("sysmap-star-label") ? 1 : 0);
   });
-  var fills = Array.prototype.slice.call(sceneEl.querySelectorAll("circle.sysmap-body-fill"));
-  var circles = [];
-  fills.forEach(function (circle) {
+  var obstacles = [];
+  Array.prototype.slice.call(sceneEl.querySelectorAll("circle.sysmap-body-fill")).forEach(function (circle, n) {
     try {
       var box = circle.getBBox();
-      circles.push({ x: box.x + box.width / 2, y: box.y + box.height / 2, r: box.width / 2 + 1, el: circle });
+      circle.__labelId = n;
+      obstacles.push({ id: n, x: box.x + box.width / 2, y: box.y + box.height / 2, r: box.width / 2 + 1 });
     } catch (e) {
       // Not rendered: nothing to avoid.
     }
   });
-  // Labels stay inside the scene's viewBox (MAP.50): a label crossing a
-  // side edge slides back in sideways, one crossing the top or bottom
-  // slides back in vertically, and a vertical nudge that would leave the
-  // view isn't tried.
+  // The placement itself is the label engine's (maplabels.js placeBoxes): labels stay inside the scene's viewBox
+  // (MAP.50), a vertical nudge of a line or two is tried, and one that cannot clear is hidden.
   var view = sceneEl.viewBox && sceneEl.viewBox.baseVal;
-  var margin = 2;
-  function slideIn(lo, hi, min, max) {
-    if (lo < min) { return min - lo; }
-    if (hi > max) { return max - hi; }
-    return 0;
-  }
-  var kept = [];
+  var items = [];
+  var placed = [];
   labels.forEach(function (label) {
     label.removeAttribute("transform");
     label.classList.remove("sysmap-label-hidden");
@@ -593,30 +575,29 @@ function layoutLabels(sceneEl) {
     }
     var marker = label.closest(".sysmap-body");
     var hasLeader = marker && marker.querySelector(".sysmap-label-leader");
-    var dx = 0, dy = 0;
-    if (view && view.width) {
-      dx = slideIn(box.x, box.x + box.width, view.x + margin, view.x + view.width - margin);
-      dy = slideIn(box.y, box.y + box.height, view.y + margin, view.y + view.height - margin);
+    var own = [];
+    if (marker) {
+      Array.prototype.slice.call(marker.querySelectorAll("circle.sysmap-body-fill")).forEach(function (circle) {
+        if (circle.__labelId !== undefined) own.push(circle.__labelId);
+      });
     }
-    var shifts = hasLeader ? [0] : [0, box.height * 0.9, -box.height * 0.9, box.height * 1.8, -box.height * 1.8];
-    for (var i = 0; i < shifts.length; i++) {
-      var trialY = box.y + dy + shifts[i];
-      if (i && view && view.height &&
-          (trialY < view.y + margin || trialY + box.height > view.y + view.height - margin)) {
-        continue;
-      }
-      var trial = { x: box.x + dx - 1, y: trialY - 1, w: box.width + 2, h: box.height + 2 };
-      var clash = kept.some(function (other) { return boxesOverlap(trial, other); }) ||
-        circles.some(function (c) { return !(marker && marker.contains(c.el)) && circleHitsBox(c, trial); });
-      if (!clash) {
-        if (dx || dy + shifts[i]) {
-          label.setAttribute("transform", "translate(" + dx.toFixed(1) + " " + (dy + shifts[i]).toFixed(1) + ")");
-        }
-        kept.push(trial);
-        return;
-      }
+    // A label with a leader line only stays or hides, since moving it would pull it off its line.
+    items.push({
+      id: items.length, box: { x: box.x, y: box.y, w: box.width, h: box.height }, own: own,
+      shifts: hasLeader ? [0] : [0, box.height * 0.9, -box.height * 0.9, box.height * 1.8, -box.height * 1.8],
+    });
+    placed.push(label);
+  });
+  var results = placeBoxes(items, {
+    bounds: view && view.width ? { x: view.x, y: view.y, w: view.width, h: view.height } : null, margin: 2, obstacles: obstacles,
+  });
+  results.forEach(function (result, n) {
+    var label = placed[n];
+    if (result.hidden) {
+      label.classList.add("sysmap-label-hidden");
+    } else if (result.dx || result.dy) {
+      label.setAttribute("transform", "translate(" + result.dx.toFixed(1) + " " + result.dy.toFixed(1) + ")");
     }
-    label.classList.add("sysmap-label-hidden");
   });
 }
 
@@ -1243,6 +1224,21 @@ function initLayers(root) {
     legend: { text: "marks a facility", swatchClass: "sysmap-legend-facility" },
     draw: function (_scene, on) {
       root.classList.toggle("sysmap-hide-facility", !on);
+    },
+  });
+  // MAP.231: the same Labels switch as the Galaxy Map's: the names of the diagram and of the 3D view.
+  layers.register({
+    id: "label-body",
+    label: "Body names",
+    group: "Labels",
+    title: "Show or hide the names of the stars, planets, moons and other bodies",
+    modes: ["system"],
+    urlKey: "hide",
+    urlKeyOn: "show",
+    data: { label: "body" },
+    draw: function (_scene, on) {
+      var view = document.getElementById("sysview3d");
+      [root, view].forEach(function (el) { if (el) el.classList.toggle("sysmap-hide-labels", !on); });
     },
   });
   layers.readUrl(window.location.search);

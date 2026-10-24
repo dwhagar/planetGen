@@ -1738,14 +1738,14 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
     # all (shouldn't happen -- see this function's own docstring) has
     # nothing to measure between regardless.
     # MAP.217: the layers of this map (static/maplayers.js) have a Menu like the other maps', made from the
-    # registry; only a system with facilities has a layer to toggle so far.
+    # registry; the names (MAP.231) are a layer of every system, the facilities of one that has them.
     layers_html = (
         '<details class="galaxy-menu" id="sysmap-menu">'
         '<summary class="starmap-btn" title="More map controls">Menu</summary>'
         '<div class="galaxy-menu-panel" role="group" aria-label="More map controls">'
         '<div class="galaxy-kinds" id="sysmap-layers" role="group" aria-label="Show on the map"></div>'
         "</div></details>"
-        if facilities else ""
+        if stars else ""
     )
     layer_legend_html = (
         '<div class="map-layer-legend" id="sysmap-layer-legend" hidden></div>' if facilities else ""

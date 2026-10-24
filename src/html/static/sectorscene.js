@@ -607,30 +607,6 @@ function makePointsOfLight(entries, lightBackground) {
   return points;
 }
 
-function makeTextSprite(text, color, worldHeight) {
-  var measuring = document.createElement("canvas").getContext("2d");
-  var font = "600 28px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
-  measuring.font = font;
-  var textWidth = measuring.measureText(text).width;
-
-  var paddingX = 14;
-  var canvasEl = document.createElement("canvas");
-  canvasEl.width = Math.ceil(textWidth) + paddingX * 2;
-  canvasEl.height = 40;
-  var ctx = canvasEl.getContext("2d");
-  ctx.font = font;
-  ctx.fillStyle = color;
-  ctx.textBaseline = "middle";
-  ctx.textAlign = "left";
-  ctx.fillText(text, paddingX, canvasEl.height / 2);
-
-  var texture = new THREE.CanvasTexture(canvasEl);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  var sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false }));
-  sprite.scale.set(worldHeight * (canvasEl.width / canvasEl.height), worldHeight, 1);
-  return sprite;
-}
-
 // --- The kinds of object, shown or hidden (MAP.79) -----------------------------
 
 // The kinds a map can show or hide, in the order its buttons come, with
@@ -662,9 +638,6 @@ export function starClassOf(entry) {
 }
 
 // --- Building a sector ------------------------------------------------------
-
-// How big a neighboring sector's or compass label is, in scene units.
-var LABEL_HEIGHT = 22;
 
 // The scene for `data` (starmap.py's JSON, changed in place: see the top
 // of this file). `options`:
@@ -727,13 +700,6 @@ export function buildSectorScene(data, options) {
       new THREE.Vector3().fromArray(tip),
     ]);
     group.add(new THREE.Line(arrowGeometry, new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor) })));
-
-    // Plain "N" at the arrow's own tip (the standard compass-rose
-    // convention) -- no extra arrow glyph appended to the text itself,
-    // since the line already drawn above IS the arrow.
-    var compassLabel = makeTextSprite(data.compass.label, accentColor, LABEL_HEIGHT * unit);
-    compassLabel.position.fromArray(tip);
-    group.add(compassLabel);
   }
 
   var stars = data.stars || [];
@@ -745,12 +711,7 @@ export function buildSectorScene(data, options) {
   var neighbors = data.neighbors || [];
   stars.forEach(place);
   clouds.forEach(place);
-  // A neighbor's label sits under its marker (scene units, before placing).
-  var labelAt = new Map();
-  neighbors.forEach(function (neighbor) {
-    labelAt.set(neighbor, toLocal(neighbor.x, neighbor.y - neighbor.r * 2.4, neighbor.z));
-    place(neighbor);
-  });
+  neighbors.forEach(place);
 
   // Every clickable marker but the points of light, for the raycast.
   var bodyObjects = [];
@@ -926,14 +887,6 @@ export function buildSectorScene(data, options) {
     entryByObject.set(marker, neighbor);
     drawnFor(neighbor, marker);
 
-    var labelText = neighbor.exists ? neighbor.name : neighbor.designation;
-    if (labelText) {
-      var label = makeTextSprite(labelText, neighbor.exists ? NEIGHBOR_EXISTS_COLOR : NEIGHBOR_MISSING_FILL,
-        LABEL_HEIGHT * unit);
-      label.position.fromArray(labelAt.get(neighbor));
-      group.add(label);
-      drawnFor(neighbor, label);
-    }
   });
 
   // Picking (mappick.js): a point of light wins unless a solid body or a

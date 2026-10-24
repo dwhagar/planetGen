@@ -3200,8 +3200,9 @@ function initGalaxyMap3d(canvasEl, data) {
         title: "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
       });
     });
-    // The registry forgets ids nobody registered when it read the address, so read it again for these.
-    stageView.layers.readUrl(location.search);
+    // The registry forgets ids nobody registered when it read the address, so read it again for these (without the
+    // stage writing the address back before it has taken its marks from it).
+    stageView.readLayersFromLocation();
     stageView.layers.refresh();   // the Menu and legend were drawn before these kinds existed
     stageView.layers.onChange(function (id) { if (markerKinds.get(id)) markersDirty = true; });
     canvasEl.__mapMarkers = markerLayer;    // the browser tests read what is drawn
@@ -3215,14 +3216,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // MAP.268: the names (galaxylabels.js, through the label engine maplabels.js): sectors, the open sector's systems and
   // nebulae, a layer each in the Menu's Labels group.
   var galaxyLabels = null;
-  if (!data.pinned && viewport) {
+  if (viewport) {
     LABEL_KINDS.forEach(function (kind) {
       stageView.layers.register({
-        id: kind.id, label: kind.label, modes: ["galaxy"], group: "Labels", data: { label: kind.kind },
+        id: kind.id, label: kind.label, modes: ["galaxy", "sector"], group: "Labels", data: { label: kind.kind },
         defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false, title: kind.title,
       });
     });
-    stageView.layers.readUrl(location.search);
+    stageView.readLayersFromLocation();
     stageView.layers.refresh();
     galaxyLabels = createGalaxyLabels({
       THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),

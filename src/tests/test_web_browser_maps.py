@@ -665,6 +665,33 @@ def _canvas_pixels(page):
     return page.locator("#sysview3d-canvas").screenshot()
 
 
+def test_system_page_names_its_bodies_through_the_label_engine_with_one_switch(page, base_url, site_app):
+    """MAP.231: the 3D view's names are the label engine's (the same `map-label` elements as the Galaxy Map's, none
+    over another), the diagram's names are placed by the engine too, and the Menu's Body names switch hides both."""
+    system_id, scene = _system_with_planets(site_app.test_client())
+    page.goto(f"{base_url}/system/{system_id}?view=3d", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_timeout(500)
+    labels = page.evaluate("() => [...document.querySelectorAll('#sysview3d-labels .map-label')].map((e) => [e.textContent, e.dataset.kind])")
+    names = {text for text, _kind in labels}
+    known = {body["name"] for body in scene["stars"] + scene["planets"] + scene["comets"]} \
+        | {moon["name"] for planet in scene["planets"] for moon in planet["moons"]}
+    assert names and names <= known, (names - known, names)
+    assert not page.locator("#sysview3d-labels .sysview-label").count(), "no second label code"
+    rects = page.evaluate("() => [...document.querySelectorAll('#sysview3d-labels .map-label')].map((e) => { const r = e.getBoundingClientRect(); return [r.left, r.top, r.right, r.bottom]; })")
+    for i, a in enumerate(rects):
+        for b in rects[i + 1:]:
+            assert not (a[0] < b[2] and b[0] < a[2] and a[1] < b[3] and b[1] < a[3]), (a, b)
+    page.click("#sysmap-view-diagram")
+    assert page.locator("text.sysmap-label").count() > 0
+    page.click("#sysmap-menu > summary")
+    toggle = page.locator('#sysmap-layers [data-label="body"]')
+    toggle.click()
+    assert page.locator("#sysmap-root.sysmap-hide-labels").count() == 1
+    assert "label-body" in page.url
+    assert not page.locator("text.sysmap-label").first.is_visible()
+
+
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):
     system_id, scene = _system_with_planets(site_app.test_client())
     _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')

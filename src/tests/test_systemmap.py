@@ -319,10 +319,11 @@ def test_single_star_system_renders_star_and_planet_markers():
 
 
 def test_a_system_with_facilities_has_a_layer_menu_and_legend_for_the_registry_to_fill():
-    """MAP.217: the map's Menu and legend are containers static/maplayers.js fills; a system without facilities has no layer to toggle."""
+    """MAP.217: the map's Menu and legend are containers static/maplayers.js fills; every system has the names (MAP.231) to
+    toggle in the Menu, only one with facilities has a legend line."""
     system, stars, planets, belts = {"name": "T", "binary_configuration": None}, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], []
     plain = sm.render_system_map_panel(system, stars, planets, belts)
-    assert "sysmap-layers" not in plain and "sysmap-layer-legend" not in plain
+    assert 'id="sysmap-layers"' in plain and "sysmap-layer-legend" not in plain
     facility = {"id": 5, "name": "Dock", "kind": "station", "host_type": "planet", "host_id": 1, "host_name": None,
                 "placement": "orbital", "orbit_distance_km": 4e4, "orbit_period_years": 0.01, "orbital_speed_kms": 3.0,
                 "orbit_phase_deg": 10.0}

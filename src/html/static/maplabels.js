@@ -134,6 +134,57 @@ export function placeLabels(candidates, options) {
   return placed;
 }
 
+// Places labels that already have a preferred box (the System Map diagram's names, which the server lays out beside
+// their markers in the no-script page): each item is {id, box: {x, y, w, h}, shifts, obstacles}, handled in the order
+// given (the caller ranks them). A box that crosses `bounds` slides back in; one that overlaps a kept box or an
+// obstacle circle is tried at each of `shifts` (vertical offsets, default [0]) in turn and is hidden when none
+// clears. `options.obstacles` is [{id, x, y, r}] (markers a label must not cover), an item's `own` ids are the ones
+// it may cover (its own marker), `options.bounds` is {x, y, w, h} or null and `options.margin` how far inside it a
+// box stays. Returns [{id, dx, dy, hidden}] in the same order. Pure; tests/js/maplabels.test.mjs.
+export function placeBoxes(items, options) {
+  const bounds = options.bounds || null;
+  const margin = options.margin !== undefined ? options.margin : 2;
+  const obstacles = options.obstacles || [];
+  const pad = options.padding !== undefined ? options.padding : 1;
+  const kept = [];
+  function slideIn(lo, hi, min, max) {
+    if (lo < min) return min - lo;
+    if (hi > max) return max - hi;
+    return 0;
+  }
+  function overlap(a, b) {
+    return a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+  }
+  function circleHits(c, box) {
+    const nx = Math.max(box.x, Math.min(c.x, box.x + box.w));
+    const ny = Math.max(box.y, Math.min(c.y, box.y + box.h));
+    return Math.hypot(c.x - nx, c.y - ny) < c.r;
+  }
+  return items.map(function (item) {
+    const box = item.box;
+    const own = item.own || [];
+    let dx = 0;
+    let dy = 0;
+    if (bounds && bounds.w) {
+      dx = slideIn(box.x, box.x + box.w, bounds.x + margin, bounds.x + bounds.w - margin);
+      dy = slideIn(box.y, box.y + box.h, bounds.y + margin, bounds.y + bounds.h - margin);
+    }
+    const shifts = item.shifts || [0];
+    for (let i = 0; i < shifts.length; i++) {
+      const trialY = box.y + dy + shifts[i];
+      if (i && bounds && bounds.h && (trialY < bounds.y + margin || trialY + box.h > bounds.y + bounds.h - margin)) continue;
+      const trial = { x: box.x + dx - pad, y: trialY - pad, w: box.w + 2 * pad, h: box.h + 2 * pad };
+      const clash = kept.some(function (other) { return overlap(trial, other); })
+        || obstacles.some(function (c) { return own.indexOf(c.id) < 0 && circleHits(c, trial); });
+      if (!clash) {
+        kept.push(trial);
+        return { id: item.id, dx: dx, dy: dy + shifts[i], hidden: false };
+      }
+    }
+    return { id: item.id, dx: 0, dy: 0, hidden: true };
+  });
+}
+
 // The labels drawn over a map. `container` is an element laid over the map (position absolute, no pointer
 // events); `project`, `viewport` (a function giving {width, height}) and `reducedMotion` come from the map.
 export function createLabelLayer(options) {
@@ -192,6 +243,10 @@ export function createLabelLayer(options) {
       const element = entry.element;
       if (element.textContent !== item.candidate.text) element.textContent = item.candidate.text;
       element.dataset.kind = item.candidate.kind;
+      if (item.candidate.selected) element.dataset.selected = "";
+      else delete element.dataset.selected;
+      if (item.candidate.tone) element.dataset.tone = item.candidate.tone;
+      else delete element.dataset.tone;
       element.style.transform = "translate(" + Math.round(item.left) + "px, " + Math.round(item.top) + "px)";
       if (!entry.shown) {
         entry.shown = true;
