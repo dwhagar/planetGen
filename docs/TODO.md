@@ -13950,32 +13950,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nobody started it first.
   Prerequisites: GEN.649. Related: GEN.557, GEN.687.
 
-- [ ] **GEN.702 Some equipment items sit in the wrong habitability row: self-contained air under a Blue Air row on cold worlds, and a hardened pressure suit under Radiation while the Pressure row names no gear (bug)**
-  Found by the habitability text lane while merging UX.167 (#2902), as
-  the coordinator relayed at 4:32 AM EDT 2026-10-24. UX.167 now lists in
-  each PHI-6 row the items whose category (`equipment.items`,
-  `item.domain`) is that row, so every item appears in exactly one row.
-  That showed items filed under the wrong category: on a cold world
-  self-contained air lands under a Blue Air row, and the hardened
-  pressure suit lands under Radiation while Pressure names no gear. Do:
-  audit each equipment item's `domain` against the need it answers (air
-  supply and filtering under Air, suits that hold pressure under
-  Pressure, cosmic-ray hardening under Radiation, heating and cooling
-  under Temperature) and fix the assignment; where one item answers two
-  needs, decide whether it appears in both rows and say so in
-  design-drafts/survival-equipment-fields-2026-10-23.md. Done: a test
-  that for the cold, hot, thin-air, high-pressure and high-radiation
-  example worlds each item sits in the row of the need that makes it
-  required, and no row with a required need names no gear. No schema
-  change; a generator epoch only if a stored value moves. Owner: none
-  (pool; the survival equipment lane has retired, the habitability text
-  lane too).
-  Research (2026-10-09, Update): Update 4:34 AM EDT 2026-10-24: the
-  survival equipment lane (still running, it wrote to TODO at 4:33 AM
-  EDT as its clock read) takes it; TODO checked nobody else had started
-  it. Owner: survival equipment lane.
-  Prerequisites: none. Related: UX.167, UX.163, GEN.671.
-
 - [ ] **GEN.703 The greenhouse optical depth (tau0) comes from the stored mixture and the band opacities, replacing the per-gas strengths**
   Split off GEN.443 when its last part merged (#2910, as lane G reported
   at 4:41 AM EDT 2026-10-24). GEN.443 delivered the band transmission
