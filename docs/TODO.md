@@ -14865,21 +14865,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done includes that test passing on main.
   Prerequisites: none. Related: PERF.178, PERF.174.
 
-- [ ] **PERF.187 The phenomena scatter holds 6.4 GB in its own process while every other generate step stays under 300 MB: find what it keeps and bound it (high priority) (bug)**
-  Found by Lane OOM in its PERF.186 and PERF.183 work (merged as #3078;
-  relayed 4:30 PM EDT 2026-10-24 as the coordinator relayed; filed by
-  the TODO thread). Kind: memory fault on the host Boss saw saturated
-  and out of memory. Do: profile the phenomena scatter step on a large
-  galaxy, find which structure it keeps whole (the full set of candidate
-  phenomena, a per-sector table, or both), and make it stream or work in
-  bounded batches; add a memory-ceiling test for the step (the host cap
-  of PERF.185 is 31 workers, so six such steps would not fit in 16 GB).
-  Done: the step stays under a stated ceiling on a large galaxy, a test
-  pins the ceiling, and the output is unchanged (or the epoch is taken
-  if it is not). Owner: Lane OOM (Boss's lane for host memory). High
-  priority.
-  Prerequisites: none. Related: PERF.185, PERF.186, PERF.181.
-
 - [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
   Found by Bug Hunt while fixing the load flakes of TEST.344 (relayed
   5:04 PM EDT 2026-10-24 as the lane reported; filed by the TODO
@@ -14893,23 +14878,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   otherwise).
   Prerequisites: none. Related: TEST.344, GEN.394.
 
-- [ ] **PERF.189 The block light rebuild at the end of every scatter reports its progress (Step bar, a log line, phase lines) (bug)**
-  Boss's run goes quiet after 'Stamping the hypervelocity stars' epoch'
-  because the next call, refresh_block_lights (MAP.259,
-  db/block_lights.rebuild), has no output and scans every pre-placed
-  star and phenomenon again (research report
-  /mnt/project-files/reports/phenomena-stall-2026-10-24.md, section
-  'Smallest fix'). In scatter_phenomena, scatter_bright_stars and
-  fill_block_totals run refresh_block_lights inside the same progress
-  block as the stamp step, wrapped in a Step 'Making the block light
-  totals'; give rebuild an on_phase(label) callback called before the
-  shell scan and before the unit sums; log one line before it starts;
-  set the bar total to the number of units and advance per unit through
-  the existing on_progress callback. Small: one file plus a test that
-  the Step and the phase lines appear. Owner: Lane OOM (it holds the
-  phenomena scatter; the 6.4 GB memory hold stays with PERF.187).
-  Prerequisites: none. Related: PERF.187, MAP.259.
-
 - [ ] **PERF.190 Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates**
   After the progress output of the block light rebuild exists, measure
   how long the two phases take (the shell scan and the unit sums) on a
@@ -14919,9 +14887,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the shell scan and the shell sums run from the index alone, or build
   the distinct shell list from the plan's own outline (the extents
   scatter_phenomena already holds) instead of a DISTINCT scan of the
-  tables. Record the before and after times in the item. Owner: Lane
-  OOM, after the progress output item.
-  Prerequisites: PERF.189. Related: PERF.187, MAP.259.
+  tables. Record the before and after times in the item. The progress
+  output exists (PERF.189), so the log lines show where the time goes.
+  Owner: Aux 16 (Performance).
+  Prerequisites: none. Related: MAP.259.
 
 - [ ] **PERF.192 The nebula field slab stage queues one unit per 50 pc slab with no cap handling, so a large galaxy can exceed the 4000-unit limit (bug)**
   Found by Core 5 while fixing PERF.191 (#3120, 6:18 PM EDT 2026-10-24
@@ -14933,6 +14902,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a change to how a slab unit carries its range), with a test that
   builds more than 4000 slabs. Owner: Core 5.
   Prerequisites: none. Related: PERF.191, PERF.180.
+
+- [ ] **PERF.193 The nebula block totals pass keeps the level-3 cover as Python dicts, about 2 GB on a 12 pc galaxy: hold it as numpy arrays (bug)**
+  Found by Bug 2 in its PERF.187 work. After the fix the scatter step
+  peaks at 2,100 MB on the 12 pc galaxy (it was 7,963 MB), and most of
+  what
+  is left is the level-3 cover that `galaxy/nebula_blocks.py`
+  `fine_cover`
+  and `roll_up` hold as Python dicts. Convert the cover to numpy arrays
+  (coordinates and totals as arrays, rolled up by index) so the step
+  stays
+  well under 1 GB, and record the before and after peak in the item.
+  Owner: Aux 16 (Performance).
+  Prerequisites: none. Related: PERF.187, PERF.184.
 
 ## DB: Database and schema
 
@@ -19167,6 +19149,21 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
+- [ ] **TEST.360 test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug)**
+  Reported by Bug 2 while merging #3125 (PERF.187): the test fails on
+  main and is not from that change. Find the cause (a stale expectation
+  or
+  a real totals bug), fix it and record which. Owner: Bug 1.
+  Prerequisites: none. Related: PERF.187.
+
+- [ ] **TEST.361 test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug)**
+  Reported by Bug 2 while merging #3125 (PERF.187): the test that no
+  screen text names a TODO code fails on main, and the lane traced it to
+  MAP.220 in `db/point_columns.py` near line 177. Locate the shown text
+  that names MAP.220, rewrite it in plain words, and keep the test.
+  Owner: Bug 1.
+  Prerequisites: none. Related: MAP.220.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20482,21 +20479,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
 
-- [ ] **DOC.77 Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document**
-  Boss, 6:14 PM EDT 2026-10-23, on the current system-page line
-  'Microbial 0.00 · Complex life 0.00 · Human operability 0.52': 'let's
-  replace this with: Microbial, Flora, Fauna, Sentient and let's add
-  that to the icon design so that the # scores for these (based on the
-  evolutionary path and surface conditions), each icon goes with a small
-  number in a small cluster next to the PHI-6 icons. These will be a
-  score from 0 (none) to 9 (abundant) for each based on surface
-  conditions and current evolutionary stage.' Human operability goes
-  away. Describe the scores (0 to 9, evolutionary stage and surface
-  conditions), the cluster, and that human operability is gone. Owner:
-  Habitability lane E. Done: the help (DOC.75) and the design and schema
-  docs state it and no text names human operability as a score.
-  Prerequisites: none. Related: DOC.75, GEN.649.
-
 - [ ] **DOC.79 The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C**
   Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
   #2993). Part C of the design document for the compressed water layer
@@ -20508,17 +20490,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   rounding, and a test or script check pins the numbers. Owner: none
   (pool); lane H wrote the document.
   Prerequisites: none. Related: GEN.461, DOC.77.
-
-- [ ] **DOC.80 Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step**
-  Add to the progress and log output docs (the standard of DOC.19) the
-  rule that no work after a 'with progress' block may run longer than
-  the bar display threshold without its own Step; the cases found are
-  refresh_block_lights and record_phenomenon_scatter*, which ran outside
-  the display. Add a short checklist for new post-scatter work. From
-  research report
-  /mnt/project-files/reports/phenomena-stall-2026-10-24.md. Owner:
-  whoever merges the progress output item, in the same PR.
-  Prerequisites: PERF.189. Related: DOC.19.
 
 ## VIEW: The view from a planet
 
