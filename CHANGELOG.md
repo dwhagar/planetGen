@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2062] - 2026-10-24
+
+**Headline:** The retention rows of the atmosphere recipes now allow a bare planet and a molten dayside that keeps volatiles at the published interval.
+
+### Changed
+- Atmosphere recipe row i6 draws the molten-dayside volatile share from 0.29 to 0.99 (the 95 percent interval for 2 of 2) and row j1 draws the retained fraction uniform from 0 to 1, so a bare planet is possible. Row d1, the cosmic shoreline, is pinned to its published logistic by a test. The recipes are not yet read by the generator, so no generated value changes.
+
 ## [8.0.2061] - 2026-10-24
 
 **Headline:** A tuned white-dwarf redox width is now compared with what the polluted white dwarfs would show, not with the bodies, and the model says the shipped width is too wide.
