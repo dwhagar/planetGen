@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.333 |
+| TEST | TEST.334 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -2731,6 +2731,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.330 | test_web_formulas::test_no_page_shows_a_formula_that_is_not_written_out fails on (/classes/habitability, CO2) (bug) | none | open |
 | TEST.331 | test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug) | none | open |
 | TEST.332 | test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug) | none | open |
+| TEST.333 | test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

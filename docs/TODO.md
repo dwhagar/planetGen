@@ -18828,6 +18828,12 @@ clears each one.
   possible load flake of the same kind. Also, scripts/test.py changed
   needed over 120 minutes and the background tool kills at 120, so a
   resume re-ran the browser phase.
+  Research (2026-10-09, Update): Habitability lane B (6:12 AM EDT
+  2026-10-24, as the lane reported):
+  test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order
+  failed in the parallel pass of a full --check and was not rerun alone;
+  treat as a load flake until it fails alone. test_update_database_step
+  is TEST.303.
   Prerequisites: none.
 
 - [ ] **TEST.303 test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug)**
@@ -19041,6 +19047,14 @@ clears each one.
   on the body-row summary and a class link with 1.06:1 contrast. UX.173
   (its second PR) deletes those rows and fixes both, so this item may
   close with UX.173; recheck then.
+  Research (2026-10-09, Update): Habitability lane B (6:12 AM EDT
+  2026-10-24, as the lane reported): all four test_web_a11y system page
+  cases fail alone on main: axe link-in-text-block (the class link
+  a[href$="planet/C"] colour #3a4bd6 against text #5b6072, 1.06:1) and
+  nested-interactive (the body-row summary and the comet row hold
+  focusable descendants). Cause: the help-link change of UX.180 to
+  UX.182 (#2867) put links inside the row summary. Owner: the detail
+  pages lane (UX.173 deletes those rows), else Bug Hunt.
   Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
 
 - [ ] **TEST.330 test_web_formulas::test_no_page_shows_a_formula_that_is_not_written_out fails on (/classes/habitability, CO2) (bug)**
@@ -19064,6 +19078,10 @@ clears each one.
   UX.168 to UX.182, or the symbol markup change) or the test selector is
   stale, and fix the page or the test to match what the rows should
   show. Done: the test passes on main. Owner: Bug Hunt (proposed).
+  Research (2026-10-09, Update): Habitability lane B (6:12 AM EDT
+  2026-10-24, as the lane reported): the search symbols test also fails
+  alone on main (the lane called it TEST.327, which is retired; this
+  item is the open one).
   Prerequisites: none. Related: TEST.329, UX.163.
 
 - [ ] **TEST.332 test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug)**
@@ -19079,6 +19097,21 @@ clears each one.
   test_systems forces a belt. Done: the test passes. Owner: Bug Hunt
   (proposed).
   Prerequisites: none. Related: GEN.631, TEST.313.
+
+- [ ] **TEST.333 test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug)**
+  Reported by Habitability lane B at 6:12 AM EDT 2026-10-24 (as the lane
+  reported) from an end-of-queue `full --check` on main:
+  test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V]
+  failed once in 15 trials. TEST.313 (#2918, merged 5:46 AM EDT) fixed
+  the case where the final age trim lost the belt (about 3 in 400), so
+  either the lane's main did not yet hold that fix or a second cause
+  remains. The TODO thread could not run the test (this machine lacks
+  the NLTK words data). Do: run the test about 50 times on current main;
+  if it still fails, find the second cause (the habitable draw, or the
+  belt placement after the star-tree draw of GEN.631) and fix it; if it
+  passes, close this. Done: 50 clean trials on main. Owner: Bug Hunt
+  (proposed).
+  Prerequisites: none. Related: TEST.313, GEN.631.
 
 ## USR: User accounts
 
