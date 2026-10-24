@@ -368,8 +368,7 @@
     },
     {
       "epoch": 75,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2165",
       "reason": "The bright-star backfill draws the stars of a block of cells where a band is sparse (a largest per-cell rate under 0.05) block first, one count and a stream per kept candidate, instead of a draw in every cell, so the stars the backfill places in the outer disk, the halo and the far edge are different draws (GEN.309)"
     }
   ]
