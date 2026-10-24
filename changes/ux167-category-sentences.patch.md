@@ -1,0 +1,4 @@
+**Headline:** The rows of a planet's habitability table now name the gear their category needs, from the same list as the Required and Recommended line above them.
+
+### Changed
+- **UX.167: the category sentences are written from the equipment needs list.** A row used to say "so a pressure suit is needed" from its own table of gear, which could differ from the headline's Required and Recommended line. Each row now ends with `Required: a + b. Recommended: c.` listing the items whose PHI-6 category is that row (`equipment.items`, `item.domain`), so every item of the headline line appears in exactly one row and a line with nothing in it is left off (never "none"). A Green row can therefore say a mask is required. The rows of Water still say whether the water can be drunk, and Pressure and Temperature keep "so no gear is needed" when nothing is listed.

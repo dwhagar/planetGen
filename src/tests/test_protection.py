@@ -140,12 +140,11 @@ def test_the_lines_of_an_airless_frozen_world_read_like_the_examples_boss_gave()
     text = _paragraph(world)
     for line in (
             "**PHI-6 habitability** is 0.00. Required: hardened pressure suit + dust-tight seals. Recommended: hardened habitat.",
-            "**Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure suit is needed.",
-            "**Temperature: Red** (0.00). The air temperature is -227 C, so an environment suit is needed.",
-            "**Air: Red** (0.00). There is no atmosphere (0 kPa).",
+            "**Pressure: Red** (0.00). The air pressure is 0 kPa. **Temperature: Red** (0.00). The air temperature is -227 C. "
+            "**Air: Red** (0.00). There is no atmosphere (0 kPa). Required: dust-tight seals.",
             "**Water: Red** (0.00). There is no liquid water to support life.",
             "**Radiation: Yellow** (0.45). The radiation dose is a mean of 742 mSv a year, inside the Yellow band "
-            "(up to 1 Sv a year)."):
+            "(up to 1 Sv a year). Required: hardened pressure suit. Recommended: hardened habitat."):
         assert line in text, line
     assert text.index("Suitability: Red") > text.index("**Radiation:")
     assert "There is no food or water readily available, and only limited shelter." in text
@@ -169,21 +168,20 @@ def test_the_suitability_line_names_what_is_and_is_not_readily_available():
 
 def test_the_gear_of_a_cold_world_is_named_in_short_words_and_the_first_line_names_the_heated_suit():
     text = _paragraph(_world(temperature_c=-80.0))
-    assert "The air temperature is -80 C, so an environment suit is needed." in text
+    assert "**Temperature: Red** (0.23). The air temperature is -80 C. Required: heated sealed suit. **Air:" in text
     assert "Required: heated sealed suit + self-contained air." in text
 
 
 def test_the_gear_of_a_hot_high_pressure_world_names_each_suit():
     text = _paragraph(_world(pressure_kpa=2_000.0, temperature_c=80.0))
-    assert "The air pressure is 2,000 kPa, so a hyperbaric suit is needed." in text
-    assert "The air temperature is 80 C, so an environment suit is needed." in text
+    assert "The air pressure is 2,000 kPa. Required: heated diving suit + mixed-gas rig. **Temperature:" in text
     assert "Required: heated diving suit + mixed-gas rig." in text
 
 
 def test_a_planet_of_a_compact_host_says_its_dose_is_rated_lethal():
     world = _world(surface_dose_sv_yr=1000.0)
     text = _paragraph(world, compact_host="pulsar")
-    assert "A planet of a pulsar is rated as a lethal dose." in text and "so a hardened habitat is needed" in text
+    assert "A planet of a pulsar is rated as a lethal dose." in text and "Required: hardened suit + hardened habitat. A planet of a pulsar" in text
 
 
 def test_a_sample_of_generated_planets_and_moons_each_carry_the_ratings_block():
@@ -223,7 +221,7 @@ def test_the_air_line_of_a_world_with_no_atmosphere_says_so_and_is_red():
     """GEN.215: Air is Red and the text says there is no atmosphere, never that the gases are fine."""
     world = _world(pressure_kpa=0.0, gases={})
     text = _paragraph(world)
-    assert "**Air: Red** (0.00). There is no atmosphere (0 kPa). **Water:" in text
+    assert "**Air: Red** (0.00). There is no atmosphere (0 kPa). Required: dust-tight seals. **Water:" in text
     assert "within their long-term limits" not in text
 
 
@@ -246,7 +244,7 @@ def test_an_earth_like_world_is_one_paragraph_of_six_blue_categories_with_their_
 def test_a_gas_past_its_long_term_limit_asks_for_a_scrubber_and_is_named_once_in_the_one_gas_table():
     world = World(pressure_kpa=101.0, temperature_c=15.0, gases={"O2": 0.21, "CO2": 0.03}, gravity_ms2=9.8)
     text = _paragraph(world)
-    assert "a mask with a scrubber" in text and "**Air: Yellow**" in text and "carbon dioxide" in text.lower()
+    assert "Required: CO2 scrubber. **Water:" in text and "**Air: Yellow**" in text and "carbon dioxide" in text.lower()
     assert not hasattr(protection, "GAS_NAMES")
     assert protection._gas("H2S") == "hydrogen sulfide"
 
