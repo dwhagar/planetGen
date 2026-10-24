@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.337 |
+| TEST | TEST.338 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -1824,7 +1824,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy | none | done, PR #981 |
 | OPS.35 | A vendored-version lock file for the static libraries | none | open |
 | OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) | none | done, PR #868 |
-| OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | none | open |
+| OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | none | done, PR #2950 |
 | OPS.38 | Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug) | none | done, PR #967 |
 | OPS.39 | Remove Windows support; keep only a simple docs/deployment/WINDOWS.md | none | done, PR #981 |
 | OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) | none | done, PR #989 |
@@ -2740,6 +2740,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.334 | Queue and generation tests pass alone but hang or "DID NOT RAISE" in a full run on lane machines: test_gen_resume (7), test_gen_bright_scatter_edges (5), test_work_units (7 in sequence), test_worker_warm, test_work_queue parallel (bug) | none | open |
 | TEST.335 | test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug) | none | open |
 | TEST.336 | test_migration_habitable_worlds::test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds fails on main: 142 == 138 (bug) | none | open |
+| TEST.337 | test_gen_cell_resolution::test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further fails on unmodified main: minimum luminosity 5.4e28 against the required 1.9e29 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
