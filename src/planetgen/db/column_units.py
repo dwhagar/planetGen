@@ -108,7 +108,7 @@ TABLES = {
         "index": ("position",),
     },
     "asteroid_belts": {
-        "id": ("id", "star_system_id", "star_id"),
+        "id": ("id", "star_system_id", "star_id", "parent_id"),
         "index": ("orbital_index",),
         "km": ("distance_km", "lower_limit_km", "upper_limit_km", "position_x_km", "position_y_km", "position_z_km"),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
@@ -132,7 +132,7 @@ TABLES = {
         "kg": ("mass_kg",),
     },
     "black_holes": {
-        "id": ("id", "star_id", "sector_id", "inside_nebula_id", "inside_remnant_id"),
+        "id": ("id", "star_id", "sector_id", "inside_nebula_id", "inside_remnant_id", "parent_id"),
         "Msun": ("mass_solar",),
         "km": ("event_horizon_radius_km",),
         "ratio": ("spin",),
@@ -178,7 +178,7 @@ TABLES = {
         "index": ("position",),
     },
     "comets": {
-        "id": ("id", "star_system_id", "star_id"),
+        "id": ("id", "star_system_id", "star_id", "parent_id"),
         "km": (
             "nucleus_diameter_km", "perihelion_distance_km", "distance_km", "position_x_km", "position_y_km",
             "position_z_km",
@@ -312,7 +312,7 @@ TABLES = {
         "index": ("position",),
     },
     "interstellar_comets": {
-        "id": ("id", "sector_id", "inside_nebula_id", "inside_remnant_id"),
+        "id": ("id", "sector_id", "inside_nebula_id", "inside_remnant_id", "parent_id"),
         "km": ("nucleus_diameter_km",),
         "km_s": ("velocity_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "flag": ("is_active",),
@@ -331,7 +331,7 @@ TABLES = {
         "index": ("position",),
     },
     "moons": {
-        "id": ("id", "planet_id", "star_system_id", "star_id", "parent_id"),
+        "id": ("id", "planet_id", "star_system_id", "star_id", "parent_id", "rogue_planet_id"),
         "index": (
             "orbital_index", "tier_pressure",
             "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
@@ -441,7 +441,7 @@ TABLES = {
         "seed": ("shape_noise_seed",),
     },
     "neutron_stars": {
-        "id": ("id", "star_id", "sector_id", "inside_nebula_id", "inside_remnant_id"),
+        "id": ("id", "star_id", "sector_id", "inside_nebula_id", "inside_remnant_id", "parent_id"),
         "Msun": ("mass_solar",),
         "km": ("radius_km",),
         "ms": ("spin_period_ms",),
@@ -623,7 +623,7 @@ TABLES = {
         "id": ("id", "plan_id", "recipient_id"),
     },
     "rogue_planets": {
-        "id": ("id", "sector_id", "inside_nebula_id", "inside_remnant_id"),
+        "id": ("id", "sector_id", "inside_nebula_id", "inside_remnant_id", "parent_id"),
         "kg": ("mass_kg",),
         "km": ("radius_km", "ice_shell_thickness_km", "ocean_depth_km", "hp_ice_km"),
         "flag": ("has_internal_heat", "has_moons", "has_liquid_water"),
@@ -757,7 +757,7 @@ TABLES = {
         "index": ("schema_version",),
     },
     "stars": {
-        "id": ("id", "star_system_id", "parent_node_id", "cluster_id"),
+        "id": ("id", "star_system_id", "parent_node_id", "cluster_id", "parent_id"),
         "index": ("slot",),
         "kg": ("mass_kg",),
         "km": (

@@ -12,6 +12,7 @@ import pytest
 from planetgen.db import alembic_runner, store
 from planetgen.physics import equipment, regional_temperature
 from tests.db_schema_support import load_old_schema, old_schema_versions
+from tests.test_migration_parent_link import undo_parent_link
 
 # A fresh database with no schema, which these tests build and migrate themselves (TEST.139 stage 3).
 pytestmark = pytest.mark.fresh_database
@@ -41,6 +42,7 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        undo_parent_link(conn)  # v140 (DB.73)
         conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139
         conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139
         for table in ("planets", "moons"):
