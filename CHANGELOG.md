@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2208] - 2026-10-24
+
+**Headline:** Every phenomenon page lists all of its stored properties, the same way a planet's page does.
+
+### Changed
+
+- **Phenomenon property sheet (UX.175).** A nebula, asteroid field, black hole, neutron star, supernova remnant, rogue planet, interstellar comet or quasar page has an "All stored properties" panel, grouped like a body's, with every value in your unit system and a value that is not stored shown as "not stored". `GET /api/objects/<ref>/sheet` serves the same sheet for these kinds, and a test fails for a new phenomenon column that is not on the sheet.
+
 ## [8.0.2207] - 2026-10-24
 
 **Headline:** The system page and the sector page list their contents as trees of links to each object's own page.
