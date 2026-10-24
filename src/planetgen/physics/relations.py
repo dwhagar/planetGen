@@ -1,7 +1,7 @@
 # planetgen/physics/relations.py
 
 """
-Named physical laws, declared once (GEN.586; docs/design/unified-unit-quantity.md, section 11)
+Named physical laws, declared once (GEN.586; docs/design/architecture/unified-unit-quantity.md, section 11)
 ==============================================================================================
 
 Each law is one function here: its name, the kind of each input, the kind of its answer and a formula written with the

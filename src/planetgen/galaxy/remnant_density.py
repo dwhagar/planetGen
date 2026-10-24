@@ -1,8 +1,8 @@
 # planetgen/galaxy/remnant_density.py
 
 """
-How many stellar-mass black holes and neutron stars a place holds (GEN.563 and GEN.554; docs/design/black-hole-density.md,
-docs/design/neutron-star-density.md).
+How many stellar-mass black holes and neutron stars a place holds (GEN.563 and GEN.554; docs/design/systems/black-hole-density.md,
+docs/design/systems/neutron-star-density.md).
 
 A black hole is what a massive star leaves when it fails to explode, and the share that fails falls as the star's metals
 rise (`physics.black_hole_formation`). So the black holes per star at a place are

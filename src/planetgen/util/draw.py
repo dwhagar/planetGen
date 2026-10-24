@@ -5,7 +5,7 @@ Draw
 ====
 
 Every random draw generation makes goes through here (GEN.56; see
-docs/design/reproducible-galaxies.md, section 5).
+docs/design/generation/reproducible-galaxies.md, section 5).
 
 Python promises the same numbers from one seed across versions only for
 `random.Random.random()` (and the seeding itself), not for `choice`,

@@ -1,7 +1,7 @@
 # planetgen/physics/wolf_rayet.py
 
 """
-The Wolf-Rayet state of a very massive star (GEN.243; docs/design/intergalactic-and-halo-contents.md 5.11).
+The Wolf-Rayet state of a very massive star (GEN.243; docs/design/galaxy/intergalactic-and-halo-contents.md 5.11).
 
 A star of at least `threshold_mass_sol` initial mass loses its hydrogen envelope to its wind and ends its supergiant
 phase as a Wolf-Rayet star: a hot helium (WN, nitrogen-rich), then carbon (WC) and, for the heaviest, oxygen (WO)

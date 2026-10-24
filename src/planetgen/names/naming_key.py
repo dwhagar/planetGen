@@ -1,7 +1,7 @@
 # planetgen/names/naming_key.py
 
 """
-The naming key (GEN.70; docs/design/object-ids.md, "Planned" step 3).
+The naming key (GEN.70; docs/design/architecture/object-ids.md, "Planned" step 3).
 
 A galaxy has one naming key: 8 uppercase hex digits kept in the control
 database (`galaxy_naming`, one row per galaxy database). It is drawn from

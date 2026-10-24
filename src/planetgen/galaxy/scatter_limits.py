@@ -1,7 +1,7 @@
 # planetgen/galaxy/scatter_limits.py
 
 """
-The scatter limits by place (DB.54, docs/design/realistic-galactic-core.md 5.1)
+The scatter limits by place (DB.54, docs/design/galaxy/realistic-galactic-core.md 5.1)
 ==============================================================================
 
 The galaxy's star scatter draws its line at one luminosity floor and one mass limit (the baseline,

@@ -1,7 +1,7 @@
 # tests/test_neutron_star_density.py
 
 """
-GEN.554: the neutron stars are what the black holes leave of the massive stars (docs/design/neutron-star-density.md):
+GEN.554: the neutron stars are what the black holes leave of the massive stars (docs/design/systems/neutron-star-density.md):
 every star of 8 to 150 solar masses ends as one or the other, so a place's neutron stars per star are the same sum as its
 black holes' with `1 - F_p` for `F_p`, less the share the galaxy ejects. Boss's 4.0e-3 per star is a test target.
 """

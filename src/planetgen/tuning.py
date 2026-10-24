@@ -277,7 +277,7 @@ These components are used to generate the composition of asteroid belts.
 # (~13.05 ly, ~2,220 ly^3 of volume, ~6.3 systems at local density -- see
 # `physical_constants.LOCAL_STELLAR_DENSITY_LY3`) puts the default Milky
 # Way shape's one-star-per-sector edge at ~50,000 ly, the real disk's
-# radius; see `docs/design/galaxy-coordinate-system.md`, "Sector size".
+# radius; see `docs/design/galaxy/galaxy-coordinate-system.md`, "Sector size".
 DEFAULT_SECTOR_EDGE_PC = 4
 
 # `DEFAULT_SECTOR_EDGE_PC` in light-years (~13.046), for the code that
@@ -591,7 +591,7 @@ GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
 # (HORIZONTAL_BRANCH_COLOURS below). Red clump and red horizontal-branch stars
 # are the metal-rich, RR Lyrae the middle, blue horizontal-branch the
 # metal-poor and extreme horizontal-branch (hot subdwarfs) a few percent of
-# old stars (docs/design/realistic-galactic-core.md 5.3) [R, recalled, unconfirmed:
+# old stars (docs/design/galaxy/realistic-galactic-core.md 5.3) [R, recalled, unconfirmed:
 # Lee, Demarque and Zinn 1994; Catelan 2009]. The luminosity is the RR Lyrae
 # level, 36 to 47 Lsun (M_V 0.56 to 0.80 at [Fe/H] -1.6, Catelan 2009; Gould and
 # Popowski 1998) and the red clump's 30 to 40 [P, stellar tables check]; a hot
@@ -642,7 +642,7 @@ BLUE_SUPERGIANT_TEMPERATURE_RANGE_K = (9000.0, 35000.0)
 # first threshold IB, then IAB, IA, and 0 (hypergiant) at the top.
 SUPERGIANT_YERKES_THRESHOLDS_SOL = {"IAB": 10000.0, "IA": 50000.0, "0": 500000.0}
 
-# Wolf-Rayet stars (GEN.243, docs/design/intergalactic-and-halo-contents.md 5.11): a very massive star
+# Wolf-Rayet stars (GEN.243, docs/design/galaxy/intergalactic-and-halo-contents.md 5.11): a very massive star
 # stripped to its hot helium core in the last stretch of its life, in place of the end of its supergiant phase.
 WR_MIN_INITIAL_MASS_SOL = 25.0
 """float: The least initial mass of a star that ends as a Wolf-Rayet star at the Sun's metallicity, solar masses
@@ -743,7 +743,7 @@ STAR_MODEL_MAX_REDRAWS = 1000
 # reaches a few stellar radii), and a white dwarf's progenitor, on its
 # asymptotic giant branch, engulfed or drove off everything inside
 # WD_ENGULFMENT_BASE_AU + WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN * (M - 1) AU
-# for a progenitor of M solar masses (GEN.318, docs/design/
+# for a progenitor of M solar masses (GEN.318, docs/design/systems/
 # exotic-environments-planets-and-compact-binaries.md 1.2: 1.5 AU for a
 # solar-mass star, as the generator had it, growing with the progenitor's
 # size). A white dwarf without a model progenitor mass (a forced type, a
@@ -893,7 +893,7 @@ The bar's gas is swept in over its length and what lies beyond is untouched, so 
 that never leaves a ring, 4 a ring at the bar's end [a model default, open]."""
 
 # The thin disk's star formation history over time (GEN.469, `galaxy.disk_history`,
-# docs/design/disk-star-formation-history.md): gas continuity per ring, the inflow from the halo's growth, the
+# docs/design/galaxy/disk-star-formation-history.md): gas continuity per ring, the inflow from the halo's growth, the
 # Kennicutt-Schmidt law above as the depletion. The Milky Way's own history is only a test target.
 # The cosmology is the mass chain's (`galaxy.mass_chain.HUBBLE_H`, `OMEGA_MATTER`: Planck-like, 13.8 Gy old).
 HALO_GROWTH_MASS_EXPONENT = 1.1
@@ -928,12 +928,12 @@ DISK_HISTORY_MAX_RADIUS_SCALE_LENGTHS = 10.0
 DISK_HISTORY_TIME_STEPS = 800
 """int: Steps of the gas history over the disk's age (12.5 Myr each at 10 Gyr)."""
 
-# Metallicity ([Fe/H], dex; GEN.158, docs/design/globular-clusters.md 5). The
+# Metallicity ([Fe/H], dex; GEN.158, docs/design/galaxy/globular-clusters.md 5). The
 # disc populations follow a mild radial gradient of -0.06 dex per kpc [recalled,
 # to verify; written as a fall, so positive] that is zero at the Sun's distance from the centre; each population
 # has its own offset and scatter (the young disc is the most uniform, the bulge
 # the widest). The halo is -1.6 inside 25 kpc and -2.2 outside, scatter 0.5
-# (docs/design/intergalactic-and-halo-contents.md 5.3). A cluster carries its own
+# (docs/design/galaxy/intergalactic-and-halo-contents.md 5.3). A cluster carries its own
 # value. `METALLICITY_RANGE_FE_H` clamps every draw.
 METALLICITY_DISC_FALL_DEX_PER_KPC = 0.06
 METALLICITY_BY_POPULATION = {
@@ -970,8 +970,8 @@ dwarf; the most that were placed in 60 draws was 15), so the cull cuts the count
 number, not from the ceiling: `ceil(16 x factor)` objects at most, which is 2 at [Fe/H] -1.65 and 16 at the floor.
 """
 
-# Stellar abundances (GEN.439, `physics/stellar_abundances.py`, docs/design/stellar-composition.md and part A of
-# docs/design/body-composition-research.md). The reference scale is Asplund, Amarsi and Grevesse 2021 (arXiv:2105.01661, Table 2
+# Stellar abundances (GEN.439, `physics/stellar_abundances.py`, docs/design/composition/stellar-composition.md and part A of
+# docs/design/composition/body-composition-research.md). The reference scale is Asplund, Amarsi and Grevesse 2021 (arXiv:2105.01661, Table 2
 # log eps on H = 12; Boss 2026-10-17 1:24 AM EDT), moved to proto-solar by A21's diffusion correction of +0.064 dex for the
 # metals and +0.070 dex for helium; it is a scale and never a preset. Verification states are in `STELLAR_RELATION_STATES`.
 STELLAR_SOLAR_LOG_EPS = {
@@ -1080,7 +1080,7 @@ STELLAR_BROWN_DWARF = {
     "deuterium_y_slope_mj_per_0p01": -0.2, "deuterium_reference_y": 0.25, "deuterium_range_mj": (11.0, 16.3),
     "lithium_sol": 0.06, "hydrogen_solar_z_sol": (0.070, 0.074), "hydrogen_zero_z_sol": 0.092}
 
-# Globular clusters (GEN.159, docs/design/globular-clusters.md). A cluster is stored as a density component, not as
+# Globular clusters (GEN.159, docs/design/galaxy/globular-clusters.md). A cluster is stored as a density component, not as
 # stars: its profile is a King (1966) model of one of ten concentrations `KING_W0_RANGE` (inclusive), solved once
 # (`physics/king.py`) on `KING_TABLE_POINTS` log-spaced radii and scaled by length. A cluster's systems number its
 # mass over the mean mass of its systems, worked out from its age (`generation/system_mass.py`, GEN.598). The tidal
@@ -1088,7 +1088,7 @@ STELLAR_BROWN_DWARF = {
 # `CLUSTER_HALO_CIRCULAR_KMS`.
 KING_W0_RANGE = (3, 12)
 KING_TABLE_POINTS = 2000
-# Satellite galaxies (GEN.237, docs/design/intergalactic-and-halo-contents.md 5.5) are stored the same way: the Clouds
+# Satellite galaxies (GEN.237, docs/design/galaxy/intergalactic-and-halo-contents.md 5.5) are stored the same way: the Clouds
 # and Sagittarius as an exponential profile (density falling as exp(-r / a)), the dwarf spheroidals as a Plummer sphere
 # (density as (1 + (r / a)^2)^-2.5), each cut off at a tidal radius that is `SATELLITE_TIDAL_OVER_HALF_MASS` times
 # its half-mass radius (an exponential at 16 scale lengths holds all but 1e-5 of its mass, a Plummer sphere at
@@ -1097,7 +1097,7 @@ KING_TABLE_POINTS = 2000
 SATELLITE_TIDAL_OVER_HALF_MASS = 6.0
 CLUSTER_HALO_CIRCULAR_KMS = 220.0
 
-# A generated galaxy's globular cluster system (`generation/clusters.py`, docs/design/globular-clusters.md section 8):
+# A generated galaxy's globular cluster system (`generation/clusters.py`, docs/design/galaxy/globular-clusters.md section 8):
 # the count from the halo mass (`CLUSTER_SYSTEM_FRACTION_RANGE`); masses lognormal about `CLUSTER_MASS_PEAK_SOL` with `CLUSTER_MASS_SIGMA_DEX`, truncated to
 # `CLUSTER_MASS_RANGE_SOL`; half-mass radii lognormal about `CLUSTER_HALF_MASS_RADIUS_PC` (width in dex, growing with
 # distance from the centre as `(R / reference) ** CLUSTER_RADIUS_GROWTH` (the reference radius in the galaxy's own
@@ -1149,7 +1149,7 @@ sorted radius in `ComponentField.bound` and `high_band`, not tested one by one: 
 CLUSTER_GRID_PC = 1024.0
 
 # A generated galaxy's young open clusters (GEN.244, `generation/open_clusters.py`, `physics/open_cluster_evolution.py`,
-# docs/design/intergalactic-and-halo-contents.md 5.14). Every number is from a paper read for this item, none from the
+# docs/design/galaxy/intergalactic-and-halo-contents.md 5.14). Every number is from a paper read for this item, none from the
 # Milky Way's catalogue of clusters; the sources are in the design note's table.
 # Formed: a share of the disk's star formation (the cluster formation efficiency, Kruijssen 2012, MNRAS 426, 3008,
 # arXiv:1208.2963, his equation 45: `Gamma = 1 / (1.15 + 0.6 S^-0.4 + 0.05 S^-1)` for the star formation rate density
@@ -1216,7 +1216,7 @@ REFERENCE_RADIUS_SCALE_LENGTHS = 8200.0 / 2600.0
 # boxy/peanut core, as COBE/DIRBE sees it edge-on: rho = exp(-r_s^2 / 2) with r_s^4 =
 # ((x/x0)^2 + (y/y0)^2)^2 + (z/z0)^4; `bulge_scale_radius_pc` is x0 (along the bar).
 
-# The nuclear star cluster and the nuclear stellar disc (GEN.280, docs/design/realistic-galactic-core.md 3), the
+# The nuclear star cluster and the nuclear stellar disc (GEN.280, docs/design/galaxy/realistic-galactic-core.md 3), the
 # two structures at the real centre, are density terms of the model. Both are ratios to the galaxy's own bulge, so
 # a toy galaxy gets a proportionate centre, and `GalaxyShape.nuclear_amplitude` (1 is the observed centre, 0 is
 # none) scales the pair together. Calibrated on the default Milky Way-scale model, whose bulge holds 3.9e10 solar
@@ -1237,7 +1237,7 @@ NUCLEAR_RESOLUTION_PC = 2.0
 the radius at which its density equals the ball's mean, so the ball's cell holds exactly the cluster's mass inside
 2 pc and no cell is asked for a density the grid cannot hold (`galaxy.density.model_terms`)."""
 
-# The galactic centre's gas and young stars (GEN.282, `galaxy.core_gas`, docs/design/realistic-galactic-core.md 3.4).
+# The galactic centre's gas and young stars (GEN.282, `galaxy.core_gas`, docs/design/galaxy/realistic-galactic-core.md 3.4).
 # A bar carries the gas of its gap inward (`BAR_GAP_RADIUS_RATIO`) and piles it into a ring at the centre, the central
 # molecular zone; the ring forms stars at a small share of what comes in. All three are from the review of Henshaw et al.
 # 2023 (PPVII, arXiv:2203.11223, read): the bar's gap gas leaves on a Gy (the simulations behind `BAR_GAP_STAR_FORMATION_FLOOR`),
@@ -1261,7 +1261,7 @@ this span; the review has the rate constant for at least 5 Myr and 0.09 over 100
 # The bar's long axis leads the Sun-center line by an angle drawn from the seed (`galaxy.structure_draw.draw_bar`);
 # the Milky Way's is 27 degrees (its near end at positive galactic longitude; Wegg & Gerhard 2013, BHG16: 28-33).
 
-# The stellar halo (GEN.234, docs/design/intergalactic-and-halo-contents.md 2.1 and 4) replaces the flat
+# The stellar halo (GEN.234, docs/design/galaxy/intergalactic-and-halo-contents.md 2.1 and 4) replaces the flat
 # floor GEN.78 put under the density (0.1% of the local density everywhere, half the real halo at the Sun
 # and 200 to 340,000 times too much at 50 to 262 kpc). It is a spheroid with a broken power law,
 # `A * (max(m, core) / break) ** -n` with `m = sqrt(R**2 + (z / q)**2)`, `n` the inner slope inside the break and
@@ -1281,7 +1281,7 @@ HALO_AXIS_RATIO = 0.7
 # the galaxy's stellar mass drawn from the placeholder law of `galaxy.structure_draw`; the amplitude is solved from it
 # like `k_norm` (`galaxy.density.halo_terms`).
 
-# The sector profile (GEN.235, docs/design/intergalactic-and-halo-contents.md 5.3): what a place sets for the
+# The sector profile (GEN.235, docs/design/galaxy/intergalactic-and-halo-contents.md 5.3): what a place sets for the
 # rules that never change by place. A first model, not a fit, in the design note's order. The thin disc's, the
 # bulge's and the halo's velocity dispersions are the galaxy's own (`galaxy.structure`, GEN.532); the rest are the
 # middle of the note's ranges (a cluster 1 to 15 km/s inside and its orbit outside); `rotation` says what the
@@ -1305,7 +1305,7 @@ STELLAR_POPULATION_ROTATION = {
 STELLAR_POPULATION_ROTATION.update({name: "disk" for name in OPEN_CLUSTER_POPULATIONS})
 # A cluster carries its own [Fe/H] (`physics.metallicity`); until the component table (GEN.237) gives each one
 # its own, the profile of a cluster cell shows the two peaks of the Milky Way's clusters (-1.5 and -0.5,
-# docs/design/globular-clusters.md), as `(share, mean, sigma)`; the shares are recalled (about two thirds are the
+# docs/design/galaxy/globular-clusters.md), as `(share, mean, sigma)`; the shares are recalled (about two thirds are the
 # metal-poor ones).
 METALLICITY_CLUSTER_PEAKS = ((0.65, -1.5, 0.3), (0.35, -0.5, 0.3))
 # Where a cell holds components (GEN.237) the peaks of its `cluster` and `satellite` populations are the components'
@@ -1315,7 +1315,7 @@ METALLICITY_CLUSTER_PEAKS = ((0.65, -1.5, 0.3), (0.35, -0.5, 0.3))
 COMPONENT_FE_H_SIGMA = {"cluster": 0.15, "satellite": 0.3, "open_cluster": 0.05}
 METALLICITY_SATELLITE_PEAKS = ((1.0, -1.2, 0.5),)
 
-# A satellite's star formation history (GEN.526, `galaxy.satellite_history`, docs/design/intergalactic-and-halo-contents.md
+# A satellite's star formation history (GEN.526, `galaxy.satellite_history`, docs/design/galaxy/intergalactic-and-halo-contents.md
 # 5.5). Worked out from what its row holds (stellar mass, half-light radius, mean stellar age), with no value from the
 # Clouds' own histories (those are the test targets of `tests/test_satellite_history.py`, never inputs).
 SATELLITE_HISTORY_SPAN_GY = STELLAR_POPULATION_AGE_RANGES_GY["satellite"][1]
@@ -1331,7 +1331,7 @@ SATELLITE_STAR_FORMATION_THRESHOLD_MSUN_PC2 = 3.0
 at about 10 (some H II regions form at 2 to 4); the lower end is taken [I], so a dwarf with a trace of gas still forms
 stars."""
 
-# How deep one dense cell is filled (GEN.281, docs/design/realistic-galactic-core.md 4.2). A cell that expects more
+# How deep one dense cell is filled (GEN.281, docs/design/galaxy/realistic-galactic-core.md 4.2). A cell that expects more
 # systems than the cell star ceiling fills only the stars at or above the fill luminosity cap; the rest is
 # unresolved, its count and mass computed from the address and never stored. Both are galaxy settings (`planetgen
 # plan --cell-star-ceiling` and `--fill-luminosity-cap`, stored on `galaxy_shape`). Ordinary space never reaches the
@@ -1353,14 +1353,14 @@ TIER_DOMINANCE_SHARE = 0.5
 (`galaxy.scatter_limits`): the nuclear terms for the core tier, the halo for the halo tier (GEN.333)."""
 
 CORE_TIER_FACTOR = 1.10
-"""float: How much higher than the baseline the core's scatter limits default (docs/design/realistic-galactic-core.md
+"""float: How much higher than the baseline the core's scatter limits default (docs/design/galaxy/realistic-galactic-core.md
 5.1, Boss): the core luminosity floor and mass limit follow the galaxy's baseline times this until they are set."""
 HALO_MIN_LUMINOSITY_SOL = 500.0
 """float: The default halo luminosity floor, solar luminosities (GEN.283, Boss 1:09 AM EDT 2026-10-16)."""
 HALO_MIN_LUMINOSITY_RANGE_SOL = (50.0, 4.0e6)
 """tuple: The lowest and highest halo luminosity floor `plan` accepts (Boss, 10:06 PM EDT 2026-10-15: lowest 50)."""
 
-# Gas and dark matter in a cell (docs/design/intergalactic-and-halo-contents.md 2.4 and 2.6). The ambient medium
+# Gas and dark matter in a cell (docs/design/galaxy/intergalactic-and-halo-contents.md 2.4 and 2.6). The ambient medium
 # is whichever of three is densest: the disc's interstellar medium (about 1 H per cm3 at the plane near the Sun
 # [recalled], scaled by the cold-gas fraction), the hot halo (1e-4 per cm3 at 50 kpc falling as r^-1.5 [recalled]),
 # and the intergalactic medium (the cosmic mean 1.9e-7 H per cm3, the Local Group 25 times that). Radii scale
@@ -1374,7 +1374,7 @@ HOT_HALO_CORE_PC = 1000.0
 COSMIC_MEAN_DENSITY_CM3 = 1.9e-7
 LOCAL_GROUP_GAS_OVERDENSITY = 25.0
 GAS_SOLAR_MASS_PER_PC3_PER_CM3 = 0.0326
-# The NFW dark-matter halo of docs/design/galactic-potential.md (M_h = 5.4e11 solar masses, r_h = 16 kpc): 0.0091
+# The NFW dark-matter halo of docs/design/galaxy/galactic-potential.md (M_h = 5.4e11 solar masses, r_h = 16 kpc): 0.0091
 # solar masses per pc3 at the Sun. Both scale with the disk scale length (a flat rotation curve: mass over radius
 # is constant).
 DARK_MATTER_SCALE_MASS_SOLAR = 5.4e11
@@ -1446,7 +1446,7 @@ SOLAR_NEIGHBOURHOOD_DISPERSION_KMS = 30.0
 
 # The orbit beyond which a planet has been stripped by passing systems (GEN.325, `physics.planet_survival`): the largest
 # axis whose expected number of ionising passes in `PLANET_SURVIVAL_AGE_GY` is one, for a host of
-# `PLANET_SURVIVAL_HOST_MASS_SOLAR` (docs/design/globular-clusters.md section 7 and realistic-galactic-core.md
+# `PLANET_SURVIVAL_HOST_MASS_SOLAR` (docs/design/galaxy/globular-clusters.md section 7 and realistic-galactic-core.md
 # section 7: 12 Gy and 0.5 solar masses, a typical host of the old populations). A star younger than the age has been
 # exposed to its own age only (`generation.place_terms.planet_limit_au`).
 PLANET_SURVIVAL_AGE_GY = 12.0
@@ -2559,7 +2559,7 @@ BLACK_HOLE_SPIN_RANGE = (0.0, 0.998)
 BLACK_HOLE_ACCRETION_DISK_CHANCE = 0.001
 
 # Where remnants are against where stars are (GEN.132; see
-# docs/design/compact-remnant-regions.md). Estimates from the trends there.
+# docs/design/systems/compact-remnant-regions.md). Estimates from the trends there.
 # A remnant's layer is this many times as thick as the thin disk: compact
 # remnants about 3x the stars' height (Sweeney et al., 1260 pc against
 # 306-420 pc), black holes 2.5x (786 pc against 306 pc).
@@ -2590,7 +2590,7 @@ EXPLOSION_FAILURE_ISLANDS_SOL = ((23.0, 25.0), (35.0, 45.0))
 """tuple: The windows of initial mass, solar masses, in which a star of solar metallicity fails to explode and leaves a black
 hole, when little of the massive stars fail: O'Connor and Ott 2011 (ApJ 730, 70) for the Woosley and Heger 2007 progenitors,
 "~23-25 Msun and ~35-45 Msun" (their 0 to 7% of the massive stars), the islands of Sukhbold et al. 2016 (ApJ 821, 38),
-"islands of 'explodability' in a sea of black hole formation" (GEN.560, docs/design/black-hole-formation-sources.md).
+"islands of 'explodability' in a sea of black hole formation" (GEN.560, docs/design/systems/black-hole-formation-sources.md).
 Only these two windows are sourced. A galaxy that fails a smaller share shrinks them about their centres; one that fails a
 larger share keeps them and adds the top of the mass range down to the mass that makes up the share (the widest verified
 share, 45%, reaches down to about 14.5 solar masses, where Ertl et al. 2016, quoting Ugliano et al. 2012, put the lowest
@@ -2633,7 +2633,7 @@ PULSAR_ACTIVE_LIFETIME_YR = 1.0e7
 PULSAR_RECYCLED_CHANCE = 1.0e-4
 PULSAR_RATE_SCALE = 1.0
 
-# Planets of a millisecond pulsar (GEN.317; docs/design/exotic-environments-planets-and-compact-binaries.md section
+# Planets of a millisecond pulsar (GEN.317; docs/design/systems/exotic-environments-planets-and-compact-binaries.md section
 # 2.1). Whether a pulsar holds any is the remnant satellite table's (0.7% of millisecond pulsars, a young pulsar none);
 # these are the origins of the ones that do, from the four known systems (low confidence): the fallback disc of a
 # disrupted white dwarf (PSR B1257+12), a captured circumbinary giant (PSR B1620-26 b, needs a globular cluster) and
@@ -2739,7 +2739,7 @@ NEBULA_FAMILIES = {
 
 # Nebula and supernova remnant classes, one letter each like
 # PLANET_CLASSES (GEN.11; reasoning, sources and the family tables in
-# docs/design/nebula-and-asteroid-field-classes.md). I and O are unused so
+# docs/design/systems/nebula-and-asteroid-field-classes.md). I and O are unused so
 # they aren't read as 1 and 0; Y and Z are reserved. A-Q and X (the Wolf-Rayet ring, GEN.243) are nebulae, R-W are
 # supernova remnants ("stellar remnants" means supernova remnants only,
 # Boss 2026-09-30; compact objects keep their own tables).
@@ -2947,7 +2947,7 @@ for a main-sequence primary. Only O and early-B stars put out enough
 ultraviolet below 91.2 nm to ionize hydrogen (Osterbrock & Ferland 2006),
 and a catalogued H II region is about one per four O stars: about 8,000
 are known against some 270,000 O stars (GEN.204; the nebula density study,
-docs/design/nebula-density-vs-reality.md). The `chance` is that the star
+docs/design/systems/nebula-density-vs-reality.md). The `chance` is that the star
 still sits in its natal cloud (the one number the catalogues fix, 0.25 for
 O and B0-B2 stars), and whether it hosts a class is then decided by the
 star's own age against `NEBULA_CLASS_MAX_AGE_MYR`: a B1V of 20 Myr is too
@@ -3014,7 +3014,7 @@ up, already a white dwarf in the Yerkes scheme (class VII)."""
 # (Strigari et al. 2012, MNRAS 423:1856, order-of-magnitude population
 # estimate). This range covers the terrestrial-to-giant span those
 # surveys probe.
-# Mass bins (Boss's research, 2026-09-30; docs/design/
+# Mass bins (Boss's research, 2026-09-30; docs/design/systems/
 # interstellar-object-rates.md): a rogue planet draws a bin by its
 # per-star rate, then a mass inside it. Since GEN.45 the rates and the draw
 # inside a bin both follow one mass function, dN/dlogM ~ M^-0.65 from 0.1
@@ -3145,7 +3145,7 @@ shrunken body; a brown dwarf younger than a few hundred million years is
 still puffed up, so the law (with today's radius) overshoots. Young brown
 dwarfs near the hydrogen-burning limit are late-M dwarfs, ~2,800 K."""
 
-# Brown dwarfs as stars (GEN.252, GEN.549, docs/design/brown-dwarf-state.md): the cooling track, the mass function and the
+# Brown dwarfs as stars (GEN.252, GEN.549, docs/design/systems/brown-dwarf-state.md): the cooling track, the mass function and the
 # map from temperature to spectral type.
 BROWN_DWARF_TRACKS = (
     (0.01, ((0.01, 1570, 0.156),)),
@@ -3277,7 +3277,7 @@ doesn't depend on whether the comet is bound to a star.
 # standalone), a Comet here is bound to a star's own system, propagated
 # via real two-body Kepler/Barker orbital mechanics (see keplerMotion.py)
 # rather than a fixed hyperbolic excess speed. See
-# docs/design/comet-orbital-realism.md for the full research/design
+# docs/design/systems/comet-orbital-realism.md for the full research/design
 # writeup this implements.
 
 # Bound short-period/long-period comet nuclei run larger, on average,
@@ -3321,7 +3321,7 @@ COMET_ACTIVITY_MAX_CHANCE = 0.9
 COMET_ACTIVITY_MIN_CHANCE = 0.05
 
 COMET_PERIOD_CLASSES = {
-    # Real dynamical comet families (see docs/design/comet-orbital-realism.md's
+    # Real dynamical comet families (see docs/design/systems/comet-orbital-realism.md's
     # taxonomy table) -- each entry's period_range_years/eccentricity_range/
     # inclination_max_deg are drawn from, in that order: Jupiter-family
     # comets (repeatedly perturbed by Jupiter into short, low-inclination,
@@ -3371,7 +3371,7 @@ PARABOLIC_COMET_ECCENTRICITY_RANGE = (0.995, 1.0)
 
 # Chance a star-bound comet generates as parabolic (single-apparition,
 # escapes after this one perihelion passage) rather than elliptical
-# (periodic, returns every orbit) -- see docs/design/comet-orbital-realism.md's
+# (periodic, returns every orbit) -- see docs/design/systems/comet-orbital-realism.md's
 # taxonomy table. Most bound comets observed are periodic; long-period/
 # parabolic "great comets" are the rarer, more dramatic case.
 COMET_PARABOLIC_CHANCE = 0.3
@@ -3541,7 +3541,7 @@ ASTEROID_FIELD_COMPOSITIONS = {
 `ASTEROID_COMPONENTS` (a mixed field, or a collisional family whose
 parent body could have been anything)."""
 
-# --- Collisions (GEN.345, docs/design/collisions-and-mergers.md section 5.1) ---
+# --- Collisions (GEN.345, docs/design/orbits/collisions-and-mergers.md section 5.1) ---
 
 ALWAYS_DESTROY_TERRESTRIAL = False
 """bool: Boss's literal rule for two rocky or icy bodies (2026-10-03): any contact destroys both and leaves one field of
@@ -3686,7 +3686,7 @@ generated when asked for by name.
 # independently per type via a Poisson draw (spaceSector.
 # _sample_poisson_count, generate.generate_sector_phenomena).
 #
-# Rates come from Boss's research of 2026-09-30 (docs/design/
+# Rates come from Boss's research of 2026-09-30 (docs/design/systems/
 # interstellar-object-rates.md): each type has a local number density
 # n_i0 (objects per pc^3) at the solar neighborhood's stellar density
 # n_*0 = REFERENCE_STELLAR_DENSITY_PC3, and scales with the local stellar
@@ -3768,7 +3768,7 @@ clouds at `PHENOMENON_DENSITY_PC3["molecular-cloud"]`, class M ten times the 8,1
 molecular clouds and the volume inside the clouds' bounding spheres 2 to 24% against 0.5 to 2% observed. Each
 cloud keeps or loses by a hash of its cell and draw number (`nebula_field.cloud_kept`), so the draw, and every
 survivor's position and object ID, are as they were. Class N (dark clouds) has the lowest confidence; P and Q are
-in range. Study: docs/design/nebula-density-vs-reality.md."""
+in range. Study: docs/design/systems/nebula-density-vs-reality.md."""
 
 GMC_GAS_DENSITY_EXPONENT = 1.4
 """float: Molecular clouds scale with gas density to this power
@@ -3846,7 +3846,7 @@ count out to a reach is this number times the reach over that radius (GEN.238)."
 
 NEUTRON_STAR_KICK_SIGMA_KMS = 265.0
 """float: The one-dimensional dispersion of a neutron star's natal kick, km/s, a Maxwellian in three dimensions (Hobbs et
-al. 2005's pulsar birth velocities, 265 km/s, as `docs/design/multistar-and-compact-systems.md` records it) [R, recalled in
+al. 2005's pulsar birth velocities, 265 km/s, as `docs/design/systems/multistar-and-compact-systems.md` records it) [R, recalled in
 the repository's notes and not re-read: Boss, 2026-10-21, 1:17 PM EDT, "assume already included information is valid"]. With
 the galaxy's escape speed (`galaxy.natal_kick`) it sets the share of the neutron stars a galaxy ejects (GEN.554)."""
 
@@ -3857,7 +3857,7 @@ NEUTRON_STAR_KICK_BIRTH_RADII = 32
 NEUTRON_STAR_UNBOUND_FRACTION_TARGET_RANGE = (0.2, 0.4)
 """tuple: The share of the Milky Way's neutron stars the kicks send out of it, a test target and no input (GEN.554): 20% to
 40% (the old per-galaxy draw: Hobbs et al. 2005's kick distribution against the escape speed [S, recalled]; "about 40%" in
-one population synthesis, `docs/design/compact-remnant-regions.md`). A galaxy of the Milky Way's masses lands inside it."""
+one population synthesis, `docs/design/systems/compact-remnant-regions.md`). A galaxy of the Milky Way's masses lands inside it."""
 
 BLACK_HOLE_UNBOUND_FRACTION = 0.02
 """float: The share of a galaxy's black holes that are ejected (GEN.238; about 2%) [S, recalled; to verify]."""
@@ -3870,7 +3870,7 @@ BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE = (0.0, 0.45)
 """tuple: The share of the massive stars of solar metallicity that fail to explode and leave a black hole: the widest
 verified range, 0 (O'Connor and Ott 2011's lowest) to 45% (Sukhbold et al. 2016's highest; Ebinger et al. 2020 give 5 to
 21%). A galaxy draws its own, uniform over the range (only the range is known) and cut by the neutron star budget
-(`physics.black_hole_formation.share_cap`). GEN.563, docs/design/black-hole-formation-sources.md."""
+(`physics.black_hole_formation.share_cap`). GEN.563, docs/design/systems/black-hole-formation-sources.md."""
 
 BLACK_HOLE_FAILED_SHARE_METAL_FREE_RANGE = (0.15, 0.32)
 """tuple: The same share for a metal-free population, 15% (O'Connor and Ott 2011) to 32% (Ebinger et al. 2020's
@@ -3911,7 +3911,7 @@ galaxy's densest cells draw far fewer."""
 
 HYPERVELOCITY_COUNT_RADIUS_KPC = 100.0
 """float: The radius the count `HYPERVELOCITY_STARS_PER_GALAXY` is read to: "galaxy-wide" is taken as out to 100 kpc,
-the halo's extent (docs/design/intergalactic-and-halo-contents.md 2.3) [I]."""
+the halo's extent (docs/design/galaxy/intergalactic-and-halo-contents.md 2.3) [I]."""
 
 
 PHENOMENON_MIN_MASS_PRESETS = (8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0)
@@ -3930,7 +3930,7 @@ COMPACT_MIN_MASS_STAR = "star"
 PHENOMENON_MIN_MASS_SOLAR = 14.0
 """float: The phenomenon scatter's lowest mass, the default of
 `PHENOMENON_MIN_MASS_PRESETS` (GEN.167, `planetgen plan
---phenomenon-min-mass`; docs/design/phenomenon-scatter-mass-cut.md, Boss
+--phenomenon-min-mass`; docs/design/systems/phenomenon-scatter-mass-cut.md, Boss
 2026-10-09). The scatter places only the neutron stars and black holes at
 or above it; a sector draws the rest when it is filled (GEN.168). An
 object's tidal sphere (1.44 pc per cube root of a solar mass) reaches one
@@ -3998,7 +3998,7 @@ RANDOM_START_MAX_PLACEMENT_ATTEMPTS = 1000
 int: Retry cap for picking a random, not-yet-occupied sector address before
 `generation/run_galaxy.py`'s random-start mode gives up -- generous, since even a
 fairly well-populated galaxy leaves overwhelmingly more addresses empty
-than occupied (see docs/design/galaxy-coordinate-system.md section 9's
+than occupied (see docs/design/galaxy/galaxy-coordinate-system.md section 9's
 storage-analysis addendum: ~320 billion addressable sector slots total).
 """
 
@@ -4008,7 +4008,7 @@ WARP_FACTORS_FOR_NAV = (1, 2, 4, 8, 9, 9.5, 9.9, 9.995)
 """
 The warp factors NAV output reports travel time at (see
 `planetgen.galaxy.navigation.warp_travel_times`) -- the rows of Boss's warp
-table (docs/design/navigation-frames.md, "Travel speeds"), from warp 1
+table (docs/design/orbits/navigation-frames.md, "Travel speeds"), from warp 1
 (exactly c) up to 9.995, where the curve climbs steeply toward its
 asymptote at warp 10.
 """
@@ -4259,7 +4259,7 @@ BRIGHT_STAR_FLOOR_MAX_STEP_SOL = 500_000.0
 """float: The gap between presets near the highest floor (GEN.184)."""
 
 # --- Population and politics (schema v44, POP.1 to POP.4) ---
-# See docs/design/population-and-politics.md.
+# See docs/design/habitability/population-and-politics.md.
 
 LIFE_WORLD_STAGES = ("multicellularity", "technological_civilization")
 """tuple: The evolutionary milestones (`evolution.MILESTONE_KEYS`) that

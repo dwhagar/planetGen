@@ -5,7 +5,7 @@ The Sector Profile (GEN.235)
 ============================
 
 The program has the same rules everywhere in the sphere, and each sector carries the parameters that tune those
-rules to where it is (docs/design/intergalactic-and-halo-contents.md section 5). This module computes those
+rules to where it is (docs/design/galaxy/intergalactic-and-halo-contents.md section 5). This module computes those
 parameters: `sector_profile(address, skeleton)` for a grid cell, `profile_at(position_pc, ...)` for a point.
 
 It is a pure function of the galaxy's shape, its sector edge, the address and (for the superbubble a place lies in) the
@@ -287,7 +287,7 @@ def type_ia_share_at(populations, shape):
 def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
     """
     The factors by which a place scales the rate per star of each kind that is not a plain per-star rate (GEN.236;
-    docs/design/intergalactic-and-halo-contents.md section 5). The rates themselves stay per star
+    docs/design/galaxy/intergalactic-and-halo-contents.md section 5). The rates themselves stay per star
     (`tuning.phenomenon_rate_per_star`); a kind absent here is not scaled.
 
     * **1 everywhere**: `brown-dwarf` (every population makes it).

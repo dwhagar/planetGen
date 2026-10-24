@@ -1,6 +1,6 @@
 # planetgen/describe/text.py
 
-"""A Document as plain text for a terminal, with no markup (docs/design/system-description.md, section 4)."""
+"""A Document as plain text for a terminal, with no markup (docs/design/architecture/system-description.md, section 4)."""
 
 from planetgen.describe.render import rating_lines, render_document, share_text
 

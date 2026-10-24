@@ -1,7 +1,7 @@
 # generation/place_terms.py
 
 """
-What a place does to the stars drawn in it (GEN.103, docs/design/placement-by-population.md 3.1 and 3.3):
+What a place does to the stars drawn in it (GEN.103, docs/design/generation/placement-by-population.md 3.1 and 3.3):
 the close-companion odds factor that follows a star's own [Fe/H], the widest axis a wide pair can keep and the widest
 orbit a planet keeps (GEN.325).
 

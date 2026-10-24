@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS admin_api_keys (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- What each API key may do (API.9, v13): `read`, `generate`, `upload`,
--- `admin` (docs/design/api-design-standards.md section 5). A row per scope,
+-- `admin` (docs/design/operations/api-design-standards.md section 5). A row per scope,
 -- not a JSON column or a single scope column, so a key can hold
 -- "upload and generate but not admin". No CHECK on `scope`: a new scope
 -- needs no migration. `key_prefix` (the key's first eight characters) is
@@ -461,7 +461,7 @@ CREATE TABLE IF NOT EXISTS invite_uses (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- v16 (DB.62): bookkeeping for the uploads of generated sectors from a remote
--- run (API.11; docs/design/api-design-standards.md section 7.3). Nothing
+-- run (API.11; docs/design/operations/api-design-standards.md section 7.3). Nothing
 -- reads or writes these tables until API.11. One `upload_runs` row is one
 -- remote run: its owner (`owner_id`, an account) and the API key it used
 -- (`key_id`, NULL once the key is removed), the galaxy database it uploads

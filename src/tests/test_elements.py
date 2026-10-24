@@ -206,7 +206,7 @@ def test_short_lived_radionuclides_have_a_half_life_and_the_energy_of_a_decay():
 
 def test_the_activity_of_a_ppm_of_each_element_is_the_known_figure():
     """Specific activity per ppm by mass of the element (Bq/kg per ppm): uranium 12.35 (uranium-238 alone), thorium 4.06, and
-    per weight percent of potassium 316 (the figures part E of docs/design/body-composition-research.md computed)."""
+    per weight percent of potassium 316 (the figures part E of docs/design/composition/body-composition-research.md computed)."""
     uranium = elements.specific_activity("U-238") * elements.isotopic_mass_fraction("U-238") * 1e-6
     thorium = elements.specific_activity("Th-232") * elements.isotopic_mass_fraction("Th-232") * 1e-6
     potassium = elements.specific_activity("K-40") * elements.isotopic_mass_fraction("K-40") * 1e-2

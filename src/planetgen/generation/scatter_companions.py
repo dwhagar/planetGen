@@ -6,7 +6,7 @@ Companions in the scatter passes (GEN.262)
 
 The star passes (the mass pass, the luminosity pass and the backfills that go with them) and the phenomenon pass
 write one row per placed object. This module gives the rows that have company a member tree
-(`multistar.draw_member_tree`, docs/design/multi-star-systems.md section 6) and stores it with the row
+(`multistar.draw_member_tree`, docs/design/systems/multi-star-systems.md section 6) and stores it with the row
 (`db.scatter_systems`): the row's point becomes the system's barycentre, and its `member_count` and
 `system_mass_solar` say so.
 

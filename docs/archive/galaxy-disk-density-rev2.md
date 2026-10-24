@@ -8,7 +8,7 @@
 > 7.0.0). The shell addressing it relies on was replaced in 6.0.0, and the
 > database moved to MySQL in 5.5.0. The density model of section 1 is still
 > in use and is described, with the current parameters, in
-> `docs/design/galaxy-disk-density.md`.
+> `docs/design/galaxy/galaxy-disk-density.md`.
 
 ---
 
@@ -26,7 +26,7 @@ model's own shape parameters, so none of it needs persisting per sector at
 all. What was actually built instead -- a singleton shape row plus one row
 per shell recording a *candidate* slot-index band, ~4,000 rows total for a
 real Milky-Way-scale galaxy -- is documented in
-`docs/design/galaxy-coordinate-system.md` section 9's storage-analysis
+`docs/design/galaxy/galaxy-coordinate-system.md` section 9's storage-analysis
 addendum, `planetgen/galaxy/skeleton.py`, and `galaxyPlan.py`. Kept
 here for the density model itself (still accurate) and as a record of the
 storage-cost reasoning that led to the smaller design actually shipped;

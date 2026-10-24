@@ -1,5 +1,5 @@
 """
-Planets of a millisecond pulsar (GEN.317, docs/design/exotic-environments-planets-and-compact-binaries.md section 2.1):
+Planets of a millisecond pulsar (GEN.317, docs/design/systems/exotic-environments-planets-and-compact-binaries.md section 2.1):
 the origin of the ones that hold any, the disc origin's planets, and the pulsar wind they sit in.
 """
 

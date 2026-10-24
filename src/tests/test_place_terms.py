@@ -83,7 +83,7 @@ def test_the_remnants_raise_the_perturber_mass_and_the_black_holes_do_most_of_it
 
 
 def test_the_black_hole_inputs_lie_inside_the_published_ranges():
-    """GEN.541 (docs/design/placement-by-population.md): the share of core-collapse stars that leave a hole
+    """GEN.541 (docs/design/generation/placement-by-population.md): the share of core-collapse stars that leave a hole
     (the failed share, GEN.554: inside the verified 0 to 45 percent, Sukhbold et al. 2016, Table 4), the mean hole mass (Sukhbold et al.: 9 to 14 solar masses;
     Olejak et al. 2020: 11.7 bulge, 14.2 disk) and the number in a galaxy of 5e10 solar masses of stars (Olejak et al.:
     1.3e8; the older estimates they list: 1e8 to 1e9)."""
@@ -132,7 +132,7 @@ def test_the_limits_scale_the_way_the_formulas_do():
 
 
 def test_the_design_notes_table_follows():
-    # docs/design/placement-by-population.md 3.3, 2 solar masses, 10 Gyr, the default perturber mass (<M^2> / <M> of the
+    # docs/design/generation/placement-by-population.md 3.3, 2 solar masses, 10 Gyr, the default perturber mass (<M^2> / <M> of the
     # whole disk with remnants).
     for density, sigma, encounter, tide in ((0.048, 30, 16_400, 500_000), (6.9, 120, 456, 95_000),
                                             (77, 120, 41, 42_000), (660, 120, 4.8, 21_000)):

@@ -2,7 +2,7 @@
 
 """
 The version keys an update has run under (OPS.13, OPS.58;
-docs/design/reproducible-galaxies.md).
+docs/design/generation/reproducible-galaxies.md).
 
 Every update looks, for each galaxy database, at the newest row of the control database's `version_key_history`. When the
 galaxy's seed, the version key (`version_key.version_key`), the generator epoch, the generator battery's digest

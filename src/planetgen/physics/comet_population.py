@@ -1,7 +1,7 @@
 # planetgen/physics/comet_population.py
 
 """
-The comet volatile population (GEN.495, docs/design/body-composition-parts/G1-comets.md sections 2.3, 3.1 and 3.2)
+The comet volatile population (GEN.495, docs/design/composition/body-composition-parts/G1-comets.md sections 2.3, 3.1 and 3.2)
 ==================================================================================================================
 
 What a comet's coma holds, as a ratio to water in percent of the number of molecules, drawn from the population of measured

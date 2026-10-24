@@ -1,6 +1,6 @@
 """Stored constellations (DB.64).
 
-Schema v128. The view from a planet (docs/design/sky-view.md, VIEW.3) groups the brighter stars of a system's sky into constellations, and a planet keeps the same ones each time. `constellations` stores them per system: the system's uid (`system_uid`), the constellation's number within that system (`constellation_index`), the object ID of its name (`name_id`, the `constellation` kind of VIEW.4, NULL until it is named), the member stars (`members`, JSON: the star object IDs) and the edges drawn between them (`edges`, JSON: pairs of members), and the seed and version key it was built under (`seed`, `version_key`) so it can be rebuilt and told stale.
+Schema v128. The view from a planet (docs/design/orbits/sky-view.md, VIEW.3) groups the brighter stars of a system's sky into constellations, and a planet keeps the same ones each time. `constellations` stores them per system: the system's uid (`system_uid`), the constellation's number within that system (`constellation_index`), the object ID of its name (`name_id`, the `constellation` kind of VIEW.4, NULL until it is named), the member stars (`members`, JSON: the star object IDs) and the edges drawn between them (`edges`, JSON: pairs of members), and the seed and version key it was built under (`seed`, `version_key`) so it can be rebuilt and told stale.
 
 This revision makes the table and nothing else; no code reads it yet. A table already there is left alone,
 so a stopped run can be started again.

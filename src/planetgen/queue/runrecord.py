@@ -1,7 +1,7 @@
 # planetgen/queue/runrecord.py
 
 """
-A run's record in Redis (PERF.96, step 2 of the work queue rebuild, docs/design/redis-and-the-work-queue.md 5.1
+A run's record in Redis (PERF.96, step 2 of the work queue rebuild, docs/design/operations/redis-and-the-work-queue.md 5.1
 and 5.2): the one place a run lives. A library with no pages and no workers of its own; PERF.97 to 99 use it.
 
 Keys (`PREFIX` is `planetgen`; the tests give it a prefix of their own):

@@ -2,7 +2,7 @@
 
 """
 The galaxy's 128-bit seed and the seeds derived from it (GEN.39; see
-docs/design/reproducible-galaxies.md, section 3).
+docs/design/generation/reproducible-galaxies.md, section 3).
 
 One seed belongs to the galaxy: 16 bytes in `galaxy_shape.galaxy_seed`
 (`BINARY(16)`), shown and typed as 32 hex digits, written once when the

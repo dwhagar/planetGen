@@ -3,7 +3,7 @@
 """
 Tests for `planetgen.galaxy.density` -- the exponential-disk-plus-
 bulge-plus-spiral-arm density model from
-`docs/design/galaxy-disk-density.md` revision 2.
+`docs/design/galaxy/galaxy-disk-density.md` revision 2.
 """
 
 import math

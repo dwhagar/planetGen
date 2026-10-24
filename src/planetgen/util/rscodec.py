@@ -5,7 +5,7 @@ Reed-Solomon Codec
 ==================
 
 A Reed-Solomon erasure code over GF(256) in the standard library (DB.43, the
-codec of the sector parity file, docs/design/db-check-and-parity-repair.md
+codec of the sector parity file, docs/design/operations/db-check-and-parity-repair.md
 section 5.9). `RS(k, m)` makes `m` parity blocks from `k` data blocks, and any
 `k` of the `k + m` blocks give the data back, so up to `m` lost blocks are
 rebuilt exactly. `k + m` may not pass 256.

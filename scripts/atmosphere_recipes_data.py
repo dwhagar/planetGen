@@ -4,7 +4,7 @@
 The machine columns of the atmosphere recipe tables (GEN.478)
 =============================================================
 
-Part 09 of the atmosphere research (docs/design/atmosphere-composition-parts/09-weighted-composition-tables.md) gives the
+Part 09 of the atmosphere research (docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md) gives the
 104 rows in prose: the option, the gate, the weight, its source, its status and the notes. `build_atmosphere_recipes.py`
 reads those words from the part itself and takes from here what the part leaves as text: for each row its kind, the classes
 and conditions of its gate, the weight as an expression the loader evaluates, the distribution of a continuous quantity,
@@ -69,7 +69,7 @@ GROUPS = {
 }
 
 # The Berta-Thompson, Wachiraphan and Murray 2025 shoreline (arXiv:2507.02136), posteriors of the main sample, read in
-# docs/design/tunable-gaps-sources/group2-delivery-retention.md: log10 f0 2.62, p 5.9, q 1.17, w 0.247 dex.
+# docs/design/composition/tunable-gaps-sources/group2-delivery-retention.md: log10 f0 2.62, p 5.9, q 1.17, w 0.247 dex.
 _DELTA = "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))"
 _P_ATM = "1/(1 + 10**(delta/0.247))"
 _SHORE = {"delta": _DELTA, "p_atm": _P_ATM}
@@ -85,7 +85,7 @@ MACHINE = {
     "a3": dict(kind="param", classes=["asteroid", "C", "D"], sets="redox_diw",
                dist={"kind": "normal", "mu": -1.26, "sigma": 0.45},
                source="22 polluted white dwarf values: median -1.26, sample sd 0.45 (Doyle 2020 Table 1, Doyle 2023 Table 4, "
-                      "via docs/design/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the meteoritic "
+                      "via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); the meteoritic "
                       "bracket -1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
                correction="Corrected 2026-10-18 (tunable-gaps 3.2): the uniform U[-1.4, 0] has its mean 0.55 dex above the "
                           "white dwarf ensemble; the core-formation scale differs from the surface magma-ocean scale of a1."),

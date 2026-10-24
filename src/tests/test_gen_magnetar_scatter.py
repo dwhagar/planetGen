@@ -1,5 +1,5 @@
 """
-Magnetars as a scatter class of neutron stars (GEN.278, docs/design/later-phenomena-scatter-rules.md section 3): about a
+Magnetars as a scatter class of neutron stars (GEN.278, docs/design/systems/later-phenomena-scatter-rules.md section 3): about a
 hundred rows over a Milky Way-sized galaxy, each on the young population and not in the halo, whatever the scatter's
 mass cut; the fill never draws one; a row builds into a magnetar of the row's mass.
 """

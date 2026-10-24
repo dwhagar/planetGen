@@ -10,7 +10,7 @@ Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cor
 
 ## Goal
 
-A galaxy is built from one family of a known galaxy type (spiral, lenticular, elliptical, irregular or dwarf): the seed draws the galaxy's stellar mass, then the family from the mass-dependent type fractions, then every shape number from published scaling relations, so no type, size or count is a preset and no named galaxy is copied (Boss, 4:11 and 4:14 PM EDT: no fixed content). The shape, the density model, the potential, the halo, the satellites and the scatters are reused: three steps of the chain come earlier (GEN.378 in 8.1, DB.66 and GEN.379 in 8.3) so that the families only fill in the shape. Design: [docs/design/galaxy-types.md](../../design/galaxy-types.md). One galaxy per database stays; a second galaxy is the later note.
+A galaxy is built from one family of a known galaxy type (spiral, lenticular, elliptical, irregular or dwarf): the seed draws the galaxy's stellar mass, then the family from the mass-dependent type fractions, then every shape number from published scaling relations, so no type, size or count is a preset and no named galaxy is copied (Boss, 4:11 and 4:14 PM EDT: no fixed content). The shape, the density model, the potential, the halo, the satellites and the scatters are reused: three steps of the chain come earlier (GEN.378 in 8.1, DB.66 and GEN.379 in 8.3) so that the families only fill in the shape. Design: [docs/design/galaxy/galaxy-types.md](../../design/galaxy/galaxy-types.md). One galaxy per database stays; a second galaxy is the later note.
 
 ## Phase 1: The draw and the spheroid
 

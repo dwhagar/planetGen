@@ -1,7 +1,7 @@
 # planetgen/describe/model.py
 
 """
-The Document's node constructors and its checker (docs/design/system-description.md,
+The Document's node constructors and its checker (docs/design/architecture/system-description.md,
 section 3).
 
 A Document is plain dicts, lists, strings and numbers, so it is already JSON.

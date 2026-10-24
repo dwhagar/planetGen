@@ -15,7 +15,7 @@ law the row moves (`galaxy.shape_draw`). A given value replaces its own draw and
 row whose Auto is a fixed number rather than a draw says so in `auto_value`.
 
 **Range.** A given value outside `minimum` to `maximum` is refused with the allowed range and its source. Every range
-carries a `status` saying how well its source is known (the labels of docs/design/gap-filling-plan.md): `verified`
+carries a `status` saying how well its source is known (the labels of docs/design/research/gap-filling-plan.md): `verified`
 (read in a paper or file in the repository), `derived` (calculated from a verified source), `bracket` (a range around
 values from sources that disagree or were read second hand), `theory` or `placeholder` (no source yet; GEN.609 replaces
 these as sources arrive).
@@ -525,7 +525,7 @@ REGISTRY_END = "<!-- dial-ranges:end -->"
 
 
 def registry_block():
-    """The registry rows for the shape dials' ranges in `docs/design/gap-filling-plan.md` (GEN.609): one per lever."""
+    """The registry rows for the shape dials' ranges in `docs/design/research/gap-filling-plan.md` (GEN.609): one per lever."""
     lines = [REGISTRY_BEGIN, "| Lever | Range | Label | Source |", "|---|---|---|---|"]
     for row in LEVERS:
         lines.append(f"| `{row.flag}` | {row.range_text()}{row._abs_text()} | {row.status} | {row.source} |")
@@ -552,7 +552,7 @@ def _main(argv=None):
         return 0
     docs = pathlib.Path(__file__).resolve().parents[3] / "docs"
     _rewrite(docs / "reference" / "cli.md", DOCS_BEGIN, DOCS_END, docs_block())
-    _rewrite(docs / "design" / "gap-filling-plan.md", REGISTRY_BEGIN, REGISTRY_END, registry_block())
+    _rewrite(docs / "design" / "research" / "gap-filling-plan.md", REGISTRY_BEGIN, REGISTRY_END, registry_block())
     return 0
 
 

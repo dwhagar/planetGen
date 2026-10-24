@@ -3,8 +3,8 @@ Mantle redox and atmosphere species for planets and moons (GEN.85).
 
 Each body with air stores the partial pressures, kPa, of ten species
 (`SPECIES`) and its mantle's redox state; the free-text `atmosphere` is
-written from them. The design is in docs/design/habitability-index.md
-section 4 (rows 1 and 2) and docs/design/atmospheres-retention-and-classes.md
+written from them. The design is in docs/design/habitability/habitability-index.md
+section 4 (rows 1 and 2) and docs/design/habitability/atmospheres-retention-and-classes.md
 section 3.3 (the cold side).
 
 1. **Mantle redox.** The upper mantle's oxygen fugacity, in log units above

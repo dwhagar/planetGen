@@ -5,7 +5,7 @@ sector, such as "at least 5 systems", "at least 2 habitable worlds" or
 
 A sector is drawn as usual; when it misses a directive it is thrown away
 and drawn again from a fresh stream, up to `DEFAULT_ATTEMPTS` times, and
-only the winner is saved (docs/design/sampling-backfill-and-resume.md,
+only the winner is saved (docs/design/generation/sampling-backfill-and-resume.md,
 section 8). Attempt 0 uses the sector's plain seed, so a sector that
 meets its directives first time is the sector a run with none would have
 made. Attempt `a` >= 1 uses a seed from the galaxy seed, the sector's

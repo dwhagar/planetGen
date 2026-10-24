@@ -1,7 +1,7 @@
 # planetgen/galaxy/version_check.py
 
 """
-The mixed-version warning (DB.7; docs/design/reproducible-galaxies.md,
+The mixed-version warning (DB.7; docs/design/generation/reproducible-galaxies.md,
 section 5): a galaxy extended by a different release holds sectors made by
 more than one version, and such a galaxy reproduces only sector by sector,
 each on the version that made it. Every sector records the key, release,

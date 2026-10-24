@@ -1,11 +1,11 @@
 # planetgen/physics/planet_survival.py
 
 """
-Which planet orbits outlive a place's passing stars (GEN.325; docs/design/realistic-galactic-core.md, section 7)
+Which planet orbits outlive a place's passing stars (GEN.325; docs/design/galaxy/realistic-galactic-core.md, section 7)
 ===============================================================================================================
 
 A planet of semi-major axis `a` around a star in a field of other systems is stripped when one passes close enough. The
-number of such passes in a time `t` is the cluster note's survival rule (docs/design/globular-clusters.md, section 7):
+number of such passes in a time `t` is the cluster note's survival rule (docs/design/galaxy/globular-clusters.md, section 7):
 
     N(a) = n pi a^2 v t (1 + 2 G M / (a v^2))
 

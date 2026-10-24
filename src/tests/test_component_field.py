@@ -3,7 +3,7 @@
 """
 GEN.160: the globular clusters' density in the sector gate (`galaxy/component_field.py`). A cluster's cell density is
 the King profile integrated over the cell's cube, so a cluster's cells add up to its mass over 0.4 and the four
-exemplars of docs/design/globular-clusters.md section 3 land where its table puts them; the density reaches
+exemplars of docs/design/galaxy/globular-clusters.md section 3 land where its table puts them; the density reaches
 `relative_density`, `population_densities`, the profile and the skeleton's bound, and no cell the gate would let in is
 left outside the outline.
 """

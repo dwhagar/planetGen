@@ -2,7 +2,7 @@
 
 Schema v120. `sectors.leaf_digest` (BINARY(32), NULL) is the fingerprint of one sector (GEN.136's canonical encoder, SHA-256),
 stored at save time; NULL for a sector saved before it, which the fingerprint tree (GEN.305) fills as it meets them.
-`sector_tree_nodes` holds the digests above the leaves (docs/design/generation-determinism.md section 4.3): a band node
+`sector_tree_nodes` holds the digests above the leaves (docs/design/generation/generation-determinism.md section 4.3): a band node
 (`level` 1, one per shell and band) over the leaves of its wedges, and a shell node (`level` 2, one per shell, `band_index`
 0) over its band nodes. The galaxy root is worked out on demand and not stored. `child_count` is the number of leaves under
 a band node and of band nodes under a shell node, so that a region's digest can include the count; `dirty` is 1 while a

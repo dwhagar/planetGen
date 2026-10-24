@@ -2,8 +2,8 @@
 
 """
 GEN.261: the member-tree generator (`planetgen/generation/multistar.py`).
-The odds are those of docs/design/multi-star-systems.md section 4 and
-docs/design/multistar-and-compact-systems.md 3.3; the stability, Peters and
+The odds are those of docs/design/systems/multi-star-systems.md section 4 and
+docs/design/systems/multistar-and-compact-systems.md 3.3; the stability, Peters and
 wide-companion rules are section 3.3 and 9 of the first note.
 """
 

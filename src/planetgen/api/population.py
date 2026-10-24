@@ -1,6 +1,6 @@
 """
 Population and politics read endpoints (POP.1 to POP.4, schema v44): species,
-polities and territories. See docs/design/population-and-politics.md.
+polities and territories. See docs/design/habitability/population-and-politics.md.
 
 Kept in its own blueprint so the population work doesn't touch
 `routes.py`; it shares that module's request-scoped connection and

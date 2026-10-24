@@ -1,7 +1,7 @@
 # planetgen/queue/pagejobs.py
 
 """
-Slow page requests as jobs (PERF.105; design in docs/design/slow-page-answers.md).
+Slow page requests as jobs (PERF.105; design in docs/design/operations/slow-page-answers.md).
 
 A page that expects a slow answer does not build it inside the request. `ensure` queues one job
 (`build_answer`, on the interactive queue like the cache warm-up's) that makes the request the way the page

@@ -1,6 +1,6 @@
 """
 GEN.262: companions in the scatter passes (`planetgen.generation.scatter_companions`,
-docs/design/multi-star-systems.md 6 and 9). A star row always draws its member tree; a black hole, neutron star or
+docs/design/systems/multi-star-systems.md 6 and 9). A star row always draws its member tree; a black hole, neutron star or
 planetary nebula row has one at the table's odds, screened by a uniform that is a pure function of the row's seed;
 the trees are stored under their rows with the barycentre bookkeeping, deleted with the rows, and the phenomenon
 scatter's class rate is divided by `1 + p_placed` so the density of the class is unchanged.

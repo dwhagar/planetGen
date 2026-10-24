@@ -3,8 +3,8 @@
 """
 GEN.261: the stability criteria, the Kozai-Lidov screen and the Peters merger
 time (`planetgen/physics/stability.py`). The expected numbers are the unit-test
-table of docs/design/exotic-environments-planets-and-compact-binaries.md 2.3
-and the worked examples of docs/design/multi-star-systems.md 3.3 and 9.
+table of docs/design/systems/exotic-environments-planets-and-compact-binaries.md 2.3
+and the worked examples of docs/design/systems/multi-star-systems.md 3.3 and 9.
 """
 
 import math

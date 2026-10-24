@@ -2,7 +2,7 @@
 
 Schema v118. Two new tables: `orbital_events`, one row per orbital event (a collision outcome, merger, split, ejection,
 capture, unbind or warning) with the numbers it was decided from, the conservation check, the products and the flags of
-docs/design/collisions-and-mergers.md section 7, and `orbital_event_bodies`, the bodies that went into it and came out of
+docs/design/orbits/collisions-and-mergers.md section 7, and `orbital_event_bodies`, the bodies that went into it and came out of
 it, one row each. The revision only makes the tables: nothing writes them yet (GEN.197's `record_event` does) and no
 view reads them (GEN.143). A step already done is left alone, so a stopped run can be started again.
 """

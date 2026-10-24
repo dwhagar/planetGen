@@ -1,7 +1,7 @@
 # planetgen/galaxy/natal_kick.py
 
 """
-The share of a galaxy's neutron stars its natal kicks send out of it (GEN.554; docs/design/natal-kick.md)
+The share of a galaxy's neutron stars its natal kicks send out of it (GEN.554; docs/design/systems/natal-kick.md)
 =========================================================================================================
 
 A neutron star is born with the speed of the star that made it, the galaxy's circular speed `Vc` along the disc, plus a

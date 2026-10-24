@@ -6,7 +6,7 @@ A galaxy's fingerprint (GEN.58)
 
 A canonical SHA-256 digest of each sector's generated content, and one for
 a region, so two builds can be compared in the sense
-`docs/design/reproducible-galaxies.md` section 2 defines: every generated
+`docs/design/generation/reproducible-galaxies.md` section 2 defines: every generated
 object has the same address, position, properties and name.
 
 A sector's content is its `sectors` row, every object filed in it (star

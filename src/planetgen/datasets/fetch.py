@@ -16,7 +16,7 @@ that the dataset is missing. The generator requires every dataset (GEN.590, Boss
 the run was told, in so many words, to disregard missing data (GEN.599, `set_disregard_missing_data`: `--disregard-missing-data`
 on the command line, a checkbox on the Generate page). Then a reader asks `Located.use_stand_in` and takes the dataset's own
 labelled `fallback`, and `stand_ins_used` lists what was taken. What each fill replaced is in the stand-in registry
-(docs/design/gap-filling-plan.md section 6).
+(docs/design/research/gap-filling-plan.md section 6).
 
 Some sources are large archives of which only a few columns are used (the MIST isochrones are 220 MB). A dataset can
 then name a `derive` function and the compact files it writes (`derived`); its archive piece is `transient`: the step

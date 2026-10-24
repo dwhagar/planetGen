@@ -3,7 +3,7 @@
 // MAP.148: the star visibility law of the Galaxy Map. A star is drawn at an
 // opacity that follows its APPARENT MAGNITUDE from the camera, against a
 // limiting magnitude chosen each time the view changes so about N stars are
-// on screen. docs/design/fly-through-view-distance.md (4.1) has the rule;
+// on screen. docs/design/interface/fly-through-view-distance.md (4.1) has the rule;
 // this file is its arithmetic, free of the page, so the shader (which
 // repeats `magnitudeShare` and `fluxGain` in GLSL, built from the constants
 // below: STAR_MAGNITUDE_GLSL), the page's histogram and the tests share one
@@ -27,7 +27,7 @@
 // (MAP.208: the server sends that luminosity; static/starpoint.js).
 
 export const SUN_ABSOLUTE_MAGNITUDE = 4.83;
-// MAP.251: the cut order of docs/design/zoom-star-visibility.md section 10 on the screen. A star of a satellite
+// MAP.251: the cut order of docs/design/interface/zoom-star-visibility.md section 10 on the screen. A star of a satellite
 // galaxy (`tier` 2) or of the halo (`tier` 1) is judged as if it were this many magnitudes dimmer (a factor of 250
 // and 16 in light), so when more stars are on screen than the target the limit takes them first, then the rest in
 // the order of their apparent magnitude: the nearest and brightest go last, the farther sooner.

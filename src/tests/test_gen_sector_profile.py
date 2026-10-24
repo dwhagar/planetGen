@@ -2,7 +2,7 @@
 
 """
 GEN.235: the sector profile (`planetgen/galaxy/profile.py`). It is a pure function of the galaxy shape, the sector edge
-and the address: the same answer every call, no database, the figures of docs/design/intergalactic-and-halo-contents.md
+and the address: the same answer every call, no database, the figures of docs/design/galaxy/intergalactic-and-halo-contents.md
 (5.3 and 5.7) at the Sun, in the halo and at the edge of the reach. The engine paths that read it (an asked cell in the
 halo is generated and saved, the neighbourhood pull, the fill) are in `test_galaxy_gen.py`.
 """

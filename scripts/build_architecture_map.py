@@ -6,7 +6,7 @@ Why this exists
 ===============
 Boss (2026-10-17, 12:23 PM EDT): "I want a more detailed architecture HTML document that I can drill down and see
 the flow through modules and even functions if possible, I want a map of the project and its distinct areas."
-`docs/design/architecture.html` is the overview, written by hand from `architecture.md`; this page is the code map
+`docs/design/architecture/architecture.html` is the overview, written by hand from `architecture.md`; this page is the code map
 under it, and it is generated from the code so it cannot drift from it.
 
 What it reads

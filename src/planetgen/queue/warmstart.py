@@ -1,7 +1,7 @@
 # planetgen.queue.warmstart
 
 """
-The warm-up that starts by itself (PERF.141, docs/design/cache-warm-up.md).
+The warm-up that starts by itself (PERF.141, docs/design/operations/cache-warm-up.md).
 
 Every change that moves a data version tag (`planetgen.db.dataversion.bump`: a generation run, `planetgen orbits`, an
 edit through the API, a change the page cache found) calls `request`, which notes the change in Redis and starts

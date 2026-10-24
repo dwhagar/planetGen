@@ -9,7 +9,7 @@ A white dwarf's mass comes from its progenitor's initial mass through the initia
 mass is drawn uniformly over their ranges (`tuning.NEUTRON_STAR_MASS_RANGE_SOLAR`, `BLACK_HOLE_MASS_RANGE_SOLAR`). The
 star model, the multi-star member draw, the scatter's companions, the compact objects and the placement terms each held
 their own copy of these lines; they all call this module. The numbers stay in `tuning`. A derived mass function
-(U4/U5 of docs/design/unified-star-like-objects.md) changes this module and nothing else.
+(U4/U5 of docs/design/architecture/unified-star-like-objects.md) changes this module and nothing else.
 """
 
 import numpy as np

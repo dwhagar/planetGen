@@ -2,7 +2,7 @@
 
 """Population and politics (schema v44, POP.1 to POP.4): species, civilization
 ages and eras, polities and territories, the `population` CLI and the API.
-See docs/design/population-and-politics.md."""
+See docs/design/habitability/population-and-politics.md."""
 
 import random
 import sys

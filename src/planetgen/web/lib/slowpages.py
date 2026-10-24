@@ -2,7 +2,7 @@
 
 """
 The cost rule for slow page requests, and what a page sees of them (PERF.105; design in
-docs/design/slow-page-answers.md).
+docs/design/operations/slow-page-answers.md).
 
 A page whose answer may take a while opts in for the length of its route with `allow_pending()`. Inside it,
 `apiclient` checks each request that misses the page cache against the cost rule (`cost`), once, here. A slow one

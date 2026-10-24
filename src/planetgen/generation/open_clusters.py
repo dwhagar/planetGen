@@ -1,7 +1,7 @@
 # planetgen/generation/open_clusters.py
 
 """
-A generated galaxy's young open clusters (GEN.244; docs/design/intergalactic-and-halo-contents.md 5.14).
+A generated galaxy's young open clusters (GEN.244; docs/design/galaxy/intergalactic-and-halo-contents.md 5.14).
 
 `generate_open_clusters` draws them from the galaxy seed and the galaxy's own disk, with no cluster typed in:
 

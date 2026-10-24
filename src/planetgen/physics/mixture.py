@@ -1,8 +1,8 @@
 # planetgen/physics/mixture.py
 
 """
-An atmosphere's mixture, read through one accessor (GEN.411, docs/design/atmosphere-colour.md section 7, the
-contracts of docs/design/composition-spine-contracts.md)
+An atmosphere's mixture, read through one accessor (GEN.411, docs/design/composition/atmosphere-colour.md section 7, the
+contracts of docs/design/composition/composition-spine-contracts.md)
 =============================================================================================================
 
 The mixture is a plain dict of gas-table formula (`physics/gases.py`: `"CO2"`, `"N2"`, `"He"`, `"NH3"`) to partial

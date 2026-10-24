@@ -29,7 +29,7 @@ IW. Mixing values from different papers without converting shifts the gas ratios
 * **Gas ratios** (`co2_to_co`, `h2o_to_h2`) follow from the oxygen fugacity and the reactions
   `CO + 1/2 O2 = CO2` and `H2 + 1/2 O2 = H2O` (ideal gas, 1 bar standard state, the NASA Glenn fits of
   `data/nasa_glenn_redox_gases.json`): `log10(f_CO2/f_CO) = log K1 + 0.5 log10 fO2`. At 2173 K the CO2/CO ratio of 1
-  is at IW+1.37 and the H2O/H2 ratio of 1 at IW-0.06 (docs/design/body-composition-research.md section 15 and the
+  is at IW+1.37 and the H2O/H2 ratio of 1 at IW-0.06 (docs/design/composition/body-composition-research.md section 15 and the
   G3 research).
 * **Melt iron** (`fe3_fraction`, `delta_iw_from_fe3_fraction`): Sossi et al. (2020) equation 4,
   `log10(X_FeO1.5 / X_FeO) = 0.252 dIW - 1.530`, peridotite liquid, 1 bar, 2173 K, dIW on the Sossi scale, measured

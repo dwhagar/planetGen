@@ -6,7 +6,7 @@ The database check (DB.8)
 
 `planetgen check-db` (and the Admin dashboard's "Check the database"
 button, which runs it as a job) looks for damage in a galaxy database and
-changes nothing. See `docs/design/db-check-and-parity-repair.md` section 6.
+changes nothing. See `docs/design/operations/db-check-and-parity-repair.md` section 6.
 
 Each check is a function of a `_Context` that returns a list of `Problem`s
 (empty when the check passes), and a command of its own on the work queue

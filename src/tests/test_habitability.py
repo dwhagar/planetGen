@@ -3,7 +3,7 @@
 """
 The habitability index's reference maths (GEN.84,
 `planetgen.physics.habitability`): the worked examples in
-docs/design/habitability-index.md section 2 reproduce, and the bands and
+docs/design/habitability/habitability-index.md section 2 reproduce, and the bands and
 derived constants hold.
 """
 

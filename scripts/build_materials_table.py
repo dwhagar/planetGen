@@ -6,7 +6,7 @@ Builds the shared materials table (GEN.427) from the research tables it is typed
     python scripts/build_materials_table.py --check    # build in memory and fail if the committed file differs
 
 The file is `src/planetgen/physics/data/materials.json`. The base is part E's materials table (section 2.10 of
-`docs/design/body-composition-parts/E-ground-radiogenic-shielding.md`, 44 rows, label column kept); part B's SLB 2024 phases
+`docs/design/composition/body-composition-parts/E-ground-radiogenic-shielding.md`, 44 rows, label column kept); part B's SLB 2024 phases
 (table 2.1a) and iron rows (table 2.1b) and part C's ice phases (section 2.3) add the equation-of-state rows; the values in
 `materials_data.py` (Seager et al. 2007, the Handbook of Mineralogy, PubChem) replace every value the parts labelled
 RECALLED and fill the minerals the shared table needs (every name of `ASTEROID_COMPONENTS`, `COMET_COMPOSITION`, the field
@@ -27,7 +27,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "src"))
 import materials_data as data  # noqa: E402
 from planetgen.physics import elements  # noqa: E402
 
-PARTS = os.path.join(HERE, "..", "docs", "design", "body-composition-parts")
+PARTS = os.path.join(HERE, "..", "docs", "design", "composition", "body-composition-parts")
 OUT = os.path.join(HERE, "..", "src", "planetgen", "physics", "data", "materials.json")
 PART_E = os.path.join(PARTS, "E-ground-radiogenic-shielding.md")
 PART_B = os.path.join(PARTS, "B-rocky.md")
@@ -38,7 +38,7 @@ ANY = "any"
 PLANETARY = "planetary"
 
 SOURCES = {
-    "research-e": "Part E of the body composition research, section 2.10 (docs/design/body-composition-parts/E-ground-radiogenic-shielding.md): the "
+    "research-e": "Part E of the body composition research, section 2.10 (docs/design/composition/body-composition-parts/E-ground-radiogenic-shielding.md): the "
                   "values its label column marks R (read), H (second-hand) or C (computed); a value marked Q (recalled) is not kept",
     "nist-webbook": "NIST Chemistry WebBook phase-change and critical data, as read in part E (label R)",
     "crc-chemicals": "CRC Handbook tables as carried in the chemicals 1.5.2 package, as read in part E (label H, second-hand)",
@@ -54,7 +54,7 @@ SOURCES = {
     "seager2007": "Seager, Kuchner, Hier-Majumder and Militzer 2007, Mass-radius relationships for solid exoplanets, ApJ 669, 1279 "
                   "(arXiv:0707.2895), Tables 1, 2 and 3 (read)",
     "hakim2018": "Hakim et al. 2018, Icarus 313, 61 (iron and light-element equations of state), Tables D.5 and F.7, as read in part B",
-    "part-b-fit": "Part B's single Vinet fit to hcp iron (this work, computed, docs/design/body-composition-parts/B-rocky.md section 2.1b)",
+    "part-b-fit": "Part B's single Vinet fit to hcp iron (this work, computed, docs/design/composition/body-composition-parts/B-rocky.md section 2.1b)",
     "slb2024-burnman": "Stixrude and Lithgow-Bertelloni 2024, Thermodynamics of mantle minerals III, GJI 237, 1699 "
                        "(doi:10.1093/gji/ggae126), as parameters read in burnman 2.1.0 SLB_2024.py (second-hand; part B table 2.1a)",
     "exoplex": "ExoPlex 1.0.1a1 source distribution (Anderson and Ahrens 1994 liquid iron; water BM4 constants), second-hand (part B table 2.1b and 2.1c)",

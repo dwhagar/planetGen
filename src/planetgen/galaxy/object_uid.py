@@ -1,7 +1,7 @@
 # planetgen/galaxy/object_uid.py
 
 """
-The object ID (GEN.170, docs/design/object-id-options.md section 0): one
+The object ID (GEN.170, docs/design/architecture/object-id-options.md section 0): one
 fixed-length ID for every object in the galaxy, made of where it was born
 and which birth it was.
 

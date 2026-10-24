@@ -3,7 +3,7 @@
 // MAP.149: the near field of the fly-through map. What stands close to the
 // camera dissolves (a depth fade), a soft see-through tube thins what stands
 // between the camera and the thing looked at (the focus), and the container
-// the camera is inside is drawn from the inside. docs/design/
+// the camera is inside is drawn from the inside. docs/design/interface/
 // fly-through-view-distance.md (4.2 and 4.6) has the rule; this file is its
 // arithmetic, free of the page, so the shaders (which repeat `nearField` in
 // GLSL, built from the same constants below: NEAR_FIELD_GLSL), the picker

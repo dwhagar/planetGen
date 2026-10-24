@@ -3,7 +3,7 @@
 """
 DOC.29: every relative link and anchor in the project's Markdown documents resolves.
 
-Broken relative paths and 11 dead links in docs/design/architecture.md went unnoticed until the 2026-10-14 sweep.
+Broken relative paths and 11 dead links in docs/design/architecture/architecture.md went unnoticed until the 2026-10-14 sweep.
 The check covers README.md, INSTALL.md, CHANGELOG.md's links and every `.md` file under `docs/`; it reads the
 files, so it needs no database or browser. Links to web addresses are not followed, and links inside code (a
 fence, or `backticks`) are not links.
@@ -17,6 +17,8 @@ from urllib.parse import unquote
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
+PART_FOLDERS = {"atmosphere-composition-parts", "body-composition-parts", "tunable-gaps-sources"}
+"""set: the folders of research parts under docs/design/composition/, listed as a folder, not note by note."""
 FILES = sorted({ROOT / "README.md", ROOT / "INSTALL.md", *ROOT.glob("docs/**/*.md")})
 
 LINK = re.compile(r"(?<!\!)\[(?:[^\]\[]|\[[^\]]*\])*\]\(\s*<?([^)\s>]+)>?(?:\s+\"[^\"]*\")?\s*\)")
@@ -122,9 +124,13 @@ def test_the_check_finds_a_dead_path_a_dead_anchor_and_ignores_code(tmp_path):
 
 
 def test_every_design_note_is_listed_in_the_design_index():
-    """DOC.27: docs/design/README.md names every note in the folder (the archive aside)."""
+    """DOC.27: docs/design/README.md names every note in the topic folders (the parts folders aside)."""
     folder = ROOT / "docs" / "design"
     index = (folder / "README.md").read_text(encoding="utf-8")
-    missing = [note.name for note in sorted(folder.glob("*.md"))
-               if note.name != "README.md" and note.name.replace(" ", "%20") not in index]
+    notes = [note for note in sorted(folder.glob("*/*.md")) + sorted(folder.glob("*/*/*.md"))
+             if note.parent.name not in PART_FOLDERS]
+    missing = [str(note.relative_to(folder)) for note in notes
+               if str(note.relative_to(folder)).replace(" ", "%20") not in index]
     assert not missing, f"docs/design/README.md does not list: {', '.join(missing)}"
+    loose = [note.name for note in folder.glob("*.md") if note.name != "README.md"]
+    assert not loose, f"docs/design/ holds only README.md; put these in a topic folder: {', '.join(loose)}"

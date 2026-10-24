@@ -1,6 +1,6 @@
 // html/static/galaxystageview.js
 //
-// The Galaxy Map's drill-down (docs/design/galaxy-drilldown-navigation.md,
+// The Galaxy Map's drill-down (docs/design/interface/galaxy-drilldown-navigation.md,
 // sections 4, 5, 8.1 and 10-11, as MAP.150 and MAP.151 changed it), drawn
 // and driven: the whole galaxy in 3D with every block of it to click, then,
 // for each click, the window of blocks one size down centred on the block

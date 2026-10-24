@@ -8,6 +8,6 @@ state, line lists). They are not kept in the repository. `update.sh` and `instal
 planetgen.cli.datasets fetch` once, which downloads each file with the standard User-Agent (API.31), checks its
 sha256 and keeps it in a cache folder outside the checkout (`fetch.cache_dir`). Nothing is fetched while the site or
 the generator runs: a reader calls `fetch.locate`, which only looks at the folder, and gets either the files or a
-a refusal when they are missing: the generator requires them (GEN.590; docs/design/gap-filling-plan.md 6.5 and the registry of
+a refusal when they are missing: the generator requires them (GEN.590; docs/design/research/gap-filling-plan.md 6.5 and the registry of
 section 6 say what each replaced).
 """

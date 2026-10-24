@@ -1,7 +1,7 @@
 # tests/depmap.py
 
 """
-Which tests a change touches (TEST.139, docs/design/test-suite-rebuild.md).
+Which tests a change touches (TEST.139, docs/design/operations/test-suite-rebuild.md).
 
 A pytest plugin (loaded by `conftest.py`) with two jobs:
 

@@ -6,7 +6,7 @@ frame's origin it must hold, and the table works out the smallest body it can pl
 
 A double's spacing grows with the number (1 AU 3.1e-5 m, 10,000 AU 0.25 m, 1 pc 4 m, 8 kpc 32,768 m), so a position
 stored in a column's unit keeps a metre only within a distance that depends on the unit. This is a limit of the
-floating-point type, not of the unit class (docs/design/unified-unit-quantity.md, section 6); the table makes it a
+floating-point type, not of the unit class (docs/design/architecture/unified-unit-quantity.md, section 6); the table makes it a
 number a test can read.
 
 * `RESOLUTION_M` and `FLOOR_BODY_M`: a body is placed well when the column's spacing at its farthest reach is at most
@@ -92,7 +92,7 @@ def _edge_maximum_pc():
 REACHES = {
     "bound-orbit": Reach(
         10_000.0 * constants.AU_TO_M,
-        "the bound-orbit limit of the design note (docs/design/unified-unit-quantity.md, section 6): the multistar "
+        "the bound-orbit limit of the design note (docs/design/architecture/unified-unit-quantity.md, section 6): the multistar "
         "FRAGILE_AXIS_AU, 10,000 AU; farther than that a body is parent-relative in a wider frame"),
     "stability-ceiling": Reach(
         2.2e6 * constants.AU_TO_M,
@@ -209,5 +209,5 @@ def floor_body_m(table):
 REQUIRED_FLOOR_M = {"planets": FLOOR_BODY_M, "moons": FLOOR_BODY_M}
 """dict: Table -> the body its columns must place well. Planets and moons hold the project's 10 m floor body inside
 the bound-orbit limit. A comet at the stability ceiling, a wanderer in a galaxy frame and a star in a sector are
-placed at the precision the table computes, a lower one (the figures are in docs/design/unified-unit-quantity.md,
+placed at the precision the table computes, a lower one (the figures are in docs/design/architecture/unified-unit-quantity.md,
 section 6.1)."""

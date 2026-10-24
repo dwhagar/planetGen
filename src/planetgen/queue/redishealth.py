@@ -2,7 +2,7 @@
 
 """
 What the admin Stats page shows about Redis (ADM.54): whether it answers, and the settings and figures that
-decide whether the work queue survives a restart (docs/design/redis-and-the-work-queue.md, section 2.3): the
+decide whether the work queue survives a restart (docs/design/operations/redis-and-the-work-queue.md, section 2.3): the
 append-only file, the memory policy, the memory used, the last save, and how many workers are alive.
 
 Read with `INFO` only, so it works against a server that has `CONFIG` switched off, and with a short timeout and

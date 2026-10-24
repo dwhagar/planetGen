@@ -1,8 +1,8 @@
 # planetgen/generation/satellites.py
 
 """
-The satellite galaxies of a galaxy, drawn from its seed and its halo (GEN.369, GEN.624; docs/design/intergalactic-and-halo-contents.md
-5.5 and 5.13, row 10; docs/design/galaxy-laws-research.md Q3, Q4, Q6 and Q7). Nothing here is a real galaxy's satellite: the
+The satellite galaxies of a galaxy, drawn from its seed and its halo (GEN.369, GEN.624; docs/design/galaxy/intergalactic-and-halo-contents.md
+5.5 and 5.13, row 10; docs/design/galaxy/galaxy-laws-research.md Q3, Q4, Q6 and Q7). Nothing here is a real galaxy's satellite: the
 Milky Way's own rows are reference data for the plausibility tests (`tests/reference_satellites.py`).
 
 The chain, each link from the one before it and each scatter drawn through `unit_seed(galaxy_seed, "satellites", <link>)`:

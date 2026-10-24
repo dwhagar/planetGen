@@ -10,7 +10,7 @@ of each unit; `COLUMNS` is the same list by `(table, column)`. A unit is a key o
 (`physics.unit_registry`, GEN.568), which gives its kind and its factor to the base unit of its kind, or of
 `LOCAL_UNITS` for the few the registry does not hold yet.
 
-Rules (docs/design/unified-unit-quantity.md, Boss's cards Q3 and Q4):
+Rules (docs/design/architecture/unified-unit-quantity.md, Boss's cards Q3 and Q4):
 
 * The stored unit of a column is chosen for precision, not forced to SI: a position keeps its frame's unit (galaxy pc,
   sector mpc, system km or au), because a double has a spacing that grows with the number.

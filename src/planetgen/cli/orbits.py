@@ -64,7 +64,7 @@ a circular planet/moon orbit's is (Kepler's second law -- it moves far
 faster near perihelion), so turning its advanced orbital anomaly into a
 distance/position requires solving Kepler's or Barker's equation in
 Python, not a set-based SQL `UPDATE`. See `advance_comet_orbits`'s own
-docstring and `docs/design/comet-orbital-realism.md`.
+docstring and `docs/design/systems/comet-orbital-realism.md`.
 
 Schema v20 layers a proper two-body (barycentric) "reflex offset"/
 "wobble" on top of the above, for every relationship where the orbited

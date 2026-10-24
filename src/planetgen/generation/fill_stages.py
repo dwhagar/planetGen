@@ -6,7 +6,7 @@ The stages of a sector fill, each on its own random stream (GEN.251)
 
 `run_sector.generate_sector` used to draw everything from the one stream its sector was bound to, in a fixed order, so
 adding a kind in the middle moved every draw after it. A fill is now a list of stages
-(docs/design/phenomena-catalogue-and-fill.md section 3), and each stage draws from a stream of its own, seeded from
+(docs/design/systems/phenomena-catalogue-and-fill.md section 3), and each stage draws from a stream of its own, seeded from
 the sector's stream and the stage's name:
 
 ====  ==============  ================================================================================

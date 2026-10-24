@@ -1,7 +1,7 @@
 # planetgen/db/dataversion.py
 
 """
-Data versions for the shared page cache (PERF.104, docs/design/cache-warm-up.md).
+Data versions for the shared page cache (PERF.104, docs/design/operations/cache-warm-up.md).
 
 A cached answer names the pieces of data it read (its tags, `web/lib/pagetags.py`) and is
 served only while every one of them still has the counter it had when the answer was made.
@@ -166,7 +166,7 @@ def bump(database, *tags):
 
 def tags_for_change(kind, sector_id=None, system_id=None, phenomenon=None):
     """
-    The tags a change of `kind` bumps (the table in docs/design/cache-warm-up.md).
+    The tags a change of `kind` bumps (the table in docs/design/operations/cache-warm-up.md).
 
     Args:
         kind (str): One of `CHANGES`.

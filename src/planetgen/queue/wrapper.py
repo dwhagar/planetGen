@@ -1,7 +1,7 @@
 # planetgen/queue/wrapper.py
 
 """
-The wrapper of a `planetgen galaxy` or `planetgen plan` run (PERF.118, docs/design/redis-and-the-work-queue.md 5.12):
+The wrapper of a `planetgen galaxy` or `planetgen plan` run (PERF.118, docs/design/operations/redis-and-the-work-queue.md 5.12):
 the one place that knows the order of the run's commands, and the only code that starts one.
 
 * **It selects.** `steps` is `commands.build_steps` for the parsed arguments: the commands that will run, in order,

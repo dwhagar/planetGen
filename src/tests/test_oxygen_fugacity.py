@@ -1,6 +1,6 @@
 # tests/test_oxygen_fugacity.py
 
-"""GEN.498: one oxygen-fugacity scale, against the figures of the G3 research (docs/design/body-composition-research.md section 15)."""
+"""GEN.498: one oxygen-fugacity scale, against the figures of the G3 research (docs/design/composition/body-composition-research.md section 15)."""
 
 import pytest
 

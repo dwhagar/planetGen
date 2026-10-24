@@ -1,7 +1,7 @@
 # tests/test_stellar_abundances.py
 
 """
-GEN.439: the stellar composition relations (`planetgen/physics/stellar_abundances.py`, docs/design/stellar-composition.md).
+GEN.439: the stellar composition relations (`planetgen/physics/stellar_abundances.py`, docs/design/composition/stellar-composition.md).
 
 The Sun's composition is a target here and never a preset: it lives in this file and the module takes only the reference
 scale. The expected numbers are those the design note computed and checked against its sources (sections 3, 10 and 11).

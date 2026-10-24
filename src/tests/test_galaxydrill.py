@@ -20,7 +20,7 @@ from planetgen.galaxy.drill import (
 
 EDGE = 4.0
 OUTLINE_SHELL = 3764
-"""The default galaxy's outermost shell (docs/design/spherical-sector-coordinates.md)."""
+"""The default galaxy's outermost shell (docs/design/galaxy/spherical-sector-coordinates.md)."""
 
 
 def _block_shells(m):

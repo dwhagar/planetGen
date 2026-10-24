@@ -3,8 +3,8 @@
 > **Historical: superseded by the spherical sector grid (shells, bands and
 > wedges) on 2026-10-15, schema v91.** Boss decided the move on 2026-10-15
 > 06:39Z; the current design is
-> [`../galaxy-coordinate-system.md`](../design/galaxy-coordinate-system.md) and its
-> plan is [`../spherical-sector-coordinates.md`](../design/spherical-sector-coordinates.md).
+> [`../galaxy-coordinate-system.md`](../design/galaxy/galaxy-coordinate-system.md) and its
+> plan is [`../spherical-sector-coordinates.md`](../design/galaxy/spherical-sector-coordinates.md).
 > Everything below describes the cylindrical grid as it was built: the
 > cylindrical grid arrived in 6.0.0 (schema v32), the 4 pc edge and aligned
 > layers in 7.0.0 (schema v33), and the hybrid master-wedge slot counts in
@@ -79,7 +79,7 @@ arc limit above is about the slot, not the spacing: centers of face neighbors
 are 0.87 to 1.38 edges apart (0.87 in ring 0, up to 1.38 across rings). The
 cells do not map one-to-one onto a cubic lattice, so an order that walks
 "voxels" cannot address them. How to fill a region in order, and what fills
-the core, is in [fill-order-curves-and-core.md](../design/fill-order-curves-and-core.md).
+the core, is in [fill-order-curves-and-core.md](../design/galaxy/fill-order-curves-and-core.md).
 
 **Local frame.** A sector's local axes (`sector_orientation`) are `+X`
 radially outward from the galactic axis, `+Y` toward increasing angle and
@@ -159,7 +159,7 @@ million stars and 35 GB in a Milky Way, against about 60 million and 10 GB
 at the old 500); white dwarfs are never pre-placed. The Galaxy Map draws
 them from 7.42.0, so the arms show before any sector is filled. How much of
 a planet's naked-eye sky these stars and the mass-ring backfill cover is in
-[sky-view.md](../design/sky-view.md) section 3.
+[sky-view.md](../design/orbits/sky-view.md) section 3.
 
 **Adding a system to a stored sector (7.43.0).** `POST /api/systems` with
 a `sector_id` places a new system in an existing sector
@@ -253,4 +253,4 @@ never placed in the galaxy were kept each time.
   one database would need one on every galaxy table. The plan for other
   galaxies (GEN.9) recommends keeping it that way: a second galaxy is a
   second database, and the neighbours are rows of one new table. See
-  [multiple-galaxies.md](../design/multiple-galaxies.md).
+  [multiple-galaxies.md](../design/galaxy/multiple-galaxies.md).

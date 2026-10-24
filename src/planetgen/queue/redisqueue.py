@@ -5,7 +5,7 @@ The work queue on Redis with RQ (PERF.24, step 1): the connection, the
 queues, and the workers that run them.
 
 Workers are started on demand, not installed as a service
-(docs/design/work-queue-audit.md): a run queues its tasks on a queue of
+(docs/design/operations/work-queue-audit.md): a run queues its tasks on a queue of
 its own and starts `planetgen.cli.worker --burst` processes for it
 (`RQExecutor`), up to the run's worker count. A burst worker exits once
 the queue is empty, so nothing runs while there's no work. The control

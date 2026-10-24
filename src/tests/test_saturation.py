@@ -1,7 +1,7 @@
 # tests/test_saturation.py
 
 """GEN.470: the saturation-pressure function, against the gas table's triple points and the checked inversions of
-docs/design/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.md section 2.4."""
+docs/design/composition/atmosphere-composition-parts/06-condensates-clouds-hazes-dust-minerals.md section 2.4."""
 
 import json
 import math

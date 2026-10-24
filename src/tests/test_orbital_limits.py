@@ -2,7 +2,7 @@
 
 """
 GEN.108: each place the orbital maths breaks down has a guard, and each
-guard is hit here (docs/design/orbital-updates.md section 7).
+guard is hit here (docs/design/orbits/orbital-updates.md section 7).
 """
 
 import math

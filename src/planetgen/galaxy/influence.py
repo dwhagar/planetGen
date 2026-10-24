@@ -5,7 +5,7 @@ The influence set of an object: the masses that bend its path (GEN.341)
 =======================================================================
 
 The orbital update changes an object's motion vector from the point masses around it and the galaxy's smooth pull
-(`docs/design/orbital-updates.md` section 4; Boss's rule of 2026-10-18, card F1: "the largest Hill radius present in the
+(`docs/design/orbits/orbital-updates.md` section 4; Boss's rule of 2026-10-18, card F1: "the largest Hill radius present in the
 galaxy becomes the search radius for gravitational objects"). This module is the search and nothing else: it moves no
 object and reads no database.
 

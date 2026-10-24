@@ -82,7 +82,7 @@ def pc_to_ly(pc):
     """
     Converts a distance in parsecs (pc) to light-years (ly), for
     human-readable display (e.g. "~48,923 ly from the galactic core") --
-    see `docs/design/galaxy-coordinate-system.md` section 2. Not used by
+    see `docs/design/galaxy/galaxy-coordinate-system.md` section 2. Not used by
     the database persistence layer itself (which stores galaxy-scale
     distances in parsecs directly); this exists purely for prose alongside
     the same "display string next to the raw stored value" treatment

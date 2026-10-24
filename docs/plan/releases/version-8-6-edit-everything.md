@@ -10,7 +10,7 @@ Status: paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22: the five cor
 
 ## Goal
 
-The admin has complete control: move stars, change orbits, change densities, regenerate any star to any specification, and the world adjusts after the admin approves the generation plan (ADM.57). In every regen screen the admin picks the aspects to keep and the aspects to regenerate. Every change is a plan the admin sees and approves before anything is written; the design is [edit-everything.md](../../design/edit-everything.md).
+The admin has complete control: move stars, change orbits, change densities, regenerate any star to any specification, and the world adjusts after the admin approves the generation plan (ADM.57). In every regen screen the admin picks the aspects to keep and the aspects to regenerate. Every change is a plan the admin sees and approves before anything is written; the design is [edit-everything.md](../../design/interface/edit-everything.md).
 
 
 ## Phase 1: Plan model, aspects and regions
