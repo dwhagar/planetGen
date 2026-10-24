@@ -13883,6 +13883,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   takes the next free generator epoch. Owner: Core 4 (proposed).
   Prerequisites: none. Related: GEN.271.
 
+- [ ] **GEN.709 Stored close-pair star positions disagree with the orbit_nodes tree after the multi-star work: a circular pair keeps a random arg_periapsis, and deeper trees are far off (bug)**
+  Found by Lane 4 while stress-running TEST.130
+  (test_the_scene_positions_at_the_epoch_match_the_stored_ones) on main,
+  as the lane reported at 6:57 AM EDT 2026-10-24; report
+  /mnt/project-files/reports/lane4/test-130-finding-2026-10-24.md with a
+  replay script in
+  /mnt/project-files/reports/lane4/test130-scan-repro.py. The test fails
+  2 runs in 15 at the star assertion because it picks a multi-star
+  system at random. Cause: for a circular close pair the stored phase
+  (binary_secondary_position_* from the pair's phase_deg) is measured
+  from the ascending node, but the orbit_nodes row holds
+  mean_anomaly_deg = phase AND a random non-zero arg_periapsis_deg, so
+  the tree places the star at omega plus phase (seed 1: 2.965 degrees
+  off, exactly that angle). In deeper trees the pair-position columns
+  and the tree disagree far more (seed 8, 5 stars: about 90 times
+  different for the star the scene calls around barycenter). Do: make
+  the node's omega and mean anomaly agree with the stored phase (a
+  circular orbit takes omega 0, or the stored position is taken from the
+  tree), in db/orbit_trees.py star_places and the multistar node build,
+  and one source for the position. Done: the scene positions at the
+  epoch equal the stored positions for every star of a seeded sample
+  that includes pairs and trees of 3 or more stars, and TEST.130 passes
+  50 runs in a row. This may change generator output, so it takes the
+  next free generator epoch. Owner: Core 3 (it owns GEN.630 and GEN.631;
+  proposed).
+  Prerequisites: none. Related: TEST.130, GEN.630, GEN.631.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -17052,7 +17079,14 @@ clears each one.
   Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
   is in reports/8-1-core-queues-2026-10-22.md; this replaces any
   earlier owner line).
-  Prerequisites: none. Related: TEST.123, GEN.122.
+  Research (2026-10-09, Update): Lane 4 (6:57 AM EDT 2026-10-24, as the
+  lane reported): this is a product disagreement, not test luck; the
+  failing assertion is the star one, not the comet one, and the cause is
+  filed as GEN.709 (report
+  /mnt/project-files/reports/lane4/test-130-finding-2026-10-24.md). The
+  test stays open on it and was not weakened. TEST.111 and TEST.254 did
+  not reproduce (12 and 120 repeats under load) and stay open.
+  Prerequisites: none. Related: TEST.123, GEN.122, GEN.709.
 
 - [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
