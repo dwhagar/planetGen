@@ -49,8 +49,8 @@ from planetgen.tuning import NEBULA_CLASSES
 from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
 from planetgen.util import chem
 
-from . import bp, static_url, tables
-from . import edit_actions, item_pages, system_facilities, system_species
+from . import bp, habitability_symbol_row, static_url, tables
+from . import edit_actions, glance, item_pages, system_facilities, system_species
 from .class_pages import class_url
 from .helpers import (
     bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html,
@@ -319,6 +319,7 @@ def system(system_id):
         code_rows=min(code_content.count("\n") + 3, 30) if code_content else 0,
         code_buttons=_code_buttons(system_id, code_fmt),
         overview=trusted_html(blocks_html(sections["overview"], item_pages._ref_link) if sections["overview"] else ""),
+        glance=glance.system_rows(detail, facilities, habitability_symbol_row),
         tree=item_pages.system_tree(db, system_id, detail["name"]),
         territory=_territory(db, system_id),
         admin=admin,
