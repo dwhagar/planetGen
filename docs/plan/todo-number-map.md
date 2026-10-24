@@ -1670,11 +1670,11 @@ Parents marked "new parent" had no old number of their own.
 | MAP.226 | Double-click flight on the Galaxy Map: fly to the thing clicked, or half way toward empty space | none | done, PR #1859 |
 | MAP.227 | The camera names its container: the header and the breadcrumb come from its position | none | done, PR #2032 |
 | MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | none | done, PR #2032 |
-| MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom | none | open |
-| MAP.230 | Names of stars, systems and sectors on the Galaxy Map | none | open |
+| MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom | none | done, PR #2980 |
+| MAP.230 | Names of stars, systems and sectors on the Galaxy Map | none | done, PR #2980 |
 | MAP.231 | The Sector Map and the System Map use the label engine | none | open |
 | MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | none | open |
-| MAP.233 | Names for nebulae on the Galaxy Map | none | open |
+| MAP.233 | Names for nebulae on the Galaxy Map | none | done, PR #2980 |
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws | none | open |
 | MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | none | open |
 | MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map | none | open |
@@ -1709,7 +1709,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.265 | S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick | none | done, PR #2941 |
 | MAP.266 | S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu | none | open |
 | MAP.267 | S5: one star buffer in relative-to-eye pairs, filled node by node (MAP.240 folded in) | none | open |
-| MAP.268 | S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales | none | open |
+| MAP.268 | S6: labels and selection on the cut: MAP.229 to MAP.233 on the projected-size query, selection by object ID across scales | none | done, PR #2980 |
 | MAP.269 | Stars on the maps do not glow: a star further than about 3 sectors is a 1.5 px point with no halo and a mostly white core (bug) | none | open |
 | MAP.270 | Far stars on the maps: use the blackbody colour and a luminosity halo (bug) | none | done, PR #2838 |
 | MAP.271 | The bodylook record: the server builds one data-look record per body from stored columns | none | done, PR #2789 |
