@@ -3,24 +3,20 @@
 """
 DB.81: the plan stores which shape levers it was told (`galaxy_shape_pins`) and the stellar mass the Scale dial fixed
 (`galaxy_shape.pinned_stellar_mass_solar`); a loaded shape is drawn again at that mass, the API and the Generate page say
-what was pinned and what was drawn, and migration 0114 adds both to a v113 galaxy without touching a row.
+what was pinned and what was drawn, and a v114 migration added both.
 """
 
-import importlib
 import types
 
 import pytest
 
 from planetgen.db import query, store
 from planetgen.galaxy import dials, enclosed_mass, shape_draw
-from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
 
 SEED = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
 EDGE_PC = 4.0
-
-migration = importlib.import_module("planetgen.db.migrations.versions.0114_shape_pins")
 
 
 TIDE_PC = 8000.0
@@ -107,51 +103,3 @@ def test_a_new_plan_replaces_the_pins(mysql_config):
 def test_the_shape_choice_is_not_a_pin():
     assert shape_draw.pins_of(_args(shape="spiral")) == {}
     assert shape_draw.pins_of(_args(disk_scale_length=2600.0)) == {"disk_scale_length": 2600.0}
-
-
-# --- the migration ---------------------------------------------------------------------------------------------
-
-def _columns(conn):
-    return {row["name"].lower() for row in conn.execute(
-        "SELECT column_name AS name FROM information_schema.columns WHERE table_schema = DATABASE()"
-        " AND table_name = 'galaxy_shape'").fetchall()}
-
-
-def test_a_v113_galaxy_gains_the_pins_and_keeps_its_row(mysql_config):
-    config = mysql_config
-    load_old_schema(config, 113)
-    assert store.schema_status(config)[0] == 113
-    conn = store.get_connection(config, ensure_schema=False)
-    try:
-        assert "pinned_stellar_mass_solar" not in _columns(conn)
-        conn.execute(
-            "INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc, bulge_scale_radius_pc,"
-            " bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude, spiral_reference_radius_pc,"
-            " spiral_reference_angle_rad, k_norm, edge_pc, expected_system_count_at_density_1, outer_shell_index)"
-            " VALUES (1, 2600, 300, 500, 1, 2, 0.2, 0.4, 8000, 0, 1, 4, 1, 77)")
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(config) == store.SCHEMA_VERSION
-    conn = store.get_connection(config, ensure_schema=False)
-    try:
-        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
-        assert conn.execute("SELECT COUNT(*) AS n FROM galaxy_shape_pins").fetchone()["n"] == 0
-        row = conn.execute("SELECT outer_shell_index, pinned_stellar_mass_solar FROM galaxy_shape").fetchone()
-    finally:
-        conn.close()
-    assert row["outer_shell_index"] == 77 and row["pinned_stellar_mass_solar"] is None  # everything reads as drawn
-
-
-def test_a_migration_run_again_changes_nothing(mysql_config):
-    config = mysql_config
-    load_old_schema(config, 113)
-    store.migrate_database(config)
-    conn = store.get_connection(config, ensure_schema=False)
-    try:
-        conn.execute("DELETE FROM alembic_version")
-        conn.execute("INSERT INTO alembic_version (version_num) VALUES ('0113')")
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(config) == store.SCHEMA_VERSION

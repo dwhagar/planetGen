@@ -47,7 +47,7 @@ never mutates the generation/physics code's own native units. Its shape:
   `src/planetgen/db/migrations/versions/` (see "Versioning" below). A
   brand-new database is created at the current schema by `schema.sql`, so
   this is a no-op there; a database made by an older release gets one
-  revision per version it is behind, and one older than the baseline (v61)
+  revision per version it is behind, and one older than the baseline (v130)
   is refused with `SchemaTooOldError`, and a database that has the galaxy
   tables but no recorded version (`schema_migrations` emptied or missing)
   is refused with `SchemaVersionMissingError` instead of guessed at from its
@@ -400,7 +400,7 @@ offset rather than independently re-randomized.
 
 **How a database is brought up to date (DB.11).** Every schema change is an
 Alembic revision (`src/planetgen/db/migrations/versions/`, one file per
-version: `0061_baseline.py` to `0091_spherical_sectors.py`), numbered by the
+version: `0130_baseline.py` onward), numbered by the
 schema version it produces. `schema.sql` is kept at the current shape, so a
 new database is created from it directly and recorded at `SCHEMA_VERSION`; an
 older one gets its missing tables from `schema.sql` and then each revision
@@ -408,9 +408,11 @@ after its recorded version in order (`alembic_runner.upgrade`, run by
 `store.migrate_database`), under a schema lock so a first connection
 elsewhere waits instead of stamping the database current half way. The
 per-version `_migrate_vN_to_vN+1` functions the entries below mention
-(v8 to v60) are gone: v61 is the baseline, and a database older than that is
-refused (`SchemaTooOldError`) and has to be generated again. A database newer
-than the code is refused too (`SchemaTooNewError`). Every released schema from v61
+(v8 to v60) are gone, and so are the revisions up to v130 (DB.98): v130 is
+the baseline, and a database older than that is refused (`SchemaTooOldError`)
+and has to be generated again. A database with tables but no recorded version is refused too
+(`SchemaVersionMissingError`, DB.97). A database newer
+than the code is refused too (`SchemaTooNewError`). Every released schema from v130
 is kept as a fixture (`src/tests/fixtures/old_schemas/`) and
 `tests/test_db_old_schemas.py` migrates each to the current shape and checks
 it against `db/models.py` (the SQLAlchemy models that mirror `schema.sql`).

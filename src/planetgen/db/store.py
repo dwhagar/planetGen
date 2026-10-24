@@ -9208,7 +9208,7 @@ def migrate_database(config=None, on_step=None, on_progress=None):
     only has real work to do against a database created by an older
     version of this project: it runs each Alembic revision
     (`planetgen/db/migrations/`) after the database's version. Databases
-    older than the baseline (v61) are refused with `SchemaTooOldError`.
+    older than the baseline (v130) are refused with `SchemaTooOldError`.
     See `planetgen.cli.migrate` for the CLI wrapper around this.
 
     Args:

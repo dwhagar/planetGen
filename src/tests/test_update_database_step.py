@@ -28,7 +28,7 @@ import pymysql
 import pytest
 
 from planetgen.admin import maintenance
-from planetgen.db import store
+from planetgen.db import alembic_runner, store
 from tests.bughunt_support import mysql_argv, run_cli
 from tests.conftest import _test_server_kwargs
 from tests.db_schema_support import migrations_with_probes
@@ -113,7 +113,6 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
-        conn.execute("ALTER TABLE star_systems DROP COLUMN velocity_x_kms")
         conn.execute("DELETE FROM schema_migrations")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (55)")
         conn.commit()
@@ -167,7 +166,7 @@ def test_a_database_older_than_the_baseline_is_refused_untouched(mysql_config, c
     _make_older_than_the_baseline(mysql_config)
     result = _run_step(mysql_config, control_db)
     assert result.returncode != 0
-    assert "older than v61" in result.stderr
+    assert f"older than v{alembic_runner.BASELINE_VERSION}" in result.stderr
     assert "Traceback" not in result.stderr
     assert _version(mysql_config) == 55
 

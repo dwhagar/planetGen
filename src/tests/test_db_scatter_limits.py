@@ -7,7 +7,6 @@ back, checked, and added to an older galaxy by the migration.
 """
 
 import argparse
-import importlib
 import math
 
 import pytest
@@ -19,7 +18,6 @@ from planetgen.galaxy import scatter_limits
 from planetgen.physics.units import ly_to_pc
 from tests.toy_shape import toy_shape
 from tests.bughunt_support import mysql_argv, run_cli
-from tests.db_schema_support import load_old_schema
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SHAPE = toy_shape(
@@ -108,21 +106,3 @@ def test_a_plan_stores_the_three_settings_and_says_what_they_are(mysql_config, c
         12000.0, None, 60.0)
 
 
-@pytest.mark.fresh_database
-def test_a_v100_galaxy_takes_the_defaults_and_a_migration_run_again_changes_nothing(mysql_config):
-    migration = importlib.import_module("planetgen.db.migrations.versions.0101_scatter_limits_by_place")
-    load_old_schema(mysql_config, 100)
-    assert store.schema_status(mysql_config)[0] == 100
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for name, _definition, _after in migration.COLUMNS:
-            assert conn.execute(
-                "SELECT COUNT(*) AS n FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
-                " AND TABLE_NAME = 'galaxy_shape' AND COLUMN_NAME = ?", (name,)).fetchone()["n"] == 1
-        conn.execute("DELETE FROM alembic_version")
-        conn.execute("INSERT INTO alembic_version (version_num) VALUES ('0100')")
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION

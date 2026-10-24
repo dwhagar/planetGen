@@ -8,8 +8,7 @@ primary 0, the secondary 1); a single star keeps none. It can be run again.
 import pytest
 
 from planetgen.db import store
-from tests.db_schema_support import load_old_schema
-from tests.test_migration_point_columns import _columns, _insert
+from tests.db_schema_support import insert_filled_row as _insert, load_old_schema, table_columns as _columns
 
 pytestmark = pytest.mark.fresh_database
 

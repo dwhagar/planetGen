@@ -179,3 +179,27 @@ def migrations_with_probes(tmp_path, count=1):
         (target / "versions" / f"{version:04d}_probe.py").write_text(_PROBE_TEMPLATE.format(
             revision=f"{version:04d}", previous=f"{version - 1:04d}", body=PROBE_REVISIONS[offset]))
     return str(target)
+
+
+def table_columns(conn, table):
+    """The names of `table`'s columns."""
+    return {row["COLUMN_NAME"] for row in conn.execute(
+        "SELECT COLUMN_NAME FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
+        (table,)).fetchall()}
+
+
+def insert_filled_row(conn, table, **given):
+    """A row of `table` with every NOT NULL column that has no default filled with a neutral value."""
+    rows = conn.execute(
+        "SELECT COLUMN_NAME, DATA_TYPE, IS_NULLABLE, COLUMN_DEFAULT, EXTRA FROM information_schema.COLUMNS"
+        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?", (table,)).fetchall()
+    values = dict(given)
+    for row in rows:
+        name = row["COLUMN_NAME"]
+        if name in values or row["IS_NULLABLE"] == "YES" or row["COLUMN_DEFAULT"] is not None or "auto_increment" in row["EXTRA"]:
+            continue
+        kind = row["DATA_TYPE"]
+        values[name] = b"\x00" * 12 if kind in ("binary", "varbinary", "blob") else (
+            "" if kind in ("char", "varchar", "text") else 0)
+    names = ", ".join(f"`{name}`" for name in values)
+    conn.execute(f"INSERT INTO {table} ({names}) VALUES ({', '.join('?' for _ in values)})", tuple(values.values()))

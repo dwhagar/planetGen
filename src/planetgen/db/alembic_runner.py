@@ -5,11 +5,11 @@ Runs the Alembic revisions in `planetgen/db/migrations/` against a
 planetGen content database (DB.11).
 
 Each revision's id is its schema version as four digits (`0062`), so the
-head revision's number is `store.SCHEMA_VERSION`. The legacy
-`_migrate_vN_to_vM` steps in `store.py` take a database up to the baseline
-(v61); everything after that is a revision here. `store.migrate_database`
-calls `upgrade` once those have run, and `record` writes the
-`schema_migrations` row for each version reached.
+head revision's number is `store.SCHEMA_VERSION`. The history starts at
+the baseline (v130, DB.98): a database below it is refused, and every
+version after it is a revision here. `store.migrate_database` calls
+`upgrade`, and `record` writes the `schema_migrations` row for each
+version reached.
 """
 
 import os
@@ -27,9 +27,10 @@ MIGRATIONS_DIR = os.environ.get("PLANETGEN_MIGRATIONS_DIR") or os.path.join(os.p
 points it elsewhere (the update-step test runs a database through an extra
 revision that way)."""
 
-BASELINE_VERSION = 61
-"""int: The first revision; databases below it are upgraded by the legacy
-steps in `store.py` before Alembic sees them."""
+BASELINE_VERSION = 130
+"""int: The first revision: a database below it is refused with
+`SchemaTooOldError`. Moving it up deletes the revisions, the old-schema
+fixtures and the migration tests below it (DB.98)."""
 
 
 def revision_id(version):
@@ -90,8 +91,7 @@ def head_version(scripts_dir=None):
 
 def pending(version, scripts_dir=None):
     """The `(schema version, revision id)` pairs still to run on a
-    database at `version` once the legacy steps have taken it to the
-    baseline."""
+    database at `version`."""
     return [(v, r) for v, r in revisions(scripts_dir) if v > max(version, BASELINE_VERSION)]
 
 
