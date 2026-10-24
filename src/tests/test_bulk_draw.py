@@ -131,17 +131,6 @@ def test_an_icy_small_body_is_a_porous_heap_of_ice_and_rock():
     assert 0.5 < body.density < 3.0
 
 
-def test_a_giant_keeps_its_law_and_gets_an_envelope():
-    draw.set_run_seed(5)
-    for planet_class in ("I", "J", "T"):
-        body = _body(planet_class, 60000.0, mass=1e27)
-        bulk_draw.draw_giant(body)
-        bulk = bc.bulk_fractions(body)
-        low, high = bulk_draw.GIANT_ENVELOPE[planet_class]
-        assert low <= bulk.envelope <= high and sum(bulk.shares().values()) == pytest.approx(1.0)
-        assert 0.2 < bulk.envelope_helium < 0.35 and 0.0 < bulk.envelope_z < 0.5
-
-
 def test_a_compact_remnant_makes_carbon_rock():
     assert bulk_draw.host_ratios(_star(metallicity_fe_h=None)) is bulk_draw.REMNANT_DISC_RATIOS
     body = _body("G", 6371.0, star=_star(metallicity_fe_h=None))

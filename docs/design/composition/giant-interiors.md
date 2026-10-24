@@ -1,6 +1,6 @@
 # Giant planet, ice giant and brown dwarf interiors: the layers, metallic hydrogen, helium rain and the core (GEN.641)
 
-**Status (2026-10-23):** research note for GEN.641 and the design GEN.642 (draw and describe) and DB.89 (store) build from. Boss, 6:01 PM EDT 2026-10-23: gas giants get a full composition, including liquid or metallic hydrogen and helium, whether there is a rocky core, and what it is made of. It changes no stored value and no draw. Sibling notes: [bulk-composition.md](bulk-composition.md) (decisions 20 to 24, 34: the envelope, the heavy-element mass law, the radius tables), [composition-model.md](composition-model.md), [body-composition-parts/C-volatile-and-giants.md](body-composition-parts/C-volatile-and-giants.md) (the radius laws and the Fortney tables). The whole-body totals stay as GEN.428 stores them (`envelope_mass_fraction`, `envelope_helium_fraction`, `envelope_z_fraction`); this note adds the interior inside them.
+**Status (2026-10-23):** research note for GEN.641 and the design GEN.642 (draw and describe) and DB.89 (store) build from. Boss, 6:01 PM EDT 2026-10-23: gas giants get a full composition, including liquid or metallic hydrogen and helium, whether there is a rocky core, and what it is made of. The kernel is wired into the generator since generator epoch 80 (GEN.460, GEN.642; section 10); DB.89 (the layer table) is next. Sibling notes: [bulk-composition.md](bulk-composition.md) (decisions 20 to 24, 34: the envelope, the heavy-element mass law, the radius tables), [composition-model.md](composition-model.md), [body-composition-parts/C-volatile-and-giants.md](body-composition-parts/C-volatile-and-giants.md) (the radius laws and the Fortney tables). The whole-body totals stay as GEN.428 stores them (`envelope_mass_fraction`, `envelope_helium_fraction`, `envelope_z_fraction`); this note adds the interior inside them.
 
 Verification states follow the rule of 3:02 AM EDT 2026-10-17: **READ** (the paper's text was read for the number), **READ (abstract)**, **2ND-HAND** (a number the read papers quote from another paper, which was not opened), **STAND-IN** (a Solar System fit or a placeholder, flagged, with the item that replaces it), **OPEN** (no source; a seeded range is used and flagged). Conflicts follow Boss's rules (bulk-composition.md section 11): verified wins; two verified in doubt, the newest wins; both in question, the widest range wins. Nothing is fixed per planet and nothing is copied from the Solar System as a preset: Jupiter, Saturn, Uranus and Neptune are test targets (section 6).
 
@@ -177,3 +177,18 @@ Each target is met by some draw inside the allowed distributions, not by one dra
 ## 9. Sources fetched for this note
 
 arXiv 2407.05853 (Helled and Howard 2024, full), 2403.11657 (Helled and Stevenson 2024, full), 1912.01009 (Mankovich and Fortney 2020, abstract, Figures 1 and 3, sections 2 to 4), 1901.05697 (Debras and Chabrier 2019, abstract and structure figures), 1709.08648 (Mazzola, Helled and Sorella 2018, abstract and metallization text), 2006.12219 (Helled, Mazzola and Redmer 2020, sections 3 and 4), 2104.13385 (Mankovich and Fuller 2021, abstract and mass numbers), 2302.09082 (Howard et al. 2023, abstract), 1010.5546 (Helled et al. 2011, summary), astro-ph/0006383 (Chabrier and Baraffe 2000, degeneracy sections). Raw papers stay out of the repository (Boss, 2026-10-17).
+
+## 10. Wired into the generator (GEN.460, GEN.642; generator epoch 80)
+
+`physics/giant_draw.py::draw_giant` runs once a giant's mass is settled (`planets.apply_giant`). The order is part of the epoch:
+the envelope's metallicity (a multiple of the star's Z, log-uniform, `ENVELOPE_Z`, stand-in), the heavy-element mass M_Z (class J:
+Chachan et al. 2025 with its scatter; classes I and T: a uniform share of the mass, `HEAVY_FRACTION`, stand-in), the radius (the
+Fortney tables where `giant_radius.in_range` and `covers` hold, plus the Sestovic inflation, kept in the class's radius range; else
+the anchored relation of GEN.34), then the interior (`draw_interior`) whose whole-body totals become the stored bulk composition.
+
+Stand-ins, each named in `giant_draw`: the envelope metallicity range, the I and T heavy-element shares, the water share of the
+heavy elements beyond the snow line and the ammonia and methane proportions to it, the single Bond albedo (Li et al. 2018's 0.503),
+the internal temperature (`100 K * (M / M_Jupiter)^0.5`) and the one-bar over effective temperature (1.33, from Jupiter's 166 K over
+125 K). The radius is set before the planet's final orbit is validated, so a planet moved afterwards keeps the starlight it was drawn
+with. A giant moon (the host's distance is not carried) takes the anchored relation and a 130 K one-bar temperature. The interior
+is not stored yet (DB.89); the old stand-in envelope and core shares (`bulk_draw.draw_giant`) are removed.
