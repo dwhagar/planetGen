@@ -1,12 +1,12 @@
 # The equilibrium chemistry module (GEN.518)
 
-Status: built 2026-10-24 by lane M (builder B10, the gas-phase part). `planetgen/physics/equilibrium.py`, the data file `physics/data/thermo_nasa7.json` (`scripts/build_thermo_table.py`), tests in `src/tests/test_equilibrium.py`.
+Status: built 2026-10-24 by lane M (builder B10, the gas-phase part); merged into the one solver by GEN.672 (lane L, 2026-10-24). The solver is `planetgen/physics/gas_equilibrium.py` with the thermodynamics of `species_thermo.py` (`physics/data/nasa_glenn_species.json`); the regime edges of section 2 are `planetgen/physics/equilibrium_edges.py`, tested in `src/tests/test_equilibrium_edges.py`. The first module of GEN.518 (`equilibrium.py` with `thermo_nasa7.json`) held the same NASA data a second time and is deleted; the surviving solver reproduces the record's values (the five methane-carbon monoxide points within 1 K, the water and hydrogen edges within 0.1 percent), and the table below is the old module's.
 
 ## 1. What it is
 
 A Gibbs-energy minimiser for an ideal-gas mixture at a temperature, a pressure and an element budget, written from the equations of Gordon and McBride 1994 (the method of the NASA CEA program) and not copied from any code. The unknowns are the element potentials and the total moles, solved by Newton's method with a damped step; the first guess holds each element in the species that uses least of it, hydrogen first, and every case tried converges in five to six steps from 300 to 6000 K and 1 mbar to 100 bar. It reads no random number and sums with `math.fsum`, so the answer is the same on every machine. Gas only: no condensates (so no clouds), no ions (so no H-, no ionisation), ideal gas (about 100 bar and below), standard state 1 bar.
 
-The thermodynamics are the NASA seven-coefficient polynomials of NASA TM-4513 (a United States government publication, so licence-compatible with the CC0 repository; `DATA-LICENSE.md`). Fifty-four species are kept: H, He, C, N, O, S, Ar, F, Cl, Na, K, Ti, V, Si and P compounds; the default solve uses the 39 of H, He, C, N, O, S and Ar. The element budget comes from a metallicity and a C/O on the Asplund 2021 scale of `tuning.STELLAR_SOLAR_LOG_EPS`, which is the reference scale and not a preset.
+The thermodynamics are the NASA Glenn polynomials of `species_thermo` (89 species, 70 gases and 19 condensed phases; `DATA-LICENSE.md`); the solver takes the gases made of the elements given. The edges use the element budget of the independent computation (`equilibrium_edges.reference_budget`: hydrogen, helium, carbon, nitrogen, oxygen, sulfur and argon at the solar ratios of `mixture_giant.SOLAR_PER_HYDROGEN`, the metals scaled by the metallicity, carbon set to the C/O times the oxygen).
 
 ## 2. Test against an independent computation
 
