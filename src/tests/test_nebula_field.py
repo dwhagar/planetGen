@@ -120,9 +120,13 @@ def _generate_at(mysql_config, address):
 
 
 def _three_in_a_row():
-    """Three neighbouring wedges of one band on the arm's crest at the solar circle."""
-    shell, band, wedge = sector_address_at(_on_ring(ARM_ANGLE), EDGE_PC)
-    return [(shell, band, (wedge + step) % wedge_count(shell, band)) for step in range(3)]
+    """Three neighbouring wedges of one band on the arm's crest at the solar circle, the first with a cloud reaching
+    it: the clouds' places follow the galaxy's star formation, so the search walks round the ring from the crest."""
+    for step in range(600):
+        shell, band, wedge = sector_address_at(_on_ring(ARM_ANGLE + step * 0.002), EDGE_PC)
+        if nebula_field.clouds_reaching(SEED, SHAPE, sector_position_pc(shell, band, wedge, EDGE_PC), REACH_PC):
+            return [(shell, band, (wedge + k) % wedge_count(shell, band)) for k in range(3)]
+    pytest.fail("no cloud reaches an arm sector in 600 steps")
 
 
 def _seed_outline(config, addresses):
@@ -136,9 +140,9 @@ def test_a_cloud_reaching_several_sectors_is_stored_once(mysql_config, monkeypat
     """Generated sectors store each field cloud reaching them once, at its
     own galaxy-frame center, and every one of those sectors' systems
     inside it says so."""
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 40.0)
     addresses = _three_in_a_row()
     _seed_outline(mysql_config, addresses)
-    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 40.0)
     for address in addresses:
         _generate_at(mysql_config, address)
 

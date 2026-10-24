@@ -873,6 +873,14 @@ cumulative to better than 1e-3 of the window)."""
 STAR_FORMATION_LAW_EXPONENT = 1.4
 """float: The Kennicutt-Schmidt exponent: the rate per area goes as the gas per area to this power (Kennicutt 1998:
 1.4 +/- 0.15 over 61 spirals and 36 starbursts; other fits run from 1.3 to 1.65)."""
+STAR_FORMATION_LOW_DENSITY_EXPONENT = 2.1
+"""float: The index the star-formation law steepens to where the gas thins (GEN.450): resolved observations give 1.5 to 2.7 for
+the total gas (Kennicutt and Evans), and 2.1 is the middle of that range. Open: no source gives the index of the outer
+discs of a single galaxy (Bigiel et al. 2008 find the total-gas relation weak where atomic gas dominates)."""
+STAR_FORMATION_SATURATION_GAS_MSUN_PC2 = 9.0
+"""float: The gas surface density, solar masses per pc2, below which the index rises (GEN.450): atomic gas saturates near
+9 solar masses per pc2 (Bigiel et al. 2008), so the gas that forms stars at a constant efficiency, the molecular gas,
+is what lies above it; read as a 'half-way' scale of the smooth rise, not a step."""
 GAS_TO_STELLAR_SCALE_LENGTH_RATIO = 1.0
 """float: The gas disk's scale length over the stellar disk's. An assumption, not a measurement: the observed gas
 disk is more extended, which would make the outer disk younger; 1 is the plain reading, and the profile test shows
