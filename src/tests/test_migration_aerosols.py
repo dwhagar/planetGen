@@ -100,7 +100,7 @@ def test_a_v137_galaxy_keeps_its_bodies_with_no_aerosol(mysql_config):
                                  " AND TABLE_NAME = ? AND COLUMN_NAME IN ('tau_haze', 'tau_dust', 'tau_cloud', 'cloud_cover', 'aerosol_draw')", (table,)).fetchall()
             assert sorted(row["COLUMN_NAME"] for row in found) == sorted(aerosols.BODY_FIELDS)
             assert all(row["IS_NULLABLE"] == "YES" and row["DATA_TYPE"] == "double" for row in found)
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()
     assert aerosols.of_body(type("Old", (), {})()) == aerosols.NONE

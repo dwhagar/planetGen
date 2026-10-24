@@ -257,9 +257,6 @@ def check_revision(ctx):
     # table is normal, a different or doubled revision is not.
     if revision not in (None, [], expected):
         problems.append(Problem(f"alembic_version says {revision!r}; version {head} is revision {expected!r}."))
-    detected = store.detect_schema_version(ctx.conn)
-    if detected != head:
-        problems.append(Problem(f"The tables look like schema version {detected}, not {head}."))
     drift = _model_drift(ctx.config)
     if drift:
         problems.append(Problem("The tables differ from db/models.py:", drift))

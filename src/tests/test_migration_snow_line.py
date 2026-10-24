@@ -85,9 +85,10 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
         for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} DROP COLUMN born_beyond_snow_line, ALGORITHM=COPY")
         conn.execute("UPDATE alembic_version SET version_num = '0131'")
-        conn.execute("DELETE FROM schema_migrations WHERE version > 131")
+        conn.execute("DELETE FROM schema_migrations")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (131)")
         conn.commit()
-        assert store.detect_schema_version(conn) == 131
+        assert store._stored_version(conn, "schema_migrations") == 131
     finally:
         conn.close()
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION

@@ -32,6 +32,6 @@ def test_a_v140_galaxy_keeps_its_planets_with_no_content(mysql_config):
                 "SELECT COLUMN_NAME, DATA_TYPE FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
                 (table,)).fetchall()}
             assert all(found[name] == "double" for name in COLUMNS), table
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()

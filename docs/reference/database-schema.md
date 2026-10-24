@@ -48,7 +48,10 @@ never mutates the generation/physics code's own native units. Its shape:
   brand-new database is created at the current schema by `schema.sql`, so
   this is a no-op there; a database made by an older release gets one
   revision per version it is behind, and one older than the baseline (v61)
-  is refused with `SchemaTooOldError`. `planetgen.cli.migrate` is its CLI
+  is refused with `SchemaTooOldError`, and a database that has the galaxy
+  tables but no recorded version (`schema_migrations` emptied or missing)
+  is refused with `SchemaVersionMissingError` instead of guessed at from its
+  tables. `planetgen.cli.migrate` is its CLI
   (`install.sh` and `update.sh` run it on every deploy).
 - `load_star_system(conn, star_system_id)` / `load_sector(conn, sector_id)`
   / `load_system_config(conn, config_id)` — the read-path counterparts,

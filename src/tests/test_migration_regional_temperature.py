@@ -31,7 +31,7 @@ def test_a_v136_galaxy_gains_the_regional_temperatures(mysql_config):
         assert set(regional_temperature.FIELDS) <= _columns(mysql_config, table)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()
 

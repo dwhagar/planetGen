@@ -36,7 +36,7 @@ def test_a_v109_database_gains_the_columns_and_keeps_its_rows(mysql_config):
         for table in ("planets", "moons"):
             assert set(NAMES) <= _columns(conn, table)
         row = conn.execute("SELECT evolutionary_speed, " + ", ".join(NAMES) + " FROM planets").fetchone()
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()
     assert row["evolutionary_speed"] == "Standard"

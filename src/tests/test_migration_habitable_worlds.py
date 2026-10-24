@@ -122,9 +122,10 @@ def test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds(mysql
         conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")
         conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")
         conn.execute("UPDATE alembic_version SET version_num = '0138'")
-        conn.execute("DELETE FROM schema_migrations WHERE version > 138")
+        conn.execute("DELETE FROM schema_migrations")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (138)")
         conn.commit()
-        assert store.detect_schema_version(conn) == 138
+        assert store._stored_version(conn, "schema_migrations") == 138
     finally:
         conn.close()
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
@@ -133,6 +134,6 @@ def test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds(mysql
         assert conn.execute("SELECT habitable_worlds FROM sector_stats").fetchone()["habitable_worlds"] == expected
         totals = conn.execute("SELECT habitable_worlds FROM galaxy_block_stats").fetchall()
         assert totals and all(row["habitable_worlds"] == expected for row in totals)
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()

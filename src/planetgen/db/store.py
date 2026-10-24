@@ -168,6 +168,39 @@ class SchemaTooOldError(RuntimeError):
         )
 
 
+class SchemaVersionMissingError(RuntimeError):
+    """
+    Raised when a database has the galaxy tables but no schema version
+    recorded (`schema_migrations` empty or missing, DB.97): nothing says
+    which migrations it needs, and this code no longer guesses from the
+    shape of its tables. The fix is to restore it from a backup, or to
+    drop the database and let `update.sh` create a new one.
+    """
+
+    def __init__(self, database):
+        self.database = database
+        super().__init__(
+            f"database '{database}' has galaxy tables but no schema version recorded (schema_migrations is empty "
+            f"or missing), so planetGen cannot tell which migrations it needs. Restore it from a backup, or drop "
+            f"the database and run update.sh to create a new one."
+        )
+
+
+def _has_galaxy_tables(conn):
+    """Whether the connected database already holds the galaxy tables (it is not a new, empty one)."""
+    row = conn.execute(
+        "SELECT COUNT(*) AS n FROM information_schema.tables"
+        " WHERE table_schema = DATABASE() AND table_name = 'star_systems'").fetchone()
+    return bool(row["n"])
+
+
+def _refuse_unversioned(conn, stored):
+    """Raises `SchemaVersionMissingError` for an existing database with no recorded version."""
+    if stored is None and _has_galaxy_tables(conn):
+        database = conn._config.database if getattr(conn, "_config", None) is not None else "?"
+        raise SchemaVersionMissingError(database)
+
+
 def _refuse_older(conn, version):
     """Raises `SchemaTooOldError` when `version` is below the baseline."""
     if version is not None and version < alembic_runner.BASELINE_VERSION:
@@ -1485,9 +1518,8 @@ def _ensure_schema(conn):
     from several connections at once (`_schema_lock`).
 
     The baseline is `SCHEMA_VERSION` for a new database. An existing one
-    whose `schema_migrations` was emptied or lost gets the version its
-    tables show instead (`detect_schema_version`, DB.4), so
-    `migrate_database` still runs the steps it is missing.
+    whose `schema_migrations` was emptied or lost is refused
+    (`SchemaVersionMissingError`, DB.97) before any DDL runs.
 
     Args:
         conn (Connection): The connection to apply the schema to.
@@ -1495,6 +1527,8 @@ def _ensure_schema(conn):
     Raises:
         SchemaTooNewError: The database is already past `SCHEMA_VERSION`
             (checked before any DDL runs).
+        SchemaVersionMissingError: The database has tables but no recorded
+            version.
     """
     with _schema_lock(conn):
         _apply_schema(conn)
@@ -1505,8 +1539,8 @@ def _apply_schema(conn):
     lock."""
     stored = _stored_version(conn, "schema_migrations")
     _refuse_newer(conn, stored, SCHEMA_VERSION)
-    baseline = SCHEMA_VERSION if stored is not None else detect_schema_version(conn)
-    _refuse_older(conn, stored if stored is not None else baseline)
+    _refuse_unversioned(conn, stored)
+    _refuse_older(conn, stored)
     with open(SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     if conn._config is not None:
@@ -1514,168 +1548,8 @@ def _apply_schema(conn):
 
     row = conn.execute("SELECT COUNT(*) AS n FROM schema_migrations").fetchone()
     if row["n"] == 0:
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (baseline,))
-        if baseline < SCHEMA_VERSION:
-            log.normal(f"Database has no schema version recorded; its tables match v{baseline}, "
-                       f"so that is recorded and planetgen.cli.migrate will bring it up to v{SCHEMA_VERSION}.")
-            activity_log.event("DB", "detect_version", db=conn._config.database if conn._config else "?",
-                              version=baseline)
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (SCHEMA_VERSION,))
     conn.commit()
-
-
-def _column_marker(table, column):
-    return lambda shape: (table, column) in shape["columns"]
-
-
-def _index_marker(table, index):
-    return lambda shape: (table, index) in shape["indexes"]
-
-
-def _table_marker(table):
-    return lambda shape: table in shape["tables"]
-
-
-def _check_marker(name, text):
-    return lambda shape: text in shape["checks"].get(name, "")
-
-
-def _type_marker(table, column, column_type):
-    return lambda shape: shape["column_types"].get((table, column)) == column_type
-
-
-_VERSION_MARKERS = (
-    (141, _column_marker("planets", "c_k0_ppm")),
-    (140, _column_marker("interstellar_comets", "parent_id")),
-    (139, _column_marker("sector_stats", "habitable_worlds")),
-    (138, _column_marker("planets", "tau_cloud")),
-    (137, _column_marker("planets", "temp_swing_k")),
-    (136, _column_marker("planets", "eq_body")),
-    (135, _column_marker("planets", "ozone_column_du")),
-    (134, _column_marker("system_configs", "max_stars")),
-    (133, _column_marker("stars", "slot")),
-    (132, _column_marker("stars", "snow_line_km")),
-    (131, _column_marker("generation_runs", "generator_epoch")),
-    (130, _table_marker("galaxy_containers")),
-    (129, _table_marker("vessels")),
-    (128, _table_marker("constellations")),
-    (127, _column_marker("stars", "cluster_id")),
-    (126, _table_marker("request_comments")),
-    (125, _column_marker("sectors", "override_id")),
-    (124, _table_marker("region_density_overrides")),
-    (123, _table_marker("object_locks")),
-    (122, _table_marker("change_plans")),
-    (121, _column_marker("sectors", "run_id")),
-    (120, _table_marker("sector_tree_nodes")),
-    (119, _table_marker("species_limit_values")),
-    (118, _table_marker("orbital_events")),
-    (117, _column_marker("galaxy_shape", "family")),
-    (116, _table_marker("nebula_block_stats")),
-    (115, _column_marker("sectors", "parity_dirty")),
-    (114, _table_marker("galaxy_shape_pins")),
-    (113, _table_marker("object_index")),
-    (112, _check_marker("chk_bright_stars_population", "open_cluster_00")),
-    (111, lambda shape: ("planets", "flavor_text") not in shape["columns"]),
-    (110, lambda shape: ("planets", "life_stage") in shape["columns"]),
-    (109, lambda shape: ("planets", "orbital_phase_deg") not in shape["columns"]),
-    (108, _type_marker("bright_stars", "band_index", "int")),
-    (107, _check_marker("chk_bright_stars_population", "satellite_young")),
-    (106, lambda shape: "least(" in shape["generated"].get(("star_systems", "cell_key"), "")),
-    (105, _check_marker("chk_bright_stars_population", "satellite")),
-    (104, _column_marker("planets", "host_node_id")),
-    (103, lambda shape: ("sectors", "max_mass_id") in shape["columns"]
-     and ("stars", "galactic_orbital_speed_kms") not in shape["columns"]),
-    (102, _column_marker("sectors", "max_mass_id")),
-    (101, _column_marker("galaxy_shape", "core_min_luminosity_sol")),
-    (100, _check_marker("chk_galaxy_shape_cell_star_ceiling", "cell_star_ceiling")),
-    (99, _column_marker("galaxy_shape", "nuclear_amplitude")),
-    (98, _column_marker("galaxy_shape", "fill_luminosity_cap_sol")),
-    (97, _table_marker("galaxy_components")),
-    (96, _check_marker("neutron_stars_chk_1", "magnetar")),
-    (95, _column_marker("bright_stars", "metallicity_fe_h")),
-    (94, _check_marker("chk_bright_stars_population", "halo")),
-    (93, _column_marker("galaxy_shape", "reach_shell_index")),
-    (92, _column_marker("galaxy_block_stats", "shell_index")),
-    (91, _table_marker("galaxy_shell")),
-    (90, _column_marker("galaxy_block_stats", "ladder_step")),
-    (89, _table_marker("facility_types")),
-    (88, _column_marker("species", "tech_level")),
-    (87, _column_marker("planets", "flux_variation")),
-    (86, _table_marker("galaxy_block_stats")),
-    (85, _table_marker("object_timing_stats")),
-    (84, _column_marker("phenomenon_scatter", "map_luminosity_sol")),
-    (83, _table_marker("nebula_field")),
-    (82, _table_marker("sector_system_counts")),
-    (81, _column_marker("galaxy_shape", "core_amplitude")),
-    (80, _column_marker("phenomenon_scatter", "mass_solar")),
-    (79, _column_marker("sector_stats", "bright_mass_sol")),
-    (78, _table_marker("id_counters")),
-    (77, _table_marker("phenomenon_scatter_classes")),
-    (76, _column_marker("planets", "equipment_tier")),
-    (75, _column_marker("planets", "surface_dose_msv_yr")),
-    (74, _column_marker("planets", "ocean_class")),
-    (73, _column_marker("galaxy_shape", "bright_star_mass_limit_sol")),
-    (72, _column_marker("stars", "l_xuv_w")),
-    (71, _column_marker("galaxy_shape", "phenomenon_min_mass_solar")),
-    (70, _column_marker("planets", "mantle_redox")),
-    (69, _column_marker("phenomenon_scatter", "epoch_unix")),
-    (68, _column_marker("stars", "axial_tilt_deg")),
-    (67, _column_marker("sectors", "version_key")),
-    (66, _column_marker("planets", "next_update_due")),
-    (65, _table_marker("phenomenon_scatter")),
-    (64, _column_marker("facilities", "velocity_x_kms")),
-    (63, _table_marker("generation_run_arguments")),
-    (62, _table_marker("sector_paths")),
-    (61, _column_marker("star_systems", "velocity_x_kms")),
-)
-"""tuple: `(version, test)` pairs, newest first, for
-`detect_schema_version`: each test is true of a database's shape from that
-version on (something the version added that no later one removed). Only
-the baseline is listed: databases older than it are refused. A new Alembic
-revision adds its own row at the top."""
-
-_OLDEST_DETECTED_VERSION = alembic_runner.BASELINE_VERSION - 1
-"""int: What `detect_schema_version` reports for a database that has
-tables but none of `_VERSION_MARKERS`: older than the Alembic baseline,
-which `SchemaTooOldError` refuses."""
-
-
-def detect_schema_version(conn):
-    """
-    The galaxy schema version the connected database's tables show, for a
-    database whose `schema_migrations` is missing or empty (DB.4): the
-    newest version in `_VERSION_MARKERS` whose mark is present, from
-    `information_schema` alone (reads only, before any DDL runs).
-    `SCHEMA_VERSION` for a database with no galaxy tables yet (a new one).
-
-    Returns:
-        int: The version.
-    """
-    tables = {row["t"].lower() for row in conn.execute(
-        "SELECT table_name AS t FROM information_schema.tables WHERE table_schema = DATABASE()").fetchall()}
-    if "star_systems" not in tables:
-        return SCHEMA_VERSION
-    shape = {
-        "tables": tables,
-        "columns": {(row["t"].lower(), row["c"].lower()) for row in conn.execute(
-            "SELECT table_name AS t, column_name AS c FROM information_schema.columns"
-            " WHERE table_schema = DATABASE()").fetchall()},
-        "column_types": {(row["t"].lower(), row["c"].lower()): row["y"].lower() for row in conn.execute(
-            "SELECT table_name AS t, column_name AS c, column_type AS y FROM information_schema.columns"
-            " WHERE table_schema = DATABASE()").fetchall()},
-        "indexes": {(row["t"].lower(), row["i"].lower()) for row in conn.execute(
-            "SELECT DISTINCT table_name AS t, index_name AS i FROM information_schema.statistics"
-            " WHERE table_schema = DATABASE()").fetchall()},
-        "checks": {row["n"].lower(): row["c"] for row in conn.execute(
-            "SELECT constraint_name AS n, check_clause AS c FROM information_schema.check_constraints"
-            " WHERE constraint_schema = DATABASE()").fetchall()},
-        "generated": {(row["t"].lower(), row["c"].lower()): row["e"].lower() for row in conn.execute(
-            "SELECT table_name AS t, column_name AS c, generation_expression AS e FROM information_schema.columns"
-            " WHERE table_schema = DATABASE() AND generation_expression <> ''").fetchall()},
-    }
-    for version, marked in _VERSION_MARKERS:
-        if marked(shape):
-            return version
-    return _OLDEST_DETECTED_VERSION
 
 
 def open_write(config=None):
@@ -9301,13 +9175,13 @@ def schema_status(config=None):
     # No DDL here (TEST.62): it "changes nothing", and must work for an
     # account that can only read. A database with no version yet is
     # created at the current schema by the migration, so nothing is
-    # pending -- unless it already has tables, whose shape says which
-    # version it is (DB.4).
+    # pending -- unless it already has tables, which is refused (DB.97).
     conn = get_connection(config, ensure_schema=False)
     try:
         version = _stored_version(conn, "schema_migrations")
+        _refuse_unversioned(conn, version)
         if version is None:
-            version = detect_schema_version(conn)
+            version = SCHEMA_VERSION
         _refuse_newer(conn, version, SCHEMA_VERSION)
         _refuse_older(conn, version)
         return version, len(alembic_runner.pending(version))

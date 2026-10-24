@@ -40,7 +40,7 @@ def test_a_v132_database_takes_a_member_and_keeps_its_pair(mysql_config):
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         assert "slot" in _columns(conn, "stars")
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
         rows = {row["role"]: row["slot"] for row in conn.execute("SELECT role, slot FROM stars").fetchall()}
         assert rows == {"primary": 0, "secondary": 1, "single": None}
         _insert(conn, "stars", star_system_id=1, role="member", parent_node_id=1, slot=1)

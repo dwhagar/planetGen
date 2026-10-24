@@ -35,7 +35,7 @@ def test_every_scalar_speed_column_is_gone_and_the_vector_stays(mysql_config):
         for table in ("black_holes", "neutron_stars", "rogue_planets", "interstellar_comets", "asteroid_fields",
                       "nebulae", "supernova_remnants"):
             assert _has(conn, table, "velocity_x_kms"), table
-        assert store.detect_schema_version(conn) == store.SCHEMA_VERSION
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()
 
