@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2104] - 2026-10-24
+
+**Headline:** The thorium-to-uranium ratio of a planet's rock now follows the history of its galaxy's disc.
+
+### Changed
+- **Row o4 of the atmosphere recipes reads the disc's r-process enrichment (GEN.663).** The uniform birth epoch of 3 to 13 Gyr is gone; `physics/rprocess_enrichment.py` works out the enrichment factor from the disc's star formation history and a merger delay law (a labelled stand-in). The recipes are not read by the generator yet, so no generated value changes.
+
 ## [8.0.2103] - 2026-10-24
 
 **Headline:** The atmosphere mixture draw covers every class: Venus-like and Mars-like air, abiotic oxygen, Titan-like and Pluto-like air, comet comae, and the vapour over a lava world.
