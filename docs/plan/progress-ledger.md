@@ -1280,3 +1280,4 @@ Baseline: PR #1817.
 | OPS.65 | 8.1 | Bugs and flaky tests |
 | GEN.271 | 8.1 | Multi-star and compact systems |
 | DB.98 | 8.1 | Reproducible galaxies |
+| GEN.309 | 8.1 | Queue, caches and performance |
