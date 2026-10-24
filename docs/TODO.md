@@ -8305,127 +8305,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   this item says it "ships with a generator epoch bump" it rides that
   one bump and does not take an epoch of its own.
 
-- [ ] **GEN.460 Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug)**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/composition/body-composition-research.md, parts in
-  docs/design/composition/body-composition-parts/), filed by the TODO thread.
-  Finding F7 and part C sections 2.6 to 2.7: the repo's giant relation
-  (`physics/constants.py` lines 182 and 183) uses a Neptunian exponent
-  of 0.519 anchored on Saturn and a Jovian one of -0.04 anchored on
-  Jupiter, with a comment that says the shape is Chen and Kipping's,
-  whose own Neptunian exponent is 0.589 (+0.044, -0.031; rms 14.6
-  percent), Terran 0.279 and Jovian -0.044; its scatter (10 and 7
-  percent) differs from the paper's (7.4, 14.6 and 4 percent); and a
-  giant has no heavy-element content at all. Do: draw the heavy-element
-  mass M_Z = 57.9 (M / MJ)^0.61 Earth masses with 0.26 dex of scatter
-  (Thorngren 2016, arXiv:1511.07854), the envelope helium from the natal
-  gas, the envelope metallicity and a core-mass placeholder (the
-  interior design note is part C item 3); take the radius from the
-  Fortney, Marley and Barnes 2007 table interpolated in mass,
-  composition, age and irradiation, with an inflation term for hot
-  Jupiters (the efficiency is Boss's research, rank 4 of the master
-  list), and the brown dwarf radius from the Baraffe 2003 and BHAC15
-  grid; shift the deuterium (13.55 MJ), lithium (0.06 Msun) and hydrogen
-  (0.07 to 0.074 Msun) burning limits with metallicity and helium; no
-  anchored relation kept (no shim). Changes stored values, so it ships
-  with a generator epoch bump and joins the one rescatter of 8.4. Where
-  the interior science is missing (diluted cores) the item marks the
-  input open and uses a seeded range. Done: a test checks the
-  heavy-element mass never exceeds the mass, the radius against the
-  table at its grid points within the stated error, the burning-limit
-  shifts in the stated direction, and determinism. Owner: Core 4
-  (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.427, GEN.428, GEN.429,
-  GEN.252, GEN.454, DB.69.
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): the Thorngren 2016 mass-metallicity scaling
-  M_z proportional to M_p^beta with scatter of about 0.3 to 0.5 dex; the
-  Body composition lane's read value is 0.26 dex with M_Z = 57.9
-  (M/MJ)^0.61 Earth masses (arXiv:1511.07854), which this item uses
-  until the Boss-supplied figure is verified. Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/composition/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Checked by the Body composition research lane (part F, 1:28 AM EDT as
-  the lane reported): the Thorngren exponent matches (0.61) but the
-  scatter is 0.26 dex (factor 1.82) in the paper as read, not 0.3 to 0.5
-  dex; keep 0.26 dex.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): no table: the giants' radius and heavy-element content
-  follow the checked laws; this item draws the heavy-element mass M_Z and GEN.454 reads it.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the Thorngren scaling
-  Z_planet/Z_star proportional to M^-alpha with alpha 0.45 to 0.55 (the
-  Body composition lane read 0.61 and a scatter of 0.26 dex).
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/composition/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): Thorngren 2016 has the exponent -0.45 +/- 0.09 and prefactor
-  9.7 on the bulk heavy-element fraction Z (an upper limit on the
-  atmosphere's Z, not an atmospheric metallicity), and its sample starts
-  near 19 Earth masses; the heavy-element mass law of part C (57.9
-  (M/MJ)^0.61 Earth masses, 0.26 dex) is confirmed twice and the lane's
-  own re-fit is 55.6 (M/MJ)^0.60 with 0.32 dex raw rms, so state that Z
-  is bulk and add the 0.32 dex raw rms next to the 0.26 dex intrinsic
-  figure; the atmosphere Z is f Z_p with f about 0.2 for Jupiter and
-  Saturn (Thorngren and Fortney 2019); the core-mass placeholder
-  (log-uniform 5 to 20 Earth masses) is supported by Chachan 2025 (14.7
-  Earth masses). The 0.45 to 0.55 of the note matches the exponent in
-  magnitude only.
-  Checked against Boss's 2:11 AM EDT note by the Atmosphere research
-  lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
-  10A to 10D of atmosphere-composition.md): Thorngren fit Z_p/Z_* = 9.7
-  M_J^-0.45 (arXiv:1511.07854, the note had the wrong id) with scatter
-  x1.82, valid from 20 Earth masses; do not add 'more heat at low
-  metallicity'.
-  Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC5: heavy-element mass M_Z = (57.9 +- 7.03) M^(0.61 +- 0.08)
-  (Thorngren 2016, read) and Chachan 2025 (147 giants, 1.4 to 1.6
-  times lower between 0.3 and 3 Jupiter masses) are two verified fits
-  that disagree: the newest wins (Chachan 2025), Thorngren stays in
-  the record, and the union stays the bracket where either is in doubt.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): the Do
-  text's Thorngren 2016 fit (M_Z = 57.9 (M / MJ)^0.61, 0.26 dex) is
-  superseded by the source rule of 2026-10-17, 1:16 PM EDT (two verified
-  fits that disagree: the newest wins, Chachan 2025; Thorngren stays in
-  the record and as a bracket end). Chachan's coefficients are not yet
-  in the item and must be read first.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
-  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
-  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
-  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
-  in 8.1, and only scatter-level changes (nebula radius, remnants above
-  the mass cut) need a rescatter. Where this item says it "joins the one
-  rescatter of 8.4", this wins.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): this item draws the
-  heavy-element mass M_Z (and the envelope metallicity) and GEN.454
-  reads it; the circular reading, where the recipe weights of GEN.454
-  supply M_Z, is removed. GEN.454 already lists GEN.460 under
-  Prerequisites and this item does not list GEN.454, so no prerequisite
-  changes.
-  Part 1 (2026-10-09): Part 1 merged as #2803 (lane J, about 10:55 PM
-  EDT 2026-10-23 as the lane reported): the kernels (Fortney tables, the
-  Sestovic inflation stand-in, the Chachan heavy-element mass). The
-  wiring starts when lane I's GEN.428 draw merges. DB.86 edited
-  db/column_units.py (the six unspecified entries only), a file lane I
-  owns.
-
 - [ ] **GEN.461 The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
   2026-10-17, about 1:10 AM EDT as the lane reported; merged as
@@ -12830,45 +12709,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch it takes. Owner: Core 3, after GEN.332.
   Prerequisites: GEN.332. Related: GEN.316, GEN.631.
 
-- [ ] **GEN.642 Giants, ice giants and brown dwarfs get a full interior composition: the molecular envelope, the liquid and metallic hydrogen and helium layers, the dilute zone, and a rocky, iron or icy core with its own composition, drawn and described**
-  Boss, 6:01 PM EDT 2026-10-23: 'I want gas giants to have a full
-  composition, including liquid or metallic hydrogen or helium cores, if
-  they have a rocky core, and what it is made of.' Gap found by the TODO
-  thread: GEN.460 draws only the heavy-element mass M_Z, the envelope
-  helium and metallicity and a core-mass placeholder (log-uniform 5 to
-  20 Earth masses, part C item 3 of
-  docs/design/composition/body-composition-parts/C-volatile-and-giants.md, the giant
-  interior design note never filed), and the spine contract
-  (composition-spine-contracts-2026-10-23.md) stores a giant as
-  fractions metal, rock, water, ice and envelope with envelope_helium
-  and envelope_z, with no layers. Covers gas giants, ice giants and
-  brown dwarfs. Owner: Composition lane J (bulk composition). Lane I
-  (the spine) is told: BulkFractions needs the giant interior fields
-  once GEN.642 settles them (testing mode: new epochs and database
-  versions are allowed, Boss 5:42 PM EDT). Draw from the research (the
-  item before): the layer boundaries as mass fractions, the helium share
-  in each layer, whether a core exists, its mass and what it is made of
-  (rock, iron, ice and their shares), and the heavy-element split
-  between the core, the dilute zone and the envelope so the totals equal
-  M_Z of GEN.460. The fractions of GEN.428 stay the whole-body totals
-  (they must equal the layer sums), the layers are the detail; the
-  mass-radius solver of GEN.429 reads the layers where the research says
-  the tables allow. The description (GEN.430) states the layers, the
-  core and its makeup in words, with chemical formulas set in subscripts
-  (the HTML subscript rule). Changes stored values, so it takes a
-  generator epoch (testing mode, Boss 5:42 PM EDT). Done: every giant
-  has layers whose masses sum to the body mass, a core flag with
-  composition, a determinism test across worker counts, the sums test in
-  TEST.210 extended to giants, and the description names the layers.
-  Prerequisites: GEN.460. Related: GEN.460,
-  GEN.430, GEN.454, TEST.210, DB.69.
-  Slice 1 (2026-10-09): Kernel merged in #2800 (lane J, about 10:55 PM
-  EDT 2026-10-23 as the lane reported); the draw and the description
-  stay open. Finding: giants that are wholly mostly heavy (ice giants
-  below 30 Earth masses) fall outside the Fortney tables, so their
-  radius needs lane I's water-world and envelope kernels (GEN.429); this
-  is a decision-list item.
-
 - [ ] **GEN.644 Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree**
   Boss, 6:02 PM EDT 2026-10-23: 'Yes, now Habitable should now be based
   on the PHI-6 score which must be Blue or Green overall. Also, I think
@@ -13463,7 +13303,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.429 fractions; delete the three class ranges with no shim. Done:
   nothing reads the deleted names and the golden outputs are updated.
   Owner: Composition J.
-  Prerequisites: GEN.460, GEN.681.
+  Prerequisites: GEN.681.
 
 - [ ] **GEN.683 Atmosphere recipe gates move from class to kind and regime; delete CLASS_MIXES, atm_density_range and atm_molar_density_range**
   Step C8 of the condition-based classes build (design draft
@@ -13836,6 +13676,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lane K moves the comets to the table's 1.5 g/cm3 (epoch 80, gate
   running). The item closes when that merges, unless a read of Choukroun
   2020 says otherwise.
+  Research (2026-10-09, Update): Epoch 80 went to Lane J (#2912, 9:37 AM
+  EDT 2026-10-24, as the lane reported); this change renumbers to epoch
+  81 at merge.
   Prerequisites: none. Related: GEN.442.
 
 - [ ] **GEN.713 Research the size law and the cut for long-period and interstellar comets (blocks GEN.559)**
@@ -15357,7 +15200,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   generic insert (DB.74), the rebuild step for older rows, and the API
   field. Done: a save and load round trip returns the layers unchanged,
   the migration test passes, and the schema docs list the columns.
-  Prerequisites: GEN.642. Related: GEN.642, DB.69, DB.74.
+  Prerequisites: none. Related: GEN.642, DB.69, DB.74.
 
 - [ ] **DB.90 Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A

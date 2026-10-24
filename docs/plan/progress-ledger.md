@@ -1296,3 +1296,5 @@ Baseline: PR #1817.
 | GEN.651 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.442 | 8.1 | Surface and small bodies |
 | OPS.69 | 8.1 | Bugs and flaky tests |
+| GEN.460 | 8.1 | Bulk composition |
+| GEN.642 | 8.1 | Bulk composition |
