@@ -45,6 +45,31 @@ GROUPS = {
 }
 """dict: Every group key of a sheet and its heading, in the order the page shows them."""
 
+SHOW_GROUPS = frozenset({"identity", "habitability", "life", "ratings"})
+"""frozenset: The groups whose rows are listed on a page even when the value is none or 0 (UX.188): a world with no life
+or a facility with no ratings set is itself the answer."""
+
+_PLANET_ABSENT = frozenset({
+    "atmospheric_pressure_pa", "p_o2_kpa", "outside_hours", "hydrosphere", "ocean_fraction", "water_mass_fraction",
+    "dipole_class", "magnetic_moment_a_m2",
+})
+SHOW_WHEN_ABSENT = {
+    "planet": _PLANET_ABSENT, "moon": _PLANET_ABSENT,
+    "star": frozenset({"flare_n33_per_yr", "lethal_event_rate_per_gyr"}),
+}
+"""dict: For each kind, the row keys a page lists even when the value is none or 0, because the absence matters to a
+captain (no air, no magnetic field, a quiet star); every other row is left out of a page when it holds nothing. The
+API sheet always returns every row and says which are `absent` and which are `show_absent`."""
+
+GLANCE = {
+    "planet": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
+               "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "distance_km", "period_years"),
+    "moon": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
+             "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "distance_km", "period_years"),
+}
+"""dict: For each kind, the row keys of its "At a glance" panel (UX.188), in a captain's order: what it is, can I
+survive there, how long is a day and how far is it. Each is a row of the same sheet."""
+
 NOT_STORED = "not stored"
 """str: What a row with no stored value says."""
 
@@ -542,7 +567,7 @@ def sheet(conn, kind, object_id):
     Returns:
         dict: `kind`, `groups`: the non-empty groups in `GROUPS` order, each `{"key", "label", "rows"}`; a row is
             `{"key", "label", "value" (the inline list), "text" (it as plain text), "stored" (whether the column held a
-            value)}`.
+            value), "absent" (none or 0), "show_absent" (a page lists it even then)}`.
 
     Raises:
         ValueError: For a kind with no sheet or a missing row.
@@ -557,7 +582,9 @@ def sheet(conn, kind, object_id):
     for spec in specs:
         stored = row[spec.stored_column()]
         value = _value(spec, table, stored)
+        absent = stored is None or stored == 0 or stored == ""
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value,
-                                     "text": inline_text(value), "stored": stored is not None})
+                                     "text": inline_text(value), "stored": stored is not None, "absent": absent,
+                                     "show_absent": spec.group in SHOW_GROUPS or spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     return {"kind": kind, "groups": groups}

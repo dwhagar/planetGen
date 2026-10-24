@@ -118,7 +118,7 @@ def test_a_property_with_no_stored_value_says_so(client, mysql_config):
         conn.close()
     row = _rows(client.get(f"/api/objects/planet:{pid('planet', planet_id)}/sheet").get_json())["ocean_depth_km"]
     assert row == {"key": "ocean_depth_km", "label": "Ocean depth", "value": [sheet.NOT_STORED], "text": sheet.NOT_STORED,
-                   "stored": False}
+                   "stored": False, "absent": True, "show_absent": False}
 
 
 def test_a_kind_with_no_sheet_and_a_missing_object_are_404s(client, mysql_config):
@@ -154,3 +154,12 @@ def test_every_phenomenon_has_a_sheet_over_its_stored_row(client, mysql_config):
         assert list(rows) == [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
         assert all(row["text"] for row in rows.values()), kind
         assert any(row["stored"] for row in rows.values()), kind
+
+
+def test_the_glance_and_show_when_absent_lists_name_rows_the_kind_has():
+    for kind, keys in sheet.GLANCE.items():
+        have = {spec.key for spec in sheet.SPECS[kind]}
+        assert set(keys) <= have, f"{kind}: {sorted(set(keys) - have)}"
+    for kind, keys in sheet.SHOW_WHEN_ABSENT.items():
+        have = {spec.key for spec in sheet.SPECS[kind]}
+        assert set(keys) <= have, f"{kind}: {sorted(set(keys) - have)}"

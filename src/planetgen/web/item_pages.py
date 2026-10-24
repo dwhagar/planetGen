@@ -20,6 +20,7 @@ description never say different things. A reference that names nothing is a plai
 
 from flask import abort, jsonify, redirect, request
 
+from planetgen.describe import sheet as sheet_registry
 from planetgen.describe.html import blocks_html, inline_html
 from planetgen.describe.model import sections
 from planetgen.galaxy import objectref
@@ -195,13 +196,36 @@ def system_tree(db, system_id, name):
     return tree_panel(ref, name, page, loaded)
 
 
+def _listed(row):
+    """Whether a page lists a sheet row: it holds something, or its absence is itself worth knowing (UX.188)."""
+    return not row.get("absent") or row.get("show_absent", False)
+
+
 def sheet_view(sheet):
     """A property sheet (`GET /api/objects/<ref>/sheet`) as the page draws it: `[{"key", "label", "rows"}]` with each
-    row's value as HTML (`describe.html.inline_html`, so a quantity reads in the reader's unit system)."""
-    return [{"key": group["key"], "label": group["label"],
-             "rows": [{"label": row["label"], "html": trusted_html(inline_html(row["value"])), "stored": row["stored"]}
-                      for row in group["rows"]]}
-            for group in sheet["groups"]]
+    row's value as HTML (`describe.html.inline_html`, so a quantity reads in the reader's unit system). A row that holds
+    nothing is left out unless its absence matters (`describe.sheet.SHOW_WHEN_ABSENT`); a group left empty goes too."""
+    groups = [{"key": group["key"], "label": group["label"],
+               "rows": [{"label": row["label"], "html": trusted_html(inline_html(row["value"])), "stored": row["stored"]}
+                        for row in group["rows"] if _listed(row)]}
+              for group in sheet["groups"]]
+    return [group for group in groups if group["rows"]]
+
+
+def glance_view(sheet):
+    """The rows of a page's "At a glance" panel (UX.188): the kind's `describe.sheet.GLANCE` rows in that order, each
+    `{"label", "html"}`, and only those the page lists. Empty for a kind with no panel yet."""
+    rows = {row["key"]: row for group in sheet["groups"] for row in group["rows"]}
+    return [{"label": rows[key]["label"], "html": trusted_html(inline_html(rows[key]["value"]))}
+            for key in sheet_registry.GLANCE.get(sheet["kind"], ()) if key in rows and _listed(rows[key])]
+
+
+def sheet_context(sheet):
+    """The template variables of a page's sheet: `sheet` (the groups), `glance` (the At a glance rows) and
+    `hidden_rows` (how many rows hold nothing and are not listed, for the line that says so)."""
+    listed = sum(1 for group in sheet["groups"] for row in group["rows"] if _listed(row))
+    total = sum(len(group["rows"]) for group in sheet["groups"])
+    return {"sheet": sheet_view(sheet), "glance": glance_view(sheet), "hidden_rows": total - listed}
 
 
 def _bodies(detail):
@@ -328,7 +352,7 @@ def _free_moon_page(db, kind, printed_id, found, free_planet):
         habitability=found if kind in ("planet", "moon") else None,
         object_id=printed_id,
         facts=trusted_html(""),
-        sheet=sheet_view(apiclient.get_object_sheet(db, ref)),
+        **sheet_context(apiclient.get_object_sheet(db, ref)),
         tree=tree_panel(ref, name, apiclient.get_object_children(db, ref, limit=TREE_PAGE)),
         location=location(found["parents"], None),
         owner_url=item_url(free_planet["ref"]),
@@ -377,7 +401,7 @@ def _facility_page(db, printed_id, found):
         kind_label=KIND_LABELS["facility"],
         object_id=printed_id,
         facts=trusted_html(_facility_facts(facility, found)),
-        sheet=sheet_view(apiclient.get_object_sheet(db, ref)),
+        **sheet_context(apiclient.get_object_sheet(db, ref)),
         tree="",
         location=location(found["parents"], None),
         system_url=page_url("system", system_id=system["ref"].partition(":")[2]) if system else None,
@@ -452,7 +476,7 @@ def _container_page(db, kind, printed_id, found):
         kind_label=KIND_LABELS[kind],
         object_id=printed_id,
         facts=trusted_html(_container_facts(container, found, listing)),
-        sheet=sheet_view(apiclient.get_object_sheet(db, ref)),
+        **sheet_context(apiclient.get_object_sheet(db, ref)),
         tree="",
         location=location(found["parents"], None),
         bookmark=bookmark(kind, endpoint(kind, printed_id), name, item_url(ref)),
@@ -515,7 +539,7 @@ def render_item(kind, printed_id):
         object_id=printed_id,
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
         example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,
-        sheet=sheet_view(sheet),
+        **sheet_context(sheet),
         tree=tree,
         location=location(chain_parents, detail.get("inside")),
         previous=previous,

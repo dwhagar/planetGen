@@ -145,6 +145,9 @@ def test_a_scored_planet_shows_its_symbols_under_the_title_and_other_kinds_do_no
     body = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert body.count("hab-symbol ") == 7 and 'aria-label="Radiation: Red"' in body
     assert body.index("hab-symbols") < body.index("About Kepler b")
+    # UX.188: the symbols are the first row of the At a glance table, above the property sheet
+    assert body.index('id="item-glance"') < body.index("hab-symbols") < body.index('id="item-properties"')
+    assert 'class="glance-habitability"' in body
     assert "hab-symbol" not in client.get(f"/object/{MOON}").get_data(as_text=True)  # the fake moon was not scored
     assert "hab-symbol" not in client.get(f"/object/{STAR}").get_data(as_text=True)
 
@@ -257,3 +260,22 @@ def test_no_link_to_a_body_goes_to_an_anchor_on_the_systems_page():
     found = [f"{path.relative_to(root)}: {match.group(0)}" for path in sources
              for match in [anchor.search(path.read_text(encoding="utf-8"))] if match]
     assert not found, found
+
+
+def test_a_page_lists_a_row_only_when_it_holds_something_or_its_absence_matters():
+    """UX.188: none and 0 are left out of a page unless the row is one a captain wants to know is absent."""
+    from planetgen.web.item_pages import glance_view, sheet_context
+
+    def row(key, value, absent, show):
+        return {"key": key, "label": key, "value": [str(value)], "text": str(value), "stored": value is not None,
+                "absent": absent, "show_absent": show}
+
+    sheet = {"kind": "planet", "groups": [
+        {"key": "atmosphere", "label": "Atmosphere", "rows": [
+            row("atmospheric_pressure_pa", 0, True, True), row("p_h2s_kpa", 0, True, False),
+            row("p_co2_kpa", 3, False, False)]},
+        {"key": "climate", "label": "Climate", "rows": [row("surface_temperature_k", 288, False, False)]}]}
+    shown = [group_row["label"] for group in sheet_context(sheet)["sheet"] for group_row in group["rows"]]
+    assert shown == ["atmospheric_pressure_pa", "p_co2_kpa", "surface_temperature_k"]
+    assert sheet_context(sheet)["hidden_rows"] == 1
+    assert [r["label"] for r in glance_view(sheet)] == ["surface_temperature_k", "atmospheric_pressure_pa"]
