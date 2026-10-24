@@ -978,6 +978,13 @@ with `clamp()`.
   absorbs the open remainder of UX.143, so link and do not duplicate.
   8.1 if capacity, else 8.2. Done: the page-walk test passes for every
   kind in objectref.KINDS.
+  Research (2026-10-09, 10-24 detail pages): Progress (detail pages
+  lane, #3013, 1:29 PM EDT 2026-10-24 as the lane reported): every
+  phenomenon page has an All stored properties panel (grouped, Boss's
+  unit system, not stored for blanks) and /api/objects/<ref>/sheet
+  serves it, with a test that fails if a new phenomenon column is not on
+  the sheet. Remaining parts are split out: UX.183, UX.184, UX.185.
+  UX.175 itself closes when those three are done or dropped.
   Prerequisites: none. Related: UX.143, UX.144.
 
 - [ ] **UX.179 Sitemap entries and an Open Graph image for object pages (optional, can wait)**
@@ -996,6 +1003,42 @@ with `clamp()`.
   Optional; belongs to 8.2. Done: the sitemap lists the object pages and
   a shared link shows the image.
   Prerequisites: none.
+
+- [ ] **UX.183 Facility pages: add the facility kind to the object index and resolver so /object/facility:<ID> works**
+  Split from UX.175 by the detail pages lane (1:29 PM EDT 2026-10-24 as
+  the lane reported, #3013). A facility has a uid but is not in
+  objectref.KINDS, so its object page cannot resolve. Do: add the
+  facility kind to the object index and the resolver, then build its
+  page with the same anatomy as the other object pages (location,
+  property sheet, paragraph if any, belonging to it). Done:
+  /object/facility:<ID> renders for a stored facility, the sheet route
+  serves it, and a test fails if a facility column is not on the sheet.
+  Owner: none (pool).
+  Prerequisites: none. Related: UX.175.
+
+- [ ] **UX.184 Star cluster and region pages: stored cluster and region objects and their object pages**
+  Split from UX.175 by the detail pages lane (1:29 PM EDT 2026-10-24 as
+  the lane reported, #3013). No stored cluster or region objects exist,
+  so there is nothing for an object page to show. Do: decide with the
+  object model what a stored cluster and a stored region are (they may
+  come from the unified objects work and the sector-block nodes), store
+  them, and give them object pages with the same anatomy as the other
+  kinds. Done: a cluster and a region each have a page with a property
+  sheet and links to what is inside them. Needs a short design note
+  first (what is stored and where). Owner: none (pool).
+  Prerequisites: none. Related: UX.175, MAP.258.
+
+- [ ] **UX.185 Phenomenon pages: paragraph text and neighbour links from the stored row**
+  Split from UX.175 by the detail pages lane (1:29 PM EDT 2026-10-24 as
+  the lane reported, #3013). describe_phenomenon takes only a freshly
+  generated object, so a stored phenomenon page cannot show its
+  paragraph or its neighbour links. Do: add a loader that builds what
+  describe_phenomenon needs from the stored row, then show the paragraph
+  and the neighbour (previous and next) links on every phenomenon page.
+  Done: a stored nebula, black hole and rogue planet page each shows its
+  paragraph and neighbour links, and a test covers one of each. Owner:
+  none (pool).
+  Prerequisites: none. Related: UX.175.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -18401,74 +18444,6 @@ clears each one.
   baseline.
   Prerequisites: none. Related: DB.98.
 
-- [ ] **TEST.329 test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug)**
-  Found by Core 2 at 3:22 AM EDT 2026-10-24 (as the lane reported, on
-  main 8ae036ae, release 8.0.2131). Four variants of
-  src/tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.system-*]
-  fail alone on every run: the class links in the planet list
-  (a[href$="planet/J"] and the like, inside the .body-row summary) have
-  a link contrast of 1.06:1 and are focusable links inside a summary
-  (axe nested-interactive). Probably from UX.100 (#2737), made worse by
-  UX.181 and UX.182 (#2867, class text links). Do: give the links a
-  visible contrast on every theme and move them out of the summary
-  element, or make the whole row the one control. The system page body
-  rows are replaced by the tree in UX.173, so check there first and fix
-  only if UX.173 is not near. Done: the four variants pass. Owner: none
-  (pool); Bug Hunt proposed.
-  Research (2026-10-09, Update): Detail pages lane (5:54 AM EDT
-  2026-10-24, as the lane reported): on untouched origin/main the system
-  page fails test_web_a11y x4 for two reasons, an axe nested-interactive
-  on the body-row summary and a class link with 1.06:1 contrast. UX.173
-  (its second PR) deletes those rows and fixes both, so this item may
-  close with UX.173; recheck then.
-  Research (2026-10-09, Update): Habitability lane B (6:12 AM EDT
-  2026-10-24, as the lane reported): all four test_web_a11y system page
-  cases fail alone on main: axe link-in-text-block (the class link
-  a[href$="planet/C"] colour #3a4bd6 against text #5b6072, 1.06:1) and
-  nested-interactive (the body-row summary and the comet row hold
-  focusable descendants). Cause: the help-link change of UX.180 to
-  UX.182 (#2867) put links inside the row summary. Owner: the detail
-  pages lane (UX.173 deletes those rows), else Bug Hunt.
-  Research (2026-10-09, Update): Core 5 (6:51 AM EDT 2026-10-24, as the
-  lane's clock reads) saw the same four system page a11y failures on
-  main (link-in-text-block and nested-interactive on planet class links
-  inside summary.body-stats).
-  Research (2026-10-09, 10-24 lane E): Lane E (10:12 AM EDT 2026-10-24
-  as the lane reported): it still fails on main at the #2992 gate, four
-  test_web_a11y web.system cases (class links in the planet summary fail
-  axe contrast 1.06:1, plus nested-interactive). Not from #2992.
-  Research (2026-10-09, 10-24 lane 4): Lane 4 (12:18 PM EDT 2026-10-24
-  as the lane reported): another cause for the four test_web_a11y
-  web.system variants on unmodified main: the fixture's galaxy run loses
-  its Redis run record (TypeError in runrecord, stage json is None).
-  Also a lane-machine gap: Playwright expected
-  chromium_headless_shell-1194 but 1243 was installed; the lane linked
-  it locally.
-  Research (2026-10-09, 10-24 Core 1): Core 1 (12:43 PM EDT 2026-10-24
-  as the lane reported) saw the browser fixture in
-  src/tests/test_web_a11y.py line 408 raise KeyError: planets, so every
-  test in the browser phase errored at setup (409 errors) on its
-  machine. Bug Hunt (12:53 PM EDT as the lane reported) could not
-  reproduce this on main 80976d96a on a fresh box: /api/systems/<id>
-  still returns planets, and the web.system variants fail only on the
-  known axe findings (class links 1.06:1, links inside a summary), which
-  UX.173 removes. So the setup error looks machine-specific (a lost
-  Redis run record, or MySQL dead after a container restart with stale
-  /var/run/mysqld/*.lock files: remove them and run service mysql
-  start). Bug Hunt makes the fixture assert status 200 and show the
-  response text before reading planets; ask Core 1 for that first error
-  line if it recurs.
-  Research (2026-10-09, 10-24 Bug Hunt): Bug Hunt takes the fixture
-  diagnosis (12:53 PM EDT 2026-10-24); the axe findings are fixed for
-  real by UX.173 (detail pages lane), so the variants are not to be
-  skipped.
-  Research (2026-10-09, 10-24 detail pages): The detail pages lane
-  merged #3011 (UX.173 and others, 1:07 PM EDT 2026-10-24 as the lane
-  reported) and says the system page accessibility failures are fixed
-  with it. Bug Hunt to confirm the four web.system variants pass on main
-  and close this item.
-  Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
-
 - [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
   Found by the detail pages lane at 5:54 AM EDT 2026-10-24 (as the lane
   reported), checked in a clean worktree on untouched origin/main: the
@@ -18486,7 +18461,7 @@ clears each one.
   lane's clock reads) saw the same failure on main:
   test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts
   finds 0 help links where 7 are expected.
-  Prerequisites: none. Related: TEST.329, UX.163.
+  Prerequisites: none. Related: UX.163.
 
 - [ ] **TEST.332 test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug)**
   Reported by the unit registry lane at 6:10 AM EDT 2026-10-24 (as the
