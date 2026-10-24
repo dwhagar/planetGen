@@ -229,7 +229,7 @@ def test_the_fill_gives_a_satellite_system_the_peaks_of_its_place_and_the_star_d
     assert config.FE_H_PEAKS == where.populations["satellite"].fe_h
     drawn = [Star(config, galactic_center_dist_ly=1.6e5).metallicity_fe_h for _ in range(40)]
     assert np.mean(drawn) == pytest.approx(cloud.metallicity_fe_h, abs=0.2)
-    assert bright_stars.star_fe_h("satellite", (0, 0, 0), 1) is None
+    assert bright_stars.star_fe_h("satellite", {"metallicity_fe_h": -1.0}) is None
     elsewhere = bright_stars.FillContext(profile.profile_at((SOLAR_RADIUS, 0.0, 0.0), shape, EDGE, E1))
     assert elsewhere.apply(SystemConfig(), draw.Stream("test-fill")).FE_H_PEAKS is None
 

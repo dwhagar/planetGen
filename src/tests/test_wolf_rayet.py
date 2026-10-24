@@ -52,14 +52,14 @@ def test_a_star_is_wolf_rayet_only_in_the_last_stretch_and_only_above_the_thresh
     rng = random.Random(1)
     t_ms, t_end = _window(60.0)
     start = wolf_rayet.start_gy(60.0, t_ms, t_end)
-    assert evolution.evolve_star(60.0, 0.5 * (t_ms + start), rng)["yerkes_class"] in ("IA", "0", "IAB", "IB")
-    state = evolution.evolve_star(60.0, 0.5 * (start + t_end), rng)
+    assert evolution.evolve_star(60.0, 0.5 * (t_ms + start), rng, fe_h=0.0)["yerkes_class"] in ("IA", "0", "IAB", "IB")
+    state = evolution.evolve_star(60.0, 0.5 * (start + t_end), rng, fe_h=0.0)
     assert state["yerkes_class"] == wolf_rayet.CLASS and state["wr_subtype"] in ("WN", "WC", "WO")
-    assert evolution.evolve_star(60.0, t_end + 1.0e-6, rng) is None  # collapsed
+    assert evolution.evolve_star(60.0, t_end + 1.0e-6, rng, fe_h=0.0) is None  # collapsed
     low_t_ms, low_end = _window(30.0)
     # 30 solar masses is a Wolf-Rayet star at the Sun's metallicity and keeps its supergiant at a fifth of it.
     start_30 = wolf_rayet.start_gy(30.0, low_t_ms, low_end)
-    assert evolution.evolve_star(30.0, low_end - 1.0e-5, rng)["yerkes_class"] == wolf_rayet.CLASS
+    assert evolution.evolve_star(30.0, low_end - 1.0e-5, rng, fe_h=0.0)["yerkes_class"] == wolf_rayet.CLASS
     assert start_30 < low_end - 1.0e-5
     assert evolution.evolve_star(30.0, low_end - 1.0e-5, rng, fe_h=math.log10(0.2))["yerkes_class"] != wolf_rayet.CLASS
 
@@ -70,7 +70,7 @@ def test_the_state_follows_the_ranges_of_the_note():
     start = wolf_rayet.start_gy(60.0, t_ms, t_end)
     for _ in range(300):
         age = rng.uniform(start, t_end)
-        state = evolution.evolve_star(60.0, age, rng)
+        state = evolution.evolve_star(60.0, age, rng, fe_h=0.0)
         low, high = tuning.WR_LUMINOSITY_RANGE_SOL
         assert low <= state["luminosity_sol"] <= high
         low_k = min(r[0] for r in tuning.WR_TEMPERATURE_RANGE_K.values())
@@ -94,7 +94,7 @@ def test_the_text_names_the_subtype_and_a_subclass_in_its_range():
     seen = set()
     for _ in range(200):
         age = rng.uniform(start, t_end)
-        state = evolution.evolve_star(100.0, age, rng)
+        state = evolution.evolve_star(100.0, age, rng, fe_h=0.0)
         params = evolution.star_params(100.0, age, state)
         match = re.fullmatch(r"(W[NCO])([0-9]) [A-Za-z-]+ Wolf-Rayet Star", params["type"])
         assert match, params["type"]
@@ -109,7 +109,7 @@ def test_a_wolf_rayet_star_builds_a_system_and_rebuilds_from_its_record():
     draw.set_run_seed(5)
     t_ms, t_end = _window(60.0)
     age = 0.5 * (wolf_rayet.start_gy(60.0, t_ms, t_end) + t_end)
-    params = evolution.star_params(60.0, age, evolution.evolve_star(60.0, age))
+    params = evolution.star_params(60.0, age, evolution.evolve_star(60.0, age, fe_h=0.0))
     config = SystemConfig()
     star = Star.from_params(params, config, name="Wr")
     assert star.yerkes_class == "W" and star.type.startswith("W")
@@ -133,7 +133,7 @@ def test_the_companions_are_those_of_the_dsilva_survey(subtype, age_fraction, lo
     found = trials = 0
     for seed in range(400):
         draw.set_run_seed(seed)
-        params = evolution.star_params(60.0, age, evolution.evolve_star(60.0, age))
+        params = evolution.star_params(60.0, age, evolution.evolve_star(60.0, age, fe_h=0.0))
         if not params["type"].startswith(subtype) and subtype == "WN":
             continue
         config = SystemConfig()
@@ -192,7 +192,7 @@ def _wolf_rayet_star(seed, mass_sol=60.0):
     t_ms, t_end = _window(mass_sol)
     start = wolf_rayet.start_gy(mass_sol, t_ms, t_end)
     age = start + draw.random() * (t_end - start)
-    return Star.from_params(evolution.star_params(mass_sol, age, evolution.evolve_star(mass_sol, age)),
+    return Star.from_params(evolution.star_params(mass_sol, age, evolution.evolve_star(mass_sol, age, fe_h=0.0)),
                             SystemConfig(), name="Wr")
 
 

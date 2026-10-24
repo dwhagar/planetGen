@@ -22,10 +22,15 @@ COLUMNS = habitability_world.SCORE_FIELDS + ("flux_variation",)
 """tuple: The columns the fill writes."""
 
 
+SEARCH_SEEDS = 3000
+"""int: How many seeds `_save_systems` tries for a system of each kind; a close binary with a scored rocky body is under
+1 in 200 (GEN.651: the draws moved, and the 300 it once took no longer hold one)."""
+
+
 def _save_systems(mysql_config, wanted=("close", "wide", None)):
     """Saved systems of each wanted binary type with a scored rocky body, by `binary_type`."""
     saved = {}
-    for seed in range(300):
+    for seed in range(SEARCH_SEEDS):
         if len(saved) == len(wanted):
             break
         with deterministic_entropy(seed):

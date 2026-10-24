@@ -50,7 +50,7 @@ def _tree(members, mass=1.0, start=1):
 
 def _primary_params(mass, age_yr, seed):
     with draw.bound(seed):
-        star = Star(SystemConfig(), name="Placed", initial_mass_sol=mass, age_gy=age_yr / 1.0e9)
+        star = Star(SystemConfig(), name="Placed", initial_mass_sol=mass, age_gy=age_yr / 1.0e9, metallicity_fe_h=0.1)
     return {"type": star.type, "yerkes_class": star.yerkes_class, "mass_kg": star.mass, "radius_km": star.radius,
             "temperature_k": star.temperature, "luminosity_w": star.luminosity, "age_gy": star.age,
             "lifespan_gy": star.lifespan, "initial_mass_sol": star.initial_mass_sol,

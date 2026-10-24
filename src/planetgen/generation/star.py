@@ -26,8 +26,8 @@ from planetgen.physics import activity, formation, metallicity, ms_lifetime, pre
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
-                               star_params)
+from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, birth_fe_h, evolve_star, sample_living_star,
+                                                  sample_star_age_gy, star_params)
 from planetgen.galaxy import scales
 from planetgen.generation.stellar_object import StellarObject
 from planetgen.physics.orbits import calculate_habitable_zone
@@ -578,7 +578,7 @@ class Star(StellarObject):
         # Added mass_override for secondary star generation in binary systems
         self.generate_star(mass_override=kwargs.get('mass_override'),
                            initial_mass_sol=kwargs.get('initial_mass_sol'),
-                           age_gy=kwargs.get('age_gy'))
+                           age_gy=kwargs.get('age_gy'), fe_h=kwargs.get('metallicity_fe_h'))
         self._finish_init(kwargs)
 
     def _finish_init(self, kwargs):
@@ -624,7 +624,7 @@ class Star(StellarObject):
             for name, value in (disk or {}).items():
                 setattr(self, name, value)
 
-    def _generate_from_population_model(self, initial_mass_sol=None, age_gy=None):
+    def _generate_from_population_model(self, initial_mass_sol=None, age_gy=None, fe_h=None):
         """
         Sets this star's properties from the population model
         (`stellarEvolution`): a Kroupa-IMF mass and a star-formation-history
@@ -651,7 +651,10 @@ class Star(StellarObject):
         if initial_mass_sol is not None:
             initial_mass_sol = max(initial_mass_sol, tuning.IMF_BREAKS_SOL[0])
             age = age_gy if age_gy is not None else sample_star_age_gy(age_bias)
-            state = evolve_star(initial_mass_sol, age, population=population, fe_h_peaks=fe_h_peaks)
+            if fe_h is None:
+                fe_h = birth_fe_h(draw, population, fe_h_peaks, self.galactic_center_dist_ly)
+            state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
+                                galactic_center_dist_ly=self.galactic_center_dist_ly)
             # A companion of a specified-type primary takes a fraction of
             # that star's present mass, which can be heavy enough to have
             # collapsed already at the pair's age. Lighten it until it is
@@ -659,7 +662,8 @@ class Star(StellarObject):
             # one age (GEN.53).
             while state is None and initial_mass_sol > tuning.IMF_BREAKS_SOL[0]:
                 initial_mass_sol = max(initial_mass_sol * 0.8, tuning.IMF_BREAKS_SOL[0])
-                state = evolve_star(initial_mass_sol, age, population=population, fe_h_peaks=fe_h_peaks)
+                state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
+                                    galactic_center_dist_ly=self.galactic_center_dist_ly)
         if state is None:
             # No companion given.
             habitable_host = self.system_config.HABITABLE_WORLD is True or self.system_config.INTELLIGENT_LIFE is True
@@ -669,7 +673,8 @@ class Star(StellarObject):
                 initial_mass_sol, age, state = sample_living_star(
                     age_bias, self.system_config.LARGE_STAR, habitable_host=habitable_host,
                     population=population, max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol,
-                    fe_h_peaks=fe_h_peaks, age_law=age_law)
+                    fe_h_peaks=fe_h_peaks, age_law=age_law, galactic_center_dist_ly=self.galactic_center_dist_ly,
+                    fe_h=fe_h)
             except ValueError:
                 if not (self.system_config.LARGE_STAR and (max_luminosity_sol is not None
                                                            or max_mass_sol is not None)):
@@ -682,7 +687,8 @@ class Star(StellarObject):
                 initial_mass_sol, age, state = sample_living_star(
                     age_bias, None, habitable_host=habitable_host,
                     population=population, max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol,
-                    fe_h_peaks=fe_h_peaks, age_law=age_law)
+                    fe_h_peaks=fe_h_peaks, age_law=age_law, galactic_center_dist_ly=self.galactic_center_dist_ly,
+                    fe_h=fe_h)
 
         self._apply_params(star_params(initial_mass_sol, age, state))
         log.choice("Star", self.type, f"population model: initial mass {initial_mass_sol:.3g} Msun, "
@@ -723,7 +729,7 @@ class Star(StellarObject):
         star._finish_init(kwargs)
         return star
 
-    def generate_star(self, mass_override=None, initial_mass_sol=None, age_gy=None):
+    def generate_star(self, mass_override=None, initial_mass_sol=None, age_gy=None, fe_h=None):
         """
         Generates the physical properties of the star based on a hierarchical,
         physically-constrained procedural model.
@@ -788,7 +794,7 @@ class Star(StellarObject):
         """
         yerkes_lookup = YERKES_CLASS_NAMES
         if initial_mass_sol is not None or (not self.system_config.STAR_TYPE and mass_override is None):
-            self._generate_from_population_model(initial_mass_sol, age_gy)
+            self._generate_from_population_model(initial_mass_sol, age_gy, fe_h)
             return
 
         if self.system_config.STAR_TYPE:

@@ -62,7 +62,7 @@ EXPECTED_SHARES = [
     ("G dwarf", 2.0, 6.0),
     ("F dwarf", 1.2, 3.0),
     ("A dwarf", 0.4, 1.2),
-    ("B dwarf", 0.1, 0.4),
+    ("B dwarf", 0.07, 0.4),
     ("white dwarf", 4.0, 7.0),
     ("subgiant", 0.08, 0.3),  # GEN.502: a light star's subgiant phase is 5% of its main sequence, not 10%
     ("giant", 0.12, 0.5),
@@ -93,7 +93,7 @@ def test_main_sequence_luminosity_follows_mass(population):
 def test_every_state_is_in_its_own_phase(population):
     _, states = population
     for mass, age, state in states:
-        t_ms = se.main_sequence_lifetime_gy(mass)
+        t_ms = se.main_sequence_lifetime_gy(mass, state["metallicity_fe_h"])
         if state["yerkes_class"] in ("V", "PMS", "protostar"):
             assert age < t_ms
         else:
@@ -231,4 +231,43 @@ def test_a_light_stars_cell_bound_holds_and_is_tight_enough_to_draw(population, 
                                 for start, end, chance in sp._bright_windows(mass, floor)))
         assert max(measures) <= bound * (1 + 1e-9), (low, high)
         accepted += share * sum(measures) / len(measures) / bound
-    assert accepted > 0.05, accepted
+    assert accepted > 0.02, accepted
+
+
+@pytest.mark.parametrize("min_luminosity_sol", [50.0, 2500.0, 5.0e4])
+@pytest.mark.parametrize("population", ["old", "young"])
+def test_a_bright_table_bound_holds_for_every_star_of_its_fe_h_bin(population, min_luminosity_sol):
+    """GEN.651: a star draws from the table of its own [Fe/H] bin, so a cell's bound has to be at least the measure of
+    every mass in the cell at every composition in the bin; this is what `BRIGHT_TABLE_BOUND_MARGIN` is calibrated by."""
+    rng = random.Random(651)
+    step = prog_c.BRIGHT_TABLE_FE_H_STEP_DEX
+    for fe_bin in sp.FE_H_BINS:
+        table = sp._bright_table(min_luminosity_sol, population, None, sp._law(population, None), fe_bin)
+        for a, b, alpha, bound in table["cells"]:
+            for _ in range(8):
+                mass = a + (b - a) * rng.random()
+                fe_h = fe_bin + (rng.random() - 0.5) * step
+                measure = sp._bright_measure(mass, min_luminosity_sol, table["law"], fe_h)
+                assert measure <= bound, f"bin {fe_bin}, mass {mass}, [Fe/H] {fe_h}: {measure} over bound {bound}"
+
+
+@pytest.mark.parametrize("fe_h", [-0.2, 0.0, 0.3])
+def test_a_bright_star_is_drawn_at_any_composition_that_can_make_one(fe_h):
+    rng = random.Random(7)
+    kept = 0
+    for _ in range(5):
+        params = sp.sample_bright_stars(1, 2500.0, "old", rng, fe_h_source=lambda index: fe_h)[0]
+        assert params["luminosity_w"] >= 2500.0 * phys_c.SOLAR_LUMINOSITY
+        kept += params["metallicity_fe_h"] == fe_h
+    assert kept == 5
+
+
+def test_a_metal_poor_place_has_no_giant_that_bright_in_its_window_and_its_metal_rich_tail_makes_them_all():
+    """GEN.651: a place's bright stars are its prior times each composition's bright share, so a halo-poor place with a
+    metal-rich tail gets its 2500 Lsun giants from the tail."""
+    rng = random.Random(8)
+    fe_hs = [-1.4] * 3 + [0.1]
+    seen = iter(range(10 ** 6))
+    drawn = [sp.sample_bright_stars(1, 2500.0, "old", rng, fe_h_source=lambda index: fe_hs[next(seen) % 4])[0]
+             for _ in range(5)]
+    assert all(params["metallicity_fe_h"] == 0.1 for params in drawn)

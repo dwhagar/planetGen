@@ -375,6 +375,12 @@
       "epoch": 76,
       "first_release": "8.0.2166",
       "reason": "A rogue planet's frozen nitrogen air follows the one saturation curve and a world's water boils where the one water curve says, instead of each holding its own Clausius-Clapeyron constants (GEN.632)"
+    },
+    {
+      "epoch": 77,
+      "first_release": null,
+      "pending": true,
+      "reason": "Every star draws its birth [Fe/H] first, from its population at its place, and its main-sequence lifetime, subgiant and giant branch and horizontal-branch colour follow that composition; the bright-star sampler draws a place's compositions in proportion to the stars each can make, so every star's mass, age, type and companions change and a composition draw moves ahead of the star's other draws (GEN.651)"
     }
   ]
 }

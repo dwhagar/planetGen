@@ -52,7 +52,8 @@ import math
 
 import numpy as np
 
-from planetgen.physics import constants, metallicity
+from planetgen.physics import constants
+from planetgen.physics.stellar_evolution import birth_fe_h
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
@@ -236,17 +237,33 @@ def _finite_or_none(value):
     return value if value is None or math.isfinite(value) else None
 
 
-def star_fe_h(population, point, seed, params=None):
-    """A bright star's [Fe/H] (GEN.158): drawn from its population and its distance from the galactic centre (its
-    stored point, whole milliparsecs), on a stream of its own seed so no scatter draw moves. `None` for a cluster
-    or satellite star, which carries its component's value (GEN.159, GEN.237). A horizontal-branch star keeps the
-    [Fe/H] its colour was drawn from (`params["metallicity_fe_h"]`, GEN.286)."""
+def star_fe_h(population, params):
+    """A bright star's [Fe/H] (GEN.158): the birth one its place drew before the star (`birth_fe_h`, GEN.651; the
+    star's lifetimes and giant branch follow it), which `params` carries. `None` for a cluster or satellite star,
+    which carries its component's value (GEN.159, GEN.237)."""
     if population in POPULATIONS_IN_THE_GATE:
         return None
-    if params is not None and params.get("metallicity_fe_h") is not None:
-        return params["metallicity_fe_h"]
-    distance_ly = pc_to_ly(math.sqrt(sum((value / MPC_PER_PC) ** 2 for value in point)))
-    return metallicity.sample_fe_h(population, distance_ly, draw.Stream(f"metallicity:bright:{seed}"))
+    return params["metallicity_fe_h"]
+
+
+def spot_fe_h(population, spots, rng):
+    """The birth [Fe/H] source of the stars placed at `spots` (each ends in its point, whole milliparsecs), for
+    `sample_bright_stars`' `fe_h_source`: a draw from the population at the spot's distance from the galactic centre
+    (GEN.651). `None` for a population in the gate, whose stars take their component's value."""
+    if population in POPULATIONS_IN_THE_GATE:
+        return None
+
+    def source(index):
+        distance_ly = pc_to_ly(math.sqrt(sum((value / MPC_PER_PC) ** 2 for value in spots[index][-1])))
+        return birth_fe_h(rng, population, None, distance_ly)
+    return source
+
+
+def center_fe_h(population, center_pc, rng):
+    """The birth [Fe/H] source of stars drawn before they are placed in the cell centred at `center_pc` (a backfill),
+    for `fe_h_source`: a draw from `population` at the centre's distance from the galactic centre (GEN.651)."""
+    distance_ly = pc_to_ly(math.sqrt(sum(value ** 2 for value in center_pc)))
+    return lambda index: birth_fe_h(rng, population, None, distance_ly)
 
 
 def _row(shell_index, band_index, wedge, point, population, params, rng):
@@ -259,7 +276,7 @@ def _row(shell_index, band_index, wedge, point, population, params, rng):
         population, params["type"], params["yerkes_class"], params["mass_kg"],
         params["radius_km"], params["temperature_k"], params["luminosity_w"],
         params["age_gy"], _finite_or_none(params["lifespan_gy"]), params["initial_mass_sol"],
-        _finite_or_none(params["phase_end_age_gy"]), seed, star_fe_h(population, point, seed, params),
+        _finite_or_none(params["phase_end_age_gy"]), seed, star_fe_h(population, params),
     )
 
 
@@ -739,7 +756,7 @@ def draw_placed(placed, pass_bands, rng, on_progress=None, base=0.0, age_laws=No
                 continue
             stars = sample_bright_stars(len(spots), band.min_luminosity_sol, population, rng,
                                         max_luminosity_sol=band.max_luminosity_sol, mass_range=band.mass_range,
-                                        age_laws=age_laws)
+                                        age_laws=age_laws, fe_h_source=spot_fe_h(population, spots, rng))
             for (shell_index, band_index, wedge, point), params in zip(spots, stars):
                 drawn += 1
                 if on_progress is not None:
@@ -833,7 +850,7 @@ def scatter_shell(shape, shell_index, high_band, edge_pc, expected_at_density_1,
                 continue
             stars = sample_bright_stars(len(spots), band.min_luminosity_sol, population, rng,
                                         max_luminosity_sol=band.max_luminosity_sol, mass_range=band.mass_range,
-                                        age_laws=age_laws)
+                                        age_laws=age_laws, fe_h_source=spot_fe_h(population, spots, rng))
             for (band_index, wedge, point), params in zip(spots, stars):
                 drawn += 1
                 if on_progress is not None:
@@ -902,11 +919,12 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
                      for population in SCATTERED_POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
                 continue
+            center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
             if candidates is not None:
                 for row in _candidate_rows(candidates, address, means, seed, k, edge_pc,
                                            lambda population, rng, low=low, high=high: sample_bright_stars(
                                                1, low, population, rng, max_luminosity_sol=high, mass_range=mass_range,
-                                               age_laws=age_laws)):
+                                               age_laws=age_laws, fe_h_source=center_fe_h(population, center, rng))):
                     if _in_range(row, min_luminosity_sol, max_luminosity_sol):
                         yield row
                 continue
@@ -918,7 +936,8 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
                 if not count:
                     continue
                 for params in sample_bright_stars(count, low, population, rng, max_luminosity_sol=high,
-                                                  mass_range=mass_range, age_laws=age_laws):
+                                                  mass_range=mass_range, age_laws=age_laws,
+                                                  fe_h_source=center_fe_h(population, center, rng)):
                     for _ in range(SLOT_REDRAWS):
                         point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
                         if point is not None:
@@ -1263,11 +1282,12 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
                      for population in SCATTERED_POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
                 continue
+            center = sector_position_pc(shell_index, band_index, wedge, edge_pc)
             if candidates is not None:
                 yield from _candidate_rows(candidates, address, means, seed, f"m{low:g}", edge_pc,
                                            lambda population, rng, low=low, high=high: sample_mass_band_stars(
                                                1, low, high, population, rng, max_luminosity_sol=max_luminosity_sol,
-                                               age_laws=age_laws))
+                                               age_laws=age_laws, fe_h_source=center_fe_h(population, center, rng)))
                 continue
             rng = draw.Stream(f"{seed}:{shell_index}:{band_index}:{wedge}:m{low:g}")
             for population in SCATTERED_POPULATIONS:
@@ -1277,7 +1297,8 @@ def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target
                 if not count:
                     continue
                 for params in sample_mass_band_stars(count, low, high, population, rng,
-                                                     max_luminosity_sol=max_luminosity_sol, age_laws=age_laws):
+                                                     max_luminosity_sol=max_luminosity_sol, age_laws=age_laws,
+                                                     fe_h_source=center_fe_h(population, center, rng)):
                     for _ in range(SLOT_REDRAWS):
                         point = _point_in_cell(rng, shell_index, band_index, wedge, edge_pc)
                         if point is not None:

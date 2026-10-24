@@ -19,7 +19,8 @@ def test_warm_imports_the_task_modules_and_builds_the_tables():
     worker.warm([redisqueue.GENERATION_QUEUE])
     for name in worker.WARM_MODULES:
         assert name in sys.modules
-    assert star_population._bright_table.cache_info().currsize == len(star_population.POPULATIONS)
+    assert star_population._bright_table.cache_info().currsize == (
+        len(star_population.POPULATIONS) * len(star_population.FE_H_BINS))
 
 
 def test_a_queue_that_is_not_generation_gets_no_tables():
@@ -30,10 +31,10 @@ def test_a_queue_that_is_not_generation_gets_no_tables():
 
 def test_a_warm_table_is_the_table_a_cold_call_builds():
     star_population._bright_table.cache_clear()
-    cold = star_population._bright_table(1000.0, star_population.POPULATIONS[0])
+    cold = star_population._bright_table(1000.0, star_population.POPULATIONS[0], None, None, -0.5)
     star_population._bright_table.cache_clear()
     worker.warm()
-    assert star_population._bright_table(1000.0, star_population.POPULATIONS[0]) == cold
+    assert star_population._bright_table(1000.0, star_population.POPULATIONS[0], None, None, -0.5) == cold
 
 
 def test_the_worker_notices_a_release_change():
