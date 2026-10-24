@@ -37,6 +37,7 @@ import math
 from planetgen import tuning
 from planetgen.generation import companion_classes, place_terms
 from planetgen.physics.planets import calculate_orbital_period_years
+from planetgen.physics.system_tree import node_relative_au
 from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star
@@ -182,9 +183,14 @@ class WideBinaryPair:
             self.inclination_deg = orbit.inclination_deg
             self.ascending_node_deg = orbit.ascending_node_deg
             self.phase_deg = orbit.mean_anomaly_deg
-        self.position_x_au, self.position_y_au, self.position_z_au = orbital_position_au(
-            self.separation_au, self.inclination_deg, self.ascending_node_deg, self.phase_deg
-        )
+        if orbit is None:
+            self.position_x_au, self.position_y_au, self.position_z_au = orbital_position_au(
+                self.separation_au, self.inclination_deg, self.ascending_node_deg, self.phase_deg
+            )
+        else:
+            # A pair built from a tree sits where its node puts the secondary (the real ellipse, GEN.709), not on the
+            # circle the phase is tracked by.
+            self.position_x_au, self.position_y_au, self.position_z_au = node_relative_au(orbit, orbit.epoch_unix)
 
         # Each star's own offset from the pair's barycenter (AU) -- see
         # binary.BinaryStarProxy.__init__'s identical comment for why

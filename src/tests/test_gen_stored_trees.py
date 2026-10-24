@@ -148,9 +148,13 @@ def test_a_pair_is_the_stored_stars_on_the_stored_orbit(kind):
     (node,) = system.orbit_nodes
     # the same epoch, so the very same orbit, numbered from 0 and of the kind the pair builds as
     # (a P-type pair is tracked on a circle)
-    assert node == dataclasses.replace(stored.nodes[0], node_no=0, kind=kind,
-                                       eccentricity=0.0 if kind == "close" else min(
-                                           stored.nodes[0].eccentricity, tuning.WIDE_BINARY_ECCENTRICITY_MAX * (1.0 - 1.0e-9)))
+    # (its angle from the ascending node is the argument of periapsis plus the anomaly, GEN.709)
+    first = stored.nodes[0]
+    assert node == dataclasses.replace(
+        first, node_no=0, kind=kind,
+        **({"eccentricity": 0.0, "arg_periapsis_deg": 0.0,
+            "mean_anomaly_deg": (first.mean_anomaly_deg + first.arg_periapsis_deg) % 360.0} if kind == "close" else
+           {"eccentricity": min(first.eccentricity, tuning.WIDE_BINARY_ECCENTRICITY_MAX * (1.0 - 1.0e-9))}))
     pair = system.star if kind == "close" else system.wide_binary
     if kind == "close":
         assert pair.binary_separation_au * constants.AU_TO_KM == pytest.approx(node.separation_km)
