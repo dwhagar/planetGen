@@ -24,14 +24,17 @@ import math
 from planetgen.generation.belt import format_composition_summary
 from planetgen.generation.config import SystemConfig
 from planetgen import tuning
-from planetgen.physics import constants as pc, small_body_composition
+from planetgen.physics import small_body_composition
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.mass_object import GALACTIC_MOTION_UNITS
 from planetgen.generation.small_body import SmallBody
+from planetgen.physics import unit_registry as units
+
+_ly_to_au = units.converter("ly", "au")
 
 
-AU_PER_LY = pc.LIGHTYEAR_M / pc.AU_M
+AU_PER_LY = _ly_to_au(1.0)
 """float: Astronomical units in one light-year, exact from the two definitions in `physics/constants.py` (GEN.572), for
 the size digit."""
 

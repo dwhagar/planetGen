@@ -34,6 +34,9 @@ from planetgen.generation.planetary_object import PlanetaryObject
 from planetgen.generation.small_body import SmallBody
 from planetgen.util.format import format_flux_w_m2, format_number
 from planetgen.util.random import sample_power_law
+from planetgen.physics import unit_registry as units
+
+_m_to_km = units.converter("m", "km")
 
 
 def format_comet_composition_summary(composition):
@@ -234,8 +237,8 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             # made without a place has the whole disk's window.
             brown_dwarf_age_gy = sample_star_age_gy(
                 system_config.AGE, draw, getattr(system_config, "POPULATION", None), getattr(system_config, "AGE_LAW", None))
-            self.radius_km = brownDwarf.radius_sol(self.mass_kg / constants.SOLAR_MASS_TO_KG, brown_dwarf_age_gy) \
-                * constants.SOLAR_RADIUS_M / constants.KM_TO_M_FACTOR
+            self.radius_km = _m_to_km(
+                brownDwarf.radius_sol(self.mass_kg / constants.SOLAR_MASS_TO_KG, brown_dwarf_age_gy) * constants.SOLAR_RADIUS_M)
             self.composition = (
                 "hydrogen and helium, a failed star that briefly fused deuterium and now glows faintly "
                 "in the infrared as it cools"

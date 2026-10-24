@@ -54,6 +54,12 @@ import math
 from planetgen import tuning
 from planetgen.physics import activity, constants
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_h_to_s = units.converter("h", "s")
+_yr_to_s = units.converter("yr", "s")
+_km_to_m = units.converter("km", "m")
+_au_to_m = units.converter("au", "m")
 
 BODY_FIELDS = (
     "magnetic_moment_a_m2", "dipole_class", "induced_moment_a_m2", "magnetopause_rp",
@@ -219,8 +225,8 @@ def synodic_period_s(parent_rotation_hours, orbital_period_years):
     the parent turns with the moon (tidally locked: nothing oscillates)."""
     if not parent_rotation_hours or not orbital_period_years:
         return None
-    rate = abs(1.0 / (parent_rotation_hours * 3600.0)
-               - 1.0 / (orbital_period_years * constants.SECONDS_PER_YEAR))
+    rate = abs(1.0 / _h_to_s(parent_rotation_hours)
+               - 1.0 / _yr_to_s(orbital_period_years))
     return 1.0 / rate if rate > 1e-12 else None
 
 
@@ -254,16 +260,16 @@ def generate_induced_field(moon, parent):
     moon.induced_moment_a_m2 = 0.0
     if getattr(moon, "hydrosphere", None) not in INDUCTION_HYDROSPHERES:
         return
-    depth_m = (getattr(moon, "ocean_depth_km", None) or 0.0) * 1000.0
+    depth_m = _km_to_m(getattr(moon, "ocean_depth_km", None) or 0.0)
     if depth_m <= 0.0:
         return
     parent_moment = (getattr(parent, "magnetic_moment_a_m2", None) or 0.0) * body_dipole_share(parent)
     synodic = synodic_period_s(getattr(parent, "rotation_period_hours", None), moon.period)
-    radius_m = moon.radius * 1000.0
-    shell_radius_m = max(radius_m - (getattr(moon, "ice_shell_km", None) or 0.0) * 1000.0, 0.0)
+    radius_m = _km_to_m(moon.radius)
+    shell_radius_m = max(radius_m - _km_to_m(getattr(moon, "ice_shell_km", None) or 0.0), 0.0)
     conductivity = OCEAN_CONDUCTIVITY_S_M.get(getattr(moon, "ocean_class", None), OCEAN_CONDUCTIVITY_S_M[None])
     moon.induced_moment_a_m2 = induced_moment(
-        parent_moment, moon.distance * constants.AU_TO_M, synodic, radius_m, conductivity * depth_m, shell_radius_m)[0]
+        parent_moment, _au_to_m(moon.distance), synodic, radius_m, conductivity * depth_m, shell_radius_m)[0]
 
 
 PULSING_TYPES = ("young", "millisecond", "magnetar")
@@ -272,7 +278,7 @@ PULSING_TYPES = ("young", "millisecond", "magnetar")
 def pulsar_wind_pressure_pa(edot_w, distance_au):
     """The momentum flux of a pulsar wind that carries a spin-down power `edot_w`, Pa, at `distance_au`:
     `xi Edot / (4 pi r^2 c)` (GEN.317)."""
-    distance_m = distance_au * constants.AU_TO_M
+    distance_m = _au_to_m(distance_au)
     return tuning.PULSAR_WIND_XI * edot_w / (4 * math.pi * distance_m ** 2 * constants.SPEED_OF_LIGHT_M_S)
 
 
@@ -285,7 +291,7 @@ def wind_pressure_pa(star, distance_au):
             or getattr(star, "log_lx_lbol", None) is None):
         return EARTH_WIND_PA / distance_au ** 2
     l_x = 10 ** star.log_lx_lbol * star.luminosity
-    radius_ratio = constants.SOLAR_RADIUS_M / (star.radius * 1000.0)
+    radius_ratio = constants.SOLAR_RADIUS_M / _km_to_m(star.radius)
     surface_flux = (l_x / SOLAR_LX_W) * radius_ratio ** 2
     mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
     cap = M_DWARF_WIND_CAP if mass_sol < M_DWARF_WIND_MASS else WIND_CAP_SOLAR

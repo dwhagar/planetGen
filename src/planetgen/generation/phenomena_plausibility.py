@@ -51,6 +51,8 @@ from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant, s
 from planetgen.util.random import power_law_share
 from planetgen.physics import unit_registry as units
 
+_ly_to_au = units.converter("ly", "au")
+
 _km_to_m = units.converter("km", "m")
 
 PHENOMENON_TYPES = prog_c.PHENOMENON_TYPE_CHOICES
@@ -79,7 +81,7 @@ shared list, since these seven types share almost no metric names."""
 # inside it from ROGUE_PLANET_MASS_FUNCTION_SLOPE's power law). Computed here (not hand-picked) so it stays
 # correct if any of those constants ever changes.
 
-_AU_PER_LY = pc.LIGHTYEAR_M / pc.AU_M
+_AU_PER_LY = _ly_to_au(1.0)
 """float: Astronomical units per light-year, exact from `physics/constants.py` (GEN.572), for asteroid field size digits."""
 
 def _freely_drawn(data):

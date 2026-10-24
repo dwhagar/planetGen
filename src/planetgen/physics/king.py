@@ -24,6 +24,10 @@ from scipy.special import erf
 
 from planetgen import tuning
 from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
+
+_km_to_m = units.converter("km", "m")
+_pc_to_m = units.converter("pc", "m")
 
 _X_FIRST = 1e-3
 """float: The first radius of a table, in King radii; the centre (mass 0) is added before it."""
@@ -154,8 +158,8 @@ def jacobi_radius_pc(mass_solar, galactocentric_pc):
     """The largest radius a cluster of `mass_solar` can keep at `galactocentric_pc` from the galactic centre (use the
     pericentre of an eccentric orbit): `R (M / (2 M_gal(<R)))^(1/3)` in an isothermal halo of circular speed
     `tuning.CLUSTER_HALO_CIRCULAR_KMS`, where `M_gal(<R) = v^2 R / G`."""
-    speed = tuning.CLUSTER_HALO_CIRCULAR_KMS * 1e3
-    radius_m = galactocentric_pc * constants.PARSEC_M
+    speed = _km_to_m(tuning.CLUSTER_HALO_CIRCULAR_KMS)
+    radius_m = _pc_to_m(galactocentric_pc)
     galaxy_mass = speed * speed * radius_m / constants.G / constants.SOLAR_MASS_TO_KG
     return galactocentric_pc * (mass_solar / (2.0 * galaxy_mass)) ** (1.0 / 3.0)
 

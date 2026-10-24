@@ -53,6 +53,13 @@ from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
 from planetgen.physics.orbits import calculate_habitable_zone
 from planetgen.physics.remnant_progenitors import collapse_age_gy
 from planetgen.util.random import log_uniform
+from planetgen.physics import unit_registry as units
+
+_kms_to_ms = units.converter("km_s", "m_s")
+_m_to_au = units.converter("m", "au")
+_au_to_pc = units.converter("au", "pc")
+_ly_to_au = units.converter("ly", "au")
+_km_to_m = units.converter("km", "m")
 
 
 
@@ -314,8 +321,8 @@ class BlackHole(CompactRemnant):
             # sphere of influence (G*M / sigma^2), not a galactic Hill sphere.
             (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
              self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = None, None, None, None
-            sigma_m_s = galaxyStructure.black_hole_dispersion_kms(self.mass_solar) * 1000
-            self.system_perimeter = constants.G * self.mass / sigma_m_s ** 2 / constants.AU_TO_M
+            sigma_m_s = _kms_to_ms(galaxyStructure.black_hole_dispersion_kms(self.mass_solar))
+            self.system_perimeter = _m_to_au(constants.G * self.mass / sigma_m_s ** 2)
 
     @property
     def mass_class_label(self):
@@ -379,7 +386,7 @@ class NeutronStar(CompactRemnant):
         chance = math.exp(-self.age * 1e9 / tuning.PULSAR_ACTIVE_LIFETIME_YR) * tuning.PULSAR_RATE_SCALE
         if not self.galactic_center_dist_ly:
             return min(1.0, chance)
-        radius_pc = self.galactic_center_dist_ly * constants.LY_TO_AU / constants.AU_PER_PARSEC
+        radius_pc = _au_to_pc(_ly_to_au(self.galactic_center_dist_ly))
         return min(1.0, chance * pulsar_radial_factor(radius_pc))
 
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,
@@ -443,7 +450,7 @@ class NeutronStar(CompactRemnant):
         # dwarf branch and calculate_heliosphere both already lean on
         # elsewhere in this package -- a neutron star's small radius keeps
         # this a tiny fraction of Sol's luminosity even at its hottest.
-        radius_m = self.radius * constants.KM_TO_M_FACTOR
+        radius_m = _km_to_m(self.radius)
         self.luminosity = (
             constants.STEFAN_BOLTZMANN_CONSTANT * 4 * math.pi * radius_m ** 2
             * self.surface_temperature_k ** 4

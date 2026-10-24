@@ -41,6 +41,9 @@ from planetgen.db import orbit_trees, query
 from planetgen.physics import constants
 from planetgen.web.maps.starmap import star_color
 from planetgen.web.maps.systemmap import class_color
+from planetgen.physics import unit_registry as units
+
+_au_to_km = units.converter("au", "km")
 
 
 def _xyz(row, prefix="position_", suffix="_km"):
@@ -107,7 +110,7 @@ def _stars(conn, system_id, stars, row):
                 "secondary_mass_fraction": row["binary_secondary_mass_fraction"],
             }
         elif star["role"] == "member":    # GEN.630: a star beyond the pair, at the offset its row stores
-            item["position_km"] = [(offsets[star["id"]][f"offset_{axis}_au"] or 0.0) * constants.AU_TO_KM
+            item["position_km"] = [_au_to_km(offsets[star["id"]][f"offset_{axis}_au"] or 0.0)
                                    for axis in "xyz"]
         elif row["is_binary"] and row["binary_configuration"] == "close":
             item["position_km"] = primary_xyz

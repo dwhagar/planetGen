@@ -42,8 +42,11 @@ import numpy as np
 
 from planetgen.galaxy import spherical
 from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
 
-DEFAULT_SOFTENING_M = constants.PARSEC_M
+_pc_to_m = units.converter("pc", "m")
+
+DEFAULT_SOFTENING_M = _pc_to_m(1.0)
 """float: Plummer softening length of a point mass, 1 pc."""
 
 DEFAULT_TOLERANCE_FRACTION = 2.0e-3
