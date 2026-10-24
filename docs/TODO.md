@@ -12837,6 +12837,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   validity range and falsifier test, so none is silent. Done: every
   constant above has a registry row. Owner: Core 4 (it knows the
   values).
+  Research (2026-10-09, Tier and tweak level): Update 3:41 PM EDT
+  2026-10-24 (Boss, via the coordinator): every registry row now also
+  records a source tier (Verified down to Educated guess based on needed
+  output) and a tweak level; see GEN.725. Record both here when
+  registering.
   Prerequisites: none. Related: GEN.271, GEN.675.
 
 - [ ] **GEN.708 White dwarf merger products draw their 0.8 to 1.1 solar mass bump: the star model gives the white dwarf its mass before the member tree, so the tree only flags 10 percent as merger products**
@@ -12872,6 +12877,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a registry row. Owner: the class lane (it knows the values).
   Prerequisites: none. Related: GEN.650, GEN.646, GEN.509, GEN.510,
   GEN.675.
+  Research (2026-10-09, Tier and tweak level): Update 3:41 PM EDT
+  2026-10-24 (Boss, via the coordinator): every registry row now also
+  records a source tier (Verified down to Educated guess based on needed
+  output) and a tweak level; see GEN.725. Record both here when
+  registering.
 
 - [ ] **GEN.714 Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug)**
   Found by Habitability lane K (8:56 AM EDT 2026-10-24, as the lane
@@ -13058,7 +13068,46 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   listed, a test that no tuning constant of the item is missing from the
   registry. Owner: pool (first free lane with gap-registry experience,
   Lane L did GEN.675).
+  Research (2026-10-09, Tier and tweak level): Update 3:41 PM EDT
+  2026-10-24 (Boss, via the coordinator): every registry row now also
+  records a source tier (Verified down to Educated guess based on needed
+  output) and a tweak level; see GEN.725. Record both here when
+  registering.
   Prerequisites: none. Related: GEN.272, GEN.675.
+
+- [ ] **GEN.725 Stand-in values carry a source tier and a tweak level: two new columns in the gap plan registry and one document in docs listing every stand-in, where it came from, its tier and how far it was tuned for outcome**
+  Boss, 3:40 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi6t7ZkqguwGhLAkNu9m7G3P, in the physics
+  gaps thread, relayed by the coordinator): for the gaps that have
+  stand-in values, the stand-ins may be used to tweak the outcome, and
+  are to be based on as much real information as possible. Source tiers,
+  in order: (1) Verified; (2) Confident Unverified; (3) Marginal
+  Unverified; (4) Unverified; (5) Confident educated guess based on
+  physics; (6) Marginal educated guess based on physics; (7) Educated
+  guess based on inferred physics; (8) Educated guess based on reputable
+  fringe or new physics (theories not yet tested); (9) Educated guess
+  based on needed output (full tweak to match outcomes). In every tier,
+  an unverified or guessed value may be tweaked to fit the probabilities
+  we want to see. Boss also wants 'a full list document in docs of all
+  stand in values, where they came from, and a kind of tweak level (how
+  much are they tweaked for outcome vs left as they were envisioned)'.
+  Do: (a) add two columns to the gap plan registry, source tier (one of
+  the nine above) and tweak level (a short scale such as 0 as
+  envisioned, 1 nudged within its source range, 2 moved outside its
+  range to hit an outcome, 3 set from the outcome alone); (b) give every
+  existing registry row both values, from its evidence label and the
+  item that tuned it; (c) write the document
+  docs/design/stand-in-values.md listing every stand-in value (name,
+  value, where it came from, tier, tweak level, validity range, test,
+  replacing item), generated from the registry where possible so it
+  cannot drift, and list it in docs/design/README.md; (d) a test that
+  every registry row has both columns filled. Rule from now on: a lane
+  that adds a stand-in records its tier and tweak level in the same PR.
+  Coordinate with the read-only physics gaps thread, which is compiling
+  the gaps. Owner: pool (the lane that did GEN.675, Lane L, knows the
+  registry; otherwise the first free atmosphere lane). Related: GEN.675,
+  GEN.707, GEN.711, GEN.724.
+  Prerequisites: none. Related: GEN.675, GEN.707, GEN.711, GEN.724.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
