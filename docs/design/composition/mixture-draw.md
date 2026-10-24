@@ -1,7 +1,7 @@
 # The atmosphere mixture of a body: from regimes to mole fractions (GEN.451, GEN.479, GEN.454, GEN.499)
 
-Status: every family implemented and tested (`physics/mixture_draw.py`, `draw_mixture`), not yet called by the generator. Lane I
-(GEN.411) stores the result and owns the pressure. The trace and minor gases of table `m` are drawn after the life stage by
+Status: every family implemented and tested (`physics/mixture_draw.py`, `draw_mixture`) and called by the generator since GEN.411 (the fixed point
+of `physics/surface_air.py` replays it at every step). Lane I stores the result and owns the pressure. The trace and minor gases of table `m` are drawn after the life stage by
 `physics/mixture_trace.py` (`draw_trace_gases`, which adds N2O, PH3, HCl, HF, NO2 and CH3Cl at stand-in amounts where the rows draw them
 present); the ozone rows are lane F's.
 
@@ -15,7 +15,7 @@ present); the ozone rows are lane F's.
 | Regimes to mole fractions of the gases of the table | this | `physics/mixture_draw.py`, `draw_mixture` |
 | The subject of a generated body: the quantities the tables and the chemistry read, built from its stored fields and its star | GEN.756 | `physics/mixture_subject.py`, `subject_of_body` |
 | What an ocean takes out of the drawn air: the water vapour cap and the sulfur uptake | GEN.757 | `physics/mixture_sinks.py`, `apply_ocean_sinks` |
-| Total pressure, freeze-out of what the surface condenses, sum of partials = pressure, storage, accessor | lane I | GEN.411, GEN.422 |
+| Total pressure, freeze-out of what the surface condenses, sum of partials = pressure, storage, accessor | lane I | GEN.411, GEN.422: `physics/surface_air.py`, `physics/atmosphere.py` (built 2026-10-24) |
 | Clouds, hazes, ozone | lanes G and F | GEN.414, GEN.413 |
 
 A class letter is never an input to the chemistry. The recipe tables say which regime applies; the composition is what the element
@@ -125,10 +125,11 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
   family; it is now `airless` (an asteroid still goes on to the rocky rows). (2) In a group whose fallback is `none` (j, k) the weights
   are probabilities of occurrence, not shares: a lone row of weight 0.1 is drawn one time in ten, and a frost row 100 K outside its
   window is no longer normalised to 1 (frost was drawn at 181 K); `c_j1` and `c_j5` now mean what their brackets say (the share of
-  eligible worlds that are Venus-like and that keep abiotic oxygen). (3) A body with an ocean and a long-lived geology keeps only the
-  share `INVENTORY["weathering_sink"]` (1e-5 to 1e-2, log; Earth keeps about 1.5e-5 of its near-surface carbon in the air) of the
-  outgassed carbon and sulfur, the nitrogen, argon and water staying: an Earth-like draw is nitrogen with some water and a little CO2
-  instead of a carbon dioxide and sulfur air (the water is capped by its saturation, `mixture_sinks`, GEN.757).
+  eligible worlds that are Venus-like and that keep abiotic oxygen). (3) A body with an ocean and a long-lived geology kept only a
+  share of the outgassed carbon and sulfur (`INVENTORY["weathering_sink"]`, 1e-5 to 1e-2): GEN.411 removed that bracket, and the sinks are
+  now the carbonate-silicate balance (GEN.726, `surface_pressure`) and the ocean's uptake of sulfur (`mixture_sinks`, GEN.757, and
+  `surface_air.SULFUR_SURFACE_KEPT`), which `surface_air` passes to the draw as `supply`, a callable from the inventory to the share of each
+  element degassed (see `surface-pressure-supply-law.md` section 6).
 - Gaps that stay, each with its reason (GEN.674 items 3, 5 and 6; the filed finding numbers are in the item): rows `j3` and `j4` are
   gated on the retention rows `d4` and `d5`, and the shoreline (a fit to hot rocky exoplanets, extrapolated to an escape speed of 1.2
   km/s) gives a Pluto-like body `d1` (airless), so the Pluto-like family is never drawn for it. Boss decided (fork 7, 10-18) that
@@ -136,7 +137,7 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
   supply against hydrodynamic escape) is not built, and changing the gate without it would be a design flag, which he ruled out. The
   gas table lacks Al, K2, KO, K2O and Na2O for the lava vapour: the table is generated from the research parts 01 and 03, so the
   rows belong there first; until then a hot melt that makes more than `UNLISTED_LIMIT` of them is refused by name.
-- Design brackets this module added, each to be replaced by the research item named: `INVENTORY["weathering_sink"]` (GEN.481), `WATER_RESIDUAL`, `SULFUR_SINK`,
+- Design brackets this module added, each to be replaced by the research item named: `WATER_RESIDUAL`, `SULFUR_SINK`,
   `WATER_PHOTOLYSED`, `OCEAN_WATER_WT_PERCENT`, `CARBON_PER_OCEAN_WATER`, `OXYGEN_SINK`, `TITAN_HUMIDITY`, `TITAN_HYDROGEN`, `FROST_ICE`
   (`mixture_evolved`; GEN.481 and the ice composition item), `ALKALI_ACTIVITY_COEFFICIENT` and `COMPOSITION_SCATTER` (`mixture_lava`; the
   melt activity model of GEN.499 and the bulk composition of lane J), the k1 to k3 ordering rule of the coma.

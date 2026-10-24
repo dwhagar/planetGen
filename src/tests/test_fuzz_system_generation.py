@@ -719,7 +719,6 @@ HELPERS = {
     "true_anomaly_and_distance_parabolic": (km.true_anomaly_and_distance_parabolic, (1.0, 1.0)),
     "vis_viva_speed_kms": (km.vis_viva_speed_kms, (1.0, 1.0, 1.0)),
     "_activity_chance": (cometData._activity_chance, (1.0,)),
-    "_atmosphere_retention_factor": (pp._atmosphere_retention_factor, (1.0,)),
     "_sample_evolved_star_mass_sol": (starData._sample_evolved_star_mass_sol, (1.0, 5.0)),
     "_calculate_heliosphere_radius_static": (
         Star._calculate_heliosphere_radius_static, (M_SUN, L_SUN, 696000.0, "G2V", "V")),

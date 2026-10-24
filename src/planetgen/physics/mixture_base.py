@@ -53,6 +53,9 @@ class MixtureDraw:
         recipe (RecipeDraw or None): The recipe draw the mixture followed (set by `mixture_draw.draw_mixture`).
         unlisted (dict): Species the equilibrium holds that the gas table does not (their mole fractions before the remainder was
             renormalised): atoms and radicals of a hot gas.
+        moles (float or None): The moles of gas the element budget makes, per 100 g of mantle (the scale of `inventory`: the elements it
+            holds as atoms per 100 g); `None` for a family whose pressure is not a supply (a giant's reference level, the vapour over a
+            melt or an ice). After the loss of the light gases (`mixture_escape`) it is what stays.
     """
 
     mole_fractions: dict
@@ -66,6 +69,7 @@ class MixtureDraw:
     condensed: dict = field(default_factory=dict)
     unlisted: dict = field(default_factory=dict)
     recipe: object = None
+    moles: float | None = None
 
 
 def bracket(constants, name, spec):
@@ -107,9 +111,10 @@ def to_gas_table(fractions):
     return listed, unlisted
 
 
-def finish(equilibrium, *, family, drawn, redox_diw, inventory, constants, condensed=None):
+def finish(equilibrium, *, family, drawn, redox_diw, inventory, constants, condensed=None, supplied=False):
     """
-    Closes a draw: the equilibrium's species as gas-table formulas, normalised, largest first.
+    Closes a draw: the equilibrium's species as gas-table formulas, normalised, largest first. `supplied` says the equilibrium's
+    abundances are an element supply per 100 g of mantle, so its total moles are the draw's `moles`.
 
     Raises:
         MixtureError: More than `UNLISTED_LIMIT` of the gas is species the gas table lacks.
@@ -129,4 +134,6 @@ def finish(equilibrium, *, family, drawn, redox_diw, inventory, constants, conde
         constants=constants,
         condensed=condensed or {},
         unlisted=unlisted,
+        moles=equilibrium.total_moles if supplied else None,
     )
+

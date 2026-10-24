@@ -23,7 +23,7 @@ STANDINS = (
     "mixture_evolved.TITAN_MAX_METHANE", "mixture_oxygen.INERT_FLOOR",
     "surface_pressure.PROCESSING_ENERGY_J_PER_KG", "surface_pressure.DEGAS_EFFICIENCY_H", "surface_pressure.DEGAS_EFFICIENCY",
     "surface_pressure.WEATHERING_ALPHA", "surface_pressure.WEATHERING_T_E_K", "surface_pressure.OUTGASSING_EXPONENT",
-    "surface_pressure.HEAT_FLUX_EARTH_W_M2",
+    "surface_pressure.HEAT_FLUX_EARTH_W_M2", "surface_air.LONG_LIVED_FLUX_FRACTION", "surface_air.RELATIVE_HUMIDITY", "surface_air.SULFUR_SURFACE_KEPT",
 )
 
 

@@ -17,6 +17,12 @@ from planetgen.generation.star import Star
 from planetgen.physics import constants, hydrosphere, orbits, runaway_history
 from planetgen.util import draw
 
+
+def _generate_hydrosphere(body, internal_flux_w_m2):
+    """`generate_hydrosphere` after the surface water is drawn, as `planets.calculate_atmospheric_conditions` does."""
+    return hydrosphere.generate_hydrosphere(body, internal_flux_w_m2, hydrosphere.draw_surface_water(body) if body.body_type != "g" else 0.0)
+
+
 EARTH_OCEAN_KG = hydrosphere.EARTH_OCEAN_KG if hasattr(hydrosphere, "EARTH_OCEAN_KG") else 1.4e21
 EARTH = (constants.EARTH_MASS_TO_KG, 6371.0)
 
@@ -153,7 +159,7 @@ def test_the_loss_comes_off_the_surface_first_and_the_mantle_gives_part_back(mon
     real = hydrosphere.water_layer_depth_km
     monkeypatch.setattr(hydrosphere, "water_layer_depth_km", lambda mass, radius, fraction: layers.append(fraction) or real(mass, radius, fraction))
     body = Body()
-    hydrosphere.generate_hydrosphere(body, 0.08)
+    _generate_hydrosphere(body, 0.08)
     # 1e-3 in all, half of it at the surface (buffer 2): the loss of 2e-4 is the surface's, and the mantle's 5e-4 gives back
     # its share (0.3, at most the loss), so 5e-4 - 2e-4 + 1.5e-4 = 4.5e-4 lies at the surface; the bulk water is the composition's and stays
     assert layers[0] == pytest.approx(5e-4 - 2e-4 + min(2e-4, tuning.MANTLE_OUTGAS_SHARE * 5e-4))

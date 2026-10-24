@@ -18,8 +18,8 @@ between two neighbouring bodies; a species with less than `LOST_BELOW` of it lef
 
 The exobase temperature is the stand-in `EXOBASE_RATIO` times the equilibrium temperature, scaled by the star's XUV to the power
 `XUV_EXPONENT`: a gas that radiates well in the infrared (carbon dioxide) keeps the thermosphere cold (Mars and Venus, 1.2 to 1.5 times
-the equilibrium temperature), an air of nitrogen and oxygen does not (Earth, 4 times). Pressure is not changed: the total comes from
-the pressure stage, which already carries the loss of the atmosphere (the cosmic shoreline of rows d).
+the equilibrium temperature), an air of nitrogen and oxygen does not (Earth, 4 times). The gas that leaves is taken out of the moles of
+the draw (`MixtureDraw.moles`), so the pressure the supply law gives (`surface_air`) is the pressure of what stays.
 """
 
 import dataclasses
@@ -92,8 +92,8 @@ def apply(subject, result):
         result (MixtureDraw): The family's mixture.
 
     Returns:
-        MixtureDraw: The mixture renormalised, with the share each species kept in `constants["escape_kept"]`; an empty mixture
-        (airless) if nothing stays.
+        MixtureDraw: The mixture renormalised, with the share each species kept in `constants["escape_kept"]` and the `moles` that
+        stay (the moles of each species times the share it kept); an empty mixture (airless) if nothing stays.
     """
     if result.family not in FAMILIES or not result.mole_fractions:
         return result
@@ -108,7 +108,9 @@ def apply(subject, result):
     total = sum(left.values())
     if total < LOST_TOTAL:
         total = 0.0
+    moles = None if result.moles is None else result.moles * total
     constants = {**result.constants, "exobase_k": exobase, "escape_kept": {f: round(k, 6) for f, k in kept.items() if k < 0.999999}}
     if total <= 0.0:
         return dataclasses.replace(result, mole_fractions={}, family="airless", constants=constants)
-    return dataclasses.replace(result, mole_fractions={formula: value / total for formula, value in left.items()}, constants=constants)
+    return dataclasses.replace(result, mole_fractions={formula: value / total for formula, value in left.items()}, constants=constants,
+                               moles=moles)

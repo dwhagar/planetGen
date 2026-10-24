@@ -185,6 +185,15 @@ def species(name):
     return SPECIES[name]
 
 
+BY_FORMULA = {row.formula: row for row in SPECIES.values() if not row.condensed}
+"""dict: Every gas by its formula as the gas table writes it (`"OCS"` for the database's `"COS"`)."""
+
+
+def gas(formula):
+    """The gas whose formula (as the gas table writes it) is `formula`; `KeyError` for a gas the file does not hold."""
+    return BY_FORMULA[formula]
+
+
 def g_over_rt(name, temperature_k):
     """The standard Gibbs energy over R T of species `name` at `temperature_k`."""
     return SPECIES[name].g_over_rt(temperature_k)

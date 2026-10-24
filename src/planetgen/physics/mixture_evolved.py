@@ -95,7 +95,7 @@ def _from_fractions(fractions, *, family, recipe, temperature_k, pressure_bar, i
         temperature_k=temperature_k, pressure_bar=pressure_bar, inventory=inventory, constants=constants)
 
 
-def evolved_oxidised(subject, recipe, row):
+def evolved_oxidised(subject, recipe, row, supply=None):
     """
     The gas of a Venus-like (`j1`), Mars-like (`j2`) or abiotic-oxygen (`j5`) body.
 
@@ -103,9 +103,11 @@ def evolved_oxidised(subject, recipe, row):
         subject (Subject): As `mixture_rocky.outgassed_mixture` reads.
         recipe (RecipeDraw): With the evolved row drawn in group `j`.
         row (str): `j1`, `j2` or `j5`.
+        supply (callable, optional): The share of each element of the delivered inventory that the surface holds
+            (`mixture_rocky.volcanic_gas`).
     """
     constants = {}
-    volcanic, redox, inventory = mixture_rocky.volcanic_gas(subject, recipe, constants)
+    volcanic, redox, inventory = mixture_rocky.volcanic_gas(subject, recipe, constants, supply)
     atoms = atoms_of(volcanic)
     held = None
     if row in ("j1", "j2"):
@@ -116,9 +118,9 @@ def evolved_oxidised(subject, recipe, row):
     else:
         ocean = 2.0 * bracket(constants, "ocean_water_wt_percent", OCEAN_WATER_WT_PERCENT) / mixture_rocky.AMU_G_MOL["H2O"]
         carbon = ocean / 2.0 * bracket(constants, "carbon_per_ocean_water", CARBON_PER_OCEAN_WATER)
-        scale = carbon / atoms["C"]
-        for symbol in ("C", "N", "S"):
-            atoms[symbol] *= scale          # nitrogen and sulfur stayed per carbon atom
+        for symbol in ("N", "S"):
+            atoms[symbol] = carbon * inventory[symbol] / inventory["C"]        # nitrogen and sulfur stayed per carbon atom
+        atoms["C"] = carbon
         atoms["H"] = atoms.get("H", 0.0) + ocean
         atoms["O"] += ocean / 2.0
         lost = atoms["H"] * bracket(constants, "water_photolysed", WATER_PHOTOLYSED)
@@ -127,24 +129,34 @@ def evolved_oxidised(subject, recipe, row):
     atoms = {symbol: value for symbol, value in atoms.items() if value > 0.0}
     result = mixture_rocky.cool(atoms, subject, constants, held_diw=held, quenched=False)
     draw_result = finish(result, family=FAMILY_OF_ROW[row], drawn={group: drawn.name for group, drawn in recipe.groups.items()},
-                         redox_diw=redox, inventory=inventory, constants=constants)
+                         redox_diw=redox, inventory=inventory, constants=constants, supplied=True)
     if row == "j5":
         capped = mixture_oxygen.cap_oxygen(draw_result.mole_fractions, mixture_oxygen.ABIOTIC_O2_MAX)
-        draw_result = dataclasses.replace(draw_result, mole_fractions=capped)
+        # The oxygen over the cap is the crust's: the other gases keep their moles, so the air is what they make at the new shares.
+        others = draw_result.moles * (1.0 - draw_result.mole_fractions.get("O2", 0.0))
+        draw_result = dataclasses.replace(draw_result, mole_fractions=capped, moles=others / (1.0 - capped.get("O2", 0.0)))
     return draw_result
 
 
-def titan_like(subject, recipe):
-    """The nitrogen-methane gas of a cold body with a thick air (`j3`), from the surface temperature and the pressure of the air."""
-    require(subject, ("ts_k", "pressure_bar"))
+def titan_like(subject, recipe, supply=None):
+    """
+    The nitrogen-methane gas of a cold body with a thick air (`j3`), from the surface temperature and the pressure of the air; its
+    moles are the nitrogen the surface holds (`supply` of the delivered inventory, as for the rocky family) over the nitrogen's share.
+    """
+    require(subject, ("ts_k", "pressure_bar", "age_gy"))
     constants = {}
+    inventory = mixture_rocky.rocky_inventory(subject, recipe, constants)
+    nitrogen = mixture_rocky.surface_budget(inventory, supply).get("N", 0.0)
+    if nitrogen <= 0.0:
+        raise NotApplicable("no nitrogen has reached the surface")
     temperature, pressure = subject["ts_k"], subject["pressure_bar"]
     humidity = bracket(constants, "methane_humidity", TITAN_HUMIDITY)
     methane = min(humidity * _saturation_bar("CH4", temperature) / pressure, TITAN_MAX_METHANE)
     hydrogen = bracket(constants, "hydrogen_fraction", TITAN_HYDROGEN)
     constants["methane_saturation_bar"] = _saturation_bar("CH4", temperature)
-    return _from_fractions({"N2": 1.0 - methane - hydrogen, "CH4": methane, "H2": hydrogen}, family="titan", recipe=recipe,
-                           temperature_k=temperature, pressure_bar=pressure, inventory={}, constants=constants)
+    result = _from_fractions({"N2": 1.0 - methane - hydrogen, "CH4": methane, "H2": hydrogen}, family="titan", recipe=recipe,
+                             temperature_k=temperature, pressure_bar=pressure, inventory=inventory, constants=constants)
+    return dataclasses.replace(result, moles=0.5 * nitrogen / result.mole_fractions["N2"])
 
 
 def frost_equilibrium(subject, recipe):
@@ -165,11 +177,11 @@ def frost_equilibrium(subject, recipe):
                            inventory=ice, constants=constants)
 
 
-def draw(subject, recipe, family):
+def draw(subject, recipe, family, supply=None):
     """The mixture of a body whose recipe drew an evolved or cold-body row (`family` is `FAMILY_OF_ROW`'s value for it)."""
     if family == "titan":
-        return titan_like(subject, recipe)
+        return titan_like(subject, recipe, supply)
     if family == "frost":
         return frost_equilibrium(subject, recipe)
     row = recipe.groups["j"].name
-    return evolved_oxidised(subject, recipe, row)
+    return evolved_oxidised(subject, recipe, row, supply)

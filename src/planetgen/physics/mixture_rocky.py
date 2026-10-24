@@ -38,7 +38,7 @@ import math
 from planetgen.physics import gas_equilibrium
 from planetgen.physics import oxygen_fugacity as fo2
 from planetgen.physics.atmosphere_recipes import RECIPES
-from planetgen.physics.mixture_base import MixtureError, atoms_of, bracket, finish, require
+from planetgen.physics.mixture_base import MixtureError, NotApplicable, atoms_of, bracket, finish, require
 from planetgen.util import draw
 
 # --- constants -------------------------------------------------------------------------------------------------------------
@@ -73,11 +73,6 @@ INVENTORY = {
     "potassium_wt_percent": (0.005, 0.1, "log"),
     # The share of the 40Ar produced that has reached the air (part 05 section 3.6: 0.05 to 0.7).
     "argon_degassed": (0.05, 0.7, "uniform"),
-    # The share of the outgassed carbon and sulfur that stays in the air of a body with an ocean and a long-lived geology, the
-    # carbonate-silicate cycle and the sulfate sink having locked the rest in the crust: Earth keeps about 1.5e-5 of its near-surface
-    # carbon in the air (0.9e15 kg C in the CO2 against about 6e19 kg C in the crust's carbonates, TEST point read from memory, not
-    # re-checked); a warmer or younger world keeps more. A design bracket, replaced by the weathering feedback of GEN.481.
-    "weathering_sink": (1e-5, 1e-2, "log"),
 }
 """dict: name -> (low, high, shape), the draws of the inventory that no table of the recipes holds."""
 
@@ -167,23 +162,25 @@ def rocky_inventory(subject, recipe, constants):
     potassium = bracket(constants, "potassium_wt_percent", INVENTORY["potassium_wt_percent"]) / AMU_G_MOL["K"]
     degassed = bracket(constants, "argon_degassed", INVENTORY["argon_degassed"])
     argon = degassed * K40_ARGON_BRANCH * K40_ABUNDANCE * potassium * math.expm1(K40_DECAY_PER_GY * max(subject["age_gy"], 0.0))
-    if subject.get("ocean_present") and subject.get("long_lived_geology"):
-        sink = bracket(constants, "weathering_sink", INVENTORY["weathering_sink"])      # nitrogen and argon stay in the air (GEN.674)
-        carbon *= sink
-        sulfur *= sink
     return {"H": hydrogen, "C": carbon, "N": nitrogen, "S": sulfur, "Ar": argon}
 
 
-def volcanic_gas(subject, recipe, constants):
+def volcanic_gas(subject, recipe, constants, supply=None):
     """
     The first stage: the gas in equilibrium with the mantle at the magmatic temperature and the pressure of the layer, the
     oxygen fugacity held. Draws the redox, the inventory and the magmatic temperature (recorded in `constants`).
 
+    Args:
+        supply (callable, optional): `(inventory) -> {element: share}`, the share of the delivered inventory that the surface holds
+            (`physics/surface_pressure.py`: the share the interior has degassed, less what the sinks took); an element it lacks is
+            taken whole, and a body with no gas at the surface raises `NotApplicable`.
+
     Returns:
-        tuple: `(Equilibrium, redox_diw, inventory)`.
+        tuple: `(Equilibrium, redox_diw, inventory)`; the inventory is the delivered one, before `supply`.
 
     Raises:
         MixtureError: A quantity is missing, or the class has no mantle (no redox row applies).
+        NotApplicable: Nothing has reached the surface.
     """
     require(subject, ("ts_k", "pressure_bar", "mass_earth", "age_gy"))
     redox = draw_redox(subject, recipe, constants)
@@ -191,8 +188,19 @@ def volcanic_gas(subject, recipe, constants):
         raise MixtureError(f"no redox row applies to the class {subject.body_class!r}: it has no mantle to outgas")
     inventory = rocky_inventory(subject, recipe, constants)
     magmatic = bracket(constants, "magmatic_temperature_k", MAGMATIC_TEMPERATURE_K)
-    volcanic = gas_equilibrium.solve(inventory, magmatic, subject["pressure_bar"], fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic))
+    budget = surface_budget(inventory, supply)
+    volcanic = gas_equilibrium.solve(budget, magmatic, subject["pressure_bar"], fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic))
     return volcanic, redox, inventory
+
+
+def surface_budget(inventory, supply):
+    """The delivered `inventory` times the share of each element at the surface (`supply(inventory)`); elements with none are dropped."""
+    shares = {} if supply is None else supply(inventory)
+    budget = {element: atoms * shares.get(element, 1.0) for element, atoms in inventory.items()}
+    budget = {element: atoms for element, atoms in budget.items() if atoms > 0.0}
+    if not budget:
+        raise NotApplicable("no gas has reached the surface")
+    return budget
 
 
 def cool(atoms, subject, constants, volcanic=None, held_diw=None, quenched=True):
@@ -220,7 +228,7 @@ def cool(atoms, subject, constants, volcanic=None, held_diw=None, quenched=True)
     return gas_equilibrium.solve(atoms, temperature, subject["pressure_bar"], fixed_o2_log_fugacity=held)
 
 
-def outgassed_mixture(subject, recipe=None):
+def outgassed_mixture(subject, recipe=None, supply=None):
     """
     The gas a rocky body's mantle outgasses, drawn for `subject` (see the module text).
 
@@ -228,9 +236,10 @@ def outgassed_mixture(subject, recipe=None):
         subject (Subject): The body: its class and the quantities the tables of `ROCKY_CATEGORIES` read, with `ts_k` (surface
             temperature, K), `pressure_bar` (the pressure of the air's base), `mass_earth` and `age_gy`.
         recipe (RecipeDraw, optional): The recipe draw to use; drawn here (`RECIPES.draw_all`) when not given.
+        supply (callable, optional): The share of each element of the delivered inventory that the surface holds (`volcanic_gas`).
 
     Returns:
-        MixtureDraw: The mixture.
+        MixtureDraw: The mixture, with the `moles` of gas per 100 g of mantle.
 
     Raises:
         MixtureError: A quantity is missing, or the hot gas holds more than `UNLISTED_LIMIT` of species the gas table lacks.
@@ -241,7 +250,7 @@ def outgassed_mixture(subject, recipe=None):
         except KeyError as error:
             raise MixtureError(str(error)) from error
     constants = {}
-    volcanic, redox, inventory = volcanic_gas(subject, recipe, constants)
+    volcanic, redox, inventory = volcanic_gas(subject, recipe, constants, supply)
     result = cool(atoms_of(volcanic), subject, constants, volcanic)
     return finish(result, family="rocky", drawn={group: drawn.name for group, drawn in recipe.groups.items()}, redox_diw=redox,
-                  inventory=inventory, constants=constants)
+                  inventory=inventory, constants=constants, supplied=True)

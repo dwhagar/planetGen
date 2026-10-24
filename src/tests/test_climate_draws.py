@@ -87,26 +87,30 @@ def test_every_class_stores_the_draws_its_temperature_is_made_of(host_star, plan
             assert low <= planet.bond_albedo <= high
 
 
-@pytest.mark.parametrize("planet_class", ["F", "G", "N", "D", "P", "K", "S"])
-def test_the_inverse_returns_the_drawn_values(host_star, planet_class):
-    data = tuning.PLANET_CLASSES[planet_class]
-    zone = next((z for z in ("e", "h", "c") if data.get(z)), None)
-    recovered = 0
-    for seed in range(12):
-        with draw.bound(seed):
-            planet = Planet(SystemConfig(), host_star, host_star.habitable_zone,
-                            plausibility.distance_for_zone(host_star, zone),
-                            planet_class=planet_class, zone_override=zone, moon_count=0)
-        flux = _flux(planet, host_star)
-        albedo, factor, reason = climate_draws.from_stored(_stored_row(planet), flux)
-        if albedo is None:
-            # The solution is refused only where the temperature sits on the floor or the row is not a plain one.
-            assert reason
-            continue
-        recovered += 1
-        assert albedo == pytest.approx(planet.bond_albedo, rel=1e-6, abs=1e-9)
-        assert factor == pytest.approx(planet.greenhouse_factor, rel=1e-6, abs=1e-9)
-    assert recovered, f"class {planet_class}: no body of 12 could be inverted"
+def _old_convention_row(albedo, factor, flux, gravity_g, molar_kg_mol=0.029):
+    """The columns of a body saved before the albedo and greenhouse columns existed: its scale height keeps the no-air temperature
+    (`H = R T_e / (M g)`, the barometric law the generator then used), its temperature is `T_e (1 + G)^(1/4)`."""
+    equilibrium = climate_draws.equilibrium_temperature_k(albedo, flux)
+    gravity = gravity_g * constants.EARTH_GRAVITY
+    height_m = constants.R * equilibrium / (molar_kg_mol * gravity)
+    pressure = 101325.0
+    return {
+        "atmosphere": "a mix of nitrogen and oxygen", "surface_temperature_k": climate_draws.surface_temperature_k(albedo, factor, flux),
+        "scale_height_km": height_m / 1000.0, "atm_molar_density": molar_kg_mol, "gravity_g": gravity_g,
+        "atm_density": 2.0 * pressure / (gravity * height_m * gravity_g), "atmospheric_pressure_pa": pressure,
+    }
+
+
+@pytest.mark.parametrize("albedo, factor, gravity_g, flux", [
+    (0.12, 0.0, 1.0, 1361.0), (0.30, 0.8, 1.0, 1361.0), (0.35, 40.0, 0.9, 1361.0), (0.05, 100.0, 1.3, 2400.0),
+    (0.60, 0.05, 0.4, 600.0), (0.25, 3.0, 2.0, 100.0),
+])
+def test_the_inverse_returns_the_drawn_values_of_a_body_saved_before_the_columns(albedo, factor, gravity_g, flux):
+    row = _old_convention_row(albedo, factor, flux, gravity_g)
+    recovered_albedo, recovered_factor, reason = climate_draws.from_stored(row, flux)
+    assert reason is None
+    assert recovered_albedo == pytest.approx(albedo, rel=1e-9)
+    assert recovered_factor == pytest.approx(factor, rel=1e-9, abs=1e-9)
 
 
 def test_the_inverse_says_when_it_has_no_solution():

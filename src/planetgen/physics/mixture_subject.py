@@ -83,7 +83,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
 
     Args:
         body: A generated planet or moon (`generation.planet.Planet`): `mass` (kg), `radius` (km), `distance` (AU, from its primary),
-            `star`, `bond_albedo`, `is_moon`; a giant's `core_mass_earth`.
+            `star`, `bond_albedo`, `is_moon`; a giant's `core_mass_earth` or a rocky planet's `envelope_mass_fraction`.
         ts_k (float): The surface temperature, K.
         pressure_bar (float): The surface pressure, bar.
         ocean_present (bool): True when an ocean can condense (`surface_pressure.can_weather` of the climate loop).
@@ -105,6 +105,9 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         "photosphere_bar": PHOTOSPHERE_BAR,
     }
     core = getattr(body, "core_mass_earth", None)
+    envelope = getattr(body, "envelope_mass_fraction", None)
+    if not core and envelope is not None:  # a rocky planet's core is the mass its envelope (none, for a stripped one) leaves
+        core = mass_earth * (1.0 - envelope)
     if core:
         quantities["core_radius_earth"] = bulk_structure.core_radius_earth(core)
     if star is None:
