@@ -211,3 +211,46 @@ def test_the_levels_come_one_at_a_time_and_a_level_s_cover_is_let_go():
     together = rules.all_rows(x, y, z, radius, codes, 4.0)
     assert list(together) == list(levels)
     assert pulled == list(range(1, len(levels) + 1))
+
+
+def test_the_cover_rolls_up_by_arrays_to_the_blocks_drill_parent_names():
+    """PERF.193: `roll_up` works on arrays; each level's cover is the level-3 cover added up by `drill.stage_parent`."""
+    x, y, z, r, _ = _spheres(31, 40, (30.0, -20.0, 5.0), 400.0, radius=(2.0, 30.0))
+    fine = rules.fine_cover(x, y, z, r, EDGE_PC)
+    assert np.all(np.diff(fine.keys) > 0)                       # sorted, no repeats
+    assert fine.totals.sum() == pytest.approx(rules.sphere_volumes(r).sum(), rel=1e-9)
+    rolled = rules.roll_up(fine)
+    assert list(rolled) == [3, 9, 27, 81, 243]
+    expected = {3: {}, 9: {}, 27: {}, 81: {}, 243: {}}
+    for key, volume in zip(fine.keys.tolist(), fine.totals.tolist()):
+        block = drill.DrillBlock(3, *rules.unpack(key))
+        expected[3][key] = volume
+        while (block := drill.stage_parent(block)) is not None:
+            packed = int(rules.pack(block.shell, block.band, block.wedge))
+            expected[block.m][packed] = expected[block.m].get(packed, 0.0) + volume
+    for m, level in rolled.items():
+        assert dict(zip(level.keys.tolist(), level.totals.tolist())) == pytest.approx(expected[m], rel=1e-12)
+        assert level.totals.sum() == pytest.approx(fine.totals.sum(), rel=1e-9)
+
+
+def test_no_spheres_give_an_empty_cover_and_no_blocks():
+    """PERF.193: nothing in, nothing out, at every level."""
+    none = np.zeros(0)
+    fine = rules.fine_cover(none, none, none, none, EDGE_PC)
+    assert len(fine.keys) == 0 and len(fine.totals) == 0
+    for m, level in rules.all_rows(none, none, none, none, np.zeros(0, dtype=np.int64), EDGE_PC).items():
+        assert len(level.blocks) == 0 and level.blocks[:] == [] and level.classes == []
+
+
+def test_a_level_s_blocks_read_like_a_list():
+    """PERF.193: `LevelRows.blocks` makes its dicts as they are read, by index, slice and iteration alike."""
+    x, y, z, r, codes = _spheres(7, 12, (0.0, 0.0, 0.0), 60.0)
+    blocks = rules.level_rows(x, y, z, r, codes, 3, EDGE_PC).blocks
+    whole = list(blocks)
+    assert len(whole) == len(blocks) > 3
+    assert blocks[0] == whole[0] and blocks[-1] == whole[-1]
+    assert blocks[1:3] == whole[1:3]
+    with pytest.raises(IndexError):
+        blocks[len(blocks)]
+    keys = [(row["shell_index"], row["band_index"], row["wedge_index"]) for row in whole]
+    assert len(set(keys)) == len(keys)
