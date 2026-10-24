@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2150] - 2026-10-24
+
+**Headline:** Every planet and moon now has a bulk composition (iron, rock, water, other ices, envelope) drawn from its star's own abundances, and its mass, density and gravity follow from it.
+
+### Changed
+- **The composition comes first (GEN.428, GEN.429).** `planetgen.physics.bulk_draw` takes the host star's own number ratios (Fe, Si, Al, Ca and Ni against Mg, and C/O, from `stellar_abundances` for the star's abundance key) and builds the rock (MgO, SiO2, CaO, Al2O3 and FeO) and the iron core (the Fe the mantle does not hold, Ni, and light elements) from them: a Sun-like star gives a core mass fraction near 0.3 and an iron-rich star a bigger one. The class still sets the radius; the mass is the one that radius holds for that composition (`bulk_structure.structure`, found by bisection), so density and gravity are results and no longer a draw from the class's density range. A body given a mass keeps it and its radius follows; a body given both, and class S, work the core fraction back from them (`composition_origin` is `inverse`).
+- **What is drawn** is only what the star cannot say: the kind of rock (silicate, or silicon carbide and graphite for a star of C/O 0.8 or more and for class C, through the new gated table `bulk-rock-kind`), the water share (the same class ranges as before, now drawn with the composition and read by the hydrosphere), the other ices of an icy class (from the comet volatile proportions), the mantle's FeO, the core's light elements, a small body's porosity and a carbon body's graphite. Giants get a stand-in envelope and heavy-element core until the giant interiors (GEN.460).
+- **Stored (DB.69, schema 144).** `planets` and `moons` gain `metal_mass_fraction`, `rock_mass_fraction`, `ice_mass_fraction`, `envelope_mass_fraction` (with `water_mass_fraction` they add up to 1), `rock_feo_fraction`, `rock_al2o3_fraction`, `rock_mg_si_ratio`, `envelope_helium_fraction`, `envelope_z_fraction`, `porosity`, `carbon_rock` and `composition_origin`. Rows saved before the migration keep them empty; `bulk_composition.bulk_fractions(body)` returns `None` for them.
+- The unused `calculate_object_mass` is gone; `hydrosphere.generate_hydrosphere` no longer draws the water share (it reads the body's).
+- Generator epoch 70: every planet's and moon's mass, density, gravity and water share are new draws, the planet draws that follow them move, and the radiogenic heat reads the body's own rock share and Al2O3.
+
+generation-output: changed
+
 ## [8.0.2149] - 2026-10-24
 
 **Headline:** The rows of a planet's habitability table now name the gear their category needs, from the same list as the Required and Recommended line above them.
