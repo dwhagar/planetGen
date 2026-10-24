@@ -443,8 +443,7 @@
     },
     {
       "epoch": 90,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2224",
       "reason": "A rocky planet's or moon's internal heat flux comes from a thermal history of its mantle (primordial heat from its assembly plus the radiogenic heat, cooled by stagnant-lid convection with a drawn viscosity), the Urey ratio is an output of that history instead of a draw, so a young body's heat is much higher and every habitability score that reads the heat (magnetism, hydrosphere, volcanic activity) can change."
     }
   ]
