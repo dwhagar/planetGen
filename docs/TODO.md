@@ -944,6 +944,13 @@ with `clamp()`.
   2026-10-23 as the lane reported): the search ticks, the help page and
   the describer headline. The rest of UX.153 is with the Habitable rule
   and life scores lane.
+  Research (2026-10-09, Update): The 'Habitable rule and life scores'
+  lane owns the remainder (9:57 AM EDT 2026-10-24, as the lane
+  reported). No Boss word is needed: Boss's 10-15 example lines are
+  pinned in test_protection.py and already read per row from the needs
+  list (UX.163 and GEN.702 merged); the only leftovers are a stale
+  example line in docs/design/habitability/habitability-index.md (line
+  556), which the lane fixes, and the help text it already merged.
   Prerequisites: none. Related: UX.90, GEN.216, GEN.218.
 
 - [ ] **UX.158 Info panel line: how this colour was worked out, which inputs and whether partial or full quality**
@@ -13111,19 +13118,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Survival equipment lane (thread 'Survival equipment fields').
   Prerequisites: GEN.424. Related: GEN.424, DB.71.
 
-- [ ] **GEN.658 Dust loading and dust toxicity feed the dust filter and seals level of the equipment needs**
-  Section 11 item 7 of the design draft. Do: a dust loading and dust
-  toxicity input read from the stored haze and dust columns (GEN.414)
-  and the surface composition of lane K, and the dust filter or seals
-  level (0 to 2) that follows. Done: Mars reads dust-tight seals
-  required, an airless fine-regolith world likewise, and a clean-air
-  world nothing. Design:
-  design-drafts/survival-equipment-fields-2026-10-23.md, approved by
-  Boss 7:56 PM EDT 2026-10-23 ('Alright integrate and this is approved,
-  build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
-  Owner: Survival equipment lane (thread 'Survival equipment fields').
-  Prerequisites: none. Related: GEN.414.
-
 - [ ] **GEN.660 The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug)**
   Found by Habitability lane K (relayed 8:21 PM EDT 2026-10-23 as the
   lane reported, reports/lane-k-contracts-2026-10-23.md); filed by the
@@ -18535,6 +18529,20 @@ clears each one.
   fixtures they share. Done: the four checks pass 10 times in a row at
   -n 4 under load. Owner: Habitability lane E (Boss, 5:38 PM EDT
   2026-10-23).
+  Research (2026-10-09, Update): Lane E (9:56 AM EDT 2026-10-24, as the
+  lane reported): the habitability part merged as #2971: browser tests
+  on a real throwaway database check that the Planets and Moons lists
+  show each body's stored rating as the right symbol and colour in both
+  themes, that a sector turns green under Color by Habitable worlds with
+  the stored count in the legend, that the habitable-world marker finds
+  the right system and obeys its toggle, and that a symbol opens its
+  Help section. 8 of 8 clean runs at -n 4 under load; no epoch or
+  migration. The equipment chips browser test is the 'Habitable rule and
+  life scores' lane's. The item stays open for the other lanes' parts.
+  Research (2026-10-09, Update): The equipment chips browser test merged
+  in #2970 (the 'Habitable rule and life scores' lane, 9:56 AM EDT
+  2026-10-24, as the lane reported). The item stays open for the
+  remaining parts.
   Prerequisites: MAP.220. Related: UX.100, MAP.143, MAP.220.
 
 - [ ] **TEST.301 Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism**
@@ -20409,6 +20417,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   with the Sun's 0.95 to 1.68 AU read from the generator; it also fixed
   the bare CO2 in the equipment table (TEST.316). Still open: sector
   colouring, markers, radiation terms, GEN.639 zone limits.
+  Research (2026-10-09, Update): Lane 'Habitable rule and life scores'
+  (9:56 AM EDT 2026-10-24, as the lane reported) merged #2970: the map,
+  temperature and chips help sections. Still open: radiation terms and
+  the GEN.639 zone limits (lane D).
 
 - [ ] **DOC.76 Docs for the condition-based classes: the rule table, the planet class pages and the help**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A

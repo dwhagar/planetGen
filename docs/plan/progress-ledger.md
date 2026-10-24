@@ -1299,3 +1299,4 @@ Baseline: PR #1817.
 | GEN.460 | 8.1 | Bulk composition |
 | GEN.642 | 8.1 | Bulk composition |
 | GEN.677 | 8.1 | Mixture and stored values |
+| GEN.658 | 8.1 | Mixture and stored values |
