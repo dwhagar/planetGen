@@ -350,8 +350,9 @@ def test_habitability_levels_page_explains_the_five_levels_and_the_six_domains(c
     from planetgen.web.lib import habitability_ref
 
     html = _html(client, "/classes/habitability")
+    chem = client.application.jinja_env.filters["chem"]
     for item, _when in habitability_ref.EQUIPMENT_ITEMS:
-        assert item in html
+        assert str(chem(item)) in html
     assert "Shirtsleeve" not in html
     for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
         assert f"<h3>{domain}</h3>" in html
@@ -378,6 +379,30 @@ def test_habitability_levels_page_draws_the_four_life_scores(client):
         assert f'aria-label="{label}: none"' in html and f'aria-label="{label}: 9 of 9"' in html
     for name in ("microbial", "flora", "fauna", "sentient"):
         assert f'#life-{name}"' in html
+
+
+def test_habitability_levels_page_says_where_the_symbols_appear(client):
+    from planetgen.web.lib import habitability_ref
+
+    html = _html(client, "/classes/habitability")
+    assert 'id="where-heading"' in html
+    for place, _what in habitability_ref.WHERE_ROWS:
+        assert place in html
+    assert "/lists/planet" in html and "/lists/moon" in html
+
+
+def test_habitability_levels_page_states_the_habitable_zone_from_the_generators_edges(client):
+    from planetgen.physics import orbits
+    from planetgen.web.lib import habitability_ref
+
+    inner, outer = orbits.calculate_habitable_zone(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K)
+    text = habitability_ref.zone_text()
+    assert f"{inner:.2f} and {outer:.2f} AU" in text
+    assert (inner, outer) == pytest.approx((0.95, 1.68), abs=0.01)
+    low, high = orbits.KOPPARAPU_TEFF_RANGE_K
+    assert f"{low:,.0f} to {high:,.0f} K" in text
+    html = _html(client, "/classes/habitability")
+    assert 'id="zone-heading"' in html and "runaway greenhouse" in html
 
 
 def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client):
