@@ -118,6 +118,8 @@ class Heat:
         primordial_w (float): The rest, the cooling of the interior: the heat it was born with.
         mantle_temperature_k (float): The mantle's temperature.
         flux_w_m2 (float): `total_w` over the body's surface.
+        released_j (float): The heat the interior has carried out since the body formed: the heat flow integrated over its age
+            (the melt the mantle has made, and so the gas it has given off, follows it: `degassing`).
     """
 
     total_w: float
@@ -125,6 +127,7 @@ class Heat:
     primordial_w: float
     mantle_temperature_k: float
     flux_w_m2: float
+    released_j: float
 
     @property
     def urey_ratio(self):
@@ -205,7 +208,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock):
     area_m2 = 4.0 * math.pi * (radius_km * 1000.0) ** 2
     silicate_kg, metal_kg = mass_kg * rock.silicate, mass_kg * rock.metal
     if silicate_kg <= 0.0:
-        return Heat(0.0, 0.0, 0.0, SURFACE_TEMPERATURE_K, 0.0)
+        return Heat(0.0, 0.0, 0.0, SURFACE_TEMPERATURE_K, 0.0, 0.0)
     dry_m = dry_radius_km(mass_kg, radius_km, rock) * 1000.0
     dry_kg = silicate_kg + metal_kg
     core_m = dry_m * (metal_kg / dry_kg) ** 0.5
@@ -224,7 +227,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock):
     def rate(t_gy, kelvin):
         return GY_S * (radiogenic_w(t_gy) - _flux_w_m2(kelvin, interior, gravity, thickness_m) * area_dry_m2) / capacity
 
-    t, step = 0.0, FIRST_STEP_GY
+    t, step, released_j = 0.0, FIRST_STEP_GY, 0.0
     while t < age_gy:
         flux = _flux_w_m2(temperature, interior, gravity, thickness_m)
         # the cooling rate's own time scale: the flux changes by Ea / (R T^2) per kelvin (an overestimate by about three)
@@ -235,13 +238,14 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock):
         k3 = rate(t + 0.5 * h, temperature + 0.5 * h * k2)
         k4 = rate(t + h, temperature + h * k3)
         temperature = min(temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0, tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K)
+        released_j += 0.5 * (flux + _flux_w_m2(temperature, interior, gravity, thickness_m)) * area_dry_m2 * h * GY_S
         t += h
         step = min(step * STEP_GROWTH, STEP_LIMIT_GY)
     now_w = radiogenic_w(age_gy)
     total_w = _flux_w_m2(temperature, interior, gravity, thickness_m) * area_dry_m2
     if temperature >= tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K:
         total_w = max(total_w, now_w)
-    return Heat(total_w, now_w, total_w - now_w, temperature, total_w / area_m2)
+    return Heat(total_w, now_w, total_w - now_w, temperature, total_w / area_m2, released_j)
 
 
 def heat_flow(content, interior, mass_kg, radius_km, age_gy, rock):
