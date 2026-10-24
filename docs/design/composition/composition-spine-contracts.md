@@ -103,3 +103,51 @@ Hook points in `generate_planet_properties` after PR 3 (so other lanes know wher
 - New draws: after the hook they belong to, from the ambient stream; never reorder existing draws without telling this lane.
 - New numeric columns: declare in `db/column_units.py` in the same PR. Epochs and migrations are numbered at merge (first to merge takes the next free).
 - Files this lane edits (avoid parallel edits, tell me first): `physics/planets.py` (`generate_planet_properties`, `calculate_atmospheric_conditions`, `reconcile_zone_and_class`), `physics/atmosphere.py`, `generation/planet.py` (SERIALIZABLE_FIELDS), `db/store.py` (planet and moon field lists), `db/models.py`, `db/schema.sql`, `db/column_units.py`, `physics/hydrosphere.py` (the water draw line only), `physics/habitability_world.py` (molar mass table only), `tuning.py` (class density and atmosphere ranges). New: `physics/bulk_composition.py`, `physics/bulk_structure.py`, `physics/mixture.py`.
+
+## 4. End-to-end draw order: the star to the PHI-6 (DOC.78)
+
+One table for every lane. "Stream" says where the draws come from; "Draws" says whether the block consumes random numbers at all. A block that must not move later draws has a stream of its own, named by a key.
+
+**The reproducibility rule.** Every draw goes through `util/draw.py`. Inside a unit of work (a sector fill, a scatter run, a backfill block) there is one ambient stream, so the order of draws inside it is part of the output: inserting, removing or reordering one draw shifts every later draw and is an epoch change. Draws inside a block run in a fixed order. A block either has a stream of its own or appends after the last draw of the block before it. Derived values draw nothing. A stored formation branch is never redrawn, and a recalculation after an orbit validation or an edit never redraws a stored composition (F10, GEN.422). A table's version is part of the order: adding, removing or reweighting a row changes every seed in its classes.
+
+### 4.1 Per star (once)
+
+| Step | What | Stream | Draws |
+|---|---|---|---|
+| 1 | Initial mass (Kroupa IMF, sector truncation) | ambient | yes |
+| 2 | Age from the population's star formation history | ambient | yes |
+| 3 | Redraw while mass and age give a collapsed object | ambient | yes |
+| 4 | Evolve to the present state (`evolve_star`) | none | no |
+| 5 | Classify: spectral letter, luminosity class | none | no |
+| 6 | Habitable zone, Hill sphere, orbit, spin, activity | none | no |
+| 7 | [Fe/H] (a horizontal-branch star keeps the one it drew for its colour) | `metallicity:{mass}:{age}:{distance}` (bright stars `metallicity:bright:{seed}`) | yes |
+| 8 | Snow line | `snow_line:{mass}:{age}:{distance}` | yes |
+| 9 | Disc of a pre-main-sequence star | `disk:{mass}:{age}` | yes |
+| 10 | Star composition (`star_makeup`) | `abundance:{key}` | yes, its own stream |
+
+Planned: GEN.553 moves [Fe/H] before the state (step 7 before 4) and gives each step of the star its own stream; GEN.651 wires [Fe/H] into the evolution; GEN.652 settles the two main-sequence tables. When GEN.553 lands, this table is replaced by its five steps (origin, birth, state, composition, motion).
+
+### 4.2 Per body (planet, moon), in this order
+
+| Block | Draws in it | Stream | Source of the order |
+|---|---|---|---|
+| Count and slots | how many bodies, spacing, belts, zone | ambient | `system.py` `_generate_planets` |
+| Formation | born beyond or migrant, formation distance and temperature, ice set | ambient | section 2.2, bulk-composition.md section 7 |
+| Bulk composition | water share, dry part, mass (decision 28), envelope fraction and loss | ambient (hook a) | section 2.2 above |
+| Structure | radius, density, gravity, escape speed | none | GEN.429 |
+| Radiogenic content | K, U, Th, Al-26 | ambient (hook b, straight after a) | lane H |
+| Atmosphere | `RECIPES.draw_all` in the tables' order, then saturation and freeze-out (no draws) | ambient (hook c) | section 2.3 |
+| Albedo and greenhouse | the two draws GEN.412 records | ambient (hook c) | lane D |
+| Temperature | fixed point of pressure, greenhouse and temperature | none | GEN.422 |
+| Hydrosphere, ozone, aerosols, magnetism, spin | each in its own module's order | ambient (hook d) | lanes F, J, L |
+| Radiation | surface dose from the stored inputs | none | lanes G, H |
+| Moons | recursion per orbit slot | planned `Stream(f"{host_seed}:orbit:{slot}")` (GEN.556) | GEN.556 |
+| After the body is complete | `classify` (GEN.646), PHI-6 (GEN.643), the four life scores (GEN.649) | none, except the evolutionary-stage draw for the life scores | lane D, class lane |
+
+Until GEN.646 lands the class letter is still an input at the count, formation and bulk blocks; afterwards it is only an output of `classify`.
+
+### 4.3 Rules for changing the order
+
+1. A new draw goes after the hook it belongs to, or on a stream of its own if it must not move later draws. Say so in the PR.
+2. Moving a draw, or changing a table's rows or weights, is an epoch bump with a migration, numbered at merge.
+3. Whoever changes a row in this table updates it in the same PR.
