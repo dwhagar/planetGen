@@ -1110,22 +1110,22 @@ def _assemble(leaves, builder, age_yr, dropped, rng):
 def _contact_pair_alone(leaves, builder, n_stars, rng):
     """
     The tree of a contact binary left without its other stars, or None (GEN.270, `contact-binary`'s `tertiary` share,
-    60% of contact binaries). The stability screen leaves the inner pair of a hierarchy only short periods, so nearly
-    every contact binary the draw makes (`tuning.CONTACT_TERTIARY_NATURAL_SHARE`, measured) has a tertiary, more than the
-    catalogue's share. A tree with a contact pair keeps its other stars at the odds `tertiary / natural`; otherwise the
-    pair is placed alone, on the orbit it was drawn on with its orientation redrawn. Only for a tree of stars and a count
-    the draw chose (a forced count is a directive). None when the tree is kept or has no contact pair, else
-    `(leaves, builder)` of the pair.
+    60% of contact binaries). The stability screen leaves the inner pair of a hierarchy only short periods, so 84% of the
+    contact binaries the draw makes have a tertiary, more than the catalogue's share. A tree with a contact pair that
+    holds the placed star keeps its other stars with the odds `tuning.CONTACT_TERTIARY_KEEP_SHARE`; otherwise the pair is
+    placed alone, on the orbit it was drawn on with its orientation redrawn (member 0 stays the placed object). Only for
+    a tree of stars and a count the draw chose (a forced count is a directive). None when the tree is kept or has no such
+    pair, else `(leaves, builder)` of the pair.
     """
     if n_stars is not None or len(leaves) < 3 or any(leaf.compact for leaf in leaves):
         return None
-    contact = next((record for record in builder.nodes if record["interaction"] == "contact"), None)
+    contact = next((record for record in builder.nodes
+                    if record["interaction"] == "contact" and 0 in (record["left"], record["right"])), None)
     if contact is None:
         return None
-    share = system_types.SYSTEM_TYPE_RATES["contact-binary"].by_class["tertiary"]
-    if rng.random() < share / tuning.CONTACT_TERTIARY_NATURAL_SHARE:
+    if rng.random() < tuning.CONTACT_TERTIARY_KEEP_SHARE:
         return None
-    pair = [leaves[contact["left"]], leaves[contact["right"]]]
+    pair = [leaves[0], leaves[contact["right"] if contact["left"] == 0 else contact["left"]]]
     shape = (0, 1)
     fixed = {id(shape): (contact["period_years"] * 365.25, contact["separation_au"], contact["eccentricity"])}
     for _ in range(TREE_RESTARTS):

@@ -52,7 +52,11 @@ def test_the_placed_stars_mean_agrees_with_the_moments_the_perturber_mass_uses()
 
 
 @pytest.mark.parametrize("mass_sol, age_gy", [(0.3, 5.0), (1.0, 5.0), (1.0, 12.0), (3.0, 0.5), (3.0, 10.0), (8.0, 0.02)])
-def test_the_other_stars_of_a_system_are_what_the_member_tree_draws(mass_sol, age_gy):
+def test_the_other_stars_of_a_system_are_what_the_member_tree_draws(mass_sol, age_gy, monkeypatch):
+    # The star-type draws of GEN.270 (a Be star's light stripped companion, a merger's missing star) are measured on
+    # their own in test_close_binary_types.py.
+    monkeypatch.setattr(multistar, "draw_be_star", lambda *args: (False, False))
+    monkeypatch.setattr(multistar, "draw_merger_product", lambda *args: None)
     # The real trees (stability screens and dropped members included) against the expected count times the mean
     # present mass of a star born with 0.1 to 1 of the primary's mass.
     rng = draw.Stream(f"gen545-tree-{mass_sol}-{age_gy}")

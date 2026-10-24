@@ -1434,10 +1434,12 @@ SPECTROSCOPIC_MAX_AXIS_AU = 0.26
 """float: A pair closer than this is a spectroscopic binary (the catalogue's "close detached binary, a under 0.26 AU",
 design note 13.1); `MemberTree.spectroscopic_nodes`."""
 
-CONTACT_TERTIARY_NATURAL_SHARE = 0.83
-"""float: The share of contact binaries the member-tree draw leaves with a tertiary, measured over seeded draws of
-solar-type systems (a stand-in until GEN.631's fill measures it again): the tertiary share of the catalogue (60%) is
-reached by `multistar._contact_pair_alone`, which strips the others from the surplus."""
+CONTACT_TERTIARY_KEEP_SHARE = 0.54
+"""float: The share of the contact binaries that hold the placed star and have a tertiary which keep it (GEN.270). The
+member-tree draw gives 84% of contact binaries a tertiary, because the stability screen leaves the inner pair of a
+hierarchy only short periods; stripping the others from 46% of those where the pair holds the placed star brings the
+share to the catalogue's 60% (measured over 600,000 seeded disc systems; a stand-in until GEN.631's fill measures it
+again)."""
 
 MERGER_MASSIVE_MIN_MASS_SOL = 9.0
 """float: The birth mass from which a star counts as massive for the merger-product and mass-gainer shares (the
