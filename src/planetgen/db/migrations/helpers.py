@@ -22,6 +22,14 @@ helper skips work that is already done, so a revision that was stopped half way 
 Measured costs (a 5 million row table, one thread writing meanwhile): an instant column or a dropped one takes a
 fraction of a second; an online index takes a minute and writers carry on; `ALGORITHM=COPY` or a new CHECK
 blocks writes for the whole run. Scaled to 1.6 x 10^8 rows an index is 11 to 31 minutes.
+
+`sectors` is the exception to "instant" (DB.84): its FULLTEXT index on `name` (`ft_sectors_name`) makes MySQL refuse
+`ALGORITHM=INSTANT` and rebuild the whole table, so a revision that changes a `sectors` column pays a full copy of the
+table and needs free disk for a second copy. The rule, decided with Boss's defaults for the DB items: the FULLTEXT index
+stays; every remaining change to `sectors` is batched into as few revisions as possible (one revision for all the
+columns a version adds); and such a revision says in its docstring that it rebuilds `sectors` and why, so the cost is
+read before the revision is run. Moving the index to a side table (so `sectors` can use INSTANT again) is the other
+choice and is not taken.
 """
 
 import contextlib
