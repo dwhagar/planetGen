@@ -608,7 +608,7 @@ def _plan_flat_galaxy(mysql_config):
 def _placed_sector_id(mysql_config):
     """Generates the core sector and returns its sector id -- a real,
     galaxy-placed sector for --center-sector."""
-    assert_clean(["galaxy", "--quiet", "--shell", "0", "--limit", "1", "--num-systems", "1"]
+    assert_clean(["sectors", "--quiet", "--shell", "0", "--limit", "1", "--num-systems", "1"]
                  + mysql_argv(mysql_config))
     conn = store.get_connection(mysql_config)
     try:

@@ -141,7 +141,7 @@ REGISTRY = _commands(
                 unit=("planetgen.generation.run_galaxy", "generate_sectors_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_generate_sectors"),
                 warm=("planetgen.queue.units", "warm_shape")),
-    CommandSpec("link-neighbours", "Link the neighbours: one unit",
+    CommandSpec("link-neighbours", "Link the neighbours: one unit per run of sectors",
                 unit=("planetgen.generation.run_galaxy", "link_neighbours_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_link_neighbours")),
     CommandSpec("generate-unplaced-sector", "Generate the unplaced sectors of a `sector` run: one unit per run of sectors",

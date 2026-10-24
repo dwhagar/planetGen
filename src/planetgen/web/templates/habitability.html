@@ -1,14 +1,15 @@
-{#- What the habitability levels mean (/classes/habitability, web/class_pages.py, UX.90). -#}
+{#- What the habitability ratings mean (/help/habitability, web/class_pages.py, UX.90, UX.180); the ids are what the
+    symbols, life scores and chips link to (UX.181). -#}
 {% extends "base.html" %}
 {% block content %}
-<section class="panel" aria-labelledby="equipment-heading">
+<section class="panel" id="equipment" aria-labelledby="equipment-heading">
   <div class="panel-header"><h2 id="equipment-heading">Survival equipment</h2></div>
   <p>The equipment line on a planet or moon lists what a human visitor needs to stand on its surface, and only that.</p>
   <div class="table-scroll" tabindex="0"><table>
     <thead><tr><th scope="col">Item</th><th scope="col">When it is needed</th></tr></thead>
     <tbody>
       {%- for label, meaning in equipment %}
-      <tr><th scope="row">{{ label }}</th><td>{{ meaning }}</td></tr>
+      <tr id="{{ equipment_ids[label] }}"><th scope="row">{{ label|chem }}</th><td>{{ meaning|chem }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
@@ -23,12 +24,22 @@
     <tbody>
       {%- for name, words, shape in symbol_rows %}
       <tr><th scope="row">{{ words }}</th>
-        <td>{% for tier in tier_numbers %}{{ habitability_symbol(name, tier) }} {% endfor %}</td>
+        <td>{% for tier in tier_numbers %}{{ habitability_symbol(name, tier, link=False) }} {% endfor %}</td>
         <td>{{ shape }}</td></tr>
       {%- endfor %}
     </tbody>
   </table></div>
   <p>Left to right: Blue, Green, Yellow and Red. The overall symbol takes the colour of the planet's PHI-6 score.</p>
+</section>
+
+<section class="panel" aria-labelledby="where-heading">
+  <div class="panel-header"><h2 id="where-heading">Where the symbols appear</h2></div>
+  <p>{{ where_intro }}</p>
+  <dl>
+    {%- for place, what in where_rows %}
+    <dt>{{ place }}</dt><dd>{{ what }}</dd>
+    {%- endfor %}
+  </dl>
 </section>
 
 <section class="panel" aria-labelledby="life-heading">
@@ -38,8 +49,8 @@
     <thead><tr><th scope="col">Score</th><th scope="col">None, some, abundant</th><th scope="col">Shape</th></tr></thead>
     <tbody>
       {%- for name, words, shape in life_rows %}
-      <tr><th scope="row">{{ words }}</th>
-        <td>{% for score in life_scores %}{{ habitability_life(name, score) }} {% endfor %}</td>
+      <tr id="{{ life_ids[name] }}"><th scope="row">{{ words }}</th>
+        <td>{% for score in life_scores %}{{ habitability_life(name, score, link=False) }} {% endfor %}</td>
         <td>{{ shape }}</td></tr>
       {%- endfor %}
     </tbody>
@@ -56,9 +67,9 @@
     <dt>{{ colour }}</dt><dd>{{ meaning }}</dd>
     {%- endfor %}
   </dl>
-  <p>{{ score_rule }}</p>
+  <p id="{{ overall_id }}">{{ score_rule }}</p>
   {%- for domain, rows in domains %}
-  <h3>{{ domain }}</h3>
+  <h3 id="{{ domain_ids[domain|lower] }}">{{ domain }}</h3>
   <div class="table-scroll" tabindex="0"><table>
     <thead><tr><th scope="col">Variable</th><th scope="col">Blue</th><th scope="col">Green</th><th scope="col">Yellow</th></tr></thead>
     <tbody>
@@ -71,6 +82,11 @@
   <p>Anything beyond the Yellow column is Red.</p>
 </section>
 
+<section class="panel" aria-labelledby="zone-heading">
+  <div class="panel-header"><h2 id="zone-heading">The habitable zone</h2></div>
+  <p>{{ zone_text }}</p>
+</section>
+
 <section class="panel" aria-labelledby="hosts-heading">
   <div class="panel-header"><h2 id="hosts-heading">Planets of pulsars, neutron stars and black holes</h2></div>
   <p>{{ compact_host_rule }}</p>
@@ -80,7 +96,7 @@
   <div class="panel-header"><h2 id="chips-heading">The other chips on a planet</h2></div>
   <dl>
     {%- for chip, meaning in chips %}
-    <dt>{{ chip }}</dt><dd>{{ meaning }}</dd>
+    <dt id="{{ chip_ids[chip] }}">{{ chip }}</dt><dd>{{ meaning }}</dd>
     {%- endfor %}
   </dl>
 </section>

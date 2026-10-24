@@ -2,6 +2,117 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2129] - 2026-10-24
+
+**Headline:** A rocky body's interior heat and its ground radiation now come from one set of potassium, thorium and uranium drawn from its star.
+
+### Changed
+
+- **One radiogenic module (GEN.459).** Each rocky planet and moon keeps the potassium, thorium and uranium of its bulk silicate at formation, its 26Al/27Al ratio and its Urey ratio (schema v141: `c_k0_ppm`, `c_th0_ppm`, `c_u0_ppm`, `al26_ratio`, `urey_ratio` on `planets` and `moons`). Thorium and uranium follow the host star's Th/Mg (plus or minus 0.5 dex), potassium is a depletion of the chondritic K/U, 26Al is a drawn multiple of the Solar System ratio, and the Urey ratio is drawn from 0.1 to 0.9. The interior heat flux sums the four long-lived parents and 26Al isotope by isotope with the constants of the element table, and a bulk silicate Earth gives 21.0 TW (the old Turcotte and Schubert values gave 29.8 TW, 37 to 50 percent too high, with a fixed Urey ratio of 0.67).
+- **The ground dose reads the same content.** The gamma dose in air over the surface rock and the radon of its uranium replace the log-uniform `a_rad` factor, the flat 0.48 mSv/yr and the flat radon term; radon has no 1 kPa gate, its flux is drawn between 1 and the square root of one bar over the pressure times the one-bar value. The surface rock is a basaltic crust with a drawn felsic share until the ground type of GEN.441.
+- Rows made before this release keep the heat and dose they were generated with (the new columns are empty); regenerate to get the new values. The generator epoch is 62.
+
+generation-output: changed
+
+## [8.0.2128] - 2026-10-24
+
+**Headline:** Every habitability symbol, life score and chip, and every class letter or name, now links straight to its own entry on the page that explains it, and the Help menu beside the search button holds Classes and Habitability.
+
+### Added
+- **A Help menu in the top bar (UX.180).** It sits beside the search button and opens Classes, then Habitability. Classes leaves the row of sections, and the Habitability page moves from `/classes/habitability` to `/help/habitability` (no redirect). On the narrowest phones the button is a book icon with the word read aloud.
+- **Symbols, life scores and chips link to their section of the Habitability page (UX.181).** Each of the seven PHI-6 symbols, the four life scores, the equipment chips, the Habitable class, Habitable-class moon and Inhabited chips, the PHI-6 colour chip and the six domain chips on a species panel opens the matching heading, table row or entry (`/help/habitability#domain-air`, `#life-flora`, `#equipment-gas-mix-mask`, `#chip-inhabited`, `#overall`). This holds on system pages, the Planets and Moons lists, Search (including rows `datatable.js` draws as you scroll) and planet and moon pages. The page's own legend shows the shapes without links, and a link lands below the sticky header.
+
+### Changed
+- **The class letter or name is the link (UX.182).** A planet row's class letter ("Class M"), a star's spectral part ("G2") and luminosity part ("V") in the Stars table and the star rows, and a comet's class name open their class pages directly. The separate "Planet class M", "Spectral class G", "Luminosity class V" and comet class link lines in a row's dropdown are gone, and so are the "Habitability levels" links on the Classes page, above the system list and beside the equipment search tags.
+
+## [8.0.2127] - 2026-10-24
+
+**Headline:** `planetgen galaxy` does every stage with no way to leave one out, and the Generate page builds its jobs from the single-stage commands.
+
+### Changed
+- **`galaxy` is the whole list (PERF.123, fourth slice).** The options `--then-scatter`, `--population`, `--no-settle` and `--backfill-from` are gone, with no replacement flag: a `galaxy` run generates the sectors, links them, scatters the stars and phenomena, backfills, runs the population pass and saves the paths. Whoever wants fewer stages runs the commands in turn (`planetgen sectors`, `link`, `scatter`, `backfill`, `population`, `settle`). `planetgen link`, `backfill` and `settle` take `--since` as before, and without it work on the sectors saved since the start of the newest `sectors` or `galaxy` run. `planetgen sector` keeps `--population` until PERF.124.
+- **The Generate page's jobs are lists of commands.** New galaxy plans, then runs `sectors` around a random start, `link`, the three scatters, `backfill` and `settle` as steps of one job (the scatters are left out when "Skip all scatters" is ticked); Generate sectors runs `sectors`, `link`, `backfill` and `settle`. The estimate is taken from the `sectors` step. The Queue page's retry of a failed sector runs `sectors` for it and then `link`, `backfill` and `settle`.
+
+TODO items resolved: none (PERF.123 slice 4 of 4). Added: none.
+
+## [8.0.2126] - 2026-10-24
+
+**Headline:** A random start is picked by the start stage's cut from the run's seed, not by the starter's own draws.
+
+### Changed
+- **The random start of `planetgen sectors` and `galaxy` is picked when the start stage is cut (PERF.123, third slice).** The run draws a seed of its own; the starter picks each start from it for the estimate, and the start stage picks the same one again from the same seed and its position in the list (the starts before it keep it from their neighborhoods), so the stage's record carries the seed and no sector list. The run seed is not an option, so nothing a given set of options produces changes; `--debug` says the seed.
+
+TODO items resolved: none (PERF.123 slice 3 of 4). Added: none.
+
+## [8.0.2125] - 2026-10-24
+
+**Headline:** Every body now records what it orbits in one way, so a planet can leave its star and keep its identity.
+
+### Changed
+- **One parent link for every kind (DB.73).** Stars, asteroid belts, comets, black holes, neutron stars, rogue planets and interstellar comets now carry the `parent_type` and `parent_id` that planets and moons already had (a star, a planet, a system, an orbit node, a rogue planet, or free), filled in for everything already stored. A moon can be stored under a rogue (free) planet, with its own ID under that planet's ID, and removing the rogue planet removes its moons. Changing a planet's parent rewrites only the link: the row and the ID stay. Database version 140 (migration 0140); run `./update.sh`.
+
+## [8.0.2124] - 2026-10-24
+
+**Headline:** A small warm world no longer keeps hydrogen, helium or other light gases in its drawn air.
+
+### Added
+- **Thermal escape filter for the atmosphere mixture (GEN.693, `physics/mixture_escape.py`).** After the chemistry of a rocky, Venus-like, Mars-like or abiotic-oxygen body, each gas is kept or lost by its Jeans parameter at the body's exobase against the escape speed and age, so a 3.5 km/s world at 310 K ends airless instead of holding a hydrogen and carbon monoxide air, and Earth keeps a few ppm of helium. The exobase temperature is a labelled stand-in. Not called by the generator yet: no generator epoch.
+- **An oxygen cap (`physics/mixture_oxygen.py`).** A lifeless world that lost its water is drawn with at most 95 percent oxygen and at least 0.5 percent nitrogen plus argon; `BIOTIC_O2_MAX` (35 percent) is the cap the life stage applies to a living world. No air is pure oxygen.
+
+### Changed
+- `mixture_draw.required_inputs` for the rocky classes now also names `v_esc_kms`, `teq_k` and `xuv_index`.
+
+## [8.0.2123] - 2026-10-24
+
+**Headline:** The Galaxy Map can colour sectors and blocks by how many habitable worlds they hold (Color by, Habitable worlds), in five steps of one green with a legend; a cell with none is drawn as unfilled space.
+
+### Changed
+- **Color by Habitable worlds (MAP.143).** A new choice in the Galaxy Map's Color by switch colours each sector and block by the planets and moons it holds that are Blue or Green overall (PHI-6), per charted sector so sectors and blocks of any size share one scale (log, five steps of one hue that rises in light, so it still reads in greyscale). A cell with no habitable world has no fill, like space no one has charted; the legend shows the five steps and the range, and the choice rides in the address (`color=habitable`).
+- **A habitable-world count per sector and block (migration 0139, schema v139).** `sector_stats.habitable_worlds` and `galaxy_block_stats.habitable_worlds` hold the count (set when a sector is filled, cleared when its fill is forgotten, added up the block ladder), and the stage and window APIs report it in `stats.habitable_worlds`. The migration counts the planets and moons already stored and rebuilds the block totals. No generator epoch: no generated value changes.
+
+## [8.0.2122] - 2026-10-24
+
+**Headline:** Every planet and moon with air now has a cloud, haze and dust depth drawn from its own air and temperature, stored for the radiation model.
+
+### Added
+- **GEN.414 and DB.68: haze, dust and cloud depths.** `physics/aerosols.py` draws, for each planet and moon with air, the in-cloud optical depth and cover (the condensate that a dry adiabat to the skin temperature can put in the air: water, ammonia, methane or carbon dioxide, droplets 1 to 20 micron, depth log-uniform from 0.1 to that limit), the methane haze (the CH4/CO2 gate of 0.1 to 0.2, the diffusion-limited supply times a yield of 0.01 to 1, settled through the air column; a Titan-like body comes out between 0.02 and 3) and the dust of a dry ground (the wind ratio log-uniform on 0.3 to 3, depth 0.5 to 1.5). `layers` turns them into the grey cloud, the tholin haze and the Wolff dust spectra the band model of GEN.443 takes. Migration 0138 adds `tau_haze`, `tau_dust`, `tau_cloud`, `cloud_cover` and `aerosol_draw` to `planets` and `moons` (schema v138); a row saved before it keeps NULL until the galaxy is regenerated.
+
+### Changed
+- **Generator epoch.** The bodies now carry five more stored values, drawn on their own stream so no other draw moves; the golden record is regenerated for it.
+generation-output: changed
+
+## [8.0.2121] - 2026-10-24
+
+**Headline:** The potassium-to-uranium row keeps its labelled stand-in, as decided.
+
+### Changed
+- **Row o3 (K/U) decision recorded (GEN.514 note).** Boss chose to keep the stand-in and not use the sodium proxy. Docs only.
+
+## [8.0.2120] - 2026-10-24
+
+**Headline:** Picking something on the Galaxy Map shows its information once, over the map, not also in a panel beside it.
+
+### Fixed
+- **The Galaxy Map showed a picked thing's information twice (MAP.256).** The map drew a small box over its window (MAP.139) and the full panel beside it, with the same title and rows. The panel now sits inside the map's window and is the only display: it is drawn over the map, in the corner away from where you last pressed, with every row and button and a Close button, and it is not drawn until something is picked. On a screen under 600 px wide it shows under the map, as before. The system map's separate box is unchanged.
+
+TODO items resolved: MAP.256. Added: none.
+
+## [8.0.2119] - 2026-10-24
+
+**Headline:** The habitability levels page now says where the rating symbols appear and what the habitable zone is.
+
+### Changed
+
+- **Habitability help, first part (DOC.75).** `/classes/habitability` gains two sections: where the seven rating symbols are shown (the Planets and Moons lists, a planet or moon page, the system page, Search) and the habitable zone (the runaway and maximum greenhouse edges of Kopparapu et al. 2014, with the Sun's edges and the temperature range of the fits read from the generator's own constants). The sector colouring, the markers and the radiation terms are added by later parts as those features land.
+- The equipment table on the same page writes its formulas out again ("CO<sub>2</sub> scrubber" instead of a bare "CO2"), which the formula test on the sample galaxy had been failing on since the survival equipment lines landed.
+
+## [8.0.2118] - 2026-10-24
+
+**Headline:** The neighbour link of a large run is cut into units of 500 sectors, so no single unit runs for long.
+
+### Changed
+- **The link stage of a run is cut into units of 500 sectors (PERF.113).** A run linked every sector it made to its neighbours in one unit (70 ms a sector at the default galaxy size, so one unit of several minutes for a run of thousands of sectors). The sectors are found once, put in neighbourhood order and linked in chunks. The links stored are the same; the stage is not faster, because linking takes the neighbour lock one batch at a time.
+
 ## [8.0.2117] - 2026-10-24
 
 **Headline:** The planet lists and the system page now show each piece of survival equipment as its own chip, solid when required and outlined when only recommended.

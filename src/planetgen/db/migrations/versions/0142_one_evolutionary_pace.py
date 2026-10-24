@@ -1,6 +1,6 @@
 """A world's evolutionary pace is stored once: `evolutionary_speed` is gone.
 
-Schema v138. `planets` and `moons` kept two draws of the same fact: `evolutionary_speed` (what the life sentence said) and
+Schema v142. `planets` and `moons` kept two draws of the same fact: `evolutionary_speed` (what the life sentence said) and
 `evolutionary_pace` (what the timeline was built on), so a page could say "a normal pace" in one paragraph and "hyper-accelerated"
 in the next. The generator now draws the pace once and stores it in `evolutionary_pace`, for every body with a life chemistry.
 
@@ -14,8 +14,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0138"
-down_revision = "0137"
+revision = "0142"
+down_revision = "0141"
 branch_labels = None
 depends_on = None
 

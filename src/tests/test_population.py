@@ -408,7 +408,8 @@ def test_fills_skip_population_unless_asked(monkeypatch):
     run_population.run_population_after(argparse.Namespace(population=False))
     assert calls == []
     parser, _commands = generate_cli.build_parser()
-    assert parser.parse_args(["galaxy"]).population is False
+    assert not hasattr(parser.parse_args(["galaxy"]), "population")      # `galaxy` always runs it (PERF.123)
+    assert parser.parse_args(["sector"]).population is False
     assert parser.parse_args(["sector", "--population"]).population is True
 
 

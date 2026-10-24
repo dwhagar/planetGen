@@ -63,7 +63,7 @@ def _cli(argv, config):
 def _generate(config, monkeypatch, workers=1, limit=None):
     _plan_wide_galaxy(config, galaxy_seed=GALAXY_SEED)
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", config.database)
-    argv = ["galaxy", "--shell", "1", "--num-systems", "4", "--workers", str(workers)]
+    argv = ["sectors", "--shell", "1", "--num-systems", "4", "--workers", str(workers)]
     if limit:
         argv += ["--limit", str(limit)]
     _cli(argv, config)

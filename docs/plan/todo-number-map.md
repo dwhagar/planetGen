@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.166 |
+| UX | UX.183 |
 | MAP | MAP.289 |
 | NAV | NAV.63 |
-| GEN | GEN.694 |
+| GEN | GEN.700 |
 | PERF | PERF.180 |
 | DB | DB.100 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.317 |
+| TEST | TEST.325 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -616,12 +616,12 @@ Parents marked "new parent" had no old number of their own.
 | DB.65 | Clamp the cell key index at 2^21-1 in `cellkey.py` (`cell_index`, `cell_keys`) and in the SQL expression the migration generates | none | done, PR #2025 |
 | DB.66 | The shape row carries the galaxy family and one column per density component, as a migration only | none | done, PR #2439 |
 | DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | none | open |
-| DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | open |
+| DB.68 | Planets and moons store the ozone column and the haze, dust and cloud optical depths | none | done, PR #2856 |
 | DB.69 | Planets and moons store the composition fractions | none | open |
 | DB.70 | Planets, moons and small bodies store the surface and small-body composition shares | none | open |
 | DB.71 | Planets and moons store the partial pressures of the added gases, not only the ten stored today | none | open |
 | DB.72 | The scatter tables hold band_index as SMALLINT, which overflows from shell 20,861 outward, so the whole-sphere scatter stops at 97 percent (bug) | none | done, PR #2060 |
-| DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue | none | open |
+| DB.73 | Storage for one orbited-body model: a shared parent link for every kind, free parents, the orbit node table filled, moons storable under a rogue | none | done, PR #2863 |
 | DB.74 | One generic insert and load driven by the column list, one registry of kind tables, and the shared core table with three profile tables | none | open |
 | DB.75 | Object IDs stay stable: a refill that changes a system's planet or moon count keeps every surviving body's ID, and a body that changes parent keeps its ID | none | open |
 | DB.76 | Column registry: every numeric column declares its table, kind and stored unit, loaded and stored through one list | none | done, PR #2487 |
@@ -1139,7 +1139,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | none | open |
 | GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | none | open |
 | GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | none | done, PR #2761 |
-| GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | none | open |
+| GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | none | done, PR #2856 |
 | GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | none | open |
 | GEN.416 | Blackbody colour of a star: Planck to the CIE curves to sRGB, as the first part of the photometry library | none | done, PR #2566 |
 | GEN.417 | Rayleigh optical depth of the mixture: per-gas cross sections from the table and the air column from pressure and gravity | none | done, PR #2724 |
@@ -1184,7 +1184,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.456 | Lava worlds and hot rocky planets draw a vapour atmosphere over the magma from the surface composition and temperature: sodium, potassium, silicon monoxide, magnesium, iron and the oxides | none | done, PR #2820 |
 | GEN.457 | The small bodies and moons composition design: the taxon and comet draws, compaction, the moon origin types and the ice fraction | none | done, PR #2374 |
 | GEN.458 | Each system draws its snow line, 0.2 dex around the 170 K blackbody position, and stores it once; the fixed 2.7 AU constant goes | none | done, PR #2655 |
-| GEN.459 | One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug) | none | open |
+| GEN.459 | One radiogenic module: heat from the isotope-wise decay of potassium, thorium, uranium and aluminium-26, drawn from the host star's abundances, replaces the bulk-silicate values that are 37 to 50 percent too high and the separate ground-dose draw (bug) | none | done, PR #2868 |
 | GEN.460 | Giant planets and brown dwarfs get their radius and heavy-element content from the checked laws: the heavy-element mass law, the Fortney and Baraffe tables with inflation, and the burning limits shifted by metallicity and helium (bug) | none | open |
 | GEN.461 | The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug) | none | open |
 | GEN.462 | Ground albedo by band: the area-weighted colour of the ground, ice and ocean cover with space weathering, handed to the atmosphere colour once | none | open |
@@ -1243,9 +1243,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.515 | Tuned draw builder B7: ground and petrology | none | open |
 | GEN.516 | Tuned draw builder B8: giant planets | none | done, PR #2756 |
 | GEN.517 | Tuned draw builder B9: brown dwarfs | none | done, PR #2756 |
-| GEN.518 | Tuned draw builder B10: the chemistry module | none | open |
+| GEN.518 | Tuned draw builder B10: the chemistry module | none | done, PR #2765 |
 | GEN.519 | Tuned draw builder B11: aerosol amplitude | none | open |
-| GEN.520 | Tuned draw builder B12: the comet sampler | none | open |
+| GEN.520 | Tuned draw builder B12: the comet sampler | none | done, PR #2760 |
 | GEN.521 | Tuned draw builder B13: belts | none | open |
 | GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects | none | open |
 | GEN.523 | Tuned draw builder B15: host-star activity | none | open |
@@ -1381,7 +1381,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.653 | Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life | none | open |
 | GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only | none | open |
 | GEN.655 | Survival equipment: one physics/equipment.py returns the list of needs (required or recommended) for the four slots, and replaces habitability.equipment and protection.requirements | none | done, PR #2766 |
-| GEN.656 | Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator and night side for locked worlds) and the day and night swing, with the regional sentences of the detail text | none | open |
+| GEN.656 | Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator and night side for locked worlds) and the day and night swing, with the regional sentences of the detail text | none | done, PR #2844 |
 | GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH | none | open |
 | GEN.658 | Dust loading and dust toxicity feed the dust filter and seals level of the equipment needs | none | open |
 | GEN.659 | The interstellar debris density stand-in of 1e12 per pc^3 is 700 to 1,800 times too low: the measured value is 7e14 to 1.8e15 per pc^3 (bug) | none | done, PR #2801 |
@@ -1418,7 +1418,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.690 | Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs | none | open |
 | GEN.691 | The Suitability sentence says "no food readily available, but there is water and shelter available" while the Water row is Red and "undrinkable without heavy treatment" (bug) | none | open |
 | GEN.692 | The planet page Atmosphere table shows "Oxygen 100%" for a class B planet whose text says helium, sodium and oxygen, because it divides only the stored gases (bug) | none | open |
-| GEN.693 | Light-gas escape filter after outgassing: the mixture draw gives a small warm body hydrogen as its main gas | none | open |
+| GEN.693 | Light-gas escape filter after outgassing: the mixture draw gives a small warm body hydrogen as its main gas | none | done, PR #2862 |
+| GEN.694 | Oxygen caps in the atmosphere draw: biotic oxygen at most 35 percent, abiotic at most 95 percent with a nitrogen and argon floor, and no mixture shown as 100 percent | none | done, PR #2862 |
+| GEN.695 | Class B keeps some hydrogen and helium in its atmosphere mix next to the sodium and oxygen of a molten world | none | dropped (Boss, 1:22 AM EDT 2026-10-24, card option 3: class B never has hydrogen or helium; a stripped core is at least 5 Earth masses) |
+| GEN.696 | Research source: the leftover envelope mass fraction of a stripped giant core | none | dropped (Boss, 1:22 AM EDT 2026-10-24: class B never has hydrogen or helium) |
+| GEN.697 | The generator records an origin quantity stripped_core for a small hot body that began as a giant | none | dropped (Boss, 1:22 AM EDT 2026-10-24: class B never has hydrogen or helium) |
+| GEN.698 | Recipe rows for the stripped core: a hydrogen and helium envelope share for a small hot body, replacing the gating of rows e1 to e6 that stops at 1 Earth mass | none | dropped (Boss, 1:22 AM EDT 2026-10-24: class B never has hydrogen or helium; lane L's research note stays as reports/stripped-core-envelope-2026-10-24.md) |
+| GEN.699 | Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9 | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1561,7 +1567,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.140 | Double-click on a selected object goes there and opens its information | none | open |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
 | MAP.142 | Nebulae have fuzzy, fading boundaries | none | open |
-| MAP.143 | Color sectors by their number of habitable locations | none | open |
+| MAP.143 | Color sectors by their number of habitable locations | none | done, PR #2742 |
 | MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | done, PR #865 |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | none | done, PR #2103 |
@@ -1674,7 +1680,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.253 | Map and scene read the parent chain: systemscene, body_positions, the browser twin orbitpositions.js and the systemmap branches drop the three origin conventions | none | open |
 | MAP.254 | One shared info box: selecting anything on any view opens the same box, with a View button that opens the item's own page | none | done, PR #2514 |
 | MAP.255 | The browser twin orbitpositions.js draws a wide pair as a circle: move it onto the stored orbit tree (bug) | none | open |
-| MAP.256 | The map shows the information box twice when an object is selected: once in the window and once to its right (bug) | none | open |
+| MAP.256 | The map shows the information box twice when an object is selected: once in the window and once to its right (bug) | none | done, PR #2852 |
 | MAP.257 | Infinite zoom is still clunky: the zoom zones and segments other than sectors get in the way (bug) | none | open |
 | MAP.258 | N1: the sector-block ladder above 243 sectors and drillChildren in JavaScript | none | open |
 | MAP.259 | N2: node aggregates for the pre-placed bright stars and scattered phenomena | none | open |
@@ -1949,8 +1955,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.110 | XFetch refresh for costly entries that expire by age | none | done, PR #2050 |
 | PERF.111 | `ResponseCache.put` without a database never trims the page cache: the cache grows past `max_entries`, and the thread test fails when its last put is one of those (bug) | none | open |
 | PERF.112 | The uncharted-star count runs a full COUNT(*) on every request: keep the count so the page and the API do not scan bright_stars each time (performance) | none | done, PR #2154 |
-| PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
-| PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | open |
+| PERF.113 | The neighbour link of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | done, PR #2846 |
+| PERF.114 | The population pass of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | done, PR #2846 |
 | PERF.115 | The settle stage of a galaxy run: measure it, and split it into chunks of sectors if the time warrants | none | done, PR #2794 |
 | PERF.116 | The habitability re-score (`plan --habitability`): measure it, and split it into chunks of systems if the time warrants | none | done, PR #2794 |
 | PERF.117 | The map-luminosity fill (`plan --map-luminosity`): measure it, and split it into id-range chunks if the time warrants | none | done, PR #2794 |
@@ -1959,7 +1965,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.120 | Every command does one thing: the umbrella for reshaping every command and entry point | none | open |
 | PERF.121 | `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band) | none | done, PR #2441 |
 | PERF.122 | The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags | none | done, PR #2441 |
-| PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | none | open |
+| PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | none | done, PR #2865 |
 | PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | none | open |
 | PERF.125 | The population pass and the territories pass are separate commands | none | open |
 | PERF.126 | `check-db`: each check is its own command and the report is the list the wrapper runs | none | done, PR #2211 |
@@ -2013,7 +2019,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.174 | Every work unit's database connection runs the schema check again: skip it when the schema version is current | none | open |
 | PERF.175 | benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug) | none | open |
 | PERF.176 | Storing the galaxy shape takes 52 percent of the plan (20 s of 38.6 s): find why and speed it up | none | open |
-| PERF.177 | A galaxy run died at the phenomena stage (14 percent) on a Redis out-of-memory (maxmemory 512mb, noeviction), the later stages never ran, and the log is a 70-line double traceback (bug) | none | open |
+| PERF.177 | A galaxy run died at the phenomena stage (14 percent) on a Redis out-of-memory (maxmemory 512mb, noeviction), the later stages never ran, and the log is a 70-line double traceback (bug) | none | done, PR #2836 |
 | PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) | none | open |
 | PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
@@ -2249,7 +2255,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.151 | Icons for Microbial, Flora, Fauna and Sentient life, with a 0 to 9 digit, drawn as a small cluster next to the PHI-6 icons, both themes | none | done, PR #2733 |
 | UX.152 | Planet and moon pages, lists, the system page and the API show the four life scores in the cluster; the old Microbial, Complex life and Human operability line goes | none | open |
 | UX.153 | Search offers a Needs tick per equipment item, the habitability levels help page and the describer sentences read the needs list, and no sentence says none | none | open |
-| UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | open |
+| UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | done, PR #2844 |
 | UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) | none | done, PR #2784 |
 | UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | done, PR #2784 |
 | UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | open |
@@ -2261,6 +2267,23 @@ Parents marked "new parent" had no old number of their own.
 | UX.163 | Every planet and moon page and the descriptions carry a Required line and a Recommended line for the equipment, on every run | none | open |
 | UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) | none | open |
 | UX.165 | Class pages and names come from the rule rows | none | done, PR #2781 |
+| UX.166 | The habitability icons display as intended in Chrome but draw as solid black shapes with tiny coloured dots in Firefox, even with a fully cleared cache (bug) | none | open |
+| UX.167 | Rewrite the equipment category row sentences from the needs list instead of the 10-15 wording | none | open |
+| UX.168 | Property sheet registry and GET /api/objects/<ref>/sheet, with a completeness test against column_units.py | none | open |
+| UX.169 | Children API GET /api/objects/<ref>/children and the sector-level tree feed | none | open |
+| UX.170 | Rebuild item.html: header, Location chain with the Inside remainder, siblings, property sheet, description and children | none | open |
+| UX.171 | bodyview.js: the page rendered example from data-look, with the colour note and a browser test | none | open |
+| UX.172 | Tree component: partial, script, keyboard and screen-reader behaviour, no-script fallback and narrow-screen layout | none | open |
+| UX.173 | System page: stars table and body list become the tree; remove the dropdown rows and move species, facilities and the admin menu to the object page | none | open |
+| UX.174 | Sector page: Contents rows expand into the tree, keeping facets, sort, jump and paging at the top level | none | open |
+| UX.175 | The same page anatomy for phenomena, facilities, clusters and regions (absorbs the UX.143 remainder) | none | open |
+| UX.176 | Link sweep: object_url, search, lists, describer references and the map popup View button all open /object/<ref>; delete body_anchor, bodyanchor.js and the row-highlight styles | none | open |
+| UX.177 | Tests for the object pages: a page-walk for every kind, tree browser tests, accessibility, no-script, a huge sector, a moon of a moon-less planet and an unknown ID | none | open |
+| UX.178 | Docs for the object pages: docs/design/interface/object-pages.md, the route list, body-rendering.md and the sheet registry rules | none | open |
+| UX.179 | Sitemap entries and an Open Graph image for object pages (optional, can wait) | none | open |
+| UX.180 | A Help menu in the top bar on the search-icon side that holds Classes and Habitability; the separate Habitability levels links go away | none | done, PR #2867 |
+| UX.181 | Every habitability symbol, life score and equipment or Habitable chip links straight to its section of the habitability page | none | done, PR #2867 |
+| UX.182 | The standalone Planet class, Spectral class and Luminosity class links go away and the class text itself links to its section | none | done, PR #2867 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2682,7 +2705,15 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.313 | test_systems.py test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] is a random flake: about 2 in 12 runs the belt is missing (bug) | none | open |
 | TEST.314 | Only classify writes the class column, and the class is recomputed when an input is edited | none | open |
 | TEST.315 | TEST.210 reports the class shares and ranges as outputs; TEST.209 adds that the class agrees with the conditions | none | open |
-| TEST.316 | test_no_page_shows_a_formula_that_is_not_written_out fails on main: /classes/habitability shows a bare "CO2" (bug) | none | open |
+| TEST.316 | test_no_page_shows_a_formula_that_is_not_written_out fails on main: /classes/habitability shows a bare "CO2" (bug) | none | done, PR #2850 |
+| TEST.317 | test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star fails under heavy load (bug) | none | open |
+| TEST.318 | test_web_generate_size::test_the_line_is_the_estimate_only_output_for_the_same_values fails on untouched main: refused True vs False (bug) | none | open |
+| TEST.319 | test_datasets_real::test_the_catalogue_reports_nothing_missing fails when the ozone_uv file is not downloaded (bug) | none | open |
+| TEST.320 | test_db_batching::test_sector_rows_are_written_in_a_few_multi_row_inserts fails once in a full gate and passes alone (bug) | none | open |
+| TEST.321 | test_web_browser_tables: the jump box test flakes under load (bug) | none | open |
+| TEST.322 | test_no_todo_codes_shown fails on main: planetgen/db/point_columns.py:189 shows the item code DB.73 in a string the code shows (bug) | none | open |
+| TEST.323 | test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug) | none | open |
+| TEST.324 | test_web_header_menus top-bar [1280x720-light] times out under load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

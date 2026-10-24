@@ -22,7 +22,7 @@ import time
 import types
 
 from planetgen.queue import commands, progress_rate, units, work as workQueue, wrapper
-from planetgen.db import containers as containersDb, nebula_blocks, query, store
+from planetgen.db import block_stats, containers as containersDb, nebula_blocks, query, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import component_pass as componentPass
 from planetgen.generation import containers as generationContainers
@@ -505,7 +505,7 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
     filled are always left out (GEN.30): the scatter never adds stars to a
     generated sector.
 
-    `passes` names the passes to draw. Both (the default, `galaxy --then-scatter`) replace the whole scatter. One alone
+    `passes` names the passes to draw. Both (the default, what `galaxy` draws) replace the whole scatter. One alone
     is what `planetgen scatter --mass` or `--luminosity` draws (PERF.121) after `run_scatter` has found none of it
     stored (Boss's F7: `planetgen clear-scatter` empties a kind first, so no draw replaces another): the luminosity
     pass works at the mass limit the mass pass stored, and needs one (`planetgen scatter --mass` first).
@@ -2141,9 +2141,11 @@ def rescore_habitability_unit(params, report):
     conn = store.get_connection(_mysql_config_of(params))
     try:
         updated = 0
-        for row in conn.execute("SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id",
-                                (params["low"], params["high"])).fetchall():
-            updated += store.refresh_habitability(conn, row["id"])
+        system_ids = [row["id"] for row in conn.execute(
+            "SELECT id FROM star_systems WHERE id BETWEEN ? AND ? ORDER BY id", (params["low"], params["high"])).fetchall()]
+        for system_id in system_ids:
+            updated += store.refresh_habitability(conn, system_id)
+        store.recount_habitable_worlds(conn, system_ids)    # MAP.143; the block totals follow once, in `fill_habitability`
         conn.commit()
         return {"updated": updated, "ids": params["high"] - params["low"] + 1}
     finally:
@@ -2162,6 +2164,12 @@ def fill_habitability(args):
         args, "habitability", "Habitability", {}, "Re-scoring habitability",
         lambda detail: f"Habitability: {detail['total']:,} systems to re-score.", "updated")
     log.normal(f"Re-scored the habitability of {updated:,} bodies.")
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        block_stats.rebuild(conn)    # MAP.143: the blocks' habitable-world totals follow the sectors' counts
+        conn.commit()
+    finally:
+        conn.close()
     return updated
 
 

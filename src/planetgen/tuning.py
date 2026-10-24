@@ -3094,40 +3094,46 @@ ROGUE_PLANET_AGE_RANGE_GY = (0.1, 10.0)
 stars (and so ejected planets) at a roughly steady rate for ~10 Gyr (a
 default)."""
 
-ROGUE_RADIOGENIC_ISOTOPES = (
-    # (isotope, present mantle concentration kg/kg, heat W/kg, half-life Gyr)
-    ("U-238", 31e-9 * 0.9928, 9.46e-5, 4.468),
-    ("U-235", 31e-9 * 0.0071, 5.69e-4, 0.704),
-    ("Th-232", 124e-9, 2.64e-5, 14.05),
-    ("K-40", 310e-6 * 1.19e-4, 2.92e-5, 1.248),
-)
-"""tuple: Earth's mantle heat sources today (Turcotte & Schubert 2014,
-Geodynamics 3rd ed., tables 4.2-4.3: U 31 ppb, Th 124 ppb, K 310 ppm,
-about 7.4e-12 W/kg). A rogue of age t carries Earth's concentrations
-as they stood at age t (each scaled by exp(lambda * (4.5 Gyr - t)))."""
-
 ROGUE_EARTH_REFERENCE_AGE_GY = 4.5
-"""float: The age the concentrations above describe (Earth's)."""
+"""float: The Earth's age, the reference a giant's cooling law is scaled from (`ROGUE_GIANT_COOLING_TIME_EXPONENT`)."""
 
-ROGUE_MANTLE_MASS_FRACTION = 0.67
-"""float: The heat-producing (silicate) share of a rocky rogue's mass,
-Earth's (4.0e24 of 5.97e24 kg)."""
+RADIOGENIC_SILICATE_MASS_FRACTION = 0.675
+"""float: The heat-producing (bulk silicate) share of a rocky body's mass: the Earth's 1 minus its core mass fraction 0.325 (part E
+2.8e). A stand-in for every body until GEN.428 draws the body's own core and mantle."""
 
 GCR_SOLAR_MODULATION_RANGE = (0.5, 1.64)
 """tuple: The cosmic-ray dose as a fraction of its mean over the solar cycle, drawn log-uniformly per body (GEN.453): the
 Mars dose equivalent runs from 0.35 to 1.15 mSv/day around a mean of 0.7 (Guo 2015, Hassler 2014; a total spread of
 3.3). The same field at another star differs in the same way, so the draw stands for the host's modulation level."""
 
-ROGUE_RADIOGENIC_ABUNDANCE_RANGE = (0.5, 2.0)
-"""tuple: A rogue's radioactive abundance relative to Earth's, drawn
-log-uniformly -- stars, and so their planets, differ in U, Th and K (a
-default)."""
+RADIOGENIC_FELSIC_FRACTION_MAX = 0.5
+"""float: The most of a plate-tectonic body's surface that is felsic crust, drawn uniformly from 0 (part E 3.2 item 5: `f_felsic` is
+uniform on 0 to 0.5 when the lid is mobile, 0 otherwise). A stand-in until GEN.441 gives the ground type."""
 
-ROGUE_UREY_RATIO = 0.67
-"""float: Radiogenic heat over total heat flow. The rest is leftover
-formation heat (secular cooling), kept in Earth's proportion: Earth's
-mantle radiogenic ~0.058 W/m^2 over 0.67 gives ~0.087 W/m^2, Earth's
-measured flow and the 0.08-0.1 W/m^2 Boss's research quotes."""
+RADIOGENIC_OFFSET_SIGMA_DEX = 0.22
+"""float: The scatter of a host-less body's thorium and uranium against the solar scale, dex: chosen so the 1 to 99 percent range of the
+Hypatia catalogue's Eu/Mg, plus or minus 0.5 dex, is 2.33 sigma (Nimmo et al. 2020; radiation-model.md R15). The stand-in for a body
+whose host star has no stored composition (a rogue planet)."""
+
+RADIOGENIC_OFFSET_LIMIT_DEX = 0.5
+"""float: The truncation of that offset, dex, host-less or from the host star (radiation-model.md R15)."""
+
+RADIOGENIC_URANIUM_EXTRA_SIGMA_DEX = 0.05
+"""float: The scatter of uranium beyond thorium's, dex: a placeholder for the Th/U scatter (Dauphas 2005 via Wang 2020, partly
+verified; radiation-model.md R15)."""
+
+RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
+"""tuple: The potassium depletion against uranium as the CI chondrites have it (K/U 67407), drawn log-uniformly. The Earth's 0.177 lies
+inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies (Nimmo et al. 2020), not a measured
+spread (radiation-model.md R15, part E 3.3)."""
+
+RADIOGENIC_AL26_FACTOR_RANGE = (0.1, 10.0)
+"""tuple: The 26Al/27Al at formation over the Solar System's 5.23e-5, drawn log-uniformly (Lichtenberg et al. 2019). A stand-in until
+GEN.476 derives it from the star's formation environment."""
+
+RADIOGENIC_UREY_RANGE = (0.1, 0.9)
+"""tuple: The Urey ratio today, radiogenic heat over the heat flowing out, drawn uniformly (part E 3.3: young bodies sit well below 1,
+the Earth's 0.47 to 0.52 is a test target, and 0.67 is above every measured value)."""
 
 ROGUE_TIDAL_FLUX_RANGE_W_M2 = (1e-4, 1e-2)
 """tuple: Tidal heating, W/m^2, drawn log-uniformly for a rocky rogue

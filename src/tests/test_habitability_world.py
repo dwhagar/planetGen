@@ -235,7 +235,7 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
         assert rows
         for row in rows:
             assert row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01)
-            again = hw.compute(dict(row))
+            again = hw.compute({**dict(row), "native_life": store._stored_native_life(row)})
             assert row["eq_body"] == 4  # an airless world needs a pressure suit
             for name in hw.SCORE_FIELDS:
                 assert row[name] == pytest.approx(again[name]), name
@@ -352,7 +352,8 @@ def test_the_equipment_cell_draws_one_chip_per_item_in_its_domains_colour():
            "equipment_items": [{"item": "gas-mix mask", "severity": "required", "domain": "Air"},
                                {"item": "hardened habitat", "severity": "recommended", "domain": "Radiation"}]}
     cell = habitability_cells.equipment_cell(row)
-    assert cell["chips"] == [{"text": "gas-mix mask", "severity": "required", "tier": 2},
-                             {"text": "hardened habitat", "severity": "recommended", "tier": 3}]
+    assert cell["chips"] == [{"text": "gas-mix mask", "severity": "required", "tier": 2, "anchor": "equipment-gas-mix-mask"},
+                             {"text": "hardened habitat", "severity": "recommended", "tier": 3,
+                              "anchor": "equipment-shelter"}]
     assert cell["text"] == row["equipment"]
     assert habitability_cells.equipment_cell({"equipment": "", "equipment_items": []}) == {"text": "—", "muted": True}

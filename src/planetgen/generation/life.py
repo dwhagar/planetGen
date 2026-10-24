@@ -99,6 +99,10 @@ def get_chemical_scales(life_chemical):
     return [scales] if isinstance(scales, str) else list(scales or ())
 
 
+_CEILING_RANK = {None: 0, "microbial": 1, "none": 2}
+"""dict: How strict a `life_ceiling` answer is: the index allows everything (0), only microbial life (1), none (2)."""
+
+
 def life_ceiling(planet):
     """
     What the habitability index (`phi_bio`, `phi_cpx`) allows to live on
@@ -130,7 +134,7 @@ def _set_description(planet):
     planet.description = tuning.PLANET_CLASSES[planet.planet_class]["description"]
 
 
-def apply_life_data(planet):
+def apply_life_data(planet, _again=True):
     """
     Determines and assigns a planet's (or moon's) life chemistry,
     evolutionary pace (drawn once, for every sentence about it), and — for habitable, non-moon worlds — its
@@ -199,6 +203,10 @@ def apply_life_data(planet):
     else:
         _set_evolutionary_state(planet, None)
     habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
+    if _again and _CEILING_RANK[life_ceiling(planet)] > _CEILING_RANK[ceiling]:
+        # The air, water or heat moved since the first score and the index now allows less than the life just drawn
+        # assumed: draw it again against the final score, which the rescore leaves as it is.
+        apply_life_data(planet, _again=False)
 
 
 def _set_evolutionary_state(planet, state):

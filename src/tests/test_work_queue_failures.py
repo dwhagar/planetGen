@@ -529,7 +529,7 @@ def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(contro
     env = dict(os.environ, PLANETGEN_CONTROL_DATABASE=control_config.database, PLANETGEN_WORKERS="2")
     env.pop(workQueue.PARENT_ENV_VAR, None)
     run = subprocess.Popen(
-        [sys.executable, "-c", _LAUNCH_GENERATE, "galaxy", "--shell", str(GALAXY_SHELL),
+        [sys.executable, "-c", _LAUNCH_GENERATE, "sectors", "--shell", str(GALAXY_SHELL),
          "--num-systems", str(NUM_SYSTEMS), "--workers", "2"] + _mysql_argv(control_config),
         cwd=REPO, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, start_new_session=True,
         # A process inherits an ignored Ctrl+C, and the run then leaves it

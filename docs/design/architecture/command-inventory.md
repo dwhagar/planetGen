@@ -16,7 +16,7 @@ Naming (decided by Boss, 5:14 to 5:16 PM EDT on 2026-10-18, cards F1 to F7): one
 | `planetgen scatter` | One kind of scatter per run: `--mass`, `--luminosity`, `--phenomena`, `--nebula-field` or `--band --down-to N`, with only that kind's parameters; refuses to draw over stored rows (PERF.121, done) | Yes | none |
 | `planetgen clear-scatter` | Empties one kind of scatter's stored rows: `--mass`, `--luminosity`, `--phenomena` or `--nebula-field`, run before `scatter` to redo it (PERF.121, Boss's F7, done) | Yes | none |
 | `planetgen fill-map-luminosity`, `rescore-habitability`, `clean-nebula-field` | One fill or clean-up each, with no setting of a scatter (PERF.122, done) | Yes | none |
-| `planetgen galaxy` | Sector generation in nine modes (random start with neighborhood, shell, block, center sector, band, wedge, course), the neighbour link, the three scatters (`--then-scatter`), the backfill, the population pass (`--population`) and the settle | No: eight jobs in one run | PERF.123 |
+| `planetgen galaxy` | Sector generation in nine modes (random start with neighborhood, shell, block, center sector, band, wedge, course), the neighbour link, the three scatters, the backfill, the population pass and the settle, with no option to leave one out (PERF.123) | No: eight jobs in one run | PERF.123 |
 | `planetgen sector` | Generates sectors; `--population` also runs the population pass | Almost: population leaves it | PERF.124 |
 | `planetgen phenomenon` | Generates one phenomenon, then settles its sector unless `--no-settle` | Almost: settle leaves it | PERF.124 |
 | `planetgen system` | Generates one system and prints or writes it | Yes | none (registered by PERF.118) |

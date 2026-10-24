@@ -491,7 +491,7 @@ def test_the_systems_jump_box_begins_the_list_at_a_typed_name(page, table_site):
     assert page.goto(f"{table_site}/systems", wait_until="load").status == 200
     page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
     box = page.locator("#systems-table .datatable-jump input[type='text']")
-    assert box.is_visible()
+    box.wait_for(state="visible", timeout=15000)   # the field is drawn once Shoelace has defined it (UX.124)
     box.fill("Drifting 100")
     page.locator("#systems-table .datatable-jump button").click()
     page.locator("#systems-table .datatable-count-line", has_text="30 systems from \u201cDrifting 100\u201d") \
@@ -659,6 +659,12 @@ def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scr
     assert labels[0].startswith("Overall habitability: ") and "Pressure: Blue" in labels
     assert last.locator("svg.hab-symbol use").first.get_attribute("href").endswith("#hab-overall")
     assert last.locator("svg.hab-symbol.tier-red").count() >= 1
+    # UX.181: each symbol, drawn by the page or by datatable.js, is a link to its section of the habitability page.
+    for row in (first, last):
+        links = row.locator("a.help-link[href*='/help/habitability#']")
+        assert links.count() == 7
+        assert links.first.get_attribute("href").endswith("/help/habitability#overall")
+        assert links.nth(1).get_attribute("href").endswith("/help/habitability#domain-pressure")
 
 
 # --- UX.117: the Apply filters button never goes away ------------------------------------------------

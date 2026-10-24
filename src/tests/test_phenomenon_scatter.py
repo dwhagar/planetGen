@@ -657,9 +657,9 @@ def test_the_compact_limit_must_be_a_preset_or_star():
 def test_the_galaxy_command_takes_the_compact_limit_too():
     parser = argparse.ArgumentParser(prefix_chars='-+')
     generate_cli.add_galaxy_arguments(parser)
-    args = parser.parse_args(["--then-scatter", "--compact-min-mass", "2"])
+    args = parser.parse_args(["--compact-min-mass", "2"])
     assert args.compact_min_mass == 2.0
-    bad = parser.parse_args(["--then-scatter", "--compact-min-mass", "3"])
+    bad = parser.parse_args(["--compact-min-mass", "3"])
     with pytest.raises(SystemExit):
         generate_cli.validate_galaxy_args(bad, parser)
 

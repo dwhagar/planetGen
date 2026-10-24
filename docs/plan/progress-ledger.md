@@ -1218,3 +1218,23 @@ Baseline: PR #1817.
 | GEN.679 | 8.1 | Consistency |
 | UX.148 | 8.1 | Generate page and directives |
 | MAP.270 | 8.1 | Fly-through map |
+| GEN.656 | 8.1 | Habitability system |
+| UX.154 | 8.1 | Habitability system |
+| GEN.518 | 8.1 | Tuned draws and selection models |
+| GEN.520 | 8.1 | Tuned draws and selection models |
+| PERF.113 | 8.1 | Queue, caches and performance |
+| PERF.114 | 8.1 | Queue, caches and performance |
+| PERF.177 | 8.1 | The headline closes |
+| TEST.316 | 8.1 | Bugs and flaky tests |
+| MAP.256 | 8.1 | Fly-through map |
+| GEN.414 | 8.1 | Radiation chain for habitability (GEN.445) |
+| DB.68 | 8.1 | Consistency |
+| MAP.143 | 8.1 | Habitability system |
+| GEN.694 | 8.1 | Mixture and stored values |
+| GEN.693 | 8.1 | Mixture and stored values |
+| DB.73 | 8.1 | Radiation chain for habitability (GEN.445) |
+| PERF.123 | 8.1 | Queue, caches and performance |
+| UX.182 | 8.1 | Habitability system |
+| UX.181 | 8.1 | Habitability system |
+| UX.180 | 8.1 | Habitability system |
+| GEN.459 | 8.1 | Radiation chain for habitability (GEN.445) |

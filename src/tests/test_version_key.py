@@ -134,10 +134,9 @@ def test_every_run_that_changes_the_galaxy_is_recorded(mysql_config, monkeypatch
     monkeypatch.setattr(secrets, "randbits", lambda bits: 0xABC)
     _generate(mysql_config, monkeypatch, "plan", "--nuclear-amplitude", "0", "--edge=160pc",
               "--seed", galaxySeed.format_seed(SEED))
-    _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1",
-              "--backfill-from", "none")
+    _generate(mysql_config, monkeypatch, "sectors", "--shell", "1", "--limit", "1", "--num-systems", "1")
     runs = _runs(mysql_config)
-    assert [run["command"] for run in runs] == ["plan", "galaxy"]
+    assert [run["command"] for run in runs] == ["plan", "sectors"]
     plan, galaxy = runs
     assert _arguments(mysql_config, plan["id"]) == ["plan", "--nuclear-amplitude", "0", "--edge=160pc",
                                                     "--seed", galaxySeed.format_seed(SEED)]
@@ -155,11 +154,11 @@ def test_every_run_that_changes_the_galaxy_is_recorded(mysql_config, monkeypatch
 def test_a_failed_run_says_so_and_an_estimate_writes_nothing(mysql_config, monkeypatch):
     with pytest.raises(SystemExit):
         # No plan yet: the galaxy run refuses.
-        _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1")
-    assert [(run["command"], run["outcome"]) for run in _runs(mysql_config)] == [("galaxy", "failed")]
+        _generate(mysql_config, monkeypatch, "sectors", "--shell", "1", "--limit", "1", "--num-systems", "1")
+    assert [(run["command"], run["outcome"]) for run in _runs(mysql_config)] == [("sectors", "failed")]
 
     _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1)])
-    _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1",
+    _generate(mysql_config, monkeypatch, "sectors", "--shell", "1", "--limit", "1", "--num-systems", "1",
               "--estimate-only")
     assert len(_runs(mysql_config)) == 1
 
@@ -170,8 +169,7 @@ def test_the_history_never_stops_a_run(mysql_config, monkeypatch):
 
     monkeypatch.setattr(store, "start_generation_run", broken)
     _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1)])
-    _generate(mysql_config, monkeypatch, "galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1",
-              "--backfill-from", "none")
+    _generate(mysql_config, monkeypatch, "sectors", "--shell", "1", "--limit", "1", "--num-systems", "1")
     # The sectors it saved still point at the shared row for saves made outside a run (DB.16), but the run has no row.
     assert [run for run in _runs(mysql_config) if run["command"] != store.SAVE_RUN_COMMAND] == []
 
@@ -187,7 +185,7 @@ def test_the_run_line():
     assert versionKey.run_line(None, "plan").startswith("Galaxy seed none yet, PlanetGen ")
 
 
-GALAXY_RUN = ["galaxy", "--shell", "1", "--limit", "1", "--num-systems", "1", "--backfill-from", "none"]
+GALAXY_RUN = ["sectors", "--shell", "1", "--limit", "1", "--num-systems", "1"]
 
 
 def test_a_run_writes_its_seed_and_version_first(mysql_config, monkeypatch, capsys):

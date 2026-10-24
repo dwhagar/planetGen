@@ -13,6 +13,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants, equipment, formation, regional_temperature
 from planetgen.util import draw
+from tests.test_migration_parent_link import undo_parent_link
 
 pytestmark = pytest.mark.fresh_database
 
@@ -63,8 +64,16 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     # make it a v131 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
+        for table in ("planets", "moons"):  # v141 (GEN.459)
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN c_k0_ppm, DROP COLUMN c_th0_ppm, DROP COLUMN c_u0_ppm, DROP COLUMN al26_ratio,"
+                         " DROP COLUMN urey_ratio, ALGORITHM=COPY")
+        undo_parent_link(conn)  # v140 (DB.73)
+        conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139 (MAP.143)
+        conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139 (MAP.143)
         for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL, ALGORITHM=COPY")  # v138 (GEN.666)
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL, ALGORITHM=COPY")  # v142 (GEN.666)
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN tau_haze, DROP COLUMN tau_dust, DROP COLUMN tau_cloud, DROP COLUMN cloud_cover,"
+                         " DROP COLUMN aerosol_draw, ALGORITHM=COPY")  # v138 (GEN.414)
             conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in regional_temperature.FIELDS)
                          + ", ALGORITHM=COPY")  # v137 (GEN.656)
             conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in equipment.FIELDS)

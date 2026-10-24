@@ -676,6 +676,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             '      <option value="age">Mean age</option>\n'
             '      <option value="luminosity">Luminosity</option>\n'
             '      <option value="stars">Star count</option>\n'
+            '      <option value="habitable">Habitable worlds</option>\n'
             '    </select></label>\n')
         legend_block = (
             '<div class="galaxy-legend" id="galaxymap3d-legend" role="img" hidden>'
@@ -733,12 +734,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 {where_block}{legend_block}
 <div class="map-layer-legend" id="galaxymap3d-layer-legend" hidden></div>
 <div class="map-tooltip" id="galaxymap3d-tooltip" hidden></div>
-<div class="map-infobox" id="galaxymap3d-infobox" role="region" aria-label="Selection" hidden></div>
 </div>
-</div>
-<aside class="starmap-info" id="galaxymap3d-info" data-infobox="galaxymap3d-infobox">
+<aside class="starmap-info" id="galaxymap3d-info" data-overlay aria-label="Selection">
 <p class="hint">{info_hint}</p>
 </aside>
+</div>
 </div>
 <div class="starmap-side">
 <div class="starmap-controls" id="galaxymap3d-controls">

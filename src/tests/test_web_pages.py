@@ -234,7 +234,7 @@ def test_the_bar_has_no_lists_or_nearby_link_and_nav_opens_a_two_entry_menu(clie
     # Folded into the narrow Menu, Nav is a label over the same two links, in the same order.
     panel = re.search(r'<div class="site-menu-panel">.*?</nav>', html, re.S).group(0)
     assert re.findall(r'<a href="([^"]*)"[^>]*>([^<]*)</a>', panel)[-4:] == [
-        ("/phenomena", "Phenomena"), ("/nav", "Plot Course"), ("/nearby", "Nearby Search"), ("/classes", "Classes")]
+        ("/systems", "Systems"), ("/phenomena", "Phenomena"), ("/nav", "Plot Course"), ("/nearby", "Nearby Search")]
     assert 'class="site-nav-label">Nav<' in panel
 
 

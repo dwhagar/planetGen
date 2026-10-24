@@ -498,7 +498,7 @@ def test_retry_reruns_a_cli_run_and_a_failed_sector(web_app, admin_client, contr
     confirm = admin_client.get(f"/admin/queue/confirm/retry?node={queue.job_id}&task={task_id}")
     assert "Retry sector 2,0,5?" in confirm.get_data(as_text=True)
     _post(web_app, admin_client, action="retry", node=queue.job_id, task=str(task_id))
-    assert started[-1][2][0]["argv"][-7:] == ["galaxy", "--shell", "2", "--band", "0", "--wedge", "5"]
+    assert started[-1][2][0]["argv"][-7:] == ["sectors", "--shell", "2", "--band", "0", "--wedge", "5"]
 
 
 def test_retry_refuses_another_database(web_app, admin_client, control_config, monkeypatch):
