@@ -380,6 +380,12 @@
       "epoch": 77,
       "first_release": "8.0.2175",
       "reason": "Every star draws its birth [Fe/H] first, from its population at its place, and its main-sequence lifetime, subgiant and giant branch and horizontal-branch colour follow that composition; the bright-star sampler draws a place's compositions in proportion to the stars each can make, so every star's mass, age, type and companions change and a composition draw moves ahead of the star's other draws (GEN.651)"
+    },
+    {
+      "epoch": 78,
+      "first_release": null,
+      "pending": true,
+      "reason": "The Radiation domain of a world's habitability is the lower of its dose's score and its ground ultraviolet's, so the stored habitability scores and the tiers, kit and habitable counts that follow from them change for worlds with strong ultraviolet (GEN.445)"
     }
   ]
 }

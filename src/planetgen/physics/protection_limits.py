@@ -62,6 +62,9 @@ LIMIT_ROWS = (
           "past it a hardened habitat (Red)", 1.0, 1.0),
     Limit("dose_outer_sv_yr", 1000.0, "Sv/yr", "the score reaches 0 here", 1000.0, None),
     Limit("dose_single_year_sv", 0.05, "Sv", "ICRP's limit for any one year", 0.05, None),
+    Limit("uv_lethal_index", 300.0, "x Earth", "a DNA-weighted UV dose from here is the unfiltered light of a star with no ozone layer "
+          "(280 to 356 times Earth's, radiation-model.md section 13): past it a hardened habitat (Red)", None, None),
+    Limit("uv_outer_index", 3000.0, "x Earth", "the UV score reaches 0 here", None, None),
     # --- Survival equipment (GEN.655): where gear is required and where it is only recommended. The gear follows the
     # physics even where the score's bands are looser (Boss, 2026-10-23, decision B) ---
     Limit("suit_required_kpa", 16.0, "kPa", "below this a mask on pure oxygen no longer works: a pressure suit is required", None, None),

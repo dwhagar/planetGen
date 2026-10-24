@@ -24,6 +24,7 @@ import math
 from collections import namedtuple
 from dataclasses import dataclass, field
 
+from planetgen.physics import constants, radiation
 from planetgen.physics.protection_limits import limit
 
 # --- Physiology (human visitor) ----------------------------------------------------------
@@ -101,11 +102,16 @@ the PHI-4 doc leaves between 100 mSv/yr and 10 Gy/yr (the Eigen threshold of
 hydrosphere.md 4.6, Boss's defaults of 2026-10-10 (Blue 20 mSv/yr, 50 as the
 single-year limit)."""
 
+UV_BAND = (None, None, None, None, limit("uv_cover_index"), limit("uv_suit_index"), limit("uv_lethal_index"), limit("uv_outer_index"))
+"""The DNA-weighted ultraviolet dose at the ground as a multiple of Earth's (log; `World.uv_index`, GEN.445). Blue below the index where
+sun-cover clothing starts (3), Green to where a full-cover suit starts (30), Yellow to the unfiltered light of an ozone-free world (300:
+shelter from the sun), Red beyond, 0 a decade further out. The score of the Radiation domain is the lower of this and the dose's."""
+
 SINGLE_YEAR_DOSE_SV = limit("dose_single_year_sv")
 """float: ICRP's limit for any one year, 50 mSv: where `m_rad` starts
 charging for shielding."""
 
-Bands = namedtuple("Bands", "armstrong o2_min o2_chronic o2_acute wet_bulb pressure temperature dose o2_high")
+Bands = namedtuple("Bands", "armstrong o2_min o2_chronic o2_acute wet_bulb pressure temperature dose o2_high uv")
 """namedtuple: The limits the five core domains are scored against: the Armstrong pressure, the least inspired
 O2, the chronic and acute inspired O2 edges, the uncompensable wet bulb, and the pressure, temperature and
 dose bands with `o2_high`, the band of too much O2. `HUMAN` is the visitor's; `bands` builds a species'
@@ -131,7 +137,8 @@ def bands(overrides=None):
                      value("comfort_high_c"), value("heat_garment_c"), value("heat_max_c"), value("hot_outer_c")),
         dose=(None, None, None, None, value("dose_blue_sv_yr"), value("dose_green_sv_yr"), value("dose_yellow_sv_yr"),
               value("dose_outer_sv_yr")),
-        o2_high=(None, None, None, None, chronic, chronic, acute, acute * 10))
+        o2_high=(None, None, None, None, chronic, chronic, acute, acute * 10),
+        uv=(None, None, None, None, value("uv_cover_index"), value("uv_suit_index"), value("uv_lethal_index"), value("uv_outer_index")))
 
 
 HUMAN = bands()
@@ -261,35 +268,6 @@ SHIELD_EXPONENT = 0.2
 shielding a base must add grows with log(D); Mars's 0.25 Sv/yr scores 0.73 and Europa's surface
 (about 2000 Sv/yr) 0.12. Replaces the doc's undefined lambda."""
 
-# --- Surface dose from the atmosphere ---------------------------------------------------
-
-GCR_SOFT_SV_YR = 0.45
-GCR_SOFT_LENGTH_G_CM2 = 22.0
-GCR_HARD_SV_YR = 0.05
-GCR_HARD_LENGTH_G_CM2 = 200.0
-GROUND_SV_YR = 0.002
-"""float: Galactic cosmic-ray surface dose, D = 0.45 exp(-X/22) + 0.05
-exp(-X/200) Sv/yr plus 2 mSv/yr from the ground, X the column mass P0/g.
-Fitted to the Moon's surface, 0.50 Sv/yr (Zhang et al., 2020), Mars's,
-about 0.25 Sv/yr at 16 g/cm^2 (Hassler et al., 2014), 50 to 100 mSv/yr at
-0.05 bar (the radiation doc) and Earth's 2.4 mSv/yr at 1033 g/cm^2 (Atri,
-2017). Stellar particle events, magnetic fields and a nebula's compressed
-heliosphere add to it in GEN.87."""
-
-
-def column_mass_g_cm2(pressure_kpa, gravity_ms2):
-    """X = P0 / g, g/cm^2."""
-    if gravity_ms2 <= 0:
-        return 0.0
-    return pressure_kpa * 1000.0 / gravity_ms2 / 10.0
-
-
-def gcr_surface_dose_sv_yr(column_g_cm2):
-    """The cosmic-ray dose under `column_g_cm2` of air, plus the ground's."""
-    return (GCR_SOFT_SV_YR * math.exp(-column_g_cm2 / GCR_SOFT_LENGTH_G_CM2)
-            + GCR_HARD_SV_YR * math.exp(-column_g_cm2 / GCR_HARD_LENGTH_G_CM2) + GROUND_SV_YR)
-
-
 # --- A world -----------------------------------------------------------------------------
 
 @dataclass
@@ -333,7 +311,15 @@ class World:
     def dose_sv_yr(self):
         if self.surface_dose_sv_yr is not None:
             return self.surface_dose_sv_yr
-        return gcr_surface_dose_sv_yr(column_mass_g_cm2(self.pressure_kpa, self.gravity_ms2))
+        return self.bare_cosmic_ray_dose_sv_yr
+
+    @property
+    def bare_cosmic_ray_dose_sv_yr(self):
+        """The dose of a world whose record carries none (a hand-built one, a body saved before GEN.87): the cosmic rays of the tables of
+        GEN.453 (`radiation.gcr_dose_msv_yr`) under its air at the mean solar modulation, with no field, no stellar particles and no ground. The
+        one curve for it; the model of the dose is `radiation.py`."""
+        column = radiation.column_g_cm2(self.pressure_kpa * 1000.0, self.gravity_ms2 / constants.EARTH_GRAVITY)
+        return radiation.gcr_dose_msv_yr(column) / 1000.0
 
     @property
     def habitat_dose_gy_yr(self):
@@ -525,8 +511,18 @@ def air_score(world, limits=HUMAN):
     return min(_gas_scores(world, limits).values())
 
 
+def uv_score(world, limits=HUMAN):
+    """The ground ultraviolet's score, or `None` for a world with no ultraviolet index."""
+    if not world.uv_index or world.uv_index <= 0.0:
+        return None
+    return band_score(world.uv_index, limits.uv, log=True)
+
+
 def radiation_score(world, limits=HUMAN):
-    return band_score(world.dose_sv_yr, limits.dose, log=True)
+    """Radiation: the lower of the dose's score and the ultraviolet's (a world with no ultraviolet index scores on its dose alone)."""
+    dose = band_score(world.dose_sv_yr, limits.dose, log=True)
+    uv = uv_score(world, limits)
+    return dose if uv is None else min(dose, uv)
 
 
 # --- Suitability (GEN.207) --------------------------------------------------------------------

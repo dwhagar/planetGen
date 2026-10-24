@@ -13,7 +13,7 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import NeutronStar
 from planetgen.generation.system import StarSystem
-from planetgen.physics import equipment
+from planetgen.physics import atmosphere, body_radiation, constants, equipment
 from planetgen.physics import habitability_world as hw
 from planetgen.util import draw
 
@@ -357,3 +357,27 @@ def test_the_equipment_cell_draws_one_chip_per_item_in_its_domains_colour():
                               "anchor": "equipment-shelter"}]
     assert cell["text"] == row["equipment"]
     assert habitability_cells.equipment_cell({"equipment": "", "equipment_items": []}) == {"text": "—", "muted": True}
+
+
+def _sun_body(**fields):
+    base = {"planet_class": "M", "gravity": 1.0, "atmospheric_pressure": 101325.0, "distance": 1.0, "is_moon": False,
+            "star": types.SimpleNamespace(temperature=5772.0, luminosity=constants.SOLAR_LUMINOSITY, uv_c_share=1.0),
+            "p_n2_kpa": 79.1, "p_o2_kpa": 21.2, "p_ar_kpa": 0.95, "ozone_column_du": 300.0}
+    base.update({f"p_{gas}_kpa": 0.0 for gas in atmosphere.SPECIES if f"p_{gas}_kpa" not in base})
+    base.update(fields)
+    return types.SimpleNamespace(**base)
+
+
+def test_the_ozone_column_moves_the_radiation_tier_through_the_ground_ultraviolet():
+    """GEN.445: the habitability reads the derived UV, so changing the ozone of an otherwise Earth-like world moves the Radiation tier (and
+    no other domain)."""
+    def scored(ozone_du):
+        index = body_radiation.dna_dose_index(_sun_body(ozone_column_du=ozone_du))
+        return hw.compute(_earth(uv_surface_index=index))
+
+    shielded, thin, bare = scored(300.0), scored(60.0), scored(0.0)
+    assert shielded["tier_radiation"] == 0
+    assert bare["tier_radiation"] > shielded["tier_radiation"] and bare["tier_radiation"] >= thin["tier_radiation"]
+    assert bare["tier_radiation"] == 3                    # the unfiltered light of a world with oxygen and no ozone is lethal
+    for domain in ("pressure", "temperature", "air", "water"):
+        assert bare[f"tier_{domain}"] == shielded[f"tier_{domain}"]
