@@ -23,6 +23,14 @@ function render(root, system) {
   }
 }
 
+// A colour chip of a description (GEN.420) is <span class="swatch" data-colour="#99bfff">; the page's policy forbids a style
+// attribute, so the colour is set here through the style object, which it allows. Without script the word beside it still reads.
+function paintSwatches(root) {
+  for (const node of (root || document).querySelectorAll(".swatch[data-colour]")) {
+    node.style.backgroundColor = node.dataset.colour;
+  }
+}
+
 function label(button, system) {
   button.textContent = `Units: ${LABELS[system]}`;
 }
@@ -33,6 +41,7 @@ function wire() {
   if (system !== "auto") {
     render(document, system);
   }
+  paintSwatches(document);
   for (const button of document.querySelectorAll("[data-units-toggle]")) {
     label(button, system);
     button.hidden = false;
@@ -50,4 +59,7 @@ function wire() {
 
 wire();
 // Quantities added after load (a panel a script builds) call this.
-window.planetgenRenderQuantities = (root) => render(root, unitSystem());
+window.planetgenRenderQuantities = (root) => {
+  render(root, unitSystem());
+  paintSwatches(root);
+};

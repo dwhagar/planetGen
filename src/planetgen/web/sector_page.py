@@ -21,7 +21,7 @@ Admin actions are POST forms to the same URL, each carrying
 - `generate_neighborhood` (an admin whose credentials are current, on a
   galaxy-placed sector): the size and time first (`POST
   /api/sectors/<id>/generate-neighborhood` with `estimate_only`), then,
-  confirmed, a Generate page job (`planetgen galaxy --center-sector`,
+  confirmed, a Generate page job (`planetgen sectors --center-sector`,
   ADM.11) that keeps running when the page is closed.
 - The Delete and Regenerate buttons (ADM.8) post an `edit_action`
   instead, handled by `web/edit_actions.py`: delete the sector with
@@ -455,7 +455,7 @@ def _handle_post(sector_id, admin):
 
 
 def _start_neighborhood_job(sector_id, admin, generate_anyway=False):
-    """Starts `planetgen galaxy --center-sector <id>` over the default
+    """Starts `planetgen sectors --center-sector <id>` (and the steps after it) over the default
     radius as a Generate page job (`web/jobs.py`). `generate_anyway`: the
     admin chose "Generate anyway" over a no-room refusal (ADM.33), which
     goes in the activity log. Returns an error message, or `None` once it

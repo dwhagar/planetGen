@@ -1424,6 +1424,27 @@
 -- v135 (GEN.413): `planets.ozone_column_du` and `moons.ozone_column_du`, the ozone column in Dobson units (NULL for a gas giant and for a row made before v135; 0 with no oxygen),
 --   drawn from the oxygen and the star's temperature (`physics/ozone.py`); the UV index reads it.
 --
+-- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
+--   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
+--   `physics/equipment.py`, required and recommended) and `shelter_column_g_cm2` and `outside_hours` (DOUBLE); all NULL for a gas giant and an unscored body.
+-- v137 (GEN.656): `planets` and `moons` also keep where the mean surface temperature is higher or lower (`physics/regional_temperature.py`, kelvin, NULL for a gas giant and an unscored body):
+--   a world that turns on its own has the annual means of its latitude bands `temp_polar_k`, `temp_north_k`, `temp_equator_k` and `temp_south_k` and the day and night swing
+--   `temp_swing_k`; a tidally locked world has `temp_day_side_k`, `temp_terminator_k` and `temp_night_side_k` instead. A pure function of stored columns, so no epoch.
+-- v138 (GEN.414, DB.68): `planets` and `moons` also keep the haze, dust and cloud optical depths at 550 nm (`tau_haze`, `tau_dust`, `tau_cloud`), the cloud cover and the number that picks
+--   the aerosol optics inside their brackets (`aerosol_draw`). A row saved before v138 has NULL: the regenerated galaxy draws them.
+-- v139 (MAP.143): `sector_stats.habitable_worlds` (the planets and moons of a generated sector's systems that are Blue or Green overall, NULL before a fill) and
+--   `galaxy_block_stats.habitable_worlds` (their sum over a block's generated sectors), so the Galaxy Map can colour a sector or block by how many it holds.
+-- v140 (DB.73): one parent link for every kind. `parent_type` (`star`, `planet`, `system`, `node`, `rogue_planet` or `free`) and
+--   `parent_id` (the row of that table; for `node` the `orbit_nodes.node_no` of the row's own system; NULL for `system`'s
+--   head when unknown and for `free`) are on planets and moons since v102 and now also on stars, asteroid_belts, comets, black_holes,
+--   neutron_stars, rogue_planets and interstellar_comets, backfilled from `parent_node_id` and `star_id`, with an index on both
+--   columns. `parent_type` is VARCHAR(16). `moons.planet_id` and `moons.star_system_id` are nullable: a moon of a free planet has
+--   `parent_type` 'rogue_planet', the rogue planet's row in `parent_id` and in `rogue_planet_id` (a foreign key that cascades), and both NULL. A planet that leaves its star keeps its
+--   row and ID and becomes `free`. There is no foreign key for a polymorphic `parent_id`. The `sector_objects` view lists the bodies of systems only, so a moon of a free planet is not in it.
+-- v141 (GEN.459): `planets` and `moons` keep the radiogenic content of the body (`c_k0_ppm`, `c_th0_ppm`, `c_u0_ppm`: potassium, thorium and uranium in the bulk silicate at
+--   formation, ppm by mass; `al26_ratio`: 26Al/27Al at formation; `urey_ratio`: the radiogenic share of the heat flowing out), the one set its interior heat and its ground dose read.
+--   Rows from before v141 have NULL there and keep the heat and the dose they were generated with.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1764,6 +1785,7 @@ CREATE TABLE IF NOT EXISTS galaxy_block_stats (
     stars             BIGINT UNSIGNED NOT NULL,
     age_sum           DOUBLE NOT NULL,
     luminosity_sol    DOUBLE NOT NULL,
+    habitable_worlds  BIGINT UNSIGNED NOT NULL DEFAULT 0,   -- v139 (MAP.143)
     PRIMARY KEY (m, shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -2068,7 +2090,12 @@ CREATE TABLE IF NOT EXISTS stars (
     cluster_id                  BIGINT UNSIGNED NULL,  -- v127 (DB.61)
     snow_line_km                DOUBLE NOT NULL,  -- v132 (GEN.458): this star's own snow line, drawn once around the 170 K blackbody position
 
+    parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
+    parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+
     UNIQUE KEY uq_stars_uid (uid),
+    KEY idx_stars_parent (parent_type, parent_id),
+    CONSTRAINT chk_stars_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     CONSTRAINT fk_stars_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     KEY idx_stars_star_system_id (star_system_id),
@@ -2229,7 +2256,30 @@ CREATE TABLE IF NOT EXISTS planets (
     l_chem                      DOUBLE,
     l_ener                      DOUBLE,
     l_rad                       DOUBLE,
-    equipment_tier              TINYINT,
+    eq_body                     TINYINT,
+    eq_body_kind                TINYINT,
+    eq_body_rec                 TINYINT,
+    eq_body_rec_kind            TINYINT,
+    eq_rad_suit                 TINYINT,
+    eq_rad_suit_rec             TINYINT,
+    eq_mobility                 TINYINT,
+    eq_dust                     TINYINT,
+    eq_gas_filter               TINYINT,
+    eq_co2_scrub                TINYINT,
+    eq_supply                   TINYINT,
+    eq_supply_rec               TINYINT,
+    eq_shelter                  TINYINT,
+    eq_shelter_rec              TINYINT,
+    shelter_column_g_cm2        DOUBLE,
+    outside_hours               DOUBLE,
+    temp_polar_k                DOUBLE,
+    temp_north_k                DOUBLE,
+    temp_equator_k              DOUBLE,
+    temp_south_k                DOUBLE,
+    temp_swing_k                DOUBLE,
+    temp_day_side_k             DOUBLE,
+    temp_terminator_k           DOUBLE,
+    temp_night_side_k           DOUBLE,
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2239,12 +2289,22 @@ CREATE TABLE IF NOT EXISTS planets (
     reflex_offset_z_km       DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
-    parent_type                 VARCHAR(8) NOT NULL DEFAULT 'star',  -- v102 (DB.55)
+    parent_type                 VARCHAR(16) NOT NULL DEFAULT 'star',  -- v102 (DB.55), v140 (DB.73): wider
     parent_id                   BIGINT UNSIGNED NULL,  -- v102 (DB.55)
     dynamical_state             VARCHAR(8) NOT NULL DEFAULT 'bound',  -- v102 (DB.55)
     host_node_id                SMALLINT NULL,  -- v104 (DB.53): the orbit node the planet orbits (NULL: its star)
     born_beyond_snow_line       BOOLEAN NULL,  -- v132 (GEN.458): formed beyond its star's snow line, NULL when the host has none to compare
     ozone_column_du             DOUBLE NULL,  -- v135 (GEN.413): the ozone column, Dobson units
+    tau_haze                    DOUBLE NULL,  -- v138 (GEN.414, DB.68): haze optical depth at 550 nm, NULL for a row saved before v138 or a body with no air
+    tau_dust                    DOUBLE NULL,  -- v138 (GEN.414, DB.68): dust optical depth at 550 nm
+    tau_cloud                   DOUBLE NULL,  -- v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (grey)
+    cloud_cover                 DOUBLE NULL,  -- v138 (GEN.414, DB.68): share of the sky under cloud, 0 to 1
+    aerosol_draw                DOUBLE NULL,  -- v138 (GEN.414, DB.68): the number in [0, 1) that picks the optics inside the brackets
+    c_k0_ppm                    DOUBLE,  -- v141 (GEN.459): potassium in the bulk silicate at formation, ppm by mass
+    c_th0_ppm                   DOUBLE,  -- v141: thorium, the same
+    c_u0_ppm                    DOUBLE,  -- v141: uranium, the same
+    al26_ratio                  DOUBLE,  -- v141: 26Al/27Al at formation
+    urey_ratio                  DOUBLE,  -- v141: the radiogenic share of the heat flowing out, today
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2260,7 +2320,8 @@ CREATE TABLE IF NOT EXISTS planets (
     KEY idx_planets_body_type (body_type),
     KEY idx_planets_life_chemical (life_chemical),
     KEY idx_planets_radius_km (radius_km),
-    CONSTRAINT chk_planets_parent_type CHECK (parent_type IN ('star', 'planet', 'system')),
+    CONSTRAINT chk_planets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
+    KEY idx_planets_parent (parent_type, parent_id),
     CONSTRAINT chk_planets_dynamical_state CHECK (dynamical_state IN ('bound', 'unbound'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -2293,8 +2354,8 @@ CREATE TABLE IF NOT EXISTS planet_reflection_spectrum (
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS moons (
     id                        BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    planet_id                 BIGINT UNSIGNED NOT NULL,
-    star_system_id            BIGINT UNSIGNED NOT NULL,
+    planet_id                 BIGINT UNSIGNED NULL,  -- v140 (DB.73): NULL for a moon of a free planet
+    star_system_id            BIGINT UNSIGNED NULL,  -- v140 (DB.73): NULL for a moon of a free planet
     star_id                   BIGINT UNSIGNED,
     orbital_index             INT NOT NULL,   -- position in the parent planet's moons list
     body_type                 VARCHAR(4) NOT NULL CHECK (body_type IN ('t', 'g')),
@@ -2417,16 +2478,50 @@ CREATE TABLE IF NOT EXISTS moons (
     l_chem                      DOUBLE,
     l_ener                      DOUBLE,
     l_rad                       DOUBLE,
-    equipment_tier              TINYINT,
+    eq_body                     TINYINT,
+    eq_body_kind                TINYINT,
+    eq_body_rec                 TINYINT,
+    eq_body_rec_kind            TINYINT,
+    eq_rad_suit                 TINYINT,
+    eq_rad_suit_rec             TINYINT,
+    eq_mobility                 TINYINT,
+    eq_dust                     TINYINT,
+    eq_gas_filter               TINYINT,
+    eq_co2_scrub                TINYINT,
+    eq_supply                   TINYINT,
+    eq_supply_rec               TINYINT,
+    eq_shelter                  TINYINT,
+    eq_shelter_rec              TINYINT,
+    shelter_column_g_cm2        DOUBLE,
+    outside_hours               DOUBLE,
+    temp_polar_k                DOUBLE,
+    temp_north_k                DOUBLE,
+    temp_equator_k              DOUBLE,
+    temp_south_k                DOUBLE,
+    temp_swing_k                DOUBLE,
+    temp_day_side_k             DOUBLE,
+    temp_terminator_k           DOUBLE,
+    temp_night_side_k           DOUBLE,
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
-    parent_type                 VARCHAR(8) NOT NULL DEFAULT 'planet',  -- v102 (DB.55)
+    parent_type                 VARCHAR(16) NOT NULL DEFAULT 'planet',  -- v102 (DB.55), v140 (DB.73): wider
     parent_id                   BIGINT UNSIGNED NULL,  -- v102 (DB.55)
     dynamical_state             VARCHAR(8) NOT NULL DEFAULT 'bound',  -- v102 (DB.55)
     born_beyond_snow_line       BOOLEAN NULL,  -- v132 (GEN.458): the parent planet's flag
     ozone_column_du             DOUBLE NULL,  -- v135 (GEN.413): the ozone column, Dobson units
+    tau_haze                    DOUBLE NULL,  -- v138 (GEN.414, DB.68): haze optical depth at 550 nm, NULL for a row saved before v138 or a body with no air
+    tau_dust                    DOUBLE NULL,  -- v138 (GEN.414, DB.68): dust optical depth at 550 nm
+    tau_cloud                   DOUBLE NULL,  -- v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (grey)
+    cloud_cover                 DOUBLE NULL,  -- v138 (GEN.414, DB.68): share of the sky under cloud, 0 to 1
+    aerosol_draw                DOUBLE NULL,  -- v138 (GEN.414, DB.68): the number in [0, 1) that picks the optics inside the brackets
+    rogue_planet_id             BIGINT UNSIGNED NULL,  -- v140 (DB.73): the rogue planet a moon of a free planet orbits
+    c_k0_ppm                    DOUBLE,  -- v141 (GEN.459): potassium in the bulk silicate at formation, ppm by mass
+    c_th0_ppm                   DOUBLE,  -- v141: thorium, the same
+    c_u0_ppm                    DOUBLE,  -- v141: uranium, the same
+    al26_ratio                  DOUBLE,  -- v141: 26Al/27Al at formation
+    urey_ratio                  DOUBLE,  -- v141: the radiogenic share of the heat flowing out, today
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet
@@ -2435,6 +2530,9 @@ CREATE TABLE IF NOT EXISTS moons (
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     CONSTRAINT fk_moons_star
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE SET NULL,
+    CONSTRAINT fk_moons_rogue_planet
+        FOREIGN KEY (rogue_planet_id) REFERENCES rogue_planets(id) ON DELETE CASCADE,
+    KEY idx_moons_rogue_planet_id (rogue_planet_id),
     KEY idx_moons_planet_id (planet_id),
     KEY idx_moons_next_update_due (next_update_due),
     KEY idx_moons_star_system_id (star_system_id),
@@ -2445,7 +2543,8 @@ CREATE TABLE IF NOT EXISTS moons (
     KEY idx_moons_body_type (body_type),
     KEY idx_moons_life_chemical (life_chemical),
     KEY idx_moons_radius_km (radius_km),
-    CONSTRAINT chk_moons_parent_type CHECK (parent_type IN ('star', 'planet', 'system')),
+    CONSTRAINT chk_moons_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
+    KEY idx_moons_parent (parent_type, parent_id),
     CONSTRAINT chk_moons_dynamical_state CHECK (dynamical_state IN ('bound', 'unbound'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -2501,7 +2600,12 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     epoch_unix                  DOUBLE NULL,  -- v102 (DB.55): when the position and velocity hold
     next_update_due             DOUBLE NULL,  -- v102 (DB.55): when the object next moves
 
+    parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
+    parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+
     UNIQUE KEY uq_asteroid_belts_uid (uid),
+    KEY idx_asteroid_belts_parent (parent_type, parent_id),
+    CONSTRAINT chk_asteroid_belts_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     CONSTRAINT fk_asteroid_belts_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     CONSTRAINT fk_asteroid_belts_star
@@ -2596,7 +2700,12 @@ CREATE TABLE IF NOT EXISTS comets (
     uid                   BINARY(12),
     mass_kg                     DOUBLE NULL,  -- v102 (DB.55): point mass, a stated zero where the mass is not known
 
+    parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
+    parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+
     UNIQUE KEY uq_comets_uid (uid),
+    KEY idx_comets_parent (parent_type, parent_id),
+    CONSTRAINT chk_comets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     CONSTRAINT fk_comets_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     CONSTRAINT fk_comets_star
@@ -2694,7 +2803,12 @@ CREATE TABLE IF NOT EXISTS black_holes (
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 
+    parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
+    parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+
     UNIQUE KEY uq_black_holes_uid (uid),
+    KEY idx_black_holes_parent (parent_type, parent_id),
+    CONSTRAINT chk_black_holes_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_black_holes_name (name),  -- v40: name uniqueness lookups
     KEY idx_black_holes_next_update_due (next_update_due),
     CONSTRAINT chk_black_holes_mass_class CHECK (mass_class IN ('stellar', 'intermediate', 'supermassive')),
@@ -2777,7 +2891,12 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 
+    parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
+    parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+
     UNIQUE KEY uq_neutron_stars_uid (uid),
+    KEY idx_neutron_stars_parent (parent_type, parent_id),
+    CONSTRAINT chk_neutron_stars_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_neutron_stars_name (name),  -- v40: name uniqueness lookups
     KEY idx_neutron_stars_next_update_due (next_update_due),
     CONSTRAINT chk_neutron_stars_placement CHECK (
@@ -3144,7 +3263,12 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 
+    parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
+    parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+
     UNIQUE KEY uq_rogue_planets_uid (uid),
+    KEY idx_rogue_planets_parent (parent_type, parent_id),
+    CONSTRAINT chk_rogue_planets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     KEY idx_rogue_planets_name (name),  -- v40: name uniqueness lookups
     KEY idx_rogue_planets_next_update_due (next_update_due),
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
@@ -3228,7 +3352,12 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     uid                   BINARY(12),
 
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
+    parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
+    parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+
     UNIQUE KEY uq_interstellar_comets_uid (uid),
+    KEY idx_interstellar_comets_parent (parent_type, parent_id),
+    CONSTRAINT chk_interstellar_comets_parent_type CHECK (parent_type IN ('star', 'planet', 'system', 'node', 'rogue_planet', 'free')),
     CONSTRAINT chk_interstellar_comets_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -3547,6 +3676,7 @@ CREATE TABLE IF NOT EXISTS sector_stats (
     mean_luminosity_sol    DOUBLE,
     mean_age_gy            DOUBLE,
     total_luminosity_sol   DOUBLE,
+    habitable_worlds       INT,   -- v139 (MAP.143): planets and moons in the sector's systems that are Blue or Green overall (PHI-6)
     filled_at              TIMESTAMP(3) NULL,
     updated_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

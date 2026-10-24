@@ -67,7 +67,16 @@ function mapButton(cell, iconUrl) {
 // symbol with the rating's colour class, the same markup `web/lib/habitability_symbols.py` draws.
 const TIER_CLASSES = ["tier-blue", "tier-green", "tier-yellow", "tier-red"];
 
-function symbolRow(symbols, iconUrl) {
+// A symbol or chip that links to its section of the habitability page (UX.181), as `help_link` draws it.
+function helpLink(helpUrl, anchor, node) {
+  if (!helpUrl || !anchor) return node;
+  const link = el("a", "help-link");
+  link.href = `${helpUrl}#${anchor}`;
+  link.append(node);
+  return link;
+}
+
+function symbolRow(symbols, iconUrl, helpUrl) {
   const row = el("span", "hab-symbols");
   symbols.forEach((symbol) => {
     const svg = document.createElementNS(SVG_NS, "svg");
@@ -79,13 +88,27 @@ function symbolRow(symbols, iconUrl) {
     const use = document.createElementNS(SVG_NS, "use");
     use.setAttribute("href", `${iconUrl}#hab-${symbol.name}`);
     svg.append(title, use);
-    row.append(svg);
+    row.append(helpLink(helpUrl, symbol.anchor, svg));
+  });
+  return row;
+}
+
+// The equipment chips of a `chips` cell: `[{text, severity, tier, anchor}]`, the same markup `partials/datatable.html` draws.
+function chipRow(chips, helpUrl) {
+  const row = el("span", "eq-chips");
+  chips.forEach((chip) => {
+    const node = el("span", `flag flag-eq flag-eq-${chip.severity} flag-tier-${chip.tier}`,
+      chip.text.charAt(0).toUpperCase() + chip.text.slice(1));
+    if (chip.severity === "recommended") {
+      node.append(" ", el("span", "sr-only", "(recommended)"));
+    }
+    row.append(helpLink(helpUrl, chip.anchor, node));
   });
   return row;
 }
 
 // One table cell from a served cell: `{text, href?, muted?, swatch?, symbols?, parts?, map_target?, form?}`.
-function cellNode(cell, iconUrl) {
+function cellNode(cell, iconUrl, helpUrl) {
   const td = el("td");
   if (!cell) {
     td.className = "datatable-pending";
@@ -125,7 +148,11 @@ function cellNode(cell, iconUrl) {
     td.append(form);
   } else if (cell.symbols) {
     // The habitability symbols (UX.100), drawn from the icon sprite as the page draws them with no scripts.
-    td.append(symbolRow(cell.symbols, iconUrl));
+    td.append(symbolRow(cell.symbols, iconUrl, helpUrl));
+  } else if (cell.chips) {
+    // The equipment chips (UX.154): solid for a required item, outlined for a recommended one, in the colour of the
+    // PHI-6 domain it comes from.
+    td.append(chipRow(cell.chips, helpUrl));
   } else if (cell.parts) {
     // Text and links, as a Location cell lists its nearest systems.
     cell.parts.forEach((part) => {
@@ -171,6 +198,7 @@ function enhance(root) {
   const defaultSort = root.dataset.defaultSort;
   const prefix = root.dataset.prefix || "";
   const iconUrl = root.dataset.icons || "";
+  const helpUrl = root.dataset.helpUrl || "";
   const jumpForm = root.querySelector(".datatable-jump");
   const jumpHints = jumpForm ? JSON.parse(jumpForm.dataset.hints || "{}") : {};
   const owned = [`${prefix}sort`, `${prefix}order`, `${prefix}page`, `${prefix}from`]
@@ -325,7 +353,7 @@ function enhance(root) {
         tr.className = "datatable-pending";
         tr.setAttribute("aria-busy", "true");
       }
-      row.getVisibleCells().forEach((cell) => tr.append(cellNode(cell.getValue(), iconUrl)));
+      row.getVisibleCells().forEach((cell) => tr.append(cellNode(cell.getValue(), iconUrl, helpUrl)));
       return tr;
     });
     nodes.push(...built);

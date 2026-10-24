@@ -62,6 +62,18 @@ subhead (badges or actions under the <h1>). -#}
 </sl-dropdown>
 {%- endif -%}
 {%- endmacro -%}
+{#- The Help menu (UX.180), beside the search button: the reference pages, Classes and Habitability. It is current on
+    both, and on every class page. -#}
+{%- macro help_dropdown() -%}
+<sl-dropdown class="site-help-menu" placement="bottom-end" distance="6">
+  <button slot="trigger" type="button" class="site-help-trigger" aria-haspopup="menu"{% if section in help_sections %} aria-current="page"{% endif %}><span class="site-help-text">Help</span><sl-icon class="site-help-icon" name="book" aria-hidden="true"></sl-icon></button>
+  <sl-menu aria-label="Help">
+    {%- for page, page_text in help_menu %}
+    <sl-menu-item data-href="{{ page_url(page) }}"{% if request.endpoint == 'web.' ~ page or (page == 'classes' and section == 'classes') %} aria-current="page"{% endif %}>{{ page_text }}</sl-menu-item>
+    {%- endfor %}
+  </sl-menu>
+</sl-dropdown>
+{%- endmacro -%}
 {% from "partials/admin_jobstrip.html" import admin_jobstrip with context %}
 {%- macro gear_link(name, text, current, href=None) -%}
 <li><a href="{{ href or page_url(name) }}"{% if section == current %} aria-current="page"{% endif %}>{{ text }}</a></li>
@@ -145,7 +157,7 @@ subhead (badges or actions under the <h1>). -#}
 <body class="app">
 <a class="skip-link" href="#main">Skip to content</a>
 {#- The top bar: the sections as buttons while they fit, else a Menu; the
-    search button; everything else under the gear. Container queries in
+    Help and search buttons; everything else under the gear. Container queries in
     style.css pick the layout, so it needs no script. -#}
 <header class="site-header">
   <div class="site-header-inner">
@@ -159,6 +171,7 @@ subhead (badges or actions under the <h1>). -#}
         {{ section_links("Main menu", menu=true) }}
       </div>
     </sl-dropdown>
+    {{ help_dropdown() }}
     {{ search_menu() }}
     {{ gear_menu() }}
   </div>

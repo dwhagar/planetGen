@@ -19,7 +19,8 @@ Rules (docs/design/architecture/unified-unit-quantity.md, Boss's cards Q3 and Q4
 * No data moves. Values and units stay as stored; a column later unified is a normal migration.
 * A column with no unit of its own is declared by what it is: `ratio` (a plain number), `count`, `index` (an ordinal
   or a score), `id`, `key`, `seed`, `flag`, `unit-vector` (one component of a unit vector), `row-defined` (the row says
-  what it is in) or `unspecified` (a quantity whose code states no unit; each one waits for a source).
+  what it is in). Every numeric column has one of these or a unit; a quantity whose code states no unit waits for its
+  source before its column is added.
 * The factors are the registry's (from `physics.constants`); a unit with no factor has no SI form (`dex`, `pH`, `mag`).
 
 `point_columns.PointLayout` reads its position and mass units from here (`position_unit`, `mass_unit`).
@@ -51,15 +52,16 @@ LOCAL_UNITS = {
     # units the registry has not got: the cubic parsec, rates, dose, magnetic moment, logarithmic scales
     "pc3": LocalUnit("volume", constants.PARSEC_M ** 3),
     "Msun/yr": LocalUnit("mass rate", constants.SOLAR_MASS_TO_KG / _YEAR_S),
-    "J/kg": LocalUnit("specific energy", 1.0),
-    "mSv/yr": LocalUnit("dose rate", 1e-3 / _YEAR_S), "A*m2": LocalUnit("magnetic moment", 1.0),
+    "J/kg": LocalUnit("specific energy", 1.0), "kg/mol": LocalUnit("molar mass", 1.0),
+    "ppm": LocalUnit("mass fraction", 1e-6), "mSv/yr": LocalUnit("dose rate", 1e-3 / _YEAR_S), "A*m2": LocalUnit("magnetic moment", 1.0),
     "DU": LocalUnit("column density", 2.687e20),
+    "g/cm2": LocalUnit("column mass", 10.0),
     "xuv-earth": LocalUnit("flux"), "R_planet": LocalUnit("length"), "nebula-radius": LocalUnit("length"),
     "dex": LocalUnit("logarithmic"), "mag": LocalUnit("magnitude"), "pH": LocalUnit("logarithmic"),
     # no unit
     "ratio": LocalUnit("ratio"), "unit-vector": LocalUnit("ratio"), "count": LocalUnit("count"),
     "index": LocalUnit("index"), "flag": LocalUnit("flag"), "id": LocalUnit("id"), "key": LocalUnit("id"),
-    "seed": LocalUnit("seed"), "row-defined": LocalUnit("row-defined"), "unspecified": LocalUnit("unspecified"),
+    "seed": LocalUnit("seed"), "row-defined": LocalUnit("row-defined"),
 }
 """dict: Unit key -> `LocalUnit`, for what `unit_registry.UNITS` does not hold. A unit that the registry gains moves
 there, and its entry here goes."""
@@ -74,7 +76,7 @@ def unit_info(key):
 
 
 SUFFIXES = (
-    ("_j_per_kg", "J/kg"), ("_msv_yr", "mSv/yr"), ("_du", "DU"), ("_per_gyr", "1/Gy"), ("_per_yr", "1/yr"), ("_w_m2", "W_m2"), ("_a_m2", "A*m2"),
+    ("_j_per_kg", "J/kg"), ("_ppm", "ppm"), ("_msv_yr", "mSv/yr"), ("_du", "DU"), ("_per_gyr", "1/Gy"), ("_per_yr", "1/yr"), ("_w_m2", "W_m2"), ("_a_m2", "A*m2"),
     ("_g_cm3", "g_cm3"), ("_light_days", "ld"), ("_gauss", "G"), ("_myr", "Myr"), ("_ms", "ms"), ("_us", "us"), ("_mj", "Mjup"),
     ("_km3", "km3"), ("_pc3", "pc3"), ("_kms", "km_s"), ("_km", "km"), ("_pc", "pc"), ("_mpc", "mpc"), ("_au", "au"),
     ("_ly", "ly"), ("_deg", "deg"), ("_rad", "rad"), ("_years", "yr"), ("_yr", "yr"), ("_gyr", "Gyr"), ("_gy", "Gyr"),
@@ -88,13 +90,25 @@ they stand for a mass or a luminosity by the rest of the name."""
 SOLAR_SUFFIXES = ("_solar", "_sol")
 """tuple: The suffixes of a quantity in solar units: `Msun` when the name says mass, else `Lsun`."""
 
+EQUIPMENT_LEVELS = (
+    "eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
+    "eq_dust", "eq_gas_filter", "eq_co2_scrub", "eq_supply", "eq_supply_rec", "eq_shelter", "eq_shelter_rec",
+)
+"""tuple: The survival equipment levels on `planets` and `moons` (GEN.655): small whole numbers, like the tiers."""
+
+REGIONAL_TEMPERATURES = (
+    "temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k", "temp_day_side_k", "temp_terminator_k",
+    "temp_night_side_k",
+)
+"""tuple: The regional temperatures and the day and night swing on `planets` and `moons` (GEN.656), kelvin."""
+
 TABLES = {
     "asteroid_belt_composition": {
         "id": ("id", "belt_id"),
         "index": ("position",),
     },
     "asteroid_belts": {
-        "id": ("id", "star_system_id", "star_id"),
+        "id": ("id", "star_system_id", "star_id", "parent_id"),
         "index": ("orbital_index",),
         "km": ("distance_km", "lower_limit_km", "upper_limit_km", "position_x_km", "position_y_km", "position_z_km"),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
@@ -111,15 +125,14 @@ TABLES = {
         "Gyr": ("galactic_orbital_period_gy",),
         "deg": ("galactic_orbital_phase_deg",),
         "yr": ("galactic_min_update_interval_years",),
-        "unix_s": ("epoch_unix", "next_update_due"),
+        "unix_s": ("epoch_unix", "next_update_due", "formed_at"),
         "pc": ("center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc"),
         "key": ("cell_key",),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "kg": ("mass_kg",),
-        "unspecified": ("formed_at",),
     },
     "black_holes": {
-        "id": ("id", "star_id", "sector_id", "inside_nebula_id", "inside_remnant_id"),
+        "id": ("id", "star_id", "sector_id", "inside_nebula_id", "inside_remnant_id", "parent_id"),
         "Msun": ("mass_solar",),
         "km": ("event_horizon_radius_km",),
         "ratio": ("spin",),
@@ -165,15 +178,14 @@ TABLES = {
         "index": ("position",),
     },
     "comets": {
-        "id": ("id", "star_system_id", "star_id"),
+        "id": ("id", "star_system_id", "star_id", "parent_id"),
         "km": (
             "nucleus_diameter_km", "perihelion_distance_km", "distance_km", "position_x_km", "position_y_km",
             "position_z_km",
         ),
-        "ratio": ("eccentricity",),
+        "ratio": ("eccentricity", "parabolic_mean_anomaly"),
         "deg": ("inclination_deg", "arg_periapsis_deg", "ascending_node_deg", "mean_anomaly_deg", "axial_tilt_deg"),
         "yr": ("orbital_period_years", "min_update_interval_years"),
-        "unspecified": ("parabolic_mean_anomaly",),
         "Msun": ("primary_mass_solar",),
         "flag": ("is_active",),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
@@ -224,7 +236,7 @@ TABLES = {
     },
     "galaxy_block_stats": {
         "index": ("m", "shell_index", "band_index", "wedge_index"),
-        "count": ("sector_count", "systems", "expected_systems", "stars"),
+        "count": ("sector_count", "systems", "expected_systems", "stars", "habitable_worlds"),
         "Gyr": ("age_sum",),
         "Lsun": ("luminosity_sol",),
     },
@@ -300,7 +312,7 @@ TABLES = {
         "index": ("position",),
     },
     "interstellar_comets": {
-        "id": ("id", "sector_id", "inside_nebula_id", "inside_remnant_id"),
+        "id": ("id", "sector_id", "inside_nebula_id", "inside_remnant_id", "parent_id"),
         "km": ("nucleus_diameter_km",),
         "km_s": ("velocity_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "flag": ("is_active",),
@@ -319,10 +331,11 @@ TABLES = {
         "index": ("position",),
     },
     "moons": {
-        "id": ("id", "planet_id", "star_system_id", "star_id", "parent_id"),
+        "id": ("id", "planet_id", "star_system_id", "star_id", "parent_id", "rogue_planet_id"),
         "index": (
             "orbital_index", "tier_pressure",
-            "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation", "equipment_tier",
+            "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
+            *EQUIPMENT_LEVELS,
         ),
         "km": (
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
@@ -333,16 +346,18 @@ TABLES = {
         "km3": ("volume_km3",),
         "yr": ("period_years", "min_update_interval_years"),
         "g0": ("gravity_g",),
-        "K": ("surface_temperature_k",),
+        "K": ("surface_temperature_k", *REGIONAL_TEMPERATURES),
         "g_cm3": ("density_g_cm3",),
-        "unspecified": ("atm_density", "atm_molar_density"),
+        "kg_m3": ("atm_density",),
+        "kg/mol": ("atm_molar_density",),
         "Pa": ("atmospheric_pressure_pa",),
         "count": ("flavor_text_count",),
         "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr"),
         "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg"),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
-        "h": ("rotation_period_hours",),
+        "h": ("rotation_period_hours", "outside_hours"),
+        "g/cm2": ("shelter_column_g_cm2",),
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "dex": ("mantle_delta_iw",),
         "kPa": (
@@ -356,8 +371,10 @@ TABLES = {
             "water_mass_fraction", "ocean_fraction", "land_fraction", "water_activity", "dose_helio_mult", "phi4",
             "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
             "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "flux_variation",
-            "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index",
+            "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index", "al26_ratio", "urey_ratio",
+            "tau_haze", "tau_dust", "tau_cloud", "cloud_cover", "aerosol_draw",
         ),
+        "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "pH": ("ocean_ph",),
         "mSv/yr": ("surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr"),
         "DU": ("ozone_column_du",),
@@ -425,7 +442,7 @@ TABLES = {
         "seed": ("shape_noise_seed",),
     },
     "neutron_stars": {
-        "id": ("id", "star_id", "sector_id", "inside_nebula_id", "inside_remnant_id"),
+        "id": ("id", "star_id", "sector_id", "inside_nebula_id", "inside_remnant_id", "parent_id"),
         "Msun": ("mass_solar",),
         "km": ("radius_km",),
         "ms": ("spin_period_ms",),
@@ -525,7 +542,8 @@ TABLES = {
         "id": ("id", "star_system_id", "star_id", "parent_id", "host_node_id"),
         "index": (
             "orbital_index", "tier_pressure",
-            "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation", "equipment_tier",
+            "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
+            *EQUIPMENT_LEVELS,
         ),
         "km": (
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
@@ -537,16 +555,18 @@ TABLES = {
         "km3": ("volume_km3",),
         "yr": ("period_years", "min_update_interval_years"),
         "g0": ("gravity_g",),
-        "K": ("surface_temperature_k",),
+        "K": ("surface_temperature_k", *REGIONAL_TEMPERATURES),
         "g_cm3": ("density_g_cm3",),
-        "unspecified": ("atm_density", "atm_molar_density"),
+        "kg_m3": ("atm_density",),
+        "kg/mol": ("atm_molar_density",),
         "Pa": ("atmospheric_pressure_pa",),
         "count": ("flavor_text_count",),
         "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr"),
         "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg"),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
-        "h": ("rotation_period_hours",),
+        "h": ("rotation_period_hours", "outside_hours"),
+        "g/cm2": ("shelter_column_g_cm2",),
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "dex": ("mantle_delta_iw",),
         "kPa": (
@@ -560,8 +580,10 @@ TABLES = {
             "water_mass_fraction", "ocean_fraction", "land_fraction", "water_activity", "dose_helio_mult", "phi4",
             "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
             "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "flux_variation",
-            "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index",
+            "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index", "al26_ratio", "urey_ratio",
+            "tau_haze", "tau_dust", "tau_cloud", "cloud_cover", "aerosol_draw",
         ),
+        "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "pH": ("ocean_ph",),
         "mSv/yr": ("surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr"),
         "DU": ("ozone_column_du",),
@@ -603,7 +625,7 @@ TABLES = {
         "id": ("id", "plan_id", "recipient_id"),
     },
     "rogue_planets": {
-        "id": ("id", "sector_id", "inside_nebula_id", "inside_remnant_id"),
+        "id": ("id", "sector_id", "inside_nebula_id", "inside_remnant_id", "parent_id"),
         "kg": ("mass_kg",),
         "km": ("radius_km", "ice_shell_thickness_km", "ocean_depth_km", "hp_ice_km"),
         "flag": ("has_internal_heat", "has_moons", "has_liquid_water"),
@@ -666,7 +688,7 @@ TABLES = {
         "Lsun": ("bright_level_sol", "level_before_fill_sol", "mean_luminosity_sol", "total_luminosity_sol"),
         "Msun": ("bright_mass_sol",),
         "ratio": ("relative_density",),
-        "count": ("expected_systems", "actual_systems", "actual_stars"),
+        "count": ("expected_systems", "actual_systems", "actual_stars", "habitable_worlds"),
         "K": ("mean_temperature_k",),
         "Gyr": ("mean_age_gy",),
     },
@@ -737,7 +759,7 @@ TABLES = {
         "index": ("schema_version",),
     },
     "stars": {
-        "id": ("id", "star_system_id", "parent_node_id", "cluster_id"),
+        "id": ("id", "star_system_id", "parent_node_id", "cluster_id", "parent_id"),
         "index": ("slot",),
         "kg": ("mass_kg",),
         "km": (

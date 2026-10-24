@@ -32,6 +32,7 @@ Roles, the Owner tier of the settings page, SMTP, invitations, password emails, 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.46 | Wiping the galaxy wipes the bookmarks |  |  |
+| UX.179 | Sitemap entries and an Open Graph image for object pages (optional, can wait) | UX.170 |  |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | UX.46 |  |
 | UX.48 | Charted regions as bookmarks that frame and outline the region | UX.47, MAP.190 |  |
 | UX.45 | Bookmark management | UX.46, UX.47, UX.48 | Parent; per browser until accounts (USR.7) move them. |

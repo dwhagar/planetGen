@@ -108,8 +108,10 @@ LEFT_OUT_TABLES = frozenset({
 docstring; a system configuration counts through the systems that use
 it)."""
 
-_PARENT_TABLES = {"star": "stars", "planet": "planets", "system": "star_systems"}
-"""dict: The table a body's `parent_id` names for each `parent_type` (GEN.289): not a foreign key, so named here."""
+_PARENT_TABLES = {"star": "stars", "planet": "planets", "system": "star_systems", "rogue_planet": "rogue_planets"}
+"""dict: The table a body's `parent_id` names for each `parent_type` (GEN.289, DB.73): not a foreign key, so named here.
+A `node` parent is the `node_no` of the row's own system and a `free` one has no id; neither is a row id, so both are
+written as they are."""
 
 LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
 """frozenset: Columns left out of every table: the row id and the clocks."""
@@ -212,7 +214,8 @@ class _Reader:
             if column in foreign:
                 value = None if value is None else self.key(foreign[column], value)
             elif column == "parent_id" and "parent_type" in row.keys():
-                value = None if value is None else self.key(_PARENT_TABLES[row["parent_type"]], value)
+                if value is not None and row["parent_type"] in _PARENT_TABLES:
+                    value = self.key(_PARENT_TABLES[row["parent_type"]], value)
             elif self.plain_names and isinstance(value, str) and column.endswith("name"):
                 value = uniqueness.strip_decoration(value)
             canon[column] = value
@@ -293,6 +296,8 @@ def _sector_rows(reader, sector_id, address):
         stars = list(owned.get("stars", {}))
         for table in STAR_TABLES:
             keep(table, reader.select_in(table, "star_id", stars))
+        # DB.73: a moon of a rogue planet has no system or planet; it is filed with the rogue planet it orbits.
+        keep("moons", reader.select_in("moons", "rogue_planet_id", owned.get("rogue_planets", {})))
         for table, column, parent in CHILD_TABLES:
             keep(table, reader.select_in(table, column, owned.get(parent, {})))
     if address is not None:

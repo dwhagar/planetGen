@@ -6,6 +6,9 @@
   <span class="badge">Object ID {{ object_id }}</span>
   <span class="badge">{{ system_name }} system</span>
 </p>
+{%- if habitability %}{% set symbols = habitability_symbol_row(habitability) %}{% if symbols %}
+<p class="item-habitability">{{ symbols }}</p>
+{%- endif %}{% endif %}
 {% endblock %}
 {% block content %}
 <section class="panel" id="item-facts" aria-labelledby="item-facts-heading">

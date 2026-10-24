@@ -1171,3 +1171,70 @@ Baseline: PR #1817.
 | UX.151 | 8.1 | Habitability system |
 | UX.149 | 8.1 | Generate page and directives |
 | GEN.450 | 8.1 | Components and wanderers |
+| GEN.418 | 8.1 | Atmosphere colour |
+| GEN.419 | 8.1 | Atmosphere colour |
+| TEST.309 | 8.1 | Bugs and flaky tests |
+| MAP.271 | 8.1 | Fly-through map |
+| MAP.272 | 8.1 | Fly-through map |
+| MAP.273 | 8.1 | Fly-through map |
+| GEN.420 | 8.1 | Descriptions and maps |
+| PERF.115 | 8.1 | Queue, caches and performance |
+| PERF.116 | 8.1 | Queue, caches and performance |
+| PERF.117 | 8.1 | Queue, caches and performance |
+| MAP.276 | 8.1 | Fly-through map |
+| OPS.68 | 8.1 | Bugs and flaky tests |
+| MAP.278 | 8.1 | Fly-through map |
+| GEN.566 | 8.1 | Bulk composition |
+| GEN.580 | 8.1 | Bulk composition |
+| GEN.579 | 8.1 | Bulk composition |
+| DOC.70 | 8.1 | Bulk composition |
+| GEN.641 | 8.1 | Bulk composition |
+| GEN.659 | 8.1 | Bulk composition |
+| DB.86 | 8.1 | Bulk composition |
+| UX.128 | 8.1 | The Quantity call-site sweep |
+| MAP.244 | 8.1 | Descriptions and maps |
+| DOC.64 | 8.1 | Descriptions and maps |
+| TEST.312 | 8.1 | Bugs and flaky tests |
+| UX.100 | 8.1 | Habitability system |
+| UX.155 | 8.1 | Habitability system |
+| UX.156 | 8.1 | Habitability system |
+| DOC.78 | 8.1 | Habitability system |
+| GEN.655 | 8.1 | Habitability system |
+| DB.93 | 8.1 | Habitability system |
+| POP.15 | 8.1 | Habitability system |
+| GEN.665 | 8.1 | Tuned draws and selection models |
+| GEN.664 | 8.1 | Tuned draws and selection models |
+| DOC.74 | 8.1 | Mixture and stored values |
+| GEN.451 | 8.1 | Mixture and stored values |
+| GEN.454 | 8.1 | Mixture and stored values |
+| GEN.499 | 8.1 | Haze, dust and cloud |
+| GEN.456 | 8.1 | Haze, dust and cloud |
+| GEN.501 | 8.1 | Weight research (atmosphere) |
+| GEN.663 | 8.1 | Tuned draws and selection models |
+| GEN.92 | 8.4 | Planet classes |
+| TEST.310 | 8.1 | Bugs and flaky tests |
+| UX.165 | 8.1 | Consistency |
+| GEN.680 | 8.1 | Consistency |
+| GEN.679 | 8.1 | Consistency |
+| UX.148 | 8.1 | Generate page and directives |
+| MAP.270 | 8.1 | Fly-through map |
+| GEN.656 | 8.1 | Habitability system |
+| UX.154 | 8.1 | Habitability system |
+| GEN.518 | 8.1 | Tuned draws and selection models |
+| GEN.520 | 8.1 | Tuned draws and selection models |
+| PERF.113 | 8.1 | Queue, caches and performance |
+| PERF.114 | 8.1 | Queue, caches and performance |
+| PERF.177 | 8.1 | The headline closes |
+| TEST.316 | 8.1 | Bugs and flaky tests |
+| MAP.256 | 8.1 | Fly-through map |
+| GEN.414 | 8.1 | Radiation chain for habitability (GEN.445) |
+| DB.68 | 8.1 | Consistency |
+| MAP.143 | 8.1 | Habitability system |
+| GEN.694 | 8.1 | Mixture and stored values |
+| GEN.693 | 8.1 | Mixture and stored values |
+| DB.73 | 8.1 | Radiation chain for habitability (GEN.445) |
+| PERF.123 | 8.1 | Queue, caches and performance |
+| UX.182 | 8.1 | Habitability system |
+| UX.181 | 8.1 | Habitability system |
+| UX.180 | 8.1 | Habitability system |
+| GEN.459 | 8.1 | Radiation chain for habitability (GEN.445) |

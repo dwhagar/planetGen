@@ -54,12 +54,11 @@ like `starmap.py`/`sectorscene.js`'s own click-for-info pattern.
 Every star/planet/moon marker's flat SVG circle is also live-rendered as a
 small rotating shaded sphere (three.js, same vendored build
 `sectorscene.js` uses -- `static/systemmap.js`'s `#sysmap-spheres-canvas`),
-colored by the body's own class (`class_color`, handed over pre-resolved
-as `data-color` so this module stays the one place that mapping lives --
-a star instead gets its own real spectral-type color from `star_color`,
-same as `starmap.py`), banded with a tilted ring for a gas giant
-(`data-bodytype`), and wrapped in a soft fresnel-glow atmosphere shell,
-tinted by `data-surfacetemp`, when `data-hasatmosphere` is set. One shared
+drawn over the flat marker (whose fill stays the class colour, `class_color`); the sphere itself is painted from the body's look
+record, `data-look` (`bodylook.py`, MAP.271): a solid world's ocean, land and
+ice from its stored water fractions and temperature, a star's colour from
+`star_color`, banded with a tilted ring for a gas giant, and wrapped in a
+soft fresnel-glow atmosphere shell when the record says it has an atmosphere. One shared
 WebGL context draws every visible marker's own sphere each frame via
 scissored sub-viewports (not one `<canvas>`/context per body -- browsers
 cap how many WebGL contexts can exist at once, easily blown through by a
@@ -79,6 +78,7 @@ import statistics
 
 from planetgen.web.lib.fmt import (
     esc, format_distance_km, format_gravity_g_short, format_pressure_pa, format_speed_kms, format_temperature_k)
+from planetgen.web.maps.bodylook import look_json, look_note, planet_look, star_look
 from planetgen.web.maps.starmap import star_color, _SUN_RADIUS_KM
 from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_body_radius, format_period, format_luminosity, format_mass, format_star_radius,
@@ -746,12 +746,10 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
 def _star_marker_svg(cx, cy, r_px, star, attrs, bounds=_DEFAULT_BOUNDS):
     fill, stroke = star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
     name = attrs.get("name", "star")
-    # Handed to the client as `data-color` too (like a planet/moon's own
-    # "color" attr -- see `_planet_attrs`) so `static/systemmap.js`'s 3D
-    # sphere renderer can color a star's own live-rendered sphere without
-    # duplicating `star_color`'s spectral-type logic in JS.
+    # Handed to the client as `data-look` like a planet's (see `_planet_attrs`) so `static/systemmap.js`'s
+    # sphere renderer paints the star from the record without duplicating `star_color`'s logic in JS.
     star_attrs = dict(attrs)
-    star_attrs["color"] = fill
+    star_attrs["look"] = look_json(star_look(star))
     half_w = _label_half_width_px(name)
     label_x, anchor = cx, "middle"
     if _slide_into_view(cx - half_w, cx + half_w, bounds):
@@ -785,19 +783,17 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
     atmosphere = planet.get("atmosphere")
     has_atmosphere = bool(atmosphere) and atmosphere != "None"
     surface_temp_k = planet.get("surface_temperature_k")
+    look = planet_look(planet, kind)
     attrs = {
         "kind": kind,
         "id": planet["id"],
         "name": planet["name"],
         "class": (planet["planet_class"] or "").upper(),
         "classdesc": _class_description(planet["planet_class"]),
-        # The same class->color lookup the marker's own fill uses
-        # (`class_color`) -- handed to the client as a resolved hex string
-        # (like `starmap.py`'s star colors) rather than duplicating
-        # `_CLASS_COLORS` in JS, so this module stays the one place a
-        # planet class's color is decided. Drives this marker's own live 3D
-        # sphere in `static/systemmap.js` (`#sysmap-spheres-canvas`).
-        "color": class_color(planet["planet_class"]),
+        # MAP.271: one look record (`bodylook.planet_look`) with everything the page's painter needs, in place of the
+        # separate colour, atmosphere flag and temperature the page used to parse.
+        "look": look_json(look),
+        "looknote": look_note(look),
         "bodytype": "Gas Giant" if planet["body_type"] == "g" else "Terrestrial",
         # MAP.92: the side panel's radius and mass, formatted here like
         # every other field.
@@ -812,11 +808,6 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "composition": planet.get("composition"),
         "surfacetemp": format_temperature_k(surface_temp_k) if surface_temp_k is not None else None,
         "surfacepressure": _pressure_text(planet, has_atmosphere),
-        # Presence alone (not the description text) is what the 3D preview
-        # needs to decide whether to draw an atmosphere glow shell at all --
-        # `_data_attrs` omits a `None` value entirely, so this attribute's
-        # mere presence in the DOM is the boolean.
-        "hasatmosphere": "true" if has_atmosphere else None,
         # Raw, real (not log-scaled, not pixel) coordinates -- relative to
         # this body's own anchor (the star it orbits, or the planet it
         # moons), same units `_star_scene_svg`/`_render_system_scene`
@@ -1611,6 +1602,19 @@ def _finite_row(row):
     return {key: None if _is_bad_number(value) else value for key, value in row.items()}
 
 
+def _put_star_temperatures(stars, planets):
+    """MAP.244: each planet and moon row carries `_star_temperature_k`, the effective temperature of the star it orbits (the primary for
+    a close pair, whose planets have no `star_id`), which `bodylook.air_colour` needs for the colour of its air."""
+    if not stars:
+        return
+    by_id = {star["id"]: star.get("temperature_k") for star in stars}
+    for planet in planets:
+        temperature = by_id.get(planet.get("star_id"), stars[0].get("temperature_k"))
+        planet["_star_temperature_k"] = temperature
+        for moon in planet.get("moons") or []:
+            moon["_star_temperature_k"] = temperature
+
+
 def _finite_body(row):
     """`_finite_row` for a planet or moon (and its moons), or `None` when
     it has no usable position or distance left to draw it at."""
@@ -1683,6 +1687,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
     planets = [planet for planet in map(_finite_body, planets) if planet is not None]
     belts = [_finite_row(belt) for belt in belts]
     facilities = [_finite_row(facility) for facility in facilities] if facilities else facilities
+    _put_star_temperatures(stars, planets)
     is_wide_binary = len(stars) > 1 and system.get("binary_configuration") == "wide"
     if is_wide_binary:
         scenes = _render_wide_binary_scenes(system, stars, planets, belts, facilities)

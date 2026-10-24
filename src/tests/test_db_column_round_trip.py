@@ -124,6 +124,9 @@ NULL_IN_THIS_GALAXY = {
         "decay_age_yr", "disk_inner_au", "disk_kind", "disk_mass_solar", "disk_outer_au", "epoch_unix",
         "state", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
     ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
+    # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
+    **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
+    ("moons", "rogue_planet_id"): "only a moon of a free planet (test_parent_link)",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't
@@ -184,6 +187,8 @@ NEVER_READ = {
     # GEN.630: only the system scene reads where a star hangs in the tree (node and slot) and a member's offset.
     **{("stars", column): "read by the system scene (GEN.630)" for column in (
         "offset_x_au", "offset_y_au", "offset_z_au", "parent_node_id", "slot")},
+    # DB.73: the link is stored for the readers of 8.4 (the unified object); a system loader rebuilds the tree from parent_node_id.
+    **{("stars", column): "stored for the parent-link readers (DB.73)" for column in ("parent_type", "parent_id")},
     # GEN.329: read back only for a system saved as a runaway, which this galaxy may not hold.
     ("stars", "flags"): CHANCE,
 }

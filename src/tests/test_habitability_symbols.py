@@ -11,7 +11,7 @@ import pytest
 from planetgen.physics.habitability_world import DOMAINS, TIER_NAMES
 from flask import render_template_string
 
-from planetgen.web import habitability_symbol, habitability_symbol_row
+from planetgen.web import habitability_life, habitability_symbol, habitability_symbol_row
 from planetgen.web.app import create_app
 from planetgen.web.lib import habitability_symbols as symbols
 
@@ -236,3 +236,38 @@ def test_the_life_template_global_is_markup():
     with app.test_request_context("/"):
         rendered = render_template_string("{{ habitability_life('flora', 3) }}")
     assert 'aria-label="Flora: 3 of 9"' in rendered and "&lt;" not in rendered
+
+
+def test_a_symbol_links_to_its_section_of_the_habitability_page_only_when_given_the_page():
+    """UX.181: each symbol and life score is the link to where it is explained."""
+    url = "/help/habitability"
+    for name in symbols.SYMBOL_NAMES:
+        anchor = "overall" if name == symbols.OVERALL else f"domain-{name}"
+        linked = symbols.symbol_html(name, 1, SPRITE_URL, help_url=url)
+        assert linked.startswith(f'<a class="help-link" href="{url}#{anchor}"><svg') and linked.endswith("</svg></a>")
+        assert symbols.symbol_html(name, 1, SPRITE_URL).startswith("<svg")
+    for name in symbols.LIFE_NAMES:
+        linked = symbols.life_html(name, 3, SPRITE_URL, help_url=url)
+        assert linked.startswith(f'<a class="help-link" href="{url}#life-{name}"><span')
+        assert symbols.life_html(name, 3, SPRITE_URL).startswith("<span")
+    row = symbols.symbol_row({**_life_body(), "phi4": 0.9}, SPRITE_URL, help_url=url)
+    assert row.count('class="help-link"') == 7 + 4
+
+
+def test_the_template_globals_link_unless_told_not_to():
+    app = create_app()
+    with app.test_request_context("/"):
+        assert 'href="/help/habitability#domain-air"' in str(habitability_symbol("air", 1))
+        assert "help-link" not in str(habitability_symbol("air", 1, link=False))
+        assert 'href="/help/habitability#life-flora"' in str(habitability_life("flora", 3))
+        assert "help-link" not in str(habitability_life("flora", 3, link=False))
+        assert str(habitability_symbol_row(_body())).count('class="help-link"') == 7
+
+
+def test_an_equipment_item_name_reaches_its_row_and_a_stranger_reaches_the_section():
+    assert symbols.equipment_anchor("gas-mix mask") == "equipment-gas-mix-mask"
+    assert symbols.equipment_anchor("heated sealed suit") == "equipment-sealed-suit"
+    assert symbols.equipment_anchor("hardened heat-shielded suit") == "equipment-radiation-garment"
+    assert symbols.equipment_anchor("Full-face gas filter") == "equipment-gas-filter"
+    assert symbols.equipment_anchor("something new") == symbols.EQUIPMENT_FALLBACK
+    assert symbols.help_link("<b>x</b>", None, "overall") == "<b>x</b>"

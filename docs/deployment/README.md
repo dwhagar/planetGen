@@ -83,7 +83,7 @@ addresses that keep guessing admin passwords.
   login lockouts, and out of the box keeps nothing on disk between
   saves, so a crash loses all of it. [`examples/redis/planetgen.conf`](../../examples/redis/planetgen.conf)
   turns on the append-only file (`appendonly yes`, `appendfsync
-  everysec`), `maxmemory-policy noeviction`, a `maxmemory 512mb` guard and
+  everysec`), `maxmemory-policy noeviction`, a `maxmemory 4gb` guard and
   a loopback-only `bind`. Add those lines to your Redis config (on Debian
   and Ubuntu `/etc/redis/redis.conf`, or end it with `include
   /path/to/planetgen.conf`) and restart Redis. `install.sh` and

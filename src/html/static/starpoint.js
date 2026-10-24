@@ -35,6 +35,28 @@ export const POINT_FAR_PC = NEAR_SECTOR_PC * Math.pow(ZOOM_STEP, POINT_RAMP_STEP
 // to the full look as it nears).
 export const POINT_PX = 1.5;
 export const POINT_BRIGHT = [0.45, 1];
+// Boss (2026-10-23): a star glows at every distance, its brightness and color its own. A far point keeps a halo
+// POINT_HALO_PX wider than itself and POINT_HALO_GLOW strong, faint star to bright star (by luminosity share),
+// growing into the full halo near a sector; its core is whitened only POINT_WHITEN (a grown core GROWN_WHITEN), so
+// the star's blackbody color shows in the point as well as in its halo.
+export const POINT_HALO_PX = [3, 12];
+export const POINT_HALO_GLOW = [0.3, 0.75];
+export const POINT_WHITEN = 0.25;
+export const GROWN_WHITEN = 0.6;
+
+function lerpShare(range, share) {
+  return range[0] + (range[1] - range[0]) * Math.min(1, Math.max(0, share));
+}
+
+// The halo's width beyond the point, in pixels, of a far light of luminosity share `share` (0..1).
+export function pointHaloPx(share) {
+  return lerpShare(POINT_HALO_PX, share);
+}
+
+// The halo's strength of a far light of luminosity share `share` (0..1).
+export function pointHaloGlow(share) {
+  return lerpShare(POINT_HALO_GLOW, share);
+}
 
 function ease01(x) {
   const t = Math.min(1, Math.max(0, x));
@@ -49,17 +71,19 @@ export function pointGrow(distancePc) {
 }
 
 // The width, in pixels, of a light whose full width is `fullPx`, seen from
-// `distancePc`. `arrive` (0..1, MAP.155) holds a star arriving with the zoom at a point.
-export function pointSizePx(fullPx, distancePc, arrive = 1) {
-  return POINT_PX + Math.max(fullPx - POINT_PX, 0) * pointGrow(distancePc) * Math.min(1, Math.max(0, arrive));
+// `distancePc`, `haloPx` (`pointHaloPx`) the far halo around its point. `arrive` (0..1, MAP.155) holds a star
+// arriving with the zoom at a point.
+export function pointSizePx(fullPx, distancePc, arrive = 1, haloPx = 0) {
+  const far = POINT_PX + haloPx;
+  return far + Math.max(fullPx - far, 0) * pointGrow(distancePc) * Math.min(1, Math.max(0, arrive));
 }
 
 // The core's width the same way, and the core's share of the light's width (the fragment shader's
-// `vCore`): 1 for a point, which is all core.
-export function pointCoreShare(fullCorePx, fullPx, distancePc, arrive = 1) {
+// `vCore`): 1 for a point with no halo, which is all core.
+export function pointCoreShare(fullCorePx, fullPx, distancePc, arrive = 1, haloPx = 0) {
   const grow = pointGrow(distancePc) * Math.min(1, Math.max(0, arrive));
   const core = POINT_PX + Math.max(fullCorePx - POINT_PX, 0) * grow;
-  return core / (POINT_PX + Math.max(fullPx - POINT_PX, 0) * grow);
+  return core / pointSizePx(fullPx, distancePc, arrive, haloPx);
 }
 
 // The opacity of a far star's point, from its luminosity share (0..1): the

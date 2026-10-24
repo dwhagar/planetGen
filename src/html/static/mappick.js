@@ -261,6 +261,13 @@ export function pageLink(href, label, className) {
 // title, its first few rows and the View button, a Details button that
 // takes the reader to the panel and a Close button. It is this component's
 // own rendering of the spec, so no map keeps a copy of it.
+//
+// A panel with `data-overlay` (the Galaxy Map's) is not shown twice: it sits inside
+// the map's window, and style.css lays it over the map, in the corner farthest from
+// where the reader last pressed (`data-corner`), when the window has room, and
+// under the map when it has not (MAP.256). `data-state` is "rest" (the hint
+// only, not drawn over the map), "selected" or "closed" (the reader pressed Close,
+// drawn over the map only).
 export const BOX_FIELDS = 4;
 export const BOX_MIN_WIDTH = 480;
 export const BOX_MIN_HEIGHT = 320;
@@ -268,6 +275,7 @@ export const BOX_MIN_HEIGHT = 320;
 export function createInfoPanel(panelEl) {
   const boxEls = (panelEl && panelEl.dataset && panelEl.dataset.infobox ? panelEl.dataset.infobox.split(/\s+/) : [])
     .map(function (id) { return document.getElementById(id); }).filter(Boolean);
+  const overlayHost = panelEl && panelEl.hasAttribute("data-overlay") ? panelEl.parentElement : null;
   let boxShown = false; // there is a selection the box could show
   let boxClosed = false; // the reader closed the box for this selection
 
@@ -284,6 +292,14 @@ export function createInfoPanel(panelEl) {
   // The corner of the map farthest from where the reader last pressed on it, so the box does not cover what was just
   // picked (top right until the pointer has been used).
   let pressed = null;
+  if (overlayHost) {
+    panelEl.dataset.state = "rest";
+    overlayHost.addEventListener("pointerdown", function (event) {
+      if (panelEl.contains(event.target)) return;
+      const rect = overlayHost.getBoundingClientRect();
+      pressed = { x: (event.clientX - rect.left) / (rect.width || 1), y: (event.clientY - rect.top) / (rect.height || 1) };
+    }, true);
+  }
   boxEls.forEach(function (boxEl) {
     const viewport = boxEl.parentElement;
     if (!viewport) return;
@@ -372,6 +388,12 @@ export function createInfoPanel(panelEl) {
       node.addEventListener("click", button.onClick);
       row.appendChild(node);
     });
+    if (overlayHost) {
+      const close = el("button", "btn btn-small btn-secondary map-info-close", "Close");
+      close.type = "button";
+      close.addEventListener("click", function () { panelEl.dataset.state = "closed"; });
+      row.appendChild(close);
+    }
     if (row.childNodes.length) panelEl.appendChild(row);
   }
 
@@ -379,6 +401,10 @@ export function createInfoPanel(panelEl) {
     if (!panelEl) return;
     panelEl.textContent = "";
     bookmarkEntry = null;
+    if (overlayHost) {
+      placeBox(panelEl);
+      panelEl.dataset.state = "selected";
+    }
     panelEl.appendChild(el("h3", null, spec.title || "Unknown"));
     if (spec.fields && spec.fields.length) {
       const dl = document.createElement("dl");
@@ -404,6 +430,7 @@ export function createInfoPanel(panelEl) {
       bookmarkEntry = null;
       boxShown = false;
       refreshBox();
+      if (overlayHost) panelEl.dataset.state = "rest";
     }
     panelEl.appendChild(el("p", "hint", text));
   }

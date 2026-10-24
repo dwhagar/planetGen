@@ -60,10 +60,6 @@ shell from about shell 12 on. Anything larger takes a real, unbounded amount
 of time and disk, so it needs an explicit choice."""
 
 
-BACKFILL_FROM_CHOICES = ("edge", "none")
-"""tuple: `--backfill-from`'s choices (GEN.30, GEN.98)."""
-
-
 def _format_address(address):
     """`(shell, band, wedge)` as the words the CLI prints."""
     shell_index, band_index, wedge_index = address
@@ -621,11 +617,9 @@ def _backfill_on_queue(args, started_at, center_pc=None):
 def backfill_after_run(args, edge_pc, started_at):
     """
     The bright-star backfill once a `galaxy` run has generated every
-    sector it was asked for (GEN.30, GEN.98): out from the run's edge
-    (`--backfill-from edge`, the default), the backfill distance past the
+    sector it was asked for (GEN.30, GEN.98): out from the run's edge, the backfill distance past the
     farthest generated sector in every direction (the union of the tier
-    radii around every sector the run generated), or not at all (`none`).
-    Nothing when the run generated no sector.
+    radii around every sector the run generated). Nothing when the run generated no sector.
 
     Args:
         args (argparse.Namespace): The run's arguments.
@@ -636,10 +630,7 @@ def backfill_after_run(args, edge_pc, started_at):
     Returns:
         dict: `backfill_bright_stars_around`'s summary (zeros when skipped).
     """
-    mode = getattr(args, "backfill_from", "edge") or "edge"
     summary = {"sectors": 0, "stars": 0}
-    if mode == "none":
-        return summary
     config = store.mysql_config_from_args(args)
     conn = store.get_connection(config)
     try:
@@ -674,28 +665,86 @@ def _mysql_config_of(params):
     return run_plan._mysql_config_of(params)
 
 
+LINK_UNIT_SECTORS = 500
+"""int: Sectors in a unit of the `link-neighbours` stage (PERF.113). A sector links in about 70 ms at the default galaxy size,
+so a unit is about 35 s and a long link is many short units (PERF.155)."""
+
+LINK_UNITS_MAX = 1000
+"""int: Most units the `link-neighbours` stage is cut into; a larger stage has bigger units."""
+
+
 def expand_link_neighbours(params):
-    """The `link-neighbours` command's stage (PERF.107): one unit, the neighbour step for every sector saved since
-    `params["since"]`."""
-    return commands.Expansion([(params, float(len(_sectors_since(params)) * store.LINK_PHASES))], {})
+    """
+    The `link-neighbours` command's stage (PERF.107, PERF.113): the sectors saved since `params["since"]` (or named in
+    `params["sector_ids"]`) are found once, here, put in neighbourhood order (`store.link_order`) and cut into static
+    chunks of `LINK_UNIT_SECTORS` (at most `LINK_UNITS_MAX` chunks), the same at any worker count. Each unit links its
+    chunk and leaves the run's other sectors alone, as the batches of one call do: a sector's lists are computed whole from
+    the placed systems, and a system merged into the lists of the sectors around is the same whichever batch merges it, so
+    the stored links do not depend on the order the units run in. A stage with nothing to link is one empty unit.
+    The units take the neighbour lock one batch at a time (`store.link_sector_neighbors`), so they queue for it rather than
+    run side by side; the cut bounds a unit's length, it does not speed the stage up.
+    """
+    created = _sectors_since(params)
+    ordered = store.link_order(_mysql_config_of(params), created)
+    size = max(LINK_UNIT_SECTORS, -(-len(ordered) // LINK_UNITS_MAX))
+    run = {key: params[key] for key in ("since", "sector_ids") if params.get(key) is not None}
+    units = [({"database": params["database"], "chunk": ordered[start:start + size], **run},
+              float(len(ordered[start:start + size]) * store.LINK_PHASES)) for start in range(0, len(ordered), size)]
+    return commands.Expansion(units or [({"database": params["database"], "chunk": [], **run}, 1.0)],
+                              {"sectors": len(ordered)})
 
 
 def link_neighbours_unit(params, report):
     """
-    The `link-neighbours` command's unit (PERF.45, PERF.107): links the sectors a `galaxy` run created to their
-    neighbours (`store.link_sector_neighbors`): containment, nearest systems and quadrants, and the new systems merged
-    into the lists of the sectors around. Done once for the whole run, in place of one locked step per saved sector,
-    so the workers no longer queue for it; the stored result is the same.
+    The `link-neighbours` command's unit (PERF.45, PERF.107, PERF.113): links a chunk of the sectors a `galaxy` run created
+    to their neighbours (`store.link_sector_neighbors`): containment, nearest systems and quadrants, and the new systems
+    merged into the lists of the sectors around. Done once for the whole run, in place of one locked step per saved sector,
+    so the workers no longer queue for it; the stored result is the same. The run's other sectors (found again from
+    `params["since"]` or `params["sector_ids"]`) are left to their own units.
 
     Returns:
         dict: `linked`, how many sectors were linked.
     """
-    created = _sectors_since(params)
-
     def on_progress(done, total, step=""):
         report(done, total)
 
-    return {"linked": store.link_sector_neighbors(_mysql_config_of(params), created, on_progress)}
+    return {"linked": store.link_sector_neighbors(_mysql_config_of(params), params["chunk"], on_progress,
+                                                  skip=_sectors_since(params))}
+
+
+def _link_on_queue(args, started_at):
+    """
+    The link stage of a run on the new queue (PERF.113): the wrapper selects the `link-neighbours` command from this run's
+    steps, finds the sectors to link once and cuts them into units (`expand_link_neighbours`), this process follows the
+    units with a bar of the sectors they link, and the unit that completes the stage stores the stage's row.
+
+    Returns:
+        int: How many sectors were linked, summed over the units.
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    step, listing = wrapper.step_for(args, "link", "Neighbours", {
+        "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "), "workers": workers})
+    row = stages.hand_over_open_stage()
+    linked = [0]
+    with run_common._generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            with steps.Step("Neighbours", "link", 1, args=args, progress=progress, workers=workers) as bar:
+                def on_plan(_index, plan):
+                    bar.update(total=max(plan["detail"]["sectors"], 1))
+
+                def on_result(_index, _unit, result):
+                    linked[0] += result["linked"]
+                    bar.update(advance=result["linked"])
+
+                wrapper.run("Neighbours", [step], on_plan, on_result, workers_count=workers,
+                            who=getattr(args, "who", None), database=mysql_config.database,
+                            argv=getattr(args, "argv", None), seed=None, listing=listing,
+                            rows=None if row is None else {"link": row})
+        finally:
+            log.reset_console()
+    return linked[0]
 
 
 def link_after_run(args, started_at):
@@ -727,8 +776,7 @@ def link_after_run(args, started_at):
         stages.enter("link")
         stages.note(sectors=len(created))
         log.normal("Linking the new sectors to their neighbours...")
-        linked = _one_unit_stage(args, "link", "Neighbours", "link", len(created) * store.LINK_PHASES, started_at,
-                                 "linked")
+        linked = _link_on_queue(args, started_at)
     except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the links can be redone
         log.normal(f"Warning: linking the new sectors to their neighbours failed: {exc}")
         return 0
@@ -760,70 +808,99 @@ def nebula_blocks_after_run(args):
     return added or 0
 
 
-def _one_unit_stage(args, key, title, kind, total, started_at, result_key, extra=None):
-    """
-    A stage of one unit on the new queue with a bar of `total` (PERF.107), for the stages that follow the sectors (link
-    and settle): the wrapper selects the stage's command from this run's steps, the unit does the whole stage for the
-    sectors saved since `started_at` and reports as it goes, and the unit that completes it stores the stage's row.
+SETTLE_UNIT_SECTORS = 100
+"""int: Sectors in a unit of the `settle-sector-paths` stage (PERF.115). A sector takes about 0.18 s to settle at the default
+galaxy size, so a unit is about 18 s and a long settle is many short units (PERF.155)."""
 
-    Args:
-        key (str): The stage (`link` or `settle`).
-        kind (str): The bar's kind (`steps.STEP_KINDS`).
-        result_key (str): What the unit's result counts, the value returned.
-
-    Returns:
-        int: The unit's count.
-    """
-    mysql_config = store.mysql_config_from_args(args)
-    workers = run_common._worker_count(args)
-    step, listing = wrapper.step_for(args, key, title, {
-        "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "),
-        "workers": workers, **(extra or {})})
-    row = stages.hand_over_open_stage()
-    counted = [0]
-    with run_common._generation_progress() as progress:
-        log.set_console(progress.console)
-        try:
-            with steps.Step(title, kind, total, args=args, progress=progress) as bar:
-                def on_progress(_index, _unit, done, estimate):
-                    # Never back: a batch retried after a deadlock repeats its steps.
-                    bar.update(completed=max(done, bar.done), total=estimate)
-
-                def on_result(_index, _unit, result):
-                    counted[0] = result[result_key]
-
-                wrapper.run(title, [step], lambda _index, plan: None, on_result, on_progress, workers_count=workers,
-                            who=getattr(args, "who", None), database=mysql_config.database,
-                            argv=getattr(args, "argv", None), seed=None, listing=listing,
-                            rows=None if row is None else {key: row})
-        finally:
-            log.reset_console()
-    return counted[0]
+SETTLE_UNITS_MAX = 1000
+"""int: Most units the `settle-sector-paths` stage is cut into; a larger stage has bigger units."""
 
 
 def expand_save_sector_paths(params):
-    """The `settle-sector-paths` command's stage (PERF.107): one unit, the paths of every sector saved since
-    `params["since"]` and of the sectors around them."""
-    return commands.Expansion([(params, float(len(_sectors_since(params))))], {})
+    """
+    The `settle-sector-paths` command's stage (PERF.107, PERF.115): the sectors to settle (those saved since `params["since"]`,
+    or `params["sector_ids"]`, and with `params["expand"]` (the default) the sectors around them,
+    `sector_paths.sectors_to_settle`) are found once, here, and cut in order into static chunks of `SETTLE_UNIT_SECTORS`
+    (at most `SETTLE_UNITS_MAX` chunks), the same at any worker count. Each sector's paths depend only on the final
+    sectors around it and are saved with the sector, so the chunks cannot collide. A stage with nothing to settle is one
+    empty unit, so the stage still stores its row.
+    """
+    created = _sectors_since(params)
+    if params.get("expand", True):
+        conn = store.get_connection(_mysql_config_of(params))
+        try:
+            sectors = sector_paths.sectors_to_settle(conn, created)
+        finally:
+            conn.close()
+    else:
+        sectors = sorted(set(created))
+    size = max(SETTLE_UNIT_SECTORS, -(-len(sectors) // SETTLE_UNITS_MAX))
+    # One unit may spread a crowded sector's bodies over processes; a stage of many units already fills the workers.
+    workers = params["workers"] if len(sectors) <= size else 1
+    units = [({"database": params["database"], "sector_ids": sectors[start:start + size], "workers": workers},
+              float(len(sectors[start:start + size]))) for start in range(0, len(sectors), size)]
+    return commands.Expansion(units or [({"database": params["database"], "sector_ids": [], "workers": 1}, 1.0)],
+                              {"sectors": len(sectors)})
 
 
 def save_sector_paths_unit(params, report):
     """
-    The `settle-sector-paths` command's unit (GEN.126, PERF.107): saves the path of every body in the sectors a run
-    created and in the sectors around them (`sector_paths.settle_sectors`), so each path sees the final set of
-    neighbours whatever order the workers filled sectors in. A crowded sector's bodies are integrated in
-    `params["workers"]` processes.
+    The `settle-sector-paths` command's unit (GEN.126, PERF.107, PERF.115): saves the path of every body in the chunk of
+    sectors it was given (`sector_paths.settle_sectors`, `expand=False`: the stage's expansion already added the sectors
+    around the run's), so each path sees the final set of neighbours whatever order the workers filled sectors in. A
+    crowded sector's bodies are integrated in `params["workers"]` processes.
 
     Returns:
-        dict: `saved`, how many paths were saved.
+        dict: `saved`, how many paths were saved, and `visited`, the chunk's sectors.
     """
-    created = _sectors_since(params)
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        return {"saved": sector_paths.settle_sectors(conn, created, report, workers=params["workers"],
-                                                     expand=params.get("expand", True))}
+        return {"saved": sector_paths.settle_sectors(conn, params["sector_ids"], report, workers=params["workers"],
+                                                     expand=False),
+                "visited": len(params["sector_ids"])}
     finally:
         conn.close()
+
+
+def _settle_on_queue(args, started_at, extra=None):
+    """
+    The settle stage of a run on the new queue (PERF.115): the wrapper selects the `settle-sector-paths` command from this
+    run's steps, finds the sectors to settle once and cuts them into units (`expand_save_sector_paths`), this process
+    follows the units with a bar of the sectors they settle, and the unit that completes the stage stores the stage's row.
+
+    Args:
+        started_at: The sectors saved since this (the database's clock when the run started) are the run's, unless
+            `extra["sector_ids"]` names them.
+        extra (dict, optional): More params for the stage: `sector_ids` and `expand`.
+
+    Returns:
+        int: How many paths were saved, summed over the units.
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    workers = run_common._worker_count(args)
+    step, listing = wrapper.step_for(args, "settle", "Sector paths", {
+        "database": wrapper.database_args(mysql_config), "since": started_at.isoformat(sep=" "), "workers": workers,
+        **(extra or {})})
+    row = stages.hand_over_open_stage()
+    saved = [0]
+    with run_common._generation_progress() as progress:
+        log.set_console(progress.console)
+        try:
+            with steps.Step("Sector paths", "paths", 1, args=args, progress=progress, workers=workers) as bar:
+                def on_plan(_index, plan):
+                    bar.update(total=max(plan["detail"]["sectors"], 1))
+
+                def on_result(_index, _unit, result):
+                    saved[0] += result["saved"]
+                    bar.update(advance=result["visited"])
+
+                wrapper.run("Sector paths", [step], on_plan, on_result, workers_count=workers,
+                            who=getattr(args, "who", None), database=mysql_config.database,
+                            argv=getattr(args, "argv", None), seed=None, listing=listing,
+                            rows=None if row is None else {"settle": row})
+        finally:
+            log.reset_console()
+    return saved[0]
 
 
 def settle_after_run(args, started_at):
@@ -831,7 +908,7 @@ def settle_after_run(args, started_at):
     The last step of a `galaxy` run (GEN.126): once every sector, bright star and population is
     final, saves the path of every body in the sectors the run created and in the sectors around
     them, so each path sees the final set of neighbours whatever order the workers filled sectors in. On the new
-    queue (PERF.107): the `settle-sector-paths` command, one unit. Skipped with `--no-settle` (and for an estimate).
+    queue (PERF.107): the `settle-sector-paths` command, one unit.
 
     Args:
         args (argparse.Namespace): The run's arguments.
@@ -840,8 +917,6 @@ def settle_after_run(args, started_at):
     Returns:
         int: How many paths were saved (0 when skipped or nothing was generated).
     """
-    if getattr(args, "no_settle", False):
-        return 0
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         created = sector_paths.sector_ids_since(conn, started_at)
@@ -853,7 +928,7 @@ def settle_after_run(args, started_at):
     stages.enter("settle")
     stages.note(sectors=len(created))
     log.normal("Saving the sector paths...")
-    saved = _one_unit_stage(args, "settle", "Sector paths", "paths", len(created), started_at, "saved")
+    saved = _settle_on_queue(args, started_at)
     log.normal(f"Saved {saved:,} sector paths.")
     return saved
 
@@ -998,6 +1073,26 @@ def _default_generation_args(config=None):
     return args
 
 
+def _resolve_since(args):
+    """Fills in `args.since` when `--since` was not given: the start of the newest `sectors` or `galaxy` run.
+
+    Raises:
+        SystemExit: No such run is recorded, so there is no start to work from.
+    """
+    if args.since is not None:
+        return
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        args.since = store.newest_sectors_run_start(conn)
+    finally:
+        conn.close()
+    if args.since is None:
+        log.error("No 'sectors' or 'galaxy' run is recorded, so there is no start time: give --since TIME.")
+        raise SystemExit(1)
+    log.normal(f"Working on the sectors saved since {args.since:%Y-%m-%d %H:%M:%S}, the start of the newest "
+               f"'sectors' or 'galaxy' run.")
+
+
 def _sectors_made_since(args):
     """The ids of the galaxy sectors saved at or after `args.since` (the database's clock, `--since`)."""
     conn = store.get_connection(store.mysql_config_from_args(args))
@@ -1013,6 +1108,7 @@ def run_link(args):
     `link-neighbours` command, one unit): containment, nearest systems and quadrants, and the new systems merged into the
     lists of the sectors around them. Nothing else; a failure ends the run.
     """
+    _resolve_since(args)
     stages.begin(stages.for_command("link", args), args, "link")
     created = _sectors_made_since(args)
     if not created:
@@ -1023,7 +1119,7 @@ def run_link(args):
     stages.enter("link")
     stages.note(sectors=len(created))
     log.normal("Linking the sectors to their neighbours...")
-    linked = _one_unit_stage(args, "link", "Neighbours", "link", len(created) * store.LINK_PHASES, args.since, "linked")
+    linked = _link_on_queue(args, args.since)
     log.normal(f"Linked {linked:,} sectors to their neighbours.")
     stages.finish()
 
@@ -1034,6 +1130,7 @@ def run_backfill(args):
     (`scatter-backfill`, GEN.30): the sectors a face away from them get the stars born from 1, 2, 5 and 8 solar masses
     up, each only where it is not drawn yet. Nothing else.
     """
+    _resolve_since(args)
     stages.begin(stages.for_command("backfill", args), args, "backfill")
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
@@ -1058,6 +1155,7 @@ def run_settle(args):
     `planetgen settle --since TIME` (PERF.123, GEN.126): saves the path of every body in the sectors saved since `TIME` and
     in the sectors around them (`settle-sector-paths`), so each path sees the final set of neighbours. Nothing else.
     """
+    _resolve_since(args)
     stages.begin(stages.for_command("settle", args), args, "settle")
     created = _sectors_made_since(args)
     if not created:
@@ -1068,7 +1166,7 @@ def run_settle(args):
     stages.enter("settle")
     stages.note(sectors=len(created))
     log.normal("Saving the sector paths...")
-    saved = _one_unit_stage(args, "settle", "Sector paths", "paths", len(created), args.since, "saved")
+    saved = _settle_on_queue(args, args.since)
     log.normal(f"Saved {saved:,} sector paths.")
     stages.finish()
 
@@ -1091,8 +1189,7 @@ def settle_named_sectors(sector_ids, config, expand=True):
         started_at = store.database_now(conn)
     finally:
         conn.close()
-    return _one_unit_stage(args, "settle", "Sector paths", "paths", len(sector_ids), started_at, "saved",
-                           extra={"sector_ids": sector_ids, "expand": expand})
+    return _settle_on_queue(args, started_at, extra={"sector_ids": sector_ids, "expand": expand})
 
 
 def queue_settle(config, sector_ids):
@@ -1297,13 +1394,22 @@ def planned_items(params):
     wedge` triples in the order to generate them, `suffixes` what the log says after each address (none for a stage
     whose sectors need none). The stage's mode says where they are: "addresses", the shell, band, span or course the
     arguments name (`_address_plan`); "neighborhood", the sectors within `--radius-pc` of `--center-sector` in the fill
-    order (`_neighborhood_candidates`). Either way, less the sectors that exist now, up to `--limit`. The starter has
+    order (`_neighborhood_candidates`); "start", the one random start the run's seed picks for `start_index`
+    (`_pick_random_start`, `taken` the positions of the starts before it). Either way, less the sectors that exist now, up to `--limit`. The starter has
     counted, estimated and asked about them already.
     """
     args = _sector_args_of(params)
     edge_pc = params["edge_pc"]
     config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(config)
+    if params["planned"] == "start":
+        conn = store.get_connection(config)
+        try:
+            start = _pick_random_start(args, edge_pc, batch_density, conn, _random_start_radius(args),
+                                       [tuple(place) for place in params["taken"]], run_seed=params["run_seed"], index=params["start_index"])
+        finally:
+            conn.close()
+        return (list(start[0]), [""]) if start else ([], [])
     if params["planned"] == "neighborhood":
         candidates, occupied, _outside = _neighborhood_candidates(
             _neighborhood_center(args), args.radius_pc, edge_pc, config, batch_density.bounds)
@@ -1379,7 +1485,8 @@ def _log_saved(saved, address, suffix=""):
     run_sector._log_summary(saved["summary"])
 
 
-def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_args=None, collect=False, planned=""):
+def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_args=None, collect=False, planned="",
+                  extra=None):
     """
     Generates every `(address, position_pc, sector_args, suffix)` of `batch` on the new queue (PERF.107): the wrapper
     selects the stage's command (`generate-start-sector`, `generate-neighborhood` or `generate-sectors`, by the stage
@@ -1393,9 +1500,10 @@ def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_a
             (a single sector of `galaxy --wedge` is drawn from its profile with the defaults of `sector`).
         collect (bool): Whether to return what each sector reported instead of logging it, for a stage of few sectors
             whose caller says it in its own words.
-        planned (str): The way the stage's cut works the sectors out from the run's arguments (`planned_items`: "addresses"
-            or "neighborhood") instead of taking them from `batch`, which is then empty (`count` says how many there
-            are); empty when `batch` holds them.
+        planned (str): The way the stage's cut works the sectors out from the run's arguments (`planned_items`: "start",
+            "addresses" or "neighborhood") instead of taking them from `batch`, which is then empty (`count` says how
+            many there are); empty when `batch` holds them.
+        extra (dict, optional): More for the stage's parameters, what the "start" cut needs (`random_start_places`).
 
     Returns:
         list: What each sector reported, in the order it was saved (`generate_sectors_unit`), when `collect`; else `[]`.
@@ -1415,7 +1523,7 @@ def _submit_batch(args, batch, title, edge_pc, progress, bar, count=None, base_a
     step, listing = wrapper.step_for(args, key, title, {
         "database": wrapper.database_args(mysql_config), "args": _sector_args_json(base_args or args),
         "edge_pc": edge_pc,
-        "items": items, "planned": planned, "workers": workers})
+        "items": items, "planned": planned, "workers": workers, **(extra or {})})
     row = stages.hand_over_open_stage()
     if not collect:
         log.normal(f"Generating {count:,} sector(s) with {workers} worker(s); each is reported below as "
@@ -1784,8 +1892,7 @@ def _generate_batch_as_runs(args, batch, title, edge_pc, config, center_pc):
     created_ids = [item["sector_id"] for item in saved]
     if created_ids:
         _backfill_on_queue(args, started_at, center_pc=center_pc)
-        _one_unit_stage(args, "settle", "Sector paths", "paths", len(created_ids), started_at, "saved",
-                        extra={"sector_ids": sorted(created_ids)})
+        _settle_on_queue(args, started_at, extra={"sector_ids": sorted(created_ids)})
     return created_ids, len(created_ids)
 
 
@@ -1911,7 +2018,7 @@ def _touches_filled_space(args, position_pc, radius_pc, edge_pc, batch_density):
     return bool(occupied)
 
 
-def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, drawn=None):
+def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, drawn=None, run_seed=None, index=0):
     """
     One random start for random-start mode: an unoccupied address drawn
     inside the outline by volume (`GalaxyBounds.random_address`), retried up
@@ -1925,12 +2032,18 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
     With `--avoid-filled-space` (GEN.186) a centre whose neighborhood
     touches an already generated sector is retried too; `drawn`, when
     given, is a dict that gets `centres` (examined) and `filled` (dropped
-    for touching filled space) counted up.
+    for touching filled space) counted up. With `run_seed` the start is drawn from the stream of that seed and
+    `index` (the same seed and index give the same start at any worker count, PERF.123); without it, from the
+    run's own stream.
 
     Returns:
         tuple or None: `(address, position_pc, sector_args)`; `None` when
             the attempt budget ran out.
     """
+    if run_seed is not None:
+        from planetgen.queue import work
+        with draw.bound(work.task_seed(run_seed, f"random-start-{index}")):
+            return _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, drawn)
     many = args.neighborhoods > 1
     gamma = args.neighborhood_gamma
     for _ in range(program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS):
@@ -1963,6 +2076,11 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
     return None
 
 
+def _random_start_radius(args):
+    """The radius of a random start's neighborhood: `--radius-pc`, or the default."""
+    return args.radius_pc if args.radius_pc is not None else program_constants.DEFAULT_GENERATE_RADIUS_PC
+
+
 def run_random_start(args, edge_pc, progress):
     """
     Random-start mode (no `--shell`/`--center-sector` given): picks a
@@ -1986,10 +2104,9 @@ def run_random_start(args, edge_pc, progress):
         SystemExit: If no suitable address was found within the attempt
                    budget.
     """
-    radius_pc = (
-        args.radius_pc if args.radius_pc is not None
-        else program_constants.DEFAULT_GENERATE_RADIUS_PC
-    )
+    radius_pc = _random_start_radius(args)
+    run_seed = draw.getrandbits(128)
+    log.debug(f"Random starts are drawn from the run seed {run_seed}.")
 
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
@@ -1997,9 +2114,10 @@ def run_random_start(args, edge_pc, progress):
     starts = []
     drawn = {}
     try:
-        for _ in range(args.neighborhoods):
+        for index in range(args.neighborhoods):
             start = _pick_random_start(args, edge_pc, batch_density, conn, radius_pc,
-                                       [position for _address, position, _args in starts], drawn)
+                                       [position for _address, position, _args in starts], drawn,
+                                       run_seed=run_seed, index=index)
             if start is None:
                 break
             starts.append(start)
@@ -2040,10 +2158,18 @@ def run_random_start(args, edge_pc, progress):
             if len(starts) == 1 else f"{len(starts)} random neighborhoods of {radius_pc:g} pc")
     run_common._check_estimate(args, estimate_args, what, progress)
 
-    for address, position_pc, sector_args in starts:
+    for index, (address, position_pc, sector_args) in enumerate(starts):
         stages.enter("start")
-        saved = _submit_batch(args, [(address, position_pc, sector_args, "")], "Starting sector", edge_pc, progress,
-                              None, count=1, collect=True)[0]
+        # The stage's cut picks the start again from the run's seed (the same one the estimate was made for).
+        reported = _submit_batch(
+            args, [], "Starting sector", edge_pc, progress, None, count=1, collect=True, planned="start",
+            extra={"run_seed": run_seed, "start_index": index,
+                   "taken": [list(position) for _address, position, _args in starts[:index]]})
+        if not reported:
+            log.error("The run's seed found no unoccupied sector for the start any more; run it again.")
+            raise SystemExit(1)
+        saved = reported[0]
+        address = tuple(saved["address"])
         sector_id = saved["sector_id"]
         designation = provisional_sector_designation(*address)
         log.normal(
@@ -2449,11 +2575,10 @@ def run_galaxy(args):
         link_after_run(args, started_at)
     # GEN.30: the bright stars come after the sectors, so neither the
     # scatter nor the backfill draws stars for a sector the run filled.
-    if getattr(args, "then_scatter", False):
-        run_plan.scatter_bright_stars(args)
-        run_plan.scatter_phenomena(args)    # the last pass of GEN.185: the other phenomena, after the stars
+    run_plan.scatter_bright_stars(args)
+    run_plan.scatter_phenomena(args)        # the last pass of GEN.185: the other phenomena, after the stars
     backfill_after_run(args, edge_pc, started_at)
-    run_population.run_population_after(args)
+    run_population.run_population_stage(args)
     settle_after_run(args, started_at)
     nebula_blocks_after_run(args)
     stages.finish()

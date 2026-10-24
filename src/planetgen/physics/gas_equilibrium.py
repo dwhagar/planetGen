@@ -40,8 +40,20 @@ NEGLIGIBLE_LOG_FRACTION = -18.420680743952367
 BALANCE_TOLERANCE = 1e-8
 """float: The relative element-balance error the converged solution may have."""
 
-CONVERGED_LOG_STEP = 1e-10
-"""float: The largest change of ln n_j, over every species above the floor, that counts as converged."""
+CONVERGED_LOG_STEP = 1e-6
+"""float: The largest change of ln n_j, over the species above `CONVERGED_FRACTION`, that counts as converged. The step has been
+applied when it is tested, and Newton's error after a step is the square of the step, so the answer is good to 1e-12; a smaller
+test is out of reach for a trace element, whose residual carries the rounding of the major ones."""
+
+STALL_ITERATIONS = 60
+"""int: A solve whose smallest step has not improved for this many iterations, and is under `STALL_LOG_STEP`, has converged to the
+precision the rounding allows."""
+
+STALL_LOG_STEP = 1e-4
+
+CONVERGED_FRACTION = 1e-12
+"""float: Species rarer than this are not waited for: the trace species of a stiff system jitter at 1e-8 in the Newton step while
+the rest has converged to 1e-12, and they are recomputed exactly from the converged element potentials at the end."""
 
 MOLES_FLOOR = 1e-290
 """float: The least moles a species is allowed, so that no logarithm is minus infinity."""
@@ -152,6 +164,7 @@ def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None
     count = len(chosen)
     moles = np.full(count, 0.1 / count)
     total = 0.1
+    best_step, best_at = math.inf, 0
     for iterations in range(1, MAX_ITERATIONS + 1):
         log_fraction = np.log(moles / total)
         potentials = chemical_constant + log_fraction
@@ -165,10 +178,15 @@ def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None
         rhs = np.empty(len(free) + 1)
         rhs[:-1] = totals - row_sums + _times_vector(weighted, potentials)
         rhs[-1] = total - moles.sum() + float(_times_vector(moles[None, :], potentials)[0])
+        # The rows of a trace element weigh 1e-9 or less against the main ones: scale the symmetric system by its diagonal so that
+        # the solve keeps its digits (the unscaled Newton step jitters at 1e-8 and never meets `CONVERGED_LOG_STEP`).
+        diagonal = np.abs(np.diag(lhs))
+        scale_of = 1.0 / np.sqrt(np.where(diagonal > 0.0, diagonal, 1.0))
+        scaled = lhs * scale_of[:, None] * scale_of[None, :]
         try:
-            solution = np.linalg.solve(lhs, rhs)
+            solution = np.linalg.solve(scaled, rhs * scale_of) * scale_of
         except np.linalg.LinAlgError:
-            solution = np.linalg.lstsq(lhs, rhs, rcond=None)[0]
+            solution = np.linalg.lstsq(scaled, rhs * scale_of, rcond=None)[0] * scale_of
         element_potentials, d_ln_total = solution[:-1], solution[-1]
         d_ln_moles = _times_vector(matrix.T, element_potentials) - potentials + d_ln_total
         significant = log_fraction > NEGLIGIBLE_LOG_FRACTION
@@ -183,9 +201,13 @@ def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None
                 factor = min(factor, float(room.min()))
         moles = np.maximum(moles * np.exp(factor * d_ln_moles), MOLES_FLOOR)
         total = total * math.exp(factor * d_ln_total)
-        live = moles > 100 * MOLES_FLOOR
+        live = moles > CONVERGED_FRACTION * total
         step = float(np.max(np.abs(d_ln_moles[live]))) if live.any() else 0.0
         if factor == 1.0 and step < CONVERGED_LOG_STEP and abs(d_ln_total) < CONVERGED_LOG_STEP:
+            break
+        if factor == 1.0 and step < best_step:
+            best_step, best_at = step, iterations
+        if iterations - best_at > STALL_ITERATIONS and best_step < STALL_LOG_STEP:
             break
     else:
         raise EquilibriumError(f"no convergence at {temperature_k} K and {pressure_bar} bar")

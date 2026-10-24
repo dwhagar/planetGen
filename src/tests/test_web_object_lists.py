@@ -64,6 +64,31 @@ def test_the_table_route_passes_the_key_on_and_gives_the_last_object_as_next(sit
     assert body["rows"][0][0]["href"] == "/object/moon:FE81000A2B-0000005-001"
 
 
+def test_planet_and_moon_lists_have_a_habitability_column_of_symbols(site, monkeypatch):
+    """UX.100: a scored row draws the overall symbol and the six domains; an unscored one a dash; stars have no column."""
+    from planetgen.web.lib import apiclient
+
+    client, _seen = site
+    scored = {**_item(1, "moon"), "phi4": 0.8, "tier_pressure": 0, "tier_temperature": 1, "tier_air": 2,
+              "tier_water": 0, "tier_radiation": 3, "tier_suitability": 1}
+    unscored = {**_item(2, "moon"), "phi4": None, **{f"tier_{d}": None for d in
+                                                      ("pressure", "temperature", "air", "water", "radiation", "suitability")}}
+    monkeypatch.setattr(apiclient, "get_object_list", lambda db, kind, **kw: {
+        "items": [scored, unscored], "next": None, "total": 2, "total_capped": False})
+    body = client.get("/lists/moon").get_data(as_text=True)
+    assert 'data-col="habitability"' in body and body.count("hab-symbol ") == 7
+    for label in ("Overall habitability: Green", "Air chemistry: Yellow", "Radiation: Red"):
+        assert f'aria-label="{label}"' in body, label
+    served = client.get("/table/list-moon").get_json()["rows"]
+    assert [symbol["name"] for symbol in served[0][4]["symbols"]] == [
+        "overall", "pressure", "temperature", "air", "water", "radiation", "suitability"]
+    assert served[1][4] == {"text": "—", "muted": True}
+    assert 'data-col="habitability"' not in client.get("/lists/star").get_data(as_text=True)
+    # UX.181: each symbol of the page's rows, and of the rows the table serves, links to its habitability section.
+    assert 'href="/help/habitability#domain-radiation"' in body
+    assert [symbol["anchor"] for symbol in served[0][4]["symbols"]][:3] == ["overall", "domain-pressure", "domain-temperature"]
+
+
 def test_an_unknown_kind_has_no_page_or_table(site):
     client, _seen = site
     assert client.get("/lists/galaxy").status_code == 404

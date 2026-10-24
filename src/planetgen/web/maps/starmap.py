@@ -1018,6 +1018,8 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px, brightest_sol
         data["typeLabel"] = f'{descriptor.capitalize()} Nebula'
     elif phenomenon_type == "asteroid_field":
         data["kind"] = "asteroidField"
+        from planetgen.web.maps.bodylook import asteroid_grain_color  # bodylook imports this module
+        data["grainColor"] = asteroid_grain_color(phenomenon.get("class"))
         data["typeLabel"] = f'Asteroid Field ({descriptor.capitalize()})'
     elif phenomenon_type == "black_hole":
         data["kind"] = "blackHoleAccreting" if descriptor == "accreting" else "blackHoleQuiescent"

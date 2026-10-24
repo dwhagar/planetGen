@@ -164,11 +164,10 @@ SECTIONS = (
     ("systems", "Systems"),
     ("phenomena", "Phenomena"),
     ("nav", "Nav"),
-    ("classes", "Classes"),
     ("species", "Species"),
 )
 """tuple: The header's main sections, in order. A view marks one active
-with `render_page(section=...)`. Lists is under the gear (UX.146)."""
+with `render_page(section=...)`. Lists is under the gear (UX.146); Classes is under Help (UX.180)."""
 
 NAV_MENU = (
     # (endpoint name, label)
@@ -178,6 +177,17 @@ NAV_MENU = (
 """tuple: What the Nav section opens (UX.146): its two pages, in order. The
 Nav section is current on both (a page names `section="nav"` or
 `section="nearby"`)."""
+
+HELP_MENU = (
+    # (endpoint name, label)
+    ("classes", "Classes"),
+    ("habitability_levels", "Habitability"),
+)
+"""tuple: What the Help menu beside the search button opens (UX.180), in order. The menu is current on these pages and
+on the class pages under Classes (a page names `section="classes"` or `section="help"`)."""
+
+HELP_SECTIONS = ("classes", "help")
+"""tuple: The `section` names that mark the Help menu current."""
 
 POPULATION_SECTIONS = {"species"}
 """set: Sections shown only once population data exists

@@ -15,13 +15,13 @@ import math
 
 from planetgen import tuning
 from planetgen.describe import model
-from planetgen.describe.model import fact, facts, inline, measured, prose, qty, section
+from planetgen.describe.model import fact, facts, inline, measured, prose, qty, section, swatch
 from planetgen.generation.belt import format_composition_summary
 from planetgen.generation import evolution
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.names.bodies import close_pair_label
-from planetgen.physics import atmosphere as atmosphere_physics, habitability, pre_main_sequence, protection, unit_registry
+from planetgen.physics import atmosphere as atmosphere_physics, atmosphere_colour, habitability, pre_main_sequence, protection, regional_temperature, unit_registry
 from planetgen.physics.quantity import Quantity
 
 HELIOSPHERE_COMPRESSION_NOTED = 0.95
@@ -381,6 +381,9 @@ def _planet_facts(planet):
         rows.append(fact("temperature", "Surface Temperature", _kelvin(planet.surface_temperature)))
         airless = planet.atmosphere in (None, "None")
         rows.append(fact("pressure", "Surface Pressure", _pascal(0.0 if airless else planet.atmospheric_pressure)))
+        colour = None if airless else atmosphere_colour.body_atmosphere_colour(planet)
+        if colour is not None:
+            rows.append(fact("atmosphere_colour", "Atmosphere Colour", swatch(colour.hex, colour.label)))
     return facts("Moon" if planet.is_moon else "Planet", rows)
 
 
@@ -389,7 +392,8 @@ def _ratings_block(planet):
     scored = planet.habitability_world()
     if scored is None:
         return None
-    result = protection.rating(*scored)
+    regions = {field: getattr(planet, field, None) for field in regional_temperature.FIELDS}
+    result = protection.rating(*scored, regions=regions)
     rows = [{"domain": row["domain"], "tier": row["tier"], "score": row["score"], "text": inline([row["text"]])}
             for row in result["rows"]]
     return model.ratings({"name": "PHI-6", "score": result["overall"], "tier": habitability.tier(result["overall"])},
@@ -407,7 +411,7 @@ def _planet_section(planet):
     blocks.append(model.composition("Composition", summary=planet.composition.lower()))
     blocks.append(_ratings_block(planet))
     blocks.append(prose("life", *_life_sentences(planet)))
-    if planet.evolutionary_data and planet.planet_class in tuning.HABITABLE_PLANET_CLASSES:
+    if planet.evolutionary_data:
         blocks.append(prose("timeline", *_timeline_sentences(planet)))
     if planet.flavor_text:
         blocks.append(prose("flavour", f"Sensors show {planet.flavor_text}"))

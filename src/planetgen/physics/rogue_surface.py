@@ -9,8 +9,9 @@ A rogue planet has no star, so its surface is set by its own heat alone
 Guillot 2005, Abbot & Switzer 2011, Turcotte & Schubert 2014). This
 module follows that research's four steps:
 
-1. Internal heat flux: radioactive decay plus leftover formation heat
-   for a rocky rogue (plus tides if it kept a moon), Kelvin-Helmholtz
+1. Internal heat flux: radioactive decay (`radiogenic`, the host-less
+   draw: a rogue's parent star is unknown) plus leftover formation heat,
+   the radiogenic share being the drawn Urey ratio, for a rocky rogue (plus tides if it kept a moon), Kelvin-Helmholtz
    cooling for a giant or brown dwarf.
 2. Effective temperature: sigma T_eff^4 = F_int + sigma T_CMB^4.
 3. Atmosphere: a hydrogen envelope stays only if the planet can hold it
@@ -25,7 +26,7 @@ a new `RoguePlanet` and back-fills stored rows (`store._migrate_v47_to_v48`).
 
 import math
 
-from planetgen.physics import brown_dwarf, constants, hydrosphere
+from planetgen.physics import brown_dwarf, constants, hydrosphere, radiogenic, relations
 from planetgen import tuning
 from planetgen.util.random import log_uniform
 from planetgen.util import draw
@@ -73,23 +74,6 @@ def _sigma():
     return constants.STEFAN_BOLTZMANN_CONSTANT
 
 
-def radiogenic_flux_w_m2(mass_kg, radius_km, age_gy, abundance=1.0):
-    """
-    Radioactive heat reaching the surface, W/m^2: Boss's
-    F = (M_mantle / 4 pi R^2) sum C_i H_i e^(-lambda_i t), with Earth's
-    mantle concentrations (`ROGUE_RADIOGENIC_ISOTOPES`) as they stood at
-    `age_gy`, times `abundance`.
-    """
-    pc = tuning
-    mantle_kg = mass_kg * pc.ROGUE_MANTLE_MASS_FRACTION
-    area_m2 = 4 * math.pi * (radius_km * 1000.0) ** 2
-    heat_w_kg = 0.0
-    for _name, now_kg_kg, heat_w_per_kg, half_life_gy in pc.ROGUE_RADIOGENIC_ISOTOPES:
-        decay = math.log(2) / half_life_gy
-        heat_w_kg += now_kg_kg * heat_w_per_kg * math.exp(decay * (pc.ROGUE_EARTH_REFERENCE_AGE_GY - age_gy))
-    return abundance * mantle_kg * heat_w_kg / area_m2
-
-
 def _giant_luminosity_w(mass_kg, age_gy):
     """A giant's or brown dwarf's internal luminosity, W: a power law in
     mass through Neptune and Jupiter below 1 Mjup, from Jupiter to the brown
@@ -130,7 +114,7 @@ def effective_temperature_k(flux_w_m2):
 
 
 def surface_gravity_m_s2(mass_kg, radius_km):
-    return constants.G * mass_kg / (radius_km * 1000.0) ** 2
+    return relations.surface_gravity(mass_kg, radius_km * 1000.0)
 
 
 def escape_parameter(mass_kg, radius_km, molecule_kg, temperature_k):
@@ -184,7 +168,7 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
         planet_type (str): `'t'` or `'g'`.
         mass_bin (str): Its `ROGUE_PLANET_MASS_BIN_CHOICES` bin.
         has_moons (bool): Whether it kept a moon (tidal heating, rocky only).
-        rng: Anything with `uniform` and `random` (default: `random`).
+        rng: Anything with `uniform`, `random` and `gauss` (default: `draw`).
         age_gy (float, optional): Its age; drawn from `ROGUE_PLANET_AGE_RANGE_GY` when not given. A brown dwarf's
             radius depends on it, so `RoguePlanet` draws it first.
 
@@ -219,8 +203,8 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
         return result
 
     # Step 1: radioactive heat, leftover heat in Earth's proportion, tides.
-    abundance = log_uniform(*pc.ROGUE_RADIOGENIC_ABUNDANCE_RANGE, rng=rng)
-    flux = radiogenic_flux_w_m2(mass_kg, radius_km, age_gy, abundance) / pc.ROGUE_UREY_RATIO
+    content = radiogenic.draw_content(None, rng=rng)
+    flux = radiogenic.heat_flow_w_m2(content, mass_kg, radius_km, age_gy)
     if has_moons:
         flux += log_uniform(*pc.ROGUE_TIDAL_FLUX_RANGE_W_M2, rng=rng)
     # Step 2.

@@ -14,6 +14,7 @@ needed, since `render_system_map_panel` takes plain dicts, the same shape
 Run with: pytest src/tests/test_systemmap.py
 """
 import html as html_lib
+import json
 import math
 import random
 import re
@@ -595,24 +596,27 @@ def test_many_clustered_planets_do_not_crash_and_still_place_every_body():
 
 # --- body preview data (sysmap-spheres-canvas / static/systemmap.js's own input) --
 
-def test_planet_attrs_carries_a_resolved_class_color():
-    planet = _planet(1, 10, AU_KM, 0.0, planet_class="J")
+def test_planet_attrs_carries_one_look_record_not_loose_colour_attrs():
+    planet = _planet(1, 10, AU_KM, 0.0, planet_class="J", body_type="g", surface_temperature_k=165.0)
     attrs = sm._planet_attrs(planet)
-    assert attrs["color"] == sm.class_color("J")
-    assert attrs["color"].startswith("#")
+    look = json.loads(attrs["look"])
+    assert look["body"] == "gas" and look["cls"] == "J" and look["tempK"] == 165.0
+    assert look["color"].startswith("#")
+    assert "color" not in attrs and "hasatmosphere" not in attrs
+    assert attrs["looknote"].startswith("Estimate")
 
 
 def test_planet_attrs_flags_a_real_atmosphere_but_not_a_missing_one():
     with_atmosphere = sm._planet_attrs(_planet(1, 10, AU_KM, 0.0, atmosphere="Nitrogen-Oxygen"))
-    assert with_atmosphere["hasatmosphere"] == "true"
+    assert json.loads(with_atmosphere["look"])["atm"] is True
     assert with_atmosphere["atmosphere"] == "Nitrogen-Oxygen"
 
     literal_none = sm._planet_attrs(_planet(2, 10, AU_KM, 0.0, atmosphere="None"))
-    assert literal_none["hasatmosphere"] is None
+    assert "atm" not in json.loads(literal_none["look"])
     assert literal_none["atmosphere"] == "None (airless)"
 
     unset = sm._planet_attrs(_planet(3, 10, AU_KM, 0.0, atmosphere=None))
-    assert unset["hasatmosphere"] is None
+    assert "atm" not in json.loads(unset["look"])
     assert unset["atmosphere"] == "None (airless)"
 
 
@@ -678,8 +682,8 @@ def test_render_system_map_panel_planet_marker_carries_preview_data_attrs():
                       surface_temperature_k=165.0, composition="hydrogen and helium")
     system = {"name": "Preview Data Test", "binary_configuration": None}
     html = sm.render_system_map_panel(system, [_star(10)], [planet], [])
-    assert f'data-color="{sm.class_color("J")}"' in html
-    assert 'data-hasatmosphere="true"' in html
+    assert 'data-look="' in html and "&quot;body&quot;:&quot;gas&quot;" in html
+    assert "data-hasatmosphere" not in html and "data-color=" not in html
     assert 'data-atmosphere="Hydrogen-Helium"' in html
     assert 'data-surfacetemp="165 K (-108 °C, -163 °F)"' in html
     assert 'data-composition="hydrogen and helium"' in html
@@ -823,3 +827,23 @@ def test_the_buttons_sit_under_the_map_with_map_help_and_no_caption_over_it():
     assert column.index('class="starmap-viewport') < column.index('id="sysmap-controls"')
     assert 'id="sysmap-measure-btn"' in column and 'data-dialog-open="sysmap-help"' in column
     assert 'id="sysmap-help"' in html and "Measure distance, then click two bodies" in html
+
+
+# --- MAP.244: the glow is the atmosphere colour of the stored air under the body's own star ----------------------
+
+def _look_of(html, kind, body_id):
+    return json.loads(html_lib.unescape(_marker_attrs(html, kind, body_id)["data-look"]))
+
+
+def test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star():
+    air = dict(atmosphere="Nitrogen-Oxygen", atmospheric_pressure_pa=101_325.0)
+    partials = dict(p_n2_kpa=79.1, p_o2_kpa=21.2, p_ar_kpa=0.95)
+    moon = dict(_moon(7, 4e5, 0.0), atmosphere="Nitrogen-Oxygen", atmospheric_pressure_pa=60_000.0, gravity_g=0.5,
+                p_n2_kpa=47.0, p_o2_kpa=12.5, p_ar_kpa=0.5)
+    first = dict(_planet(1, 10, AU_KM, 0.0, moons=[moon], **air), **partials)
+    second = dict(_planet(2, 11, 2 * AU_KM, 0.0, **air), **partials)
+    stars = [_star(10), _star(11, temperature_k=3300.0, star_type="M3V", luminosity_w=1e24)]
+    html = sm.render_system_map_panel({"name": "Pair", "binary_configuration": "wide"}, stars, [first, second], [])
+    sun, dwarf = _look_of(html, "planet", 1)["glow"], _look_of(html, "planet", 2)["glow"]
+    assert sun != dwarf and int(sun[5:7], 16) > int(dwarf[5:7], 16)
+    assert _look_of(html, "moon", 7)["glow"].startswith("#")

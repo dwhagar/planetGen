@@ -222,7 +222,7 @@ def _task_retry_argv(task):
     if task.get("kind") != "sector" or not match:
         return None
     shell, band, wedge = match.groups()
-    return ["galaxy", "--shell", shell, "--band", band, "--wedge", wedge]
+    return ["sectors", "--shell", shell, "--band", band, "--wedge", wedge]
 
 
 def _retry_plan(root, node=None):
@@ -246,8 +246,8 @@ def _retry_plan(root, node=None):
                 "steps": steps, "database": job.get("database"),
                 "describe": ", then ".join(step["label"] for step in steps)}
     if root["argv"] and root["kind"] in ("plan", "scatter", "clear-scatter", "fill-map-luminosity",
-                                                   "rescore-habitability", "clean-nebula-field", "galaxy", "sector",
-                                                   "population"):
+                                                   "rescore-habitability", "clean-nebula-field", "galaxy", "sectors", "link",
+                                                   "backfill", "settle", "sector", "population"):
         argv = [str(arg) for arg in root["argv"]]
         label = " ".join(["planetgen", *argv])
         return {"kind": root["kind"], "title": f"Retry: {label}"[:200],
@@ -534,9 +534,11 @@ def admin_queue_action():
                         error = "That task can't be retried on its own."
                     else:
                         label = " ".join(["planetgen", *argv])
+                        python = jobs.python_executable()
                         plan = {"kind": "galaxy", "title": f"Retry: {label}", "database": tree["database_name"],
-                                "steps": [{"label": label, "argv": [jobs.python_executable(),
-                                                                    *jobs.GENERATE_COMMAND, *argv]}]}
+                                "steps": [{"label": label, "argv": [python, *jobs.GENERATE_COMMAND, *argv]},
+                                          *({"label": f"planetgen {after}", "argv": [python, *jobs.GENERATE_COMMAND, after]}
+                                            for after in ("link", "backfill", "settle"))]}
                         message, error = _start_retry(admin, plan, f"{node_id}/{task_id}")
                 else:
                     plan = _retry_plan(tree, node)

@@ -1,8 +1,9 @@
 # tests/test_datasets_real.py
 
 """
-The three downloaded datasets of GEN.548 against numbers measured in the sky (GEN.590), on the real files. They are skipped on a
-machine whose cache folder (`python3 -m planetgen.cli.datasets status`) does not hold them, which is every test machine that has
+The downloaded datasets of GEN.548 against numbers measured in the sky (GEN.590), on the real files. They are skipped on a
+machine whose cache folder (`python3 -m planetgen.cli.datasets status`) does not hold every dataset of the catalogue (TEST.312: a
+machine that fetched before a dataset was added, such as the ozone cross sections, lacks it), which is every test machine that has
 not run `update.sh`; the offline fixtures of `test_datasets_readers.py` and `test_stellar_composition.py` cover the code.
 """
 
@@ -12,8 +13,8 @@ from planetgen.datasets import catalogue, fetch, isochrones, neutron_star_matter
 from planetgen.physics import stellar_composition as sc
 
 pytestmark = [pytest.mark.real_datasets, pytest.mark.skipif(
-    any(fetch.locate(dataset).missing for dataset in (isochrones.DATASET, white_dwarf_models.DATASET, neutron_star_matter.DATASET)),
-    reason="the downloaded datasets are not in this machine's cache folder")]
+    any(fetch.locate(dataset).missing for dataset in catalogue.ALL),
+    reason="the downloaded datasets are not all in this machine's cache folder")]
 
 
 def test_the_main_sequence_of_a_sun_like_star_lives_about_ten_gigayears():

@@ -29,11 +29,11 @@ from urllib.parse import urlencode
 
 from flask import g, request, url_for
 
-from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS, TIER_NAMES
+from planetgen.physics import equipment
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table
 from planetgen.web.lib.fmt import format_number
-from planetgen.web.lib.habitability_symbols import LABELS, OVERALL, overall_tier
+from planetgen.web.lib.habitability_cells import equipment_cell, habitability_cell
 from planetgen.web.lib.pagination import PAGE_SIZE, page_offset, parse_page
 
 from . import tables
@@ -74,8 +74,8 @@ _FACET_ALLOWED = {
     "type": {"star", "planet", "moon", "belt"},
     "body": {"t", "g"},
     "moon_body": {"t", "g"},
-    "equipment": {"0", "1", "2", "3", "4"},
-    "moon_equipment": {"0", "1", "2", "3", "4"},
+    "equipment": equipment.TICK_VALUES,
+    "moon_equipment": equipment.TICK_VALUES,
     "phenomenon": {"nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant",
                    "rogue_planet", "interstellar_comet", "quasar"},
 }
@@ -255,8 +255,6 @@ def tag_groups(state, facets):
             continue
         groups.append({
             "title": FACET_TITLES[facet],
-            "help": ({"text": "What the equipment levels mean", "url": page_url("habitability_levels")}
-                     if facet in ("equipment", "moon_equipment") else None),
             "options": [{
                 "label": option["label"],
                 "count": option["count"],
@@ -369,18 +367,6 @@ _PANEL_NOUNS = {
 }
 
 
-def _habitability_cell(row):
-    """The Habitability cell (UX.100): the overall PHI-6 symbol and the six domain symbols, each with its rating, or a
-    dash for an unscored body. The page and `datatable.js` draw the symbols from `symbols`; `text` is the same in words."""
-    overall = overall_tier(row)
-    if overall is None:
-        return {"text": "—", "muted": True}
-    symbols = [{"name": OVERALL, "tier": overall}] + [{"name": name, "tier": row[f"tier_{name}"]} for name in DOMAINS]
-    for symbol in symbols:
-        symbol["label"] = f"{LABELS[symbol['name']]}: {TIER_NAMES[symbol['tier']]}"
-    return {"text": ", ".join(symbol["label"] for symbol in symbols), "symbols": symbols}
-
-
 def _cells(panel, row):
     """One search result row as the data table's cells (the columns of `_PANEL_COLUMNS`)."""
     if panel == "sectors":
@@ -395,8 +381,8 @@ def _cells(panel, row):
     if panel in ("planets", "moons"):
         cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
                  {"text": row["life_chemical"] or "—"},
-                 {"text": EQUIPMENT_LABELS[row["equipment_tier"]] if row.get("equipment_tier") is not None else "—"},
-                 _habitability_cell(row)]
+                 equipment_cell(row),
+                 habitability_cell(row)]
         if panel == "moons":
             cells.append({"text": row["planet_name"]})
         return cells + [_link(row["system_name"], row["system_url"]), _sector_link(row)]

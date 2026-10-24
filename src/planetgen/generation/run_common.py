@@ -258,6 +258,8 @@ def _refuse_or_warn(args, message, code=1):
     if _strict(args):
         log.error(message)
         raise SystemExit(code)
+    message = message.removeprefix("Refused: ")
+    message = message[:1].upper() + message[1:]
     log.normal(f"WARNING: {message} Going ahead (--strict stops here instead).")
 
 

@@ -12,6 +12,7 @@ from planetgen.generation.mass_object import GALACTIC_MOTION_FIELDS, KinematicRe
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.util import draw
@@ -194,3 +195,18 @@ def test_a_non_rotating_black_hole_has_a_zero_rate_and_a_neutron_stars_follows_i
     assert hole.spin_rate_rad_s == 0.0
     neutron = NeutronStar(config)
     assert neutron.spin_rate_rad_s == pytest.approx(2.0 * math.pi / (neutron.spin_period_ms / 1000.0), rel=1e-9)
+
+
+def test_planets_moons_and_rogue_planets_share_the_planetary_object_family():
+    from planetgen.generation.planetary_object import PlanetaryObject
+
+    assert issubclass(Planet, PlanetaryObject) and issubclass(RoguePlanet, PlanetaryObject)
+    rogue = RoguePlanet(SystemConfig(), mass_bin="terrestrial")
+    assert rogue.parent_kind is None
+    assert rogue.is_giant == (rogue.planet_type == "g")
+    planet = object.__new__(Planet)
+    planet.body_type = "g"
+    planet.is_moon = False
+    assert planet.parent_kind == "star" and planet.is_giant
+    planet.is_moon = True
+    assert planet.parent_kind == "planet"

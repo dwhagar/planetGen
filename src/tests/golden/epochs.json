@@ -315,6 +315,21 @@
       "epoch": 64,
       "first_release": "8.0.2079",
       "reason": "The disc's recent star formation falls faster in its thin outer gas, so the density of young stars at large radius and every young star's place in the outer disc move, and with them the systems generated there (GEN.450)"
+    },
+    {
+      "epoch": 65,
+      "first_release": "8.0.2109",
+      "reason": "A body's life no longer depends on its class letter: the light-harvesting pigment a world may carry comes from its stored air, ocean and temperature (each chemical's requires) and its star's spectrum, a gas giant carries none, and the most advanced life stage is capped only by the habitability index, so small icy bodies with an ocean under the ice and a few volcanic or super-Earth worlds now carry microbial life and the worlds once capped by their letter (E, F, G, L, Q) reach as far as the index allows (GEN.92, GEN.647)"
+    },
+    {
+      "epoch": 66,
+      "first_release": "8.0.2122",
+      "reason": "Every planet and moon with air draws a cloud, haze and dust optical depth, the cloud cover and an optics number on its own stream (five stored values, schema 138), so each such body's stored record gains those values (GEN.414)"
+    },
+    {
+      "epoch": 67,
+      "first_release": "8.0.2129",
+      "reason": "A rocky body draws its potassium, thorium, uranium and aluminium-26 content from its host star's abundances and a potassium depletion, a Urey ratio and an Al-26 ratio, and its interior heat and ground dose read that one content; the old Turcotte and Schubert mantle values, the 0.67 Urey ratio and the a_rad draw are gone, so every rocky body's heat flux, ground dose and the draws after them move (GEN.459)"
     }
   ]
 }

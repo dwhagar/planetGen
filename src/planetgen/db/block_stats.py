@@ -33,7 +33,7 @@ FULL_REBUILD_ABOVE = 2000
 """int: A refresh that touches more distinct blocks than this is a `rebuild`."""
 
 COLUMNS = ("m", "shell_index", "band_index", "wedge_index", "sector_count", "systems", "expected_systems", "stars",
-           "age_sum", "luminosity_sol")
+           "age_sum", "luminosity_sol", "habitable_worlds")
 """tuple: The table's columns in the order `rows` writes them."""
 
 INSERT = (f"INSERT INTO galaxy_block_stats ({', '.join(COLUMNS)}) VALUES ({', '.join('?' for _ in COLUMNS)})")
@@ -46,9 +46,9 @@ def chain_blocks(address):
 
 
 def _row(block, sums):
-    sectors, systems, expected, stars, age_sum, luminosity = sums
+    sectors, systems, expected, stars, age_sum, luminosity, habitable = sums
     return (block.m, block.shell, block.band, block.wedge, int(sectors), int(systems), float(expected), int(stars),
-            float(age_sum), float(luminosity))
+            float(age_sum), float(luminosity), int(habitable))
 
 
 def clear(conn):
@@ -93,18 +93,19 @@ def refresh_sectors(conn, addresses, on_progress=None):
     return written
 
 
-def accumulate(cells, address, systems, expected, stars, mean_age, luminosity):
+def accumulate(cells, address, systems, expected, stars, mean_age, luminosity, habitable=0):
     """Adds one generated sector's figures to the sums of each block above it in `cells`
-    (`{DrillBlock: [sectors, systems, expected, stars, age sum, luminosity]}`), the way
+    (`{DrillBlock: [sectors, systems, expected, stars, age sum, luminosity, habitable worlds]}`), the way
     `query._add_stage_sums` does."""
     for block in chain_blocks(address):
-        sums = cells.setdefault(block, [0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        sums = cells.setdefault(block, [0, 0.0, 0.0, 0.0, 0.0, 0.0, 0])
         sums[0] += 1
         sums[1] += systems or 0
         sums[2] += expected or 0.0
         sums[3] += stars or 0
         sums[4] += (mean_age or 0.0) * (stars or 0)
         sums[5] += luminosity or 0.0
+        sums[6] += habitable or 0
 
 
 def cell_rows(cells):
@@ -123,12 +124,13 @@ def rebuild(conn, on_progress=None):
     for done, shell in enumerate(shells, start=1):
         rows = conn.execute(
             "SELECT s.shell_index, s.band_index, s.wedge_index, st.actual_systems, st.expected_systems,"
-            " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol FROM (SELECT * FROM sectors WHERE"
+            " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol, st.habitable_worlds FROM (SELECT * FROM sectors WHERE"
             " shell_index = ?) s LEFT JOIN sector_stats st ON st.shell_index = s.shell_index"
             " AND st.band_index = s.band_index AND st.wedge_index = s.wedge_index", (shell,)).fetchall()
         for r in rows:
             accumulate(cells, (r["shell_index"], r["band_index"], r["wedge_index"]), r["actual_systems"],
-                       r["expected_systems"], r["actual_stars"], r["mean_age_gy"], r["total_luminosity_sol"])
+                       r["expected_systems"], r["actual_stars"], r["mean_age_gy"], r["total_luminosity_sol"],
+                       r["habitable_worlds"])
         if on_progress is not None:
             on_progress(done, len(shells))
     clear(conn)

@@ -267,7 +267,9 @@ def far_sector(site_db, site_app):
     draw.set_run_seed(20261023)
     try:
         with forced_system_config(PLANETS=True):
-            run_cli("galaxy", ["--shell", str(FAR_SHELL), "--band", "0", "--wedge", "0", "--quiet"] + target)
+            run_cli("sectors", ["--shell", str(FAR_SHELL), "--band", "0", "--wedge", "0", "--quiet"] + target)
+            for root in ("link", "backfill", "settle"):
+                run_cli(root, ["--quiet"] + target)
     finally:
         draw.setstate(state)
     client = site_app.test_client()

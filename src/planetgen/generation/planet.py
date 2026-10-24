@@ -25,17 +25,17 @@ import math
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation
+from planetgen.physics import aerosols, atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation, radiogenic
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
-from planetgen.generation.mass_object import MassObject
+from planetgen.generation.planetary_object import PlanetaryObject
 from planetgen.util.format import (
     format_number, to_paragraph, format_pressure_pa, format_temperature_k,
 )
 
 
-class Planet(MassObject):
+class Planet(PlanetaryObject):
     """
     A class representing a single planet or moon and all of its properties.
 
@@ -205,8 +205,10 @@ class Planet(MassObject):
         *atmosphere.ATMOSPHERE_FIELDS,
         *magnetism.BODY_FIELDS,
         *hydrosphere.HYDROSPHERE_FIELDS,
+        *radiogenic.BODY_FIELDS,
         *radiation.BODY_FIELDS,
         *habitability_world.BODY_FIELDS,
+        *aerosols.BODY_FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
         "born_beyond_snow_line",
     ]
@@ -342,7 +344,7 @@ class Planet(MassObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS:
             setattr(self, field, None)
 
         # From the star, should not be changed.
@@ -369,6 +371,14 @@ class Planet(MassObject):
                     self.system_config.MOONS is True
                     or self._draw_moons()):
                 planetPhysics.generate_moons(self)
+
+    @property
+    def giant_kind(self):
+        return self.body_type
+
+    @property
+    def parent_kind(self):
+        return "planet" if self.is_moon else "star"
 
     def orbit_mu_au3_per_year2(self):
         """AU^3/yr^2 of what the planet or moon orbits, from its circular
@@ -452,7 +462,7 @@ class Planet(MassObject):
         life_paragraphs.append(to_paragraph(sentences))
 
         # Add the evolutionary timeline data if available
-        if self.evolutionary_data and self.planet_class in tuning.HABITABLE_PLANET_CLASSES:
+        if self.evolutionary_data:
             life_paragraphs.extend(self.evolutionary_data)
 
         # Flavor text was already decided at generation time (life.decide_flavor_text);
@@ -543,7 +553,7 @@ class Planet(MassObject):
         (`None` for an ordinary star), or `None` for a gas giant or a body saved without scores. A planet
         of a pulsar, neutron star or black hole is rated as a lethal dose, as its stored score was.
         """
-        if self.body_type != "t" or getattr(self, "equipment_tier", None) is None:
+        if self.body_type != "t" or getattr(self, "eq_body", None) is None:
             return None
         values = habitability_world.values_from_body(self)
         if values.get("surface_temperature_k") is None:

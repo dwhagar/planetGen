@@ -1486,7 +1486,6 @@ PLANET_CLASSES = {
         "h": True, "e": False, "c": False, "r": False,
         "atmosphere": "a mix of sulfur dioxide and carbon dioxide",
         "type": "t",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.005),
             "normal": (0.0, 0.5),
@@ -1520,7 +1519,6 @@ PLANET_CLASSES = {
         "h": True, "e": False, "c": False, "r": False,
         "atmosphere": "a thin mix of helium, sodium, and oxygen",
         "type": "t",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.005),
             "normal": (0.0, 0.5),
@@ -1538,7 +1536,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -1556,7 +1553,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -1598,7 +1594,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0290, 0.0310),
         "atm_density_range": (0.3, 1.2),
         "greenhouse_multiplier_range": (4.5, 7.5),
-        "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.005, 0.015),
             "normal": (0.5, 1.5),
@@ -1625,7 +1620,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0295, 0.0315),
         "atm_density_range": (0.3, 1.0),
         "greenhouse_multiplier_range": (2.5, 4.0),
-        "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.005, 0.015),
             "normal": (0.5, 1.5),
@@ -1653,7 +1647,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0300, 0.0320),
         "atm_density_range": (0.2, 0.8),
         "greenhouse_multiplier_range": (1.3, 2.0),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.015, 0.05),
             "normal": (1.5, 4.0),
@@ -1687,7 +1680,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0325, 0.0345),
         "atm_density_range": (0.5, 0.9),
         "greenhouse_multiplier_range": (2.6, 3.2),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
             "normal": (4.0, 9.0),
@@ -1713,7 +1705,6 @@ PLANET_CLASSES = {
         "h": False, "e": True, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -1740,7 +1731,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -1789,7 +1779,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0420, 0.0433),
         "atm_density_range": (0.022, 0.042),
         "greenhouse_multiplier_range": (0.02, 0.05),
-        "life_chemical": ["Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.015, 0.05),
             "normal": (1.5, 4.0),
@@ -1822,7 +1811,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0400, 0.0430),
         "atm_density_range": (0.03, 0.08),
         "greenhouse_multiplier_range": (0.25, 0.45),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
             "normal": (4.0, 9.0),
@@ -1859,7 +1847,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0288, 0.0292),
         "atm_density_range": (1.3, 1.55),
         "greenhouse_multiplier_range": (1.65, 1.85),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
             "normal": (4.0, 9.0),
@@ -1947,7 +1934,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0270, 0.0285),
         "atm_density_range": (1.2, 1.5),
         "greenhouse_multiplier_range": (2.1, 2.4),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
             "normal": (4.0, 9.0),
@@ -1999,7 +1985,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0285, 0.0300),
         "atm_density_range": (0.05, 0.35),
         "greenhouse_multiplier_range": (0.3, 0.6),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.08, 0.1),
             "normal": (8.0, 10.0),
@@ -2024,7 +2009,6 @@ PLANET_CLASSES = {
         "h": False, "e": True, "c": False, "r": False,
         "atmosphere": "a variable mix (thin to dense) of nitrogen, oxygen, and argon",
         "type": "t",
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
             "normal": (4.0, 9.0),
@@ -2050,7 +2034,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -2073,7 +2056,6 @@ PLANET_CLASSES = {
         "h": False, "e": False, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen, helium, and hydrocarbons",
         "type": "g",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -2114,7 +2096,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0380, 0.0420),
         "atm_density_range": (2.0, 5.0),
         "greenhouse_multiplier_range": (3.5, 6.0),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.015, 0.1),
             "normal": (1.5, 9.0),
@@ -2148,8 +2129,14 @@ PLANET_CLASS_PROBABILITIES = {
 
 # --- Life and Photosynthesis Data ---
 
+# Each chemical's `requires` is a list of conditions on the body's stored values (the quantity names and the `min`, `lt`,
+# `equals` and `not_equals` operators of `physics/planet_classes.py`); a chemical a body does not satisfy is not
+# drawn for it (GEN.92, GEN.647). The pigments that harvest light need air (10 Pa or more): an airless body's life, in an ocean under
+# its ice, keeps only the radiotroph. The thresholds follow each description below (oxygenic: free oxygen; anoxygenic: none;
+# Zinc-Bacteriochlorophyll: an acidic ocean, pH 1.5 to 3.0) and are planetGen defaults.
 LIFE_CHEMICALS = {
     "Retinal": {
+        "requires": [{"quantity": "share_o2", "lt": 0.1}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a primitive photosensitive chemical that represents a young/early biosphere precursor, operating via proton-motive gradients rather than electron transport chains in pre-oxygenated, reducing atmospheres",
         "evolutionary_time_scale": "fast",
         "absorption_spectrum": ["Green", "Yellow", "500-650 nm"],
@@ -2160,6 +2147,7 @@ LIFE_CHEMICALS = {
         }
     },
     "Melanin": {
+        "requires": [],
         "description": "a radiotrophic chemical that thrives in environments with lethal ionizing radiation or stellar flaring, and is viable on rogue planets subject to cosmic ray bombardment without a thick protective atmosphere",
         "evolutionary_time_scale": "normal",
         "absorption_spectrum": ["Extreme Ultraviolet (EUV)", "X-rays", "Gamma rays", "Ionizing radiation"],
@@ -2170,6 +2158,7 @@ LIFE_CHEMICALS = {
         }
     },
     "Chlorophyll a": {
+        "requires": [{"quantity": "share_o2", "min": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a standard porphyrin that drives oxygenic photosynthesis, requiring an oxygenated atmosphere as a climax ecology and stable, moderate radiation environments",
         "evolutionary_time_scale": "slow",
         "absorption_spectrum": ["Red (644-746 nm)", "Blue (468-476 nm)"],
@@ -2180,6 +2169,7 @@ LIFE_CHEMICALS = {
         }
     },
     "Blue-Optimized Porphyrins": {
+        "requires": [{"quantity": "share_o2", "min": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a porphyrin that requires simultaneous evolution of biofluorescence for UV shielding, down-converting lethal high-energy light into safe visible wavelengths and creating transient, global optical fluorescence aligned with stellar flares",
         "evolutionary_time_scale": "slow",
         "absorption_spectrum": ["Intense Blue (468-476 nm)", "Ultraviolet (UV)"],
@@ -2190,6 +2180,7 @@ LIFE_CHEMICALS = {
         }
     },
     "Bacteriochlorophylls": {
+        "requires": [{"quantity": "share_o2", "lt": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a chemical that drives anoxygenic photosynthesis, does not split water, and requires chemical electron donors like Hydrogen Sulfide (H2S), Ferrous Iron (Fe2+), or Molecular Hydrogen (H2), resulting in reducing atmospheres lacking Oxygen (O2) or Ozone (O3)",
         "evolutionary_time_scale": "slow",
         "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (805-890 nm)", "Deep Infrared (987-1050 nm)"],
@@ -2200,6 +2191,7 @@ LIFE_CHEMICALS = {
         }
     },
     "Zinc-Bacteriochlorophyll": {
+        "requires": [{"quantity": "ocean_ph", "lt": 3.0}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a secondary adaptation derived from standard magnesium-chelatase pathways that requires highly acidic global oceans (pH 1.5 - 3.0) and planetary heavy metal abundance and mobilization, often tied to severe volcanic outgassing",
         "evolutionary_time_scale": "slow",
         "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (793 nm, 853 nm)"],
@@ -2337,40 +2329,6 @@ HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'Q', 'V
 list: A list of planet class codes that are considered habitable.
 """
 
-PLANET_CLASS_MAX_LIFE_STAGE = {
-    # Each habitable class's OWN "description" text above already commits
-    # to a life-complexity ceiling -- `evolution.get_evolutionary_timeline`
-    # used to have no idea what `planet_class` even was, so a Class G
-    # planet (description: "simple life") could still roll all the way to
-    # "Technological Civilization" if the star was old/fast-evolving
-    # enough, contradicting its own generated text. Keys are
-    # `EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT`'s own milestone keys;
-    # a class not listed here (H, K, M, O, P, V) is uncapped -- its
-    # description doesn't commit to any life-complexity ceiling at all
-    # ("an adaptable world", "a temperate terrestrial world", etc.), so
-    # the full milestone range -- including a technological civilization,
-    # same as real Earth -- remains fair game.
-    "E": "abiogenesis",         # "barely supports life" (this class's own
-                                 # PLANET_CLASSES comment) -- the hottest,
-                                 # youngest of the E->F->G progression;
-                                 # capped at the most minimal stage,
-                                 # "chemotrophs and extremophiles" only.
-    "F": "photosynthesis",      # description: "...bacterial life" --
-                                 # prokaryotic/microbial, matching
-                                 # EVOLUTIONARY_TEXT['photosynthesis']'s
-                                 # "simple, light-harvesting microbes...
-                                 # microbial mats" (no nucleated cells yet).
-    "G": "photosynthesis",      # description: "...simple life" -- same
-                                 # prokaryotic tier as Class F.
-    "Q": "photosynthesis",      # "extreme temperature variations" (GEN.147): an
-                                 # eccentric orbit swings it between freezing and
-                                 # scorching, so only microbial life survives.
-    "L": "multicellularity",    # description: "...with vegetation" --
-                                 # matches EVOLUTIONARY_TEXT
-                                 # ['multicellularity']'s own "pioneering
-                                 # flora...moss, ferns...vascular plants",
-                                 # but not yet a sapient civilization.
-}
 """
 dict[str, str]: Maps a habitable planet class code to the highest
 `EVOLUTIONARY_TIMELINES`-milestone key its own generated description text
@@ -3094,40 +3052,46 @@ ROGUE_PLANET_AGE_RANGE_GY = (0.1, 10.0)
 stars (and so ejected planets) at a roughly steady rate for ~10 Gyr (a
 default)."""
 
-ROGUE_RADIOGENIC_ISOTOPES = (
-    # (isotope, present mantle concentration kg/kg, heat W/kg, half-life Gyr)
-    ("U-238", 31e-9 * 0.9928, 9.46e-5, 4.468),
-    ("U-235", 31e-9 * 0.0071, 5.69e-4, 0.704),
-    ("Th-232", 124e-9, 2.64e-5, 14.05),
-    ("K-40", 310e-6 * 1.19e-4, 2.92e-5, 1.248),
-)
-"""tuple: Earth's mantle heat sources today (Turcotte & Schubert 2014,
-Geodynamics 3rd ed., tables 4.2-4.3: U 31 ppb, Th 124 ppb, K 310 ppm,
-about 7.4e-12 W/kg). A rogue of age t carries Earth's concentrations
-as they stood at age t (each scaled by exp(lambda * (4.5 Gyr - t)))."""
-
 ROGUE_EARTH_REFERENCE_AGE_GY = 4.5
-"""float: The age the concentrations above describe (Earth's)."""
+"""float: The Earth's age, the reference a giant's cooling law is scaled from (`ROGUE_GIANT_COOLING_TIME_EXPONENT`)."""
 
-ROGUE_MANTLE_MASS_FRACTION = 0.67
-"""float: The heat-producing (silicate) share of a rocky rogue's mass,
-Earth's (4.0e24 of 5.97e24 kg)."""
+RADIOGENIC_SILICATE_MASS_FRACTION = 0.675
+"""float: The heat-producing (bulk silicate) share of a rocky body's mass: the Earth's 1 minus its core mass fraction 0.325 (part E
+2.8e). A stand-in for every body until GEN.428 draws the body's own core and mantle."""
 
 GCR_SOLAR_MODULATION_RANGE = (0.5, 1.64)
 """tuple: The cosmic-ray dose as a fraction of its mean over the solar cycle, drawn log-uniformly per body (GEN.453): the
 Mars dose equivalent runs from 0.35 to 1.15 mSv/day around a mean of 0.7 (Guo 2015, Hassler 2014; a total spread of
 3.3). The same field at another star differs in the same way, so the draw stands for the host's modulation level."""
 
-ROGUE_RADIOGENIC_ABUNDANCE_RANGE = (0.5, 2.0)
-"""tuple: A rogue's radioactive abundance relative to Earth's, drawn
-log-uniformly -- stars, and so their planets, differ in U, Th and K (a
-default)."""
+RADIOGENIC_FELSIC_FRACTION_MAX = 0.5
+"""float: The most of a plate-tectonic body's surface that is felsic crust, drawn uniformly from 0 (part E 3.2 item 5: `f_felsic` is
+uniform on 0 to 0.5 when the lid is mobile, 0 otherwise). A stand-in until GEN.441 gives the ground type."""
 
-ROGUE_UREY_RATIO = 0.67
-"""float: Radiogenic heat over total heat flow. The rest is leftover
-formation heat (secular cooling), kept in Earth's proportion: Earth's
-mantle radiogenic ~0.058 W/m^2 over 0.67 gives ~0.087 W/m^2, Earth's
-measured flow and the 0.08-0.1 W/m^2 Boss's research quotes."""
+RADIOGENIC_OFFSET_SIGMA_DEX = 0.22
+"""float: The scatter of a host-less body's thorium and uranium against the solar scale, dex: chosen so the 1 to 99 percent range of the
+Hypatia catalogue's Eu/Mg, plus or minus 0.5 dex, is 2.33 sigma (Nimmo et al. 2020; radiation-model.md R15). The stand-in for a body
+whose host star has no stored composition (a rogue planet)."""
+
+RADIOGENIC_OFFSET_LIMIT_DEX = 0.5
+"""float: The truncation of that offset, dex, host-less or from the host star (radiation-model.md R15)."""
+
+RADIOGENIC_URANIUM_EXTRA_SIGMA_DEX = 0.05
+"""float: The scatter of uranium beyond thorium's, dex: a placeholder for the Th/U scatter (Dauphas 2005 via Wang 2020, partly
+verified; radiation-model.md R15)."""
+
+RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
+"""tuple: The potassium depletion against uranium as the CI chondrites have it (K/U 67407), drawn log-uniformly. The Earth's 0.177 lies
+inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies (Nimmo et al. 2020), not a measured
+spread (radiation-model.md R15, part E 3.3)."""
+
+RADIOGENIC_AL26_FACTOR_RANGE = (0.1, 10.0)
+"""tuple: The 26Al/27Al at formation over the Solar System's 5.23e-5, drawn log-uniformly (Lichtenberg et al. 2019). A stand-in until
+GEN.476 derives it from the star's formation environment."""
+
+RADIOGENIC_UREY_RANGE = (0.1, 0.9)
+"""tuple: The Urey ratio today, radiogenic heat over the heat flowing out, drawn uniformly (part E 3.3: young bodies sit well below 1,
+the Earth's 0.47 to 0.52 is a test target, and 0.67 is above every measured value)."""
 
 ROGUE_TIDAL_FLUX_RANGE_W_M2 = (1e-4, 1e-2)
 """tuple: Tidal heating, W/m^2, drawn log-uniformly for a rocky rogue
@@ -3833,11 +3797,11 @@ DISK_HALF_MASS_SCALE_LENGTHS = 1.6783469900170382
 """float: The radius that holds half of an exponential disc's stars, in scale lengths (the root of `1 - (1 + x) exp(-x)
 = 1/2`): where a system with no place in the galaxy is taken (`galaxy.scales.default_galactocentric_pc`)."""
 
-INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e12
-"""float: Interstellar comets and planetesimals (m-km) per pc^3 at
-REFERENCE_STELLAR_DENSITY_PC3, 1e11-1e14 (Engelhardt et al. 2017, AJ
-153:133; Seligman & Laughlin 2020, ApJL 896:L8) -- far too many for rows,
-so a sector shows it as a figure (`planetgen.db.query.interstellar_debris_count`)."""
+INTERSTELLAR_DEBRIS_DENSITY_PC3 = 1e15
+"""float: Interstellar objects of about 100 m and up per pc^3 at REFERENCE_STELLAR_DENSITY_PC3: 0.1 to 0.2 per au^3,
+which is 7e14 to 1.8e15 per pc^3 (Do, Tucker and Tonry 2018 from 'Oumuamua; Jewitt and Seligman 2023, ARA&A), 1e15 the
+middle of the range; smaller bodies are more numerous still (`docs/design/small-body-size-laws.md`). Far too many for
+rows, so a sector shows it as a figure (`planetgen.db.query.interstellar_debris_count`)."""
 
 RUNAWAY_STAR_SPEED_RANGE_KMS = (30.0, 200.0)
 """tuple: A runaway star's speed relative to its neighbors, km/s
@@ -4396,10 +4360,21 @@ temperature cycle 10 degrees inside the Blue temperature edges, a wet bulb limit
 its dose a third of the Blue dose edge, and the chronic inspired O2 limit a quarter above its own. planetGen
 defaults (Boss's default of 2026-10-15: a species passes its own homeworld)."""
 
-SPECIES_EQUIPMENT_MIN_TECH = (0.0, 2.0, 2.5, 3.0, 4.0)
-"""tuple: The least tech level (0 to 7) a species needs to make the kit of each equipment tier
-(`habitability_world.EQUIPMENT_NAMES`: ideal, breathing mask, mask with scrubber, environment suit, full life
-support with radiation hardening), for the "could live there with equipment" list. A planetGen default."""
+SPECIES_EQUIPMENT_TECH = {
+    "cold-weather clothing": 0.0, "cooling clothing": 0.0, "sun-cover clothing": 0.0, "weather clothing": 0.0,
+    "insulated suit": 2.0, "liquid-cooled suit": 2.0, "heated diving suit": 2.0, "full-cover suit": 2.0,
+    "thermal suit": 2.0,
+    "heated sealed suit": 3.0, "heat-shielded suit": 3.0, "chemical-barrier suit": 3.0, "sealed suit": 3.0,
+    "pressure suit": 3.0, "armoured suit": 4.0, "vehicle only": 99.0, "powered frame": 3.0,
+    "dust filter": 2.0, "dust-tight seals": 2.0, "gas filter": 2.5, "full-face gas filter": 2.5,
+    "powered gas filter": 3.0, "CO2 scrubber": 2.5,
+    "gas-mix mask": 2.0, "self-contained air": 3.0, "mixed-gas rig": 3.5, "isolated air": 4.0,
+    "shielded garment": 1.0, "storm vest": 2.5, "hardened suit": 3.5, "shielded shelter": 2.0, "hardened habitat": 4.0,
+}
+"""dict: The least tech level (0 to 7) a species needs to make each item of the survival equipment
+(`physics/equipment.py`, by the item's name; a "hardened" suit needs the larger of the hardened suit's and its own), for
+the "could live there with equipment" list (POP.12, POP.15). It replaces the five-tier tuple (0, 2, 2.5, 3, 4). Vehicle
+only is never within reach (99). A planetGen default."""
 
 COLD_END_LABORATORY_CORRECTION = True
 """bool: Whether the cold-end vapour pressures of nitrogen, carbon monoxide, methane, oxygen and ammonia are the 2026

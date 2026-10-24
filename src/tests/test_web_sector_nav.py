@@ -543,7 +543,7 @@ def test_generate_neighborhood_starts_a_job_then_redirects_to_get(app, client, f
     kind, steps, kw = started[0]
     assert kind == "galaxy" and kw["database"] == DB
     assert steps[0]["label"] == generate_page.DATA_CHECK_LABEL
-    assert steps[-1]["argv"][-5:] == ["galaxy", "--center-sector", "5", "--radius-pc",
+    assert steps[-4]["argv"][-5:] == ["sectors", "--center-sector", "5", "--radius-pc",
                                       str(tuning.DEFAULT_GENERATE_RADIUS_PC)]
     html = client.get("/sector/5").get_data(as_text=True)
     assert "keeps running if you close this page" in html

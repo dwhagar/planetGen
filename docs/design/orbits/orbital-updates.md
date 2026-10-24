@@ -654,7 +654,7 @@ masses (23:16Z), as a spline.
   and reads no clock, so the same seed still makes the same galaxy. Measured cost: about
   1.8 ms a body (8,100 bodies in 123 sectors in 15.7 s; 2,900 bodies in 5 dense sectors in
   5.1 s), the same at 6 and at 56 systems a sector, so a million bodies take about 30
-  minutes in one process. `--no-settle` skips it.
+  minutes in one process. `planetgen settle` runs it alone.
   Every entry point that changes the masses in a sector settles that sector and its
   neighbours as its last step, through `sector_paths.settle_sectors`: `planetgen galaxy`
   (which the admin Generate page runs, as an RQ job), `planetgen phenomenon --sector-id`,

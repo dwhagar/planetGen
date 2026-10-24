@@ -11,8 +11,9 @@ import pytest
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, formation
+from planetgen.physics import constants, equipment, formation, regional_temperature
 from planetgen.util import draw
+from tests.test_migration_parent_link import undo_parent_link
 
 pytestmark = pytest.mark.fresh_database
 
@@ -63,7 +64,19 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     # make it a v131 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
+        for table in ("planets", "moons"):  # v141 (GEN.459)
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN c_k0_ppm, DROP COLUMN c_th0_ppm, DROP COLUMN c_u0_ppm, DROP COLUMN al26_ratio,"
+                         " DROP COLUMN urey_ratio, ALGORITHM=COPY")
+        undo_parent_link(conn)  # v140 (DB.73)
+        conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139 (MAP.143)
+        conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139 (MAP.143)
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN tau_haze, DROP COLUMN tau_dust, DROP COLUMN tau_cloud, DROP COLUMN cloud_cover,"
+                         " DROP COLUMN aerosol_draw, ALGORITHM=COPY")  # v138 (GEN.414)
+            conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in regional_temperature.FIELDS)
+                         + ", ALGORITHM=COPY")  # v137 (GEN.656)
+            conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in equipment.FIELDS)
+                         + ", ADD COLUMN equipment_tier TINYINT NULL, ALGORITHM=COPY")  # v136 (GEN.655)
             conn.execute(f"ALTER TABLE {table} DROP COLUMN ozone_column_du, ALGORITHM=COPY")  # v135 (GEN.413)
         conn.execute("ALTER TABLE system_configs DROP COLUMN stars, DROP COLUMN max_stars, DROP COLUMN prevalence_multi_star,"
                      " ALGORITHM=COPY")  # v134 (GEN.267)

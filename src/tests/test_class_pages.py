@@ -9,6 +9,8 @@ phenomenon pages link their class labels here. No database: the system
 and phenomenon pages' data layer is faked like `test_web_system_phen.py`.
 """
 
+import re
+
 import pytest
 
 from planetgen.web.app import create_app
@@ -18,7 +20,7 @@ from planetgen.describe import model  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
 from markupsafe import escape  # noqa: E402
-from planetgen.physics import constants  # noqa: E402
+from planetgen.physics import constants, planet_classes  # noqa: E402
 from planetgen import tuning
 from planetgen.util import chem
 from planetgen.generation.comet import PERIOD_CLASS_LABELS  # noqa: E402
@@ -60,7 +62,10 @@ def test_index_lists_every_type_with_its_count(client):
     for slug, entry in classref.catalog().items():
         assert f'<a href="/classes/{slug}">{escape(entry["name"])}</a>' in html
         assert f"<td>{len(entry['classes'])}</td>" in html
-    assert '<a href="/classes" aria-current="page">Classes</a>' in html
+    # UX.180: Classes is under the Help menu, which is current on it.
+    assert '<a href="/classes" aria-current="page">Classes</a>' not in html
+    assert 'class="site-help-trigger" aria-haspopup="menu" aria-current="page"><span class="site-help-text">Help</span>' in html
+    assert 'data-href="/classes" aria-current="page">Classes</sl-menu-item>' in html
 
 
 def test_index_lists_the_types_alphabetically(client):
@@ -108,7 +113,7 @@ def test_catalog_types_cover_the_tables():
                          "asteroid-field", "black-hole", "rogue-planet", "comet"]
     assert list(cat["star-spectral"]["classes"]) == list(constants.SPECTRAL_CLASS_COLORS)
     assert set(cat["star-luminosity"]["classes"]) == set(YERKES_CLASS_NAMES) - {"D"}
-    assert list(cat["planet"]["classes"]) == list(tuning.PLANET_CLASSES)
+    assert list(cat["planet"]["classes"]) == sorted(planet_classes.LETTERS)
     assert tuple(cat["nebula"]["classes"]) == NEBULA_CLASS_LETTERS
     assert tuple(cat["supernova-remnant"]["classes"]) == REMNANT_CLASS_LETTERS
     letters = {letter for family in tuning.ASTEROID_FIELD_COMPOSITIONS.values()
@@ -130,12 +135,11 @@ def test_class_pages_show_the_constants(client):
     remnant = tuning.NEBULA_CLASSES["T"]
     assert str(escape(remnant["name"])) in _html(client, "/classes/supernova-remnant/T")
 
-    planet = tuning.PLANET_CLASSES["M"]
-    html = _html(client, "/classes/planet/M")
-    low, high = planet["radius_range"]
-    assert classref.number_range(low, high, "km") in html  # UX.20, UX.107: both ends in one style
-    assert "<th scope=\"row\">Habitable class</th><td>Yes</td>" in html
-    assert planet["composition"][1:] in html
+    html = _html(client, "/classes/planet/M")  # GEN.645: a class page gives the rule
+    assert planet_classes.describe("M").sentence in html
+    assert "<th scope=\"row\">Core class</th><td>Yes</td>" in html
+    html = _html(client, "/classes/planet/S")
+    assert "surface pressure below 10 Pa; mass at least 1.5 Earth masses" in html
 
     low_k, high_k = constants.TEMP_RANGES["G"]
     html = _html(client, "/classes/star-spectral/G")
@@ -232,15 +236,17 @@ def test_system_list_links_classes(app):
         table = stars_html(_system()["stars"], class_url)
         notes = star_notes_html(_system(), _SECTIONS, class_url)
     # UX.53: a single star is in the Stars table, not the list; its notes follow the table.
-    assert "Spectral class G" not in html
-    assert '<a href="/classes/star-spectral/G">Spectral class G</a>' in notes
-    assert '<a href="/classes/star-luminosity/V">Luminosity class V</a>' in notes
-    assert '<a href="/classes/planet/M">Planet class M</a>' in html
+    assert "Spectral class G" not in html + notes
+    # UX.182: the class letter or name is the link, with no separate line of class links.
+    assert "Planet class M" not in html and "Spectral class" not in notes + table and "Luminosity class" not in notes
+    assert 'Class <a href="/classes/planet/M">M</a>' in html
     assert '<a href="/classes/comet/halley_type">Halley-type comet</a>' in html
-    assert '<a href="/classes/star-spectral/G">G2V Yellow Main Sequence Star</a>' in table
-    # Never inside a row's <summary> (a link in the disclosure button).
-    for summary in html.split("<summary>")[1:]:
-        assert "<a " not in summary.split("</summary>")[0]
+    assert ('<a href="/classes/star-spectral/G">G2</a><a href="/classes/star-luminosity/V">V</a>'
+            " Yellow Main Sequence Star") in table
+    # The links are in the row's <summary>, where the class is read.
+    summaries = [part.split("</summary>")[0] for part in html.split("<summary>")[1:]]
+    assert any('<a href="/classes/planet/M">M</a>' in summary for summary in summaries)
+    assert 'class="class-links"' not in html
 
 
 @pytest.mark.parametrize("orbit_type, period_class", [
@@ -311,8 +317,8 @@ def fake(monkeypatch):
 
 def test_system_page_links_classes(client, fake):
     html = _html(client, "/system/5")
-    assert '<a href="/classes/star-spectral/G">G2V Yellow Main Sequence Star</a>' in html
-    assert '<a href="/classes/planet/M">Planet class M</a>' in html
+    assert '<a href="/classes/star-spectral/G">G2</a><a href="/classes/star-luminosity/V">V</a>' in html
+    assert 'Class <a href="/classes/planet/M">M</a>' in html
 
 
 @pytest.mark.parametrize("kind, detail, label, url", [
@@ -348,25 +354,26 @@ def test_stars_table_hides_role_for_a_single_star(app):
 # --- UX.90: the habitability levels page --------------------------------------------
 
 def test_habitability_levels_page_explains_the_five_levels_and_the_six_domains(client):
-    from planetgen.physics.habitability_world import EQUIPMENT_LABELS
+    from planetgen.web.lib import habitability_ref
 
-    html = _html(client, "/classes/habitability")
-    for label in EQUIPMENT_LABELS:
-        assert label in html
-    assert EQUIPMENT_LABELS[0] == "Ideal" and "Shirtsleeve" not in html
+    html = _html(client, "/help/habitability")
+    chem = client.application.jinja_env.filters["chem"]
+    for item, _when in habitability_ref.EQUIPMENT_ITEMS:
+        assert str(chem(item)) in html
+    assert "Shirtsleeve" not in html
     for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
-        assert f"<h3>{domain}</h3>" in html
+        assert f'<h3 id="domain-{domain.lower()}">{domain}</h3>' in html
     for colour in ("Blue", "Green", "Yellow", "Red"):
         assert f"<dt>{colour}</dt>" in html
     for chip in ("Habitable class", "Habitable-class moon", "Inhabited"):
-        assert f"<dt>{chip}</dt>" in html
+        assert f'<dt id="chip-{chip.lower().replace(" ", "-")}">{chip}</dt>' in html
     assert "pulsar" in html and "1,000 Sv a year" in html
 
 
 def test_habitability_levels_page_draws_each_symbol_in_every_rating_colour(client):
     from planetgen.web.lib import habitability_symbols
 
-    html = _html(client, "/classes/habitability")
+    html = _html(client, "/help/habitability")
     for name, label in habitability_symbols.LABELS.items():
         for tier, colour in enumerate(("Blue", "Green", "Yellow", "Red")):
             assert f'aria-label="{label}: {colour}"' in html, (name, tier)
@@ -374,11 +381,35 @@ def test_habitability_levels_page_draws_each_symbol_in_every_rating_colour(clien
 
 
 def test_habitability_levels_page_draws_the_four_life_scores(client):
-    html = _html(client, "/classes/habitability")
+    html = _html(client, "/help/habitability")
     for label in ("Microbial life", "Flora", "Fauna", "Sentient life"):
         assert f'aria-label="{label}: none"' in html and f'aria-label="{label}: 9 of 9"' in html
     for name in ("microbial", "flora", "fauna", "sentient"):
         assert f'#life-{name}"' in html
+
+
+def test_habitability_levels_page_says_where_the_symbols_appear(client):
+    from planetgen.web.lib import habitability_ref
+
+    html = _html(client, "/help/habitability")
+    assert 'id="where-heading"' in html
+    for place, _what in habitability_ref.WHERE_ROWS:
+        assert place in html
+    assert "/lists/planet" in html and "/lists/moon" in html
+
+
+def test_habitability_levels_page_states_the_habitable_zone_from_the_generators_edges(client):
+    from planetgen.physics import orbits
+    from planetgen.web.lib import habitability_ref
+
+    inner, outer = orbits.calculate_habitable_zone(constants.SOLAR_LUMINOSITY, orbits.KOPPARAPU_REFERENCE_TEFF_K)
+    text = habitability_ref.zone_text()
+    assert f"{inner:.2f} and {outer:.2f} AU" in text
+    assert (inner, outer) == pytest.approx((0.95, 1.68), abs=0.01)
+    low, high = orbits.KOPPARAPU_TEFF_RANGE_K
+    assert f"{low:,.0f} to {high:,.0f} K" in text
+    html = _html(client, "/help/habitability")
+    assert 'id="zone-heading"' in html and "runaway greenhouse" in html
 
 
 def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client):
@@ -399,33 +430,80 @@ def test_the_habitability_levels_numbers_are_the_constants_the_score_uses(client
     wide = habitability.bands({"pressure_no_gear_kpa": 60.0, "dose_blue_sv_yr": 0.03})
     moved = {variable: cells for _domain, table in habitability_ref.domains(wide) for variable, *cells in table}
     assert moved["Air pressure"][0] == "60 to 250 kPa" and moved["Dose per year"][0] == "under 0.03 Sv"
-    html = _html(client, "/classes/habitability")
+    html = _html(client, "/help/habitability")
     for text in ("Chaotropicity", "too much", "too little", "Hydrogen sulfide"):
         assert text in html
 
 
-def test_the_class_index_and_the_system_list_link_to_the_habitability_levels(client):
-    assert 'href="/classes/habitability"' in _html(client, "/classes")
+def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone(client):
+    """UX.180: Classes leaves the section row for the Help menu beside the search button, with Habitability."""
+    html = _html(client, "/classes")
+    bar = html.split('<header class="site-header">')[1].split("</header>")[0]
+    assert 'href="/classes"' not in bar.split("site-help-menu")[0]
+    help_menu = re.search(r'<sl-dropdown class="site-help-menu".*?</sl-dropdown>', bar, re.S).group(0)
+    assert re.findall(r'data-href="([^"]*)"[^>]*>([^<]*)<', help_menu) == [
+        ("/classes", "Classes"), ("/help/habitability", "Habitability")]
+    assert bar.index("site-help-menu") < bar.index("site-search-menu") < bar.index("site-gear")
+    assert "Habitability levels" not in html
+    page = _html(client, "/help/habitability")
+    assert 'class="site-help-trigger" aria-haspopup="menu" aria-current="page"><span class="site-help-text">Help</span>' in page
+    assert 'data-href="/help/habitability" aria-current="page">Habitability</sl-menu-item>' in page
+    assert "<title>Habitability" in page
+
+
+def _scored_system():
     system = _system()
-    system["planets"][0].update({"equipment_tier": 0, "phi4": 1.0, "tier_pressure": 0, "tier_temperature": 0,
-                                 "tier_air": 0, "tier_water": 0, "tier_radiation": 0,
-                                 "tier_suitability": 0})
-    html = system_list_html(system, _SECTIONS, habitability_url="/classes/habitability")
-    assert '<a href="/classes/habitability">Habitability levels</a>' in html
-    assert "Habitability levels" not in system_list_html(system, _SECTIONS)
+    system["planets"][0].update({
+        "habitable": True, "equipment": {"required": [], "recommended": [], "line": "", "code": "", "items": [
+            {"slot": "supply", "item": "gas-mix mask", "severity": "required", "domain": "Air"}]},
+        "phi4": 1.0, "tier_pressure": 0, "tier_temperature": 0, "tier_air": 0, "tier_water": 0,
+        "tier_radiation": 0, "tier_suitability": 0, "life_microbial": 3, "life_flora": 0, "life_fauna": 0,
+        "life_sentient": 0})
+    return system
 
 
-def test_the_equipment_search_tags_link_to_the_habitability_levels(app):
+def test_the_system_list_symbols_and_chips_link_to_their_sections_of_the_habitability_page(app, client):
+    """UX.181: no separate "Habitability levels" line; each symbol, life score and chip is the link."""
+    url = "/help/habitability"
+    html = system_list_html(_scored_system(), _SECTIONS, habitability_url=url, sprite_url="/static/icons.svg")
+    assert "Habitability levels" not in html
+    for anchor in ("overall", "domain-pressure", "domain-temperature", "domain-air", "domain-water",
+                   "domain-radiation", "domain-suitability", "life-microbial", "life-flora", "life-fauna",
+                   "life-sentient", "chip-habitable-class", "equipment-gas-mix-mask"):
+        assert f'<a class="help-link" href="{url}#{anchor}">' in html, anchor
+    page = _html(client, url)
+    for anchor in re.findall(r'href="/help/habitability#([^"]+)"', html):
+        assert f'id="{anchor}"' in page, anchor
+    # A list built with no page to link to (and the page's own legend) shows the shapes alone.
+    assert "help-link" not in system_list_html(_scored_system(), _SECTIONS, sprite_url="/static/icons.svg")
+    assert "help-link" not in page
+
+
+def test_every_equipment_item_name_has_a_row_on_the_habitability_page(client):
+    """UX.181: a chip's item name reaches a row of the equipment table, never the section's fallback."""
+    from planetgen.physics import equipment
+    from planetgen.web.lib import habitability_ref, habitability_symbols
+
+    names = {*equipment.BODY_NAMES.values(), *equipment.SUPPLY_NAMES.values(), *equipment.GAS_FILTER_NAMES.values(),
+             *equipment.SHELTER_NAMES.values(), *equipment.RAD_SUIT_NAMES.values(), "powered frame", "hardened suit",
+             "dust filter", "dust-tight seals", "CO2 scrubber", "hardened sealed suit", "hardened heat-shielded suit"}
+    page = _html(client, "/help/habitability")
+    for name in names:
+        anchor = habitability_symbols.equipment_anchor(name)
+        assert anchor != habitability_symbols.EQUIPMENT_FALLBACK, name
+        assert f'<tr id="{anchor}">' in page, name
+    assert sorted(habitability_ref.EQUIPMENT_ROW_IDS.values()) == sorted(anchor for anchor, _ in habitability_symbols.EQUIPMENT_ANCHORS)
+    assert set(habitability_ref.EQUIPMENT_ROW_IDS) == {label for label, _when in habitability_ref.EQUIPMENT_ITEMS}
+
+
+def test_the_equipment_search_tags_no_longer_carry_a_levels_link(app):
     from planetgen.web import searchpage
     from planetgen.web.searchpage import SearchState
 
     options = [{"value": "0", "label": "Ideal", "count": 2}]
     with app.test_request_context("/search"):
-        state = SearchState()
-        groups = searchpage.tag_groups(state, {"equipment": options, "class": [{"value": "M", "label": "M", "count": 1}]})
-    helped = {group["title"]: group["help"] for group in groups}
-    assert helped["Planet: Equipment a Human Needs"]["url"] == "/classes/habitability"
-    assert helped["Planet Class"] is None
+        groups = searchpage.tag_groups(SearchState(), {"equipment": options})
+    assert all("help" not in group for group in groups)
 
 
 def test_a_range_gives_both_ends_the_one_style():

@@ -27,7 +27,7 @@ MILESTONE_KEYS = ("abiogenesis", "photosynthesis", "complex_cells", "multicellul
 tuple[str]: `EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT`'s own milestone
 keys, in ascending order of life complexity -- shared by
 `get_evolutionary_timeline` for both display-name lookup and comparing a
-milestone against a `tuning.PLANET_CLASS_MAX_LIFE_STAGE` cap.
+milestone against a cap (`life.stage_ceiling`).
 """
 
 MILESTONE_DISPLAY_NAMES = {
@@ -39,7 +39,7 @@ MILESTONE_DISPLAY_NAMES = {
 }
 
 
-def get_evolutionary_state(star, planet_class=None, max_stage=None):
+def get_evolutionary_state(star, max_stage=None):
     """
     Draws the speculative evolutionary state of a planet from its
     host star's spectral class: the timeline scale, the latest milestone reached and the ages (DB.51). This
@@ -57,21 +57,10 @@ def get_evolutionary_state(star, planet_class=None, max_stage=None):
 
     Args:
         star (Star): The star for which to generate an evolutionary timeline.
-        planet_class (str, optional): The planet's own class code (e.g.
-            "G"). When it appears in `tuning.
-            PLANET_CLASS_MAX_LIFE_STAGE`, the milestone this function can
-            report -- whether from the natural age-based roll below or a
-            forced `INTELLIGENT_LIFE=True` -- is capped at that class's own
-            ceiling, so the returned narrative never contradicts what the
-            class's own generated description already committed to (e.g. a
-            Class G planet, "simple life", can never report a
-            "Technological Civilization"). `None`/an unlisted class stays
-            uncapped, matching this function's previous behavior exactly.
-
-        max_stage (str, optional): A `MILESTONE_KEYS` key capping the milestone
-            as `planet_class`'s ceiling does (the lower of the two applies):
-            the habitability index allows a world only microbial life
-            (GEN.206), so its timeline stops at "photosynthesis".
+        max_stage (str, optional): A `MILESTONE_KEYS` key capping the milestone, whether from the natural age-based
+            roll below or a forced `INTELLIGENT_LIFE=True`: the habitability index allows a world only microbial life
+            (GEN.206), so its timeline stops at "photosynthesis" (`life.stage_ceiling`). The class letter caps nothing
+            (GEN.647).
 
     Returns:
         dict: `scale` (a `tuning.EVOLUTIONARY_TIMELINES` key), `stage` (a `MILESTONE_KEYS` key, `None` when no
@@ -124,15 +113,12 @@ def get_evolutionary_state(star, planet_class=None, max_stage=None):
     # can never contradict the star's own stated age/lifespan elsewhere in the output.
     current_system_age = star.age
 
-    # A planet class's own ceiling (tuning.PLANET_CLASS_MAX_LIFE_STAGE,
-    # e.g. Class G is capped at "photosynthesis" -- "simple life"), and
-    # INTELLIGENT_LIFE=False's pre-existing "never report a civilization
-    # when one was explicitly disallowed" rule, are both just caps on the
+    # `max_stage` (the habitability index's ceiling) and INTELLIGENT_LIFE=False's pre-existing
+    # "never report a civilization when one was explicitly disallowed" rule are both just caps on the
     # same milestone index -- combined here so the "most recent milestone"
     # search below only ever considers what BOTH allow, rather than
     # rolling unrestricted and correcting the result after the fact.
-    class_max_key = tuning.PLANET_CLASS_MAX_LIFE_STAGE.get(planet_class)
-    max_index = MILESTONE_KEYS.index(class_max_key) if class_max_key else len(MILESTONE_KEYS) - 1
+    max_index = len(MILESTONE_KEYS) - 1
     if max_stage:
         max_index = min(max_index, MILESTONE_KEYS.index(max_stage))
     if star.system_config.INTELLIGENT_LIFE is False:
@@ -149,12 +135,9 @@ def get_evolutionary_state(star, planet_class=None, max_stage=None):
             most_recent_milestone_age = age
             most_recent_key = key
 
-    # Apply INTELLIGENT_LIFE=True: force the HIGHEST milestone this planet
-    # class (and `max_index` above) actually allows -- for an uncapped
-    # class this is still "Technological Civilization" exactly as before;
-    # for a class capped below that (e.g. Class G, "simple life"), this
-    # forces its own ceiling instead of overriding the class's own
-    # generated description.
+    # Apply INTELLIGENT_LIFE=True: force the HIGHEST milestone `max_index`
+    # above actually allows -- "Technological Civilization" unless the
+    # habitability index caps it lower.
     if star.system_config.INTELLIGENT_LIFE is True:
         most_recent_key = allowed_keys[-1]
         # Capped at the current system age: even on the fastest supported scale, a
@@ -171,8 +154,7 @@ def get_evolutionary_state(star, planet_class=None, max_stage=None):
     # contradicts its own class description again.
     if most_recent_key is not None:
         assert MILESTONE_KEYS.index(most_recent_key) <= max_index, (
-            f"get_evolutionary_timeline picked {most_recent_key!r} for planet_class={planet_class!r}, "
-            f"exceeding its own cap {MILESTONE_KEYS[max_index]!r}"
+            f"get_evolutionary_timeline picked {most_recent_key!r}, exceeding its cap {MILESTONE_KEYS[max_index]!r}"
         )
 
     return {"scale": evolutionary_scale, "stage": most_recent_key,
@@ -211,6 +193,6 @@ def timeline_paragraphs(state):
     return [to_paragraph(output_sentences)]
 
 
-def get_evolutionary_timeline(star, planet_class=None, max_stage=None):
+def get_evolutionary_timeline(star, max_stage=None):
     """The paragraph of a freshly drawn `get_evolutionary_state` (see there for the arguments)."""
-    return timeline_paragraphs(get_evolutionary_state(star, planet_class, max_stage))
+    return timeline_paragraphs(get_evolutionary_state(star, max_stage))
