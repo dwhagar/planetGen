@@ -207,8 +207,8 @@ connectivity to that specific schema rather than the default one.
   `runaway_speed_kms`, `wikijs_url`/`mediawiki_url`
   (each `null` until this system has been uploaded to that wiki — see
   "Wiki publishing" below), `stars`, `planets` (each with
-  its own nested `moons`; every planet and moon also carries `habitable`,
-  `life_stage` — the furthest evolutionary milestone its timeline reached,
+  its own nested `moons`; every planet and moon also carries `habitable` (its overall PHI-6 colour is Blue or Green, GEN.643),
+  `habitable_class` (its class can carry life), `life_stage` — the furthest evolutionary milestone its timeline reached,
   or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 H3 [R2]`, `required_line` and `recommended_line` (UX.163; a line with nothing in it is empty), the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
   `{component, concentration}` largest share first), `comets`, `sector_siblings`
   (`{id, name}` for every system in the same sector), and

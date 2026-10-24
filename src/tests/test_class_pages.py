@@ -216,7 +216,7 @@ _SECTIONS = {"overview": [], "stars": {}, "planets": {}, "moons": {}, "belts": {
 
 def _planet(planet_class="M"):
     return {"id": 2, "name": "Terra", "planet_class": planet_class, "body_type": "t", "habitable": True,
-            "inhabited": False, "zone": "Habitable Zone", "distance_km": 1.5e8, "period_years": 1.0,
+            "habitable_class": True, "inhabited": False, "zone": "Habitable Zone", "distance_km": 1.5e8, "period_years": 1.0,
             "gravity_g": 1.0, "orbital_index": 0, "moons": [], "star_id": 1, "radius_km": 6371.0}
 
 
@@ -365,7 +365,7 @@ def test_habitability_levels_page_explains_the_five_levels_and_the_six_domains(c
         assert f'<h3 id="domain-{domain.lower()}">{domain}</h3>' in html
     for colour in ("Blue", "Green", "Yellow", "Red"):
         assert f"<dt>{colour}</dt>" in html
-    for chip in ("Habitable class", "Habitable-class moon", "Inhabited"):
+    for chip in ("Habitable", "Habitable moon", "Habitable class", "Habitable-class moon", "Inhabited"):
         assert f'<dt id="chip-{chip.lower().replace(" ", "-")}">{chip}</dt>' in html
     assert "pulsar" in html and "1,000 Sv a year" in html
 
@@ -454,7 +454,7 @@ def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone
 def _scored_system():
     system = _system()
     system["planets"][0].update({
-        "habitable": True, "equipment": {"required": [], "recommended": [], "line": "", "code": "", "items": [
+        "habitable": True, "habitable_class": True, "equipment": {"required": [], "recommended": [], "line": "", "code": "", "items": [
             {"slot": "supply", "item": "gas-mix mask", "severity": "required", "domain": "Air"}]},
         "phi4": 1.0, "tier_pressure": 0, "tier_temperature": 0, "tier_air": 0, "tier_water": 0,
         "tier_radiation": 0, "tier_suitability": 0, "life_microbial": 3, "life_flora": 0, "life_fauna": 0,

@@ -509,7 +509,7 @@ def test_the_description_splits_into_every_body(client, mysql_config):
         # rocky body, its Survival equipment table).
         blocks = sections["planets"][str(planet["id"])]
         assert [b["type"] for b in blocks if b.get("caption") != "Survival equipment"].count("facts") == 1
-        assert {"habitable", "inhabited", "life_stage"} <= set(planet)
+        assert {"habitable", "habitable_class", "inhabited", "life_stage"} <= set(planet)
 
     assert client.get("/api/systems/999999999/description").status_code == 404
 

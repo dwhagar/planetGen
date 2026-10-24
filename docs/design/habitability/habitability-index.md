@@ -49,6 +49,18 @@ recommendation. Informs: GEN.83 to GEN.92.
   also adds the spin vector); an unlocked rocky planet's day is log-uniform
   from 8 to 48 h (Kokubo and Genda 2010; Boss 2026-10-10), a gas giant's
   uniform from 8 to 20 h.
+- **"Habitable" is the PHI-6 rating, not a class** (Boss, 2026-10-23, GEN.643): a
+  world is habitable when its overall PHI-6 colour is Blue or Green
+  (`habitability.is_habitable`, the one function the API's `habitable`
+  flag, the system page chips, the per-system count `hab_count` and the
+  description text all call). The API serves the class flag
+  separately as `habitable_class` (the "Habitable class" chip). A request for a
+  habitable world (`+habitable_world`) still steers by the class list until the
+  classes are derived from conditions, so its guaranteed world may not score Blue
+  or Green; `StarSystem.habitable_class_count` is the number it steers by, and
+  `habitability.habitable_request_result` says whether the finished world met the
+  request ("aim"), settled for a Yellow with Suitability at least Yellow
+  ("fallback"), or missed.
 - **Rogue planets** already have internal heat flux, a surface regime,
   ice-shell thickness and ocean depth (`rogue_surface.py`); nothing in a
   star system has these.

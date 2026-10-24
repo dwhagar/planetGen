@@ -107,7 +107,7 @@ def measure(sector):
     for entry in sector.entries:
         system = entry.star_system
         counts[SYSTEMS] += 1
-        counts[HABITABLE] += getattr(system, "hab_count", 0) or 0
+        counts[HABITABLE] += getattr(system, "habitable_class_count", 0) or 0
         counts[_star_key(system.star)] += 1
     return counts
 

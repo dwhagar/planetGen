@@ -78,7 +78,7 @@ def test_a_hot_star_with_a_forced_habitable_world_has_one_or_fails(tmp_path, mon
             continue
         assert out.exists()
         assert kept[-1].unmet_requirements == []
-        assert kept[-1].count_habitable(kept[-1].planets)[0] > 0
+        assert kept[-1].count_habitable_class_worlds(kept[-1].planets) > 0
 
 
 @pytest.mark.parametrize("spec", [
