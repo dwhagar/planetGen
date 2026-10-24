@@ -100,7 +100,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 38, "partly verified": 40, "open": 0, "stand-in": 26}
+    assert RECIPES.state_counts() == {"verified": 38, "partly verified": 46, "open": 0, "stand-in": 20}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -117,8 +117,9 @@ def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
 
 def test_the_stand_ins_are_rows_with_no_measurement_or_built_from_solar_system_bodies():
     stand_ins = {e.id: e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
-    assert stand_ins["a2"] == "GEN.513" and stand_ins["k7"] == "GEN.520"
-    assert {"a1", "b5", "k1", "n7", "o3"} <= set(stand_ins)
+    assert stand_ins["a2"] == "GEN.513"
+    assert {"a1", "b5", "n7", "o3"} <= set(stand_ins)
+    assert not {"k1", "k2", "k3", "k4", "k5", "k7"} & set(stand_ins), "the comet rows follow the Robinson database (GEN.520)"
     assert not {"m3", "m4", "m11"} & set(stand_ins), "the life-linked gases are design flags (GEN.525)"
     assert not {"a3", "a4", "f7", "p6"} & set(stand_ins), "rows with a published statistic are not stand-ins"
 
@@ -314,8 +315,8 @@ def test_example_j_the_frost_and_evolved_atmospheres_are_outputs_of_the_retentio
 
 def test_example_k_the_coma_classes_and_the_carbon_dioxide_to_water_bins():
     comet = Subject("comet", {"perihelion_au": 1.0, "family": "x"})
-    assert dict(RECIPES.probabilities("k", comet)) == pytest.approx({"k1": 0.536, "k2": 0.357, "k3": 0.107}, abs=1e-3)
-    assert [round(b[2], 3) for b in RECIPES.bins("k4", comet)] == [0.114, 0.323, 0.350, 0.213]
+    assert dict(RECIPES.probabilities("k", comet)) == pytest.approx({"k1": 0.52, "k2": 0.36, "k3": 0.12}, abs=1e-3)
+    assert [round(b[2], 3) for b in RECIPES.bins("k4", comet)] == [0.136, 0.335, 0.335, 0.194]
     quiet = Subject("comet", {"perihelion_au": 5.0, "family": "x"})
     with draw.bound(2):
         assert RECIPES.draw_group("k", quiet).name == "none"

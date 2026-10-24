@@ -159,3 +159,27 @@ def test_titanium_oxide_is_seen_above_a_drawn_temperature_between_the_last_non_d
     assert share(2349.0) == 0.0 and share(2641.0) == 1.0
     assert share(2350.0 + 291.0 / 2) == pytest.approx(0.5, abs=0.08), "a uniform threshold: half the worlds at the middle"
     assert share(2350.0 + 291.0 / 4) == pytest.approx(0.25, abs=0.08)
+
+
+# --- comets (GEN.520) --------------------------------------------------------------------------------------------------------
+
+
+def test_the_coma_class_shares_are_the_printed_counts_and_not_the_rounded_words():
+    probabilities = dict(RECIPES.probabilities("k", th.subject_of(th.TARGETS.get("k1-share"))))
+    assert probabilities == pytest.approx({"k1": 13 / 25, "k2": 9 / 25, "k3": 3 / 25}), "the three printed counts of 25 comets"
+
+
+def test_the_carbon_dioxide_and_monoxide_ratios_follow_the_comet_database_and_a_wrong_centre_fails():
+    assert RECIPES.entry("k4").spec["dist"]["sigma"] == 0.51 and RECIPES.entry("k5").spec["dist"]["sigma"] == 0.65
+    assert "range" not in RECIPES.entry("k5").spec["dist"], "the 0.3 to 26 percent range is the sample's extremes, not a bound"
+    high = retuned("k5", lambda e: e["dist"].update(mu="log10(0.1)"))
+    assert not th.check_target(th.TARGETS.get("k5-mean"), recipes=high, n=3000).passed, "CO/H2O of 10 percent is 0.6 dex above 2.5"
+    narrow = retuned("k4", lambda e: e["dist"].update(sigma=0.2))
+    assert not th.check_target(th.TARGETS.get("k4-sd"), recipes=narrow, n=3000).passed
+
+
+def test_the_species_with_a_population_follow_it_and_the_single_comet_species_stay_flagged():
+    dists = RECIPES.entry("k7").spec["dists"]
+    assert dists["CH4"]["mu"] == "log10(0.0068)" and dists["CH4"]["sigma"] == 0.33
+    assert {name: d["sigma"] for name, d in dists.items() if name in ("N2", "O2", "Xe")} == {"N2": 0.6, "O2": 0.6, "Xe": 0.6}
+    assert "one comet" in RECIPES.entry("k7").limit

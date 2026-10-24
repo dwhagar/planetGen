@@ -347,3 +347,20 @@ def test_the_harness_holds_no_solar_system_value_as_a_target_without_the_flag():
             assert not th._solar_system_hits(t.statistic) and not th._solar_system_hits(t.source)
         else:
             assert t.solar_system
+
+
+# --- a proportion of the options a group draws (GEN.520) ---------------------------------------------------------------------
+
+
+def test_a_category_counts_the_draws_that_name_it():
+    raw = target(kind="proportion", counts=[13, 25], category="k1")
+    raw.pop("value"), raw.pop("sigma")
+    t = table(raw).get("t1")
+    assert t.category == "k1"
+    assert th.compare(t, ["k1"] * 52 + ["k2"] * 36 + ["k3"] * 12).passed
+    assert not th.compare(t, ["k1"] * 90 + ["k2"] * 10).passed
+
+
+def test_a_category_belongs_to_a_proportion_and_excludes_a_threshold():
+    refused("category", kind="mean", category="k1")
+    refused("category", kind="proportion", counts=[1, 4], value=0.25, threshold=0.5, category="k1")

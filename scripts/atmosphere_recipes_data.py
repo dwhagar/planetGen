@@ -258,27 +258,30 @@ MACHINE = {
                weight="c_j5"),
 
     # ---- k. comets ----
-    "k1": dict(state="stand-in", replacement="GEN.520", kind="option", group="k", classes=["comet", "asteroid"], weight=
-               "0.5 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"),
-    "k2": dict(state="stand-in", replacement="GEN.520", kind="option", group="k", classes=["comet", "asteroid"], weight=
-               "1/3 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"),
-    "k3": dict(state="stand-in", replacement="GEN.520", kind="option", group="k", classes=["comet", "asteroid"], weight=
-               "0.1 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"),
-    "k4": dict(state="stand-in", replacement="GEN.520", kind="param", classes=["comet", "asteroid"], bins=[0.03, 0.1, 0.3],
-               dist={"kind": "normal", "log10": True, "mu": "log10(0.12)", "sigma": 0.5}),
-    "k5": dict(state="stand-in", replacement="GEN.520", kind="param", classes=["comet", "asteroid"],
-               dist={"kind": "normal", "log10": True, "mu": "log10(0.03)", "sigma": 0.6, "range": ["log10(0.005)", "log10(0.23)"]}),
+    "k1": dict(state="partly verified", limit="13 of 25 comets (HP22 Table 2); the class depends on the heliocentric distance (every coma beyond about 3.5 AU is CO-dominated) and 9 of the 13 rest on an upper limit on CO, so the share is inflated by an amount that cannot be corrected (GEN.520)", kind="option", group="k", classes=["comet", "asteroid"], tunable=True, weight=
+               "13/25 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"),
+    "k2": dict(state="partly verified", limit="9 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520)", kind="option", group="k", classes=["comet", "asteroid"], tunable=True, weight=
+               "9/25 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"),
+    "k3": dict(state="partly verified", limit="3 of 25 comets (HP22 Table 2); the heliocentric distance and the CO admission rule bias the share (GEN.520)", kind="option", group="k", classes=["comet", "asteroid"], tunable=True, weight=
+               "3/25 if (body_class == 'comet' and perihelion_au < 3) or (body_class == 'asteroid' and family == 'icy') else 0"),
+    "k4": dict(state="partly verified", limit="geometric mean 10.9 percent and 0.51 dex of 21 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)", kind="param", classes=["comet", "asteroid"], bins=[0.03, 0.1, 0.3], tunable=True,
+               dist={"kind": "normal", "log10": True, "mu": "log10(0.109)", "sigma": 0.51}),
+    "k5": dict(state="partly verified", limit="geometric mean 2.5 percent and 0.65 dex of 16 comets at r_h up to 2.5 AU (Robinson database); one common offset per system is not drawn (N=2 interstellar objects) (GEN.520)", kind="param", classes=["comet", "asteroid"], tunable=True,
+               dist={"kind": "normal", "log10": True, "mu": "log10(0.025)", "sigma": 0.65}),
     "k6": dict(kind="param", classes=["comet", "asteroid"],
                dists={"CH3OH": {"kind": "loguniform", "lo": 0.002, "hi": 0.026},
                       "NH3": {"kind": "loguniform", "lo": 0.001, "hi": 0.0073},
                       "HCN": {"kind": "loguniform", "lo": 0.0009, "hi": 0.0029}}),
-    "k7": dict(kind="param", classes=["comet", "asteroid"], state="stand-in", replacement="GEN.520",
-               dists={name: {"kind": "normal", "log10": True, "mu": f"log10({v})", "sigma": 0.6}
-                      for name, v in (("CH4", 3.4e-3), ("C2H6", 2.9e-3), ("H2CO", 3.2e-3), ("H2S", 1.1e-2), ("N2", 8.9e-4),
-                                      ("O2", 3.1e-2), ("OCS", 4.1e-4), ("SO2", 1.3e-3), ("Ar", 5.8e-6), ("Kr", 4.9e-7),
-                                      ("Xe", 2.4e-7))},
-               correction="Built from one measured comet (67P, Rubin 2019): a flagged stand-in until GEN.488. Ne is only an "
-                          "upper limit (below 5e-8) and is not drawn."),
+    "k7": dict(kind="param", classes=["comet", "asteroid"], state="partly verified", tunable=True,
+               limit="CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520)",
+               dists={**{name: {"kind": "normal", "log10": True, "mu": f"log10({v})", "sigma": sd}
+                         for name, v, sd in (("CH4", 6.8e-3, 0.33), ("C2H6", 4.1e-3, 0.33), ("H2CO", 2.5e-3, 0.35), ("H2S", 7.1e-3, 0.39))},
+                      **{name: {"kind": "normal", "log10": True, "mu": f"log10({v})", "sigma": 0.6}
+                         for name, v in (("N2", 8.9e-4), ("O2", 3.1e-2), ("OCS", 4.1e-4), ("SO2", 1.3e-3), ("Ar", 5.8e-6),
+                                         ("Kr", 4.9e-7), ("Xe", 2.4e-7))}},
+               correction="N2, O2, OCS, SO2, Ar, Kr and Xe are built from one measured comet (67P, Rubin 2019) and stay flagged "
+                          "stand-in values; O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) "
+                          "and is not drawn."),
 
     # ---- l. white-dwarf and pulsar planets ----
     "l1": dict(state="stand-in", replacement="GEN.513", kind="option", group="l", classes=ROCKY, when=[c("host_type", one_of=["WD", "PSR"])],
