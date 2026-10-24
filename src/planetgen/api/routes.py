@@ -35,7 +35,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs, pagejobs
-from planetgen.util import draw
+from planetgen.util import draw, generator_epoch
 
 from planetgen.db.shell_specs import galaxy_shell_specs
 from planetgen.db.query import (
@@ -440,6 +440,7 @@ def health():
         "api_version": API_VERSION,
         "schema_version": schema_version,
         "schema_current": schema_version == store.SCHEMA_VERSION,
+        "generator_version": generator_epoch.generator_epoch(),
     }
     if schema_version is not None and schema_version > store.SCHEMA_VERSION:
         body["detail"] = (

@@ -49,7 +49,7 @@ def _key(i, revoked=False):
 def _stats(reachable=True):
     database = {
         "name": DB, "reachable": reachable, "schema_current": True, "schema_version": 30,
-        "schema_expected": 30, "size_bytes": 5 * 1024 * 1024,
+        "schema_expected": 30, "generator_version": 64, "size_bytes": 5 * 1024 * 1024,
         "counts": {"sectors": 12, "star_systems": 3456},
         "name_collisions": {"distinct_base_names": 2, "sector": 1, "system": 1},
         "timestamps": [{"table": "sectors", "newest_created_at": "2026-09-01 10:00:00",
@@ -744,6 +744,7 @@ def test_admin_stats_renders(client, fake):
     assert '<span class="badge">healthy</span>' in html
     assert "3,456" in html and "5.0 MB" in html and "1.03 hours" in html
     assert "0.10 / 0.20 / 0.30" in html
+    assert re.search(r"Generator version.*?64", html, re.S)      # OPS.37
     # Duplicate names: links to the sector/system pages, escaped names.
     assert "Vega &lt;b&gt;Beta&lt;/b&gt;" in html
     assert 'href="/sector/5"' in html

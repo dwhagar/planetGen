@@ -15,6 +15,7 @@ from planetgen.db import stats as adminStats
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.db import store
+from planetgen.util import generator_epoch
 from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig
 from planetgen.names.uniqueness import strip_decoration
@@ -116,6 +117,7 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
     assert database["reachable"] is True
     assert database["schema_version"] == store.SCHEMA_VERSION
     assert database["schema_current"] is True
+    assert database["generator_version"] == generator_epoch.generator_epoch()      # OPS.37
     assert database["counts"] == {"sectors": 3, "star_systems": 4}
     assert database["bright_stars"] == {"placed": 0, "filled": 0, "unfilled": 0}
     # PERF.11: these sectors aren't on the grid, so nothing is measured.

@@ -67,7 +67,9 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/health` — liveness/readiness check: confirms the process is up
   and the configured (or `db=`-selected) database can actually be opened.
   Returns `{"status": "ok", "schema_version": <n>, "schema_current":
-  <bool>}` (plus a `detail` naming the fix when the schema is behind the
+  <bool>, "generator_version": <n>}` (`generator_version` is the one counter
+  of the generator rules, OPS.28's generator epoch, bumped only when output
+  changes for the same seed; an added field, not a breaking change) (plus a `detail` naming the fix when the schema is behind the
   code's `SCHEMA_VERSION` or was never initialized; still a `200`), or
   `{"status": "error", "detail": "database unavailable"}` with a `503` if
   the database can't be reached (the real
@@ -800,7 +802,7 @@ forced credential change. They back the admin stats page
   password, and, when it does, `version`, `uptime_seconds`, `aof_enabled`, `maxmemory_policy`,
   `used_memory_bytes`, `maxmemory_bytes`, `last_save_ok`, `last_save_seconds_ago` and the live `workers`; `error`
   says why when it does not), and `database` (`reachable`,
-  `schema_version`/`schema_expected`/`schema_current`, `size_bytes`,
+  `schema_version`/`schema_expected`/`schema_current`, `generator_version` (OPS.37, the same counter as in `/api/health`), `size_bytes`,
   exact `counts` for `sectors`/`star_systems`, `sector_stats` (PERF.11:
   `measured` and `backfilled` sector counts, and `ratio`, the decaying
   average of the systems fills got against the systems expected, over

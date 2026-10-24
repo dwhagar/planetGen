@@ -19,6 +19,8 @@ import time
 
 import pytest
 
+from planetgen.util import generator_epoch
+
 from planetgen.describe import model
 from planetgen.util import logpaths
 
@@ -279,6 +281,7 @@ def test_health_ok(mysql_config, client):
     assert body["status"] == "ok"
     assert body["schema_current"] is True
     assert body["schema_version"] == _db.SCHEMA_VERSION
+    assert body["generator_version"] == generator_epoch.generator_epoch()      # OPS.37
 
 
 @pytest.mark.fresh_database
