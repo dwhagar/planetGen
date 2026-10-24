@@ -17,6 +17,8 @@ from tests.test_web_pages import _FakeConfig
 
 PLANET = "planet:FE81000A2B-0000005-001"
 MOON = "moon:FE81000A2B-0000005-002"
+FREE_PLANET = "rogue_planet:FE81000A2B-0000009"
+FREE_MOON = "moon:FE81000A2B-0000009-001"
 
 
 def _document():
@@ -42,6 +44,10 @@ def client(monkeypatch):
             {"ref": "sector:4", "kind": "sector", "name": "Sector 004"},
             {"ref": "system:9", "kind": "system", "name": "Kepler"},
             {"ref": PLANET, "kind": "planet", "name": "Kepler b"}]},
+        FREE_MOON: {"ref": FREE_MOON, "name": "Lone Moon", "phi4": 0.5, "tier_pressure": 1, "tier_temperature": 1,
+                    "tier_air": 1, "tier_water": 1, "tier_radiation": 1, "tier_suitability": 1, "parents": [
+            {"ref": "galaxy", "kind": "galaxy"},
+            {"ref": FREE_PLANET, "kind": "rogue_planet", "name": "Drifter"}]},
         "star:FE81000A2B-0000005-000": {"ref": "star:FE81000A2B-0000005-000", "name": "Kepler", "parents": []},
     }
 
@@ -105,3 +111,12 @@ def test_the_page_has_a_location_block_from_the_parent_chain(client):
     for url in ('href="/galaxy"', 'href="/sector/4"', 'href="/system/9"', f'href="/object/{PLANET}"'):
         assert url in page
     assert "Not inside any nebula or supernova remnant." in page
+
+
+def test_a_moon_of_a_free_planet_has_a_page_that_links_to_its_planet(client):
+    response = client.get(f"/object/{FREE_MOON}")
+    assert response.status_code == 200
+    page = response.get_data(as_text=True)
+    assert "Lone Moon" in page and "Orbits the free planet Drifter" in page
+    assert "Open the free planet Drifter" in page and "/phenomenon/rogue_planet/" in page
+    assert "system</span>" not in page

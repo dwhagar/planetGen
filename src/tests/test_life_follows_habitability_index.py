@@ -69,7 +69,7 @@ def test_a_world_the_index_allows_only_microbial_life_stops_its_timeline_before_
         assert planet.life_stage in (None, "abiogenesis", "photosynthesis")
         assert not COMPLEX_WORDS.search(planet.description), planet.description
         life = life_facts.resolve(planet)
-        timeline_text = " ".join(inline_text(sentence) for sentence in describe_build._timeline_sentences(life)) if life.timeline else ""
+        timeline_text = " ".join(inline_text(sentence) for sentence in describe_build._timeline_sentences(life)) if life and life.timeline else ""
         assert not COMPLEX_WORDS.search(timeline_text), timeline_text
 
 

@@ -37,11 +37,11 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
 from planetgen.physics.orbits import (
     hill_radius_in_pair_au, holman_wiegert_circumbinary_a_crit_au, holman_wiegert_critical_semimajor_axis)
 
-AU_KM = constants.AU_TO_KM
+_km_to_au = units.converter("km", "au")
 
 S_TYPE = "S"
 """str: A zone round one star."""
@@ -122,7 +122,7 @@ class _Tree:
 
 
 def _axis_au(node):
-    return node.separation_km / AU_KM
+    return _km_to_au(node.separation_km)
 
 
 def _s_limit_au(tree, child, parent):

@@ -13,7 +13,8 @@ import math
 import pytest
 
 from planetgen.physics import constants
-from planetgen.physics.body_positions import AU_KM, positions_at
+from planetgen.physics.body_positions import positions_at
+from planetgen.physics.constants import AU_TO_KM as AU_KM
 from planetgen.physics.orbits import circular_orbital_velocity_au_per_year, orbital_position_au
 
 KMS_PER_AU_YR = constants.AU_TO_KM / constants.SECONDS_PER_YEAR

@@ -49,7 +49,9 @@ def _make_older_than_the_baseline(config):
         conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139
         conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")  # v139
         for table in ("planets", "moons"):
-            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v142 (GEN.666)
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor, DROP COLUMN albedo_basis,"
+                         " ALGORITHM=COPY")  # v142
             conn.execute(f"ALTER TABLE {table} DROP COLUMN tau_haze, DROP COLUMN tau_dust, DROP COLUMN tau_cloud, DROP COLUMN cloud_cover,"
                          " DROP COLUMN aerosol_draw, ALGORITHM=COPY")  # v138
             conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in regional_temperature.FIELDS)

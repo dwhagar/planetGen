@@ -336,6 +336,7 @@ TABLES = {
             "orbital_index", "tier_pressure",
             "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
             *EQUIPMENT_LEVELS,
+            "albedo_basis",
         ),
         "km": (
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
@@ -373,6 +374,7 @@ TABLES = {
             "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "flux_variation",
             "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index", "al26_ratio", "urey_ratio",
             "tau_haze", "tau_dust", "tau_cloud", "cloud_cover", "aerosol_draw",
+            "bond_albedo", "greenhouse_factor",
         ),
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "pH": ("ocean_ph",),
@@ -544,6 +546,7 @@ TABLES = {
             "orbital_index", "tier_pressure",
             "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
             *EQUIPMENT_LEVELS,
+            "albedo_basis",
         ),
         "km": (
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
@@ -582,6 +585,7 @@ TABLES = {
             "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "flux_variation",
             "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index", "al26_ratio", "urey_ratio",
             "tau_haze", "tau_dust", "tau_cloud", "cloud_cover", "aerosol_draw",
+            "bond_albedo", "greenhouse_factor",
         ),
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "pH": ("ocean_ph",),

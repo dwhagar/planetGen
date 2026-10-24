@@ -152,14 +152,19 @@ MEMBER_FRAGILE = 32
 MEMBER_THEORETICAL = 64
 MEMBER_RUNAWAY_SUPERNOVA = 128
 MEMBER_RUNAWAY_DYNAMICAL = 256
+MEMBER_R_CRB = 512
+MEMBER_FK_COMAE = 1024
 MEMBER_FLAGS = {"direct_collapse": MEMBER_DIRECT_COLLAPSE, "mass_reversed": MEMBER_MASS_REVERSED,
                 "mass_gainer": MEMBER_MASS_GAINER, "merger_product": MEMBER_MERGER_PRODUCT, "be": MEMBER_BE,
                 "fragile": MEMBER_FRAGILE, "theoretical": MEMBER_THEORETICAL,
-                "runaway_supernova": MEMBER_RUNAWAY_SUPERNOVA, "runaway_dynamical": MEMBER_RUNAWAY_DYNAMICAL}
-"""dict: The bits of `Member.flags`. The classifier sets `mass_gainer`, `fragile` and `theoretical`;
-`mass_reversed`, `merger_product` and `be` are set by the close-binary types, and the runaway origin (none, or one of
-the two channels, `draw_runaway_origin`, GEN.329) is the two `runaway_*` bits: a built system's runaway star carries
-the one its draw named in `stars.flags`."""
+                "runaway_supernova": MEMBER_RUNAWAY_SUPERNOVA, "runaway_dynamical": MEMBER_RUNAWAY_DYNAMICAL,
+                "r_crb": MEMBER_R_CRB, "fk_comae": MEMBER_FK_COMAE}
+"""dict: The bits of `Member.flags`. The classifier sets `mass_gainer` (the star that receives the mass of a
+semi-detached or contact pair), `mass_reversed` (the donor of a semi-detached pair that was the heavier at birth: an Algol),
+`fragile` and `theoretical`; the close-binary types (GEN.270) set `merger_product` (a massive star that merged, a field blue
+straggler, an R Coronae Borealis or FK Comae star), `be`, `mass_gainer` (a massive star that has gained mass), `r_crb`
+and `fk_comae`; and the runaway origin (none, or one of the two channels, `draw_runaway_origin`, GEN.329) is the two
+`runaway_*` bits: a built system's runaway star carries the one its draw named in `stars.flags`."""
 
 RUNAWAY_ORIGIN_FLAGS = {"supernova": MEMBER_RUNAWAY_SUPERNOVA, "dynamical": MEMBER_RUNAWAY_DYNAMICAL}
 """dict: A runaway's origin -> the flag bit that records it."""
@@ -273,6 +278,30 @@ class MemberTree:
     def compact_count(self):
         return sum(member.kind in COMPACT_KINDS for member in self.members)
 
+    def eclipsing_nodes(self):
+        """The node numbers of the pairs that eclipse (GEN.270; derived, never stored): a node whose two children are
+        single members and whose inclination is within `asin((R1 + R2) / a)` of edge-on (`pair_eclipses`)."""
+        found = []
+        for node in self.nodes:
+            pair = [member for member in self.members if member.parent_node_no == node.node_no]
+            if len(pair) == 2 and pair_eclipses(node.separation_au, node.inclination_deg, pair[0].radius_au,
+                                                pair[1].radius_au):
+                found.append(node.node_no)
+        return tuple(found)
+
+    def spectroscopic_nodes(self):
+        """The node numbers of the pairs closer than `tuning.SPECTROSCOPIC_MAX_AXIS_AU` (derived, never stored): the
+        orbits whose radial-velocity swing a spectrograph resolves."""
+        return tuple(node.node_no for node in self.nodes if node.separation_au < tuning.SPECTROSCOPIC_MAX_AXIS_AU)
+
+
+def pair_eclipses(separation_au, inclination_deg, radius_a_au, radius_b_au):
+    """Whether a pair of these radii (AU) on an orbit of this semi-major axis (AU) and inclination (degrees, 90 is
+    edge-on) eclipses: the inclination lies within `asin((R1 + R2) / a)` of edge-on (a pair whose radii reach its axis
+    always does)."""
+    ratio = (radius_a_au + radius_b_au) / separation_au
+    return ratio >= 1.0 or abs(90.0 - inclination_deg) <= math.degrees(math.asin(ratio))
+
 
 @dataclass
 class _Leaf:
@@ -282,6 +311,7 @@ class _Leaf:
     initial: float
     radius_au: float
     flags: int = 0
+    effective_age_yr: float | None = None
 
     @property
     def compact(self):
@@ -539,6 +569,29 @@ class _Failed(Exception):
     """A pair could not be placed in `PAIR_RETRIES` tries; the tree restarts."""
 
 
+UNFUSING_KINDS = ("brown-dwarf", "pre-main-sequence", "protostar")
+"""tuple: The kinds that have not begun (or never will begin) hydrogen fusion in the core: a big radius of theirs is no
+Algol and no contact binary (`_gate_forbids`)."""
+
+
+def _gate_forbids(interaction, heavy_initial_sol, age_yr, kinds=()):
+    """Whether the catalogue's `where` column rules a pair's `interaction` out (GEN.270; audit test 11): a contact binary
+    of solar-type stars needs the angular momentum loss of the intermediate and old populations (the young population has
+    only the massive over-contact ones), an Algol is a young or intermediate-age binary
+    (`contact-binary` and `algol` in `SYSTEM_TYPE_RATES`), and neither is a pair that holds a star not yet fusing
+    (`UNFUSING_KINDS` among the `kinds` of its two members: a contracting or substellar object fills its lobe without being
+    an interacting binary). The generator knows the age, not the population, so the gates are the ages of the populations'
+    windows (`tuning.YOUNG_POPULATION_MAX_AGE_GY`, `OLD_POPULATION_MIN_AGE_GY`)."""
+    if interaction not in ("contact", "semi-detached"):
+        return False
+    if any(kind in UNFUSING_KINDS for kind in kinds):
+        return True
+    age_gy = age_yr / 1.0e9
+    if interaction == "contact":
+        return age_gy < tuning.YOUNG_POPULATION_MAX_AGE_GY and heavy_initial_sol < MASSIVE_PRIMARY_MIN_MASS_SOL
+    return age_gy >= tuning.OLD_POPULATION_MIN_AGE_GY
+
+
 def classify_pair(a, b, axis_au, e):
     """
     The `interaction` of a pair of two single members from their geometry (GEN.269): `(interaction, gainers)`, where
@@ -573,12 +626,16 @@ def classify_pair(a, b, axis_au, e):
 class _Builder:
     """Draws the orbits of one tree shape, top down."""
 
-    def __init__(self, leaves, age_yr, rng):
+    def __init__(self, leaves, age_yr, rng, fixed=None):
         self.leaves = leaves
         self.age_yr = age_yr
         self.rng = rng
         self.nodes = []
         self.extra_flags = {}
+        self.fixed = fixed or {}
+        """dict: `id(pair) -> (period_days, axis_au, eccentricity)` of a pair whose size and shape are kept (the inner
+        pair of a contact binary that gains a tertiary): its orientation is drawn and the stability screens run, its
+        period is not."""
 
     def leaves_of(self, sub):
         return (sub,) if isinstance(sub, int) else self.leaves_of(sub[0]) + self.leaves_of(sub[1])
@@ -596,6 +653,8 @@ class _Builder:
                 return "compact-pair"
             if a.compact or b.compact:
                 return "interacted"
+            if "stripped-helium" in (a.kind, b.kind):
+                return "stripped"
         return "star"
 
     def pair_leaves(self, left, right):
@@ -629,7 +688,14 @@ class _Builder:
         if pair is None:
             return "detached", {}
         interaction, gainers = classify_pair(pair[0], pair[1], axis, e)
-        return interaction, {(left if gainer is pair[0] else right): MEMBER_MASS_GAINER for gainer in gainers}
+        flags = {(left if gainer is pair[0] else right): MEMBER_MASS_GAINER for gainer in gainers}
+        if interaction == "semi-detached":
+            # An Algol: the donor was the heavier at birth (it evolved first), which is how it came to be the lighter.
+            gainer = gainers[0]
+            donor, donor_index = (pair[1], right) if gainer is pair[0] else (pair[0], left)
+            if donor.initial > gainer.initial:
+                flags[donor_index] = MEMBER_MASS_REVERSED
+        return interaction, flags
 
     def wide_cap(self, sub):
         """The widest axis the pair can have: 1,000 AU if it holds a neutron star or a black hole that did not
@@ -647,6 +713,8 @@ class _Builder:
             hi = min(hi, 365.25 * math.sqrt(COMPACT_PAIR_AXIS_AU[1] ** 3 / mass))
         elif law == "interacted":
             lo, hi = max(lo, INTERACTED_PERIOD_DAYS[0]), min(hi, INTERACTED_PERIOD_DAYS[1])
+        elif law == "stripped":
+            lo, hi = max(lo, tuning.STRIPPED_PAIR_PERIOD_DAYS[0]), min(hi, tuning.STRIPPED_PAIR_PERIOD_DAYS[1])
         if not lo < hi:
             return None
         log_lo, log_hi = math.log10(lo), math.log10(hi) if math.isfinite(hi) else 12.0
@@ -657,7 +725,14 @@ class _Builder:
         p_lo, p_hi = dist.cdf(log_lo), dist.cdf(log_hi)
         if p_hi - p_lo < 1.0e-12:
             return 10.0 ** (log_lo + u * (log_hi - log_lo))
-        return 10.0 ** dist.inv_cdf(min(max(p_lo + u * (p_hi - p_lo), 1.0e-15), 1.0 - 1.0e-15))
+        # The tight-tail weight (design note 13.7) multiplies the density under a day of the pairs of solar-type
+        # primaries; at 1 this is the plain draw, and the massive law is never weighted.
+        weight = 1.0 if massive else system_types.TUNING_KNOBS["tight_tail_weight"]
+        split = min(max(dist.cdf(0.0), p_lo), p_hi)
+        tail, rest = (split - p_lo) * weight, p_hi - split
+        target = u * (tail + rest)
+        point = p_lo + target / weight if target < tail else split + (target - tail)
+        return 10.0 ** dist.inv_cdf(min(max(point, 1.0e-15), 1.0 - 1.0e-15))
 
     def eccentricity(self, law, period_d, a_au, root):
         u = self.rng.random()
@@ -681,6 +756,7 @@ class _Builder:
         cap = self.wide_cap(sub)
         heavy = max(self.leaves[i].initial for i in self.leaves_of(sub))
         massive = heavy >= MASSIVE_PRIMARY_MIN_MASS_SOL
+        fixed = self.fixed.get(id(sub))
         for _ in range(PAIR_RETRIES):
             rng = self.rng
             inclination = math.acos(1.0 - 2.0 * rng.random())
@@ -692,12 +768,21 @@ class _Builder:
             if parent is not None:
                 mutual = stability.mutual_inclination(inclination, node, parent[2], parent[3])
                 a_hi = stability.max_inner_axis(m_left, m_right, parent[4], parent[0], 0.0, parent[1], mutual)
-            period_d = self.period_days(law, total, a_lo, min(a_hi, cap), massive)
-            if period_d is None:
-                continue
-            axis = stability.axis_au(period_d / 365.25, total)
-            e = self.eccentricity(law, period_d, axis, parent is None)
+            if fixed is None:
+                period_d = self.period_days(law, total, a_lo, min(a_hi, cap), massive)
+                if period_d is None:
+                    continue
+                axis = stability.axis_au(period_d / 365.25, total)
+                e = self.eccentricity(law, period_d, axis, parent is None)
+            else:
+                period_d, axis, e = fixed
+                if axis > min(a_hi, cap):
+                    continue
             if not self.clears(left, right, axis, e, extent):
+                continue
+            interaction, member_flags = self.interaction(left, right, axis, e)
+            pair = self.pair_leaves(left, right)
+            if _gate_forbids(interaction, heavy, self.age_yr, () if pair is None else (pair[0].kind, pair[1].kind)):
                 continue
             flags = NODE_INTERACTED if law != "star" else 0
             if parent is not None:
@@ -716,11 +801,10 @@ class _Builder:
             break
         else:
             raise _Failed
-        interaction, member_flags = self.interaction(left, right, axis, e)
         for leaf_index, flag in member_flags.items():
             self.extra_flags[leaf_index] = self.extra_flags.get(leaf_index, 0) | flag
         node_no = len(self.nodes) + 1
-        kind = "compact" if law != "star" else "close" if axis < 50.0 else "wide"
+        kind = "compact" if law in ("compact-pair", "interacted") else "close" if axis < 50.0 else "wide"
         record = {"node_no": node_no, "parent_node_no": parent_no, "slot": slot, "mass_solar": total,
                   "separation_au": axis, "eccentricity": e, "inclination_deg": math.degrees(inclination),
                   "ascending_node_deg": math.degrees(node), "arg_periapsis_deg": math.degrees(arg),
@@ -785,6 +869,73 @@ def _shape(units, rng):
     return (_shape(items[:split], rng), _shape(items[split:], rng))
 
 
+STAR_TYPE_DRAWS = 6
+"""int: The uniforms a placed star's tree draws first, in a fixed order, for the close-binary types (GEN.270): the
+merger product, the Be star, its stripped companion, the mass gainer, the exotic star and the merger's rejuvenation."""
+
+
+def _young(age_yr):
+    return age_yr / 1.0e9 < tuning.YOUNG_POPULATION_MAX_AGE_GY
+
+
+def draw_merger_product(birth_mass_sol, age_yr, unit):
+    """
+    Whether a placed star is a merger product, and which (GEN.270, `massive-merger-product` and `blue-straggler-field` in
+    `SYSTEM_TYPE_RATES`; the shares are the `merger_product_fraction` knob): `massive` for a young star of
+    `tuning.MERGER_MASSIVE_MIN_MASS_SOL` or more (8%; its tree has one star fewer, the one it ate), `field` for any other
+    star of the intermediate and old populations (a blue straggler, 0.5%), else None. `unit` is one uniform.
+    """
+    shares = system_types.TUNING_KNOBS["merger_product_fraction"]
+    if birth_mass_sol >= tuning.MERGER_MASSIVE_MIN_MASS_SOL:
+        return "massive" if _young(age_yr) and unit < shares["massive"] else None
+    return "field" if not _young(age_yr) and unit < shares["field"] else None
+
+
+def draw_mass_gainer(birth_mass_sol, age_yr, unit):
+    """Whether a young massive star has gained mass from a companion (20%, `massive-merger-product`'s `mass_gainer`)."""
+    share = system_types.SYSTEM_TYPE_RATES["massive-merger-product"].by_class["mass_gainer"]
+    return birth_mass_sol >= tuning.MERGER_MASSIVE_MIN_MASS_SOL and _young(age_yr) and unit < share
+
+
+def draw_be_star(birth_mass_sol, age_yr, unit, stripped_unit):
+    """
+    `(be, stripped_companion)` for a placed star (GEN.270, `be-star`): a young B star is a Be star at the row's 20%, and
+    30% of Be stars have a stripped helium companion that spun them up. Two uniforms.
+    """
+    entry = system_types.SYSTEM_TYPE_RATES["be-star"]
+    if spectral_class(birth_mass_sol) != "B" or not _young(age_yr) or unit >= entry.default:
+        return False, False
+    return True, stripped_unit < entry.by_class["stripped_companion"]
+
+
+def draw_exotic_star(leaf_kind, age_yr, unit):
+    """
+    `r-crb`, `fk-comae`, `thorne-zytkow` or None for a placed star (GEN.270, `rcb-fk-comae` and `thorne-zytkow`): an old
+    giant is one of them at the type's Galaxy count over the old giants of the Galaxy (`tuning.OLD_GIANT_SYSTEM_SHARE` of
+    its systems, a stand-in), one uniform. A Thorne-Zytkow object is theoretical.
+    """
+    if leaf_kind != "giant" or age_yr / 1.0e9 < tuning.OLD_POPULATION_MIN_AGE_GY:
+        return None
+    rates = system_types.SYSTEM_TYPE_RATES
+    share = tuning.OLD_GIANT_SYSTEM_SHARE
+    chances = (("r-crb", system_types.fraction_of_systems("rcb-fk-comae") / share),
+               ("fk-comae", rates["rcb-fk-comae"].by_class["FK Comae"] / system_types.GALAXY_SYSTEMS / share),
+               ("thorne-zytkow", system_types.fraction_of_systems("thorne-zytkow") / share))
+    for kind, chance in chances:
+        if unit < chance:
+            return kind
+        unit -= chance
+    return None
+
+
+def _stripped_helium_leaf(be_birth_mass_sol, rng):
+    """A Be star's stripped helium companion: 0.3 to 0.5 solar masses, born heavier than the Be star it spun up."""
+    mass = rng.uniform(*tuning.BE_STRIPPED_COMPANION_MASS_RANGE_SOL)
+    progenitor = be_birth_mass_sol * rng.uniform(*tuning.BE_STRIPPED_PROGENITOR_RATIO_RANGE)
+    radius_sol = tuning.STRIPPED_HELIUM_RADIUS_SOL_AT_0_47 * (mass / 0.47) ** (-1.0 / 3.0)
+    return _Leaf("stripped-helium", None, mass, progenitor, radius_sol * constants.SOLAR_RADIUS_M / constants.AU_M)
+
+
 _DRAW_COMPANION = object()
 """object: The default of `draw_member_tree`'s `companion`: the tree draws the compact object's companion
 state itself."""
@@ -810,17 +961,43 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
     """The members and the shape units of a tree: `(leaves, units)`, leaf 0 being the placed object."""
     birth = placed.birth_mass_solar
     if placed.kind == "star":
-        leaf = _star_leaf(birth, age_yr, rng, lighten=False)
+        types = [rng.random() for _ in range(STAR_TYPE_DRAWS)]
+        merger = draw_merger_product(birth, age_yr, types[0])
+        be, stripped = draw_be_star(birth, age_yr, types[1], types[2])
+        effective_age = age_yr * (REJUVENATION_FRACTION_RANGE[0] + types[5] * (
+            REJUVENATION_FRACTION_RANGE[1] - REJUVENATION_FRACTION_RANGE[0])) if merger else None
+        leaf = _star_leaf(birth, effective_age or age_yr, rng, lighten=False)
         leaf.mass = placed.mass_solar if leaf.kind != "white-dwarf" else leaf.mass
+        leaf.effective_age_yr = effective_age
+        if merger:
+            leaf.flags |= MEMBER_MERGER_PRODUCT
+        if be:
+            leaf.flags |= MEMBER_BE
+        if draw_mass_gainer(birth, age_yr, types[3]):
+            leaf.flags |= MEMBER_MASS_GAINER
+        exotic = draw_exotic_star(leaf.kind, age_yr, types[4])
+        if exotic == "thorne-zytkow":
+            leaf.kind, leaf.state = "thorne-zytkow", None
+            leaf.flags |= MEMBER_THEORETICAL
+            return [leaf], [0]
+        if exotic is not None:
+            leaf.flags |= MEMBER_MERGER_PRODUCT | (MEMBER_R_CRB if exotic == "r-crb" else MEMBER_FK_COMAE)
         leaves, units = [leaf], [0]
         compact = (_bound_runaway_companion(placed, age_yr, rng) if bound_runaway
                    else _star_compact_companion(placed, age_yr, rng))
         if n_stars is None:
             count = _draw_star_count(birth, max_stars - (compact is not None), prevalence, rng)
+            if merger == "massive":
+                count = max(1, count - 1)
+            if stripped:
+                count = max(count, 2)
         else:
             count = max(1, min(n_stars, max_stars - (compact is not None)))
         for _ in range(count - 1):
             leaves.append(_star_leaf(_companion_mass(birth, rng), age_yr, rng))
+        if stripped and count >= 2:
+            leaves[1] = _stripped_helium_leaf(birth, rng)
+            leaf.flags |= MEMBER_MASS_GAINER
         if compact is not None:
             leaves.append(compact)
             units[0] = (0, len(leaves) - 1)
@@ -925,8 +1102,42 @@ def _assemble(leaves, builder, age_yr, dropped, rng):
         node_no, slot = where[leaf_index]
         members.append(Member(member_no=number[leaf_index], parent_node_no=node_no, slot=slot, kind=leaf.kind,
                               state=leaf.state, flags=leaf.flags | builder.extra_flags.get(leaf_index, 0), mass_solar=leaf.mass,
-                              initial_mass_solar=leaf.initial, radius_au=leaf.radius_au, seed=rng.getrandbits(63)))
+                              initial_mass_solar=leaf.initial, radius_au=leaf.radius_au, seed=rng.getrandbits(63),
+                              effective_age_yr=leaf.effective_age_yr))
     return MemberTree(tuple(members), tuple(nodes), age_yr, dropped)
+
+
+def _contact_pair_alone(leaves, builder, n_stars, rng):
+    """
+    The tree of a contact binary left without its other stars, or None (GEN.270, `contact-binary`'s `tertiary` share,
+    60% of contact binaries). The stability screen leaves the inner pair of a hierarchy only short periods, so 84% of the
+    contact binaries the draw makes have a tertiary, more than the catalogue's share. A tree with a contact pair that
+    holds the placed star keeps its other stars with the odds `tuning.CONTACT_TERTIARY_KEEP_SHARE`; otherwise the pair is
+    placed alone, on the orbit it was drawn on with its orientation redrawn (member 0 stays the placed object). Only for
+    a tree of stars and a count the draw chose (a forced count is a directive). None when the tree is kept or has no such
+    pair, else `(leaves, builder)` of the pair.
+    """
+    if n_stars is not None or len(leaves) < 3 or any(leaf.compact for leaf in leaves):
+        return None
+    contact = next((record for record in builder.nodes
+                    if record["interaction"] == "contact" and 0 in (record["left"], record["right"])), None)
+    if contact is None:
+        return None
+    if rng.random() < tuning.CONTACT_TERTIARY_KEEP_SHARE:
+        return None
+    pair = [leaves[0], leaves[contact["right"] if contact["left"] == 0 else contact["left"]]]
+    shape = (0, 1)
+    fixed = {id(shape): (contact["period_years"] * 365.25, contact["separation_au"], contact["eccentricity"])}
+    for _ in range(TREE_RESTARTS):
+        alone = _Builder(pair, builder.age_yr, rng, fixed)
+        try:
+            alone.place(shape, None, 0, None)
+        except _Failed:
+            continue
+        if alone.clears_extents():
+            alone.finish()
+            return pair, alone
+    return None
 
 
 def rejuvenated_age_yr(age_yr, rng=draw):
@@ -943,7 +1154,7 @@ def mark_merger_product(member, age_yr, rng=draw):
 
 def _single(leaf, age_yr, dropped, rng):
     member = Member(0, None, 0, leaf.kind, leaf.state, leaf.flags, leaf.mass, leaf.initial, leaf.radius_au,
-                    rng.getrandbits(63))
+                    rng.getrandbits(63), leaf.effective_age_yr)
     return MemberTree((member,), (), age_yr, dropped)
 
 
@@ -987,6 +1198,9 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=No
             if not builder.clears_extents():
                 continue
             builder.finish()
+            alone = _contact_pair_alone(leaves, builder, n_stars, rng)
+            if alone is not None:
+                leaves, builder = alone
             return _assemble(leaves, builder, age_yr, dropped, rng)
         loose = [u for u in units[1:] if isinstance(u, int)]
         if loose:

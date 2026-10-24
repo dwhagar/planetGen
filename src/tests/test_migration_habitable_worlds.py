@@ -13,6 +13,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability
 from planetgen.util import draw
+from tests.test_migration_parent_link import undo_parent_link
 
 pytestmark = pytest.mark.fresh_database
 
@@ -119,6 +120,13 @@ def test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds(mysql
     # make it a v138 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
+        for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor, DROP COLUMN albedo_basis,"
+                         " ALGORITHM=COPY")    # v142
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN c_k0_ppm, DROP COLUMN c_th0_ppm, DROP COLUMN c_u0_ppm,"
+                         " DROP COLUMN al26_ratio, DROP COLUMN urey_ratio, ALGORITHM=COPY")    # v141
+        undo_parent_link(conn)    # v140
         conn.execute("ALTER TABLE sector_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")
         conn.execute("ALTER TABLE galaxy_block_stats DROP COLUMN habitable_worlds, ALGORITHM=COPY")
         conn.execute("UPDATE alembic_version SET version_num = '0138'")

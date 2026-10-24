@@ -57,7 +57,7 @@ def test_the_gear_clause_and_the_equipment_line_name_the_same_items():
         levels = equipment.compute(world)
         clause = protection.rating(world)["gear"]
         line = equipment.line(levels)
-        assert bool(clause) == bool(line)
+        assert clause == " ".join(line for line in equipment.lines(levels) if line)
         for name in equipment.required_names(levels) + equipment.recommended_names(levels):
             assert name in clause and name in line, (name, clause, line)
 
@@ -135,3 +135,33 @@ def test_no_quantity_in_the_describer_is_written_with_a_raw_format():
             if raw.search(line) and not any(word in line for word in allowed):
                 offenders.append(f"{path.name}:{number}: {line.strip()}")
     assert not offenders, "\n".join(offenders)
+
+
+def test_every_scored_body_has_both_equipment_lines_and_its_per_item_specs_in_its_details():
+    """UX.163: the Required and Recommended lines head the ratings, the facts table names each item's severity, category
+    and tech level, and the two agree with the equipment line of the stored levels."""
+    seen = 0
+    for seed in range(8):
+        draw.set_run_seed(seed)
+        config = SystemConfig()
+        config.MOONS = True
+        system = StarSystem(system_config=config)
+        document = describe.describe(system)
+        by_name = {section["title"]: section for section in model.sections(document)}
+        for body in _rocky_bodies(system):
+            if body.body_type == "g" or body.habitability_world() is None:
+                continue
+            blocks = by_name[body.name]["blocks"]
+            ratings = next(block for block in blocks if block["type"] == "ratings")
+            gear = describe.quantity.inline_text(ratings["gear"])
+            assert gear == " ".join(line for line in equipment.lines(equipment.compute(body.habitability_world()[0])) if line)
+            levels = equipment.compute(body.habitability_world()[0])
+            table = next((block for block in blocks if block["type"] == "facts" and block["caption"] == "Survival equipment"), None)
+            names = equipment.required_names(levels) + equipment.recommended_names(levels)
+            if names:
+                rows = [describe.quantity.inline_text(row["value"]).lower() for row in table["rows"]]
+                assert all(any(row.startswith(name + ":") for row in rows) for name in names), (body.name, names, rows)
+            else:
+                assert table is None
+            seen += 1
+    assert seen > 0

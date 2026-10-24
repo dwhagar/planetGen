@@ -1423,6 +1423,8 @@
 --   (`prevalence_multi_star`), so a stored config regenerates with the same count.
 -- v135 (GEN.413): `planets.ozone_column_du` and `moons.ozone_column_du`, the ozone column in Dobson units (NULL for a gas giant and for a row made before v135; 0 with no oxygen),
 --   drawn from the oxygen and the star's temperature (`physics/ozone.py`); the UV index reads it.
+-- v137 (GEN.412): `planets` and `moons` keep the Bond albedo (`bond_albedo`) and the greenhouse quantity (`greenhouse_factor`, G = (T_s / T_e)^4 - 1) their surface temperature is made of,
+--   and `albedo_basis` (0 recorded at generation, 1 the exact inverse of a row saved without them, 2 a seeded class draw where the inverse had no solution).
 --
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
@@ -2158,7 +2160,7 @@ CREATE TABLE IF NOT EXISTS planets (
     life_chemical             VARCHAR(64),
     flavor_text_count         INT NOT NULL DEFAULT 0,
     life_stage                VARCHAR(32),      -- v110 (DB.50): a MILESTONE_KEYS key, NULL before any milestone
-    evolutionary_pace         VARCHAR(16),      -- v110: the pace life evolves at (fast, normal, slow), drawn once, set with any life chemistry (v142)
+    evolutionary_pace         VARCHAR(16),      -- v110: the pace life evolves at (fast, normal, slow), drawn once, set with any life chemistry (v143)
     life_milestone_age_gyr    DOUBLE,           -- v110: the age of that milestone, Gy
     life_system_age_gyr       DOUBLE,           -- v110: the age of the system the timeline was written at, Gy
     flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
@@ -2304,6 +2306,9 @@ CREATE TABLE IF NOT EXISTS planets (
     c_u0_ppm                    DOUBLE,  -- v141: uranium, the same
     al26_ratio                  DOUBLE,  -- v141: 26Al/27Al at formation
     urey_ratio                  DOUBLE,  -- v141: the radiogenic share of the heat flowing out, today
+    bond_albedo                 DOUBLE NULL,  -- v142 (GEN.412): the Bond albedo drawn for the temperature
+    greenhouse_factor           DOUBLE NULL,  -- v142: the greenhouse quantity G (T_s = T_e (1 + G)^(1/4)), 0 for no air
+    albedo_basis                TINYINT UNSIGNED NULL,  -- v142: 0 recorded at generation, 1 exact inverse of a stored row, 2 seeded class draw
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2383,7 +2388,7 @@ CREATE TABLE IF NOT EXISTS moons (
     life_chemical             VARCHAR(64),
     flavor_text_count         INT NOT NULL DEFAULT 0,
     life_stage                VARCHAR(32),      -- v110 (DB.50): a MILESTONE_KEYS key, NULL before any milestone
-    evolutionary_pace         VARCHAR(16),      -- v110: the pace life evolves at (fast, normal, slow), drawn once, set with any life chemistry (v142)
+    evolutionary_pace         VARCHAR(16),      -- v110: the pace life evolves at (fast, normal, slow), drawn once, set with any life chemistry (v143)
     life_milestone_age_gyr    DOUBLE,           -- v110: the age of that milestone, Gy
     life_system_age_gyr       DOUBLE,           -- v110: the age of the system the timeline was written at, Gy
     flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
@@ -2520,6 +2525,9 @@ CREATE TABLE IF NOT EXISTS moons (
     c_u0_ppm                    DOUBLE,  -- v141: uranium, the same
     al26_ratio                  DOUBLE,  -- v141: 26Al/27Al at formation
     urey_ratio                  DOUBLE,  -- v141: the radiogenic share of the heat flowing out, today
+    bond_albedo                 DOUBLE NULL,  -- v142 (GEN.412): the Bond albedo drawn for the temperature
+    greenhouse_factor           DOUBLE NULL,  -- v142: the greenhouse quantity G (T_s = T_e (1 + G)^(1/4)), 0 for no air
+    albedo_basis                TINYINT UNSIGNED NULL,  -- v142: 0 recorded at generation, 1 exact inverse of a stored row, 2 seeded class draw
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

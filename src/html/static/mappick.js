@@ -254,98 +254,62 @@ export function pageLink(href, label, className) {
 // - hint: a hint paragraph at the bottom.
 // hint(text, keep) shows a hint alone, or (keep) under what is there.
 //
-// Where the panel names an overlay (`data-infobox="<id>"` on the aside, or
-// several ids, one for each viewport the panel serves: an element inside the
-// map's viewport), the same spec is also shown
-// there as a small box over the map, when the map has room (MAP.139): the
-// title, its first few rows and the View button, a Details button that
-// takes the reader to the panel and a Close button. It is this component's
-// own rendering of the spec, so no map keeps a copy of it.
-//
-// A panel with `data-overlay` (the Galaxy Map's) is not shown twice: it sits inside
-// the map's window, and style.css lays it over the map, in the corner farthest from
-// where the reader last pressed (`data-corner`), when the window has room, and
-// under the map when it has not (MAP.256). `data-state` is "rest" (the hint
-// only, not drawn over the map), "selected" or "closed" (the reader pressed Close,
-// drawn over the map only).
-export const BOX_FIELDS = 4;
-export const BOX_MIN_WIDTH = 480;
-export const BOX_MIN_HEIGHT = 320;
-
+// The panel is a popup inside the map's window, never a column beside it (MAP.256, MAP.288): the aside carries
+// `data-overlay`, optionally naming (by id, space separated) the viewports it can sit in (the System Map has one
+// for its diagram and one for its 3D view; the panel moves into the one that is showing), else the one it is in.
+// style.css lays it over the map, in the corner farthest from where the reader last pressed (`data-corner`).
+// `data-state` is "rest" (nothing picked, not drawn), "selected" or "closed" (the reader pressed Close).
+// `reveal()` draws what a map wrote into the panel itself (a measurement) as the popup.
 export function createInfoPanel(panelEl) {
-  const boxEls = (panelEl && panelEl.dataset && panelEl.dataset.infobox ? panelEl.dataset.infobox.split(/\s+/) : [])
-    .map(function (id) { return document.getElementById(id); }).filter(Boolean);
-  const overlayHost = panelEl && panelEl.hasAttribute("data-overlay") ? panelEl.parentElement : null;
-  let boxShown = false; // there is a selection the box could show
-  let boxClosed = false; // the reader closed the box for this selection
+  const hostIds = panelEl && panelEl.hasAttribute("data-overlay") ? (panelEl.dataset.overlay || "").split(/\s+/).filter(Boolean) : null;
+  const hosts = !panelEl || !hostIds ? [] : (hostIds.length
+    ? hostIds.map(function (id) { return document.getElementById(id); }).filter(Boolean) : [panelEl.parentElement]);
+  const overlay = hosts.length > 0;
 
-  // Whether the map is big enough for a box over it.
-  function roomForBox(boxEl) {
-    const viewport = boxEl.parentElement;
-    return !!viewport && viewport.clientWidth >= BOX_MIN_WIDTH && viewport.clientHeight >= BOX_MIN_HEIGHT;
-  }
-
-  function refreshBox() {
-    boxEls.forEach(function (boxEl) { boxEl.hidden = !(boxShown && !boxClosed && roomForBox(boxEl)); });
-  }
-
-  // The corner of the map farthest from where the reader last pressed on it, so the box does not cover what was just
+  // The corner of the map farthest from where the reader last pressed on it, so the popup does not cover what was just
   // picked (top right until the pointer has been used).
   let pressed = null;
-  if (overlayHost) {
-    panelEl.dataset.state = "rest";
-    overlayHost.addEventListener("pointerdown", function (event) {
+  hosts.forEach(function (host) {
+    host.addEventListener("pointerdown", function (event) {
       if (panelEl.contains(event.target)) return;
-      const rect = overlayHost.getBoundingClientRect();
-      pressed = { x: (event.clientX - rect.left) / (rect.width || 1), y: (event.clientY - rect.top) / (rect.height || 1) };
-    }, true);
-  }
-  boxEls.forEach(function (boxEl) {
-    const viewport = boxEl.parentElement;
-    if (!viewport) return;
-    viewport.addEventListener("pointerdown", function (event) {
-      const rect = viewport.getBoundingClientRect();
+      const rect = host.getBoundingClientRect();
       pressed = { x: (event.clientX - rect.left) / (rect.width || 1), y: (event.clientY - rect.top) / (rect.height || 1) };
     }, true);
   });
+  if (overlay) {
+    panelEl.dataset.state = "rest";
+    // What happens in the popup is not the map's to handle: a click on its buttons is not a click on the map.
+    ["pointerdown", "mousedown", "click", "dblclick", "wheel", "touchstart"].forEach(function (type) {
+      panelEl.addEventListener(type, function (event) { event.stopPropagation(); }, { passive: true });
+    });
+  }
 
-  function placeBox(boxEl) {
+  // The popup sits in the viewport that is showing, in the corner away from the last press.
+  function place() {
+    const host = (hosts.length > 1 && hosts.find(function (h) { return h.getClientRects().length > 0; })) || hosts[0];
+    if (panelEl.parentElement !== host) host.appendChild(panelEl);
     const left = pressed && pressed.x > 0.5 ? "left" : "right";
     const top = pressed && pressed.y > 0.5 ? "top" : (pressed ? "bottom" : "top");
-    boxEl.dataset.corner = top + "-" + left;
+    panelEl.dataset.corner = top + "-" + left;
+    panelEl.dataset.state = "selected";
   }
 
-  if (typeof ResizeObserver === "function") {
-    boxEls.forEach(function (boxEl) {
-      if (boxEl.parentElement) new ResizeObserver(refreshBox).observe(boxEl.parentElement);
-    });
-  }
-
-  function boxContent(boxEl, spec) {
-    boxEl.textContent = "";
-    boxEl.appendChild(el("h3", null, spec.title || "Unknown"));
-    const rows = (spec.fields || []).filter(function (field) { return field[1] != null && field[1] !== ""; })
-      .slice(0, BOX_FIELDS);
-    if (rows.length) {
-      const dl = document.createElement("dl");
-      rows.forEach(function (field) { addField(dl, field[0], field[1]); });
-      boxEl.appendChild(dl);
-    }
-    const row = el("p", "page-actions map-info-actions");
-    if (spec.view) row.appendChild(pageLink(spec.view.href, spec.view.label, "btn btn-small map-info-view"));
-    const details = el("button", "btn btn-small btn-secondary map-info-details", "Details");
-    details.type = "button";
-    details.addEventListener("click", function () {
-      panelEl.scrollIntoView({ block: "nearest" });
-      panelEl.tabIndex = -1;
-      panelEl.focus();
-    });
-    row.appendChild(details);
+  function closeButton() {
     const close = el("button", "btn btn-small btn-secondary map-info-close", "Close");
     close.type = "button";
-    close.addEventListener("click", function () { boxClosed = true; refreshBox(); });
-    row.appendChild(close);
-    boxEl.appendChild(row);
+    close.addEventListener("click", function () { panelEl.dataset.state = "closed"; });
+    return close;
+  }
+
+  // Draws what a map wrote into the panel itself (the System Map's measurement) as the popup, with its Close.
+  function reveal() {
+    if (!overlay) return;
+    place();
+    if (!panelEl.querySelector(".map-info-close")) {
+      const row = el("p", "page-actions map-info-actions");
+      row.appendChild(closeButton());
+      panelEl.appendChild(row);
+    }
   }
 
   let bookmarkButton = null;
@@ -388,12 +352,7 @@ export function createInfoPanel(panelEl) {
       node.addEventListener("click", button.onClick);
       row.appendChild(node);
     });
-    if (overlayHost) {
-      const close = el("button", "btn btn-small btn-secondary map-info-close", "Close");
-      close.type = "button";
-      close.addEventListener("click", function () { panelEl.dataset.state = "closed"; });
-      row.appendChild(close);
-    }
+    if (overlay) row.appendChild(closeButton());
     if (row.childNodes.length) panelEl.appendChild(row);
   }
 
@@ -401,10 +360,7 @@ export function createInfoPanel(panelEl) {
     if (!panelEl) return;
     panelEl.textContent = "";
     bookmarkEntry = null;
-    if (overlayHost) {
-      placeBox(panelEl);
-      panelEl.dataset.state = "selected";
-    }
+    if (overlay) place();
     panelEl.appendChild(el("h3", null, spec.title || "Unknown"));
     if (spec.fields && spec.fields.length) {
       const dl = document.createElement("dl");
@@ -415,12 +371,6 @@ export function createInfoPanel(panelEl) {
     actions(spec);
     if (spec.generate) panelEl.appendChild(spec.generate);
     if (spec.hint) hint(spec.hint, true);
-    if (boxEls.length) {
-      boxEls.forEach(function (boxEl) { placeBox(boxEl); boxContent(boxEl, spec); });
-      boxShown = true;
-      boxClosed = false;
-      refreshBox();
-    }
   }
 
   function hint(text, keep) {
@@ -428,14 +378,12 @@ export function createInfoPanel(panelEl) {
     if (!keep) {
       panelEl.textContent = "";
       bookmarkEntry = null;
-      boxShown = false;
-      refreshBox();
-      if (overlayHost) panelEl.dataset.state = "rest";
+      if (overlay) panelEl.dataset.state = "rest";
     }
     panelEl.appendChild(el("p", "hint", text));
   }
 
-  return { show: show, hint: hint, element: panelEl };
+  return { show: show, hint: hint, reveal: reveal, element: panelEl };
 }
 
 // The one info panel for `panelEl` (so its ☆ button is made once), or

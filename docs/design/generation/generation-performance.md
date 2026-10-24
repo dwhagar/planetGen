@@ -284,6 +284,21 @@ kept galaxy of the same build (`plan`, the three scatters and the band run one b
   `CREATE OR REPLACE VIEW`), 861 times over the band step, about 130 s of server time. The suite's `--keep` is accepted but the
   scratch databases are dropped on success (so a kept galaxy has to be built command by command, as here).
 
+## Storing the galaxy shape (PERF.176)
+
+Boss's plan log showed "storing the shape" as 19.99 s of a 38.63 s plan (51.8 percent). `save_galaxy_shape` writes one row; what
+took the time is the generator battery's digest, which a plan with a new seed records with the galaxy (DB.6, OPS.58):
+`generator_battery.running_digest()`, seven canned cases, no database, 9.0 s on the 4-CPU test box under load (about 5 s idle),
+paid in the middle of the store. A plan on a free box spent 8.25 s of 15.27 s there (54 percent), the rest being the component field
+(1.5 s), the report lines (1.0 s), the shape (0.9 s), the containers (0.8 s) and the clusters and satellites (0.7 s).
+
+The battery uses nothing of the process that runs it, so the plan starts it in a process of its own as soon as the seed is settled
+(`generator_battery.start_running_digest`, a `spawn` process) and waits for the result just before the store, when it has run for
+the whole of the plan's other work. The plan then spent 0.65 s waiting and 0.01 s storing, the digest the same one (a test
+compares it with the one made in-process). A plan that keeps its stored seed starts nothing. If the process cannot be had the digest
+is worked out where it is asked for, as before. No stored value changes, so no generator epoch. The steps after it (the component
+field, the clusters and satellites, the containers) are 1 to 3 s each and were left as they are.
+
 ## The link and settle stages in units (PERF.113, PERF.114, PERF.115)
 
 Measured on the kept `medium` galaxy with `planetgen galaxy --shell 100 --limit 100 --population` (100 sectors, 3,370

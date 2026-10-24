@@ -488,7 +488,6 @@ The HTML pages (see [html-interface.md](../../reference/html-interface.md)). `te
 | [`galaxy_status_page.py`](../../../src/planetgen/web/galaxy_status_page.py) | `/galaxy-status` (UX.3): public JSON saying whether a background run is changing the galaxy, which `static/galaxybanner.js` polls every 30 s. |
 | [`nav_page.py`](../../../src/planetgen/web/nav_page.py) | `/nav`: pick two endpoints, show course, route and NAV map, with "Show on Galaxy Map" (`galaxy_course` builds the course's waypoints for `/galaxy?course=`). |
 | [`nearby_page.py`](../../../src/planetgen/web/nearby_page.py) | The What's nearby page, `/nearby` (NAV.44): pick a place, type a distance in parsecs, list what is there. |
-| [`old_urls.py`](../../../src/planetgen/web/old_urls.py) | 301 redirects from the old CGI `/<name>.py` URLs. |
 | [`population_pages.py`](../../../src/planetgen/web/population_pages.py) | The population pages (POP.1 to POP.4), read from the population API (`api/population.py`, schema v44): |
 | [`queue_page.py`](../../../src/planetgen/web/queue_page.py) | The admin work queue page (ADM.10): `/admin/queue` lists the job trees newest first, `/admin/queue/<id>` shows one. |
 | [`searchpage.py`](../../../src/planetgen/web/searchpage.py) | Search page request parsing and URL building. |
@@ -587,7 +586,6 @@ The map panels and their data.
 | `datatable.js` | The site's data table (UX.41), taking over the table a list page rendered (partials/datatable.html, web/lib/datatable.py). |
 | `datatablestate.js` | The data table's logic without the page (UX.41): the query a state turns into, which pages the visible rows need, and the store that keeps the pages already fetched. |
 | `dialogmenus.js` | What picking a menu item does: opens a dialog or goes to a page (UX.26, UX.27, UX.31). |
-| `headersearch.js` | Puts the cursor in the header's search box when its button drops it down (UX.146). |
 | `facilityform.js` | The system page's "Place a facility" form (web/templates/system.html, web/system_facilities.py). |
 | `galaxysystem.js` | A star system opened in place on the Galaxy Map (MAP.125), using `systemview3d.js` at the system's position. |
 | `galaxytilecut.js` | The tiles the Galaxy Map fetches for a camera, chosen by distance (MAP.152). |

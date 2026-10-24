@@ -7,7 +7,6 @@ old `search.py` URL that now redirects to it. Same fake data layer as
 """
 
 import re
-from urllib.parse import urlencode
 
 import pytest
 
@@ -237,28 +236,10 @@ def test_no_results_message(client, fake):
     assert "No sectors, systems, stars, planets or moons match." in html
 
 
-def test_header_search_box_submits_to_search(client, fake):
-    html = client.get("/").get_data(as_text=True)
-    assert '<form class="site-search" role="search" method="get" action="/search">' in html
-    assert 'name="q" placeholder="Search names"' in html
-
-
-# --- Old CGI URL -----------------------------------------------------------------------
-
-def test_old_search_url_redirects_with_every_filter(client):
-    result = client.get("/search.py?" + urlencode([
-        ("db", "x"), ("system_q", "Kepler 42"), ("spectral", "G"), ("spectral", "K"), ("sector_q", ""),
-        ("planet_min_radius_km", "100"), ("stars_page", "3"),
-    ]))
-    assert result.status_code == 301
-    assert result.headers["Location"] == \
-        "/search?system_q=Kepler+42&spectral=G&spectral=K&planet_min_radius_km=100&stars_page=3"
-
-
-def test_old_search_url_without_params(client):
-    result = client.get("/search.py?db=x")
-    assert result.status_code == 301
-    assert result.headers["Location"] == "/search"
+def test_the_header_search_icon_links_to_search(client, fake):
+    """UX.160: the header's search icon is a link to this page, and this page leaves it out."""
+    assert 'class="site-search-link" name="search" label="Search" title="Search" href="/search"' in client.get("/").get_data(as_text=True)
+    assert "site-search-link" not in client.get("/search").get_data(as_text=True)
 
 
 # --- Real database, in-process ---------------------------------------------------------

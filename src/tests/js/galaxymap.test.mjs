@@ -240,14 +240,6 @@ test("clampZoom keeps the distance between 1/8 and 2.5 times the fit", () => {
   assert.equal(SV.MAX_ZOOM, 2.5);
 });
 
-test("clampPan pulls the view's middle back onto the reach sphere", () => {
-  const fit = [10, 20, 30];
-  assert.deepEqual(SV.clampPan([11, 20, 30], fit, 5), [11, 20, 30], "inside the reach: untouched");
-  const pulled = SV.clampPan([10 + 30, 20 + 40, 30], fit, 5);
-  assert.ok(Math.abs(pulled[0] - 13) < 1e-9 && Math.abs(pulled[1] - 24) < 1e-9 && pulled[2] === 30, String(pulled));
-  assert.deepEqual(SV.clampPan([10, 20, 30], fit, 0), [10, 20, 30]);
-});
-
 test("sectorDesignation packs like Python's provisional_sector_designation", () => {
   assert.ok(F.designations.length > 50);
   for (const d of F.designations) {
@@ -639,17 +631,33 @@ test("the wheel zooms a free stage, within 1/8 to 2.5 times its fit", async () =
   assert.ok(Math.abs(lastCamera(m).dist - fit * SV.MIN_ZOOM) < 1e-6 * fit);
 });
 
-test("the wheel past the end of a window's zoom goes on into the block under the pointer, and out to the parent (MAP.152)", async () => {
+test("the wheel past the end of a window's zoom goes on into the block under the pointer, with no stop and no flight (MAP.152, MAP.263)", async () => {
   const m = await freeStage();
   const fit = lastCamera(m).dist;
   const wheel = (deltaY, deltaMode, at) => m.view.onWheel(new FakeEvent("wheel", Object.assign({ deltaY, deltaMode: deltaMode || 0 }, at || {})));
   for (let n = 0; n < 100 && lastCamera(m).dist > fit * SV.MIN_ZOOM * (1 + 1e-6); n++) wheel(-3, 1);
   assert.equal(m.view.stage().win.centre.m, 81, "still in the window at its closest");
+  const at = lastCamera(m);
   wheel(-3, 1);
+  await arrive(m);
   assert.equal(m.view.stage().win.centre.m, 27, "one tick more takes the block: the window one size down");
-  // A glide of further ticks only zooms: one stage a gesture.
-  for (let n = 0; n < 10; n++) wheel(-3, 1);
-  assert.equal(m.view.stage().win.centre.m, 27);
+  const after = lastCamera(m);
+  assert.deepEqual(after.quaternion, at.quaternion, "the turn is not reset");
+  assert.ok(Math.abs(after.dist - at.dist) < 1e-9 * at.dist, "nor the distance");
+  assert.deepEqual(after.target, at.target, "nor the middle");
+  // No gesture gate: the ticks go on at once, down to the closest of the new window, and across the next.
+  for (let n = 0; n < 200 && m.view.stage().win.centre.m === 27; n++) {
+    wheel(-3, 1);
+    await arrive(m);
+  }
+  assert.equal(m.view.stage().win.centre.m, 9, "a glide of ticks runs on across the next stage too");
+  // And back out, tick after tick, to the parent window.
+  for (let n = 0; n < 400 && m.view.stage().win.centre.m < 81; n++) {
+    wheel(3, 1);
+    await arrive(m);
+  }
+  assert.ok(m.view.stage().win.centre.m >= 81, "out the same way");
+  assert.deepEqual(lastCamera(m).quaternion, at.quaternion, "the turn kept all the way");
 });
 
 test("the wheel zooms toward the point under the pointer, which stays under it (MAP.225)", async () => {
@@ -702,7 +710,7 @@ test("dragging turns a free stage any way, past edge-on and under the plane (MAP
   assert.deepEqual(m.view.stage(), stage, "a drag picks nothing");
 });
 
-test("right-dragging moves a free stage, no further than 1.5 fits", async () => {
+test("right-dragging moves a free stage anywhere (MAP.263: no pan clamp)", async () => {
   const m = await freeStage();
   const fit = lastCamera(m);
   m.view.onPointerDown(new FakeEvent("pointerdown", { clientX: 400, clientY: 300, pointerId: 1, button: 2, pointerType: "mouse" }));
@@ -713,8 +721,7 @@ test("right-dragging moves a free stage, no further than 1.5 fits", async () => 
   const off = Math.hypot(moved.target[0] - fit.target[0], moved.target[1] - fit.target[1], moved.target[2] - fit.target[2]);
   const vertical = THREE.MathUtils.degToRad(FOV) / 2;
   const half = Math.min(vertical, Math.atan(Math.tan(vertical) * (WIDTH / HEIGHT)));
-  const reach = SV.PAN_REACH * fit.dist * Math.tan(half);
-  assert.ok(off > 0.9 * reach && off <= reach * (1 + 1e-9), `moved ${off} of ${reach}`);
+  assert.ok(off > 1.5 * fit.dist * Math.tan(half), `moved ${off}: past where the clamp held it`);
   assert.deepEqual(moved.quaternion, fit.quaternion, "moving doesn't turn");
   m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 8400, clientY: 300, pointerId: 1, button: 2, pointerType: "mouse" }));
 });

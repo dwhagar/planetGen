@@ -25,7 +25,7 @@ import math
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import aerosols, atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation, radiogenic
+from planetgen.physics import aerosols, atmosphere, climate_draws, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation, radiogenic
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -201,6 +201,7 @@ class Planet(PlanetaryObject):
         "min_update_interval_years",
         "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
         *atmosphere.ATMOSPHERE_FIELDS,
+        *climate_draws.CLIMATE_FIELDS,
         *magnetism.BODY_FIELDS,
         *hydrosphere.HYDROSPHERE_FIELDS,
         *radiogenic.BODY_FIELDS,

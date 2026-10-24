@@ -11,7 +11,8 @@ from planetgen.generation import multistar
 from planetgen.physics import planet_zones as pz
 from planetgen.physics.orbits import (
     hill_radius_in_pair_au, holman_wiegert_circumbinary_a_crit_au, holman_wiegert_critical_semimajor_axis)
-from planetgen.physics.system_tree import AU_KM, OrbitNode, TreeMember
+from planetgen.physics.constants import AU_TO_KM as AU_KM
+from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.util import draw
 
 
@@ -150,8 +151,9 @@ def test_the_share_of_stars_with_an_s_type_window_falls_as_the_design_table_says
 
 # GEN.543: "usable" is a width above 0.3 AU, as for the S-type row; the design table's own row (34% falling to 18%) was
 # an earlier estimate that neither of two candidate definitions reproduced (docs/design/systems/multistar-and-compact-systems.md 5.6).
-MEASURED_P_TYPE = {2: 0.45, 3: 0.48, 4: 0.43, 5: 0.37, 6: 0.35, 7: 0.30}
-"""dict: Pair nodes with a P-type window above 0.3 AU, by number of stars, on the same seeded draw."""
+MEASURED_P_TYPE = {2: 0.45, 3: 0.48, 4: 0.43, 5: 0.40, 6: 0.35, 7: 0.33}
+"""dict: Pair nodes with a P-type window above 0.3 AU, by number of stars, on the same seeded draw (5 and 7 were re-measured
+after GEN.270 weighted the tight tail of the period law)."""
 
 
 @pytest.mark.parametrize("stars", sorted(MEASURED_P_TYPE))

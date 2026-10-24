@@ -40,7 +40,7 @@ def test_there_are_seven_symbols_six_domains_and_the_overall():
     assert set(symbols.LABELS) == set(symbols.SHAPES) == set(symbols.SPRITE_IDS) == set(symbols.SYMBOL_NAMES)
 
 
-def test_every_symbol_is_in_the_sprite_as_an_outline_drawn_in_the_text_colour():
+def test_every_symbol_is_in_the_sprite_as_a_solid_shape_in_the_text_colour():
     sprite = _sprite()
     for name, sprite_id in symbols.SPRITE_IDS.items():
         symbol = sprite[sprite_id]
@@ -49,7 +49,7 @@ def test_every_symbol_is_in_the_sprite_as_an_outline_drawn_in_the_text_colour():
         assert shapes, name
         for shape in shapes:
             assert shape.get("fill") in (None, "currentColor"), name
-            assert shape.get("stroke") is None, f"{name} sets its own stroke, which would ignore the rating colour"
+            assert shape.get("stroke") in (None, "none"), f"{name} sets its own stroke, which would ignore the rating colour"
             assert "#" not in "".join(shape.attrib.values()), f"{name} has a fixed colour"
 
 
@@ -58,16 +58,17 @@ def test_the_shapes_are_the_ones_boss_drew():
 
     def tags(name):
         return [shape.tag.replace(SVG, "") for shape in sprite[symbols.SPRITE_IDS[name]]]
-    assert tags("radiation") == ["circle", "path"]
-    assert sprite["hab-radiation"].find(f"{SVG}path").get("d").count("M") == 3  # three arcs
+    assert tags("radiation") == ["circle", "path"]  # a trefoil: a dot and three blades
+    blades = sprite["hab-radiation"].find(f"{SVG}path")
+    assert blades.get("d").count("M") == 3  # three blades
     assert tags("temperature") == ["path", "path"]  # a triangle and its vertical line
-    assert tags("pressure") == ["rect", "path", "path"]  # a square and two triangles
-    assert tags("air") == ["path", "path"]  # a hexagon and three lines
-    assert sprite["hab-air"].findall(f"{SVG}path")[1].get("d").count("M") == 3
-    assert tags("water") == ["path", "circle"]  # a downward triangle and a circle
-    assert tags("suitability") == ["circle", "path", "circle"]  # a circle, a diamond and a dot
-    assert tags("overall") == ["circle", "path", "circle"]  # a ring, a triangle and a solid circle
-    assert sprite["hab-overall"].findall(f"{SVG}circle")[1].get("fill") == "currentColor"
+    assert tags("pressure") == ["path", "path", "path"]  # two triangles and a square
+    assert tags("air") == ["path"] and sprite["hab-air"][0].get("d").count("M") == 4  # a hexagon, three lines cut out
+    assert tags("water") == ["path"] and sprite["hab-water"][0].get("d").count("M") == 2  # a triangle, a circle cut out
+    assert tags("suitability") == ["path", "circle"]  # a disc with a diamond cut out, and a dot
+    assert tags("overall") == ["path", "path", "circle"]  # a ring, a triangle with a circle cut out, a solid circle
+    for name in ("air", "water", "suitability", "overall"):
+        assert sprite[symbols.SPRITE_IDS[name]][0].get("fill-rule") == "evenodd", name  # the cut-outs
 
 
 @pytest.mark.parametrize("name", symbols.SYMBOL_NAMES)
@@ -271,3 +272,32 @@ def test_an_equipment_item_name_reaches_its_row_and_a_stranger_reaches_the_secti
     assert symbols.equipment_anchor("Full-face gas filter") == "equipment-gas-filter"
     assert symbols.equipment_anchor("something new") == symbols.EQUIPMENT_FALLBACK
     assert symbols.help_link("<b>x</b>", None, "overall") == "<b>x</b>"
+
+
+def test_the_icon_outline_is_in_the_page_css_because_the_sprites_own_style_is_refused():
+    """The sprite is served under `default-src 'self'`, which blocks an inline <style> in it: an outline set only there
+    left every icon a solid black shape on the live site (Boss, 9:07 PM EDT 2026-10-23)."""
+    assert "<style" not in open(os.path.join(STATIC, "icons.svg"), encoding="utf-8").read()
+    css = _css()
+    rule = css[css.index("\n.icon {"):]
+    rule = rule[:rule.index("}")]
+    for declaration in ("fill: none;", "stroke: currentColor;", "stroke-width: 2;", "stroke-linecap: round;",
+                        "stroke-linejoin: round;"):
+        assert declaration in rule, declaration
+
+
+def test_a_symbol_is_a_solid_borderless_shape_a_little_transparent_over_the_page():
+    """Boss, 9:10 PM EDT 2026-10-23: no borders, the rating colour shaded by the page behind it in both themes."""
+    css = _css()
+    rule = css[css.index("\n.hab-symbol {"):]
+    rule = rule[:rule.index("}")]
+    for declaration in ("fill: currentColor;", "stroke: none;", "opacity: 0.8;"):
+        assert declaration in rule, declaration
+
+
+def test_a_life_symbol_is_solid_and_borderless_like_the_phi6_ones():
+    css = _css()
+    rule = css[css.index("\n.hab-life-shape {"):]
+    rule = rule[:rule.index("}")]
+    for declaration in ("fill: currentColor;", "stroke: none;", "opacity: 0.8;"):
+        assert declaration in rule, declaration

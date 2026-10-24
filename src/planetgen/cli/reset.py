@@ -57,6 +57,7 @@ import sys
 import pymysql
 
 from planetgen.cli.stage_progress import StageProgress
+from planetgen.db import dataversion
 from planetgen.db.store import (
     SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args, note_sector_deleted,
 )
@@ -196,6 +197,8 @@ def reset_database(config, dry_run=False, assume_yes=False):
         # This process starts fresh blocks (past every old one, since
         # id_blocks is kept); not needed for safety, just tidy.
         forget_id_blocks(config._key())
+        # The pages read the empty galaxy at once, not at the page cache's next look at the content stamp (UX.161).
+        dataversion.record(config.database, "everything")
         _purge_page_cache(config.database)
 
         print(f"Wiped {len(tables)} table(s) (about {total_rows:,} row(s)) from '{config.database}'.")

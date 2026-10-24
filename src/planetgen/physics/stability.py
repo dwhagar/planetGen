@@ -29,9 +29,12 @@ on an orbit `(a_in, e_in)` and an outer body `m3` on `(a_out, e_out)`, with
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
 
-_SOLAR_GM_OVER_C2_AU = constants.G * constants.SOLAR_MASS_TO_KG / constants.SPEED_OF_LIGHT_M_S ** 2 / constants.AU_M
+_m_to_au = units.converter("m", "au")
+_au_to_m = units.converter("au", "m")
+_s_to_yr = units.converter("s", "yr")
+_SOLAR_GM_OVER_C2_AU = _m_to_au(constants.G * constants.SOLAR_MASS_TO_KG / constants.SPEED_OF_LIGHT_M_S ** 2)
 """float: Half the Schwarzschild radius of the Sun, `G M / c^2`, in AU (9.87e-9)."""
 
 _PETERS_COEFFICIENT_S = (5.0 / 256.0) * constants.SPEED_OF_LIGHT_M_S ** 5 / constants.G ** 3
@@ -197,10 +200,10 @@ def peters_merger_time_yr(m1, m2, a_au, e=0.0):
     `(1 - e^2)^3.5` for an eccentric one (the approximate form, good to a
     factor of a few at high eccentricity).
     """
-    seconds = _PETERS_COEFFICIENT_S * (a_au * constants.AU_M) ** 4 / (
+    seconds = _PETERS_COEFFICIENT_S * _au_to_m(a_au) ** 4 / (
         (m1 * constants.SOLAR_MASS_TO_KG) * (m2 * constants.SOLAR_MASS_TO_KG)
         * ((m1 + m2) * constants.SOLAR_MASS_TO_KG))
-    return seconds * (1.0 - e ** 2) ** 3.5 / constants.SECONDS_PER_YEAR
+    return _s_to_yr(seconds * (1.0 - e ** 2) ** 3.5)
 
 
 def survives_gravitational_waves(m1, m2, a_au, e, age_yr):

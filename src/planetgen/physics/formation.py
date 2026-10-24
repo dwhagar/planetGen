@@ -11,9 +11,13 @@ nebula's surface density, and the isolation mass a planet can grow to.
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants as physical_constants
+from planetgen.physics import constants as physical_constants, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.checks import finite_domain
+
+
+_m_to_au = units.converter("m", "au")
+_au_to_m = units.converter("au", "m")
 
 
 @finite_domain()
@@ -35,7 +39,7 @@ def snow_line_au(luminosity_w):
     """
     distance_m = math.sqrt(luminosity_w / (16.0 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) \
         / physical_constants.SNOW_LINE_TEMPERATURE_K ** 2
-    return distance_m / physical_constants.AU_M
+    return _m_to_au(distance_m)
 
 
 def draw_snow_line_au(luminosity_w, stream=None):
@@ -148,7 +152,7 @@ def isolation_mass_kg(distance_au, surface_density_gcm2, star_mass_kg):
     Returns:
         float: The isolation mass, in kilograms.
     """
-    distance_m = distance_au * physical_constants.AU_TO_M
+    distance_m = _au_to_m(distance_au)
     surface_density_kgm2 = surface_density_gcm2 * 10  # 1 g/cm^2 = 10 kg/m^2
     b = tuning.MUTUAL_HILL_RADII_SEPARATION
     base = 2 * math.pi * b * surface_density_kgm2 * distance_m ** 2

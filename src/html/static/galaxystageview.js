@@ -93,28 +93,24 @@ export const ISO_TILT = Math.atan(Math.SQRT2);
 // (MAP.96: "rotate the contents of the galaxy map any direction any
 // amount"); zoom runs from MIN_ZOOM to MAX_ZOOM times the stage's own fit
 // (the whole galaxy: GALAXY_MIN_ZOOM, about twice as close, out to its
-// fit and no further, MAP.58), and the view's middle can't wander more
-// than PAN_REACH fits away.
+// fit and no further, MAP.58); the view's middle can go anywhere (MAP.263).
 const ROTATE_PER_PX = (0.4 * Math.PI) / 180;
 // Shift and an arrow key turn the view this far.
 const KEY_TURN = (5 * Math.PI) / 180;
 export const MIN_ZOOM = 1 / 8;
 export const MAX_ZOOM = 2.5;
-export const PAN_REACH = 1.5;
 export const GALAXY_MIN_ZOOM = 0.5;
 // An opened system zooms from its fit down to a moon, nine orders closer.
 export const SYSTEM_MIN_ZOOM = 1e-9;
 const WHEEL_ZOOM_PER_PX = 0.0025;
 // MAP.225: how close to the thing under the pointer a wheel step in leaves the eye, as a share of the view's distance.
 const ZOOM_CLEARANCE = 0.02;
-// A wheel move from a stage to the next (MAP.125) takes one gesture: this
-// long before another can, and a star counts as the one zoomed on when it is
-// within this share of the view's distance from its middle.
-const ACROSS_COOLDOWN_MS = 900;
-// ... and the next needs a new gesture: the wheel quiet for this long, so a
-// long scroll carries across one stage and stops there (MAP.152).
-const ACROSS_PAUSE_MS = 300;
+// A star counts as the one zoomed on when it is within this share of the view's distance from its middle.
 const NEAREST_STAR_REACH = 0.35;
+// MAP.263: the wheel carries on from one stage to the next with no stop and no flight: the next window's data is
+// asked for once the zoom is within this many times its range's end, and its blocks cross-fade in over this long.
+const PREFETCH_ZOOM = 3;
+const CROSS_FADE_MS = 350;
 
 // MAP.245: how near a star is to the pointer, in pixels, for the wheel to zoom toward it.
 const STAR_ANCHOR_PX = 14;
@@ -149,17 +145,6 @@ const CHARTED_LINE_OPACITY = 0.9;
 // fit ...
 export function clampZoom(dist, fitDist) {
   return MC.clampDistance(FREE_VIEW_ZOOM, dist, fitDist);
-}
-
-// ... and the view's middle no further than `reach` from the fit's
-// (`target` is moved back in place).
-export function clampPan(target, fitTarget, reach) {
-  const off = [target[0] - fitTarget[0], target[1] - fitTarget[1], target[2] - fitTarget[2]];
-  const far = Math.hypot(off[0], off[1], off[2]);
-  if (far > reach) {
-    for (let k = 0; k < 3; k++) target[k] = fitTarget[k] + (off[k] * reach) / far;
-  }
-  return target;
 }
 
 export function createStageView(host) {
@@ -1058,35 +1043,49 @@ export function createStageView(host) {
   }
 
   // Goes to stage `next` (carried on through any choice of one). push:
-  // record it in the browser history (default yes).
+  // record it in the browser history (default yes). keepCamera (MAP.263, the wheel carrying on from one stage to
+  // the next): the camera stays where it is, with its turn and its distance, and the next window's blocks cross-fade
+  // in once its data is here, with no flight; the stage is taken up then.
+  let keepNext = false;
   function go(next, options) {
     options = options || {};
     if (pinned) return;
     if (animation) finishAnimation();
+    if (crossFade) finishCross();
     const r = resolve(next);
     if (r.problem) {
       notice(r.problem);
       return;
     }
     notice("");
+    const keep = !!((options.keepCamera || keepNext) && view && display);
+    keepNext = false;
     if (entered) closeSector();
     if (!options.keepSector) selectedSector = null;
     const token = ++goToken;
     arriving = true;
-    const query = withKept(options.query || cameraQueryFor(r, options.camera || cameraFor(r)));
+    const query = withKept(options.query || cameraQueryFor(r, options.camera || (keep ? currentCamera() : cameraFor(r))));
     if (options.push !== false && (!S.sameStage(stage, r.stage) || withoutCam(query) !== withoutCam(location.search))) {
       pushEntry(query, r.stage);
     }
-    stage = r.stage;
-    resolved = r;
-    renderCrumbs();
-    renderTravel();
-    hover = null;
-    showTooltip("", 0, 0);
+    function takeUp() {
+      stage = r.stage;
+      resolved = r;
+      renderCrumbs();
+      renderTravel();
+      hover = null;
+      showTooltip("", 0, 0);
+    }
+    if (!keep) takeUp();
     loadData(S.holder(r.stage)).then(function () {
       if (!active || token !== goToken) return;
       if (animation) finishAnimation();
-      flyTo(r);
+      if (keep) {
+        takeUp();
+        crossTo(r);
+      } else {
+        flyTo(r);
+      }
     }).finally(function () {
       if (token === goToken) arriving = false;
     });
@@ -1145,6 +1144,43 @@ export function createStageView(host) {
     });
   }
 
+  // MAP.263: stage `r` takes over where the camera is: the camera (its middle, turn and distance) is not moved
+  // or reset, only its fit is the new window's, so the zoom is what keeps the distance; the old window's blocks
+  // fade out as the new one's fade in.
+  let crossFade = null;
+  function crossTo(r) {
+    closeAmbient();
+    const old = display;
+    const incoming = buildDisplay(r);
+    setWedgeClip(r);
+    setDisplayFade(incoming, 0);
+    display = incoming;
+    if (old) leaving.push(old);
+    const to = cameraFor(r);
+    const full = fitDistance(fitPointsOf(r), to.target, view.quat);
+    view.fit = to;
+    if (full > 0) view.zoom = view.dist / full;
+    applyView();
+    crossFade = { startedAt: performance.now(), duration: host.reducedMotion ? 0 : CROSS_FADE_MS, incoming: incoming, old: old };
+    if (!crossFade.duration) finishCross();
+  }
+
+  function stepCross(now) {
+    const c = crossFade;
+    const f = Math.min(1, (now - c.startedAt) / c.duration);
+    setDisplayFade(c.incoming, f);
+    if (c.old) setDisplayFade(c.old, 1 - f);
+    if (f >= 1) finishCross();
+  }
+
+  function finishCross() {
+    const c = crossFade;
+    crossFade = null;
+    if (!c) return;
+    setDisplayFade(c.incoming, 1);
+    afterArrival();
+  }
+
   function afterArrival() {
     leaving.forEach(function (d) { if (d && d !== display) disposeDisplay(d); });
     leaving = [];
@@ -1190,6 +1226,7 @@ export function createStageView(host) {
         applyView();
       }
     }
+    if (crossFade) stepCross(now);
     if (!animation) return;
     const a = animation;
     const t = a.duration > 0 ? Math.min(1, (now - a.startedAt) / a.duration) : 1;
@@ -1236,17 +1273,21 @@ export function createStageView(host) {
     }
   }
 
-  function up() {
+  function up(options) {
     if (pinned) return;
+    const keep = !!(options && options.keepCamera && view);
     if (enteredSystem) {
       // Out of the system, to the sector it sits in.
       closeSystem();
       pushEntry(withKept(sectorOpenQuery()));
       const back = cameraForSector(entered);
-      flyCamera(viewNow(), back, null, function () {
-        view = settledView(back);
-        applyView();
-      });
+      if (keep) keepFit(back, entered.fitPoints);
+      else {
+        flyCamera(viewNow(), back, null, function () {
+          view = settledView(back);
+          applyView();
+        });
+      }
       renderCrumbs();
       return;
     }
@@ -1255,16 +1296,30 @@ export function createStageView(host) {
       closeSector();
       pushEntry(withKept(sectorQuery(selectedSector, false)));
       const back = cameraFor(resolved);
-      flyCamera(viewNow(), back, null, function () {
-        view = settledView(back);
-        applyView();
-      });
+      if (keep) keepFit(back, fitPointsOf(resolved));
+      else {
+        flyCamera(viewNow(), back, null, function () {
+          view = settledView(back);
+          applyView();
+        });
+      }
       applyHover();
       renderCrumbs();
       renderTravel();
       return;
     }
+    keepNext = keep;
     selection.up();
+    keepNext = false;
+  }
+
+  // MAP.263: the camera stays as it is and `fit` (a stage's own camera, round `points`) becomes its fit: the zoom is
+  // what keeps the distance.
+  function keepFit(fit, points) {
+    const full = fitDistance(points, fit.target, view.quat);
+    view.fit = fit;
+    if (full > 0) view.zoom = view.dist / full;
+    applyView();
   }
 
   function home() {
@@ -1602,7 +1657,7 @@ export function createStageView(host) {
 
   // --- Acting on a choice ----------------------------------------------------
 
-  function act(index, at) {
+  function act(index, at, how) {
     if (!pickable(index)) return;
     const option = display.options[index];
     if (pinned) {
@@ -1618,13 +1673,13 @@ export function createStageView(host) {
       const record = sectorRecord(block);
       if (record && host.fetchSectorScene) {
         // Opened in place, unless it is the one open already (MAP.66).
-        if (!entered || entered.id !== record.id) enterSector(block, record, { push: true });
+        if (!entered || entered.id !== record.id) enterSector(block, record, { push: true, fly: !(how && how.keepCamera) });
         return;
       }
       if (!record && host.fetchUnchartedScene) {
         // Nothing generated here: what the scatters left in it still opens
         // (MAP.162); an empty cell is only selected, as below.
-        if (!isEnteredCell(block)) enterSector(block, null, { push: true });
+        if (!isEnteredCell(block)) enterSector(block, null, { push: true, fly: !(how && how.keepCamera) });
         return;
       }
       if (entered) closeSector();
@@ -1635,20 +1690,20 @@ export function createStageView(host) {
       renderTravel();
       return;
     }
-    takePick(option.pick, at);
+    takePick(option.pick, at, how);
   }
 
   // Takes `pick` (a cell) of the choices on screen: the window one size down,
   // centred on it. A choice is made on the stage that is DRAWN, not the one
   // `go` has already moved to while the next window's data loads: the cell
   // clicked is a cell of the drawn stage, whichever stage that is (MAP.107).
-  function takePick(pick, at) {
+  function takePick(pick, at, how) {
     if (pinned) return;
     const base = display && display.resolved ? display.resolved.stage : stage;
     // The window opens round the middle of what the click went through, not the face it met first.
     if (at) at = S.chordMiddle(pick.block.bounds || P.drillBlockBounds(pick.block, edgePc), at, host.camera.position);
     const into = S.windowInto(base, pick.block, at, edgePc);
-    if (into) go(into);
+    if (into) go(into, how);
   }
 
   function sectorOption(sector) {
@@ -2057,6 +2112,11 @@ export function createStageView(host) {
       const to = cameraForSystem(enteredSystem);
       const object = pendingObject;
       pendingObject = null;
+      if (options.fly === false) {
+        // MAP.263: opened where the camera is, by the wheel: no flight, the camera's turn and distance kept.
+        keepFit(to, enteredSystem.fitPoints);
+        return;
+      }
       flyCamera(viewNow(), to, null, function () {
         view = settledView(to);
         applyView();
@@ -2124,10 +2184,7 @@ export function createStageView(host) {
     } else {
       followBody = null;
       const perPx = worldUnitsPerPixel(camera, view.dist, canvasEl.clientHeight);
-      const fit = view.fit;
-      const reach = PAN_REACH * fit.dist * Math.tan(fovHalf());
       MC.panInScreenPlane(THREE, camera, view.target, dx, dy, perPx);
-      clampPan(view.target, fit.target, reach);
     }
     applyView();
   }
@@ -2238,9 +2295,7 @@ export function createStageView(host) {
     view.zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * asked, 1);
     reframe();
     const taken = before > 0 ? view.dist / before : 1;
-    const target = MC.targetAboutAnchor(view.target, anchor, taken);
-    clampPan(target, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
-    view.target = target;
+    view.target = MC.targetAboutAnchor(view.target, anchor, taken);
     applyView();
   }
 
@@ -2285,79 +2340,107 @@ export function createStageView(host) {
     return true;
   }
 
-  // MAP.125, MAP.152: the wheel carries the zoom from one stage to the next, in
-  // and out, so one scroll runs from the whole galaxy down to a system and back.
-  // Zoomed right in on a stage (the galaxy, a window), the block under the
-  // pointer (else the one at the middle of the view) is taken as a click would
+  // MAP.125, MAP.152, MAP.263: the wheel carries the zoom from one stage to the next, in
+  // and out, so one scroll runs from the whole galaxy down to a system and back, with no stop (no gesture
+  // gate: every tick at the end of a stage's range goes on), no flight and no reset of the turn or the zoom:
+  // the camera stays where it is and the next stage takes over round it (`go` with keepCamera, `crossTo`).
+  // Zoomed right in on a stage (the galaxy, a window), the block under the pointer
+  // (else the one at the middle of the view) is taken as a click would
   // take it: the window one size down, or the sector opened. Zoomed right in on
   // a sector, in goes the star picked, else the one nearest the middle of the
   // view (its system opens). Zoomed right out of a system, a sector or a window,
-  // out comes the sector, the stage or the parent window. The two ends are
-  // far apart in zoom (a new stage starts at its fit, between MIN_ZOOM and
-  // MAX_ZOOM) and a move across takes one gesture: further wheel ticks within
-  // ACROSS_COOLDOWN_MS (a trackpad's glide), or before the wheel has been
-  // quiet for ACROSS_PAUSE_MS, only zoom, so the view never flips between two
-  // scales and a long scroll stops at the next stage. True when this tick
-  // moved across.
-  const acrossGate = MC.createAcrossGate(ACROSS_COOLDOWN_MS, ACROSS_PAUSE_MS);
-
+  // out comes the sector, the stage or the parent window. The next window's data is asked for
+  // before the zoom gets to the end of its range (`prefetchAcross`), so the tick that crosses finds it here.
+  // True when this tick moved across.
   function zoomAcross(deltaPx, event) {
-    const now = event && event.timeStamp > 0 ? event.timeStamp : performance.now();
-    if (!acrossGate.tick(now) || animation || pinned) return false;
+    if (animation || pinned || arriving) return false;
     const policy = zoomPolicyFor(resolved);
     if (deltaPx > 0 && view.zoom >= policy.farthest * 0.999 && (enteredSystem || entered || !isWholeGalaxy(resolved))) {
-      acrossGate.spend(now);
-      up();
+      up({ keepCamera: true });
       return true;
     }
-    if (deltaPx >= 0 || view.zoom > policy.nearest * 1.001) return false;
+    if (deltaPx >= 0) return false;
+    if (view.zoom > policy.nearest * 1.001) {
+      if (view.zoom <= policy.nearest * PREFETCH_ZOOM) prefetchAcross(event);
+      return false;
+    }
     if (entered && !enteredSystem) {
       if (!host.fetchSystemScene) return false;
       const picked = sectorStage.selectedEntry();
       const star = picked && picked.endpoint && picked.endpoint.indexOf("system:") === 0 && picked.href
         ? picked : nearestStar(view.target, view.dist * NEAREST_STAR_REACH);
       if (!star) return false;
-      acrossGate.spend(now);
-      enterSystem(star, { push: true });
+      enterSystem(star, { push: true, fly: false });
       return true;
     }
     if (enteredSystem || !display || !resolved) return false;
     if (!entered && ambientShown() && ambientShare >= 0.999) {
       // Right up to a sector whose scene is whole: it opens where the camera is, and the next
       // tick can go on in to a star (MAP.152).
-      acrossGate.spend(now);
       enterSector(ambient.block, ambient.record, { push: true, fly: false });
       return true;
     }
+    const found = blockUnderWheel(event);
+    const into = windowAcrossFrom(event, found);
+    if (into) {
+      showTooltip("", 0, 0);
+      go(into, { keepCamera: true });
+      return true;
+    }
+    if (!found || found.entry < 0 || !pickable(found.entry)) return false;
+    touchPending = -1;
+    showTooltip("", 0, 0);
+    act(found.entry, found.hit ? { x: found.hit.point.x, y: found.hit.point.y, z: found.hit.point.z } : null, { keepCamera: true });
+    return true;
+  }
+
+  // The block of the stage the wheel is zooming toward: the one under the pointer, else the one at the middle.
+  function blockUnderWheel(event) {
     const rect = canvasEl.getBoundingClientRect();
     const onMap = event && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     const x = onMap ? event.clientX : rect.left + rect.width / 2;
     const y = onMap ? event.clientY : rect.top + rect.height / 2;
     let found = picker.pick(x, y, function (layer) { return layer === choiceLayer; });
     if (!found && onMap) found = picker.pick(rect.left + rect.width / 2, rect.top + rect.height / 2, function (layer) { return layer === choiceLayer; });
-    if (!stage.win) {
-      // MAP.243: beyond the outline (the halo, a satellite galaxy) there is no block under the pointer, or only the
-      // disc's behind what is pointed at: the window opens round the cell holding the star or phenomenon in front,
-      // else the point the wheel has been zooming toward.
-      const front = picker.pick(x, y);
-      const halo = front && front.layer !== choiceLayer ? front : null;
-      const point = halo ? [halo.entry.x, halo.entry.y, halo.entry.z] : found ? null : anchorUnder(x, y);
-      if (point) {
-        const block = P.cellAt(P.DRILL_LEVELS[0], point[0], point[1], point[2], edgePc);
-        const into = P.drillBlockHolds(block, P.REACH_OUTLINE) ? S.windowInto(stage, block, { x: point[0], y: point[1], z: point[2] }, edgePc) : null;
-        if (!into) return false;
-        acrossGate.spend(now);
-        showTooltip("", 0, 0);
-        go(into);
-        return true;
+    return found;
+  }
+
+  // The window stage the wheel opens from the whole galaxy round a point beyond the outline (MAP.243): there is no
+  // block under the pointer, or only the disc's behind what is pointed at, so it opens round the cell holding the
+  // star or phenomenon in front, else the point the wheel has been zooming toward. Null otherwise.
+  function windowAcrossFrom(event, found) {
+    if (stage.win) return null;
+    const rect = canvasEl.getBoundingClientRect();
+    const onMap = event && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
+    const x = onMap ? event.clientX : rect.left + rect.width / 2;
+    const y = onMap ? event.clientY : rect.top + rect.height / 2;
+    const front = picker.pick(x, y);
+    const halo = front && front.layer !== choiceLayer ? front : null;
+    const point = halo ? [halo.entry.x, halo.entry.y, halo.entry.z] : found ? null : anchorUnder(x, y);
+    if (!point) return null;
+    const block = P.cellAt(P.DRILL_LEVELS[0], point[0], point[1], point[2], edgePc);
+    return P.drillBlockHolds(block, P.REACH_OUTLINE) ? S.windowInto(stage, block, { x: point[0], y: point[1], z: point[2] }, edgePc) : null;
+  }
+
+  // The next window's data, asked for while the zoom is still near the end of its range (the lower half of the
+  // hand-over band): what the wheel is about to open, found as the crossing tick will find it.
+  let prefetched = "";
+  function prefetchAcross(event) {
+    if (entered || enteredSystem || !display || !resolved) return;
+    const found = blockUnderWheel(event);
+    let into = windowAcrossFrom(event, found);
+    if (!into && found && found.entry >= 0 && pickable(found.entry)) {
+      const block = display.options[found.entry].blocks[0];
+      if (block.m !== 1) {
+        const at = found.hit ? { x: found.hit.point.x, y: found.hit.point.y, z: found.hit.point.z } : null;
+        into = S.windowInto(display.resolved ? display.resolved.stage : stage, block, at, edgePc);
       }
     }
-    if (!found || found.entry < 0 || !pickable(found.entry)) return false;
-    acrossGate.spend(now);
-    touchPending = -1;
-    showTooltip("", 0, 0);
-    act(found.entry, found.hit ? { x: found.hit.point.x, y: found.hit.point.y, z: found.hit.point.z } : null);
-    return true;
+    if (!into) return;
+    const key = containerKey(S.holder(into));
+    if (key === prefetched) return;
+    prefetched = key;
+    loadData(S.holder(into));
   }
 
   // The star of the open sector nearest `point` (parsecs): {entry, distance}, or null.
@@ -2430,7 +2513,6 @@ export function createStageView(host) {
   function flyToPoint(goal, wanted) {
     if (!view || animation || !resolved || !view.fit || !isFree(resolved)) return;
     const point = goal.slice();
-    clampPan(point, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
     const around = enteredSystem ? enteredSystem.fitPoints : entered ? entered.fitPoints : fitPointsOf(resolved);
     const fit = fitDistance(around, view.fit.target, view.quat);
     if (!(fit > 0)) return;
@@ -2489,7 +2571,6 @@ export function createStageView(host) {
     const point = anchorUnder(event.clientX, event.clientY);
     if (!point) return;
     const goal = point.slice();
-    clampPan(goal, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
     centreOn(goal);
   }
 
@@ -2562,7 +2643,6 @@ export function createStageView(host) {
     const taken = view.zoom > 0 ? zoom / view.zoom : 1;
     if (!(taken < 1)) return false;
     const target = MC.targetAboutAnchor(view.target, anchor, taken);
-    clampPan(target, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
     const to = { target: target, dist: view.dist * taken, quat: view.quat.clone() };
     const kept = view;
     followBody = null;
@@ -2770,17 +2850,15 @@ export function createStageView(host) {
     return coarsest && camera.dist <= MAX_ZOOM * coarsestFit ? coarsest : S.galaxyStage();
   }
 
-  // Puts the view at `camera` within stage `r` (the view already at the stage's own camera): the middle kept
-  // within the pan's reach and the distance within the zoom's.
+  // Puts the view at `camera` within stage `r` (the view already at the stage's own camera): the distance within
+  // the zoom's range.
   function viewAtCamera(r, camera) {
     if (!view || !view.fit) return;
     const quat = new THREE.Quaternion().fromArray(camera.quat);
     const full = fitDistance(fitPointsOf(r), view.fit.target, quat);
     if (!(full > 0)) return;
-    const target = camera.target.slice();
-    clampPan(target, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
     view.quat = quat;
-    view.target = target;
+    view.target = camera.target.slice();
     view.zoom = MC.clampDistance(zoomPolicyFor(r), camera.dist / full, 1);
     view.dist = view.zoom * full;
   }

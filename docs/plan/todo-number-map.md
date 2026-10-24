@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.183 |
 | MAP | MAP.289 |
 | NAV | NAV.63 |
-| GEN | GEN.700 |
+| GEN | GEN.702 |
 | PERF | PERF.180 |
 | DB | DB.100 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.325 |
+| TEST | TEST.330 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -642,8 +642,8 @@ Parents marked "new parent" had no old number of their own.
 | DB.91 | Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech | none | open |
 | DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | none | open |
 | DB.93 | Planets and moons store the equipment levels and regional temperatures and drop equipment_tier; the API serves one equipment object | none | done, PR #2766 |
-| DB.94 | The object index, resolve_object and the search panels read the moons of free planets | none | open |
-| DB.95 | The sector_objects view includes the moons of free planets | none | open |
+| DB.94 | The object index, resolve_object and the search panels read the moons of free planets | none | done, PR #2881 |
+| DB.95 | The sector_objects view includes the moons of free planets | none | dropped (lane B finding, 2:53 AM EDT 2026-10-24: nothing reads the sector_objects view, schema.sql is applied before migrations so a view naming moons.rogue_planet_id would break opening an older database, and DB.94 lists free moons by sector) |
 | DB.96 | Store the atmosphere colour and the cloud cover on planets and moons | none | open |
 | DB.97 | Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message | none | open |
 | DB.98 | Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test | none | open |
@@ -995,7 +995,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.267 | A MAX_STARS setting and a --stars N directive, with a prevalence knob for five or more stars | none | done, PR #2704 |
 | GEN.268 | System-type registry: a SYSTEM_TYPE_RATES dict with one entry per catalogue type, and a completeness test | none | done, PR #1702 |
 | GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds | none | done, PR #2481 |
-| GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | none | open |
+| GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | none | done, PR #2879 |
 | GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars | none | open |
 | GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples | none | open |
 | GEN.273 | Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw | none | open |
@@ -1137,7 +1137,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.409 | The atmosphere colour design: the checked plan for the gas table, the mixture, the stored values, ozone, aerosols and the colour model | none | done, PR #2063 |
 | GEN.410 | One table of the gases and compounds that can be in an atmosphere, with every compound the descriptions mention | none | done, PR #2508 |
 | GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | none | open |
-| GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | none | open |
+| GEN.412 | Generation records the albedo and the greenhouse multiplier it drew, and the temperature is exactly what they give | none | done, PR #2812 |
 | GEN.413 | Ozone in the mixture: the column and partial pressure from the oxygen, the star's UV and the Chapman balance | none | done, PR #2761 |
 | GEN.414 | Haze, dust and cloud: derived or drawn optical depths for every planet and moon | none | done, PR #2856 |
 | GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | none | open |
@@ -1396,7 +1396,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | open |
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows | none | open |
 | GEN.670 | Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition | none | open |
-| GEN.671 | Where a hardened suit works against the radiation, the needs say "required hardened suit" and "recommended hardened habitat" | none | open |
+| GEN.671 | Where a hardened suit works against the radiation, the needs say "required hardened suit" and "recommended hardened habitat" | none | done, PR #2883 |
 | GEN.672 | Two gas-equilibrium modules with two copies of the NASA thermo data are on main: merge them into one table and one solver | none | open |
 | GEN.673 | Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on | none | open |
 | GEN.674 | Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug) | none | open |
@@ -1425,6 +1425,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.697 | The generator records an origin quantity stripped_core for a small hot body that began as a giant | none | dropped (Boss, 1:22 AM EDT 2026-10-24: class B never has hydrogen or helium) |
 | GEN.698 | Recipe rows for the stripped core: a hydrogen and helium envelope share for a small hot body, replacing the gating of rows e1 to e6 that stops at 1 Earth mass | none | dropped (Boss, 1:22 AM EDT 2026-10-24: class B never has hydrogen or helium; lane L's research note stays as reports/stripped-core-envelope-2026-10-24.md) |
 | GEN.699 | Model formation (primordial) heat separately instead of dividing the radiogenic heat by a drawn Urey ratio of 0.1 to 0.9 | none | open |
+| GEN.700 | Tidal heating of moons counts in the energy term of the habitability score: keep the tidal flux on the moon and add it to the heat flow | none | open |
+| GEN.701 | Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1643,7 +1645,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | none | open |
 | MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) | none | done, PR #2006 |
 | MAP.218 | Galaxy Map density control: a readout for everyone, an editor for admins over any region, with preview, confirm and undo | none | open |
-| MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind | none | open |
+| MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind | none | done, PR #2860 |
 | MAP.220 | Markers for habitable worlds and chosen classes, optional per kind | none | open |
 | MAP.221 | Station and vessel icons on the Galaxy Map | none | open |
 | MAP.222 | Nebula zoom window: choosing a nebula on the Galaxy Map flies into a view of that nebula alone | none | open |
@@ -1687,7 +1689,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.260 | N3: node read and cache: GET /galaxy/nodes, the node cache, the change feed and the warm-up | none | open |
 | MAP.261 | N4: the node cut on the page: galaxynodecut.js replaces the tile cut | none | open |
 | MAP.262 | N5: retire the cube tiles | none | open |
-| MAP.263 | S1: the camera is the only state: stages follow the camera, with no gesture gate, preset flights, per-stage zoom range or pan clamp | none | open |
+| MAP.263 | S1: the camera is the only state: stages follow the camera, with no gesture gate, preset flights, per-stage zoom range or pan clamp | none | done, PR #2888 |
 | MAP.264 | S2: nothing is clipped when you zoom: drop setWedgeClip and markClippedStars | none | open |
 | MAP.265 | S3: cells are a tool, not a display stage: the hover and selected sector outline, an optional grid tool and a closed-form pick | none | open |
 | MAP.266 | S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu | none | open |
@@ -1712,7 +1714,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.285 | Close-up tier: fragment-shader detail over about 500 px, shared with the sky view | none | open |
 | MAP.286 | Supernova remnant shells drawn by age on the maps | none | open |
 | MAP.287 | The 3D system view takes the body look record: systemscene.py still colours by class_color | none | open |
-| MAP.288 | Do away with the info panel at the side of the galaxy and sector views: the popup alone, in a map window that takes the full width | none | open |
+| MAP.288 | Do away with the info panel at the side of the galaxy and sector views: the popup alone, in a map window that takes the full width | none | done, PR #2875 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2018,7 +2020,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.173 | A new-galaxy Generate run dies in stage 5 with "Execution not found in Redis": the worker warm outlives the 90 s execution record (bug) | none | open |
 | PERF.174 | Every work unit's database connection runs the schema check again: skip it when the schema version is current | none | open |
 | PERF.175 | benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug) | none | open |
-| PERF.176 | Storing the galaxy shape takes 52 percent of the plan (20 s of 38.6 s): find why and speed it up | none | open |
+| PERF.176 | Storing the galaxy shape takes 52 percent of the plan (20 s of 38.6 s): find why and speed it up | none | done, PR #2877 |
 | PERF.177 | A galaxy run died at the phenomena stage (14 percent) on a Redis out-of-memory (maxmemory 512mb, noeviction), the later stages never ran, and the log is a 70-line double traceback (bug) | none | done, PR #2836 |
 | PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) | none | open |
 | PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) | none | open |
@@ -2258,16 +2260,16 @@ Parents marked "new parent" had no old number of their own.
 | UX.154 | Lists and the system page show the equipment lists as chips: solid for required, outlined for recommended | none | done, PR #2844 |
 | UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) | none | done, PR #2784 |
 | UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | done, PR #2784 |
-| UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | open |
+| UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | done, PR #2890 |
 | UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality | none | open |
-| UX.159 | Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests | none | open |
-| UX.160 | The search icon button opens a box over the page: it should go straight to the search page (bug) | none | open |
-| UX.161 | After a galaxy reset the counts on the main page do not change even though the database has been wiped (bug) | none | open |
-| UX.162 | The plan prints a "Where the plan's time went" table in every galaxy plan; it should show only in debug mode or with a --timing flag (bug) | none | open |
-| UX.163 | Every planet and moon page and the descriptions carry a Required line and a Recommended line for the equipment, on every run | none | open |
+| UX.159 | Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests | none | done, PR #2873 |
+| UX.160 | The search icon button opens a box over the page: it should go straight to the search page (bug) | none | done, PR #2884 |
+| UX.161 | After a galaxy reset the counts on the main page do not change even though the database has been wiped (bug) | none | done, PR #2884 |
+| UX.162 | The plan prints a "Where the plan's time went" table in every galaxy plan; it should show only in debug mode or with a --timing flag (bug) | none | done, PR #2877 |
+| UX.163 | Every planet and moon page and the descriptions carry a Required line and a Recommended line for the equipment, on every run | none | done, PR #2883 |
 | UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) | none | open |
 | UX.165 | Class pages and names come from the rule rows | none | done, PR #2781 |
-| UX.166 | The habitability icons display as intended in Chrome but draw as solid black shapes with tiny coloured dots in Firefox, even with a fully cleared cache (bug) | none | open |
+| UX.166 | The habitability icons display as intended in Chrome but draw as solid black shapes with tiny coloured dots in Firefox, even with a fully cleared cache (bug) | none | done, PR #2890 |
 | UX.167 | Rewrite the equipment category row sentences from the needs list instead of the 10-15 wording | none | open |
 | UX.168 | Property sheet registry and GET /api/objects/<ref>/sheet, with a completeness test against column_units.py | none | open |
 | UX.169 | Children API GET /api/objects/<ref>/children and the sector-level tree feed | none | open |
@@ -2695,7 +2697,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.303 | test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug) | none | open |
 | TEST.304 | Nine Playwright test files are not marked browser, so they run in the all-core phase | none | open |
 | TEST.305 | The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug) | none | open |
-| TEST.306 | Five physics modules are imported only by tests and no item names them | none | open |
+| TEST.306 | Five physics modules are imported only by tests and no item names them | none | done, no code (2:59 AM EDT 2026-10-24: Bug Hunt checked, nothing deleted; GEN.197, GEN.110, GEN.479 and GEN.428 name the modules) |
 | TEST.307 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug) | none | open |
 | TEST.308 | Body rendering tests: look record stability, painter determinism, tier switching and the memory ceiling | none | dropped (Boss, 10:26 PM EDT 2026-10-23: tests ride with each body-rendering item) |
 | TEST.309 | Delete the dead, duplicate and tombstone regression tests, the unused test imports and variables, and the unused galaxy_shape_visualizer_cli.py tool | none | done, PR #2771 |
@@ -2711,9 +2713,14 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.319 | test_datasets_real::test_the_catalogue_reports_nothing_missing fails when the ozone_uv file is not downloaded (bug) | none | open |
 | TEST.320 | test_db_batching::test_sector_rows_are_written_in_a_few_multi_row_inserts fails once in a full gate and passes alone (bug) | none | open |
 | TEST.321 | test_web_browser_tables: the jump box test flakes under load (bug) | none | open |
-| TEST.322 | test_no_todo_codes_shown fails on main: planetgen/db/point_columns.py:189 shows the item code DB.73 in a string the code shows (bug) | none | open |
+| TEST.322 | test_no_todo_codes_shown fails on main: planetgen/db/point_columns.py:189 shows the item code DB.73 in a string the code shows (bug) | none | done, PR #2881 |
 | TEST.323 | test_web_browser_fixture_maps.py: 41 tests time out waiting for .starmap-sr-list button or find nothing to click on the Galaxy Map (bug) | none | open |
 | TEST.324 | test_web_header_menus top-bar [1280x720-light] times out under load (bug) | none | open |
+| TEST.325 | test_migration_habitable_worlds: the v135 galaxy count test fails on main because it downgrades to v138 while the DB.73 v140 marker still reads 140 (bug) | none | done, PR #2881 |
+| TEST.326 | test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] fails about 1 run in 12: a forced asteroid belt is not always made (bug) | none | open |
+| TEST.327 | test_web_browser_tables::test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scripts fails on main: it counts 0 a.help-link elements and expects 7 since UX.180 to UX.182 (bug) | none | done, PR #2892 |
+| TEST.328 | Tests that downgrade the schema by hand need an undo step for every new migration: derive the undo from one helper instead of three hand lists | none | open |
+| TEST.329 | test_web_a11y::test_page_is_accessible_and_fits[web.system-*] fails on main: the planet list class links have 1.06:1 contrast and sit as focusable links inside a summary (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

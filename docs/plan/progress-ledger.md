@@ -1238,3 +1238,22 @@ Baseline: PR #1817.
 | UX.181 | 8.1 | Habitability system |
 | UX.180 | 8.1 | Habitability system |
 | GEN.459 | 8.1 | Radiation chain for habitability (GEN.445) |
+| UX.159 | 8.1 | Admin control suite |
+| GEN.412 | 8.1 | Radiation chain for habitability (GEN.445) |
+| MAP.288 | 8.1 | Fly-through map |
+| PERF.176 | 8.1 | The headline closes |
+| UX.162 | 8.1 | The headline closes |
+| GEN.270 | 8.1 | Multi-star and compact systems |
+| TEST.322 | 8.1 | Bugs and flaky tests |
+| TEST.325 | 8.1 | Bugs and flaky tests |
+| DB.94 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.671 | 8.1 | Habitability system |
+| UX.163 | 8.1 | Habitability system |
+| UX.160 | 8.1 | Habitability system |
+| UX.161 | 8.1 | Habitability system |
+| TEST.306 | 8.1 | Bugs and flaky tests |
+| MAP.219 | 8.1 | Habitability system |
+| MAP.263 | 8.1 | Fly-through map |
+| UX.157 | 8.1 | Habitability system |
+| UX.166 | 8.1 | Habitability system |
+| TEST.327 | 8.1 | Bugs and flaky tests |

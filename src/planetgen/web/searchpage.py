@@ -38,6 +38,7 @@ from planetgen.web.lib.pagination import PAGE_SIZE, page_offset, parse_page
 
 from . import tables
 from .helpers import db_name, page_url
+from .item_pages import item_url
 from .sector_page import PHENOMENON_TYPE_LABELS
 from .system_pages import object_url
 
@@ -320,6 +321,10 @@ def _rows(panel, rows):
             item["sector_url"] = _sector_cell(row["sector_id"])
             if row["sector_id"] is not None:
                 item["galaxy_url"] = page_url("sector_on_galaxy_map", sector_id=row["sector_id"])
+        elif row.get("star_system_id") is None:    # DB.94: a moon of a free planet has no system page
+            item["system_url"] = None
+            item["url"] = item_url(row["ref"])
+            item["sector_url"] = _sector_cell(row["sector_id"])
         else:
             item["system_url"] = page_url("system", system_id=row["star_system_id"])
             # NAV.8: the body itself opens its row on the system page.
@@ -334,7 +339,7 @@ def _rows(panel, rows):
 
 
 def _link(text, href):
-    return {"text": text, "href": href}
+    return {"text": text, "href": href} if href else {"text": text or "—"}
 
 
 def _sector_link(row):

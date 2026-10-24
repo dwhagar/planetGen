@@ -166,7 +166,8 @@ def test_a_rows_tree_is_a_function_of_its_seed_and_nothing_else():
     assert first == moved                   # the address is not an input
     stars = [_star_row(seed) for seed in _seeds(6, start=43)]
     assert [scatter_companions.star_tree(row) for row in stars] == [scatter_companions.star_tree(row) for row in stars]
-    assert scatter_companions.star_tree(_star_row(1)) != scatter_companions.star_tree(_star_row(2))
+    with_trees = [row for row in (_star_row(seed) for seed in _seeds(40, start=1)) if scatter_companions.star_tree(row)]
+    assert scatter_companions.star_tree(with_trees[0]) != scatter_companions.star_tree(with_trees[1])
 
 
 def test_the_tree_is_drawn_from_the_members_stream_of_the_seed():

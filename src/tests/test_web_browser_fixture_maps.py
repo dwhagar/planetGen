@@ -2033,6 +2033,72 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     assert "Millisecond pulsar" in found["neutron_star"][1]
 
 
+MARKERS = """() => {
+    const layer = document.getElementById("galaxymap3d-canvas").__mapMarkers;
+    return layer ? layer.entries().map((e) => ({kind: e.kind.id, name: e.item.name, x: e.x, y: e.y, z: e.z})) : null;
+}"""
+
+
+def _markers_until(page, done, seconds=20):
+    """The marker layer's entries once `done(entries)` holds: the layer redraws on the next frame, which a busy machine
+    renders late."""
+    deadline = time.monotonic() + seconds
+    while True:
+        found = page.evaluate(MARKERS)
+        if done(found) or time.monotonic() > deadline:
+            return found
+        page.wait_for_timeout(100)
+
+
+def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked(page, map_site):
+    """MAP.219: the marker layer draws a glyph over each black hole in view, with a Menu toggle that rides in the
+    address, a legend line while on, and a click on the glyph shows the black hole's card."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(1000)
+    holes = {p["name"]: p for p in POINT_FIELD if p["type"] == "black_hole"}
+    drawn = page.evaluate(MARKERS)
+    assert {e["name"] for e in drawn} >= set(holes), drawn
+    assert {e["kind"] for e in drawn} == {"marker-black-hole"}
+    legend = page.locator("#galaxymap3d-layer-legend")
+    assert "Black holes" in legend.inner_text()
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]')
+    _open_menu(page)
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
+    # The keyboard and screen readers get a button per marker.
+    page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")
+    assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Maw"
+    page.keyboard.press("Escape")
+    # A click on the glyph names the black hole.
+    maw = holes["Fixture Maw"]
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(600)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    spot = _screen_of(page, (maw["x"], maw["y"], maw["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.wait_for_timeout(200)
+    assert "Fixture Maw" in page.locator("#galaxymap3d-tooltip").inner_text()
+    page.mouse.click(*spot)
+    assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Maw"
+    # Off: no markers, no legend line, and the address says so.
+    _open_menu(page)
+    button.click()
+    assert "hide=marker-black-hole" in page.url
+    assert _markers_until(page, lambda found: not found) == []
+    assert "Black holes" not in legend.inner_text()
+    # A reload keeps it off; on again brings them back.
+    page.reload()
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    _settle(page)
+    page.wait_for_timeout(800)
+    assert page.evaluate(MARKERS) == []
+    _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]').click()
+    assert {e["name"] for e in _markers_until(page, lambda found: bool(found))} >= set(holes)
+    assert "hide" not in page.url
+
+
 def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
     """MAP.65: a black hole, neutron star or quasar shows a tooltip with its
     name under the pointer, and its panel offers Start Here, End Here
@@ -2758,6 +2824,38 @@ def test_galaxy_map_wheel_carries_the_zoom_down_through_the_windows_and_back_up(
     assert parse_qs(_query(page))["win"][0].startswith("243."), "back out on the parent window, the 243-shell blocks"
 
 
+def test_one_wheel_scroll_runs_from_the_galaxy_to_a_sector_with_no_stop_and_no_swoop(page, map_site):
+    """MAP.263: the camera is the only state. From the whole galaxy, turned to an angle of the reader's own, one
+    unbroken wheel scroll carries the view down through every window to the sectors: the camera is never flown to a
+    preset (never `flying`), its turn is never reset, and the distance falls at every tick (no stop at a stage's end)."""
+    _open_galaxy(page, map_site)
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    centre = (box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.mouse.move(*centre)
+    page.mouse.down()
+    page.mouse.move(centre[0], centre[1] + 60, steps=6)
+    page.mouse.up()
+    start = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    assert start["tilt"] > 5, "the reader's own turn is not the preset's"
+    seen = []
+    for _ in range(260):
+        page.mouse.wheel(0, -400)
+        page.wait_for_timeout(30)
+        camera = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+        assert not camera["flying"], "a flight to a preset"
+        seen.append(camera)
+        win = parse_qs(_query(page)).get("win", [""])[0]
+        if win.startswith("1.") or "open=1" in _query(page):
+            break
+    else:
+        pytest.fail(f"the scroll never reached the sectors: {seen[-1]}")
+    assert all(abs(c["tilt"] - start["tilt"]) < 0.5 for c in seen), "the turn was reset on the way"
+    # The tick that carries across a stage is the only one that does not come closer: never two in a row.
+    stalls = [n for n in range(1, len(seen)) if seen[n]["dist"] >= seen[n - 1]["dist"] * (1 - 1e-9)]
+    assert not any(b - a == 1 for a, b in zip(stalls, stalls[1:])), f"the zoom stopped at ticks {stalls} of {len(seen)}"
+    assert seen[-1]["dist"] < start["dist"] / 50, (start["dist"], seen[-1]["dist"])
+
+
 # --- The halo beyond the outline (MAP.243) -----------------------------------------------
 
 def _tooltip(page):
@@ -2793,8 +2891,9 @@ def test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view(page, halo_
 
 def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(page, halo_site):
     """MAP.243: a star of a loose group beyond the outline is picked (its position and brightness shown), and the
-    wheel run toward it hands off to a window round the cell that holds it, where there was no block to open before."""
-    _open_galaxy(page, halo_site)
+    wheel run toward it hands off to a window round the cell that holds it, where there was no block to open before.
+    (The black hole markers, MAP.219, are off: on this view a marker's reach covers the star beside it.)"""
+    _open_galaxy(page, halo_site, "?hide=marker-black-hole")
     star = HALO_STARS[0]
     point = (star["x"], star["y"], star["z"])
     assert page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyOutsideOutline(...p)", list(point))
@@ -2812,7 +2911,7 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
             spot = page.evaluate("() => { const r = document.querySelector('#galaxymap3d-canvas').getBoundingClientRect(); return [r.left + r.width / 2, Math.min(r.top + r.height / 2, innerHeight - 10)]; }")
         page.mouse.move(*spot)
         page.mouse.wheel(0, -400)
-        page.wait_for_timeout(1000)  # past the wheel's cooldown between one stage and the next
+        page.wait_for_timeout(1000)  # a moment for the next window to arrive
         if len(_crumbs(page)) >= 6:
             break
     _settle(page)
@@ -2826,6 +2925,16 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
 def test_a_selection_is_shown_once_and_over_the_map(page, map_site):
     """MAP.256: an opened sector (selected on opening) and a system picked in it each show their information in one
     place, inside the map's window, not also in a box beside it; Close takes it away and the next pick brings it back."""
+    _check_a_selection_is_a_popup(page, map_site, pick=True)
+
+
+@pytest.mark.viewport(390, 844)
+def test_a_selection_is_a_popup_over_the_map_on_a_phone_too(page, map_site):
+    """MAP.288: there is no panel beside or under the map at any width: on a phone the selection is the same popup."""
+    _check_a_selection_is_a_popup(page, map_site)
+
+
+def _check_a_selection_is_a_popup(page, map_site, pick=False):
     _open_galaxy(page, map_site, OPEN_PRIME)
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     info = page.locator("#galaxymap3d-info")
@@ -2839,6 +2948,10 @@ def test_a_selection_is_shown_once_and_over_the_map(page, map_site):
 
     assert _selection_displays(page) == ["galaxymap3d-info"] and inside_the_window()
     assert info.locator("h3").inner_text() == "Fixture Prime"
+    info.locator("button", has_text="Close").click()   # the popup is drawn into the map's picture: clear it to look for stars
+    assert _selection_displays(page) == []
+    if not pick:
+        return
     page.wait_for_timeout(500)
     picked = None
     for x, y in _bright_spots(page, GALAXY_CANVAS):

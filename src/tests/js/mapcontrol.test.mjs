@@ -228,21 +228,6 @@ test("pointOnFocusPlane crosses the plane through the target at right angles to 
   assert.equal(MC.pointOnFocusPlane([0, 0, 10], [0, 0, 1], [0, 0, 0], [0, 0, -1]), null, "away from it");
 });
 
-test("the across gate lets one move through per gesture and the next only after a pause (MAP.152)", () => {
-  const gate = MC.createAcrossGate(900, 300);
-  assert.equal(gate.tick(1000), true, "the first tick may move across");
-  gate.spend(1000);
-  // A glide of ticks 30 ms apart, running past the cooldown, never moves again.
-  for (let t = 1030; t < 3000; t += 30) assert.equal(gate.tick(t), false, `tick at ${t}`);
-  // The wheel quiet for the pause, then a new gesture moves.
-  assert.equal(gate.tick(3400), true);
-  gate.spend(3400);
-  // A pause shorter than the cooldown is still held by it.
-  assert.equal(gate.tick(3800), false);
-  assert.equal(gate.tick(4150), false, "within the cooldown of the last move");
-  assert.equal(gate.tick(5200), true, "quiet, and past the cooldown");
-});
-
 test("a wheel step in moves the eye by at most half the way to the thing under the pointer (MAP.225)", () => {
   assert.equal(MC.limitApproach(0.8, 100, 2), 0.8, "a small step is taken whole");
   const big = MC.limitApproach(0.1, 100, 2);

@@ -48,11 +48,14 @@ import warnings
 import numpy as np
 from scipy import optimize
 
-from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
 from planetgen.physics.orbits import orbital_position_au
 from planetgen.physics.state_vectors import state_from_elements
 from planetgen.util.checks import finite_domain
 from planetgen.util import detmath
+
+
+_au_yr_to_kms = units.converter("au_yr", "km_s")
 
 TWO_PI = 2 * math.pi
 
@@ -360,8 +363,7 @@ def vis_viva_speed_kms(distance_au, semi_major_axis_au, primary_mass_solar):
     mu = gravitational_parameter_au3_yr2(primary_mass_solar)
     inv_a = 0.0 if math.isinf(semi_major_axis_au) else 1 / semi_major_axis_au
     speed_au_per_year = math.sqrt(mu * (2 / distance_au - inv_a))
-    au_per_year_to_kms = constants.AU_TO_KM / constants.SECONDS_PER_YEAR
-    return speed_au_per_year * au_per_year_to_kms
+    return speed_au_per_year * _au_yr_to_kms(1.0)
 
 
 UNIVERSAL_TOLERANCE = 1e-13
