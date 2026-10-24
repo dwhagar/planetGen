@@ -350,8 +350,10 @@ def test_habitability_levels_page_explains_the_five_levels_and_the_six_domains(c
     from planetgen.web.lib import habitability_ref
 
     html = _html(client, "/classes/habitability")
+    from planetgen.util import chem
+
     for item, _when in habitability_ref.EQUIPMENT_ITEMS:
-        assert item in html
+        assert chem.mark_html(item) in html
     assert "Shirtsleeve" not in html
     for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
         assert f"<h3>{domain}</h3>" in html

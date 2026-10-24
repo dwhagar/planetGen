@@ -272,7 +272,7 @@ def test_the_page_chip_lists_what_is_required_and_takes_the_worst_domains_colour
     scored = hw.compute(_earth(p_co2_kpa=3.0, surface_dose_msv_yr=500.0))
     body = {**scored, "equipment": equipment.summary(scored)}
     chip = systempage._habitability_chip(body)
-    assert "flag-tier-2" in chip and "CO2 scrubber" in chip and "title=" not in chip
+    assert "flag-tier-2" in chip and "CO<sub>2</sub> scrubber" in chip and "title=" not in chip
     assert systempage._habitability_chip({"equipment": None}) == ""
     assert systempage._habitability_chip({}) == ""
 
