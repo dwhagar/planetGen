@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2064] - 2026-10-24
+
+**Headline:** The thorium scale, the thorium-to-uranium ratio and the aluminium-26 share of rocky bodies are retuned to the stars and the cluster models that were measured.
+
+### Changed
+- Atmosphere recipe row o2 draws the thorium scale of thick-disc and other non-thin-disc hosts from the 32-star statistic (centre -0.063 dex, spread 0.19) in place of a 14-star bracket; row o4 gives Th/U by the published formula, growing with the planet's age, in place of a fixed range; row o6's enriched share bracket is 0.04 to 0.66 in place of 0.1 to 1. The recipes are not yet read by the generator, so no generated value changes.
+
 ## [8.0.2063] - 2026-10-24
 
 **Headline:** The redox of rocky debris (rows a3 and a4) is now tuned through the white-dwarf detection model: the width is 0.22 and not the 0.45 that counted the measurement error twice.
