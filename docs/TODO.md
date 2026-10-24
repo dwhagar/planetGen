@@ -19093,6 +19093,19 @@ clears each one.
   before looking for a code cause.
   Prerequisites: none. Related: DB.98, GEN.631, GEN.271.
 
+- [ ] **TEST.337 test_gen_cell_resolution::test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further fails on unmodified main: minimum luminosity 5.4e28 against the required 1.9e29 (bug)**
+  Reported by Lane 4 at 7:40 AM EDT 2026-10-24 (as the lane reported)
+  when merging OPS.37 (#2950): fails on unmodified main with a minimum
+  luminosity of 5.4e28 where the test requires at least 1.9e29. The TODO
+  thread could not run it (the test skips on this machine), so recheck
+  on current main first. Do: reproduce on current main; find whether the
+  fill now draws stars below the cap (a change from the star tree,
+  GEN.631, the backfill path, GEN.309, or the composition-first star
+  draw) or the test's bound is stale, and fix the product or the test
+  with the reason recorded. Done: the test passes on main. Owner: Bug
+  Hunt (proposed).
+  Prerequisites: none. Related: GEN.309, GEN.631.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -19750,26 +19763,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: none.
   Design: [docs/design/interface/map-ui-and-frontend-libraries.md](design/interface/map-ui-and-frontend-libraries.md)
 
-- [ ] **OPS.37 A Generator version number: one sequential integer, shown in admin and the API**
-  Boss (2026-10-09 20:59Z): "I want a Generator version number (like DB
-  number just sequential integers) ... by the end of phase 1." Done: one
-  plain integer, 1, 2, 3 ..., named the generator version, that says
-  which rules made a galaxy. It is OPS.28's `generator_epoch` under the
-  name Boss asked for, so there is one counter, not two: bumped by
-  OPS.56's PR rule and stored by OPS.28, OPS.58, DB.16 and ADM.50 (the
-  history row, the sector and the galaxy record), so this item only
-  shows it: on the admin status page beside the DB schema number, and in
-  the API status response (an added field is not a breaking change; say
-  so in docs/reference/api.md). The release version (MAJOR.REVISION.BUILD) stays
-  as it is.
-  Decided (Boss, 2026-10-09 21:02Z): the generator version and OPS.28's
-  `generator_epoch` are the same number, bumped only when output changes
-  for the same seed.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-
 - [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
   Boss (2026-10-16, 2:06 PM EDT): "Yes plese." to a nightly full backup
   from the daily maintenance run. Target 8.9 (the backups and repair
@@ -19841,6 +19834,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the lane reported): GEN.445 means every test machine needs the
   ozone_uv dataset fetched (python3 -m planetgen.cli.datasets fetch
   ozone_uv) or generation tests raise DataMissing.
+  Research (2026-10-09, Update): Lane 4 (7:40 AM EDT 2026-10-24, as the
+  lane reported): a fresh machine without the AD9 download (ozone_uv)
+  sees 6 test_body_radiation failures (DataMissing); environment only.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
