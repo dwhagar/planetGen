@@ -46,6 +46,10 @@ def inline_html(items, link=None):
             out.append(_quantity(item["qty"]))
         elif "strong" in item:
             out.append(f"<strong>{html.escape(item['strong'])}</strong>")
+        elif "swatch" in item:
+            colour = item["swatch"]
+            word = html.escape(colour["word"])
+            out.append(f'<span class="swatch" data-colour="{html.escape(colour["hex"])}"></span> {word}')
         elif "chem" in item:
             out.append(chem.html(item["chem"]))
         else:

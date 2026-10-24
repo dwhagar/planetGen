@@ -77,6 +77,7 @@ Inline     a string, or one of
   {"qty": {"kind": "pressure", "si": 0.0}}          a quantity: kind (the ladder family), SI value
   {"ref": "planet:31", "name": "40 Eridani II"}     a link to another object
   {"strong": "Pressure: Red"}                       emphasis, rendered per format
+  {"swatch": {"hex": "#99bfff", "word": "pale blue"}}   a colour (GEN.420): the word, with a chip where the format has one
 ```
 
 Rules:

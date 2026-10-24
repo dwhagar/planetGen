@@ -63,6 +63,8 @@ def _plain(inline):
             out.append(format_quantity(_LADDER_BY_KIND[item["qty"]["kind"]], item["qty"]["si"]))
         elif "strong" in item:
             out.append(item["strong"])
+        elif "swatch" in item:
+            out.append(item["swatch"]["word"])
         else:
             out.append(item["name"])
     return "".join(out)

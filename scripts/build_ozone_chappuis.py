@@ -1,0 +1,48 @@
+#!/usr/bin/env python3
+"""
+Builds `src/planetgen/physics/data/ozone_chappuis.json`, the ozone cross section of the Chappuis band on the colour model's grid
+(380 to 780 nm at 5 nm; GEN.418, `planetgen/physics/atmosphere_colour.py`).
+
+The values are cell means of the 295 K, 1 nm table of the Brion, Daumont, Malicet and Jenouvrier group in the MPI-Mainz UV/VIS Spectral
+Atlas snapshot of 2013-06-24 (Keller-Rudek et al. 2013, CC BY 4.0), read through the downloaded dataset `ozone_uv` (run
+`python3 -m planetgen.cli.datasets fetch ozone_uv` first). Only this derived table is kept in the repository, so a page that shows a
+planet's colour needs no download.
+
+Usage: python3 scripts/build_ozone_chappuis.py
+"""
+
+import json
+import os
+import sys
+
+import numpy as np
+
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src"))
+
+from planetgen.datasets import fetch, ozone_uv  # noqa: E402
+
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "planetgen", "physics", "data", "ozone_chappuis.json")
+EDGES_NM = np.arange(377.5, 782.6, 5.0)
+
+
+def main():
+    located = fetch.locate(ozone_uv.DATASET)
+    if located.missing:
+        raise SystemExit("the ozone_uv dataset is not downloaded: run python3 -m planetgen.cli.datasets fetch ozone_uv")
+    sigma = ozone_uv.cross_section_cm2(located, EDGES_NM, 295.0, np.zeros(len(EDGES_NM) - 1))
+    centres = 0.5 * (EDGES_NM[:-1] + EDGES_NM[1:])
+    document = {
+        "source": "Brion-team (1992-1998) 295 K, 1 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 "
+                  "(Keller-Rudek et al. 2013, Earth Syst. Sci. Data 5, 365); cell means on 5 nm cells",
+        "temperature_k": 295.0,
+        "wavelength_nm": [float(v) for v in centres],
+        "sigma_cm2": [float(f"{v:.6g}") for v in sigma],
+    }
+    with open(OUT, "w", encoding="utf-8") as handle:
+        json.dump(document, handle, indent=1)
+        handle.write("\n")
+    print(f"wrote {os.path.relpath(OUT)}: peak {max(document['sigma_cm2']):.3e} cm2 at {centres[int(np.argmax(sigma))]:.1f} nm")
+
+
+if __name__ == "__main__":
+    main()
