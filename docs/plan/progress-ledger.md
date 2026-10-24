@@ -1204,3 +1204,8 @@ Baseline: PR #1817.
 | POP.15 | 8.1 | Habitability system |
 | GEN.665 | 8.1 | Tuned draws and selection models |
 | GEN.664 | 8.1 | Tuned draws and selection models |
+| DOC.74 | 8.1 | Mixture and stored values |
+| GEN.451 | 8.1 | Mixture and stored values |
+| GEN.454 | 8.1 | Mixture and stored values |
+| GEN.499 | 8.1 | Haze, dust and cloud |
+| GEN.456 | 8.1 | Haze, dust and cloud |
