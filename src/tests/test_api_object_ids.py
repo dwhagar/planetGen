@@ -30,6 +30,7 @@ def api(mysql_config):
     sector.add_system(StarSystem(system_config=cfg), position=(1.0, 1.0, 1.0), system_config=cfg)
     sector.add_system(StarSystem(system_config=cfg), position=(-2.0, 0.5, 3.0), system_config=cfg)
     sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet")
+    sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet")
     store.save_sector(sector, config=mysql_config)
 
     class TestConfig(Config):
@@ -62,6 +63,16 @@ def test_lists_and_details_carry_printed_ids(api):
     assert phenomena and all(_printed(row["id"]) for row in phenomena)
     one = api.get(f"/api/phenomena/{phenomena[0]['type']}/{phenomena[0]['id']}").get_json()
     assert one["id"] == phenomena[0]["id"]
+
+
+def test_a_phenomenons_neighbours_carry_printed_ids(api):
+    """UX.185: the previous and next phenomenon of the type are named by object ID, the first has no previous."""
+    rogues = sorted((row["id"] for row in api.get("/api/phenomena").get_json()["items"] if row["type"] == "rogue_planet"))
+    assert len(rogues) == 2
+    first, second = (api.get(f"/api/phenomena/rogue_planet/{printed}").get_json() for printed in rogues)
+    assert first["previous"] is None and second["next"] is None
+    assert _printed(first["next"]["id"]) and first["next"]["id"] == second["id"]
+    assert _printed(second["previous"]["id"]) and second["previous"]["id"] == first["id"]
 
 
 def test_a_row_number_names_nothing(api):

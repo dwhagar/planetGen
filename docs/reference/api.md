@@ -604,7 +604,8 @@ connectivity to that specific schema rather than the default one.
   `formation_cause`, a black hole's `mass_solar`/`spin`/
   `has_accretion_disk`, a supernova remnant's `morphology`/`progenitor_type`/
   `age_years`), plus `type`, `sector_name` and `nearest` (its three
-  nearest star systems, `{id, name, distance_ly}`). An asteroid field also
+  nearest star systems, `{id, name, distance_ly}`), `previous` and `next` (UX.185: `{id, name}` of the free phenomenon of the
+  same type before and after it, or `null`) and, for a supernova remnant with a stored centre, `compact_remnant_name`. An asteroid field also
   has `composition`, its saved composition rows in order as
   `{component, concentration}` (`concentration` is `high`/`moderate`/
   `small`/`trace`), and an interstellar comet `composition`, its

@@ -5184,6 +5184,7 @@ p.hint a {
 
 .item-neighbours {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
   margin: 0 0 1rem;
@@ -5191,6 +5192,11 @@ p.hint a {
 
 .item-neighbours .item-next {
   margin-left: auto;
+}
+
+.item-neighbours a {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .body-view {

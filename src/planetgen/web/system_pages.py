@@ -22,7 +22,8 @@ import math
 from flask import abort, jsonify, redirect, request
 from markupsafe import Markup
 from planetgen.describe.html import blocks_html
-from planetgen.describe.model import split_by_body
+from planetgen.describe.model import sections, split_by_body
+from planetgen.describe.stored_phenomena import stored_phenomenon_document
 from planetgen.galaxy import objectref
 from planetgen.physics.quantity import Quantity
 from planetgen.physics.lensing import einstein_radius_against_galactic_centre_m
@@ -814,6 +815,23 @@ object_tree.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 
+def _phenomenon_facts(phenomenon_type, detail):
+    """The paragraph under "About" on a phenomenon page (UX.185): the sentences the generator's description says about the
+    kind, built from the stored row (`describe/stored_phenomena.py`); empty for a kind with none."""
+    document = stored_phenomenon_document(phenomenon_type, detail)
+    if document is None:
+        return ""
+    return "".join(blocks_html([block for block in piece["blocks"] if block["type"] == "prose"])
+                   for piece in sections(document))
+
+
+def _phenomenon_peer(phenomenon_type, peer):
+    """`{"name", "url"}` of the previous or next phenomenon of the type (`phenomenon_detail`'s `previous`/`next`), or `None`."""
+    if not peer:
+        return None
+    return {"name": peer["name"], "url": page_url("phenomenon", phenomenon_type=phenomenon_type, phenomenon_id=peer["id"])}
+
+
 @bp.route("/phenomenon/<phenomenon_type>/<uid:phenomenon_id>", methods=["GET", "POST"])
 def phenomenon(phenomenon_type, phenomenon_id):
     """One phenomenon: its view (a render, the AU-scale diagram, or none
@@ -876,6 +894,9 @@ def phenomenon(phenomenon_type, phenomenon_id):
         view_kind=kind,
         map_html=trusted_html(map_html),
         fields=phenomenon_fields(phenomenon_type, detail),
+        facts=trusted_html(_phenomenon_facts(phenomenon_type, detail)),
+        previous=_phenomenon_peer(phenomenon_type, detail.get("previous")),
+        following=_phenomenon_peer(phenomenon_type, detail.get("next")),
         sheet=item_pages.sheet_view(apiclient.get_object_sheet(db_name(), f"{phenomenon_type}:{phenomenon_id}")),
         # A system's own black hole or neutron star is edited with its system.
         can_edit=edit_actions.can_edit(current_admin()) and detail.get("star_id") is None,
