@@ -1679,7 +1679,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.228 | The camera in the address: the URL and bookmarks hold the camera's target, distance and orientation | none | done, PR #2032 |
 | MAP.229 | Map label engine: names placed by priority, with no overlaps, shown and hidden by zoom | none | done, PR #2980 |
 | MAP.230 | Names of stars, systems and sectors on the Galaxy Map | none | done, PR #2980 |
-| MAP.231 | The Sector Map and the System Map use the label engine | none | open |
+| MAP.231 | The Sector Map and the System Map use the label engine | none | done, PR #3001 |
 | MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | none | open |
 | MAP.233 | Names for nebulae on the Galaxy Map | none | done, PR #2980 |
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws | none | open |

@@ -2156,23 +2156,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before and after its first sector is filled.
   Prerequisites: GEN.359. Related: GEN.209.
 
-- [ ] **MAP.231 The Sector Map and the System Map use the label engine**
-  Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
-  our TODO lineup?" Checked the open and finished items, the design
-  notes and the code: no. Only three small label pieces exist: the
-  compass and neighbour sprite labels of `sectorscene.js`, the course
-  markers' text sprites in `galaxymap3d.js`, and the HTML labels laid
-  over the system view (`systemview3d.js`); the design notes carry no
-  label placement, collision or zoom rule. Done: the compass and
-  neighbour labels of the Sector Map and the body labels of the System
-  Map are placed by the same engine (collision, priority, zoom), with
-  the same Labels toggle and the same halo; no second label code is
-  left. Browser tests on both maps keep the labels they show today.
-  Owner: Core 2 (Boss, 2026-10-16, 2:43 PM EDT: after the 8.1 phase 1
-  top 5, Core 2 takes the infinite zoom tree: MAP.146 and its subitems,
-  then the label items).
-  Related: MAP.146.
-
 - [ ] **MAP.232 Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters**
   Boss (2026-10-16, 2:30 PM EDT): "Oh do we have map labels anywhere in
   our TODO lineup?" Checked the open and finished items, the design
@@ -2808,6 +2791,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2D System Map shows each extra star with its planets, and a browser
   test covers it. Owner: not assigned (map lane; Core 2 is the nearest
   owner after its queue).
+  Research (2026-10-09, 10-24 Core 2): Core 2 starts this next (12:30 PM
+  EDT 2026-10-24 as the lane reported), now that MAP.231 is merged
+  (#3001).
   Prerequisites: none. Related: GEN.332, MAP.231.
 
 ## NAV: Navigation and courses

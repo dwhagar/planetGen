@@ -1320,3 +1320,4 @@ Baseline: PR #1817.
 | UX.136 | 8.1 | Admin and API housekeeping |
 | PERF.41 | 8.1 | Queue, caches and performance |
 | GEN.461 | 8.1 | Radiation chain for habitability (GEN.445) |
+| MAP.231 | 8.1 | Fly-through map |
