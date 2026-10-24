@@ -42,6 +42,8 @@ def _make_older_than_the_baseline(config):
     conn = store.get_connection(config, ensure_schema=False)
     try:
         for table in ("planets", "moons"):
+            conn.execute(f"ALTER TABLE {table} DROP COLUMN tau_haze, DROP COLUMN tau_dust, DROP COLUMN tau_cloud, DROP COLUMN cloud_cover,"
+                         " DROP COLUMN aerosol_draw, ALGORITHM=COPY")  # v138
             conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in regional_temperature.FIELDS)
                          + ", ALGORITHM=COPY")  # v137
             conn.execute(f"ALTER TABLE {table} " + ", ".join(f"DROP COLUMN {name}" for name in EQUIPMENT_COLUMNS)

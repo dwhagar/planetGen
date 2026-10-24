@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, constants, metallicity
-from planetgen.physics import atmosphere, habitability_world, hydrosphere, magnetism, radiation, relations, rogue_surface, spin
+from planetgen.physics import aerosols, atmosphere, habitability_world, hydrosphere, magnetism, radiation, relations, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -745,6 +745,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     magnetism.update_exposure(planet, distance)
     # GEN.88: water, land, ice and the ocean's chemistry.
     hydrosphere.generate_hydrosphere(planet, internal_heat_flux_w_m2(planet))
+    # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
+    aerosols.generate_aerosols(planet)
 
 
 def internal_heat_flux_w_m2(planet):

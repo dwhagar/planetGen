@@ -1431,6 +1431,8 @@
 -- v137 (GEN.656): `planets` and `moons` also keep where the mean surface temperature is higher or lower (`physics/regional_temperature.py`, kelvin, NULL for a gas giant and an unscored body):
 --   a world that turns on its own has the annual means of its latitude bands `temp_polar_k`, `temp_north_k`, `temp_equator_k` and `temp_south_k` and the day and night swing
 --   `temp_swing_k`; a tidally locked world has `temp_day_side_k`, `temp_terminator_k` and `temp_night_side_k` instead. A pure function of stored columns, so no epoch.
+-- v138 (GEN.414, DB.68): `planets` and `moons` also keep the haze, dust and cloud optical depths at 550 nm (`tau_haze`, `tau_dust`, `tau_cloud`), the cloud cover and the number that picks
+--   the aerosol optics inside their brackets (`aerosol_draw`). A row saved before v138 has NULL: the regenerated galaxy draws them.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2276,6 +2278,11 @@ CREATE TABLE IF NOT EXISTS planets (
     host_node_id                SMALLINT NULL,  -- v104 (DB.53): the orbit node the planet orbits (NULL: its star)
     born_beyond_snow_line       BOOLEAN NULL,  -- v132 (GEN.458): formed beyond its star's snow line, NULL when the host has none to compare
     ozone_column_du             DOUBLE NULL,  -- v135 (GEN.413): the ozone column, Dobson units
+    tau_haze                    DOUBLE NULL,  -- v138 (GEN.414, DB.68): haze optical depth at 550 nm, NULL for a row saved before v138 or a body with no air
+    tau_dust                    DOUBLE NULL,  -- v138 (GEN.414, DB.68): dust optical depth at 550 nm
+    tau_cloud                   DOUBLE NULL,  -- v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (grey)
+    cloud_cover                 DOUBLE NULL,  -- v138 (GEN.414, DB.68): share of the sky under cloud, 0 to 1
+    aerosol_draw                DOUBLE NULL,  -- v138 (GEN.414, DB.68): the number in [0, 1) that picks the optics inside the brackets
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2481,6 +2488,11 @@ CREATE TABLE IF NOT EXISTS moons (
     dynamical_state             VARCHAR(8) NOT NULL DEFAULT 'bound',  -- v102 (DB.55)
     born_beyond_snow_line       BOOLEAN NULL,  -- v132 (GEN.458): the parent planet's flag
     ozone_column_du             DOUBLE NULL,  -- v135 (GEN.413): the ozone column, Dobson units
+    tau_haze                    DOUBLE NULL,  -- v138 (GEN.414, DB.68): haze optical depth at 550 nm, NULL for a row saved before v138 or a body with no air
+    tau_dust                    DOUBLE NULL,  -- v138 (GEN.414, DB.68): dust optical depth at 550 nm
+    tau_cloud                   DOUBLE NULL,  -- v138 (GEN.414, DB.68): in-cloud optical depth at 550 nm (grey)
+    cloud_cover                 DOUBLE NULL,  -- v138 (GEN.414, DB.68): share of the sky under cloud, 0 to 1
+    aerosol_draw                DOUBLE NULL,  -- v138 (GEN.414, DB.68): the number in [0, 1) that picks the optics inside the brackets
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

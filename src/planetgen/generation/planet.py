@@ -25,7 +25,7 @@ import math
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation
+from planetgen.physics import aerosols, atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -207,6 +207,7 @@ class Planet(PlanetaryObject):
         *hydrosphere.HYDROSPHERE_FIELDS,
         *radiation.BODY_FIELDS,
         *habitability_world.BODY_FIELDS,
+        *aerosols.BODY_FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
         "born_beyond_snow_line",
     ]
@@ -342,7 +343,7 @@ class Planet(PlanetaryObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS:
             setattr(self, field, None)
 
         # From the star, should not be changed.
