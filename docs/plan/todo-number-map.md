@@ -2260,7 +2260,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | done, PR #2784 |
 | UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | open |
 | UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality | none | open |
-| UX.159 | Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests | none | open |
+| UX.159 | Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests | none | done, PR #2873 |
 | UX.160 | The search icon button opens a box over the page: it should go straight to the search page (bug) | none | open |
 | UX.161 | After a galaxy reset the counts on the main page do not change even though the database has been wiped (bug) | none | open |
 | UX.162 | The plan prints a "Where the plan's time went" table in every galaxy plan; it should show only in debug mode or with a --timing flag (bug) | none | open |
