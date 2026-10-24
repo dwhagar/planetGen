@@ -132,6 +132,13 @@ def equipment_anchor(item):
     return EQUIPMENT_FALLBACK
 
 
+BODY_ANCHOR = "habitability"
+"""str: The id of the Habitability group of a planet's or moon's own page (Boss, 2026-10-24): where a body's symbols link."""
+
+BODY_LIFE_ANCHOR = "life"
+"""str: The id of the Life group of a planet's or moon's own page, where its life scores link."""
+
+
 def help_link(inner_html, help_url, anchor):
     """`inner_html` as a link to `anchor` on the habitability page at `help_url`; `inner_html` itself where `help_url`
     is `None` (a page that has no URL for it, or is that page)."""
@@ -147,12 +154,13 @@ def tier_text(tier):
     return TIER_NAMES[tier]
 
 
-def symbol_html(name, tier, sprite_url, detail=None, help_url=None):
+def symbol_html(name, tier, sprite_url, detail=None, help_url=None, page=None):
     """
     One symbol as markup: `name` is one of `SYMBOL_NAMES`, `tier` the stored rating number (0 Blue to 3 Red) and
     `sprite_url` the URL of `static/icons.svg`. `detail` (escaped here) follows the rating in the words, as
     "Pressure: Blue, 101 kPa". With `help_url` (the habitability page) the symbol links to where it is explained
-    there. `ValueError` for an unknown name or tier.
+    there; with `page` (the URL of one body's page) it links to that page's Habitability group instead.
+    `ValueError` for an unknown name or tier.
     """
     if name not in SPRITE_IDS:
         raise ValueError(f"no habitability symbol {name!r}: expected one of {', '.join(SYMBOL_NAMES)}")
@@ -162,7 +170,7 @@ def symbol_html(name, tier, sprite_url, detail=None, help_url=None):
     words = escape(words)
     svg = (f'<svg class="icon hab-symbol {TIER_CLASSES[tier]}" role="img" aria-label="{words}" focusable="false">'
            f'<title>{words}</title><use href="{escape(sprite_url)}#{SPRITE_IDS[name]}"></use></svg>')
-    return help_link(svg, help_url, SYMBOL_ANCHORS[name])
+    return help_link(svg, page, BODY_ANCHOR) if page else help_link(svg, help_url, SYMBOL_ANCHORS[name])
 
 
 def overall_tier(body):
@@ -175,19 +183,21 @@ def overall_tier(body):
     return None if score is None else TIER_INDEX[habitability.tier(score)]
 
 
-def symbol_row(body, sprite_url, with_overall=True, with_life=True, help_url=None):
+def symbol_row(body, sprite_url, with_overall=True, with_life=True, help_url=None, page=None):
     """
     The symbols of one body's row (`phi4` and `tier_<domain>` by name), the overall one first, then those of
     `DOMAINS`, then the cluster of its four life scores (`life_row`) when it has them; an empty string for a body
-    that was not scored. With `help_url` every symbol links into the habitability page.
+    that was not scored. With `help_url` every symbol links into the habitability page; with `page` (the body's own page)
+    they link to that page's Habitability and Life groups instead.
     """
     overall = overall_tier(body)
     if overall is None:
         return ""
-    cells = [symbol_html(OVERALL, overall, sprite_url, help_url=help_url)] if with_overall else []
-    cells += [symbol_html(domain, body[f"tier_{domain}"], sprite_url, help_url=help_url) for domain in DOMAINS]
+    cells = [symbol_html(OVERALL, overall, sprite_url, help_url=help_url, page=page)] \
+        if with_overall else []
+    cells += [symbol_html(domain, body[f"tier_{domain}"], sprite_url, help_url=help_url, page=page) for domain in DOMAINS]
     if with_life:
-        cells.append(life_row(body, sprite_url, help_url))
+        cells.append(life_row(body, sprite_url, help_url, page))
     return f'<span class="hab-symbols">{"".join(cells)}</span>'
 
 
@@ -201,10 +211,11 @@ def life_text(name, score):
     return f"{LIFE_LABELS[name]}: none" if score == 0 else f"{LIFE_LABELS[name]}: {score} of {LIFE_MAX}"
 
 
-def life_html(name, score, sprite_url, help_url=None):
+def life_html(name, score, sprite_url, help_url=None, page=None):
     """
     One life score as markup: its shape and the number 0 to 9 beside it, one `role="img"` whose label is the words
-    ("Flora: 3 of 9"); a 0 is drawn muted (`hab-life-none`). With `help_url` it links into the habitability page.
+    ("Flora: 3 of 9"); a 0 is drawn muted (`hab-life-none`). With `help_url` it links into the habitability page; with
+    `page` (a body's own page) to that page's Life group.
     `ValueError` for an unknown name or score.
     """
     words = escape(life_text(name, score))
@@ -213,10 +224,10 @@ def life_html(name, score, sprite_url, help_url=None):
              f'<svg class="icon hab-life-shape" aria-hidden="true" focusable="false">'
              f'<use href="{escape(sprite_url)}#{LIFE_SPRITE_IDS[name]}"></use></svg>'
              f'<span class="hab-life-score" aria-hidden="true">{score}</span></span>')
-    return help_link(shape, help_url, LIFE_ANCHORS[name])
+    return help_link(shape, page, BODY_LIFE_ANCHOR) if page else help_link(shape, help_url, LIFE_ANCHORS[name])
 
 
-def life_row(body, sprite_url, help_url=None):
+def life_row(body, sprite_url, help_url=None, page=None):
     """
     The four life scores of a body's row (`life_<name>`, whole numbers 0 to 9) as a cluster, in the order of
     `LIFE_NAMES`; an empty string for a body with no scores.
@@ -224,5 +235,5 @@ def life_row(body, sprite_url, help_url=None):
     scores = [body.get(f"life_{name}") for name in LIFE_NAMES]
     if any(score is None for score in scores):
         return ""
-    cells = "".join(life_html(name, score, sprite_url, help_url) for name, score in zip(LIFE_NAMES, scores))
+    cells = "".join(life_html(name, score, sprite_url, help_url, page) for name, score in zip(LIFE_NAMES, scores))
     return f'<span class="hab-life-cluster">{cells}</span>'

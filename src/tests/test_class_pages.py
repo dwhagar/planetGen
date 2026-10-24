@@ -512,7 +512,7 @@ def _scored_system():
 
 
 def test_the_tree_symbols_and_the_page_chips_link_to_their_sections_of_the_habitability_page(app, client):
-    """UX.181: no separate "Habitability levels" line; each symbol and chip is the link."""
+    """UX.181: no separate "Habitability levels" line; each chip is the link (UX.197: the symbols go to the body's page)."""
     from planetgen.web.lib.habitability_chips import chips_html
 
     url = "/help/habitability"
@@ -521,14 +521,16 @@ def test_the_tree_symbols_and_the_page_chips_link_to_their_sections_of_the_habit
             "summary": planet}
     html = objecttree.nodes_html([item], _tree_context(sprite_url="/static/icons.svg", help_url=url)) + chips_html(planet, url)
     assert "Habitability levels" not in html
-    for anchor in ("overall", "domain-pressure", "domain-temperature", "domain-air", "domain-water",
-                   "domain-radiation", "domain-suitability", "chip-habitable-class", "equipment-gas-mix-mask"):
+    for anchor in ("chip-habitable-class", "equipment-gas-mix-mask"):
         assert f'<a class="help-link" href="{url}#{anchor}">' in html, anchor
+    # UX.197: the tree's symbols and life scores go to the Habitability and Life groups of the body's own page.
+    assert html.count('href="/object/planet:FE81000A2B-0000005-001#habitability"') == 7
+    assert html.count('href="/object/planet:FE81000A2B-0000005-001#life"') == 4
     page = _html(client, url)
     for anchor in re.findall(r'href="/help/habitability#([^"]+)"', html):
         assert f'id="{anchor}"' in page, anchor
-    # A tree built with no page to link to (and the page's own legend) shows the shapes alone.
-    assert "help-link" not in objecttree.nodes_html([item], _tree_context(sprite_url="/static/icons.svg"))
+    # A tree built with no help page still links its symbols to the body's page; the page's own legend shows shapes alone.
+    assert 'href="/help/habitability' not in objecttree.nodes_html([item], _tree_context(sprite_url="/static/icons.svg"))
     assert "help-link" not in page
 
 

@@ -70,7 +70,7 @@
   </figure>
 </section>
 {%- endif %}
-{%- set symbols = habitability_symbol_row(habitability) if habitability else "" %}
+{%- set symbols = habitability_symbol_row(habitability, page=page_url('object_page', ref=object_ref)) if habitability else "" %}
 {%- if glance or symbols %}
 <section class="panel" id="item-glance" aria-labelledby="item-glance-heading">
   <div class="panel-header"><h2 id="item-glance-heading">At a glance</h2></div>
@@ -89,7 +89,7 @@
 <section class="panel" id="item-properties" aria-labelledby="item-properties-heading">
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in sheet %}
-  <details class="sheet-group" id="sheet-{{ group.key }}" open>
+  <details class="sheet-group" id="{{ group.key if group.key in ('habitability', 'life') else 'sheet-' ~ group.key }}" open>
     <summary><h3>{{ group.label }}</h3></summary>
     <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
       <tbody>
@@ -98,6 +98,9 @@
         {%- endfor %}
       </tbody>
     </table></div>
+    {%- if group.key == 'habitability' %}
+    <p class="sheet-help"><a class="help-link" href="{{ page_url('habitability_levels') }}">What the colours and symbols mean</a></p>
+    {%- endif %}
   </details>
   {%- endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
