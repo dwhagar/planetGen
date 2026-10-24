@@ -1829,7 +1829,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | done, PR #865 |
 | OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | done, PR #843 |
 | OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy | none | done, PR #981 |
-| OPS.35 | A vendored-version lock file for the static libraries | none | open |
+| OPS.35 | A vendored-version lock file for the static libraries | none | done, PR #2990 |
 | OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) | none | done, PR #868 |
 | OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | none | done, PR #2950 |
 | OPS.38 | Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug) | none | done, PR #967 |

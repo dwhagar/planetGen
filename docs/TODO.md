@@ -697,7 +697,7 @@ with `clamp()`.
   (polls /api/page-jobs/<id>, then asks again), shows the same progress
   bar and estimate text, and the Stop waiting and Try again actions work
   in the table; browser test for a slow scroll and a slow sort, in both
-  themes and at phone width. Owner: Core 2 (proposed).
+  themes and at phone width. Owner: Lane 4 (taken 10:02 AM EDT 2026-10-24 as the lane reported, after OPS.35; this replaces the proposed Core 2 owner).
   Prerequisites: none. Related: PERF.105, UX.118.
 
 - [ ] **UX.137 The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are**
@@ -16927,6 +16927,10 @@ clears each one.
   Owner: Bug Hunt (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
   is in reports/8-1-core-queues-2026-10-22.md; this replaces any
   earlier owner line).
+  Research (2026-10-09, 10-24 lane 4): Lane 4 merged #2987 (10:41 AM EDT
+  2026-10-24 as the lane reported): the work-queue interrupt tests now
+  wait 480 s for the run to start (they gave up at 120 s when a gate
+  loaded the machine). Closes after its clean runs.
   Prerequisites: none. Related: TEST.128, TEST.132 (done, PR #1578), TEST.134.
 
 - [ ] **TEST.161 Fill-stage and system-pass tests: stream independence, same seed same system, and the probability table**
@@ -19484,21 +19488,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none.
   Design: [docs/design/operations/ops-scheduling-and-rotation.md](design/operations/ops-scheduling-and-rotation.md)
-
-- [ ] **OPS.35 A vendored-version lock file for the static libraries**
-  `static/vendor/VENDORED.json` (version, npm `dist.integrity`, SHA-256
-  per shipped file, esbuild version, licence) written by the vendor
-  scripts and checked by a pytest; add the esbuild version to
-  `THIRD_PARTY_NOTICES.txt` and list the transitive licences bundled in
-  Shoelace (Lit, floating-ui, tinycolor).
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none.
-  Design: [docs/design/interface/map-ui-and-frontend-libraries.md](design/interface/map-ui-and-frontend-libraries.md)
 
 - [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
   Boss (2026-10-16, 2:06 PM EDT): "Yes plese." to a nightly full backup
