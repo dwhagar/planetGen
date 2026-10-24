@@ -1,7 +1,7 @@
 # planetgen/physics/giant_interior.py
 
 """
-The interior layers of a giant planet, an ice giant or a brown dwarf (GEN.642, docs/design/giant-interiors.md)
+The interior layers of a giant planet, an ice giant or a brown dwarf (GEN.642, docs/design/composition/giant-interiors.md)
 ==============================================================================================================
 
 What a giant is made of, layer by layer from the top: a molecular hydrogen and helium envelope, a metallic hydrogen
@@ -54,7 +54,7 @@ from planetgen.physics import constants
 from planetgen.util import draw
 
 # ---------------------------------------------------------------------------------------------------------------------
-# What is known and what is a placeholder. Every entry names its source state (docs/design/giant-interiors.md section 7).
+# What is known and what is a placeholder. Every entry names its source state (docs/design/composition/giant-interiors.md section 7).
 # ---------------------------------------------------------------------------------------------------------------------
 
 METALLIZATION_PRESSURE_RANGE_GPA = (40.0, 200.0)

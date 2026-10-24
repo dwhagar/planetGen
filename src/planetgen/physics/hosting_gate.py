@@ -25,7 +25,7 @@ A population is named for what the body is, never for a place in the Solar Syste
 that reach the inner system), `belt-small-body` (a belt between the snow line and the inner system), `trans-neptunian-cold`,
 `trans-neptunian-hot`, `moon`. The caller classes the body; this module does not guess.
 
-The rows are in `satellite-share`; their numbers and sources are in docs/design/small-body-size-laws.md section 2. All are
+The rows are in `satellite-share`; their numbers and sources are in docs/design/composition/small-body-size-laws.md section 2. All are
 partly verified or stand-ins. A change to a row changes draws, so it needs a generator epoch when a draw reads it; nothing
 reads this module yet.
 """
