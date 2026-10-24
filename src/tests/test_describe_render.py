@@ -87,11 +87,11 @@ def test_plain_text_has_no_markup():
 
 
 def test_a_power_of_ten_is_marked_the_page_formats_way():
-    radius = {"qty": {"kind": "radius", "si": 1.71e8}}
+    radius = {"qty": {"kind": "radius", "value": 1.71e8, "unit": "m"}}
     assert quantity.inline_text([radius], "text") == "1.71 × 10⁵ km"
     assert quantity.inline_text([radius], "markdown") == "1.71 × 10<sup>5</sup> km"
     assert quantity.inline_text([radius], "wikitext") == "{{Exp|1.71|5}} km"
-    tiny = {"qty": {"kind": "radius", "si": 2e-3}}
+    tiny = {"qty": {"kind": "radius", "value": 2e-3, "unit": "m"}}
     assert quantity.inline_text([tiny], "wikitext") == "{{Exp|2.00|-6}} km"
 
 

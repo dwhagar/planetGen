@@ -7,10 +7,10 @@ section 3).
 A Document is plain dicts, lists, strings and numbers, so it is already JSON.
 Inline text is a list whose items are a string or one of:
 
-- `{"qty": {"kind", "si", ...}}`: a quantity, never formatted here. `kind` is
-  a ladder family (`planetgen.util.ladders`) or one of `OTHER_KINDS`; `si` is the
-  value in the family's base unit. Extra keys: `sol` (the ratio to Sol), `unit`
-  (the unit symbol of a kind with no ladder yet).
+- `{"qty": {"kind", "value", "unit", ...}}`: a quantity, never formatted here. `kind` is
+  a ladder family (`planetgen.util.ladders`) or one of `OTHER_KINDS`; `value` is the number in `unit`, a key of the unit
+  registry (`planetgen.physics.unit_registry`) or one of `PLAIN_UNITS` (the unit the value was held in, not converted). Extra
+  keys: `sol` (the ratio to Sol), `companions` (whether the text shows the units beside the main one).
 - `{"ref": "planet:31", "name": "40 Eridani II"}`: a link to another object.
 - `{"strong": "Pressure: Red"}`: emphasis, written per format by the renderer.
 - `{"chem": "H2O"}`: a chemical formula (UX.149), written per format by `planetgen.util.chem`.
@@ -19,6 +19,7 @@ Inline text is a list whose items are a string or one of:
 
 import re
 
+from planetgen.physics import unit_registry
 from planetgen.util import chem as chemistry
 from planetgen.util import ladders
 
@@ -30,27 +31,41 @@ OTHER_KINDS = ("radius", "luminosity", "dose", "flux", "ratio", "angle", "densit
 
 KINDS = LADDER_KINDS + OTHER_KINDS
 
+DISPLAY_UNITS = {
+    "length": "m", "speed": "m_s", "time": "s", "temperature": "K", "pressure": "Pa", "gravity": "m_s2", "mass": "kg",
+    "power": "W", "flux": "W_m2", "number density": "m-3", "magnetic field": "T", "radius": "m", "luminosity": "W",
+    "angle": "deg", "density": "kg_m3", "dose": "Sv/yr", "ratio": "ratio", "count": "count",
+}
+"""dict: The unit a kind's text is written from, a key of the unit registry or one of `PLAIN_UNITS`. A quantity held in
+another unit of the kind is converted to it (`quantity.display_value`)."""
+
+PLAIN_UNITS = ("ratio", "count", "Sv/yr")
+"""tuple: Units with no registry kind: a plain number, a count and a dose rate. They convert to nothing."""
+
 SECTION_KINDS = ("system", "star", "black-hole", "neutron-star", "pair", "planet", "moon", "belt", "comet", "nebula",
                  "quasar", "rogue-planet", "interstellar-comet", "asteroid-field", "supernova-remnant")
 BLOCK_TYPES = ("facts", "ratings", "composition", "prose")
 PROSE_ROLES = ("overview", "summary", "description", "depth", "life", "timeline", "flavour")
 
 
-def qty(kind, si, **extra):
-    """A quantity inline item."""
+def qty(kind, value, unit=None, **extra):
+    """A quantity inline item: `value` in `unit` (a registry unit key or one of `PLAIN_UNITS`; the kind's own display
+    unit when omitted)."""
     if kind not in KINDS:
         raise ValueError(f"unknown quantity kind {kind!r}")
-    value = None if si is None else (int(si) if kind == "count" else float(si))
-    return {"qty": {"kind": kind, "si": value, **extra}}
+    unit = unit or DISPLAY_UNITS[kind]
+    if unit not in PLAIN_UNITS:
+        unit_registry.unit(unit)
+    number = None if value is None else (int(value) if kind == "count" else float(value))
+    return {"qty": {"kind": kind, "value": number, "unit": unit, **extra}}
 
 
 def measured(kind, quantity, **extra):
     """
-    A quantity inline item (`qty`) for a `Quantity` (`planetgen.physics.quantity`) shown as `kind`: `si` is the quantity in
-    its registry kind's base unit, whatever unit it was held in, so no call site multiplies by a unit factor (GEN.348).
-    `None` is an absent value.
+    A quantity inline item (`qty`) for a `Quantity` (`planetgen.physics.quantity`) shown as `kind`: its value and the unit
+    it is held in, so no call site multiplies by a unit factor (GEN.348, GEN.574). `None` is an absent value.
     """
-    return qty(kind, None if quantity is None else quantity.base(), **extra)
+    return qty(kind, None) if quantity is None else qty(kind, quantity.value, quantity.unit, **extra)
 
 
 def ref(ref_text, name):
@@ -200,6 +215,8 @@ def check(node):
     for item in walk_inline(node):
         if isinstance(item, dict) and "qty" in item and item["qty"]["kind"] not in KINDS:
             raise ValueError(f"unknown quantity kind {item['qty']['kind']!r}")
+        if isinstance(item, dict) and "qty" in item and item["qty"]["unit"] not in PLAIN_UNITS:
+            unit_registry.unit(item["qty"]["unit"])
         if isinstance(item, dict) and "swatch" in item:
             swatch_item = item["swatch"]
             if not re.fullmatch(r"#[0-9a-f]{6}", str(swatch_item.get("hex"))) or not swatch_item.get("word"):
