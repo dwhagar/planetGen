@@ -143,6 +143,36 @@ def test_a_successful_job_still_reloads_the_generate_page(browser, base_url, adm
         context.close()
 
 
+def test_the_log_stays_fixed_width_when_the_web_server_adds_a_stricter_policy(
+        browser, base_url, admin_token, running_job):
+    """UX.148: a web server that sets its own Content-Security-Policy (Boss's Apache) blocks the <style> Xterm.js
+    writes, and the log fell back to the page's proportional font; the site's stylesheet keeps it monospace."""
+    job_id, append, write_state = running_job
+    context = browser.new_context(viewport={"width": 1000, "height": 900}, reduced_motion="reduce")
+    context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
+    context.add_init_script(CSP_LISTENER)
+
+    def stricter(route):
+        response = route.fetch()
+        headers = dict(response.headers)
+        headers["content-security-policy"] = "default-src 'self'"   # what a second header with no inline styles leaves
+        route.fulfill(response=response, headers=headers)
+
+    context.route(f"{base_url}/admin/generate/jobs/{job_id}", stricter)
+    page = context.new_page()
+    try:
+        page.goto(f"{base_url}/admin/generate/jobs/{job_id}", wait_until="load")
+        rows = page.locator(".job-terminal .xterm-rows")
+        rows.wait_for()
+        _eventually(lambda: "line one" in rows.inner_text())
+        assert page.evaluate("(window.__cspViolations || []).length") > 0, "the stricter policy blocked nothing"
+        font = page.evaluate("getComputedStyle(document.querySelector('.job-terminal .xterm-rows')).fontFamily")
+        assert font.endswith("monospace"), font
+        assert page.evaluate("getComputedStyle(document.querySelector('.job-terminal .xterm-rows')).whiteSpace") == "pre"
+    finally:
+        context.close()
+
+
 def _reloaded(page):
     """Whether the page has been reloaded since `window.__stayed` was set (a
     reload in the middle of the check destroys the context it ran in)."""
