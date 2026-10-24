@@ -12,8 +12,8 @@ from planetgen.physics.elements import DataError
 
 
 def test_the_file_holds_the_gases_and_the_condensed_phases_the_chemistry_needs():
-    assert len(st.SPECIES) == 87
-    assert len(st.GASES) == 70 and len(st.CONDENSED) == 17
+    assert len(st.SPECIES) == 89
+    assert len(st.GASES) == 70 and len(st.CONDENSED) == 19
     for name in ("H2", "H2O", "CO", "CO2", "CH4", "NH3", "N2", "H2S", "SO2", "Na", "K", "SiO", "TiO", "VO", "Fe", "Mg"):
         assert name in st.GASES
     for name in ("H2O(cr)", "H2O(L)", "C(gr)", "Fe(L)", "SiO2(L)"):

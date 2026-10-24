@@ -29,13 +29,13 @@ from planetgen.physics import atmosphere, constants, habitability_world, hydrosp
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
-from planetgen.generation.mass_object import MassObject
+from planetgen.generation.planetary_object import PlanetaryObject
 from planetgen.util.format import (
     format_number, to_paragraph, format_pressure_pa, format_temperature_k,
 )
 
 
-class Planet(MassObject):
+class Planet(PlanetaryObject):
     """
     A class representing a single planet or moon and all of its properties.
 
@@ -370,6 +370,14 @@ class Planet(MassObject):
                     or self._draw_moons()):
                 planetPhysics.generate_moons(self)
 
+    @property
+    def giant_kind(self):
+        return self.body_type
+
+    @property
+    def parent_kind(self):
+        return "planet" if self.is_moon else "star"
+
     def orbit_mu_au3_per_year2(self):
         """AU^3/yr^2 of what the planet or moon orbits, from its circular
         orbit's radius and period (Kepler's third law), so it agrees with
@@ -543,7 +551,7 @@ class Planet(MassObject):
         (`None` for an ordinary star), or `None` for a gas giant or a body saved without scores. A planet
         of a pulsar, neutron star or black hole is rated as a lethal dose, as its stored score was.
         """
-        if self.body_type != "t" or getattr(self, "equipment_tier", None) is None:
+        if self.body_type != "t" or getattr(self, "eq_body", None) is None:
             return None
         values = habitability_world.values_from_body(self)
         if values.get("surface_temperature_k") is None:

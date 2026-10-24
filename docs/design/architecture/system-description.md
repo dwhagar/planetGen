@@ -77,7 +77,14 @@ Inline     a string, or one of
   {"qty": {"kind": "pressure", "si": 0.0}}          a quantity: kind (the ladder family), SI value
   {"ref": "planet:31", "name": "40 Eridani II"}     a link to another object
   {"strong": "Pressure: Red"}                       emphasis, rendered per format
+  {"swatch": {"hex": "#99bfff", "word": "pale blue"}}   a colour (GEN.420): the word, with a chip where the format has one
 ```
+
+The **Atmosphere Colour** row (GEN.420, key `atmosphere_colour`) of a planet or moon is a facts row whose value is one `swatch`: the
+colour of the body's air worked out by `physics/atmosphere_colour.py` from its stored mixture, ozone column and star ([how it is worked
+out](../../reference/atmosphere-colour.md)). Text, Markdown and wikitext write the word (with the hex colour, or a coloured span in
+wikitext); the web page writes a `swatch` span that `static/units.js` paints from `data-colour`, because the site policy forbids style
+attributes. The row is absent for an airless body and for a giant.
 
 Rules:
 

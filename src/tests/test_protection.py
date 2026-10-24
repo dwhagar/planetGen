@@ -30,7 +30,8 @@ def _bold(text):
 def _paragraph(world, compact_host=None):
     """The rating written as one paragraph, as the pages' ratings table says it (the text the assertions below read)."""
     result = protection.rating(world, compact_host)
-    parts = [f"{_bold('PHI-6 habitability')} is {result['overall']:.2f}, and a visitor needs {result['gear']}."]
+    gear = f", {result['gear']}" if result["gear"] else ""
+    parts = [f"{_bold('PHI-6 habitability')} is {result['overall']:.2f}{gear}."]
     for row in result["rows"]:
         parts.append(f"{_bold(row['domain'] + ': ' + row['tier'])} ({row['score']:.2f}). {row['text']}")
     return " ".join(parts)
@@ -124,7 +125,7 @@ def test_every_example_world_gets_one_paragraph_naming_each_category_its_colour_
     scores = hab.scores(world)
     text = _paragraph(world)
     assert "\n" not in text
-    assert text.startswith(f"**PHI-6 habitability** is {scores['PHI-4']:.2f}, and a visitor needs ")
+    assert text.startswith(f"**PHI-6 habitability** is {scores['PHI-4']:.2f}")
     assert "PHI-4" not in text
     for domain in hab.DOMAINS:
         assert f"**{domain}: {scores[domain][1]}** ({scores[domain][0]:.2f})." in text, domain
@@ -138,7 +139,7 @@ def test_the_lines_of_an_airless_frozen_world_read_like_the_examples_boss_gave()
                    water_source=None, surface_dose_sv_yr=0.742)
     text = _paragraph(world)
     for line in (
-            "**PHI-6 habitability** is 0.00, and a visitor needs an environment suit.",
+            "**PHI-6 habitability** is 0.00, and a visitor needs pressure suit + dust-tight seals, and should add hardened pressure suit + hardened habitat.",
             "**Pressure: Red** (0.00). The air pressure is 0 kPa, so a pressure suit is needed.",
             "**Temperature: Red** (0.00). The air temperature is -227 C, so an environment suit is needed.",
             "**Air: Red** (0.00). There is no atmosphere (0 kPa).",
@@ -150,9 +151,10 @@ def test_the_lines_of_an_airless_frozen_world_read_like_the_examples_boss_gave()
     assert "There is no food or water readily available, and only limited shelter." in text
 
 
-def test_a_habitable_world_says_it_needs_no_equipment_in_the_first_line():
+def test_a_habitable_world_never_lists_equipment_it_does_not_need():
     text = _paragraph(_world())
-    assert text.startswith("**PHI-6 habitability** is 1.00, and a visitor needs no equipment. **Pressure: Blue** (1.00).")
+    assert text.startswith("**PHI-6 habitability** is 1.00. **Pressure: Blue** (1.00).")
+    assert "needs no equipment" not in text
     assert "**Suitability: Blue** (1.00). Water, food and shelter are all readily available." in text
     assert "Also considered" not in text
 
@@ -165,17 +167,17 @@ def test_the_suitability_line_names_what_is_and_is_not_readily_available():
     assert "Suitability: Red**" in dry
 
 
-def test_the_gear_of_a_cold_world_is_named_in_short_words_and_the_first_line_says_a_sealed_suit():
+def test_the_gear_of_a_cold_world_is_named_in_short_words_and_the_first_line_names_the_heated_suit():
     text = _paragraph(_world(temperature_c=-80.0))
     assert "The air temperature is -80 C, so an environment suit is needed." in text
-    assert "and a visitor needs an environment suit." in text
+    assert "and a visitor needs heated sealed suit + self-contained air." in text
 
 
 def test_the_gear_of_a_hot_high_pressure_world_names_each_suit():
     text = _paragraph(_world(pressure_kpa=2_000.0, temperature_c=80.0))
     assert "The air pressure is 2,000 kPa, so a hyperbaric suit is needed." in text
     assert "The air temperature is 80 C, so an environment suit is needed." in text
-    assert "and a visitor needs an environment suit." in text
+    assert "and a visitor needs heated diving suit + mixed-gas rig." in text
 
 
 def test_a_planet_of_a_compact_host_says_its_dose_is_rated_lethal():
@@ -234,7 +236,7 @@ def _earth():
 
 def test_an_earth_like_world_is_one_paragraph_of_six_blue_categories_with_their_values():
     text = _paragraph(_earth())
-    assert text.startswith("**PHI-6 habitability** is 1.00, and a visitor needs no equipment.")
+    assert text.startswith("**PHI-6 habitability** is 1.00. ")
     for domain in ("Pressure", "Temperature", "Air", "Water", "Radiation", "Suitability"):
         assert f"**{domain}: Blue** (1.00)." in text
     assert "The air pressure is 101 kPa, so no gear is needed." in text

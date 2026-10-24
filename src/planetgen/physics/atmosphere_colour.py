@@ -31,13 +31,16 @@ in brightness (the hue is what the blend keeps), the cloud is a layer at the gro
 GEN.419's (they have a reference level, not a ground).
 """
 
+import functools
+import json
 import math
+import os
 from dataclasses import dataclass
 from typing import Optional, Tuple
 
 import numpy as np
 
-from planetgen.physics import atmospheric_radiation as radiation, photometry, two_stream, uv_cross_sections
+from planetgen.physics import air_column, atmospheric_radiation as radiation, elements, photometry, two_stream
 from planetgen.util import detmath
 
 WAVELENGTHS_NM = np.arange(380.0, 781.0, 5.0)
@@ -56,11 +59,25 @@ THICK_ABOVE_TAU = 0.4
 AEROSOL_DOMINATES_SHIFT = 0.03
 """float: The distance in CIE xy that the aerosols move the colour by when the label calls it aerosol-dominated (about a word)."""
 
+DOBSON_CM2 = 2.687e16
+"""float: Molecules per square centimetre in one Dobson unit."""
+
+CHAPPUIS_FILE = os.path.join(elements.DATA_DIRECTORY, "ozone_chappuis.json")
+"""str: The ozone cross sections of the Chappuis band on this grid (`scripts/build_ozone_chappuis.py`)."""
+
 _REFERENCE_NM = 550.0
 _TILT_CENTRE_NM = 580.0
 _TILT_WIDTH_NM = 200.0
 _YBAR = np.array([photometry.cie_xyz_bar(nm)[1] for nm in WAVELENGTHS_NM])
 _STEP = 5.0
+
+
+@functools.lru_cache(maxsize=None)
+def chappuis_cross_section_cm2():
+    """The ozone cross section on `WAVELENGTHS_NM`, cm2 per molecule (295 K, Brion-team data of the MPI-Mainz atlas; DATA-LICENSE.md)."""
+    with open(CHAPPUIS_FILE, encoding="utf-8") as handle:
+        document = json.load(handle)
+    return np.interp(WAVELENGTHS_NM, document["wavelength_nm"], document["sigma_cm2"])
 
 
 @dataclass(frozen=True)
@@ -269,13 +286,12 @@ def _case(tau_rayleigh, tau_absorption, tau_ozone, above, aerosols, ground_albed
     return diffuse, diffuse * correction, full.beam_transmission, weight
 
 
-def _colour_of(column, star, ozone_du, ozone_temperature_k, ground_albedo, mu0, haze, dust, cloud, cloud_cover):
+def _colour_of(column, star, ozone_du, ground_albedo, mu0, haze, dust, cloud, cloud_cover):
     tau_rayleigh, tau_absorption = radiation.gas_layers(column, WAVELENGTHS_NM, EDGES_NM)
     tau_ozone = np.zeros_like(WAVELENGTHS_NM)
     above = 0.0
     if ozone_du > 0.0:
-        sigma = uv_cross_sections.ozone_cross_section_cm2(EDGES_NM, ozone_temperature_k)
-        tau_ozone = ozone_du * uv_cross_sections.DOBSON_CM2 * sigma
+        tau_ozone = ozone_du * DOBSON_CM2 * chappuis_cross_section_cm2()
         above = min(max(radiation.ozone_peak_pressure_pa(column, ozone_du) / column.pressure_pa, 0.0), 1.0)
     always = [layer for layer in (haze, dust) if layer is not None and layer.tau_550 > 0.0]
     clear = _case(tau_rayleigh, tau_absorption, tau_ozone, above, always, ground_albedo, mu0)
@@ -303,7 +319,7 @@ def _colour_of(column, star, ozone_du, ozone_temperature_k, ground_albedo, mu0, 
     return sky, _luminance(star * diffuse) / star_luminance, sun, sun_luminance / star_luminance, tau_550, tau_rayleigh_550, regime
 
 
-def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ozone_temperature_k=None, ground_albedo=0.0, mu0=DEFAULT_MU0,
+def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ground_albedo=0.0, mu0=DEFAULT_MU0,
                       haze=None, dust=None, cloud=None, cloud_cover=1.0, spread_x=0.0, spread_y=0.0):
     """
     The atmosphere colour of a world with a ground.
@@ -312,7 +328,6 @@ def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ozone_temperature_
         column (AirColumn): The air above the place.
         temperature_k (float): The star's effective temperature, K.
         ozone_du (float, optional): The ozone column, Dobson units (GEN.413).
-        ozone_temperature_k (float, optional): The ozone layer's temperature, K (220 when `None`).
         ground_albedo (float or ndarray, optional): The ground's reflectance, one number or one per wavelength of `WAVELENGTHS_NM`
             (GEN.441, GEN.462); 0 is a black ground.
         mu0 (float, optional): The cosine of the sun's zenith angle, 0.2 to 1 (the view is at the zenith).
@@ -333,10 +348,34 @@ def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ozone_temperature_
     star = star_spectrum(temperature_k, spread_x, spread_y)
     albedo = np.broadcast_to(np.asarray(ground_albedo, dtype=float), WAVELENGTHS_NM.shape)
     sky, ratio, sun, sun_ratio, tau_550, tau_rayleigh_550, regime = _colour_of(
-        column, star, ozone_du, ozone_temperature_k, albedo, mu0, haze, dust, cloud, cloud_cover)
+        column, star, ozone_du, albedo, mu0, haze, dust, cloud, cloud_cover)
     shift = 0.0
     if any(layer is not None and layer.tau_550 > 0.0 for layer in (haze, dust, cloud)):
-        bare = _colour_of(column, star, ozone_du, ozone_temperature_k, albedo, mu0, None, None, None, 1.0)[0]
+        bare = _colour_of(column, star, ozone_du, albedo, mu0, None, None, None, 1.0)[0]
         shift = detmath.hypot(sky.x - bare.x, sky.y - bare.y)
     return AtmosphereColour(sky, colour_word(sky.rgb8), ratio, sun, sun_ratio, tau_550, tau_rayleigh_550, regime, shift,
                             shift >= AEROSOL_DOMINATES_SHIFT)
+
+
+STAND_IN_GROUND_ALBEDO = 0.15
+"""float: The ground's reflectance for a body whose ground is not stored (GEN.441 and GEN.462 replace it); the radiation model's default."""
+
+
+def body_atmosphere_colour(body):
+    """
+    The `AtmosphereColour` of a planet or moon from what it stores: its air (`air_column.column_of`), its star's temperature and its
+    ozone column, over a ground of `STAND_IN_GROUND_ALBEDO` and with no aerosol (haze, dust and cloud are not stored yet: DB.68).
+
+    Returns `None` for an airless body, a body with no star, and a gas or ice giant (a giant needs its cloud deck, which is not stored yet,
+    to have a colour worth showing).
+    """
+    if getattr(body, "body_type", "t") == "g":
+        return None
+    temperature = getattr(getattr(body, "star", None), "temperature", None)
+    if not temperature or temperature <= 0.0:
+        return None
+    column = air_column.column_of(body)
+    if column is None:
+        return None
+    return atmosphere_colour(column, temperature_k=temperature, ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
+                             ground_albedo=STAND_IN_GROUND_ALBEDO)

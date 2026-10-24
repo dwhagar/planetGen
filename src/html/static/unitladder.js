@@ -13,24 +13,11 @@
 // Imported with this module's own `?v=` query, as systemmap.js explains.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatNumber, scientificText, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
-const { LADDERS, TINY_NUMBER } = await import(`./unitladders.js${VERSION_QUERY}`);
+const { LADDER_OF_KIND, LADDERS, TINY_NUMBER } = await import(`./unitladders.js${VERSION_QUERY}`);
+const { toBase, unit } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const { unitSystem } = await import(`./unitpreference.js${VERSION_QUERY}`);
 
 export { LADDERS };
-
-const factorOf = (ladder, symbol) => ladder.rungs.find((rung) => rung.symbol === symbol).factor;
-
-// Meters, from the table (planetgen/physics/constants.py).
-export const KM_M = factorOf(LADDERS.length, "km");
-export const AU_M = factorOf(LADDERS.length, "AU");
-export const LIGHTYEAR_M = factorOf(LADDERS.length, "ly");
-export const PARSEC_M = factorOf(LADDERS.length, "pc");
-export const SECONDS_PER_YEAR = factorOf(LADDERS.time, "years");
-const companionOf = (ladder, symbol) => ladder.companions.find((companion) => companion.symbol === symbol).factor;
-export const STANDARD_ATMOSPHERE_PA = companionOf(LADDERS.pressure, "atm");
-export const STANDARD_GRAVITY = companionOf(LADDERS.gravity, "g");
-export const SOLAR_MASS_KG = factorOf(LADDERS.mass, "solar masses");
-export const SOLAR_LUMINOSITY_W = factorOf(LADDERS.power, "L☉");
 
 // Three significant figures, or scientific notation under TINY_NUMBER, where a
 // unit would otherwise run to a row of zeros (planetgen/util/format.py
@@ -154,35 +141,49 @@ export function formatQuantity(ladder, value, { spoken = false, companions = tru
 // planetgen/util/format.py `format_body_radius_km`.
 export const formatBodyRadiusKm = (km) => (km == null || isNaN(km) ? "–" : scientificText(km) + " km");
 
-const scaled = (value, factor) => (value == null ? value : value * factor);
+// The ladder the registry unit `key` is shown on.
+const ladderOf = (key) => LADDERS[LADDER_OF_KIND[unit(key).kind]];
 
-export const formatDistanceM = (meters) => formatQuantity(LADDERS.length, meters);
-export const formatDistanceKm = (km) => formatDistanceM(scaled(km, KM_M));
-export const formatDistanceKmSpoken = (km) => formatQuantity(LADDERS.length, scaled(km, KM_M), { spoken: true });
-export const formatDistanceAu = (au) => formatDistanceM(scaled(au, AU_M));
-export const formatDistanceLy = (ly) => formatDistanceM(scaled(ly, LIGHTYEAR_M));
-export const formatDistancePc = (pc) => formatDistanceM(scaled(pc, PARSEC_M));
+// `formatQuantity` for a Quantity (quantity.js): the ladder its kind is shown on and its value in the
+// registry's base unit, so a value is shown the same whatever unit it was held in ("384,400 km" for
+// 384.4 Mm). The mirror of planetgen/util/format.py `format_measure`.
+export function formatMeasure(quantity, options) {
+  const ladder = LADDERS[LADDER_OF_KIND[quantity.kind]];
+  if (ladder === undefined) throw new Error(`no ladder shows a ${quantity.kind}`);
+  return formatQuantity(ladder, quantity.base(), options);
+}
 
-export const formatSpeedMs = (ms) => formatQuantity(LADDERS.speed, ms);
-export const formatSpeedKms = (kms) => formatSpeedMs(scaled(kms, KM_M));
+// `formatQuantity` for `value` of the registry unit `key`, the factor the registry's; null gives the en
+// dash. What the format names below are (planetgen/util/format.py `_format_in`).
+const formatIn = (key, value, options) => formatQuantity(ladderOf(key), value == null ? value : toBase(value, key), options);
 
-export const formatDurationSeconds = (seconds) => formatQuantity(LADDERS.time, seconds);
-export const formatPeriodYears = (years) => formatDurationSeconds(scaled(years, SECONDS_PER_YEAR));
+export const formatDistanceM = (meters) => formatIn("m", meters);
+export const formatDistanceKm = (km) => formatIn("km", km);
+export const formatDistanceKmSpoken = (km) => formatIn("km", km, { spoken: true });
+export const formatDistanceAu = (au) => formatIn("au", au);
+export const formatDistanceLy = (ly) => formatIn("ly", ly);
+export const formatDistancePc = (pc) => formatIn("pc", pc);
+
+export const formatSpeedMs = (ms) => formatIn("m_s", ms);
+export const formatSpeedKms = (kms) => formatIn("km_s", kms);
+
+export const formatDurationSeconds = (seconds) => formatIn("s", seconds);
+export const formatPeriodYears = (years) => formatIn("yr", years);
 
 // A surface temperature with °C and °F beside it, or in K alone.
-export const formatTemperatureK = (kelvin, companions = true) => formatQuantity(LADDERS.temperature, kelvin, { companions });
+export const formatTemperatureK = (kelvin, companions = true) => formatIn("K", kelvin, { companions });
 
-export const formatPressurePa = (pascals) => formatQuantity(LADDERS.pressure, pascals);
-export const formatPressureAtm = (atm) => formatPressurePa(scaled(atm, STANDARD_ATMOSPHERE_PA));
+export const formatPressurePa = (pascals) => formatIn("Pa", pascals);
+export const formatPressureAtm = (atm) => formatIn("atm", atm);
 
 // "3.71 m/s² (0.378 g)" for a gravity in multiples of standard gravity.
-export const formatGravityG = (g) => formatQuantity(LADDERS.gravity, scaled(g, STANDARD_GRAVITY));
+export const formatGravityG = (g) => formatIn("g0", g);
 
 // A mass in kilograms: "1 Earth mass", "0.299 Jupiter masses", "0.122 solar masses".
-export const formatMassKg = (kg) => formatQuantity(LADDERS.mass, kg);
-export const formatMassSolar = (solar) => formatMassKg(scaled(solar, SOLAR_MASS_KG));
+export const formatMassKg = (kg) => formatIn("kg", kg);
+export const formatMassSolar = (solar) => formatIn("Msun", solar);
 
 // A luminosity or power in watts: "47 TW", "1 L☉"; a heat flow in W/m²: "87 mW/m²".
-export const formatPowerW = (watts) => formatQuantity(LADDERS.power, watts);
-export const formatLuminositySol = (solar) => formatPowerW(scaled(solar, SOLAR_LUMINOSITY_W));
-export const formatFluxWm2 = (flux) => formatQuantity(LADDERS.flux, flux);
+export const formatPowerW = (watts) => formatIn("W", watts);
+export const formatLuminositySol = (solar) => formatIn("Lsun", solar);
+export const formatFluxWm2 = (flux) => formatIn("W_m2", flux);

@@ -427,10 +427,11 @@ the lungs add, puts a pure-oxygen mask's useful floor nearer 19 to 21 kPa. The
 settled 14.3 kPa stands until GEN.89's tests show a case where the difference
 matters.
 
-### 7.3 Five equipment tiers
+### 7.3 Five equipment tiers (superseded)
 
-An alternative to the equipment list in section 2: one numbered tier taken from
-the worst condition, a pure function of dry ambient values [C].
+Superseded by the survival equipment line of GEN.655 (`physics/equipment.py`, docs/design/survival-equipment-fields.md):
+the one numbered tier is gone, and the table below is kept as the research it was built from, not as a rule. One numbered
+tier taken from the worst condition, a pure function of dry ambient values [C].
 
 | Tier | Name | Conditions (all must hold) |
 |---|---|---|
@@ -484,16 +485,21 @@ the row alone. Every rule below is a planetGen default, not a source's number.
 | Dose | `surface_dose_msv_yr` in Sv/yr; an ocean under ice sees only `dose_ground_msv_yr`. |
 | Water source for a base | Liquid at a surface ocean, ice for an icy surface or ice lid, vapour for a steam world, hydrated minerals for a dry body with 1e-5 or more water by mass, else vapour in the air, else none. |
 
-**Equipment.** `equipment_tier` is `habitability.equipment` numbered 0 to 4:
-ideal, breathing mask, mask with scrubber, environment suit, full life
-support with radiation hardening (section 7.3's table is the alternative,
-not built). Each domain stores its score (`phi4_<domain>`) and its colour
+**Equipment.** The survival equipment line (GEN.655, `physics/equipment.py`,
+docs/design/survival-equipment-fields.md) lists what a human visitor needs to
+stand on the surface, in four slots (body protection, air filter or scrubber,
+air supply, radiation protection), each item required or recommended, and only
+what is needed: a world that needs nothing shows no line. It replaces the old
+`equipment_tier` (0 to 4), which is gone. The gear follows the physics wherever
+that is stricter than the score's bands; the PHI-6 scores are not changed by it.
+Its stored levels are the `eq_*` columns, and the name and the short code
+(`B4p F100 S2 [R2]`) are derived from them. Each domain stores its score (`phi4_<domain>`) and its colour
 (`tier_<domain>`: 0 Blue to 3 Red); `hab_note` lists the domains short of
 Blue.
 
 **Compact hosts.** A planet of a pulsar, a non-pulsing neutron star or a black
 hole is rated as if its surface took 1000 Sv/yr, the outer Red edge of the
-radiation domain: Red radiation, `equipment_tier` 4, microbial and complex life
+radiation domain: Red radiation, a hardened habitat required, microbial and complex life
 0, and a `hab_note` naming the host. The rule is by the host's class, so an
 X-ray binary (a normal star with a compact companion; none is generated yet)
 will need its companion's class tested where `generate` and the dose refresh
@@ -532,12 +538,11 @@ Armstrong limit (6.3 kPa against 6.27) is the same number to the notes' rounding
 `protection.rating` gives the description of a rocky body as data (GEN.216, UX.104): the overall value and name, the gear
 a visitor needs, and one row per category with its colour, score and one short sentence. The describer
 (`describe/build.py`) puts it in the body's Document and the renderers write it. It opens "PHI-6 habitability is 0.00 (Red),
-and a visitor needs an environment suit." The six categories follow, each as "Name: Colour (value)." and one short sentence with
+and a visitor needs a pressure suit + dust-tight seals." (the required items of the equipment line, then "and should add" the recommended ones; a world that needs nothing opens "PHI-6 habitability is 1.00 (Blue)." with no gear clause) The six categories follow, each as "Name: Colour (value)." and one short sentence with
 the number and its consequence ("The air pressure is 0 kPa, so a pressure suit is needed."). Air with no atmosphere reads
 "There is no atmosphere (0 kPa)." (GEN.215), Radiation names its band, and Suitability says which of food, water and shelter
-are readily available. Gear is named in short words (`SHORT_GEAR`); the first line gives the heaviest class any stressor asks
-for, and the stored `equipment_tier` agrees with it (an environment suit past the Green heat or cold edge or with too much
-oxygen). A planet of a pulsar, a neutron star or a black hole says its dose is rated lethal.
+are readily available. Gear is named in short words (`SHORT_GEAR`); the first line is the equipment line itself (`protection.gear_clause`), so the
+headline and the stored levels cannot disagree. A planet of a pulsar, a neutron star or a black hole says its dose is rated lethal.
 
 ## 10. What a species can live in (POP.12, built without storage)
 
@@ -545,7 +550,7 @@ A species' environment limits are section 9's table with some rows replaced
 (`planetgen/physics/species_limits.py`): `overrides`, `{limit name: value}`,
 empty for the human limits. `habitability.bands(overrides)` builds the pressure,
 temperature, dose and oxygen bands from them, and `habitability.phi4`,
-`core_scores`, `equipment` and the domain functions take those bands (the human
+`core_scores`, `equipment.compute` and the domain functions take those bands (the human
 `HUMAN` by default), so the six domains are scored by the same code with the
 species' edges. Nothing else about the score changes: the Water and Suitability
 rungs, the toxic gases and PHI_bio are the human visitor's.
@@ -566,8 +571,8 @@ the human ratio). A species with an Earth-like homeworld has no overrides.
 **What could live where.** `species_limits.assess(world, overrides, tech_level)`
 scores the six domains. A species could live there **unaided** when no domain is
 Red. It could live there **with equipment** when Water is not Red and its tech
-level reaches the kit its limits ask for (`habitability.equipment`;
-`tuning.SPECIES_EQUIPMENT_MIN_TECH` gives a level per kit); a species with no tech
+level reaches the highest of the required items its limits ask for (`equipment.tech_needed`;
+`tuning.SPECIES_EQUIPMENT_TECH` gives a level per item); a species with no tech
 level has no kit. A base brings its own food and shelter, so Suitability does not
 count for the equipped list. The lists are `db/species_fit.py`:
 `species_for_body` and `species_for_system` (the species that could live on a

@@ -59,7 +59,8 @@ const {
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
 const { createNavPad } = await import(`./mapnavpad.js${VERSION_QUERY}`);
 const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
-const { formatDistancePc, formatLuminositySol, formatMassSolar, LIGHTYEAR_M, PARSEC_M } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { formatDistancePc, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
+const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
@@ -2454,7 +2455,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var territoryDots = null;
 
   function lyToPc(ly) {
-    return (ly * LIGHTYEAR_M) / PARSEC_M;
+    return convert(ly, "ly", "pc");
   }
 
   function territoryColor(hex) {

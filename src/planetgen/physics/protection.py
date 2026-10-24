@@ -18,16 +18,11 @@ and solar-storm doses need a shelter, not a suit.
 Everything here is a pure function of a `habitability.World`.
 """
 
-from planetgen.physics import atmosphere, habitability
+from planetgen.physics import atmosphere, equipment, habitability
 from planetgen.physics.habitability import (
     ARMSTRONG_KPA, MASK_MIN_KPA, gas_inputs, inspired_o2_kpa, tier, water_inputs, wet_bulb_c)
 from planetgen.physics.protection_limits import limit
 from planetgen.util.format import three_figures_or_tiny
-
-SUIT_RANK = {"none": 0, "mask": 1, "scrubber": 2, "garment": 3, "suit": 4, "hardened": 5}
-"""dict: How heavy a class of gear is, lightest first: nothing, a breathing mask, a mask with a
-scrubber, clothing or garments for the weather, an environment suit, a hardened habitat (no suit helps)."""
-
 
 
 def _gas(symbol):
@@ -160,12 +155,6 @@ SHORT_GEAR = {
 }
 """dict: The gear in the short words a description uses ("so a pressure suit is needed")."""
 
-OVERALL_GEAR = {"none": "no equipment", "mask": "a breathing mask", "scrubber": "a mask with a scrubber",
-                "suit": "an environment suit", "hardened": "a hardened habitat"}
-"""dict: What a visitor needs overall by the heaviest class of gear any stressor asks for (the lighter
-classes name their own gear)."""
-
-
 def _be(gear):
     """"are" for gear named in the plural ("cooling garments"), else "is"."""
     return "are" if gear.endswith("garments") else "is"
@@ -175,21 +164,24 @@ def _short(gear):
     return SHORT_GEAR.get(gear, gear)
 
 
-def kit_sentence(world, needs=None):
-    """The gear a visitor needs overall, as a phrase: the heaviest class of gear any stressor asks for."""
-    needs = needs or requirements(world)
-    body = [need for name, need in needs.items() if name in ("Pressure", "Temperature", "Air", "Radiation")]
-    top = max(SUIT_RANK[need[0]] for need in body)
-    rank = next(name for name, value in SUIT_RANK.items() if value == top)
-    if rank in OVERALL_GEAR:
-        return OVERALL_GEAR[rank]
-    return _join(dict.fromkeys(_short(need[1]) for need in body if SUIT_RANK[need[0]] == top and need[1]))
+def gear_clause(levels):
+    """The survival equipment as the clause that ends a rating's headline, from its stored levels
+    (`equipment.compute`): "and a visitor needs a + b, and should add c", "and a visitor should bring c", or the empty
+    string for a world that needs nothing (a world that needs nothing is never described by what it does not need)."""
+    required, recommended = equipment.required_names(levels), equipment.recommended_names(levels)
+    if required and recommended:
+        return f"and a visitor needs {' + '.join(required)}, and should add {' + '.join(recommended)}"
+    if required:
+        return f"and a visitor needs {' + '.join(required)}"
+    if recommended:
+        return f"and a visitor should bring {' + '.join(recommended)}"
+    return ""
 
 
 def rating(world, compact_host=None):
     """
     The habitability rating of a scored rocky body as data (GEN.208, GEN.216, UX.104): `overall` (the
-    PHI-6 value), `gear` (what a visitor needs overall) and `rows`, one per category in `DOMAINS`
+    PHI-6 value), `gear` (the survival equipment a visitor needs, as `gear_clause`) and `rows`, one per category in `DOMAINS`
     order: `domain`, `tier`, `score` and `text`, the one short sentence of the number and its
     consequence.
     """
@@ -200,7 +192,7 @@ def rating(world, compact_host=None):
         value, colour = scores[name]
         sentence = _suitability_clause(world) if name == "Suitability" else _clause(name, world, needs[name], compact_host)
         rows.append({"domain": name, "tier": colour, "score": value, "text": sentence})
-    return {"overall": scores["PHI-4"], "gear": kit_sentence(world, needs), "rows": rows}
+    return {"overall": scores["PHI-4"], "gear": gear_clause(equipment.compute(world)), "rows": rows}
 
 
 def _clause(name, world, need, compact_host):

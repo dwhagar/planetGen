@@ -1424,6 +1424,10 @@
 -- v135 (GEN.413): `planets.ozone_column_du` and `moons.ozone_column_du`, the ozone column in Dobson units (NULL for a gas giant and for a row made before v135; 0 with no oxygen),
 --   drawn from the oxygen and the star's temperature (`physics/ozone.py`); the UV index reads it.
 --
+-- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
+--   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
+--   `physics/equipment.py`, required and recommended) and `shelter_column_g_cm2` and `outside_hours` (DOUBLE); all NULL for a gas giant and an unscored body.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2229,7 +2233,22 @@ CREATE TABLE IF NOT EXISTS planets (
     l_chem                      DOUBLE,
     l_ener                      DOUBLE,
     l_rad                       DOUBLE,
-    equipment_tier              TINYINT,
+    eq_body                     TINYINT,
+    eq_body_kind                TINYINT,
+    eq_body_rec                 TINYINT,
+    eq_body_rec_kind            TINYINT,
+    eq_rad_suit                 TINYINT,
+    eq_rad_suit_rec             TINYINT,
+    eq_mobility                 TINYINT,
+    eq_dust                     TINYINT,
+    eq_gas_filter               TINYINT,
+    eq_co2_scrub                TINYINT,
+    eq_supply                   TINYINT,
+    eq_supply_rec               TINYINT,
+    eq_shelter                  TINYINT,
+    eq_shelter_rec              TINYINT,
+    shelter_column_g_cm2        DOUBLE,
+    outside_hours               DOUBLE,
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2417,7 +2436,22 @@ CREATE TABLE IF NOT EXISTS moons (
     l_chem                      DOUBLE,
     l_ener                      DOUBLE,
     l_rad                       DOUBLE,
-    equipment_tier              TINYINT,
+    eq_body                     TINYINT,
+    eq_body_kind                TINYINT,
+    eq_body_rec                 TINYINT,
+    eq_body_rec_kind            TINYINT,
+    eq_rad_suit                 TINYINT,
+    eq_rad_suit_rec             TINYINT,
+    eq_mobility                 TINYINT,
+    eq_dust                     TINYINT,
+    eq_gas_filter               TINYINT,
+    eq_co2_scrub                TINYINT,
+    eq_supply                   TINYINT,
+    eq_supply_rec               TINYINT,
+    eq_shelter                  TINYINT,
+    eq_shelter_rec              TINYINT,
+    shelter_column_g_cm2        DOUBLE,
+    outside_hours               DOUBLE,
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.

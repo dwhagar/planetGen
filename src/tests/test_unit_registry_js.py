@@ -87,7 +87,7 @@ def test_a_conversion_between_kinds_is_refused_in_the_browser_as_it_is_here():
 
 _FACTOR_NAMES = re.compile(r"\b(?:const|let|var|export const)\s+(?:AU_KM|KM_PER_PC|KM_PER_AU|AU_M|KM_M|PARSEC_M|LIGHTYEAR_M"
                            r"|SECONDS_PER_YEAR)\s*=\s*[-+0-9.]")
-_FACTOR_VALUES = re.compile(r"149597870\.?7?|3\.0856775814913\d*e1[36]|9460730472580800|206264\.8|31557600\b|3\.15576e7")
+_FACTOR_VALUES = re.compile(r"\b86400\b|\b3600\b|149597870\.?7?|3\.0856775814913\d*e1[36]|9460730472580800|206264\.8|31557600\b|3\.15576e7")
 _GENERATED = ("unitregistry.js", "unitladders.js")
 
 

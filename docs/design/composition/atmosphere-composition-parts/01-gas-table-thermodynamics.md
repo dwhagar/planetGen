@@ -257,6 +257,8 @@ Ideal-gas Cp (J/mol/K) at 100, 300, 1000 K; gamma = Cp/(Cp - R) at 300 K (R = 8.
 
 Cp from ExoMol partition functions Q(T) (exomol.com *.pf), COMPUTED: Cp = 5R/2 + R (2 T dlnQ/dT + T^2 d2lnQ/dT2), finite differences of 5 K.
 
+The twenty-five rows from H to HCOOH (added with GEN.454 and GEN.499) are the atoms, radicals and oxides that a hot or lava-world gas holds in equilibrium (`physics/gas_equilibrium.py`), so that a mixture drawn there is in the table. Their Cp is the NASA Glenn 9-coefficient fit of `physics/species_thermo.py` (McBride, Zehe and Gordon 2002; the fits start at 200 or 300 K, so Cp 100 is not given), COMPUTED; their molar mass is the element table's.
+
 | Species | M g/mol | Cp 100 | Cp 300 | Cp 1000 | Phase or vapour data | Status |
 |---|---|---|---|---|---|---|
 | FeH | 56.853 | 33.19 | 36.33 | 43.90 | NOT REACHED (formation Gibbs data) | COMPUTED |
@@ -266,6 +268,31 @@ Cp from ExoMol partition functions Q(T) (exomol.com *.pf), COMPUTED: Cp = 5R/2 +
 | CaOH | 57.085 | 31.93 | 46.85 | 53.59 | NOT REACHED | COMPUTED |
 | TiO | 63.866 | 33.89 | 31.88 | 36.98 | JANAF Cp in T3 agrees within 4% at 300 K; vapour curve in T6 | COMPUTED |
 | NH4SH | 51.107 | - | - | - | condensation only, section 7.4 | NOT REACHED (Cp) |
+| H | 1.008 | - | 20.79 | 20.79 | no phase data; free energy in species_thermo.py | COMPUTED |
+| O | 15.999 | - | 21.90 | 20.92 | no phase data; free energy in species_thermo.py | COMPUTED |
+| OH | 17.007 | - | 29.88 | 30.68 | no phase data; free energy in species_thermo.py | COMPUTED |
+| C | 12.011 | - | 20.84 | 20.79 | no phase data; free energy in species_thermo.py | COMPUTED |
+| N | 14.007 | - | 20.79 | 20.79 | no phase data; free energy in species_thermo.py | COMPUTED |
+| S | 32.060 | - | 23.67 | 21.49 | no phase data; free energy in species_thermo.py | COMPUTED |
+| Si | 28.085 | - | 22.23 | 20.97 | no phase data; free energy in species_thermo.py | COMPUTED |
+| Ti | 47.867 | - | 24.40 | 21.32 | no phase data; free energy in species_thermo.py | COMPUTED |
+| V | 50.942 | - | 25.98 | 25.24 | no phase data; free energy in species_thermo.py | COMPUTED |
+| Cr | 51.996 | - | 20.79 | 20.84 | no phase data; free energy in species_thermo.py | COMPUTED |
+| P2 | 61.948 | - | 32.07 | 36.83 | no phase data; free energy in species_thermo.py | COMPUTED |
+| FeO | 71.844 | - | 31.44 | 36.69 | no phase data; free energy in species_thermo.py | COMPUTED |
+| MgO | 40.304 | - | 32.15 | 54.74 | no phase data; free energy in species_thermo.py | COMPUTED |
+| SiO2 | 60.083 | - | 44.14 | 58.56 | no phase data; free energy in species_thermo.py | COMPUTED |
+| TiO2 | 79.865 | - | 44.16 | 55.71 | no phase data; free energy in species_thermo.py | COMPUTED |
+| NaOH | 39.997 | - | 48.03 | 54.54 | no phase data; free energy in species_thermo.py | COMPUTED |
+| KOH | 56.105 | - | 49.24 | 54.71 | no phase data; free energy in species_thermo.py | COMPUTED |
+| Na2 | 45.980 | - | 37.58 | 39.39 | no phase data; free energy in species_thermo.py | COMPUTED |
+| NaO | 38.989 | - | 35.11 | 39.72 | no phase data; free energy in species_thermo.py | COMPUTED |
+| MgOH | 41.312 | - | 46.56 | 54.28 | no phase data; free energy in species_thermo.py | COMPUTED |
+| Mg(OH)2 | 58.319 | - | 80.80 | 96.12 | no phase data; free energy in species_thermo.py | COMPUTED |
+| Fe(OH)2 | 89.859 | - | 71.74 | 98.26 | no phase data; free energy in species_thermo.py | COMPUTED |
+| CaO | 56.077 | - | 32.49 | 37.25 | no phase data; free energy in species_thermo.py | COMPUTED |
+| SiS | 60.145 | - | 32.31 | 36.91 | no phase data; free energy in species_thermo.py | COMPUTED |
+| HCOOH | 46.025 | - | 45.84 | 89.40 | no phase data; free energy in species_thermo.py | COMPUTED |
 
 ## 6. Saturation vapour pressure correlations
 

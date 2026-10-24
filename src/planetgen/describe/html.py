@@ -46,6 +46,10 @@ def inline_html(items, link=None):
             out.append(_quantity(item["qty"]))
         elif "strong" in item:
             out.append(f"<strong>{html.escape(item['strong'])}</strong>")
+        elif "swatch" in item:
+            colour = item["swatch"]
+            word = html.escape(colour["word"])
+            out.append(f'<span class="swatch" data-colour="{html.escape(colour["hex"])}"></span> {word}')
         elif "chem" in item:
             out.append(chem.html(item["chem"]))
         else:
@@ -84,9 +88,9 @@ def _composition(block):
 
 def _ratings(block, link):
     overall = block["overall"]
+    gear = inline_html(block["gear"], link)
     headline = (f'<p class="doc-prose doc-rating-headline">{html.escape(overall["name"])} habitability is '
-                f'{overall["score"]:.2f} ({_tier(overall["tier"])}), and a visitor needs '
-                f'{inline_html(block["gear"], link)}.</p>')
+                f'{overall["score"]:.2f} ({_tier(overall["tier"])}){", " + gear if gear else ""}.</p>')
     rows = [(html.escape(row["domain"]), _tier(row["tier"]), f'{row["score"]:.2f}', inline_html(row["text"], link))
             for row in block["rows"]]
     return headline + _table("doc-ratings", ("Category", "Rating", "Score", "Notes"), rows)

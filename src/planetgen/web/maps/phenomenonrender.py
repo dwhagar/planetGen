@@ -14,9 +14,11 @@ itself, chosen per type (UX.17), instead of the flat AU-scale diagram
   than an intermediate one's, as a smaller hole's inner disk is.
 - Quasar: a bigger, brighter disk inside a dusty torus, with jets when it
   is radio-loud.
-- Rogue planet: a dark, starless body, glowing faintly when it keeps
-  internal heat.
-- Interstellar comet: a nucleus, with a coma and tail when it is active.
+- Rogue planet: a dark, starless body painted by the same painters as a
+  planet (`bodylook.rogue_planet_look`, MAP.278), glowing faintly when it
+  keeps internal heat.
+- Interstellar comet: a nucleus (grey-white when active, dark red-brown
+  when not), with a coma and tail when it is active.
 - Asteroid field: no view at all (`view_kind` returns `None`).
 - Nebula (MAP.105): its own shape in 3D, with the brightest stars of the
   galaxy round it dimmed for reference (`render_nebula_view_panel`,
@@ -32,6 +34,7 @@ import json
 import math
 
 from planetgen.web.lib.fmt import esc, format_duration_seconds, format_number
+from planetgen.web.maps import bodylook
 from planetgen.web.maps.starmap import NEBULA_SHAPE_PATH, NEBULA_SURROUNDINGS_PATH, nebula_look
 
 _RENDERED = {"neutron_star", "black_hole", "quasar", "rogue_planet", "interstellar_comet"}
@@ -75,7 +78,9 @@ def _params(phenomenon_type, detail):
         else:
             caption += " It no longer pulses, so it shows no beams."
         return {"pulsing": pulsing, "period_s": round(shown_s, 3),
-                "magnetar": (detail.get("magnetic_field_gauss") or 0) >= 1e14}, caption
+                "magnetar": (detail.get("magnetic_field_gauss") or 0) >= 1e14,
+                "surface": bodylook.blackbody_hex(detail.get("surface_temperature_k")),
+                "seed": bodylook.seed_for("neutron_star", detail.get("id"))}, caption
     if phenomenon_type == "black_hole":
         disk = bool(detail.get("has_accretion_disk"))
         stellar = (detail.get("mass_class") or "stellar") == "stellar"
@@ -83,8 +88,9 @@ def _params(phenomenon_type, detail):
                    "is gas spiralling in, hottest at the inner edge." if disk else
                    "With no accretion disk, the black hole shows only as a shadow that "
                    "bends the starlight behind it.")
-        return {"disk": disk, "stellar": stellar,
-                "spin": detail.get("spin") or 0}, caption
+        return {"disk": disk, "stellar": stellar, "spin": detail.get("spin") or 0,
+                "diskColor": bodylook.blackbody_hex(detail.get("temperature_k")) if disk else None,
+                "seed": bodylook.seed_for("black_hole", detail.get("id"))}, caption
     if phenomenon_type == "quasar":
         jets = bool(detail.get("is_radio_loud"))
         caption = ("A supermassive black hole's blazing accretion disk inside a ring of dust"
@@ -98,11 +104,13 @@ def _params(phenomenon_type, detail):
                    + (", glowing faintly with its own internal heat." if heat else "."))
         if detail.get("effective_temperature_k"):
             caption += f" It radiates at about {format_number(detail['effective_temperature_k'], ',.0f')} K."
-        return {"gas": gas, "heat": heat}, caption
+        look = bodylook.rogue_planet_look(detail)
+        return {"gas": gas, "heat": heat, "look": look, "seed": look["seed"]}, caption
     active = bool(detail.get("is_active"))
     caption = ("The nucleus is shedding gas and dust into a coma and tail." if active else
                "Far from any star it is frozen and inactive: a bare nucleus with no tail.")
-    return {"active": active}, caption
+    return {"active": active, "nucleus": bodylook.comet_nucleus_color(detail),
+            "seed": bodylook.seed_for("interstellar_comet", detail.get("id"))}, caption
 
 
 _STILL_COLORS = {

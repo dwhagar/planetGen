@@ -56,6 +56,9 @@ def render():
         f"export const TINY_NUMBER = {_json(ladders.TINY_NUMBER)};\n"
         "\n"
         "export const LADDERS = {\n" + "".join(blocks) + "};\n"
+        "\n"
+        "// The ladder a registry kind (unitregistry.js) is shown on.\n"
+        f"export const LADDER_OF_KIND = {_json(ladders.LADDER_OF_KIND)};\n"
     )
 
 

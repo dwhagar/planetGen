@@ -227,14 +227,14 @@
    "category": "a",
    "kind": "param",
    "option": "Magma-ocean-stage fO2 (PARAM)",
-   "gate_text": "ROCKY, MOON, ROGUE rocky; M>=0.01",
+   "gate_text": "ROCKY, MOON, ROGUE rocky; any M (the clamp holds -2 below 0.01)",
    "weight_text": "dIW ~ N(mu, 0.5); mu = clamp(-2+1.25(log10 M+2), -2, 0.5); floor on sigma 0.22 = 4 log10(1+0.005/0.037)",
    "source": "anchors Sossi 2020 via part 08 s2: +0.5 at about 1 Me, about -2 for core-formation-set small bodies (READ); floor COMPUTED; interpolation, 0.5 DESIGN",
    "status": "DESIGN",
    "research": [
     "R3"
    ],
-   "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005",
+   "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005 Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses (a class A to Q world of 500 to 1500 km radius) with no redox row at all, and the mean's own clamp already holds -2 below 0.01.",
    "replacement": "GEN.513",
    "labels": [
     "READ",
@@ -263,14 +263,12 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
-   "conditions": [
-    {
-     "quantity": "mass_earth",
-     "minimum": 0.01
-    }
-   ],
+   "conditions": [],
    "sets": "redox_diw",
    "dist": {
     "kind": "normal",
@@ -404,7 +402,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -457,7 +458,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [],
    "group": "a",
@@ -500,7 +504,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [],
    "group": "a",
@@ -541,7 +548,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [],
    "group": "a",
@@ -588,7 +598,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [],
    "group": "b",
@@ -637,7 +650,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [],
    "group": "b",
@@ -686,7 +702,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [],
    "group": "b",
@@ -737,6 +756,9 @@
     "Q",
     "S",
     "V",
+    "U",
+    "Y",
+    "Z",
     "I"
    ],
    "conditions": [
@@ -791,7 +813,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -882,7 +907,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -928,7 +956,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -978,7 +1009,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -1025,7 +1059,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -1071,7 +1108,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -1130,7 +1170,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [],
    "group": "c-after",
@@ -1172,6 +1215,9 @@
     "Q",
     "S",
     "V",
+    "U",
+    "Y",
+    "Z",
     "asteroid"
    ],
    "conditions": [],
@@ -1219,6 +1265,9 @@
     "Q",
     "S",
     "V",
+    "U",
+    "Y",
+    "Z",
     "asteroid"
    ],
    "conditions": [],
@@ -1266,6 +1315,9 @@
     "Q",
     "S",
     "V",
+    "U",
+    "Y",
+    "Z",
     "asteroid"
    ],
    "conditions": [],
@@ -1313,6 +1365,9 @@
     "Q",
     "S",
     "V",
+    "U",
+    "Y",
+    "Z",
     "asteroid"
    ],
    "conditions": [],
@@ -1360,6 +1415,9 @@
     "Q",
     "S",
     "V",
+    "U",
+    "Y",
+    "Z",
     "asteroid"
    ],
    "conditions": [],
@@ -1410,6 +1468,9 @@
     "Q",
     "S",
     "V",
+    "U",
+    "Y",
+    "Z",
     "asteroid"
    ],
    "conditions": [],
@@ -3076,7 +3137,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -3130,7 +3194,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -3413,7 +3480,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -3474,7 +3544,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -4133,7 +4206,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -4159,7 +4235,7 @@
    "option": "Other populations (thick disc, halo, young, M host)",
    "gate_text": "not o1",
    "weight_text": "log10 f ~ U[-0.23, +0.40]",
-   "source": "Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 (N=215), so no thick-thin offset in the planet-relevant ratio (DATA, COMPUTED; tunable-gaps 3.2)",
+   "source": "Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 (N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, Botelho 2019) as 0.08 - 0.019 = 0.061 (DATA, COMPUTED; tunable-gaps 3.2; docs/design/composition/radioisotope-tuning.md section 1)",
    "status": "DESIGN",
    "research": [
     "R13"
@@ -4170,7 +4246,7 @@
     "COMPUTED"
    ],
    "state": "partly verified",
-   "limit": "thick-disc [Th/Mg] from Hypatia (N=32, scale of heterogeneous catalogues, 0.14 dex under the solar-twin scale of o1); halo, young and M hosts have no Th data (GEN.514)",
+   "limit": "thick-disc [Th/Mg] from Hypatia (N=32, moved onto the solar-twin scale of o1 by the Hypatia thick-thin offset of -0.019 dex, GEN.664); halo, young and M hosts have no Th data (GEN.514)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -4190,7 +4266,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {
@@ -4202,11 +4281,11 @@
    "dist": {
     "kind": "normal",
     "log10": true,
-    "mu": -0.063,
+    "mu": 0.061,
     "sigma": 0.19,
     "range": [
-     -0.64,
-     0.52
+     -0.56,
+     0.6
     ]
    }
   },
@@ -4250,7 +4329,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [],
    "dist": {
@@ -4266,18 +4348,18 @@
    "option": "Th/U",
    "gate_text": "ROCKY",
    "weight_text": "U[3.8, 4.5]",
-   "source": "Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 (Frebel 2007 Table 1, READ), F(T) = [(1 - exp(-l232 T))/l232] / [(1 - exp(-l238 T))/l238] with half-lives 14.05 and 4.468 Gyr; F(3 Gyr) = 1.16254 and F(13 Gyr) = 1.71724 bound the birth epoch (COMPUTED, tunable-gaps 2.6)",
+   "source": "Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 (Frebel 2007 Table 1, READ), F = th_u_f, the thorium-232 over uranium-238 left of the disc's r-process input at the star's birth: the disc's star formation (galaxy.disk_history) convolved with a 1/tau merger delay law, each ejecta decayed with half-lives 14.05 and 4.468 Gyr (physics/rprocess_enrichment.py, GEN.663; COMPUTED, tunable-gaps 2.6). A constant input of T Gyr gives F(3) = 1.16254 and F(13) = 1.71724",
    "status": "DESIGN",
    "research": [
     "R13"
    ],
-   "notes": "Replaced 2026-10-23 (GEN.514): U[3.8, 4.5] was the Solar System value at 4.5 Gyr and did not grow with the planet's age (x1.17 over 1.5 Gyr). At 4.5 Gyr the formula gives 3.04 to 5.39.",
+   "notes": "Replaced 2026-10-23 (GEN.514): U[3.8, 4.5] was the Solar System value at 4.5 Gyr and did not grow with the planet's age (x1.17 over 1.5 Gyr). Replaced again 2026-10-24 (GEN.663): the birth epoch T drawn between 3 and 13 Gyr is gone, F is the quantity `th_u_f` that the star's galaxy supplies.",
    "labels": [
     "READ",
     "COMPUTED"
    ],
    "state": "partly verified",
-   "limit": "the production ratio 1.667 to 2.0 and the decay constants are published; the effective r-process duration T of the gas (3 to 13 Gyr, the widest bracket) is calibrated on one Solar System datum and waits for a chemical-evolution model (GEN.514)",
+   "limit": "the production ratio 1.667 to 2.0 and the decay constants are published; the enrichment factor F comes from the disc's star formation history and a 1/tau merger delay law whose 30 Myr floor is a RECALLED stand-in; the gas before the disc began is left out, so F is a lower bound for old stars (GEN.663)",
    "replacement": "",
    "items": [],
    "classes": [
@@ -4297,13 +4379,16 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [],
    "dist": {
     "kind": "uniform",
-    "lo": "0.97483*1.667*1.16254*exp(0.105802*age_gy)",
-    "hi": "0.97483*2.0*1.71724*exp(0.105802*age_gy)"
+    "lo": "0.97483*1.667*th_u_f*exp(0.105802*age_gy)",
+    "hi": "0.97483*2.0*th_u_f*exp(0.105802*age_gy)"
    }
   },
   {
@@ -4342,7 +4427,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [],
    "values": {
@@ -4386,7 +4474,10 @@
     "P",
     "Q",
     "S",
-    "V"
+    "V",
+    "U",
+    "Y",
+    "Z"
    ],
    "conditions": [
     {

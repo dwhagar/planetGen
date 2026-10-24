@@ -28,7 +28,7 @@ its Eddington ratio:
 
 from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import constants as physical_constants
+from planetgen.physics import constants as physical_constants, relations
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -87,9 +87,7 @@ class Quasar(LazySaladName):
 
         self.black_hole_mass_solar = black_hole_mass_solar or shapeDraw.random_nucleus_mass_solar()
         mass_kg = self.black_hole_mass_solar * physical_constants.SOLAR_MASS_TO_KG
-        self.event_horizon_radius_km = (
-            2 * physical_constants.G * mass_kg / physical_constants.SPEED_OF_LIGHT_M_S ** 2 / 1000
-        )
+        self.event_horizon_radius_km = relations.schwarzschild_radius(mass_kg) / 1000
 
         self.eddington_ratio = log_uniform(*tuning.QUASAR_EDDINGTON_RATIO_RANGE)
         self.luminosity_w = (

@@ -55,6 +55,12 @@ NAMES = {
     "TiO": "titanium monoxide", "NaCl": "sodium chloride vapor", "KCl": "potassium chloride vapor",
     "NH4Cl": "ammonium chloride", "FeH": "iron hydride", "CrH": "chromium hydride", "AlH": "aluminum monohydride",
     "VO": "vanadium monoxide", "CaOH": "calcium hydroxide", "NH4SH": "ammonium hydrosulfide",
+    "H": "atomic hydrogen", "O": "atomic oxygen", "OH": "hydroxyl radical", "C": "atomic carbon", "N": "atomic nitrogen",
+    "S": "atomic sulfur", "Si": "atomic silicon", "Ti": "atomic titanium", "V": "atomic vanadium", "Cr": "atomic chromium",
+    "P2": "diphosphorus", "FeO": "iron monoxide", "MgO": "magnesium monoxide", "SiO2": "silicon dioxide vapor",
+    "TiO2": "titanium dioxide vapor", "NaOH": "sodium hydroxide vapor", "KOH": "potassium hydroxide vapor",
+    "Na2": "disodium", "NaO": "sodium monoxide", "MgOH": "magnesium hydroxide radical", "Mg(OH)2": "magnesium hydroxide vapor",
+    "Fe(OH)2": "iron hydroxide vapor", "CaO": "calcium monoxide", "SiS": "silicon monosulfide", "HCOOH": "formic acid",
 }
 
 # Species whose molar mass is a sum of isotope masses, not of standard atomic weights (part 01 T1: "isotope masses for

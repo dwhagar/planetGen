@@ -43,7 +43,7 @@ section 8):
   the score, so `rescore` runs again once it is known.
 * **Compact hosts.** A pulsar, neutron star or black hole's planet is rated
   as if the surface took 1000 Sv/yr (`LETHAL_DOSE_SV_YR`): Red radiation,
-  the lowest equipment tier and a note naming the host. No X-ray binaries
+  the heaviest survival equipment and a note naming the host. No X-ray binaries
   are generated yet; the rule is by the host's class.
 
 A gas giant has no surface and no score (every field `None`).
@@ -52,23 +52,12 @@ A gas giant has no surface and no score (every field `None`).
 import math
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, habitability
+from planetgen.physics import atmosphere, constants, equipment, habitability, magnetism, radiation
 
 TIER_INDEX = {"Blue": 0, "Green": 1, "Yellow": 2, "Red": 3}
 TIER_NAMES = tuple(TIER_INDEX)
 """tuple: The tier colours by `tier_<domain>` number."""
 """dict: A domain's colour as stored (`tier_<domain>`): 0 is best."""
-
-EQUIPMENT_NAMES = (
-    "ideal", "breathing mask", "mask with scrubber", "environment suit",
-    "full life support with radiation hardening",
-)
-"""tuple: `equipment_tier` 0 to 4 and the kit it names (`habitability.equipment`)."""
-
-EQUIPMENT_LABELS = (
-    "Ideal", "Mask", "Mask and scrubber", "Environment suit", "Full life support",
-)
-"""tuple: The same tiers as the page and the search show them."""
 
 DOMAINS = tuple(name.lower() for name in habitability.DOMAINS)
 """tuple: The six domains as stored (`phi4_<domain>`, `tier_<domain>`): pressure, temperature, air, water,
@@ -79,7 +68,7 @@ CORE_DOMAINS = tuple(name.lower() for name in habitability.CORE_DOMAINS)
 BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     "phi_bio", "phi_cpx", "phi_tech", "l_solv", "l_chem", "l_ener", "l_rad",
-    "equipment_tier", "energy_flux_w_m2", "flux_variation",
+    *equipment.FIELDS, "energy_flux_w_m2", "flux_variation",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
 `moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
@@ -157,6 +146,13 @@ def values_from_body(body):
         "water_mass_fraction": getattr(body, "water_mass_fraction", None),
         "surface_dose_msv_yr": getattr(body, "surface_dose_msv_yr", None),
         "dose_ground_msv_yr": getattr(body, "dose_ground_msv_yr", None),
+        "dose_gcr_msv_yr": getattr(body, "dose_gcr_msv_yr", None),
+        "dose_sep_msv_yr": getattr(body, "dose_sep_msv_yr", None),
+        "dose_helio_mult": getattr(body, "dose_helio_mult", None),
+        "uv_surface_index": getattr(body, "uv_surface_index", None),
+        "magnetic_moment_a_m2": getattr(body, "magnetic_moment_a_m2", None),
+        "rotation_period_hours": getattr(body, "rotation_period_hours", None),
+        "is_moon": bool(getattr(body, "is_moon", False)),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
         "native_life": native_life(getattr(body, "life_chemical", None), getattr(body, "life_stage", None),
                                    getattr(body, "evolutionary_pace", None) is not None),
@@ -280,6 +276,7 @@ def world_from(values, lethal_host=None):
     if lethal_host:
         surface_dose = max(surface_dose, LETHAL_DOSE_SV_YR)
         habitat_dose = max(habitat_dose, LETHAL_HABITAT_DOSE_GY_YR * habitability.SV_PER_GY)
+    parts = _dose_parts_sv(values) if not lethal_host else (None, None, None)
     aqueous = medium == "water"
     activity = values.get("water_activity") if aqueous and values.get("water_activity") is not None else 1.0
     brine = values.get("ocean_class") == "chloride brine"
@@ -307,7 +304,27 @@ def world_from(values, lethal_host=None):
         water_source=water_source(values),
         life_stage=values.get("native_life") or "none",
         life_on_surface=values.get("hydrosphere") != "ice-covered ocean",
+        dose_gcr_sv_yr=parts[0], dose_sep_sv_yr=parts[1], dose_ground_sv_yr=parts[2],
+        cutoff_gv=cutoff_gv(values), uv_index=values.get("uv_surface_index") or 0.0,
     )
+
+
+def _dose_parts_sv(values):
+    """`(cosmic rays with the heliosphere's multiplier, stellar particles, ground)` in Sv/yr from the stored parts,
+    or three `None` when a body was saved without them."""
+    gcr, sep, ground = (values.get(name) for name in ("dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr"))
+    if gcr is None or sep is None or ground is None:
+        return None, None, None
+    multiplier = values.get("dose_helio_mult") or 1.0
+    return gcr * multiplier / 1000.0, sep / 1000.0, ground / 1000.0
+
+
+def cutoff_gv(values):
+    """The equatorial cutoff rigidity of the body's dipole, GV (0 without a field): the moment, times the dipole's
+    share for a slow-rotating planet (a moon keeps its dipole), over the radius squared (`radiation.cutoff_rigidity_gv`)."""
+    share = 1.0 if values.get("is_moon") or values.get("body_type") == "g" else magnetism.dipole_share(
+        values.get("rotation_period_hours"))
+    return radiation.cutoff_rigidity_gv((values.get("magnetic_moment_a_m2") or 0.0) * share, values.get("radius_km") or 0.0)
 
 
 def compute(values, compact_host=None):
@@ -330,9 +347,7 @@ def compute(values, compact_host=None):
         score, colour = result[domain.capitalize()]
         out[f"phi4_{domain}"] = score
         out[f"tier_{domain}"] = TIER_INDEX[colour]
-    out["equipment_tier"] = EQUIPMENT_NAMES.index(result["equipment"])
-    if compact_host:
-        out["equipment_tier"] = len(EQUIPMENT_NAMES) - 1
+    out.update(equipment.compute(world))
     return out
 
 

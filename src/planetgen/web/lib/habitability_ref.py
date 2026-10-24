@@ -2,30 +2,46 @@
 
 """
 The text of the habitability levels page (`/classes/habitability`, UX.90):
-the five equipment levels, the six PHI-6 domains with their Blue, Green,
+the survival equipment items, the six PHI-6 domains with their Blue, Green,
 Yellow and Red thresholds, the compact-host rule and the chips a planet row
-shows. The equipment labels come from `planetgen.physics.habitability_world`;
+shows. The equipment items come from `planetgen.physics.equipment`;
 the thresholds are read from `planetgen.physics.habitability` and `protection_limits`, where they are named with
 their sources (`domains`), so the tables cannot disagree with the score.
 """
 
 from planetgen.physics import atmosphere, habitability
-from planetgen.physics.habitability_world import EQUIPMENT_LABELS, LETHAL_DOSE_SV_YR
+from planetgen.physics.habitability_world import LETHAL_DOSE_SV_YR
 from planetgen.physics.protection_limits import limit
 from planetgen.web.lib import habitability_symbols
 
-EQUIPMENT_MEANINGS = (
-    "Ordinary weather clothing is enough: the air has the right pressure and oxygen, no harmful gas, "
-    "a comfortable temperature and a low radiation dose.",
-    "A breathing mask: oxygen is low or the pressure is a little off, but a mask makes the air safe.",
-    "A mask with a scrubber: a gas such as carbon dioxide, carbon monoxide, hydrogen sulfide or sulfur dioxide "
-    "is above its long-term limit and has to be filtered out.",
-    "An environment suit: the pressure is too low for a mask to work, or the temperature or the air's chemistry "
-    "is outside what a person can stand.",
-    "Full life support with radiation hardening: the radiation dose is beyond what any suit can shield, "
-    "so a visitor needs a hardened habitat.",
+EQUIPMENT_ITEMS = (
+    ("Clothing", "Cold-weather, cooling or sun-cover clothing: the temperature is a little outside comfort or the "
+                 "ultraviolet is strong."),
+    ("Thermal suit", "An insulated, liquid-cooled or heated diving suit: the temperature is well outside what "
+                     "clothing handles, or the pressure needs a heated diving suit."),
+    ("Sealed suit", "A fully enclosed suit with its own climate: heated for the deep cold, heat-shielded for the "
+                    "hot, chemical-barrier where a corrosive gas or liquid is about."),
+    ("Pressure suit", "The ambient pressure is too low for a mask to give enough oxygen."),
+    ("Armoured suit", "A rigid suit that holds one atmosphere inside: crushing pressure or heat past 400 C."),
+    ("Vehicle only", "No suit exists for it: heat past 500 C, pressure past 100 MPa or gravity past 3 g."),
+    ("Powered frame", "The gravity is past 1.5 g (recommended from 1.25 g)."),
+    ("Dust filter or seals", "Fine regolith dust wrecks open seals (a rocky body with almost no air)."),
+    ("Gas filter, full-face or powered", "A gas such as carbon monoxide, hydrogen sulfide or sulfur dioxide is above "
+                                         "its long-term limit and has to be filtered out."),
+    ("CO2 scrubber", "Carbon dioxide is above its long-term limit but short of what is acutely dangerous."),
+    ("Gas-mix mask", "Oxygen is low or high, or the pressure is dense: an open mask fixes the mix."),
+    ("Self-contained air", "A sealed suit or mask on its own air: the ambient gas cannot be breathed (too little "
+                           "pressure, too much oxygen or carbon dioxide, a toxic gas past its immediate danger "
+                           "limit, or air too cold or hot)."),
+    ("Mixed-gas rig and isolated air", "Heliox or trimix for pressure from 4 to 100 bar; air carried inside a rigid "
+                                       "suit beyond that."),
+    ("Shielded garment, storm vest, hardened suit", "Three steps of radiation shielding worn on the body, from a "
+                                                    "thin shielded layer to a hardened suit with storm warning."),
+    ("Shielded shelter and hardened habitat", "Thick shielding to stay in: water or regolith walls, or a buried "
+                                              "habitat when cosmic rays are the problem."),
 )
-"""tuple: What each equipment level means, in the order of `EQUIPMENT_LABELS`."""
+"""tuple: `(item, what makes it needed)` for the survival equipment line (GEN.655; UX.153 builds the page from the
+limits table)."""
 
 DOMAIN_TIERS = (
     ("Blue", "The best band: a visitor notices nothing wrong."),
@@ -127,16 +143,19 @@ SCORE_RULE = (
 )
 
 EQUIPMENT_RULE = (
-    "The equipment level comes from the worst of pressure, temperature, air and radiation: radiation in the Red band needs full life support; "
-    "pressure below Green, or any domain in the Red band, needs an environment suit; a gas above its long-term limit "
-    "needs a mask with a scrubber; low oxygen or a pressure below Blue needs a mask; anything else is ideal. "
-    f"Air hotter than {limit('heat_shielded_c'):g} C burns a mask-only visitor's skin at the seal, so it needs a "
-    "heat-shielded suit with a liquid cooling garment."
+    "A planet's equipment line lists only what a visitor needs, never what is not needed. Each item is required "
+    "(past the physical limit) or recommended (in the band before it, where a person is impaired or at risk, or "
+    "where only a region or the night asks for it); a world that needs nothing shows no line. The line follows the "
+    "physics, so it can be stricter than a domain's colour: a gas past its immediate danger limit needs sealed "
+    "air even where the score only says Yellow. Radiation goes up in steps: a shielded garment, a storm vest, a "
+    "hardened suit, then a shielded shelter and a hardened habitat, each worked out from how much of the dose is "
+    f"cosmic rays and how much is storm particles. Air hotter than {limit('heat_shielded_c'):g} C burns a mask-only "
+    "visitor's skin at the seal, so it needs a heat-shielded suit."
 )
 
 COMPACT_HOST_RULE = (
     f"A planet of a pulsar, a neutron star or a black hole is rated as if its surface took "
-    f"{LETHAL_DOSE_SV_YR:,.0f} Sv a year. That puts radiation in Red, so the planet needs full life support "
+    f"{LETHAL_DOSE_SV_YR:,.0f} Sv a year. That puts radiation in Red, so the planet needs a hardened habitat "
     "and its life scores are 0. Its note names the host."
 )
 
@@ -178,7 +197,7 @@ def page():
         "life_rows": LIFE_ROWS,
         "life_scores": (0, 3, 9),
         "tier_numbers": tuple(range(len(habitability_symbols.TIER_CLASSES))),
-        "equipment": list(zip(EQUIPMENT_LABELS, EQUIPMENT_MEANINGS)),
+        "equipment": EQUIPMENT_ITEMS,
         "domain_tiers": DOMAIN_TIERS,
         "domains": domains(),
         "score_rule": SCORE_RULE,
