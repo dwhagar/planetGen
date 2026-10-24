@@ -184,7 +184,7 @@ SYSTEM_TYPE_RATES = {
         note="A few hundred R CrB stars and a few dozen FK Comae stars; single, flagged `merger-product`."),
     "thorne-zytkow": _t(
         "13.2", "Thorne-Zytkow object (a neutron star inside a giant)", "Galaxy count", 100, "S",
-        ("old",), "draw_exotic_star", 269, "F", (10, 11), unit="count", low=20, high=200, theoretical=True,
+        ("old",), "draw_exotic_star", 270, "F", (10, 11), unit="count", low=20, high=200, theoretical=True,
         note="None confirmed; 3.4e-10 of systems. A giant with a neutron-star core, no planets, no companion; "
              "new kind `thorne-zytkow`."),
 
@@ -347,14 +347,16 @@ it; the completeness test reads the note and fails when a row has no entry."""
 
 
 TUNING_KNOBS = {
-    "tight_tail_weight": 1.0,
+    "tight_tail_weight": 6.0,
     "post_ce_fraction": 0.10,
     "accreting_fraction": {"low-mass-xray-binary": 0.01, "high-mass-xray-binary": 0.40},
     "merger_product_fraction": {"massive": 0.08, "field": 0.005, "white-dwarf": 0.10},
 }
-"""dict: The knobs of section 13.7. `tight_tail_weight` scales the share of FGK
-pairs with a period under a day until the contact share is 0.2% of stars and
-the Algol share 0.1% to 0.2%; `post_ce_fraction` is the post-common-envelope
+"""dict: The knobs of section 13.7. `tight_tail_weight` multiplies the density of
+pairs with a period under a day for primaries under the massive limit, until
+the contact share of FGK systems is inside 0.2% to 0.77% and the Algol share
+of a constant-star-formation disk approaches 0.1% (GEN.270 set it to 6.0, the
+plain draw being 1.0); `post_ce_fraction` is the post-common-envelope
 share of white-dwarf companions (the Maoz 9.5% for double white dwarfs and a
 matching value for white dwarf plus star); `accreting_fraction` is the share of
 compact companions that accrete, by class (1% to 40%); `merger_product_fraction`

@@ -68,7 +68,7 @@ def test_an_entry_is_complete_and_in_order(key):
         assert isinstance(value, (int, float)) and value >= 0
 
 
-_LANDED_OWNERS = frozenset({253, 261})
+_LANDED_OWNERS = frozenset({253, 261, 270})
 """set: The items whose generators are written. A generator owned by an item outside this set may not exist
 yet; add the item's number here in the PR that adds its functions."""
 
@@ -116,9 +116,9 @@ def test_the_n_tail_follows_the_notes_ratios():
     assert quint == {"N5": 2.4e-3, "N6": 2.9e-4, "N7": 3.0e-5}
 
 
-def test_the_tuning_knobs_are_the_notes_defaults():
+def test_the_tuning_knobs_are_the_calibrated_defaults():
     knobs = types.TUNING_KNOBS
-    assert knobs["tight_tail_weight"] == 1.0 and knobs["post_ce_fraction"] == 0.10
+    assert knobs["tight_tail_weight"] == 6.0 and knobs["post_ce_fraction"] == 0.10
     assert knobs["merger_product_fraction"] == {"massive": 0.08, "field": 0.005, "white-dwarf": 0.10}
     assert min(knobs["accreting_fraction"].values()) == 0.01 and max(knobs["accreting_fraction"].values()) == 0.40
 

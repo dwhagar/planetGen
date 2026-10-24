@@ -1429,6 +1429,51 @@ below it, by Knuth's method (PERF.60)."""
 # find it close to flat); the secondary shares the primary's age.
 BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
 
+# --- Close-binary types (GEN.270, `generation/multistar.py`, docs/design/multi-star-systems.md 13.2) ---
+SPECTROSCOPIC_MAX_AXIS_AU = 0.26
+"""float: A pair closer than this is a spectroscopic binary (the catalogue's "close detached binary, a under 0.26 AU",
+design note 13.1); `MemberTree.spectroscopic_nodes`."""
+
+CONTACT_TERTIARY_KEEP_SHARE = 0.54
+"""float: The share of the contact binaries that hold the placed star and have a tertiary which keep it (GEN.270). The
+member-tree draw gives 84% of contact binaries a tertiary, because the stability screen leaves the inner pair of a
+hierarchy only short periods; stripping the others from 46% of those where the pair holds the placed star brings the
+share to the catalogue's 60% (measured over 600,000 seeded disc systems; a stand-in until GEN.631's fill measures it
+again)."""
+
+MERGER_MASSIVE_MIN_MASS_SOL = 9.0
+"""float: The birth mass from which a star counts as massive for the merger-product and mass-gainer shares (the
+early-B and O stars, `B_SUBCLASS_LOWER_MASS_SOL`; de Mink et al. 2014 give the 8% and 20% for O and early-B stars)."""
+
+YOUNG_POPULATION_MAX_AGE_GY = STELLAR_POPULATION_AGE_RANGES_GY["young"][1]
+"""float: The age under which a star belongs to the young population, Gy: the gate of the Be stars, the massive merger
+products and the young-only types of the catalogue (the generator knows a star's age, not its population)."""
+
+OLD_POPULATION_MIN_AGE_GY = STELLAR_POPULATION_AGE_RANGES_GY["old"][0]
+"""float: The age from which a star belongs to the old population, Gy: the gate of the R Coronae Borealis and FK Comae
+stars and the Thorne-Zytkow objects, and from which an Algol no longer forms (the catalogue's `algol` row)."""
+
+BE_STRIPPED_COMPANION_MASS_RANGE_SOL = (0.3, 0.5)
+"""tuple: The mass of the stripped helium star that is a Be star's companion (design note 13.2, as the hot subdwarf row:
+0.3 to 0.5 solar masses)."""
+
+BE_STRIPPED_PROGENITOR_RATIO_RANGE = (1.2, 2.0)
+"""tuple: A stripped companion's birth mass over the Be star's birth mass, uniform. A stand-in: the donor of the transfer
+that spun the Be star up was the heavier of the pair, so the ratio is over 1; the range is a design default."""
+
+STRIPPED_HELIUM_RADIUS_SOL_AT_0_47 = 0.2
+"""float: The radius of a 0.47 solar mass stripped helium star or hot subdwarf, solar radii (a typical sdB, Heber 2016,
+PASP 128:082001); the radius of another mass scales as the mass to the power -1/3 (the degenerate-envelope trend)."""
+
+STRIPPED_PAIR_PERIOD_DAYS = (30.0, 1000.0)
+"""tuple: The periods a Be star and its stripped companion are drawn over, log-uniform, days. A stand-in: such pairs
+are detached after the transfer and have periods of tens to hundreds of days; the range is a design default, not a
+measured one."""
+
+OLD_GIANT_SYSTEM_SHARE = 0.005
+"""float: The share of all systems whose placed star is a giant of the old population. A stand-in, used to turn a type's
+Galaxy count (R Coronae Borealis, FK Comae, Thorne-Zytkow) into the chance among old giants; remeasure from a fill."""
+
 # The chance of a companion inside 10 AU against the star's own [Fe/H] (GEN.103; Boss, 2026-10-16, 6:12 to 6:15 PM
 # EDT: one pooled trend, every star mass). Moe, Kratter & Badenes 2019, ApJ 875:61 (arXiv 1808.02116), for solar-type
 # primaries (0.6 to 1.5 Msun, periods under 10^4 d): 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2 and
