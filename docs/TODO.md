@@ -1077,6 +1077,17 @@ with `clamp()`.
   lane (follow-up; the lane stays open until it merges).
   Prerequisites: none.
 
+- [ ] **UX.164 The wipe line reads "Wiped 75 tables (about 1 row)" (bug)**
+  From the generation-log analysis of Boss's run
+  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
+  reported; report reports/generation-log-analysis-2026-10-24.md). P6.
+  Do: make the wipe line report what it really did (tables cleared and
+  rows removed, both real counts), not an estimate of about one row.
+  Related: UX.161 (the main page counts after a reset). Done: a test on
+  the wording against a wiped test database. Owner: Generation-log
+  analysis lane (proposed by the lane).
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -8653,6 +8664,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   setup download AD9 ozone_uv, Zenodo 6951). The wiring into
   radiation.generate_dose and the greenhouse part are not done, so the
   item stays open.
+  Lane E (2026-10-09): 11:56 PM EDT 2026-10-23: lane E (radiation dose
+  kernels) asks to take the remaining part, the greenhouse closure and
+  the band-flux and dose wiring on top of lane G's merged kernel
+  (#2757). Lane G's board row says it goes to GEN.414 next. Owner
+  proposed: lane E, once lane G confirms it has no branch for the
+  greenhouse part or the wiring (the TODO thread asks G; no reply means
+  lane E owns it).
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -14487,6 +14505,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   values).
   Prerequisites: none.
 
+- [ ] **GEN.677 The phenomena scatter places about 86,000 stellar black holes per shell pair and no ordinary neutron stars (only magnetars) (bug)**
+  From the generation-log analysis of Boss's run
+  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
+  reported; report reports/generation-log-analysis-2026-10-24.md). P3.
+  Do: find why the phenomena scatter draws that many stellar-mass black
+  holes and no neutron stars that are not magnetars, and bring both
+  counts into line with the stellar-remnant rates behind them (the
+  scatter limits by place of GEN.377 are related). Done: a test on the
+  counts per shell pair against the model's expected remnant numbers.
+  Owner: none for now (pool; Core 4 proposed). It changes generated
+  values, so it needs a generator epoch.
+  Prerequisites: none.
+
+- [ ] **GEN.678 The bright-star units expected about 23,000 stars but placed 1,000 to 3,000, so the run placed 229,596 stars against 365,093 expected and took 20 minutes (bug)**
+  From the generation-log analysis of Boss's run
+  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
+  reported; report reports/generation-log-analysis-2026-10-24.md). P4.
+  Do: find why the bright-star units place a small share of the stars
+  they expect (a cap, a limit by place, a seed or a dedupe), and make
+  placed equal expected within the stated tolerance, or explain the
+  difference in the report line. Done: a test on the placed and expected
+  counts of a bright-star unit. Owner: none for now (pool; Core 4
+  proposed). It changes generated values, so it needs a generator epoch.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15401,6 +15444,41 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the plan's storing-the-shape step falls to a small share with the
   measured before and after on this item, and the golden outputs are
   unchanged. Owner: Performance lane.
+  Prerequisites: none.
+
+- [ ] **PERF.177 A galaxy run died at the phenomena stage (14 percent) on a Redis out-of-memory (maxmemory 512mb, noeviction), the later stages never ran, and the log is a 70-line double traceback (bug)**
+  From the generation-log analysis of Boss's run
+  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
+  reported; report reports/generation-log-analysis-2026-10-24.md). P1.
+  Do: find what fills Redis during the phenomena stage, make the run
+  survive it or stop with one plain line that says Redis is full and
+  what to raise (the maxmemory setting in the setup script and the
+  update check), and show one traceback at most. Done: a test or a
+  measured run where Redis near its limit gives the plain message and
+  the run ends cleanly or finishes. Owner: Generation-log analysis lane
+  (proposed by the lane).
+  Prerequisites: none.
+
+- [ ] **PERF.178 The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug)**
+  From the generation-log analysis of Boss's run
+  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
+  reported; report reports/generation-log-analysis-2026-10-24.md). P2.
+  Do: make the estimate line honest and plain: if it refuses and goes
+  ahead anyway, say so in one clear sentence with the reason, and bring
+  the time estimate closer to the measured one (or say how wide it is).
+  Done: the line reads the same as what happens, with a test on the
+  wording. Owner: Generation-log analysis lane (proposed by the lane).
+  Prerequisites: none.
+
+- [ ] **PERF.179 Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug)**
+  From the generation-log analysis of Boss's run
+  job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
+  reported; report reports/generation-log-analysis-2026-10-24.md). P5.
+  Do: find why the progress line is truncated in the job log (line width
+  or a cut in the log writer) and show the whole line; PERF.147 (the
+  per-task progress bar with an ETA) is related. Done: a test that a
+  progress line is not cut at the log's width. Owner: Generation-log
+  analysis lane (proposed by the lane).
   Prerequisites: none.
 
 ## DB: Database and schema

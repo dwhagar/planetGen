@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 11:54 PM EDT 2026-10-23: 815 of 1210 items finished (67.4 percent), 395 open, 24 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 116, phase 2 44, phase 3 26, phase 4 13, phase 5 80, phase 6 28, phase 7 22, phase 8 4, phase 9 17, phase 10 2, phase 11 33, phase 12 10 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 11:57 PM EDT 2026-10-23: 815 of 1216 items finished (67.0 percent), 401 open, 24 dropped (PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT). Open by phase: phase 1 116, phase 2 44, phase 3 26, phase 4 13, phase 5 81, phase 6 28, phase 7 24, phase 8 4, phase 9 17, phase 10 2, phase 11 33, phase 12 13 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -378,6 +378,7 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 |---|---|---|---|
 | UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) |  | Boss bug 9:07 PM EDT |
 | UX.160 | The search icon button opens a box over the page: it should go straight to the search page (bug) |  | Boss bug 10:35 PM EDT; Bug Hunt. |
+| UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) |  | Boss run log; generation-log lane. |
 | UX.161 | After a galaxy reset the counts on the main page do not change even though the database has been wiped (bug) |  | Boss bug 11:08 PM EDT; Bug Hunt. |
 | MAP.143 | Color sectors by their number of habitable locations |  | GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717). |
 | MAP.219 | Galaxy Map marker layer: a kind registry with per-kind toggles, the zoom budget and picking, shipping the black-hole kind |  | Split from MAP.132. |
@@ -556,6 +557,8 @@ Moved into 8.1 from 8.4 phase 2 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.479 | The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug) | GEN.411 | Atmosphere lane part 09 conflicts 3 to 8 with the code, checked on main; replaced by the recipe tables. Core 4 proposed. |
+| GEN.678 | The bright-star units expected about 23,000 stars but placed 1,000 to 3,000, so the run placed 229,596 stars against 365,093 expected and took 20 minutes (bug) |  | Boss run log. |
+| GEN.677 | The phenomena scatter places about 86,000 stellar black holes per shell pair and no ordinary neutron stars (only magnetars) (bug) |  | Boss run log. |
 | GEN.675 | Register the atmosphere mixture stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each |  | Lane L finding 11:32 PM EDT 2026-10-23. |
 | GEN.674 | Atmosphere mixture recipe gaps: no perihelion gate on rows k, a near-zero row normalised to 1, rows j3 and j4 never drawn, no carbonate-silicate CO2 sink, no Pluto-like family, missing lava-vapour gases (bug) |  | Lane L finding 11:32 PM EDT 2026-10-23. |
 | GEN.673 | Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on | GEN.411 | Lane L finding 11:32 PM EDT 2026-10-23. |
@@ -715,6 +718,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | PERF.174 | Every work unit's database connection runs the schema check again: skip it when the schema version is current |  |  |
 | PERF.173 | A new-galaxy Generate run dies in stage 5 with "Execution not found in Redis": the worker warm outlives the 90 s execution record (bug) |  |  |
 | PERF.155 | A unit-length ceiling: no unit of a stage runs longer than a set time (default 5 minutes) unless the stage is one unit; longer stages are split (F6) |  |  |
+| PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) |  | Boss run log; generation-log lane. |
+| PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) |  | Boss run log; generation-log lane. |
+| PERF.177 | A galaxy run died at the phenomena stage (14 percent) on a Redis out-of-memory (maxmemory 512mb, noeviction), the later stages never ran, and the log is a 70-line double traceback (bug) |  | Boss run log; generation-log lane. |
 | PERF.176 | Storing the galaxy shape takes 52 percent of the plan (20 s of 38.6 s): find why and speed it up |  | Boss request 11:14 PM EDT; Performance. |
 | UX.162 | The plan prints a "Where the plan's time went" table in every galaxy plan; it should show only in debug mode or with a --timing flag (bug) |  | Boss bug 11:12 PM EDT; decided 11:14 PM EDT; Performance. |
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
