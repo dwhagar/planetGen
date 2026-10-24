@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2240] - 2026-10-24
+
+**Headline:** The every-button browser test waits for the 3D system view to finish loading before it clicks.
+
+### Fixed
+- **`test_every_plain_button_does_something[web.system]` timed out on a body-list button of the 3D view (TEST.350).** The system page opens in 3D by default and rebuilds its "Bodies in this view" list once the scene has loaded, so a button clicked just before that was "not stable" and the click waited out its two minutes. The test now waits for the 3D view to be ready (or hidden) after every page load.
+TODO items resolved: TEST.350. Added: none.
+
 ## [8.0.2239] - 2026-10-24
 
 **Headline:** The facility and population system page tests follow what UX.173 and UX.176 moved to the body's own page.
