@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.183 |
 | MAP | MAP.290 |
 | NAV | NAV.63 |
-| GEN | GEN.707 |
+| GEN | GEN.709 |
 | PERF | PERF.181 |
 | DB | DB.100 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.335 |
+| TEST | TEST.336 |
 | USR | USR.32 |
 | OPS | OPS.69 |
 | DOC | DOC.79 |
@@ -996,7 +996,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.268 | System-type registry: a SYSTEM_TYPE_RATES dict with one entry per catalogue type, and a completeness test | none | done, PR #1702 |
 | GEN.269 | Interaction states in the star model: a Roche classifier, `interaction` on every pair, member state and flags, rejuvenated age and the new kinds | none | done, PR #2481 |
 | GEN.270 | Close-binary types: contact, Algol, spectroscopic and eclipsing flags, tertiary shares, merger products and Be stars | none | done, PR #2879 |
-| GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars | none | open |
+| GEN.271 | White-dwarf binary types: close double white dwarfs, post-common-envelope pairs, cataclysmic variables, AM CVn, symbiotic and barium stars | none | done, PR #2928 |
 | GEN.272 | Accreting compact binaries: X-ray binaries, accretion luminosity, microquasars, spider pulsars and compact triples | none | open |
 | GEN.273 | Young groups and trapezia: the `group` node, offset and velocity columns, a decay age and the remnant draw | none | open |
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova | none | open |
@@ -1432,6 +1432,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.704 | Moons of a moved planet keep the dose, solar particle exposure, UV and habitability of their old distance from the star (bug) | none | open |
 | GEN.705 | The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug) | none | open |
 | GEN.706 | Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug) | none | open |
+| GEN.707 | Register the white dwarf binary stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each | none | open |
+| GEN.708 | White dwarf merger products draw their 0.8 to 1.1 solar mass bump: the star model gives the white dwarf its mass before the member tree, so the tree only flags 10 percent as merger products | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2733,6 +2735,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.332 | test_object_rows::test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from fails on main: the comet is missing from the row-kind set (bug) | none | open |
 | TEST.333 | test_systems forced belt and habitable world together still fails for M5V about 1 trial in 15 after the TEST.313 fix (bug) | none | open |
 | TEST.334 | Queue and generation tests pass alone but hang or "DID NOT RAISE" in a full run on lane machines: test_gen_resume (7), test_gen_bright_scatter_edges (5), test_work_units (7 in sequence), test_worker_warm, test_work_queue parallel (bug) | none | open |
+| TEST.335 | test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order fails 3 runs in 8 on clean main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
