@@ -9412,6 +9412,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
+  Research (2026-10-09, 10-24 Lane Draws): In part (Lane Draws, #3027,
+  about 2:19 PM EDT 2026-10-24 as the lane reported): recipe row b4, the
+  water-rich share, follows the Bern logistic in mass with plateau
+  bracket 0 to 1; no epoch (recipes are not read by the generator yet).
+  Still open: the Luque and Palle density-mode comparison; rows b1 to
+  b3, b5 and b6 stay stand-ins.
   Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
