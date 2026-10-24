@@ -785,7 +785,7 @@ TABLES = {
         "dex": ("log_lx_lbol", "metallicity_fe_h"),
         "flag": ("xuv_saturated", "flags"),
         "1/yr": ("flare_n33_per_yr",),
-        "ratio": ("flare_alpha",),
+        "ratio": ("flare_alpha", "uv_c_share"),
         "J": ("xuv_fluence_j",),
         "1/Gy": ("lethal_event_rate_per_gyr",),
         "au": ("offset_x_au", "offset_y_au", "offset_z_au", "disk_inner_au", "disk_outer_au"),
