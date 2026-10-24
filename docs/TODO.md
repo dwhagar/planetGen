@@ -12081,7 +12081,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   disks of isolated planetary-mass objects, verify the sources before
   any use (standing source rules), write the note under docs/design/,
   and close the item when each of the four research parts has its
-  verified numbers or a stated gap. Owner: lane J, if no one else
+  verified numbers or a stated gap. Owner: the unit registry lane, if no one else
   started it (TODO found no other owner line).
   Prerequisites: none. Related: GEN.550.
 
@@ -12448,7 +12448,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   light-years, parsecs, years and seconds through the unit registry;
   every number bit-for-bit the same, no epoch). The item stays open; the
   lane takes further groups, and GEN.587's later groups, which need an
-  epoch. Owner: lane J (taken from the pool, checked unstarted
+  epoch. Owner: the unit registry lane (taken from the pool, checked unstarted
   elsewhere).
   Prerequisites: none. Related: GEN.550, GEN.565, DB.74.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
