@@ -132,6 +132,7 @@ INPUTS = {
     "sulfur_flux_earth": "outgassed sulfur flux over the Earth's volcanic flux",
     "h2_air": "True for an H2-dominated atmosphere",
     "thin_disc_fgk": "True for a thin-disc F, G or K host",
+    "th_u_f": "thorium-to-uranium enrichment factor of the host's birth gas (physics.rprocess_enrichment, at least 1)",
     "planetesimals_early": "True when the planetesimals formed within a few Myr",
     "grain_um": "cloud grain radius (micrometres)",
     "profile_t_min_k": "coldest temperature of the atmospheric profile (K)",

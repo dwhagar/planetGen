@@ -108,6 +108,19 @@ def _table_estimates(conn, database):
     return {row["name"]: int(row["n"] or 0) for row in rows if row["name"] not in _EXCLUDED_TABLES}
 
 
+def _purge_page_cache(database):
+    """Drops the shared page cache's answers for `database` from Redis: the wipe made them stale, and they would
+    otherwise sit in its memory until they expire. Best effort; no Redis is nothing to purge."""
+    try:
+        from planetgen.queue import redisclient
+        client = redisclient.client(retries=1)
+        keys = list(client.scan_iter(match=f"planetgen:page:{database}:*", count=1000))
+        for start in range(0, len(keys), 500):
+            client.unlink(*keys[start:start + 500])
+    except Exception:  # noqa: BLE001 -- the cache expires by itself; the wipe is done
+        pass
+
+
 def _confirm(database, host, total_rows):
     """
     Prompts for the exact database name before a real (non-`--dry-run`)
@@ -183,6 +196,7 @@ def reset_database(config, dry_run=False, assume_yes=False):
         # This process starts fresh blocks (past every old one, since
         # id_blocks is kept); not needed for safety, just tidy.
         forget_id_blocks(config._key())
+        _purge_page_cache(config.database)
 
         print(f"Wiped {len(tables)} table(s) (about {total_rows:,} row(s)) from '{config.database}'.")
         print("Ready for a new galaxy -- e.g.:")

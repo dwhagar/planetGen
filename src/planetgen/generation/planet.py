@@ -460,7 +460,7 @@ class Planet(PlanetaryObject):
         life_paragraphs.append(to_paragraph(sentences))
 
         # Add the evolutionary timeline data if available
-        if self.evolutionary_data and self.planet_class in tuning.HABITABLE_PLANET_CLASSES:
+        if self.evolutionary_data:
             life_paragraphs.extend(self.evolutionary_data)
 
         # Flavor text was already decided at generation time (life.decide_flavor_text);

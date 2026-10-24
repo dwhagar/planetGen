@@ -21,6 +21,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
+from planetgen.physics import planet_classes
 from planetgen.generation import life as planetLife
 
 ZONE_CHARS = "hec"
@@ -99,22 +100,24 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, cls, zone):
 
 
 @pytest.mark.parametrize("cls,zone", VALID_CLASS_ZONE_PAIRS, ids=[f"{c}-{z}" for c, z in VALID_CLASS_ZONE_PAIRS])
-def test_planet_life_chemical_matches_class_and_star(host_star, cls, zone):
+def test_planet_life_chemical_matches_its_conditions_and_star(host_star, cls, zone):
     """
     A planet's assigned life_chemical (once planetLife.apply_life_data runs)
-    must be one the planet's own class declares as possible -- and, since
-    apply_life_data intersects that with what the star's spectral type
-    supports, it must also appear in the star's potentially_viable_chemicals.
+    must be one its own stored conditions allow (the chemical's `requires`,
+    GEN.647) and, since apply_life_data intersects that with what the star's
+    spectral type supports, one the star's potentially_viable_chemicals name.
+    A gas giant carries none.
     """
     planet = make_planet(host_star, cls, zone)
+    found = planet_classes.quantities(planet_classes.values_from_body(planet))
     for _ in range(5):
         planetLife.apply_life_data(planet)
-        class_chems = prog_c.PLANET_CLASSES[cls].get("life_chemical")
-        if planet.life_chemical is not None:
-            assert class_chems is not None, f"{cls}-{zone}: assigned a chemical but class has none listed"
-            assert any(planet.life_chemical in c or c in planet.life_chemical for c in class_chems), (
-                f"{cls}-{zone}: life_chemical {planet.life_chemical!r} not among class chemicals {class_chems}"
-            )
+        if planet.body_type == "g":
+            assert planet.life_chemical is None
+        elif planet.life_chemical is not None:
+            assert planet_classes.holds(
+                prog_c.LIFE_CHEMICALS[planet.life_chemical]["requires"], found, missing=None
+            ), f"{cls}-{zone}: {planet.life_chemical!r} does not fit the body's conditions"
 
 
 def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
@@ -127,7 +130,7 @@ def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):
     already-decided self.flavor_text.
     """
     planet = make_planet(host_star, "M", "e")
-    planet.life_stage = None  # No multicellular life.
+    planet.life_chemical, planet.life_stage = "Melanin", None  # Life, but not multicellular.
     monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
 
     planetLife.decide_flavor_text(planet)
@@ -148,7 +151,7 @@ def test_the_flavour_line_is_stored_as_a_key_and_read_back_from_it(host_star, mo
     """DB.51: the line is kept as `category:index` into the `tuning` list it was drawn from."""
     monkeypatch.setattr(prog_c, "FLAVOR_CHANCE_PLANET", 1.0)
     planet = make_planet(host_star, "M", "e")
-    planet.life_stage = "multicellularity"
+    planet.life_chemical, planet.life_stage = "Melanin", "multicellularity"
     planetLife.decide_flavor_text(planet)
     category, index = planet.flavor_key.split(":")
     assert category == "habitable"
@@ -169,27 +172,6 @@ def test_habitable_world_false_forbids_habitable_classes_in_ecosphere(host_star)
                 cfg, host_star, host_star.habitable_zone, distance,
                 planet_class=cls,
             )
-
-
-def test_life_bearing_classes_are_ecosphere_only():
-    """
-    Any class that can carry a life_chemical (whether or not it's also on
-    the curated HABITABLE_PLANET_CLASSES list -- e.g. Class Q, whose
-    "extreme temperature variations" flavor doesn't put it on that list, but
-    which still gets life_chemical applied by planetLife.apply_life_data)
-    must be zone 'e' only. `get_viable_life_chemicals` doesn't check zone at
-    all, so a class with h or c True here would let life-bearing worlds
-    generate in the hot or cold zone -- caught here at the data level rather
-    than only by generation-time sampling.
-    """
-    for cls, data in prog_c.PLANET_CLASSES.items():
-        if data.get("life_chemical"):
-            assert data["h"] is False and data["c"] is False, (
-                f"Class {cls!r} has a life_chemical but is valid outside the ecosphere zone "
-                f"(h={data['h']}, c={data['c']}) -- habitable/life-bearing worlds should only "
-                f"occur in the ecosphere zone"
-            )
-            assert data["e"] is True, f"Class {cls!r} has a life_chemical but isn't valid in the ecosphere zone at all"
 
 
 @pytest.mark.parametrize("zone", list(ZONE_CHARS))
@@ -299,10 +281,17 @@ def test_zone_position_mode_does_not_move_a_moon(host_star):
     assert moon.distance == pytest.approx(moon_distance)
 
 
-def test_only_habitable_classes_carry_a_life_chemical():
-    """GEN.147: a class with a life_chemical but not on HABITABLE_PLANET_CLASSES got an uncapped life
-    timeline and a "suitable for life" paragraph; Class N (Venus analog) is lifeless and Class Q is capped."""
-    carrying = {cls for cls, data in prog_c.PLANET_CLASSES.items() if data.get("life_chemical")}
-    assert carrying <= set(prog_c.HABITABLE_PLANET_CLASSES)
-    assert "N" not in carrying and "N" not in prog_c.HABITABLE_PLANET_CLASSES
-    assert prog_c.PLANET_CLASS_MAX_LIFE_STAGE["Q"] == "photosynthesis"
+def test_no_class_names_a_life_chemical_and_each_chemical_states_its_conditions():
+    """GEN.647: life follows a body's stored conditions, not its class letter."""
+    assert not any("life_chemical" in data for data in prog_c.PLANET_CLASSES.values())
+    assert not hasattr(prog_c, "PLANET_CLASS_MAX_LIFE_STAGE")
+    for name, data in prog_c.LIFE_CHEMICALS.items():
+        assert isinstance(data["requires"], list), name
+
+
+def test_a_world_the_index_gives_no_life_carries_no_chemical(host_star):
+    """Class N (a Venus analog) scores 0 for microbial life, so it carries none whatever its air."""
+    for _ in range(5):
+        planet = make_planet(host_star, "N", "e")
+        planetLife.apply_life_data(planet)
+        assert planet.life_chemical is None and planet.life_stage is None

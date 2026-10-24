@@ -1486,7 +1486,6 @@ PLANET_CLASSES = {
         "h": True, "e": False, "c": False, "r": False,
         "atmosphere": "a mix of sulfur dioxide and carbon dioxide",
         "type": "t",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.005),
             "normal": (0.0, 0.5),
@@ -1520,7 +1519,6 @@ PLANET_CLASSES = {
         "h": True, "e": False, "c": False, "r": False,
         "atmosphere": "a thin mix of helium, sodium, and oxygen",
         "type": "t",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.005),
             "normal": (0.0, 0.5),
@@ -1538,7 +1536,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -1556,7 +1553,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -1598,7 +1594,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0290, 0.0310),
         "atm_density_range": (0.3, 1.2),
         "greenhouse_multiplier_range": (4.5, 7.5),
-        "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.005, 0.015),
             "normal": (0.5, 1.5),
@@ -1625,7 +1620,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0295, 0.0315),
         "atm_density_range": (0.3, 1.0),
         "greenhouse_multiplier_range": (2.5, 4.0),
-        "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.005, 0.015),
             "normal": (0.5, 1.5),
@@ -1653,7 +1647,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0300, 0.0320),
         "atm_density_range": (0.2, 0.8),
         "greenhouse_multiplier_range": (1.3, 2.0),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.015, 0.05),
             "normal": (1.5, 4.0),
@@ -1687,7 +1680,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0325, 0.0345),
         "atm_density_range": (0.5, 0.9),
         "greenhouse_multiplier_range": (2.6, 3.2),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
             "normal": (4.0, 9.0),
@@ -1713,7 +1705,6 @@ PLANET_CLASSES = {
         "h": False, "e": True, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -1740,7 +1731,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen and helium",
         "type": "g",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -1789,7 +1779,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0420, 0.0433),
         "atm_density_range": (0.022, 0.042),
         "greenhouse_multiplier_range": (0.02, 0.05),
-        "life_chemical": ["Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.015, 0.05),
             "normal": (1.5, 4.0),
@@ -1822,7 +1811,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0400, 0.0430),
         "atm_density_range": (0.03, 0.08),
         "greenhouse_multiplier_range": (0.25, 0.45),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
             "normal": (4.0, 9.0),
@@ -1859,7 +1847,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0288, 0.0292),
         "atm_density_range": (1.3, 1.55),
         "greenhouse_multiplier_range": (1.65, 1.85),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
             "normal": (4.0, 9.0),
@@ -1947,7 +1934,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0270, 0.0285),
         "atm_density_range": (1.2, 1.5),
         "greenhouse_multiplier_range": (2.1, 2.4),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
             "normal": (4.0, 9.0),
@@ -1999,7 +1985,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0285, 0.0300),
         "atm_density_range": (0.05, 0.35),
         "greenhouse_multiplier_range": (0.3, 0.6),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.08, 0.1),
             "normal": (8.0, 10.0),
@@ -2024,7 +2009,6 @@ PLANET_CLASSES = {
         "h": False, "e": True, "c": False, "r": False,
         "atmosphere": "a variable mix (thin to dense) of nitrogen, oxygen, and argon",
         "type": "t",
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Melanin"],
         "age_ranges": {
             "fast": (0.05, 0.1),
             "normal": (4.0, 9.0),
@@ -2050,7 +2034,6 @@ PLANET_CLASSES = {
         "h": True, "e": True, "c": True, "r": True,
         "atmosphere": None,
         "type": "t",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -2073,7 +2056,6 @@ PLANET_CLASSES = {
         "h": False, "e": False, "c": True, "r": True,
         "atmosphere": "a mix of hydrogen, helium, and hydrocarbons",
         "type": "g",
-        "life_chemical": None,
         "age_ranges": {
             "fast": (0.0, 0.1),
             "normal": (0.0, 10.0),
@@ -2114,7 +2096,6 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0380, 0.0420),
         "atm_density_range": (2.0, 5.0),
         "greenhouse_multiplier_range": (3.5, 6.0),
-        "life_chemical": ["Chlorophyll a", "Blue-Optimized Porphyrins", "Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
         "age_ranges": {
             "fast": (0.015, 0.1),
             "normal": (1.5, 9.0),
@@ -2148,8 +2129,14 @@ PLANET_CLASS_PROBABILITIES = {
 
 # --- Life and Photosynthesis Data ---
 
+# Each chemical's `requires` is a list of conditions on the body's stored values (the quantity names and the `min`, `lt`,
+# `equals` and `not_equals` operators of `physics/planet_classes.py`); a chemical a body does not satisfy is not
+# drawn for it (GEN.92, GEN.647). The pigments that harvest light need air (10 Pa or more): an airless body's life, in an ocean under
+# its ice, keeps only the radiotroph. The thresholds follow each description below (oxygenic: free oxygen; anoxygenic: none;
+# Zinc-Bacteriochlorophyll: an acidic ocean, pH 1.5 to 3.0) and are planetGen defaults.
 LIFE_CHEMICALS = {
     "Retinal": {
+        "requires": [{"quantity": "share_o2", "lt": 0.1}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a primitive photosensitive chemical that represents a young/early biosphere precursor, operating via proton-motive gradients rather than electron transport chains in pre-oxygenated, reducing atmospheres",
         "evolutionary_time_scale": "fast",
         "absorption_spectrum": ["Green", "Yellow", "500-650 nm"],
@@ -2160,6 +2147,7 @@ LIFE_CHEMICALS = {
         }
     },
     "Melanin": {
+        "requires": [],
         "description": "a radiotrophic chemical that thrives in environments with lethal ionizing radiation or stellar flaring, and is viable on rogue planets subject to cosmic ray bombardment without a thick protective atmosphere",
         "evolutionary_time_scale": "normal",
         "absorption_spectrum": ["Extreme Ultraviolet (EUV)", "X-rays", "Gamma rays", "Ionizing radiation"],
@@ -2170,6 +2158,7 @@ LIFE_CHEMICALS = {
         }
     },
     "Chlorophyll a": {
+        "requires": [{"quantity": "share_o2", "min": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a standard porphyrin that drives oxygenic photosynthesis, requiring an oxygenated atmosphere as a climax ecology and stable, moderate radiation environments",
         "evolutionary_time_scale": "slow",
         "absorption_spectrum": ["Red (644-746 nm)", "Blue (468-476 nm)"],
@@ -2180,6 +2169,7 @@ LIFE_CHEMICALS = {
         }
     },
     "Blue-Optimized Porphyrins": {
+        "requires": [{"quantity": "share_o2", "min": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a porphyrin that requires simultaneous evolution of biofluorescence for UV shielding, down-converting lethal high-energy light into safe visible wavelengths and creating transient, global optical fluorescence aligned with stellar flares",
         "evolutionary_time_scale": "slow",
         "absorption_spectrum": ["Intense Blue (468-476 nm)", "Ultraviolet (UV)"],
@@ -2190,6 +2180,7 @@ LIFE_CHEMICALS = {
         }
     },
     "Bacteriochlorophylls": {
+        "requires": [{"quantity": "share_o2", "lt": 0.03}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a chemical that drives anoxygenic photosynthesis, does not split water, and requires chemical electron donors like Hydrogen Sulfide (H2S), Ferrous Iron (Fe2+), or Molecular Hydrogen (H2), resulting in reducing atmospheres lacking Oxygen (O2) or Ozone (O3)",
         "evolutionary_time_scale": "slow",
         "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (805-890 nm)", "Deep Infrared (987-1050 nm)"],
@@ -2200,6 +2191,7 @@ LIFE_CHEMICALS = {
         }
     },
     "Zinc-Bacteriochlorophyll": {
+        "requires": [{"quantity": "ocean_ph", "lt": 3.0}, {"quantity": "pressure_pa", "min": 10.0}],
         "description": "a secondary adaptation derived from standard magnesium-chelatase pathways that requires highly acidic global oceans (pH 1.5 - 3.0) and planetary heavy metal abundance and mobilization, often tied to severe volcanic outgassing",
         "evolutionary_time_scale": "slow",
         "absorption_spectrum": ["Broad Visible Spectrum", "Near-Infrared (793 nm, 853 nm)"],
@@ -2337,40 +2329,6 @@ HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'Q', 'V
 list: A list of planet class codes that are considered habitable.
 """
 
-PLANET_CLASS_MAX_LIFE_STAGE = {
-    # Each habitable class's OWN "description" text above already commits
-    # to a life-complexity ceiling -- `evolution.get_evolutionary_timeline`
-    # used to have no idea what `planet_class` even was, so a Class G
-    # planet (description: "simple life") could still roll all the way to
-    # "Technological Civilization" if the star was old/fast-evolving
-    # enough, contradicting its own generated text. Keys are
-    # `EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT`'s own milestone keys;
-    # a class not listed here (H, K, M, O, P, V) is uncapped -- its
-    # description doesn't commit to any life-complexity ceiling at all
-    # ("an adaptable world", "a temperate terrestrial world", etc.), so
-    # the full milestone range -- including a technological civilization,
-    # same as real Earth -- remains fair game.
-    "E": "abiogenesis",         # "barely supports life" (this class's own
-                                 # PLANET_CLASSES comment) -- the hottest,
-                                 # youngest of the E->F->G progression;
-                                 # capped at the most minimal stage,
-                                 # "chemotrophs and extremophiles" only.
-    "F": "photosynthesis",      # description: "...bacterial life" --
-                                 # prokaryotic/microbial, matching
-                                 # EVOLUTIONARY_TEXT['photosynthesis']'s
-                                 # "simple, light-harvesting microbes...
-                                 # microbial mats" (no nucleated cells yet).
-    "G": "photosynthesis",      # description: "...simple life" -- same
-                                 # prokaryotic tier as Class F.
-    "Q": "photosynthesis",      # "extreme temperature variations" (GEN.147): an
-                                 # eccentric orbit swings it between freezing and
-                                 # scorching, so only microbial life survives.
-    "L": "multicellularity",    # description: "...with vegetation" --
-                                 # matches EVOLUTIONARY_TEXT
-                                 # ['multicellularity']'s own "pioneering
-                                 # flora...moss, ferns...vascular plants",
-                                 # but not yet a sapient civilization.
-}
 """
 dict[str, str]: Maps a habitable planet class code to the highest
 `EVOLUTIONARY_TIMELINES`-milestone key its own generated description text

@@ -432,7 +432,7 @@ def _planet_section(planet):
     blocks.append(_ratings_block(planet))
     blocks.append(_equipment_block(planet))
     blocks.append(prose("life", *_life_sentences(planet)))
-    if planet.evolutionary_data and planet.planet_class in tuning.HABITABLE_PLANET_CLASSES:
+    if planet.evolutionary_data:
         blocks.append(prose("timeline", *_timeline_sentences(planet)))
     if planet.flavor_text:
         blocks.append(prose("flavour", f"Sensors show {planet.flavor_text}"))

@@ -4418,6 +4418,17 @@ body.app {
   overflow: hidden;
 }
 
+/* UX.148: Xterm.js writes the rows' font in a <style> element of its own, which a second Content-Security-Policy from
+   the web server (one with no 'unsafe-inline' for styles) blocks, and the log then fell back to the page's font. The
+   same rule from this stylesheet keeps it fixed width either way (the size is joblog.js's fontSize). */
+.job-terminal .xterm-rows {
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-kerning: none;
+  white-space: pre;
+}
+
 .job-links {
   display: flex;
   flex-wrap: wrap;
