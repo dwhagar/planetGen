@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 5:51 PM EDT 2026-10-24: 988 of 1378 items finished (71.7 percent), 390 open, 30 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 95, phase 2 32, phase 3 26, phase 4 13, phase 5 65, phase 6 23, phase 7 20, phase 8 4, phase 9 28, phase 10 2, phase 11 66, phase 12 16 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 5:55 PM EDT 2026-10-24: 991 of 1385 items finished (71.6 percent), 394 open, 30 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 95, phase 2 32, phase 3 26, phase 4 13, phase 5 64, phase 6 23, phase 7 18, phase 8 4, phase 9 28, phase 10 2, phase 11 73, phase 12 16 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -370,8 +370,7 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | GEN.661 | Bright-star counts still use the reference-composition fraction (stand-in, bug) |  | Stand-in until GEN.651 lands |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes |  |  |
 | GEN.557 | Wanderers: a rogue planet becomes a planet with no parent, drawn by the one body chain with an origin table, a notional formation host, the population's age and motion | GEN.553, GEN.565 |  |
-| GEN.726 | Surface pressure supply law: atmosphere mass from delivered volatiles, degassing, escape and sinks, then pressure from mass and gravity |  |  |
-| GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree | GEN.726 | Boss 11:24 PM EDT; generator epoch bump. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.411 | The atmosphere's molar density comes from its per-gas partial pressures, so mixture, pressure and density always agree |  | Boss 11:24 PM EDT; generator epoch bump. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.758 | Piece of GEN.411: mechanical test fixes for the deleted class ranges |  |  |
 | GEN.757 | Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py) |  |  |
 | GEN.756 | Piece of GEN.411: the body-to-mixture-subject builder (physics/mixture_subject.py) |  |  |
@@ -507,12 +506,10 @@ Moved into 8.1 from 8.4 phase 2 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.725 | Stand-in values carry a source tier and a tweak level: two new columns in the gap plan registry and one document in docs listing every stand-in, where it came from, its tier and how far it was tuned for outcome |  |  |
 | GEN.754 | Wiring guard: the stand-in registry says what the generator reads, and a test fails for a table or module nothing reads | GEN.725 |  |
 | GEN.724 | Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps |  |  |
-| GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | GEN.411, GEN.726 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
+| GEN.422 | Stop the recalculation redraw and order the steps so pressure, mixture and temperature agree after the cold-side freeze-out | GEN.411 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
 | GEN.594 | Each AD dataset (AD1 to AD8) ships its best possible fallback, used only when a run is told explicitly to disregard missing files |  |  |
-| GEN.424 | The balance gas is a named gas with its own molar mass, and habitability reads and writes the mean molar mass of the stored mixture | GEN.411 | Composition thread finding; Boss 11:24 PM EDT chain. Core 4 proposed (Boss, 11:41 PM EDT). |
-| GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH | GEN.424 | Survival equipment system, Boss 7:56 PM EDT 2026-10-23; design draft section 11. |
-| DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | GEN.411, GEN.422, GEN.423, GEN.424 | Boss 11:24 PM EDT; migration revision after Core 1's 0102 to 0105 stack. Core 4 proposed (Boss, 11:41 PM EDT). |
-| DB.71 | Planets and moons store the partial pressures of the added gases, not only the ten stored today | GEN.411, DB.67 | Atmosphere research lane finding 10 (part 05 section 13); migration revision after DB.67. Core 4 proposed. |
+| GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH |  | Survival equipment system, Boss 7:56 PM EDT 2026-10-23; design draft section 11. |
+| DB.67 | Planets and moons store the albedo, the greenhouse multiplier and the molar density they were built with | GEN.411, GEN.422, GEN.423 | Boss 11:24 PM EDT; migration revision after Core 1's 0102 to 0105 stack. Core 4 proposed (Boss, 11:41 PM EDT). |
 
 ### The Quantity call-site sweep
 
@@ -575,7 +572,7 @@ Moved into 8.1 from 8.4 phase 4 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | DB.90 | Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild | GEN.647 |  |
 | UX.150 | Pages, lists, search, filters, the API and the map markers show and filter by the derived class and the PHI-6 colour; the class wording and the descriptions follow the rule table | DB.90, GEN.647 |  |
 | GEN.415 | Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture | GEN.411 | Boss 11:24 PM EDT; the description side of consistency. Core 4 proposed (Boss, 11:41 PM EDT). |
-| TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree | GEN.411, GEN.415, DB.67, GEN.422, GEN.423, GEN.424 | Boss 11:24 PM EDT; the proof. |
+| TEST.209 | One consistency sweep over every planet and moon class: composition, density, temperature, ozone, aerosols and text all agree | GEN.411, GEN.415, DB.67, GEN.422, GEN.423 | Boss 11:24 PM EDT; the proof. |
 | DOC.76 | Docs for the condition-based classes: the rule table, the planet class pages and the help | DB.90 |  |
 | TEST.210 | A bulk composition sweep over every class: fractions, density, mass, radius and gravity agree | GEN.430, GEN.441, DB.70, GEN.462, GEN.466 | Boss 11:49 PM EDT; the proof. |
 | TEST.240 | Round-trip and registry tests for the mass object core: every kind's stored row round-trips, and no kind table is named in a list the registry should own | GEN.565, DB.74 |  |
@@ -689,6 +686,13 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | GEN.422, GEN.462 |  |
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | GEN.503, GEN.504 |  |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output |  |  |
+| UX.188 | Captain-first object pages, step C0: the GLANCE registry, the At a glance panel partial and its test (every key is in the sheet; the page renders the panel above the sheet) |  |  |
+| UX.194 | Captain-first object pages, step C6: galaxy page | UX.188 |  |
+| UX.193 | Captain-first object pages, step C5: belt, comet, facility, cluster and superbubble pages | UX.188 |  |
+| UX.192 | Captain-first object pages, step C4: phenomenon pages | UX.188 |  |
+| UX.191 | Captain-first object pages, step C3: sector pages | UX.188 |  |
+| UX.190 | Captain-first object pages, step C2: star and star system pages | UX.188 |  |
+| UX.189 | Captain-first object pages, step C1: planet and moon pages | UX.188 |  |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |
 | GEN.763 | The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug) |  |  |
 | GEN.762 | Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw |  |  |
