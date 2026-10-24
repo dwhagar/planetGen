@@ -438,8 +438,7 @@
     },
     {
       "epoch": 89,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2222",
       "reason": "A galaxy run's first fill of a sector takes it to the bright-star backfill's deepest floor itself, so a sector generated before the backfill reached it holds the same bright stars and systems as one the backfill reached first, in whichever order sectors are generated (GEN.633, GEN.57)"
     }
   ]

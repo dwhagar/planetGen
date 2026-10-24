@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2222] - 2026-10-24
+
+**Headline:** A sector holds the same stars and systems whichever order a galaxy's sectors are generated in.
+
+### Changed
+- **The first fill takes a sector to the backfill's deepest floor (GEN.633).** A `galaxy` run backfills dimmer bright stars around the sectors it generates, but that backfill skipped a sector that was already filled, so a sector generated before the backfill reached it held fewer systems than one the backfill reached first. The first fill of a sector now draws its bright stars down to the backfill's deepest floor itself, so no later pass adds stars and a sector comes out the same in either order (GEN.57). Sectors in a capped cell (GEN.281) are left as they were.
+
+generation-output: changed
+
 ## [8.0.2221] - 2026-10-24
 
 **Headline:** Where an atmosphere freezes out is now worked out from the checked saturation curves, so hydrogen sulphide, carbon dioxide and sulphur dioxide land at the right temperatures.
