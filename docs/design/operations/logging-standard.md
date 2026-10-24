@@ -70,6 +70,7 @@ The display draws each of the three as the same divider, `=== message ===`, with
 3. Never put a secret, a password, a key or a token in a message or a field (the settings writer's `(changed)` form for secrets stays).
 4. The time is taken when the record is made, in the process that made it; a record relayed from a worker keeps its time.
 5. A new output path that formats its own lines fails a test (TEST.183): the test lists the places that write to a file or a screen and requires each to go through the layer or to be named in an allowed list with its reason.
+6. No work after a progress block may run longer than the bar threshold (`tuning.PROGRESS_BAR_SECONDS`) without a `Step` of its own (DOC.80, PERF.189). The cases found were `refresh_block_lights` and `record_phenomenon_scatter*`, which ran after the scatter's last step and printed nothing, so a run looked hung. A checklist for new work that follows a scatter or a fill: (a) give it a `Step` with a kind in `steps.STEP_KINDS`; (b) when it works in units, advance the bar once per unit and write a log line before it starts, at each phase and about every `tuning.PROGRESS_LOG_SECONDS`; (c) read big tables a slice at a time and write what is complete as it completes, so its memory does not grow with the galaxy (PERF.187); (d) a step the smoke run (`python -m planetgen.cli.smoke`) sees has a memory budget in `tuning.SMOKE_STEP_BUDGET_MB`.
 
 ## Open points for the items that follow
 
