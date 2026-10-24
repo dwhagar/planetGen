@@ -1,0 +1,39 @@
+{
+  "cases": {
+    "bright-star-scatter": [
+      "e1bb002b50f53801c665cf91124282ee0735bdf19bd6d681a3fb88b1e7504161",
+      "3c99698dfd59b6f77efaf72e348165f729d9795bab49337d2a47571223521981"
+    ],
+    "nebula-shape": [
+      "f6f52d5ea2cfa0dcd05e8dd3965e8d04f77f26f701d8eddac42c3495b42e362c",
+      "757720567e904405210755b22914cb4001d8cfcc51dd4a61f42a0c1ad8268a7c"
+    ],
+    "phenomenon": [
+      "8adb0cc9df49509ebc502ad143bb443e5b3cec25a3f4f599602095daf2f7d43a",
+      "141091522666bb5d178076a37a4f01265b043ea531904ee7cfd9c59ac636e90f"
+    ],
+    "population-stream": [
+      "585021ded17639fb1bad2710453b4b77831bd2c6f8328d2f95fa28574aef27a5",
+      "5f1d7ce043386f4f91361a0fd895cbca7569d8674e1f539b8f5b735944ca7c84"
+    ],
+    "sector-a": [
+      "33b94cbf988e49fabb7316987059fd70855ce087c851c7dabadfa180453a5f16",
+      "76154ebdfd663e00004a9ceb04be8dc59f3de890275f4193f9b3698e5f51204b"
+    ],
+    "sector-b": [
+      "627e4e4f40ae12ebea2fc451a7a2f3bdedd6e6b0702d099ef6e50096a64501c9",
+      "e697266bf9d2f831c5546f8899a85b8739deaaf57b971ee4af53810689d42e25"
+    ],
+    "unit-seed": [
+      "2b777a442eac9286c4b45163a3eb4d94298a1afd37c69dc201aa4e6ea13470fd",
+      "85e7cb85e48311a8b73ca971600b735fd3f9359e12ed9c4621244b5715796779"
+    ]
+  },
+  "made_on": {
+    "astropy": "8.0.2",
+    "numpy": "2.5.4",
+    "platform": "Linux-6.18.44-fc-v153-x86_64-with-glibc2.39",
+    "python": "3.13.16"
+  },
+  "overall": "a14ff979a1ee2417809394108b2996d22cdd42e9de98db4000d9873bd985373c"
+}

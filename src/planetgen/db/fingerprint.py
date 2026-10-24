@@ -120,9 +120,16 @@ written as they are."""
 LEFT_OUT_COLUMNS = frozenset({"id", "cell_key", "epoch_unix", "next_update_due", "binary_epoch_unix", "binary_next_update_due"})
 """frozenset: Columns left out of every table: the row id and the clocks."""
 
-LEFT_OUT_TABLE_COLUMNS = {"star_systems": frozenset({"location"}), "sectors": frozenset({"leaf_digest"})}
+LEFT_OUT_TABLE_COLUMNS = {
+    "star_systems": frozenset({"location"}),
+    "sectors": frozenset({"leaf_digest"}),
+    "galaxy_shape": frozenset({"version_key", "planetgen_version", "python_version", "platform", "generator_epoch",
+                               "fp_spec", "battery_digest", "battery_cases"}),
+}
 """dict: Columns left out of one table: `location` is written from the
-nearest systems, and a sector's `leaf_digest` is a digest of the sector (GEN.305)."""
+nearest systems, a sector's `leaf_digest` is a digest of the sector (GEN.305), and the galaxy shape's version record
+(OPS.58) says what made the galaxy, not what it holds: it changes with every release, so it would change the plan's
+digest with it."""
 
 _TIME_TYPES = frozenset({"datetime", "timestamp", "date", "time"})
 

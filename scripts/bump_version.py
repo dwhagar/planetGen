@@ -436,10 +436,10 @@ def _epochs_at(root, ref):
     return json.loads(text).get("epochs", [])
 
 
-def _golden_files_exist(root):
-    """Whether any golden file other than `epochs.json` is checked in. None exists until the golden test (TEST.77)
-    lands; until then a change of generated output has no file to change, and the epoch and the note go together."""
-    names = _git(root, "ls-tree", "-r", "--name-only", "HEAD", "--", GOLDEN_DIR.replace(os.sep, "/")).split()
+def _golden_files_exist(root, ref):
+    """Whether any golden file other than `epochs.json` is checked in at `ref`. The PR that adds the first golden
+    files is judged as before them (the epoch and the note go together), since they are new, not changed."""
+    names = _git(root, "ls-tree", "-r", "--name-only", ref, "--", GOLDEN_DIR.replace(os.sep, "/")).split()
     return any(os.path.basename(name) != "epochs.json" for name in names)
 
 
@@ -467,7 +467,7 @@ def check_generator_epoch(root, base, merge_base, added_notes):
     if bumped_by not in (0, 1):
         return [f"{EPOCHS_FILE} went from epoch {len(before)} to {len(after)}; a PR bumps the epoch by one at most"]
     changed = {"epoch bumped": bumped_by == 1, "note says 'generation-output: changed'": said}
-    if _golden_files_exist(root):
+    if _golden_files_exist(root, merge_base):
         changed = {"golden files changed": bool(golden), **changed}
     if len(set(changed.values())) == 1:
         return []

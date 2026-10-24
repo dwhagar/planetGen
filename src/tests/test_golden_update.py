@@ -86,3 +86,14 @@ def test_with_no_golden_file_yet_the_epoch_bumps_on_a_reason_alone(tmp_path):
     _git(root, "commit", "-q", "-m", "no golden files")
     assert golden_update.bump("the maths moved", root, environ={}) == 2
     assert _epochs(root)[-1]["pending"] is True
+
+
+def test_rewriting_the_golden_files_is_refused_under_ci(tmp_path):
+    with pytest.raises(golden_update.Refused, match="under CI"):
+        golden_update.write_golden(str(tmp_path), environ={"CI": "true"})
+
+
+def test_the_main_command_stops_when_the_rewrite_is_refused(monkeypatch, capsys):
+    monkeypatch.setenv("CI", "true")
+    assert golden_update.main(["--reason", "why"]) == 1
+    assert "under CI" in capsys.readouterr().err
