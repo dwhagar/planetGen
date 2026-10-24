@@ -140,3 +140,80 @@ export function makeStarSurfaceTexture(THREE, baseColorHex) {
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
 }
+
+function hexToRgba(THREE, hex, alpha) {
+  var c = new THREE.Color(hex);
+  return "rgba(" + Math.round(c.r * 255) + "," + Math.round(c.g * 255) + "," + Math.round(c.b * 255) + "," + alpha + ")";
+}
+
+// A gas giant's banding is turbulent, not a mechanical stripe grid --
+// layered sine waves at different frequencies/phases give each band a
+// slightly irregular width/edge, closer to a real Jupiter/Saturn photo's
+// look than evenly-spaced rings would. Height-only (width 4px, repeated)
+// since SphereGeometry's default UVs vary banding by latitude (v), not
+// longitude (u) -- a real horizontally-banded planet has no longitude
+// dependence to texture in the first place.
+export function makeBandTexture(THREE, baseColorHex) {
+  var width = 4;
+  var height = 256;
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = width;
+  canvasEl.height = height;
+  var ctx = canvasEl.getContext("2d");
+  var base = new THREE.Color(baseColorHex);
+  for (var y = 0; y < height; y++) {
+    var t = y / height;
+    var shade = 0.85 + 0.15 * Math.sin(t * Math.PI * 10) + 0.08 * Math.sin(t * Math.PI * 23 + 1.7);
+    var r = Math.min(255, Math.round(base.r * 255 * shade));
+    var g = Math.min(255, Math.round(base.g * 255 * shade));
+    var b = Math.min(255, Math.round(base.b * 255 * shade));
+    ctx.fillStyle = "rgb(" + r + "," + g + "," + b + ")";
+    ctx.fillRect(0, y, width, 1);
+  }
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+// A ring's own inner-to-outer alpha profile, painted along
+// RingGeometry's `v` axis (0 at the inner radius, 1 at the outer) -- a
+// plain vertical gradient, not a 2D radial one, since that's the axis its
+// polar UV mapping actually varies along. The alternating opaque/faint
+// bands are a cheap "Cassini division"-style gap cue, not a real
+// particle-density simulation.
+export function makeGasRingTexture(THREE, baseColorHex) {
+  var width = 4;
+  var height = 128;
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = width;
+  canvasEl.height = height;
+  var ctx = canvasEl.getContext("2d");
+  var gradient = ctx.createLinearGradient(0, 0, 0, height);
+  gradient.addColorStop(0.0, "rgba(0,0,0,0)");
+  gradient.addColorStop(0.12, hexToRgba(THREE, baseColorHex, 0.85));
+  gradient.addColorStop(0.45, hexToRgba(THREE, baseColorHex, 0.3));
+  gradient.addColorStop(0.6, hexToRgba(THREE, baseColorHex, 0.75));
+  gradient.addColorStop(0.85, hexToRgba(THREE, baseColorHex, 0.25));
+  gradient.addColorStop(1.0, "rgba(0,0,0,0)");
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, width, height);
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+
+// Paints `look` with `paint` (solidpaint.js's `paintSolid` or starpaint.js's `paintStar`) into a `size` ([w, h]) texture;
+// the caller's own `THREE`, as above.
+export function paintedTexture(THREE, paint, look, size) {
+  var canvasEl = document.createElement("canvas");
+  canvasEl.width = size[0];
+  canvasEl.height = size[1];
+  var ctx = canvasEl.getContext("2d");
+  var image = ctx.createImageData(size[0], size[1]);
+  image.data.set(paint(look, size[0], size[1]));
+  ctx.putImageData(image, 0, 0);
+  var texture = new THREE.CanvasTexture(canvasEl);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
