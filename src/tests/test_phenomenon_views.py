@@ -90,7 +90,8 @@ def test_quasar_jets_follow_radio_loudness(radio_loud):
 def test_rogue_planet_and_comet_panels():
     planet = _view_data(render_phenomenon_view_panel(
         "rogue_planet", {"name": "R", "planet_type": "g", "has_internal_heat": 1}))
-    assert planet == {"kind": "rogue_planet", "gas": True, "heat": True}
+    assert (planet["kind"], planet["gas"], planet["heat"]) == ("rogue_planet", True, True)
+    assert planet["look"]["body"] == "gas" and planet["seed"] == planet["look"]["seed"]
     comet = render_phenomenon_view_panel("interstellar_comet", {"name": "C", "is_active": 0})
     assert _view_data(comet)["active"] is False
     assert "no tail" in comet

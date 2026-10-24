@@ -13,6 +13,8 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { makeRandom, parseHex } = await import(`./bodytexture.js${VERSION_QUERY}`);
+const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
 
 var viewport = document.getElementById("phenomrender");
 var canvas = document.getElementById("phenomrender-canvas");
@@ -30,15 +32,6 @@ function readView() {
 
 var reducedMotion = typeof window.matchMedia === "function"
   && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-// A small seeded random source, so a still frame is the same every visit.
-function makeRandom(seed) {
-  var state = seed >>> 0;
-  return function () {
-    state = (state * 1664525 + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
 
 // A soft round sprite texture: `stops` are [offset, css color] pairs.
 function radialTexture(stops) {
@@ -192,7 +185,7 @@ function neutronStar(view) {
 
   var surface = new THREE.Mesh(
     new THREE.SphereGeometry(1, 48, 32),
-    new THREE.MeshBasicMaterial({ map: makeStarSurfaceTexture(THREE, "#cfe8ff") }),
+    new THREE.MeshBasicMaterial({ map: makeStarSurfaceTexture(THREE, view.surface || "#cfe8ff") }),
   );
   spinner.add(surface);
   var glowColor = view.magnetar ? "#c9b0ff" : "#9fd0ff";
@@ -253,7 +246,7 @@ function blackHole(view) {
   var disk = null;
   // A smaller hole's inner disk is hotter: stellar ones read blue-white,
   // intermediate ones yellow-white.
-  var hot = view.stellar ? "#e8f0ff" : "#fff2d0";
+  var hot = view.diskColor || (view.stellar ? "#e8f0ff" : "#fff2d0");
   var cool = view.stellar ? "#ff7a2a" : "#c0401a";
   if (view.disk) {
     disk = accretionDisk(2.0, view.stellar ? 6.0 : 7.5, hot, cool);
@@ -322,6 +315,9 @@ function quasar(view) {
   };
 }
 
+// A rogue planet is painted from its look record (planetgen/web/maps/bodylook.py, MAP.278) like any planet: a solid
+// one by the solid painter (no sea unless it is stored as liquid, ice where it is cold), a giant as latitude bands
+// of its own cloud colour.
 function planetTexture(view, random) {
   var w = 256;
   var h = 128;
@@ -329,21 +325,19 @@ function planetTexture(view, random) {
   el.width = w;
   el.height = h;
   var ctx = el.getContext("2d");
-  if (view.gas) {
+  var look = view.look;
+  if (look && look.body === "solid") {
+    var image = ctx.createImageData(w, h);
+    image.data.set(paintSolid(look, w, h));
+    ctx.putImageData(image, 0, 0);
+  } else {
+    var rgb = parseHex(look ? look.color : "#8a8f9c");
     for (var y = 0; y < h; y++) {
       var band = Math.sin(y * 0.21) * 0.5 + Math.sin(y * 0.07 + 1.3) * 0.5;
-      var l = 34 + band * 10 + random() * 3;
-      ctx.fillStyle = "hsl(212, 22%, " + l + "%)";
+      var k = 0.85 + band * 0.18 + random() * 0.05;
+      ctx.fillStyle = "rgb(" + Math.min(255, Math.round(rgb[0] * k)) + "," + Math.min(255, Math.round(rgb[1] * k)) + "," +
+        Math.min(255, Math.round(rgb[2] * k)) + ")";
       ctx.fillRect(0, y, w, 1);
-    }
-  } else {
-    ctx.fillStyle = "hsl(210, 8%, 46%)";
-    ctx.fillRect(0, 0, w, h);
-    for (var i = 0; i < 260; i++) {
-      ctx.fillStyle = "hsla(" + (200 + random() * 30) + ", 12%, " + (30 + random() * 40) + "%, 0.5)";
-      ctx.beginPath();
-      ctx.arc(random() * w, random() * h, 2 + random() * 9, 0, Math.PI * 2);
-      ctx.fill();
     }
   }
   var texture = new THREE.CanvasTexture(el);
@@ -426,7 +420,7 @@ function interstellarComet(view, random) {
     pos.setXYZ(i, v.x, v.y, v.z);
   }
   geometry.computeVertexNormals();
-  var nucleus = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 0x55504a, roughness: 1 }));
+  var nucleus = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: view.nucleus || "#55504a", roughness: 1 }));
   root.add(nucleus);
   root.add(new THREE.AmbientLight(0x8090b0, 0.4));
   var light = new THREE.DirectionalLight(0xffffff, 1.4);
@@ -499,7 +493,7 @@ function start(view) {
   } catch (err) {
     return; // No WebGL: the SVG still stays.
   }
-  var random = makeRandom(20251001);
+  var random = makeRandom(view.seed != null ? view.seed : 20251001); // the same still every visit, different per object
   var scene = new THREE.Scene();
   scene.background = new THREE.Color(0x05070c);
   scene.add(starfield(random));
