@@ -13,7 +13,7 @@ import re
 import pytest
 
 from planetgen.db import store
-from planetgen.physics import constants, hydrosphere, radiogenic
+from planetgen.physics import constants, hydrosphere, interior_heat, radiogenic
 from planetgen import tuning
 from planetgen.physics import rogue_surface as rs
 from planetgen.generation.config import SystemConfig
@@ -31,11 +31,12 @@ JUPITER = constants.JUPITER_MASS_TO_KG
 def test_earth_like_rogue_matches_boss_numbers():
     k, th, u = radiogenic.BULK_SILICATE_EARTH
     earth = radiogenic.Content(k * radiogenic.formation_mix("K")[1], th * radiogenic.formation_mix("Th")[1],
-                               u * radiogenic.formation_mix("U")[1], radiogenic.SOLAR_AL26_RATIO, 0.47)
-    flux = radiogenic.heat_flow_w_m2(earth, EARTH, 6371, 4.568)
-    assert 0.08 <= flux <= 0.1
-    t_eff = rs.effective_temperature_k(flux)
-    assert t_eff == pytest.approx(35.5, abs=1.0)
+                               u * radiogenic.formation_mix("U")[1], radiogenic.SOLAR_AL26_RATIO)
+    rock = radiogenic.Rock(0.675, 0.325, 0.0, radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
+    flux = interior_heat.heat_flow(earth, interior_heat.Interior(1e12, 250.0), EARTH, 6371, 4.568, rock).flux_w_m2
+    # a stagnant lid gives less than the Earth's 0.082 to 0.092 W/m2 (GEN.699); the Earth's own flux is Boss's number
+    assert 0.05 <= flux <= 0.1
+    assert rs.effective_temperature_k(0.0858) == pytest.approx(35.5, abs=1.0)
     # D = (A / F) ln(273 / 35) ~ 11.6 km at 0.1 W/m^2.
     assert hydrosphere.ice_shell_thickness_km(0.1, 35.0) == pytest.approx(11.6, abs=0.2)
 

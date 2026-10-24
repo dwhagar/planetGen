@@ -117,17 +117,17 @@ def test_the_heliosphere_only_matters_for_thin_air_and_a_squeezed_star():
 def test_the_ground_dose_reads_the_same_concentrations_as_the_heat():
     """GEN.459: no independent draw of the ground; doubling the thorium and uranium doubles the heat from them and the gamma dose."""
     k, th, u = radiogenic.BULK_SILICATE_EARTH
-    one = radiogenic.Content(k * 1.0, th * radiogenic.formation_mix("Th")[1], u * radiogenic.formation_mix("U")[1], 0.0, 0.5)
-    two = radiogenic.Content(one.k0_ppm, 2 * one.th0_ppm, 2 * one.u0_ppm, 0.0, 0.5)
+    one = radiogenic.Content(k * 1.0, th * radiogenic.formation_mix("Th")[1], u * radiogenic.formation_mix("U")[1], 0.0)
+    two = radiogenic.Content(one.k0_ppm, 2 * one.th0_ppm, 2 * one.u0_ppm, 0.0)
     base = rad.gamma_dose_msv_yr(radiogenic.surface_content(one, 0.0), 4.568)
     doubled = rad.gamma_dose_msv_yr(radiogenic.surface_content(two, 0.0), 4.568)
-    k_part = rad.gamma_dose_msv_yr(radiogenic.surface_content(radiogenic.Content(one.k0_ppm, 0.0, 0.0, 0.0, 0.5), 0.0), 4.568)
+    k_part = rad.gamma_dose_msv_yr(radiogenic.surface_content(radiogenic.Content(one.k0_ppm, 0.0, 0.0, 0.0), 0.0), 4.568)
     assert doubled - k_part == pytest.approx(2 * (base - k_part), rel=1e-9)
     assert radiogenic.heat_w_per_kg(two, 4.568) > radiogenic.heat_w_per_kg(one, 4.568)
 
 
 def test_the_gamma_dose_falls_under_a_dense_gas_and_the_radon_needs_air():
-    rock = radiogenic.Content(17000.0, 11.0, 2.7, 0.0, 0.5)
+    rock = radiogenic.Content(17000.0, 11.0, 2.7, 0.0)
     open_air = rad.gamma_dose_msv_yr(rock, 4.568)
     assert rad.gamma_dose_msv_yr(rock, 4.568, gas_g_cm3=0.0012) == pytest.approx(open_air * math.exp(-0.0637 * 0.0012 * 100), rel=1e-12)
     assert rad.gamma_dose_msv_yr(rock, 4.568, gas_g_cm3=0.065) < 0.7 * open_air

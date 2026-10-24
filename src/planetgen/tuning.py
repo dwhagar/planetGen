@@ -3251,7 +3251,7 @@ ROGUE_EARTH_REFERENCE_AGE_GY = 4.5
 
 RADIOGENIC_SILICATE_MASS_FRACTION = 0.675
 """float: The heat-producing (bulk silicate) share of a rocky body's mass: the Earth's 1 minus its core mass fraction 0.325 (part E
-2.8e). The stand-in for a body with no stored composition; `radiogenic.rock_inputs` reads the drawn one (GEN.428)."""
+2.8e). The stand-in for a body with no stored composition; `radiogenic.rock_of` reads the drawn one (GEN.428)."""
 
 GCR_SOLAR_MODULATION_RANGE = (0.5, 1.64)
 """tuple: The cosmic-ray dose as a fraction of its mean over the solar cycle, drawn log-uniformly per body (GEN.453): the
@@ -3283,9 +3283,19 @@ RADIOGENIC_AL26_FACTOR_RANGE = (0.1, 10.0)
 """tuple: The 26Al/27Al at formation over the Solar System's 5.23e-5, drawn log-uniformly (Lichtenberg et al. 2019). A stand-in until
 GEN.476 derives it from the star's formation environment."""
 
-RADIOGENIC_UREY_RANGE = (0.1, 0.9)
-"""tuple: The Urey ratio today, radiogenic heat over the heat flowing out, drawn uniformly (part E 3.3: young bodies sit well below 1,
-the Earth's 0.47 to 0.52 is a test target, and 0.67 is above every measured value)."""
+INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (2.6e10, 5.3e13)
+"""tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly: the bounds Guimond, Rudge and
+Shorttle 2022 take (arXiv:2201.05636 section 2.2.3; READ), wet olivine's 1.6e11 Karato and Wu 1993 less an order of magnitude to dry
+enstatite's (Zhang et al. 2017). Their uncertainty on the rheology of other planets' mantles."""
+
+INTERIOR_ACTIVATION_RANGE_KJ_MOL = (200.0, 300.0)
+"""tuple: The viscosity activation energy `Ea`, kJ/mol, drawn uniformly: Guimond et al. 2022 (wet enstatite 200, dry olivine 300)."""
+
+INTERIOR_INITIAL_TEMPERATURE_CAP_K = 3500.0
+"""float: The hottest a mantle is, K: fully molten, a magma ocean radiates away what is above its liquidus within some million years,
+so the assembly energy (`interior_heat.binding_energy_j`) and the 26Al of the first Myr never push it higher. A STAND-IN picked within
+the literature (the liquidus of a deep magma ocean is about 3500 K, the solidus at depth about 2000); a rheology as stiff as the
+slowest cooler of Guimond et al. 2022 stays near it for a gigayear. GEN.699 labels it in the gap plan registry."""
 
 ROGUE_TIDAL_FLUX_RANGE_W_M2 = (1e-4, 1e-2)
 """tuple: Tidal heating, W/m^2, drawn log-uniformly for a rocky rogue
