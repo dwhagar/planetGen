@@ -60,6 +60,7 @@ from planetgen.db.store import MySQLConfig  # noqa: E402
 
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli  # noqa: E402
 from tests import dbpool  # noqa: E402
+from tests.publicids import pid  # noqa: E402
 from tests.served import served  # noqa: E402
 from tests.conftest import _test_server_kwargs  # noqa: E402
 
@@ -408,15 +409,20 @@ def sample_params(site_app, sample_job, sample_run):
     sectors = [s for s in items("/api/sectors?limit=100") if s["system_count"]]
     sector = sectors[0]
     systems = items(f"/api/systems?sector_id={sector['id']}&limit=100")
-    everywhere = items("/api/systems?limit=100")
-    def detail(system):
-        resp = client.get(f"/api/systems/{system['id']}")
-        assert resp.status_code == 200, (system["id"], resp.status_code, resp.get_data(as_text=True)[:300])
-        return resp.get_json()
-
-    with_bodies = [s for s in everywhere if detail(s).get("planets")]
-    sample_system = (with_bodies or systems)[0]   # the pages' sample system has planets for the body-row tests
-    planet = detail(sample_system)["planets"][0]
+    # TEST.349: the pages' sample system has planets for the body-row tests. It is found in the database, not by asking
+    # the API for the detail of each system in turn: the API answers 50 requests an hour (`RATELIMIT_DEFAULT`), a
+    # sector holds hundreds of systems, most of them without planets, and the 429 answers read as "no planets".
+    conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
+    try:
+        row = (conn.execute("SELECT s.id FROM star_systems s JOIN planets p ON p.star_system_id = s.id"
+                            " ORDER BY (s.sector_id IS NULL), s.id LIMIT 1").fetchone())
+        assert row is not None, "the sample galaxy has no planet"
+        sample_system = {"id": pid("system", row["id"], conn)}
+    finally:
+        conn.close()
+    resp = client.get(f"/api/systems/{sample_system['id']}")
+    assert resp.status_code == 200, (sample_system["id"], resp.status_code, resp.get_data(as_text=True)[:300])
+    planet = resp.get_json()["planets"][0]
     phenomena = items("/api/phenomena?limit=100")
     phenomenon = phenomena[0]
     conn = store.get_connection(site_app.config["MYSQL_CONFIG"])
