@@ -19114,6 +19114,12 @@ clears each one.
   rows are replaced by the tree in UX.173, so check there first and fix
   only if UX.173 is not near. Done: the four variants pass. Owner: none
   (pool); Bug Hunt proposed.
+  Research (2026-10-09, Update): Detail pages lane (5:54 AM EDT
+  2026-10-24, as the lane reported): on untouched origin/main the system
+  page fails test_web_a11y x4 for two reasons, an axe nested-interactive
+  on the body-row summary and a class link with 1.06:1 contrast. UX.173
+  (its second PR) deletes those rows and fixes both, so this item may
+  close with UX.173; recheck then.
   Prerequisites: none. Related: UX.100, UX.173, UX.181, UX.182.
 
 - [ ] **TEST.330 test_web_formulas::test_no_page_shows_a_formula_that_is_not_written_out fails on (/classes/habitability, CO2) (bug)**
@@ -19127,6 +19133,17 @@ clears each one.
   formula with the chem filter (UX.149) on the page or its template.
   Done: the test passes. Owner: Bug Hunt.
   Prerequisites: none. Related: UX.149.
+
+- [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
+  Found by the detail pages lane at 5:54 AM EDT 2026-10-24 (as the lane
+  reported), checked in a clean worktree on untouched origin/main: the
+  test counts 0 a.help-link elements in the search planet rows, so the
+  habitability symbols there carry no help link. Do: find whether the
+  search rows lost the link (a regression from the help-link work,
+  UX.168 to UX.182, or the symbol markup change) or the test selector is
+  stale, and fix the page or the test to match what the rows should
+  show. Done: the test passes on main. Owner: Bug Hunt (proposed).
+  Prerequisites: none. Related: TEST.329, UX.163.
 
 ## USR: User accounts
 
