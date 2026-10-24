@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2157] - 2026-10-24
+
+**Headline:** Survival equipment now sits under the habitability rows that ask for it, not under a Blue one.
+
+### Fixed
+- **Equipment items in the wrong rows (GEN.702).** An item names every PHI-6 category it can come from and is listed under those that are not Blue: a cold world's self-contained air is under Temperature, not under a Blue Air row; a hardened pressure suit is under Pressure and Radiation; and a suit that seals (pressure, armoured) is also listed under Temperature and Air where those ask for gear. The API's equipment items gain `domains`.
+
 ## [8.0.2156] - 2026-10-24
 
 **Headline:** A system asked to have both an asteroid belt and a habitable world no longer loses the belt on a small red dwarf now and then.
