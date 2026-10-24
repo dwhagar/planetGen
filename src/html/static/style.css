@@ -5141,3 +5141,36 @@ p.hint a {
   float: left;
   padding: 0;
 }
+
+
+/* The map's names (MAP.268, maplabels.js): laid over the map, never picked, with a halo that reads on both
+   themes; a fade in and out that reduced motion drops. */
+.map-labels {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 2;
+}
+.map-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0 6px;
+  font-size: 0.75rem;
+  line-height: 16px;
+  white-space: nowrap;
+  color: #eef1fb;
+  text-shadow: 0 0 2px #080a14, 0 0 4px #080a14, 0 0 8px rgba(8, 10, 20, 0.9);
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.map-labels[data-light] .map-label {
+  color: #10131f;
+  text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 8px rgba(255, 255, 255, 0.9);
+}
+.map-label[data-kind="nebula"] { font-style: italic; }
+.map-label[data-kind="sector"] { font-weight: 600; }
+@media (prefers-reduced-motion: reduce) {
+  .map-label { transition: none; }
+}
