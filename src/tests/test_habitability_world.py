@@ -13,6 +13,7 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import NeutronStar
 from planetgen.generation.system import StarSystem
+from planetgen.physics import equipment
 from planetgen.physics import habitability_world as hw
 from planetgen.util import draw
 
@@ -37,7 +38,8 @@ def _earth(**changes):
 
 def test_earth_is_blue_everywhere_and_needs_no_kit():
     scored = hw.compute(_earth())
-    assert scored["equipment_tier"] == 0
+    assert all(scored[name] in (0, None) for name in equipment.FIELDS)  # nothing is needed, so nothing is listed
+    assert equipment.line(scored) == "" and equipment.code(scored) == ""
     assert [scored[f"tier_{domain}"] for domain in hw.DOMAINS] == [0] * 6
     assert scored["phi4"] == pytest.approx(1.0)
     assert scored["phi_bio"] > 0.8 and scored["phi_cpx"] > 0.8 and scored["phi_tech"] > 0.95
@@ -45,18 +47,18 @@ def test_earth_is_blue_everywhere_and_needs_no_kit():
 
 def test_the_air_decides_the_kit():
     carbon_dioxide = hw.compute(_earth(p_co2_kpa=3.0))
-    assert carbon_dioxide["equipment_tier"] == 2  # mask and scrubber
+    assert carbon_dioxide["eq_co2_scrub"] == 2 and carbon_dioxide["eq_supply"] == 0  # a scrubber on the intake
     assert carbon_dioxide["tier_air"] > 0
     thin = hw.compute(_earth(atmospheric_pressure_pa=30000.0, p_o2_kpa=6.0, p_n2_kpa=23.5))
-    assert thin["equipment_tier"] == 1  # a mask: enough pressure, too little oxygen
+    assert thin["eq_supply"] == 1 and thin["eq_body"] == 0  # a gas-mix mask: enough pressure, too little oxygen
     vacuum = hw.compute(_earth(atmospheric_pressure_pa=0.0, **{f"p_{g}_kpa": 0.0 for g in ("o2", "n2", "ar", "co2", "h2o")}))
-    assert vacuum["equipment_tier"] >= 3  # an environment suit at best
+    assert vacuum["eq_body"] == 4 and vacuum["eq_supply"] >= 2  # a pressure suit on its own air
     assert vacuum["tier_pressure"] == 3
 
 
-def test_a_lethal_dose_needs_full_life_support():
+def test_a_lethal_dose_needs_a_hardened_habitat():
     scored = hw.compute(_earth(surface_dose_msv_yr=50000.0))
-    assert scored["equipment_tier"] == 4
+    assert scored["eq_shelter"] == 2
     assert scored["tier_radiation"] == 3
 
 
@@ -141,7 +143,7 @@ def test_every_generated_body_is_scored_consistently():
                 assert all(getattr(body, name) is None for name in hw.BODY_FIELDS)
                 continue
             seen["rocky"] += 1
-            assert 0 <= body.equipment_tier <= 4
+            assert 0 <= body.eq_body <= 6 and 0 <= body.eq_supply <= 4
             assert body.energy_flux_w_m2 >= 0.0
             for domain in hw.DOMAINS:
                 score, tier = getattr(body, f"phi4_{domain}"), getattr(body, f"tier_{domain}")
@@ -151,11 +153,11 @@ def test_every_generated_body_is_scored_consistently():
                 assert 0.0 <= getattr(body, name) <= 1.0
             assert body.phi_cpx <= body.phi_bio + 1e-9
             if body.tier_radiation == 3:
-                assert body.equipment_tier == 4
+                assert body.eq_rad_suit or body.eq_shelter  # a Red dose needs radiation gear
     assert seen["rocky"] > 10 and seen["giant"] > 0
 
 
-def test_a_neutron_stars_planets_get_the_lowest_tier():
+def test_a_neutron_stars_planets_get_the_heaviest_radiation_gear():
     seen = 0
     for seed in range(6):
         with deterministic_entropy(seed):
@@ -166,7 +168,7 @@ def test_a_neutron_stars_planets_get_the_lowest_tier():
             if body.body_type == "g":
                 continue
             seen += 1
-            assert body.equipment_tier == 4 and body.tier_radiation == 3
+            assert body.eq_shelter == 2 and body.eq_rad_suit == 3 and body.tier_radiation == 3
             assert hw.compact_host_name(body.star) in ("pulsar", "neutron star")
     assert seen
 
@@ -177,7 +179,7 @@ def test_hosts_are_named_by_their_class_and_a_black_hole_planet_is_lethal():
     assert hw.compact_host_name(types.SimpleNamespace(yerkes_class="NS", pulsar_type="non-pulsing")) == "neutron star"
     assert hw.compact_host_name(types.SimpleNamespace(yerkes_class="V")) is None
     lethal = hw.compute(_earth(), compact_host="black hole")
-    assert lethal["equipment_tier"] == 4 and lethal["tier_radiation"] == 3
+    assert lethal["eq_shelter"] == 2 and lethal["tier_radiation"] == 3
     assert lethal["phi_bio"] == 0.0
 
 
@@ -220,7 +222,7 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
             # An airless, worst-case world: the cosmic-ray multiplier changes its dose and so its tier.
             conn.execute("UPDATE planets SET atmospheric_pressure_pa = 0, dose_gcr_msv_yr = 500,"
                          " dose_sep_msv_yr = 1, dose_ground_msv_yr = 0.5, surface_dose_msv_yr = 501.5,"
-                         " dose_helio_mult = 1, tier_radiation = NULL, equipment_tier = NULL"
+                         " dose_helio_mult = 1, tier_radiation = NULL, eq_body = NULL"
                          " WHERE body_type = 't'")
             cloud = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=3.0, nebula_class="C")
             conn.execute("UPDATE nebulae SET density_cm3 = 3000, temperature_k = 20 WHERE id = ?", (cloud,))
@@ -234,7 +236,7 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
         for row in rows:
             assert row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01)
             again = hw.compute(dict(row))
-            assert row["equipment_tier"] is not None and row["equipment_tier"] >= 3  # an airless world
+            assert row["eq_body"] == 4  # an airless world needs a pressure suit
             for name in hw.SCORE_FIELDS:
                 assert row[name] == pytest.approx(again[name]), name
     finally:
@@ -246,29 +248,32 @@ def test_the_search_finds_bodies_by_the_kit_they_need(db_client, mysql_config): 
     sector = SpaceSector("Kitted", edge_ly=11.5)
     sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
     store.save_sector(sector, config=mysql_config)
-    tiers = {planet.equipment_tier for planet in system.planets
-             if planet.body_type != "a" and planet.equipment_tier is not None}
-    assert tiers
-    tier = sorted(tiers)[0]
+    planets = [p for p in system.planets if p.body_type != "a" and p.eq_body is not None]
+    ticks = ("clothing", "thermal_suit", "sealed_suit", "pressure_suit", "armoured_suit", "vehicle_only")
+    levels = {p.eq_body for p in planets if p.eq_body}
+    assert levels
+    level = sorted(levels)[0]
+    tick = ticks[level - 1]
     html = db_client.get("/search").get_data(as_text=True)
     assert "Planet: Equipment a Human Needs" in html
-    panel = _panel(db_client.get(f"/search?equipment={tier}").get_data(as_text=True), "planets")
-    planets = [p for p in system.planets if p.body_type != "a"]
-    names = {p.name for p in planets if p.equipment_tier == tier}
+    panel = _panel(db_client.get(f"/search?equipment={tick}").get_data(as_text=True), "planets")
+    names = {p.name for p in planets if p.eq_body == level}
     assert names and all(name in panel for name in names)
-    assert hw.EQUIPMENT_LABELS[tier] in panel
-    others = {p.name for p in planets if p.equipment_tier is not None and p.equipment_tier != tier}
+    sample = next(p for p in planets if p.eq_body == level)
+    assert equipment.line({name: getattr(sample, name) for name in equipment.FIELDS}) in panel
+    others = {p.name for p in planets if p.eq_body != level}
     assert not any(f">{name}<" in panel for name in others)
     # A stray value filters nothing in and does not crash.
     assert db_client.get("/search?equipment=9").status_code in (200, 302)
 
 
-def test_the_page_chip_names_the_kit_and_takes_the_worst_domains_colour():
+def test_the_page_chip_lists_what_is_required_and_takes_the_worst_domains_colour():
     from planetgen.web.lib import systempage
     scored = hw.compute(_earth(p_co2_kpa=3.0, surface_dose_msv_yr=500.0))
-    chip = systempage._habitability_chip(scored)
-    assert "flag-tier-2" in chip and "Mask and scrubber" in chip and "title=" not in chip
-    assert systempage._habitability_chip({"equipment_tier": None}) == ""
+    body = {**scored, "equipment": equipment.summary(scored)}
+    chip = systempage._habitability_chip(body)
+    assert "flag-tier-2" in chip and "CO2 scrubber" in chip and "title=" not in chip
+    assert systempage._habitability_chip({"equipment": None}) == ""
     assert systempage._habitability_chip({}) == ""
 
 

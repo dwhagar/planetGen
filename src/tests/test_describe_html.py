@@ -43,7 +43,7 @@ def test_a_ratings_block_names_each_tier_with_a_colour_class():
     block = model.ratings({"name": "PHI-6", "score": 0.82, "tier": "Green"},
                           [{"domain": "Pressure", "tier": "Blue", "score": 1.0, "text": ["Pressure is ideal."]},
                            {"domain": "Air", "tier": "Red", "score": 0.1, "text": ["Too much carbon dioxide."]}],
-                          ["a mask with a scrubber"])
+                          ["and a visitor needs a mask with a scrubber"])
     out = html.render(_document(block))
     assert 'class="doc-ratings"' in out
     assert '<span class="tier tier-green">Green</span>' in out

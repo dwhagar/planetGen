@@ -151,6 +151,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [habitability-index.md](habitability/habitability-index.md) | The planetary habitability index (PHI-4) and the protection gear | partly built (scores built, GEN.84) |
+| [survival-equipment-fields.md](habitability/survival-equipment-fields.md) | The survival equipment line: what a human needs on a world, as required and recommended items | built (GEN.655, DB.93; chips, regional temperatures, toxic rows and dust to come) |
 | [atmospheres-retention-and-classes.md](habitability/atmospheres-retention-and-classes.md) | Atmosphere retention and class timing | research |
 | [activity-magnetism-radiation-hydrosphere.md](habitability/activity-magnetism-radiation-hydrosphere.md) | Stellar activity, magnetism, radiation dose and hydrosphere | partly built |
 | [population-and-politics.md](habitability/population-and-politics.md) | Species, civilizations, territories, tech levels and facilities | built |

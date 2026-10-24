@@ -29,7 +29,8 @@ from urllib.parse import urlencode
 
 from flask import g, request, url_for
 
-from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS, TIER_NAMES
+from planetgen.physics import equipment
+from planetgen.physics.habitability_world import DOMAINS, TIER_NAMES
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table
 from planetgen.web.lib.fmt import format_number
@@ -74,8 +75,8 @@ _FACET_ALLOWED = {
     "type": {"star", "planet", "moon", "belt"},
     "body": {"t", "g"},
     "moon_body": {"t", "g"},
-    "equipment": {"0", "1", "2", "3", "4"},
-    "moon_equipment": {"0", "1", "2", "3", "4"},
+    "equipment": equipment.TICK_VALUES,
+    "moon_equipment": equipment.TICK_VALUES,
     "phenomenon": {"nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant",
                    "rogue_planet", "interstellar_comet", "quasar"},
 }
@@ -395,7 +396,7 @@ def _cells(panel, row):
     if panel in ("planets", "moons"):
         cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
                  {"text": row["life_chemical"] or "—"},
-                 {"text": EQUIPMENT_LABELS[row["equipment_tier"]] if row.get("equipment_tier") is not None else "—"},
+                 {"text": row.get("equipment") or "—"},
                  _habitability_cell(row)]
         if panel == "moons":
             cells.append({"text": row["planet_name"]})

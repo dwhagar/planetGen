@@ -22,8 +22,8 @@ def share_text(part):
 def rating_lines(block, fmt):
     """`(headline, rows)` of a ratings block: the overall line, then `(domain, rating, score, notes)` per row."""
     overall = block["overall"]
-    headline = (f"{overall['name']} habitability is {overall['score']:.2f} ({overall['tier']}), "
-                f"and a visitor needs {inline_text(block['gear'], fmt)}.")
+    gear = inline_text(block["gear"], fmt)
+    headline = f"{overall['name']} habitability is {overall['score']:.2f} ({overall['tier']}){', ' + gear if gear else ''}."
     rows = [(row["domain"], row["tier"], f"{row['score']:.2f}", inline_text(row["text"], fmt)) for row in block["rows"]]
     return headline, rows
 

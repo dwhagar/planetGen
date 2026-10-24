@@ -4388,10 +4388,21 @@ temperature cycle 10 degrees inside the Blue temperature edges, a wet bulb limit
 its dose a third of the Blue dose edge, and the chronic inspired O2 limit a quarter above its own. planetGen
 defaults (Boss's default of 2026-10-15: a species passes its own homeworld)."""
 
-SPECIES_EQUIPMENT_MIN_TECH = (0.0, 2.0, 2.5, 3.0, 4.0)
-"""tuple: The least tech level (0 to 7) a species needs to make the kit of each equipment tier
-(`habitability_world.EQUIPMENT_NAMES`: ideal, breathing mask, mask with scrubber, environment suit, full life
-support with radiation hardening), for the "could live there with equipment" list. A planetGen default."""
+SPECIES_EQUIPMENT_TECH = {
+    "cold-weather clothing": 0.0, "cooling clothing": 0.0, "sun-cover clothing": 0.0, "weather clothing": 0.0,
+    "insulated suit": 2.0, "liquid-cooled suit": 2.0, "heated diving suit": 2.0, "full-cover suit": 2.0,
+    "thermal suit": 2.0,
+    "heated sealed suit": 3.0, "heat-shielded suit": 3.0, "chemical-barrier suit": 3.0, "sealed suit": 3.0,
+    "pressure suit": 3.0, "armoured suit": 4.0, "vehicle only": 99.0, "powered frame": 3.0,
+    "dust filter": 2.0, "dust-tight seals": 2.0, "gas filter": 2.5, "full-face gas filter": 2.5,
+    "powered gas filter": 3.0, "CO2 scrubber": 2.5,
+    "gas-mix mask": 2.0, "self-contained air": 3.0, "mixed-gas rig": 3.5, "isolated air": 4.0,
+    "shielded garment": 1.0, "storm vest": 2.5, "hardened suit": 3.5, "shielded shelter": 2.0, "hardened habitat": 4.0,
+}
+"""dict: The least tech level (0 to 7) a species needs to make each item of the survival equipment
+(`physics/equipment.py`, by the item's name; a "hardened" suit needs the larger of the hardened suit's and its own), for
+the "could live there with equipment" list (POP.12, POP.15). It replaces the five-tier tuple (0, 2, 2.5, 3, 4). Vehicle
+only is never within reach (99). A planetGen default."""
 
 COLD_END_LABORATORY_CORRECTION = True
 """bool: Whether the cold-end vapour pressures of nitrogen, carbon monoxide, methane, oxygen and ammonia are the 2026

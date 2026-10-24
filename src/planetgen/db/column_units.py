@@ -54,6 +54,7 @@ LOCAL_UNITS = {
     "J/kg": LocalUnit("specific energy", 1.0),
     "mSv/yr": LocalUnit("dose rate", 1e-3 / _YEAR_S), "A*m2": LocalUnit("magnetic moment", 1.0),
     "DU": LocalUnit("column density", 2.687e20),
+    "g/cm2": LocalUnit("column mass", 10.0),
     "xuv-earth": LocalUnit("flux"), "R_planet": LocalUnit("length"), "nebula-radius": LocalUnit("length"),
     "dex": LocalUnit("logarithmic"), "mag": LocalUnit("magnitude"), "pH": LocalUnit("logarithmic"),
     # no unit
@@ -87,6 +88,12 @@ they stand for a mass or a luminosity by the rest of the name."""
 
 SOLAR_SUFFIXES = ("_solar", "_sol")
 """tuple: The suffixes of a quantity in solar units: `Msun` when the name says mass, else `Lsun`."""
+
+EQUIPMENT_LEVELS = (
+    "eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
+    "eq_dust", "eq_gas_filter", "eq_co2_scrub", "eq_supply", "eq_supply_rec", "eq_shelter", "eq_shelter_rec",
+)
+"""tuple: The survival equipment levels on `planets` and `moons` (GEN.655): small whole numbers, like the tiers."""
 
 TABLES = {
     "asteroid_belt_composition": {
@@ -322,7 +329,8 @@ TABLES = {
         "id": ("id", "planet_id", "star_system_id", "star_id", "parent_id"),
         "index": (
             "orbital_index", "tier_pressure",
-            "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation", "equipment_tier",
+            "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
+            *EQUIPMENT_LEVELS,
         ),
         "km": (
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
@@ -342,7 +350,8 @@ TABLES = {
         "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg"),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
-        "h": ("rotation_period_hours",),
+        "h": ("rotation_period_hours", "outside_hours"),
+        "g/cm2": ("shelter_column_g_cm2",),
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "dex": ("mantle_delta_iw",),
         "kPa": (
@@ -525,7 +534,8 @@ TABLES = {
         "id": ("id", "star_system_id", "star_id", "parent_id", "host_node_id"),
         "index": (
             "orbital_index", "tier_pressure",
-            "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation", "equipment_tier",
+            "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
+            *EQUIPMENT_LEVELS,
         ),
         "km": (
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
@@ -546,7 +556,8 @@ TABLES = {
         "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg"),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
-        "h": ("rotation_period_hours",),
+        "h": ("rotation_period_hours", "outside_hours"),
+        "g/cm2": ("shelter_column_g_cm2",),
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "dex": ("mantle_delta_iw",),
         "kPa": (

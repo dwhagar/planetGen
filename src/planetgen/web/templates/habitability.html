@@ -2,10 +2,10 @@
 {% extends "base.html" %}
 {% block content %}
 <section class="panel" aria-labelledby="equipment-heading">
-  <div class="panel-header"><h2 id="equipment-heading">Equipment levels</h2></div>
-  <p>The label on a planet or moon says what a human visitor needs to stand on its surface.</p>
+  <div class="panel-header"><h2 id="equipment-heading">Survival equipment</h2></div>
+  <p>The equipment line on a planet or moon lists what a human visitor needs to stand on its surface, and only that.</p>
   <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">Level</th><th scope="col">What it means</th></tr></thead>
+    <thead><tr><th scope="col">Item</th><th scope="col">When it is needed</th></tr></thead>
     <tbody>
       {%- for label, meaning in equipment %}
       <tr><th scope="row">{{ label }}</th><td>{{ meaning }}</td></tr>

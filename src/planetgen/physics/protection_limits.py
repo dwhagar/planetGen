@@ -62,7 +62,69 @@ LIMIT_ROWS = (
           "past it a hardened habitat (Red)", 1.0, 1.0),
     Limit("dose_outer_sv_yr", 1000.0, "Sv/yr", "the score reaches 0 here", 1000.0, None),
     Limit("dose_single_year_sv", 0.05, "Sv", "ICRP's limit for any one year", 0.05, None),
+    # --- Survival equipment (GEN.655): where gear is required and where it is only recommended. The gear follows the
+    # physics even where the score's bands are looser (Boss, 2026-10-23, decision B) ---
+    Limit("suit_required_kpa", 16.0, "kPa", "below this a mask on pure oxygen no longer works: a pressure suit is required", None, None),
+    Limit("suit_recommended_kpa", 20.0, "kPa", "from here down a mask on pure oxygen is marginal: a pressure suit is recommended", None, 20.0),
+    Limit("inspired_o2_rec_kpa", 16.0, "kPa", "below this inspired O2 (down to the consciousness floor) a gas-mix mask is recommended", None, None),
+    Limit("cold_heated_rec_c", -40.0, "C", "from here down a heated sealed suit is recommended (the notes' edge; the table's required edge is colder)", None, -40.0),
+    Limit("wet_bulb_rec_c", 30.0, "C", "from here a wet bulb makes cooling clothing recommended (Vecellio's 30.55 less its spread)", None, 30.0),
+    Limit("density_rec_g_l", 6.0, "g/L", "best-mix breathing-gas density where work capacity halves: an armoured suit is recommended", None, 6.0),
+    Limit("density_max_g_l", 10.0, "g/L", "best-mix breathing-gas density where ventilation fails: an armoured suit is required", None, 10.0),
+    Limit("armoured_heat_c", 400.0, "C", "hotter than this an armoured, thermal-capacitor suit (hours of sortie)", None, None),
+    Limit("vehicle_heat_c", 500.0, "C", "hotter than this no suit exists: a vehicle", None, None),
+    Limit("vehicle_pressure_kpa", 100_000.0, "kPa", "higher than this no suit exists: a vehicle", None, None),
+    Limit("frame_gravity_rec_g", 1.25, "g", "from here a powered frame is recommended", None, None),
+    Limit("frame_gravity_g", 1.5, "g", "from here a powered frame is required", None, None),
+    Limit("vehicle_gravity_g", 3.0, "g", "greater than this no suit or frame helps: a vehicle", None, None),
+    Limit("uv_cover_index", 3.0, "x Earth", "a DNA-weighted UV index from here: sun-cover clothing", None, None),
+    Limit("uv_suit_index", 30.0, "x Earth", "a DNA-weighted UV index from here: a full-cover suit", None, None),
+    Limit("corrosive_ph_low", 2.0, "pH", "a surface liquid below this pH needs a chemical-barrier suit", None, None),
+    Limit("corrosive_ph_high", 12.0, "pH", "a surface liquid above this pH needs a chemical-barrier suit", None, None),
+    Limit("dust_pressure_kpa", 10.0, "kPa", "interim rule: a rocky body under this pressure has regolith dust that wrecks open seals", None, None),
+    Limit("work_hours_outside_yr", 2000.0, "h", "a working year outside, for the suit worn to go out from a shelter", None, None),
 )
+
+Toxic = namedtuple("Toxic", "gas chronic_kpa idlh_kpa skin source")
+"""A gas a filter can take out: its long-term limit and its IDLH (immediately dangerous to life or health) as partial
+pressures, kPa; `skin` is true when it is corrosive to skin and eyes (a chemical-barrier suit, not a filter, past its
+IDLH); `source` says where the numbers come from."""
+
+PPM_KPA = 101.325e-6
+"""float: One ppm of a gas at 1 atm, as a partial pressure in kPa."""
+
+TOXIC_GASES = (
+    Toxic("CO", 0.005, 0.12, False, "built long-term limit; NIOSH IDLH 1,200 ppm"),
+    Toxic("H2S", 0.001, 100 * PPM_KPA, False, "built long-term limit; NIOSH IDLH 100 ppm (the built acute limit, 0.05, is looser)"),
+    Toxic("SO2", 0.0005, 100 * PPM_KPA, False, "built long-term limit; NIOSH IDLH 100 ppm"),
+    Toxic("NH3", 25 * PPM_KPA, 300 * PPM_KPA, True, "recalled: NIOSH REL 25 ppm, IDLH 300 ppm (check at build time)"),
+    Toxic("HF", 3 * PPM_KPA, 30 * PPM_KPA, True, "recalled: ACGIH ceiling 3 ppm, IDLH 30 ppm"),
+    Toxic("HCl", 5 * PPM_KPA, 45 * PPM_KPA, True, "NIOSH ceiling 5 ppm; IDLH 45 ppm (NIOSH 2025)"),
+    Toxic("Cl2", 1 * PPM_KPA, 10 * PPM_KPA, True, "recalled: NIOSH ceiling 0.5 to 1 ppm, IDLH 10 ppm"),
+    Toxic("NO2", 1 * PPM_KPA, 20 * PPM_KPA, False, "recalled: NIOSH STEL 1 ppm, IDLH 20 ppm"),
+    Toxic("HCN", 4.7 * PPM_KPA, 50 * PPM_KPA, False, "recalled: NIOSH STEL 4.7 ppm, IDLH 50 ppm"),
+    Toxic("O3", 0.1 * PPM_KPA, 5 * PPM_KPA, False, "recalled: OSHA 0.1 ppm, IDLH 5 ppm"),
+)
+"""tuple: The `Toxic` rows. CO, H2S and SO2 are the species the generator stores today; the others are read once the
+atmosphere stores every gas (GEN.424, GEN.657). A world's gas that is not a row here is read by its own rule."""
+
+TOXIC = {row.gas: row for row in TOXIC_GASES}
+"""dict: The `TOXIC_GASES` rows by gas symbol."""
+
+RadiationStep = namedtuple("RadiationStep", "key name layers")
+"""A step of the radiation ladder (decision F): `key`, `name` and `layers`, `((share of the body, g/cm2 of
+hydrogen-rich shielding), ...)`: the body is the sum of its layers (a vest covers the torso, 60 percent of the
+effective dose, with more)."""
+
+RADIATION_STEPS = (
+    RadiationStep("garment", "shielded garment", ((1.0, 1.0),)),
+    RadiationStep("vest", "storm vest", ((0.4, 1.0), (0.6, 6.0))),
+    RadiationStep("hardened", "hardened suit", ((0.4, 5.0), (0.6, 10.0))),
+    RadiationStep("shelter", "shielded shelter", ((1.0, 50.0),)),
+    RadiationStep("habitat", "hardened habitat", ((1.0, 300.0),)),
+)
+"""tuple: The five steps, lightest first (the real gear each stands for is in
+docs/design/survival-equipment-fields.md 4.5; the thicknesses are planetGen defaults)."""
 
 LIMITS = {row.name: row for row in LIMIT_ROWS}
 """dict: The limits by name."""

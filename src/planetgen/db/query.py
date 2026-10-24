@@ -46,7 +46,7 @@ from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.physics import habitability_world
-from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
+from planetgen.physics import equipment
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types
 from planetgen.generation.star import compressed_heliosphere_radius
@@ -3374,6 +3374,7 @@ def _with_life_fields(body, colonized=(), compact_host=None):
     body["habitable"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
     body["life_stage"] = body["life_stage"] if body["habitable"] else None
     body["compact_host"] = compact_host
+    body["equipment"] = equipment.summary(body)
     body["inhabited"] = body["life_stage"] == "technological_civilization" or body["id"] in colonized
     return body
 
@@ -6067,14 +6068,11 @@ def _search_facet_life(conn):
 
 
 def _search_equipment_options(conn, table):
-    """GEN.89: the five equipment tiers a human needs (value "0" to "4"),
-    with how many bodies of `table` need each; the ones none need are left out."""
-    rows = conn.execute(
-        f"SELECT equipment_tier AS v, COUNT(*) AS c FROM {table} WHERE equipment_tier IS NOT NULL"
-        " GROUP BY v ORDER BY v").fetchall()
-    return [{"value": str(row["v"]), "label": EQUIPMENT_LABELS[row["v"]], "count": row["c"],
-             "tooltip": ("Conditions are ideal for a human here" if row["v"] == 0
-                         else f"A human needs {EQUIPMENT_NAMES[row['v']]} here")} for row in rows]
+    """GEN.655: the items a human needs on a body (`equipment.TICKS`, the required ones), with how many bodies of
+    `table` need each; the ones none need are left out."""
+    row = conn.execute(f"SELECT {equipment.tick_counts_select('t')} FROM {table} t WHERE t.eq_body IS NOT NULL").fetchone()
+    return [{"value": value, "label": label, "count": int(row[f"t{i}"]), "tooltip": f"A human needs {label.lower()} here"}
+            for i, (value, label, _sql) in enumerate(equipment.TICKS) if row[f"t{i}"]]
 
 
 def _search_facet_equipment(conn):
@@ -6086,11 +6084,9 @@ def _search_facet_moon_equipment(conn):
 
 
 def _equipment_clause(alias, tags, clauses, params):
-    """Adds `equipment_tier IN (...)` for the tags that are tiers (a stray value is dropped)."""
-    tiers = sorted({int(tag) for tag in tags if tag in {str(i) for i in range(len(EQUIPMENT_NAMES))}})
+    """Adds the OR of the ticked equipment items (`equipment.TICKS`; a stray value is dropped) as one condition."""
     if tags:
-        clauses.append(f"{alias}.equipment_tier IN ({','.join('?' * len(tiers))})" if tiers else "1 = 0")
-        params.extend(tiers)
+        clauses.append(equipment.tick_condition(alias, set(tags)) or "1 = 0")
 
 
 def _search_facet_moon_class(conn):
@@ -6335,6 +6331,20 @@ def _tiers(alias):
     return ", ".join(f"{alias}.{column}" for column in columns)
 
 
+def _equipment_columns(alias):
+    """The select list of a body's survival equipment levels (`equipment.FIELDS`) on the table `alias`."""
+    return ", ".join(f"{alias}.{column}" for column in equipment.FIELDS)
+
+
+def _with_equipment(row):
+    """A search row with its equipment line (`equipment.line`, empty for a body that needs nothing) and the levels
+    it was worked out from taken out."""
+    row["equipment"] = equipment.line(row)
+    for column in equipment.FIELDS:
+        row.pop(column, None)
+    return row
+
+
 def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
                            equipment_tags=()):
     clauses, params = [], []
@@ -6357,14 +6367,14 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     rows, page = _search_page(
         conn,
         f"""
-        SELECT p.id, p.name, p.planet_class, p.body_type, p.life_chemical, p.equipment_tier, {_tiers("p")}, p.radius_km,
+        SELECT p.id, p.name, p.planet_class, p.body_type, p.life_chemical, {_equipment_columns('p')}, {_tiers("p")}, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
         "ss.name, ss.id, p.orbital_index, p.id",
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [dict(r) for r in rows], "planet"), **page}
+    return {"rows": _with_refs(conn, [_with_equipment(dict(r)) for r in rows], "planet"), **page}
 
 
 def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
@@ -6389,7 +6399,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     rows, page = _search_page(
         conn,
         f"""
-        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, {_tiers("m")}, m.radius_km,
+        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, {_equipment_columns('m')}, {_tiers("m")}, m.radius_km,
                m.planet_id, p.name AS planet_name, m.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"""
@@ -6401,7 +6411,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
         "ss.name, ss.id, p.orbital_index, m.orbital_index, m.id",
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [dict(r) for r in rows], "moon"), **page}
+    return {"rows": _with_refs(conn, [_with_equipment(dict(r)) for r in rows], "moon"), **page}
 
 
 def _search_result_belts(conn, density_tags, limit, offset):
