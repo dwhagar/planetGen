@@ -20,7 +20,7 @@ from tests.publicids import pid
 pytestmark = pytest.mark.db
 
 BOOKKEEPING_TABLES = {
-    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "galaxy_components", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
+    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "nebula_field", "galaxy_components", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "galaxy_block_lights", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots", "scatter_members", "scatter_nodes",
     "orbit_nodes", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state",
@@ -186,9 +186,10 @@ NEVER_READ = {
     ("facilities", "mass_kg"): "read by the gravity sum (GEN.294 chain)",
     **{("sectors", column): "read by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "read by the DB.53 chain" for column in ("decay_age_yr", "epoch_unix", "state")},
-    # GEN.630: only the system scene reads where a star hangs in the tree (node and slot) and a member's offset.
+    # GEN.630: only the system scene reads a member's offset; the loader reads where a star hangs (node and slot, GEN.631).
     **{("stars", column): "read by the system scene (GEN.630)" for column in (
-        "offset_x_au", "offset_y_au", "offset_z_au", "parent_node_id", "slot")},
+        "offset_x_au", "offset_y_au", "offset_z_au")},
+    **{("stars", column): CHANCE for column in ("parent_node_id", "slot")},    # read back for a system of 3 stars or more
     # DB.73: the link is stored for the readers of 8.4 (the unified object); a system loader rebuilds the tree from parent_node_id.
     **{("stars", column): "stored for the parent-link readers (DB.73)" for column in ("parent_type", "parent_id")},
     # GEN.329: read back only for a system saved as a runaway, which this galaxy may not hold.

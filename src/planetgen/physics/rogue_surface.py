@@ -26,7 +26,7 @@ a new `RoguePlanet` and back-fills stored rows (`store._migrate_v47_to_v48`).
 
 import math
 
-from planetgen.physics import brown_dwarf, constants, hydrosphere, radiogenic, relations
+from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, radiogenic, relations, saturation
 from planetgen import tuning
 from planetgen.util.random import log_uniform
 from planetgen.util import draw
@@ -61,10 +61,6 @@ SURFACE_REGIME_LABELS = {
 }
 """dict: A regime's display label."""
 
-NITROGEN_TRIPLE_POINT_K = 63.15
-NITROGEN_TRIPLE_POINT_PA = 12.5e3
-NITROGEN_SUBLIMATION_J_MOL = 6.9e3
-GAS_CONSTANT_J_MOL_K = 8.314
 BAR_TO_PA = 1e5
 HYDROGEN_MOLECULE_KG = 2 * constants.HYDROGEN_ATOM_MASS_KG
 
@@ -148,13 +144,14 @@ def giant_temperature_at_k(t_eff_k, gravity_m_s2, pressure_pa):
     return adiabat_temperature_k(t_eff_k, photosphere_pa, pressure_pa)
 
 
-def nitrogen_vapor_pressure_pa(temperature_k):
-    """Nitrogen frost's vapor pressure (Clausius-Clapeyron from N2's triple
-    point): ~1-6 Pa at 37-40 K, Pluto's air; nothing at 20 K."""
-    if temperature_k >= NITROGEN_TRIPLE_POINT_K:
-        return NITROGEN_TRIPLE_POINT_PA
-    return NITROGEN_TRIPLE_POINT_PA * math.exp(
-        -NITROGEN_SUBLIMATION_J_MOL / GAS_CONSTANT_J_MOL_K * (1 / temperature_k - 1 / NITROGEN_TRIPLE_POINT_K))
+def frozen_nitrogen_pressure_pa(temperature_k):
+    """Nitrogen frost's vapour pressure from the one saturation function (`physics/saturation.py`): ~1-6 Pa at 37-40 K, Pluto's
+    air; nothing at 20 K. Above nitrogen's critical temperature there is no saturation and the critical pressure is the most the air
+    can hold as a frozen-atmosphere regime."""
+    pressure = saturation.pressure_pa("N2", temperature_k)
+    if math.isinf(pressure):
+        return saturation.pressure_pa("N2", gases.gas("N2").critical_temperature_k)
+    return pressure
 
 
 def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moons, rng=draw, age_gy=None):
@@ -228,7 +225,7 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
         regime, pressure_pa = "hydrogen-envelope", envelope_pa
     else:
         surface_k = t_eff
-        pressure_pa = nitrogen_vapor_pressure_pa(surface_k) if had_air else 0.0
+        pressure_pa = frozen_nitrogen_pressure_pa(surface_k) if had_air else 0.0
         regime = "frozen-atmosphere" if had_air else "bare-rock"
 
     if water_fraction is not None:

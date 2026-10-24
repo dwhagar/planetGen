@@ -275,7 +275,7 @@ def assert_flags_honored(system, cfg):
     if cfg.ASTEROID_BELT is False and not explicit_belt:
         assert not any(b.body_type == "a" for b in bodies), "ASTEROID_BELT=False but a belt exists"
     if cfg.HABITABLE_WORLD is False:
-        assert system.hab_count == 0, "HABITABLE_WORLD=False but a habitable world exists"
+        assert system.habitable_class_count == 0, "HABITABLE_WORLD=False but a habitable world exists"
     if cfg.BINARY_SYSTEM is False:
         assert system.binary_type is None and len(system.stars) == 1
     if cfg.BINARY_SYSTEM is True:

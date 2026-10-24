@@ -40,15 +40,16 @@ def test_rerunning_a_finished_migration_changes_nothing(mysql_config):
 
 
 def test_gapped_schema_migrations_counts_its_highest_version(mysql_config):
-    """Rows 8 and 61 only: the database is v61."""
+    """Rows 8 and the baseline only: the database is the baseline's version."""
     load_old_schema(mysql_config, alembic_runner.BASELINE_VERSION)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (8), (61)")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (8), (?)", (alembic_runner.BASELINE_VERSION,))
         conn.commit()
     finally:
         conn.close()
-    assert store.schema_status(mysql_config) == (61, store.SCHEMA_VERSION - 61)
+    assert store.schema_status(mysql_config) == (
+        alembic_runner.BASELINE_VERSION, store.SCHEMA_VERSION - alembic_runner.BASELINE_VERSION)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
     assert_like_new(mysql_config)

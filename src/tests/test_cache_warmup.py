@@ -202,8 +202,8 @@ def test_every_cache_family_is_its_own_registered_command_with_one_unit():
     assert list(commands.KIND_OF_WARM_FAMILY) == list(warmup.FAMILIES)
     for family, kind in commands.KIND_OF_WARM_FAMILY.items():
         assert not commands.spec(kind).inline
-        if family in ("galaxy-tiles", "galaxy-deep-tiles"):
-            continue   # many units, one a chunk of tiles: its own tests below
+        if family in ("galaxy-tiles", "galaxy-deep-tiles", "galaxy-nodes"):
+            continue   # many units, one a chunk of tiles or nodes: its own tests below
         expansion = commands.expand_function(kind)({"database": "x", "cap": 4})
         assert expansion.units == [({"database": "x", "cap": 4}, 1.0)], "one unit that warms that family and no other"
     assert commands.spec(commands.END_MAP_REBUILD).summary
@@ -727,6 +727,9 @@ def script(monkeypatch, redis_server):
     monkeypatch.setattr(warmup, "expand_warm_galaxy_tiles", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     monkeypatch.setattr(warmup, "warm_galaxy_tiles_unit", lambda args, report: warmup._warm_unit("galaxy-tiles", args))
+    monkeypatch.setattr(warmup, "expand_warm_galaxy_nodes", lambda params: commands.Expansion(
+        [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
+    monkeypatch.setattr(warmup, "warm_galaxy_nodes_unit", lambda args, report: warmup._warm_unit("galaxy-nodes", args))
     monkeypatch.setattr(warmup, "expand_warm_galaxy_deep_tiles", lambda params: commands.Expansion(
         [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     monkeypatch.setattr(warmup, "warm_galaxy_deep_tiles_unit",
@@ -753,9 +756,9 @@ def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, ca
         warm_cli.run_warm(_args())
     assert exit_info.value.code == 1
     err = caplog.text
-    assert "the cache warm-up stopped: unit 0 of stage 6 failed: WarmupFailed: 2 of 9 pages did not answer" in err
+    assert "the cache warm-up stopped: unit 0 of stage 7 failed: WarmupFailed: 2 of 9 pages did not answer" in err
     assert [family for family, _cap, _db in script.ran] == ["object-index", "galaxy-map", "lists", "galaxy-tiles",
-                                                            "galaxy-deep-tiles", "sectors", "systems"], \
+                                                            "galaxy-nodes", "galaxy-deep-tiles", "sectors", "systems"], \
         "the wrapper's list stops at the failing command"
 
 
@@ -853,3 +856,82 @@ def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, 
     conn = redisqueue.connect(redis_server)
     assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "cancelled"
     assert runrecord.active_run(conn, runrecord.MAINTENANCE) is None
+
+
+# --- The Galaxy Map's sector-block nodes (MAP.260) --------------------------------------------------
+
+def _make_block_rows(config):
+    """The block aggregates of the seeded galaxy: a few pre-placed stars (the seeded sectors have no grid address, so
+    the stored light of the stars is what makes blocks), the totals `generate` makes after a run."""
+    from planetgen.db import block_lights, block_stats
+    from tests.test_galaxy_nodes import _bright_row
+    conn = store.get_connection(config)
+    try:
+        store.insert_bright_stars(conn, [_bright_row(position, 1e4) for position in
+                                         ((900.0, 20.0, 5.0), (-700.0, 300.0, 40.0), (10.0, 10.0, 1.0))])
+        block_stats.rebuild(conn)
+        block_lights.rebuild(conn)
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def _run_node_units(galaxy):
+    expansion = commands.expand_function("warm-galaxy-nodes")({"database": galaxy.config.database, "cap": None})
+    return expansion, [commands.run_alone("warm-galaxy-nodes", args) for args, _cost in expansion.units]
+
+
+def test_the_nodes_to_warm_are_the_populated_blocks_from_the_top_down_and_a_second_run_builds_none(
+        galaxy, tile_levels, monkeypatch):
+    from planetgen.db import nodes
+    from planetgen.galaxy.drill import parse_node_key
+    _make_block_rows(galaxy.config)
+    conn = store.get_connection(galaxy.config)
+    try:
+        keys = nodes.populated_node_keys(conn, warmup.NODE_WARM_FLOOR)
+    finally:
+        conn.close()
+    assert keys, "the seeded sector's blocks are stored"
+    levels = [parse_node_key(key).m for key in keys]
+    assert levels == sorted(levels, reverse=True) and min(levels) >= warmup.NODE_WARM_FLOOR
+    assert len(keys) == len(set(keys))
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    expansion, first = _run_node_units(galaxy)
+    assert expansion.units and expansion.plan["nodes"] == len(keys)
+    assert sum(result["warmed"] for result in first) == len(keys)
+    assert sum(result["built"] for result in first) == len(keys) and all(result["left_out"] == 0 for result in first)
+    _expansion, again = _run_node_units(galaxy)
+    assert sum(result["built"] for result in again) == 0
+    assert sum(result["cached"] for result in again) == len(keys)
+    assert "already stored" in again[0]["line"]
+
+
+def test_a_full_cache_leaves_the_nodes_out_and_says_so(galaxy, tile_levels, monkeypatch):
+    _make_block_rows(galaxy.config)
+    monkeypatch.setattr(tilecache, "cache_is_full", lambda *args, **kwargs: True)
+    _expansion, results = _run_node_units(galaxy)
+    assert sum(result["warmed"] for result in results) == 0
+    assert sum(result["left_out"] for result in results) > 0 and "left out" in results[0]["line"]
+
+
+def test_the_nodes_family_warms_inline_and_belongs_to_the_built_levels_phase(galaxy, tile_levels):
+    _make_block_rows(galaxy.config)
+    assert warmup.phase_of("galaxy-nodes") == "built-levels"
+    result = warmup.warm_family(galaxy.config.database, "galaxy-nodes", config=galaxy.config)
+    assert result["warmed"] > 0 and result["noun"] == "nodes"
+
+
+def test_the_nodes_after_a_visit_are_its_children_then_its_parent_and_the_parents_children():
+    from planetgen.galaxy.drill import drill_children, drill_parent, format_drill_key, parse_node_key
+    from planetgen.web.lib import tileprefetch
+    asked = ["243.30.4.2", "243.31.4.2"]
+    found = list(tileprefetch.node_candidates(asked))
+    assert len(found) == len(set(found)) and not set(found) & set(asked)
+    first = parse_node_key(asked[0])
+    children = [format_drill_key(child) for _shell, group in drill_children(first) for child in group]
+    assert found[:len(children)] == children, "the children of the first (nearest) node come first"
+    parent = format_drill_key(drill_parent(first))
+    assert parent in found
+    assert list(tileprefetch.node_candidates(["not-a-key"])) == []
+    sector = parse_node_key("3.30.4.2")
+    assert all(parse_node_key(key).m in (1, 3, 9) for key in tileprefetch.node_candidates([format_drill_key(sector)]))

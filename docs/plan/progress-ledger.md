@@ -1270,3 +1270,17 @@ Baseline: PR #1817.
 | GEN.429 | 8.1 | Radiation chain for habitability (GEN.445) |
 | DB.69 | 8.1 | Bulk composition |
 | GEN.443 | 8.1 | Radiation chain for habitability (GEN.445) |
+| MAP.258 | 8.1 | Fly-through map |
+| GEN.631 | 8.1 | Multi-star and compact systems |
+| GEN.643 | 8.1 | Habitability system |
+| TEST.313 | 8.1 | Bugs and flaky tests |
+| GEN.702 | 8.1 | Habitability system |
+| PERF.155 | 8.1 | The headline closes |
+| GEN.560 | 8.1 | Composition research and design |
+| OPS.65 | 8.1 | Bugs and flaky tests |
+| GEN.271 | 8.1 | Multi-star and compact systems |
+| DB.98 | 8.1 | Reproducible galaxies |
+| GEN.309 | 8.1 | Queue, caches and performance |
+| GEN.632 | 8.1 | Mixture and stored values |
+| MAP.259 | 8.1 | Fly-through map |
+| MAP.260 | 8.1 | Fly-through map |

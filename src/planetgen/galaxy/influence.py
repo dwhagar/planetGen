@@ -36,6 +36,10 @@ import numpy as np
 
 from planetgen.galaxy import enclosed_mass, spherical
 from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
+
+_ly_to_m = units.converter("ly", "m")
+_m_to_pc = units.converter("m", "pc")
 
 DEFAULT_MAX_EXACT_MEMBERS = 64
 """int: The nearest members returned one by one; the rest are one point mass per sector (Boss, 2026-10-18, card F1)."""
@@ -114,7 +118,7 @@ def galactic_hill_radius_pc(masses_kg, radii_pc, shape, galaxy_seed):
     `r` (`enclosed_mass`) and `r` no smaller than the nearest a system's Hill sphere is worked out at
     (`constants.MIN_TIDAL_DISTANCE_LY`), as for a star's own `Star.calculate_system_perimeter`.
     """
-    floor_pc = constants.MIN_TIDAL_DISTANCE_LY * constants.LY_TO_M / constants.PARSEC_M
+    floor_pc = _m_to_pc(_ly_to_m(constants.MIN_TIDAL_DISTANCE_LY))
     radii = np.maximum(np.asarray(radii_pc, dtype=float), floor_pc)
     masses = np.asarray(masses_kg, dtype=float)
     central = enclosed_mass.mass_model(shape, galaxy_seed).enclosed_solar(radii) * constants.SOLAR_MASS_TO_KG

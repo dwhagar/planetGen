@@ -13,7 +13,7 @@ class _Star:
 
 class _System:
     def __init__(self, type_, hab=0, yerkes="V"):
-        self.star, self.hab_count = _Star(type_, yerkes), hab
+        self.star, self.habitable_class_count = _Star(type_, yerkes), hab
 
 
 class _Entry:

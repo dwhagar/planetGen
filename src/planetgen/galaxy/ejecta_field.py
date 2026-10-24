@@ -27,13 +27,16 @@ from planetgen import tuning
 from planetgen.galaxy import remnant_density
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.galaxy import seed as galaxySeed
-from planetgen.physics import constants as physical_constants
 from planetgen.util import draw
+from planetgen.physics import unit_registry as units
+
+_km_to_pc = units.converter("km", "pc")
+_yr_to_s = units.converter("yr", "s")
+_gyr_to_yr = units.converter("Gyr", "yr")
 
 KINDS = ("neutron-star", "black-hole")
 """tuple: The kinds that have an ejecta population."""
 
-_KM_PER_PC = physical_constants.PARSEC_M / physical_constants.KM_M
 
 
 @functools.lru_cache(maxsize=64)
@@ -81,7 +84,7 @@ def mean_speed_kms(kind, shape=None):
 
 def outer_radius_pc(kind, shape=None):
     """Where the population of `kind` ends, `v T`, parsecs."""
-    return mean_speed_kms(kind, shape) * tuning.EJECTA_AGE_GY * 1.0e9 * physical_constants.SECONDS_PER_YEAR / _KM_PER_PC
+    return _km_to_pc(_yr_to_s(_gyr_to_yr(mean_speed_kms(kind, shape) * tuning.EJECTA_AGE_GY)))
 
 
 def density_pc3(kind, radius_pc, shape, expected_at_density_1, edge_pc):

@@ -21,8 +21,8 @@ import pytest
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import build_galaxy_shape, relative_density, shape_with_terms
 from planetgen.galaxy.drill import (
-    DRILL_LEVELS, DrillBlock, block_addresses, drill_band_count, drill_block_bounds, drill_chain_of, drill_parent,
-    drill_wedge_count,
+    DRILL_LEVELS, STAGE_LEVELS, DrillBlock, block_addresses, drill_band_count, drill_block_bounds, drill_chain_of,
+    drill_children, drill_parent, drill_wedge_count, format_drill_key,
 )
 from planetgen.galaxy.skeleton import GalaxyBounds, build_shell_extents, expected_system_count_at_density_1
 from planetgen.galaxy.window import window_cells
@@ -162,11 +162,81 @@ console.log(JSON.stringify(blocks.map(([m, s, b, w]) => {{
             assert (rows, wedges) == (drill_band_count(block[0], block[1]), drill_wedge_count(block[0], block[1], block[2]))
 
 
+def _sample_blocks(per_level=8, seed=29):
+    """Blocks of every level above a sector: the first shells, the shells holding the grid's last, and random ones,
+    with rows at the poles, the plane and between."""
+    rng = random.Random(seed)
+    blocks = []
+    for m in DRILL_LEVELS[:-1]:
+        last = 65535 // m
+        for shell in sorted({0, 1, last, rng.randint(0, last), rng.randint(0, last), rng.randint(0, last)}):
+            rows = drill_band_count(m, shell)
+            for band in {-(rows // 2), 0, rows // 2, rng.randint(-(rows // 2), rows // 2)}:
+                wedges = drill_wedge_count(m, shell, band)
+                for wedge in {0, wedges - 1, rng.randrange(wedges)}:
+                    blocks.append(DrillBlock(m, shell, band, wedge))
+    rng.shuffle(blocks)
+    return blocks[:per_level * len(DRILL_LEVELS) * 4]
+
+
+def test_the_ladder_counts_and_parents_match_python_at_every_level():
+    blocks = _sample_blocks()
+    got = _run(f"""
+const blocks = {json.dumps([list(b) for b in blocks])};
+console.log(JSON.stringify(blocks.map(([m, s, b, w]) => {{
+  const block = {{m, shell: s, band: b, wedge: w}};
+  const parent = P.drillParent(block);
+  return [P.drillBandCount(m, s), P.drillWedgeCount(m, s, b), parent ? [parent.m, parent.shell, parent.band, parent.wedge] : null,
+          P.isBlock(block)];
+}})));
+""")
+    for block, (rows, wedges, parent, is_block) in zip(blocks, got):
+        expected_parent = drill_parent(block)
+        assert (rows, wedges) == (drill_band_count(block.m, block.shell), drill_wedge_count(block.m, block.shell, block.band)), block
+        assert parent == (list(expected_parent) if expected_parent else None), block
+        assert is_block == (block.shell * block.m <= 83037), block
+
+
+def test_the_children_of_a_block_match_python_at_every_level():
+    blocks = [b for b in _sample_blocks(per_level=3) if b.shell * b.m <= 65535]
+    # A level-3 block holds sectors, so more of those (a few near the core and the poles hold none).
+    rng = random.Random(41)
+    for _ in range(40):
+        shell = rng.choice([0, 1, 2, rng.randint(0, 21845)])
+        rows = drill_band_count(3, shell)
+        band = rng.choice([0, rows // 2, -(rows // 2), rng.randint(-(rows // 2), rows // 2)])
+        blocks.append(DrillBlock(3, shell, band, rng.randrange(drill_wedge_count(3, shell, band))))
+    got = _run(f"""
+const blocks = {json.dumps([list(b) for b in blocks])};
+console.log(JSON.stringify(blocks.map(([m, s, b, w]) =>
+  P.drillChildren({{m, shell: s, band: b, wedge: w}}).map(g => [g.shell, g.blocks.map(c => [c.m, c.shell, c.band, c.wedge])]))));
+""")
+    for block, groups in zip(blocks, got):
+        expected = [[shell, [list(c) for c in children]] for shell, children in drill_children(block)]
+        assert groups == expected, block
+    assert any(g for g in got) and any(block.m == 3 and groups for block, groups in zip(blocks, got))
+
+
+def test_the_stage_helpers_stop_at_243():
+    got = _run(f"""
+const chain = P.drillChainOf(1705, 120, 8000).map(b => b.m);
+const stage = P.stageChainOf(1705, 120, 8000).map(b => b.m);
+const top = P.drillChainOf(1705, 120, 8000)[0];
+const at243 = P.drillChainOf(1705, 120, 8000)[DRILL_INDEX];
+console.log(JSON.stringify({{chain, stage, root: P.drillParent(top), stageTop: P.stageParent(at243), above: P.drillParent(at243).m,
+  levels: P.DRILL_LEVELS, stageLevels: P.STAGE_LEVELS}}));
+""".replace("DRILL_INDEX", str(DRILL_LEVELS.index(243))))
+    assert got["chain"] == list(DRILL_LEVELS)
+    assert got["stage"] == list(STAGE_LEVELS)
+    assert got["root"] is None and got["stageTop"] is None and got["above"] == 729
+    assert got["levels"] == list(DRILL_LEVELS) and got["stageLevels"] == list(STAGE_LEVELS)
+
+
 @pytest.mark.parametrize("g", [3, 9, 11])
 def test_windows_match_python(g):
     rng = random.Random(g)
     centres = []
-    for m in DRILL_LEVELS:
+    for m in STAGE_LEVELS:
         for _ in range(5):
             if m == 1:
                 shell = rng.choice([rng.randint(2, 40), rng.randint(40, 3000)])

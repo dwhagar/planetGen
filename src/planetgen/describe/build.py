@@ -417,7 +417,7 @@ def _equipment_block(planet):
         made = "no tech level makes it" if tech >= 99 else f"made at tech level {tech:g}"
         rows.append(fact(f"equipment-{index}", SLOT_LABELS[item.slot],
                          model.chem_text(item.name[:1].upper() + item.name[1:]),
-                         f": {item.severity}; {item.domain.lower()}; {made}"))
+                         f": {item.severity}; {' and '.join(domain.lower() for domain in item.domains)}; {made}"))
     if levels.get("shelter_column_g_cm2"):
         rows.append(fact("shelter-shielding", "Shelter shielding", f"{round(levels['shelter_column_g_cm2']):,} g/cm2"))
     if levels.get("outside_hours") is not None:
@@ -494,16 +494,16 @@ def _body_section(body):
 
 # --- the system ------------------------------------------------------------------------------------------
 
-def _potentially_habitable_count(system):
-    """How many rocky planets and moons have an overall PHI-6 rating in `habitability.POTENTIALLY_HABITABLE_TIERS`."""
+def _habitable_count(system):
+    """How many rocky planets and moons are habitable: an overall PHI-6 rating that `habitability.is_habitable` accepts
+    (GEN.643)."""
     count = 0
     for planet in system.planets + system.secondary_planets:
         if planet.body_type == "a":
             continue
         for body in (planet, *planet.moons):
             scored = body.habitability_world()
-            if scored is not None and habitability.tier(protection.rating(*scored)["overall"]) \
-                    in habitability.POTENTIALLY_HABITABLE_TIERS:
+            if scored is not None and habitability.is_habitable(protection.rating(*scored)["overall"]):
                 count += 1
     return count
 
@@ -530,13 +530,13 @@ def _overview_sentences(system):
     elif system.planet_count == 0 and system.belt_count == 0 and system.comet_count == 0 and system.moon_count == 0:
         sentences.append("There are no stellar objects in this system.")
 
-    habitable = _potentially_habitable_count(system)
+    habitable = _habitable_count(system)
     if habitable == 1:
-        sentences.append("There is 1 potentially habitable world in the system.")
+        sentences.append("There is 1 habitable world in the system.")
     elif habitable > 1:
-        sentences.append(f"There are {habitable} potentially habitable worlds in the system.")
+        sentences.append(f"There are {habitable} habitable worlds in the system.")
     else:
-        sentences.append("There are no potentially habitable worlds in this system.")
+        sentences.append("There are no habitable worlds in this system.")
 
     star = system.star
     cloud = getattr(system, "surrounding_cloud", None)
@@ -580,6 +580,7 @@ def describe(system):
                                       (system.secondary_star, system.secondary_planets, system.secondary_comets)):
             children.append(_star_section(star, [_body_section(body) for body in planets]
                                           + [_comet_section(comet) for comet in comets]))
+        children += [_star_section(star) for star in system.member_stars]    # GEN.631: the stars beyond the pair
     else:
         children = [_star_section(system.star)]
     if system.binary_type != "wide":

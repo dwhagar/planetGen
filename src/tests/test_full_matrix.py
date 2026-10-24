@@ -165,7 +165,7 @@ def test_full_system_generates_with_belt_and_habitable_world_across_every_star_t
 
     assert render_support.text(system).strip()
     assert system.belt_count >= 1, f"{star_type}: no asteroid belt generated"
-    assert system.hab_count >= 1, f"{star_type}: no habitable world generated"
+    assert system.habitable_class_count >= 1, f"{star_type}: no habitable world generated"
 
     for star in system.stars:
         if star.lifespan == float('inf'):

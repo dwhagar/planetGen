@@ -34,6 +34,7 @@ import rq
 from planetgen.admin import updateguard
 from planetgen.db import store
 from planetgen.queue import pause, redisqueue, runrecord, workers
+from planetgen.util import log
 
 STOP_SECONDS = 20
 """int: How long the polite cancel of the running work is given before the rest is removed by force."""
@@ -211,7 +212,9 @@ def main(argv=None):
     parser.add_argument("--yes", "-y", action="store_true", help="Do not ask.")
     parser.add_argument("--dry-run", action="store_true", help="Print what there is, change nothing.")
     store.add_mysql_connection_args(parser)
+    log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
+    log.apply_debug_arguments(args, parser)
     config = store.mysql_config_from_args(args)
     if not args.yes and not args.dry_run and not sys.stdin.isatty():
         print("error: there is no terminal to ask on; add --yes to reset without asking.", file=sys.stderr)

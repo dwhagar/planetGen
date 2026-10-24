@@ -29,6 +29,7 @@ import time
 import redis
 
 from planetgen.admin import updateguard
+from planetgen.galaxy.drill import drill_children, drill_parent, format_drill_key, parse_node_key
 from planetgen.galaxy.viewport import DISTANCE_CUT_FADE_BAND, TILE_MAX_LEVEL, fetch_cut_tiles, parse_tile_key, tile_key
 from planetgen.queue import redisclient, redisqueue, workers
 from planetgen.util import log
@@ -69,6 +70,9 @@ FULL_SECONDS = 600
 JOB = "planetgen.web.lib.tileprefetch.build_tiles"
 """str: The function a worker runs for a queued chunk (a string, the queue carries JSON)."""
 
+NODE_JOB = "planetgen.web.lib.tileprefetch.build_nodes"
+"""str: The function a worker runs for a queued chunk of nodes (MAP.260)."""
+
 SOCKET_SECONDS = 0.5
 """float: How long one Redis call may take before it counts as unreachable."""
 
@@ -101,6 +105,34 @@ def candidates(keys):
             if tile not in seen:
                 seen.add(tile)
                 yield tile
+
+
+def node_candidates(keys):
+    """
+    The nodes worth building after a request for `keys` (MAP.260), in order: for each requested node (nearest first),
+    its children (the next level inside it: three shells of rows and wedges, a sector's own node for a level-3 block),
+    then its parent and the parent's other children. Neither the requested nodes nor one named twice appear.
+
+    Yields:
+        str: Node keys.
+    """
+    seen = set(keys)
+    for key in keys:
+        try:
+            block = parse_node_key(key)
+        except ValueError:
+            continue
+        found = []
+        if block.m > 1:
+            found += [format_drill_key(child) for _shell, group in drill_children(block) for child in group]
+        parent = drill_parent(block)
+        if parent is not None:
+            found.append(format_drill_key(parent))
+            found += [format_drill_key(child) for _shell, group in drill_children(parent) for child in group]
+        for node in found:
+            if node not in seen:
+                seen.add(node)
+                yield node
 
 
 def zoom_candidates(camera, look, bounds, steps=ZOOM_STEPS):
@@ -175,12 +207,13 @@ def chunk_timeout(count):
     return redisqueue.job_timeout(JOB_START_SECONDS + TILE_SECONDS * count, floor=MIN_JOB_SECONDS)
 
 
-def _enqueue_chunks(queue, db, keys, what):
-    """Queues `keys` as jobs of `CHUNK` tiles each on `queue`, `what` ("prefetch" or "rebuild") in their description."""
+def _enqueue_chunks(queue, db, keys, what, job=JOB, noun="tiles"):
+    """Queues `keys` as jobs of `CHUNK` tiles (or nodes) each on `queue`, `what` ("prefetch" or "rebuild") in their
+    description."""
     for start in range(0, len(keys), CHUNK):
         chunk = keys[start:start + CHUNK]
-        queue.enqueue(JOB, args=(db, chunk), job_timeout=chunk_timeout(len(chunk)), result_ttl=0, failure_ttl=600,
-                      description=f"{what} {len(chunk)} tiles")
+        queue.enqueue(job, args=(db, chunk), job_timeout=chunk_timeout(len(chunk)), result_ttl=0, failure_ttl=600,
+                      description=f"{what} {len(chunk)} {noun}")
 
 
 def schedule(db, keys, at=None):
@@ -195,6 +228,25 @@ def schedule(db, keys, at=None):
     Returns:
         int: How many tiles were queued (0 when the prefetch is off, nothing is missing or a rule held it back).
     """
+    return _schedule(db, keys, lambda: wanted(keys, at, _bounds(db) if at is not None else None),
+                     lambda key: tilecache._tile_filename("t", key), JOB, "tiles")
+
+
+def schedule_nodes(db, keys):
+    """
+    `schedule` for nodes (MAP.260): queues the nodes around a request for `keys` that are not stored (`node_candidates`),
+    by the same rules.
+
+    Returns:
+        int: How many nodes were queued.
+    """
+    return _schedule(db, keys, lambda: node_candidates(keys), lambda key: tilecache._node_filename(key), NODE_JOB,
+                     "nodes")
+
+
+def _schedule(db, keys, wanted_keys, filename, job, noun):
+    """The body `schedule` and `schedule_nodes` share: `wanted_keys()` yields the candidates in order, `filename(key)`
+    names a stored one, `job` is what a worker runs for a chunk of `noun`."""
     settings = get_settings().tile_cache
     if settings.prefetch_per_visit <= 0 or settings.prefetch_per_minute <= 0 or not keys:
         return 0
@@ -207,12 +259,11 @@ def schedule(db, keys, at=None):
     if not generation:
         return 0
     generation_dir = os.path.join(tilecache._db_dir(root, db), generation)
-    bounds = _bounds(db) if at is not None else None
     missing = []
-    for key in wanted(keys, at, bounds):
+    for key in wanted_keys():
         if key in missing:
             continue
-        if not os.path.exists(os.path.join(generation_dir, tilecache._tile_filename("t", key))):
+        if not os.path.exists(os.path.join(generation_dir, filename(key))):
             missing.append(key)
             if len(missing) >= settings.prefetch_per_visit:
                 break
@@ -237,7 +288,7 @@ def schedule(db, keys, at=None):
         for key in claimed[room:]:
             connection.delete(_claim_name(db, generation, key))
         claimed = claimed[:room]
-        _enqueue_chunks(queue, db, claimed, "prefetch")
+        _enqueue_chunks(queue, db, claimed, "prefetch", job, noun)
         if claimed:
             workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection, redisqueue.redis_url())
         return len(claimed)
@@ -288,6 +339,54 @@ def rebuild(db, generation, keys):
     except (redis.RedisError, OSError, redisqueue.Unavailable) as exc:
         log.debug(f"Tile rebuild: not queued ({exc}).")
         return 0
+
+
+def rebuild_nodes(db, generation, keys):
+    """
+    `rebuild` for nodes (MAP.260): queues the building of nodes a change deleted from the stored generation, coarsest
+    first (the changed block chains are the nodes over a changed sector, so the root nodes come first), by the same
+    rules.
+
+    Returns:
+        int: How many nodes were queued.
+    """
+    settings = get_settings().tile_cache
+    if settings.prefetch_per_minute <= 0 or not keys or updateguard.is_updating():
+        return 0
+    root = tilecache.cache_dir()
+    if root is None or is_full(root):
+        return 0
+    ordered = sorted(keys, key=lambda key: (-parse_node_key(key).m, key))[:REBUILD_MAX]
+    try:
+        connection = _redis()
+        queue = redisqueue.queue(redisqueue.MAINTENANCE_QUEUE, connection)
+        pipe = connection.pipeline()
+        for key in ordered:
+            pipe.set(_claim_name(db, generation, key), "1", nx=True, ex=CLAIM_SECONDS)
+        claimed = [key for key, won in zip(ordered, pipe.execute()) if won]
+        _enqueue_chunks(queue, db, claimed, "rebuild", NODE_JOB, "nodes")
+        if claimed:
+            workers.ensure_workers(redisqueue.MAINTENANCE_QUEUE, connection, redisqueue.redis_url())
+        return len(claimed)
+    except (redis.RedisError, OSError, redisqueue.Unavailable) as exc:
+        log.debug(f"Node rebuild: not queued ({exc}).")
+        return 0
+
+
+def build_nodes(db, keys):
+    """
+    The queued job for nodes: builds the nodes `keys` into the disk cache the way a visitor's request does
+    (`tilecache.fetch_nodes`), so what is stored is what a visitor is served. A node stored since it was queued is not
+    built again.
+
+    Returns:
+        dict: `nodes` asked and `built` (those that were not stored).
+    """
+    from planetgen.web import warmup
+    app = warmup.build_app()
+    with app.test_request_context("/"):
+        result = tilecache.fetch_nodes(db, list(keys), ahead=True)
+    return {"nodes": len(keys), "built": len(keys) - result["cached"]}
 
 
 def build_tiles(db, keys):

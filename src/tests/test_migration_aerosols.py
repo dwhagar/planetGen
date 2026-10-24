@@ -42,14 +42,18 @@ def _system(seed=None):
     pytest.fail("no system with two bodies that have air and a cloud in 60 seeds")
 
 
+READ_FROM_AEROSOLS = ("uv_surface_index",)
+"""tuple: What the body stores that reads the aerosols (GEN.445: the cloud, dust and haze cut the ground UV), so it moves with them without a draw."""
+
+
 def _fields(body):
-    """What the body stores except the aerosol values, moons included."""
+    """What the body stores except the aerosol values and what is derived from them, moons included."""
     return {name: ([_stripped(moon) for moon in value] if name == "moons" else value)
-            for name, value in body.to_dict().items() if name not in aerosols.BODY_FIELDS}
+            for name, value in body.to_dict().items() if name not in aerosols.BODY_FIELDS + READ_FROM_AEROSOLS}
 
 
 def _stripped(record):
-    return {name: value for name, value in record.items() if name not in aerosols.BODY_FIELDS}
+    return {name: value for name, value in record.items() if name not in aerosols.BODY_FIELDS + READ_FROM_AEROSOLS}
 
 
 def test_a_body_with_air_has_every_value_and_one_without_has_none():

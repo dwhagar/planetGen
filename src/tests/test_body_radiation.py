@@ -84,3 +84,25 @@ def test_a_cloud_cuts_the_ground_ultraviolet_and_a_body_saved_before_the_aerosol
 
 def test_the_sun_angle_lowers_the_dose():
     assert body_radiation.uv_index(_earth(), mu0=0.5) < body_radiation.uv_index(_earth())
+
+
+def test_the_reference_earth_is_one_on_the_dna_index_and_a_bare_ozone_hole_is_hundreds():
+    assert body_radiation.dna_dose_index(_earth()) == pytest.approx(1.0)
+    assert body_radiation.dna_dose_index(_earth(ozone_column_du=0.0)) > 100.0
+
+
+def test_a_body_with_air_moves_with_its_ozone_oxygen_and_star():
+    thin = body_radiation.dna_dose_index(_earth(ozone_column_du=100.0))
+    thick = body_radiation.dna_dose_index(_earth(ozone_column_du=500.0))
+    assert thin > 1.0 > thick > 0.0
+    hotter = body_radiation.dna_dose_index(_earth(star=_sun(temperature=7200.0, luminosity=2.0 * constants.SOLAR_LUMINOSITY)))
+    assert hotter > 2.0
+
+
+def test_a_body_with_no_air_reads_the_unfiltered_light_and_one_with_no_star_has_no_index():
+    bare = _earth(atmospheric_pressure=0.0, p_n2_kpa=0.0, p_o2_kpa=0.0, p_ar_kpa=0.0, ozone_column_du=0.0)
+    assert body_radiation.dna_dose_index(bare) > body_radiation.dna_dose_index(_earth(ozone_column_du=0.0)) > 100.0
+    assert body_radiation.bare_dna_dose_w_m2(bare) == pytest.approx(
+        body_radiation.surface_spectrum(_earth(ozone_column_du=0.0)).top_dna_dose_w_m2())
+    assert body_radiation.dna_dose_index(_earth(star=None)) is None
+    assert body_radiation.dna_dose_index(_earth(distance=None)) is None

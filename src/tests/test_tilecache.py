@@ -151,8 +151,8 @@ def test_browser_is_told_which_tiles_changed_since_its_stamp(api, monkeypatch):
 
     behind = tilecache.fetch_tiles("mydb", ["12/1/2/3"], known_stamp="00000000000000aa")
     assert behind["history"] == [
-        {"from": "00000000000000aa", "to": "00000000000000bb", "tiles": ["12/1/2/3"]},
-        {"from": "00000000000000bb", "to": "00000000000000cc", "tiles": ["12/9/9/9"]},
+        {"from": "00000000000000aa", "to": "00000000000000bb", "tiles": ["12/1/2/3"], "nodes": []},
+        {"from": "00000000000000bb", "to": "00000000000000cc", "tiles": ["12/9/9/9"], "nodes": []},
     ]
     assert tilecache.fetch_tiles("mydb", ["12/1/2/3"], known_stamp="00000000000000bb")["history"] == behind["history"][1:]
     # The first page render doesn't know the browser's stamp yet.

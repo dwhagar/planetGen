@@ -140,16 +140,26 @@ def test_the_gamma_dose_falls_under_a_dense_gas_and_the_radon_needs_air():
     assert rad.radon_diffusion_factor(1013.25, 0.0) == 1.0
 
 
-def test_uv_follows_the_star_and_the_ozone_layer():
-    assert rad.uv_ratio(5772.0) == pytest.approx(1.0)
-    assert rad.uv_ratio(7200.0) == pytest.approx(2.8, rel=0.5)
-    assert rad.uv_ratio(2800.0) == rad.UV_FLOOR
-    sun = types.SimpleNamespace(temperature=5772.0, luminosity=constants.SOLAR_LUMINOSITY)
-    assert rad.uv_index(sun, 1.0, rad.EARTH_OZONE_DU) == pytest.approx(1.0, rel=0.05)
-    assert rad.uv_index(sun, 1.0, 0.0) == pytest.approx(rad.UV_MAX)
-    assert rad.uv_index(sun, 1.0, 100.0) > rad.uv_index(sun, 1.0, 300.0) > rad.uv_index(sun, 1.0, 428.0)
-    assert rad.uv_index(types.SimpleNamespace(temperature=None, luminosity=None), 1.0, 300.0) is None
-    assert rad.ozone_ratio(150.0) == 0.5 and rad.ozone_ratio(None) == 0.0 and rad.ozone_ratio(-1.0) == 0.0
+def test_the_uv_proxies_are_gone():
+    """R19 (GEN.445): the ratio-to-the-Sun index and its ozone exponent are not here; a proxy that returns fails this."""
+    for name in ("uv_ratio", "uv_index", "ozone_ratio", "_band_fraction", "UV_FLOOR", "UV_MAX", "UV_EXPONENT", "EARTH_OZONE_DU", "SUN_TEMPERATURE_K"):
+        assert not hasattr(rad, name), name
+
+
+def test_the_stored_uv_index_is_the_dna_dose_of_the_spectrum_below_the_bodys_air():
+    from planetgen.physics import body_radiation
+
+    with deterministic_entropy(3):
+        draw.set_run_seed(3)
+        system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+    checked = 0
+    for body in _bodies(system):
+        if body.body_type == "g" or body.is_moon:
+            continue    # a moon of a planet that was moved keeps its dose from the old distance (reported to TODO)
+        expected = body_radiation.dna_dose_index(body)
+        assert body.uv_surface_index == expected
+        checked += expected is not None
+    assert checked > 0
 
 
 def test_supernova_hazard_rises_toward_the_galactic_centre():

@@ -20,7 +20,6 @@ import pymysql
 import pytest
 
 from planetgen.db import store
-from tests.db_schema_support import load_old_schema
 
 PROSE_TEXT_COLUMNS = {
     # Galaxy schema: generated prose and the summaries shown on pages.
@@ -135,38 +134,6 @@ def test_a_generation_runs_command_line_is_one_row_per_argument(mysql_config):
         conn.execute("DELETE FROM generation_runs WHERE id = ?", (run_id,))
         conn.commit()
         assert conn.execute("SELECT COUNT(*) AS n FROM generation_run_arguments").fetchone()["n"] == 0
-    finally:
-        conn.close()
-
-
-@pytest.mark.fresh_database
-def test_the_v63_migration_moves_the_json_command_lines_into_rows(mysql_config):
-    load_old_schema(mysql_config, 61)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        conn.execute(
-            "INSERT INTO generation_runs (command, arguments, version_key, planetgen_version, python_version,"
-            " platform) VALUES ('sector', ?, 'k', 'v', 'p', 'x')", (json.dumps(["--shell", "3", "x" * 2000]),))
-        conn.execute(
-            "INSERT INTO generation_runs (command, arguments, version_key, planetgen_version, python_version,"
-            " platform) VALUES ('plan', 'not json', 'k', 'v', 'p', 'x')")
-        conn.commit()
-    finally:
-        conn.close()
-
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        rows = conn.execute("SELECT r.command, a.position, a.value FROM generation_runs r"
-                            " JOIN generation_run_arguments a ON a.run_id = r.id ORDER BY a.position").fetchall()
-        assert [(row["command"], row["position"], row["value"][:3]) for row in rows] == [
-            ("sector", 0, "--s"), ("sector", 1, "3"), ("sector", 2, "xxx")]
-        assert len(rows[2]["value"]) == store.GENERATION_ARGUMENT_LENGTH
-        columns = {row["c"] for row in conn.execute(
-            "SELECT column_name AS c FROM information_schema.columns WHERE table_schema = DATABASE()"
-            " AND table_name = 'generation_runs'").fetchall()}
-        assert "arguments" not in columns
     finally:
         conn.close()
 

@@ -22,6 +22,7 @@ import rq
 from planetgen import _version
 from planetgen.admin import updateguard
 from planetgen.queue import pause, redisqueue, units, work, workers
+from planetgen.util import log
 
 WARM_MODULES = (
     "planetgen.generation.run_plan",
@@ -102,12 +103,14 @@ def worker_class():
         def _wait_while_paused(self):
             if not any(pause.holds(name) for name in self.queue_names()):
                 return
+            log.debug("worker holds: the queue is paused", area="queue")
             while pause.is_paused(self.connection) and not self._stop_requested:
                 self.heartbeat()
                 time.sleep(pause.WAIT_SECONDS)
 
         def dequeue_job_and_maintain_ttl(self, *args, **kwargs):
             if stale():
+                log.debug("worker restarts itself: the release on disk is not the one it loaded", area="queue")
                 self.register_death()
                 os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
             self._wait_while_paused()
@@ -130,12 +133,18 @@ def main(argv=None):
                              "--burst)")
     parser.add_argument("--name", help="the worker's name (default: RQ picks one)")
     parser.add_argument("--url", help="the Redis server (default: PLANETGEN_REDIS_URL, else config.json's redis.url)")
+    log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
+    log.set_component("worker")
+    log.apply_debug_arguments(args, parser)
     try:
         updateguard.refuse_while_updating("A worker")     # OPS.53: the workers take no job during an update
     except updateguard.UpdateRunning as exc:
+        log.debug("worker not started: %s", exc, area="queue")
         print(exc, file=sys.stderr)
         return updateguard.EX_TEMPFAIL
+    log.debug("worker starts: queues %s, %s, release %s", args.queues, "burst" if args.burst else
+              f"idle exit after {args.idle_seconds} s", _version.__version__, area="queue")
     work.lower_priority(workers.niceness(args.queues))
     warm(args.queues)
     serializers = {redisqueue.serializer_for(name) for name in args.queues}
@@ -149,6 +158,8 @@ def main(argv=None):
                             work_horse_killed_handler=units.horse_killed)     # PERF.106: a killed unit fails its run now
     worker.work(burst=args.burst, with_scheduler=False,
                 max_idle_time=None if args.burst else args.idle_seconds)
+    log.debug("worker exits: no work for %s s", "its idle time" if not args.burst else "the queue was empty",
+              area="queue")
 
 
 if __name__ == "__main__":

@@ -24,6 +24,7 @@ import redis
 from planetgen.admin import activity_log, throttle
 from planetgen.api.config import ratelimit_storage_uri
 from planetgen.cli import lockouts
+from planetgen.util import log
 
 
 def main(argv=None):
@@ -32,7 +33,9 @@ def main(argv=None):
     group.add_argument("--ip", help="Lift the lockout of this address (an IPv6 address: its /64).")
     group.add_argument("--user", help="Lift the lockout of this username.")
     group.add_argument("--all", action="store_true", help="Lift every lockout.")
+    log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
+    log.apply_debug_arguments(args, parser)
 
     scope = subject = None
     if args.ip is not None:

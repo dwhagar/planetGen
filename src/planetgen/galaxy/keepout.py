@@ -20,8 +20,11 @@ data for it read by `planetgen.db.query.keep_out_radius`:
 
 from collections import namedtuple
 
-from planetgen.physics import constants
 from planetgen.physics.orbits import calculate_hill_sphere
+from planetgen.physics import unit_registry as units
+
+_pc_to_m = units.converter("pc", "m")
+_m_to_km = units.converter("m", "km")
 
 KeepOut = namedtuple("KeepOut", ["radius_km", "basis", "note"])
 """
@@ -44,8 +47,8 @@ def galactic_hill_radius_km(mass_kg, galactic_radius_pc, central_mass_kg):
     `galaxy.enclosed_mass`) as the central mass, as for a star's own
     `calculate_hill_sphere`.
     """
-    distance_m = galactic_radius_pc * constants.PARSEC_M
-    return calculate_hill_sphere(distance_m, mass_kg, central_mass_kg) / 1000.0
+    distance_m = _pc_to_m(galactic_radius_pc)
+    return _m_to_km(calculate_hill_sphere(distance_m, mass_kg, central_mass_kg))
 
 
 def compact_keep_out(mass_kg, galactic_radius_pc, radius_km, central_mass_kg):

@@ -47,7 +47,7 @@ never mutates the generation/physics code's own native units. Its shape:
   `src/planetgen/db/migrations/versions/` (see "Versioning" below). A
   brand-new database is created at the current schema by `schema.sql`, so
   this is a no-op there; a database made by an older release gets one
-  revision per version it is behind, and one older than the baseline (v61)
+  revision per version it is behind, and one older than the baseline (v130)
   is refused with `SchemaTooOldError`, and a database that has the galaxy
   tables but no recorded version (`schema_migrations` emptied or missing)
   is refused with `SchemaVersionMissingError` instead of guessed at from its
@@ -400,7 +400,7 @@ offset rather than independently re-randomized.
 
 **How a database is brought up to date (DB.11).** Every schema change is an
 Alembic revision (`src/planetgen/db/migrations/versions/`, one file per
-version: `0061_baseline.py` to `0091_spherical_sectors.py`), numbered by the
+version: `0130_baseline.py` onward), numbered by the
 schema version it produces. `schema.sql` is kept at the current shape, so a
 new database is created from it directly and recorded at `SCHEMA_VERSION`; an
 older one gets its missing tables from `schema.sql` and then each revision
@@ -408,9 +408,11 @@ after its recorded version in order (`alembic_runner.upgrade`, run by
 `store.migrate_database`), under a schema lock so a first connection
 elsewhere waits instead of stamping the database current half way. The
 per-version `_migrate_vN_to_vN+1` functions the entries below mention
-(v8 to v60) are gone: v61 is the baseline, and a database older than that is
-refused (`SchemaTooOldError`) and has to be generated again. A database newer
-than the code is refused too (`SchemaTooNewError`). Every released schema from v61
+(v8 to v60) are gone, and so are the revisions up to v130 (DB.98): v130 is
+the baseline, and a database older than that is refused (`SchemaTooOldError`)
+and has to be generated again. A database with tables but no recorded version is refused too
+(`SchemaVersionMissingError`, DB.97). A database newer
+than the code is refused too (`SchemaTooNewError`). Every released schema from v130
 is kept as a fixture (`src/tests/fixtures/old_schemas/`) and
 `tests/test_db_old_schemas.py` migrates each to the current shape and checks
 it against `db/models.py` (the SQLAlchemy models that mirror `schema.sql`).
@@ -2171,6 +2173,14 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v147 (MAP.259): `galaxy_block_lights`, the light of the pre-placed objects in each block
+
+Migration 0147 creates `galaxy_block_lights` and fills it from the stored scatter. The single-space map draws a block it has not opened as one node: its brightest objects and a glow made from the light of the rest, so a node needs the summed light of what is in a block without reading the objects. A row is one block `(m, shell_index, band_index, wedge_index)` of the eleven levels above a sector that holds at least one bright star no system was built around (`bright_stars.star_system_id IS NULL`) or scattered phenomenon not yet built (`phenomenon_scatter.built_at IS NULL`). `star_count`, `star_luminosity_sol`, `star_lpx`, `star_lpy`, `star_lpz` (luminosity times position, solar luminosities times parsecs, so a centre of light is each over `star_luminosity_sol`) and `star_lt` (luminosity times temperature, so the mean temperature of the light is `star_lt / star_luminosity_sol`) sum the stars; `point_count`, `point_luminosity_sol`, `point_lpx`, `point_lpy` and `point_lpz` sum the phenomena the same way (`map_luminosity_sol`, no temperature). Built objects are counted in `galaxy_block_stats` (the generated sector's total luminosity), so a block's two tables never count one light twice. `db/block_lights.py` keeps it, as `block_stats.py` keeps its table: a level-3 block is summed from the objects of its sectors, a bigger block from its children's rows; `refresh_chain` puts right the blocks above one sector (a deletion), `refresh_sectors` those above the sectors a `galaxy` run saved (once at its end), and `rebuild` makes every row, a unit of sector shells at a time (the shells of one level-729 block), committing each unit, then the levels above the unit from the stored rows. A scatter, a clear and the map-luminosity fill rebuild the table at their end, and `planetgen fill-block-totals` makes it (and `galaxy_block_stats`) again. No foreign keys: a block is not a row of its own. The version is detected from the table.
+
+### v146 (MAP.258): the block ladder's root and `galaxy_block_stats` for every level
+
+Migration 0146 widens `galaxy_block_stats.m` from SMALLINT UNSIGNED to INT UNSIGNED, fills the table again and makes the nebula block tables again. The block ladder (`galaxy/drill.py`) was 243, 81, 27, 9 and 3 shells deep and now runs up from 243 through 729, 2,187, 6,561, 19,683 and 59,049 to a root of 177,147 shells (708 kpc, past the grid's 262 kpc reach): the root's one block shell is one row of three wedges and holds the whole galaxy, so a walk from the root starts with three blocks. The single-space map's nodes are these blocks. A level's rows and wedges are its parent's counts times a rounded ratio, so putting levels above 243 moved the rows and wedges of every level below it: a block `(243, shell, band, wedge)` is another block than it was, and every stored per-block aggregate names the wrong block. The table gets a row for each of the eleven levels above a sector (a bigger block adds up the stored rows of its children, as before), and the 177,147 level does not fit SMALLINT UNSIGNED's 65,535. The migration empties the table and fills it from `sectors` and `sector_stats` a shell at a time, and, when `nebula_block_state` holds its row, makes `nebula_block_stats` and `nebula_block_classes` again from the nebulae (`db.nebula_blocks.rebuild`, the five stage levels they keep), so a stopped run can be started again. The stages and map windows still stop at the level-243 blocks (`drill.STAGE_LEVELS`). The version is detected from `galaxy_block_stats.m` being INT UNSIGNED.
 
 ### v145 (GEN.443): `stars.uv_c_share`
 

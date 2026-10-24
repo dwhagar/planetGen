@@ -20,13 +20,16 @@ import pymysql
 from planetgen.admin import activity_log, auth
 from planetgen.db.store import add_mysql_connection_args, control_mysql_config, get_control_connection, \
     mysql_config_from_args
+from planetgen.util import log
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Turn off this admin's two-factor sign-in, for a lost phone.")
     parser.add_argument("user", metavar="USER", help="The admin's username.")
     add_mysql_connection_args(parser)
+    log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
+    log.apply_debug_arguments(args, parser)
     try:
         conn = get_control_connection(control_mysql_config(mysql_config_from_args(args)))
     except pymysql.MySQLError as exc:

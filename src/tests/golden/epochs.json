@@ -350,6 +350,31 @@
       "epoch": 71,
       "first_release": "8.0.2152",
       "reason": "Each ordinary star draws a UV-C share of its blackbody (log-uniform 0.1 to 1) on its own stream and stores it (schema 145), so every stored star gains a value (GEN.443)"
+    },
+    {
+      "epoch": 72,
+      "first_release": "8.0.2154",
+      "reason": "A system draws its stars as a tree at the odds of the star-count table in place of one companion at a per-class chance, so triples and larger systems exist and the companion stream moves (GEN.631)"
+    },
+    {
+      "epoch": 73,
+      "first_release": "8.0.2162",
+      "reason": "White dwarf binary types: close double white dwarfs, post-common-envelope pairs with hot subdwarfs, cataclysmic variables, AM CVn binaries, double white dwarf merger products, and barium and symbiotic giants are drawn inside the member tree, and a white dwarf's companion odds are 20.5% star and 9.5% white dwarf, so star systems and their companions change (GEN.271)"
+    },
+    {
+      "epoch": 74,
+      "first_release": "8.0.2164",
+      "reason": "A planet's or moon's UV index (uv_surface_index) is the DNA-damage dose of the two-stream spectrum below its own air, ozone, haze and cloud, as a multiple of Earth's, instead of a ratio to the Sun with an ozone exponent, so the stored UV and the equipment and habitability read from it change (GEN.445, GEN.444)"
+    },
+    {
+      "epoch": 75,
+      "first_release": "8.0.2165",
+      "reason": "The bright-star backfill draws the stars of a block of cells where a band is sparse (a largest per-cell rate under 0.05) block first, one count and a stream per kept candidate, instead of a draw in every cell, so the stars the backfill places in the outer disk, the halo and the far edge are different draws (GEN.309)"
+    },
+    {
+      "epoch": 76,
+      "first_release": "8.0.2166",
+      "reason": "A rogue planet's frozen nitrogen air follows the one saturation curve and a world's water boils where the one water curve says, instead of each holding its own Clausius-Clapeyron constants (GEN.632)"
     }
   ]
 }

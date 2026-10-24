@@ -50,11 +50,13 @@ import tempfile
 import threading
 import time
 
+from planetgen.util import log
 from planetgen.web.lib import apiclient, singleflight, tilepack
-from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles, get_galaxy_window
+from planetgen.web.lib.apiclient import (
+    get_galaxy_changes, get_galaxy_nodes, get_galaxy_stage, get_galaxy_tiles, get_galaxy_window)
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util.settings import get_settings
-from planetgen.galaxy.drill import format_drill_key, parse_drill_key
+from planetgen.galaxy.drill import format_drill_key, parse_node_key, parse_stage_key
 from planetgen.galaxy.window import DEFAULT_WINDOW, check_width, crop_stages, parse_window_key, window_cells, window_parents
 from planetgen.galaxy.viewport import parse_tile_key, tile_key
 
@@ -96,6 +98,7 @@ PRUNE_PROBABILITY = 0.05
 cache's total size (a directory walk, so not on every request)."""
 
 MAX_TILES_PER_REQUEST = 128
+MAX_NODES_PER_REQUEST = 128
 """int: Mirrors `planetgen.db.query.MAX_TILES_PER_REQUEST` -- rejected here before
 anything is read or fetched."""
 
@@ -107,6 +110,7 @@ _TILE_STAR_KEYS = ("id", "x", "y", "z", "luminosity_sol", "temperature_k", "radi
 `tileStars`, `setStars` and `starShown` in `static/galaxymap3d.js`)."""
 
 _TILE_KEEP_SECTIONS = ("clouds", "stars", "generated", "points", "incomplete")
+_NODE_KEEP_SECTIONS = ("aggregate", "clouds", "stars", "generated", "points", "placed", "incomplete")
 """tuple: The sections of a tile the page reads; `placed`, `planned` and
 `sector_count` (9 to 35% of every tile) are not served. `incomplete` (PERF.76) names the pieces the database was too busy
 to give; such a tile is served but never stored."""
@@ -260,15 +264,33 @@ def _delete_tiles(generation_dir, tile_keys):
     return removed
 
 
+def _delete_nodes(generation_dir, node_keys):
+    """Deletes the stored files of `node_keys`; returns the keys that were stored (and are gone now)."""
+    removed = []
+    for key in node_keys:
+        try:
+            path = os.path.join(generation_dir, _node_filename(key))
+        except ValueError:
+            continue
+        try:
+            os.unlink(path)
+            removed.append(key)
+        except OSError:
+            pass
+    return removed
+
+
 _owed = {}
+_owed_nodes = {}
 _owed_lock = threading.Lock()
 
 
-def _owe_rebuild(db, generation, keys):
-    """Remembers the stored tiles a change deleted, for `take_rebuilds` (PERF.133)."""
+def _owe_rebuild(db, generation, keys, owed=None):
+    """Remembers the stored tiles (or, with `owed=_owed_nodes`, nodes) a change deleted, for `take_rebuilds` (PERF.133)."""
+    owed = _owed if owed is None else owed
     with _owed_lock:
-        had_generation, had = _owed.get(db, (generation, []))
-        _owed[db] = (generation, (had if had_generation == generation else []) + list(keys))
+        had_generation, had = owed.get(db, (generation, []))
+        owed[db] = (generation, (had if had_generation == generation else []) + list(keys))
 
 
 def take_rebuilds(db):
@@ -284,12 +306,20 @@ def take_rebuilds(db):
     return generation, list(dict.fromkeys(keys))
 
 
+def take_node_rebuilds(db):
+    """`take_rebuilds` for nodes: the stored nodes of `db` that changes deleted since the last call (MAP.260), as
+    `(generation, keys)`, or `(None, [])` when no stored node was deleted."""
+    with _owed_lock:
+        generation, keys = _owed_nodes.pop(db, (None, []))
+    return generation, list(dict.fromkeys(keys))
+
+
 def _stage_filename(key):
     """A drill-down stage's cache file: `sgalaxy.json` for the galaxy,
     else `s<m>_<shell>_<band>_<wedge>.json`."""
     if key == "galaxy":
         return "sgalaxy.json"
-    return "s" + format_drill_key(parse_drill_key(key)).replace(".", "_") + ".json"
+    return "s" + format_drill_key(parse_stage_key(key)).replace(".", "_") + ".json"
 
 
 def _delete_stages(generation_dir, stage_keys):
@@ -306,7 +336,7 @@ def _trim_history(history):
     kept = []
     total = 0
     for entry in reversed(history[-HISTORY_MAX_ENTRIES:]):
-        total += len(entry["tiles"])
+        total += len(entry["tiles"]) + len(entry.get("nodes") or [])
         if total > HISTORY_MAX_KEYS:
             break
         kept.append(entry)
@@ -323,8 +353,8 @@ def current_stamp(db, root=None):
 
     Returns:
         dict: `stamp`, `generation` (`None` when there's no disk cache),
-            and `history` (a list of `{"from", "to", "tiles"}`, oldest
-            first: each check that found changes, and the tile keys it
+            and `history` (a list of `{"from", "to", "tiles", "nodes"}`, oldest
+            first: each check that found changes, and the tile and node keys it
             found).
     """
     if root is None:
@@ -367,6 +397,7 @@ def current_stamp(db, root=None):
 
     stale = []
     stale_stages = []
+    stale_nodes = []
     started = time.time()
     if remembered is not None and not full:
         generation = remembered["generation"]
@@ -375,7 +406,9 @@ def current_stamp(db, root=None):
         if stamp != remembered["stamp"]:
             stale = [str(key) for key in changes.get("tiles") or []]
             stale_stages = [str(key) for key in changes.get("stages") or []]
-            history = _trim_history(history + [{"from": remembered["stamp"], "to": stamp, "tiles": stale}])
+            stale_nodes = [str(key) for key in changes.get("nodes") or []]
+            history = _trim_history(history + [
+                {"from": remembered["stamp"], "to": stamp, "tiles": stale, "nodes": stale_nodes}])
     else:
         generation = stamp
         history = []
@@ -388,12 +421,16 @@ def current_stamp(db, root=None):
     # (see `fetch_tiles`), so whichever side of the write it lands on, a
     # tile fetched before the change doesn't survive it.
     removed = _delete_tiles(generation_dir, stale)
+    removed_nodes = _delete_nodes(generation_dir, stale_nodes)
     _delete_stages(generation_dir, stale_stages)
     _write_json(stamp_path, info)
     removed = list(dict.fromkeys(removed + _delete_tiles(generation_dir, stale)))
+    removed_nodes = list(dict.fromkeys(removed_nodes + _delete_nodes(generation_dir, stale_nodes)))
     _delete_stages(generation_dir, stale_stages)
     if removed:
         _owe_rebuild(db, generation, removed)
+    if removed_nodes:
+        _owe_rebuild(db, generation, removed_nodes, _owed_nodes)
     try:
         for entry in os.scandir(db_dir):
             if entry.is_dir() and entry.name != generation:
@@ -493,6 +530,28 @@ def _tile_bytes(tile):
     return tilepack.pack_tile(trim_tile(tile))
 
 
+def trim_node(node):
+    """
+    A node as the page's script reads it (MAP.260): its stars cut to `_TILE_STAR_KEYS` and rounded (`_trim_star`), every
+    other float rounded to `_ROUND_DIGITS` decimals; what is kept is `_NODE_KEEP_SECTIONS`.
+    """
+    trimmed = {}
+    for section in _NODE_KEEP_SECTIONS:
+        value = node.get(section)
+        if value is None:
+            continue
+        if section in ("stars", "generated"):
+            trimmed[section] = [_trim_star(star) for star in value]
+        else:
+            trimmed[section] = _round_floats(value)
+    return trimmed
+
+
+def _node_bytes(node):
+    """A node's finished packed bytes (`tilepack.pack_tile` of `trim_node`)."""
+    return tilepack.pack_tile(trim_node(node))
+
+
 def _incomplete(raw):
     """Whether a tile's bytes say some piece of it is missing (PERF.76): it is served but not kept, so the next
     request builds it again."""
@@ -508,6 +567,11 @@ def _whole_tile(raw):
 def _tile_filename(prefix, key):
     level, ix, iy, iz = parse_tile_key(key)
     return f"{prefix}{level}_{ix}_{iy}_{iz}.bin"
+
+
+def _node_filename(key):
+    """A node's cache file: `n<m>_<shell>_<band>_<wedge>.bin`."""
+    return "n" + format_drill_key(parse_node_key(key)).replace(".", "_") + ".bin"
 
 
 def _flight_name(root, db, generation, kind, key):
@@ -562,6 +626,25 @@ def _visited(path):
         pass
 
 
+def validate_node_request(node_keys):
+    """
+    Canonicalizes and validates a node request.
+
+    Returns:
+        list[str]: The node keys with duplicates removed, in canonical form.
+
+    Raises:
+        TileRequestError: On a malformed key or too many keys.
+    """
+    try:
+        keys = list(dict.fromkeys(format_drill_key(parse_node_key(key)) for key in node_keys))
+    except ValueError as exc:
+        raise TileRequestError(str(exc))
+    if len(keys) > MAX_NODES_PER_REQUEST:
+        raise TileRequestError(f"at most {MAX_NODES_PER_REQUEST} nodes per request")
+    return keys
+
+
 def validate_request(tile_keys):
     """
     Canonicalizes and validates a tile request.
@@ -582,11 +665,32 @@ def validate_request(tile_keys):
     return keys
 
 
+class _Kind:
+    """What `_collect` needs to know about a kind of cached thing: the letter it goes by in `singleflight`, how its
+    keys are checked and named on disk, where the API gives it (and under which key of the answer), and how it is
+    packed. The functions are looked up when called, so a test can replace them in this module."""
+
+    def __init__(self, flight, section, validate, filename, fetch, pack):
+        self.flight, self.section = flight, section
+        self.validate, self.filename, self.fetch, self.pack = validate, filename, fetch, pack
+
+
+_TILES = _Kind("t", "tiles", lambda keys: validate_request(keys), lambda key: _tile_filename("t", key),
+               lambda db, keys: get_galaxy_tiles(db, keys), lambda tile: _tile_bytes(tile))
+_NODES = _Kind("n", "nodes", lambda keys: validate_node_request(keys), lambda key: _node_filename(key),
+               lambda db, keys: get_galaxy_nodes(db, keys), lambda node: _node_bytes(node))
+
+
 def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
+    """`_collect` for tiles."""
+    return _collect(_TILES, db, tile_keys, known_stamp, ahead)
+
+
+def _collect(kind, db, keys, known_stamp, ahead=False):
     """
-    What `fetch_tiles` and `fetch_tiles_wire` share: the requested tiles'
+    What `fetch_tiles`, `fetch_tiles_wire` and `fetch_nodes_wire` share: the requested tiles' (or nodes', by `kind`)
     stored bytes, from the disk cache where possible and from
-    `GET /api/galaxy/tiles` (trimmed, then cached) for the rest.
+    `GET /api/galaxy/tiles` (or `/nodes`; trimmed, then cached) for the rest.
 
     Returns:
         tuple: `(header, parts)`. `header` is the response without its
@@ -597,7 +701,7 @@ def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
     `ahead` says the tiles are built for no visitor yet (the warm-up, the background build): what is built is marked
     to stay when the cache is full (`AHEAD_MODE`) and a tile found stored is not counted as visited.
     """
-    tile_keys = validate_request(tile_keys)
+    tile_keys = kind.validate(keys)
     root = cache_dir()
     info = current_stamp(db, root)
     stamp = info["stamp"]
@@ -609,7 +713,7 @@ def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
     if generation_dir:
         meta = _read_json(os.path.join(generation_dir, "meta.json"))
         for key in tile_keys:
-            path = os.path.join(generation_dir, _tile_filename("t", key))
+            path = os.path.join(generation_dir, kind.filename(key))
             raw = _read_bytes(path)
             # A torn or foreign file is refetched, never sent.
             if _whole_tile(raw):
@@ -619,20 +723,24 @@ def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
 
     cached_count = len(stored)
     missing = [key for key in tile_keys if key not in stored]
+    if log.debug_log_active():
+        log.trace(f"tile cache: {cached_count} of {len(tile_keys)} tile(s) found stored in database {db} "
+                  f"(generation {generation}); {len(missing)} to build" + (" (ahead of any visitor)" if ahead else ""),
+                  area="cache")
 
     if missing or not isinstance(meta, dict):
         # One build of each tile at a time (PERF.38): what another request
         # is already fetching is waited for, not fetched again.
         owned, held = singleflight.claim(
-            [_flight_name(root, db, generation, "t", key) for key in missing]) if generation_dir else (None, [])
-        by_name = {_flight_name(root, db, generation, "t", key): key for key in missing}
+            [_flight_name(root, db, generation, kind.flight, key) for key in missing]) if generation_dir else (None, [])
+        by_name = {_flight_name(root, db, generation, kind.flight, key): key for key in missing}
         to_fetch = missing if owned is None else [by_name[name] for name in owned]
         made = {}
         try:
             if to_fetch or (not held and not isinstance(meta, dict)):
-                fetched = get_galaxy_tiles(db, to_fetch)
+                fetched = kind.fetch(db, to_fetch)
                 meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
-                made = {key: _tile_bytes(value) for key, value in (fetched.get("tiles") or {}).items()}
+                made = {key: kind.pack(value) for key, value in (fetched.get(kind.section) or {}).items()}
 
                 # Another request may have found changes while this one was
                 # fetching; what it fetched could be from before them.
@@ -640,7 +748,7 @@ def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
                     _write_json(os.path.join(generation_dir, "meta.json"), meta)
                     for key, raw in made.items():
                         if key in missing and not _incomplete(raw):
-                            _write_bytes(os.path.join(generation_dir, _tile_filename("t", key)), raw, ahead=ahead)
+                            _write_bytes(os.path.join(generation_dir, kind.filename(key)), raw, ahead=ahead)
                     if random.random() < PRUNE_PROBABILITY:
                         prune(root)
         finally:
@@ -650,7 +758,7 @@ def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
         stored.update(made)
         if held:
             def read_tile(name):
-                raw = _read_bytes(os.path.join(generation_dir, _tile_filename("t", by_name[name])))
+                raw = _read_bytes(os.path.join(generation_dir, kind.filename(by_name[name])))
                 return raw if _whole_tile(raw) else None
 
             for name, raw in singleflight.wait(held, read_tile).items():
@@ -660,15 +768,15 @@ def _collect_tiles(db, tile_keys, known_stamp, ahead=False):
             if late:
                 # The other request never delivered (or its tile belongs to
                 # a generation that has moved on): build them after all.
-                fetched = get_galaxy_tiles(db, late)
-                for key, value in (fetched.get("tiles") or {}).items():
-                    stored[key] = _tile_bytes(value)
+                fetched = kind.fetch(db, late)
+                for key, value in (fetched.get(kind.section) or {}).items():
+                    stored[key] = kind.pack(value)
                 if not isinstance(meta, dict):
                     meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
             if not isinstance(meta, dict):
                 meta = _read_json(os.path.join(generation_dir, "meta.json"))
                 if not isinstance(meta, dict):
-                    fetched = get_galaxy_tiles(db, [])
+                    fetched = kind.fetch(db, [])
                     meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
 
     header = {
@@ -723,6 +831,33 @@ def fetch_tiles_wire(db, tile_keys, known_stamp=None):
     return tilepack.pack_response(header, parts)
 
 
+def fetch_nodes_wire(db, node_keys, known_stamp=None, ahead=False):
+    """
+    The requested nodes (MAP.260) as the bytes to send (`/galaxy/nodes`): the header as JSON and the stored packed nodes
+    one after the other (`tilepack.pack_response`), from the disk cache where possible and from `GET /api/galaxy/nodes`
+    for the rest, caching whatever the API returns (trimmed, see `trim_node`). The header and the stamp are the
+    tiles' (`current_stamp`), and `history` lists the changed node keys in `nodes`.
+
+    Args:
+        db (str): The `?db=` value.
+        node_keys (list[str]): `m.shell.band.wedge` keys.
+        known_stamp (str or None): The stamp the browser's own cache is at, when it has one.
+        ahead (bool): The nodes are built for no visitor yet (see `_collect`).
+
+    Raises:
+        TileRequestError: On a malformed request.
+        apiclient.ApiError / NotFoundError: If the API is needed and fails.
+    """
+    header, parts = _collect(_NODES, db, node_keys, known_stamp, ahead)
+    return tilepack.pack_response(header, parts)
+
+
+def fetch_nodes(db, node_keys, known_stamp=None, ahead=False):
+    """`fetch_nodes_wire`'s payload with every node unpacked: `nodes` (`{key: {...}}`) beside the header."""
+    header, parts = _collect(_NODES, db, node_keys, known_stamp, ahead)
+    return {**header, "nodes": {key: tilepack.unpack_tile(raw) for key, raw in parts}}
+
+
 def fetch_stage(db, at=None):
     """
     One Galaxy Map drill-down stage (`planetgen.db.query.galaxy_stage`), from the disk
@@ -743,7 +878,7 @@ def fetch_stage(db, at=None):
         apiclient.ApiError / NotFoundError: If the API is needed and fails.
     """
     try:
-        key = format_drill_key(parse_drill_key(at)) if at else "galaxy"
+        key = format_drill_key(parse_stage_key(at)) if at else "galaxy"
     except ValueError as exc:
         raise TileRequestError(str(exc))
     root = cache_dir()

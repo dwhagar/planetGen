@@ -16,10 +16,11 @@ AU_KM = 149_597_870.7
 _SECTIONS = {"overview": [], "stars": {}, "planets": {}, "moons": {}, "belts": {}, "comets": {}}
 
 
-def _body(id_, name, au, body_type="t", planet_class="M", habitable=False, moons=(), index=0):
+def _body(id_, name, au, body_type="t", planet_class="M", habitable=False, moons=(), index=0, habitable_class=None):
     return {
         "id": id_, "name": name, "planet_class": planet_class, "body_type": body_type,
-        "habitable": habitable, "inhabited": False, "zone": "Inner Zone",
+        "habitable": habitable, "habitable_class": habitable if habitable_class is None else habitable_class,
+        "inhabited": False, "zone": "Inner Zone",
         "distance_km": au * AU_KM, "period_years": 1.0, "gravity_g": 1.0,
         "orbital_index": index, "moons": list(moons), "star_id": 1,
     }
@@ -40,14 +41,18 @@ def _system(planets=(), belts=(), comets=()):
 
 
 def test_a_row_names_its_class_and_no_type_label():
-    """UX.32: a row shows the class and a Habitable class chip, never a Terrestrial or Gas Giant label."""
+    """UX.32: a row shows the class, a Habitable chip (GEN.643) and a Habitable class chip, never a Terrestrial or Gas
+    Giant label."""
     html = system_list_html(_system([
         _body(1, "Rocky", 1.0, habitable=True, index=0),
         _body(2, "Dry", 1.5, index=1),
         _body(3, "Giant", 5.2, body_type="g", planet_class="J", index=2),
     ]), _SECTIONS)
-    assert "Habitable class" in html[html.index("Rocky"):html.index("Dry")]
-    assert html.count("Habitable class") == 1
+    rocky = html[html.index("Rocky"):html.index("Dry")]
+    assert "Habitable</span>" in rocky and "Habitable class</span>" in rocky
+    assert html.count("Habitable</span>") == 1 and html.count("Habitable class") == 1
+    only_class = system_list_html(_system([_body(1, "Rocky", 1.0, habitable=False, habitable_class=True)]), _SECTIONS)
+    assert "Habitable class" in only_class and "Habitable</span>" not in only_class  # a class that scored below Green
     assert "Terrestrial" not in html and "Gas Giant" not in html
     assert "Habitable: " not in html
 
@@ -55,13 +60,13 @@ def test_a_row_names_its_class_and_no_type_label():
 def test_habitable_moon_chip_and_moon_group():
     moon = _body(9, "Pandora", 0.002, habitable=True)
     html = system_list_html(_system([_body(1, "Polyphemus", 5.0, body_type="g", moons=[moon])]), _SECTIONS)
-    assert "Habitable-class moon" in html
+    assert "Habitable moon" in html and "Habitable-class moon" in html
     assert '<details class="moon-group"><summary>1 moon of Polyphemus</summary>' in html
     assert '<span class="stat">1 moon</span>' in html  # the count on the planet's row
     # The group follows the planet's own row rather than sitting inside it.
     assert html.index("</details>") < html.index('class="moon-group"')
     no_moon = system_list_html(_system([_body(1, "Plain", 1.0, moons=[_body(9, "Rock", 0.002)])]), _SECTIONS)
-    assert "Habitable-class moon" not in no_moon
+    assert "Habitable moon" not in no_moon and "Habitable-class moon" not in no_moon
 
 
 def test_belt_row_shows_density_range_and_top_minerals():
@@ -175,10 +180,11 @@ def test_the_chips_link_to_their_sections_of_the_habitability_page():
     url = "/help/habitability"
     body = _scored(_body(1, "Rocky", 1.0, habitable=True))
     html = _planet_row_html(body, {"planets": {}, "moons": {}}, sprite_url=_SPRITE, help_url=url)
+    assert f'<a class="help-link" href="{url}#chip-habitable"><span class="flag flag-yes">Habitable</span></a>' in html
     assert (f'<a class="help-link" href="{url}#chip-habitable-class"><span class="flag flag-yes">Habitable class</span></a>'
             in html)
     assert f'<a class="help-link" href="{url}#equipment-gas-mix-mask"><span class="flag flag-eq' in html
-    assert html.count('class="help-link"') == 2 + 7
+    assert html.count('class="help-link"') == 3 + 7
     body["equipment"]["items"] = []
     assert f'href="{url}#overall"><span class="flag flag-tier flag-tier-0">PHI-6 Blue</span>' in _planet_row_html(
         body, {"planets": {}, "moons": {}}, help_url=url)

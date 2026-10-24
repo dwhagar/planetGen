@@ -207,8 +207,8 @@ connectivity to that specific schema rather than the default one.
   `runaway_speed_kms`, `wikijs_url`/`mediawiki_url`
   (each `null` until this system has been uploaded to that wiki — see
   "Wiki publishing" below), `stars`, `planets` (each with
-  its own nested `moons`; every planet and moon also carries `habitable`,
-  `life_stage` — the furthest evolutionary milestone its timeline reached,
+  its own nested `moons`; every planet and moon also carries `habitable` (its overall PHI-6 colour is Blue or Green, GEN.643),
+  `habitable_class` (its class can carry life), `life_stage` — the furthest evolutionary milestone its timeline reached,
   or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 H3 [R2]`, `required_line` and `recommended_line` (UX.163; a line with nothing in it is empty), the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
   `{component, concentration}` largest share first), `comets`, `sector_siblings`
   (`{id, name}` for every system in the same sector), and
@@ -389,6 +389,16 @@ connectivity to that specific schema rather than the default one.
   `items` the first `MADE_SECTOR_LIMIT` by id, each `{id, name, x, y, z,
   shell_index, band_index, wedge_index}`. `400` unless `since` (and `until`
   when given) are numbers.
+- `GET /api/galaxy/nodes?keys=<key>,<key>,...` — the single-space Galaxy Map's data, one sector block ("node") at a
+  time (MAP.260, `db.nodes.galaxy_nodes`). A key is `m.shell.band.wedge` of the block ladder (`m` one of 177147, 59049,
+  19683, 6561, 2187, 729, 243, 81, 27, 9, 3, or 1 for a sector), at most 128 keys. Returns `{"nodes": {"<key>":
+  {"aggregate": {...}, "stars": [...], "generated": [...], "points": [...], "clouds": [...], "placed": [...]}},
+  "edge_pc": ..., "has_shape": ...}`. `aggregate` is what is stored about the block whole: `generated` and `stats` (the
+  sums of its generated sectors, `galaxy_block_stats`) and `lights` (the star and point count, luminosity, centre of
+  light and mean temperature of the pre-placed objects nothing was built from, `galaxy_block_lights`). The lists are
+  the brightest objects inside the block, nested down the ladder: a block lists every object of its parent that lies
+  inside it. `placed` is only on a level-3 block and a sector. The nebula cover is not in a node (it changes without a
+  sector changing; read `/api/galaxy/nebula-cover`). `400` for a malformed key or too many keys.
 - `GET /api/galaxy/tiles?tiles=<key>,<key>,...` — the 3D
   Galaxy Map's data, one fixed cube of space ("tile") at a time
   (`queryDb.galaxy_tiles`). Space is an octree: level 0 is one cube

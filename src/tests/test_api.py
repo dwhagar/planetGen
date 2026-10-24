@@ -509,7 +509,7 @@ def test_the_description_splits_into_every_body(client, mysql_config):
         # rocky body, its Survival equipment table).
         blocks = sections["planets"][str(planet["id"])]
         assert [b["type"] for b in blocks if b.get("caption") != "Survival equipment"].count("facts") == 1
-        assert {"habitable", "inhabited", "life_stage"} <= set(planet)
+        assert {"habitable", "habitable_class", "inhabited", "life_stage"} <= set(planet)
 
     assert client.get("/api/systems/999999999/description").status_code == 404
 
@@ -839,6 +839,30 @@ def _place_sector(mysql_config, name, center_pc, edge_ly=10.0, address=None):
     if address is not None:
         position["shell_index"], position["band_index"], position["wedge_index"] = address
     return _db.save_sector(sector, config=mysql_config, galaxy_position=position)
+
+
+def test_galaxy_nodes_answer_by_block_key_and_refuse_malformed_requests(client, mysql_config):
+    """`GET /api/galaxy/nodes` (MAP.260): a node for each key asked, a sector's own node lists the sector it is, and a
+    malformed key or too long a list is a 400."""
+    from planetgen.galaxy.drill import drill_chain_of, format_drill_key
+    from planetgen.galaxy import spherical
+    from planetgen.physics.units import ly_to_pc
+    from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
+    address = spherical.sector_address_at((5.0, 5.0, 5.0), ly_to_pc(DEFAULT_SECTOR_EDGE_LY))
+    _place_sector(mysql_config, "Near Core", (5.0, 5.0, 5.0), address=address)
+    chain = [format_drill_key(block) for block in drill_chain_of(*address)]
+    response = client.get("/api/galaxy/nodes?keys=" + ",".join(chain))
+    assert response.status_code == 200
+    body = response.get_json()
+    assert set(body["nodes"]) == set(chain) and "edge_pc" in body and "has_shape" in body
+    for node in body["nodes"].values():
+        assert {"aggregate", "stars", "generated", "points", "clouds"} <= set(node)
+    assert body["nodes"][chain[-1]]["placed"][0]["name"] == "Near Core"
+    assert body["nodes"][chain[0]].get("placed") is None, "the big blocks do not list sectors"
+    for keys in ("nonsense", "5.1.2.3", "243.1.2"):
+        assert client.get(f"/api/galaxy/nodes?keys={keys}").status_code == 400
+    many = ",".join(f"243.4.1.{i}" for i in range(129))
+    assert client.get(f"/api/galaxy/nodes?keys={many}").status_code == 400
 
 
 def test_galaxy_tiles_returns_placed_sectors_by_cube(client, mysql_config):
@@ -1439,7 +1463,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     from planetgen.galaxy.spherical import sector_position_pc
 
     home = (1705, 120, 8000)
-    chain = drill_chain_of(*home)
+    chain = [block for block in drill_chain_of(*home) if block.m <= 243]     # the stages' blocks, level 243 down to 3
     level3 = chain[4]
     # Two more sectors in the same level-3 block.
     others = [a for a in block_addresses(level3) if a != home][:2]
@@ -1452,7 +1476,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     assert galaxy["at"] is None and galaxy["child_m"] == 243
     top = {(c["shell"], c["band"], c["wedge"]): c["generated"] for c in galaxy["children"]}
     assert top[(chain[0].shell, chain[0].band, chain[0].wedge)] == 3
-    core = drill_chain_of(0, 0, 0)[0]
+    core = [block for block in drill_chain_of(0, 0, 0) if block.m <= 243][0]
     assert top[(core.shell, core.band, core.wedge)] == 1
 
     def counted(children):
@@ -1480,7 +1504,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     changes = query.galaxy_changes(_db.get_connection(mysql_config), before)
     assert not changes["full"]
     assert set(changes["stages"]) == {"galaxy"} | {format_drill_key(b) for b in chain[:5]} | {
-        format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:5]}
+        format_drill_key(b) for b in [block for block in drill_chain_of(0, 0, 0) if block.m <= 243][:5]}
 
 
 def _rebuild_block_stats(mysql_config):
@@ -1505,7 +1529,7 @@ def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
     from planetgen.galaxy.spherical import sector_position_pc
 
     home = (1705, 120, 8000)
-    chain = drill_chain_of(*home)
+    chain = [block for block in drill_chain_of(*home) if block.m <= 243]     # the stages' blocks, level 243 down to 3
     others = [a for a in block_addresses(chain[4]) if a != home][:2]
     addresses = [home] + others
     for n, address in enumerate(addresses):
@@ -1699,7 +1723,7 @@ def test_galaxy_changes_lists_only_the_edited_sectors_tiles(client, mysql_config
 
     unchanged = _galaxy_changes(client, before["state"])
     assert unchanged == {"stamp": before["stamp"], "tile_stamp": unchanged["tile_stamp"], "state": before["state"],
-                         "full": False, "tile_full": False, "tiles": [], "stages": []}
+                         "full": False, "tile_full": False, "tiles": [], "stages": [], "nodes": []}
 
     time.sleep(0.01)
     conn = _db.get_connection(mysql_config)

@@ -157,7 +157,7 @@ class RatePages(_Section):
                       summary="How often one visitor may open the Galaxy Map page; empty turns the "
                               "limit off.",
                       control="rate")
-    galaxy_tiles: str = opt("600 per minute", "Limit on /galaxy/tiles, /galaxy/stage, /galaxy/window and /galaxy/territories, "
+    galaxy_tiles: str = opt("600 per minute", "Limit on /galaxy/tiles, /galaxy/nodes, /galaxy/stage, /galaxy/window and /galaxy/territories, "
                             "fetched as the map's camera moves. Empty turns it off.", restart=True,
                             group="protection",
                             label="Map tile limit",
@@ -395,6 +395,14 @@ class Queue(_Section):
         unit="seconds", group="speed", gt=0,
         label="Long job limit",
         summary="Jobs expected to take longer than this go to the long lane.",
+        control="duration")
+    unit_ceiling_seconds: float = opt(
+        300, "The longest a unit of a generation stage is expected to run. A stage is cut into units no "
+        "longer than this at the default galaxy size; a unit that runs longer is written to the run's log, naming "
+        "the stage. A stage that is one unit by nature is not held to it. A unit this long is also the most a "
+        "worker waits to hand its place to a lane that needs it.", unit="seconds", group="speed", gt=0,
+        label="Unit length ceiling",
+        summary="The longest one unit of a generation stage is meant to run; a longer one is logged.",
         control="duration")
     wait_minutes: float = opt(
         60, "How long a generation run, or an API job that generates sectors, waits in line when another generation "
@@ -761,12 +769,20 @@ class Settings(_Section):
                             label="API address",
                             summary="Where the API lives, for scripts that call it from outside the "
                                     "web app.")
-    debug: bool = opt(False, "Write a verbose debug log to log_file: every decision the generator makes, every "
-                      "random roll, every SQL statement and request. The log grows fast.", env="PLANETGEN_DEBUG",
+    debug: bool = opt(False, "Debug mode: every decision the generator makes, every "
+                      "random roll, every SQL statement, queue event and request, written to the console of each "
+                      "planetgen command (stdout) and to log_file. The output is large.", env="PLANETGEN_DEBUG",
                       restart=True, editable=False, group="logging",
                       label="Debug log",
                       summary="Write a very detailed log of everything the generator does; it grows "
                               "fast.")
+    debug_areas: str = opt("", "Limit debug mode to some areas of output: decision, draw, sql, queue, cache, web, lib "
+                           "(comma separated; a leading - leaves one out). Empty writes everything but branch, "
+                           "which logs every conditional jump of the program's own code and is written only "
+                           "when named.",
+                           env="PLANETGEN_DEBUG_AREAS", restart=True, editable=False, group="logging",
+                           label="Debug areas",
+                           summary="Which kinds of detail debug mode writes; empty is all of them.")
     log_file: str = opt(logpaths.DEFAULT_LOG_FILE, "Where the debug log goes.",
                         env="PLANETGEN_LOG_FILE", restart=True, editable=False, group="logging",
                         label="Debug log file",

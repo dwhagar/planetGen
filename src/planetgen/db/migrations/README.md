@@ -1,7 +1,7 @@
 # Database migrations (Alembic)
 
-Schema changes after v61 are Alembic revisions in `versions/`. A revision's
-id is its schema version as four digits (`0062`), so `store.SCHEMA_VERSION`
+Schema changes after v130 are Alembic revisions in `versions/`. A revision's
+id is its schema version as four digits (`0131`), so `store.SCHEMA_VERSION`
 is the head revision's number. `schema_migrations` still gets one row per
 version (the bookkeeping the rest of the code reads), written by
 `planetgen.db.alembic_runner` after each revision runs.

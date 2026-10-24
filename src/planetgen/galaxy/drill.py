@@ -3,8 +3,12 @@ planetgen/galaxy/drill.py
 
 The Galaxy Map's block ladder on the spherical sector grid
 (docs/design/galaxy/spherical-block-ladder.md; the grid is `galaxy/spherical.py`).
-Blocks are `m` shells deep, `m` = 243, 81, 27, 9 and 3, and a block of one is
-a sector; each block sits wholly inside one block of the next size up.
+Blocks are `m` shells deep, `m` = 177,147 down to 3 (every size three times its
+child), and a block of one is a sector; each block sits wholly inside one block
+of the next size up. The top, 177,147 shells (708 kpc, beyond the grid's 262 kpc
+reach) is a root of three blocks: its one block shell is one row, cut into three
+wedges, and the galaxy lies wholly inside it (MAP.258: the nodes of the
+single-space map are these blocks, and the cut walks them from the root).
 `static/galaxyprisms.js`'s `drill*` functions are the same rules for the page;
 `tests/test_galaxydrill.py` checks that the two agree.
 
@@ -45,14 +49,23 @@ from functools import lru_cache
 
 from planetgen.galaxy import spherical
 
-DRILL_LEVELS = (243, 81, 27, 9, 3, 1)
-"""tuple: Block sizes from the galaxy down to a sector. Each step divides by
+DRILL_LEVELS = (177147, 59049, 19683, 6561, 2187, 729, 243, 81, 27, 9, 3, 1)
+"""tuple: Block sizes from the root down to a sector. Each step divides by
 `DRILL_STEP`."""
 
 DRILL_STEP = 3
 """int: How many child block shells deep one block is."""
 
 DRILL_TOP = DRILL_LEVELS[0]
+"""int: The root's size: the first level whose block shell 0 reaches past the grid's outermost shell (65,535,
+`spherical.MAX_ADDRESSABLE_SHELL`), so the whole galaxy sits in its three blocks."""
+
+STAGE_LEVELS = (243, 81, 27, 9, 3, 1)
+"""tuple: The levels the drill-down stages and map windows show (`galaxy_stage`, `window`): the ladder from the
+level-243 blocks of the galaxy's own view down to a sector. The levels above are only for the map's nodes."""
+
+STAGE_TOP = STAGE_LEVELS[0]
+"""int: The size of the blocks the galaxy stage lists."""
 
 DrillBlock = namedtuple("DrillBlock", ["m", "shell", "band", "wedge"])
 """One block of the ladder; at `m = 1`, a sector `(1, shell, band, wedge)`."""
@@ -73,6 +86,13 @@ def _check_level(m):
         raise ValueError(f"block size must be one of {DRILL_LEVELS[:-1]}, got {m}")
 
 
+def check_stage_level(m):
+    """`m` when a stage or map window may show blocks of that size (`STAGE_LEVELS`, a sector included)."""
+    if m not in STAGE_LEVELS:
+        raise ValueError(f"stage block size must be one of {STAGE_LEVELS}, got {m}")
+    return m
+
+
 def block_radius(m, shell):
     """Centreline radius of block shell `shell` at size `m`, in edges."""
     return shell * m + (m - 1) / 2
@@ -83,10 +103,11 @@ def drill_band_count(m, shell):
     """
     Rows of blocks in block shell `shell` at size `m` (always odd):
 
-    - 243: the odd integer nearest `pi * R / m`, `R` the block shell's
-      centreline radius in edges, so a row's arc is about `m` edges.
-    - 81, 27, 9 and 3: the parent block shell's (`shell // 3`) count times the
-      odd integer nearest `T / parent`, `T` as above.
+    - the root (`DRILL_TOP`): the odd integer nearest `pi * R / m`, `R` the
+      block shell's centreline radius in edges, so a row's arc is about `m`
+      edges.
+    - every other level: the parent block shell's (`shell // 3`) count times
+      the odd integer nearest `T / parent`, `T` as above.
 
     Raises:
         ValueError: For a level that is not a block size or a negative shell.
@@ -116,9 +137,10 @@ def drill_wedge_count(m, shell, band):
     """
     Wedges in row `band` of block shell `shell` at size `m`:
 
-    - 243: `max(1, round(2*pi*R*sin(theta) / m))`, `theta` the row's centre
-      colatitude, so a wedge's arc at the row's centre is about `m` edges.
-    - 81, 27, 9 and 3: the count of the parent row holding this one times
+    - the root: `max(1, round(2*pi*R*sin(theta) / m))`, `theta` the row's
+      centre colatitude, so a wedge's arc at the row's centre is about `m`
+      edges.
+    - every other level: the count of the parent row holding this one times
       `max(1, round(T / parent))`, `T` as above.
 
     Raises:
@@ -175,8 +197,8 @@ def _cell_wedge_in(cell_wedges, cell_wedge, block_wedges):
 
 def drill_parent(block):
     """
-    The block one size up that holds `block`, or `None` for a level-243
-    block.
+    The block one size up that holds `block`, or `None` for a block of the
+    root level.
 
     Args:
         block (DrillBlock or tuple): `(m, shell, band, wedge)`, or a sector
@@ -203,10 +225,16 @@ def drill_parent(block):
     return DrillBlock(m * DRILL_STEP, parent_shell, parent_band, wedge // q)
 
 
+def stage_parent(block):
+    """`drill_parent`, but `None` for a level-243 block, the top of the stages (`STAGE_LEVELS`): the parent
+    a drill-down stage names, `None` for the galaxy's own view."""
+    return None if block[0] == STAGE_TOP else drill_parent(block)
+
+
 def drill_chain_of(shell, band, wedge):
     """
-    Sector `(shell, band, wedge)`'s blocks from the top: `[level 243, 81, 27,
-    9, 3, the sector itself]`.
+    Sector `(shell, band, wedge)`'s blocks from the root: `[level 177147, 59049,
+    ... 9, 3, the sector itself]`, one per `DRILL_LEVELS`.
     """
     chain = [DrillBlock(1, shell, band, wedge)]
     while chain[-1].m != DRILL_TOP:
@@ -362,3 +390,35 @@ def parse_drill_key(key):
     if abs(band) > rows // 2 or not 0 <= wedge < drill_wedge_count(m, shell, band):
         raise ValueError(f"no such block: {key!r}")
     return DrillBlock(m, shell, band, wedge)
+
+
+def parse_node_key(key):
+    """
+    A node key `m.shell.band.wedge` of any level of the ladder, a sector (`1.shell.band.wedge`) included: what the
+    node read and cache take (MAP.260), checked like `parse_drill_key`.
+
+    Raises:
+        ValueError: On anything else.
+    """
+    parts = str(key or "").split(".")
+    if len(parts) == 4 and parts[0] == "1":
+        try:
+            _m, shell, band, wedge = (int(p) for p in parts)
+        except ValueError:
+            raise ValueError(f"not a node key: {key!r}") from None
+        if shell < 0 or not spherical.band_range(shell)[0] <= band <= spherical.band_range(shell)[1] \
+                or not 0 <= wedge < spherical.wedge_count(shell, band):
+            raise ValueError(f"no such node: {key!r}")
+        return DrillBlock(1, shell, band, wedge)
+    return parse_drill_key(key)
+
+
+def parse_stage_key(key):
+    """`parse_drill_key`, and the block must be of a stage level (`STAGE_LEVELS`): the `at` of a drill-down stage.
+
+    Raises:
+        ValueError: On anything else.
+    """
+    block = parse_drill_key(key)
+    check_stage_level(block.m)
+    return block

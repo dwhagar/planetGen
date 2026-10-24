@@ -182,6 +182,13 @@ GIANT_IMPACT_SURVIVAL_FRACTION = 0.4
 # neighbor's spacing to protect one body's zone in place.
 MAX_SYSTEM_GENERATION_ATTEMPTS = 8
 
+# How many trees of stars a system draws (GEN.631) while looking for one that is what its directives and its place need: the
+# kind of pair `WIDE_BINARY` or a `wide_binary` prevalence asks for, a pair at all under `BINARY_SYSTEM`, a close pair whose
+# circumbinary limit leaves room for the habitable world `HABITABLE_WORLD` forces. After this many a forced pair keeps the
+# last tree and any other system is its star alone. A forced close pair is the rare draw (about 1 in 14 pairs has an axis
+# under 0.25 AU), so the count is large; the first draw is kept whenever nothing is asked.
+COMPANION_DRAW_ATTEMPTS = 200
+
 # How many whole systems (star and all) `planetgen system` builds while
 # looking for one that meets every forced option (`StarSystem.
 # unmet_requirements`) before it gives up with an error and saves nothing.
@@ -524,12 +531,6 @@ and two or more (triples and quadruples). The chance of a companion is 1 - `sing
 B_SUBCLASS_LOWER_MASS_SOL = (("B-early", 9.0), ("B-mid", 5.0))
 """tuple: The birth mass at which the B-star sub-classes begin, heaviest first (Table 13's bins); a B star below the
 last is late B and keeps the letter's row."""
-
-BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS = {
-    'O': 0.90, 'B': 0.65, 'A': 0.55, 'F': 0.47, 'G': 0.44, 'K': 0.40, 'M': 0.26,
-    'B-mid': round(1.0 - MULTIPLICITY_BY_PRIMARY_MASS_BIN["mid B"]["single"], 2),
-    'B-early': round(1.0 - MULTIPLICITY_BY_PRIMARY_MASS_BIN["early B"]["single"], 2),
-}
 
 # --- Star population model (stellarEvolution.py) ---
 # A random star is drawn as physics, not from a letter table: a mass from
@@ -1494,6 +1495,57 @@ measured one."""
 OLD_GIANT_SYSTEM_SHARE = 0.005
 """float: The share of all systems whose placed star is a giant of the old population. A stand-in, used to turn a type's
 Galaxy count (R Coronae Borealis, FK Comae, Thorne-Zytkow) into the chance among old giants; remeasure from a fill."""
+
+# --- White-dwarf binary types (GEN.271, `generation/multistar.py`, docs/design/systems/multi-star-systems.md 13.3) ---
+DOUBLE_WHITE_DWARF_AXIS_AU = (0.001, 4.0)
+"""tuple: The axis of a close double white dwarf, log-uniform, AU (Maoz et al.: within 4 AU); the Peters rule
+(`stability.survives_gravitational_waves`) drops a pair that would have merged by the system's age."""
+
+POST_COMMON_ENVELOPE_AXIS_AU = (0.005, 2.0)
+"""tuple: The axis of a post-common-envelope white dwarf and companion, log-uniform, AU (design note 13.3)."""
+
+CATACLYSMIC_PERIOD_HOURS = (1.3, 10.0)
+"""tuple: The orbital period of a cataclysmic variable, hours (design note 13.3)."""
+
+CATACLYSMIC_MAGNETIC_SHARE = 0.36
+"""float: The share of cataclysmic variables whose white dwarf is magnetic (a polar or an intermediate polar)."""
+
+CATACLYSMIC_DONOR_MASS_RANGE_SOL = (0.08, 0.7)
+"""tuple: The mass of a cataclysmic variable's main-sequence donor, uniform, solar masses. A stand-in: the donor fills its
+lobe, so its mass sets the period, and this range gives the periods of `CATACLYSMIC_PERIOD_HOURS`; a draw whose period
+falls outside is made again."""
+
+AM_CVN_PERIOD_MINUTES = (5.0, 65.0)
+"""tuple: The orbital period of an AM Canum Venaticorum binary, minutes (design note 13.3)."""
+
+AM_CVN_DONOR_MASS_RANGE_SOL = (0.009, 0.13)
+"""tuple: The mass of an AM CVn helium donor, log-uniform, solar masses. A stand-in that gives the periods of
+`AM_CVN_PERIOD_MINUTES` with the radius law below; a draw whose period falls outside is made again."""
+
+AM_CVN_DONOR_RADIUS_SOL_AT_0_05 = 0.03
+"""float: The radius of a 0.05 solar mass degenerate helium donor, solar radii; other masses scale as the mass to the power
+-1/3 (a stand-in for the semi-degenerate donors of AM CVn systems, Nelemans et al. 2001)."""
+
+ACCRETING_FILL_FACTOR = 1.05
+"""float: How far a cataclysmic variable's or AM CVn's donor fills its Roche lobe (1 is exactly full); a pair at this
+filling has `interaction` accreting."""
+
+HOT_SUBDWARF_POST_CE_SHARE = 0.05
+"""float: The share of post-common-envelope pairs whose companion is a stripped helium star or hot subdwarf (kind
+`stripped-helium`, 0.3 to 0.5 solar masses). A stand-in: the observed sdB and sdO binaries are a few percent of the
+white dwarf plus star pairs, and the note gives no share."""
+
+BARIUM_GIANT_MAX_INITIAL_MASS_SOL = 3.0
+"""float: A giant born lighter than this is a G or K giant for the barium and symbiotic shares (the giants of the
+intermediate and old populations are nearly all of such mass; a stand-in for the spectral class, which the member does
+not carry)."""
+
+BARIUM_PERIOD_DAYS = (80.0, 1.0e4)
+"""tuple: The period of a barium or CH star's white dwarf companion, log-uniform, days (Jorissen et al. 2019: tens of
+days to tens of years)."""
+
+SYMBIOTIC_PERIOD_DAYS = (200.0, 2000.0)
+"""tuple: The period of a symbiotic star's white dwarf, log-uniform, days (Mikolajewska 2012: 200 to 1,500 days)."""
 
 # The chance of a companion inside 10 AU against the star's own [Fe/H] (GEN.103; Boss, 2026-10-16, 6:12 to 6:15 PM
 # EDT: one pooled trend, every star mass). Moe, Kratter & Badenes 2019, ApJ 875:61 (arXiv 1808.02116), for solar-type
@@ -3480,16 +3532,18 @@ SYSTEM_COMET_CHANCE = 0.3
 # GEN.449 changed the companions and 2026-10-18 after GEN.404 moved a system with
 # no place to the galaxy's half-mass radius; habitable_world alone remeasured
 # 2026-10-23 after GEN.146 widened the zone to the Kopparapu edges, the same
-# 20,000 systems: 0.4216 where it was 0.253). A sector or galaxy run's
+# 20,000 systems: 0.4216 where it was 0.253; all four remeasured 2026-10-23 over
+# 20,000 systems, four seeds of 5,000, after GEN.631 drew a system's stars as a
+# tree: its pairs are closer, so fewer have room for planets). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.422,   # a habitable planet or moon
-    "asteroid_belt": 0.582,     # an asteroid belt
-    "large_star": 0.051,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
-    "planets": 0.953,           # at least one planet or belt
+    "habitable_world": 0.402,   # a habitable planet or moon
+    "asteroid_belt": 0.549,     # an asteroid belt
+    "large_star": 0.049,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
+    "planets": 0.941,           # at least one planet or belt
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
@@ -3497,13 +3551,16 @@ PREVALENCE_BASE_SHARES = {
 # 10,000 systems with default options (four seeds of 2,500; 2026-10-08;
 # comets, binary_system and wide_binary remeasured 2026-10-17 over 20,000
 # systems, four seeds of 5,000: GEN.448 puts 93% of the binaries in the wide
-# class, the close class being the 0.05 to 0.25 AU range only).
+# class, the close class being the 0.05 to 0.25 AU range only; binary_system and
+# wide_binary remeasured 2026-10-23 over 20,000 systems, four seeds of 5,000,
+# after GEN.631 drew a system's stars as a tree: 0.239 have a pair, 0.810 of the
+# pairs have an axis over 0.25 AU).
 # Each is a share of the things in its comment, not always of systems.
 # Remeasure with PREVALENCE_BASE_SHARES.
 PREVALENCE_DRAW_SHARES = {
     "comets": 0.321,            # systems with comets (each star of a wide pair draws)
-    "binary_system": 0.260,     # systems with two stars
-    "wide_binary": 0.928,       # binaries that are wide pairs
+    "binary_system": 0.239,     # systems with a pair (the two stars of a system of more than two count)
+    "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
     "multi_star": 0.0045,       # systems with five or more stars (see below)

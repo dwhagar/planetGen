@@ -91,6 +91,47 @@ def column_type(connection, table, column):
         " AND TABLE_NAME = :t AND COLUMN_NAME = :c"), {"t": table, "c": column}).scalar()
 
 
+# --- the store's connection ------------------------------------------------------------------------------------------
+
+class StoreConnection:
+    """The store connection's `execute(sql, params)` (`?` marks, dict rows), `executemany` and `commit` on a revision's
+    SQLAlchemy connection, for the `db` modules that a revision runs (`db.nebula_blocks.rebuild`). The revision commits
+    as a whole, so `commit` does nothing."""
+
+    def __init__(self, connection):
+        self.connection = connection
+
+    @staticmethod
+    def _named(sql, params):
+        names = iter(f"p{i}" for i in range(len(params)))
+        return re.sub(r"\?", lambda _m: ":" + next(names), sql), {f"p{i}": v for i, v in enumerate(params)}
+
+    def execute(self, sql, params=()):
+        sql, bound = self._named(sql, tuple(params))
+        return _StoreResult(self.connection.execute(sa.text(sql), bound))
+
+    def executemany(self, sql, rows):
+        rows = list(rows)
+        if rows:
+            sql, _ = self._named(sql, rows[0])
+            self.connection.execute(sa.text(sql), [{f"p{i}": v for i, v in enumerate(row)} for row in rows])
+
+    def commit(self):
+        """The revision commits as a whole."""
+
+
+class _StoreResult:
+    def __init__(self, result):
+        self.result = result
+
+    def fetchone(self):
+        row = self.result.mappings().fetchone()
+        return None if row is None else dict(row)
+
+    def fetchall(self):
+        return [dict(row) for row in self.result.mappings().fetchall()]
+
+
 # --- lock waits -----------------------------------------------------------------------------------------------------
 
 @contextlib.contextmanager

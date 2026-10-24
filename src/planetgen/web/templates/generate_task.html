@@ -2,7 +2,7 @@
     same page, which answers with the Review step (generate_review.html); Run is there. -#}
 {% extends "generate_base.html" %}
 {% from "partials/generate_fields.html" import field, limit_slider, plan_inputs, scatter_limits, mass_limit_slider,
-        bright_floor_slider, compact_limit, advanced_sector_inputs, prevalence_inputs, skip_scatter, disregard_data, confirm_field with context %}
+        bright_floor_slider, compact_limit, advanced_sector_inputs, prevalence_inputs, skip_scatter, disregard_data, debug_box, confirm_field with context %}
 {% block generate_head %}
 <script type="module" src="{{ static_url('generatelevers.js') }}"></script>
 <script type="module" src="{{ static_url('limitsliders.js') }}"></script>
@@ -243,6 +243,9 @@
       {{ disregard_data("disregard-data") }}
     </div>
     {%- endif %}
+    <div class="search-fields">
+      {{ debug_box("debug-run") }}
+    </div>
     {%- if task.key in ("add-sectors", "check") %}
     <p class="hint generate-size" id="size-report" data-size-report data-url="{{ url_for('web.generate_size', key=task.key) }}" role="status" aria-live="polite" hidden></p>
     {%- endif %}

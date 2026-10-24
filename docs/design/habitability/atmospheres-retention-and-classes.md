@@ -228,7 +228,7 @@ that gas as ice (Titan at 94 K holds 1.5 bar of N2 and condensing CH4; Pluto at
 40 K only about 1 Pa of N2). A CO2 or N2 atmosphere on a locked planet
 collapses onto the night side unless it is about 0.1 bar or more [R: Joshi et
 al. 1997]. The rogue-planet model already uses the N2 version
-(`rogue_surface.nitrogen_vapor_pressure_pa`).
+(`rogue_surface.frozen_nitrogen_pressure_pa`, which reads `physics/saturation.py`).
 
 ### 3.4 Energy-limited XUV loss: envelopes and oceans
 `Mdot = eps * pi * R^3 * F_xuv / (G M)` with eps = 0.1, `K_tide` = 1 and

@@ -1452,6 +1452,8 @@
 --   Rows from before v141 have NULL there and keep the heat and the dose they were generated with.
 -- v145 (GEN.443): `stars.uv_c_share`, the share of its blackbody's UV-C a star gives off (the Sun's measured 0.256 is one value of the open bracket 0.1 to 1), drawn once from the star's own stream.
 --   A row saved before v145 has NULL, which the radiation model reads as the blackbody (1).
+-- v146 (MAP.258): `galaxy_block_stats.m` is INT UNSIGNED (the block ladder now runs from 177,147 down to 3, `galaxy/drill.py`). Every level below 243 changed shape with the levels put above it, so the table is filled again with a row for every level and the nebula block tables are made again.
+-- v147 (MAP.259): `galaxy_block_lights` is new: the summed light of the pre-placed bright stars and scattered phenomena in each block of the ladder, filled by the migration from the stored scatter.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1782,8 +1784,9 @@ CREATE TABLE IF NOT EXISTS galaxy_shell (
 -- block's children are its sectors, read from `sector_stats`). Written by
 -- `db/block_stats.py` when sectors are saved or deleted, and by `planetgen plan
 -- --fill-block-stats`; no foreign key, as the blocks are not rows of their own.
+-- v146: `m` is INT UNSIGNED: the ladder's root is 177,147 shells deep.
 CREATE TABLE IF NOT EXISTS galaxy_block_stats (
-    m                 SMALLINT UNSIGNED NOT NULL,
+    m                 INT UNSIGNED NOT NULL,
     shell_index       INT NOT NULL,
     band_index        INT NOT NULL,
     wedge_index       INT NOT NULL,
@@ -1794,6 +1797,34 @@ CREATE TABLE IF NOT EXISTS galaxy_block_stats (
     age_sum           DOUBLE NOT NULL,
     luminosity_sol    DOUBLE NOT NULL,
     habitable_worlds  BIGINT UNSIGNED NOT NULL DEFAULT 0,   -- v139 (MAP.143)
+    PRIMARY KEY (m, shell_index, band_index, wedge_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- galaxy_block_lights (v147, MAP.259): the light of the objects pre-placed in a block, for the map's
+-- sector-block nodes. One row per block `(m, shell_index, band_index, wedge_index)` of a level above a
+-- sector that holds at least one bright star no system was built around (`bright_stars.star_system_id IS
+-- NULL`) or scattered phenomenon not yet built (`phenomenon_scatter.built_at IS NULL`): their count and
+-- summed luminosity (Lsun), luminosity times position (`*_lpx`, `*_lpy`, `*_lpz`, Lsun times parsecs, so
+-- the centre of light is each over the luminosity) and, for stars, luminosity times temperature
+-- (`star_lt`). Built objects are in `galaxy_block_stats`, so no light is counted twice. Written by
+-- `db/block_lights.py` when sectors are saved or deleted and when a scatter is drawn or cleared, and by
+-- `planetgen fill-block-totals`; no foreign key, as the blocks are not rows of their own.
+CREATE TABLE IF NOT EXISTS galaxy_block_lights (
+    m                    INT UNSIGNED NOT NULL,
+    shell_index          INT NOT NULL,
+    band_index           INT NOT NULL,
+    wedge_index          INT NOT NULL,
+    star_count           BIGINT UNSIGNED NOT NULL,
+    star_luminosity_sol  DOUBLE NOT NULL,
+    star_lpx              DOUBLE NOT NULL,
+    star_lpy              DOUBLE NOT NULL,
+    star_lpz              DOUBLE NOT NULL,
+    star_lt              DOUBLE NOT NULL,
+    point_count          BIGINT UNSIGNED NOT NULL,
+    point_luminosity_sol DOUBLE NOT NULL,
+    point_lpx             DOUBLE NOT NULL,
+    point_lpy             DOUBLE NOT NULL,
+    point_lpz             DOUBLE NOT NULL,
     PRIMARY KEY (m, shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

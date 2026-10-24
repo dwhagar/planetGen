@@ -18,6 +18,12 @@ from planetgen import tuning
 from planetgen.galaxy import system_mass as galaxy_system_mass
 from planetgen.generation import system_mass
 from planetgen.physics import constants, planet_survival
+from planetgen.physics import unit_registry as units
+
+_yr_to_s = units.converter("yr", "s")
+_gyr_to_yr = units.converter("Gyr", "yr")
+_m_to_au = units.converter("m", "au")
+_pc_to_m = units.converter("pc", "m")
 
 
 RELATIVE_VELOCITY_FACTOR = math.sqrt(2.0)
@@ -147,10 +153,10 @@ def encounter_limit_au(terms, total_mass_solar, age_gy):
     if rho2 <= 0.0 or age_gy <= 0.0:
         return math.inf
     rho2_si = rho2 * constants.SOLAR_MASS_TO_KG ** 2 / constants.PARSEC_M ** 3
-    seconds = age_gy * 1.0e9 * constants.SECONDS_PER_YEAR
+    seconds = _yr_to_s(_gyr_to_yr(age_gy))
     metres = (tuning.ENCOUNTER_LIMIT_COEFFICIENT * total_mass_solar * constants.SOLAR_MASS_TO_KG
               * RELATIVE_VELOCITY_FACTOR * terms.dispersion_kms * 1000.0) / (constants.G * rho2_si * seconds)
-    return metres / constants.AU_M
+    return _m_to_au(metres)
 
 
 def planet_limit_au(terms, age_gy=None):
@@ -169,7 +175,7 @@ def tidal_limit_au(terms, total_mass_solar):
     if terms.mass_density_solar_pc3 <= 0.0:
         return math.inf
     parsecs = (total_mass_solar / (3.0 * terms.mass_density_solar_pc3)) ** (1.0 / 3.0)
-    return parsecs * constants.PARSEC_M / constants.AU_M
+    return _m_to_au(_pc_to_m(parsecs))
 
 
 def wide_axis_limit_au(terms, total_mass_solar, age_gy):

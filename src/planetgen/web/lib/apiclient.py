@@ -639,6 +639,19 @@ def get_galaxy_tiles(db, tile_keys):
     return _request("/galaxy/tiles", {"db": db, "tiles": ",".join(tile_keys)})
 
 
+def get_galaxy_nodes(db, node_keys):
+    """
+    Returns `GET /api/galaxy/nodes`' payload (`nodes`/`edge_pc`/`has_shape` -- see `db.nodes.galaxy_nodes`). Callers go
+    through `planetgen/web/lib/tilecache.py`, which only asks for nodes it hasn't already cached on disk.
+
+    Args:
+        db (str): The `?db=` value.
+        node_keys (list[str]): `m.shell.band.wedge` keys.
+    """
+    _require_db(db)
+    return _request("/galaxy/nodes", {"db": db, "keys": ",".join(node_keys)})
+
+
 def get_galaxy_stage(db, at=None):
     """Returns `GET /api/galaxy/stage`'s payload (`at`/`child_m`/
     `children`/`sectors` -- see `db.query.galaxy_stage`). Callers go
@@ -784,7 +797,7 @@ def get_nebula_surroundings(db, nebula_id):
 
 def get_galaxy_changes(db, since=None):
     """Returns `GET /api/galaxy/changes`' payload (`stamp`/`state`/`full`/
-    `tiles`/`stages`) -- which cube tiles and drill-down stages changed since `since`, an earlier call's
+    `tiles`/`stages`/`nodes`) -- which cube tiles, drill-down stages and nodes changed since `since`, an earlier call's
     `state` (see `db.query.galaxy_changes`). `planetgen/web/lib/tilecache.py` uses it to
     refresh only the tiles an edit touched."""
     _require_db(db)

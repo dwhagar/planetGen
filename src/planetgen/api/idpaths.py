@@ -77,6 +77,12 @@ ID_PATHS = {
         "tiles.*.clouds[].id": "phenomenon",
         "tiles.*.points[].id": "phenomenon",
     },
+    "api.galaxy_nodes_route": {
+        "nodes.*.placed[].id": "sector",
+        "nodes.*.generated[].id": "star",
+        "nodes.*.clouds[].id": "phenomenon",
+        "nodes.*.points[].id": "phenomenon",
+    },
     "api.galaxy_bright_stars_in_cell": {},
     "api.nebula_surroundings_route": {},
     "api.uncharted_systems": {},

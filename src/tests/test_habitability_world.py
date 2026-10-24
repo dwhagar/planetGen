@@ -337,7 +337,7 @@ def test_life_is_drawn_after_the_score_and_the_score_is_redone_with_it():
         for body in _bodies(system):
             if body.body_type == "g":
                 continue
-            stage = hw.native_life(body.life_chemical, body.life_stage, body.evolutionary_pace is not None)
+            stage = hw.native_life(body.life_chemical, body.life_stage, body.life_system_age_gyr is not None)
             stages.add(stage)
             food = hw.habitability.FOOD_SCORE[stage if body.hydrosphere != "ice-covered ocean" else "none"]
             assert body.phi4_suitability <= food + 1e-9, (body.name, stage)

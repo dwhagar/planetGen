@@ -22,12 +22,15 @@ import sys
 
 from planetgen.db import species_fit, store
 from planetgen.db.query import open_readonly
+from planetgen.util import log
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description="List every species placed outside its own environment limits.")
     store.add_mysql_connection_args(parser)
+    log.add_debug_arguments(parser)
     args = parser.parse_args(argv)
+    log.apply_debug_arguments(args, parser)
     conn = open_readonly(store.mysql_config_from_args(args))
     try:
         found = species_fit.inconsistencies(conn)

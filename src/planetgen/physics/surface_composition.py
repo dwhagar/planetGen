@@ -249,7 +249,7 @@ def ice_stable(material_name, temperature_k, pressure_pa, partial_pa=0.0):
     """
     formula = ICE_FORMULAS[material_name]
     if formula == "H2O":
-        if pressure_pa >= hydrosphere.WATER_TRIPLE_POINT_PA:
+        if pressure_pa >= saturation.WATER_TRIPLE_POINT_PA:
             return temperature_k < hydrosphere.WATER_MELTING_K
         return temperature_k < hydrosphere.VACUUM_ICE_MAX_K
     if not saturation.has(formula):

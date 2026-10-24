@@ -27,7 +27,7 @@ from planetgen.api.config import Config
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.galaxy.density import build_galaxy_shape, shape_with_terms  # noqa: E402
-from planetgen.galaxy.drill import DRILL_LEVELS, DrillBlock, drill_chain_of, format_drill_key, parse_drill_key  # noqa: E402
+from planetgen.galaxy.drill import STAGE_LEVELS, STAGE_TOP, DrillBlock, drill_chain_of, format_drill_key, parse_stage_key  # noqa: E402
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1  # noqa: E402
 from planetgen.physics.units import pc_to_ly  # noqa: E402
 from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
@@ -257,16 +257,16 @@ bright one, one with no stars and a sparse old one."""
 
 def galaxy_stage(at=None):
     """`queryDb.galaxy_stage` over `SECTORS`, with no database."""
-    chains = [(s, drill_chain_of(s[1], s[2], s[3])) for s in SECTORS]
+    chains = [(s, [b for b in drill_chain_of(s[1], s[2], s[3]) if b.m <= STAGE_TOP]) for s in SECTORS]
     if not at:
         counts = {}
         for s, chain in chains:
             counts.setdefault(chain[0], []).append(s[0])
         return {"at": None, "child_m": 243, "children": _children(counts), "sectors": None}
-    block = parse_drill_key(at)
-    level = DRILL_LEVELS[:-1].index(block.m)
+    block = parse_stage_key(at)
+    level = STAGE_LEVELS[:-1].index(block.m)
     inside = [(s, chain) for s, chain in chains if chain[level] == block]
-    child_m = DRILL_LEVELS[level + 1]
+    child_m = STAGE_LEVELS[level + 1]
     counts = {}
     for s, chain in inside:
         counts.setdefault(chain[level + 1], []).append(s[0])
@@ -396,10 +396,10 @@ class FixtureApi:
         width = check_width(g)
         cells = window_cells(centre, EDGE_PC, width)
         wanted = {(c.shell, c.band, c.wedge) for c in cells}
-        level = DRILL_LEVELS.index(centre.m)
+        level = STAGE_LEVELS.index(centre.m)
         counts = {}
         for s in SECTORS:
-            cell = drill_chain_of(s[1], s[2], s[3])[level]
+            cell = [b for b in drill_chain_of(s[1], s[2], s[3]) if b.m <= STAGE_TOP][level]
             if (cell.shell, cell.band, cell.wedge) in wanted:
                 counts.setdefault(cell, []).append(s[0])
         children = _children(counts)

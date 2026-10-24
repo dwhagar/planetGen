@@ -238,6 +238,13 @@
   {%- if ticked or (form and form.get("disregard_missing_data")) %} checked{% endif %}> Disregard missing data files</span>
   <span class="field-hint">A job refuses to start while a downloaded data file is missing (run <code>update.sh</code> to download it). Ticked, it starts anyway, takes a labelled fallback for each missing dataset, and says so in the job log.</span></label>
 {%- endmacro -%}
+{#- Debug mode for this one job: every step of it writes each decision it makes (every draw, branch, stage, unit, SQL
+    statement, cache hit, the queue workers' lines too) to the job log. -#}
+{%- macro debug_box(id) -%}
+<label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="debug" value="1"
+  {%- if form and form.get("debug") %} checked{% endif %}> Debug: log every decision to the job log</span>
+  <span class="field-hint">Every step of the job writes each decision it makes, with a timestamp: every random draw, choice, stage, unit, SQL statement and cache hit, the queue workers' lines too. It is a great deal of text; the Debug log setting in <code>config.json</code> does this for every job and writes the debug log file as well.</span></label>
+{%- endmacro -%}
 {%- macro confirm_field(id) -%}
 <label class="search-field">Type the database name to confirm
   <input type="text" id="{{ id }}" name="confirm" placeholder="{{ database }}" required autocomplete="off" autocapitalize="off" spellcheck="false">

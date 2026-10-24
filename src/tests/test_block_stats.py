@@ -1,19 +1,17 @@
 """
 DB.25, MAP.205: the stored block totals (`galaxy_block_stats`) on the block ladder of shells. Every stored row equals
 the sums of the generated sectors inside its block, a refresh puts right the blocks above a sector and only those, a
-deletion takes the sector out, the migration and `rebuild` give the same rows, and a window reads its cells in one
+deletion takes the sector out, `rebuild` gives the same rows a refresh kept, and a window reads its cells in one
 statement.
 """
 
-import importlib
 import random
 
 import pytest
-import sqlalchemy
 
-from planetgen.db import alembic_runner, block_stats, edits, query, store
+from planetgen.db import block_stats, edits, query, store
 from planetgen.galaxy import spherical
-from planetgen.galaxy.drill import drill_chain_of, format_drill_key
+from planetgen.galaxy.drill import DRILL_TOP, STAGE_TOP, drill_chain_of, format_drill_key
 
 pytestmark = pytest.mark.db
 
@@ -84,6 +82,22 @@ def test_a_rebuild_stores_one_row_for_every_block_that_holds_a_sector(galaxy):
         conn.close()
 
 
+def test_the_root_rows_hold_every_generated_sector_and_a_stage_stops_at_243(galaxy):
+    conn = store.get_connection(galaxy)
+    try:
+        stored = _stored(conn)
+        roots = [key for key in stored if key[0] == DRILL_TOP]
+        assert 1 <= len(roots) <= 3
+        assert sum(stored[key][0] for key in roots) == len(_addresses())
+        for key in roots:
+            assert key[1] == 0 and key[2] == 0
+        root = drill_chain_of(*_addresses()[0])[0]
+        with pytest.raises(ValueError):
+            query.galaxy_stage(conn, format_drill_key(root))
+    finally:
+        conn.close()
+
+
 def test_a_stage_reads_the_stored_rows_and_a_level_three_stage_the_sectors(galaxy):
     conn = store.get_connection(galaxy)
     try:
@@ -95,7 +109,7 @@ def test_a_stage_reads_the_stored_rows_and_a_level_three_stage_the_sectors(galax
             assert stored[(243, child["shell"], child["band"], child["wedge"])] == (child["generated"], child["stats"])
         # Down one block of every level: the stage's children are the stored rows of that block's children.
         address = _addresses()[len(_addresses()) // 2]
-        chain = drill_chain_of(*address)
+        chain = [b for b in drill_chain_of(*address) if b.m <= STAGE_TOP]
         for block in chain[:-2]:
             stage = query.galaxy_stage(conn, format_drill_key(block))
             assert stage["at"] == format_drill_key(block)
@@ -202,7 +216,7 @@ def test_a_window_of_blocks_lists_the_cells_around_a_block_and_the_ones_that_hol
     conn = store.get_connection(galaxy)
     try:
         address = _addresses()[0]
-        block = drill_chain_of(*address)[3]            # the 9-block holding the first sector
+        block = [b for b in drill_chain_of(*address) if b.m <= STAGE_TOP][3]            # the 9-block holding the first sector
         window = query.galaxy_window(conn, format_drill_key(block), 7, EDGE)
         assert window["at"] == format_drill_key(block) and window["g"] == 7 and window["child_m"] == 9
         assert [block.shell, block.band, block.wedge] in window["cells"]
@@ -215,20 +229,3 @@ def test_a_window_of_blocks_lists_the_cells_around_a_block_and_the_ones_that_hol
         conn.close()
 
 
-def test_the_migration_fills_the_table_from_the_sectors_already_there(galaxy, monkeypatch):
-    conn = store.get_connection(galaxy)
-    try:
-        kept = _stored(conn)
-    finally:
-        conn.close()
-    monkeypatch.setattr(alembic_runner, "report_progress", lambda *args: None)     # no Alembic context here
-    migration = importlib.import_module("planetgen.db.migrations.versions.0092_block_stats_shells")
-    engine = alembic_runner._engine(galaxy)
-    with engine.begin() as connection:
-        connection.execute(sqlalchemy.text("DELETE FROM galaxy_block_stats"))
-        migration._fill(connection)
-    conn = store.get_connection(galaxy)
-    try:
-        assert _stored(conn) == kept
-    finally:
-        conn.close()

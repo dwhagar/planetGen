@@ -7,8 +7,8 @@ field and nebula shapes (`nebula_field.py`, `nebula_shape.py`), positions and
 motion (`frame.py`, `galactic_orbit.py`, `system_position.py`) and navigation
 (`navigation.py`, `nav_graph.py`, `straight_line.py`, `keepout.py`).
 
-The Galaxy Map's block ladder on shells is `drill.py` (blocks of 243 to 3 shells,
-docs/design/galaxy/spherical-block-ladder.md), its data windows `window.py`, its cube
+The Galaxy Map's block ladder on shells is `drill.py` (blocks of 177,147 down to 3 shells,
+docs/design/galaxy/spherical-block-ladder.md; the stages and windows use 243 and below), its data windows `window.py`, its cube
 tiles `viewport.py` and the regions the generation commands fill `region.py`.
 The cylinder grid's `geometry.py` is gone; the offset of a binary companion is in
 `frame.py`."""
