@@ -418,8 +418,7 @@
     },
     {
       "epoch": 85,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2210",
       "reason": "The two stars of a pair start where the orbit tree puts them: a close pair's phase includes the node's argument of periapsis and a wide pair starts on its ellipse, so binary systems give different phases (GEN.709)"
     }
   ]
