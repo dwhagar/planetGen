@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2055] - 2026-10-24
+
+**Headline:** A tunable composition draw is now tested against the published statistic it is tuned to, and a tunable row with no target is refused.
+
+### Added
+- **The shared tuning harness (GEN.503).** `planetgen/generation/tuning_harness.py` and the target table `tuning_targets.json` hold the published statistics (value, sigma, source, label, validity range, selection model) that tunable draws are tuned to; `simulate_and_compare` draws a row at many seeds and passes it within 2 sigma. The loader refuses a tunable row with no target, a Solar System value used as a target, and a snippet or recalled value used to tune. The white-dwarf redox rows a3 and a4 are the worked example.
+
+### Changed
+- A possibility-table row can be marked `tunable`; it changes no draw.
+
 ## [8.0.2054] - 2026-10-24
 
 **Headline:** The mass and luminosity scatters start their workers sooner on a large galaxy.
