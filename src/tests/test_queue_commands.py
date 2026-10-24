@@ -179,6 +179,19 @@ def test_a_unit_that_fails_in_a_later_stage_fails_the_run(monkeypatch, conn):
     assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "failed"
 
 
+def test_a_full_redis_stops_the_run_with_one_plain_error(monkeypatch, conn):
+    import redis
+    _register(monkeypatch, first=_units(1))
+
+    def full(*args, **kwargs):
+        raise redis.exceptions.OutOfMemoryError("command not allowed when used memory > 'maxmemory'.")
+
+    monkeypatch.setattr(units, "follow_stage", full)
+    with pytest.raises(RuntimeError, match="Redis is full.*Raise maxmemory"):
+        wrapper.run("Full", [commands.Step("a", "first", "A")], lambda index, plan: None, lambda index, unit, result: None)
+    assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "failed"
+
+
 # --- The commands run alone ------------------------------------------------------------------------------------
 
 def _alone(args, report):
