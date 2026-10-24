@@ -41,6 +41,13 @@ _EMPTY_TABLE_ROWS = {
     "moon_reflection_spectrum": (
         "INSERT INTO moon_reflection_spectrum (moon_id, spectrum_type, position, value)"
         " VALUES ((SELECT MIN(id) FROM moons), 'visible', 0, 'blue')"),
+    # DB.89: only a giant gets layers, and whether the seeded galaxy has one depends on its draws.
+    "planet_interior_layers": (
+        "INSERT INTO planet_interior_layers (planet_id, layer_index, kind, state, top_pressure_gpa, bottom_pressure_gpa, mass_earth, top_radius_fraction, bottom_radius_fraction, hydrogen, helium, iron, rock, water_liquid, ice_x, nh3_ice, ch4_ice)"
+        " VALUES ((SELECT MIN(id) FROM planets), 0, 'molecular_envelope', 'molecular_fluid', 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0)"),
+    "moon_interior_layers": (
+        "INSERT INTO moon_interior_layers (moon_id, layer_index, kind, state, top_pressure_gpa, bottom_pressure_gpa, mass_earth, top_radius_fraction, bottom_radius_fraction, hydrogen, helium, iron, rock, water_liquid, ice_x, nh3_ice, ch4_ice)"
+        " VALUES ((SELECT MIN(id) FROM moons), 0, 'molecular_envelope', 'molecular_fluid', 0, 1, 1, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0)"),
     # Admin-defined (POP.10); none in a generated galaxy.
     "facility_types": "INSERT INTO facility_types (name, kind) VALUES ('Test type', 'colony')",
     "facility_type_fields": (

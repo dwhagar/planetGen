@@ -133,7 +133,7 @@ One envelope: molecular above P_MM, metallic below, Z the star's metallicity, no
 ## 5. What gets stored and described
 
 - **Summary columns** on the planet and moon tables (DB.89, lane I's BulkFractions extends): `core_mass_earth` (compact core, 0 if none), `dilute_core_mass_earth`, `metallization_pressure_gpa` (P_MM), `helium_depletion` (Y_out / Y_proto, 1 when no rain), `has_helium_shell` (bool). All numeric columns are declared in `db/column_units.py` in the same PR.
-- **Layer rows**: the child table that stores the detailed mixture (`planet_composition` / `moon_composition`, GEN.428) gains a `layer` index and a `layer_kind`; layer 0 is the whole-body mixture that GEN.428 writes today. Each layer row also stores `top_pressure_gpa`, `bottom_pressure_gpa`, `mass_fraction` (of the body) and `state`. A recalculation never redraws a stored layer (F10).
+- **Layer rows** (built, schema v154): `planet_interior_layers` and `moon_interior_layers`, one row per layer outside in, with `layer_index`, `kind`, `state`, `top_pressure_gpa`, `bottom_pressure_gpa`, `top_radius_fraction`, `bottom_radius_fraction`, `mass_earth` and the mass of each material in Earth masses (`hydrogen`, `helium`, `iron`, `rock`, `water_liquid`, `ice_x`, `nh3_ice`, `ch4_ice`). The tables are separate from the mixture child table of GEN.428, which was not extended. The body carries them as `interior_layers` (a list of flat dicts, `giant_interior.body_values`) and `giant_interior.interior_of` rebuilds the `GiantInterior`. A recalculation never redraws a stored layer (F10).
 - **Description** (GEN.642, one writer with GEN.430; the numbers are an illustration of the wording, not a draw): "A gas giant of 1.0 Jupiter masses. Its outer 6 percent is molecular hydrogen with helium at 85 percent of the natal share; below 0.9 Mbar the hydrogen is metallic. About 40 Earth masses of heavier elements are spread through a dilute core that reaches 25 percent of the mass; the heavy elements there are rock and iron with 5 percent water ice. No compact core." Thresholds by fixed rules, as GEN.430.
 
 ## 6. Test targets (never presets)
@@ -191,4 +191,4 @@ heavy elements beyond the snow line and the ammonia and methane proportions to i
 the internal temperature (`100 K * (M / M_Jupiter)^0.5`) and the one-bar over effective temperature (1.33, from Jupiter's 166 K over
 125 K). The radius is set before the planet's final orbit is validated, so a planet moved afterwards keeps the starlight it was drawn
 with. A giant moon (the host's distance is not carried) takes the anchored relation and a 130 K one-bar temperature. The interior
-is not stored yet (DB.89); the old stand-in envelope and core shares (`bulk_draw.draw_giant`) are removed.
+is stored (DB.89, `giant_interior.body_values`); the old stand-in envelope and core shares (`bulk_draw.draw_giant`) are removed.

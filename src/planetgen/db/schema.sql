@@ -1465,6 +1465,9 @@
 -- v149 (OPS.69): `sectors.wiki_url`, `star_systems.wikijs_url` and `star_systems.mediawiki_url` are gone with the wiki upload.
 -- v151 (GEN.461): `planets` and `moons` also keep `water_base_pressure_pa`, the pressure under the water over the covered area, Pa (liquid, ice or both; the compressed column of
 --   `physics/water_layer.py`). NULL for a gas giant, a body with no water layer and a row made before v151, whose `ocean_depth_km`, `ice_shell_km` and `hp_ice_km` are water-equivalent km.
+-- v154 (DB.89, GEN.642): `planets` and `moons` gain the summary of a giant's interior (`interior_kind`, `core_mass_earth`, `dilute_core_mass_earth`,
+--   `metallization_pressure_gpa`, `helium_depletion`, `has_helium_shell`), and `planet_interior_layers` and `moon_interior_layers` hold its layers, outside in: the
+--   kind, the state, the pressure and radius fraction at the top and the bottom, and the mass of each material (Earth masses). NULL and no rows on a body without one.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2364,6 +2367,12 @@ CREATE TABLE IF NOT EXISTS planets (
     mantle_eta0_pa_s            DOUBLE NULL,  -- v153 (GEN.699): the viscosity prefactor of the mantle, eta = eta0 exp(Ea / R T), Pa s
     mantle_activation_kj_mol    DOUBLE NULL,  -- v153: its viscosity activation energy Ea, kJ/mol
     internal_heat_flux_w_m2     DOUBLE NULL,  -- v153: the heat flowing out of the interior, radiogenic plus primordial, over the body's surface
+    interior_kind               VARCHAR(16) CHECK (interior_kind IN ('gas_giant', 'ice_giant', 'brown_dwarf')),  -- v154 (DB.89, GEN.642): the kind of interior a giant was drawn with
+    core_mass_earth             DOUBLE,  -- v154: the compact core's (an ice giant's rock core's) mass in Earth masses, 0 with none
+    dilute_core_mass_earth      DOUBLE,  -- v154: the dilute core's mass in Earth masses, 0 with none
+    metallization_pressure_gpa  DOUBLE,  -- v154: the drawn molecular-to-metallic pressure, GPa
+    helium_depletion            DOUBLE,  -- v154: the molecular envelope's helium share against the natal share, 1 with no helium rain
+    has_helium_shell            BOOLEAN,  -- v154: a helium-rich shell above the metallic envelope
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2398,6 +2407,32 @@ CREATE TABLE IF NOT EXISTS planet_reflection_spectrum (
     CONSTRAINT fk_planet_reflection_spectrum_planet
         FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
     KEY idx_planet_reflection_spectrum_planet_id (planet_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- A giant's layers, outside in (DB.89, GEN.642): one row per layer of the interior drawn for the planet, in Earth masses per material.
+CREATE TABLE IF NOT EXISTS planet_interior_layers (
+    id                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id               BIGINT UNSIGNED NOT NULL,
+    layer_index             SMALLINT UNSIGNED NOT NULL,
+    kind                    VARCHAR(24) NOT NULL CHECK (kind IN ('molecular_envelope', 'metallic_envelope', 'helium_gradient', 'helium_shell', 'dilute_core', 'compact_core', 'ice_mantle', 'rock_core')),
+    state                   VARCHAR(16) NOT NULL CHECK (state IN ('molecular_fluid', 'metallic_fluid', 'ionic_fluid', 'superionic', 'molten')),
+    top_pressure_gpa        DOUBLE NOT NULL,
+    bottom_pressure_gpa     DOUBLE NOT NULL,
+    mass_earth              DOUBLE NOT NULL,
+    top_radius_fraction     DOUBLE NOT NULL,
+    bottom_radius_fraction  DOUBLE NOT NULL,
+    hydrogen                DOUBLE NOT NULL,
+    helium                  DOUBLE NOT NULL,
+    iron                    DOUBLE NOT NULL,
+    rock                    DOUBLE NOT NULL,
+    water_liquid            DOUBLE NOT NULL,
+    ice_x                   DOUBLE NOT NULL,
+    nh3_ice                 DOUBLE NOT NULL,
+    ch4_ice                 DOUBLE NOT NULL,
+
+    UNIQUE KEY uq_planet_interior_layers_index (planet_id, layer_index),
+    CONSTRAINT fk_planet_interior_layers_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -2601,6 +2636,12 @@ CREATE TABLE IF NOT EXISTS moons (
     mantle_eta0_pa_s            DOUBLE NULL,  -- v153 (GEN.699): the viscosity prefactor of the mantle, eta = eta0 exp(Ea / R T), Pa s
     mantle_activation_kj_mol    DOUBLE NULL,  -- v153: its viscosity activation energy Ea, kJ/mol
     internal_heat_flux_w_m2     DOUBLE NULL,  -- v153: the heat flowing out of the interior, radiogenic plus primordial, over the body's surface
+    interior_kind               VARCHAR(16) CHECK (interior_kind IN ('gas_giant', 'ice_giant', 'brown_dwarf')),  -- v154 (DB.89, GEN.642): the kind of interior a giant was drawn with
+    core_mass_earth             DOUBLE,  -- v154: the compact core's (an ice giant's rock core's) mass in Earth masses, 0 with none
+    dilute_core_mass_earth      DOUBLE,  -- v154: the dilute core's mass in Earth masses, 0 with none
+    metallization_pressure_gpa  DOUBLE,  -- v154: the drawn molecular-to-metallic pressure, GPa
+    helium_depletion            DOUBLE,  -- v154: the molecular envelope's helium share against the natal share, 1 with no helium rain
+    has_helium_shell            BOOLEAN,  -- v154: a helium-rich shell above the metallic envelope
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet
@@ -2638,6 +2679,32 @@ CREATE TABLE IF NOT EXISTS moon_reflection_spectrum (
     CONSTRAINT fk_moon_reflection_spectrum_moon
         FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
     KEY idx_moon_reflection_spectrum_moon_id (moon_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- A giant's layers, outside in (DB.89, GEN.642): one row per layer of the interior drawn for the moon, in Earth masses per material.
+CREATE TABLE IF NOT EXISTS moon_interior_layers (
+    id                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    moon_id                 BIGINT UNSIGNED NOT NULL,
+    layer_index             SMALLINT UNSIGNED NOT NULL,
+    kind                    VARCHAR(24) NOT NULL CHECK (kind IN ('molecular_envelope', 'metallic_envelope', 'helium_gradient', 'helium_shell', 'dilute_core', 'compact_core', 'ice_mantle', 'rock_core')),
+    state                   VARCHAR(16) NOT NULL CHECK (state IN ('molecular_fluid', 'metallic_fluid', 'ionic_fluid', 'superionic', 'molten')),
+    top_pressure_gpa        DOUBLE NOT NULL,
+    bottom_pressure_gpa     DOUBLE NOT NULL,
+    mass_earth              DOUBLE NOT NULL,
+    top_radius_fraction     DOUBLE NOT NULL,
+    bottom_radius_fraction  DOUBLE NOT NULL,
+    hydrogen                DOUBLE NOT NULL,
+    helium                  DOUBLE NOT NULL,
+    iron                    DOUBLE NOT NULL,
+    rock                    DOUBLE NOT NULL,
+    water_liquid            DOUBLE NOT NULL,
+    ice_x                   DOUBLE NOT NULL,
+    nh3_ice                 DOUBLE NOT NULL,
+    ch4_ice                 DOUBLE NOT NULL,
+
+    UNIQUE KEY uq_moon_interior_layers_index (moon_id, layer_index),
+    CONSTRAINT fk_moon_interior_layers_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

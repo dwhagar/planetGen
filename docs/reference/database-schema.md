@@ -1444,6 +1444,10 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `envelope_helium_fraction`, `envelope_z_fraction` | DOUBLE | nullable | Added in v144. Y and the heavy elements as mass fractions of the envelope; NULL for a body without one. |
 | `porosity` | DOUBLE | nullable | Added in v144. The void share of a small icy body's volume; NULL for a body that has none. |
 | `carbon_rock`, `composition_origin` | BOOLEAN, VARCHAR(8) (CHECK drawn / inverse) | nullable | Added in v144. Whether the rock is silicon carbide and graphite (a star of C/O 0.8 or more, or class C), and whether the composition was drawn first (`drawn`) or worked back from a given mass and radius (`inverse`). |
+| `interior_kind` | VARCHAR(16) (CHECK gas_giant / ice_giant / brown_dwarf) | nullable | Added in v154 (DB.89, GEN.642). The kind of interior a giant was drawn with. NULL for a body that has none (every rocky world, and a giant saved before v150). |
+| `core_mass_earth`, `dilute_core_mass_earth` | DOUBLE | nullable | Added in v154. The compact core's (an ice giant's rock core's) mass and the dilute core's mass, in Earth masses; 0 with none. |
+| `metallization_pressure_gpa`, `helium_depletion` | DOUBLE | nullable | Added in v154. The drawn pressure where hydrogen turns metallic, in GPa, and the molecular envelope's helium share against the natal share (1 with no helium rain). |
+| `has_helium_shell` | BOOLEAN | nullable | Added in v154. Whether a helium-rich shell sits above the metallic envelope. Read with the layers through `planetgen.physics.giant_interior.interior_of`. |
 
 | `bond_albedo`, `greenhouse_factor` | DOUBLE | nullable | Added in v142 (GEN.412). The two draws the surface temperature is made of: the Bond albedo A and the greenhouse quantity G, with T_e = ((1 - A) S / (4 sigma))^(1/4) and T_s = T_e (1 + G)^(1/4) (S the starlight at the orbit; a moon's is its planet's; never below 2.725 K). G is 0 for a body with no air. |
 | `albedo_basis` | TINYINT UNSIGNED | nullable | Added in v142 (GEN.412). Where the two came from: 0 recorded at generation, 1 the exact inverse of a row saved without them (from its stored scale height), 2 a seeded draw from the class range where the inverse had no solution. NULL for a row with no temperature or no starlight to work from. |
@@ -1453,6 +1457,14 @@ both terrestrial and gas-giant bodies (`body_type`).
 
 Moon counterpart of `planet_reflection_spectrum` — identical shape,
 `moon_id` FK -> `moons.id` (`ON DELETE CASCADE`) instead of `planet_id`.
+
+### `planet_interior_layers`
+
+Added in v154 (DB.89, GEN.642). One row per layer of a giant planet's interior, outside in. `planet_id` FK -> `planets.id` (`ON DELETE CASCADE`), `layer_index` (SMALLINT UNSIGNED, 0 at the top; unique with `planet_id`), `kind` (CHECK molecular_envelope / metallic_envelope / helium_gradient / helium_shell / dilute_core / compact_core / ice_mantle / rock_core), `state` (CHECK molecular_fluid / metallic_fluid / ionic_fluid / superionic / molten), `top_pressure_gpa` and `bottom_pressure_gpa` (GPa), `top_radius_fraction` and `bottom_radius_fraction` (a share of the body's radius), `mass_earth` (the layer's mass) and the mass of each material in it, in Earth masses (`hydrogen`, `helium`, `iron`, `rock`, `water_liquid`, `ice_x`, `nh3_ice`, `ch4_ice`; 0 where the layer has none). The layers add up to the body's mass, and the body's bulk composition columns are their totals ([giant-interiors.md](../design/composition/giant-interiors.md)). A body with no interior has no rows.
+
+### `moon_interior_layers`
+
+Moon counterpart of `planet_interior_layers` — identical shape, `moon_id` FK -> `moons.id` (`ON DELETE CASCADE`) instead of `planet_id`.
 
 ### `asteroid_belts`
 
@@ -2127,9 +2139,11 @@ sectors 1───* star_systems *───1 system_configs 1───* system_c
                   ├──1───* planets
                   │             │
                   │             ├──1───* planet_reflection_spectrum
+                  │             ├──1───* planet_interior_layers
                   │             └──1───* moons
                   │                       │
-                  │                       └──1───* moon_reflection_spectrum
+                  │                       ├──1───* moon_reflection_spectrum
+                  │                       └──1───* moon_interior_layers
                   │
                   └──1───* asteroid_belts 1───* asteroid_belt_composition
 
@@ -2175,6 +2189,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v154 (DB.89, GEN.642): the interior of a giant
+
+Migration 0154 adds to `planets` and `moons`: `interior_kind` (VARCHAR(16), nullable, CHECK gas_giant / ice_giant / brown_dwarf), `core_mass_earth`, `dilute_core_mass_earth`, `metallization_pressure_gpa`, `helium_depletion` (DOUBLE, nullable) and `has_helium_shell` (BOOLEAN, nullable), each at the end of the table, and creates `planet_interior_layers` and `moon_interior_layers` (the layers, outside in; see above). Nothing is backfilled: an interior needs the draws of the generator epoch, so a row made before the revision keeps NULL and no layer rows, and the regenerated galaxy replaces it. A stopped run can be started again; the version is detected from `planets.has_helium_shell`.
 
 ### v153 (GEN.699): the mantle's rheology and the heat of the interior
 

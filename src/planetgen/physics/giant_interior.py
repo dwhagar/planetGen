@@ -132,6 +132,9 @@ LAYER_KINDS = ("molecular_envelope", "metallic_envelope", "helium_gradient", "he
                "compact_core", "ice_mantle", "rock_core")
 """tuple: Every layer kind, the keys of the child table that stores them (DB.89)."""
 
+INTERIOR_KINDS = ("gas_giant", "ice_giant", "brown_dwarf")
+"""tuple: The kinds of interior (`GiantInterior.kind`), the values `planets.interior_kind` and `moons.interior_kind` hold (DB.89)."""
+
 STATES = ("molecular_fluid", "metallic_fluid", "ionic_fluid", "superionic", "molten")
 """tuple: The states a layer can have."""
 
@@ -422,6 +425,55 @@ class GiantInterior:
             expected = helium_share * (self.total_mass_earth - self.heavy_mass_earth())
             if abs(self.helium_mass_earth() - expected) > MASS_TOLERANCE * self.total_mass_earth:
                 raise InteriorError("the layers do not hold the natal helium")
+
+
+BODY_FIELDS = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa", "helium_depletion",
+               "has_helium_shell")
+"""tuple: The summary attributes (and `planets`/`moons` columns, DB.89) of a giant's interior; `None` on a body that has none."""
+
+LAYER_FIELDS = ("kind", "state", "top_pressure_gpa", "bottom_pressure_gpa", "mass_earth", "top_radius_fraction",
+                "bottom_radius_fraction")
+"""tuple: A stored layer's scalar fields; its materials (`HEAVY_MATERIALS` and `GAS_MATERIALS`, Earth masses) follow."""
+
+LAYERS_ATTRIBUTE = "interior_layers"
+"""str: The body attribute that holds the layers as a list of flat dicts (one per layer, outside in) and the child table that stores them."""
+
+
+def body_values(interior):
+    """
+    The attributes a body holds for `interior` (DB.89): `BODY_FIELDS`, and `interior_layers`, a list of flat dicts (one per
+    layer, outside in) with `LAYER_FIELDS` and the mass of every material (0.0 where the layer has none), so a save and a
+    load return them unchanged.
+    """
+    layers = [{**{name: getattr(layer, name) for name in LAYER_FIELDS},
+               **{material: layer.components.get(material, 0.0) for material in (*GAS_MATERIALS, *HEAVY_MATERIALS)}}
+              for layer in interior.layers]
+    return {"interior_kind": interior.kind, "core_mass_earth": interior.core_mass_earth,
+            "dilute_core_mass_earth": interior.dilute_core_mass_earth,
+            "metallization_pressure_gpa": interior.metallization_pressure_gpa, "helium_depletion": interior.helium_depletion,
+            "has_helium_shell": interior.has_helium_shell, LAYERS_ATTRIBUTE: layers}
+
+
+def clear(body):
+    """Removes a stored interior from `body` (a body regenerated as a class with none)."""
+    for name in (*BODY_FIELDS, LAYERS_ATTRIBUTE):
+        setattr(body, name, None)
+
+
+def interior_of(body):
+    """
+    The `GiantInterior` a body's stored attributes describe (`body_values` read back), or `None` for a body with none.
+    """
+    rows = getattr(body, LAYERS_ATTRIBUTE, None)
+    if not rows or getattr(body, "interior_kind", None) is None:
+        return None
+    layers = tuple(Layer(
+        kind=row["kind"], state=row["state"], top_pressure_gpa=row["top_pressure_gpa"],
+        bottom_pressure_gpa=row["bottom_pressure_gpa"], mass_earth=row["mass_earth"],
+        components={material: row[material] for material in (*GAS_MATERIALS, *HEAVY_MATERIALS) if row[material] > 0.0},
+        top_radius_fraction=row["top_radius_fraction"], bottom_radius_fraction=row["bottom_radius_fraction"]) for row in rows)
+    return GiantInterior(layers, math.fsum(layer.mass_earth for layer in layers), body.interior_kind,
+                         body.metallization_pressure_gpa, body.helium_depletion)
 
 
 @dataclass(frozen=True)

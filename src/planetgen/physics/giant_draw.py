@@ -125,7 +125,8 @@ def draw_giant(planet, radius_given, fallback_radius_km):
             kept inside the class's range) for a body the tables do not hold.
 
     Sets:
-        `radius` (unless given), `density` (g/cm3) and the attributes of `bulk_composition.BODY_FIELDS`.
+        `radius` (unless given), `density` (g/cm3), the attributes of `bulk_composition.BODY_FIELDS` and the interior's
+        (`giant_interior.body_values`, DB.89).
     """
     mass_earth = planet.mass / constants.EARTH_MASS_TO_KG
     ratios = bulk_draw.host_ratios(planet.star)
@@ -151,4 +152,6 @@ def draw_giant(planet, radius_given, fallback_radius_km):
         metal=shares["metal"], rock=shares["rock"], water=shares["water"], ice=shares["ice"], envelope=shares["envelope"],
         envelope_helium=shares["envelope_helium"], envelope_z=shares["envelope_z"], origin="drawn")
     for attribute, value in bulk.to_attributes().items():
+        setattr(planet, attribute, value)
+    for attribute, value in giant_interior.body_values(interior).items():
         setattr(planet, attribute, value)

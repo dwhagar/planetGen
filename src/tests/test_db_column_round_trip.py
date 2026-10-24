@@ -91,6 +91,14 @@ NULL_IN_THIS_GALAXY = {
         "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr")},
     **{("moon_reflection_spectrum", column): CHANCE for column in
        ("id", "moon_id", "spectrum_type", "position", "value")},
+    # A giant moon (rare) and its interior (DB.89).
+    **{("moons", column): CHANCE for column in (
+        "interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa", "helium_depletion",
+        "has_helium_shell")},
+    **{("moon_interior_layers", column): CHANCE for column in (
+        "id", "moon_id", "layer_index", "kind", "state", "top_pressure_gpa", "bottom_pressure_gpa", "mass_earth",
+        "top_radius_fraction", "bottom_radius_fraction", "hydrogen", "helium", "iron", "rock", "water_liquid", "ice_x",
+        "nh3_ice", "ch4_ice")},
     # The same for a planet: whether any planet of this small galaxy bears life is chance.
     **{("planets", column): CHANCE for column in
        ("evolutionary_pace", "flavor_key", "life_chemical", "life_milestone_age_gyr", "life_stage",
@@ -143,12 +151,13 @@ NEVER_READ = {
     **{(table, "id"): "child row id" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
         "interstellar_comet_composition", "planet_reflection_spectrum", "moon_reflection_spectrum",
-        "system_config_slots", "system_configs")},
+        "planet_interior_layers", "moon_interior_layers", "system_config_slots", "system_configs")},
     **{(table, parent): "parent key" for table, parent in (
         ("comet_composition", "comet_id"), ("interstellar_comet_composition", "comet_id"),
         ("asteroid_field_composition", "field_id"),
         ("planet_reflection_spectrum", "planet_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
+        ("planet_interior_layers", "planet_id"), ("moon_interior_layers", "moon_id"),
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     **{("sectors", column): "read by DB.9's storage protection (DB.44 adds the columns only)"
@@ -171,6 +180,11 @@ NEVER_READ = {
         ("star_systems", "binary_epoch_unix"), ("star_systems", "binary_next_update_due"),
         ("facilities", "epoch_unix"), ("facilities", "next_update_due"))},
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,
+    **{(table, "layer_index"): "sort key" for table in ("planet_interior_layers", "moon_interior_layers")},
+    # No moon of this small galaxy is a giant (DB.89): its layers are read only when one is.
+    **{("moon_interior_layers", column): CHANCE for column in (
+        "kind", "state", "top_pressure_gpa", "bottom_pressure_gpa", "mass_earth", "top_radius_fraction", "bottom_radius_fraction",
+        "hydrogen", "helium", "iron", "rock", "water_liquid", "ice_x", "nh3_ice", "ch4_ice")},
     ("planet_reflection_spectrum", "spectrum_type"): CHANCE, ("planet_reflection_spectrum", "value"): CHANCE,
     **{(table, stamp): "row timestamps (the Galaxy Map's change feed reads modified_at in bulk)"
        for table in ("star_systems", "facilities") for stamp in ("created_at", "modified_at")},
