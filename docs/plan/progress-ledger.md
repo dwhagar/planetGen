@@ -1274,3 +1274,4 @@ Baseline: PR #1817.
 | GEN.631 | 8.1 | Multi-star and compact systems |
 | GEN.643 | 8.1 | Habitability system |
 | TEST.313 | 8.1 | Bugs and flaky tests |
+| GEN.702 | 8.1 | Habitability system |
