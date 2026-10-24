@@ -158,6 +158,10 @@ export function createStageView(host) {
   let stage = S.galaxyStage();
   let resolved = null;
   let selectedSector = null;
+  // MAP.265: the sector a click on a coarser block read under it (closed form): outlined and described once the next
+  // window is in, but no part of the selection (the URL, the breadcrumb, the bookmark); a click on the
+  // sector itself, once it is a choice, selects it as ever.
+  let pickedSector = null;
   // The sector opened in place: {sector: {shell, band, wedge}, id, center,
   // halfEdge, fitPoints}, while galaxysector.js has its scene up.
   // A sector page's map (MAP.68): the one sector, shell/band/wedge, it is
@@ -1058,6 +1062,7 @@ export function createStageView(host) {
     keepNext = false;
     if (entered) closeSector();
     if (!options.keepSector) selectedSector = null;
+    if (!options.keepPicked) pickedSector = null;
     const token = ++goToken;
     arriving = true;
     const query = withKept(options.query || cameraQueryFor(r, options.camera || (keep ? currentCamera() : cameraFor(r))));
@@ -1183,10 +1188,10 @@ export function createStageView(host) {
     if (index >= 0) {
       setHover({ option: index, sticky: true });
       showSectorInfo(display.options[index].blocks[0]);
-    } else if (selectedSector && !pinned && !pendingOpen) {
-      // Selected from a coarser view (MAP.265): not a choice of this stage, but outlined and described all the same.
+    } else if (pickedSector && !selectedSector && !pinned && !pendingOpen) {
+      // Picked from a coarser view (MAP.265): not a choice of this stage, but outlined and described all the same.
       applyHover();
-      describeSelectedSector();
+      describePickedSector();
     } else {
       applyHover();
       showStageInfo();
@@ -1536,7 +1541,7 @@ export function createStageView(host) {
     if (index >= 0 && display.options[index]) outlineOption(index);
     else clearOutline();
     if (selected >= 0 && selected !== index) outlineOption(selected, true);
-    else if (selected < 0 && selectedSector && !entered && !pinned) addOutline(S.cellEdgePoints(sectorCell(selectedSector).bounds), 1);
+    else if (selected < 0 && !selectedSector && pickedSector && !entered && !pinned) addOutline(S.cellEdgePoints(sectorCell(pickedSector).bounds), 1);
   }
 
   function showTooltip(text, clientX, clientY) {
@@ -1708,8 +1713,8 @@ export function createStageView(host) {
     const sector = at ? P.cellAt(1, at.x, at.y, at.z, edgePc) : null;
     const chosen = sector && P.cellExists(sector.shell, sector.band, sector.wedge)
       ? { shell: sector.shell, band: sector.band, wedge: sector.wedge } : null;
-    if (chosen) selectedSector = chosen;
-    go(into, Object.assign({ keepSector: !!chosen }, how));
+    pickedSector = chosen;
+    go(into, Object.assign({ keepPicked: !!chosen }, how));
   }
 
   // A sector cell {shell, band, wedge} as the info panels and outlines take it.
@@ -1721,18 +1726,21 @@ export function createStageView(host) {
 
   // The panel of the selected sector when it is no choice on screen: its own record, asked for as the smallest window
   // round it (the stage's counts are of coarser cells), and the cell's place when nothing is charted there.
-  function describeSelectedSector() {
-    const asked = selectedSector;
+  function describePickedSector() {
+    const asked = pickedSector;
     const cell = sectorCell(asked);
     loadData({ centre: cell, g: P.WINDOW_WIDTHS[0] }).then(function (data) {
-      if (!active || selectedSector !== asked || entered || pinned) return;
+      if (!active || pickedSector !== asked || selectedSector || entered || pinned) return;
       const record = data.sectors.get(cellKey(cell));
       if (record) host.showPlacedInfo(sectorEntry(cell, record));
       else host.showCellInfo({ m: 1, bounds: cell.bounds, address: asked, filled: data.failed ? null : 0, uncharted: null });
     });
   }
 
-  canvasEl.galaxySelectedSector = function () { return selectedSector ? Object.assign({}, selectedSector) : null; };
+  canvasEl.galaxySelectedSector = function () {
+    const sector = selectedSector || pickedSector;
+    return sector ? Object.assign({}, sector) : null;
+  };
 
   function sectorOption(sector) {
     if (!display) return -1;

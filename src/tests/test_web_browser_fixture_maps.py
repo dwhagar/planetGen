@@ -1729,7 +1729,7 @@ def test_galaxy_map_block_lines_show_only_on_the_block_being_chosen(page, map_si
         if not parse_qs(_query(page)).get("win"):
             pytest.skip("no window reached")
         page.mouse.move(1, 1)
-        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.lines === 0")
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.shade === 0")
         assert 0 < page.evaluate(LINES)["blockEdges"] <= 0.15
         assert _hover_choice(page), "no block to hover"
         page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().blockEdges === 1")
@@ -1823,7 +1823,7 @@ def test_galaxy_map_draws_no_blocks_unless_the_cell_grid_or_a_fill_is_on(page, m
 def test_galaxy_map_a_sector_is_selected_from_the_galaxy_view(page, map_site):
     """MAP.265: a click on the whole galaxy reads the sector under the click in closed form, with no block of sectors
     drawn or loaded: once the window opens that sector is selected, outlined (the pointer away from the map) and
-    described in the panel by its address."""
+    described in the panel by its address (no step is added to the breadcrumb)."""
     _open_galaxy(page, map_site)
     assert _crumbs(page) == ["Galaxy"]
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySelectedSector()") is None
@@ -1834,7 +1834,6 @@ def test_galaxy_map_a_sector_is_selected_from_the_galaxy_view(page, map_site):
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().hovered.lines > 0")
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info').textContent.includes('Designation')")
     assert f"{sector['shell']}" in page.locator("#galaxymap3d-info").inner_text()
-    assert any(crumb.startswith("Sector ") for crumb in _crumbs(page)), _crumbs(page)
 
 
 def test_galaxy_map_an_unfilled_sector_stays_outlined_once_selected(page, map_site):
