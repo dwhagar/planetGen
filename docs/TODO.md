@@ -18994,30 +18994,6 @@ clears each one.
   or make it deterministic, no skip. Owner: Bug Hunt.
   Prerequisites: none.
 
-- [ ] **TEST.313 test_systems.py test_asteroid_belt_and_habitable_world_forced_together_both_succeed[M5V] is a random flake: about 2 in 12 runs the belt is missing (bug)**
-  Found by the Condition-based classes lane while gating #2833 (11:58 PM
-  EDT 2026-10-23 as the lane reported); it fails on origin/main too.
-  With ASTEROID_BELT and HABITABLE_WORLD forced together on an M5V star
-  the belt is sometimes missing, about 2 runs in 12. Do: find the draw
-  path where the forced belt can be dropped (a gate that depends on the
-  habitable world's orbit, or a reject-and-redraw that gives up), fix it
-  in code if the test is right, or make the test deterministic with the
-  reason stated; never skip it. Done: 200 runs of the test pass. Owner:
-  none for now (pool; the Flaky test fixes lane is proposed).
-  Research (2026-10-09, Update): Update 4:07 AM EDT 2026-10-24 (as Core
-  4 reported on GEN.270, 2:44 AM EDT): same failure seen again, about 1
-  run in 12 on main (reproduced on a GEN.450 tree, 1 of 12 loops with
-  `pytest -k M5V` alone; over 15 trials in the test one makes no belt
-  although ASTEROID_BELT and HABITABLE_WORLD are both forced). TEST.326
-  was filed for it by mistake and is dropped as a duplicate of this
-  item. Owner: lane 4 (Flaky test fixes), which listed TEST.313 next.
-  Research (2026-10-09, Update): Core 3 (5:30 AM EDT 2026-10-24, as the
-  lane reported): the same forced belt-and-habitable test shows about
-  0.2 percent failures for single G2V trials on main as well (reproducer
-  /tmp/claude-0/belthab.py on Core 3's machine), so the flake is not
-  only M5V.
-  Prerequisites: none.
-
 - [ ] **TEST.314 Only classify writes the class column, and the class is recomputed when an input is edited**
   Step C5 of the condition-based classes build (design draft
   design-drafts/condition-based-classes-2026-10-23.md section 7, from
