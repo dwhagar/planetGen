@@ -49,7 +49,8 @@ The ranges are design defaults, not fits.
 
 import math
 
-from planetgen.physics import constants, gases, saturation, water_layer
+from planetgen import tuning
+from planetgen.physics import constants, gases, runaway_history, saturation, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 from planetgen.physics import unit_registry as units
@@ -226,6 +227,11 @@ def generate_hydrosphere(body, internal_flux_w_m2):
     if w is None:
         raise ValueError(f"{body.planet_class!r} has no water mass fraction: its bulk composition is drawn first")
     surface_w = surface_water_fraction(w)
+    lost_kg = runaway_history.loss_kg(getattr(body, "star", None), getattr(body, "_star_distance_au", None), body.mass, body.radius)
+    if lost_kg:  # GEN.639: escape strips the air and the oceans, and volcanism later returns part of the mantle's water
+        lost = min(surface_w, lost_kg / body.mass)
+        mantle = w - surface_w  # volcanism returns part of the mantle's water, never more than was lost
+        surface_w = surface_w - lost + min(lost, tuning.MANTLE_OUTGAS_SHARE * mantle)
     gravity = (body.gravity or 0.0) * constants.EARTH_GRAVITY
     layer_km = water_layer_depth_km(body.mass, body.radius, surface_w)
     covered = ocean_fraction(layer_km, gravity)

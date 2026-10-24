@@ -1,0 +1,7 @@
+**Headline:** A planet past its star's runaway greenhouse limit while the star was young now loses water, and the limit itself depends on the planet's mass.
+
+### Changed
+- **The runaway greenhouse limit depends on the planet's mass (GEN.639).** `orbits.runaway_greenhouse_flux` and `orbits.hz_limits` take the three Kopparapu et al. 2014 sets (0.1, 1 and 5 Earth masses): a heavier planet keeps its water to a higher flux, so its inner edge is nearer the star. The star's own habitable zone and a planet's zone label are unchanged (the zone is needed before the planet's mass is known).
+- **Early water loss (GEN.639).** `physics/runaway_history.py` follows each rocky planet's and moon's flux from 30 Myr to its star's age, along the pre-main-sequence track and the star's rise to its present light, and where the flux is above the runaway limit it removes the water that the energy-limited escape of the steam takes (efficiency 0.01, the star's own XUV). `hydrosphere.generate_hydrosphere` takes the loss off the surface reservoir first, and volcanism returns 30 percent of the mantle's water, never more than was lost (the escape does not reach the mantle). The bulk water of the composition is unchanged: the loss is in the surface water, the oceans and their depth. A Sun-like star's zone loses nothing; only the worst red dwarf zones (the faintest stars and the inner edge) come out dry. Nothing new is drawn. Generator epoch bumped.
+
+generation-output: changed
