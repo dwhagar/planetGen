@@ -1254,3 +1254,5 @@ Baseline: PR #1817.
 | TEST.306 | 8.1 | Bugs and flaky tests |
 | MAP.219 | 8.1 | Habitability system |
 | MAP.263 | 8.1 | Fly-through map |
+| UX.157 | 8.1 | Habitability system |
+| UX.166 | 8.1 | Habitability system |

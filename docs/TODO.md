@@ -946,25 +946,6 @@ with `clamp()`.
   and life scores lane.
   Prerequisites: none. Related: UX.90, GEN.216, GEN.218.
 
-- [ ] **UX.157 Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug)**
-  Boss live observation (relayed 2026-10-23, 9:07 and 9:10 PM EDT),
-  found by the Composition-first stars lane (lane A): the symbols from
-  UX.101 drew as solid black shapes on every page, because the icon
-  sprite carries its own style element, which the
-  Content-Security-Policy refuses. Done: the outline is in the .icon CSS
-  rule and not in the sprite, the PHI-6 symbols are solid borderless
-  shapes at 0.8 opacity, the radiation symbol is a trefoil, the four
-  life icons (UX.151) get the same treatment, and a browser test checks
-  that a sprite icon renders its fill under the site's policy in both
-  themes. Fix is committed on branch habfix-contrast and rides one PR
-  with UX.151. Owner: the Composition-first stars lane (lane A). Found
-  in UX.101.
-  Update (2026-10-09): Boss (2026-10-23, 9:54 PM EDT): he uses Firefox
-  and his Apache sets its own Content-Security-Policy header, which
-  confirms the cause; the same header probably explains UX.148 (the
-  terminal font).
-  Prerequisites: none. Related: UX.101, UX.151.
-
 - [ ] **UX.158 Info panel line: how this colour was worked out, which inputs and whether partial or full quality**
   A short line in the info panel naming the inputs. Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
@@ -982,28 +963,6 @@ with `clamp()`.
   the wording against a wiped test database. Owner: Generation-log
   analysis lane (proposed by the lane).
   Prerequisites: none.
-
-- [ ] **UX.166 The habitability icons display as intended in Chrome but draw as solid black shapes with tiny coloured dots in Firefox, even with a fully cleared cache (bug)**
-  Boss live observation 12:27 AM EDT 2026-10-24 (his message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiL9KBBr8MDZNwucy3Qzk4t7, screenshot of the
-  Sectors view: the Aenki system planet rows show the row of
-  habitability and life icons as black circles, bow-ties, triangles,
-  hexagons and inverted triangles with only a tiny coloured dot in
-  each). Chrome shows them as intended. UX.157 found the same symptom
-  from the site's Content-Security-Policy refusing the sprite's own
-  style element, with a fix on branch habfix-contrast; this report says
-  Firefox still fails with a cleared cache, so either that fix has not
-  reached his server yet or Firefox has a second cause (the Apache-added
-  second policy of UX.148, an SVG sprite use with an external reference,
-  or an opacity or fill rule Firefox treats differently). Do: first
-  check whether the UX.157 fix is merged and in his build; if it is,
-  reproduce in Firefox with the same policy header (the browser test of
-  UX.157 should run in Firefox as well as Chromium), find the cause and
-  fix it. Done: a Firefox browser test that a sprite icon renders its
-  fill and colour under the site's policy in both themes, and the
-  Sectors view icons match Chrome. Owner: the Composition-first stars
-  lane (lane A), with UX.157.
-  Prerequisites: none. Related: UX.157, UX.148, UX.151.
 
 - [ ] **UX.167 Rewrite the equipment category row sentences from the needs list instead of the 10-15 wording**
   Decided (Boss, 12:39 AM EDT 2026-10-24 (his message
@@ -20500,6 +20459,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   machines: the test MySQL user needs GRANT OPTION (Boss authorised it
   per lane, 8:07 PM EDT), and the NLTK words corpus must be installed
   with NLTK_ALLOW_PROXIED_URLOPEN=1. Add both to the environment script.
+  Research (2026-10-09, Update): Update 3:27 AM EDT 2026-10-24 (as lane
+  A reported on #2890, UX.157 and UX.166): the new Firefox browser test
+  skips until `python -m playwright install firefox` has been run, so
+  the environment script should run it too (Chromium is already there).
+  Without it the Firefox check never runs on a lane machine.
   Prerequisites: none. Related: TEST.254.
 
 - [ ] **OPS.64 The version code carries the database schema, generator epoch and API versions as well**
