@@ -641,27 +641,6 @@ with `clamp()`.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: GEN.310. Related: GEN.231.
 
-- [ ] **UX.128 Map side panels and other browser call sites take Quantity**
-  Split from GEN.300 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The browser side: gravity,
-  temperature and pressure in the map side panels and every other script
-  that keeps a value next to its unit use the JavaScript Quantity built
-  from the same ladder table. Done: no browser call site multiplies by a
-  unit factor; the Python and JavaScript outputs for the same value
-  agree in the existing parity test.
-  Rescoped (relayed 10:45 AM EDT 2026-10-22): takes the JavaScript
-  Quantity built from GEN.569's class and the registry table of UX.140
-  (the browser copy), instead of GEN.299's.
-  Owner: Core 3, after UX.140 (the coordinator, relayed 3:56 PM EDT
-  2026-10-22 as the lane's clock reads).
-  Handoff (Core 3, relayed 7:57 PM EDT 2026-10-22 as the lane's clock
-  reads): built and committed, never gated; patch at
-  /mnt/project-files/handoffs/ux128-quantity-in-the-browser-core3-2026-10-22.patch,
-  to be pushed to claude/project-thread-l8ulna rebased after UX.140
-  merges. Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete).
-  Prerequisites: none. Related: GEN.300, GEN.299.
-
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). A design note in docs/design (with
@@ -5828,7 +5807,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.569's Quantity instead of GEN.299's. GEN.299, GEN.569, GEN.573 and
   UX.139 merged as #2490 (Core 4, 2:20 PM EDT 2026-10-22 as the lane
   reported), so the sweep items are unblocked.
-  Prerequisites: UX.128, GEN.349. Related: GEN.294, UX.108.
+  Prerequisites: GEN.349. Related: GEN.294, UX.108.
 
 - [ ] **GEN.301 Headline of 8.1: the new generate scatters, accurate galactic generation and scattering including the halo**
   Boss (2026-10-16, 1:07 PM EDT): "I also want the new generate scatters
@@ -9622,6 +9601,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   supply M_Z, is removed. GEN.454 already lists GEN.460 under
   Prerequisites and this item does not list GEN.454, so no prerequisite
   changes.
+  Part 1 (2026-10-09): Part 1 merged as #2803 (lane J, about 10:55 PM
+  EDT 2026-10-23 as the lane reported): the kernels (Fortney tables, the
+  Sestovic inflation stand-in, the Chachan heavy-element mass). The
+  wiring starts when lane I's GEN.428 draw merges. DB.86 edited
+  db/column_units.py (the six unspecified entries only), a file lane I
+  owns.
 
 - [ ] **GEN.461 The hydrosphere reads the stored water mass fraction: the compressed water-layer depth, the base pressure, the high-pressure ice and the liquidus are recomputed, and the class label follows from the water share (bug)**
   Finding of the Body composition research lane (GEN.432 and GEN.433;
@@ -13014,33 +12999,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   folding into states and the DB.74 table revision (stored names
   body_type and planet_type, mass and mass_kg). Report:
   reports/blocker-5-status-2026-10-24.md.
-- [ ] **GEN.566 Research: the size-frequency law of small bodies, for belt members drawn on demand and the comet size cut, beside the interstellar size law of GEN.560**
-  Part of the unified orbited-body chain (GEN.550; design note
-  docs/design/architecture/mass-object-class.md, decided: Boss's cards, as the
-  coordinator relayed with the wake times converted: E2 tapped
-  'Representability floor' at 11:46 PM EDT; E1 typed 'ok, I approve in
-  the hybrid approach you outlined, let it to TODO and ship to into the
-  plan' in the unified star-like objects thread at 11:48 PM EDT; E3
-  tapped 'Inside host chain' at 11:48 PM EDT; E4 tapped 'Plan only' at
-  11:49 PM EDT; the object-ID card 'IDs stay stable' at 11:49 PM EDT
-  (2026-10-17)). Owners follow Boss's card D7 (Core 4 chain and classes,
-  Core 1 storage). U15a of the design. The on-demand belt members need
-  the cumulative size law (an illustration with assumed inputs, not a
-  result: a belt of 1e6 bodies above 1 km with a cumulative law falling
-  as D^-2 to D^-2.7 holds 1e10 to 1e12 bodies above 10 m), and the comet
-  size cut of GEN.559 needs the law for interstellar objects, which
-  GEN.560 already lists. Do: find, read and verify the sources for the
-  size-frequency law of asteroid belts, Kuiper belt objects and comets
-  and for the interstellar objects, with the standing source rules
-  (verified wins, the newest verified wins, widest permission between
-  two in doubt; recalled and unverified: Jewitt and Seligman 2023, Do,
-  Tucker and Tonry 2018); a paper only Boss can supply is a request to
-  him. Done: a note in docs/design/ lists each source with its verified
-  numbers and what is missing; GEN.559 and the belt member draw read
-  from it. Owner: a read-only research lane (proposed, none assigned),
-  8.4 phase 1, no behaviour change.
-  Prerequisites: none. Related: GEN.550, GEN.560, GEN.559, GEN.522.
-
 - [ ] **GEN.570 Field declaration: every unit-valued field of the mass object classes declares its kind and native unit, and the one field table serves the serializer**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/architecture/unified-unit-quantity.md, decided: Boss's six cards on the
@@ -13353,95 +13311,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   single change in the note. The record the point holds is GEN.584.
   Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
 
-- [ ] **GEN.579 The hosting gate: can_host(body) in three parts and the gated table of the satellite share by size class, as labelled stand-in rows**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/architecture/unified-system-barycentre.md, decided: Boss's nine cards
-  on the System design, as the coordinator relayed with the wake times
-  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
-  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
-  stay binary'), every one the recommended option: S1 a member's stored
-  orbit is its barycentre about the central object (a planet's stored
-  state is the barycentre of the planet and its moons), S2 the central
-  object's offset is derived on read and never stored (the wobble
-  columns go), S3 the most massive member is the central object and
-  comparable-mass pairs stay binary nodes, S4 a system node takes a
-  central child and any number of members, S5 a stand-in size cut of 1
-  km diameter for hosting satellites plus fit and stability checks, S6
-  moons may have satellites through the same gate with a tidal-survival
-  gate row first (the odds start at zero; this supersedes 'moons are the
-  lowest level'), S7 the point class's system frame measures from the
-  top-level barycentre with a new local frame from the immediate
-  parent's barycentre, S8 the stored values change in the 8.4 revision
-  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
-  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
-  2026-10-18 (project chat): a System is unified rules around the
-  central object (as binary stars are done now); every object other than
-  the central object can be another system with that object as its
-  central object, down to small objects that get no satellites; all
-  objects follow the same physics, so the origin of the system's space
-  is the gravitational center and the central object may move around it.
-  Item SY8 of the note (section 4.4, cards S5 and S6). Proposed owner,
-  not assigned by a card: Core 4. Depends on GEN.552 and GEN.472
-  (built). Do: `can_host(body)` in three parts, in order: a satellite
-  must fit (the 10 m floor, the mass-ratio limit, equal-mass pairs only
-  as binary nodes), a stable orbit must exist (inside 0.4895 Hill radius
-  at pericentre, outside the host plus satellite radius and the Roche
-  limit for a fluid body, and the existing hierarchical checks
-  `is_triple_stable`), and a chance that one exists at all: a gated
-  table (GEN.472 format) of the share of bodies of each size class that
-  have satellites, shipped as labelled stand-in rows with a size cut of
-  1 km diameter (a tunable placeholder, replaced when GEN.580 or GEN.566
-  gives a verified law). A moon host starts with zero rows and a
-  tidal-survival gate row that must exist before any sub-satellite is
-  drawn. The recursion ends because the gate says no, not because of a
-  level counter. Done: a body below the cut has no satellites, a moon
-  host draws none until its rows exist, and every row carries its source
-  state.
-  Prerequisites: none. Related: GEN.550, GEN.552, GEN.315, GEN.565.
-  Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
-
-- [ ] **GEN.580 Research: the binary and satellite fraction of small bodies by size, and the survival of sub-satellites of moons, to replace the stand-in cut of the hosting gate**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/architecture/unified-system-barycentre.md, decided: Boss's nine cards
-  on the System design, as the coordinator relayed with the wake times
-  converted: S1, S2, S4, S5, S6, S7, S8 and S9 tapped between 12:10 and
-  12:13 AM EDT on 2026-10-18, S3 at 12:15 AM EDT ('Most massive, pairs
-  stay binary'), every one the recommended option: S1 a member's stored
-  orbit is its barycentre about the central object (a planet's stored
-  state is the barycentre of the planet and its moons), S2 the central
-  object's offset is derived on read and never stored (the wobble
-  columns go), S3 the most massive member is the central object and
-  comparable-mass pairs stay binary nodes, S4 a system node takes a
-  central child and any number of members, S5 a stand-in size cut of 1
-  km diameter for hosting satellites plus fit and stability checks, S6
-  moons may have satellites through the same gate with a tidal-survival
-  gate row first (the odds start at zero; this supersedes 'moons are the
-  lowest level'), S7 the point class's system frame measures from the
-  top-level barycentre with a new local frame from the immediate
-  parent's barycentre, S8 the stored values change in the 8.4 revision
-  with DB.73 and DB.67 to DB.71, S9 a System is a view (rows with a
-  common parent link, cached sums)). Boss's message of 12:03 AM EDT,
-  2026-10-18 (project chat): a System is unified rules around the
-  central object (as binary stars are done now); every object other than
-  the central object can be another system with that object as its
-  central object, down to small objects that get no satellites; all
-  objects follow the same physics, so the origin of the system's space
-  is the gravitational center and the central object may move around it.
-  Item SY9 of the note (sections 4.4 and 4.5). Proposed owner, not
-  assigned by a card: a read-only research lane, joining GEN.566 (the
-  size-frequency research). Verify first the three items the note
-  recalled and did not verify: the binary fraction of small asteroids by
-  size (the note recalls about 15% of near-Earth asteroids above 0.3 km,
-  from Margot et al. 2002 and Pravec et al. 2006), radiation torques
-  (YORP) spinning small bodies up and shedding satellites, and tidal
-  stripping of sub-satellites of moons by the planet (the timescale).
-  Done: a handoff note with verified citations and numbers (or a
-  statement that none was found), the size cut and the satellite-share
-  rows it supports, and a list of what stays a stand-in; raw papers stay
-  out of the repo.
-  Prerequisites: none. Related: GEN.550, GEN.552, GEN.315, GEN.565.
-  Design: [docs/design/architecture/unified-system-barycentre.md](design/architecture/unified-system-barycentre.md)
-
 - [ ] **GEN.581 primary_first(members): before a system is validated the heaviest branch becomes the primary and the others are recalculated, one function for the tree, the fill, moons and free pairs**
   Part of the unified orbited-body plan (GEN.550; design note
   docs/design/architecture/unified-system-barycentre.md, decided: Boss's nine cards
@@ -13749,6 +13618,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the bare 1000 beside a radius, the three Kepler unit systems are one
   law, and every sweep is bit-identical on the golden set or carries its
   epoch.
+  Group 1 (2026-10-09): Group 1 (10 sites) merged in #2801 (lane J,
+  about 10:55 PM EDT 2026-10-23 as the lane reported); further file
+  groups stay open.
   Prerequisites: none. Related: GEN.550, GEN.565, GEN.568, GEN.569.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
 
@@ -14355,39 +14227,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch it takes. Owner: Core 3, after GEN.332.
   Prerequisites: GEN.332. Related: GEN.316, GEN.631.
 
-- [ ] **GEN.641 Research: the interior of a giant planet, ice giant and brown dwarf: the layers (molecular, liquid and metallic hydrogen and helium, helium rain, a dilute core), whether there is a rocky or icy core, and what the core is made of**
-  Boss, 6:01 PM EDT 2026-10-23: 'I want gas giants to have a full
-  composition, including liquid or metallic hydrogen or helium cores, if
-  they have a rocky core, and what it is made of.' Gap found by the TODO
-  thread: GEN.460 draws only the heavy-element mass M_Z, the envelope
-  helium and metallicity and a core-mass placeholder (log-uniform 5 to
-  20 Earth masses, part C item 3 of
-  docs/design/composition/body-composition-parts/C-volatile-and-giants.md, the giant
-  interior design note never filed), and the spine contract
-  (composition-spine-contracts-2026-10-23.md) stores a giant as
-  fractions metal, rock, water, ice and envelope with envelope_helium
-  and envelope_z, with no layers. Covers gas giants, ice giants and
-  brown dwarfs. Owner: Composition lane J (bulk composition). Lane I
-  (the spine) is told: BulkFractions needs the giant interior fields
-  once GEN.642 settles them (testing mode: new epochs and database
-  versions are allowed, Boss 5:42 PM EDT). Read and fill the gap in part
-  C item 3: modern interior models (Wahl 2017 for Jupiter, Debras and
-  Chabrier 2019, Helled 2022 review 'Giant planet interiors', Miguel
-  2016, Nettelmann for Saturn and the ice giants), the pressure and
-  temperature at the molecular to metallic transition (about 1 to 2 Mbar
-  for Jupiter), the helium rain layer and the helium depletion of the
-  outer envelope, the diluted core and its metal gradient, the core mass
-  and composition (rock and iron, or ice, by mass and by formation
-  distance), the ice giants' layers (hydrogen-helium envelope, a
-  water-ammonia-methane ionic or superionic mantle, a rock core), and
-  the brown dwarfs' metallic hydrogen. No Solar System shape as a law:
-  the sources decide the distributions, with stand-ins labelled in the
-  gap plan registry. Done: a design note in docs/design (the layers per
-  mass and age, the core-presence probability, the core composition
-  draw, the transition pressures, every number labelled READ, COMPUTED
-  or placeholder), the test targets, and the open questions for Boss.
-  Prerequisites: none. Related: GEN.460, GEN.454, GEN.428.
-
 - [ ] **GEN.642 Giants, ice giants and brown dwarfs get a full interior composition: the molecular envelope, the liquid and metallic hydrogen and helium layers, the dilute zone, and a rocky, iron or icy core with its own composition, drawn and described**
   Boss, 6:01 PM EDT 2026-10-23: 'I want gas giants to have a full
   composition, including liquid or metallic hydrogen or helium cores, if
@@ -14418,8 +14257,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   has layers whose masses sum to the body mass, a core flag with
   composition, a determinism test across worker counts, the sums test in
   TEST.210 extended to giants, and the description names the layers.
-  Prerequisites: GEN.641, GEN.460, GEN.428, GEN.429. Related: GEN.460,
+  Prerequisites: GEN.460, GEN.428, GEN.429. Related: GEN.460,
   GEN.430, GEN.454, TEST.210, DB.69.
+  Slice 1 (2026-10-09): Kernel merged in #2800 (lane J, about 10:55 PM
+  EDT 2026-10-23 as the lane reported); the draw and the description
+  stay open. Finding: giants that are wholly mostly heavy (ice giants
+  below 30 Earth masses) fall outside the Fortney tables, so their
+  radius needs lane I's water-world and envelope kernels (GEN.429); this
+  is a decision-list item.
 
 - [ ] **GEN.643 Habitable means PHI-6 overall Blue or Green: one rule, one function, read by the sector counts, the markers, the lists, the search and the descriptions**
   Boss, 6:02 PM EDT 2026-10-23: 'Yes, now Habitable should now be based
@@ -14873,23 +14718,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build it'; decisions A to F of 7:37 and 7:46 PM EDT in its section 2).
   Owner: Survival equipment lane (thread 'Survival equipment fields').
   Prerequisites: GEN.414, GEN.655. Related: GEN.414.
-
-- [ ] **GEN.659 The interstellar debris density stand-in of 1e12 per pc^3 is 700 to 1,800 times too low: the measured value is 7e14 to 1.8e15 per pc^3 (bug)**
-  Found by Habitability lane J (relayed 8:08 PM EDT 2026-10-23 as the
-  lane reported, reports/small-body-size-laws-2026-10-23.md); filed by
-  the TODO thread. Reproducer: INTERSTELLAR_DEBRIS_DENSITY_PC3 is 1e12
-  per pc^3 and docs/design/architecture/unified-star-like-objects.md said the same
-  (that design line is corrected); the measured value is 7e14 to 1.8e15
-  per pc^3 (Jewitt and Seligman 2023, Do et al. 2018). Kind: bug. Do:
-  the constant, the computed interstellar_debris_count and the sentences
-  in docs/design/systems/interstellar-object-rates.md,
-  phenomena-catalogue-and-fill.md and collisions-and-mergers.md read the
-  measured range, verified by a lane against the two papers before use
-  under the standing source rules. Done: the computed count shown on the
-  sector page follows the measured density and the tests agree. The
-  count is shown, not drawn, so no generator epoch is expected. Owner:
-  Habitability lane J (it found it).
-  Prerequisites: none. Related: GEN.566, GEN.579.
 
 - [ ] **GEN.660 The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug)**
   Found by Habitability lane K (relayed 8:21 PM EDT 2026-10-23 as the
@@ -16794,25 +16622,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   open item that adds a `sectors` column is checked against it. Owner:
   not assigned (the DB items chain lane after its listed order).
   Prerequisites: none. Related: DB.18, DB.44.
-
-- [ ] **DB.86 Six columns in the column registry are declared 'unspecified': atm_density, atm_molar_density, formed_at, parabolic_mean_anomaly and two more**
-  Found by Core 1 (relayed 1:03 PM EDT 2026-10-22 as the lane's clock
-  reads, when DB.76 merged as #2487), filed by the TODO thread. DB.76's
-  column registry (`db/column_units.py`, reconciled with GEN.568's unit
-  registry) declares six columns as 'unspecified' because their unit has
-  no source yet: four quantities, atm_density, atm_molar_density,
-  formed_at and parabolic_mean_anomaly, and two more columns Core 1 did
-  not name. Do: find each column's real unit from the code that writes
-  and reads it (and a source where the value is a physical constant),
-  name the two unnamed columns from `column_units.py`, declare their
-  units in the registry, and add the suffix or kind they need. No
-  guessed units, no fixed content. Done: no column in the registry is
-  'unspecified', and the DB.76 suffix test passes with the declarations.
-  Owner: Core 1 (proposed; the registry is its work), after DB.74.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: DB.76, DB.74, GEN.568.
 
 - [ ] **DB.89 Giants store their interior layers: the layer boundaries, the helium share per layer, the core flag, core mass and core composition**
   Boss, 6:01 PM EDT 2026-10-23: 'I want gas giants to have a full
@@ -20390,6 +20199,15 @@ clears each one.
   or make it deterministic, no skip. Owner: Bug Hunt.
   Prerequisites: none.
 
+- [ ] **TEST.312 test_datasets_real::test_the_catalogue_reports_nothing_missing fails on main for the new ozone_uv dataset (bug)**
+  Seen by lane J (10:55 PM EDT 2026-10-23 as the lane reported): the
+  derived files of the ozone_uv dataset (AD9, GEN.443) are not made
+  until update.sh runs the setup step, so the changed gate shows one red
+  on any lane machine. Do: the test skips (or checks differently) a
+  dataset whose setup step has not run, without hiding a truly missing
+  dataset. Owner: lane G (GEN.443).
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21671,29 +21489,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   DB.70.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
   code as the atmosphere items Boss gave it; to be confirmed).
-
-- [ ] **DOC.70 Docs for the unit registry: units-and-number-formatting.md and database-schema.md updated, the unit rules in the registry's file header**
-  Part of the unified orbited-body plan (GEN.550; design note
-  docs/design/architecture/unified-unit-quantity.md, decided: Boss's six cards on the
-  unit design, taps 11:56 to 11:57 PM EDT, 2026-10-17, as the
-  coordinator relayed, each the recommended option: Q1 other units
-  worked out on first read and kept after, Q2 a plain float in the
-  field's declared unit with a Quantity at the edges, Q3 each column's
-  stored unit declared for precision (not forced to SI), Q4 unit
-  suffixes stay in names with a test that the suffix equals the
-  declaration, Q5 rolled out inside the host chain items with
-  bit-identical sweeps, Q6 the two rounded factors become exact in the
-  first sweep as one epoch-changing change). Boss's wish (11:51 PM EDT):
-  one unit code that stores any kind of unit the project uses and
-  answers in every other form, as the point in space does for position.
-  Proposed owner, not assigned by a card: Core 5. Do: update
-  `docs/design/architecture/units-and-number-formatting.md` and
-  `docs/design/database-schema.md` for the registry, Quantity, Field and
-  column registry; the unit rules in the registry file header. Done: the
-  docs gate passes and no page describes a second unit table.
-  Prerequisites: none. Related: GEN.550, GEN.565,
-  DB.74.
-  Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
 
 - [ ] **DOC.71 Docs for the System rule: database-schema.md, the system view in docs/design and the header of system_tree.py**
   Part of the unified orbited-body plan (GEN.550; design note

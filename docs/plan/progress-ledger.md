@@ -1184,3 +1184,11 @@ Baseline: PR #1817.
 | MAP.276 | 8.1 | Fly-through map |
 | OPS.68 | 8.1 | Bugs and flaky tests |
 | MAP.278 | 8.1 | Fly-through map |
+| GEN.566 | 8.1 | Bulk composition |
+| GEN.580 | 8.1 | Bulk composition |
+| GEN.579 | 8.1 | Bulk composition |
+| DOC.70 | 8.1 | Bulk composition |
+| GEN.641 | 8.1 | Bulk composition |
+| GEN.659 | 8.1 | Bulk composition |
+| DB.86 | 8.1 | Bulk composition |
+| UX.128 | 8.1 | The Quantity call-site sweep |
