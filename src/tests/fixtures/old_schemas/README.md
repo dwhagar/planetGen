@@ -27,4 +27,5 @@ Commit each file came from:
 - v141: 7cbd9d6 (GEN.459 radiogenic module, before GEN.412)
 - v142: 77fdfbb96 (GEN.412 albedo and greenhouse, before GEN.666)
 - v143: 4b9d639 (GEN.666 evolutionary pace stored once, before DB.69)
+- v144: f36f7a0 (DB.69 and GEN.428/429 bulk composition columns, before GEN.443 star UV-C share; the fixture was missing)
 - v145: 3a09727 (GEN.443 star UV-C share) (before MAP.258 block ladder root)

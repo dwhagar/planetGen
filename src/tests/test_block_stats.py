@@ -1,7 +1,7 @@
 """
 DB.25, MAP.205: the stored block totals (`galaxy_block_stats`) on the block ladder of shells. Every stored row equals
 the sums of the generated sectors inside its block, a refresh puts right the blocks above a sector and only those, a
-deletion takes the sector out, the migration and `rebuild` give the same rows, and a window reads its cells in one
+deletion takes the sector out, `rebuild` gives the same rows a refresh kept, and a window reads its cells in one
 statement.
 """
 
