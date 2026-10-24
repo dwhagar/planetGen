@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2152] - 2026-10-24
+
+**Headline:** Every star now carries its own ultraviolet-C share, and a planet or moon's ground light and UV index can be read from what it stores.
+
+### Added
+- **GEN.443: the ground light of a stored body.** `physics/body_radiation.py` turns a planet's or moon's record (its air, its star and distance, its ozone column and its haze, dust and cloud) into the band spectrum at its ground with the two-stream model, and gives its UV index and DNA dose. Migration 0145 adds `stars.uv_c_share` (schema v145), the share of the star's blackbody UV-C it gives off, drawn once from the star's own stream (log-uniform 0.1 to 1); a row saved before it keeps NULL and reads as the blackbody until the galaxy is regenerated.
+
+### Changed
+- **Generator epoch.** Each ordinary star carries one more stored value, drawn on its own stream so no other draw moves; the golden record is regenerated for it.
+generation-output: changed
+
 ## [8.0.2151] - 2026-10-24
 
 **Headline:** A body's radius, density and gravity can be worked out from its mass and bulk composition: a reference solver and the fast fits for dry rock, water worlds and sub-Neptunes.

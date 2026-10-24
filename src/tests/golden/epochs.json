@@ -348,8 +348,7 @@
     },
     {
       "epoch": 71,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2152",
       "reason": "Each ordinary star draws a UV-C share of its blackbody (log-uniform 0.1 to 1) on its own stream and stores it (schema 145), so every stored star gains a value (GEN.443)"
     }
   ]
