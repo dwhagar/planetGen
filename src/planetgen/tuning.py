@@ -1475,6 +1475,57 @@ OLD_GIANT_SYSTEM_SHARE = 0.005
 """float: The share of all systems whose placed star is a giant of the old population. A stand-in, used to turn a type's
 Galaxy count (R Coronae Borealis, FK Comae, Thorne-Zytkow) into the chance among old giants; remeasure from a fill."""
 
+# --- White-dwarf binary types (GEN.271, `generation/multistar.py`, docs/design/systems/multi-star-systems.md 13.3) ---
+DOUBLE_WHITE_DWARF_AXIS_AU = (0.001, 4.0)
+"""tuple: The axis of a close double white dwarf, log-uniform, AU (Maoz et al.: within 4 AU); the Peters rule
+(`stability.survives_gravitational_waves`) drops a pair that would have merged by the system's age."""
+
+POST_COMMON_ENVELOPE_AXIS_AU = (0.005, 2.0)
+"""tuple: The axis of a post-common-envelope white dwarf and companion, log-uniform, AU (design note 13.3)."""
+
+CATACLYSMIC_PERIOD_HOURS = (1.3, 10.0)
+"""tuple: The orbital period of a cataclysmic variable, hours (design note 13.3)."""
+
+CATACLYSMIC_MAGNETIC_SHARE = 0.36
+"""float: The share of cataclysmic variables whose white dwarf is magnetic (a polar or an intermediate polar)."""
+
+CATACLYSMIC_DONOR_MASS_RANGE_SOL = (0.08, 0.7)
+"""tuple: The mass of a cataclysmic variable's main-sequence donor, uniform, solar masses. A stand-in: the donor fills its
+lobe, so its mass sets the period, and this range gives the periods of `CATACLYSMIC_PERIOD_HOURS`; a draw whose period
+falls outside is made again."""
+
+AM_CVN_PERIOD_MINUTES = (5.0, 65.0)
+"""tuple: The orbital period of an AM Canum Venaticorum binary, minutes (design note 13.3)."""
+
+AM_CVN_DONOR_MASS_RANGE_SOL = (0.009, 0.13)
+"""tuple: The mass of an AM CVn helium donor, log-uniform, solar masses. A stand-in that gives the periods of
+`AM_CVN_PERIOD_MINUTES` with the radius law below; a draw whose period falls outside is made again."""
+
+AM_CVN_DONOR_RADIUS_SOL_AT_0_05 = 0.03
+"""float: The radius of a 0.05 solar mass degenerate helium donor, solar radii; other masses scale as the mass to the power
+-1/3 (a stand-in for the semi-degenerate donors of AM CVn systems, Nelemans et al. 2001)."""
+
+ACCRETING_FILL_FACTOR = 1.05
+"""float: How far a cataclysmic variable's or AM CVn's donor fills its Roche lobe (1 is exactly full); a pair at this
+filling has `interaction` accreting."""
+
+HOT_SUBDWARF_POST_CE_SHARE = 0.05
+"""float: The share of post-common-envelope pairs whose companion is a stripped helium star or hot subdwarf (kind
+`stripped-helium`, 0.3 to 0.5 solar masses). A stand-in: the observed sdB and sdO binaries are a few percent of the
+white dwarf plus star pairs, and the note gives no share."""
+
+BARIUM_GIANT_MAX_INITIAL_MASS_SOL = 3.0
+"""float: A giant born lighter than this is a G or K giant for the barium and symbiotic shares (the giants of the
+intermediate and old populations are nearly all of such mass; a stand-in for the spectral class, which the member does
+not carry)."""
+
+BARIUM_PERIOD_DAYS = (80.0, 1.0e4)
+"""tuple: The period of a barium or CH star's white dwarf companion, log-uniform, days (Jorissen et al. 2019: tens of
+days to tens of years)."""
+
+SYMBIOTIC_PERIOD_DAYS = (200.0, 2000.0)
+"""tuple: The period of a symbiotic star's white dwarf, log-uniform, days (Mikolajewska 2012: 200 to 1,500 days)."""
+
 # The chance of a companion inside 10 AU against the star's own [Fe/H] (GEN.103; Boss, 2026-10-16, 6:12 to 6:15 PM
 # EDT: one pooled trend, every star mass). Moe, Kratter & Badenes 2019, ApJ 875:61 (arXiv 1808.02116), for solar-type
 # primaries (0.6 to 1.5 Msun, periods under 10^4 d): 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2 and

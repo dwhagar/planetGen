@@ -197,7 +197,7 @@ SYSTEM_TYPE_RATES = {
         "13.3", "Close double white dwarf", "white dwarfs", 0.095, "S", ("old",), "draw_white_dwarf_binary",
         271, "F", (10, 11), note="Within 4 AU (Maoz et al.); axis log-uniform 0.001 to 4 AU; Peters rule."),
     "double-white-dwarf-merger": _t(
-        "13.3", "Double white dwarf merger product", "white dwarfs", 0.10, "S", ("old",), "draw_merger_product",
+        "13.3", "Double white dwarf merger product", "white dwarfs", 0.10, "S", ("old",), "draw_white_dwarf_merger",
         271, "F", (10, 11), by_class={"wide DWD heavier star": 0.26},
         note="The high-mass bump, 0.8 to 1.1 solar masses; 26% to 54% of wide double white dwarfs have a "
              "merger-product heavier star."),
@@ -217,7 +217,7 @@ SYSTEM_TYPE_RATES = {
     "symbiotic-barium": _t(
         "13.3", "Nova, symbiotic, Type Ia progenitor", "giants", 5e-6, "I",
         ("old", "bulge", "nuclear_cluster", "nuclear_disc"),
-        "draw_white_dwarf_binary", 271, "S+F", (10, 11), by_class={"barium and CH (G and K giants)": 0.01},
+        "draw_giant_companion", 271, "S+F", (10, 11), by_class={"barium and CH (G and K giants)": 0.01},
         note="Symbiotic 276 confirmed, predicted 1.2e3 to 4e5 (low confidence). A Type Ia explosion is an event "
              "and out of scope."),
     "white-dwarf-brown-dwarf": _t(
