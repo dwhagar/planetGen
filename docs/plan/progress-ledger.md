@@ -1220,3 +1220,5 @@ Baseline: PR #1817.
 | MAP.270 | 8.1 | Fly-through map |
 | GEN.656 | 8.1 | Habitability system |
 | UX.154 | 8.1 | Habitability system |
+| GEN.518 | 8.1 | Tuned draws and selection models |
+| GEN.520 | 8.1 | Tuned draws and selection models |

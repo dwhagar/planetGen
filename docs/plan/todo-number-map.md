@@ -1243,9 +1243,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.515 | Tuned draw builder B7: ground and petrology | none | open |
 | GEN.516 | Tuned draw builder B8: giant planets | none | done, PR #2756 |
 | GEN.517 | Tuned draw builder B9: brown dwarfs | none | done, PR #2756 |
-| GEN.518 | Tuned draw builder B10: the chemistry module | none | open |
+| GEN.518 | Tuned draw builder B10: the chemistry module | none | done, PR #2765 |
 | GEN.519 | Tuned draw builder B11: aerosol amplitude | none | open |
-| GEN.520 | Tuned draw builder B12: the comet sampler | none | open |
+| GEN.520 | Tuned draw builder B12: the comet sampler | none | done, PR #2760 |
 | GEN.521 | Tuned draw builder B13: belts | none | open |
 | GEN.522 | Tuned draw builder B14: moons and Kuiper belt objects | none | open |
 | GEN.523 | Tuned draw builder B15: host-star activity | none | open |
