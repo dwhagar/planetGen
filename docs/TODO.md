@@ -13072,8 +13072,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
   3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
   the new Math lane (physics route 'derivable now',
-  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
-  TODO thread; nobody has started it; check with Lane H first).
+  reports/physics-gaps-2026-10-24.md). Owner: Lane H (started 4:14 PM EDT 2026-10-24, as the coordinator relayed; the Math lane skips it).
   Prerequisites: none. Related: GEN.699, GEN.461.
 
 - [ ] **GEN.722 Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins**
@@ -13385,9 +13384,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
   3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
   the new Math lane (physics route 'derivable now',
-  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
-  TODO thread; nobody has started it; check with Lane H first, which is
-  the nearest owner).
+  reports/physics-gaps-2026-10-24.md). Owner: Lane H (started 4:14 PM EDT 2026-10-24, as the coordinator relayed; the Math lane skips it).
   Prerequisites: none. Related: GEN.699, GEN.721.
 
 - [ ] **GEN.736 Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model**
@@ -18820,35 +18817,6 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
-- [ ] **TEST.349 The browser phase of scripts/test.py changed fails in fixture setup with KeyError 'planets' before any test body runs, on every lane and on main (bug)**
-  Found by Core 1 (relayed 3:06 PM EDT 2026-10-24 as the lane reported;
-  Lane H and others saw browser tests fail the same way; filed by the
-  TODO thread). Kind: tooling failure, not reproduced by the TODO
-  thread. The error is in the browser-phase fixture setup of
-  `scripts/test.py changed`, before any test body, and appears on
-  origin/main on Core 1's lane. It blocks every lane from running
-  browser tests in its gate. Bug Hunt is adding diagnostics. Do: find
-  the fixture that reads a 'planets' key that is missing (a fixture
-  file, a database seed or an API payload that changed) and fix it.
-  Done: the browser phase starts and its tests run on main. Owner: Bug
-  Hunt. Related: TEST.344, TEST.343.
-  Root cause (Bug Hunt, 4:08 PM EDT 2026-10-24 as the lane reported;
-  reproduced with scripts/test.py browser on main 81f53f56: 20 errors
-  at setup in test_web_a11y.py): the shared sample_params fixture asks
-  /api/systems/<id> for each of 100 systems to find one with planets.
-  The API default limit is 50 requests per hour (RATELIMIT_DEFAULT
-  "200 per day;50 per hour") and the sample galaxy now has about 375
-  systems in a sector, most without planets, so after 50 calls every
-  answer is 429 and the fixture raises KeyError 'planets'. Fix in
-  progress: one SQL query finds the sample system and one API call
-  reads it. Until that merges, the browser phase of a gate errors on a
-  fresh machine.
-  Lane 3 also saw test_object_page_walk fixtures error (system detail
-  has no "stars" key, relayed 5:09 PM EDT 2026-10-24 as the lane
-  reported): the same 429 answer is the likely cause, so Bug Hunt
-  checks it after the fixture fix before filing it separately.
-  Prerequisites: none. Related: TEST.344, TEST.343.
-
 - [ ] **TEST.350 Tests red on clean main: test_web_facilities (18 tests), test_web_population (test_system_page_names_species_and_territory, test_real_population) and test_web_browser_controls test_every_plain_button_does_something[web.system] (bug)**
   Found by Lane E (relayed 3:19 PM EDT 2026-10-24 as the lane reported,
   on clean origin/main; filed by the TODO thread). Kind: failing tests
@@ -18879,6 +18847,14 @@ clears each one.
   test without that reason. Done: the test passes on main for a stated
   reason. Owner: Lane H (owns the interior heat model, GEN.721 and
   GEN.735).
+  Check (2026-10-09): Update 4:16 PM EDT 2026-10-24: Lane H says this
+  duplicates TEST.351 (property sheet, fixed in #3059). It is a
+  different test (test_interior_heat.py, not the property sheet), so it
+  stays open until someone shows it passes on main. The TODO thread's
+  machine cannot confirm either way: there the test stops earlier on a
+  missing NLTK words resource. Lane H or Lane I, run it on a clean main
+  and report the Urey ratio the failing body gets; close the item if it
+  is green.
   Prerequisites: none. Related: GEN.721, GEN.735.
 
 ## USR: User accounts
