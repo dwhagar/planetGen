@@ -136,7 +136,8 @@ def test_a_row_with_no_solution_takes_a_seeded_class_draw(mysql_config):
             conn.execute(f"ALTER TABLE {table} DROP COLUMN bond_albedo, DROP COLUMN greenhouse_factor,"
                          " DROP COLUMN albedo_basis, ALGORITHM=COPY")
         conn.execute("UPDATE alembic_version SET version_num = '0141'")
-        conn.execute("DELETE FROM schema_migrations WHERE version > 141")
+        conn.execute("DELETE FROM schema_migrations")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (141)")
         conn.commit()
     finally:
         conn.close()
