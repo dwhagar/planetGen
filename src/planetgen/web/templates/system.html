@@ -215,6 +215,18 @@
 {% block content %}
 {{ pick_banner(pick, bookmark, 'system') }}
 {{ map_html }}
+{%- if glance %}
+<section class="panel" id="system-glance" aria-labelledby="system-glance-heading">
+  <div class="panel-header"><h2 id="system-glance-heading">At a glance</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
+    <tbody>
+      {%- for row in glance %}
+      <tr><th scope="row">{{ row.label }}</th><td>{{ row.html }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 {#- ADM.34: every admin action of this page sits behind the one Admin menu
     (partials/admin_menu.html): the whole system's (regenerate, change the
     star, delete), a submenu per body (regenerate, change

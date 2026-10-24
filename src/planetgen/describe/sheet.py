@@ -66,6 +66,9 @@ GLANCE = {
                "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "distance_km", "period_years"),
     "moon": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
              "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "distance_km", "period_years"),
+    "star": ("role", "star_type", "yerkes_class", "state", "mass_kg", "luminosity_w", "temperature_k",
+             "habitable_zone_inner_km", "habitable_zone_outer_km", "snow_line_km", "flare_n33_per_yr",
+             "lethal_event_rate_per_gyr", "heliosphere_radius_km", "system_perimeter_km"),
 }
 """dict: For each kind, the row keys of its "At a glance" panel (UX.188), in a captain's order: what it is, can I
 survive there, how long is a day and how far is it. Each is a row of the same sheet."""
@@ -207,6 +210,9 @@ _BODY_GROUPS = (
            ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 ratio"), ("urey_ratio", "Urey ratio"),
            ("internal_heat_flux_w_m2", "Heat flowing out of the interior"), ("mantle_eta0_pa_s", "Mantle viscosity prefactor"),
            ("mantle_activation_kj_mol", "Mantle viscosity activation energy")),
+    *_rows("composition", ("interior_kind", "Kind of interior", TEXT), ("core_mass_earth", "Compact core mass"),
+           ("dilute_core_mass_earth", "Dilute core mass"), ("metallization_pressure_gpa", "Pressure where hydrogen turns metallic"),
+           ("helium_depletion", "Helium left in the molecular envelope"), ("has_helium_shell", "Helium-rich shell", FLAG)),
 )
 
 _PLANET = _MOON = _BODY_GROUPS

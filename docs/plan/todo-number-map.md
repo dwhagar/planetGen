@@ -17,12 +17,12 @@ release is stamped.
 | MAP | MAP.293 |
 | NAV | NAV.63 |
 | GEN | GEN.764 |
-| PERF | PERF.192 |
+| PERF | PERF.194 |
 | DB | DB.102 |
 | API | API.33 |
 | ADM | ADM.129 |
 | SEC | SEC.34 |
-| TEST | TEST.360 |
+| TEST | TEST.362 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -726,10 +726,10 @@ Parents marked "new parent" had no old number of their own.
 | DOC.74 | Design part 01, section 7.4: the CO2 row and its recommended CO2-2 sublimation fit are wrong in the cold; the table now says to use CO2-1 below 195.3 K (bug) | none | done, PR #2820 |
 | DOC.75 | Help and docs text for the whole habitability system: the score, the symbols, the lists, the sector colouring and the map markers | none | done, PR #3052 |
 | DOC.76 | Docs for the condition-based classes: the rule table, the planet class pages and the help | none | open |
-| DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document | none | open |
+| DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document | none | done, PR #3126 |
 | DOC.78 | One end-to-end draw-order table from the star to the PHI-6 for the contracts file: blocks, streams and the reproducibility rule | none | done, PR #2813 |
 | DOC.79 | The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C | none | open |
-| DOC.80 | Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step | none | open |
+| DOC.80 | Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step | none | done, PR #3125 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -2104,11 +2104,13 @@ Parents marked "new parent" had no old number of their own.
 | PERF.184 | Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug) | none | open |
 | PERF.185 | A hard host-wide cap on the total number of planetgen worker processes, across every lane and command, as a second guard against memory exhaustion | none | done, PR #3040 |
 | PERF.186 | CRITICAL (bug): Cancel does not cancel, python workers keep saturating the host; add a working Stop everything that cancels all runs, kills all workers and blocks any new start until the owner says so (bug) | none | done, PR #3078 |
-| PERF.187 | The phenomena scatter holds 6.4 GB in its own process while every other generate step stays under 300 MB: find what it keeps and bound it (high priority) (bug) | none | open |
+| PERF.187 | The phenomena scatter holds 6.4 GB in its own process while every other generate step stays under 300 MB: find what it keeps and bound it (high priority) (bug) | none | done, PR #3125 |
 | PERF.188 | The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python | none | open |
-| PERF.189 | The block light rebuild at the end of every scatter reports its progress (Step bar, a log line, phase lines) (bug) | none | open |
+| PERF.189 | The block light rebuild at the end of every scatter reports its progress (Step bar, a log line, phase lines) (bug) | none | done, PR #3125 |
 | PERF.190 | Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates | none | open |
-| PERF.191 | The warm-up after an epoch change fails: "a stage queues at most 4000 units, not 4051" (bug) | none | open |
+| PERF.191 | The warm-up after an epoch change fails: "a stage queues at most 4000 units, not 4051" (bug) | none | done, PR #3120 |
+| PERF.192 | The nebula field slab stage queues one unit per 50 pc slab with no cap handling, so a large galaxy can exceed the 4000-unit limit (bug) | none | open |
+| PERF.193 | The nebula block totals pass keeps the level-3 cover as Python dicts, about 2 GB on a 12 pc galaxy: hold it as numpy arrays (bug) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -2846,8 +2848,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.355 | test_class_pages: the phenomenon link (nebula D) is red on clean main (bug) | none | done, PR #3098 |
 | TEST.356 | test_web_search: the star result link is red on clean main (bug) | none | done, PR #3098 |
 | TEST.357 | changes/map-unresolved-glow.minor.md has a '### Tests' heading, so bump_version.py --check-pr fails on main (bug) | none | done, PR #3103 |
-| TEST.358 | test_property_sheet planet and moon "every column shown or excused" fails on main for the interior columns of GEN.642 and DB.89 (bug) | none | open |
+| TEST.358 | test_property_sheet planet and moon "every column shown or excused" fails on main for the interior columns of GEN.642 and DB.89 (bug) | none | done, PR #3123 |
 | TEST.359 | test_object_page_walk fixtures error on main: the system detail has no "stars" (bug) | none | done, PR #3118 |
+| TEST.360 | test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug) | none | open |
+| TEST.361 | test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

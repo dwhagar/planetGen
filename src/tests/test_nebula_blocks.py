@@ -191,3 +191,23 @@ def test_the_stored_cover_is_within_five_percent_of_the_true_cover(m, direction)
     true = _true_cover((shell, band, wedge), m, edge, centres, radii, cKDTree(centres), rng)
     assert true > 0.05
     assert abs(row["cover"] - true) / true < 0.05, (row["cover"], true)
+
+
+def test_the_levels_come_one_at_a_time_and_a_level_s_cover_is_let_go():
+    """PERF.187: `iter_rows` gives the levels one by one (so a writer keeps one in memory) and the same rows as `all_rows`."""
+    import numpy as np
+
+    from planetgen.galaxy import nebula_blocks as rules
+
+    x = np.array([10.0, 40.0, -25.0])
+    y = np.array([5.0, -8.0, 60.0])
+    z = np.array([0.0, 3.0, -2.0])
+    radius = np.array([3.0, 5.0, 8.0])
+    codes = rules.class_codes(["M", "N", "M"])
+    levels = rules.LEVELS
+    pulled = []
+    for m, level in rules.iter_rows(x, y, z, radius, codes, 4.0, on_level=lambda done, total: pulled.append(done)):
+        assert pulled == list(range(1, levels.index(m) + 1))       # `on_level` follows the level a writer is given
+    together = rules.all_rows(x, y, z, radius, codes, 4.0)
+    assert list(together) == list(levels)
+    assert pulled == list(range(1, len(levels) + 1))

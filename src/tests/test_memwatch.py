@@ -98,7 +98,7 @@ def test_the_job_runner_notes_each_steps_peak_in_the_log_and_in_memory_json(held
 
 def test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run(held_job):
     entries = json.loads((held_job / job_runner.MEMORY_NAME).read_text(encoding="utf-8"))
-    budgets = smoke.parse_budgets([f"step={HOLD_MB // 2}"])
+    budgets = smoke.parse_budgets([f"step={HOLD_MB // 2}", "host=1000000", "mysql=1000000", "workers=1000000"])   # the MySQL here is real
     over = smoke.over_budget(entries, budgets)
     assert [(label, group) for label, group, _peak, _budget in over] == [("Holds", "step")]
     assert "OVER BUDGET" in smoke.format_report(entries, budgets, over)
@@ -121,9 +121,10 @@ def test_budgets_start_from_the_tuning_defaults_and_refuse_nonsense():
 
 def test_a_step_with_a_budget_of_its_own_is_judged_by_it_unless_one_is_given_on_the_command_line():
     entry = {"label": "Scatter the phenomena", "seconds": 1,
-             "peaks": {"mysql": 1000.0, "workers": 1000.0, "step": 6400.0, "host": 8700.0}}
+             "peaks": {"mysql": 1000.0, "workers": 1000.0, "step": 3000.0, "host": 6000.0}}
     defaults = smoke.parse_budgets([])
     assert smoke.over_budget([entry], defaults) == []           # its own, larger, budget
     assert smoke.over_budget([dict(entry, label="Another step")], defaults) != []
+    assert smoke.over_budget([dict(entry, peaks=dict(entry["peaks"], step=6400.0))], defaults) != []   # the old hold
     tight = smoke.parse_budgets(["step=2000"])
     assert [group for _label, group, _peak, _budget in smoke.over_budget([entry], tight)] == ["step"]

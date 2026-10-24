@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 6:13 PM EDT 2026-10-24: 995 of 1387 items finished (71.7 percent), 392 open, 30 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 95, phase 2 31, phase 3 26, phase 4 13, phase 5 64, phase 6 23, phase 7 18, phase 8 4, phase 9 28, phase 10 2, phase 11 71, phase 12 17 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 6:27 PM EDT 2026-10-24: 1001 of 1391 items finished (72.0 percent), 390 open, 30 dropped (TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 95, phase 2 31, phase 3 26, phase 4 13, phase 5 63, phase 6 23, phase 7 18, phase 8 4, phase 9 28, phase 10 2, phase 11 71, phase 12 16 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -353,7 +353,6 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 | GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only |  |  |
 | DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | GEN.654 |  |
 | GEN.644 | Proposal: tie the PHI-6 into the planet classification (class letters, a habitability tier, or a suffix) and the rule for where a class and a PHI-6 colour must agree |  |  |
-| DOC.77 | Docs for the four life scores: the help text, docs/design/habitability/habitability-index.md and the database schema document |  |  |
 | DOC.79 | The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C |  |  |
 | TEST.300 | End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers | MAP.220 |  |
 
@@ -713,13 +712,12 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | PERF.179 | Progress bars are cut off in the log: "elapsed 0:0... remaining 0:00:..." (bug) |  | Boss run log; generation-log lane. |
 | PERF.178 | The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug) |  | Boss run log; generation-log lane. |
 | PERF.184 | Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug) |  |  |
-| TEST.358 | test_property_sheet planet and moon "every column shown or excused" fails on main for the interior columns of GEN.642 and DB.89 (bug) |  |  |
-| PERF.191 | The warm-up after an epoch change fails: "a stage queues at most 4000 units, not 4051" (bug) |  |  |
-| PERF.190 | Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates | PERF.189 |  |
-| PERF.189 | The block light rebuild at the end of every scatter reports its progress (Step bar, a log line, phase lines) (bug) |  |  |
-| DOC.80 | Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step | PERF.189 |  |
+| TEST.361 | test_no_todo_codes_shown.py fails on main: MAP.220 is named in a shown description in db/point_columns.py line 177 (bug) |  |  |
+| TEST.360 | test_nebula_blocks_db.py::test_a_plan_makes_the_totals fails on main (bug) |  |  |
+| PERF.193 | The nebula block totals pass keeps the level-3 cover as Python dicts, about 2 GB on a 12 pc galaxy: hold it as numpy arrays (bug) |  |  |
+| PERF.192 | The nebula field slab stage queues one unit per 50 pc slab with no cap handling, so a large galaxy can exceed the 4000-unit limit (bug) |  |  |
+| PERF.190 | Measure the speed of block_lights.rebuild on a New galaxy with the scatter on, and speed it up if it dominates |  |  |
 | PERF.188 | The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python |  |  |
-| PERF.187 | The phenomena scatter holds 6.4 GB in its own process while every other generate step stays under 300 MB: find what it keeps and bound it (high priority) (bug) |  |  |
 | PERF.180 | Single-unit stages already past the unit ceiling on big galaxies: clearing the bright stars (211 s on the medium galaxy) and the cache-warm families (one unit each, minutes on a large galaxy) |  |  |
 | TEST.261 | Release gate: a full bug hunt audit of the whole code base and its behaviour, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) |  | Standing release gate, Boss 2026-10-21 5:10 PM EDT; also gates every later major or minor version change, not build numbers (Boss, 8:01 PM EDT 2026-10-22). |

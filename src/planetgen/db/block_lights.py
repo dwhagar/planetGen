@@ -191,28 +191,56 @@ def _object_shells(conn):
 
 
 def _roll(cells, address, sums, parents):
-    """Adds the sums of the sector at `address` to each block above it in `cells` (`{DrillBlock: sums}`) up to the
-    unit's level; `parents` memoises a level-3 block's chain, which most sectors of a row share."""
+    """Adds the sums of the sector at `address` to each block above it in `cells` (`{m: {DrillBlock: sums}}`) up to
+    the unit's level; `parents` memoises a level-3 block's chain, which most sectors of a row share."""
     level3 = drill_parent((1,) + tuple(address))
     chain = parents.get(level3)
     if chain is None:
         chain = parents[level3] = [block for block in chain_blocks(address) if block.m <= UNIT_LEVEL]
     for block in chain:
-        into = cells.setdefault(block, _zero())
+        into = cells[block.m].setdefault(block, _zero())
         for index, value in enumerate(sums):
             into[index] += value
 
 
-def _unit_rows(conn, shells):
-    """The rows of levels `DRILL_STEP` to `UNIT_LEVEL` for the sector `shells` of one unit, streamed a shell at a
-    time (a shell holds the objects of at most a few million sectors)."""
-    cells = {}
+def _complete(cells, level):
+    """Takes the rows of the blocks of `level` out of `cells`, sorted; every one is complete because it is called
+    when the shells run past the block shell they all belong to (PERF.187)."""
+    blocks = cells[level]
+    rows = [_row(block, sums) for block, sums in sorted(blocks.items(), key=lambda item: _order(item[0]))]
+    blocks.clear()
+    return rows
+
+
+def _unit_batches(conn, shells, on_shell=None):
+    """The rows of levels `DRILL_STEP` to `UNIT_LEVEL` for the sector `shells` of one unit, a list of rows at a time
+    as their blocks are complete. A shell is read on its own, and a block of size `m` holds the sector shells
+    `shell * m` to `shell * m + m - 1`, so once the shells pass a block shell its blocks are written and forgotten:
+    what is kept is the blocks of the current block shell of each level, not every block of the unit's millions of
+    sectors (PERF.187). `on_shell(shell)` is called before each shell is read."""
+    cells = {m: {} for m in LEVELS if m <= UNIT_LEVEL}
     parents = {}
+    previous = None
     for shell in shells:
+        if previous is not None:
+            for level in cells:
+                if shell // level != previous // level and cells[level]:
+                    yield _complete(cells, level)
+        if on_shell is not None:
+            on_shell(shell)
+        parents.clear()
         found = _object_sums(conn, "shell_index = ?", (shell,), by_address=True)
         for address, sums in found.items():
             _roll(cells, address, sums, parents)
-    return [_row(block, sums) for block, sums in sorted(cells.items(), key=lambda item: _order(item[0]))]
+        previous = shell
+    for level in cells:
+        if cells[level]:
+            yield _complete(cells, level)
+
+
+def _unit_rows(conn, shells):
+    """All the rows of one unit (see `_unit_batches`), for callers that want them together."""
+    return [row for batch in _unit_batches(conn, shells) for row in batch]
 
 
 def _above_unit(conn):
@@ -234,28 +262,35 @@ def _above_unit(conn):
     return len(rows)
 
 
-def rebuild(conn, on_progress=None):
+def rebuild(conn, on_progress=None, on_phase=None):
     """
     Computes every row from `bright_stars` and `phenomenon_scatter`, replacing the table's rows: the sector shells in
     units (those of one level-`UNIT_LEVEL` block shell), each unit's rows written and committed together so a stopped
     run keeps what it did and a second run replaces it, then the levels above the unit added up from the stored rows.
-    Returns the rows written.
+    `on_progress(done, total)` is called after each unit, and `on_phase(text)` before the shell scan, after it and
+    before the levels above the units (PERF.189), so a long rebuild never goes quiet. Returns the rows written.
     """
+    if on_phase is not None:
+        on_phase("Looking for the sector shells that hold pre-placed objects...")
     shells = _object_shells(conn)
     units = {}
     for shell in shells:
         units.setdefault(_unit_of(shell), []).append(shell)
+    if on_phase is not None:
+        on_phase(f"{len(shells):,} sector shells hold pre-placed objects, worked in {len(units):,} units.")
     clear(conn)
     conn.commit()
     written = 0
     for done, unit in enumerate(sorted(units), start=1):
-        rows = _unit_rows(conn, units[unit])
-        for start in range(0, len(rows), 1000):
-            conn.executemany(INSERT, rows[start:start + 1000])
+        for batch in _unit_batches(conn, units[unit]):
+            for start in range(0, len(batch), 1000):
+                conn.executemany(INSERT, batch[start:start + 1000])
+            written += len(batch)
         conn.commit()
-        written += len(rows)
         if on_progress is not None:
             on_progress(done, len(units))
+    if on_phase is not None:
+        on_phase("Adding up the levels above the units...")
     written += _above_unit(conn)
     conn.commit()
     return written

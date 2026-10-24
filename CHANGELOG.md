@@ -2,6 +2,59 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2268] - 2026-10-24
+
+**Headline:** The habitability help page now says what sets each of the four life scores and where the food rating comes from.
+
+### Changed
+- **DOC.77: the life scores are explained.** The life scores table on the habitability help page has a new column, What sets it: Microbial needs any step of life, Flora needs photosynthesis (3 at most before multicellular life), Fauna needs multicellular life and never exceeds Flora, and Sentient needs a technological civilization and fills in over ten million years. A line under the table says how the same numbers give a visitor's food rating. The design document points at the rules (section 12). Nothing generated changes.
+
+## [8.0.2267] - 2026-10-24
+
+**Headline:** The phenomena scatter no longer holds gigabytes in one process, and the block light totals at its end show their progress instead of going quiet.
+
+### Changed
+- **The block light totals are written as they are complete (PERF.187).** `db.block_lights.rebuild` kept every block of a unit of 729 sector shells in memory until the unit ended; on a 12 pc galaxy that was the scatter step's 6.4 GB (7.9 GB measured while the step ran). It now reads one shell at a time and writes a block as soon as the shells have passed it, so what it holds is the blocks of the current block shell of each level.
+- **The nebula block totals write one level at a time (PERF.187).** `galaxy.nebula_blocks.iter_rows` gives the levels one by one and lets go of a level's cover once its rows are made; `db.nebula_blocks.rebuild` writes each level as it comes instead of holding the rows of all of them. `all_rows` still returns the dict for the callers that want it.
+- **The block light totals report their progress (PERF.189, Boss).** After the hypervelocity stars' epoch is stamped, a scatter used to go quiet while the map's block light totals were made. They are now a step of their own ("Making the block light totals", bar over the units), with a log line before the scan, after it, before the levels above the units and about every 30 seconds (`tuning.PROGRESS_LOG_SECONDS`).
+- **The smoke budget for the scatter step is lowered (PERF.187)** to the new measured peak.
+- **The logging standard has the rule for work after a progress block (DOC.80):** it needs a step of its own, with a short checklist.
+
+## [8.0.2266] - 2026-10-24
+
+**Headline:** A giant's interior summary now shows on its property sheet.
+
+### Fixed
+- **Giant interior on the property sheet** (TEST.358): the sheet of a planet or moon now lists the kind of interior, the compact and dilute core masses, the pressure where hydrogen turns metallic, the helium left in the molecular envelope and whether a helium-rich shell exists, the six columns DB.89 added.
+
+## [8.0.2265] - 2026-10-24
+
+**Headline:** Star and system pages now open with an "At a glance" table of what a captain needs first.
+
+### Changed
+- A system page has an "At a glance" panel under its map: how many stars (and the main one's type), planets, moons, belts and comets it holds, how many habitable worlds, the best world with its habitability symbols, the facilities and the system perimeter. A row that would say none or 0 is left out, except planets and habitable worlds (UX.190).
+- A star's page has an "At a glance" panel too: its role and spectral type, mass, luminosity, temperature, habitable zone, snow line, flares, lethal events, heliosphere and system perimeter (UX.190).
+
+## [8.0.2264] - 2026-10-24
+
+**Headline:** Planet and moon pages now open with an "At a glance" table of what a captain needs first, and leave out properties that hold nothing.
+
+### Changed
+- A planet's or moon's page has an "At a glance" table just under the render: its habitability symbols and life scores on a line of their own, then class, surface temperature, pressure, gravity, radiation, hours outside, day length, distance and year (UX.188). The full property sheet follows, as before.
+- Object pages no longer list a property whose value is none or 0, except where the absence matters (no atmosphere, no magnetic field, no surface water, a quiet star, the habitability, life and rating rows). A line under the sheet says how many are not listed.
+- `GET /api/objects/<ref>/sheet` rows carry `absent` and `show_absent`; the API still returns every row.
+
+## [8.0.2263] - 2026-10-24
+
+**Headline:** The cache warm-up no longer fails on a galaxy with more chunks than one stage can queue as units.
+
+### Fixed
+- **A warm-up stage failed with "a stage queues at most 4000 units, not 4051".** The warm stages cut their keys into
+  fixed chunks, so a galaxy with more than 4000 chunks was refused by the queue. A stage now makes its units a whole
+  multiple of the chunk when the chunks would pass the cap (`units.coarsen`), and a unit builds its keys 64 nodes per
+  request, stopping part way when the cache fills. The habitability and map-luminosity fills cut their id ranges the
+  same way.
+
 ## [8.0.2262] - 2026-10-24
 
 **Headline:** The object page walk test reads the bodies it opens from the database, not from a loop of API calls that could run out of the API's rate limit.
