@@ -14,7 +14,9 @@
 // A star is self-luminous, so the texture never goes below 0.7 of the base colour. Same look, same size: same
 // pixels. Do not change the noise without a changelog note.
 
-import { fbm, hashPixels, makeRandom, parseHex } from "./bodytexture.js";
+// Versioned like every sibling import (a static import would drop `?v=`).
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { fbm, hashPixels, makeRandom, parseHex } = await import(`./bodytexture.js${VERSION_QUERY}`);
 
 var GIANT_CLASSES = { "0": 1, IA: 1, "IA+": 1, IAB: 1, IB: 1, II: 1, III: 1 };
 
