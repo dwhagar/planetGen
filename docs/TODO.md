@@ -14462,6 +14462,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   priority.
   Prerequisites: none. Related: PERF.185, PERF.186, PERF.181.
 
+- [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
+  Found by Bug Hunt while fixing the load flakes of TEST.344 (relayed
+  5:04 PM EDT 2026-10-24 as the lane reported; filed by the TODO
+  thread). The scatter-pass tests take 60 to 130 s each alone, which
+  makes gates slow and flaky under load. Do: profile
+  star_population._bright_windows, then cache the table per galaxy
+  parameters or vectorise the build, with bit-identical output on the
+  golden set (no epoch) or an epoch if the values change. Done: the
+  build is at least five times faster, the tests' own timeout can come
+  down, and a test pins the output. Owner: Performance lane (pool
+  otherwise).
+  Prerequisites: none. Related: TEST.344, GEN.394.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -18686,6 +18699,13 @@ clears each one.
   serial phase is meant to close. test_update_database_step fails on
   lane machines for the GRANT reason already recorded on TEST.284 and
   OPS.62.
+  Progress (2026-10-09): Update 5:05 PM EDT 2026-10-24: Bug Hunt merged
+  #3087 (as the lane reported 5:04 PM EDT): the gas giant density test
+  failed 7 of 40 runs alone because the radius now comes from the
+  interior tables and the test asserted a stale 3-sigma band, so it is
+  fixed at the root; the scatter-pass module got a 3600 s timeout since
+  its tests take 60 to 130 s alone. The serial browser phase of the gate
+  (this item's own Do) is not done yet.
   Prerequisites: none. Related: TEST.229, TEST.126, TEST.190.
 
 - [ ] **TEST.345 test_gen_stored_trees::test_a_fill_builds_each_row_from_its_stored_tree fails on main on a lane machine (bug)**
@@ -18714,25 +18734,6 @@ clears each one.
   the machine difference. Done: web.system passes on every lane machine
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
-
-- [ ] **TEST.350 Tests red on clean main: test_web_facilities (18 tests), test_web_population (test_system_page_names_species_and_territory, test_real_population) and test_web_browser_controls test_every_plain_button_does_something[web.system] (bug)**
-  Found by Lane E (relayed 3:19 PM EDT 2026-10-24 as the lane reported,
-  on clean origin/main; filed by the TODO thread). Kind: failing tests
-  on main, not reproduced by the TODO thread. The test_class_pages cases
-  Lane E also listed are TEST.348, already fixed in #3050, and the
-  web.system contrast part may overlap TEST.346. Do: find which merge
-  changed the facility and population sections of the system page (the
-  planet admin menu move of UX.173 and the life cluster of UX.152 are
-  the likely causes) and fix the page or the stale tests without
-  weakening them. Done: all pass on main, alone and in the suite. Owner:
-  Bug Hunt (main-green rule). Related: TEST.347, TEST.346.
-  Progress (2026-10-09): Update 4:26 PM EDT 2026-10-24: Bug Hunt merged
-  #3075 (as the coordinator relayed): the Python half, 20 facility and
-  population page tests, with test fixes only. One browser test is still
-  open
-  (test_web_browser_controls::test_every_plain_button_does_something[web.system]);
-  the item stays open until it passes on main.
-  Prerequisites: none. Related: TEST.346, TEST.347, TEST.348.
 
 - [ ] **TEST.352 test_db_column_round_trip::test_every_column_is_written fails on main: the star columns disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au are now written, so they must leave NULL_IN_THIS_GALAXY (bug)**
   Found by Lane I (relayed 3:50 PM EDT 2026-10-24 as the lane reported;
