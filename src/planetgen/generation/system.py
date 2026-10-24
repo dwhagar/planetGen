@@ -348,74 +348,80 @@ class StarSystem:
         # list's outermost planet if the two stars' own disks would
         # otherwise gravitationally encroach on each other -- see that
         # method's docstring.
-        for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
-            with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
-                primary_ceiling_au = self._orbit_ceiling_au(self.star)
-                self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
-                self._clear_circumbinary_floor(self.planets)
-                self.validate_system(self.planets)
-                # validate_system only ever pushes a body's distance further
-                # OUTWARD to resolve a spacing collision with its inner
-                # neighbor, never closer -- for the galactic-Hill-sphere
-                # ceiling this correction is negligible next to a light-year-
-                # scale boundary, but a much tighter S-type a_crit ceiling
-                # makes it a real possibility, so re-trim afterward using each
-                # body's own final position.
-                self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
-                self._apply_star_history(self.planets, self.star)
-                # GEN.318: a white dwarf's survivors move out; the Hill spacing is over the lighter star now
-                if remnant_orbits.widen_for_mass_loss(self.planets, self.star, self._explicit_request()):
+        # TEST.313: the age settled below only rises, and the survival limit falls with age (GEN.325), so the final
+        # trim can take the forced belt or habitable world that the attempts above kept. The attempts then run again
+        # once, placing under the settled age, before the request is given up as unmet.
+        for _round in range(2):
+            for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
+                with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
+                    primary_ceiling_au = self._orbit_ceiling_au(self.star)
+                    self.planets = self._generate_planets(self.star, self.star.habitable_zone, primary_ceiling_au)
+                    self._clear_circumbinary_floor(self.planets)
                     self.validate_system(self.planets)
+                    # validate_system only ever pushes a body's distance further
+                    # OUTWARD to resolve a spacing collision with its inner
+                    # neighbor, never closer -- for the galactic-Hill-sphere
+                    # ceiling this correction is negligible next to a light-year-
+                    # scale boundary, but a much tighter S-type a_crit ceiling
+                    # makes it a real possibility, so re-trim afterward using each
+                    # body's own final position.
                     self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
+                    self._apply_star_history(self.planets, self.star)
+                    # GEN.318: a white dwarf's survivors move out; the Hill spacing is over the lighter star now
+                    if remnant_orbits.widen_for_mass_loss(self.planets, self.star, self._explicit_request()):
+                        self.validate_system(self.planets)
+                        self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
 
-                self.secondary_planets = []
-                if self.binary_type == "wide":
-                    secondary_ceiling_au = self._orbit_ceiling_au(self.secondary_star)
-                    self.secondary_planets = self._generate_planets(
-                        self.secondary_star, self.secondary_star.habitable_zone,
-                        secondary_ceiling_au, apply_guarantees=False,
-                    )
-                    self.validate_system(self.secondary_planets)
-                    self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
-                    self._apply_star_history(self.secondary_planets, self.secondary_star)
-                    if remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star,
-                                                          self._explicit_request()):
+                    self.secondary_planets = []
+                    if self.binary_type == "wide":
+                        secondary_ceiling_au = self._orbit_ceiling_au(self.secondary_star)
+                        self.secondary_planets = self._generate_planets(
+                            self.secondary_star, self.secondary_star.habitable_zone,
+                            secondary_ceiling_au, apply_guarantees=False,
+                        )
                         self.validate_system(self.secondary_planets)
                         self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
-                    # Runs last, once both lists reflect their own truly final
-                    # (post-validate_system, post-trim) positions -- see this
-                    # method's own docstring.
-                    self._validate_cross_star_clearance()
+                        self._apply_star_history(self.secondary_planets, self.secondary_star)
+                        if remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star,
+                                                              self._explicit_request()):
+                            self.validate_system(self.secondary_planets)
+                            self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
+                        # Runs last, once both lists reflect their own truly final
+                        # (post-validate_system, post-trim) positions -- see this
+                        # method's own docstring.
+                        self._validate_cross_star_clearance()
 
-                habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
-                belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
-            if habitable_satisfied and belt_satisfied:
-                log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
-                          f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
-                          f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
+                    habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
+                    belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
+                if habitable_satisfied and belt_satisfied:
+                    log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
+                              f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
+                              f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
+                    break
+                log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
+                          f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
+                          f"required and found: {belt_satisfied})")
+
+            if remnant_orbits.is_post_agb_pair(self.star):
+                remnant_orbits.post_agb_disk(self.primary_star, self._orbit_floor_au(self.star))
+
+            # A pair's two stars share one age (GEN.53): a close pair's proxy
+            # settles it for both, a wide pair's from both stars' own planets.
+            if self.binary_type == "wide":
+                adjust_pair_age_for_planets(self.primary_star, self.secondary_star, self.planets, self.secondary_planets)
+            else:
+                self.star.adjust_age_for_planets(self.planets)
+
+            # The age above only ever rises, and the place's survival limit falls with age (GEN.325), so a body placed
+            # under the provisional age can sit past the ceiling of the final one: trim to it, and judge the forced
+            # habitable world and belt on what is left.
+            self._trim_to_orbit_ceiling(self.planets, self._orbit_ceiling_au(self.star))
+            if self.binary_type == "wide":
+                self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
+            habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
+            belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
+            if (habitable_satisfied and belt_satisfied) or _round:
                 break
-            log.debug(f"Planet generation attempt {_attempt + 1}/{tuning.MAX_SYSTEM_GENERATION_ATTEMPTS}: "
-                      f"retrying (habitable world required and found: {habitable_satisfied}, asteroid belt "
-                      f"required and found: {belt_satisfied})")
-
-        if remnant_orbits.is_post_agb_pair(self.star):
-            remnant_orbits.post_agb_disk(self.primary_star, self._orbit_floor_au(self.star))
-
-        # A pair's two stars share one age (GEN.53): a close pair's proxy
-        # settles it for both, a wide pair's from both stars' own planets.
-        if self.binary_type == "wide":
-            adjust_pair_age_for_planets(self.primary_star, self.secondary_star, self.planets, self.secondary_planets)
-        else:
-            self.star.adjust_age_for_planets(self.planets)
-
-        # The age above only ever rises, and the place's survival limit falls with age (GEN.325), so a body placed
-        # under the provisional age can sit past the ceiling of the final one: trim to it, and judge the forced
-        # habitable world and belt on what is left.
-        self._trim_to_orbit_ceiling(self.planets, self._orbit_ceiling_au(self.star))
-        if self.binary_type == "wide":
-            self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
-        habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or self.count_habitable_class_worlds(self.planets) > 0
-        belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
         self.unmet_requirements = []
         if not habitable_satisfied:
             self.unmet_requirements.append("a habitable world")
