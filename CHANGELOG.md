@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2078] - 2026-10-24
+
+**Headline:** A gas or ice giant's atmosphere colour can now be worked out at its reference level, with a cloud deck or the dark deep gas below.
+
+### Changed
+- A new giant colour function cuts the giant's mixture at the reference pressure (the lower of 1 bar and the cloud top, computed from the cloud's depth and sedimentation) and gives the colour, brightness and word of the air above, with the cloud deck's reflectance as the lower boundary. Methane, ammonia and water bands use the gas table's coarse bins, so a giant carrying them is marked as partial colour quality. Nothing reads it yet, so no generated value or page changes.
+
 ## [8.0.2077] - 2026-10-24
 
 **Headline:** The atmosphere chain has one table of gas and condensate free energies and one equilibrium solver, which reproduce the research's outgassing speciation.
