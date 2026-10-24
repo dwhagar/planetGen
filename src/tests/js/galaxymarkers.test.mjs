@@ -93,3 +93,18 @@ test("every glyph draws without error on a recording context", () => {
   Object.keys(M.GLYPHS).forEach((name) => M.GLYPHS[name](ctx, 64, "#fff", "#000"));
   assert.ok(calls.includes("arc") && calls.includes("stroke"));
 });
+
+test("the habitable world kind lists a tile's systems, most worlds first, and is off until asked for", () => {
+  const kind = M.HABITABLE_KIND;
+  assert.equal(kind.defaultOn, false);
+  const tile = { worlds: [{ id: 5, name: "Eden", worlds: 2, x: 1, y: 2, z: 3 }, { id: 6, name: "Rest", worlds: 1, x: 0, y: 0, z: 0 }] };
+  assert.deepEqual(kind.source(tile).map((i) => i.key), ["5", "6"]);
+  assert.deepEqual(kind.source({}), []);
+  assert.ok(kind.rank({ worlds: 3 }) > kind.rank({ worlds: 1 }));
+  assert.equal(kind.describe({ name: "Eden", worlds: 2 }), "Eden, 2 habitable worlds");
+  assert.equal(kind.describe({ name: "Rest", worlds: 1 }), "Rest, 1 habitable world");
+  const registry = M.createMarkerKinds();
+  registry.register(kind);
+  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-habitable", tiles: [{ key: "9/0/0/0", tile }] });
+  assert.deepEqual(chosen.map((c) => c.item.name), ["Rest", "Eden"].reverse());
+});

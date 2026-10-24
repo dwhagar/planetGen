@@ -171,6 +171,15 @@ POINT_FIELD = [
 among the fixture stars."""
 
 
+WORLD_FIELD = [
+    {"id": 9001, "name": "Fixture Eden", "worlds": 2,
+     "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+    {"id": 9002, "name": "Fixture Rest", "worlds": 1,
+     "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
+]
+"""The Galaxy Map's fixture systems with a habitable world (a tile's `worlds`, MAP.220), among the fixture stars."""
+
+
 HALO_CENTER_PC = (4000.0, 1500.0, 9500.0)
 """Where the halo fixture's loose group of stars sits (MAP.243): a satellite-galaxy-like group far beyond the fixture
 galaxy's outline (the test checks that it is), above the plane."""
@@ -375,6 +384,8 @@ class FixtureApi:
                      if all(lo[i] <= star[axis] < hi[i] for i, axis in enumerate("xyz"))]
             points = [point for point in self.points
                       if all(lo[i] <= point[axis] < hi[i] for i, axis in enumerate("xyz"))]
+            worlds = [system for system in WORLD_FIELD
+                      if all(lo[i] <= system[axis] < hi[i] for i, axis in enumerate("xyz"))]
             # Like the real tile: every cloud whose sphere reaches into the box.
             clouds = []
             for cloud in NEBULAE:
@@ -382,7 +393,7 @@ class FixtureApi:
                 if math.dist(nearest, [cloud[axis] for axis in "xyz"]) <= cloud["radius_pc"]:
                     clouds.append(cloud)
             tiles[key] = {"placed": [], "planned": [], "sector_count": 0, "clouds": clouds, "stars": stars,
-                          "generated": None, "points": points}
+                          "generated": None, "points": points, "worlds": worlds}
         return {"tiles": tiles, "edge_pc": EDGE_PC, "has_shape": True}
 
     def get_galaxy_stage(self, db, at=None):

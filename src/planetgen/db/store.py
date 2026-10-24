@@ -6605,12 +6605,36 @@ def sector_habitable_worlds(conn, sector_id):
     return int(planets) + int(moons)
 
 
+def count_system_habitable_worlds(conn, where, params):
+    """
+    MAP.220: puts the `habitable_systems` rows of the systems matching `where` (SQL on the table aliased `ss`, with `params`)
+    right: one row for each that holds planets or moons that are potentially habitable (see `sector_habitable_worlds`) with
+    how many (at most 65535) and where it is, none for the rest. The Galaxy Map's habitable-world markers read them.
+    """
+    floor = habitability.POTENTIALLY_HABITABLE_MIN_SCORE
+    conn.execute(
+        "DELETE h FROM habitable_systems h JOIN star_systems ss ON ss.id = h.star_system_id"
+        f" WHERE {where}", tuple(params))
+    conn.execute(
+        "INSERT INTO habitable_systems (star_system_id, habitable_worlds, galaxy_x_pc, galaxy_y_pc, galaxy_z_pc)"
+        " SELECT id, n, x, y, z FROM (SELECT ss.id AS id, ss.galaxy_x_pc AS x, ss.galaxy_y_pc AS y, ss.galaxy_z_pc AS z,"
+        " LEAST(65535, (SELECT COUNT(*) FROM planets p WHERE p.star_system_id = ss.id AND p.phi4 >= ?)"
+        " + (SELECT COUNT(*) FROM moons m WHERE m.star_system_id = ss.id AND m.phi4 >= ?)) AS n"
+        f" FROM star_systems ss WHERE ({where}) AND ss.galaxy_x_pc IS NOT NULL AND ss.galaxy_y_pc IS NOT NULL"
+        " AND ss.galaxy_z_pc IS NOT NULL) c WHERE n > 0", (floor, floor, *params))
+
+
 def recount_habitable_worlds(conn, system_ids):
     """
     MAP.143: puts `sector_stats.habitable_worlds` right again for the sectors of `system_ids` after their scores
-    were worked out again (a re-score, a dose refresh). Only a filled sector's row is touched. Returns the
-    `(shell, band, wedge)` of each sector whose count changed, for `block_stats.refresh_sectors`.
+    were worked out again (a re-score, a dose refresh), and (MAP.220) each of those systems' own count. Only a
+    filled sector's row is touched. Returns the `(shell, band, wedge)` of each sector whose count changed, for
+    `block_stats.refresh_sectors`.
     """
+    system_ids = list(system_ids)
+    for start in range(0, len(system_ids), 500):
+        chunk = system_ids[start:start + 500]
+        count_system_habitable_worlds(conn, f"ss.id IN ({', '.join('?' * len(chunk))})", chunk)
     sector_ids = set()
     for system_id in system_ids:
         row = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
@@ -6678,6 +6702,7 @@ def record_sector_stats(conn, sector_id, address, center_pc):
     age = None if stars["age"] is None else float(stars["age"])
     total_luminosity = (None if stars["total_luminosity"] is None
                         else float(stars["total_luminosity"]) / physical_constants.SOLAR_LUMINOSITY)
+    count_system_habitable_worlds(conn, "ss.sector_id = ?", (sector_id,))
     conn.execute(
         "INSERT INTO sector_stats (shell_index, band_index, wedge_index, bright_level_sol, level_before_fill_sol,"
         " relative_density, expected_systems, actual_systems, actual_stars, mean_temperature_k, mean_luminosity_sol,"

@@ -310,6 +310,11 @@ TABLES = {
         "id": ("id",),
         "index": ("generator_epoch",),
     },
+    "habitable_systems": {
+        "id": ("star_system_id",),
+        "count": ("habitable_worlds",),
+        "pc": ("galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc"),
+    },
     "id_blocks": {
         "id": ("next_id",),
     },

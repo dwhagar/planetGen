@@ -121,6 +121,7 @@ def test_a_v135_galaxy_gets_its_counts_from_the_planets_and_moons_it_holds(mysql
     # make it a v138 galaxy again: the columns gone, the rows kept
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
+        conn.execute("DROP TABLE habitable_systems")  # v148 (MAP.220)
         db_schema_support.drop_bulk_composition(conn)    # v144
         for table in ("planets", "moons"):
             conn.execute(f"ALTER TABLE {table} ADD COLUMN evolutionary_speed VARCHAR(64) NULL")  # v143 (GEN.666)
