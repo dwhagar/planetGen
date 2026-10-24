@@ -1348,3 +1348,5 @@ Baseline: PR #1817.
 | GEN.675 | 8.1 | Mixture and stored values |
 | UX.153 | 8.1 | Habitability system |
 | UX.152 | 8.1 | Habitability system |
+| GEN.452 | 8.1 | Radiation chain for habitability (GEN.445) |
+| PERF.185 | 8.1 | The headline closes |

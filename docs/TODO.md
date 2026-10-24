@@ -7099,7 +7099,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.452. Related: GEN.85, GEN.355,
+  Prerequisites: none. Related: GEN.85, GEN.355,
   GEN.223,
   DB.67, DB.71.
   The surface gravity it reads is derived from the bulk composition by
@@ -7231,7 +7231,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411, GEN.452. Related: GEN.411, GEN.412,
+  Prerequisites: GEN.411. Related: GEN.411, GEN.412,
   GEN.423, TEST.209, GEN.452.
   Merged research (2026-10-17): the freeze-out ordering reads the
   checked saturation curves of part 01 section 7 and part 06 (GEN.452
@@ -7885,135 +7885,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   composition statements it would write come from the checked values
   only.
 
-- [ ] **GEN.452 The condensation table is replaced by the checked saturation curves: the hydrogen sulphide row is a copy of the sulphur dioxide row, and carbon dioxide, sulphur dioxide and the cold gases are 2 to 20 K off (bug)**
-  Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
-  1:00 AM EDT as the lane reported; merged as
-  docs/design/composition/atmosphere-composition.md section 3), filed by the TODO
-  thread. `CONDENSATION_K` in `physics/atmosphere.py` holds two
-  Clausius-Clapeyron points per gas (100 kPa and 0.001 kPa) and the
-  freeze-out of GEN.422 reads it. Part 01 section 7.5 compares each row
-  with the checked curves: `CONDENSATION_K["h2s"] =
-  CONDENSATION_K["so2"]` (line 84) is a copy, and hydrogen sulphide
-  boils near 213 K at 100 kPa, 20 to 50 K below the sulphur dioxide row;
-  the carbon dioxide row is 0.6 to 7 K warm (worst at low pressure), the
-  sulphur dioxide row 2 to 16 K cold, nitrogen, carbon monoxide, argon,
-  oxygen and methane 0.7 to 5 K cold, water 3 to 6 K warm between 100 Pa
-  and 10 kPa. Only hydrogen, nitrogen, carbon monoxide, argon, oxygen,
-  methane and ethane stay acceptable (each with its own curve for the
-  pressure range it is used at). Ammonia, ammonium hydrosulphide,
-  hydrogen cyanide, ethane and sulphuric acid have no row. Do: replace
-  the two-point rows with the checked saturation curves of the gas table
-  (GEN.410; the checked replacement of part 01 section 7 gives
-  temperatures at seven pressures for 14 entries, the cold sublimation
-  curves of Fray and Schmitt 2009 come from a supplementary table with
-  two typos and exceed the laboratory curves by up to 6 times below 40
-  K, so the design uses the laboratory curves there and marks the
-  range), each with its validity range and the source of every constant,
-  and no fallback to the old rows (no shim). Changes stored values (the
-  freeze-out), so it ships with a generator epoch bump and joins the one
-  rescatter of 8.4. Done: a test checks every gas of the table against
-  the cited curve at the seven pressures to a stated tolerance, the
-  hydrogen sulphide row is its own curve, GEN.422 reads the new curves,
-  and the old table and the copy line are gone. Owner: Core 4 (the 8.4
-  atmosphere chain, proposed).
-  Progress: GEN.470 merged as #2590 (11:20 PM EDT 2026-10-22 as the lane reported): `physics/saturation.py` and `data/saturation_pressure.json`, one saturation-pressure function; Fray and Schmitt fits for Ne, N2, CO, Ar, O2, CH4, Kr, Xe, C2H6, C2H4, C2H2, H2S, CO2, NH3, SO2, HCN, CH3OH and C6H6, water by Feistel and Wagner; no liquid branch yet (GEN.452 adds it); no column, migration or epoch.
-  Progress (Blocker 2, relayed 11:38 PM EDT 2026-10-22 as the
-  coordinator reported): part 1 merged as #2593 (the liquid branch of
-  the saturation function, Wagner fits and the hydrogen solid; no stored
-  change and no epoch). Part 2 (atmosphere.py reads the curves in place
-  of the condensation table) changes stored freeze-out values, so its
-  merge is held and it rides the one 8.4 epoch bump (Boss, fork 1,
-  2026-10-18). The design's CO2-2 recommendation was wrong in the cold:
-  filed as DOC.74; the lane uses CO2-1 below 195.3 K.
-  Progress (Blocker 2, relayed 2:01 AM EDT 2026-10-23 as the lane
-  reported): part 2 is PR #2613, held for the 8.4 epoch (the
-  coordinator's ruling): atmosphere.py reads the curves, CONDENSATION_K
-  and the hydrogen sulphide copy are gone, its gate was green at 10,044
-  tests. Stand-ins still open and labelled: BC12 per-fit windows (switch
-  temperatures and floors derived), the hydrogen solid's heat of 1.02
-  kJ/mol, and from GEN.498 the Frost FMQ and NNO constants and the Sossi
-  0.5 offset. Two other places hold their own vapour-pressure constants:
-  filed as GEN.632.
-  Prerequisites: none. Related: GEN.409, GEN.410,
-  GEN.422, GEN.451, GEN.414, GEN.434, GEN.470.
-  Boss-supplied research (2026-10-17, 1:22 AM EDT, posted in the body
-  composition thread and routed by the coordinator to the Atmosphere
-  research lane to verify): the Fray and Schmitt 2009 sublimation fits
-  with Grundy 2024 and Jager and Span 2012 as the baseline, ln P = A0 +
-  sum A_i / T^i in bar, validity N2 20 to 63 K, CO 20 to 68, CH4 30 to
-  90, CO2 70 to 195, SO2 100 to 200, H2S 80 to 180, NH3 100 to 195, and
-  the Feistel and Wagner 2007 water-ice formulation (P_triple
-  6.116577e-3 bar, T_triple 273.16 K, e0 to e6 given); the text warns
-  that the secondary supplementary table has coefficient sign and
-  precision errors below 50 K. The Atmosphere research lane found the
-  same two typos and that Fray and Schmitt exceeds the laboratory curves
-  by up to 6 times below 40 K across the gases (about 15 times for CO near 25 K, the Body composition lane's figure below); the design checks the Boss-supplied
-  coefficients against the lane's table before they replace anything.
-  Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/composition/atmosphere-composition.md); every number stays labelled by what the lane read.
-  Checked by the Body composition research lane (part F, 2026-10-17,
-  1:28 AM EDT as the lane reported) against Boss's note: water ice by
-  Feistel and Wagner is correct to 0.06 percent against IAPWS R14-08 (60
-  to 273.16 K); the cold-ice polynomials transcribed from a secondary
-  table reproduce NIST triple points within 3 percent but their validity
-  ranges and the cold end below 50 K are not verified (the primary paper
-  stays on Boss's list); no sign inversion was found in the table, only
-  typesetting errors in the text layer; the two-parameter Prialnik fits
-  are off by 6 to 30 times for CO in the cold. The function is GEN.470.
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. The cold curves are the composite of GEN.410
-  (Wagner liquid, Fray and Schmitt above about 50 K, Grundy 2024 and
-  Blakley 2024 laboratory fits below); the sign inversions of Boss's
-  note are unsupported.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/composition/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): (part G4) the cold end is the laboratory-corrected N2, CO,
-  CH4, O2 and NH3 (Fray and Schmitt up to about 15 times too high for CO
-  near 25 K; Blakley 2024 covers O2 and NH3 only, Grundy 2024 N2, CO and
-  CH4, a 2026 Grundy preprint multiplies all five by 1.19 +/- 0.03; the
-  9.2 percent is an enthalpy excess, about 10.1 kJ/mol, not 9.2 kJ/mol)
-  and solid CO2 uses Span and Wagner equation 3.12 (the 0 to 800 K, 12
-  GPa range of the note belongs to Trusler 2011); H2 freezes below 13.96
-  K (Tc 33.145 to 33.18 K, HD Tc 35.908 K); the item is GEN.497.
-  Design note merged as #2063 (Blocker 1, 2026-10-17): docs/design/composition/atmosphere-colour.md. Approved by Boss as recommended
-  (2026-10-17, 9:40 to 9:55 PM EDT, cards, the rest by his typed "I approve all your
-  defaults" at 9:54 PM EDT, relayed by the coordinator); the note records the rulings.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
-  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
-  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
-  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
-  in 8.1, and only scatter-level changes (nebula radius, remnants above
-  the mass cut) need a rescatter. Where this item says it "joins the one
-  rescatter of 8.4", this wins.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): the two Fray and
-  Schmitt overshoot figures are different measures and both stay: up to
-  6 times below 40 K across the gases (Atmosphere lane) and about 15
-  times for CO near 25 K (Body composition lane).
-  Owner: Blocker 2, after GEN.470 (the coordinator, relayed 5:48 PM EDT 2026-10-22 as the lane's clock reads). This replaces any earlier owner line on this item.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23, and made a prerequisite of GEN.411 by the
-  coordinator, 5:51 PM EDT: part 2 (PR #2613, held for the 8.4 epoch)
-  now merges with the spine under lane I and takes a generator epoch at
-  merge. The 8.4 rescatter it was to join is not waited for (testing
-  mode). Owner: Habitability lane I (the spine, to be started).
-  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
-  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 2, 27
-  wait; Blocker I (in progress, PR 4).
-  Research (2026-10-09, 10-24 efficiency): Efficiency suggestion 1,
-  applied by Boss (ALL, 2:21 PM EDT 2026-10-24): Blocker I merges PR 4
-  as three separate PRs, each when its own gate is green: (1) GEN.452,
-  (2) GEN.411, (3) GEN.424 with DB.71.
 - [ ] **GEN.455 Airless bodies and comets draw an exosphere or coma from their surface composition, temperature and the star's wind: the sodium and potassium tails and the production rates**
   Finding of the Atmosphere research lane (GEN.431; 2026-10-17, about
   1:00 AM EDT as the lane reported; merged as
@@ -12965,7 +12836,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the regime; delete CLASS_MIXES and the two density ranges. Done:
   no class gate is left in the recipes. Owner: Composition L (atmosphere
   mixture).
-  Prerequisites: GEN.411, GEN.479, GEN.452, GEN.681.
+  Prerequisites: GEN.411, GEN.479, GEN.681.
 
 - [ ] **GEN.684 Albedo and greenhouse come from the composition; delete the two class ranges**
   Step C9 of the condition-based classes build (design draft
@@ -14169,21 +14040,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposed by the TODO thread because no lane owns estimates since
   PERF.178 went to a finished lane).
   Prerequisites: none. Related: PERF.178, PERF.174.
-
-- [ ] **PERF.185 A hard host-wide cap on the total number of planetgen worker processes, across every lane and command, as a second guard against memory exhaustion**
-  Found by Lane OOM in PERF.181 (relayed 2:33 PM EDT 2026-10-24 as the
-  lane reported; filed by the TODO thread). Kind: cost, safety. PERF.181
-  stops one caller from starting a stampede of queue workers (a
-  per-queue Redis lock and a 90 s starting window), but nothing limits
-  the total number of planetgen worker processes on the host when
-  several commands, lanes or queues each start their own. Do: a hard cap
-  on total worker processes on one host, checked when a worker is
-  started, sized from free memory and core count with a setting to
-  override it, and a plain log line when a start is refused because of
-  the cap. Done: a test that many callers together never exceed the cap,
-  and the cap shows on the admin Queue page. Owner: Lane OOM (after
-  PERF.183).
-  Prerequisites: none. Related: PERF.181, PERF.183, PERF.174.
 
 ## DB: Database and schema
 
