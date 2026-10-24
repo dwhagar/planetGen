@@ -76,6 +76,7 @@ import colorsys
 import math
 import statistics
 
+from planetgen.physics.constants import AU_TO_KM
 from planetgen.web.lib.fmt import (
     esc, format_distance_km, format_gravity_g_short, format_pressure_pa, format_speed_kms, format_temperature_k)
 from planetgen.web.maps.bodylook import look_json, look_note, planet_look, star_look
@@ -118,6 +119,11 @@ _RADIUS_SPREAD_PX = 280.0
 # rather than the separate, star-specific clearance hack the old
 # fixed-layout map needed.
 _MARKER_GAP_PX = 6.0
+
+# MAP.290: how far in toward the middle a further star's marker steps when it would land on another one, and the
+# angle (radians) the directions of further stars with no stored offset are spread by.
+_COMPANION_STEP_PX = 36.0
+_GOLDEN_ANGLE_RAD = 2.399963
 _RELAX_ITERATIONS = 30
 
 # Planet/moon marker radius is log-scaled against these two bounds --
@@ -1086,7 +1092,7 @@ def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, sc
     return orbits_svg + bodies_svg
 
 
-def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_attrs, extra_svg="", extra_obstacle=None,
+def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_attrs, extra_svg="", extra_obstacles=(),
                     facilities=None):
     """
     Builds one star-centered scene: the given `star` fixed at this scene's
@@ -1117,10 +1123,10 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
         extra_svg (str): Extra raw SVG appended after every body in this
             scene (e.g. a wide pair's companion-star marker, in the
             primary's own "system" scene only).
-        extra_obstacle (dict, optional): `{"cx", "cy", "r", "label_rect"}`
-            for a marker drawn separately (via `extra_svg`) that this
+        extra_obstacles (list[dict], optional): `{"cx", "cy", "r", "label_rect"}`
+            for each marker drawn separately (via `extra_svg`) that this
             scene's own planets/belts must still be kept clear of -- the
-            companion-star marker `extra_svg` draws isn't one of this
+            companion-star markers `extra_svg` draws aren't among this
             scene's own relaxed `markers`, so without this it would be
             invisible to `_relax_markers`/`_label_sides_2d` and a
             far-enough-out planet could still be placed right on top of
@@ -1154,15 +1160,13 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
     # scene's normal, accessible layer instead.
     belt_svgs = []
     markers = [{"type": "star", "cx": _CENTER_PX, "cy": _CENTER_PX, "r": star_r, "fixed": True}]
-    if extra_obstacle is not None:
+    for obstacle in extra_obstacles:
         markers.append({
-            "type": "obstacle", "cx": extra_obstacle["cx"], "cy": extra_obstacle["cy"],
-            "r": extra_obstacle["r"], "fixed": True,
+            "type": "obstacle", "cx": obstacle["cx"], "cy": obstacle["cy"], "r": obstacle["r"], "fixed": True,
         })
     orbit_radii = []
     boxes = [_star_box(_CENTER_PX, _CENTER_PX, star_r)]
-    if extra_obstacle is not None and extra_obstacle.get("box"):
-        boxes.append(extra_obstacle["box"])
+    boxes.extend(obstacle["box"] for obstacle in extra_obstacles if obstacle.get("box"))
     for planet in planets:
         lx_km, ly_km = planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0
         r_px = _radial_px(_orbit_radius_km(planet), lo, hi)
@@ -1188,7 +1192,7 @@ def _star_scene_svg(scene_id, aria_label, hidden, star, planets, belts, star_att
 
     star_svg = _star_marker_svg(_CENTER_PX, _CENTER_PX, star_r, star, star_attrs, bounds)
 
-    seed_rects = [extra_obstacle["label_rect"]] if extra_obstacle and extra_obstacle.get("label_rect") else None
+    seed_rects = [obstacle["label_rect"] for obstacle in extra_obstacles if obstacle.get("label_rect")] or None
     placements = _label_sides_2d(
         [(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers], seed_rects=seed_rects, bounds=bounds,
     )
@@ -1229,12 +1233,13 @@ def _star_label(system, star):
     return star.get("name") or system["name"]
 
 
-def _wide_binary_star_attrs(system, star, is_primary, scene_target=None):
+def _wide_binary_star_attrs(system, star, role, scene_target=None):
     """Shared `star_attrs` dict for `_star_scene_svg`'s own star marker, in
-    either of a wide (S-type) pair's two scenes."""
+    either of a wide (S-type) pair's two scenes, and in a further star's
+    (`role` "Member") own scene."""
     attrs = {
         "kind": "star", "id": star["id"], "name": _star_label(system, star),
-        "role": "Primary" if is_primary else "Secondary",
+        "role": role,
         "type": star["star_type"], "temp": _star_temp_text(star),
         "mass": to_plain_text(format_mass(star["mass_kg"])),
         "radius": to_plain_text(format_star_radius(star["radius_km"])),
@@ -1257,7 +1262,92 @@ def _wide_binary_star_attrs(system, star, is_primary, scene_target=None):
     return attrs
 
 
-def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None):
+def _companion_star(system, star, role, scene_target, x_km, y_km, placed):
+    """
+    The marker a scene draws for a star whose own planets are in a scene of
+    their own (a wide pair's secondary, a further star of a triple or larger
+    system, MAP.290): at its real direction (`x_km`, `y_km` from the scene's
+    origin) but a fixed, merely representative distance -- this scene's own
+    outer edge -- rather than the real separation, which is routinely
+    10-1000x any planet's own distance from its star and would otherwise
+    place the marker far outside this diagram's fixed frame (see
+    `_render_wide_binary_scenes`). A marker that would land on one already
+    `placed` (the obstacle dicts of the companions drawn so far) steps in
+    toward the middle until it clears.
+
+    Returns:
+        tuple: `(marker_svg, obstacle)`, the obstacle in `_star_scene_svg`'s
+            `extra_obstacles` shape.
+    """
+    radius = _star_radius_px(star["radius_km"])
+    # Inflated past the marker's own drawn radius to also cover its label's
+    # footprint (always directly below it -- see `_star_marker_svg`):
+    # `_relax_markers` only ever repels by circle, so without this a
+    # planet's own circle could clear the companion's circle only to still
+    # land its *label* on top of the companion's name underneath it.
+    reach = radius + _LABEL_GAP_PX + _LABEL_HALF_HEIGHT_PX * 2
+    distance_px = _MIN_RADIUS_PX + _RADIUS_SPREAD_PX
+    while True:
+        cx, cy = _polar_to_px(_CENTER_PX, _CENTER_PX, distance_px, x_km, y_km)
+        clear = all(math.hypot(cx - other["cx"], cy - other["cy"]) >= reach + other["r"] for other in placed)
+        if clear or distance_px - _COMPANION_STEP_PX < _MIN_RADIUS_PX:
+            break
+        distance_px -= _COMPANION_STEP_PX
+    attrs = _wide_binary_star_attrs(system, star, role, scene_target=scene_target)
+    # Override the "own scene" (0, 0) default `_wide_binary_star_attrs`
+    # sets -- this marker represents the star at its real position
+    # *relative to the scene's origin*, and that real separation is exactly
+    # what a "measure distance" click needs, decoupled from `cx`/`cy`'s own
+    # fixed, merely-representative drawn position.
+    attrs["xkm"], attrs["ykm"] = x_km, y_km
+    obstacle = {
+        "cx": cx, "cy": cy, "r": reach,
+        "label_rect": _star_label_rect(cx, cy, radius, attrs["name"]),
+        "box": _star_box(cx, cy, radius),
+    }
+    return _star_marker_svg(cx, cy, radius, star, attrs), obstacle
+
+
+def _member_stars_scenes(system, members, facilities, placed):
+    """
+    MAP.290: what a system's stars beyond the pair add to the whole-system
+    scene and to the diagram: for each further star (`role` "member") a
+    companion marker (`_companion_star`) in the whole-system scene, at the
+    direction of its stored offset from the system's origin, and a scene of
+    its own (`star-<id>`, hidden until its marker is clicked, like a wide
+    pair's secondary) with its own planets and belts.
+
+    Args:
+        members (list[tuple]): `(star, planets, belts)` for each further star: its `stars` row (with
+            `offset_x_au`/`offset_y_au`) and its own planets and belts.
+        placed (list[dict]): The obstacles already in the whole-system
+            scene; each marker drawn here is appended.
+
+    Returns:
+        tuple: `(markers_svg, scenes)`.
+    """
+    markers = []
+    scenes = []
+    for index, (member, member_planets, member_belts) in enumerate(members):
+        x_km = (member.get("offset_x_au") or 0.0) * AU_TO_KM
+        y_km = (member.get("offset_y_au") or 0.0) * AU_TO_KM
+        if not (x_km or y_km):
+            # No stored direction: spread them round the frame instead of stacking them.
+            x_km, y_km = math.cos(index * _GOLDEN_ANGLE_RAD), math.sin(index * _GOLDEN_ANGLE_RAD)
+        scene_id = f'star-{member["id"]}'
+        svg, obstacle = _companion_star(system, member, "Member", scene_id, x_km, y_km, placed)
+        placed.append(obstacle)
+        markers.append(svg)
+        attrs = _wide_binary_star_attrs(system, member, "Member")
+        attrs["self"] = "true"
+        scenes.append(_star_scene_svg(
+            scene_id, f'Planets of {_star_label(system, member)}', True, member,
+            member_planets, member_belts, attrs, facilities=facilities,
+        ))
+    return "".join(markers), scenes
+
+
+def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None, members=()):
     """
     Builds a wide (S-type) binary's two scenes: the primary's own "system"
     scene (default-visible) and the secondary's own scene, reached by
@@ -1282,9 +1372,11 @@ def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None):
         planets (list[dict]): Every planet in the system (both stars'
             own -- distinguished by `star_id`).
         belts (list[dict]): Ditto, for asteroid belts.
+        members (list[tuple]): The system's further stars, if any (`_member_stars_scenes`).
 
     Returns:
-        list[str]: `[primary_scene_svg, secondary_scene_svg]`.
+        list[str]: `[primary_scene_svg, secondary_scene_svg]`, then the scene of each further star (`members`,
+            MAP.290: see `_member_stars_scenes`).
     """
     primary, secondary = stars[0], stars[1]
     primary_planets = [p for p in planets if p.get("star_id") == primary["id"]]
@@ -1296,60 +1388,39 @@ def _render_wide_binary_scenes(system, stars, planets, belts, facilities=None):
 
     # The companion marker's real direction (from `binary_mutual_position_
     # x/y_km`, "the secondary's position relative to the primary" -- see
-    # `planetgen.db.query.system_detail`'s docstring), but a fixed, merely
-    # representative distance -- this scene's own outer edge -- rather
-    # than the real separation itself, which is routinely 10-1000x any
-    # planet's own distance from its star (see `generation/wide_binary.py`'s sampled
-    # range) and would otherwise place the marker far outside this
-    # diagram's fixed frame.
+    # `planetgen.db.query.system_detail`'s docstring), at a representative distance.
     bx = system.get("binary_mutual_position_x_km") or 0.0
     by = system.get("binary_mutual_position_y_km") or 0.0
-    companion_r = _star_radius_px(secondary["radius_km"])
-    companion_radius_px = _MIN_RADIUS_PX + _RADIUS_SPREAD_PX
-    companion_cx, companion_cy = _polar_to_px(_CENTER_PX, _CENTER_PX, companion_radius_px, bx, by)
-    companion_attrs = _wide_binary_star_attrs(system, secondary, is_primary=False, scene_target=secondary_scene_id)
-    # Override the "own scene" (0, 0) default `_wide_binary_star_attrs`
-    # sets -- this marker represents the secondary at its real position
-    # *relative to the primary*, not its own scene's origin, and that
-    # real separation (bx, by) is exactly what a "measure distance" click
-    # needs, decoupled from `companion_cx`/`companion_cy`'s own fixed,
-    # merely-representative drawn position (see this function's own
-    # docstring on why those two can't be the same value here).
-    companion_attrs["xkm"], companion_attrs["ykm"] = bx, by
-    companion_marker_svg = _star_marker_svg(companion_cx, companion_cy, companion_r, secondary, companion_attrs)
-    companion_obstacle = {
-        "cx": companion_cx, "cy": companion_cy,
-        # Inflated past the marker's own drawn radius to also cover its
-        # label's footprint (always directly below it -- see
-        # `_star_marker_svg`) -- `_relax_markers` only ever repels by
-        # circle, so without this a planet's own circle could clear the
-        # companion's circle only to still land its *label* on top of
-        # "Esarer B"'s own name underneath it.
-        "r": companion_r + _LABEL_GAP_PX + _LABEL_HALF_HEIGHT_PX * 2,
-        "label_rect": _star_label_rect(companion_cx, companion_cy, companion_r, companion_attrs["name"]),
-        "box": _star_box(companion_cx, companion_cy, companion_r),
-    }
+    companion_marker_svg, companion_obstacle = _companion_star(
+        system, secondary, "Secondary", secondary_scene_id, bx, by, [])
+    obstacles = [companion_obstacle]
+    members_svg, member_scenes = _member_stars_scenes(system, members, facilities, obstacles)
 
     primary_scene = _star_scene_svg(
         "system", f'System map for {system["name"]}', False,
         primary, primary_planets, primary_belts,
-        _wide_binary_star_attrs(system, primary, is_primary=True),
-        extra_svg=companion_marker_svg, extra_obstacle=companion_obstacle, facilities=facilities,
+        _wide_binary_star_attrs(system, primary, "Primary"),
+        extra_svg=companion_marker_svg + members_svg, extra_obstacles=obstacles, facilities=facilities,
     )
-    secondary_attrs = _wide_binary_star_attrs(system, secondary, is_primary=False)
+    secondary_attrs = _wide_binary_star_attrs(system, secondary, "Secondary")
     secondary_attrs["self"] = "true"
     secondary_scene = _star_scene_svg(
         secondary_scene_id, f'Planets of {_star_label(system, secondary)}', True,
         secondary, secondary_planets, secondary_belts, secondary_attrs, facilities=facilities,
     )
-    return [primary_scene, secondary_scene]
+    return [primary_scene, secondary_scene] + member_scenes
 
 
-def _render_system_scene(system, stars, planets, belts, facilities=None):
+def _render_system_scene(system, stars, planets, belts, facilities=None, members=()):
     """Builds the "whole system" scene -- see the module docstring for the
     barycenter/anchor model this uses for a close binary pair (a wide
     pair instead gets two separate scenes -- see
-    `_render_wide_binary_scenes`)."""
+    `_render_wide_binary_scenes`). A system's further stars (`members`,
+    MAP.290) are companion markers in it, each with a scene of its own,
+    which come after it in the returned list.
+
+    Returns:
+        list[str]: The whole-system scene, then the scene of each member."""
     is_binary = len(stars) > 1
     # A 'close' (P-type) pair's planets orbit the merged effective proxy,
     # which sits at the shared barycenter -- `planets.star_id`/
@@ -1411,8 +1482,13 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
     # real focusable/clickable marker, not decorative.
     belt_svgs = []
     markers = list(star_markers)
+    obstacles = []
+    members_svg, member_scenes = _member_stars_scenes(system, members, facilities, obstacles)
+    for obstacle in obstacles:
+        markers.append({"type": "obstacle", "cx": obstacle["cx"], "cy": obstacle["cy"], "r": obstacle["r"], "fixed": True})
     orbit_radii = {}  # anchor -> drawn orbit radii around it
     boxes = [_star_box(m["cx"], m["cy"], m["r"]) for m in star_markers]
+    boxes.extend(obstacle["box"] for obstacle in obstacles)
     for planet in planets:
         ax_px, ay_px = anchor_px(planet.get("star_id"))
         lx_km, ly_km = planet.get("position_x_km") or 0.0, planet.get("position_y_km") or 0.0
@@ -1437,6 +1513,8 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
     pair_r = max((math.hypot(m["cx"] - _CENTER_PX, m["cy"] - _CENTER_PX) + m["r"] for m in star_markers),
                  default=0.0)
     for marker in markers:
+        if marker["type"] == "obstacle":
+            continue
         if marker["type"] == "star":
             host = (_CENTER_PX, _CENTER_PX, pair_r, True) if close_binary else (
                 marker["cx"], marker["cy"], marker["r"], True)
@@ -1450,6 +1528,8 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
     star_svgs = []
     planet_markers = []
     for marker in markers:
+        if marker["type"] == "obstacle":
+            continue
         if marker["type"] != "star":
             planet_markers.append(marker)
             continue
@@ -1475,7 +1555,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
         }, bounds))
 
     placements = _label_sides_2d([(m["cx"], m["cy"], m["r"], m["row"]["name"]) for m in planet_markers],
-                                 bounds=bounds)
+                                 seed_rects=[o["label_rect"] for o in obstacles] or None, bounds=bounds)
     body_svgs = []
     for marker, placement in zip(planet_markers, placements):
         row = marker["row"]
@@ -1492,14 +1572,14 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
             bounds=bounds,
         ))
 
-    return _scene_svg_pair(
+    return [_scene_svg_pair(
         "system", f'System map for {system["name"]}', False,
         "".join(orbit_paths) + facility_orbits,
         # belt_svgs drawn first, same relative "underneath" stacking its
         # old spot (inside orbit_paths, before star_svgs/body_svgs) had.
-        f'{"".join(belt_svgs)}{"".join(star_svgs)}{"".join(body_svgs)}{facility_markers}',
+        f'{"".join(belt_svgs)}{"".join(star_svgs)}{"".join(body_svgs)}{members_svg}{facility_markers}',
         scale=(lo, hi), bounds=bounds,
-    )
+    )] + member_scenes
 
 
 def _render_moon_scene(planet, facilities=None):
@@ -1657,7 +1737,9 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
                       module's own docstring for how a 'close' vs. 'wide'
                       pair each use it).
         stars (list[dict]): 1 entry (single star) or 2 (primary, then
-                            secondary), each with `id`, `mass_kg`,
+                            secondary), then each further star (`role`
+                            "member", with `offset_x_au`/`offset_y_au`; MAP.290),
+                            each with `id`, `mass_kg`,
                             `star_type`, `temperature_k`, `radius_km`,
                             `luminosity_w`.
         planets (list[dict]): Each a `planets` row (including its own
@@ -1688,11 +1770,20 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
     belts = [_finite_row(belt) for belt in belts]
     facilities = [_finite_row(facility) for facility in facilities] if facilities else facilities
     _put_star_temperatures(stars, planets)
+    # MAP.290: a system's stars beyond the pair (`role` "member") are companion markers in the whole-system scene,
+    # each with a scene of its own; the pair, its planets and belts make the scene as for any pair.
+    members = [(star, [p for p in planets if p.get("star_id") == star["id"]],
+                [b for b in belts if b.get("star_id") == star["id"]])
+               for star in stars if star.get("role") == "member"]
+    member_ids = {star["id"] for star, _, _ in members}
+    stars = [star for star in stars if star["id"] not in member_ids]
+    pair_planets = [p for p in planets if p.get("star_id") not in member_ids]
+    pair_belts = [b for b in belts if b.get("star_id") not in member_ids]
     is_wide_binary = len(stars) > 1 and system.get("binary_configuration") == "wide"
     if is_wide_binary:
-        scenes = _render_wide_binary_scenes(system, stars, planets, belts, facilities)
+        scenes = _render_wide_binary_scenes(system, stars, pair_planets, pair_belts, facilities, members)
     else:
-        scenes = [_render_system_scene(system, stars, planets, belts, facilities)]
+        scenes = _render_system_scene(system, stars, pair_planets, pair_belts, facilities, members)
     scenes.extend(
         _render_moon_scene(planet, facilities) for planet in planets if planet.get("moons")
     )

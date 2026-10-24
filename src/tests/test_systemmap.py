@@ -784,6 +784,76 @@ def test_wide_binary_companion_marker_carries_the_real_separation_not_its_drawn_
     assert 'data-ykm="0.0"' in html
 
 
+# --- MAP.290: a system's stars beyond the pair ------------------------------------
+
+def _member(id_, offset_x_au, offset_y_au, **kwargs):
+    return dict(_star(id_, **kwargs), role="member", offset_x_au=offset_x_au, offset_y_au=offset_y_au)
+
+
+def _scene_html(html, scene_id):
+    """The body-marker `<svg>` of scene `scene_id` (the orbits layer before it is a separate `<svg>`)."""
+    start = re.search(r'<svg class="sysmap-svg(?: sysmap-hidden)?" data-scene="%s"' % re.escape(scene_id), html).start()
+    return html[start:html.index("</svg>", start)]
+
+
+@pytest.mark.parametrize("configuration", ["close", "wide"])
+def test_a_triple_system_draws_each_further_star_with_its_planets_in_a_scene_of_its_own(configuration):
+    primary, secondary = _star(30, mass_kg=1.8e30), _star(31, mass_kg=0.6e30)
+    third, fourth = _member(32, 400.0, 100.0, mass_kg=0.4e30), _member(33, 380.0, 120.0, mass_kg=0.3e30)
+    system = {
+        "name": "Triple", "binary_configuration": configuration,
+        "binary_mutual_position_x_km": 0.05 * AU_KM, "binary_mutual_position_y_km": 0.01 * AU_KM,
+        "binary_mutual_position_z_km": 0.0,
+    }
+    star_of_pair = None if configuration == "close" else 30
+    pair_planet = _planet(1, star_of_pair, AU_KM * 1.2, AU_KM * 0.1)
+    third_planet = _planet(2, 32, AU_KM * 0.4, AU_KM * 0.05)
+    third_moon_planet = _planet(3, 32, AU_KM * 0.9, 0.0, moons=[_moon(7, 4e5, 0.0)])
+    fourth_belt = _belt(5, 33, 2 * AU_KM, 1.8 * AU_KM, 2.2 * AU_KM)
+    html = sm.render_system_map_panel(
+        system, [primary, secondary, third, fourth], [pair_planet, third_planet, third_moon_planet], [fourth_belt])
+    # Each further star is a star marker in the whole-system scene that opens a scene of its own ...
+    whole = _scene_html(html, "system")
+    for member_id in (32, 33):
+        marker = _marker_attrs(whole, "star", member_id)
+        assert marker["data-scene"] == f"star-{member_id}" and marker["data-role"] == "Member"
+    # ... and in that scene the star is the scene's own body, with only its own planets and belts.
+    own = _scene_html(html, "star-32")
+    assert _marker_attrs(own, "star", 32)["data-self"] == "true"
+    assert _marker_attrs(own, "planet", 2) and _marker_attrs(own, "planet", 3)
+    assert 'data-id="1"' not in own
+    assert 'data-id="5"' in _scene_html(html, "star-33")
+    assert 'data-id="2"' not in _scene_html(html, "star-33")
+    # The pair's planet stays in the whole-system scene, and the member planet's moons have their own scene.
+    assert _marker_attrs(whole, "planet", 1)
+    assert 'data-id="2"' not in whole
+    assert 'data-scene="planet-3"' in html
+
+
+def test_the_further_stars_markers_clear_each_other_and_the_planets_labels():
+    """Two further stars in nearly the same direction do not stack, and the real offsets are what a measure reads."""
+    system = {"name": "Triple", "binary_configuration": "close", "binary_mutual_position_x_km": 0.05 * AU_KM,
+              "binary_mutual_position_y_km": 0.0, "binary_mutual_position_z_km": 0.0}
+    stars = [_star(30), _star(31), _member(32, 400.0, 100.0), _member(33, 400.0, 101.0)]
+    whole = _scene_html(sm.render_system_map_panel(system, stars, [], []), "system")
+    positions = []
+    for member_id in (32, 33):
+        marker = re.search(r'<g class="sysmap-body sysmap-star"[^>]*data-id="%d"[^>]*>\s*<circle[^>]*cx="([\d.]+)" cy="([\d.]+)"'
+                           % member_id, whole)
+        positions.append((float(marker.group(1)), float(marker.group(2))))
+        attrs = _marker_attrs(whole, "star", member_id)
+        assert float(attrs["data-xkm"]) == pytest.approx(400.0 * sm.AU_TO_KM)
+    assert math.hypot(positions[0][0] - positions[1][0], positions[0][1] - positions[1][1]) > 2 * sm._STAR_MIN_R
+
+
+def test_a_member_with_no_stored_offset_still_gets_a_marker():
+    system = {"name": "Triple", "binary_configuration": "close", "binary_mutual_position_x_km": 0.05 * AU_KM,
+              "binary_mutual_position_y_km": 0.0, "binary_mutual_position_z_km": 0.0}
+    stars = [_star(30), _star(31), dict(_star(32), role="member", offset_x_au=None, offset_y_au=None)]
+    html = sm.render_system_map_panel(system, stars, [], [])
+    assert _marker_attrs(_scene_html(html, "system"), "star", 32)["data-scene"] == "star-32"
+
+
 # --- MAP.92: radius and mass in the side panel --------------------------------
 
 def _marker_attrs(html, kind, body_id):
