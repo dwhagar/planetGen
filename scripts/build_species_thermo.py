@@ -58,6 +58,7 @@ WANTED = {
     "Fe(a)": "c", "Fe(L)": "c", "MgO(cr)": "c", "MgO(L)": "c", "SiO2(a-qz)": "c", "SiO2(L)": "c",
     "Na(cr)": "c", "Na(L)": "c", "K(cr)": "c", "K(L)": "c",
     "CaO(cr)": "c", "CaO(L)": "c", "TiO2(cr)": "c", "TiO2(L)": "c",
+    "Na2O(L)": "c", "K2O(L)": "c",     # the melt's alkali oxides (the Na and K vapour over a lava world, part 05 section 4)
 }
 
 ATOMIC_MASS_TOLERANCE = 0.01  # g/mol between the file's molar mass and the sum over its elements (physics.elements)
