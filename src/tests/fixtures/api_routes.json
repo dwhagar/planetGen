@@ -70,6 +70,7 @@
   "/api/facility-types/<int:type_id>/fields/<int:field_id> DELETE",
   "/api/facility-types/<int:type_id>/fields/<int:field_id> PATCH",
   "/api/facility-types/examples POST",
+  "/api/galaxy/blocks/<key>/generate POST",
   "/api/galaxy/bright-stars GET",
   "/api/galaxy/cell GET",
   "/api/galaxy/changes GET",

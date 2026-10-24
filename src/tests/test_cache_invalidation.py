@@ -55,6 +55,7 @@ def test_an_unknown_path_reads_everything():
     ("DELETE", "/sectors/AA/contents", "sector-contents"),
     ("POST", "/sectors/AA/regenerate", "sector-contents"),
     ("POST", "/sectors/AA/generate-neighborhood", "generated"),
+    ("POST", "/galaxy/blocks/3.40.0.1/generate", "generated"),
     ("PATCH", "/systems/S-1", "system-edited"),
     ("DELETE", "/systems/S-1", "system-set"),
     ("POST", "/systems", "system-set"),

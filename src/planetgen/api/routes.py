@@ -108,7 +108,7 @@ from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_
 from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.profile import profile_at
-from planetgen.galaxy import spherical
+from planetgen.galaxy import drill, spherical
 from planetgen.galaxy.spherical import describe_sector_cell, sector_address_at
 from planetgen.galaxy.window import DEFAULT_WINDOW
 from planetgen.generation.system import StarSystem
@@ -122,7 +122,7 @@ from .authz import audit, require_admin
 from .common import ApiError, request_json, require_json_body
 from .version import API_VERSION
 from .schemas import (
-    BodyRename, FacilityCreate, FacilityUpdate, NeighborhoodRequest, SectorCreate, SectorUpdate, SystemCreate, SystemPatch,
+    BlockGenerateRequest, BodyRename, FacilityCreate, FacilityUpdate, NeighborhoodRequest, SectorCreate, SectorUpdate, SystemCreate, SystemPatch,
     SystemRename, given, parse_body,
 )
 from .limiter import limiter, page_limit
@@ -1877,6 +1877,60 @@ def generate_sector_neighborhood_route(sector_id):
         "sector.generate_neighborhood", target=f"sector:{sector_id}",
         detail=f"radius_ly={radius_ly!r} job={job_id}" + (" disregard_missing_data" if disregard else ""),
     )
+    return accepted(job_id)
+
+
+@bp.route("/galaxy/blocks/<key>/generate", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def generate_block_route(key):
+    """`POST /api/galaxy/blocks/<key>/generate` (GEN.310) -- generates every not-yet-generated sector the stored outline
+    holds inside the block of the Galaxy Map's ladder `key` names (`m.shell.band.wedge` of a stage level: 243, 81,
+    27, 9 or 3), shell by shell outward, with the bright-star backfill and the settle after them -- see
+    `run_galaxy.generate_block`. A queued job like generate-neighborhood: `202` with the job's `status_url`; the job
+    reports its progress there and in the queue. `"estimate_only": true` returns the counts and the size and time
+    `estimate` without writing anything. A key that names no block is refused with 400, a block holding more than
+    2 million sectors (`run_common.WEB_ENUMERATION_LIMIT`) with 413, a galaxy never planned with 409, and a run the
+    database disk can't hold with 507."""
+    body = request_json()
+    if body is None:
+        body = {}
+    if not isinstance(body, dict):
+        raise ApiError("request body must be a JSON object")
+    request_body = parse_body(BlockGenerateRequest, body)
+    estimate_only, disregard = request_body.estimate_only, request_body.disregard_missing_data
+    try:
+        block = drill.parse_stage_key(key)
+    except ValueError as exc:
+        raise ApiError(str(exc), status_code=400)
+    key = drill.format_drill_key(block)
+
+    config = _resolve_requested_write_db_config()
+    if not estimate_only:
+        try:
+            run_galaxy.require_datasets(disregard)
+        except RuntimeError as exc:
+            raise ApiError(str(exc), status_code=409)
+    try:
+        result = run_galaxy.generate_block(key, config=config, estimate_only=True)
+    except run_galaxy.EnumerationTooLarge as exc:
+        raise ApiError(str(exc), status_code=413)
+    except ValueError as exc:
+        raise ApiError(str(exc), status_code=400)
+    except RuntimeError as exc:
+        raise ApiError(str(exc), status_code=409)
+    if estimate_only:
+        return jsonify(result)
+    if result["estimate"].get("refusal"):
+        raise ApiError(result["estimate"]["refusal"], status_code=507)
+
+    try:
+        job_id = api_jobs.submit(api_jobs.generate_block, key, config, disregard,
+                                 expected_seconds=result["estimate"].get("seconds"))
+    except api_jobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    audit("galaxy.generate_block", target=f"block:{key}",
+          detail=f"job={job_id}" + (" disregard_missing_data" if disregard else ""))
     return accepted(job_id)
 
 

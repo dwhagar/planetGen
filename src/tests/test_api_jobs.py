@@ -91,6 +91,54 @@ def test_the_neighborhood_route_queues_the_run(admin_client, monkeypatch):
     assert queued[0][0] is api_jobs.generate_neighborhood and queued[0][1][:2] == (1, 20)
 
 
+def test_the_block_route_queues_the_run(admin_client, monkeypatch):
+    """GEN.310: the Galaxy Map starts a block fill as a job, like the neighborhood fill."""
+    from planetgen.generation import run_galaxy
+    queued, estimated = [], []
+    monkeypatch.setattr(run_galaxy, "generate_block",
+                        lambda key, **k: estimated.append((key, k)) or {"generated": 0, "estimate": {"refusal": None}})
+    monkeypatch.setattr(api_jobs, "submit", lambda function, *args, **options: queued.append((function, args)) or "ab" * 8)
+    response = admin_client.post("/api/galaxy/blocks/3.40.0.1/generate", json={})
+    assert response.status_code == 202
+    assert response.get_json() == {"status": "accepted", "job_id": "ab" * 8, "status_url": "/api/jobs/" + "ab" * 8}
+    assert queued[0][0] is api_jobs.generate_block and queued[0][1][0] == "3.40.0.1" and queued[0][1][2] is False
+    assert estimated[0][0] == "3.40.0.1" and estimated[0][1]["estimate_only"] is True
+
+
+def test_the_block_route_estimates_without_queueing(admin_client, monkeypatch):
+    from planetgen.generation import run_galaxy
+    monkeypatch.setattr(run_galaxy, "generate_block",
+                        lambda key, **k: {"generated": 0, "candidates": 7, "estimate": {"refusal": None}})
+    monkeypatch.setattr(api_jobs, "submit", lambda *a, **k: pytest.fail("queued an estimate"))
+    response = admin_client.post("/api/galaxy/blocks/3.40.0.1/generate", json={"estimate_only": True})
+    assert response.status_code == 200 and response.get_json()["candidates"] == 7
+
+
+@pytest.mark.parametrize("key", ["x", "5.1.0.0", "729.1.0.0", "3.40.999.0", "3.40.0.99999"])
+def test_the_block_route_refuses_a_key_that_names_no_block(admin_client, key):
+    assert admin_client.post(f"/api/galaxy/blocks/{key}/generate", json={}).status_code == 400
+
+
+def test_the_block_route_needs_an_admin(client):
+    assert client.post("/api/galaxy/blocks/3.40.0.1/generate", json={}).status_code == 401
+
+
+def test_the_block_route_answers_the_refusals_before_queueing(admin_client, monkeypatch):
+    from planetgen.generation import run_galaxy
+    monkeypatch.setattr(api_jobs, "submit", lambda *a, **k: pytest.fail("queued a refused run"))
+
+    def refuse(error):
+        def raiser(key, **k):
+            raise error
+        return raiser
+
+    for error, status in ((run_galaxy.EnumerationTooLarge("too big"), 413), (RuntimeError("never planned"), 409)):
+        monkeypatch.setattr(run_galaxy, "generate_block", refuse(error))
+        assert admin_client.post("/api/galaxy/blocks/3.40.0.1/generate", json={}).status_code == status
+    monkeypatch.setattr(run_galaxy, "generate_block", lambda key, **k: {"generated": 0, "estimate": {"refusal": "no disk"}})
+    assert admin_client.post("/api/galaxy/blocks/3.40.0.1/generate", json={}).status_code == 507
+
+
 def test_the_neighborhood_route_refuses_a_run_the_disk_cannot_hold_before_queueing(admin_client, monkeypatch):
     from planetgen.generation import run_galaxy
     monkeypatch.setattr(run_galaxy, "generate_sector_neighborhood",

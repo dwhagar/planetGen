@@ -470,6 +470,57 @@ def test_span_mode_fills_a_range_of_shells_and_bands(mysql_config):
         _band_cells(1, 0) | _band_cells(1, 1) | _band_cells(2, 0) | _band_cells(2, 1))
 
 
+def _level3_block_holding(shell, band, wedge):
+    """The level-3 block of the ladder that holds sector `(shell, band, wedge)`, as the key the command line takes."""
+    from planetgen.galaxy import drill
+    block = drill.drill_chain_of(shell, band, wedge)[-2]
+    assert block.m == 3
+    return block, drill.format_drill_key(block)
+
+
+def test_block_mode_fills_the_sectors_the_outline_holds_inside_one_block(mysql_config):
+    """GEN.310: `--block` generates the sectors of one block of the ladder that the stored outline holds, nothing else, and
+    a second run finds them all there."""
+    from planetgen.galaxy import drill
+    _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1), (2, 2), (3, 1), (4, 1), (5, 1)])
+    block, key = _level3_block_holding(4, 0, 0)
+    wanted = {address for address in drill.block_addresses(block) if address[1] in (-1, 0, 1) and address[0] <= 5}
+    assert wanted and any(shell == 4 for shell, _band, _wedge in wanted)
+    _run_cli(["--block", key, "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert {_address(row) for row in _all_sectors(mysql_config)} == wanted
+
+    first = len(_all_sectors(mysql_config))
+    _run_cli(["--block", key, "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert len(_all_sectors(mysql_config)) == first
+
+
+def test_block_mode_generates_the_inner_shells_first_and_stops_at_the_limit(mysql_config):
+    from planetgen.galaxy import drill
+    _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1), (2, 2), (3, 1), (4, 1), (5, 1)])
+    block, key = _level3_block_holding(4, 0, 0)
+    ordered = [address for address in drill.block_addresses(block) if abs(address[1]) <= 1 and address[0] <= 5]
+    assert [a[0] for a in ordered] == sorted(a[0] for a in ordered)
+    _run_cli(["--block", key, "--limit", "3", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert {_address(row) for row in _all_sectors(mysql_config)} == set(ordered[:3])
+
+
+def test_block_mode_with_a_block_the_outline_does_not_reach_generates_nothing(mysql_config, capsys):
+    _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1)])
+    _block, key = _level3_block_holding(40, 0, 0)
+    _run_cli(["--block", key, "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert _all_sectors(mysql_config) == []
+    assert "holds no sector inside the galaxy's outline" in " ".join(capsys.readouterr().out.split())
+
+
+def test_block_mode_needs_limit_or_yes_when_large_under_strict(mysql_config, monkeypatch):
+    monkeypatch.setattr(run_galaxy, "LARGE_RUN_WARNING_THRESHOLD", 3)
+    _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1), (2, 2), (3, 1), (4, 1), (5, 1)])
+    _block, key = _level3_block_holding(4, 0, 0)
+    with pytest.raises(SystemExit):
+        _run_cli(["--block", key, "--num-systems", "1", "--strict"] + _mysql_argv(mysql_config))
+    assert _all_sectors(mysql_config) == []
+
+
 def test_span_mode_fills_a_wrapping_wedge_arc(mysql_config):
     _seed_skeleton(mysql_config, shells=[(0, 0), (1, 1), (2, 2), (3, 1)])
     last = wedge_count(3, 0) - 1
