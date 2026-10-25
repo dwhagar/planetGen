@@ -19658,6 +19658,32 @@ clears each one.
   main: one more witness for this item.
   Prerequisites: none. Related: TEST.370, TEST.365, TEST.366, TEST.353.
 
+- [ ] **TEST.376 scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill**
+  Boss, 8:42 PM EDT 2026-10-24 (relayed by the coordinator): "have all
+  tasks running tests check for broken containers". Lane containers
+  restart and kill MySQL and Redis in the middle of a gate (Aux 3's
+  MySQL was OOM-killed today, Bug 1's gate was killed at 6:08 PM EDT as
+  the lane reported); each costs hours. The standing rule is in lanes.md
+  (CONTAINER CHECK) until this lands. Do: scripts/test.py (every mode
+  that runs tests: quick, area, browser, changed, full) (1) runs a
+  preflight before the first test: MySQL and Redis answer, stale lock
+  files in /var/run/mysqld removed, binary logs purged, the
+  PLANETGEN_TEST_* variables from /etc/profile.d/planetgen-test.sh
+  exported, the test MySQL user has GRANT OPTION, argon2-cffi and
+  Playwright present; it repairs what it can and prints what it did; (2)
+  runs a watchdog during the run that checks MySQL and Redis between
+  test files (and on any connection error), and when one is dead
+  restarts it, re-runs the preflight and resumes the run from its
+  progress log instead of starting over or failing the file as a product
+  bug; a service that cannot be restarted stops the run with one plain
+  line naming it. Done: a test that kills MySQL (and one that kills
+  Redis) mid-run ends with the run finished and a note saying what was
+  restarted; the preflight alone is runnable as `scripts/test.py
+  doctor`. Includes the work described in OPS.70 (the lane-start health
+  check and resume), which Bug 1 now owns with this item. Owner: Bug 1.
+  Related: OPS.70, OPS.62, TEST.208.
+  Prerequisites: none. Related: OPS.70, OPS.62, TEST.208.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20361,6 +20387,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   resumes at the last finished file with services healthy. Related
   OPS.62 (the setup script). Owner: Lane Debug, with Bug Hunt for the
   gate side.
+  Research (2026-10-09, Owner): Taken over by Bug 1 together with
+  TEST.376 (Boss, 8:42 PM EDT 2026-10-24: all test runs check for broken
+  containers); Lane Debug no longer exists. Build it as part of
+  TEST.376.
   Prerequisites: none. Related: OPS.62, TEST.334.
 
 - [ ] **OPS.71 Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand**
