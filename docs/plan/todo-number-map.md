@@ -14,9 +14,9 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.232 |
-| MAP | MAP.316 |
+| MAP | MAP.320 |
 | NAV | NAV.65 |
-| GEN | GEN.827 |
+| GEN | GEN.828 |
 | PERF | PERF.200 |
 | DB | DB.108 |
 | API | API.37 |
@@ -665,7 +665,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.104 | Storage for a government's territory: homeworld system, growth state and a territory history, ready for 9.2 to make it dynamic | none | open |
 | DB.105 | Storage for world population and the global trade route list: tables, Object IDs, column units and the migration | none | open |
 | DB.106 | Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration | none | open |
-| DB.107 | Region stats: the region_stats table, its save and delete hook and the charted rule (regions chain, step 1b) | none | open |
+| DB.107 | Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1574,6 +1574,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.824 | The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2 | none | open |
 | GEN.825 | Region names: region_name() for the codec kind region, the anchor and sphere geometry of every 9-block, and a measurement of the squeezed blocks (regions chain, step 1) | none | open |
 | GEN.826 | Random-start and Generate "around a place" fill one anchor sphere, so a normal fill charts a whole region (regions chain, step 1c) | none | open |
+| GEN.827 | Region extent: the bounding sphere of a cell's generated sectors (never under the 12 pc fill sphere) and the measurement of two far-apart clumps (regions chain, step 1d) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1889,6 +1890,10 @@ Parents marked "new parent" had no old number of their own.
 | MAP.313 | Galaxy Map resource richness layer: a heat map of the resource score by sector, by resource kind, with the richest sectors listed | none | open |
 | MAP.314 | Galaxy Map labels the charted regions by zoom: the family word with Reach at 81 and 243, the Region name at 27 and 9, the corner or infobox below that (regions chain, step 3) | none | open |
 | MAP.315 | The map infobox shows the region and its parent: "Region: Vang Zarh (in Vang Reach)", each a link that flies the camera to the block (regions chain, step 4) | none | open |
+| MAP.316 | Regions are the nodes of the galactic-level map: a soft sphere with its name, coloured by share charted, replacing the sector boxes there, and a sortable charted-regions list (regions chain, step 3a) | none | open |
+| MAP.317 | Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c) | none | open |
+| MAP.318 | Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank by mass until then (regions chain, step 3d) | none | open |
+| MAP.319 | flyToFit: flying to a region, star system, planet system of moons or nebula places the camera so the target fills the window, with no sector boxes drawn (regions chain, step 3b) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -3044,19 +3049,19 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.364 | Clean up the unused imports, unused variables and redefinitions that ruff and vulture report (82 ruff F findings, 12 vulture hits) | none | done, PR #3154 |
 | TEST.365 | Six phenomenon-page tests in test_class_pages.py fail on clean main (bug) | none | done, PR #3142 |
 | TEST.366 | test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug) | none | dropped (passes 9 of 9 on main since #3125 changed the memory budgets, Bug 1, 7:20 PM EDT 2026-10-24 as the lane reported) |
-| TEST.367 | Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug) | none | open |
+| TEST.367 | Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug) | none | done, PR #3291 |
 | TEST.368 | A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug) | none | open |
 | TEST.369 | test_age_needs (two tests) and test_eta_estimator fail on clean main (bug) | none | done, PR #3155 |
 | TEST.370 | test_web_pages in_process_transport fails: DatabaseLoginError, there is no planetgen database account on the lane machine (bug) | none | open |
-| TEST.371 | test_workers::a_worker_that_is_killed fails under load and passes alone (bug) | none | open |
+| TEST.371 | test_workers::a_worker_that_is_killed fails under load and passes alone (bug) | none | done, PR #3291 |
 | TEST.372 | scripts/test.py and docs/reference/testing.md call `full` "the merge gate", which lanes read as a whole-suite gate for every merge (bug) | none | done, PR #3192 |
 | TEST.373 | test_protection::test_there_is_one_describer_of_the_six_categories fails on main: habitability_explain.py exists again after GEN.445 (bug) | none | done, PR #3155 |
 | TEST.374 | scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug) | none | dropped (not reproduced on main: bump_version --check passes and the notes with "### Tests" were stamped out, Bug 1, 10:31 PM EDT 2026-10-24 as the lane reported) |
 | TEST.375 | Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug) | none | done, PR #3219 |
 | TEST.376 | scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill | none | done, PR #3192 |
-| TEST.377 | test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug) | none | open |
+| TEST.377 | test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug) | none | done, PR #3291 |
 | TEST.378 | test_no_todo_codes_shown fails on main: the composition_origin reason in describe/sheet.py names UX.202 in a shown string (bug) | none | done, PR #3196 |
-| TEST.379 | Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug) | none | open |
+| TEST.379 | Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug) | none | done, PR #3291 |
 | TEST.380 | First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp | none | open |
 | TEST.381 | First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp | none | open |
 | TEST.382 | First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp | none | open |

@@ -1378,21 +1378,27 @@ with `clamp()`.
   Prerequisites: UX.226. Related: UX.225.
 
 - [ ] **UX.231 Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is the
-  12 pc sphere (a standard fill, about 109 sectors) on the centre of
-  each 9-block, named from the block path by a new codec kind region
-  (Word Region; the 27 Regions of one 81-block share the family word),
-  charted only when at least 50 percent of the sphere's sectors are
-  generated and face-connected; uncharted space gets no region and no
-  sector line may join two unrelated places. Design:
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
   /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.1 (revised design), sections 2.2 and 3. Names come from the
-  gated phoneme codec only, never from Milky Way or Solar System lists.
-  An object is placed by the block holding its current position, never
-  by its ID. Done: the line on sector, system and body pages, hidden
-  when absent, test pinned. Owner: Aux 11. Rules: no backward-compat
-  shims; every number has a unit or scale (GEN.772); tests are
-  scripts/test.py changed --resume.
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. An object is placed by the block holding its current
+  position, never by its ID. Done: the line on sector, system and body
+  pages, hidden when absent, test pinned. Owner: Aux 11. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
   Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826, API.35,
   MAP.314, MAP.315.
 
@@ -3392,43 +3398,159 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
 
 - [ ] **MAP.314 Galaxy Map labels the charted regions by zoom: the family word with Reach at 81 and 243, the Region name at 27 and 9, the corner or infobox below that (regions chain, step 3)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is the
-  12 pc sphere (a standard fill, about 109 sectors) on the centre of
-  each 9-block, named from the block path by a new codec kind region
-  (Word Region; the 27 Regions of one 81-block share the family word),
-  charted only when at least 50 percent of the sphere's sectors are
-  generated and face-connected; uncharted space gets no region and no
-  sector line may join two unrelated places. Design:
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
   /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.1 (revised design), sections 2.2 and 3. Names come from the
-  gated phoneme codec only, never from Milky Way or Solar System lists.
-  Label priority bigger block first, one label per node, culling by the
-  sector-name collision rules; the label sits on the centroid of the
-  charted spheres, not the block centre; an unfilled galaxy shows
-  nothing. The suffix words Region and Reach are placeholders for Boss.
-  Done: label tests at each zoom, no label for uncharted space. Owner:
-  Aux 10. Rules: no backward-compat shims; every number has a unit or
-  scale (GEN.772); tests are scripts/test.py changed --resume.
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Label priority bigger block first, one label per node,
+  culling by the sector-name collision rules; the label sits on the
+  centroid of the charted spheres, not the block centre; an unfilled
+  galaxy shows nothing. The suffix words Region and Reach are
+  placeholders for Boss. Done: label tests at each zoom, no label for
+  uncharted space. Owner: Aux 10. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume. The galactic-level map draws the regions themselves
+  (MAP.317), so these labels are what a user reads there.
   Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826, API.35.
 
 - [ ] **MAP.315 The map infobox shows the region and its parent: "Region: Vang Zarh (in Vang Reach)", each a link that flies the camera to the block (regions chain, step 4)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is the
-  12 pc sphere (a standard fill, about 109 sectors) on the centre of
-  each 9-block, named from the block path by a new codec kind region
-  (Word Region; the 27 Regions of one 81-block share the family word),
-  charted only when at least 50 percent of the sphere's sectors are
-  generated and face-connected; uncharted space gets no region and no
-  sector line may join two unrelated places. Design:
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
   /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.1 (revised design), sections 2.2 and 3. Names come from the
-  gated phoneme codec only, never from Milky Way or Solar System lists.
-  Extends the Core 2 infobox work (MAP.295, MAP.296). Done: lines hidden
-  when the point is in no charted region, links fly the camera, test
-  pinned. Owner: Core 2. Rules: no backward-compat shims; every number
-  has a unit or scale (GEN.772); tests are scripts/test.py changed
-  --resume.
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Extends the Core 2 infobox work (MAP.295, MAP.296).
+  Done: lines hidden when the point is in no charted region, links fly
+  the camera, test pinned. Owner: Core 2. Rules: no backward-compat
+  shims; every number has a unit or scale (GEN.772); tests are
+  scripts/test.py changed --resume.
   Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826, API.35,
   MAP.314.
+
+- [ ] **MAP.316 Regions are the nodes of the galactic-level map: a soft sphere with its name, coloured by share charted, replacing the sector boxes there, and a sortable charted-regions list (regions chain, step 3a)**
+  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
+  what the galactic-level map shows so a user can always drill down to
+  inhabited space; a region is a 9-block cell with at least one
+  generated sector, drawn as the bounding sphere of its generated
+  sectors (never smaller than the 12 pc fill sphere), ranked by share
+  charted. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2. Regions are nodes of the node cut (the node cache and
+  name on the node payload, API.35); drilling: clicking a region or its
+  label flies in and the region opens its own stars, systems and POI
+  icons and markers as today (they all still apply). Sector boxes are
+  not drawn at galactic scale or when a region is flown to; the grid
+  outline stays the optional tool. Every region above 0 percent charted
+  appears. The charted-regions list sorts by share charted, and by
+  population once it exists (MAP.318), and is the always-available way
+  to reach inhabited space. Done: tests that a region with one generated
+  sector appears, that the list sorts by share, that no sector box is
+  drawn at galactic scale. Owner: Aux 10. Rules: no backward-compat
+  shims; every number has a unit or scale (GEN.772); tests are
+  scripts/test.py changed --resume.
+  Prerequisites: DB.107, GEN.827, API.35. Related: GEN.825, DB.107,
+  GEN.827, API.35, MAP.314.
+
+- [ ] **MAP.317 Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c)**
+  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
+  what the galactic-level map shows so a user can always drill down to
+  inhabited space; a region is a 9-block cell with at least one
+  generated sector, drawn as the bounding sphere of its generated
+  sectors (never smaller than the 12 pc fill sphere), ranked by share
+  charted. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2. Reuse the star-visibility share (starfade.js,
+  zoom-star-visibility.md) and add one rule: a label is only offered for
+  a marker that is drawn. Budget N = screen area over the label cell, so
+  a sparse region labels everything it draws and a dense one trims.
+  Slices, each ranked by its own metric and merged without duplicates,
+  empty slices lending their share: inhabited locations by population,
+  ranked per type (planets, moons, stations and so on, so a station does
+  not compete with a planet); uninhabited planets, moons and
+  non-luminous star-like objects by mass per category, and a planet or
+  moon with no population listed is ranked by mass like the other
+  uninhabited bodies (Boss, 1:15 AM EDT 2026-10-25), so the inhabited
+  slice is not empty in 8.1; stars by size, brightness and mass (a third
+  each, a star in two lists counts once and the next in line fills);
+  nebulae and dust clouds by volume; regions by share charted, ties by
+  population, labelled first at the farthest zooms. Default weights
+  inhabited 30, stars 30, uninhabited 25, nebulae 10 percent with unused
+  budget redistributed, constants beside the star-fade ones. Done: unit
+  tests on the dense fixture, a sparse fixture labels every drawn
+  marker, no label for an undrawn one. Owner: Aux 10. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: API.35. Related: MAP.316, MAP.314, MAP.293.
+
+- [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank by mass until then (regions chain, step 3d)**
+  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
+  what the galactic-level map shows so a user can always drill down to
+  inhabited space; a region is a 9-block cell with at least one
+  generated sector, drawn as the bounding sphere of its generated
+  sectors (never smaller than the 12 pc fill sphere), ranked by share
+  charted. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2. The population pass today (species, civilizations,
+  polities, system ownership; planetgen population) stores no head
+  counts: the world population simulation is POP.30 (8.3) and cities
+  POP.19 (8.4). Build the slot now: a ranking function that takes
+  population when a body has one and mass when it has none, a population
+  column in the charted-regions list that is hidden while no region has
+  one (rule: absent values hidden), and tests with a fixture that
+  carries populations. Fills when POP.30 stores them. Done: the slot and
+  fixture tests pass, nothing waits on POP.30. Owner: Aux 10. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: MAP.317, MAP.316. Related: MAP.317, MAP.316, POP.30,
+  POP.19.
+
+- [ ] **MAP.319 flyToFit: flying to a region, star system, planet system of moons or nebula places the camera so the target fills the window, with no sector boxes drawn (regions chain, step 3b)**
+  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
+  what the galactic-level map shows so a user can always drill down to
+  inhabited space; a region is a 9-block cell with at least one
+  generated sector, drawn as the bounding sphere of its generated
+  sectors (never smaller than the 12 pc fill sphere), ranked by share
+  charted. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2. flyToFit(target) puts the camera so the target's bounding
+  sphere fills the view: distance = radius over sin(half the smaller
+  field of view) plus an 8 percent margin, keeps the viewing direction,
+  clamps to the 2 pc minimum view radius, works through the
+  camera-relative-to-eye pairs of the single-space map, and ends under
+  the hand-off hysteresis (MAP.152) with no scale flicker. Bounding
+  spheres: a region (GEN.827), a star system (its outermost stored body
+  apoapsis, plus the Hill-limited extent for a binary), a planet system
+  of moons (outermost moon apoapsis, or the planet's Hill sphere if
+  larger), a nebula (its volume). Done: tests per target kind that the
+  target's sphere fills the view, the minimum clamp, and that no sector
+  box is drawn after the flight. Owner: Core 2. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: GEN.827, API.35. Related: GEN.827, MAP.316, MAP.295,
+  MAP.296, MAP.152.
 
 ## NAV: Navigation and courses
 
@@ -15116,49 +15238,84 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.814, GEN.823.
 
 - [ ] **GEN.825 Region names: region_name() for the codec kind region, the anchor and sphere geometry of every 9-block, and a measurement of the squeezed blocks (regions chain, step 1)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is the
-  12 pc sphere (a standard fill, about 109 sectors) on the centre of
-  each 9-block, named from the block path by a new codec kind region
-  (Word Region; the 27 Regions of one 81-block share the family word),
-  charted only when at least 50 percent of the sphere's sectors are
-  generated and face-connected; uncharted space gets no region and no
-  sector line may join two unrelated places. Design:
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
   /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.1 (revised design), sections 2.2 and 3. Names come from the
-  gated phoneme codec only, never from Milky Way or Solar System lists.
-  Build the pure function region_name(block, key): family word from the
-  81-block, local word from the ordinal among its 27 9-blocks, a
-  collision salt against the 26 neighbouring blocks, kind region added
-  to naming_key.KINDS with no CODEC_VERSION bump; REGION_RADIUS_PC
-  (default the standard fill radius); the anchor (centre of the 9-block
-  bounds); radius min(12 pc, inscribed radius) for squeezed blocks and
-  no region under 8 pc. Measure how many blocks the grid squeezes near
-  the core and poles. Done: golden names, sibling and neighbour
-  uniqueness and determinism tests, no database read, the measurement
-  written into the design draft. Owner: next free core lane (proposed
-  Core 3). Rules: no backward-compat shims; every number has a unit or
-  scale (GEN.772); tests are scripts/test.py changed --resume.
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Build the pure function region_name(block, key): family
+  word from the 81-block, local word from the ordinal among its 27
+  9-blocks, a collision salt against the 26 neighbouring blocks, kind
+  region added to naming_key.KINDS with no CODEC_VERSION bump;
+  REGION_RADIUS_PC (default the standard fill radius); the anchor
+  (centre of the 9-block bounds); minimum framing radius min(12 pc,
+  inscribed radius) for squeezed blocks (every cell with a generated
+  sector is a region, so none is dropped). Measure how many blocks the
+  grid squeezes near the core and poles. Done: golden names, sibling and
+  neighbour uniqueness and determinism tests, no database read, the
+  measurement written into the design draft. Owner: Core 3. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
   Prerequisites: none.
 
 - [ ] **GEN.826 Random-start and Generate "around a place" fill one anchor sphere, so a normal fill charts a whole region (regions chain, step 1c)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is the
-  12 pc sphere (a standard fill, about 109 sectors) on the centre of
-  each 9-block, named from the block path by a new codec kind region
-  (Word Region; the 27 Regions of one 81-block share the family word),
-  charted only when at least 50 percent of the sphere's sectors are
-  generated and face-connected; uncharted space gets no region and no
-  sector line may join two unrelated places. Design:
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
   /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.1 (revised design), sections 2.2 and 3. Names come from the
-  gated phoneme codec only, never from Milky Way or Solar System lists.
-  Random-start mode picks a random uncharted anchor instead of a random
-  address; the Generate page offers "this region" (snap to the anchor,
-  12 pc). Done: a finished fill of one anchor sphere is charted and
-  named; a test pins the snap; no change to what a sector generates, so
-  no epoch. Owner: Core 3. Rules:
-  no backward-compat shims; every number has a unit or scale (GEN.772);
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Random-start mode picks a random uncharted anchor
+  instead of a random address; the Generate page offers "this region"
+  (snap to the anchor, 12 pc). Done: a finished fill of one anchor
+  sphere is charted and named; a test pins the snap; no change to what a
+  sector generates, so no epoch. Owner: Core 3. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
   tests are scripts/test.py changed --resume.
   Prerequisites: GEN.825, DB.107. Related: GEN.825, DB.107.
+
+- [ ] **GEN.827 Region extent: the bounding sphere of a cell's generated sectors (never under the 12 pc fill sphere) and the measurement of two far-apart clumps (regions chain, step 1d)**
+  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
+  what the galactic-level map shows so a user can always drill down to
+  inhabited space; a region is a 9-block cell with at least one
+  generated sector, drawn as the bounding sphere of its generated
+  sectors (never smaller than the 12 pc fill sphere), ranked by share
+  charted. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2. Compute the extent (centre and radius in pc) of every
+  region from its generated sectors, minimum the 12 pc fill sphere about
+  the anchor (minimum framing radius min(12 pc, inscribed radius) in a
+  squeezed cell); a chain of sectors across cells makes one thin region
+  per cell, each its own small sphere. Measure how often the generated
+  sectors of one cell form two far-apart clumps so the bounding sphere
+  covers the gap; if it matters, the extent becomes the sphere of the
+  largest face-connected clump (the rest still count toward the share).
+  Done: extent function and tests, the measurement written into the
+  design draft, DB.107 stores the extent. Owner: Core 3. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: GEN.825. Related: GEN.825, DB.107.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16870,32 +17027,40 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   nothing in 8.1.
   Prerequisites: GEN.798. Related: DB.70, DB.101.
 
-- [ ] **DB.107 Region stats: the region_stats table, its save and delete hook and the charted rule (regions chain, step 1b)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is the
-  12 pc sphere (a standard fill, about 109 sectors) on the centre of
-  each 9-block, named from the block path by a new codec kind region
-  (Word Region; the 27 Regions of one 81-block share the family word),
-  charted only when at least 50 percent of the sphere's sectors are
-  generated and face-connected; uncharted space gets no region and no
-  sector line may join two unrelated places. Design:
+- [ ] **DB.107 Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b)**
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
   /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.1 (revised design), sections 2.2 and 3. Names come from the
-  gated phoneme codec only, never from Milky Way or Solar System lists.
-  One row per anchor with any generated sector: region_stats(m=9 key,
-  sector_count, largest_component, capacity), kept by the same hook as
-  galaxy_block_stats (db/block_stats.py); the largest face-connected
-  component is recomputed for the one sphere a saved or deleted sector
-  falls in (about 109 cells, neighbor_addresses). Charted when the
-  component holds at least REGION_CHARTED_SHARE (default 0.5) of the
-  sectors the outline can hold; only sectors with a centre inside the
-  sphere count. One migration and its epoch row at merge, as DB.100 did
-  (new numeric columns registered in db/column_units.py). Done:
-  region_of(position) and charted(anchor) read from the table,
-  order-independence test (test_order_independence), a lone sector in
-  empty space charts nothing, deleting sectors uncharts. Owner: the same
-  lane as step 1. Rules: no backward-compat shims; every number has a
-  unit or scale (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: GEN.825. Related: GEN.825.
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. One row per 9-block cell with any generated sector (no
+  row means no region): region_stats(m=9 key, sector_count, capacity),
+  kept by the same hook as galaxy_block_stats (db/block_stats.py); the
+  count is recomputed for the one sphere a saved or deleted sector falls
+  in (about 109 cells). The charted percent is sector_count over
+  capacity (the sectors the outline can hold), and a region with any
+  sector above 0 percent exists; every sector of the cell counts, the
+  cell of a sector being found by its centre as the ladder does. One
+  migration and its epoch row at merge, as DB.100 did (new numeric
+  columns registered in db/column_units.py). Done: region_of(position)
+  and charted_percent(anchor) read from the table, order-independence
+  test (test_order_independence), one generated sector makes its region
+  exist at its small percent, deleting the last sector removes the
+  region. Owner: Core 3. Rules: no backward-compat shims; every number
+  has a unit or scale (GEN.772); tests are scripts/test.py changed
+  --resume.
+  Prerequisites: GEN.825, GEN.827. Related: GEN.825, GEN.827.
 
 ## API: The JSON API
 
@@ -17371,40 +17536,53 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: GEN.799. Related: API.8, API.30, API.33.
 
 - [ ] **API.35 Region names on the wire: a name on charted nodes and the stage and node endpoints, galaxy-map-wire-format.md (regions chain, step 2)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is the
-  12 pc sphere (a standard fill, about 109 sectors) on the centre of
-  each 9-block, named from the block path by a new codec kind region
-  (Word Region; the 27 Regions of one 81-block share the family word),
-  charted only when at least 50 percent of the sphere's sectors are
-  generated and face-connected; uncharted space gets no region and no
-  sector line may join two unrelated places. Design:
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
   /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.1 (revised design), sections 2.2 and 3. Names come from the
-  gated phoneme codec only, never from Milky Way or Solar System lists.
-  Node payloads gain name and a parent family name for charted regions
-  only; the tile cache key already carries the naming-key stamp. Done:
-  the format doc updated, a test pins the field and its absence for
-  uncharted blocks. Owner: Aux 12. Rules: no backward-compat shims;
-  every number has a unit or scale (GEN.772); tests are scripts/test.py
-  changed --resume.
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Node payloads gain name and a parent family name for
+  charted regions only; the tile cache key already carries the
+  naming-key stamp. Done: the format doc updated, a test pins the field
+  and its absence for uncharted blocks. Owner: Aux 12. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
   Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826.
 
 - [ ] **API.36 Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is the
-  12 pc sphere (a standard fill, about 109 sectors) on the centre of
-  each 9-block, named from the block path by a new codec kind region
-  (Word Region; the 27 Regions of one 81-block share the family word),
-  charted only when at least 50 percent of the sphere's sectors are
-  generated and face-connected; uncharted space gets no region and no
-  sector line may join two unrelated places. Design:
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
   /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.1 (revised design), sections 2.2 and 3. Names come from the
-  gated phoneme codec only, never from Milky Way or Solar System lists.
-  region_names(naming_key_hash, m, shell, band, wedge, name) for charted
-  regions only, refilled by update.sh when the key changes, and the
-  Go-to box on the map. Waits for Boss to say search now or later.
-  Owner: Aux 12. Rules: no backward-compat shims; every number has a
-  unit or scale (GEN.772); tests are scripts/test.py changed --resume.
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. region_names(naming_key_hash, m, shell, band, wedge,
+  name) for charted regions only, refilled by update.sh when the key
+  changes, and the Go-to box on the map. Waits for Boss to say search
+  now or later. Owner: Aux 12. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume.
   Prerequisites: DB.107, API.35. Related: GEN.825, DB.107, GEN.826,
   API.35, MAP.314, MAP.315, UX.231.
 
@@ -20524,21 +20702,6 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
-- [ ] **TEST.367 Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug)**
-  Reported by Core 1 while merging API.15 (#3136, 6:43 PM EDT 2026-10-24
-  as the lane reported); they fail identically on origin/main on its
-  lane:
-  test_admin_edits.py::test_system_page_regenerates_a_planet and
-  ::test_system_page_changes_a_class, and test_api_auth_sweep.py::
-  test_admin_pages_send_an_admin_on_seeded_credentials_to_account and
-  ::test_admin_pages_send_anonymous_visitors_to_login (302 where 403 is
-  expected for /admin/queue/<run_id>/log). Find whether the tests are
-  stale
-  after the recent page and queue changes or the pages are wrong, fix
-  and
-  record which. Owner: Bug 1.
-  Prerequisites: none. Related: TEST.365, API.15.
-
 - [ ] **TEST.368 A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
@@ -20595,47 +20758,6 @@ clears each one.
   planetgen database account). Bug 1: check them on a machine set up as
   documented before filing anything new.
   Prerequisites: none. Related: OPS.62, TEST.364.
-
-- [ ] **TEST.371 test_workers::a_worker_that_is_killed fails under load and passes alone (bug)**
-  Found by Bug 1 running scripts/test.py quick on clean main (8:00 PM
-  EDT 2026-10-24 as the lane reported):
-  test_workers::a_worker_that_is_killed fails in a full quick run
-  (4-core lane machine, 36 minutes) and passes when run alone. Do: find
-  the timing the test depends on (a fixed sleep or a wait shorter than
-  the load allows) and make it wait for the state it needs, with no skip
-  and no retry decorator. Done: the test passes in three full quick
-  runs. Owner: Bug 1. Related: TEST.344, TEST.364.
-  Prerequisites: none. Related: TEST.344, TEST.364.
-
-- [ ] **TEST.377 test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug)**
-  Found by Core 2 (UX.125, 8:47 PM EDT 2026-10-24 as the lane reported)
-  on clean main. Do: run it on a lane machine set up as documented
-  (TEST.376 preflight, TEST.370), find the root cause (the cache size it
-  fills, a disk or MySQL limit on the lane machine, or a real change in
-  the warmup count) and fix it with no skip; if it passes on a
-  documented machine, drop this item and note the setup it needed. Done:
-  the test passes on a documented machine, or the root cause is fixed.
-  Owner: Bug 1. Related: TEST.375, TEST.370.
-  Prerequisites: none. Related: TEST.375, TEST.370.
-
-- [ ] **TEST.379 Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug)**
-  Found by Lane 4 (Aux 12) running the OPS.29 gate on main (8:59 PM EDT
-  2026-10-24 as the lane reported). Not yet in any item:
-  test_api::description_splits_into_every_body, test_eta_estimator
-  (queue page), test_protection (six describers),
-  test_web_browser_fixture_maps (wheel scroll) and test_web_search (star
-  link). Already covered: test_api_auth_sweep admin pages (fixed in
-  #3189 by Bug 1), test_class_pages nebula, test_interior_heat urey
-  ratio, test_memwatch smoke run and test_save_progress (all TEST.375),
-  test_no_todo_codes_shown (TEST.378; Lane 4 also named a MAP.220 string
-  at db/point_columns.py:177, check that TEST.378 removes every code in
-  a shown string). Do: run each on a lane machine set up as documented
-  (TEST.370, TEST.376 preflight), keep the ones that still fail on main,
-  and fix each with no skip; drop the ones that pass, noting the setup
-  they needed. Done: every listed test passes on a documented machine or
-  has its own item with a root cause. Owner: Bug 1. Related: TEST.375,
-  TEST.378, TEST.370.
-  Prerequisites: none. Related: TEST.375, TEST.378, TEST.370.
 
 - [ ] **TEST.380 First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp**
   Boss, 9:21 PM EDT 2026-10-24 (relayed by the coordinator): "When are
@@ -22266,22 +22388,28 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
 - [ ] **DOC.82 Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is the
-  12 pc sphere (a standard fill, about 109 sectors) on the centre of
-  each 9-block, named from the block path by a new codec kind region
-  (Word Region; the 27 Regions of one 81-block share the family word),
-  charted only when at least 50 percent of the sphere's sectors are
-  generated and face-connected; uncharted space gets no region and no
-  sector line may join two unrelated places. Design:
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
   /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.1 (revised design), sections 2.2 and 3. Names come from the
-  gated phoneme codec only, never from Milky Way or Solar System lists.
-  Naming doc section, object-pages doc and galaxy-map-wire-format.md
-  updated; the audit playbook gets the uniqueness check. Done: docs
-  build and link tests pass, the audit check exists. Owner: the lane
-  that finishes step 1. Rules: no backward-compat shims; every number
-  has a unit or scale (GEN.772); tests are scripts/test.py changed
-  --resume.
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Naming doc section, object-pages doc and
+  galaxy-map-wire-format.md updated; the audit playbook gets the
+  uniqueness check. Done: docs build and link tests pass, the audit
+  check exists. Owner: Core 3. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume.
   Prerequisites: GEN.825, DB.107, API.35. Related: GEN.825, DB.107,
   GEN.826, API.35, MAP.314, MAP.315, UX.231, API.36.
 
