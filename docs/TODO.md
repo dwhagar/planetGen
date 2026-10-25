@@ -9697,39 +9697,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
-- [ ] **GEN.512 Tuned draw builder B4: the iron branch**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B4 of section 4 (one worker). Rows: T5.
-  Shared data and fit: Plotnykov 2025, Brinkman 2024, Adibekyan 2021,
-  Schulze 2021. Needs: mass and radius error injection.  Do: replace the
-  seeded bracket of each DESIGN row of GEN.478 in these rows by a seeded
-  draw whose knobs are tuned through the harness to the published
-  statistics of section 3 of the report (knob, statistic, target with N,
-  uncertainty, source and label), inside the validity range of the data
-  and flagged outside it; rows of class P become formulas of their
-  inputs and rows of class S or X are not tuned. Solar System values are
-  test points only (NO FIXED CONTENT). Done: every tuned row has a
-  target-table entry the loader checks, the simulate-and-compare test
-  passes within the stated sigma, no value rests on a Solar System body
-  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
-  rule). A retune changes the table version and is a generator epoch
-  bump. Owner: Core 4 (proposed, with the composition chain).
-  Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC8: the planet-minus-star Fe/Mg slope 0.94 (+1.02/-1.07) is
-  Plotnykov, Valencia and Ross 2026 (preprint arXiv:2511.17717), not the 2020 paper; of the two
-  verified papers by the same group the newest wins.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): cite the
-  fit as Plotnykov, Valencia and Ross 2026 (preprint arXiv:2511.17717),
-  not Plotnykov 2025 or the 2020 paper (2026-10-17, 1:16 PM EDT).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
 - [ ] **GEN.515 Tuned draw builder B7: ground and petrology**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
@@ -15274,6 +15241,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.772); tests are `scripts/test.py changed --resume`.
   Prerequisites: GEN.411, GEN.422. Related: GEN.739, GEN.411, GEN.422,
   GEN.726.
+
+- [ ] **GEN.820 Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample**
+  GEN.512 merged as #3250 (generator epoch 101, --affects fill):
+  bulk-iron-branch table in bulk_draw.py, tuning sample
+  physics/iron_branch_tuning.py, targets t5-outlier-share and
+  t5-within-share. Left open by the lane (11:05 PM EDT 2026-10-24 as the
+  lane reported): (1) the coreless branch has no count to tune against;
+  (2) a slope other than 1 needs a pivot; (3) the scatter 0.05 dex is a
+  stand-in (give it a source or a tier and tweak level in GEN.725); (4)
+  a larger tuning sample. Done: each is either closed with a source or
+  listed in the registry with its tier. Owner: the lane that did GEN.512
+  (source and tune atmosphere draws). Rules: no backward-compat shims;
+  stand-ins get GEN.725 registry rows; a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch.
+  Prerequisites: none. Related: GEN.512, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20850,6 +20833,9 @@ clears each one.
   test_work_units batch-fills test. Core 5 fixed test_stages,
   test_job_tree and test_work_units cases that PERF.125 left red
   (#3248).
+  Research (2026-10-09, GEN.512 lane report): Also red on main (GEN.512
+  lane, 11:05 PM EDT 2026-10-24 as the lane reported): test_work_units,
+  test_single_system_forcing.
   Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
 
 - [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**
