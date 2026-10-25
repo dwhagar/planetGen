@@ -462,3 +462,5 @@ Update 8:34 PM EDT 2026-10-24: filed UX.209 (Aux 11) from Boss's 8:33 PM EDT not
 Update 8:39 PM EDT 2026-10-24: ADM.129 merged as #3180 (Core 5, as the lane reported 8:50 PM EDT): the admin Queue page has a Start a fill panel with Regenerate habitability and Fill map luminosity buttons that start the commands as jobs with a generation run's rules. 8.1 is at 1032 of 1440 items finished, 408 open. Core 5 continues with GEN.180.
 
 Update 8:43 PM EDT 2026-10-24: Boss asked that all test runs check for broken containers. Filed TEST.376 (Bug 1, 8.1: scripts/test.py preflight plus a watchdog that restarts a dead MySQL or Redis and resumes; takes over OPS.70) and added the CONTAINER CHECK rule to lanes.md, the status README and the build brief template.
+
+Update 8:47 PM EDT 2026-10-24: UX.125 merged as #3183 (Core 2): the Generate task pages, the one-off system page and the recipe name boxes use the site's one form field. UX.49 and UX.126 remain. Core 2 found test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out red on clean main: filed as TEST.377 (Bug 1). 8.1 is at 1033 of 1442 items finished, 409 open.

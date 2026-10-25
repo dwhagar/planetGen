@@ -509,34 +509,6 @@ with `clamp()`.
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
   Prerequisites: none. Related: UX.102.
 
-- [ ] **UX.125 The Generate page and the one-off system page on the field macro**
-  Split from UX.49 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Convert the controls of
-  `generate.html` and `generate_system.html` to the macro (select,
-  checkbox, switch and the numeric boxes), submitting and validating as
-  before. Done: converted; the page's browser tests pass in both themes
-  and at phone width; keyboard use and labels unchanged.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
-  PM EDT as the lane reported; the Generate page conversion now rides
-  ADM.99).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/interface/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. The Generate page conversion becomes part of
-  ADM.108 (G2).
-  Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Research (2026-10-09, 10-24 lane 4): Stays with Core 2 (12:20 PM EDT 2026-10-24: Lane 4 looked at it and left it; UX.49 closes with UX.125 and UX.126).
-  Prerequisites: none. Related: UX.49.
-
 - [ ] **UX.126 The admin pages and the edit dialogs on the field macro**
   Split from UX.49 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Convert `admin.html`,
@@ -19683,6 +19655,17 @@ clears each one.
   check and resume), which Bug 1 now owns with this item. Owner: Bug 1.
   Related: OPS.70, OPS.62, TEST.208.
   Prerequisites: none. Related: OPS.70, OPS.62, TEST.208.
+
+- [ ] **TEST.377 test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug)**
+  Found by Core 2 (UX.125, 8:47 PM EDT 2026-10-24 as the lane reported)
+  on clean main. Do: run it on a lane machine set up as documented
+  (TEST.376 preflight, TEST.370), find the root cause (the cache size it
+  fills, a disk or MySQL limit on the lane machine, or a real change in
+  the warmup count) and fix it with no skip; if it passes on a
+  documented machine, drop this item and note the setup it needed. Done:
+  the test passes on a documented machine, or the root cause is fixed.
+  Owner: Bug 1. Related: TEST.375, TEST.370.
+  Prerequisites: none. Related: TEST.375, TEST.370.
 
 ## USR: User accounts
 
