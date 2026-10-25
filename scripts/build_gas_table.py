@@ -59,7 +59,7 @@ NAMES = {
     "S": "atomic sulfur", "Si": "atomic silicon", "Ti": "atomic titanium", "V": "atomic vanadium", "Cr": "atomic chromium",
     "P2": "diphosphorus", "FeO": "iron monoxide", "MgO": "magnesium monoxide", "SiO2": "silicon dioxide vapor",
     "TiO2": "titanium dioxide vapor", "NaOH": "sodium hydroxide vapor", "KOH": "potassium hydroxide vapor",
-    "Na2": "disodium", "NaO": "sodium monoxide", "MgOH": "magnesium hydroxide radical", "Mg(OH)2": "magnesium hydroxide vapor",
+    "Na2": "disodium", "NaO": "sodium monoxide", "Al": "atomic aluminum", "K2": "dipotassium", "KO": "potassium monoxide", "K2O": "potassium oxide vapor", "Na2O": "sodium oxide vapor", "MgOH": "magnesium hydroxide radical", "Mg(OH)2": "magnesium hydroxide vapor",
     "Fe(OH)2": "iron hydroxide vapor", "CaO": "calcium monoxide", "SiS": "silicon monosulfide", "HCOOH": "formic acid",
 }
 

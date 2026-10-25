@@ -112,3 +112,26 @@ def test_a_stored_melt_composition_replaces_the_drawn_one():
     assert fractions["Na2O"] < 1e-9 and fractions["FeO"] > fractions["Al2O3"]
     # no draw was made for it: the same call twice agrees without a seed
     assert ml.melt_composition({}, {"SiO2": 50.0, "MgO": 30.0, "FeO": 20.0}) == fractions
+
+
+@pytest.mark.parametrize("temperature", [2000.0, 2500.0])
+def test_the_alkali_oxides_and_monoxide_of_the_vapour_are_in_the_gas_table(temperature):
+    """GEN.751: K2, KO, K2O and Na2O were species the gas table lacked, so a draw dropped them as `unlisted`; they are listed now."""
+    pressures = vapour(temperature, 0.0)
+    for name in ("K2", "KO", "K2O", "Na2O"):
+        assert pressures[name] > 0.0, name
+    subject = Subject("A", {**HOT, "ts_k": temperature, "tp_k": temperature})
+    with draw.bound(draw.Stream("gen751")):
+        recipe = md.RECIPES.draw_all(subject, categories=md.CATEGORIES)
+        result = ml.vapour_mixture(subject, recipe, temperature_name="tp_k")
+    assert result.unlisted == {}
+    for formula in ("K2", "KO", "K2O", "Na2O"):
+        assert gases.has(formula)
+    assert result.mole_fractions.get("KO", 0.0) > 0.0 and result.mole_fractions.get("Na2O", 0.0) > 0.0
+
+
+def test_aluminium_is_in_the_gas_table_but_the_melt_model_makes_none():
+    """Al is a species of the table (GEN.751); the melt carries no aluminium activity (`ELEMENTS` is the melt's less aluminium), so the
+    vapour holds none until the melt model gives Al2O3 an activity."""
+    assert gases.has("Al") and "Al" not in ml.ELEMENTS
+    assert "AL" not in vapour(2500.0, 0.0)

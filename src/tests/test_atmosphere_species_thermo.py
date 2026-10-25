@@ -12,12 +12,27 @@ from planetgen.physics.elements import DataError
 
 
 def test_the_file_holds_the_gases_and_the_condensed_phases_the_chemistry_needs():
-    assert len(st.SPECIES) == 89
-    assert len(st.GASES) == 70 and len(st.CONDENSED) == 19
+    assert len(st.SPECIES) == 94
+    assert len(st.GASES) == 75 and len(st.CONDENSED) == 19
     for name in ("H2", "H2O", "CO", "CO2", "CH4", "NH3", "N2", "H2S", "SO2", "Na", "K", "SiO", "TiO", "VO", "Fe", "Mg"):
         assert name in st.GASES
     for name in ("H2O(cr)", "H2O(L)", "C(gr)", "Fe(L)", "SiO2(L)"):
         assert name in st.CONDENSED
+
+
+LAVA_VAPOUR_NAMES = {"AL": "Al", "K2": "K2", "KO": "KO", "K2O": "K2O", "Na2O": "Na2O"}
+"""dict: The lava vapour's aluminium and alkali species (GEN.751) by their name in the NASA file (which spells aluminium AL) and in the gas table."""
+
+
+def test_the_aluminium_and_alkali_species_of_the_lava_vapour_are_in_the_table_under_the_gas_tables_formulas():
+    for name, formula in LAVA_VAPOUR_NAMES.items():
+        assert name in st.GASES and st.SPECIES[name].formula == formula
+        assert gases.has(formula), formula
+        row = gases.gas(formula)
+        assert row.molar_mass == pytest.approx(st.SPECIES[name].molar_mass, abs=1e-5)
+        # the Cp of the table is the database's, at 300 and 1000 K
+        for temperature in (300, 1000):
+            assert row.cp_j_mol_k[temperature] == pytest.approx(st.SPECIES[name].cp_over_r(float(temperature)) * 8.314462618, abs=0.01)
 
 
 def test_every_species_has_elements_a_molar_mass_that_adds_up_and_joined_fits():
