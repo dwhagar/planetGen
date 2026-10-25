@@ -909,6 +909,10 @@ with `clamp()`.
   first). Do: sitemap entries and an Open Graph image for object pages.
   Optional; belongs to 8.2. Done: the sitemap lists the object pages and
   a shared link shows the image.
+  Research (2026-10-09, Image split out): The image half is now UX.206
+  (Boss, 8:19 PM EDT 2026-10-24): the Open Graph image is a cached
+  snapshot of the page's rendered view or map view. This item keeps the
+  sitemap entries.
   Prerequisites: none.
 
 - [ ] **UX.186 Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary**
@@ -1135,6 +1139,35 @@ with `clamp()`.
   cases find the shares and the sentence. Owner: Aux 11, after GEN.767
   supplies the columns. Related: UX.199, GEN.767.
   Prerequisites: GEN.767. Related: UX.199, UX.203.
+
+- [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
+  Boss, 8:19 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiHAYnXa7XwrhJHvc3pY8X4j, relayed by the
+  coordinator): "new TODO for v8.2, SEO image thumbnails for pages that
+  involve a rendered image or map view should be a snapshot of that map
+  view, cached as needed so it doesn't have to regen it each time."
+  Version: 8.2. This is the image half of UX.179 (sitemap entries and an
+  Open Graph image for object pages): UX.179's image becomes this
+  snapshot. Do: for every page that shows a rendered image or a map view
+  (the galaxy map, a sector, a system map, a planet or moon render, a
+  star), the `og:image` and `twitter:image` tags point to a snapshot of
+  that view, rendered once and cached on disk (keyed by the page, the
+  view and the build or epoch that changes the picture, so a changed
+  world or a new render re-renders it and nothing else does), served
+  with long cache headers, with a size that link previews accept (about
+  1200 by 630); a page with no rendered view keeps the site default
+  image from ADM.44's SEO settings. The first request for a missing
+  snapshot renders it once (a queued job, never inside the page request)
+  and serves the default image until it exists; the admin page lists the
+  snapshot cache beside the tile cache (PERF.134) and can clear it.
+  Done: a test fetches a planet page and a sector page and finds an
+  og:image URL that returns a PNG or JPEG of the view; a second fetch
+  does not render again (cache hit); changing the object invalidates
+  only its snapshot. Owner: the Detail pages lane (with UX.179), after
+  it starts; overlaps the 8.2 tile cache work only in the cache
+  directory and the admin listing, which this item reuses. Related:
+  UX.179, PERF.134, ADM.44, MAP.158.
+  Prerequisites: UX.179. Related: UX.179, PERF.134, ADM.44, MAP.158.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
