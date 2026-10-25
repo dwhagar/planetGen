@@ -184,15 +184,15 @@ def test_a_phase_with_no_updates_and_no_history_uses_the_time_per_task_so_far_in
     assert eta.source == "this run so far" and not eta.partial
     assert eta.seconds == pytest.approx(5.0 / (10.0 / 120.0))
     nothing = runeta.estimate(_run(_stage(started=0.0), started=0.0), now=5.0)
-    assert nothing.rough and nothing.source == "rough guess" and not nothing.partial       # PERF.184: a guess, not a blank
+    assert nothing.rough and nothing.source == "not timed yet" and not nothing.partial       # PERF.184: a guess, not a blank
 
 
-def test_a_server_that_never_timed_a_stage_gives_a_rough_guess_from_its_hardware_and_says_so(monkeypatch):
+def test_a_server_that_never_timed_a_stage_estimates_from_its_hardware_and_says_so(monkeypatch):
     """PERF.184 (Boss, 2026-10-24): no benchmark or history, the estimate must still be sensible."""
     monkeypatch.setattr(runeta.roughtime, "host_workers", lambda cores=None, memory_bytes=None: 8)
     started = _stage(started=0.0, units=16)                      # 16 units over 8 workers: 2 rounds of 20 s
     eta = runeta.estimate(_run(started), now=0.0)
-    assert eta.rough and eta.source == "rough guess" and eta.seconds == pytest.approx(40.0)
+    assert eta.rough and eta.source == "not timed yet" and eta.seconds == pytest.approx(40.0)
     assert (eta.low, eta.high) == pytest.approx((16.0, 120.0)), "a guess is wide"
     counted_down = runeta.estimate(_run(started), now=30.0)
     assert counted_down.seconds == pytest.approx(10.0)

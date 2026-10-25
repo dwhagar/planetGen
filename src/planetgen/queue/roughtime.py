@@ -24,7 +24,7 @@ ROUGH_HIGH_FACTOR = 3.0
 """float: The range around a rough figure, in times the figure: a guess with no measurement behind it is wide."""
 
 OVERRUN_KEEP = 0.1
-"""float: A stage that outlasts its rough guess keeps this share of the guess as its time left."""
+"""float: A stage that outlasts its untimed estimate keeps this share of it as its time left."""
 
 CORE_SHARE = 0.8
 """float: The share of the cores the default worker count uses (`generation.run_common` sizes a run the same way)."""

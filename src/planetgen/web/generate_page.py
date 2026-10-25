@@ -1261,12 +1261,12 @@ def _stage_estimate_list(job, units):
 def remaining_label(remaining, running=True, rough=False):
     """What the page says about the time left (PERF.33): "about 3 m 05 s to 4 m 00 s left" as a range around the
     estimate, "estimating the time left" while a running job has none yet, never dashes; `""` once it finished. A
-    `rough` figure (a guess from the hardware, PERF.184) has a wide range and says so."""
+    `rough` figure (an estimate from the hardware, PERF.184) has a wide range and says it is not timed yet (PERF.199)."""
     if remaining is None:
         return "estimating the time left" if running else ""
     if rough:
         low, high = roughtime.rough_range(remaining)
-        return f"roughly {format_elapsed(low)} to {format_elapsed(high)} left (a rough guess until a unit is timed)"
+        return f"roughly {format_elapsed(low)} to {format_elapsed(high)} left (not timed yet)"
     low, high = progress_rate.eta_range(remaining)
     low_text, high_text = format_elapsed(low), format_elapsed(high)
     if low_text == high_text:
@@ -1505,7 +1505,7 @@ def estimate_for(kind, steps, database, env):
 def _estimate_view(estimate):
     """`run_estimate`'s dict plus the text the page shows."""
     view = dict(estimate)
-    view["time_text"] = stats.format_duration(estimate.get("seconds"))
+    view["time_text"] = stats.time_text(estimate.get("seconds"), estimate.get("measured", True))
     if estimate.get("deep_check"):      # DB.21: a time and a count of systems, no size or disk
         return view
     view["size_text"] = stats.format_bytes(estimate.get("bytes"))
