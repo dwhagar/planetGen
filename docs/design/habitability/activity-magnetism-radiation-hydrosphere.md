@@ -502,7 +502,7 @@ the layer is 746 km deep at 11 GPa, not 1,047 km, and the table below (a fixed 1
 5 to 25 percent too deep. `physics/water_layer.py` integrates the column from the surface down with the density of the 300 K isotherm
 of water (IAPWS-95 liquid, then the ice VI, VII and X reference points of the materials table), the gravity of the mass below the
 level, and the area that grows toward the centre; it reproduces design part C 2.4's integrated table within 1 percent for 0.0001 to 0.5
-of an Earth or 5 Earth masses (its two x = 0.2 rows are inconsistent with the table's own radii and are not a test target). The liquid
+of an Earth or 5 Earth masses (its two x = 0.2 rows were recomputed from the code by DOC.79 on 2026-10-25 and are test targets like the rest). The liquid
 stops at the liquidus of the bottom temperature, the melting curves of ice III, V and VI recomputed from the Journaux splines (part C
 2.3: 210 MPa at 251.2 K, 350 at 256.2, 620 at 272.1, 800 at 286.8, 1000 at 300.4, 1500 at 327, 2000 at 347, 2200 at 353.8); below it
 the water is `hp_ice_km`. At Earth gravity the deepest liquid at 280 K is 65 km and at 300 K 88 km (the old table said 73 and 111);
