@@ -594,8 +594,7 @@
     },
     {
       "epoch": 100,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2315",
       "reason": "A rocky planet or moon with no liquid at its surface can hold an aquifer in its crust (depth and thickness stored), which makes its water a solvent for life, so worlds that had no life chemistry now draw one and the habitability score and every later draw of such a world change (GEN.654)",
       "affects": ["fill"]
     }
