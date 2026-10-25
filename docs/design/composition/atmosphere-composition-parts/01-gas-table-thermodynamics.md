@@ -298,6 +298,10 @@ The twenty-five rows from H to HCOOH (added with GEN.454 and GEN.499) are the at
 | KO | 55.097 | - | 35.38 | 38.09 | no phase data; free energy in species_thermo.py | COMPUTED |
 | K2O | 94.195 | - | 54.22 | 57.76 | no phase data; free energy in species_thermo.py | COMPUTED |
 | Na2O | 61.979 | - | 56.82 | 61.71 | no phase data; free energy in species_thermo.py | COMPUTED |
+| AlO | 42.981 | - | 30.91 | 37.14 | no phase data; free energy in species_thermo.py | COMPUTED |
+| Al2O | 69.963 | - | 52.04 | 60.65 | no phase data; free energy in species_thermo.py | COMPUTED |
+| AlO2 | 58.980 | - | 51.73 | 60.70 | no phase data; free energy in species_thermo.py | COMPUTED |
+| Al2O2 | 85.962 | - | 68.23 | 83.80 | no phase data; free energy in species_thermo.py | COMPUTED |
 
 ## 6. Saturation vapour pressure correlations
 

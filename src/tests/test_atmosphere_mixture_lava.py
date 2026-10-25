@@ -130,8 +130,32 @@ def test_the_alkali_oxides_and_monoxide_of_the_vapour_are_in_the_gas_table(tempe
     assert result.mole_fractions.get("KO", 0.0) > 0.0 and result.mole_fractions.get("Na2O", 0.0) > 0.0
 
 
-def test_aluminium_is_in_the_gas_table_but_the_melt_model_makes_none():
-    """Al is a species of the table (GEN.751); the melt carries no aluminium activity (`ELEMENTS` is the melt's less aluminium), so the
-    vapour holds none until the melt model gives Al2O3 an activity."""
-    assert gases.has("Al") and "Al" not in ml.ELEMENTS
-    assert "AL" not in vapour(2500.0, 0.0)
+def test_aluminium_is_in_the_vapour_over_the_melt_in_the_proportion_of_its_activity():
+    """GEN.818: Al2O3 has an activity (its mole fraction), so the vapour lists Al, AlO, Al2O, AlO2 and Al2O2."""
+    assert "Al" in ml.ELEMENTS and ml.ALUMINA_ACTIVITY_COEFFICIENT == 1.0
+    pressures = vapour(2500.0, 0.0)
+    aluminium = {name: pressures[name] for name in ("AL", "ALO", "AL2O", "ALO2", "AL2O2")}
+    assert all(value > 0.0 for value in aluminium.values())
+    share = sum(aluminium.values()) / sum(pressures.values())
+    assert 1e-9 < share < 1e-4                                  # a refractory element: far below Mg and SiO
+    assert aluminium["ALO"] > aluminium["AL"] > aluminium["AL2O"]
+    assert sum(aluminium.values()) < pressures["Mg"] * 1e-3
+
+
+def test_the_aluminium_vapour_obeys_the_equilibrium_of_its_own_species():
+    # 1/2 Al2O3(L) = AlO + 1/4 O2 at the held oxygen fugacity: p(AlO) fO2^(1/4) = a(Al2O3)^(1/2) K.
+    temperature, redox = 2500.0, 0.0
+    with draw.bound(4):
+        fractions = ml.melt_composition({})
+    pressures = vapour(temperature, redox, seed=4)
+    log_k = species_thermo.log10_k({"ALO": 1.0, "O2": 0.25, "AL2O3(L)": -0.5}, temperature)
+    from planetgen.physics import oxygen_fugacity as fo2
+    left = math.log10(pressures["ALO"]) + 0.25 * fo2.log_fo2(redox, temperature)
+    assert left == pytest.approx(log_k + 0.5 * math.log10(fractions["Al2O3"]), abs=1e-6)
+
+
+def test_a_more_aluminous_melt_has_more_aluminium_in_its_vapour():
+    """The Al2O3 share of a stored melt composition moves the aluminium vapour with the square root of the activity."""
+    low = ml.vapour_pressures(ml.element_potentials({"SiO2": 0.5, "MgO": 0.4, "FeO": 0.08, "Al2O3": 0.01, "CaO": 0.01, "Na2O": 1e-9, "TiO2": 0.001, "K2O": 1e-9}, 2500.0, 0.0), 2500.0)
+    high = ml.vapour_pressures(ml.element_potentials({"SiO2": 0.5, "MgO": 0.4, "FeO": 0.08, "Al2O3": 0.04, "CaO": 0.01, "Na2O": 1e-9, "TiO2": 0.001, "K2O": 1e-9}, 2500.0, 0.0), 2500.0)
+    assert high["ALO"] / low["ALO"] == pytest.approx(2.0, rel=1e-6)
