@@ -50,6 +50,15 @@
   {%- endif %}
   {%- endif %}
 </section>
+{%- if available %}
+<section class="panel" id="queue-fills" aria-labelledby="queue-fills-heading">
+  <h2 id="queue-fills-heading">Start a fill</h2>
+  <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='fill-habitability') }}">Regenerate habitability</a>
+    <span class="hint">Re-scores every planet and moon from its stored conditions. It does not re-draw a planet.</span></p>
+  <p><a class="btn" href="{{ url_for('web.admin_queue_confirm', action='fill-map-luminosity') }}">Fill map luminosity</a>
+    <span class="hint">Fills the map luminosity of scattered phenomena that do not have it yet.</span></p>
+</section>
+{%- endif %}
 {%- if warm %}
 <section class="panel" id="warm" aria-labelledby="warm-heading">
   <h2 id="warm-heading">Cache warm-up</h2>
