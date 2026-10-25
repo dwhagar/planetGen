@@ -1474,6 +1474,7 @@
 -- v155 (DB.71, GEN.424): the air moves out of `planets` and `moons` into the child tables `planet_gases` and `moon_gases` (one row per gas above zero: `gas`, its formula in the gas table, and `partial_pa`,
 --   its partial pressure in Pa); the ten `p_<gas>_kpa` columns are gone. A class's balance gas (helium, sodium, ammonia) is a row like the others, so the pressure is the sum of the rows. The migration
 --   copies each row's ten partial pressures (kPa times 1000) into the child tables.
+-- v159 (GEN.441): `planets` and `moons` gain the surface composition: `ground_type` and `ground_grain` and the areal share of each ground type (`ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, ..., twelve shares that add up to 1), NULL for a giant and for a row saved before v152. The minerals, ices and ocean the shares stand for are rows of the materials table (`physics/surface_composition.py`).
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2363,6 +2364,20 @@ CREATE TABLE IF NOT EXISTS planets (
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
     carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
+    ground_type                   VARCHAR(16),  -- v159 (GEN.441): the ground type with the largest areal share (ocean, ice or a rock type)
+    ground_grain                  VARCHAR(8),  -- v159: slab, crushed or powder
+    ground_ocean_fraction         DOUBLE,  -- v159: the areal share of the surface that is ocean (the twelve shares add up to 1)
+    ground_ice_fraction           DOUBLE,  -- v159: the areal share of the surface that is ice
+    ground_ultramafic_fraction    DOUBLE,  -- v159: the areal share of the surface that is ultramafic
+    ground_anorthositic_fraction  DOUBLE,  -- v159: the areal share of the surface that is anorthositic
+    ground_basaltic_fraction      DOUBLE,  -- v159: the areal share of the surface that is basaltic
+    ground_felsic_fraction        DOUBLE,  -- v159: the areal share of the surface that is felsic
+    ground_clay_fraction          DOUBLE,  -- v159: the areal share of the surface that is clay
+    ground_oxidised_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidised
+    ground_metal_fraction         DOUBLE,  -- v159: the areal share of the surface that is metal
+    ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
+    ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
+    ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
     water_base_pressure_pa      DOUBLE NULL,  -- v151 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2 (NULL for a planet)
     aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
@@ -2642,6 +2657,20 @@ CREATE TABLE IF NOT EXISTS moons (
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
     carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
+    ground_type                   VARCHAR(16),  -- v159 (GEN.441): the ground type with the largest areal share (ocean, ice or a rock type)
+    ground_grain                  VARCHAR(8),  -- v159: slab, crushed or powder
+    ground_ocean_fraction         DOUBLE,  -- v159: the areal share of the surface that is ocean (the twelve shares add up to 1)
+    ground_ice_fraction           DOUBLE,  -- v159: the areal share of the surface that is ice
+    ground_ultramafic_fraction    DOUBLE,  -- v159: the areal share of the surface that is ultramafic
+    ground_anorthositic_fraction  DOUBLE,  -- v159: the areal share of the surface that is anorthositic
+    ground_basaltic_fraction      DOUBLE,  -- v159: the areal share of the surface that is basaltic
+    ground_felsic_fraction        DOUBLE,  -- v159: the areal share of the surface that is felsic
+    ground_clay_fraction          DOUBLE,  -- v159: the areal share of the surface that is clay
+    ground_oxidised_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidised
+    ground_metal_fraction         DOUBLE,  -- v159: the areal share of the surface that is metal
+    ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
+    ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
+    ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
     water_base_pressure_pa      DOUBLE NULL,  -- v147 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2
     aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)

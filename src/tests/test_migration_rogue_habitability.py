@@ -96,7 +96,7 @@ def test_a_v157_galaxy_gets_the_score_back_from_the_stored_surface(mysql_config)
         if giant is not None:
             row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (ids[1],)).fetchone()
             assert all(row[name] is None for name in rogue_habitability.ROGUE_FIELDS)
-        assert store._stored_version(conn, "schema_migrations") == 158
+        assert store._stored_version(conn, "schema_migrations") == store.SCHEMA_VERSION
     finally:
         conn.close()
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION  # a second run changes nothing

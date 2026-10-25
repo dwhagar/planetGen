@@ -41,8 +41,7 @@ only: the bulk silicate Earth is the reference the star's offset scales, never a
 Stand-ins this module labels (until the item that replaces each): the bulk silicate share of a body's mass
 (the body's own rock share, `rock_of`; `tuning.RADIOGENIC_SILICATE_MASS_FRACTION`, the Earth's 1 minus its core fraction, for a body with none stored), the aluminium share
 of that silicate (`BULK_SILICATE_EARTH_AL_MASS_FRACTION`, scaled by the body's Al2O3 in `rock_of`), the isotope split at formation (the Solar System's birth mix for every star; an
-age law for the r-process contribution is not read), the surface rock (`SURFACE_RESERVOIRS`, a basaltic crust with a drawn felsic
-share; GEN.441 gives the ground type), and 235U's gamma series (left out of the dose; 4 percent on Earth, more on a young body).
+age law for the r-process contribution is not read), and 235U's gamma series (left out of the dose; 4 percent on Earth, more on a young body).
 """
 
 import functools
@@ -76,7 +75,7 @@ the isotope split at formation is today's decayed back this far."""
 # --- Reference abundances, ppm by mass of the element, today (Solar System age) --------------------------------------------
 
 ELEMENTS = ("K", "Th", "U")
-"""tuple: The heat-producing elements, in the order of `Reservoir.ppm`."""
+"""tuple: The heat-producing elements, in the order of `BULK_SILICATE_EARTH`."""
 
 BULK_SILICATE_EARTH = (260.0, 0.0834, 0.0218)
 """tuple: `(K, Th, U)` ppm of the bulk silicate Earth, Palme and O'Neill 2003 edition Table 4 (260 ppm, 83.4 ppb, 21.8 ppb; read twice,
@@ -92,37 +91,6 @@ BULK_SILICATE_EARTH_AL_MASS_FRACTION = 0.0238
 
 SOLAR_AL26_RATIO = 5.23e-5
 """float: 26Al/27Al at formation of the Solar System, (5.23 +- 0.13)e-5 (Lugaro et al. 2018, arXiv:1808.00233 Table 2; READ)."""
-
-# --- Surface rock: a stand-in for the ground type of GEN.441 ----------------------------------------------------------------
-
-@dataclass(frozen=True)
-class Reservoir:
-    """
-    A rock whose K, Th and U are known today.
-
-    Attributes:
-        name (str): What it is.
-        ppm (tuple): `(K, Th, U)` ppm by mass (`ELEMENTS`).
-        source (str): Where the numbers come from and how sure they are.
-    """
-
-    name: str
-    ppm: tuple
-    source: str
-
-    def over_bulk_silicate(self):
-        """`(K, Th, U)` of this rock over the bulk silicate Earth's (`BULK_SILICATE_EARTH`): how many times richer than the
-        undifferentiated silicate it is."""
-        return tuple(value / bulk for value, bulk in zip(self.ppm, BULK_SILICATE_EARTH))
-
-
-SURFACE_RESERVOIRS = {
-    "basalt": Reservoir("N-MORB basalt", (1162.0, 0.252, 0.083), "Gale et al. 2013 via part E 2.8b (2ND-HAND)"),
-    "felsic": Reservoir("upper continental crust", (23244.0, 10.5, 2.7),
-                        "Rudnick and Gao 2014 Table 11, the 2003 text (K2O 2.80 weight percent); verified"),
-}
-"""dict: The two rocks the surface is a mix of until GEN.441 gives the ground type: a basaltic crust and a felsic share. A body with
-a stagnant lid and no tectonic reprocessing is all basalt; a mobile lid reprocesses some of it into felsic crust (part E 3.2 item 5)."""
 
 # --- Dose coefficients: air kerma at 1 m over a flat infinite source ---------------------------------------------------
 
@@ -383,16 +351,11 @@ def generate_content(body, refractory_enrichment=1.0):
 
 # --- The surface rock and its activity --------------------------------------------------------------------------------------
 
-def surface_content(content, felsic_fraction):
-    """The bulk silicate's `content` with its K, Th and U raised to the surface rock of `SURFACE_RESERVOIRS`: a basaltic crust with
-    `felsic_fraction` of it felsic, each element as many times the bulk silicate's as the rock is over the bulk silicate Earth
-    (`Reservoir.over_bulk_silicate`). A stand-in for the ground type of GEN.441. The formation concentrations scale together, so
-    every isotope is as rich as its element."""
-    if not 0.0 <= felsic_fraction <= 1.0:
-        raise RadiogenicError(f"a felsic fraction of {felsic_fraction} is outside 0 to 1")
-    basalt = SURFACE_RESERVOIRS["basalt"].over_bulk_silicate()
-    felsic = SURFACE_RESERVOIRS["felsic"].over_bulk_silicate()
-    k, th, u = ((1.0 - felsic_fraction) * low + felsic_fraction * high for low, high in zip(basalt, felsic))
+def surface_content(content, rock_ppm):
+    """The bulk silicate's `content` with its K, Th and U raised to the surface rock `rock_ppm`, `(K, Th, U)` ppm today (the area-weighted
+    reservoirs of the body's ground, `surface_composition.land_rock_ppm`): each element as many times the bulk silicate's as the rock is
+    over the bulk silicate Earth. The formation concentrations scale together, so every isotope is as rich as its element."""
+    k, th, u = (value / bulk for value, bulk in zip(rock_ppm, BULK_SILICATE_EARTH))
     return Content(content.k0_ppm * k, content.th0_ppm * th, content.u0_ppm * u, content.al26_ratio)
 
 

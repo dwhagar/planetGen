@@ -49,6 +49,7 @@ from planetgen.galaxy import core_gas as coreGas, galactic_orbit
 from planetgen.physics import formation
 from planetgen.physics import orbits
 from planetgen.physics import relations
+from planetgen.physics import surface_composition
 from planetgen.physics import units
 from planetgen.util import draw
 from planetgen.util import random as sampling
@@ -311,7 +312,8 @@ def _ci_chondrite():
 
 
 def _upper_crust():
-    return _formation_content(*radiogenic.SURFACE_RESERVOIRS["felsic"].ppm)
+    felsic = surface_composition.RESERVOIRS["felsic"]
+    return _formation_content(felsic["k_ppm"], felsic["th_ppm"], felsic["u_ppm"])
 
 SUN_AGE_GY = 4.57
 """float: The Sun's age (Gy, Bonanno et al. 2002), at which the main-sequence reference reads a 1 solar-mass star."""

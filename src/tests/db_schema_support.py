@@ -46,6 +46,20 @@ def drop_giant_interiors(conn):
         conn.execute(f"ALTER TABLE {table} DROP CHECK {table}_chk_9, {columns}, ALGORITHM=COPY")
     conn.execute("DROP TABLE planet_interior_layers")
     conn.execute("DROP TABLE moon_interior_layers")
+SURFACE_COMPOSITION_COLUMNS = (
+    "ground_type", "ground_grain", "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction",
+    "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction",
+    "ground_oxidised_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
+    "ground_sulfur_fraction",
+)
+"""tuple: What migration 0159 (GEN.441) added to `planets` and `moons`."""
+
+
+def drop_surface_composition(conn):
+    """Makes the database older than v159: the surface composition columns gone."""
+    for table in ("planets", "moons"):
+        columns = ", ".join(f"DROP COLUMN {column}" for column in SURFACE_COMPOSITION_COLUMNS)
+        conn.execute(f"ALTER TABLE {table} {columns}, ALGORITHM=COPY")
 
 
 def old_schema_versions():

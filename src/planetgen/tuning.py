@@ -3151,9 +3151,6 @@ GCR_SOLAR_MODULATION_RANGE = (0.5, 1.64)
 Mars dose equivalent runs from 0.35 to 1.15 mSv/day around a mean of 0.7 (Guo 2015, Hassler 2014; a total spread of
 3.3). The same field at another star differs in the same way, so the draw stands for the host's modulation level."""
 
-RADIOGENIC_FELSIC_FRACTION_MAX = 0.5
-"""float: The most of a plate-tectonic body's surface that is felsic crust, drawn uniformly from 0 (part E 3.2 item 5: `f_felsic` is
-uniform on 0 to 0.5 when the lid is mobile, 0 otherwise). A stand-in until GEN.441 gives the ground type."""
 
 RADIOGENIC_OFFSET_SIGMA_DEX = 0.22
 """float: The scatter of a host-less body's thorium and uranium against the solar scale, dex: chosen so the 1 to 99 percent range of the
