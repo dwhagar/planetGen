@@ -165,6 +165,21 @@ def test_example_a_the_redox_classes_at_one_drawn_value():
     assert later["mu"] == pytest.approx(3.5) and later["sigma"] == 1.0
 
 
+def test_the_magma_ocean_redox_follows_the_first_hand_ranges_and_rises_above_one_earth_mass_gen_482b():
+    """Hirschmann 2022 section 6.3 and Deng 2020: Moon about -2, Mars about -0.6, Earth about +0.3 to +0.5, width 0.5 to 0.9."""
+    def a1(mass):
+        return RECIPES._dist_of(RECIPES.entry("a1"), Subject("E", {"mass_earth": mass}))
+
+    assert a1(0.0123)["mu"] == pytest.approx(-1.89, abs=0.01) and a1(0.107)["mu"] == pytest.approx(-0.71, abs=0.01)
+    assert a1(0.1)["sigma"] == pytest.approx(0.5) and a1(1.0)["sigma"] == pytest.approx(0.9) and a1(0.01)["sigma"] == pytest.approx(0.5)
+    assert a1(5.4)["mu"] == pytest.approx(0.5 + math.log10(5.4), abs=1e-3), "1.0 per dex above one Earth mass"
+    assert a1(30.0)["mu"] == pytest.approx(a1(5.4)["mu"], abs=1e-3), "held where the base pressure passes the 140 GPa of Deng 2020"
+    assert a1(30.0)["sigma"] == pytest.approx(0.9)
+    later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("E", {"mass_earth": 30.0}))
+    assert later["mu"] == pytest.approx(3.5), "no source for the later mantle of a super-Earth: the Earth value is held"
+
+
+
 def test_example_b_the_delivery_split_by_the_formation_distance_over_the_snow_line():
     p = probs("b", "E", snow_ratio=0.447)
     assert p["b1"] == pytest.approx(0.7782, abs=1e-3) and p["b2"] == pytest.approx(0.208, abs=1e-3)
