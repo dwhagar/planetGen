@@ -2,6 +2,20 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2350] - 2026-10-25
+
+**Headline:** The version code stored with a galaxy seed now carries the API version, the database schema and the generator epoch.
+
+### Changed
+- **The 22-digit version key (DB.102).** After the release it holds the API version (2 digits), the database schema (3) and the generator epoch (3), each read from its own source when the key is made, so a galaxy's key changes when any of them does. The padding was narrowed to make room and the key stays 22 digits, so no column changes: the release is 1 + 2 + 4 digits (largest MAJOR 15, REVISION 255, BUILD 65,535) and Python 1 + 2 + 2. Keys made before this have another layout and match nothing: a stored galaxy's key reads as made by another version until it is planned again, and the generation timing history (`generation_stats`, keyed by the key) starts afresh and restarts whenever the API, schema or epoch moves.
+
+## [8.0.2349] - 2026-10-25
+
+**Headline:** The tests that assumed a class sets the air now expect the air that GEN.411 solves, including none.
+
+### Changed
+- **`test_planets.py` follows the solved air (GEN.411).** A class that usually holds an air may be airless where nothing stays (the stored fields then agree), the pressure ceiling of the sanity sweep is 1e10 Pa (a massive ocean world's supply-law envelope reached 9e9 Pa), and the no-life-chemical check applies to the bodies whose habitability index scores 0 for microbial life, since the class no longer fixes the air.
+
 ## [8.0.2348] - 2026-10-25
 
 **Headline:** A brown dwarf's L, T or Y type is now drawn with the scatter of the 20 pc census instead of read from one mean temperature.

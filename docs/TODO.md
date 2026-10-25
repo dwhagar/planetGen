@@ -3646,6 +3646,46 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are scripts/test.py changed --resume.
   Prerequisites: none. Related: MAP.295, MAP.320, MAP.321.
 
+- [ ] **MAP.324 The soft glow around stars on the Galaxy Map floods the view: at sector and sector-block zoom it makes big white blobs and haze that hide the stars, the black holes and the selection, so finding anything is nearly impossible (bug)**
+  Boss, 2:29 AM EDT 2026-10-25, three screenshots (glow-1 to glow-3 in
+  the project uploads): the blur effect for stars is too distracting for
+  the purpose. Do: make the glow far subtler as the view closes in (fade
+  it out as stars resolve into points, cap its peak brightness and the
+  sum of overlapping glows so it never washes out to white, keep
+  selection rings, black holes and labels always on top of it), tune the
+  GLOW_* constants in galaxyglow.js against the screenshots, and keep
+  the glow switch. Done: a browser test that renders a dense sector view
+  with the glow on and checks that a selected star, a black hole and a
+  label stay readable (a contrast bound against the glow), and the same
+  view at galaxy scale keeps its soft look. Owner: Aux 10 (the glow,
+  MAP.266). Rules: no backward-compat shims; tests are scripts/test.py
+  changed --resume.
+  Prerequisites: none. Related: MAP.266, MAP.323.
+
+- [ ] **MAP.325 The Galaxy Map infobox is too dense for a readable font: a block card lists ten rows plus a help paragraph in tiny text, and it sits over the zoom controls (bug)**
+  Boss, 2:30 AM EDT 2026-10-25, from the same three screenshots as
+  MAP.324: the text size of the infobox is too small to read; reduce the
+  density of the information so the font can be a reasonable size. Seen:
+  a block card (Block 1-0-5, 81 sectors a side) shows shells, row,
+  wedge, sectors, charted, center x y z, distance from core, shell
+  depth, latitude, longitude and a three-line help paragraph, all at
+  about 11 px, and the card overlaps the zoom slider and the arrow pad.
+  Do: per card kind keep the essentials (name or designation, what it
+  is, size, distance, charted share, the one or two facts a person
+  navigates by), put the rest behind a More fold that starts collapsed
+  and in the object page, move the help text to the Menu help, set the
+  body text to the normal reading size with the MAP.295 shrink-to-fit
+  only as a last step, and keep the card clear of the zoom controls.
+  Done: a browser test that reads the font size of a block, sector, star
+  and region card and fails below the reading size, and checks that no
+  card overlaps the zoom controls. Owner: Core 2 (infobox, after MAP.315
+  or sooner if smaller). Rules: absent or zero values hidden unless
+  absence matters; collapsible sections start collapsed (Boss rule
+  10-24); no backward-compat shims; tests are scripts/test.py changed
+  --resume.
+  Prerequisites: none. Related: MAP.295, MAP.296, MAP.315, MAP.323,
+  MAP.324.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -15152,6 +15192,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scale (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: none. Related: GEN.728, GEN.681, GEN.350, GEN.509,
   GEN.822, GEN.650.
+
+- [ ] **GEN.830 A class O (ocean) planet in zone e reaches a surface pressure of 9.05e9 Pa (about 90,000 bar) with the solved air: unphysical for an air above a liquid ocean (bug)**
+  Found by the 4c lane (Blocker I, relayed by the coordinator 2:36 AM
+  EDT 2026-10-25): in test_planets a class O planet in zone e reaches
+  9.05e9 Pa; before 4c the sweep ceiling was 5e7 Pa. PR #3321 (merged)
+  raised the test ceiling to 1e10 Pa so the test is not red, which hides
+  the question. Do: find which term of the air fixed point (GEN.411,
+  GEN.422) drives it, the supply law (GEN.726), the sinks (the ocean
+  carbon sink GEN.814, the high-pressure ice seal), freeze-out or the
+  greenhouse feedback for massive water worlds; the air above a liquid
+  ocean cannot hold tens of thousands of bar of volatiles that the ocean
+  dissolves or the ice shell seals, so cap it by the physics
+  (solubility, the sink, the seal) and not by a clamp. Done: massive
+  water worlds keep a surface pressure inside the range the physics
+  allows, a test with a physical bound replaces the raised ceiling, and
+  the reason is recorded in the stand-in registry if a value is tuned.
+  Owner: Aux 8 (with GEN.823 and GEN.814). Changes stored values: a new
+  generator epoch with --affects fill if the pressure changes. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: none. Related: GEN.411, GEN.422, GEN.726, GEN.814,
+  GEN.823.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

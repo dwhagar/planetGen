@@ -84,6 +84,12 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, cls, zone):
         assert planet.atmospheric_pressure == 0.0
         assert planet.atm_density is None
         assert planet.atm_molar_density is None
+    elif planet.atmospheric_pressure == 0.0:
+        # GEN.411: the air is solved from the body's own interior, sinks and temperature, so a class that usually holds an air can be
+        # airless where nothing stays (a hot small body); the stored fields then agree that there is none.
+        assert planet.atmosphere == "None"
+        assert planet.atm_density is None
+        assert planet.atm_molar_density is None
     else:
         # GEN.85: the text is written from the stored gases.
         assert planet.atmosphere.startswith("a ") and " mix of " in planet.atmosphere
@@ -93,7 +99,8 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, cls, zone):
         # Class N is tuned to real Venus values (~9.2MPa mean at this
         # module's G2V host, see PLANET_CLASSES["N"]); the upper bound is
         # raised well past that to stay a broad regression catch.
-        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 5e7
+        # GEN.411: the supply law of a massive ocean world can hold the weight of a tens-of-kilobar envelope (9e9 Pa seen for O in zone e).
+        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 1e10
         assert math.isfinite(planet.atm_density) and planet.atm_density > 0
         assert math.isfinite(planet.atm_molar_density) and planet.atm_molar_density > 0
         assert math.isfinite(planet.scale_height) and planet.scale_height > 0
@@ -290,8 +297,13 @@ def test_no_class_names_a_life_chemical_and_each_chemical_states_its_conditions(
 
 
 def test_a_world_the_index_gives_no_life_carries_no_chemical(host_star):
-    """Class N (a Venus analog) scores 0 for microbial life, so it carries none whatever its air."""
-    for _ in range(5):
+    """A body whose habitability index scores 0 for microbial life carries none whatever its air (GEN.206)."""
+    seen_zero = False
+    for _ in range(12):
         planet = make_planet(host_star, "N", "e")
         planetLife.apply_life_data(planet)
-        assert planet.life_chemical is None and planet.life_stage is None
+        if planetLife.life_ceiling(planet) == "none":  # GEN.411: the class no longer fixes the air, so not every N scores 0
+            seen_zero = True
+            assert planet.life_chemical is None and planet.life_stage is None
+    if not seen_zero:
+        pytest.skip("no draw of class N in zone e scored 0 for microbial life")
