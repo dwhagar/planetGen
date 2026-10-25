@@ -14250,6 +14250,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.568, GEN.771, UX.208.
   Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
 
+- [ ] **GEN.773 A temperature difference is never converted as a temperature: the day and night swing of 9.07 K shows as 9.07 K (or 9.07 C degrees), not -264 C (bug)**
+  Boss, 9:13 PM EDT 2026-10-24 (relayed by the coordinator): under
+  climate the page says "Day and night swing" 9.07 K and converts it to
+  -264 C; he reads it as the variation between night and day, plus or
+  minus 9.07 degrees. He is right: temp_swing_k is listed with the
+  absolute regional temperatures (REGIONAL_TEMPERATURES in
+  db/column_units.py, GEN.656), so the sheet applies the kelvin to
+  Celsius or Fahrenheit offset of 273.15 to a difference. Do: add a
+  temperature-difference kind to the unit registry (kelvin difference,
+  Celsius degrees and Fahrenheit degrees with a factor and no offset)
+  and move temp_swing_k to it; sweep every other temperature difference
+  or range column and Document quantity (the swing, any rise, drop,
+  range or greenhouse warming value, and the temperature-based text on
+  the pages and the API) for the same mistake and put each on the
+  difference kind; label the swing so it says what it is ("Day to night
+  swing, 9.07 K either side" or the full range, whichever the generator
+  stores; state which). Done: the swing converts to 9.07 degrees C and
+  16.3 degrees F, never -264 C; a test converts a difference in every
+  temperature unit and checks no offset is applied; the list of columns
+  moved is in the PR. Owner: Units lane. Related: GEN.656, GEN.769,
+  GEN.770, GEN.771, GEN.571.
+  Prerequisites: none. Related: GEN.656, GEN.769, GEN.770, GEN.771,
+  GEN.571.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
