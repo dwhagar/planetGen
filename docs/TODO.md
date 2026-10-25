@@ -15269,6 +15269,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.411, GEN.422, GEN.726, GEN.814,
   GEN.823.
 
+- [ ] **GEN.831 The Wolf-Rayet class W has no kind in stellar_composition, so a W star has no composition record (bug)**
+  Found by Math 1 (as the lane reported 3:49 AM EDT 2026-10-25) through
+  shifted draws: stellar_composition has no kind for the Wolf-Rayet
+  class W, so a W star gets none or a wrong one. Do: add the W kind with
+  the surface composition a Wolf-Rayet star shows (WN hydrogen-poor and
+  nitrogen-rich, WC carbon-rich, WO oxygen-rich; one row each with the
+  source and its tier in the stand-in registry), draw the subtype
+  through draw.py, and make every reader of stellar_composition accept
+  it. Done: a test generates stars of class W and every one has a
+  composition record that sums to one and matches its subtype; no
+  stand-in is added without its registry row. Owner: Aux 2 (Lane A
+  stars, after GEN.553) or a free lane. Rules: no backward-compat shims;
+  the epoch carries --affects.
+  Prerequisites: none. Related: GEN.553, GEN.243, GEN.725.
+
+- [ ] **GEN.832 tests/test_gen_compact_orbit_laws.py fails 4 tests on main: a compact object with a star yields no periods (bug)**
+  Found by Math 1 (as the lane reported 3:49 AM EDT 2026-10-25), not
+  that lane's change: four tests in tests/test_gen_compact_orbit_laws.py
+  fail on main, all with a compact object that has a star yielding no
+  orbital periods. The file belongs to GEN.272 (accreting compact
+  binaries in the member tree). Do: reproduce on clean main, find the
+  commit that broke it (a recent member-tree, epoch or draw change), and
+  fix the generator or the test, whichever moved; say which in the PR.
+  Done: the file passes in full. Owner: Core 4 (wrote GEN.272) or an
+  idle one-off lane. Rules: no backward-compat shims; never skip a test.
+  Prerequisites: none. Related: GEN.272, GEN.630, GEN.631.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -20912,6 +20939,32 @@ clears each one.
   --resume; the full run belongs to the end-of-version bug hunt only.
   Prerequisites: GEN.689, GEN.828, GEN.829, GEN.728. Related: GEN.646,
   GEN.689, GEN.27, GEN.350.
+
+- [ ] **TEST.397 test_api_auth_sweep is red on main (bug)**
+  Found by Math 1 (as the lane reported 3:49 AM EDT 2026-10-25):
+  tests/test_api_auth_sweep fails on current main and is not that lane's
+  change. Do: run it on a clean main, name the route and the code it got
+  against the code it expected, and decide which side moved (a new route
+  missing from the sweep list, an access rule changed by SEC.36 or the
+  recent admin and API work, or a stale expectation); fix that side, do
+  not loosen the sweep. Done: test_api_auth_sweep and
+  test_fuzz_web_routes both pass on main under scripts/test.py changed
+  --resume. Owner: Bug 1 (it fixed TEST.396 in the same area). Rules:
+  never skip or quarantine the test.
+  Prerequisites: none. Related: TEST.396, SEC.36.
+
+- [ ] **TEST.398 The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug)**
+  Math 1 finding (3:49 AM EDT 2026-10-25): stale planetgen.cli.worker
+  processes left on a test machine pick up units of later test runs and
+  give wrong or doubled results. Do: scripts/test.py's preflight
+  (TEST.376) lists planetgen.cli.worker processes that do not belong to
+  the current run (by the run id or by start time before the run) and
+  kills them before every command and phase, and says so in its line;
+  the lane rule in lanes.md says the same until it lands. Done: a test
+  starts a stray worker, runs the preflight and sees it gone; the
+  current run's own workers are not touched. Owner: Bug 1 (owns
+  TEST.376). Rules: no backward-compat shims.
+  Prerequisites: none. Related: TEST.376, PERF.181.
 
 ## USR: User accounts
 
