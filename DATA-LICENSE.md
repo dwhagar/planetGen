@@ -244,3 +244,7 @@ Gillett and Gras 1980, Frost 1991, Hirschmann 2012, Palme and O'Neill 2014, JPL 
 al. 1992, Huebner and Mukherjee 2015, Cooper et al. 2001, Patterson et al. 2012, Nordheim et al. 2018, Gronoff et al. 2009,
 Dartnell. Where a lane uses a number carried by another work, the report cites that work and its tier. Their terms are the
 publishers' and are not recorded here because nothing was taken from the originals.
+
+## Water against formation distance (`docs/design/composition/volatile-delivery-formation-distance.md`, GEN.481)
+
+Derived counts and logistic fits from the Bern NGPPS NG76 population: Burn et al. 2024 (Nature Astronomy 8, 463), data and code of Zenodo record 10527170 (no licence field), and the starting distances of the same planets from the public DACE population ng76. Emsenhuber et al. 2021 (A&A 656, A69; arXiv:2007.05561) was read for the disc model. The raw files are never in the repository and are downloaded only by the reproduction script kept in the project files.
