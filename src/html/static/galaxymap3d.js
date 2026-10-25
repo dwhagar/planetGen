@@ -87,7 +87,7 @@ const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`)
 const { unpackResponse, unpackNode } = await import(`./tilepack.js${VERSION_QUERY}`);
 const {
   STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
-  approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, RAMP,
+  approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, magnitudeShare, RAMP,
 } = await import(`./starmagnitude.js${VERSION_QUERY}`);
 const {
   cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
@@ -488,6 +488,24 @@ function showHabitableSystemInfo(system) {
 
 // MAP.243: a star beyond the galaxy's outline (the halo, a satellite galaxy), where no block or sector of the
 // whole-galaxy view holds it: what is known of it and where it is.
+// A star of the map (MAP.304): what the node lists of it, and its system's page when it has one.
+function showStarInfo(star) {
+  var spec = {
+    title: star.name || "Star",
+    fields: [
+      ["Luminosity", formatLuminositySol(star.luminosity_sol)],
+      ["Temperature", star.temperature_k != null ? formatNumber(star.temperature_k) + " K" : null],
+      ["Class", star.star_type || null],
+      ["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
+      ["Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z))],
+    ],
+  };
+  if (star.system_id != null && sceneData.systemUrl) {
+    spec.view = { href: String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id)), label: "View system →" };
+  }
+  showInfo(spec);
+}
+
 function showHaloStarInfo(star) {
   showInfo({
     title: "Star beyond the galaxy's outline",
@@ -3433,6 +3451,76 @@ function initGalaxyMap3d(canvasEl, data) {
     select: function (point) {
       highlightPosition(point.x, point.y, point.z);
       showPointInfo(point);
+    },
+  });
+
+  // MAP.304: a star of the map takes a click (selected, its panel shown) and a double click (the camera flies to it) from
+  // any distance: the nearest drawn star under the pointer, the brightest of those level with it. A star is pickable
+  // while it is drawn, that is, its node's share and its apparent brightness both leave it visible, as the shader works
+  // them out (starmagnitude.js's twin). The list is worked out once per view and star set, not per pointer event.
+  var STAR_PICK_PX = 8;
+  var STAR_PICK_MIN_SHARE = 0.25;
+  var pickableCache = { signature: "", list: [] };
+
+  function pickableStars() {
+    var n = starList.length;
+    var p = camera.position;
+    var uniforms = starMaterial.uniforms;
+    var container = stageView.inContainer();
+    var signature = [starSetVersion, n, container, p.x, p.y, p.z, uniforms.magLimit.value, uniforms.magOn.value].join(",");
+    if (signature === pickableCache.signature) return pickableCache.list;
+    updateStarShares();
+    var absolute = starPoints.geometry.getAttribute("starAbsMag");
+    var tierMag = starPoints.geometry.getAttribute("starTierMag");
+    var clipped = starPoints.geometry.getAttribute("starClipped");
+    var list = [];
+    if (absolute && tierMag) {
+      for (var i = 0; i < n; i++) {
+        var star = starList[i];
+        if (star.phenomenon || !(starShares[i] >= STAR_PICK_MIN_SHARE) || (clipped && clipped.array[i] > 0.5)) continue;
+        if (!container && stageView.outsideOutline(star)) continue;  // the halo layer below names those
+        if (uniforms.magOn.value > 0.5) {
+          var dx = star.x - p.x;
+          var dy = star.y - p.y;
+          var dz = star.z - p.z;
+          var appMag = apparentMagnitude(absolute.array[i], Math.sqrt(dx * dx + dy * dy + dz * dz)) + tierMag.array[i];
+          if (magnitudeShare(appMag, uniforms.magLimit.value) < STAR_PICK_MIN_SHARE) continue;
+        }
+        if (!drawnByTheGalaxy(star.x, star.y, star.z)) continue;
+        list.push(star);
+      }
+    }
+    // The brightest last, so among stars level on the screen the brightest wins (the layer's lastWins).
+    list.sort(function (a, b) { return a.luminosity_sol - b.luminosity_sol; });
+    pickableCache = { signature: signature, list: list };
+    return list;
+  }
+
+  // For tests (MAP.304): the stars a click can pick now, brightest first, with where each is on the screen (CSS pixels
+  // from the canvas's top left; `visible` false off the screen).
+  canvasEl.galaxyPickableStars = function () {
+    var width = canvasEl.clientWidth;
+    var height = canvasEl.clientHeight;
+    var point = new THREE.Vector3();
+    return pickableStars().slice().reverse().map(function (star) {
+      point.set(star.x, star.y, star.z).project(camera);
+      var x = (point.x + 1) / 2 * width;
+      var y = (1 - point.y) / 2 * height;
+      return { id: star.id, name: star.name || null, luminosity: star.luminosity_sol, x: x, y: y,
+        visible: point.z > -1 && point.z < 1 && x >= 0 && x <= width && y >= 0 && y <= height };
+    });
+  };
+
+  picker.addLayer({
+    name: "stars",
+    points: pickableStars,
+    reach: function () { return STAR_PICK_PX; },
+    lastWins: true,
+    tooltip: function (star) { return (star.name ? star.name + ", " : "") + "star" + (star.star_type && star.star_type !== "fixture" ? " " + star.star_type : ""); },
+    hover: phenomenonHover,
+    select: function (star) {
+      highlightPosition(star.x, star.y, star.z);
+      showStarInfo(star);
     },
   });
 
