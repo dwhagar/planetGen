@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2297] - 2026-10-25
+
+**Headline:** The sections of an object page start collapsed, and a link to one opens it.
+
+### Changed
+- The property groups on a planet, moon, star, belt, comet or facility page start collapsed (the phenomenon pages already did). A link to a section, such as a habitability symbol or a contents entry, opens it and brings it into view (UX.204).
+
 ## [8.0.2296] - 2026-10-25
 
 **Headline:** A world with no life, no air or no water says so in a sentence instead of a table of zeros.
