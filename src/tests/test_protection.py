@@ -167,6 +167,37 @@ def test_the_suitability_line_names_what_is_and_is_not_readily_available():
     assert "Suitability: Red**" in dry
 
 
+def test_suitability_does_not_call_water_available_when_the_water_row_asks_for_treatment():
+    """GEN.691: the water rung is reachability, the Water row is chemistry; reachable water that is undrinkable is
+    said to be reachable and the treatment is repeated, never "there is water available"."""
+    heavy = _world(ph=0.5, life_stage="none", water_source="liquid")
+    rows = {row["domain"]: row["text"] for row in protection.rating(heavy)["rows"]}
+    assert "undrinkable without heavy treatment" in rows["Water"]
+    assert rows["Suitability"].startswith("There is no food readily available, but there is shelter available, and the water "
+                                          "is reachable but it is undrinkable without heavy treatment."), rows["Suitability"]
+    fed = _world(ph=0.5, life_stage="biosphere", water_source="liquid")
+    rows = {row["domain"]: row["text"] for row in protection.rating(fed)["rows"]}
+    assert rows["Suitability"].startswith("Food and shelter are readily available, and the water is reachable but it is "
+                                          "undrinkable without heavy treatment."), rows["Suitability"]
+    mild = _world(ph=2.0, life_stage="none", water_source="liquid")
+    rows = {row["domain"]: row["text"] for row in protection.rating(mild)["rows"]}
+    assert "the water is reachable but it needs treatment before drinking" in rows["Suitability"]
+
+
+def test_suitability_never_says_water_is_available_against_a_water_row_that_wants_treatment():
+    for ph in (0.5, 2.0, 4.0, 6.0, 8.1, 10.0, 12.0, 13.5):
+        for life in ("none", "microbial", "biosphere"):
+            for source in ("liquid", "ice", "hydrated", None):
+                world = _world(ph=ph, life_stage=life, water_source=source)
+                text = {row["domain"]: row["text"] for row in protection.rating(world)["rows"]}["Suitability"]
+                treatment = protection.water_need(world)[1]
+                if treatment and world.solvent == "water" and "reachable" not in text:
+                    # no plain "water ... available" without the treatment note: only a rung that is not good says so
+                    assert "water and" not in text and "there is water" not in text and "Water, food" not in text, (ph, life, source, text)
+                if "the water is reachable" in text:
+                    assert treatment in text, (ph, life, source, text)
+
+
 def test_the_gear_of_a_cold_world_is_named_in_short_words_and_the_first_line_names_the_heated_suit():
     text = _paragraph(_world(temperature_c=-80.0))
     assert "**Temperature: Red** (0.23). The air temperature is -80 C. Required: heated sealed suit + self-contained air. **Air:" in text

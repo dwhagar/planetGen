@@ -148,6 +148,12 @@ REACH_AZIMUTH_BINS = 2
 density is nearly round, and a group is bounded, not measured."""
 
 
+ESTIMATE_AZIMUTH_BINS = 16
+"""int: Longitudes a group is probed at when its expected stars are counted (`bright_stars._expected_in_groups`, GEN.398).
+Two bins, 180 degrees apart, both land on the same phase of a two-armed spiral, so a group's young stars came out twice
+or not at all what the sampler draws; 16 bins sample an arm at every pitch the shape can draw."""
+
+
 def probe_densities(shape, plane, z, azimuths=REACH_AZIMUTH_BINS):
     """
     The population densities at each of the places `(plane, z)` (arrays of cylindrical radius and height, parsecs),

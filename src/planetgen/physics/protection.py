@@ -263,21 +263,35 @@ def _clause(name, world, need, compact_host, items):
 
 
 def _suitability_clause(world):
-    """Suitability's sentence: which of food, water and shelter are readily available."""
+    """
+    Suitability's sentence: which of food, water and shelter are readily available. The water rung is how reachable the
+    water is; whether it can be drunk is the Water row's, so reachable water that row asks to be treated is not called
+    plainly available: the sentence says it is reachable and repeats the treatment (GEN.691).
+    """
     rungs = {"water": habitability.water_access_score(world), "food": habitability.food_score(world),
              "shelter": habitability.shelter_score(world)}
     none = [name for name in ("food", "water", "shelter") if tier(rungs[name]) == "Red"]
     limited = [name for name in ("food", "water", "shelter") if tier(rungs[name]) == "Yellow"]
     good = [name for name in ("food", "water", "shelter") if tier(rungs[name]) in ("Blue", "Green")]
+    treatment = water_need(world)[1] if "water" in good and world.solvent == "water" else None
+    if treatment:
+        good.remove("water")
+        reachable = f"the water is reachable but {treatment}"
     if not none and not limited:
-        return "Water, food and shelter are all readily available."
-    if none and limited:
-        text = f"There is no {_join(none, 'or')} readily available, and only limited {_join(limited)}"
-    elif none:
-        text = f"There is no {_join(none, 'or')} readily available"
+        if not treatment:
+            return "Water, food and shelter are all readily available."
+        text = f"Food and shelter are readily available, and {reachable}."
     else:
-        text = f"There is only limited {_join(limited)} readily available"
-    text += f", but there is {_join(good)} available." if good else "."
+        if none and limited:
+            text = f"There is no {_join(none, 'or')} readily available, and only limited {_join(limited)}"
+        elif none:
+            text = f"There is no {_join(none, 'or')} readily available"
+        else:
+            text = f"There is only limited {_join(limited)} readily available"
+        if good:
+            text += f", but there is {_join(good)} available" + (f", and {reachable}." if treatment else ".")
+        else:
+            text += f", but {reachable}." if treatment else "."
     ceiling = habitability.suitability_ceiling(habitability.core_scores(world))
     held = tier(habitability.suitability_score(world)) == ceiling != "Blue" and tier(min(rungs.values())) != ceiling
     if held:
