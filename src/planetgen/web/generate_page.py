@@ -73,7 +73,7 @@ from planetgen.galaxy import dials, mass_chain, objectref
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
-from planetgen.util.format import format_number
+from planetgen.util.format import counted, format_number
 from planetgen.generation.limits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_NEIGHBORHOODS, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_SHELL,
 )
@@ -1286,6 +1286,9 @@ def _progress_text(progress):
     text = f"{description}: {format_number(completed)}"
     if total:
         text += f" of {format_number(total)}"
+    unit = progress.get("unit")
+    if unit and not description.lower().endswith(counted(unit, 2)):
+        text += f" {counted(unit, total or completed)}"
     return text
 
 
