@@ -6,13 +6,14 @@ import pytest
 
 from planetgen import tuning
 from planetgen.physics import age_needs, constants
+from tests.air_support import fold_air
 
 
 def body(mass_earth=1.0, gravity=1.0, temperature=288.0, pressure=101325.0, body_type="t", **gases):
     values = {"body_type": body_type, "mass_kg": mass_earth * constants.EARTH_MASS_TO_KG, "gravity_g": gravity,
               "surface_temperature_k": temperature, "atmospheric_pressure_pa": pressure}
     values.update({f"p_{gas}_kpa": share * pressure / 1000.0 for gas, share in gases.items()})
-    return values
+    return fold_air(values)
 
 
 CASES = {

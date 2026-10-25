@@ -110,7 +110,9 @@ def test_the_generate_page_never_shows_dashes_for_the_time_left():
 def test_the_queue_page_shows_a_range_or_estimating():
     assert queue_page._eta_text(None, live=True) == "estimating"
     assert queue_page._eta_text(None, live=False) == ""
-    assert queue_page._eta_text(100.0, live=True) == "1 m 28 s to 1 m 54 s"
+    assert queue_page._eta_text({"seconds": None}, live=True) == "estimating"
+    assert queue_page._eta_text({"seconds": 100.0}, live=True) == "1 m 28 s to 1 m 54 s"  # PERF.99: the eta is a dict
+    assert queue_page._eta_text({"seconds": 100.0, "stalled": True}, live=True) == "waiting on progress"
 
 
 def _node(done, done_seconds, planned, recorded, workers=2):
