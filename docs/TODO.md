@@ -1181,6 +1181,15 @@ with `clamp()`.
   `scripts/test.py changed --resume` with a browser test on a sample
   planet page. Version 8.1. Owner: Aux 11. Part of the planet page
   redesign: UX.215 to UX.222.
+  Research (2026-10-09, Progress): Boss, 10:30 PM EDT 2026-10-24
+  (relayed by the coordinator): atmosphere composition is measured by
+  the standard measure for an atmosphere, whether partial pressure or
+  mole (volume) fraction, and it is named in the table heading; use the
+  mole fraction as the main column with the partial pressure beside it,
+  and put the measure in the heading (for example "Atmosphere
+  composition (mole fraction, partial pressure in kPa)"). The solid
+  composition table is by mass and says so in its heading ("Composition
+  (mass fraction)").
   Prerequisites: none. Related: UX.196, UX.195, UX.188.
 
 - [ ] **UX.220 Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores**
@@ -1240,6 +1249,31 @@ with `clamp()`.
   11. Part of the planet page redesign: UX.215 to UX.222.
   Prerequisites: UX.215, UX.220, UX.221. Related: UX.196, UX.195,, UX.219.
   UX.188.
+
+- [ ] **UX.223 Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" The object pages of belts,
+  fields, giants and icy moons gain a Resources section (a table of
+  resource, grade in percent, mass in kg or tonnes, difficulty and
+  score, absent resources hidden), a resource score in the at-a-glance
+  table, and the explanation of how it was worked out; the belt, planet
+  and moon lists and the search page gain filters and sorting by
+  resource kind and minimum score (with UX.214's score filters); the API
+  returns the same fields. Done: pages and lists for a sample galaxy and
+  a browser test of the filter. Version 8.4, phase 2. Owner: Aux 11
+  style. Rules: draws through draw.py; stand-ins get GEN.725 registry
+  rows with tier and tweak level; every number has a unit or scale
+  (GEN.772) and a column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -3236,6 +3270,61 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-24 (fix each): Aux 10 (map nodes and menu), after MAP.306.
   Prerequisites: none. Related: MAP.220, MAP.303, MAP.306, MAP.307.
 
+- [ ] **MAP.312 Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" Add interest reasons to the
+  registry of the point-of-interest mark (MAP.305), the same way gas
+  giants are one (hydrogen fuel and water ice): a system holding a belt
+  or field rich in metals, in minerals, in water ice and volatiles, or
+  in carbon, each listing the belt or field by name with its resource
+  and score in the mark's infobox with a link, and each with its own row
+  in the menu filter of MAP.306 (pull forward, shown or hidden), plus a
+  minimum score setting; the gas giant reason now says what it offers
+  (hydrogen fuel, water ice from its moons and rings). Read from
+  body_resources through the (system, reason) side table of MAP.305, not
+  by reading every belt. Done: a browser test on a fixture system with a
+  metal-rich belt finds the mark, the reason with the resource in the
+  infobox and the menu row. Version 8.3, phase 4. Owner: Aux 10 style.
+  Rules: draws through draw.py; stand-ins get GEN.725 registry rows with
+  tier and tweak level; every number has a unit or scale (GEN.772) and a
+  column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: GEN.799, MAP.305, MAP.306. Related: MAP.305, MAP.306,
+  MAP.307.
+
+- [ ] **MAP.313 Galaxy Map resource richness layer: a heat map of the resource score by sector, by resource kind, with the richest sectors listed**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" A layer in the Galaxy Map
+  menu (beside the territories and trade routes layers) that colours
+  each sector by the summed resource score of the belts, fields, giants
+  and icy bodies in it, by resource kind or overall, with a legend, a
+  reduced-motion setting and a list of the richest sectors that flies to
+  the one picked; read from a per-sector aggregate built by
+  `resource-scan`, not from each body. Done: a browser test turns the
+  layer on in a sample galaxy and the richest sector matches the
+  aggregate. Version 9.0, phase 1. Owner: Core 2. Rules: draws through
+  draw.py; stand-ins get GEN.725 registry rows with tier and tweak
+  level; every number has a unit or scale (GEN.772) and a column_units
+  entry; a change to drawn output carries `tests.golden_update --reason
+  ... --affects fill` and the next epoch; tests are `scripts/test.py
+  changed --resume`; no fixed content from the Milky Way or the Solar
+  System. Part of the resource locations tree: GEN.798, DB.106, GEN.799,
+  MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
+  nothing in 8.1.
+  Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3708,6 +3797,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests are `scripts/test.py changed --resume`; no fixed content from
   the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.33, MAP.309. Related: NAV.61, NAV.5.
+
+- [ ] **NAV.64 Find the nearest resource location from a position or along a course, by resource kind and minimum score**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" A query, an API and a map
+  tool: from a system or a point, or along a saved course (NAV.4),
+  return the nearest resource locations of a chosen kind and minimum
+  score, with the distance in light-years, the travel time at a chosen
+  speed and the detour a course takes to pass them; uses the cell-key
+  index and the (system, reason) table so it is fast on a large galaxy.
+  Done: tests with a known galaxy and a browser test of the tool.
+  Version 8.5, phase 4. Owner: Core 2 with the navigation lane. Rules:
+  draws through draw.py; stand-ins get GEN.725 registry rows with tier
+  and tweak level; every number has a unit or scale (GEN.772) and a
+  column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
 
 ## GEN: Generation and physics
 
@@ -14862,6 +14975,73 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --check` passes. Version 8.1. Owner: Core 3 or the Citations lane.
   Prerequisites: none. Related: GEN.327, GEN.725.
 
+- [ ] **GEN.798 Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers)**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" Write
+  docs/design/composition/resource-locations.md. It decides: (1) the
+  resource kinds: iron and nickel, precious metals (gold, platinum
+  group), other minerals and rare earths, silicates and building rock,
+  water ice and other volatiles, carbon and organics, and fuel (hydrogen
+  and helium from a giant); (2) what the stored data gives today
+  (asteroid_belt_composition holds named components with a concentration
+  word of high, moderate, small or trace; belt density dense, sparse or
+  typical; GEN.477 and GEN.473 replace the four names with a composition
+  drawn from the star, the distance and the belt mass) and the
+  quantities the design needs on top: grade (mass fraction of each
+  resource), a mass estimate in kg, and a recovery difficulty (depth,
+  gravity well, distance from the star and from a port); (3) the
+  resource score, 0 to 9 like the life scores, per kind and overall, and
+  how a gas giant (hydrogen and helium fuel, its icy moons and rings),
+  an icy moon, a comet swarm, a metallic asteroid (type M), a
+  carbonaceous one (type C) and a silicate one (type S) score; (4) what
+  is fixed until 9.1 and what the nightly update may change later
+  (mining depletes). Sources: asteroid taxon composition literature and
+  meteorite compositions, with GEN.725 tier labels for every invented
+  number. Done: the design is in the docs with sources and stand-in
+  list, and every later item of the tree cites it. Version 8.2, phase 3.
+  Owner: a research thread with Aux 6 (bulk composition). Rules: draws
+  through draw.py; stand-ins get GEN.725 registry rows with tier and
+  tweak level; every number has a unit or scale (GEN.772) and a
+  column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: GEN.477. Related: GEN.477, GEN.473, GEN.725, MAP.305.
+
+- [ ] **GEN.799 Resource scan: compute the grade, mass and score of every resource for belts, fields, giants and icy bodies from their stored composition, as its own command and galaxy stage**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" Implement the design: from
+  the stored belt and field composition (GEN.477), the bulk composition
+  of icy moons and comets (GEN.466, DB.70) and the giants' hydrogen and
+  helium envelopes, compute the grade, mass_kg, difficulty and scores
+  into body_resources. Its own registered command `resource-scan` and a
+  stage after `population`, with rescan rules (a changed composition
+  recomputes only that body). Derived from stored values, so it carries
+  no draws unless the design adds a seeded noise term; where it does,
+  `--affects fill` and the next epoch. Done: a sample galaxy has
+  resource rows for belts, fields and giants, an M-type belt scores high
+  on iron and metals, a C-type on carbon and water, and the same seed
+  gives the same rows. Version 8.3, phase 4. Owner: Aux 6 style. Rules:
+  draws through draw.py; stand-ins get GEN.725 registry rows with tier
+  and tweak level; every number has a unit or scale (GEN.772) and a
+  column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: DB.106, GEN.798. Related: GEN.477, PERF.125, PERF.120.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -16491,6 +16671,33 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.29, DB.103. Related: DB.101, POP.21.
 
+- [ ] **DB.106 Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" New table `body_resources`
+  (body kind and id, resource kind, grade as a mass fraction, mass_kg,
+  difficulty, score 0 to 9, epoch of the state) with the foreign keys
+  and delete rules of the existing composition tables, an index by
+  resource kind and score for the map and the filters, a per-body
+  overall resource score column on asteroid_belts and the giant planet
+  tables, the Object ID rules, a column_units entry for every numeric
+  column, the Alembic revision (next free migration) with the old-schema
+  fixture and the read functions. Nothing is computed yet. Done: the
+  migration round-trips and test_db_column_round_trip passes. Version
+  8.2, phase 3. Owner: Aux 12 style. Rules: draws through draw.py;
+  stand-ins get GEN.725 registry rows with tier and tweak level; every
+  number has a unit or scale (GEN.772) and a column_units entry; a
+  change to drawn output carries `tests.golden_update --reason ...
+  --affects fill` and the next epoch; tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Part of the resource locations tree: GEN.798, DB.106, GEN.799,
+  MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
+  nothing in 8.1.
+  Prerequisites: GEN.798. Related: DB.70, DB.101.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -16932,6 +17139,29 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   a quantity field with no unit. Owner: Aux 12 (API), Core 5 (commands),
   Aux 14 for the test over the field list. Related: GEN.771, DOC.15.
   Prerequisites: none. Related: GEN.771, DOC.15.
+
+- [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" The API returns
+  body_resources for belts, fields, giants and icy bodies with units; a
+  galaxy uploaded for remote generation (API.8 verification) is checked
+  for the resource rows and scores against its stored compositions, and
+  a missing or inconsistent resource row is reported or recomputed by
+  `resource-scan` on the server. Done: tests for the API fields and for
+  an uploaded galaxy with a wrong row. Version 8.9, phase 2. Owner: Aux
+  12 style. Rules: draws through draw.py; stand-ins get GEN.725 registry
+  rows with tier and tweak level; every number has a unit or scale
+  (GEN.772) and a column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: GEN.799. Related: API.8, API.30, API.33.
 
 ## ADM: Admin tools
 
@@ -17662,6 +17892,29 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   2026-10-24 (fix each): Aux 3 (habitability model), a check first, then
   the fix if the scores go stale.
   Prerequisites: none. Related: ADM.129, GEN.688.
+
+- [ ] **ADM.133 Admin edits of resource locations: change a belt, field or body's resource grades and scores as an aspect of the edit-everything plan, with a lock so regeneration keeps them**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" Add resource grade, mass and
+  score of a belt, field, giant or icy body to the aspect catalogue
+  (ADM.62) so an admin can change them in a plan, see the before and
+  after on the approval screen, lock them, and have regeneration and the
+  nightly scan keep an edited value; the Edit any field editor lists
+  them. Done: an edit round-trips through plan, approval and lock in a
+  test. Version 8.6, phase 4. Owner: pool with the edit-everything lane.
+  Rules: draws through draw.py; stand-ins get GEN.725 registry rows with
+  tier and tweak level; every number has a unit or scale (GEN.772) and a
+  column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: DB.106, GEN.799. Related: ADM.62, ADM.130, ADM.131.
 
 ## SEC: Security
 
@@ -20131,45 +20384,6 @@ clears each one.
   runs. Owner: Bug 1. Related: TEST.344, TEST.364.
   Prerequisites: none. Related: TEST.344, TEST.364.
 
-- [ ] **TEST.374 scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug)**
-  Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
-  lane reported): the patch notes in changes/ for GEN.398, GEN.691 and
-  GEN.719 (Math lane 2, #3162) carry a "### Tests" heading, which
-  `bump_version.py --check-pr` refuses (notes need "### Changed" and a
-  Headline; map-unresolved-glow had the same earlier). Do: fix the three
-  notes (move the test lines under "### Changed" or drop the heading)
-  and make the check say which heading it refused, so a lane sees it
-  before merge. Done: `bump_version.py --check-pr` passes on main.
-  Owner: Math 2 for the three notes; Bug 1 for the clearer message.
-  Related: TEST.372.
-  Prerequisites: none. Related: TEST.372.
-
-- [ ] **TEST.375 Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug)**
-  Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
-  lane reported): test_api_auth_sweep (2 tests), test_class_pages
-  phenomenon links (6; TEST.365 fixed six class-page tests in #3142, so
-  these may be new or environmental), test_db_column_round_trip (written
-  columns), test_save_progress sector save, test_web_generate
-  generate_anyway (2) and test_memwatch smoke run (TEST.366 was dropped
-  as not reproducing after #3125), plus test_interior_heat urey ratio
-  (TEST.353, already done). Do: run each on a lane machine set up as
-  documented (the planetgen database account gap of TEST.370 explains
-  several), keep the ones that still fail on main, and fix each with no
-  skip; drop the ones that pass, noting which machine setup they needed.
-  Done: every listed test passes on a documented machine, or has its own
-  item with a root cause. Owner: Bug 1. Related: TEST.370, TEST.365,
-  TEST.366, TEST.353.
-  Research (2026-10-09, Core 5 witness): Core 5 (8:32 PM EDT 2026-10-24
-  as the lane reported) saw the same two test_web_generate tests
-  (generate_anyway and plain_confirm override logging) fail on clean
-  main: one more witness for this item.
-  Research (2026-10-09, Progress): Bug 1 fixed
-  test_api_auth_sweep::test_admin_pages_send_an_admin_on_seeded_credentials_to_account
-  in #3189 (the /admin/queue/<run_id>/log download redirected instead of
-  403); the rest of the list is unchecked. Twelve more failures on main
-  are in TEST.379.
-  Prerequisites: none. Related: TEST.370, TEST.365, TEST.366, TEST.353.
-
 - [ ] **TEST.377 test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug)**
   Found by Core 2 (UX.125, 8:47 PM EDT 2026-10-24 as the lane reported)
   on clean main. Do: run it on a lane machine set up as documented
@@ -20330,6 +20544,28 @@ clears each one.
   the browser tests with no setup error from the rate limit. Version
   8.1. Owner: Bug 1 with Aux 12 (API).
   Prerequisites: none. Related: USR.22, TEST.383.
+
+- [ ] **TEST.386 First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" Generate a galaxy, run
+  `resource-scan`, read the belt, field and giant pages, the lists and
+  the POI filter on the maps, check the scores against the composition
+  and the design's examples, and file every wrong or unclear result as
+  its own bug. Done: a dated report in reports/ and every finding filed.
+  Version 8.4, phase 2. Owner: Bug 1. Rules: draws through draw.py;
+  stand-ins get GEN.725 registry rows with tier and tweak level; every
+  number has a unit or scale (GEN.772) and a column_units entry; a
+  change to drawn output carries `tests.golden_update --reason ...
+  --affects fill` and the next epoch; tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Part of the resource locations tree: GEN.798, DB.106, GEN.799,
+  MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
+  nothing in 8.1.
+  Prerequisites: MAP.312, UX.223. Related: TEST.380, TEST.381, TEST.382.
 
 ## USR: User accounts
 
@@ -21618,6 +21854,29 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   rounding, and a test or script check pins the numbers. Owner: none
   (pool); lane H wrote the document.
   Prerequisites: none. Related: GEN.461, DOC.77.
+
+- [ ] **DOC.81 Help page: resource locations, what the scores mean and how to find them on the map**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" A help page for the resource
+  locations: the resource kinds, the score from 0 to 9 and how it is
+  worked out, where the points of interest and the filters are, the
+  nearest-resource tool, and the pages that show them, in the
+  pilot's-console voice. Done: the page exists, links from the help
+  index and the object pages, and the coverage test lists it. Version
+  8.7, phase 1. Owner: Aux 11 style. Rules: draws through draw.py;
+  stand-ins get GEN.725 registry rows with tier and tweak level; every
+  number has a unit or scale (GEN.772) and a column_units entry; a
+  change to drawn output carries `tests.golden_update --reason ...
+  --affects fill` and the next epoch; tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Part of the resource locations tree: GEN.798, DB.106, GEN.799,
+  MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
+  nothing in 8.1.
+  Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
 ## VIEW: The view from a planet
 

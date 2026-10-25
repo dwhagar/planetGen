@@ -13,19 +13,19 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.223 |
-| MAP | MAP.312 |
-| NAV | NAV.64 |
-| GEN | GEN.798 |
+| UX | UX.224 |
+| MAP | MAP.314 |
+| NAV | NAV.65 |
+| GEN | GEN.800 |
 | PERF | PERF.195 |
-| DB | DB.106 |
-| API | API.34 |
-| ADM | ADM.133 |
+| DB | DB.107 |
+| API | API.35 |
+| ADM | ADM.134 |
 | SEC | SEC.37 |
-| TEST | TEST.386 |
+| TEST | TEST.387 |
 | USR | USR.32 |
 | OPS | OPS.72 |
-| DOC | DOC.81 |
+| DOC | DOC.82 |
 | VIEW | VIEW.19 |
 | POP | POP.38 |
 
@@ -521,6 +521,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.130 | Aspects for civilizations: species, nations, cities, ports and stations in the aspect catalogue, with keep marks and locks | none | open |
 | ADM.131 | Editable civilizations: edit a species, rename or split a nation, move a city, transfer a city between nations, set the dominant nation and place or remove a port, as approved plans | none | open |
 | ADM.132 | After an admin edit of a planet or moon, its habitability, Suitability and life scores are recomputed, and a test proves it (check) (bug) | none | open |
+| ADM.133 | Admin edits of resource locations: change a belt, field or body's resource grades and scores as an aspect of the edit-everything plan, with a lock so regeneration keeps them | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -554,6 +555,7 @@ Parents marked "new parent" had no old number of their own.
 | API.31 | Every outgoing web request sends a standard User-Agent with the software, its version and the API version | none | done, PR #3047 |
 | API.32 | test_fuzz_web_routes fails on a machine that has a real database named planetgen_control: every galaxy route answers 500 for db=planetgen_control (bug) | none | done, PR #2659 |
 | API.33 | API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug) | none | open |
+| API.34 | API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -659,6 +661,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.103 | Storage for nation-states and cities: tables, Object IDs, column units and the migration | none | open |
 | DB.104 | Storage for a government's territory: homeworld system, growth state and a territory history, ready for 9.2 to make it dynamic | none | open |
 | DB.105 | Storage for world population and the global trade route list: tables, Object IDs, column units and the migration | none | open |
+| DB.106 | Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -739,6 +742,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.78 | One end-to-end draw-order table from the star to the PHI-6 for the contracts file: blocks, streams and the reproducibility rule | none | done, PR #2813 |
 | DOC.79 | The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C | none | open |
 | DOC.80 | Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step | none | done, PR #3125 |
+| DOC.81 | Help page: resource locations, what the scores mean and how to find them on the map | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1536,6 +1540,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.795 | The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug) | none | open |
 | GEN.796 | Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle | none | open |
 | GEN.797 | Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level | none | open |
+| GEN.798 | Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers) | none | open |
+| GEN.799 | Resource scan: compute the grade, mass and score of every resource for belts, fields, giants and icy bodies from their stored composition, as its own command and galaxy stage | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1847,6 +1853,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.309 | Star map filter for trade routes: draw the routes (all, or by polity, length or hop count) as paths on the Galaxy Map | none | open |
 | MAP.310 | Routes away from a selected object: select a system, spaceport or world on the star map and show only the trade routes leaving it | none | open |
 | MAP.311 | Map markers and a menu filter for worlds with life, with sentient life and with a civilization, beside the habitable-world markers | none | open |
+| MAP.312 | Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter | none | open |
+| MAP.313 | Galaxy Map resource richness layer: a heat map of the resource score by sector, by resource kind, with the richest sectors listed | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1910,6 +1918,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.61 | Nearest-first by a radius ladder, and a dense-core guard with an early-stop count | none | open |
 | NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model | none | open |
 | NAV.63 | Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route | none | open |
+| NAV.64 | Find the nearest resource location from a position or along a course, by resource kind and minimum score | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -2502,6 +2511,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.220 | Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores | none | open |
 | UX.221 | Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities | none | open |
 | UX.222 | Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu | none | open |
+| UX.223 | Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2981,8 +2991,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.371 | test_workers::a_worker_that_is_killed fails under load and passes alone (bug) | none | open |
 | TEST.372 | scripts/test.py and docs/reference/testing.md call `full` "the merge gate", which lanes read as a whole-suite gate for every merge (bug) | none | done, PR #3192 |
 | TEST.373 | test_protection::test_there_is_one_describer_of_the_six_categories fails on main: habitability_explain.py exists again after GEN.445 (bug) | none | done, PR #3155 |
-| TEST.374 | scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug) | none | open |
-| TEST.375 | Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug) | none | open |
+| TEST.374 | scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug) | none | dropped (not reproduced on main: bump_version --check passes and the notes with "### Tests" were stamped out, Bug 1, 10:31 PM EDT 2026-10-24 as the lane reported) |
+| TEST.375 | Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug) | none | done, PR #3219 |
 | TEST.376 | scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill | none | done, PR #3192 |
 | TEST.377 | test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug) | none | open |
 | TEST.378 | test_no_todo_codes_shown fails on main: the composition_origin reason in describe/sheet.py names UX.202 in a shown string (bug) | none | done, PR #3196 |
@@ -2993,6 +3003,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.383 | test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug) | none | open |
 | TEST.384 | Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug) | none | open |
 | TEST.385 | Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug) | none | open |
+| TEST.386 | First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

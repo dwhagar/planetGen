@@ -44,3 +44,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | UX.131 | Console tokens, type and base template in both themes | UX.130, UX.82 | Split from UX.43. |
 | UX.132 | Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome | UX.131 | Split from UX.43. |
 | UX.43 | A visual design built like a pilot's starmap and navigation console | UX.130, UX.131, UX.132 |  |
+
+### Resource help
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| DOC.81 | Help page: resource locations, what the scores mean and how to find them on the map | UX.223, NAV.64 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
