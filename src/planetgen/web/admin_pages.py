@@ -35,6 +35,7 @@ Rules every view here follows:
 - Responses are `Cache-Control: no-store` (a new API key, admin data).
 """
 
+import base64
 import os
 import re
 import shutil
@@ -47,6 +48,7 @@ from itsdangerous import BadSignature, URLSafeTimedSerializer
 from planetgen.admin import maintenance
 from planetgen.generation import steps
 from planetgen.physics import mathcheck
+from planetgen.web import assets
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_duration_seconds, format_number, utc_time_html
 from planetgen.web.lib import tilecache
@@ -304,9 +306,10 @@ def _too_many_message(exc):
     return "Too many login attempts. Wait a minute, then try again."
 
 
-def _account_page(admin, next_url, error=None, new_username=None, status=200, totp=None):
+def _account_page(admin, next_url, error=None, new_username=None, status=200, totp=None, avatar=None):
     """`totp`: what the two-factor section shows -- `error`, `message`,
-    `setup` (the API's setup response), `recovery_codes`."""
+    `setup` (the API's setup response), `recovery_codes`. `avatar`: what the picture section says -- `error`,
+    `message`."""
     totp = dict(totp or {})
     if not admin.get("must_change_credentials"):
         try:
@@ -320,7 +323,8 @@ def _account_page(admin, next_url, error=None, new_username=None, status=200, to
         breadcrumbs=[crumb("Admin", "admin"), crumb("Account")],
         admin=admin, error=error, next_url=next_url,
         new_username=admin["username"] if new_username is None else new_username,
-        forced=bool(admin.get("must_change_credentials")), status=status, totp=totp,
+        forced=bool(admin.get("must_change_credentials")), status=status, totp=totp, avatar=avatar or {},
+        max_avatar_kb=assets.MAX_BYTES // 1024,
     )
 
 
@@ -364,6 +368,36 @@ def account_two_factor():
             return _account_page(admin, next_url, totp=totp, status=400)
         raise
     return _account_page(admin, next_url, totp={"error": "Unknown action."}, status=400)
+
+
+@bp.route("/account/avatar", methods=["POST"])
+def account_avatar():
+    """Set (a file in the form) or, with `remove`, clear the signed-in account's picture (SEC.36)."""
+    admin, bounce = _require_admin(fresh=True)
+    if bounce is not None:
+        return bounce
+    next_url = safe_next(request.values.get("next"))
+    cookies = _cookie_header()
+    try:
+        if request.form.get("remove"):
+            apiclient.auth_avatar_remove(cookies)
+            message = "Your picture is removed."
+        else:
+            upload = request.files.get("file")
+            data = upload.read(assets.MAX_BYTES + 1) if upload else b""
+            if not data:
+                return _account_page(admin, next_url, avatar={"error": "Choose a file to upload."}, status=400)
+            if len(data) > assets.MAX_BYTES:
+                return _account_page(admin, next_url, status=400, avatar={
+                    "error": f"The file is larger than {assets.MAX_BYTES // 1024} KB."})
+            apiclient.auth_avatar_set(cookies, base64.b64encode(data).decode("ascii"))
+            message = "Your picture is saved."
+        admin = apiclient.auth_me(cookies) or admin
+    except apiclient.ApiError as exc:
+        if exc.status_code == 422:
+            return _account_page(admin, next_url, avatar={"error": _api_message(exc)}, status=422)
+        raise
+    return _account_page(admin, next_url, avatar={"message": message})
 
 
 @bp.route("/account", methods=["GET", "POST"])

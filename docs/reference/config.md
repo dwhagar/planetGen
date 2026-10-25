@@ -236,7 +236,7 @@ engines and Link previews. They are all read at request time by `planetgen.web.s
   squareness where they matter; at most 1 MiB), stored as `<16 hex digits of its
   SHA-256>.<ext>` in `web.assets_dir` (the state folder's `assets` by default) and served
   at `/site-assets/<name>` for a year (its name is its content). Uploading and removing
-  save the setting through the same writer, so they are backed up and audited.
+  save the setting through the same writer, so they are backed up and audited. These site pictures take no GIF; an account's own picture (docs/reference/api.md, `POST /api/auth/avatar`) is the one place a GIF is accepted.
 
 ## Options
 
