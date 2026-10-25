@@ -51,10 +51,9 @@ from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_duration_seconds, format_number, utc_time_html
 from planetgen.web.lib import tilecache
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, in_memory, time_text
-from planetgen.web.lib.pagination import fetch_page, parse_page
 
 from . import bp, csrf, tables
-from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
+from .helpers import crumb, current_admin, db_name, page_url, render_page, trusted_html
 
 # ---------------------------------------------------------------------
 # Redirect targets

@@ -37,7 +37,7 @@ import json
 import os
 import sys
 
-from planetgen.admin import activity_log, auth
+from planetgen.admin import auth
 from planetgen.util import log, logpaths, settings, settings_writer
 
 DOCS_PATH = os.path.join(logpaths.PROJECT_ROOT, "docs", "reference", "config.md")

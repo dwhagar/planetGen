@@ -493,7 +493,6 @@ def _resolve_request_ids():
 def resolve_kwargs(kwargs):
     """`require_admin`'s call, with the view's keyword arguments: their printed IDs become row ids (a 404 for one
     that names nothing)."""
-    from flask import request
 
     if kwargs and _api_request():
         _resolve(kwargs, strict=True)

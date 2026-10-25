@@ -24,7 +24,7 @@ The age of a remnant follows from its progenitor (`collapse_age_gy`).
 import functools
 
 from planetgen import tuning
-from planetgen.physics import black_hole_formation, stellar_evolution
+from planetgen.physics import stellar_evolution
 from planetgen.util import draw
 
 NEUTRON_STAR = "neutron-star"

@@ -25,7 +25,9 @@ Image = pytest.importorskip("PIL.Image")
 
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
-    HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD,
+    DENSE_CENTER_PC, DENSE_POINTS, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
+    SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD,
+    dense_region_query, dense_site,
     halo_site,
     map_site,
 )
@@ -1825,6 +1827,34 @@ def test_galaxy_map_block_lines_show_only_on_the_block_being_chosen(page, map_si
         assert 0 < page.evaluate(LINES)["blockEdges"] <= 0.15
         assert _hover_choice(page), "no block to hover"
         page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().blockEdges === 1")
+
+
+def open_dense_region(page, base, dist_pc=30.0):
+    """TEST.368: the Galaxy Map of `dense_site` looking at its dense region from `dist_pc` parsecs, settled."""
+    _open_galaxy(page, base, dense_region_query(dist_pc))
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFill().count > 0", timeout=20000)
+    _settle(page)
+
+
+def test_dense_fixture_region_is_there_and_can_be_zoomed_into(page, dense_site):
+    """TEST.368: the dense fixture galaxy holds a few thousand stars packed round one place, and a wheel scroll over it
+    takes the view in until a single star of its cluster is the nearest thing to the middle of the screen."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site)
+    filled = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFill()")
+    assert filled["count"] >= 1000, filled
+    assert len(DENSE_STARS) >= 2500 and DENSE_POINTS and DENSE_WORLDS
+    start = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    page.locator(GALAXY_CANVAS).hover()
+    for _ in range(12):
+        page.mouse.wheel(0, -400)
+        page.wait_for_timeout(100)
+    _settle(page)
+    end = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    assert end["dist"] < start["dist"] / 3, (start["dist"], end["dist"])
+    spot = page.evaluate("(p) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(...p)", list(DENSE_CENTER_PC))
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    assert 0 < spot["x"] - box["x"] < box["width"] and 0 < spot["y"] - box["y"] < box["height"], (spot, box)
 
 
 def test_galaxy_map_grid_never_adds_up_to_more_than_the_cap_while_zooming_in(page, map_site):

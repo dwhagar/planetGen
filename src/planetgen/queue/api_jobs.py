@@ -28,10 +28,9 @@ import secrets
 import sys
 import time
 
-import rq
 
 from planetgen.admin import updateguard
-from planetgen.queue import redisqueue, wrapper, workers
+from planetgen.queue import redisqueue, workers
 
 QUEUE_PREFIX = "planetgen-api-"
 """str: A job's id in RQ is this plus its own id."""
@@ -307,7 +306,7 @@ def status(job_id):
     return body
 
 
-MAKES_SECTORS = ("generate_neighborhood", "regenerate_sector")
+MAKES_SECTORS = ("generate_neighborhood", "generate_block", "regenerate_sector")
 """tuple[str]: The queued functions that generate sectors (ADM.31)."""
 
 
@@ -339,6 +338,17 @@ def generate_neighborhood(sector_id, radius_ly, config, disregard_missing_data=F
     from planetgen.generation import run_galaxy
     fetch.set_disregard_missing_data(disregard_missing_data)
     return run_galaxy.generate_sector_neighborhood(sector_id, radius_ly=radius_ly, config=config)
+
+
+def generate_block(block_key, config, disregard_missing_data=False):
+    """The queued body of `POST /api/galaxy/blocks/<key>/generate` (GEN.310; a module-level function so a worker can
+    import it by name): the sectors the outline holds in the block, the backfill and the settle as runs through the
+    wrapper, the job waiting in line for the machine (PERF.153). `disregard_missing_data` is the request's GEN.599
+    switch."""
+    from planetgen.datasets import fetch
+    from planetgen.generation import run_galaxy
+    fetch.set_disregard_missing_data(disregard_missing_data)
+    return run_galaxy.generate_block(block_key, config=config)
 
 
 def regenerate_sector(sector_id, config):

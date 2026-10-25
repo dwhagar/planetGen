@@ -35,7 +35,6 @@ The factor multiplies the weights of the `young` and `intermediate` populations 
 """
 
 import functools
-import math
 
 import numpy as np
 

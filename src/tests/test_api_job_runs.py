@@ -55,6 +55,35 @@ def test_a_neighborhood_job_runs_its_sectors_through_the_wrapper(mysql_config, c
     assert {run["state"] for run in runs} == {"done"}, saw
 
 
+def test_a_block_job_runs_the_sectors_of_the_block_through_the_wrapper(mysql_config, conn):
+    """GEN.310: the sectors the outline holds in a block, as runs; a second job finds nothing left to make."""
+    from planetgen.galaxy import drill
+    _seed_skeleton(mysql_config, shells=[(0, 0)])           # the outline holds the core and nothing else: one sector to make
+    block = drill.drill_chain_of(0, 0, 0)[-2]
+    key = drill.format_drill_key(block)
+    estimate = run_galaxy.generate_block(key, config=mysql_config, estimate_only=True)
+    assert estimate["generated"] == 0 and estimate["candidates"] == 1 and estimate["already_existed"] == 0
+    assert estimate["outside_galaxy"] >= 1, "the block holds sectors past the outline too"
+    assert _all_sectors(mysql_config) == [], "an estimate writes nothing"
+    result = api_jobs.generate_block(key, mysql_config)
+    titles, runs = _titles(conn)
+    saw = (result, len(_all_sectors(mysql_config)), titles, [(run["title"], run["state"]) for run in runs])
+    assert result["generated"] == estimate["candidates"] == len(_all_sectors(mysql_config)), saw
+    assert titles[0] == f"Sectors (block {key})" and titles[-2:] == ["Bright-star backfill", "Sector paths"], saw
+    assert {run["state"] for run in runs} == {"done"}, saw
+    again = run_galaxy.generate_block(key, config=mysql_config, estimate_only=True)
+    assert again["already_existed"] == estimate["candidates"] and again["candidates"] == estimate["candidates"]
+
+
+def test_a_block_that_holds_more_than_a_request_may_list_is_refused(mysql_config, monkeypatch):
+    from planetgen.galaxy import drill
+    _seed_skeleton(mysql_config, shells=_shells(2, 1))
+    monkeypatch.setattr(run_galaxy.run_common, "WEB_ENUMERATION_LIMIT", 2)
+    with pytest.raises(run_galaxy.EnumerationTooLarge):
+        run_galaxy.generate_block(drill.format_drill_key(drill.drill_chain_of(2, 0, 0)[-2]), config=mysql_config,
+                                  estimate_only=True)
+
+
 def test_the_settle_job_is_a_run_of_the_named_sectors(mysql_config, conn):
     center = _a_galaxy_sector(mysql_config)
     assert isinstance(api_jobs.settle_sectors([center], mysql_config)["saved"], int)

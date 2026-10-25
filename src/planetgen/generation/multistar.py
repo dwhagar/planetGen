@@ -1371,6 +1371,8 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         if exotic is not None:
             leaf.flags |= MEMBER_MERGER_PRODUCT | (MEMBER_R_CRB if exotic == "r-crb" else MEMBER_FK_COMAE)
         leaves, units = [leaf], [0]
+        if n_stars is not None and n_stars <= 1:     # a directive for a single object (no binaries, GEN.719)
+            return leaves, units
         compact = (_bound_runaway_companion(placed, age_yr, rng) if bound_runaway
                    else _star_compact_companion(placed, age_yr, rng))
         giant_type = draw_giant_companion(leaf.kind, birth, types[6])
@@ -1406,6 +1408,8 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
     if placed.kind == "white-dwarf" and draw_white_dwarf_merger(age_yr, rng.random()):
         base.flags |= MEMBER_MERGER_PRODUCT
         base.effective_age_yr = rejuvenated_age_yr(age_yr, rng)
+    if n_stars is not None and n_stars <= 1:     # a directive for a single object (no binaries, GEN.719)
+        return leaves, [0]
     state = companion_state(placed, rng) if companion is _DRAW_COMPANION else companion
     if state is None:
         return leaves, [0]
@@ -1639,9 +1643,10 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=No
             Kozai-Lidov checks read it.
         rng: The random source (a `draw.Stream` or the `draw` module).
         max_stars (int): The most members in the tree (`GEN.267`'s cap; 12).
-        n_stars (int or None): Forces the number of stars of a star's tree (a directive).
-            Ignored for a compact or white dwarf placed object, whose companions come from
-            `MEMBER_STATE_BY_PLACED`.
+        n_stars (int or None): Forces the number of stars of a star's tree (a directive). 1 is a single object
+            for any placed object, a living star or a white dwarf or other compact object (no companion of any
+            kind, GEN.719). Other counts are ignored for a compact or white dwarf placed object, whose companions
+            come from `MEMBER_STATE_BY_PLACED`.
         prevalence (float): Scales the chance of five or more stars (1 is the table).
         companion (str or None): For a compact or white dwarf placed object, the companion state the caller's
             screen already drew (`companion_state_at`): the tree takes it instead of drawing its own, `None`

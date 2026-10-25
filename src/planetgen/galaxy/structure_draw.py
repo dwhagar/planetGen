@@ -49,7 +49,6 @@ sources do not span.
 
 import math
 
-from planetgen import tuning
 from planetgen.galaxy import dials, mass_chain, natal_kick, seed as galaxySeed
 from planetgen.galaxy.structure import REFERENCE_STRUCTURE, Structure
 from planetgen.physics import black_hole_formation

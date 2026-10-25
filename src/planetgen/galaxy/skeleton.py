@@ -42,7 +42,6 @@ Pure and side-effect-free, like `spherical.py`/`galaxy/density.py`.
 
 import bisect
 import math
-from collections import namedtuple
 
 from planetgen import tuning
 from planetgen.galaxy.density import _vertical, bulge_bound, model_terms

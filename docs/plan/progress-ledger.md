@@ -1425,3 +1425,17 @@ Baseline: PR #1817.
 | TEST.365 | 8.1 | The headline closes |
 | TEST.366 | 8.1 | The headline closes |
 | GEN.564 | 8.1 | Bulk composition |
+| UX.197 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.55 | 8.1 | Reproducible galaxies |
+| TEST.77 | 8.1 | Reproducible galaxies |
+| TEST.364 | 8.1 | The headline closes |
+| TEST.369 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.363 | 8.1 | The headline closes |
+| TEST.362 | 8.1 | The headline closes |
+| GEN.310 | 8.1 | Queue, caches and performance |
+| GEN.398 | 8.1 | Bugs and flaky tests |
+| GEN.719 | 8.1 | Nebula and young stars |
+| GEN.691 | 8.1 | Habitability system |
+| GEN.725 | 8.1 | Mixture and stored values |
+| MAP.294 | 8.1 | Fly-through map |
+| MAP.293 | 8.1 | Fly-through map |

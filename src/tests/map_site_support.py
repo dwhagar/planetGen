@@ -231,6 +231,70 @@ def _sector_center_pc(shell, band, wedge):
     return sector_position_pc(shell, band, wedge, EDGE_PC)
 
 
+def _dense_field():
+    """TEST.368: the dense region the map's zoom, label, pick and infobox tests fly into (no scatter, as Boss skips it to
+    see filled space): a tight cluster of stars at the middle of the fixture's first sector with a looser halo of stars
+    round it, a few of them named, six rogue planets, a neutron star and a black hole among them, and systems with
+    habitable worlds. Returns `(stars, points, worlds, center)`; all seeded."""
+    import random
+
+    from planetgen.galaxy.spherical import sector_address_at
+
+    center = _sector_center_pc(1, 0, 1)
+    rng = random.Random(368)
+    stars = []
+    for i in range(DENSE_CLUSTER_STARS + DENSE_HALO_STARS):
+        if i < DENSE_CLUSTER_STARS:
+            # A Plummer-like cluster: a radius drawn from the cumulative mass, in a random direction.
+            u = rng.uniform(0.02, 0.98)
+            radius = DENSE_CLUSTER_SCALE_PC / math.sqrt(u ** (-2.0 / 3.0) - 1.0)
+        else:
+            radius = DENSE_HALO_RADIUS_PC * rng.random() ** (1.0 / 3.0)
+        z = rng.uniform(-1.0, 1.0)
+        phi = rng.uniform(0.0, 2.0 * math.pi)
+        flat = math.sqrt(1.0 - z * z)
+        x, y, zz = (center[0] + radius * flat * math.cos(phi), center[1] + radius * flat * math.sin(phi), center[2] + radius * z)
+        lum = 10 ** rng.uniform(-3.5, 3.5)
+        temperature = 2600.0 + 30000.0 * (math.log10(lum) + 3.5) / 7.0 * rng.uniform(0.6, 1.0)
+        shell, band, wedge = sector_address_at((x, y, zz), EDGE_PC)
+        stars.append({
+            "id": 20000 + i, "name": f"Dense {i}" if i % 9 == 0 else None, "x": x, "y": y, "z": zz,
+            "luminosity_sol": float("%.4g" % lum), "temperature_k": round(temperature),
+            "radius_sol": float("%.3g" % (lum ** 0.35)), "star_type": "fixture",
+            "shell_index": shell, "band_index": band, "wedge_index": wedge,
+            "system_id": SYSTEMS[i % len(SYSTEMS)][0],
+        })
+    points = [
+        _point("neutron_star", 1.4, id=141, name="Dense Pulsar", descriptor="millisecond",
+               x=center[0] + 0.6, y=center[1] - 0.4, z=center[2] + 0.2),
+        _point("black_hole", 9.0, id=161, name="Dense Maw", descriptor="stellar",
+               x=center[0] - 2.5, y=center[1] + 1.5, z=center[2] - 0.5),
+    ]
+    for i in range(6):
+        points.append(_point("rogue_planet", 0.00003, id=151 + i, name=f"Dense Wanderer {i + 1}", descriptor="frozen",
+                             x=center[0] + 3.0 * math.cos(i), y=center[1] + 3.0 * math.sin(i), z=center[2] + 0.4 * i - 1.0))
+    worlds = [{"id": 29001 + i, "name": f"Dense Eden {i + 1}", "worlds": 1 + i % 2,
+               "x": center[0] + 0.9 * math.cos(2 * i), "y": center[1] + 0.9 * math.sin(2 * i), "z": center[2] + 0.3 * i - 0.6}
+              for i in range(5)]
+    return stars, points, worlds, center
+
+
+DENSE_CLUSTER_STARS = 2200
+DENSE_HALO_STARS = 800
+DENSE_CLUSTER_SCALE_PC = 0.6
+DENSE_HALO_RADIUS_PC = 8.0
+DENSE_STARS, DENSE_POINTS, DENSE_WORLDS, DENSE_CENTER_PC = _dense_field()
+"""The dense fixture region (TEST.368): `DENSE_CLUSTER_STARS` stars in a cluster of scale `DENSE_CLUSTER_SCALE_PC` and
+`DENSE_HALO_STARS` in a halo of `DENSE_HALO_RADIUS_PC`, centred on `DENSE_CENTER_PC` (the middle of the fixture's first
+sector, a filled one), with points (rogue planets, a neutron star, a black hole) and habitable-world systems."""
+
+
+def dense_region_query(dist_pc=30.0):
+    """The address (`?cam=`) of a view of the dense region from `dist_pc` parsecs, looking down the z axis."""
+    x, y, z = DENSE_CENTER_PC
+    return f"?cam={x:.6f},{y:.6f},{z:.6f},{dist_pc:.6f},0,0,0,1"
+
+
 def sector_detail(sector_id=SECTOR_ID):
     """`GET /api/sectors/<id>` for the fixture sector."""
     _id, shell, band, wedge, name = next(s for s in SECTORS if s[0] == sector_id)
@@ -345,10 +409,11 @@ def system_scene_payload(system_id):
 class FixtureApi:
     """The `apiclient`/`tilecache` reads the map pages make."""
 
-    def __init__(self, halo=False):
+    def __init__(self, halo=False, dense=False):
         self.shape = galaxy_shape()
-        self.stars = STAR_FIELD + (HALO_STARS if halo else [])
-        self.points = POINT_FIELD + (HALO_POINTS if halo else [])
+        self.stars = STAR_FIELD + (HALO_STARS if halo else []) + (DENSE_STARS if dense else [])
+        self.points = POINT_FIELD + (HALO_POINTS if halo else []) + (DENSE_POINTS if dense else [])
+        self.worlds = WORLD_FIELD + (DENSE_WORLDS if dense else [])
         self._addresses = {}
         self._memo = {}
 
@@ -402,7 +467,7 @@ class FixtureApi:
             lo, hi = block_box(block, EDGE_PC)
             stars = [star for star in self.stars if address_in_block(self._address(star), block, self._memo)]
             points = [point for point in self.points if address_in_block(self._address(point), block, self._memo)]
-            worlds = [system for system in WORLD_FIELD
+            worlds = [system for system in self.worlds
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
             # Like the real node: every cloud whose sphere reaches into the block's box.
             clouds = []
@@ -539,4 +604,11 @@ def halo_site(tmp_path_factory):
     yield from _serve(FixtureApi(halo=True), tmp_path_factory)
 
 
-__all__ = ["map_site", "halo_site", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]
+@pytest.fixture(scope="module")
+def dense_site(tmp_path_factory):
+    """`map_site` with a dense region of stars, points and habitable-world systems in the first sector (TEST.368); open it
+    at `dense_region_query()`."""
+    yield from _serve(FixtureApi(dense=True), tmp_path_factory)
+
+
+__all__ = ["map_site", "halo_site", "dense_site", "dense_region_query", "DENSE_STARS", "DENSE_POINTS", "DENSE_WORLDS", "DENSE_CENTER_PC", "HALO_CENTER_PC", "HALO_STARS", "HALO_POINTS", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]

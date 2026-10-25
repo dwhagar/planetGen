@@ -235,6 +235,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | Note | What it covers | Status |
 |---|---|---|
 | [gap-filling-plan.md](research/gap-filling-plan.md) | How the open gaps are filled where the public record is silent: the 57 gaps with a derived, bracketed, theory or placeholder fill, the stand-in registry convention, the first Gemini batch (unverified) and the work order | research |
+| [stand-in-values.md](research/stand-in-values.md) | Every stand-in value with its source tier (T1 to T9) and tweak level (L0 to L4), generated from the registry of the gap-filling plan (GEN.725) | generated (reference) |
 | [papers-to-fetch.md](research/papers-to-fetch.md) | The papers behind refused publishers that Boss downloads himself, and the arXiv papers a research thread reads instead, with Crossref citations (gap-filling plan section 8, GEN.531) | reference |
 | [vizier-courteau-comeron.md](research/vizier-courteau-comeron.md) | The VizieR search for the Courteau 2007 scatter (GR5) and the Comeron thick-disc tables (GR3): the Comeron 2018 fit, the raw Vc/sigma0 scatter and the corrected references | research |
 | [gemini-batch1-check.md](research/gemini-batch1-check.md) | The claim-by-claim check of Gemini batch 1 (51 claims) against read sources, the figures that can be used and the requests it answers | research |

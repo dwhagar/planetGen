@@ -15,7 +15,6 @@ import copy
 import hashlib
 import math
 import os
-import re
 import sys
 import time
 from collections import Counter
@@ -31,13 +30,13 @@ from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import remnant_density, ejecta_field, nebula_field
 from planetgen.galaxy.frame import galaxy_to_local_pc, local_to_galaxy_pc
 from planetgen.galaxy.system_position import random_unit_vector
-from planetgen.physics import constants, stellar_evolution
+from planetgen.physics import stellar_evolution
 from planetgen import tuning as program_constants
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
-from planetgen.generation.phenomena.nebula import Nebula, choose_weighted_class
+from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.galaxy.sector import SpaceSector, _sample_poisson_count
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant

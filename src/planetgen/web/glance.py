@@ -12,7 +12,7 @@ A row that would say none or 0 is left out unless its absence is the answer (a s
 from planetgen.describe import model
 from planetgen.describe.html import inline_html
 from planetgen.web import item_pages
-from planetgen.web.helpers import trusted_html, page_url
+from planetgen.web.helpers import trusted_html
 from planetgen.web.lib import habitability_symbols
 from planetgen.web.lib.fmt import esc
 

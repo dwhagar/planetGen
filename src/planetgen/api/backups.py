@@ -32,7 +32,7 @@ from planetgen.util import settings_writer
 
 from . import settings as config_routes
 from .authz import audit, require_admin
-from .common import ApiError, get_control_db, require_json_body
+from .common import ApiError, require_json_body
 from .schemas import BackupRestore, SettingsImport, parse_body
 
 bp = Blueprint("backups", __name__, url_prefix="/api/admin")

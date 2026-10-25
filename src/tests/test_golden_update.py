@@ -86,3 +86,62 @@ def test_with_no_golden_file_yet_the_epoch_bumps_on_a_reason_alone(tmp_path):
     _git(root, "commit", "-q", "-m", "no golden files")
     assert golden_update.bump("the maths moved", root, environ={}) == 2
     assert _epochs(root)[-1]["pending"] is True
+
+
+def test_rewriting_the_golden_files_is_refused_under_ci(tmp_path):
+    with pytest.raises(golden_update.Refused, match="under CI"):
+        golden_update.write_golden(str(tmp_path), environ={"CI": "true"})
+
+
+def test_the_main_command_stops_when_the_rewrite_is_refused(monkeypatch, capsys):
+    monkeypatch.setenv("CI", "true")
+    assert golden_update.main(["--reason", "why", "--affects", "fill"]) == 1
+    assert "under CI" in capsys.readouterr().err
+
+
+def _with_stages(root):
+    path = os.path.join(root, golden_update.EPOCHS_FILE)
+    data = json.load(open(path))
+    data["stages"] = ["plan", "scatter", "fill", "population"]
+    data["epochs"][0]["affects"] = []
+    json.dump(data, open(path, "w"), indent=2)
+    _git(root, "commit", "-q", "-am", "stages")
+
+
+@needs_git
+def test_a_new_epoch_records_the_stages_it_changed(tmp_path):
+    root = _repo(tmp_path)
+    _with_stages(root)
+    with open(os.path.join(root, golden_update.GOLDEN_DIR, "sector.txt"), "w") as f:
+        f.write("two")
+    assert golden_update.bump("the radius draw moved", root, environ={}, affects=["scatter", "fill"]) == 2
+    assert _epochs(root)[1]["affects"] == ["scatter", "fill"]
+    text = open(os.path.join(root, golden_update.EPOCHS_FILE)).read()
+    assert '"affects": ["scatter", "fill"]' in text
+
+
+@needs_git
+def test_a_new_epoch_without_stages_or_with_an_unknown_one_is_refused(tmp_path):
+    root = _repo(tmp_path)
+    _with_stages(root)
+    with open(os.path.join(root, golden_update.GOLDEN_DIR, "sector.txt"), "w") as f:
+        f.write("two")
+    with pytest.raises(golden_update.Refused, match="--affects"):
+        golden_update.bump("why", root, environ={})
+    with pytest.raises(golden_update.Refused, match="one or more of"):
+        golden_update.bump("why", root, environ={}, affects=["sky"])
+    with pytest.raises(golden_update.Refused, match="--affects"):
+        golden_update.check_affects_given(None, root)
+    golden_update.check_affects_given(["fill"], root)
+
+
+@needs_git
+def test_a_second_run_can_change_the_stages_of_the_pending_epoch(tmp_path):
+    root = _repo(tmp_path)
+    _with_stages(root)
+    with open(os.path.join(root, golden_update.GOLDEN_DIR, "sector.txt"), "w") as f:
+        f.write("two")
+    golden_update.bump("why", root, environ={}, affects=["fill"])
+    assert golden_update.bump("why", root, environ={}, affects=["scatter", "fill"]) == 2
+    assert len(_epochs(root)) == 2 and _epochs(root)[1]["affects"] == ["scatter", "fill"]
+    golden_update.check_affects_given(None, root)    # the pending epoch already has them

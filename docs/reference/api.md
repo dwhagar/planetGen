@@ -743,6 +743,19 @@ connectivity to that specific schema rather than the default one.
   (GEN.23). A large radius (100 ly) covers thousands of candidate slots,
   so this can run for a long time. The sector page asks for its
   `estimate`, then starts the real run as a Generate page job.
+- `POST /api/galaxy/blocks/<key>/generate` — generate every
+  not-yet-generated sector the galaxy's stored outline holds inside one
+  block of the Galaxy Map's ladder (GEN.310; `<key>` is `m.shell.band.wedge`
+  as in the map's stage links, `m` 243, 81, 27, 9 or 3), shell by shell
+  outward, with the bright-star backfill and the settle after them. Queued
+  and answered like generate-neighborhood: `202` with `job_id` and
+  `status_url`, the same counts (`candidates` are the block's addresses
+  inside the outline) and `estimate`; `"estimate_only": true` and
+  `"disregard_missing_data": true` work the same. `400` for a key that names no
+  block, `409` for a galaxy never planned or a missing data file, `413` for a
+  block of more than 2 million sectors, `507` when the disk can't hold the
+  run, `503` when no Redis answers. `planetgen sectors --block <key>` does the
+  same from the command line.
 - `POST /api/systems` — generate and create a system, standalone or in
   an existing sector.
 - `POST /api/uncharted-systems/<bright_star_id>/generate` — admin only

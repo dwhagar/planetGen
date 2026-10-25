@@ -26,7 +26,6 @@ import math
 from planetgen import tuning
 from planetgen.galaxy import remnant_density
 from planetgen.galaxy import density as galaxyDensity
-from planetgen.galaxy import seed as galaxySeed
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 

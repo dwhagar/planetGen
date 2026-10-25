@@ -161,7 +161,7 @@ in real galaxy-frame 3D space (see
 ```bash
 planetgen galaxy --shell I [--band J [--wedge K [--radius-pc R]]] [--limit N | --yes] [options]
 planetgen galaxy [--shells A:B] [--bands C:D] [--wedges E:F] [--limit N | --yes] [options]
-planetgen galaxy --block M.I.S.SLAB [--limit N | --yes] [options]   # refused for now (see below)
+planetgen galaxy --block M.SHELL.BAND.WEDGE [--limit N | --yes] [options]
 planetgen galaxy --center-sector ID --radius-pc R [options]
 planetgen galaxy --course FROM TO [--course-border] [--yes] [options]
 planetgen galaxy [--radius-pc R] [--max-shell I] [--neighborhoods N] [options]   # random start
@@ -211,10 +211,15 @@ The span form picks sectors by range instead: `--shells FIRST:LAST`,
 one band; a range whose first is past its last wraps through wedge 0, as in
 `50:5`). Each of the three defaults to everything the outline holds, so
 `--bands` alone fills those bands out to the galaxy's edge.
-`--block M.I.S.SLAB` was the old drill-down's block key (size M, ring I, wedge
-S, slab SLAB) and is refused: the Galaxy Map's blocks are now keyed
-`m.shell.band.wedge` (`docs/design/galaxy/spherical-block-ladder.md`), and the
-command does not take those yet. Fill a shell, a band or a span instead.
+`--block M.SHELL.BAND.WEDGE` (GEN.310) fills one block of the Galaxy Map's
+ladder, given by the key the map's stage links carry (`m` is 243, 81, 27, 9 or
+3; `docs/design/galaxy/spherical-block-ladder.md`): every not-yet-generated
+sector that the stored outline holds inside the block, shell by shell outward
+so the inner sectors come first, with the same estimate, progress and cancel
+as a shell or a span, and `--limit` and `--yes` as for them. The map starts the
+same fill through `POST /api/galaxy/blocks/<key>/generate`. A block the
+outline does not reach holds nothing to generate. It cannot be combined with
+`--shell`, `--band`, `--wedge`, a span, `--radius-pc` or `--center-sector`.
 `--center-sector ID --radius-pc R` generates every not-yet-generated sector
 within R parsecs of an already placed sector's own center, the sector at the
 center first and the rest outward (GEN.101): the sectors are laid on a lattice

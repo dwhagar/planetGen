@@ -65,6 +65,7 @@ from __future__ import annotations
 import argparse
 import json
 import datetime
+import importlib.util
 import os
 import re
 import subprocess
@@ -354,8 +355,18 @@ def fill_pending_epoch(root, version):
             del entry["pending"]
             changed = True
     if changed:
-        _write(root, EPOCHS_FILE, json.dumps(data, indent=2) + "\n")
+        _write(root, EPOCHS_FILE, _epochs_text(data))
     return changed
+
+
+def _epochs_text(data):
+    """The text of `epochs.json` for `data`, formatted as `planetgen.util.generator_epoch.format_epochs` does for
+    every writer of the file (loaded from the checkout the script belongs to, so it needs no installed package)."""
+    path = os.path.join(REPO_ROOT, "src", "planetgen", "util", "generator_epoch.py")
+    spec = importlib.util.spec_from_file_location("_generator_epoch_formatter", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.format_epochs(data)
 
 
 def apply_release(root, version, date, body):
@@ -436,10 +447,29 @@ def _epochs_at(root, ref):
     return json.loads(text).get("epochs", [])
 
 
-def _golden_files_exist(root):
-    """Whether any golden file other than `epochs.json` is checked in. None exists until the golden test (TEST.77)
-    lands; until then a change of generated output has no file to change, and the epoch and the note go together."""
-    names = _git(root, "ls-tree", "-r", "--name-only", "HEAD", "--", GOLDEN_DIR.replace(os.sep, "/")).split()
+def _affects_problems(root):
+    """Problems with the `affects` lists of the epochs at `HEAD` (GEN.764): every epoch after the first names the
+    stages it changed, each one a stage `epochs.json` lists. Nothing is checked until the file has a `stages` list."""
+    data = json.loads(_git(root, "show", f"HEAD:{EPOCHS_FILE.replace(os.sep, '/')}"))
+    stages = data.get("stages")
+    if stages is None:
+        return []
+    problems = []
+    for entry in data.get("epochs", []):
+        if entry.get("epoch") == 1:
+            continue
+        listed = entry.get("affects")
+        if not isinstance(listed, list) or not listed or any(stage not in stages for stage in listed):
+            problems.append(f"epoch {entry.get('epoch')} in {EPOCHS_FILE} must have an `affects` list of one or more "
+                            f"of {', '.join(stages)} (the stages its change altered); give it to "
+                            '`python -m tests.golden_update --reason "..." --affects fill`')
+    return problems
+
+
+def _golden_files_exist(root, ref):
+    """Whether any golden file other than `epochs.json` is checked in at `ref`. The PR that adds the first golden
+    files is judged as before them (the epoch and the note go together), since they are new, not changed."""
+    names = _git(root, "ls-tree", "-r", "--name-only", ref, "--", GOLDEN_DIR.replace(os.sep, "/")).split()
     return any(os.path.basename(name) != "epochs.json" for name in names)
 
 
@@ -458,6 +488,9 @@ def check_generator_epoch(root, base, merge_base, added_notes):
     numbers = [entry.get("epoch") for entry in after]
     if numbers != list(range(1, len(numbers) + 1)):
         return [f"{EPOCHS_FILE} must list the epochs 1, 2, 3, ... in order, got {numbers}"]
+    problems = _affects_problems(root)
+    if problems:
+        return problems
     if before is None:
         return []   # the PR that adds the counter
     bumped_by = len(after) - len(before)
@@ -467,7 +500,7 @@ def check_generator_epoch(root, base, merge_base, added_notes):
     if bumped_by not in (0, 1):
         return [f"{EPOCHS_FILE} went from epoch {len(before)} to {len(after)}; a PR bumps the epoch by one at most"]
     changed = {"epoch bumped": bumped_by == 1, "note says 'generation-output: changed'": said}
-    if _golden_files_exist(root):
+    if _golden_files_exist(root, merge_base):
         changed = {"golden files changed": bool(golden), **changed}
     if len(set(changed.values())) == 1:
         return []

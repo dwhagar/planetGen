@@ -23,7 +23,6 @@ Everything here is a pure function of a `habitability.World` (`compute`, from wh
 the stored levels alone (`items`, `required_names`, `recommended_names`, `code`, `summary`).
 """
 
-import math
 from collections import namedtuple
 
 from planetgen.physics import constants, habitability, radiation, regional_temperature

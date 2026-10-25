@@ -27,11 +27,10 @@ from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import aerosols, atmosphere, bulk_composition, climate_draws, constants, giant_interior, habitability_world, hydrosphere, interior_heat, magnetism, planets as planetPhysics, radiation, radiogenic
 from planetgen.physics.position import axis_property, velocity_axis_property
-from planetgen import tuning
 from planetgen.util import draw
 from planetgen.generation.planetary_object import PlanetaryObject
 from planetgen.util.format import (
-    format_number, to_paragraph, format_pressure_pa, format_temperature_k,
+    format_number, format_pressure_pa, format_temperature_k,
 )
 
 

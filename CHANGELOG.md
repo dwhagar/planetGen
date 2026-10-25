@@ -2,6 +2,111 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2290] - 2026-10-25
+
+**Headline:** The map browser tests have a dense fixture galaxy to fly into, ready for the zoom, label, pick and icon work.
+
+### Added
+- **A fixture galaxy with a dense region (TEST.368).** `tests/map_site_support.py` gains `dense_site` (a local map server with about three thousand seeded stars packed round the middle of the first fixture sector, a few named, six rogue planets, a neutron star, a black hole and five habitable-world systems, no scatter) and `dense_region_query()`; `tests/test_web_browser_fixture_maps.py` gains `open_dense_region()` and a test that zooms into the region and finds it on screen.
+
+## [8.0.2289] - 2026-10-25
+
+**Headline:** The Galaxy Map's sector blocks draw again: the sectors' colour (such as Color by Habitable worlds) was missing since the one-star-buffer change, and the sector page map failed at phone width.
+
+### Fixed
+- **The block prism shader compiles again (MAP.293, MAP.294).** The relative-to-eye position lines of the star buffer (MAP.267) had gone into the block prism vertex shader, which has no such uniforms, instead of the star vertex shader: the blocks' shader did not compile, so no sector was filled or coloured, and the sector page map showed the same error at phone width. The star shader now takes the lines, as the star buffer meant, and a browser test draws the filled blocks at desktop and phone widths and fails on any shader error.
+
+## [8.0.2288] - 2026-10-25
+
+**Headline:** Every stand-in value now has a source tier and a tweak level, and one generated page lists them all.
+
+### Added
+- **Stand-in tiers and tweak levels (GEN.725).** The stand-in registry of the gap-filling plan carries two new columns on every row: the source tier (T1 verified down to T9 educated guess based on needed output) and the tweak level (L0 as envisioned up to L4 fitted to outcome). `docs/design/research/stand-in-values.md` lists every row, built from the registry by `scripts/build_stand_in_values.py`, and a test fails when a row lacks either column or the page differs from the registry. No generated value changes.
+
+## [8.0.2287] - 2026-10-25
+
+**Headline:** A star or system told to have no binaries (or exactly one star) no longer gets a white dwarf or other compact companion anyway.
+
+### Changed
+- **A forced single object stays single (GEN.719, bug).** `draw_member_tree` with `n_stars=1` (what a binary prevalence of -100 or a forced single star asks for) drew the compact companion of a living star, or the companion of a placed white dwarf, neutron star or black hole, from the companion table regardless; an old star that had become a white dwarf therefore still came out as a wide double white dwarf. One star is now one member for every placed object, with no companion of any kind. Systems built without a directive draw exactly as before.
+- **Tests.** A forced single object has one member and no orbit for a living star, a star that is now a white dwarf, and a placed white dwarf, neutron star and black hole, over 150 seeds each.
+
+## [8.0.2286] - 2026-10-25
+
+**Headline:** The Suitability line no longer says water is available when the Water row says it is undrinkable.
+
+### Changed
+- **Suitability and the Water row agree (GEN.691, bug).** The Suitability water rung is how reachable the water is and the Water row is whether it can be drunk, but the sentence said "there is water and shelter available" beside a Red Water row reading "undrinkable without heavy treatment". Reachable water that the Water row asks to be treated is now written as reachable with the same treatment: "There is no food readily available, but there is shelter available, and the water is reachable but it is undrinkable without heavy treatment." When food and shelter are fine too it reads "Food and shelter are readily available, and the water is reachable but it needs treatment before drinking." Drinkable water, and every other combination, reads as before.
+- **Tests.** A heavily and a mildly treated water body, with and without food, name the treatment; a sweep over pH, life stage and water source finds no sentence that calls water plainly available against a Water row that wants treatment.
+
+## [8.0.2285] - 2026-10-25
+
+**Headline:** The plan's "about N stars expected" for the massive-star and bright-star passes now matches what the passes place, and each unit line says the stars it expects.
+
+### Changed
+- **The expected-stars count beyond the outline follows the density (GEN.398, bug).** The count of stars a shell holds beyond the galaxy's outline (what the pass's log line, its progress bar and its ETA use) probed each group at two longitudes 180 degrees apart. On a two-armed spiral both land on the same phase of the arms, so a group's young stars came out twice, or none, of what the sampler draws: on the default galaxy the shells just past the outline were counted at 3,250 stars where the pass placed 1,853. A group is now sampled at 8 colatitudes and 2 radii of equal volume and 16 longitudes, so its count follows the density wherever the disc falls away across it. On the default galaxy (4e9 solar masses, seed 0123...) the massive-star pass logged 22,593 and placed 21,642 before; it counts 21,389 now, and the part beyond the outline matches the stars placed in each range of shells within 4 percent. The sampler was right and is unchanged: no star moves and no generator epoch is spent.
+- **A unit line says the stars it expects, not its weight.** The "unit 8 of 445, about 133 stars expected" lines gave the unit's weight, its stars plus a share for every band walked, so a unit that placed 19 said it expected 133. They give the stars the unit is expected to place.
+- **Tests.** The count beyond the outline matches a Monte Carlo of the density within 6 percent for six shells of the toy galaxy; a task's expected stars are its shells', the far shells' or the components' share, not its weight.
+
+## [8.0.2284] - 2026-10-25
+
+**Headline:** `planetgen sectors --block` fills one block of the Galaxy Map's ladder, and an admin API route starts the same fill as a job.
+
+### Changed
+- **Fill a block of the ladder (GEN.310).** `planetgen sectors --block <m.shell.band.wedge>` (and `planetgen galaxy --block`) generates every not-yet-generated sector the stored outline holds inside that block (243, 81, 27, 9 or 3), inner shells first, with the same size estimate, progress, cancel, `--limit` and `--yes` as a shell or a span. The old refusal ("blocks are being rebuilt on shells") is gone.
+- **The Galaxy Map's fill route (GEN.310).** `POST /api/galaxy/blocks/<key>/generate` (admin) starts the same fill as a queued job with the bright-star backfill and settle after it, or answers an estimate with `"estimate_only": true`; it answers 413 for a block of more than 2 million sectors.
+
+## [8.0.2283] - 2026-10-25
+
+**Headline:** Every generator epoch now says which stages of generation it changed, the first step to bringing an existing galaxy up to date without regenerating all of it.
+
+### Changed
+- **Each epoch lists the stages it changed (GEN.764).** `src/tests/golden/epochs.json` gives every epoch after the first an `affects` list from `plan`, `scatter`, `fill`, `population` (the deepest stages its change altered), and lists the stages at the top. The 96 existing epochs were classified by reading their reasons, conservatively: when in doubt a stage is listed, and an epoch that changed the galaxy's shape or density counts as `plan`.
+- **`python -m tests.golden_update --reason "..." --affects fill`.** A new epoch needs `--affects` (checked before the ten-minute rewrite of the golden files starts); a second run in the same change can change the pending epoch's list. `scripts/bump_version.py --check-pr` refuses an epoch without a valid list.
+- **`planetgen.util.generator_epoch`** gains `stages()`, `affects(epoch)`, `stages_between(recorded, current)` (what a result made under an older epoch has to redo) and `needs_full_regeneration(recorded, current)`, and one `format_epochs` that every writer of the file uses so the short lists stay on one line.
+- No generated output changes.
+
+TODO items resolved: none (GEN.764 step 1 of 4). Added: none.
+
+## [8.0.2282] - 2026-10-25
+
+**Headline:** Five tests that went red on main when the air moved into the gas tables, the queue ETA became a dict and the Radiation describer came back now match the code.
+
+### Fixed
+- **`test_age_needs.py` (2 tests): the test bodies kept their gases as `p_<gas>_kpa` keys.** Since DB.71 and GEN.424 (#3110) the rules read the air from `gas_partials_pa`, so a carbon-dioxide or reducing atmosphere counted as no air and came out `watered`. The test's `body()` now folds the keys into that field with `tests/air_support.fold_air`.
+- **`test_object_rows.py` read-back test: its fake connection had no `planet_gases` or `moon_gases` rows,** so `body_gases` failed with `KeyError: 'partial_pa'`. The fake now answers those tables with each body's own gases, and the read-back compares them too.
+- **`test_eta_estimator.py` queue page test passed a float where `_eta_text` takes the ETA dict** (`{"seconds", "stalled"}` since PERF.99). It now passes the dict, and a stalled and a seconds-less ETA are covered.
+- **`test_protection.py::test_there_is_one_describer_of_the_six_categories` asserted `physics/habitability_explain.py` did not exist.** GEN.445 (#3052) brought that module back to name the composition behind the Radiation term only. The test now holds the rule it stood for: the module's public names are just the radiation ones, so a second describer of the six categories cannot appear in it.
+- Not changed: `test_web_pages.py::test_in_process_transport_skips_http_inside_a_request` fails here with `DatabaseLoginError` for the `planetgen` account, the OPS.62 gap on lane machines, not a code bug.
+TODO items resolved: none (these six tests were red on main with no item of their own). Added: none.
+
+## [8.0.2281] - 2026-10-24
+
+**Headline:** 56 unused imports, 12 duplicate imports and 13 unused variables are gone from the code, and a loop variable no longer hides the `html` module in the TODO page builder.
+
+### Fixed
+- **Dead code that `ruff` (rule set F) and `vulture` reported (TEST.364).** Removed: 56 imports nothing used (for example `CAMERA_START_THETA_DEG` in `web/warmup.py`, `to_paragraph` in `generation/planet.py`), the physics imports `db/store.py` listed twice, and 13 local variables that were set and never read (for example `extents` and `e_value` in `generation/run_plan.py`, `by_node` in `physics/system_tree.py`). Before each import went, the source and the tests were searched for anything that imported it from that module or patched it by name: nothing did. `ruff check --select F` is clean on `src/planetgen` and `scripts`.
+- **`scripts/build_todo_docs.py` reused the name `html` for a loop variable,** hiding the `html` module it imports; the loop now says `page_html`.
+TODO items resolved: TEST.364. Added: none.
+
+## [8.0.2280] - 2026-10-24
+
+**Headline:** A pinned test now checks that a fixed seed still makes exactly the same sectors, at one worker and at four, so a change to what the generator makes can no longer slip in unnoticed.
+
+### Changed
+- **The golden-seed test (TEST.77).** `tests/test_golden_seed.py` compares what a fixed seed makes with three files under `src/tests/golden/`: the battery's digest of each case (`battery.json`), three small cases as readable text (`rosetta.txt`, so a failure reads as a diff) and a small galaxy of a fixed 128-bit seed, built at one worker and at four, with a digest of the plan, every sector and each section of a sector with systems (`galaxy.json`). A failure says whether the shape or only a number changed.
+- **`python -m tests.golden_update --reason "..."` now rewrites the golden files** (about ten minutes, it needs the test database) and then bumps the generator epoch; `--no-write` keeps files already written. After a merge conflict in them, take main's files and run it again.
+- **The epoch rule is judged against main.** `bump_version.py --check-pr` asks whether golden files existed at the merge base, so the PR that adds the first golden files needs no epoch bump; a later PR that changes generated output must change the golden files, bump the epoch and say `generation-output: changed` together.
+
+TODO items resolved: TEST.77, GEN.55 (its last sub-item). Added: none.
+
+## [8.0.2279] - 2026-10-24
+
+**Headline:** The habitability icons now open the habitability section of the planet's own page.
+
+### Changed
+- On a planet's or moon's page, in the lists and in the summary trees, the habitability symbols and the four life scores link to the Habitability and Life sections of that body's page (`/object/<ref>#habitability`), not to the help page. The Habitability section has a link on to the page that explains the colours and symbols (UX.197).
+
 ## [8.0.2278] - 2026-10-24
 
 **Headline:** The class page tests' fake property sheet names its kind, so the six phenomenon page tests pass again.

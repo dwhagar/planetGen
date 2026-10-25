@@ -18,7 +18,6 @@ Map's nodes to the disk cache (`web/lib/tilecache.py`).
 the `/galaxy` page asks for exactly them. `planetgen warm` runs it all.
 """
 
-import math
 import time
 
 from planetgen.admin import activity_log
@@ -34,7 +33,7 @@ from planetgen.util.settings import get_settings
 from planetgen.web.lib import apiclient, tilecache
 from planetgen.web.lib.tilecache import fetch_nodes, fetch_stage
 from planetgen.web.maps.galaxymap3d import (
-    CAMERA_START_PHI_DEG, CAMERA_START_THETA_DEG, camera_position_pc, initial_node_request, node_bounds_pc,
+    camera_position_pc, initial_node_request, node_bounds_pc,
     view_radius_bounds)
 
 PAGE_SIZE = 100
