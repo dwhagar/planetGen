@@ -2386,7 +2386,6 @@ STAR_EVOLUTION = {
 EVOLUTIONARY_TIMELINES = {
     "normal": { # Changed from "norm" to "normal" for consistency
         "star_lifespan": 10.0, # Billion Years
-        "evolutionary_pace": "Standard",
         "abiogenesis": 0.5, # Billion Years
         "photosynthesis": 1.5, # Billion Years
         "complex_cells": 2.5, # Billion Years
@@ -2395,7 +2394,6 @@ EVOLUTIONARY_TIMELINES = {
     },
     "fast": {
         "star_lifespan": 0.1, # Billion Years (100 Million Years)
-        "evolutionary_pace": "Hyper-Accelerated",
         "abiogenesis": 0.005, # Billion Years (5 Million Years)
         "photosynthesis": 0.015, # Billion Years (15 Million Years)
         "complex_cells": 0.030, # Billion Years (30 Million Years)
@@ -2404,7 +2402,6 @@ EVOLUTIONARY_TIMELINES = {
     },
     "slow": {
         "star_lifespan": 1000.0, # Billion Years (1 Trillion Years)
-        "evolutionary_pace": "Decelerated",
         "abiogenesis": 3.0, # Billion Years
         "photosynthesis": 8.0, # Billion Years
         "complex_cells": 15.0, # Billion Years
@@ -2412,6 +2409,10 @@ EVOLUTIONARY_TIMELINES = {
         "technological_civilization": 35.0 # Billion Years
     }
 }
+
+EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "slow": "decelerated"}
+"""dict: How each `EVOLUTIONARY_TIMELINES` pace is worded in the life sentence (DB.100: the words are not in the milestone
+table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 LIFE_METABOLISMS = {
     "oxygenic": {
@@ -2509,6 +2510,10 @@ LIFE_MILESTONES = ("abiogenesis", "photosynthesis", "complex_cells", "multicellu
 tuple[str]: The evolutionary milestones (`EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT` keys) in ascending order of life
 complexity. `evolution.MILESTONE_KEYS` and `physics.life_scores` read it.
 """
+
+LIFE_SCHEDULE_FIELDS = tuple(f"life_age_{key}_gyr" for key in LIFE_MILESTONES)
+"""tuple[str]: The body columns holding a world's milestone schedule (DB.100), one age in Gyr for each `LIFE_MILESTONES`
+milestone in order: `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr`."""
 
 LIFE_SCORE_MAX = 9
 """int: The top of the four life scores (Microbial, Flora, Fauna, Sentient): 0 is none, 9 is abundant (GEN.649)."""

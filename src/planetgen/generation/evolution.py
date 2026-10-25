@@ -37,23 +37,40 @@ MILESTONE_DISPLAY_NAMES = {
 }
 
 
-def draw_scale(star, chemical_scales=None):
-    """
-    Draws a world's evolutionary pace once, as a `tuning.EVOLUTIONARY_TIMELINES` key. Everything the world says
-    about its pace (the life sentence, the timeline, the stored column) is this one value.
+SCHEDULE_FIELDS = tuning.LIFE_SCHEDULE_FIELDS
+"""tuple[str]: The body columns holding a world's milestone schedule (DB.100), one age in Gyr for each `MILESTONE_KEYS`
+milestone in order."""
 
-    The pace is one the star's lifespan supports and, when the world has a life chemistry, one that chemistry
-    needs (`chemical_scales`, `LIFE_CHEMICALS[...]["evolutionary_time_scale"]`; a star that supports none of them
-    decides alone). A forced technological civilization (`INTELLIGENT_LIFE`) draws among the paces whose
-    civilization fits inside the star's actual, already-finalized age (the fastest one when none does), so the
-    milestone never lies in the future.
+
+def schedule(scale):
+    """
+    The ages (Gyr) at which a pace reaches each milestone, in `MILESTONE_KEYS` order: the values stored in
+    `SCHEDULE_FIELDS` when a world is made, so a saved world keeps its own ages if the table is tuned later.
+
+    Args:
+        scale (str): The pace, a `tuning.EVOLUTIONARY_TIMELINES` key.
+
+    Returns:
+        tuple[float]: One age for each milestone.
+    """
+    timeline = tuning.EVOLUTIONARY_TIMELINES[scale]
+    return tuple(timeline[key] for key in MILESTONE_KEYS)
+
+
+def candidate_scales(star, chemical_scales=None):
+    """
+    The paces a world may have: the ones the star's lifespan supports and, when the world has a life chemistry, the ones
+    that chemistry needs (`chemical_scales`, `LIFE_CHEMICALS[...]["evolutionary_time_scale"]`; a star that supports none
+    of them decides alone). A forced technological civilization (`INTELLIGENT_LIFE`) keeps the paces whose civilization
+    fits inside the star's actual, already-finalized age, or the fastest one when none does.
 
     Args:
         star (Star): The host star.
         chemical_scales (list[str], optional): The paces the life chemistry allows.
 
     Returns:
-        str: `"fast"`, `"normal"` or `"slow"`.
+        tuple[list[str], bool]: The candidate paces, and whether a pace is drawn among them (`False`: the one pace is
+            the fallback, nothing is drawn).
     """
     # Uses get_star_evolutionary_profile rather than a raw STAR_EVOLUTION[spectral_class]
     # lookup so giants/supergiants/white dwarfs etc. (whose spectral letter reflects
@@ -65,8 +82,8 @@ def draw_scale(star, chemical_scales=None):
     if supported_scales and chemical_scales:
         supported_scales = [scale for scale in supported_scales if scale in chemical_scales] or supported_scales
     if not supported_scales:
-        evolutionary_scale = "normal"
-    elif star.system_config.INTELLIGENT_LIFE is True:
+        return ["normal"], False
+    if star.system_config.INTELLIGENT_LIFE is True:
         # Pick randomly among whichever supported scales are actually reachable at that age (so
         # "fast" isn't always favored just because it's usually reachable --
         # a G-type star forcing intelligent life should still often read as
@@ -79,19 +96,30 @@ def draw_scale(star, chemical_scales=None):
             if tuning.EVOLUTIONARY_TIMELINES[s]['technological_civilization'] <= star.age
         ]
         if reachable_scales:
-            evolutionary_scale = draw.choice(reachable_scales)
-            log.choice("Evolutionary scale", evolutionary_scale,
-                       f"forced intelligent life: uniform draw among reachable scales {reachable_scales} "
-                       f"(fit within star age {star.age:.4g})")
-        else:
-            evolutionary_scale = scale_speed_order[0]
-            log.choice("Evolutionary scale", evolutionary_scale,
-                       f"forced intelligent life: no scale in {scale_speed_order} was reachable by star "
-                       f"age {star.age:.4g}, falling back to the fastest supported one")
-    else:
-        evolutionary_scale = draw.choice(supported_scales)
-        log.choice("Evolutionary scale", evolutionary_scale,
-                   f"uniform draw among supported scales {supported_scales}")
+            return reachable_scales, True
+        return [scale_speed_order[0]], False
+    return list(supported_scales), True
+
+
+def draw_scale(star, chemical_scales=None):
+    """
+    Draws a world's evolutionary pace once, as a `tuning.EVOLUTIONARY_TIMELINES` key. Everything the world says
+    about its pace (the life sentence, the timeline, the stored column) is this one value. The pace is one of
+    `candidate_scales`.
+
+    Args:
+        star (Star): The host star.
+        chemical_scales (list[str], optional): The paces the life chemistry allows.
+
+    Returns:
+        str: `"fast"`, `"normal"` or `"slow"`.
+    """
+    scales, drawn = candidate_scales(star, chemical_scales)
+    if not drawn:
+        log.choice("Evolutionary scale", scales[0], f"the only pace the star and chemistry allow is {scales[0]}")
+        return scales[0]
+    evolutionary_scale = draw.choice(scales)
+    log.choice("Evolutionary scale", evolutionary_scale, f"uniform draw among the paces {scales} the star and chemistry allow")
     return evolutionary_scale
 
 
