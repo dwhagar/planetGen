@@ -29,18 +29,19 @@ from urllib.parse import urlencode
 
 from flask import g, request, url_for
 
-from planetgen.physics import equipment
-from planetgen.web.lib import apiclient
+from planetgen.physics import equipment, score_filters
+from planetgen.physics.habitability_world import TIER_NAMES
+from planetgen.web.lib import apiclient, datatable
 from planetgen.web.lib.datatable import Column, Result, Table
 from planetgen.web.lib.fmt import format_number
 from planetgen.web.lib.habitability_cells import equipment_cell, habitability_cell
+from planetgen.web.lib.habitability_symbols import LIFE_NAMES
 from planetgen.web.lib.pagination import PAGE_SIZE, page_offset, parse_page
 
 from . import tables
 from .helpers import db_name, page_url
 from .item_pages import item_url
 from .sector_page import PHENOMENON_TYPE_LABELS
-from .system_pages import object_url
 
 # Mirrors planetgen.db.query.SEARCH_TAG_FACETS (this layer talks to the database only
 # through the API, so it doesn't import planetgen.db.query).
@@ -48,6 +49,7 @@ TAG_FACETS = (
     "type", "spectral", "luminosity",
     "class", "body", "life", "equipment",
     "moon_class", "moon_body", "moon_life", "moon_equipment",
+    *score_filters.FACETS, *(f"moon_{name}" for name in score_filters.FACETS),
     "density",
     "phenomenon", "phenomenon_class",
 )
@@ -64,6 +66,8 @@ FACET_TITLES = {
     "moon_body": "Moon Body Type",
     "moon_life": "Moon Supported Life Chemistry",
     "moon_equipment": "Moon: Equipment a Human Needs",
+    **{name: f"Planet: {title}" for name, (title, _ticks) in score_filters.FACETS.items()},
+    **{f"moon_{name}": f"Moon: {title}" for name, (title, _ticks) in score_filters.FACETS.items()},
     "density": "Asteroid Belt Density",
     "phenomenon": "Phenomenon",
     "phenomenon_class": "Phenomenon Class",
@@ -77,6 +81,8 @@ _FACET_ALLOWED = {
     "moon_body": {"t", "g"},
     "equipment": equipment.TICK_VALUES,
     "moon_equipment": equipment.TICK_VALUES,
+    **{name: score_filters.values(name) for name in score_filters.FACETS},
+    **{f"moon_{name}": score_filters.values(name) for name in score_filters.FACETS},
     "phenomenon": {"nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant",
                    "rogue_planet", "interstellar_comet", "quasar"},
 }
@@ -116,7 +122,7 @@ RESULT_PANELS = (
 PANEL_NAMES = tuple(panel for panel, _heading in RESULT_PANELS)
 
 _ALL_PARAMS = ("q",) + tuple(f[0] for f in NAME_FIELDS) + SIZE_FIELDS + TAG_FACETS + tuple(
-    f"{panel}_page" for panel in PANEL_NAMES)
+    f"{panel}_{part}" for panel in PANEL_NAMES for part in ("page", "sort", "order"))
 
 
 class SearchState:
@@ -327,8 +333,8 @@ def _rows(panel, rows):
             item["sector_url"] = _sector_cell(row["sector_id"])
         else:
             item["system_url"] = page_url("system", system_id=row["star_system_id"])
-            # NAV.8: the body itself opens its row on the system page.
-            item["url"] = object_url(_PANEL_NOUNS[panel][0].split()[-1], row["id"])
+            # UX.232: the body's own page by the reference the API gave it (its printed ID), never by the row's number.
+            item["url"] = item_url(row["ref"])
             item["sector_url"] = _sector_cell(row["sector_id"])
         if "radius_km" in row:
             item["radius"] = _km(row["radius_km"]) if row["radius_km"] is not None else None
@@ -355,13 +361,21 @@ def _show_on_map(row):
             if row.get("galaxy_url") else {"text": "—"})
 
 
+SCORE_COLUMNS = ("Suitability", "Microbes", "Flora", "Fauna", "Sentient")
+"""tuple: The planet and moon columns that show one score each (UX.214)."""
+
+SORT_KEYS = {"Habitability": "phi4", "Suitability": "suitability", "Microbes": "microbial", "Flora": "flora",
+             "Fauna": "fauna", "Sentient": "sentient", "System": "system"}
+"""dict: The planet and moon columns that sort, to the API's `planet_sort`/`moon_sort` key (`system` is the page's own order)."""
+
 _PANEL_COLUMNS = {
     "sectors": ["Name", "Edge", "Galaxy Map"],
     "systems": ["Name", "Sector", "Binary", "Star type", "Galaxy Map"],
     "stars": ["Name", "Role", "Type", "Radius", "System", "Sector"],
-    "planets": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "Habitability", "System", "Sector"],
-    "moons": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "Habitability", "Orbits", "System",
-              "Sector"],
+    "planets": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "Habitability", *SCORE_COLUMNS,
+                "System", "Sector"],
+    "moons": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "Habitability", *SCORE_COLUMNS, "Orbits",
+              "System", "Sector"],
     "belts": ["Density", "Composition", "System", "Sector"],
     "phenomena": ["Name", "Type", "Class", "Sector"],
 }
@@ -370,6 +384,18 @@ _PANEL_NOUNS = {
     "planets": ("planet", "planets"), "moons": ("moon", "moons"), "belts": ("asteroid belt", "asteroid belts"),
     "phenomena": ("phenomenon", "phenomena"),
 }
+
+
+def _score_cells(row):
+    """The Suitability colour and the four life scores of a planet or moon row, one cell each (`SCORE_COLUMNS`); a muted
+    dash for a body that was not scored."""
+    if row.get("phi4") is None:
+        return [{"text": "—", "muted": True}] * len(SCORE_COLUMNS)
+    cells = [{"text": TIER_NAMES[row["tier_suitability"]]}]
+    for name in LIFE_NAMES:
+        score = row.get(f"life_{name}")
+        cells.append({"text": "—", "muted": True} if score is None else {"text": f"{score} of 9"})
+    return cells
 
 
 def _cells(panel, row):
@@ -387,7 +413,7 @@ def _cells(panel, row):
         cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
                  {"text": row["life_chemical"] or "—"},
                  equipment_cell(row),
-                 habitability_cell(row, row["url"])]
+                 habitability_cell(row, row["url"]), *_score_cells(row)]
         if panel == "moons":
             cells.append({"text": row["planet_name"]})
         return cells + [_link(row["system_name"], row["system_url"]), _sector_link(row)]
@@ -405,6 +431,18 @@ TIMED_OUT_MESSAGE = "This took too long; try again or narrow the search."
 """str: What a panel that timed out says."""
 
 
+def api_sorts(args):
+    """The `planet_sort`/`moon_sort` the request's table sorts ask the API for (UX.214): the column's key, `-` in front
+    when the table runs best first (descending); the page's own order sends none."""
+    sorts = {}
+    for panel, entity in (("planets", "planet"), ("moons", "moon")):
+        table_state = datatable.parse_state(PANEL_TABLES[panel], args)
+        key = table_state.sort
+        if key and key != "system":
+            sorts[entity] = ("-" if table_state.descending else "") + key
+    return sorts
+
+
 def fetch(state):
     """
     Everything the Search page needs from the API, one request per result panel (UX.97): the facets and name
@@ -416,13 +454,13 @@ def fetch(state):
         dict: `get_search`'s answer, its `results` holding every panel.
     """
     data = apiclient.get_search(db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
-                                offsets=api_offsets(state), panels=[])
+                                offsets=api_offsets(state), panels=[], sorts=api_sorts(request.args))
     results = {}
     for panel in PANEL_NAMES:
         try:
             answer = apiclient.get_search(
                 db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
-                offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel])
+                offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel], sorts=api_sorts(request.args))
             results[panel] = answer["results"].get(panel)
         except apiclient.ApiError as exc:
             if exc.status_code != 504:
@@ -439,7 +477,7 @@ def _panel_loader(panel):
             state = SearchState.from_args(request.args)
             data = apiclient.get_search(
                 db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=limit,
-                offsets={panel: offset}, panels=[panel])
+                offsets={panel: offset}, panels=[panel], sorts=api_sorts(request.args))
             cached = data["results"][panel]
         if cached is None:
             return Result([], 0)
@@ -452,8 +490,12 @@ def _panel_loader(panel):
 PANEL_TABLES = {
     panel: tables.register(Table(
         f"search-{panel}", heading,
-        [Column(label.lower().replace(" ", "_"), label, sortable=False) for label in _PANEL_COLUMNS[panel]],
-        _panel_loader(panel), prefix=f"{panel}_", noun=_PANEL_NOUNS[panel]))
+        [Column(SORT_KEYS[label] if panel in ("planets", "moons") and label in SORT_KEYS
+                else label.lower().replace(" ", "_"), label,
+                sortable=panel in ("planets", "moons") and label in SORT_KEYS)
+         for label in _PANEL_COLUMNS[panel]],
+        _panel_loader(panel), prefix=f"{panel}_", noun=_PANEL_NOUNS[panel],
+        default_sort="system" if panel in ("planets", "moons") else None))
     for panel, heading in RESULT_PANELS
 }
 
@@ -478,7 +520,7 @@ def result_panels(state, results):
             continue
         if result is None or not result["total"]:
             continue  # a group with no matches is left out (UX.54)
-        keep = tuple(key for key in _ALL_PARAMS if key != f"{panel}_page")
+        keep = tuple(key for key in _ALL_PARAMS if not key.startswith(f"{panel}_"))
         panels.append({
             "panel": panel,
             "heading": heading,

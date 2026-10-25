@@ -589,7 +589,7 @@ connectivity to that specific schema rather than the default one.
   and phenomenon class, the class tag written `<type>:<class>` such as
   `phenomenon_class=nebula:D` — repeat a facet
   name for multiple active values, e.g. `class=M&class=K`), a per-entity
-  name search, and a min/max size range per entity —
+  name search, and a min/max size range per entity (UX.214 also adds the score filters below) —
   `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/`moon_`),
   in km, either bound optional (a size range is a continuous quantity,
   not a discrete facet value, so it's its own pair of query parameters
@@ -616,6 +616,14 @@ connectivity to that specific schema rather than the default one.
   those panels, the others answering `null`; `none` still answers `facets` and `autocomplete`. The Search page asks for each
   panel on its own, so a panel that hits the statement limit (a `504`) times out alone. A name search of one word
   shorter than the database's full-text minimum (usually 3 letters) matches the start of a name.
+  UX.214, score filters (planets by the plain name, moons with `moon_` in front, each repeatable, a body matches when it
+  holds for any ticked value of a facet and all facets must match): `habitability=blue|green|yellow|red` (the overall PHI-6
+  colour: Blue 1 or more, Green 0.75 to under 1, Yellow 0.4 to under 0.75, Red under 0.4); `domain=<domain>:<colour>`
+  (domains `pressure`, `temperature`, `air`, `water`, `radiation`, `suitability`; `suitability:green`); `life_level=<kind>:<1|5>`
+  (kind `microbial`, `flora`, `fauna` or `sentient`, that life score 1 or more or 5 or more, of 9); `living=alive|lifeless|food|civilization`
+  (`food` is flora, fauna or a civilization). Unscored bodies (gas giants, bodies saved before the scores) match none of them.
+  `planet_sort`/`moon_sort` order a panel by `phi4`, `suitability`, a domain name, `microbial`, `flora`, `fauna` or `sentient`:
+  worst first, `-` in front for best first (`-phi4`); an unscored body comes last either way. The facets answer their options with counts.
 - `GET /api/facilities/<id>` — one facility (see "Facilities" below).
 - `GET /api/systems/<id>/facilities` — `{"items": [...]}`, every facility
   on a star, planet, moon or asteroid belt in that system.

@@ -12,6 +12,7 @@
   <div class="panel-header">
     <h2 id="object-list-heading" class="sr-only">All {{ title }}</h2>
   </div>
+  {% if filter_url %}<p class="list-filter-link"><a href="{{ filter_url }}">Filter and sort these by habitability colour, the six domains, life and food</a> on the search page.</p>{% endif %}
   {{ datatable(table) }}
 </section>
 {% endblock %}
