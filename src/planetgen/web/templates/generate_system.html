@@ -1,15 +1,13 @@
 {#- planetgen/web/templates/generate_system.html -- /admin/generate/system (web/system_page.py). -#}
 {% extends "generate_base.html" %}
+{% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
+{#- The text and number boxes of this page are the one form field (UX.125). -#}
 {%- macro field(name, label, kind="text", step="any", min=None, max=None, placeholder=None, hint=None) -%}
-<label class="search-field">{{ label }}
-  <input type="{{ kind }}" name="{{ name }}" value="{{ form.get(name, '') }}"
-    {%- if kind == "number" %} step="{{ step }}" inputmode="decimal"{% endif %}
-    {%- if min is not none %} min="{{ min }}"{% endif %}
-    {%- if max is not none %} max="{{ max }}"{% endif %}
-    {%- if placeholder %} placeholder="{{ placeholder }}"{% endif %}
-    {%- if kind == "text" %} autocomplete="off" autocapitalize="off" spellcheck="false"{% endif %}>
-  {%- if hint %}<span class="field-hint">{{ hint }}</span>{% endif %}
-</label>
+{%- if kind == "number" -%}
+{{ ui_input(name, label, form.get(name, ""), type="number", hint=hint, step=step, inputmode="decimal", min=min, max=max, placeholder=placeholder) }}
+{%- else -%}
+{{ ui_input(name, label, form.get(name, ""), type=kind, hint=hint, min=min, max=max, placeholder=placeholder, autocomplete="off", autocapitalize="off", spellcheck="false") }}
+{%- endif -%}
 {%- endmacro -%}
 {% block generate_body %}
 <p class="generate-crumb"><a href="{{ url_for('web.generate') }}">&larr; All tasks</a></p>
@@ -23,13 +21,7 @@
     <div class="search-fields">
       {{ field("name", "Name", placeholder="random") }}
       {{ field("star_type", "Star type", placeholder="random, e.g. G2V") }}
-      <label class="search-field">Age
-        <select name="age">
-          {%- for value, label in (("", "Generator decides"), ("young", "Young"), ("old", "Old")) %}
-          <option value="{{ value }}"{% if form.get("age", "") == value %} selected{% endif %}>{{ label }}</option>
-          {%- endfor %}
-        </select>
-      </label>
+      {{ ui_select("age", "Age", [{"value": "", "label": "Generator decides"}, {"value": "young", "label": "Young"}, {"value": "old", "label": "Old"}], form.get("age", "")) }}
       {{ field("num_orbits", "Orbital slots", kind="number", step="1", min=0, max=max_num_orbits, placeholder="random",
                hint="Planets and asteroid belts combined.") }}
     </div>
@@ -53,7 +45,7 @@
       <div class="search-fields">
         {{ field("flavor_chance_system", "System flavor chance (0 to 1)", kind="number", min=0, max=1, placeholder="default") }}
         {{ field("flavor_chance_planet", "Planet flavor chance (0 to 1)", kind="number", min=0, max=1, placeholder="default") }}
-        <label class="search-field generate-check"><span><input type="checkbox" name="max_planet_flavor" value="1"{% if form.get("max_planet_flavor") %} checked{% endif %}> Maximum planet flavor</span></label>
+        {{ ui_checkbox("max_planet_flavor", "Maximum planet flavor", checked=form.get("max_planet_flavor")) }}
       </div>
       <label class="search-field">System file (JSON, optional)
         <textarea name="system_file" rows="8" class="content-box" spellcheck="false" autocomplete="off"
@@ -62,7 +54,7 @@
       </label>
     </details>
     <div class="search-fields system-format">
-      <label class="search-field generate-check"><span><input type="checkbox" name="debug" value="1"{% if form.get("debug") %} checked{% endif %}> Show the generator's reasoning (debug log)</span></label>
+      {{ ui_checkbox("debug", "Show the generator's reasoning (debug log)", checked=form.get("debug")) }}
     </div>
     <div class="search-actions">
       <button type="submit" class="btn">{% if result %}Generate another{% else %}Generate{% endif %}</button>

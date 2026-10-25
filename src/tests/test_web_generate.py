@@ -197,10 +197,16 @@ def test_post_needs_csrf(site, client, no_spawn):
 
 # --- Page -------------------------------------------------------------------------
 
+def _live(html):
+    """The page as a script-running browser draws it: UX.125's fields each carry a plain twin in a <noscript>, which
+    only a browser without script draws, so a count of the boxes on the page leaves the twins out."""
+    return re.sub(r"<noscript>.*?</noscript>", "", html, flags=re.S)
+
+
 def _task_html(client, key):
     resp = client.get(f"/admin/generate/task/{key}")
     assert resp.status_code == 200, key
-    return resp.get_data(as_text=True)
+    return _live(resp.get_data(as_text=True))
 
 
 def _forms_html(client):
@@ -913,8 +919,8 @@ def test_a_share_must_be_a_number_from_0_to_100(site, client, no_spawn, value):
 def test_page_starts_every_prevalence_field_at_its_usual_share(site, client):
     html = _forms_html(client)
     for name, _label, usual in generate_page.PREVALENCE_FIELDS:
-        assert html.count(f'name="{name}" value="{usual}"') == 2  # New galaxy and Generate sectors
-    assert f'name="prevalence_habitable_world" value="{tuning.PREVALENCE_BASE_SHARES["habitable_world"] * 100:g}"' in html
+        assert len(re.findall(rf'<sl-input name="{name}"[^>]* value="{usual}"', html)) == 2  # New galaxy and Generate sectors
+    assert re.search(rf'<sl-input name="prevalence_habitable_world"[^>]* value="{tuning.PREVALENCE_BASE_SHARES["habitable_world"] * 100:g}"', html)
 
 
 def test_the_generator_accepts_the_prevalence_argv():
@@ -1565,7 +1571,7 @@ def test_the_plan_forms_offer_the_core_halo_and_dense_cell_segments(site, client
         for name, value in (("core_min_luminosity", "9900"), ("core_mass_limit", "15.4"), ("halo_min_luminosity", "500"),
                             ("cell_star_ceiling", "5000"), ("fill_luminosity_cap", "100")):
             assert re.search(rf'name="{name}"\s+value="{value}"', segment), name
-        assert re.search(r'name="core_follow" value="1" data-core-follow checked', segment)
+        assert re.search(r'<sl-checkbox name="core_follow" value="1" checked data-core-follow', segment)
         assert segment.count("data-limit-reset=") == 3
     for name in ("core_min_luminosity", "halo_min_luminosity", "cell_star_ceiling", "fill_luminosity_cap"):
         assert html.count(f'name="{name}"') == 2            # not in the Redo scatters form
@@ -1664,9 +1670,9 @@ def test_both_plan_forms_offer_the_compact_object_limit(site, client):
     html = _forms_html(client)
     assert html.count('name="compact_use_star"') == 2    # New galaxy and the scatters task's one block of limits
     assert html.count('name="compact_min_mass"') == 2
-    assert re.search(r'name="compact_use_star" value="1" id="plan-mass-limit-compact-star" checked', html)
+    assert re.search(r'<sl-checkbox name="compact_use_star" value="1" checked id="plan-mass-limit-compact-star"', html)
     for preset in ("1", "2", "4", "6"):
-        assert f'<option value="{preset}"' in html
+        assert f'<sl-option value="{preset}"' in html
     assert "1 solar mass is about 1.2 billion rows (161 GB)" in html
     assert "6 solar masses is about 200 million rows (28 GB)" in html
     pairs = re.findall(r'<div class="search-fields scatter-limits">(.*?)</fieldset>', html, re.S)
@@ -1785,7 +1791,7 @@ def test_the_page_shows_a_control_for_every_lever_with_the_range_of_its_row(site
         assert f'data-lever="{row.name}"' in html, row.name
         if row.kind == "length":
             # ADM.127: one text box for the number and its unit, the units explained under it.
-            assert re.search(rf'<input type="text" name="{row.name}"[^>]*data-lever="{row.name}"', html), row.name
+            assert re.search(rf'<sl-input name="{row.name}" type="text"[^>]*data-lever="{row.name}"', html), row.name
             assert f'name="{row.name}_unit"' not in html and row.units_text() in html, row.name
         elif row.kind != "enum":
             assert re.search(rf'data-lever="{row.name}" data-step="{re.escape(str(row.step))}"', html), row.name
@@ -1915,3 +1921,25 @@ def test_the_debug_box_is_on_the_task_and_review_pages_and_reaches_every_step_of
     assert resp.status_code == 303
     (job,) = no_spawn
     assert job["steps"] and all(step["argv"][-1] == "--debug" for step in job["steps"])
+
+
+def test_every_box_on_the_generate_pages_is_the_one_form_field(site, client):
+    """UX.125: the text, number and choice boxes and the tick boxes of the task pages and the one-off system page are
+    Shoelace fields with a plain twin in a <noscript>; what stays native is a radio, a hidden field, a slider and its
+    number box, the finder's search box and the system file's text area."""
+    native_ok = {"hidden", "radio", "range", "search"}
+    pages = [client.get(f"/admin/generate/task/{key}").get_data(as_text=True)
+             for key in ("new-galaxy", "add-sectors", "scatters", "check", "wipe", "plan-only")]
+    pages.append(client.get("/admin/generate/system").get_data(as_text=True))
+    for html in pages:
+        live = "".join(re.findall(r'<form[^>]*class="search-form".*?</form>', _live(html), re.S))
+        assert "<sl-input" in live or "<sl-checkbox" in live
+        for tag in re.findall(r"<(?:input|select)\b[^>]*>", live):
+            kind = re.search(r'type="(\w+)"', tag)
+            kind = kind.group(1) if kind else "select"
+            if kind == "number":
+                assert "range-value" in tag and "data-limit-box" in tag, tag   # a limit slider's own box
+            else:
+                assert kind in native_ok, tag
+        forms = "".join(re.findall(r'<form[^>]*class="search-form".*?</form>', html, re.S))
+        assert len(re.findall(r"<noscript>", forms)) == len(re.findall(r"<sl-(?:input|select|checkbox)\b", live))
