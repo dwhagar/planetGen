@@ -30,6 +30,19 @@ from planetgen.physics import unit_registry as units
 
 _myr_to_gyr = units.converter("Myr", "Gyr")
 
+# --- Generation directives (GEN.96, GEN.180) ---
+DIRECTIVE_ATTEMPTS = 200
+"""int: K, the draws made at most for a sector that must meet a directive's minimums (`--directive`); a habitable-worlds
+minimum still missed after K draws takes the forced fill (`generation.directives`, status `met_forced`)."""
+
+PEAK_RELATIVE_DENSITY = 160.0
+"""float: A bound above the densest relative stellar density the galaxy model gives (154.2 at the centre, measured with
+`density.relative_density`), for judging up front what a `galaxy` or `sectors` run's densest sector could hold."""
+
+DIRECTIVE_IMPOSSIBLE_BELOW = 1e-9
+"""float: A directive whose minimum a sector reaches with a probability below this, and that the forced fill cannot reach
+either, is refused before any drawing (`generation.directives.impossible`)."""
+
 # --- Planet Generation Parameters ---
 # Domingos, Winter & Yokoyama (2006), MNRAS 373:1227, "Stable satellites
 # around extrasolar giant planets" -- a prograde moon on a circular orbit

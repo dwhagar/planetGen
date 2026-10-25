@@ -554,6 +554,23 @@ attempts, 0.1 s; N = 3: 141 attempts (K 650), 1 s.
 - Refuse an impossible request up front from the table above instead of burning K
   attempts.
 
+**Built (GEN.180).** The forced top-up is `--min-habitable N` on one more build of the
+sector (`run_sector._forced_args`), seeded from its own stream
+(`"sector-directive-forced"`), not a swap of systems in a finished sector: the swap would have
+to move a system's position and Hill sphere and redo its object ids, while `--min-habitable`
+already forces `HABITABLE_WORLD` into N of the sector's systems and gives the sector at least N
+systems. It is tried once, after K draws, only for a `habitable` minimum; the other
+minimums are exact by rejection only. `directives.impossible` judges a request before any
+drawing: a minimum is refused when a sector reaches it with probability under
+`tuning.DIRECTIVE_IMPOSSIBLE_BELOW` (1e-9) and the forced fill (which needs that many
+systems) cannot reach it either, from the Poisson tail of the system count and, for habitable
+worlds, Panjer's recursion over `HABITABLE_COUNT_PMF` (the 6,000-system table of 8.1; the
+function reproduces the table's rows). The count is `--num-systems` exactly, or about
+`--density` times the sector's expected systems for a `sector` run, or the densest sector the
+model has (`tuning.PEAK_RELATIVE_DENSITY`, 160, above the 154.2 of the centre) for a `galaxy`
+or `sectors` run. The Generate page's override section reaches the same refusal, as its
+estimate runs the command line's validation.
+
 Not recommended: generating each system conditional on a pre-drawn habitable
 count. It is exact and cheaper, but the pmf depends on star type, age and the
 nebula, so the table would be rebuilt for every setting.
