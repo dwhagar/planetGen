@@ -2962,24 +2962,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane, with MAP.260 (the warm-up), which it builds next.
   Prerequisites: none. Related: MAP.258, MAP.260.
 
-- [ ] **MAP.298 Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: we're putting names of items
-  so the names should be clickable to fly to that location; all visible
-  items we can fit names for get names. Do: on the Galaxy Map and the
-  sector zooms the label engine (MAP.229 to MAP.231, MAP.268) names
-  every visible item it can place, stars, systems, comets, rogue
-  planets, clusters, nebulae and the rest, and a click on a name flies
-  the camera to that item (the flight of MAP.226) and selects it. Done:
-  a browser test on the fixture sees names on items of every kind,
-  clicks one and ends at that item. Part of one chain filed from that
-  message: TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core
-  2), MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner:
-  Aux 10.
-  Prerequisites: TEST.368. Related: MAP.229, MAP.231, MAP.268, MAP.226,
-  MAP.299, MAP.297.
-
 - [ ] **MAP.299 In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
@@ -13929,21 +13911,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   take one-off 8.1 items. Owner: Aux 5 takes it after GEN.767 (heat and
   dose lane).
   Prerequisites: none. Related: GEN.663, GEN.699, GEN.735, GEN.754.
-
-- [ ] **GEN.760 Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw**
-  brown_dwarf_types.py (the tuned brown-dwarf draw of GEN.517, merged)
-  maps mass, age and temperature to the L, T and Y spectral types, and
-  nothing imports it. Make the star and brown dwarf generator draw the
-  type through it and store it. Found by the physics fix plan thread
-  (reports/physics-fix-plan-2026-10-24.md section 16: built, merged and
-  never imported by the generator). No shim: the generator calls the
-  module, the old path is deleted, and a test fails if the module has no
-  caller (the wiring guard GEN.754). Takes a generator epoch in merge
-  order (next free is 95). Each stand-in it touches records its source
-  tier and tweak level in the registry (GEN.725). Requested by Boss
-  through the coordinator, 5:34 PM EDT 2026-10-24: wire it as fast as
-  possible. Owner: Lane A after GEN.652; nobody has started it.
-  Prerequisites: GEN.652. Related: GEN.517, GEN.652, GEN.741, GEN.754.
 
 - [ ] **GEN.763 The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug)**
   Found by Bug Hunt while fixing TEST.353 (#3103, 5:45 PM EDT 2026-10-24
