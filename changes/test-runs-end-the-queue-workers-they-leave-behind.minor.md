@@ -1,7 +1,0 @@
-**Headline:** A test run now ends the queue workers it started and did not stop, and says how many it found.
-
-### Added
-- **`scripts/test.py` ends the queue workers a run left running and reports them (TEST.393).** Tests that start real workers start them in a session of their own, so a test that was stopped part way (past its time limit, or in a phase the runner stopped) left them running, and each keeps about 300 MB; about fifty on a 16 GB machine got MySQL killed. A worker whose `--url` names one of the test Redis databases (1 to 15, the machine's own is 0) is a test's. When a run ends, the runner ends all of them (SIGTERM to the worker's session, SIGKILL ten seconds later) and prints `ended N queue worker process(es) a test started and did not stop (the oldest had run ...)`.
-- The test session's own fixture ends the workers on its Redis database when it starts (those of an earlier, stopped session) and when it ends. `src/tests/stray_workers.py` and `test_stray_workers.py` hold the code and its tests (the listing, the filter that never touches the machine's database, the SIGTERM then SIGKILL, and one real process).
-- Not changed: which tests leave workers. A run of the 11 modules that use real queues (166 tests) peaked at 7 workers and left none, so the leak comes from stopped tests; the count in the new line is how to find the test.
-TODO items resolved: TEST.393 (TODO closes it after reading this). Added: none.
