@@ -13,13 +13,13 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.210 |
+| UX | UX.212 |
 | MAP | MAP.309 |
 | NAV | NAV.63 |
-| GEN | GEN.771 |
+| GEN | GEN.773 |
 | PERF | PERF.195 |
 | DB | DB.103 |
-| API | API.33 |
+| API | API.34 |
 | ADM | ADM.130 |
 | SEC | SEC.37 |
 | TEST | TEST.380 |
@@ -550,6 +550,7 @@ Parents marked "new parent" had no old number of their own.
 | API.30 | generate.py --remote: the client driver for sector and galaxy runs | none | open |
 | API.31 | Every outgoing web request sends a standard User-Agent with the software, its version and the API version | none | done, PR #3047 |
 | API.32 | test_fuzz_web_routes fails on a machine that has a real database named planetgen_control: every galaxy route answers 500 for db=planetgen_control (bug) | none | done, PR #2659 |
+| API.33 | API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug) | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -1502,6 +1503,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.768 | Hours a person can be outside in a day: daylight hours limited by heat, cold, pressure, air supply and radiation dose, computed and stored per planet and moon | none | open |
 | GEN.769 | Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug) | none | open |
 | GEN.770 | Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug) | none | open |
+| GEN.771 | Property sheet: the 40 ratio and 7 index rows state a unit or a scale (shares in percent or ppm, scores as "n of 9", ratios by what they divide) (bug) | none | open |
+| GEN.772 | Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2414,11 +2417,11 @@ Parents marked "new parent" had no old number of their own.
 | UX.192 | Captain-first object pages, step C4: phenomenon pages | none | done, PR #3134 |
 | UX.193 | Captain-first object pages, step C5: belt, comet, facility, cluster and superbubble pages | none | done, PR #3134 |
 | UX.194 | Captain-first object pages, step C6: galaxy page | none | done, PR #3134 |
-| UX.195 | Every page has a proper heading outline: one h1 for the title, then h2 and below for each section and table, with no skipped level (bug) | none | open |
-| UX.196 | Every page gets an automatic table of contents built from its headings (bug) | none | open |
+| UX.195 | Every page has a proper heading outline: one h1 for the title, then h2 and below for each section and table, with no skipped level (bug) | none | done, PR #3196 |
+| UX.196 | Every page gets an automatic table of contents built from its headings (bug) | none | done, PR #3196 |
 | UX.197 | The habitability icons link to the habitability section of the planet information page, not to the help page (bug) | none | done, PR #3150 |
-| UX.198 | The Atmosphere section of the planet property sheet shows 14 empty rows (bug) | none | open |
-| UX.199 | Pages show raw or placeholder values: "not stored" rows in At a glance, and a raw key such as Technological_civilization (bug) | none | open |
+| UX.198 | The Atmosphere section of the planet property sheet shows 14 empty rows (bug) | none | done, PR #3196 |
+| UX.199 | Pages show raw or placeholder values: "not stored" rows in At a glance, and a raw key such as Technological_civilization (bug) | none | done, PR #3196 |
 | UX.200 | The Location block lists a system and its star separately when they share a name, shows "not inside any nebula" style lines, and links the Galaxy (bug) | none | done, PR #3188 |
 | UX.201 | A Nav button on object pages opens one menu: navigate from here, navigate to here, nearby locations (bug) | none | done, PR #3188 |
 | UX.202 | Remove the "How the composition was found" line from the object pages (bug) | none | done, PR #3188 |
@@ -2428,7 +2431,9 @@ Parents marked "new parent" had no old number of their own.
 | UX.206 | Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view | none | open |
 | UX.207 | Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug) | none | done, PR #3188 |
 | UX.208 | Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column | none | open |
-| UX.209 | Object pages order: At a glance, then About, then the Properties list, then the other details (bug) | none | open |
+| UX.209 | Object pages order: At a glance, then About, then the Properties list, then the other details (bug) | none | done, PR #3196 |
+| UX.210 | Map infoboxes and labels: the orbit infobox eccentricity and every other number on a map says what it is and its unit (scan) (bug) | none | open |
+| UX.211 | Pages, lists, search, Nearby and the admin pages: every number carries a unit, a noun or a label (scan) (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2912,7 +2917,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.375 | Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug) | none | open |
 | TEST.376 | scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill | none | done, PR #3192 |
 | TEST.377 | test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug) | none | open |
-| TEST.378 | test_no_todo_codes_shown fails on main: the composition_origin reason in describe/sheet.py names UX.202 in a shown string (bug) | none | open |
+| TEST.378 | test_no_todo_codes_shown fails on main: the composition_origin reason in describe/sheet.py names UX.202 in a shown string (bug) | none | done, PR #3196 |
 | TEST.379 | Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |

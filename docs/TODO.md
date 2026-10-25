@@ -916,92 +916,6 @@ with `clamp()`.
   Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
   GEN.430, GEN.445.
 
-- [ ] **UX.195 Every page has a proper heading outline: one h1 for the title, then h2 and below for each section and table, with no skipped level (bug)**
-  Boss, 7:41 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9LcRMXpJUGS2PLuWn5phzu, relayed by the
-  coordinator): "info pages, system pages, planet pages, star pages, all
-  pages need to get a TOC build based on headings, all sections and
-  tables should carry headings from 1 (title / main) and descending.
-  Also change the habitability icon links to go to the habitability
-  section of of the planet information page." Do: sweep every page
-  template (the object pages for every kind, the system, planet, star,
-  sector, phenomenon and galaxy pages, the info and help pages, the
-  lists and search) so the title is the one h1, every section and every
-  table has a heading as its caption or title one level below its
-  parent, and no level is skipped; where a template has a styled div
-  that acts as a heading, make it a real heading. Done: a page-walk test
-  over one page of every kind fails on a second h1, a skipped level, or
-  a table without a heading, and passes; the At a glance panel (UX.188
-  to UX.194) is a section with its own heading. This is the base of the
-  table of contents (UX.196). Owner: Aux 11 (it wrote the object pages
-  and the At a glance panels).
-  Prerequisites: none. Related: UX.196, UX.188, UX.173, UX.177.
-
-- [ ] **UX.196 Every page gets an automatic table of contents built from its headings (bug)**
-  Boss, 7:41 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9LcRMXpJUGS2PLuWn5phzu, relayed by the
-  coordinator): "info pages, system pages, planet pages, star pages, all
-  pages need to get a TOC build based on headings, all sections and
-  tables should carry headings from 1 (title / main) and descending.
-  Also change the habitability icon links to go to the habitability
-  section of of the planet information page." Do: one shared component
-  that reads a page's h2 to h4 headings (UX.195 makes them right) and
-  builds a table of contents of links to their anchors, with stable
-  heading ids; shown at the top of the page after the At a glance panel
-  as a compact list, collapsible, and on a phone as a menu; on every
-  object page (system, planet, star, sector, phenomenon, belt, comet,
-  facility, cluster, superbubble, galaxy) and the other info pages, with
-  the current section highlighted as you scroll; works without script
-  (the list is built on the server from the same headings) and is
-  keyboard and screen-reader usable. Done: a browser test opens a planet
-  page, sees its contents list, follows a link to a section and finds
-  the section in view, and the page-walk test checks each entry points
-  at an existing heading id. Owner: Aux 11, after UX.195.
-  Prerequisites: UX.195. Related: UX.195, UX.172, UX.188.
-
-- [ ] **UX.198 The Atmosphere section of the planet property sheet shows 14 empty rows (bug)**
-  Boss, 7:45 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
-  coordinator), live observation from the page of Enuakyadas IV (object
-  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: in the page
-  text the Atmosphere section of the property sheet lists 14 rows with
-  no label and no value, between the Composition and Climate sections
-  (the planet does have an atmosphere: the About block lists nitrogen
-  69.9 percent, oxygen 29 percent, argon and trace gases). Do: find
-  whether the sheet registry rows for the gas-by-gas values (after the
-  4b gas table, migration 0155) are rendering with empty labels for a
-  world, or the section lists gases that have no row; make the section
-  show the atmosphere in plain rows (total pressure, the main gases with
-  their shares, the mean molecular mass, the scale height) and show
-  nothing for a gas with no value. If the cause is the stored gas rows
-  themselves, hand that part to Aux 1. Done: a page test on a planet
-  with an atmosphere finds every row in the Atmosphere section with a
-  label and a value and no empty row. Owner: Aux 11 (property sheet and
-  pages); Aux 1 if the cause is data. Related: UX.187, TEST.358.
-  Prerequisites: none. Related: UX.187, TEST.358, UX.173.
-
-- [ ] **UX.199 Pages show raw or placeholder values: "not stored" rows in At a glance, and a raw key such as Technological_civilization (bug)**
-  Boss, 7:45 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
-  coordinator), live observation from the page of Enuakyadas IV (object
-  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: two display
-  faults in the same paste. (1) "Hours of daylight a person can be
-  outside: not stored" appears in the At a glance table and again in the
-  Rotation section, although the rule (Boss, 10-24, UX.188 to UX.194) is
-  that a value that is none or zero is left out unless its absence
-  matters. Do: leave out a "not stored" row unless the absence matters
-  to a captain, and where it does matter say why in a sentence
-  ("Daylight hours need the planet's rotation and a stored day length").
-  (2) The Life section shows "Life stage: Technological_civilization",
-  the stored key. Do: show the name a person reads ("Technological
-  civilization", the label the text already uses) for every stored key
-  that reaches a page (life stage, evolutionary pace, hydrosphere,
-  dynamical state and the rest), through the sheet registry's label for
-  the value, and add a test that lists every enumerated stored value
-  shown and fails on an underscore or capitalised key. Owner: Aux 11.
-  Related: UX.188, UX.187.
-  Prerequisites: none. Related: UX.188, UX.190, UX.187.
-
 - [ ] **UX.205 Object pages show the day and night time shares, moons with the extra night from their planet**
   Boss, 7:54 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
@@ -1099,28 +1013,39 @@ with `clamp()`.
   Prerequisites: none. Related: UX.188, UX.198, UX.199, UX.203, UX.205,
   TEST.358, GEN.767, GEN.768.
 
-- [ ] **UX.209 Object pages order: At a glance, then About, then the Properties list, then the other details (bug)**
-  Boss, 8:33 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi11fUYtyP7MHaYzSWdusHa8, relayed by the
-  coordinator), live observation, so a bug: "The properties list of
-  details should come after the 'About' section of the info page and
-  right under at a glance". Today the Enuakyadas IV page runs At a
-  glance, Properties (the long list of groups), then About, so the long
-  list pushes the description far down. TODO's reading (the
-  coordinator's): the order is At a glance, About (the short facts table
-  and the description text), Properties (the grouped list), then the
-  rest (habitability notes, radiation, survival equipment, life text,
-  part-of line). Do: reorder the planet, moon, star, belt, comet and
-  phenomenon pages to that order, with About directly under At a glance;
-  headings stay one outline (UX.195) and the table of contents (UX.196)
-  follows the new order. Done: a page test finds the section order on a
-  planet, a moon and a star page and the contents list in the same
-  order. Owner: Aux 11 (object pages). Related: UX.195, UX.196, UX.204.
-  Research (2026-10-09, Progress): Part of this landed with #3185
-  (UX.203, UX.204, UX.207), whose title says About before Properties:
-  Aux 11 confirms whether the order At a glance, About, Properties list,
-  other details is complete before UX.209 is retired.
-  Prerequisites: none. Related: UX.195, UX.196, UX.204.
+- [ ] **UX.210 Map infoboxes and labels: the orbit infobox eccentricity and every other number on a map says what it is and its unit (scan) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  Spot check: orbitpositions.js:332 prints Eccentricity as a bare
+  0.0167. The galaxy map infoboxes were fine in the sample. Do: scan
+  every map infobox, label, legend, tooltip and scale bar
+  (html/static/*.js, galaxymap3d.js, systemmap.js, sectorscene.js,
+  orbitpositions.js, sector and system map templates) for a number with
+  no unit, noun or label, list each finding in the item, and fix them; a
+  number that is dimensionless says so or gives its range. Done: the
+  scan list is attached to the item and every finding is fixed. Owner:
+  Core 2 (Aux 10 for the galaxy map nodes). Related: UX.199, GEN.771.
+  Prerequisites: none. Related: UX.199.
+
+- [ ] **UX.211 Pages, lists, search, Nearby and the admin pages: every number carries a unit, a noun or a label (scan) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  Sample of nearby.html, habitability.html and system.html was fine
+  (counts carry a noun), but the scan is not complete. Do: scan every
+  template under web/templates and its macros (system and object lists,
+  search results, class and habitability pages, the nav chart, the
+  generate, queue, stats and settings pages, partials) for a rendered
+  number with no unit, noun or label beside it; list each finding in the
+  item and fix them (a count says what it counts, a score its scale, a
+  time its unit, a size its unit). Done: the scan list is attached and
+  every finding is fixed. Owner: Aux 11 (object pages, lists), Core 5
+  (generate and queue pages), Aux 12 (admin pages). Related: UX.199,
+  GEN.771.
+  Prerequisites: none. Related: UX.199.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -14286,6 +14211,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 14. Related: GEN.571, GEN.568, UX.208.
   Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
 
+- [ ] **GEN.771 Property sheet: the 40 ratio and 7 index rows state a unit or a scale (shares in percent or ppm, scores as "n of 9", ratios by what they divide) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  describe/sheet.py prints every column whose unit is ratio or index as
+  a bare number through _plain_number: share and fraction rows (metal,
+  rock, ice, envelope, helium, heavy-element, iron oxide, alumina),
+  porosity, cloud cover, Bond albedo, optical depths, greenhouse factor,
+  shielding factor, exposure and ultraviolet indexes, the PHI-6 and
+  suitability scores, Urey and aluminium-26 ratios, eccentricity, spin,
+  the Eddington share, and the four life scores and the birth shell,
+  band and wedge indexes. The water rows are GEN.770 and the length
+  scaling is GEN.769. Do: give each column a display unit in the
+  registry (percent, ppm by size, dimensionless with its scale or range
+  in the label, "n of 9" for the life scores, "n of 6" style for the
+  score rows that have a scale) and make _plain_number refuse a ratio or
+  index column that has none, so a new column cannot print bare. Done: a
+  test over every sheet row shows a unit symbol, a scale, or a noun
+  beside every number; the report's list is empty. Owner: Aux 14.
+  Related: GEN.770, GEN.769, GEN.571, UX.208.
+  Prerequisites: none. Related: GEN.770, GEN.769, GEN.571, UX.208.
+
+- [ ] **GEN.772 Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  The rule only holds if a new column cannot print bare. Do: make the
+  one formatter (unit registry) the only way a sheet, a template, the
+  API and a command prints a quantity, refuse a ratio, index or count
+  with no unit, scale or noun, and add a test that renders a sample body
+  of every class, one page of each template, the OpenAPI document and
+  each command's output and fails on a number with no unit, scale or
+  noun beside it. Done: the test is in the changed-tests gate and fails
+  on a deliberately bare column. Owner: Aux 14. Related: GEN.571,
+  GEN.568, GEN.771, UX.208.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -16249,6 +16213,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   database named planetgen_control. Owner: Bug Hunt (proposed by the
   TODO thread).
   Prerequisites: none. Related: DB.85, TEST.290.
+
+- [ ] **API.33 API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  Not scanned yet. Do: scan the API responses and the OpenAPI field
+  descriptions (the unit is in the field name or its description), the
+  in-site help pages and glossary (DOC.15), the CLI --help text and the
+  numbers the commands print (stats, progress, run summaries, ETA lines,
+  log lines a user reads) for a number with no unit or context; list
+  each finding in the item and fix them. Done: every API field that is a
+  quantity names its unit, and a test over the OpenAPI document fails on
+  a quantity field with no unit. Owner: Aux 12 (API), Core 5 (commands),
+  Aux 14 for the test over the field list. Related: GEN.771, DOC.15.
+  Prerequisites: none. Related: GEN.771, DOC.15.
 
 ## ADM: Admin tools
 
@@ -19406,21 +19386,6 @@ clears each one.
   the test passes on a documented machine, or the root cause is fixed.
   Owner: Bug 1. Related: TEST.375, TEST.370.
   Prerequisites: none. Related: TEST.375, TEST.370.
-
-- [ ] **TEST.378 test_no_todo_codes_shown fails on main: the composition_origin reason in describe/sheet.py names UX.202 in a shown string (bug)**
-  Found by Core 5 (8:51 PM EDT 2026-10-24 as the lane reported) on clean
-  main after #3174. src/planetgen/describe/sheet.py (the _BODY_NOT_SHOWN
-  entry for composition_origin, line 421) carries "(UX.202)" inside a
-  string, and test_no_todo_codes_shown (UX.93) forbids a TODO code in
-  the strings the code shows. Do: cut the code from the string (a
-  comment may keep it); check the other entries added by UX.203 and
-  UX.204 in the same file for the same. Done: test_no_todo_codes_shown
-  passes. Owner: Aux 11. Related: UX.93, UX.202.
-  Research (2026-10-09, Progress): Lane 4 (8:59 PM EDT as the lane
-  reported) also saw test_no_todo_codes_shown name a MAP.220 string at
-  db/point_columns.py:177 on its checkout; that string is not on current
-  main, so confirm the test passes after the UX.202 string is cut.
-  Prerequisites: none. Related: UX.93, UX.202.
 
 - [ ] **TEST.379 Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug)**
   Found by Lane 4 (Aux 12) running the OPS.29 gate on main (8:59 PM EDT
