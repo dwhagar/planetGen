@@ -1854,6 +1854,33 @@ def test_a_double_click_on_a_star_flies_to_it(page, dense_site):
     assert after["dist"] <= before["dist"] + 1e-6, (before["dist"], after["dist"])
 
 
+@pytest.mark.parametrize("radius_pc", [4.0, 9.0])
+def test_fly_to_fit_puts_the_sphere_in_the_window_with_no_sector_box(page, dense_site, radius_pc):
+    """MAP.319: flyToFit(sphere) puts the camera where the sphere fills the smaller side of the view with 8 percent to
+    spare (or as near as the view's zoom allows), over the sphere's middle, and no block of sectors is drawn once the
+    flight is over."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 40.0)
+    before = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    center = [before["target"][0] + 3.0, before["target"][1] - 2.0, before["target"][2]]
+    page.evaluate("([center, radius]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: center, radius: radius})",
+                  [center, radius_pc])
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=20000)
+    _settle(page)
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    size = page.evaluate("() => { const c = document.querySelector('#galaxymap3d-canvas'); return [c.clientWidth, c.clientHeight]; }")
+    fov = math.radians(page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFov()"))
+    tan = math.tan(fov / 2)
+    half = math.atan(min(tan, tan * size[0] / size[1]))
+    wanted = max(radius_pc, 2.0) / math.sin(half) * 1.08
+    assert max(abs(a - b) for a, b in zip(after["target"], center)) < 0.05, (after["target"], center)
+    assert after["dist"] == pytest.approx(wanted, rel=0.02) or after["dist"] > wanted, (after["dist"], wanted)
+    # The sphere is in the window: its edge, seen from the camera, lies inside half the smaller field.
+    assert math.asin(min(1.0, radius_pc / after["dist"])) <= half + 1e-6, (after["dist"], radius_pc)
+    lines = page.evaluate(LINES)
+    assert lines["chartedLines"] == 0 and lines["hovered"]["lines"] == 0, lines
+
+
 def test_galaxy_map_grid_never_adds_up_to_more_than_the_cap_while_zooming_in(page, map_site):
     """MAP.188: the blocks' faces and lines are drawn at a share that keeps the cells along any
     ray from adding up to more than the cap (50%), at every stage and at the deepest zoom."""

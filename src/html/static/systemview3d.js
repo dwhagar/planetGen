@@ -31,6 +31,7 @@ const { createPointerControl, orbitByDrag, orbitByKey, panInScreenPlane, wheelPi
 const { fitRendererToCanvas, watchResize } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { createPicker, createTooltip, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERSION_QUERY}`);
+const { fitDistance: framingDistance } = await import(`./flytofit.js${VERSION_QUERY}`);
 const { orbitPath, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED } = await import(`./systemscale.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
@@ -327,21 +328,53 @@ export function buildSystemScene(scene, layout, options) {
   }
 
   update(opts.years || 0);
+
+  function trailReach(ref) {
+    if (!trails[ref]) return 0;
+    const attribute = trails[ref].geometry.attributes.position;
+    let farthest = 0;
+    for (let n = 0; n < attribute.count; n += 1) {
+      farthest = Math.max(farthest, Math.hypot(attribute.getX(n), attribute.getY(n), attribute.getZ(n)));
+    }
+    return farthest;
+  }
+
+  // MAP.319: the radius, in scene units, of the sphere about body `ref` that holds it and everything that goes round
+  // it: the outermost orbit line of its moons (their apoapsis) and the moons themselves. Null for a body with no moon.
+  function moonSystemReach(ref) {
+    const center = byRef[ref];
+    if (!center) return null;
+    const moons = entries.filter((m) => m.body.orbit && m.body.orbit.around === ref && m.kind === "moon");
+    if (!moons.length) return null;
+    let far = center.radius;
+    moons.forEach((m) => {
+      far = Math.max(far, Math.hypot(m.x - center.x, m.y - center.y, m.z - center.z) + m.radius, trailReach(m.ref));
+    });
+    return far;
+  }
+
+  // MAP.319: the radius, in scene units, of the sphere about the scene's origin that holds every body and every orbit
+  // line, each orbit measured from where the body it goes round is (the outermost stored body's apoapsis; for a wide
+  // binary the second star's orbit about the first).
+  function systemReach() {
+    let far = 0;
+    entries.forEach((e) => {
+      far = Math.max(far, Math.hypot(e.x, e.y, e.z) + e.radius);
+      const around = e.body.orbit && e.body.orbit.around;
+      const parent = around && byRef[around];
+      far = Math.max(far, (parent ? Math.hypot(parent.x, parent.y, parent.z) : 0) + trailReach(e.ref));
+    });
+    return far;
+  }
+
   return { group: group, entries: entries, byRef: byRef, objects: objects, update: update, highlight: highlight, paintTick: paintTick,
+    moonSystemReach: moonSystemReach, systemReach: systemReach,
     // The look-record texture a body shows now (null: still its flat colour), for tests.
     textureKey: (ref) => objects[ref].userData.textureKey || null,
     // A body's orbit line opacity (null: it has none), for tests.
     trailOpacity: (ref) => (trails[ref] ? trails[ref].material.opacity : null),
     // How far an orbit line reaches from what it goes round, in scene units (null: it has none), for tests.
-    trailRadius: (ref) => {
-      if (!trails[ref]) return null;
-      const attribute = trails[ref].geometry.attributes.position;
-      let farthest = 0;
-      for (let n = 0; n < attribute.count; n += 1) {
-        farthest = Math.max(farthest, Math.hypot(attribute.getX(n), attribute.getY(n), attribute.getZ(n)));
-      }
-      return farthest;
-    },
+    trailRadius: (ref) => (trails[ref] ? trailReach(ref) : null),
     dispose: dispose };
 }
 
@@ -425,8 +458,14 @@ export function createSystemView(options) {
     }
   }
 
+  // MAP.319: the camera distance at which a sphere of `radius` scene units fills the view.
+  function framing(radius) {
+    return framingDistance(radius, camera.fov, (canvasEl.clientWidth || 800) / (canvasEl.clientHeight || 600));
+  }
+
+  // The whole system fills the view: every body and every orbit line out to the outermost apoapsis.
   function fit() {
-    fitDistance = Math.max(sceneRadius() * 2.4, 1);
+    fitDistance = Math.max(framing(Math.max(built.systemReach(), sceneRadius())), 1);
     return fitDistance;
   }
 
@@ -457,10 +496,12 @@ export function createSystemView(options) {
   function flyTo(ref) {
     const entry = built.byRef[ref];
     if (!entry) return;
+    const moons = built.moonSystemReach(ref);
     flight = {
       start: performance.now(), duration: 700, ref: ref,
       from: { target: target.clone(), distance: state.distance },
-      distance: Math.max(entry.radius * 6, 1e-6),
+      // A planet with moons fills the view with its moon system (MAP.319), any other body comes close.
+      distance: Math.max(moons !== null ? framing(moons) : entry.radius * 6, 1e-6),
     };
   }
 
@@ -639,6 +680,12 @@ export function createSystemView(options) {
     reset: reset,
     recenter: recenter,
     flyTo: flyTo,
+    // MAP.319, for the browser tests: how far the camera is, the sphere (scene units) a moon system or (no ref) the whole
+    // system fills the view with, and the distance at which a sphere of that radius fills it.
+    distance: () => state.distance,
+    reachOf: (ref) => (ref ? built.moonSystemReach(ref) : built.systemReach()),
+    framing: framing,
+    flying: () => flight !== null,
     follow: function (ref) { follow.ref = ref; if (ref) flyTo(ref); },
     select: function (ref) { select(built.byRef[ref] || null); },
     selected: () => selected,
