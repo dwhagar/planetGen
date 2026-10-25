@@ -20944,6 +20944,68 @@ clears each one.
   TEST.376). Rules: no backward-compat shims.
   Prerequisites: none. Related: TEST.376, PERF.181.
 
+- [ ] **TEST.399 test_golden_seed::test_the_pinned_galaxy_is_made_at_one_worker_and_at_four is red on main: the pinned galaxy differs between one worker and four (bug)**
+  Found by the 4c lane (as the lane reported 7:25 AM on its clock, about
+  4:17 AM EDT) on origin/main 081337a9f (epoch 108): the test that the
+  pinned galaxy is identical at one worker and at four fails, and it
+  blocks the gate of every generation merge. Do: run it on clean main,
+  diff the one-worker and four-worker output to find the first stage and
+  field that differ (a draw consumed in a different order, a
+  worker-count-dependent seed, or shared state), and name the commit
+  that introduced it (GEN.441, GEN.760, GEN.652 and GEN.701 are the
+  recent generation changes). If it is a real determinism break, the fix
+  goes in the generator and the item is a generation bug (new epoch with
+  --affects); if only the test or fixture moved, fix that. Done: the
+  test passes on main and the generation merges' gates are green again.
+  Owner: Bug 1, first in its queue ahead of everything else, or the
+  owner of the breaking change once identified. Rules: no
+  backward-compat shims; never skip or quarantine the test;
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: GEN.441, TEST.261.
+
+- [ ] **TEST.400 test_habitability_fill::test_the_command_re_scores_every_system is red on main: Namespace has no attribute 'command' in generate.validate_fill_args (bug)**
+  Found by the 4c lane (about 4:17 AM EDT) on origin/main 081337a9f:
+  test_the_command_re_scores_every_system fails with AttributeError: the
+  argparse Namespace has no attribute 'command' in
+  generate.validate_fill_args; it blocks every generation merge's gate.
+  Do: find the change that added the 'command' read (or removed the
+  sub-command) in generate.validate_fill_args and the
+  rescore-habitability command (ADM.129, GEN.764 revise job), make the
+  command and the validator agree, and keep the rescore command tested
+  end to end. Done: the test passes on main. Owner: Bug 1, second in its
+  queue (after the golden seed test), or the owner of the breaking
+  change once identified. Rules: no backward-compat shims; never skip or
+  quarantine the test; scripts/test.py changed --resume.
+  Prerequisites: none. Related: ADM.129, GEN.764.
+
+- [ ] **TEST.401 test_atmosphere_mixture_escape (abiotic oxygen) and test_atmosphere_mixture_rocky (delivered-water class) are red on main (bug)**
+  Found by the 4c lane (about 4:17 AM EDT): two atmosphere tests were
+  red on main before 4c merged and stay red: the abiotic oxygen case in
+  test_atmosphere_mixture_escape and the delivered-water class case in
+  test_atmosphere_mixture_rocky. Do: run both on clean main, say whether
+  the physics changed on purpose (then the test expectation moves, with
+  the reason, as a recorded stand-in tweak if the value is a tuned one)
+  or a regression (then fix the code); do not loosen a test without
+  writing why. Done: both pass on main. Owner: Aux 8 (Lane L atmosphere,
+  the owner of the mixture code) after GEN.830, or a free lane; tell
+  TODO if another lane's change broke them. Rules: no backward-compat
+  shims; never skip or quarantine the test; scripts/test.py changed
+  --resume.
+  Prerequisites: none. Related: GEN.411, GEN.422, GEN.668.
+
+- [ ] **TEST.402 test_db_column_round_trip fails once under load: the stars' disk columns read back NULL (bug)**
+  Found by the 4c lane (about 4:17 AM EDT): test_db_column_round_trip
+  failed once under load with the stars' disk columns NULL, and passed
+  on re-run (a second failure is real). Do: find whether the stars' disk
+  columns are written after the round trip's read under load (a commit
+  ordering or a worker race), or whether the test reads before the fill
+  finishes; make the order deterministic. Done: the test passes 20 runs
+  in a row under the parallel load of scripts/test.py. Owner: Bug 1,
+  after TEST.397 and the two blockers above, or a free lane. Rules: no
+  backward-compat shims; never skip or quarantine the test;
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.398, PERF.181.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
