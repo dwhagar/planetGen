@@ -3643,28 +3643,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed --resume.
   Prerequisites: none. Related: MAP.266, MAP.323.
 
-- [ ] **MAP.326 Zooming in from the Galaxy Map does not carry smoothly into the star system map: on no system could Boss zoom from the galaxy into the system view as one continuous move (bug)**
-  Boss, 2:38 AM EDT 2026-10-25, live observation: 'I should be able to
-  zoom smoothly from the galaxy map into the star system map as I zoom
-  in and I couldn't do that on any system.' Repro to confirm first: open
-  the Galaxy Map, pick any charted star with planets, scroll in on it
-  from the sector level; expect the view to hand over to that system's
-  own map (orbits, planets at true scale) in one continuous move with
-  nothing popping, and scroll out to carry back. Do: find where the
-  hand-over stops (the camera's minimum distance, the system frame not
-  being entered, the node cut, or the system view needing a click and a
-  page load) and make the single space (MAP.257) enter the system frame
-  when the camera is within its extent, with the system's orbits, bodies
-  and labels fading in as the stars fade out. Done: a browser test
-  scrolls from a sector view into three different systems (a single
-  star, a binary, a system with a planet with moons) and ends inside
-  each system's view with no page load, and back out. Owner: Core 2
-  (owns the system view and fly-to, MAP.319) with Aux 10 for the zoom
-  layer (MAP.300, MAP.301). Rules: no backward-compat shims; tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: MAP.257, MAP.300, MAP.301, MAP.319,
-  MAP.308.
-
 - [ ] **MAP.327 Sector view dims everything outside the sector's bounds and puts a clearly labelled move icon at the centre of each visible wall facing an adjacent sector**
   Boss, 2:38 AM EDT 2026-10-25: the star field outside the sector makes
   the sector view hard to read, so dim everything outside the sector
@@ -20771,6 +20749,11 @@ clears each one.
   red on clean main (the view drifts off the line of sight by about
   0.004 pc); same family as the wheel anchor test Bug 1 is fixing
   (window shape), Bug 1 checks both in the run.
+  Finding (2026-10-09): Core 2, as the lane reported 4:43 AM EDT
+  2026-10-25, red on clean main after #3345:
+  test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold
+  (sector_reach); this is the test Bug 1 is fixing here, MAP.326 changed
+  the wheel path further so Bug 1 re-checks it against main.
   Prerequisites: none. Related: MAP.293, TEST.375.
 
 - [ ] **TEST.386 First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp**
@@ -20897,6 +20880,10 @@ clears each one.
   test_sector_map_click_on_the_selected_nebula_clears_it flaked once (no
   spot named Fixture Veil) and passed on re-run (a second failure is
   real).
+  Finding (2026-10-09): Core 2, as the lane reported 4:43 AM EDT
+  2026-10-25: four double-click flies tests in the sector_reach file
+  failed once under load and pass alone; Bug 1 checks them in the same
+  fixture-map run (window size, names hidden).
   Prerequisites: none. Related: MAP.297, TEST.390.
 
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**

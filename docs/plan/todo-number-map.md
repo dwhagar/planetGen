@@ -1909,7 +1909,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.323 | The legend on the Galaxy Map covers the scale text: stack them so the legend sits above the scale and they never overlap (bug) | none | done, PR #3331 |
 | MAP.324 | The soft glow around stars on the Galaxy Map floods the view: at sector and sector-block zoom it makes big white blobs and haze that hide the stars, the black holes and the selection, so finding anything is nearly impossible (bug) | none | open |
 | MAP.325 | The Galaxy Map infobox is too dense for a readable font: a block card lists ten rows plus a help paragraph in tiny text, and it sits over the zoom controls (bug) | none | done, PR #3331 |
-| MAP.326 | Zooming in from the Galaxy Map does not carry smoothly into the star system map: on no system could Boss zoom from the galaxy into the system view as one continuous move (bug) | none | open |
+| MAP.326 | Zooming in from the Galaxy Map does not carry smoothly into the star system map: on no system could Boss zoom from the galaxy into the system view as one continuous move (bug) | none | done, PR #3345 |
 | MAP.327 | Sector view dims everything outside the sector's bounds and puts a clearly labelled move icon at the centre of each visible wall facing an adjacent sector | none | open |
 | MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
