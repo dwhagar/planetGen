@@ -1032,22 +1032,6 @@ with `clamp()`.
   sampling); outside hours is GEN.768. The lane adds the excuse list and
   the failing test with these ids.
 
-- [ ] **UX.210 Map infoboxes and labels: the orbit infobox eccentricity and every other number on a map says what it is and its unit (scan) (bug)**
-  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
-  TODO find where we output numbers without units or context, and make
-  TODO items all as bugs, we should never have numbers without units or
-  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
-  Spot check: orbitpositions.js:332 prints Eccentricity as a bare
-  0.0167. The galaxy map infoboxes were fine in the sample. Do: scan
-  every map infobox, label, legend, tooltip and scale bar
-  (html/static/*.js, galaxymap3d.js, systemmap.js, sectorscene.js,
-  orbitpositions.js, sector and system map templates) for a number with
-  no unit, noun or label, list each finding in the item, and fix them; a
-  number that is dimensionless says so or gives its range. Done: the
-  scan list is attached to the item and every finding is fixed. Owner:
-  Core 2 (Aux 10 for the galaxy map nodes). Related: UX.199, GEN.771.
-  Prerequisites: none. Related: UX.199.
-
 - [ ] **UX.212 Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug)**
   Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
   as the lane reported; Boss rule: never a number without a unit or
