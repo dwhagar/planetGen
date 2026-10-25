@@ -182,7 +182,7 @@ def render(plan_text):
         " much of the physics is derived and how much inferred; a placeholder (P) with no source is T4 or, when physics argues its"
         " size, T6 or T7. Rows whose parts differ list each part.",
         "- **Tweak** is L0 unless the value was moved after the fact. The L3 rows (hand-tuned against a sweep) are the mantle redox"
-        " laws AT.a1 and a2, the atmosphere draws AT.b4 and b5, BC6 and AM19 (the exobase ratios); the L2 row is AM10 (the alkali"
+        " laws AT.a1 and a2, the atmosphere draw AT.b5, BC6 and AM19 (the exobase ratios); the L2 row is AM10 (the alkali"
         " activity, tuned to Kite et al. 2016); L1 rows are nudged inside the source's error bar. No row is L4: a row at L4 needs the"
         " item that justified it.",
         "- The recipe rows of the atmosphere draw (`atmosphere_recipes_data.py`) are not rows here one by one. Those that carry a"

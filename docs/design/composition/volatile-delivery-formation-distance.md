@@ -1,6 +1,6 @@
 # Volatile delivery against formation distance (GEN.481, AR2)
 
-Status: research note, written on the evening of 2026-10-24 (as the lane reported) by the Citations lane. Nothing in the generator changes: rows b1 to b6 of `scripts/atmosphere_recipes_data.py` are untouched (section 7 says why and what to build). The numbers are COMPUTED here from a published population-synthesis dataset; they are a model result, not a measurement.
+Status: research note, written on the evening of 2026-10-24 (as the lane reported) by the Citations lane. Rows b1 to b4 of `scripts/atmosphere_recipes_data.py` were rewritten from it on 2026-10-25 (GEN.802, `water-delivery-tuning.md` section 0: one joint law in x and mass, refitted with a hinge at x = 0.6, replaces the separate fits of section 3; rows b5 and b6 are untouched). Section 7 is the reasoning that led there. The numbers are COMPUTED here from a published population-synthesis dataset; they are a model result, not a measurement.
 
 ## 1. The answer in short
 
