@@ -14904,23 +14904,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed --resume`.
   Prerequisites: GEN.411, GEN.422. Related: GEN.423, GEN.703, GEN.752,
   GEN.411.
-
-- [ ] **GEN.814 A water-rich world (class O, 10 to 50 wt% water) gets a carbon sink: seafloor weathering and the high-pressure ice that seals the mantle (finding 3)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 3. Silicate
-  weathering needs land (land fraction below 1e-6 of the reference), so
-  a water world has no carbon sink, its CO2 stays in the air and 31 of
-  40 land hot (median 1470 K). Model seafloor weathering and the
-  high-pressure-ice seal after Kite and Ford 2018 and Krissansen-Totton
-  and Catling 2017 and say what the model does not do. Done: the
-  water-world temperature distribution is within the published range,
-  with the sources cited. Owner: Aux 8 (Lane L, taken 12:26 AM EDT 2026-10-25).
-  Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); stand-ins get GEN.725 registry rows with a tier and tweak
-  level; a changed generated value carries `tests.golden_update --reason
-  ... --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`.
-  Prerequisites: GEN.411, GEN.422. Related: GEN.422, GEN.654.
+  Finding (2026-10-09): Aux 8 finding (1:02 AM EDT 2026-10-25, from
+  GEN.814): the greenhouse module's water-vapour feedback is too strong,
+  so cold sealed water worlds sit at the freezing point. The water-world
+  temperature test of GEN.823 cannot pass until this is fixed.
 
 - [ ] **GEN.815 Sulfur sink: a sulfate and sulfide balance replaces the stand-in SULFUR_SURFACE_KEPT (finding 4)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
@@ -15042,6 +15029,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane. Rules: no backward-compat shims; stand-ins get GEN.725 registry
   rows; tests are `scripts/test.py changed --resume`.
   Prerequisites: GEN.738. Related: GEN.738, GEN.722, GEN.725, GEN.800.
+
+- [ ] **GEN.823 Wire the water-world carbon sink (GEN.814, waterworld_carbon) into the air solve and show the water-world temperatures sit inside the published range**
+  GEN.814 merged the module (waterworld_carbon.sink_kind(sealed,
+  land_fraction): sealed uses sealed_state, no land uses
+  seafloor_pco2_bar; registry rows AM52 to AM62) but the generator does
+  not call it. After 4c (GEN.411, GEN.422) route a class O world with no
+  land through it, then test the done criterion GEN.814 could not show:
+  the water-world temperature distribution is within the published range
+  (Kite and Ford 2018, Krissansen-Totton and Catling 2017), which also
+  needs the greenhouse fix GEN.812. Changed generated values carry the
+  next epoch with --affects fill. Owner: Aux 8. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  stand-ins get GEN.725 rows; tests are scripts/test.py changed
+  --resume.
+  Prerequisites: GEN.411, GEN.422, GEN.812. Related: GEN.814, GEN.812,
+  GEN.411, GEN.422.
+
+- [ ] **GEN.824 The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2**
+  Found by GEN.814 (Aux 8, 1:02 AM EDT 2026-10-25): the class O CO2/H2O
+  inventory bracket reaches 0.2, above the 0.1 in Kite and Ford 2018.
+  Either cap it at 0.1 with the source or document why 0.2 holds (a
+  verified source or a registry row with its tier and tweak level).
+  Done: the bracket matches its cited source or carries a GEN.725 row
+  that says why not. Owner: Aux 6 (bulk composition) with Aux 8. Rules:
+  no backward-compat shims; a changed generated value carries the next
+  epoch.
+  Prerequisites: none. Related: GEN.814, GEN.823.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
