@@ -181,7 +181,9 @@ semi-detached or contact pair), `mass_reversed` (the donor of a semi-detached pa
 `fragile` and `theoretical`; the close-binary types (GEN.270) set `merger_product` (a massive star that merged, a field blue
 straggler, an R Coronae Borealis or FK Comae star), `be`, `mass_gainer` (a massive star that has gained mass), `r_crb`
 and `fk_comae`; and the runaway origin (none, or one of the two channels, `draw_runaway_origin`, GEN.329) is the two
-`runaway_*` bits: a built system's runaway star carries the one its draw named in `stars.flags`."""
+`runaway_*` bits: a built system's runaway star carries the one its draw named in `stars.flags`. All sixteen bits of the
+column are taken, so a member of a young group has no flag of its own (GEN.327): its node's kind `group` and its
+`decay_age_yr` say it has not decayed yet."""
 
 RUNAWAY_ORIGIN_FLAGS = {"supernova": MEMBER_RUNAWAY_SUPERNOVA, "dynamical": MEMBER_RUNAWAY_DYNAMICAL}
 """dict: A runaway's origin -> the flag bit that records it."""
@@ -248,7 +250,8 @@ class Member:
     `MEMBER_FLAGS`; `effective_age_yr` is a merger product's rejuvenated age (None: the system's age). `state` is the
     Yerkes class of a star (`V`, `III`, `VII`, ...), `PMS` or `protostar` for a young one, the spectral type of a brown
     dwarf (`M8`, `L5`, `T2`, `Y0`; `physics/brown_dwarf.py`, GEN.252), and None for a remnant; it is stored in
-    `scatter_members.state`, a VARCHAR(16)."""
+    `scatter_members.state`, a VARCHAR(16). A member of a `group` node carries its `offset_au` from the group's centre, its
+    `velocity_kms` and the group's `decay_age_yr` (GEN.327); every other member has none of the three."""
     member_no: int
     parent_node_no: int | None
     slot: int
@@ -260,6 +263,9 @@ class Member:
     radius_au: float
     seed: int
     effective_age_yr: float | None = None
+    offset_au: tuple | None = None
+    velocity_kms: tuple | None = None
+    decay_age_yr: float | None = None
 
 
 @dataclass(frozen=True)
@@ -287,11 +293,13 @@ class Node:
 @dataclass(frozen=True)
 class MemberTree:
     """The result: `members` (placed object first), `nodes` (empty for a single object) and `dropped`, the
-    number of members the generator could not fit and left out."""
+    number of members the generator could not fit and left out. `ejected` holds the member a decayed young group threw out
+    (GEN.327): the lightest, which left the system and is in none of `members`."""
     members: tuple
     nodes: tuple
     age_yr: float
     dropped: int = 0
+    ejected: tuple = ()
 
     @property
     def member_count(self):
@@ -1569,6 +1577,103 @@ def mark_merger_product(member, age_yr, rng=draw):
                                effective_age_yr=rejuvenated_age_yr(age_yr, rng))
 
 
+def _in_sphere(radius, rng):
+    """A point drawn uniformly inside a sphere of this radius, as a 3-tuple."""
+    while True:
+        point = [rng.uniform(-1.0, 1.0) for _ in range(3)]
+        if sum(c * c for c in point) <= 1.0:
+            return tuple(c * radius for c in point)
+
+
+def _group_member(number, leaf, rng, parent_node_no, slot, flags, **extra):
+    """A `Member` of a young group's tree from a roster leaf."""
+    return Member(member_no=number, parent_node_no=parent_node_no, slot=slot, kind=leaf.kind, state=leaf.state,
+                  flags=leaf.flags | flags, mass_solar=leaf.mass, initial_mass_solar=leaf.initial,
+                  radius_au=leaf.radius_au, seed=rng.getrandbits(63), effective_age_yr=leaf.effective_age_yr, **extra)
+
+
+def _group_tree(leaves, age_yr, decay_age_yr, rng):
+    """
+    The tree of a young group that has not decayed (GEN.327): one `group` node and its members, each at an offset from the
+    group's centre (AU) with a velocity (km/s) from the dispersion `tuning.YOUNG_GROUP_VELOCITY_DISPERSION_KMS`, the centre
+    of mass at rest at the origin so the stored point is the barycentre. The node's period is the crossing time (the
+    members fly straight; the node has no orbit), its separation the group's radius.
+    """
+    low, high = tuning.YOUNG_GROUP_RADIUS_AU_RANGE
+    radius_au = math.exp(rng.uniform(math.log(low), math.log(high)))
+    sigma = tuning.YOUNG_GROUP_VELOCITY_DISPERSION_KMS
+    masses = [leaf.mass for leaf in leaves]
+    total = sum(masses)
+    offsets = [_in_sphere(radius_au, rng) for _ in leaves]
+    velocities = [tuple(rng.gauss(0.0, sigma) for _ in range(3)) for _ in leaves]
+
+    def at_rest(vectors):
+        centre = [sum(m * v[axis] for m, v in zip(masses, vectors)) / total for axis in range(3)]
+        return [tuple(v[axis] - centre[axis] for axis in range(3)) for v in vectors]
+
+    offsets, velocities = at_rest(offsets), at_rest(velocities)
+    crossing_yr = radius_au * constants.AU_TO_KM / sigma / constants.SECONDS_PER_YEAR
+    node = Node(node_no=1, parent_node_no=None, slot=0, mass_solar=total, separation_au=radius_au,
+                separation_km=_m_to_km(_au_to_m(radius_au)), eccentricity=0.0, inclination_deg=0.0,
+                ascending_node_deg=0.0, arg_periapsis_deg=0.0, mean_anomaly_deg=0.0, period_years=crossing_yr,
+                kind="group", interaction="detached", flags=0)
+    members = tuple(_group_member(n, leaf, rng, 1, n, 0, offset_au=offsets[n], velocity_kms=velocities[n],
+                                  decay_age_yr=decay_age_yr) for n, leaf in enumerate(leaves))
+    return MemberTree(members, (node,), age_yr)
+
+
+def _decayed_group(leaves, age_yr, rng, max_axis_au, pair_placed):
+    """
+    The result of a young group older than its decay age (GEN.327): the lightest member (never the placed star) is
+    ejected, and the others harden into a hierarchy no wider than `tuning.YOUNG_GROUP_REMNANT_MAX_AXIS_AU`. The ejected
+    star is on the tree's `ejected`, flagged `runaway_dynamical`; it is not a row of its own, because the runaway rows the
+    scatter draws (`draw_runaway_origin`) already carry the catalogue's share of dynamical runaways.
+    """
+    lightest = min(range(1, len(leaves)), key=lambda i: leaves[i].mass)
+    kept = [leaf for i, leaf in enumerate(leaves) if i != lightest]
+    tree = _grow_tree(kept, list(range(len(kept))), age_yr, rng, len(kept),
+                      min(max_axis_au, tuning.YOUNG_GROUP_REMNANT_MAX_AXIS_AU), pair_placed)
+    thrown = _group_member(0, leaves[lightest], rng, None, 0, MEMBER_RUNAWAY_DYNAMICAL)
+    return dataclasses.replace(tree, ejected=(thrown,))
+
+
+def draw_young_group(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, prevalence=1.0, bound_runaway=False,
+                     max_axis_au=math.inf, pair_placed=False):
+    """
+    The tree of a massive star born in a young non-hierarchical group (a trapezium, GEN.327), or None when it was not.
+
+    An O or early-B star (`companion_class`) younger than `tuning.YOUNG_GROUP_AGE_MAX_YR` is in a group at the `young-group`
+    share of `SYSTEM_TYPE_RATES` (5%). The group holds 3 to 5 stars (`tuning.YOUNG_GROUP_SIZE_WEIGHTS`) and a decay age
+    drawn from `tuning.YOUNG_GROUP_DECAY_AGE_RANGE_YR`. A system younger than that has the group itself, a `group` node whose
+    members carry an offset and a velocity; a group is never stored past its decay age: an older system has the group's
+    result, one star fewer in a tighter hierarchy (`decayed-trapezium-remnant`).
+
+    Args:
+        placed (Placed): The star the tree is drawn for.
+        age_yr (float): The system's age in years.
+        rng: The random source (a `draw.Stream` or the `draw` module). A star that is not eligible draws nothing.
+        max_stars, prevalence, bound_runaway, max_axis_au, pair_placed: As for `draw_member_tree`.
+
+    Returns:
+        MemberTree or None: None leaves the caller to draw the star's tree as for any other star.
+    """
+    if (placed.kind != "star" or age_yr >= tuning.YOUNG_GROUP_AGE_MAX_YR
+            or companion_class(placed.birth_mass_solar) not in ("O", "B-early")):
+        return None
+    if rng.random() >= system_types.SYSTEM_TYPE_RATES["young-group"].default:
+        return None
+    sizes = list(tuning.YOUNG_GROUP_SIZE_WEIGHTS)
+    count = min(rng.choices(sizes, weights=list(tuning.YOUNG_GROUP_SIZE_WEIGHTS.values()))[0], max_stars)
+    leaves, _units = _roster(placed, age_yr, rng, max_stars, count, prevalence, bound_runaway=bound_runaway)
+    if len(leaves) < 3 or any(leaf.compact for leaf in leaves):
+        return None
+    low, high = tuning.YOUNG_GROUP_DECAY_AGE_RANGE_YR
+    decay_age_yr = math.exp(rng.uniform(math.log(low), math.log(high)))
+    if age_yr < decay_age_yr:
+        return _group_tree(leaves, age_yr, decay_age_yr, rng)
+    return _decayed_group(leaves, age_yr, rng, max_axis_au, pair_placed)
+
+
 def _single(leaf, age_yr, dropped, rng):
     member = Member(0, None, 0, leaf.kind, leaf.state, leaf.flags, leaf.mass, leaf.initial, leaf.radius_au,
                     rng.getrandbits(63), leaf.effective_age_yr)
@@ -1633,7 +1738,8 @@ def without_members(tree, kinds):
 
 
 def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=None, prevalence=1.0,
-                     companion=_DRAW_COMPANION, bound_runaway=False, max_axis_au=math.inf, pair_placed=False):
+                     companion=_DRAW_COMPANION, bound_runaway=False, max_axis_au=math.inf, pair_placed=False,
+                     groups=False):
     """
     The members of the system around `placed` and their orbits, as a `MemberTree`.
 
@@ -1660,11 +1766,25 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=No
             leaves it unbounded.
         pair_placed (bool): Draw the shape so the placed object is in a pair of two single members, when the tree has one
             (a system build, whose pair is the primary and secondary); the scatter leaves the shape as drawn.
+        groups (bool): A massive star younger than `tuning.YOUNG_GROUP_AGE_MAX_YR` is, at the `young-group` share, born in a
+            young group (`draw_young_group`, GEN.327): a `group` node of stars flying straight while the system is younger
+            than the group's decay age, the hierarchy the group left once it is older. A system build cannot hold a group,
+            so only the scatter asks for it.
 
     Returns:
         MemberTree: The placed object is member 0. A single object has one member and no nodes.
     """
+    if groups and placed.kind == "star":
+        group = draw_young_group(placed, age_yr, rng, max_stars, prevalence, bound_runaway, max_axis_au, pair_placed)
+        if group is not None:
+            return group
     leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion, bound_runaway)
+    return _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed)
+
+
+def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed):
+    """The `MemberTree` of the `leaves` in the shape `units` names (the placed leaf first): hierarchies are drawn until one
+    clears the stability and extent screens, and when none does the lightest loose member is dropped and the draw tries again."""
     dropped = 0
 
     def shape_of(units, rng):

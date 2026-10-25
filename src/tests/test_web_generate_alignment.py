@@ -27,19 +27,26 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
 )
 
 # For each group of fields: the visible boxes (text, number, password,
-# search entries and selects that belong to a plain field) with their boxes.
+# search entries and selects that belong to a plain field, or the box inside
+# a Shoelace field, UX.125) with their boxes.
 GROUPS = """
 () => {
   const out = [];
+  const boxOf = (field) => {
+    const plain = field.querySelector("input[type=text], input[type=number], input[type=password], input[type=search], select");
+    if (plain) return plain;
+    const host = field.querySelector("sl-input, sl-select");
+    return host && host.shadowRoot && host.shadowRoot.querySelector("[part~=base], [part~=combobox]");
+  };
   for (const group of document.querySelectorAll(".aligned-fields .search-fields")) {
     const boxes = [];
-    for (const field of group.querySelectorAll(":scope > .search-field:not(.generate-check)")) {
-      const input = field.querySelector(
-        "input[type=text], input[type=number], input[type=password], input[type=search], select");
+    for (const field of group.querySelectorAll(":scope > .search-field:not(.generate-check), :scope > .ui-field:not(.ui-field-check)")) {
+      const input = boxOf(field);
       if (!input) continue;
       const r = input.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) continue;
-      boxes.push({label: field.textContent.trim().slice(0, 40), x: r.x, y: r.y, w: r.width});
+      const label = field.querySelector("sl-input, sl-select");
+      boxes.push({label: ((label && label.getAttribute("label")) || field.textContent).trim().slice(0, 40), x: r.x, y: r.y, w: r.width});
     }
     if (boxes.length > 1) out.push(boxes);
   }
@@ -88,6 +95,7 @@ def test_text_boxes_line_up(browser, base_url, admin_token, path, width, scheme)
         page.evaluate("() => { for (const d of document.querySelectorAll('details')) d.open = true; }")
         page.wait_for_timeout(100)
         assert page.evaluate("document.querySelectorAll('.aligned-fields .search-fields').length") > 0
+        page.wait_for_timeout(500)
         problems = _problems(page)
     finally:
         context.close()

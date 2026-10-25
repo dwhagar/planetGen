@@ -1,8 +1,6 @@
 """
-UX.27: the system page's buttons (Navigate from here, Navigate to here, Show
-on Galaxy Map, Bookmark) sit on one row at every width; where the two
-navigate buttons don't fit they fold into one Navigate menu (From here / To
-here), chosen by a container query, not a device check.
+UX.27, UX.201: the system page's buttons (the Nav menu, Show on Galaxy Map, Bookmark) sit on one row at every width. The
+Nav menu holds Navigate from here, Navigate to here and Nearby locations.
 
 Skipped without Playwright, Chromium or the MySQL test server, like
 `test_web_a11y.py`.
@@ -30,10 +28,8 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
 ROW = ".page-actions.nav-row"
 ROW_BUTTONS = ROW + " > a.btn-small:visible, " + ROW + " > sl-dropdown.nav-menu:visible, " + ROW + " > .btn-bookmark:visible"
 
-# (viewport width, buttons on the row): four from 38 rem (608 px) of room,
-# three (Navigate menu, Show on Galaxy Map, Bookmark) down to 26 rem
-# (416 px), then two (Navigate menu, Bookmark). The page pads 32-48 px.
-WIDTHS = [(1280, 4), (820, 4), (600, 3), (390, 2)]
+# (viewport width, buttons on the row): the Nav menu, Show on Galaxy Map and Bookmark at every width.
+WIDTHS = [(1280, 3), (820, 3), (600, 3), (390, 3)]
 
 
 def _load(browser, base_url, page_targets, admin_token, width):
@@ -59,22 +55,19 @@ def test_system_buttons_share_one_row(browser, base_url, page_targets, admin_tok
         for first, second in zip(boxes, boxes[1:]):
             assert first["x"] + first["width"] <= second["x"] + 0.5, f"overlap: {first} {second}"
         assert boxes[-1]["x"] + boxes[-1]["width"] <= width, boxes
-        assert page.locator(ROW + " .nav-menu").is_visible() == (count < 4)
-        assert page.locator(ROW + " a.nav-wide").first.is_visible() == (count == 4)
-        assert page.locator(ROW + " a.nav-galaxy").is_visible() == (count >= 3)
+        assert page.locator(ROW + " .nav-menu").is_visible()
     finally:
         context.close()
 
 
-@pytest.mark.parametrize("item,link", [("To here", "a.nav-wide >> nth=1"), ("From here", "a.nav-wide >> nth=0"),
-                                       ("Show on Galaxy Map", "a.nav-galaxy")])
-def test_the_navigate_menu_goes_where_the_wide_buttons_go(browser, base_url, page_targets, admin_token, item, link):
+def test_the_nav_menu_lists_navigate_from_to_and_nearby(browser, base_url, page_targets, admin_token):
     context, page = _load(browser, base_url, page_targets, admin_token, 390)
     try:
-        href = page.locator(ROW + " " + link).evaluate("el => el.getAttribute('href')")
         page.locator(ROW + " .nav-menu > [slot=trigger]").click()
-        page.get_by_role("menuitem", name=item).click()
-        # The Galaxy Map link redirects (to /galaxy?...), so match its start only.
-        page.wait_for_url(lambda url: url.startswith(base_url + (href if item != "Show on Galaxy Map" else "/galaxy")))
+        names = [name.strip() for name in page.locator(ROW + " .nav-menu sl-menu-item").all_inner_texts()]
+        assert names[:2] == ["Navigate from here", "Navigate to here"], names
+        assert set(names[2:]) <= {"Nearby locations"}, names
+        page.get_by_role("menuitem", name="Navigate to here").click()
+        page.wait_for_url(lambda url: "/nav" in url and "to=" in url)
     finally:
         context.close()

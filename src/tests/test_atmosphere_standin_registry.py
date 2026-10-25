@@ -24,7 +24,11 @@ STANDINS = (
     "mixture_subject.DAYSIDE_OVER_EQUILIBRIUM",
     "surface_pressure.PROCESSING_ENERGY_J_PER_KG", "surface_pressure.DEGAS_EFFICIENCY_H", "surface_pressure.DEGAS_EFFICIENCY",
     "surface_pressure.WEATHERING_ALPHA", "surface_pressure.WEATHERING_T_E_K", "surface_pressure.OUTGASSING_EXPONENT",
-    "surface_pressure.HEAT_FLUX_EARTH_W_M2", "surface_air.LONG_LIVED_FLUX_FRACTION", "surface_air.RELATIVE_HUMIDITY", "surface_air.SULFUR_SURFACE_KEPT",
+    "surface_air.LONG_LIVED_FLUX_FRACTION", "surface_air.RELATIVE_HUMIDITY", "surface_air.SULFUR_SURFACE_KEPT",
+    "surface_pressure.HEAT_FLUX_EARTH_W_M2",
+    "impact_history.LATE_ACCRETED_PERCENT_EARTH", "impact_history.LATE_ACCRETED_MASS_EXPONENT", "impact_history.LATE_ACCRETED_LN_SIGMA",
+    "impact_history.VENEER_VOLATILES", "impact_history.VENEER_VOLATILE_SCALE", "impact_history.V_INF_OVER_V_ORBIT",
+    "impact_history.DIAMETER_RANGE_KM", "impact_history.SVETSOV_GAMMA", "impact_history.IMPACTOR_ESCAPE_COEFFICIENT",
 )
 
 

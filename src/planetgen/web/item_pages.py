@@ -69,20 +69,23 @@ def item_url(ref):
 
 
 def _crumbs(found, name):
-    """Home > Galaxy > sector > system > ... > this item, from the API's parent chain."""
+    """Home > Galaxy > sector > System > star > ... > this item, from the API's parent chain. The system link reads
+    "System" and the star's the star's own name, so a system and a star that share a name do not show twice."""
     crumbs = []
     for parent in found["parents"]:
         if parent["kind"] == "galaxy":
             crumbs.append(crumb("Galaxy", "galaxy"))
         else:
-            crumbs.append({"label": parent["name"], "url": item_url(parent["ref"])})
+            label = "System" if parent["kind"] == "system" else parent["name"]
+            crumbs.append({"label": label, "url": item_url(parent["ref"])})
     crumbs.append(crumb(name))
     return crumbs
 
 
 def location(parents, inside):
     """
-    The Location block (UX.144): the places above an item as links, galaxy first, and the cloud it sits inside.
+    The Location block (UX.144): the places above an item as links, and the cloud it sits inside. The galaxy is left out
+    (UX.200: it is the galaxy anyway), and a star that shares the name of the system above it is listed once, as the system.
 
     Args:
         parents (list[dict]): The API's parent chain (`ref`, `kind`, `name`), galaxy first.
@@ -91,9 +94,10 @@ def location(parents, inside):
     chain = []
     for parent in parents:
         if parent["kind"] == "galaxy":
-            chain.append({"label": "Galaxy", "url": page_url("galaxy")})
-        else:
-            chain.append({"label": parent["name"], "url": item_url(parent["ref"])})
+            continue
+        if parent["kind"] == "star" and chain and chain[-1]["label"] == parent["name"]:
+            continue
+        chain.append({"label": parent["name"], "url": item_url(parent["ref"])})
     cloud = None if not inside else {"name": inside["name"], "url": own_page_url(inside["type"], inside["id"])}
     return {"chain": chain, "inside": cloud}
 
@@ -197,7 +201,10 @@ def system_tree(db, system_id, name):
 
 
 def _listed(row):
-    """Whether a page lists a sheet row: it holds something, or its absence is itself worth knowing (UX.188)."""
+    """Whether a page lists a sheet row: it holds something, or its absence is itself worth knowing (UX.188). A value that
+    was never stored is not listed (UX.199)."""
+    if not row.get("stored", True):    # UX.199: "not stored" is a gap in the data, not a fact about the object
+        return False
     return not row.get("absent") or row.get("show_absent", False)
 
 
@@ -205,10 +212,15 @@ def sheet_view(sheet):
     """A property sheet (`GET /api/objects/<ref>/sheet`) as the page draws it: `[{"key", "label", "rows"}]` with each
     row's value as HTML (`describe.html.inline_html`, so a quantity reads in the reader's unit system). A row that holds
     nothing is left out unless its absence matters (`describe.sheet.SHOW_WHEN_ABSENT`); a group left empty goes too."""
+    absent = set(sheet.get("missing") or ())
     groups = [{"key": group["key"], "label": group["label"],
                "rows": [{"label": row["label"], "html": trusted_html(inline_html(row["value"])), "stored": row["stored"]}
                         for row in group["rows"] if _listed(row)]}
-              for group in sheet["groups"]]
+              for group in sheet["groups"] if group["key"] not in absent]    # UX.203: a section of zeros is one sentence
+    if "atmosphere" in absent:
+        groups.insert(next((i for i, group in enumerate(groups) if group["key"] == "climate"), len(groups)),
+                      {"key": "atmosphere", "label": "Atmosphere", "rows": [
+                          {"label": "Atmosphere", "html": trusted_html("None"), "stored": True}]})
     return [group for group in groups if group["rows"]]
 
 
@@ -222,10 +234,13 @@ def glance_view(sheet):
 
 def sheet_context(sheet):
     """The template variables of a page's sheet: `sheet` (the groups), `glance` (the At a glance rows) and
-    `hidden_rows` (how many rows hold nothing and are not listed, for the line that says so)."""
+    `hidden_rows` (how many rows hold nothing and are not listed, for the line that says so) and `absences` (the sentences
+    for the sections left out because they hold only zeros, UX.203)."""
     listed = sum(1 for group in sheet["groups"] for row in group["rows"] if _listed(row))
     total = sum(len(group["rows"]) for group in sheet["groups"])
-    return {"sheet": sheet_view(sheet), "glance": glance_view(sheet), "hidden_rows": total - listed}
+    notes = [sheet_registry.MISSING_SENTENCES[key] for key in sheet_registry.MISSING_SENTENCES
+             if key in (sheet.get("missing") or ())]
+    return {"sheet": sheet_view(sheet), "glance": glance_view(sheet), "hidden_rows": total - listed, "absences": notes}
 
 
 def _bodies(detail):

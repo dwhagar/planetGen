@@ -18,6 +18,8 @@ preflight this API doesn't allow -- is this API's CSRF defense; no
 separate CSRF token scheme is layered on top of that).
 """
 
+import base64
+import binascii
 import hashlib
 
 from flask import Blueprint, current_app, g, jsonify, request
@@ -25,12 +27,13 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 
 from planetgen.admin import activity_log, auth as adminAuth
 from planetgen.util import log
+from planetgen.web import assets
 
 from .authz import audit, require_admin, session_cookie_name
 from .common import ApiError, get_control_db, require_json_body
 from .limiter import limiter
 from .schemas import (
-    ApiKeyCreate, ChangeCredentials, Login, LoginCode, PasswordCheck, TotpConfirm, TotpDisable, parse_body,
+    ApiKeyCreate, ChangeCredentials, ImageUpload, Login, LoginCode, PasswordCheck, TotpConfirm, TotpDisable, parse_body,
 )
 from .loginguard import LoginGuard
 
@@ -57,6 +60,7 @@ def _admin_public_dict(admin):
     return {
         "username": admin["username"],
         "must_change_credentials": bool(admin["must_change_credentials"]),
+        "avatar": f"/site-assets/{admin['avatar']}" if admin.get("avatar") else None,
     }
 
 
@@ -437,6 +441,45 @@ def totp_disable():
     resp = jsonify({"enabled": False})
     _issue_device_cookie(resp, conn, g.admin_user["id"])
     return resp
+
+
+@bp.route("/avatar", methods=["POST"])
+@require_admin(fresh=True, session_only=True)
+def set_avatar():
+    """
+    `POST /api/auth/avatar` `{"data": "<base64>"}` -- sets the calling account's picture (SEC.36). A PNG, JPEG, ICO
+    or GIF (animated or not); `planetgen.web.assets.prepare_avatar` has the caps. What is stored is a new encoding of
+    the pixels, with every comment, XMP block, profile and EXIF tag left out. Answers `{"avatar": "/site-assets/<name>",
+    "width", "height", "frames"}`; a picture that cannot be used is a 422 saying why.
+    """
+    body = parse_body(ImageUpload, require_json_body())
+    try:
+        data = base64.b64decode(body.data, validate=True)
+    except (binascii.Error, ValueError) as exc:
+        raise ApiError("'data' must be the picture as base64 text", status_code=422) from exc
+    try:
+        stored = assets.store_avatar(data)
+    except assets.AssetError as exc:
+        raise ApiError(str(exc), status_code=422) from exc
+    conn = get_control_db()
+    previous = adminAuth.set_avatar(conn, g.admin_user["id"], stored["name"])
+    if previous != stored["name"]:
+        adminAuth.forget_avatar_file(conn, previous)
+    audit("avatar.set", target=f"admin:{g.admin_user['id']}", detail=stored["name"])
+    return jsonify({"avatar": f"/site-assets/{stored['name']}", "width": stored["width"], "height": stored["height"],
+                    "frames": stored["frames"]})
+
+
+@bp.route("/avatar", methods=["DELETE"])
+@require_admin(fresh=True, session_only=True)
+def remove_avatar():
+    """`DELETE /api/auth/avatar` -- the calling account has no picture, and its file is removed unless another account
+    holds the same one."""
+    conn = get_control_db()
+    previous = adminAuth.set_avatar(conn, g.admin_user["id"], None)
+    adminAuth.forget_avatar_file(conn, previous)
+    audit("avatar.remove", target=f"admin:{g.admin_user['id']}", detail=previous)
+    return jsonify({"avatar": None})
 
 
 @bp.route("/api-keys", methods=["GET"])

@@ -525,6 +525,39 @@ def _axe_blocking(page, axe_source, context=None):
     return problems
 
 
+HEADING_AUDIT_JS = """() => {
+    const shown = el => el.checkVisibility ? el.checkVisibility() : el.getClientRects().length > 0;
+    const label = el => el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") +
+                        (el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\\s+/).join(".") : "");
+    const heads = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")].filter(h => shown(h) && !h.closest("sl-dialog, dialog, [hidden]"));
+    const out = [];
+    const h1s = heads.filter(h => h.tagName === "H1");
+    if (h1s.length !== 1) out.push("expected one h1, found " + h1s.length);
+    let previous = 0;
+    for (const h of heads) {
+        const level = Number(h.tagName[1]);
+        if (previous === 0 && level !== 1) out.push("the first heading is " + label(h) + ", not an h1");
+        else if (level > previous + 1) out.push(label(h) + " (h" + level + ") skips a level after h" + previous);
+        previous = level;
+    }
+    for (const table of document.querySelectorAll("table")) {
+        if (!shown(table) || table.closest("sl-dialog, dialog, [hidden]")) continue;
+        if (table.querySelector(":scope > caption") || table.getAttribute("aria-label") || table.getAttribute("aria-labelledby")) continue;
+        const holder = table.closest("section, details, article, form, aside");
+        const before = h => table.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_PRECEDING;
+        const owner = holder && heads.some(h => holder.contains(h) && before(h));
+        if (!owner) out.push(label(table) + " has no heading, caption or label");
+    }
+    return out;
+}"""
+
+
+def _heading_outline(page):
+    """UX.195: one h1, no skipped level in document order, and every visible table under a heading of its section or
+    carrying a caption or label."""
+    return [f"heading outline: {problem}" for problem in page.evaluate(HEADING_AUDIT_JS)]
+
+
 def _overflow(page):
     widths = page.evaluate(
         "({doc: document.documentElement.scrollWidth, body: document.body.scrollWidth,"
@@ -591,6 +624,7 @@ def test_page_is_accessible_and_fits(browser, axe_source, base_url, page_targets
 
         problems += _overflow(page)
         problems += _axe_blocking(page, axe_source)
+        problems += _heading_outline(page)
 
         # Skip link: the first Tab stop, visible once focused, pointing at <main id="main">.
         page.keyboard.press("Tab")

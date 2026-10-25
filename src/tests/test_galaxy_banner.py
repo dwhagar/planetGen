@@ -107,12 +107,12 @@ def test_a_run_with_no_sign_of_life_shows_nothing(conn):
     assert galaxystatus.compute(conn, "g1", now=100.0 + 3 * HOUR) == {"active": False}
 
 
-def test_a_stage_with_no_estimate_says_it_is_working_it_out(conn):
+def test_a_stage_with_no_timing_says_its_time_is_a_rough_guess(conn):
     run_id = runrecord.start_run(conn, "Fill", [Stage("mass", "Mass scatter", units=4)], database="g1", now=100.0)
     runrecord.begin_stage(conn, run_id, 0, now=100.0)
     status = galaxystatus.compute(conn, "g1", now=101.0)
-    assert status["active"] and status["hours"] is None
-    assert "Working out how long it will take." in status["text"]
+    assert status["active"] and status["hours"] == 1          # PERF.184: a rough guess, not a blank
+    assert "a rough guess, nothing has been timed yet" in status["text"]
 
 
 def test_redis_down_means_no_banner_not_an_error(monkeypatch):

@@ -858,8 +858,9 @@ forced credential change. They back the admin stats page
   "cancelling", "done", "failed" or "cancelled"), "error", "live", "stale",
   "created", "started", "updated", "finished", "seconds", "stage": {"index",
   "count", "label", "state"}, "units", "units_done", "percent", "eta":
-  {"seconds", "low", "high", "source", "from_earlier_runs", "partial",
-  "stalled"} or null}`, all read from the run record in Redis (`holder` is
+  {"seconds", "low", "high", "source" ("live", "recorded", "earlier runs", "this run so far" or "rough guess"),
+  "from_earlier_runs", "partial", "stalled", "rough" (PERF.184: part of the time is a guess from the host's workers and
+  the stage's units, so `low` and `high` are wide)} or null}`, all read from the run record in Redis (`holder` is
   the run that owns the machine; `stale` says it has not been heard from
   for `max(120 s, 3 x its longest unit)`). `load.kind` is `load` (the 1, 5
   and 15 minute load average); `load.values` is null where the system has
@@ -1038,7 +1039,21 @@ forced credential change. They back the admin stats page
   that turned it off gets a new device cookie). Lost the phone and the recovery codes? From a shell:
   `python3 -m planetgen.cli.reset_two_factor <user>`.
 - `POST /api/auth/logout` — ends the current session, clears the cookie.
-- `GET /api/auth/me` — the calling admin's identity.
+- `GET /api/auth/me` — the calling admin's identity: `{"username", "must_change_credentials", "avatar"}`; `avatar` is
+  `/site-assets/<name>` or `null`.
+- `POST /api/auth/avatar` `{"data": "<base64>"}` — sets the account's picture (SEC.36); a signed-in browser session
+  and past the forced credential change. **The avatar rules.** A PNG, JPEG, ICO or GIF (animated too), at most 1 MiB,
+  1,048,576 pixels a frame (1024 by 1024), 100 frames, and 16,000,000 pixels over all the frames (width times height
+  times frames). Pillow is asked to try those four formats only, the size is read from the header before anything is
+  decoded, a decompression-bomb warning is an error, and the frames are unpacked one at a time under the caps, so an
+  upload over a cap is refused (422 with a sentence) having unpacked no more than fits. A GIF or PNG with several frames
+  keeps its frames, durations and loop count; everything else the upload carried (comments, XMP, ICC profiles, EXIF,
+  other application extensions) is dropped, because the stored file is Pillow's new encoding of the pixels, never the
+  uploaded bytes (an ICO is stored as a PNG, a JPEG keeps its turn). It is named by the SHA-256 of what is stored and
+  served at `/site-assets/<name>` with its own content type, `X-Content-Type-Options: nosniff` and a year's cache. The
+  answer is `{"avatar", "width", "height", "frames"}`. The site's logo, icons and preview picture keep the SEC.35 rule
+  and still refuse a GIF. Replacing the picture removes the old file unless another account or setting names it.
+- `DELETE /api/auth/avatar` — the account has no picture; its file is removed unless another account holds it.
 - `POST /api/auth/change-credentials`
   `{"current_password", "new_username", "new_password"}` — always
   requires the current password, regardless of whether

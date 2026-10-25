@@ -28,8 +28,12 @@ connection, so the app already sees the real address and scheme.
    [`examples/maintenance/`](../../examples/maintenance/).
 7. Run the [server checklist](server-checklist.md).
 
-Later updates: `sudo ./update.sh`. It reloads Apache itself when Apache is running (and restarts it after enabling a
-module); it prints `sudo systemctl reload apache2` only when Apache is not running.
+Later updates: `sudo ./update.sh`. When Apache is running it tests the configuration (`apache2ctl configtest`), reloads
+it (a graceful reload loads new modules too; it restarts only when it just installed mod_wsgi), and checks that
+`/api/health` answers (`PLANETGEN_HEALTH_URL` names another address). A `planetgen-gunicorn` unit, or the launchd
+gunicorn daemon on macOS, is sent a reload the same way. If a step fails the update ends non-zero and prints the
+command to run by hand; when nothing that serves the site is running it prints the commands and ends zero. A reload
+aborts the requests a mod_wsgi daemon is serving after about 4 seconds, where `touch src/html/wsgi.py` does not.
 
 ## Deployment files
 

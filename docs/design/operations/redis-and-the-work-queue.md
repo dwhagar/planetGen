@@ -334,8 +334,8 @@ What the old command structure becomes (Boss, 2026-10-17, 8:06 PM EDT: the rewor
 | `run_plan._scatter_shells` with `work.py`'s task queue (the bright-star pass, the band) | the `scatter-luminosity` and `scatter-band` units; already gone in PERF.106 | PERF.106 |
 | `plan`'s flags and in-process stage calls (`scatter_phenomena`, `redo_scatters`; the fills and the nebula field have their commands, PERF.106) | one `scatter` command per kind, the skeleton, the fill and the re-score as their own commands; `plan` becomes `build_steps` plus `wrapper.run` | PERF.121, PERF.122, PERF.106 |
 | `galaxy`'s in-process start, neighborhood, sectors, link, backfill, population and settle | the same stages as registered commands; `galaxy` becomes a step list | PERF.123, PERF.107, PERF.108 |
-| `sector` with `--population`, `phenomenon` with its settle | `sector` and `phenomenon` only generate | PERF.124 |
-| `population` with `--territories-only` and `--rescan` | two commands | PERF.125 |
+| `sector` with `--population`, `phenomenon` with its settle | `sector` and `phenomenon` only generate; the settle after a phenomenon is `settle --sector-id` (done) | PERF.124 |
+| `population` with `--territories-only` and `--rescan` | two commands, `run-population` and `run-territories` (done) | PERF.125 |
 | `check-db` behind flags, `warm_map --only`, `benchmark`'s own sequence | a command per check, per cache family, and a step list; `check-db` is the nine `check-*` commands run as a check run (PERF.126, done); `warm_map` is `planetgen warm` and the six `warm-*` commands, run as a maintenance run (PERF.127, done) | PERF.126, PERF.127, PERF.128 |
 | The Generate page, API jobs and one-off pages starting their own runs | build a step list and call the wrapper | PERF.119 |
 | The Generate page, Queue page and job log reading the old tables; the `work_*` tables | read the run record in Redis; deleted with their migration | PERF.99, PERF.100 |

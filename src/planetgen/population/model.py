@@ -12,12 +12,12 @@ territories. See `docs/design/habitability/population-and-politics.md`.
 Everything here works from what is already stored -- the planets'
 evolutionary paragraphs (`evolution.get_evolutionary_state`) and the
 systems' positions -- so it runs as its own pass (`planetgen
-population`, and after every `galaxy`/`sector` run) on a galaxy that was
+population` and `planetgen territories`, and as stages of a `galaxy` run) on a galaxy that was
 generated before it existed. Nothing in system generation changes.
 
 The pure functions (`timeline_of`, `species_traits`,
 `civilization_age`, `era_for_age`, `reach_ly`, `resolve_claims`, ...)
-take no database; `run_pass` and the functions after it do.
+take no database; `run_population`, `run_territories` and the functions after them do.
 """
 
 import colorsys
@@ -49,7 +49,7 @@ numbered suffix instead."""
 
 PASS_LOCK_WAIT_SECONDS = 10
 """int: How long one wait for another population pass's lock lasts
-before `run_pass` says it is waiting (and waits again)."""
+before a pass says it is waiting (and waits again)."""
 
 
 # ---------------------------------------------------------------------------
@@ -251,25 +251,44 @@ def resolve_claims(polities, systems):
 # Database pass
 # ---------------------------------------------------------------------------
 
-def run_pass(conn, rescan=False, territories_only=False, on_stage=None):
+def run_population(conn, rescan=False, on_stage=None):
     """
-    The whole population pass, committed as it goes: scan new life
-    worlds, refresh eras and polities, recompute territories.
+    The population pass, committed as it goes (PERF.125): scan new life worlds, drop the species without a
+    civilization, date the civilizations and found or dissolve the polities. It does not draw territories; that is
+    `run_territories`, its own command.
 
     Args:
         conn (Connection): A write connection.
         rescan (bool): Forget every species (and with them every polity
             and territory) and scan every planet again.
-        territories_only (bool): Skip straight to recomputing territories.
         on_stage (callable, optional): `on_stage(description)` as each of
-            the pass's `pass_stage_count` steps starts (UX.83's bar).
+            the pass's `POPULATION_STAGES` steps starts (UX.83's bar).
 
     Returns:
-        dict: Counts -- `new_species`, `species`, `spacefaring`,
-            `polities`, `owned_systems`.
+        dict: Counts -- `new_species`, `species`, `spacefaring`, `polities`.
     """
     with _one_pass_at_a_time(conn):
-        return _run_pass(conn, rescan, territories_only, on_stage)
+        return _run_population(conn, rescan, on_stage)
+
+
+def run_territories(conn, on_stage=None):
+    """
+    The territories pass, committed as it goes (PERF.125): recompute which polity owns which system from the polities
+    already stored.
+
+    Args:
+        conn (Connection): A write connection.
+        on_stage (callable, optional): `on_stage(description)` as the one step starts.
+
+    Returns:
+        dict: Counts -- `polities` and `owned_systems`.
+    """
+    with _one_pass_at_a_time(conn):
+        if on_stage is not None:
+            on_stage("Population: recomputing territories")
+        owned = refresh_territories(conn)
+        polities = conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"]
+        return {"polities": int(polities), "owned_systems": owned}
 
 
 def _pass_lock_name(conn):
@@ -283,7 +302,7 @@ def _pass_lock_name(conn):
 def _one_pass_at_a_time(conn):
     """
     Holds this database's population lock (`GET_LOCK`) for a whole pass,
-    so two passes at once -- a `--population` run finishing while
+    so two passes at once -- a `galaxy` run's population stage finishing while
     another, or `planetgen population`, is still going (TEST.37) --
     take turns: the second waits, then sees the first's species and
     watermark, rather than both naming the same worlds and one failing
@@ -311,36 +330,31 @@ def _one_pass_at_a_time(conn):
             pass
 
 
-def pass_stage_count(territories_only=False):
-    """How many steps `run_pass` announces through `on_stage`."""
-    return 1 if territories_only else 4
+POPULATION_STAGES = 3
+"""int: How many steps `run_population` announces through `on_stage`."""
 
 
-def _run_pass(conn, rescan, territories_only, on_stage=None):
+def _run_population(conn, rescan, on_stage=None):
     def stage(description):
         if on_stage is not None:
             on_stage(description)
 
-    new_species = 0
-    if not territories_only:
-        stage("Population: scanning life worlds")
-        if rescan:
-            with conn:
-                conn.execute("DELETE FROM species")
-                conn.execute("DELETE FROM population_state")
-        new_species = scan_life_worlds(conn)
-        stage("Population: dropping species without a civilization")
-        drop_species_without_civilization(conn)
-        stage("Population: dating civilizations and founding polities")
-        refresh_civilizations(conn)
-    stage("Population: recomputing territories")
-    owned = refresh_territories(conn)
+    stage("Population: scanning life worlds")
+    if rescan:
+        with conn:
+            conn.execute("DELETE FROM species")
+            conn.execute("DELETE FROM population_state")
+    new_species = scan_life_worlds(conn)
+    stage("Population: dropping species without a civilization")
+    drop_species_without_civilization(conn)
+    stage("Population: dating civilizations and founding polities")
+    refresh_civilizations(conn)
     counts = conn.execute(
         "SELECT COUNT(*) AS species, COALESCE(SUM(spacefaring), 0) AS spacefaring FROM species"
     ).fetchone()
     polities = conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"]
     return {"new_species": new_species, "species": int(counts["species"]),
-            "spacefaring": int(counts["spacefaring"]), "polities": int(polities), "owned_systems": owned}
+            "spacefaring": int(counts["spacefaring"]), "polities": int(polities)}
 
 
 def _watermark(conn):

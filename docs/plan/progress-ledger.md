@@ -1436,3 +1436,47 @@ Baseline: PR #1817.
 | GEN.398 | 8.1 | Bugs and flaky tests |
 | GEN.719 | 8.1 | Nebula and young stars |
 | GEN.691 | 8.1 | Habitability system |
+| GEN.725 | 8.1 | Mixture and stored values |
+| MAP.294 | 8.1 | Fly-through map |
+| MAP.293 | 8.1 | Fly-through map |
+| TEST.373 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.184 | 8.1 | The headline closes |
+| ADM.129 | 8.1 | The headline closes |
+| UX.125 | 8.1 | Admin control suite |
+| DB.100 | 8.1 | Habitability system |
+| GEN.180 | 8.1 | Generate page and directives |
+| UX.207 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.204 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.203 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.202 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.201 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.200 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.29 | 8.1 | Reproducible galaxies |
+| SEC.36 | 8.1 | The headline closes |
+| OPS.70 | 8.1 | Bugs and flaky tests |
+| TEST.372 | 8.1 | The headline closes |
+| TEST.376 | 8.1 | The headline closes |
+| PERF.124 | 8.1 | Queue, caches and performance |
+| TEST.378 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.209 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.199 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.198 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.196 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.195 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.125 | 8.1 | Queue, caches and performance |
+| GEN.766 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.765 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.734 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.211 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.792 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.793 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.327 | 8.1 | Multi-star and compact systems |
+| TEST.375 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.374 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.481 | 8.1 | Weight research (atmosphere) |
+| GEN.482 | 8.1 | Weight research (atmosphere) |
+| GEN.654 | 8.1 | Habitability system |
+| DB.92 | 8.1 | Habitability system |
+| GEN.751 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.803 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.739 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

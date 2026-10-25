@@ -2,6 +2,339 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2320] - 2026-10-25
+
+**Headline:** A rocky planet's iron no longer copies its star exactly: it scatters about the star's, and a rare planet is iron-rich.
+
+### Changed
+- **The iron branch of a rocky planet (GEN.512).** A rocky planet's core now takes its star's iron with a small scatter, and about 1 planet in 100 is iron-enriched (a core of 50 to 80 percent of the dry mass); before, every planet of a star had the star's core exactly. The share is tuned to the homogeneous samples of small planets (1 of 21 iron-rich beyond their measurement error), and the noise of those measurements alone explains that share, so the iron-rich share is an upper limit. Moons, icy, small and carbon bodies are unchanged.
+generation-output: changed
+
+## [8.0.2319] - 2026-10-25
+
+**Headline:** The progress bars, the Generate page's progress line and the Queue page's stage table now say what their counts count.
+
+### Changed
+- **Progress bars on the command line (API.33).** "12/40" now reads "12/40 sectors" (or rows, passes, steps, systems, units, by the bar's kind); a bar of detail items keeps naming its own items.
+- **The Generate page's progress line (UX.211).** "Neighbours: 3 of 40" now ends with what it counts ("3 of 40 sectors") unless the label already says it.
+- **The Queue page (UX.211).** A stage's "5 of 75" now reads "5 of 75 units", and a run with one unit says "unit", not "units".
+- **Phenomena scatter log lines** say "placed 120 phenomena", not "placed 120".
+- **Generate page, Minimum start density** now says that 1.0 is as dense as the Sun's neighborhood.
+
+## [8.0.2318] - 2026-10-25
+
+**Headline:** The planet generator now has a model of the volatiles that late impacts deliver to a rocky planet and the air they blow away.
+
+### Changed
+- **Impact erosion and late delivery (GEN.739).** A new module (`impact_history`) takes the mass a rocky planet accretes after its giant impacts (0.7 percent of an Earth mass for the Earth, falling with mass), the water, carbon dioxide and nitrogen those impactors bring, and the air they erode, and returns what the air and the surface keep. It reproduces the Earth's nitrogen and ocean, Venus's nitrogen, and the result that late impacts alone do not make Mars thin. The supply law has a hook (`impact_inventory`) that turns the result into atoms per 100 g of mantle. Nothing in the generator calls it yet (it waits on GEN.411 and GEN.422), so no stored value changes today.
+- The nine new constants are in the stand-in registry (GEN.725) with their source tier and tweak level. The design note is `docs/design/composition/impact-erosion-and-late-delivery.md`.
+
+## [8.0.2317] - 2026-10-25
+
+**Headline:** The redox of a rocky world's magma ocean now follows the published ranges: its spread grows with mass, it keeps rising above one Earth mass, and the later mantle is never more reduced than the ocean it came from.
+
+### Changed
+- **Width and rise above one Earth mass (GEN.482b).** The spread of the magma-ocean redox grows from 0.5 log units at 0.1 Earth masses to 0.9 at one (the Hirschmann 2022 and Deng 2020 ranges for the Moon, Mars and Earth), and the mean keeps rising by 1.0 per dex of mass up to 5.4 Earth masses, where the pressures of the published calculations end. Nothing in the generator draws the mixture yet (it waits on GEN.411 and GEN.422), so no stored value changes today; the first air of a heavier rocky world will be more oxidised than before once it does.
+- **The later mantle (GEN.482b).** Its mean is held at the Earth value above one Earth mass (no source goes further), and a body never moves to a later mantle more reduced than its own magma-ocean surface.
+- Rows a1 and a2 are listed as partly verified with their limits (GEN.482); row a3 is unchanged because nothing reads it for a body with an air.
+
+## [8.0.2316] - 2026-10-25
+
+**Headline:** The gas table now holds K2, KO, K2O, Na2O and Al, so the vapour over a lava world lists the alkali oxides it makes instead of dropping them.
+
+### Added
+- **Lava-vapour gases (GEN.751).** K2, KO, K2O and Na2O, and Al, are in the NASA thermodynamic table (94 species) and the gas table (108 gases), computed from the NASA fits like the other lava-vapour species. A lava-world draw lists the four alkali species it makes (KO is about 4e-7 bar over a bulk-silicate-Earth melt at 2500 K); aluminium is in the table but the melt model has no aluminium activity yet, so none is drawn. The mixture draw is not called by the generator yet, so no generated value changes.
+
+### Fixed
+- **A K2 star is not the potassium dimer.** The text that marks chemical formulas no longer reads the spectral type "K2" as the gas K2, which the table now holds; the `formula` filter still writes K2 out where it is named.
+
+## [8.0.2315] - 2026-10-25
+
+**Headline:** A dry, frozen or hot world can now hold liquid water underground, which lifts its Water rating and lets microbes live there.
+
+### Changed
+- **Aquifers (GEN.654, DB.92, schema v157).** A rocky world or moon with no liquid at its surface keeps `aquifer_depth_km` and `aquifer_thickness_km`, worked out by `physics/aquifers.py` from its heat flow, its surface temperature and pressure, its gravity and the water left in its surface reservoir: the layer of its crust where the pores are open and the water is liquid and not hotter than life can use. A world with none, a gas giant and a galaxy made earlier keep NULL (migration 0156).
+- **What it does to the score.** The water is a solvent for life (the Microbial score can rise, capped at abiogenesis, so Flora, Fauna and Sentient stay 0), the life sees the ground's dose and the chemical power of the heat flow, and the Water rung is Yellow when the layer starts within 5 km and Red when it is deeper. A world with an ocean at the surface has none. The property sheet lists both numbers.
+- Every parameter is a labelled DESIGN stand-in (`tuning.py`, `DATA-LICENSE.md`); the generator epoch is bumped because worlds that had no life now draw a chemistry.
+
+generation-output: changed
+
+## [8.0.2314] - 2026-10-25
+
+**Headline:** Two research notes check the water-delivery and magma-ocean redox rows against first-hand sources; rows a1 and a2 are now listed as partly verified instead of stand-ins.
+
+### Changed
+- `docs/design/composition/volatile-delivery-formation-distance.md` (GEN.481) gives the water-rich share and the delivery classes against formation distance from the Bern population synthesis, and where it disagrees with the design weights of rows b1 to b4.
+- `docs/design/composition/magma-ocean-redox-against-mass.md` (GEN.482) checks the magma-ocean surface redox (row a1), the later-mantle law (row a2) and the small-body building-block redox (row a3) against Hirschmann 2022, Deng 2020, Sossi 2020 and Schaefer and Fegley 2017, and gives the Na and K condensation temperatures from Lodders 2003.
+- Rows a1 and a2 of the atmosphere possibility table change from stand-in to partly verified with their limits written in the row; the numbers the generator draws do not change.
+
+## [8.0.2313] - 2026-10-25
+
+**Headline:** Two tests that were red on main (the sector save report that took over 15 minutes, and the Generate anyway log) now test what they meant to.
+
+### Fixed
+- **`test_save_progress.py::test_a_sector_save_reports_each_system_it_inserts` timed out at 900 s.** It stored a galaxy shape first, so the sector was filled from the galaxy's density and the `num_systems = 3` it asked for no longer limited it (817 to 1,532 systems and 7,000 to 13,000 phenomena at three addresses, over 15 minutes at the address it used). The test is about the save's progress report, which is the same for any sector, so it no longer stores a shape: the sector has 3 systems and the test takes 2 seconds.
+- **`test_web_generate.py::test_generate_anyway_starts_the_job_and_logs_it` and `test_a_plain_confirm_is_not_logged_as_an_override` counted every activity-log event.** The page's in-process API calls are logged as `call` events by the same function, so the list was `["call", "call", "job.start", ...]`. The two tests now keep only the `job.` events they assert on.
+- Not changed: `test_db_column_round_trip::test_every_column_is_written` passes alone (a load failure in a long run), and the `test_api_auth_sweep` failure was fixed by the run log download change (SEC.36's PR).
+TODO items resolved: none (TODO closes TEST.375 after reading this). Added: none.
+
+## [8.0.2312] - 2026-10-25
+
+**Headline:** A few very young massive stars now start in a small group that is about to break up.
+
+### Changed
+- **Young groups (GEN.327).** One in twenty O and early-B stars younger than 0.3 million years is born in a group of 3 to 5 stars (like the Orion Trapezium) that flies apart within 10,000 to 40,000 years. While it is that young, the star's page lists the group as a "Young group" with the time it has left, and each member has its place and speed. Older stars of the same kind are drawn as what such a group leaves: one star fewer (the lightest is thrown out), the rest in a tighter set of orbits. Because the break-up is so quick, a group you can still see is rare. Massive young stars give different companions than before.
+
+generation-output: changed
+
+## [8.0.2311] - 2026-10-25
+
+**Headline:** The life scores show their scale and the search tag counts say what they count.
+
+### Changed
+- On a planet's or moon's page, in lists, in trees and in search results, the number beside a life shape reads "3/9" instead of a bare 3 (UX.211).
+- A search tag's count reads "24 results" instead of a bare 24 (UX.211).
+
+## [8.0.2310] - 2026-10-25
+
+**Headline:** The four open weight tables of the bulk and moon recipes now carry a researched stand-in, a source tier, a tweak level and a replacing item.
+
+### Changed
+- The stand-in registry rows BC6 (moon ice fraction against distance), BC8 (planet minus star Fe/Mg scatter), BC11 (rogue-planet volatile loss at ejection) and BC18 (core light elements) in `docs/design/research/gap-filling-plan.md` carry the best-guess values, their ranges, the tier and tweak level, and the replacing item (GEN.466 with any exomoon measurement, GEN.775, GEN.776, GEN.777); `stand-in-values.md` is regenerated from them (GEN.734). Documents only: no generated value moves until the owning items use the numbers.
+
+## [8.0.2309] - 2026-10-25
+
+**Headline:** A report now shows which property-sheet columns are never filled for which kind of world.
+
+### Changed
+- `scripts/sheet_fill_report.py` generates sample systems and counts, for every kind, class and sheet column, how often it is filled, empty where it applies and empty where it does not. The rules that say where a column does not apply (giants have no surface, airless worlds have no air column, oceans need a liquid ocean, and so on) are in `describe/sheet.py` (`APPLIES`) with a sentence of reason each (UX.208).
+
+## [8.0.2308] - 2026-10-25
+
+**Headline:** A world with flora, fauna or a civilization now has food in its Suitability rating even when its ocean is under ice, and the life and timeline text says what is there, in the present tense.
+
+### Changed
+- **Food follows the life scores (GEN.765).** The Suitability food rung zeroed all life on a world whose hydrosphere is an ice-covered ocean, although the Flora, Fauna and Sentient scores of the same world were above 0 (Enuakyadas IV: 5, 5 and 5, Suitability Red 0.20, "no food readily available"). Only microbes that live under the ice (or in a deep aquifer) are out of reach now; flora and fauna are food wherever the world scores them. The stored Suitability of such a world changes, so the generator epoch is bumped (98).
+- **The life and timeline paragraphs state what is detected (GEN.766).** "Life based on melanin could arise on this planet, and it would evolve at a standard pace" is now "Life based on melanin lives on this planet, evolving at a standard pace"; "On a speculative timeline at that pace, the system is about 13.8 Gyr old. Its latest milestone would be ..." is "The system is about 13.8 Gyr old. Its latest milestone is ..."; the stage text says "the planet has" in place of "boasts". A world whose conditions suit a chemistry but where no milestone has been reached says so: "Conditions on this planet suit life based on X, but none has appeared yet."
+
+generation-output: changed
+
+## [8.0.2307] - 2026-10-25
+
+**Headline:** The population pass and the territories pass are now two commands, `planetgen population` and `planetgen territories`.
+
+### Changed
+- **`planetgen population` stops at the polities (PERF.125).** It scans the life worlds, dates the civilizations and founds the polities; `--territories-only` is gone. After a first run or a `--rescan`, run `planetgen territories` to work out who owns which system. A `galaxy` run does both as consecutive stages, and the installer's population question runs both.
+- **Both passes are work-queue commands** (`run-population`, `run-territories`, one unit each), so they show on the Queue page like any other run.
+
+### Added
+- **`planetgen territories`.** Recomputes which polity owns which system from the polities stored, and nothing else.
+- **Rules for a new command, held by a test (PERF.120).** The command inventory lists the seven rules every command follows, and `test_command_rules.py` checks the structural ones for every registered command.
+
+## [8.0.2306] - 2026-10-25
+
+**Headline:** Pages get an "On this page" contents list, and every page is checked for a clean heading outline.
+
+### Changed
+- Every page with three or more sections shows an "On this page" list after its title, built from its headings; following an entry into a collapsed section opens it (UX.196).
+- The accessibility suite now fails a page with more than one h1, a skipped heading level, or a table with no heading, caption or label (UX.195).
+
+## [8.0.2305] - 2026-10-25
+
+**Headline:** `planetgen sector` and `planetgen phenomenon` now only generate; the population pass and the sector paths are commands of their own.
+
+### Changed
+- **`sector` no longer takes `--population` (PERF.124).** A `sector` run saves its sectors and stops; the population pass is `planetgen population`, or a stage of a `galaxy` run.
+- **`phenomenon` no longer saves sector paths, and `--no-settle` is gone (PERF.124).** `planetgen phenomenon --sector-id N` saves the phenomenon and nothing else.
+
+### Added
+- **`planetgen settle --sector-id ID...`.** Saves the paths of the named sectors and the sectors around them (the step that follows `phenomenon --sector-id` for a black hole or neutron star); it takes the place of `--since` and the two cannot be combined.
+
+## [8.0.2304] - 2026-10-25
+
+**Headline:** `scripts/test.py` checks MySQL, Redis and the test setup before a run, restarts a server that dies during it and carries on without redoing the tests that passed; `full` is no longer called the merge gate.
+
+### Added
+- **A check before every run (TEST.376).** `scripts/test.py` loads the `PLANETGEN_TEST_*` variables from `/etc/profile.d/planetgen-test.sh` when they are missing, starts MySQL and Redis when they do not answer, purges the MySQL binary logs when under 3 GB of disk is free, and checks `argon2-cffi` and `playwright` 1.56.0. What it cannot repair stops the run with `PREFLIGHT FAILED: ...` and exit 2. `scripts/test.py env` does only the check; `--no-preflight` skips it. Before this a database test with MySQL down was skipped, not failed, and a run without `PLANETGEN_TEST_MYSQL_USER` failed with `DatabaseLoginError` as the wrong account.
+- **A watchdog during every run.** MySQL and Redis are asked every 15 seconds. A server that is gone is restarted, the phase's pytest is stopped and started again without the tests that already passed (the progress log, as `--resume` does), up to 5 times a phase; the closing line says how many restarts there were. A server that cannot be restarted ends the run with `FAIL` and exit 3, and `--resume` continues it.
+
+### Changed
+- **`full` is the end-of-version run, not the merge gate (TEST.372).** The help of `scripts/test.py` and docs/reference/testing.md now say an ordinary merge needs a green `changed` run (finished with `--resume` after an interruption), and that the whole suite is for TEST.261, SEC.33 and GEN.301.
+
+TODO items resolved: TEST.372, TEST.376. Added: none.
+
+## [8.0.2303] - 2026-10-25
+
+**Headline:** The update reloads the web server more safely: it tests Apache's configuration first, covers gunicorn hosts, and checks the site answers.
+
+### Changed
+- **`update.sh` reload (OPS.29).** Apache is checked with `apache2ctl configtest` before it is reloaded, so a broken config leaves the running Apache serving; it is restarted only when the update just installed or enabled mod_wsgi (other modules load on a reload). The `planetgen-gunicorn` unit (Linux) and the launchd gunicorn daemon (macOS) are reloaded the same way, and `/api/health` must answer afterwards (`PLANETGEN_HEALTH_URL` sets another address). A failed step ends the update non-zero and prints the command to run by hand; nothing running prints the commands and ends zero. The docs (`apache.md`, the server checklist) say a reload aborts requests a mod_wsgi daemon is serving after about 4 seconds.
+
+## [8.0.2302] - 2026-10-25
+
+**Headline:** The run log download answers a plain 403 to someone who is not signed in as an admin, like the other file downloads, instead of a login redirect.
+
+### Fixed
+- **`/admin/queue/<run_id>/log` redirected to the login page for an admin still on the seeded credentials.** The view is marked `json_only` (a download, not a page), and the access sweep in `test_api_auth_sweep.py` expects those to answer 403; it was red on main. The view now aborts with 403 where `/admin/settings/export` already does.
+TODO items resolved: none (the test was red on main with no item of its own). Added: none.
+
+## [8.0.2301] - 2026-10-25
+
+**Headline:** An account can have a picture, and it may be a GIF, an animated GIF too, checked under frame and pixel caps and stored as a clean copy.
+
+### Added
+- **Your picture (SEC.36).** The account page has a "Your picture" section to upload or remove a PNG, JPEG, ICO or GIF, and the picture shows beside "Signed in as". `POST /api/auth/avatar` and `DELETE /api/auth/avatar` do the same for the API, and `GET /api/auth/me` returns the picture's address. Control schema v20 adds `admin_users.avatar` (the update adds the column).
+- **The avatar rules.** At most 1 MiB, 1024 by 1024 pixels a frame, 100 frames, and 16 million pixels over all the frames. A GIF or PNG with several frames stays animated with its durations and loop count. The upload is refused in a plain sentence when it is over a cap, is a bomb header, or is another format.
+
+### Security
+- **A GIF is read only for an account picture, and never from the uploaded bytes.** Pillow is told which four formats to try, the size is read from the header before anything is decoded, a decompression-bomb warning is an error, `Image.MAX_IMAGE_PIXELS` is lowered to 25 million, and frames are unpacked one at a time under the caps. What is stored is Pillow's new encoding of the pixels, so comments, XMP, ICC profiles, EXIF and application extensions other than the loop block do not survive. It is served with its own content type and `nosniff`. The site logo, icons and preview picture keep the SEC.35 rule and still refuse a GIF.
+
+TODO items resolved: SEC.36. Added: none.
+
+## [8.0.2300] - 2026-10-25
+
+**Headline:** Rows that were never stored are no longer listed on object pages.
+
+### Changed
+- A property whose value was never stored (such as hours of daylight a person can be outside on a world with no rotation data) is left out of "At a glance" and the property list instead of showing "not stored"; the line at the end of the list counts them (UX.199).
+- The Atmosphere section lists no gas the air does not hold and never a blank row (UX.198).
+
+## [8.0.2299] - 2026-10-25
+
+**Headline:** A sector that drawing cannot make to a habitable-worlds minimum is now met by a forced fill, and an impossible request is refused up front.
+
+### Added
+- **Forced fill for a habitable-worlds directive (GEN.180).** After K draws (`tuning.DIRECTIVE_ATTEMPTS`, 200) a
+  `--directive habitable>=N` still missed builds the sector once more with a habitable world forced into N systems, and the run
+  says `met_forced`. Before, the closest draw was kept and the run only warned.
+- **Impossible directives are refused before any drawing.** A minimum a sector reaches with a probability under one in a
+  billion, judged from the Poisson tail of the system count and the compound-Poisson table of habitable worlds, and that the
+  forced fill cannot reach, stops the command line (and the Generate page's estimate) with the reason.
+
+## [8.0.2298] - 2026-10-25
+
+**Headline:** The breadcrumb trail calls the system link "System" and the star link by the star's name.
+
+### Changed
+- On an object page the breadcrumb for the system reads "System" and the one for its star shows the star's own name, so a system and star with the same name no longer appear twice (UX.207).
+- The Properties list now follows the "About" block, right after "At a glance", on planet, moon, star, belt, comet and facility pages.
+- A stored text value such as the life stage "technological_civilization" reads "Technological civilization" on the property sheet, with no underscore.
+
+## [8.0.2297] - 2026-10-25
+
+**Headline:** The sections of an object page start collapsed, and a link to one opens it.
+
+### Changed
+- The property groups on a planet, moon, star, belt, comet or facility page start collapsed (the phenomenon pages already did). A link to a section, such as a habitability symbol or a contents entry, opens it and brings it into view (UX.204).
+
+## [8.0.2296] - 2026-10-25
+
+**Headline:** A world with no life, no air or no water says so in a sentence instead of a table of zeros.
+
+### Changed
+- On a planet's or moon's page, a world with all four life scores at 0 has no Life table, a surface pressure under 0.001 Pa shows the Atmosphere as "None" with no gas rows, and a dry world with effectively no water has no Water section; each is one sentence in "About" (UX.203).
+
+## [8.0.2295] - 2026-10-25
+
+**Headline:** The life and timeline paragraphs of a world are written from its stored row alone, and an edit keeps the life a world already has.
+
+### Changed
+- **The milestone schedule is stored (DB.100, schema v156).** `planets` and `moons` keep the age at which the world's pace reaches each of the five milestones (`life_age_abiogenesis_gyr` to `life_age_technological_civilization_gyr`), set with the pace by `life.apply_life_data` (`evolution.schedule`). A galaxy made earlier gets the ages of its stored pace (migration 0153); a body with no life chemistry has none. The property sheet lists them under Life.
+- **The page is built from the stored row.** The words of a pace moved out of the milestone table (`tuning.EVOLUTIONARY_PACE_LABELS`), so `describe/life_facts.py` and `describe/build.py` read the row and key lookups only, and a test renders a saved world with no draw and no pace table.
+- **An edit keeps the life a world has.** `validation.reapply_life` (the admin edits that change a class or the climate) keeps the stored chemistry and pace when the new climate and the star still allow them; only one that no longer fits is drawn again. A body the habitability index gives no microbial life no longer keeps a pace an earlier pass drew, so a generated body has a pace only with a chemistry and the generator epoch is bumped.
+
+generation-output: changed
+
+## [8.0.2294] - 2026-10-25
+
+**Headline:** The Generate pages' boxes are now the same form fields as the rest of the site, and they still line up.
+
+### Changed
+- **The Generate pages use the one form field (UX.125).** Every text, number and choice box and every tick box on the Generate task pages, the one-off system page and the recipe name boxes is now the site's one form field (a labelled Shoelace box with a slot for the quiet hint line or the server's error, and a plain twin for a browser without script, so the pages post as before). The boxes on a line still sit level with a matching width however long a label is, in both themes and at phone width. The live "how big" line, the star mix total and the shape dials follow the new boxes and the limit sliders keep their own number box. Radio choices, the sliders, the sector finder's search box and the system file's text area stay as they were.
+
+TODO items resolved: UX.125. Added: none.
+
+## [8.0.2293] - 2026-10-25
+
+**Headline:** The Queue page can start the habitability re-score and the map-luminosity fill with a button.
+
+### Added
+- **Start a fill panel on the admin Queue page (ADM.129).** "Regenerate habitability" re-scores every planet and moon from
+  its stored conditions (it re-draws nothing), and "Fill map luminosity" fills the map luminosity of scattered
+  phenomena that lack it. Each button asks for confirmation, then starts `planetgen rescore-habitability` or
+  `planetgen fill-map-luminosity` as a job with the rules of any generation run: refused while another run is live or
+  everything is stopped, the one-run lock, an activity-log entry, progress on the Queue page, Stop everything and Retry.
+
+## [8.0.2292] - 2026-10-25
+
+**Headline:** A server with no timing history now shows a rough time left, labelled as a guess, instead of "estimating".
+
+### Fixed
+- **Time estimates broke on a server that had never timed a stage (PERF.184).** A run's time left, the banner's
+  hours and the Generate page's whole-job bar said "estimating" until a first unit finished, and left a later stage out
+  of the total. They now start from a rough guess: the stage's units over the workers the host can run at once (its
+  cores and memory) at a default cost per unit. The guess is labelled "rough guess" with a wide range (0.4 to 3 times the
+  figure), the sector estimate says "anywhere from A to B" while its speed is the default, and each figure is replaced
+  by the run's own pace as units finish.
+- **A stage with no stored history now learns.** When a stage of a queue run ends, its time and its cost per worker second
+  are folded into a running average (`queue/stagetimes.py`), so the next run of the warm-up and the fills starts from
+  what the last one took, and the estimate tightens run after run.
+
+## [8.0.2291] - 2026-10-25
+
+**Headline:** The Location block is tidier, there is one Nav button, and the composition-origin row is gone.
+
+### Changed
+- The Location block lists a star and its system once when they share a name, no longer links the Galaxy, and says nothing about clouds the object is not in; with nothing to show the block is left out (UX.200).
+- The separate Navigate from here, Navigate to here and What's nearby buttons are one Nav button whose menu holds Navigate from here, Navigate to here and Nearby locations (UX.201).
+- The "How the composition was found" row is removed from the property sheet of planets and moons; the stored column stays (UX.202).
+
+## [8.0.2290] - 2026-10-25
+
+**Headline:** The map browser tests have a dense fixture galaxy to fly into, ready for the zoom, label, pick and icon work.
+
+### Added
+- **A fixture galaxy with a dense region (TEST.368).** `tests/map_site_support.py` gains `dense_site` (a local map server with about three thousand seeded stars packed round the middle of the first fixture sector, a few named, six rogue planets, a neutron star, a black hole and five habitable-world systems, no scatter) and `dense_region_query()`; `tests/test_web_browser_fixture_maps.py` gains `open_dense_region()` and a test that zooms into the region and finds it on screen.
+
+## [8.0.2289] - 2026-10-25
+
+**Headline:** The Galaxy Map's sector blocks draw again: the sectors' colour (such as Color by Habitable worlds) was missing since the one-star-buffer change, and the sector page map failed at phone width.
+
+### Fixed
+- **The block prism shader compiles again (MAP.293, MAP.294).** The relative-to-eye position lines of the star buffer (MAP.267) had gone into the block prism vertex shader, which has no such uniforms, instead of the star vertex shader: the blocks' shader did not compile, so no sector was filled or coloured, and the sector page map showed the same error at phone width. The star shader now takes the lines, as the star buffer meant, and a browser test draws the filled blocks at desktop and phone widths and fails on any shader error.
+
+## [8.0.2288] - 2026-10-25
+
+**Headline:** Every stand-in value now has a source tier and a tweak level, and one generated page lists them all.
+
+### Added
+- **Stand-in tiers and tweak levels (GEN.725).** The stand-in registry of the gap-filling plan carries two new columns on every row: the source tier (T1 verified down to T9 educated guess based on needed output) and the tweak level (L0 as envisioned up to L4 fitted to outcome). `docs/design/research/stand-in-values.md` lists every row, built from the registry by `scripts/build_stand_in_values.py`, and a test fails when a row lacks either column or the page differs from the registry. No generated value changes.
+
+## [8.0.2287] - 2026-10-25
+
+**Headline:** A star or system told to have no binaries (or exactly one star) no longer gets a white dwarf or other compact companion anyway.
+
+### Changed
+- **A forced single object stays single (GEN.719, bug).** `draw_member_tree` with `n_stars=1` (what a binary prevalence of -100 or a forced single star asks for) drew the compact companion of a living star, or the companion of a placed white dwarf, neutron star or black hole, from the companion table regardless; an old star that had become a white dwarf therefore still came out as a wide double white dwarf. One star is now one member for every placed object, with no companion of any kind. Systems built without a directive draw exactly as before.
+- **Tests.** A forced single object has one member and no orbit for a living star, a star that is now a white dwarf, and a placed white dwarf, neutron star and black hole, over 150 seeds each.
+
+## [8.0.2286] - 2026-10-25
+
+**Headline:** The Suitability line no longer says water is available when the Water row says it is undrinkable.
+
+### Changed
+- **Suitability and the Water row agree (GEN.691, bug).** The Suitability water rung is how reachable the water is and the Water row is whether it can be drunk, but the sentence said "there is water and shelter available" beside a Red Water row reading "undrinkable without heavy treatment". Reachable water that the Water row asks to be treated is now written as reachable with the same treatment: "There is no food readily available, but there is shelter available, and the water is reachable but it is undrinkable without heavy treatment." When food and shelter are fine too it reads "Food and shelter are readily available, and the water is reachable but it needs treatment before drinking." Drinkable water, and every other combination, reads as before.
+- **Tests.** A heavily and a mildly treated water body, with and without food, name the treatment; a sweep over pH, life stage and water source finds no sentence that calls water plainly available against a Water row that wants treatment.
+
+## [8.0.2285] - 2026-10-25
+
+**Headline:** The plan's "about N stars expected" for the massive-star and bright-star passes now matches what the passes place, and each unit line says the stars it expects.
+
+### Changed
+- **The expected-stars count beyond the outline follows the density (GEN.398, bug).** The count of stars a shell holds beyond the galaxy's outline (what the pass's log line, its progress bar and its ETA use) probed each group at two longitudes 180 degrees apart. On a two-armed spiral both land on the same phase of the arms, so a group's young stars came out twice, or none, of what the sampler draws: on the default galaxy the shells just past the outline were counted at 3,250 stars where the pass placed 1,853. A group is now sampled at 8 colatitudes and 2 radii of equal volume and 16 longitudes, so its count follows the density wherever the disc falls away across it. On the default galaxy (4e9 solar masses, seed 0123...) the massive-star pass logged 22,593 and placed 21,642 before; it counts 21,389 now, and the part beyond the outline matches the stars placed in each range of shells within 4 percent. The sampler was right and is unchanged: no star moves and no generator epoch is spent.
+- **A unit line says the stars it expects, not its weight.** The "unit 8 of 445, about 133 stars expected" lines gave the unit's weight, its stars plus a share for every band walked, so a unit that placed 19 said it expected 133. They give the stars the unit is expected to place.
+- **Tests.** The count beyond the outline matches a Monte Carlo of the density within 6 percent for six shells of the toy galaxy; a task's expected stars are its shells', the far shells' or the components' share, not its weight.
+
 ## [8.0.2284] - 2026-10-25
 
 **Headline:** `planetgen sectors --block` fills one block of the Galaxy Map's ladder, and an admin API route starts the same fill as a job.

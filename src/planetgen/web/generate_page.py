@@ -58,7 +58,7 @@ from flask import (Response, abort, current_app, jsonify, make_response, redirec
 
 from pydantic import Field, TypeAdapter, ValidationError
 
-from planetgen.queue import api_jobs, progress_rate, redisqueue, runrecord, runview
+from planetgen.queue import api_jobs, progress_rate, redisqueue, roughtime, runrecord, runview
 from planetgen.queue.commands import DEEP_CHECKS, STAGED_COMMANDS
 from planetgen.web import limit_sliders
 from planetgen.web.lib import apiclient, estimatecache
@@ -73,7 +73,7 @@ from planetgen.galaxy import dials, mass_chain, objectref
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
-from planetgen.util.format import format_number
+from planetgen.util.format import counted, format_number
 from planetgen.generation.limits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_NEIGHBORHOODS, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_SHELL,
 )
@@ -1213,6 +1213,10 @@ def overall_view(job, step_remaining, now=None):
     left = step_remaining
     if left is None and estimates[current - 1] is not None and stage_started:
         left = max(0.0, estimates[current - 1] - in_stage)
+    rough = False
+    if left is None and stage_started:       # PERF.184: a server with no timings guesses from its hardware
+        guess = roughtime.stage_seconds()
+        left, rough = max(guess - in_stage, roughtime.OVERRUN_KEEP * guess), True
     if left is None:
         view["overall_remaining_label"] = "estimating the time left"
         return view
@@ -1225,7 +1229,7 @@ def overall_view(job, step_remaining, now=None):
             known = estimates[unit["n"] - 1]
             remaining += known if known is not None else average
     view["overall_value"] = elapsed / (elapsed + remaining) if elapsed + remaining > 0 else None
-    view["overall_remaining_label"] = remaining_label(remaining)
+    view["overall_remaining_label"] = remaining_label(remaining, rough=rough)
     return view
 
 
@@ -1254,11 +1258,15 @@ def _stage_estimate_list(job, units):
             for unit in units]
 
 
-def remaining_label(remaining, running=True):
+def remaining_label(remaining, running=True, rough=False):
     """What the page says about the time left (PERF.33): "about 3 m 05 s to 4 m 00 s left" as a range around the
-    estimate, "estimating the time left" while a running job has none yet, never dashes; `""` once it finished."""
+    estimate, "estimating the time left" while a running job has none yet, never dashes; `""` once it finished. A
+    `rough` figure (a guess from the hardware, PERF.184) has a wide range and says so."""
     if remaining is None:
         return "estimating the time left" if running else ""
+    if rough:
+        low, high = roughtime.rough_range(remaining)
+        return f"roughly {format_elapsed(low)} to {format_elapsed(high)} left (a rough guess until a unit is timed)"
     low, high = progress_rate.eta_range(remaining)
     low_text, high_text = format_elapsed(low), format_elapsed(high)
     if low_text == high_text:
@@ -1278,6 +1286,9 @@ def _progress_text(progress):
     text = f"{description}: {format_number(completed)}"
     if total:
         text += f" of {format_number(total)}"
+    unit = progress.get("unit")
+    if unit and not description.lower().endswith(counted(unit, 2)):
+        text += f" {counted(unit, total or completed)}"
     return text
 
 

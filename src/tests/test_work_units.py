@@ -329,15 +329,16 @@ def test_more_units_than_the_cap_are_refused(monkeypatch, conn):
         units.enqueue_units(conn, run_id, 0, "nope", [({}, 1.0)])
 
 
-def test_only_the_table_names_what_a_unit_runs():
+def test_only_the_table_names_what_a_unit_runs(monkeypatch):
     assert callable(commands.unit_function("scatter-mass")) and callable(commands.expand_function("scatter-mass"))
     for kind in ("os.system", "nope"):
         with pytest.raises(KeyError):
             commands.unit_function(kind)
     for kind in ("scatter-luminosity", "scatter-band", "scatter-phenomena", "plan-skeleton"):
         assert callable(commands.unit_function(kind)) and callable(commands.expand_function(kind))
+    monkeypatch.setitem(commands.REGISTRY, "an-inline-command", commands.CommandSpec("an-inline-command", "Runs here"))
     with pytest.raises(ValueError, match="inline"):
-        commands.unit_function("run-population")
+        commands.unit_function("an-inline-command")
 
 
 # --- The massive-star scatter on the new queue (the stage PERF.97 moves, the wrapper queues, PERF.118) ----------

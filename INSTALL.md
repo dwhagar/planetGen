@@ -207,9 +207,9 @@ After the eight steps it checks that the web app imports as Apache's
 user, and checks the Redis server (below).
 
 After step 3 it also offers to run the optional population pass
-(species, civilizations and territories; y/N, defaulting to N after 30
+(species, civilizations and territories: `planetgen population`, then `planetgen territories`; y/N, defaulting to N after 30
 seconds). `sudo POPULATION=1 ./install.sh` runs it without asking, and
-`planetgen population` runs it any time later. A new galaxy has no
+those two commands run it any time later. A new galaxy has no
 worlds yet, so there is nothing for it to do on a first install.
 
 The Redis check installs `redis-server` with apt and starts it when

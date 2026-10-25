@@ -574,7 +574,7 @@ for every stored rogue, seeded by its name, and resets
 `has_internal_heat` to the computed answer.
 
 **Population and politics (v44).** Filled by `planetgen population`
-(or `--population` on a `sector` run, or a `galaxy` run, or the optional question
+(or a `galaxy` run, or the optional question
 the install and update scripts ask) from what is already stored; see
 docs/design/habitability/population-and-politics.md. `species` holds one dominant
 species per life world (a planet whose evolutionary milestone is
@@ -2202,6 +2202,14 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v157 (GEN.654, DB.92): the aquifer of a world
+
+Migration 0157 adds `aquifer_depth_km` and `aquifer_thickness_km` (DOUBLE, nullable) to `planets` and `moons`: the depth to the top of the liquid-water layer in the pores of the crust of a world whose surface has no liquid (hydrosphere `dry`, `ice` or `vapour`), and its thickness, km ([activity-magnetism-radiation-hydrosphere.md](../design/habitability/activity-magnetism-radiation-hydrosphere.md) section 5.6). NULL for a world with none, a gas giant and a row saved earlier: the surface reservoir the layer is filled from was a draw that is not stored, so an older row is not worked out again and its stored scores stay as they were. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index); a column already there is left alone. The version is detected from `planets.aquifer_depth_km`.
+
+### v156 (DB.100): the milestone schedule of a world's pace
+
+Migration 0156 adds `life_age_abiogenesis_gyr`, `life_age_photosynthesis_gyr`, `life_age_complex_cells_gyr`, `life_age_multicellularity_gyr` and `life_age_technological_civilization_gyr` (DOUBLE, Gyr, nullable) to `planets` and `moons`, after `life_system_age_gyr`. They are the age at which the world's `evolutionary_pace` reaches each of the five milestones (`tuning.LIFE_MILESTONES`), written with the pace by `life.apply_life_data` for every body that has a life chemistry (NULL without one). With `life_chemical`, `evolutionary_pace`, `life_stage`, `life_milestone_age_gyr` and `life_system_age_gyr` they are all the life and evolution data the life paragraph and the timeline paragraph need: `describe/life_facts.py` reads the row alone (the words of a pace are `tuning.EVOLUTIONARY_PACE_LABELS`, the text of a stage is a lookup by its key) and no draw or pace table is read when a page is written, so tuning the table later moves no saved world. A row saved before gets the ages of its stored pace (`evolution.schedule`); a row with no pace keeps NULL. The four life scores (v150) and the survival kit are stored as before. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index), rows filled in pages of ids (a row with `life_age_abiogenesis_gyr` set is done). The version is detected from `planets.life_age_abiogenesis_gyr`.
 
 ### v155 (DB.71, GEN.424): the air moves to `planet_gases` and `moon_gases`
 

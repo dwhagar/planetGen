@@ -30,6 +30,19 @@ from planetgen.physics import unit_registry as units
 
 _myr_to_gyr = units.converter("Myr", "Gyr")
 
+# --- Generation directives (GEN.96, GEN.180) ---
+DIRECTIVE_ATTEMPTS = 200
+"""int: K, the draws made at most for a sector that must meet a directive's minimums (`--directive`); a habitable-worlds
+minimum still missed after K draws takes the forced fill (`generation.directives`, status `met_forced`)."""
+
+PEAK_RELATIVE_DENSITY = 160.0
+"""float: A bound above the densest relative stellar density the galaxy model gives (154.2 at the centre, measured with
+`density.relative_density`), for judging up front what a `galaxy` or `sectors` run's densest sector could hold."""
+
+DIRECTIVE_IMPOSSIBLE_BELOW = 1e-9
+"""float: A directive whose minimum a sector reaches with a probability below this, and that the forced fill cannot reach
+either, is refused before any drawing (`generation.directives.impossible`)."""
+
 # --- Planet Generation Parameters ---
 # Domingos, Winter & Yokoyama (2006), MNRAS 373:1227, "Stable satellites
 # around extrasolar giant planets" -- a prograde moon on a circular orbit
@@ -862,6 +875,34 @@ MANTLE_OUTGAS_SHARE = 0.3
 """float: The share of a planet's mantle water that volcanism brings to the surface after an early runaway has stripped the
 surface reservoir, because escape reaches only the air and the oceans, not the mantle (GEN.639; DESIGN stand-in)."""
 
+AQUIFER_CONDUCTIVITY_W_M_K = 2.0
+"""float: The thermal conductivity of a world's crust, W/m/K, that turns its heat flow into a geotherm (Clifford 1993, JGR 98,
+10973, column average about 2; secondary source, DESIGN stand-in, GEN.654)."""
+
+AQUIFER_POROSITY_SURFACE = 0.2
+"""float: The pore share of the crust at the surface (the lunar and Martian megaregolith value; DESIGN stand-in, GEN.654)."""
+
+AQUIFER_POROSITY_MIN = 0.01
+"""float: The pore share under which the crust holds no usable water, so the water-bearing layer ends (DESIGN stand-in, GEN.654)."""
+
+AQUIFER_POROSITY_SCALE_KM_MARS = 2.82
+"""float: The e-folding depth of the crust's porosity, phi(z) = phi0 exp(-z/K), on Mars (Clifford 1993; secondary source). On
+another world it scales with the inverse of the gravity (DESIGN stand-in, GEN.654)."""
+
+AQUIFER_MARS_GRAVITY_M_S2 = 3.71
+"""float: The gravity `AQUIFER_POROSITY_SCALE_KM_MARS` is for."""
+
+AQUIFER_LIFE_MAX_K = 395.15
+"""float: The hottest water life can use, 122 C (Takai et al. 2008, PNAS 105, 10949, Methanopyrus kandleri); the water-bearing
+layer stops where the geotherm reaches it."""
+
+AQUIFER_MIN_THICKNESS_KM = 0.01
+"""float: A water-bearing layer thinner than this (10 m) is none."""
+
+AQUIFER_REACH_KM = 5.0
+"""float: How deep a base can drill for water (the deepest mines are about 4 km; DESIGN stand-in, GEN.654): an aquifer with its
+top above this depth is a water source for the Water and Suitability rungs, a deeper one only shelters microbes."""
+
 WATER_PER_HYDROGEN_MASS = 8.94
 """float: Kilograms of water gone for each kilogram of hydrogen that escapes (H2O 18.015 g/mol over its two hydrogens
 2.016 g/mol; the oxygen is dragged along or left behind to oxidise the crust, and neither returns the water)."""
@@ -1505,6 +1546,32 @@ member-tree draw gives 84% of contact binaries a tertiary, because the stability
 hierarchy only short periods; stripping the others from 46% of those where the pair holds the placed star brings the
 share to the catalogue's 60% (measured over 600,000 seeded disc systems; a stand-in until GEN.631's fill measures it
 again)."""
+
+YOUNG_GROUP_AGE_MAX_YR = 3.0e5
+"""float: A massive system (O or early B, a birth mass of `B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is
+never drawn as a young group (the design note's 0.3 Myr, GEN.327). The share that is a group is the `young-group` row of
+`SYSTEM_TYPE_RATES`."""
+
+YOUNG_GROUP_DECAY_AGE_RANGE_YR = (1.0e4, 4.0e4)
+"""tuple: The range a group's `decay_age_yr` is drawn from, log-uniform: trapezia decay in 1e4 to 4e4 years (arXiv 1809.03537,
+1701.03440, 1908.11437; multi-star-systems.md 3.3). A group younger than its decay age is stored as a group, an older one is
+drawn as its remnant."""
+
+YOUNG_GROUP_SIZE_WEIGHTS = {3: 0.3, 4: 0.4, 5: 0.3}
+"""dict: The weight of each member count of a young group. The Orion Trapezium has 4 to 5 members and the catalogued
+trapezium-type multiples run from 3; the weights are a stand-in [P, bracket 3 to 5 members] until a count by size is read."""
+
+YOUNG_GROUP_RADIUS_AU_RANGE = (3.0e3, 3.0e4)
+"""tuple: The radius within which a young group's members are drawn, in AU, log-uniform (a stand-in [P]: the Trapezium's
+core is some 0.03 pc, 6e3 AU; the bracket is a factor of 3 either side of it)."""
+
+YOUNG_GROUP_VELOCITY_DISPERSION_KMS = 2.5
+"""float: The one-dimensional velocity dispersion of a young group's members, km/s (a stand-in [P]: the Orion Trapezium
+cluster is some 2 to 3 km/s, recalled, not read in this repository). Each component of a member's velocity is a draw of it."""
+
+YOUNG_GROUP_REMNANT_MAX_AXIS_AU = 300.0
+"""float: The widest axis of the hierarchy a decayed group leaves, AU (a stand-in [P]): the lightest member is ejected and the
+rest harden, so the remnant is tighter than the field's draw (multi-star-systems.md, `decayed-trapezium-remnant`)."""
 
 MERGER_MASSIVE_MIN_MASS_SOL = 9.0
 """float: The birth mass from which a star counts as massive for the merger-product and mass-gainer shares (the
@@ -2239,7 +2306,6 @@ STAR_EVOLUTION = {
 EVOLUTIONARY_TIMELINES = {
     "normal": { # Changed from "norm" to "normal" for consistency
         "star_lifespan": 10.0, # Billion Years
-        "evolutionary_pace": "Standard",
         "abiogenesis": 0.5, # Billion Years
         "photosynthesis": 1.5, # Billion Years
         "complex_cells": 2.5, # Billion Years
@@ -2248,7 +2314,6 @@ EVOLUTIONARY_TIMELINES = {
     },
     "fast": {
         "star_lifespan": 0.1, # Billion Years (100 Million Years)
-        "evolutionary_pace": "Hyper-Accelerated",
         "abiogenesis": 0.005, # Billion Years (5 Million Years)
         "photosynthesis": 0.015, # Billion Years (15 Million Years)
         "complex_cells": 0.030, # Billion Years (30 Million Years)
@@ -2257,7 +2322,6 @@ EVOLUTIONARY_TIMELINES = {
     },
     "slow": {
         "star_lifespan": 1000.0, # Billion Years (1 Trillion Years)
-        "evolutionary_pace": "Decelerated",
         "abiogenesis": 3.0, # Billion Years
         "photosynthesis": 8.0, # Billion Years
         "complex_cells": 15.0, # Billion Years
@@ -2265,6 +2329,10 @@ EVOLUTIONARY_TIMELINES = {
         "technological_civilization": 35.0 # Billion Years
     }
 }
+
+EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "slow": "decelerated"}
+"""dict: How each `EVOLUTIONARY_TIMELINES` pace is worded in the life sentence (DB.100: the words are not in the milestone
+table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 LIFE_METABOLISMS = {
     "oxygenic": {
@@ -2328,7 +2396,7 @@ EVOLUTIONARY_TEXT = {
         "primitive vascular plants—have taken root, supporting emerging land-dwelling animals."
     ),
     "technological_civilization": (
-        "The planet boasts a fully mature, highly complex biosphere featuring diverse ecosystems, "
+        "The planet has a fully mature, highly complex biosphere featuring diverse ecosystems, "
         "topped by at least one sapient, tool-using species. Complex flora forms sprawling forests "
         "and varied biomes, while highly evolved fauna occupy vast ecological niches. The sapient "
         "population actively reshapes the world through agriculture, architecture, and industry."
@@ -2362,6 +2430,10 @@ LIFE_MILESTONES = ("abiogenesis", "photosynthesis", "complex_cells", "multicellu
 tuple[str]: The evolutionary milestones (`EVOLUTIONARY_TIMELINES`/`EVOLUTIONARY_TEXT` keys) in ascending order of life
 complexity. `evolution.MILESTONE_KEYS` and `physics.life_scores` read it.
 """
+
+LIFE_SCHEDULE_FIELDS = tuple(f"life_age_{key}_gyr" for key in LIFE_MILESTONES)
+"""tuple[str]: The body columns holding a world's milestone schedule (DB.100), one age in Gyr for each `LIFE_MILESTONES`
+milestone in order: `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr`."""
 
 LIFE_SCORE_MAX = 9
 """int: The top of the four life scores (Microbial, Flora, Fauna, Sentient): 0 is none, 9 is abundant (GEN.649)."""

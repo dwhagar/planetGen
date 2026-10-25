@@ -664,5 +664,5 @@ appropriate. Before this only an ecosphere planet that was not a moon had one.
 **Food comes from Flora and Fauna (Boss, 2026-10-23).** The Suitability food rung is no longer read from the stage of the
 timeline: `life_scores.food_stage` turns the three scores into the old rungs. Flora is always good food (any Flora above 0 is
 Green, 0.85), Flora with Fauna is better (Blue, 1.0), Fauna is all animal life and counts as food on its own (Green); microbes
-alone stay Yellow (0.5) and no life Red (0.2); life under an ice lid is out of reach as before. The Suitability colour is
+alone stay Yellow (0.5) and no life Red (0.2); microbes that live only under an ice lid (or in a deep aquifer) are out of reach as before, but flora and fauna are food wherever the world scores them (Boss, 2026-10-24: a world with Flora 5, Fauna 5 and a civilization had no food because its ocean is under ice, GEN.765). The Suitability colour is
 still held under the five core domains' ceiling.

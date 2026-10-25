@@ -50,6 +50,13 @@ Generation without a database, uploads, verification and the incomplete uploads 
 | API.3 | Remote generate: generate on a local machine, upload through the API | API.30, ADM.95 | Parent; remote mode mirrors the CLI options GEN.51/52 settle. |
 | API.17 | Remote generation reproduces what the server would make | API.12, API.13, API.8 |  |
 
+### Resources in uploads
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| API.34 | API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them | GEN.799 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
+
+
 ## Phase 3: Sky data and research
 
 The sky's data table and the research that settles the view from a planet, moved here from 9.0 (Boss, 10:27 PM EDT: "Everything for 9.0 before splits between 9.1 and 8.9"): nothing in it needs the atmosphere colour, so it is ready before the view is built in 9.1.

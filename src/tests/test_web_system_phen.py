@@ -240,8 +240,8 @@ def test_system_page_renders(app, client, fake):
     assert '<span class="badge">Octant III</span>' in html and "Single star" in html
     links = _nav_links(app, "system", 5)
     assert links["from"].startswith("/nav?from=system") and links["to"].startswith("/nav?to=system")
-    assert f'href="{links["from"]}">Navigate from here</a>' in html
-    assert f'href="{links["to"]}">Navigate to here</a>' in html
+    assert f'data-href="{links["from"]}">Navigate from here</sl-menu-item>' in html
+    assert f'data-href="{links["to"]}">Navigate to here</sl-menu-item>' in html
     assert '<a href="/system/8">Alpha</a> (4.2 ly)' in html
     assert '<a href="/system/9">Be&lt;ta&gt;</a> (5.1 ly)' in html
     # The map, the overview, the summary tree of the system's stars and bodies, and the page's scripts.
@@ -451,8 +451,8 @@ def test_phenomenon_detail(app, client, fake):
     assert re.search(r'<span class="badge"><span class="qty" data-q="length" data-si="[^"]+">1 kpc \(3,262 ly\)</span> from Galactic Center', html)
     assert f'<a href="{_url(app, "sector", sector_id=3)}">Crab &lt;Sector&gt;</a>' in html
     links = _nav_links(app, "nebula", 4)
-    assert f'href="{links["from"]}">Navigate from here</a>' in html
-    assert f'href="{links["to"]}">Navigate to here</a>' in html
+    assert f'data-href="{links["from"]}">Navigate from here</sl-menu-item>' in html
+    assert f'data-href="{links["to"]}">Navigate to here</sl-menu-item>' in html
     assert "4" in links["from"] and "nebula" in links["from"]
     assert '<th scope="row">Composition</th><td>Hydrogen &amp; helium</td>' in html
     assert "<td>Supernova remnant</td>" in html
@@ -466,13 +466,13 @@ def test_phenomenon_detail(app, client, fake):
 
 def test_phenomenon_page_lists_every_stored_property(client, fake):
     """UX.175: under the data table, a phenomenon's page holds the property sheet by group, a value that is not stored
-    shown as such."""
+    left out (UX.199)."""
     html = client.get("/phenomenon/nebula/4").get_data(as_text=True)
     assert ("get_object_sheet", DB, "nebula:4") in fake.calls
     assert 'id="item-properties"' in html and "All stored properties" in html
     assert '<details class="sheet-group" id="sheet-physical">' in html
     assert '<th scope="row">Radius</th>' in html
-    assert re.search(r'<th scope="row">Mass</th><td class="sheet-missing">not stored</td>', html)
+    assert '<th scope="row">Mass</th>' not in html and "sheet-missing" not in html
 
 
 def test_phenomenon_page_has_its_paragraph_and_the_links_to_its_neighbours(client, fake):
@@ -718,8 +718,8 @@ def test_object_page_navigation_is_secondary_and_the_bookmark_is_one_star(client
     """UX.64: the action bar's links are outlined, and the bookmark is the
     same icon-only toggle as on the maps."""
     html = client.get("/system/5").get_data(as_text=True)
-    assert 'class="btn btn-small btn-secondary nav-wide"' in html
-    assert 'class="btn btn-small btn-secondary nav-galaxy"' in html
+    assert re.search(r'class="btn btn-small btn-secondary" href="[^"]+">Show on Galaxy Map</a>', html)
+    assert ">Nav</sl-button>" in html and "nav-wide" not in html and "nav-galaxy" not in html
     assert "btn-secondary btn-bookmark" in html and "☆ Bookmark" not in html
 
 

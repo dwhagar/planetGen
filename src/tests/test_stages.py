@@ -50,11 +50,12 @@ def _labels(found):
     return [(stage.key, stage.skip is not None) for stage in found]
 
 
-def test_a_random_start_galaxy_run_has_nine_stages_and_skips_none_of_them():
+def test_a_random_start_galaxy_run_has_ten_stages_and_skips_none_of_them():
     found = stages.galaxy_stages(_galaxy())
     assert _labels(found) == [
         ("start", False), ("neighborhood", False), ("link", False), ("mass", False), ("luminosity", False),
-        ("phenomena", False), ("backfill", False), ("population", False), ("settle", False)]
+        ("phenomena", False), ("backfill", False), ("population", False), ("territories", False),
+        ("settle", False)]
 
 
 def test_a_sectors_run_has_the_sector_stages_alone():
@@ -63,7 +64,7 @@ def test_a_sectors_run_has_the_sector_stages_alone():
 
 def test_a_galaxy_run_with_an_address_has_one_sector_stage():
     found = stages.galaxy_stages(_galaxy("--shell", "3", "--band", "0"))
-    assert [stage.key for stage in found][:2] == ["sectors", "link"] and len(found) == 8
+    assert [stage.key for stage in found][:2] == ["sectors", "link"] and len(found) == 9
 
 
 def test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own():
@@ -94,13 +95,14 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
     stages.enter("settle")         # the ones between are skipped
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("Stage 1 of 9: Generate the starting sector.")
+    assert text.startswith("Stage 1 of 10: Generate the starting sector.")
     assert "stages:" not in text and "stage:" not in text      # PERF.145: no list of the stages up front
-    assert "Stage 2 of 9: Generate the neighborhood -- skipped: not needed." in text
-    assert "Stage 4 of 9: Scatter the massive stars -- skipped: no layers." in text
-    assert "Stage 8 of 9: Run the population pass -- skipped: not needed." in text
-    assert "Stage 9 of 9: Save the sector paths." in text
-    assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 9
+    assert "Stage 2 of 10: Generate the neighborhood -- skipped: not needed." in text
+    assert "Stage 4 of 10: Scatter the massive stars -- skipped: no layers." in text
+    assert "Stage 8 of 10: Run the population pass -- skipped: not needed." in text
+    assert "Stage 9 of 10: Recompute the territories -- skipped: not needed." in text
+    assert "Stage 10 of 10: Save the sector paths." in text
+    assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 10
 
 
 def test_a_stage_key_the_run_does_not_have_is_ignored():
@@ -188,8 +190,8 @@ def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_con
     assert metrics == {"shells": 40, "shells_modified": 7, "objects": 120}
     assert history["luminosity"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0, "luminosity_floor_sol": 9000.0}
     assert history["mass"]["seconds"] >= 0 and not history["mass"]["skipped"]
-    assert history["population"]["skipped"] and history["settle"]["skipped"] and history["link"]["skipped"] is True
-    assert history["mass"]["stage_n"] == 4 and history["mass"]["stage_total"] == 9
+    assert history["population"]["skipped"] and history["territories"]["skipped"] and history["settle"]["skipped"] and history["link"]["skipped"] is True
+    assert history["mass"]["stage_n"] == 4 and history["mass"]["stage_total"] == 10
 
 
 def test_a_stage_handed_to_the_queue_is_not_stored_by_this_process(control_config, monkeypatch):
@@ -416,16 +418,16 @@ def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
     lines = []
     monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
     monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "3")
-    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "12")
+    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "13")
     stages.begin(stages.galaxy_stages(_galaxy()))
     stages.enter("start")
     stages.enter("settle")
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("Stage 4 of 12: Generate the starting sector.")      # a step of 9 stages: the banner names the step
+    assert text.startswith("Stage 4 of 13: Generate the starting sector.")      # a step of 10 stages: the banner names the step
     assert "stages (stages" not in text
-    assert "Stage 5 of 12: Generate the neighborhood -- skipped: not needed." in text
-    assert "Stage 12 of 12: Save the sector paths." in text
+    assert "Stage 5 of 13: Generate the neighborhood -- skipped: not needed." in text
+    assert "Stage 13 of 13: Save the sector paths." in text
 
 
 def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
@@ -482,7 +484,7 @@ def test_a_total_too_small_for_the_runs_stages_is_ignored(monkeypatch):
     monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "9")
     stages.begin(stages.galaxy_stages(_galaxy()))
     try:
-        assert stages._numbering() == (0, 9)
+        assert stages._numbering() == (0, 10)
     finally:
         stages.finish()
 

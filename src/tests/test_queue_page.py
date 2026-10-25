@@ -287,6 +287,50 @@ def test_retry_reruns_the_command_a_run_was_started_by(web_app, admin_client, co
     assert kw["database"] == control_config.database
 
 
+def test_the_queue_page_offers_the_two_fills_and_each_confirms_before_it_starts(admin_client):
+    """ADM.129: the buttons are on the Queue page, one place, each with what it does."""
+    page = admin_client.get("/admin/queue").get_data(as_text=True)
+    assert "/admin/queue/confirm/fill-habitability" in page and "/admin/queue/confirm/fill-map-luminosity" in page
+    assert "does not re-draw a planet" in page
+    confirm = admin_client.get("/admin/queue/confirm/fill-habitability").get_data(as_text=True)
+    assert "Regenerate habitability?" in confirm and "does not re-draw a planet" in confirm
+    assert "Fill map luminosity?" in admin_client.get("/admin/queue/confirm/fill-map-luminosity").get_data(as_text=True)
+
+
+@pytest.mark.parametrize("action, command, title", [
+    ("fill-habitability", "rescore-habitability", "Regenerate habitability"),
+    ("fill-map-luminosity", "fill-map-luminosity", "Fill map luminosity")])
+def test_a_fill_button_starts_its_command_as_a_job_and_writes_the_audit_entry(
+        web_app, admin_client, control_config, monkeypatch, action, command, title):
+    started, events = [], []
+    monkeypatch.setattr(jobs, "start_job", lambda kind, title, steps, **kw: started.append((kind, title, steps, kw))
+                        or "20261001-000000-abcd")
+    monkeypatch.setattr(queue_page.activity_log, "event", lambda *args, **kw: events.append((args, kw)))
+    response = _post(web_app, admin_client, action=action)
+    assert response.status_code == 303 and "/generate" in response.headers["Location"]
+    kind, job_title, steps, kw = started[-1]
+    assert kind == command and job_title == title and steps[0]["argv"][-1] == command
+    assert kw["database"] == control_config.database and kw["admin"]
+    assert events and events[-1][0][:2] == ("GEN", "job.start") and events[-1][1]["kind"] == command
+    assert events[-1][1]["started_from"] == "queue page"
+
+
+def test_a_fill_is_refused_while_another_run_is_live_or_a_job_holds_the_lock(
+        web_app, admin_client, conn, monkeypatch):
+    monkeypatch.setattr(jobs, "start_job", lambda *a, **k: pytest.fail("should not start"))
+    live = _run(conn, title="Fill shell 7", queued=False)
+    runrecord.touch(conn, live)
+    response = _post(web_app, admin_client, action="fill-habitability")
+    assert "Fill shell 7 is still running" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
+    runcontrol.cancel_run(conn, live)
+
+    def busy(*args, **kwargs):
+        raise jobs.JobBusy({"id": "20261001-000000-abcd", "title": "Generate sectors"})
+    monkeypatch.setattr(jobs, "start_job", busy)
+    response = _post(web_app, admin_client, action="fill-map-luminosity")
+    assert "Generate sectors is still running" in admin_client.get(response.headers["Location"]).get_data(as_text=True)
+
+
 def test_retry_refuses_another_database_and_a_run_with_no_command(web_app, admin_client, conn, monkeypatch):
     monkeypatch.setattr(jobs, "start_job", lambda *a, **k: pytest.fail("should not start"))
     elsewhere = _run(conn, title="Elsewhere", argv=("galaxy", "--shell", "2"), database="some_other_galaxy", queued=False)

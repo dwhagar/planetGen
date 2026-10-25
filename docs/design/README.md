@@ -143,7 +143,11 @@ A note's own status line, at its top, is the authority; this page only points at
 | [radioisotope-tuning.md](composition/radioisotope-tuning.md) | The retune of the radioisotope rows o2, o4 and o6 (GEN.514) | built |
 | [radius-valley-tuning.md](composition/radius-valley-tuning.md) | The tuning of the envelope rows e1 and e2 to the Kepler radius valley (GEN.509) | built |
 | [water-delivery-tuning.md](composition/water-delivery-tuning.md) | The mass law of the water-rich row b4 from the Bern population synthesis (GEN.510) | built |
+| [volatile-delivery-formation-distance.md](composition/volatile-delivery-formation-distance.md) | Water-rich share and delivery classes against formation distance from the Bern population synthesis, and how it relates to the GEN.510 mass law (GEN.481) | research note |
+| [magma-ocean-redox-against-mass.md](composition/magma-ocean-redox-against-mass.md) | Magma-ocean surface redox against mass, the later-mantle law and small-body building-block redox checked against first-hand sources; Na and K condensation temperatures (GEN.482) | research note |
+| [impact-erosion-and-late-delivery.md](composition/impact-erosion-and-late-delivery.md) | Late accretion, the volatiles the impactors bring and the air they blow away, checked against the Earth, Venus and Mars (GEN.739) | research note |
 | [clathrate-brine-wiring.md](composition/clathrate-brine-wiring.md) | Hydrate cages in the ice skin and brine lids read by the generator (GEN.762) | built |
+| [iron-branch-tuning.md](composition/iron-branch-tuning.md) | The iron branch of a rocky planet: star-matched or iron-enriched, tuned to the homogeneous samples (GEN.512) | built |
 | [giant-planet-tuning.md](composition/giant-planet-tuning.md) | The retune of the giant enrichment and C/O rows f5 and f7 (GEN.516) | built |
 | [brown-dwarf-types.md](composition/brown-dwarf-types.md) | The brown-dwarf type map from the Kirkpatrick 2021 temperature polynomials, rows g1 to g5 (GEN.517) | built |
 | [aerosol-tuning.md](composition/aerosol-tuning.md) | The titanium cold-trap step, row h4, and what waits for the chemistry module (GEN.519) | built |

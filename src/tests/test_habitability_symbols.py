@@ -313,3 +313,11 @@ def test_a_bodys_symbols_link_to_the_habitability_and_life_groups_of_its_own_pag
     assert "/habitability#" not in html
     elsewhere = symbols.symbol_row(body, "/icons.svg", help_url="/habitability")
     assert 'href="/habitability#' in elsewhere and "#habitability\"" not in elsewhere
+
+
+def test_a_life_score_is_drawn_with_its_scale():
+    """UX.211: the digit beside a life shape is "3/9", never a bare 3."""
+    from planetgen.web.lib import habitability_symbols as symbols
+
+    html = symbols.life_html("flora", 3, "/static/icons.svg")
+    assert '>3<span class="hab-life-of">/9</span>' in html and 'aria-label="Flora: 3 of 9"' in html

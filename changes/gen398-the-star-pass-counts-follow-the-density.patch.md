@@ -1,8 +1,0 @@
-**Headline:** The plan's "about N stars expected" for the massive-star and bright-star passes now matches what the passes place, and each unit line says the stars it expects.
-
-### Fixed
-- **The expected-stars count beyond the outline follows the density (GEN.398, bug).** The count of stars a shell holds beyond the galaxy's outline (what the pass's log line, its progress bar and its ETA use) probed each group at two longitudes 180 degrees apart. On a two-armed spiral both land on the same phase of the arms, so a group's young stars came out twice, or none, of what the sampler draws: on the default galaxy the shells just past the outline were counted at 3,250 stars where the pass placed 1,853. A group is now sampled at 8 colatitudes and 2 radii of equal volume and 16 longitudes, so its count follows the density wherever the disc falls away across it. On the default galaxy (4e9 solar masses, seed 0123...) the massive-star pass logged 22,593 and placed 21,642 before; it counts 21,389 now, and the part beyond the outline matches the stars placed in each range of shells within 4 percent. The sampler was right and is unchanged: no star moves and no generator epoch is spent.
-- **A unit line says the stars it expects, not its weight.** The "unit 8 of 445, about 133 stars expected" lines gave the unit's weight, its stars plus a share for every band walked, so a unit that placed 19 said it expected 133. They give the stars the unit is expected to place.
-
-### Tests
-- The count beyond the outline matches a Monte Carlo of the density within 6 percent for six shells of the toy galaxy; a task's expected stars are its shells', the far shells' or the components' share, not its weight.

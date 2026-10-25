@@ -298,11 +298,15 @@ def test_phenomenon_num_orbits_at_max_is_accepted(monkeypatch):
         assert args.num_orbits == orbits
 
 
-def test_population_rescan_and_territories_only_message(monkeypatch, capsys):
-    assert _error(monkeypatch, capsys, "population", ["--rescan", "--territories-only"]) == \
-        "--rescan and --territories-only cannot be combined."
+def test_population_takes_rescan_and_territories_is_its_own_command(monkeypatch, capsys):
+    """PERF.125: `--territories-only` is gone; the territories pass is `planetgen territories`."""
     assert _parse(monkeypatch, "population", ["--rescan"]).rescan is True
-    assert _parse(monkeypatch, "population", ["--territories-only"]).territories_only is True
+    assert not hasattr(_parse(monkeypatch, "population", []), "territories_only")
+    assert _parse(monkeypatch, "territories", []).command == "territories"
+    for command, option in (("population", "--territories-only"), ("territories", "--rescan")):
+        with pytest.raises(SystemExit):
+            _parse(monkeypatch, command, [option])
+        assert f"unrecognized arguments: {option}" in capsys.readouterr().err
 
 
 # ---------------------------------------------------------------------------

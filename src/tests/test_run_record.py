@@ -140,7 +140,7 @@ def test_a_run_is_stale_when_nothing_has_happened_for_a_while(conn):
 
 def _stage(**fields):
     base = {"key": "s", "label": "S", "units": 10, "cost": 10.0, "cost_total": 10.0, "done": 0, "cost_done": 0.0,
-            "expected_seconds": None, "prior_rate": None, "workers": 1, "started": None, "ended": None,
+            "expected_seconds": None, "prior_rate": None, "worker_rate": None, "workers": 1, "started": None, "ended": None,
             "last": None, "last_end": None, "first_end": None, "u": None, "t": None, "longest_gap": None,
             "seconds": 0.0}
     base.update(fields)
@@ -180,7 +180,34 @@ def test_a_phase_with_no_updates_and_no_history_uses_the_time_per_task_so_far_in
     assert eta.source == "this run so far" and not eta.partial
     assert eta.seconds == pytest.approx(5.0 / (10.0 / 120.0))
     nothing = runeta.estimate(_run(_stage(started=0.0), started=0.0), now=5.0)
-    assert nothing.seconds is None and nothing.partial
+    assert nothing.rough and nothing.source == "rough guess" and not nothing.partial       # PERF.184: a guess, not a blank
+
+
+def test_a_server_that_never_timed_a_stage_gives_a_rough_guess_from_its_hardware_and_says_so(monkeypatch):
+    """PERF.184 (Boss, 2026-10-24): no benchmark or history, the estimate must still be sensible."""
+    monkeypatch.setattr(runeta.roughtime, "host_workers", lambda cores=None, memory_bytes=None: 8)
+    started = _stage(started=0.0, units=16)                      # 16 units over 8 workers: 2 rounds of 20 s
+    eta = runeta.estimate(_run(started), now=0.0)
+    assert eta.rough and eta.source == "rough guess" and eta.seconds == pytest.approx(40.0)
+    assert (eta.low, eta.high) == pytest.approx((16.0, 120.0)), "a guess is wide"
+    counted_down = runeta.estimate(_run(started), now=30.0)
+    assert counted_down.seconds == pytest.approx(10.0)
+    over = runeta.estimate(_run(started), now=500.0)
+    assert over.seconds == pytest.approx(4.0), "past the guess, a tenth of it is left"
+    later = runeta.estimate(_run(started, _stage(units=0, cost=0.0, cost_total=0.0)), now=0.0)
+    assert later.seconds == pytest.approx(40.0 + 600.0 / 8), "a stage not expanded yet counts as a typical one"
+
+
+def test_the_guess_gives_way_to_the_runs_own_pace_and_to_recorded_timings(monkeypatch):
+    monkeypatch.setattr(runeta.roughtime, "host_workers", lambda cores=None, memory_bytes=None: 8)
+    running = _stage(started=0.0, done=4, cost_done=4.0, u=4.0 * 0.6, t=40 * 0.6, last_end=40.0, longest_gap=10.0)
+    eta = runeta.estimate(_run(running), now=40.0)
+    assert eta.source == "live" and not eta.rough and eta.seconds == pytest.approx(60.0, rel=0.02)
+    recorded = _stage(started=0.0, units=16, cost=16.0, cost_total=16.0, worker_rate=0.1)   # 0.1 cost per worker second
+    eta = runeta.estimate(_run(recorded), now=0.0)
+    assert eta.source == "recorded" and not eta.rough and eta.seconds == pytest.approx(16.0 / (0.1 * 8))
+    earlier = runeta.estimate(_run(_stage(started=0.0, expected_seconds=300.0)), now=0.0)
+    assert earlier.source == "earlier runs" and not earlier.rough
 
 
 def test_later_stages_are_added_and_a_stage_with_no_history_uses_the_pace_of_the_run():
@@ -208,7 +235,7 @@ def test_the_public_view_has_what_a_banner_needs_and_nothing_private():
     run.update(who="boss", database="g1", updated=40.0)
     view = runeta.public_view(run, now=40.0)
     assert set(view) == {"active", "state", "title", "stage", "percent", "eta_seconds", "eta_low", "eta_high",
-                         "eta_source", "from_earlier_runs", "partial", "stalled", "updated"}
+                         "eta_source", "from_earlier_runs", "partial", "stalled", "eta_rough", "updated"}
     assert view["active"] and view["stage"] == {"index": 0, "count": 2, "label": "Mass scatter", "done": 4, "units": 10}
     assert view["percent"] == 20.0 and view["eta_source"] == "live"
     assert "boss" not in json.dumps(view) and "g1" not in json.dumps(view)
@@ -271,3 +298,32 @@ def test_a_refused_run_leaves_no_sign_of_life_and_a_live_run_keeps_its_own(conn)
         runrecord.start_run(conn, "Another", _stages(), run_id="20260101-000000-feedface")
     assert not conn.exists(runrecord.alive_key("20260101-000000-feedface"))
     assert 0 < conn.ttl(runrecord.alive_key(first)) <= runrecord.ALIVE_SECONDS
+
+
+def test_a_finished_stage_is_remembered_and_the_next_run_starts_from_it(conn):
+    """PERF.184: from its second run on, a stage with no stored history has a time and a rate."""
+    from planetgen.queue import stagetimes
+    stage = Stage("warm-demo", "Warm demo", units=2, cost=2.0)
+    first = runrecord.start_run(conn, "Run one", [stage], now=100.0)
+    runrecord.begin_stage(conn, first, 0, now=100.0)
+    runrecord.unit_done(conn, first, 0, 0, seconds=30.0, now=110.0)
+    assert stagetimes.lookup(conn, ["warm-demo"]) == {}, "nothing is remembered before the stage ends"
+    runrecord.unit_done(conn, first, 0, 1, seconds=30.0, now=130.0)
+    found = stagetimes.lookup(conn, ["warm-demo", "never-run"])
+    assert set(found) == {"warm-demo"} and found["warm-demo"]["seconds"] == pytest.approx(30.0)
+    assert found["warm-demo"]["worker_rate"] == pytest.approx(2.0 / 60.0) and found["warm-demo"]["runs"] == 1
+    runrecord.finish_run(conn, first, "done", now=131.0)
+    second = runrecord.start_run(conn, "Run two", [Stage("warm-demo", "Warm demo", units=2, cost=2.0)], now=200.0)
+    runrecord.begin_stage(conn, second, 0, now=200.0)
+    runrecord.unit_done(conn, second, 0, 0, seconds=10.0, now=205.0)
+    runrecord.unit_done(conn, second, 0, 1, seconds=10.0, now=210.0)
+    again = stagetimes.lookup(conn, ["warm-demo"])["warm-demo"]
+    assert again["runs"] == 2 and again["seconds"] == pytest.approx(0.5 * 30.0 + 0.5 * 10.0)
+
+
+def test_a_stage_that_ended_at_once_is_not_remembered(conn):
+    from planetgen.queue import stagetimes
+    run_id = runrecord.start_run(conn, "Quick", [Stage("quick", "Quick", units=1)], now=100.0)
+    runrecord.begin_stage(conn, run_id, 0, now=100.0)
+    runrecord.unit_done(conn, run_id, 0, 0, seconds=0.01, now=100.1)
+    assert stagetimes.lookup(conn, ["quick"]) == {}

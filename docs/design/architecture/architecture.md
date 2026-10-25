@@ -80,7 +80,7 @@ flowchart LR
 
 | Path | What it holds |
 |---|---|
-| [`planetgen`](../../../src/planetgen/cli/generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
+| [`planetgen`](../../../src/planetgen/cli/generate.py) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `galaxy` also runs that pass as one of its stages; `sector` and `phenomenon` only generate (PERF.124). Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
 | [`install.sh`](../../../install.sh) | One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, `planetgen.cli.migrate`, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log. |
 | [`update.sh`](../../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, but never the population pass (run `planetgen population` by hand). Safe to run on a schedule. |
 | `setup.py`, `pyproject.toml` | The Python package (`planetgen`, from `src/`) and its dependency floors and extras (`api`, `test`, `browser`). |
@@ -170,7 +170,7 @@ Building the objects a run creates, and the commands that run it. Generation cod
 | [`run_galaxy.py`](../../../src/planetgen/generation/run_galaxy.py) | The `galaxy` command: many sectors placed as one galaxy, each at its shell/band/wedge address in the spherical grid, with its systems inside the sector's own cell. |
 | [`run_phenomenon.py`](../../../src/planetgen/generation/run_phenomenon.py) | The `phenomenon` command: one exotic stellar phenomenon (a black hole, neutron star, nebula, supernova remnant, rogue planet, interstellar comet or asteroid field), on demand. |
 | [`run_plan.py`](../../../src/planetgen/generation/run_plan.py) | The `plan` command: the galaxy's density skeleton (`galaxy_shape`, `galaxy_shell`) that `ensure_sector_generated` consults, and the galaxy-wide star and phenomenon scatters with their per-sector bands. |
-| [`run_population.py`](../../../src/planetgen/generation/run_population.py) | The `population` command: species, civilizations and territories from what is already stored (`planetgen.population.model`), also run after a `sector` or `galaxy` run given `--population`. |
+| [`run_population.py`](../../../src/planetgen/generation/run_population.py) | The `population` command: species, civilizations and territories from what is already stored (`planetgen.population.model`), and the same pass as a stage of a `galaxy` run. |
 | [`run_sector.py`](../../../src/planetgen/generation/run_sector.py) | The `sector` command and the sector build both it and `galaxy` use (`generate_sector`): one `SpaceSector` of systems, phenomena, star-hosted nebulae, fast stars and, at the center, the nucleus. |
 | [`run_system.py`](../../../src/planetgen/generation/run_system.py) | The `system` command: one star system, built from `SystemConfig` (the tri-state `+name`/`-name` options and `--system-file`). |
 | [`stages.py`](../../../src/planetgen/generation/stages.py) | The stages of a generation command, numbered and announced as the run reaches them (UX.89). |
@@ -758,13 +758,13 @@ without a galaxy (a cube sector, no address). `planetgen system
 territories are a separate pass over what is already stored, so system
 generation does not change and an old galaxy can be populated without a
 regenerate. It is off by default: it runs from `planetgen population`,
-after `planetgen sector` only with `--population` (a `galaxy` run always runs it), or when
+as a stage of a `planetgen galaxy` run, or when
 someone answers y to the installer's prompt (Flow 5).
 
 ```mermaid
 flowchart TD
-    PopCLI["planetgen population<br/>run_population"] --> Pass["population.run_pass"]
-    After["planetgen sector --population / galaxy<br/>run_population_after,<br/>run_population_stage"] --> Pass
+    PopCLI["planetgen population<br/>run_population"] --> Pass["population.run_population"]
+    After["planetgen galaxy<br/>run_population_stage"] --> Pass
     Inst["install.sh / update.sh<br/>offer_population_pass"] -.-> PopCLI
     Pass --> Scan["scan_life_worlds<br/>planets past the watermark,<br/>parse_timeline, has_civilization"]
     Scan --> Civ["refresh_civilizations<br/>era_for_age, found or dissolve polities,<br/>reach_ly"]
@@ -783,8 +783,7 @@ polity per spacefaring species and sets its reach from its age.
 `refresh_territories` rebuilds `system_owners` from scratch: each polity
 claims the systems in the sectors its reach touches, a claim's strength is
 reach over distance, and the strongest claim on a system wins (ties go to
-the lower polity id). `--rescan` forgets everything and starts over;
-`--territories-only` runs only the last step.
+the lower polity id). `planetgen population` runs the scan and the polities and `--rescan` forgets everything and starts over; `refresh_territories` is `planetgen territories` (PERF.125).
 
 ## Flow 2: storing and migrating the database
 
