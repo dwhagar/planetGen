@@ -8088,111 +8088,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TODO, 2026-10-24 5:27 PM EDT, from the physics fix plan thread's
   reconcile ask.)
 
-- [ ] **GEN.441 Surface and crust composition: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature and the air**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition/composition-model.md. Planets and moons get a surface
-  composition as shares (silicate and metal-rich crust, regolith, the
-  ices that are stable at the surface temperature and pressure, the
-  ocean and its salts, organic and sulphur deposits), derived from the
-  bulk fractions of GEN.428 and the materials table of GEN.427 together
-  with the surface temperature and the stored atmosphere (an ice that
-  cannot survive the temperature is absent; weathering follows the air
-  and the water). The design (GEN.426, GEN.437) settles the order of the
-  steps against the albedo and temperature of GEN.412 and GEN.422, since
-  the ground's colour is part of the albedo. Changes stored values, so
-  it ships with a generator epoch bump. Done: every body's surface
-  shares sum to one, agree with its bulk fractions and its temperature,
-  and the ground's albedo and radiogenic content can be read from them;
-  a test says so for every class.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related:
-  DB.70,
-  GEN.444, GEN.418,
-  GEN.412.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation
-  code as the atmosphere items Boss gave it; to be confirmed).
-  Merged research (2026-10-17, TODO thread, from the Body composition
-  research lane: docs/design/composition/body-composition-research.md and its five
-  parts in docs/design/composition/body-composition-parts/). Part E: the ground type
-  (ultramafic, anorthositic, basaltic, felsic, ice, sulfur, carbon,
-  evaporite, clay, oxidised, metal) is drawn from the mantle oxides, the
-  ice inventory, the heat flux and the water state (E7), with the
-  regolith thermal properties from grain radius and filling factor
-  (Hayne laws, Gundlach and Blum conduction, E12); the radiogenic heat
-  of GEN.459 and the hydrosphere of GEN.461 come first; the albedo by
-  band is GEN.462.
-  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the surface and crust composition is drawn from gated
-  rows (the mineral, ice and ocean covers a class and temperature can
-  hold) with the weight a function of the bulk fractions, the
-  temperature and the air; ground albedo (GEN.462) is then the
-  area-weighted result.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. Here the Earth rock-type library is a
-  `stand-in` until GEN.474 replaces it.
-  Boss (2026-10-17, 1:47 AM EDT, typed in the body composition thread):
-  "basically anything an asteroid field or belt can be made of, a planet
-  or moon can be made of too that was my main point there". So there is
-  one shared materials and components table for every object kind
-  (asteroid, belt, field, comet, moon, planet, dwarf planet), each row
-  gated by class; there are no separate component lists per kind. The
-  surface rows draw their minerals and ices from the shared table of
-  GEN.427.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Blocker 4 lane (build lane for the top blockers, 2026-10-24), moved from lane H at 10:08 PM EDT 2026-10-23: lane H had not started it and gave it up (it keeps GEN.461, which it starts right after GEN.459 merges, gate ending about 11:10 PM EDT). It replaces the basalt and felsic stand-in in physics/radiogenic.py (SURFACE_RESERVOIRS, surface_content); it needs GEN.428, GEN.429, GEN.459 and GEN.461 merged, so Blocker 4 builds ahead and merges last. Lane H messages Blocker 4 when GEN.459 lands.
-  Slice 1 (2026-10-09): Slice 1 merged as #2783 (about 10:30 PM EDT
-  2026-10-23 as the lane reported, no stored value, epoch or migration):
-  physics/surface_composition.py (draw_surface, ice_stable, band_albedo,
-  crust_reservoir; K, Th and U reservoirs for ultramafic, basaltic and
-  felsic crust that lane H can use in place of its stand-ins), the
-  tables surface-ground-types and surface-dominant-ground, and
-  docs/design/composition/surface-composition.md. GEN.441 stays open:
-  slice 2 (the generator call, columns, migration and API) waits on
-  #2751, GEN.459 and GEN.461.
-  Research (2026-10-09, Update): Update 1:25 AM EDT 2026-10-24 (as lane
-  H reported): GEN.459 merged as #2868 (schema v141, migration 0141,
-  epoch 67): physics/radiogenic.py stores K, Th, U, Al-26 and the Urey
-  ratio per rocky body (c_k0_ppm, c_th0_ppm, c_u0_ppm, al26_ratio,
-  urey_ratio); interior heat and the ground gamma and radon dose read
-  them (a bulk silicate Earth gives 21.0 TW and 0.67 nGy/h);
-  radiation.py has gamma_dose_msv_yr, radon_dose_msv_yr and
-  ground_dose_msv_yr. Stand-in waiting on this item: the surface rock
-  (basalt or felsic) used by the ground dose. Free for Blocker 4.
-  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
-  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 5, 17
-  wait; Blocker 4 (in progress).
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -8421,7 +8316,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.444, GEN.445.
+  Prerequisites: GEN.444, GEN.445.
   Related:
   GEN.430, GEN.415, GEN.420, GEN.208.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -15325,6 +15220,52 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   idle one-off lane. Rules: no backward-compat shims; never skip a test.
   Prerequisites: none. Related: GEN.272, GEN.630, GEN.631.
 
+- [ ] **GEN.833 Cold icy moons get sparse ice cover because the hydrosphere's toy ocean_fraction feeds the ground draw (bug)**
+  Found by Blocker 4 while merging GEN.441 (PR 3335, as the lane
+  reported 3:57 AM EDT 2026-10-25): the ground draw reads the
+  hydrosphere's toy ocean_fraction, so a cold icy moon (where the water
+  is ice, not ocean) draws sparse ice cover. Do: feed the ground draw
+  the real water-layer coverage (ocean, ice shell and surface ice
+  together, from the water mass the body holds and the temperature)
+  instead of the toy ocean_fraction; remove the toy fraction from the
+  ground draw's inputs; record the change as generation (new epoch,
+  --affects fill). Done: a test generates cold icy moons across the mass
+  range and checks their ice cover follows the water the body holds (a
+  moon with a thick ice shell is covered), and bound planets keep their
+  results unless the real coverage differs, in which case the PR lists
+  which. Owner: Aux 7 (Lane K surfaces) or a free lane. Rules: no
+  backward-compat shims; the epoch carries --affects.
+  Prerequisites: none. Related: GEN.441, GEN.699.
+
+- [ ] **GEN.834 Non-water ice species (CO2, CH4, N2 and others) are drawn into the ground but not stored per species**
+  Found by Blocker 4 while merging GEN.441 (3:57 AM EDT 2026-10-25): the
+  ground draw picks the non-water ices on a surface (CO2, CH4, N2, NH3
+  and the rest) but stores no per-species amount, so the object page,
+  the sheet and the renderer cannot read them. Do: store the drawn
+  amount per ice species, either one column per species or a child table
+  keyed by body and species (pick the one the sheet and renderer can
+  read with one query; new numeric columns carry units in
+  db/column_units.py); one migration and epoch at merge; readers (object
+  page ice list, MAP painter hooks, search filters) take it. Done: a
+  round trip test stores and reads the species of a Pluto-like body and
+  a CO2-frost Mars-like body; the sheet fill audit passes. Owner: Aux 7
+  (Lane K) or a free lane. Rules: no backward-compat shims; the epoch
+  carries --affects.
+  Prerequisites: none. Related: GEN.441, GEN.282, DB.67.
+
+- [ ] **GEN.835 The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule**
+  Found by Blocker 4 while merging GEN.441 (3:57 AM EDT 2026-10-25):
+  tidal_flux_w_m2 is available once GEN.778 fills it, but the ground
+  draw's sulfur rule (volcanic sulfur on a tidally heated moon like Io)
+  does not read it. Do: the sulfur rule reads the surface tidal heat
+  flux next to the radiogenic and primordial heat it uses, so a strongly
+  tidally heated moon gets the sulfur surface it should; no new stand-in
+  without its registry row. Done: a test draws a high tidal flux moon
+  and a low one and the sulfur share follows. Owner: Aux 7 (Lane K)
+  after GEN.778. Rules: no backward-compat shims; the epoch carries
+  --affects.
+  Prerequisites: none. Related: GEN.441, GEN.778, .
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -16531,7 +16472,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.462. Related:
+  Prerequisites: GEN.462. Related:
   DB.69, DB.67, DB.68.
   Finding F11 of the Body composition research lane (section 14.5 of
   docs/design/composition/body-composition-research.md, tables E1 to E4; 2026-10-17,
