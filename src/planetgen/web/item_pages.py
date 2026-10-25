@@ -201,7 +201,10 @@ def system_tree(db, system_id, name):
 
 
 def _listed(row):
-    """Whether a page lists a sheet row: it holds something, or its absence is itself worth knowing (UX.188)."""
+    """Whether a page lists a sheet row: it holds something, or its absence is itself worth knowing (UX.188). A value that
+    was never stored is not listed (UX.199)."""
+    if not row.get("stored", True):    # UX.199: "not stored" is a gap in the data, not a fact about the object
+        return False
     return not row.get("absent") or row.get("show_absent", False)
 
 
