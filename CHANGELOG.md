@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2343] - 2026-10-25
+
+**Headline:** When a world loses part of its air, its ozone and its ultraviolet index can now follow it.
+
+### Changed
+- **GEN.668: a loss of air takes the ozone with it.** `radiation.apply_air_loss(body, retained_fraction)` scales a planet's or moon's stored ozone column by the share of the air that is kept and works the ultraviolet index out again from it (a world that loses half its air keeps half its ozone and has a higher index). No step of generation removes air after the ozone is drawn (escape and the water loss act on the air before it), so nothing is called yet and no generated value changes; the function is for the first loss event that does.
+
 ## [8.0.2342] - 2026-10-25
 
 **Headline:** A main-sequence star now takes its brightness, colour and size from the MIST isochrones at its mass, age and composition, and it brightens as it ages.
