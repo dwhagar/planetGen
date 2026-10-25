@@ -52,14 +52,25 @@ SURFACE_COMPOSITION_COLUMNS = (
     "ground_oxidised_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
     "ground_sulfur_fraction",
 )
-"""tuple: What migration 0159 (GEN.441) added to `planets` and `moons`."""
+"""tuple: What migration 0160 (GEN.441) added to `planets` and `moons`."""
 
 
 def drop_surface_composition(conn):
-    """Makes the database older than v159: the surface composition columns gone."""
+    """Makes the database older than v160: the surface composition columns gone."""
     for table in ("planets", "moons"):
         columns = ", ".join(f"DROP COLUMN {column}" for column in SURFACE_COMPOSITION_COLUMNS)
         conn.execute(f"ALTER TABLE {table} {columns}, ALGORITHM=COPY")
+
+
+RING_COLUMNS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ring_mass_kg", "ring_optical_depth", "ring_ice_fraction")
+"""tuple: What migration 0160 (GEN.732) added to `planets` and `moons`."""
+
+
+def drop_rings(conn):
+    """Makes the database older than v160: the ring columns and their two checks gone."""
+    for table in ("planets", "moons"):
+        columns = ", ".join(f"DROP COLUMN {column}" for column in RING_COLUMNS)
+        conn.execute(f"ALTER TABLE {table} DROP CHECK {table}_chk_10, DROP CHECK {table}_chk_11, {columns}, ALGORITHM=COPY")
 
 
 def old_schema_versions():

@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, bulk_composition, giant_interior, surface_composition
+from planetgen.physics import aerosols, bulk_composition, giant_interior, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -2941,6 +2941,7 @@ BODY_FIELDS = (
     object_rows.computed("carbon_rock", lambda body, context: _tristate(body.carbon_rock),
                          lambda row: {"carbon_rock": _tristate_from_db(row["carbon_rock"])}),
     object_rows.each(tuple(name for name in giant_interior.BODY_FIELDS if name != "has_helium_shell")),
+    object_rows.each(rings.BODY_FIELDS),
     object_rows.computed("has_helium_shell", lambda body, context: _tristate(body.has_helium_shell),
                          lambda row: {"has_helium_shell": _tristate_from_db(row["has_helium_shell"])}),
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),

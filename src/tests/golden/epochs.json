@@ -645,6 +645,13 @@
       "first_release": "8.0.2355",
       "reason": "The ground of every rocky body is drawn from its bulk fractions, temperature, air and water and stored, the ground dose reads it, and the draws after the hydrosphere move (GEN.441)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 109,
+      "first_release": null,
+      "pending": true,
+      "reason": "Every planet may hold a ring system: a giant always has one (dusty, narrow or broad), a terrestrial or dwarf planet rarely, drawn after its moons from the Roche limit, the innermost moon and the snow line, stored as ring_kind, ring_origin, ring_inner_km, ring_outer_km, ring_mass_kg, ring_optical_depth and ring_ice_fraction (GEN.732)",
+      "affects": ["fill"]
     }
   ]
 }
