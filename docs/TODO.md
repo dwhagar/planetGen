@@ -1012,6 +1012,16 @@ with `clamp()`.
   UX.188, UX.198, UX.199, UX.203, UX.205, TEST.358, GEN.767, GEN.768.
   Prerequisites: none. Related: UX.188, UX.198, UX.199, UX.203, UX.205,
   TEST.358, GEN.767, GEN.768.
+  Research (2026-10-09, Progress): Fill audit delivered (merged #3205,
+  Aux 11, relayed 9:46 PM EDT 2026-10-24 as the lane reported): the
+  empty applicable columns are filed as GEN.778 (tidal flux), GEN.779
+  (induced moment), GEN.780 (porosity), GEN.781 (hp ice), GEN.782 (ice
+  shell), GEN.783 (shelter column), GEN.784 (giant energy flux), GEN.785
+  (star decay age and lethal event rate), GEN.786 (star state), GEN.787
+  (star disk), GEN.788 (star flare, UV-C, X-ray, lifespan), GEN.789
+  (wide binary rule), GEN.790 (comet rule), GEN.791 (force a class for
+  sampling); outside hours is GEN.768. The lane adds the excuse list and
+  the failing test with these ids.
 
 - [ ] **UX.210 Map infoboxes and labels: the orbit infobox eccentricity and every other number on a map says what it is and its unit (scan) (bug)**
   Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
@@ -1029,23 +1039,25 @@ with `clamp()`.
   Core 2 (Aux 10 for the galaxy map nodes). Related: UX.199, GEN.771.
   Prerequisites: none. Related: UX.199.
 
-- [ ] **UX.211 Pages, lists, search, Nearby and the admin pages: every number carries a unit, a noun or a label (scan) (bug)**
-  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
-  TODO find where we output numbers without units or context, and make
-  TODO items all as bugs, we should never have numbers without units or
-  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
-  Sample of nearby.html, habitability.html and system.html was fine
-  (counts carry a noun), but the scan is not complete. Do: scan every
-  template under web/templates and its macros (system and object lists,
-  search results, class and habitability pages, the nav chart, the
-  generate, queue, stats and settings pages, partials) for a rendered
-  number with no unit, noun or label beside it; list each finding in the
-  item and fix them (a count says what it counts, a score its scale, a
-  time its unit, a size its unit). Done: the scan list is attached and
-  every finding is fixed. Owner: Aux 11 (object pages, lists), Core 5
-  (generate and queue pages), Aux 12 (admin pages). Related: UX.199,
-  GEN.771.
-  Prerequisites: none. Related: UX.199.
+- [ ] **UX.212 Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug)**
+  Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
+  as the lane reported; Boss rule: never a number without a unit or
+  context. Found by the UX.211 probe of the a11y sample: elements whose
+  whole text is a bare number. Give every admin statistics and queue
+  tile its noun or unit (for example '18 jobs queued'), and every
+  settings value its unit or scale. Done: the probe lists no bare number
+  on the admin pages and a browser test pins it. Version 8.1. Owner: Aux
+  12 (account, API and ops).
+  Prerequisites: none. Related: UX.208, GEN.772.
+
+- [ ] **UX.213 Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug)**
+  Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
+  as the lane reported; Boss rule: never a number without a unit or
+  context. The Generate page's task option values 1/2/4/6 print with no
+  unit or noun. Name what they count (workers, tasks, threads) beside
+  each. Done: the probe lists no bare number on the Generate page and a
+  browser test pins it. Version 8.1. Owner: Core 5.
+  Prerequisites: none. Related: UX.208, GEN.772.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -13397,36 +13409,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Prerequisites: none. Related: GEN.642, GEN.460.
 
-- [ ] **GEN.734 Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  C8; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T6. Today:
-  The recipes mark four weight tables open: planet minus star Fe/Mg
-  scatter (gap plan BC8), core light elements (BC18), rogue-planet
-  stripping at ejection (BC11) and moon composition against distance
-  (BC6). They are gap plan rows only and have no TODO item. Real
-  physics: data that is not yet public (BC8, BC11, BC18) or composition
-  built from the disc (BC6). Do: find the best available source or model
-  for each, label the stand-in with tier and tweak level in the
-  registry, and give each a replacing plan. Done: the four tables carry
-  a source or a labelled stand-in with a tier, and each has a named
-  replacing item. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
-  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): sections 2, 3 and
-  4: planet-minus-star Fe/Mg scatter (core population N(0, 0.10 dex),
-  super-Mercury tail 12 percent), rogue-planet volatile loss
-  (log-uniform 1e-5 to 1e-1, median 1e-3) and core light elements (total
-  0.08 of core mass, Dirichlet split over S, Si, O, H). Each row carries
-  its source tier and tweak level in the report; record both in the
-  registry (GEN.725) in the same PR that uses the value. Nothing changes
-  a generated world until the owning item uses it.
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: none. Related: GEN.725, GEN.711.
-
 - [ ] **GEN.735 Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   H1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -14321,6 +14303,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.770, GEN.771, GEN.571.
   Prerequisites: none. Related: GEN.656, GEN.769, GEN.770, GEN.771,
   GEN.571.
+  Research (2026-10-09, Progress): Boss, 10:07 PM EDT 2026-10-24 asked
+  for the plus-or-minus form or the full range, and a high and low for
+  every regional temperature: filed as the next two items of this group
+  (the swing label and the regional ranges), same owner.
 
 - [ ] **GEN.774 Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
@@ -14351,6 +14337,348 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   labels; tests are `scripts/test.py changed --resume` only; no fixed
   content from the Milky Way or the Solar System.
   Prerequisites: POP.16. Related: GEN.725, GEN.772.
+
+- [ ] **GEN.775 Replace the planet-minus-star Fe/Mg scatter and super-Mercury tail (registry row BC8) with a larger sample of rocky planets with precise masses and stellar Fe/Mg**
+  Find the larger sample (Adibekyan 2021 and its follow-ups): rocky
+  planets with precise masses and host-star Fe/Mg, fit the scatter and
+  the high-iron tail, and replace the N(0, 0.10 dex) stand-in and the 12
+  percent super-Mercury tail. Aux 14 on GEN.734 (relayed 9:46 PM EDT
+  2026-10-24 as the lane reported): the registry row names this item as
+  the replacing item. Kind: data job. Source tier of today's value:
+  stand-in (tier and tweak level in the GEN.725 registry row). Done: the
+  stand-in is replaced by a value from the data, the registry row is
+  updated (tier and tweak level), and a draw change carries
+  `tests.golden_update --reason ... --affects fill`. Owner: pool, after
+  8.1 (8.4).
+  Prerequisites: none. Related: GEN.734, GEN.725, GEN.711.
+
+- [ ] **GEN.776 Replace the rogue-planet volatile loss at ejection (registry row BC11) with a measured atmosphere or free-floating-planet volatile survey**
+  Find any measured rogue-planet atmosphere or free-floating-planet
+  volatile survey and fit the loss at ejection that replaces the
+  log-uniform 1e-5 to 1e-1 stand-in. Aux 14 on GEN.734 (relayed 9:46 PM
+  EDT 2026-10-24 as the lane reported): the registry row names this item
+  as the replacing item. Kind: data job. Source tier of today's value:
+  stand-in (tier and tweak level in the GEN.725 registry row). Done: the
+  stand-in is replaced by a value from the data, the registry row is
+  updated (tier and tweak level), and a draw change carries
+  `tests.golden_update --reason ... --affects fill`. Owner: pool, after
+  8.1 (8.4).
+  Prerequisites: none. Related: GEN.734, GEN.725.
+
+- [ ] **GEN.777 Replace the core light-element split (registry row BC18) with a second body that has seismic or core-density data**
+  Find a second body beyond Earth with seismic or core-density data and
+  fit the core light-element total and the S, Si, O, H split that
+  replace the 0.08 of core mass Dirichlet stand-in. Aux 14 on GEN.734
+  (relayed 9:46 PM EDT 2026-10-24 as the lane reported): the registry
+  row names this item as the replacing item. Kind: data job. Source tier
+  of today's value: stand-in (tier and tweak level in the GEN.725
+  registry row). Done: the stand-in is replaced by a value from the
+  data, the registry row is updated (tier and tweak level), and a draw
+  change carries `tests.golden_update --reason ... --affects fill`.
+  Owner: pool, after 8.1 (8.4).
+  Prerequisites: none. Related: GEN.734, GEN.725.
+
+- [ ] **GEN.778 Fill tidal_flux_w_m2 for planets and moons: tidal heating flux at the surface from eccentricity, spin and the body's interior (never filled in the sample)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for every planet (4493 of 4493) and 4649 of 4958 moons
+  (only 309 of the 413 class D moons filled). The producer is missing or
+  not wired to the sheet. Done: the column is filled for every body the
+  sheet rule says it applies to, or the sheet rule is changed to say why
+  it does not apply (a sentence of reason in describe/sheet.py APPLIES),
+  and the UX.208 test lists no empty applicable pair for it; a drawn or
+  computed value has a source and a GEN.725 registry row with tier and
+  tweak level, a unit (GEN.772) and a column_units entry; a change to
+  generated output carries `tests.golden_update --reason ... --affects
+  <stage>` and the next epoch; tests are `scripts/test.py changed
+  --resume`. Version 8.1, with UX.208. Suggested owner: Aux 5 (heat and
+  dose).
+  Prerequisites: none. Related: UX.208, GEN.725, GEN.684.
+
+- [ ] **GEN.779 Fill induced_moment_a_m2: the induced magnetic dipole moment of conducting oceans and cores in a varying field (never filled; every planet empty)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for all 4493 planets, including giants. Fill it where the
+  body has a conductive layer and a time-varying field, or say in the
+  sheet rule where it does not apply. Done: the column is filled for
+  every body the sheet rule says it applies to, or the sheet rule is
+  changed to say why it does not apply (a sentence of reason in
+  describe/sheet.py APPLIES), and the UX.208 test lists no empty
+  applicable pair for it; a drawn or computed value has a source and a
+  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
+  column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 4 (radiation) with Aux 6.
+  Prerequisites: none. Related: UX.208, GEN.725.
+
+- [ ] **GEN.780 Fill porosity for rocky and icy bodies: the surface and crust porosity from composition and gravity (never filled)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for every planet and moon of classes where it applies
+  (4371 planets, 4545 moons in the sample). Done: the column is filled
+  for every body the sheet rule says it applies to, or the sheet rule is
+  changed to say why it does not apply (a sentence of reason in
+  describe/sheet.py APPLIES), and the UX.208 test lists no empty
+  applicable pair for it; a drawn or computed value has a source and a
+  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
+  column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 6 (bulk composition).
+  Prerequisites: none. Related: UX.208, GEN.725, GEN.642.
+
+- [ ] **GEN.781 Fill hp_ice_km: the thickness of the high-pressure ice layer under an ocean (never filled)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for 3542 planets and 4935 moons in the sample; it applies
+  to a world with a deep water or ice layer. Done: the column is filled
+  for every body the sheet rule says it applies to, or the sheet rule is
+  changed to say why it does not apply (a sentence of reason in
+  describe/sheet.py APPLIES), and the UX.208 test lists no empty
+  applicable pair for it; a drawn or computed value has a source and a
+  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
+  column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 6 (bulk composition).
+  Prerequisites: none. Related: UX.208, GEN.725, GEN.642.
+
+- [ ] **GEN.782 Fill ice_shell_km for every world with a surface ice shell, and state in the sheet rule which worlds have none**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Filled for some bodies of a class and not others: 1600 planets
+  and 1301 moons empty, among them 715 of 2289 class C planets and 776
+  of 4102 class C moons. A condition the registry does not yet state.
+  Done: the column is filled for every body the sheet rule says it
+  applies to, or the sheet rule is changed to say why it does not apply
+  (a sentence of reason in describe/sheet.py APPLIES), and the UX.208
+  test lists no empty applicable pair for it; a drawn or computed value
+  has a source and a GEN.725 registry row with tier and tweak level, a
+  unit (GEN.772) and a column_units entry; a change to generated output
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`. Version 8.1,
+  with UX.208. Suggested owner: Aux 6 (bulk composition) with Units lane
+  for the km and m display (GEN.769).
+  Prerequisites: none. Related: UX.208, GEN.725, GEN.769.
+
+- [ ] **GEN.783 Fill shelter_column_g_cm2: the column mass of rock or ice that shields a shelter from radiation, for every world where it applies**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Filled for some bodies and not others: 556 planets and 272
+  moons empty (all class M, N, O, V; 168 of 274 class A moons). Done:
+  the column is filled for every body the sheet rule says it applies to,
+  or the sheet rule is changed to say why it does not apply (a sentence
+  of reason in describe/sheet.py APPLIES), and the UX.208 test lists no
+  empty applicable pair for it; a drawn or computed value has a source
+  and a GEN.725 registry row with tier and tweak level, a unit (GEN.772)
+  and a column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 4 (radiation) .
+  Prerequisites: none. Related: UX.208, GEN.725, GEN.670.
+
+- [ ] **GEN.784 Fill energy_flux_w_m2 and flux_variation for giant planets: internal and absorbed energy flux and its variation (never filled for classes I, J, T)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for 464 class I, 483 class J and 1 class T planets. Done:
+  the column is filled for every body the sheet rule says it applies to,
+  or the sheet rule is changed to say why it does not apply (a sentence
+  of reason in describe/sheet.py APPLIES), and the UX.208 test lists no
+  empty applicable pair for it; a drawn or computed value has a source
+  and a GEN.725 registry row with tier and tweak level, a unit (GEN.772)
+  and a column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 5 (heat and dose).
+  Prerequisites: none. Related: UX.208, GEN.725.
+
+- [ ] **GEN.785 Fill star decay_age_yr and lethal_event_rate_per_gyr (never filled for any star)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Both columns are empty for all 522 stars in the sample. Define
+  the age at which the star's activity decays and the rate per gigayear
+  of events that would be lethal to a nearby world. Done: the column is
+  filled for every body the sheet rule says it applies to, or the sheet
+  rule is changed to say why it does not apply (a sentence of reason in
+  describe/sheet.py APPLIES), and the UX.208 test lists no empty
+  applicable pair for it; a drawn or computed value has a source and a
+  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
+  column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 2 (stars).
+  Prerequisites: none. Related: UX.208, GEN.725.
+
+- [ ] **GEN.786 Fill star state (never filled for any star): the evolutionary state of each star**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for all 522 stars; the evolutionary state (main sequence,
+  subgiant, giant and so on) is wanted by the sheet and by GEN.741.
+  Done: the column is filled for every body the sheet rule says it
+  applies to, or the sheet rule is changed to say why it does not apply
+  (a sentence of reason in describe/sheet.py APPLIES), and the UX.208
+  test lists no empty applicable pair for it; a drawn or computed value
+  has a source and a GEN.725 registry row with tier and tweak level, a
+  unit (GEN.772) and a column_units entry; a change to generated output
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`. Version 8.1,
+  with UX.208. Suggested owner: Aux 2 (stars).
+  Prerequisites: none. Related: UX.208, GEN.741, GEN.755.
+
+- [ ] **GEN.787 Fill star disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au for the stars that have a disk (never filled except for one G star)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Four columns empty for 521 of 522 stars. Fill them where the
+  star still has a disk and write the sheet rule for the ones that have
+  none. Done: the column is filled for every body the sheet rule says it
+  applies to, or the sheet rule is changed to say why it does not apply
+  (a sentence of reason in describe/sheet.py APPLIES), and the UX.208
+  test lists no empty applicable pair for it; a drawn or computed value
+  has a source and a GEN.725 registry row with tier and tweak level, a
+  unit (GEN.772) and a column_units entry; a change to generated output
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`. Version 8.1,
+  with UX.208. Suggested owner: Aux 2 (stars).
+  Prerequisites: none. Related: UX.208, GEN.725.
+
+- [ ] **GEN.788 Fill star flare_alpha, uv_c_share, log_lx_lbol and lifespan_gy for stars of classes A to F and the G and K stars where they are empty**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): 31 stars empty (A 4 of 6, B 6 of 7, F 11 of 20, G 7 of 31, K 2
+  of 80, O 1 of 1). Fill them or state in the sheet rule why a hot star
+  has no flare law. Done: the column is filled for every body the sheet
+  rule says it applies to, or the sheet rule is changed to say why it
+  does not apply (a sentence of reason in describe/sheet.py APPLIES),
+  and the UX.208 test lists no empty applicable pair for it; a drawn or
+  computed value has a source and a GEN.725 registry row with tier and
+  tweak level, a unit (GEN.772) and a column_units entry; a change to
+  generated output carries `tests.golden_update --reason ... --affects
+  <stage>` and the next epoch; tests are `scripts/test.py changed
+  --resume`. Version 8.1, with UX.208. Suggested owner: Aux 2 (stars).
+  Prerequisites: none. Related: UX.208, GEN.725.
+
+- [ ] **GEN.789 Write the sheet rule for wide_binary_a_crit_km: not applicable to a single star, filled for a binary (348 of 522 stars empty)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Probably not applicable to a single star once the rule is
+  written; check that it is filled for every binary star, and that the
+  page hides it for the rest. Done: the column is filled for every body
+  the sheet rule says it applies to, or the sheet rule is changed to say
+  why it does not apply (a sentence of reason in describe/sheet.py
+  APPLIES), and the UX.208 test lists no empty applicable pair for it; a
+  drawn or computed value has a source and a GEN.725 registry row with
+  tier and tweak level, a unit (GEN.772) and a column_units entry; a
+  change to generated output carries `tests.golden_update --reason ...
+  --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`. Version 8.1, with UX.208. Suggested owner: Aux 11
+  (pages).
+  Prerequisites: none. Related: UX.208.
+
+- [ ] **GEN.790 Write the sheet rule for the comet columns mean_anomaly_deg, orbital_period_years and period_class (54 of 234 comets empty)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Probably the parabolic and hyperbolic comets: not applicable by
+  a rule. Confirm it, write the rule with its sentence of reason, and
+  fill any comet that has a bound orbit. Done: the column is filled for
+  every body the sheet rule says it applies to, or the sheet rule is
+  changed to say why it does not apply (a sentence of reason in
+  describe/sheet.py APPLIES), and the UX.208 test lists no empty
+  applicable pair for it; a drawn or computed value has a source and a
+  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
+  column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 11 (pages).
+  Prerequisites: none. Related: UX.208.
+
+- [ ] **GEN.791 Generator switch that forces a planet or moon class so a sample can hold at least 30 of every class (random generation gives under 30 of classes O, P, T, V, E, K, L, N, F, G)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): The fill audit needs 30 bodies of every class; random
+  generation gives under 30 planets in ten classes and under 15 moons of
+  classes E to M. Add a test-only or admin option that forces a class
+  through the habitable-request path (GEN.646 territory), without a
+  class letter in generation. Not a change to default generation. Done:
+  the column is filled for every body the sheet rule says it applies to,
+  or the sheet rule is changed to say why it does not apply (a sentence
+  of reason in describe/sheet.py APPLIES), and the UX.208 test lists no
+  empty applicable pair for it; a drawn or computed value has a source
+  and a GEN.725 registry row with tier and tweak level, a unit (GEN.772)
+  and a column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Core 3 or Aux 9 (class lane).
+  Prerequisites: none. Related: UX.208, GEN.646, GEN.681.
+
+- [ ] **GEN.794 Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra**
+  Citations lane (Aux 17), GEN.793 merged #3211, relayed 9:56 PM EDT
+  2026-10-24 as the lane reported: Irwin 2019 is an absorption line list
+  with no photolysis rate, so it cannot settle the factor; it stays a
+  labelled stand-in (T4, bracket 1.05 to 1.10, quiet rate 1.54e-4 to
+  1.8e-4 per second at 1 au) until the Huebner and Mukherjee 2015 NH3
+  quiet and active line is reachable (Boss cannot access the paper; use
+  a second-hand source or compute it from the Cheng 2006 cross section
+  with measured solar spectra). Done: the factor and the rates carry a
+  source and the registry row (GEN.725) is updated with tier and tweak
+  level; a changed value carries tests.golden_update --reason ....
+  Version 8.4. Owner: pool, after 8.1.
+  Prerequisites: none. Related: GEN.501, GEN.725, GEN.793.
+
+- [ ] **GEN.795 The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug)**
+  Boss, 10:07 PM EDT 2026-10-24 (relayed by the coordinator): "For the
+  variance can we either use the proper +/- symbol or just +/- so that
+  it's clear that it's a range or put the actual temperature range?
+  Also, I'd like to have for each temperature (polar, mean, southern,
+  etc) it to have an actual range, what is the high and low that puts
+  that value right in the middle." The swing row (temp_swing_k, GEN.773
+  puts it on the difference kind) must say it is a variation about a
+  value: print the plus-or-minus sign with the difference (for example
+  'Day to night swing: ±9.07 K', '±9.07 C degrees', '±16.3 F degrees')
+  or, better, print the actual low and high temperatures it implies.
+  State in the label which the generator stores (half range or full
+  range). Same in the API text, the description and the Properties list.
+  Done: the swing never shows without ± or a low-to-high range, in every
+  temperature unit, and a browser test pins it. Version 8.1. Owner:
+  Units lane (Aux 14 or the numbers-without-units lane), with GEN.773.
+  Prerequisites: none. Related: GEN.773, GEN.769, GEN.656.
+
+- [ ] **GEN.796 Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle**
+  Boss, 10:07 PM EDT 2026-10-24 (relayed by the coordinator): "For the
+  variance can we either use the proper +/- symbol or just +/- so that
+  it's clear that it's a range or put the actual temperature range?
+  Also, I'd like to have for each temperature (polar, mean, southern,
+  etc) it to have an actual range, what is the high and low that puts
+  that value right in the middle." For every entry of
+  REGIONAL_TEMPERATURES (db/column_units.py), show the low and the high
+  that put the stated value exactly in the middle (value minus and plus
+  the half range), for example '-10 C, range -25 to +5 C'. The half
+  range comes from the day and night swing (and the seasonal swing where
+  the generator has one), so work out which swing applies to each
+  region; where no swing is stored for a region, say that the range is
+  not stored rather than printing a guess, and file the missing
+  producer. The ranges are computed, not stored twice: one function
+  gives the low and high for a value, a swing and a unit (a difference,
+  never an absolute conversion, GEN.773), and every page, the API and
+  the description use it. Done: every regional temperature on a sample
+  planet shows low and high with the value in the middle, in kelvin,
+  Celsius and Fahrenheit, and a test checks the midpoint and that no
+  offset is applied twice. Version 8.1. Owner: Units lane.
+  Prerequisites: GEN.773. Related: GEN.773, GEN.656, GEN.769.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

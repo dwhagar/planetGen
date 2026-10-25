@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2311] - 2026-10-25
+
+**Headline:** The life scores show their scale and the search tag counts say what they count.
+
+### Changed
+- On a planet's or moon's page, in lists, in trees and in search results, the number beside a life shape reads "3/9" instead of a bare 3 (UX.211).
+- A search tag's count reads "24 results" instead of a bare 24 (UX.211).
+
 ## [8.0.2310] - 2026-10-25
 
 **Headline:** The four open weight tables of the bulk and moon recipes now carry a researched stand-in, a source tier, a tweak level and a replacing item.

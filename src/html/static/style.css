@@ -2021,6 +2021,10 @@ a.btn.btn-secondary.btn-active:visited {
   line-height: 1;
 }
 
+.hab-life-of {
+  opacity: 0.7;
+}
+
 .hab-life-none {
   color: var(--text-muted);
 }

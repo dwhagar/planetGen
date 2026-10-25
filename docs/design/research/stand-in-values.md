@@ -36,9 +36,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 18 | 0 | 0 | 0 | 0 | 18 |
-| T2 | 29 | 0 | 0 | 0 | 0 | 29 |
-| T3 | 25 | 0 | 0 | 0 | 0 | 25 |
+| T1 | 20 | 0 | 0 | 0 | 0 | 20 |
+| T2 | 28 | 0 | 0 | 0 | 0 | 28 |
+| T3 | 24 | 0 | 0 | 0 | 0 | 24 |
 | T4 | 4 | 0 | 0 | 0 | 0 | 4 |
 | T5 | 4 | 2 | 0 | 0 | 0 | 6 |
 | T6 | 10 | 3 | 1 | 4 | 0 | 18 |
@@ -86,9 +86,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | BC1 | D | T2 | L0 | The oxygen budget of 4.1 per star. | Lodders 2003 condensation sequence gives water below 150 K more than 0.1 away | Lodders temperatures add condensation limits; no replacement of the share formula |
 | BC2 | D | T1 | L0 | The Brewer 2016 regressions and residual correlations of 4.7. | a second survey (Hypatia or APOGEE) gives slopes outside the errors | a larger sample replaces the regression |
-| BC3 | B | T2 | L0 | The 2ND-HAND Stixrude values (usable under the standing rule). | densities at 100 GPa differ by more than 2 percent against the original | the original replaces the copy |
+| BC3 | B | T2 (BurnMan SLB parameter files), T1 (Part II 2011 phase equilibria, read first-hand) | L0 | The 2ND-HAND Stixrude values (usable under the standing rule). | densities at 100 GPa differ by more than 2 percent against the original | the original replaces the copy |
 | BC4 | B | T3 | L0 | Major oxides from the star by the 4.1 bookkeeping (D part); radioactive K, Th, U scaled with [Mg/H] and [Fe/H]. | meteoritic ratios in a compilation sit outside the draw | compilations replace the scaling |
-| BC5 | T | T7 (core), T2 (inflation peak) | L1 | Structure-model prior: core mass fraction Dirichlet bounded by the two measured planets as outer limits; inflation efficiency as in the table of tunable-gaps. | a statistical ensemble of radii and masses (or a tidal Love number set) lies outside | giant interior fits replace; Juno and Cassini are anchors only |
+| BC5 | T | T7 (core), T2 (inflation peak) | L1 | Structure-model prior: core mass fraction Dirichlet bounded by the two measured planets as outer limits; inflation efficiency as in the table of tunable-gaps. Citations pass, 2026-10-24 (GEN.792; reports/secondhand-citations-2026-10-24.md Part 10): for the hydrogen-helium equation of state the DirEOS2019 and DirEOS2021 tables of Chabrier, Mazevet and Soubiran (T1, first-hand tables, download at setup, licence in DATA-LICENSE.md) replace SCvH 1995 for new work (GEN.733). | a statistical ensemble of radii and masses (or a tidal Love number set) lies outside | giant interior fits replace; Juno and Cassini are anchors only |
 | BC6 | T | T6 | L3 | Moons from the circumplanetary disc: ice mass fraction f = 0.50 x 0.5 (1 + tanh(ln(r / r_s) / 0.23)) against the distance r, with the ice line r_s = (R_p / 2) (T_p / 160 K)^2, which scales as M_p^1.5 (11.4 Jupiter radii for Jupiter; every Saturn and Uranus moon beyond it, as observed); origin weights 0.9 regular, 0.1 captured, impact moons 0.1 per rocky planet above 0.5 Earth masses (T7). Fitted to the four Galilean ice fractions 0, 0.08, 0.46, 0.50 (interior-model values recalled, not read: T6; reports/best-guess-standins-2026-10-24.md section 5). | an exomoon, or the regular-satellite census, contradicts the ramp, or a 1 Jupiter-mass giant's innermost large moon is icy | any exomoon measurement replaces (GEN.466 draws it) |
 | BC7 | B | T2 | L0 | NIST and PubChem solid densities where printed; others bracketed by the neighbours in the same molecular family. | a measured density falls outside the bracket | the originals replace |
 | BC8 | B | T6 (tail), T1 (slope, one paper) | L1 | Core population: planet minus star log10(Fe/Mg) is N(0, 0.10 dex), the spread of the Earth, Venus-like, Mars and chondrite bulk values. | a larger sample with precise masses changes the slope outside its errors or the tail outside 5 to 25 percent | a precise sample replaces (GEN.775; GEN.468-type changes ride the epoch) |
@@ -116,13 +116,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AT.j2, j3, j4 | T | T6 | L0 | Mars-, Titan-, Pluto-like occurrence from the escape and retention physics of the generator (shoreline argument), not a separate frequency. | an observed analogue population contradicts | any measured analogue population |
 | AT.m3, m4, m11 | T | T5 (N2O, NO2), T7 (PH3, CH3Cl) | L0 | Abiotic trace yields from lightning and photochemistry; presence follows the chemistry rows. | a detection or strong limit on a temperate planet | any measurement |
 | AT.F | B | T3 | L0 | Each thin row: bracket from its neighbours as listed in the tunable-gaps note (16 rows). | each row's falsifier | per-row data |
-| AD1 | B | T2 | L0 | Band strengths from neighbouring molecule bands; | a measured giant colour disagrees | tables replace |
-| AD2 | B | T3 (dust and haze spectra), T1 (Wolff 2009 solar-band single-scattering albedo) | L0 | Dust and haze spectra from similar materials. | measured spectra | tables replace |
+| AD1 | B | T2 (NH3 visible, ExoMol CoYuTe line list via Irwin et al. 2019), T3 (CH4 and H2O bands) | L0 | Band strengths from neighbouring molecule bands; | a measured giant colour disagrees | tables replace |
+| AD2 | B | T3 (dust spectrum beyond the solar band, Tomasko 2008 haze spectrum), T2 (Titan haze optical constants via He 2022 and Seignovert 2017), T1 (Wolff 2009 solar-band single-scattering albedo) | L0 | Dust and haze spectra from similar materials. Citations pass, 2026-10-24 (GEN.792; reports/secondhand-citations-2026-10-24.md Part 10): Wolff 2009 uploaded; its spectra exist only in Figures 12 to 14 (digitize, label them so). Tomasko 2008 (Boss cannot access) is figure-only elsewhere. | measured spectra | tables replace |
 | AD3 | D | T1 | L0 | Compute correlated-k tables from the HITRAN and ExoMol line lists (reachable by 10:59 AM EDT). | the grid disagrees with a published spectrum | none |
-| AD4 | B | T2 (air gases), T3 (SO2 and H2S King factors via PICASO) | L0 | King factors from NIST for molecules with printed values; others by family. | depolarization of SO2 or H2S measured outside | originals replace |
-| AD5 | B | T3 | L0 | Spectra from reachable NTRS reports; 2 originals. | a shower run disagrees | originals replace |
+| AD4 | B | T1 (air gases: Bucholtz 1995, Bates 1984, King 1923 and Sneep and Ubachs 2005 read first-hand), T3 (SO2 and H2S King factors via PICASO, NH3 via the Hohm 1993 fit in PICASO) | L0 | King factors from NIST for molecules with printed values; others by family. | depolarization of SO2 or H2S measured outside | originals replace |
+| AD5 | B | T1 (Europa ion and electron fits, Paranicas 2009; Mars surface dose, Hassler 2014), T2 (SEP Band fits, Vainio 2017), T3 (dose against depth) | L0 | Spectra from reachable NTRS reports; 2 originals. Citations pass, 2026-10-24 (GEN.792; reports/secondhand-citations-2026-10-24.md Part 10): Cooper 2001, Patterson 2012, Nordheim 2018, Gronoff 2009 and Dartnell are not uploaded and stay open (Gronoff 2011 is uploaded: Titan GCR ionization peaks at 65 km, 30 to 40 per cm3 per s). | a shower run disagrees | originals replace |
 | AD6 | D | T1 | L0 | Download the hot-giant line lists (TiO, VO, FeH) and vapour pressures from ExoMol. | tables disagree with lab data | none |
-| AD7 | B | T1 (H2SO4-H2O, Zeleznik 1991), T2 (acid vapour pressure via Gao 2014), T4 (brines) | L0 | H2SO4-H2O and brine vapour pressure from the nearest reachable fits; | lab data differ | originals replace |
+| AD7 | B | T1 (H2SO4-H2O: Zeleznik 1991 and Tabazadeh 1997, both read first-hand), T2 (acid vapour pressure via Gao 2014), T4 (brines) | L0 | H2SO4-H2O and brine vapour pressure from the nearest reachable fits; | lab data differ | originals replace |
 | AD8 | B | T2 | L0 | Photochemistry rates from the NIST kinetics database where reachable; | JPL rates differ by more than factor 2 | JPL replaces |
 
 ## 6.3a Ranges of the galaxy shape dials
