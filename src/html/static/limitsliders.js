@@ -112,10 +112,12 @@ for (const segment of document.querySelectorAll("[data-limit-segment]")) {
       for (const member of members) member.touched = true;
       tick.checked = false;
     });
-    tick.addEventListener("change", () => {
+    const followAgain = () => {
       if (!tick.checked) return;
       for (const member of members) { member.touched = false; if (member.update) member.update(); }
-    });
+    };
+    tick.addEventListener("change", followAgain);
+    tick.addEventListener("sl-change", followAgain);
   }
   const reset = segment.querySelector("[data-limit-reset]");
   if (reset) {

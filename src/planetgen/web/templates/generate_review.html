@@ -4,6 +4,7 @@
     posted to the recipes route, which keeps the same fields. -#}
 {% extends "generate_base.html" %}
 {% from "partials/generate_fields.html" import debug_box, disregard_data with context %}
+{% from "partials/ui_fields.html" import ui_input with context %}
 {% block generate_body %}
 <p class="generate-crumb"><a href="{{ url_for('web.generate') }}">&larr; All tasks</a></p>
 <section class="panel generate-review" id="review" aria-labelledby="review-heading">
@@ -82,8 +83,7 @@
     {%- if review.recipe_error %}
     <p class="error" role="alert" id="recipe-error">{{ review.recipe_error }}</p>
     {%- endif %}
-    <label for="recipe-name">Recipe name</label>
-    <input type="text" id="recipe-name" name="recipe_name" maxlength="80" required value="{{ review.recipe_name }}"{% if review.recipe_error %} aria-describedby="recipe-error" aria-invalid="true"{% endif %}>
+    {{ ui_input("recipe_name", "Recipe name", review.recipe_name, required=True, maxlength=80, id="recipe-name", **({"aria-describedby": "recipe-error", "aria-invalid": "true"} if review.recipe_error else {})) }}
     <button type="submit" class="btn">Save as recipe</button>
   </form>
   {%- endif %}

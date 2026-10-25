@@ -23,7 +23,7 @@ function setUpFinder(box) {
   const pager = box.querySelector("[data-finder-pager]");
   const prev = box.querySelector("[data-finder-prev]");
   const next = box.querySelector("[data-finder-next]");
-  const idInput = form.querySelector('input[name="center_sector"]');
+  const idInput = form.querySelector('[name="center_sector"]');
   const chosen = form.querySelector("[data-finder-chosen]");
   let page = 1;
   let pages = 1;

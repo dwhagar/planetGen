@@ -9,8 +9,13 @@
 // `planetgen plan` prints (the server works them out with the same code, `generation.plan_outline`), with a warning
 // when the disc is thin and a refusal when the outline would be empty.
 
+// Imported with this module's own `?v=` query, as systemmap.js explains.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { fieldsReady } = await import(`./fieldsready.js${VERSION_QUERY}`);
+await fieldsReady();
+
 function update(mass) {
-  const form = mass.form;
+  const form = mass.closest("form");
   const value = mass.value.trim() === "" ? null : Number(mass.value);
   const noDarkHalo = value !== null && Number.isFinite(value) && value < Number(mass.dataset.noDarkHaloBelow);
   const simple = value !== null && Number.isFinite(value) && value < Number(mass.dataset.simpleBelow);
@@ -26,7 +31,7 @@ function update(mass) {
   }
 }
 
-for (const mass of document.querySelectorAll('input[data-lever="mass"]')) {
+for (const mass of document.querySelectorAll('[data-lever="mass"]')) {
   mass.addEventListener("input", () => update(mass));
   update(mass);
 }
@@ -65,5 +70,6 @@ for (const note of document.querySelectorAll("[data-shape-report]")) {
   };
   form.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(ask, 400); });
   form.addEventListener("change", () => { clearTimeout(timer); timer = setTimeout(ask, 400); });
+  form.addEventListener("sl-change", () => { clearTimeout(timer); timer = setTimeout(ask, 400); });
   ask();
 }

@@ -165,7 +165,7 @@ def test_a_review_can_be_saved_as_a_recipe_run_renamed_and_deleted(browser, axe_
             page.fill("input[name='down_to']", "250")
             page.click("button:has-text('Review')")
             page.wait_for_selector("#review")
-            page.fill("#recipe-name", "Dim stars")
+            page.fill("#recipe-name input", "Dim stars")
             page.click("#review button:has-text('Save as recipe')")
             page.wait_for_selector("#recipes")
             assert "Saved the recipe" in page.inner_text("#recipes")
@@ -177,7 +177,7 @@ def test_a_review_can_be_saved_as_a_recipe_run_renamed_and_deleted(browser, axe_
             assert "250" in page.inner_text("#review")
             assert page.locator("#review button:has-text('Save as recipe')").count() == 1
 
-            page.fill("#recipe-name", "Dim stars")
+            page.fill("#recipe-name input", "Dim stars")
             page.click("#review button:has-text('Save as recipe')")
             page.wait_for_selector("#recipe-error")
             assert "already have a recipe" in page.inner_text("#recipe-error")
