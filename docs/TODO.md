@@ -15126,31 +15126,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none yet.
   Prerequisites: none. Related: PERF.181, GEN.633, PERF.98, PERF.99.
 
-- [ ] **PERF.184 Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug)**
-  Boss's live observation (relayed 2:34 PM EDT 2026-10-24 by the
-  coordinator; filed by the TODO thread). Kind: wrong output. When the
-  server has no benchmark run on record, the time estimates (the
-  Generate page plan line, the run's remaining time) break instead of
-  giving a best guess. Do: when there is no benchmark, estimate from the
-  best available information (hardware found on the host such as core
-  count and memory, the size of the plan, and defaults for the cost per
-  star, per layer and per unit) and say that it is a rough guess and how
-  wide it is. As the system records how long each star, layer or unit
-  actually takes, fold those timings into the estimate so it tightens as
-  the run goes and on later runs. Done: a fresh server with no benchmark
-  shows a sensible estimate; the estimate changes after recorded timings
-  arrive; tests for both. Owner: Core 5 (the queue and speed lane;
-  proposed by the TODO thread because no lane owns estimates since
-  PERF.178 went to a finished lane).
-  Red test (2026-10-09): Update 4:30 PM EDT 2026-10-24: the coordinator
-  reports
-  test_eta_estimator.py::test_the_queue_page_shows_a_range_or_estimating
-  fails on main after #3078 (PERF.186 and PERF.183). Core 5 owns this
-  item and the estimator: confirm whether #3078 broke it or it was
-  already red, then fix the test or the page without weakening the test.
-  Done includes that test passing on main.
-  Prerequisites: none. Related: PERF.178, PERF.174.
-
 - [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
   Found by Bug Hunt while fixing the load flakes of TEST.344 (relayed
   5:04 PM EDT 2026-10-24 as the lane reported; filed by the TODO
@@ -19691,6 +19666,10 @@ clears each one.
   Done: every listed test passes on a documented machine, or has its own
   item with a root cause. Owner: Bug 1. Related: TEST.370, TEST.365,
   TEST.366, TEST.353.
+  Research (2026-10-09, Core 5 witness): Core 5 (8:32 PM EDT 2026-10-24
+  as the lane reported) saw the same two test_web_generate tests
+  (generate_anyway and plain_confirm override logging) fail on clean
+  main: one more witness for this item.
   Prerequisites: none. Related: TEST.370, TEST.365, TEST.366, TEST.353.
 
 ## USR: User accounts
