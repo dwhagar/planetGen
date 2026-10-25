@@ -1122,6 +1122,40 @@ with `clamp()`.
   other details is complete before UX.209 is retired.
   Prerequisites: none. Related: UX.195, UX.196, UX.204.
 
+- [ ] **UX.210 Map infoboxes and labels: the orbit infobox eccentricity and every other number on a map says what it is and its unit (scan) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  Spot check: orbitpositions.js:332 prints Eccentricity as a bare
+  0.0167. The galaxy map infoboxes were fine in the sample. Do: scan
+  every map infobox, label, legend, tooltip and scale bar
+  (html/static/*.js, galaxymap3d.js, systemmap.js, sectorscene.js,
+  orbitpositions.js, sector and system map templates) for a number with
+  no unit, noun or label, list each finding in the item, and fix them; a
+  number that is dimensionless says so or gives its range. Done: the
+  scan list is attached to the item and every finding is fixed. Owner:
+  Core 2 (Aux 10 for the galaxy map nodes). Related: UX.199, GEN.771.
+  Prerequisites: none. Related: UX.199.
+
+- [ ] **UX.211 Pages, lists, search, Nearby and the admin pages: every number carries a unit, a noun or a label (scan) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  Sample of nearby.html, habitability.html and system.html was fine
+  (counts carry a noun), but the scan is not complete. Do: scan every
+  template under web/templates and its macros (system and object lists,
+  search results, class and habitability pages, the nav chart, the
+  generate, queue, stats and settings pages, partials) for a rendered
+  number with no unit, noun or label beside it; list each finding in the
+  item and fix them (a count says what it counts, a score its scale, a
+  time its unit, a size its unit). Done: the scan list is attached and
+  every finding is fixed. Owner: Aux 11 (object pages, lists), Core 5
+  (generate and queue pages), Aux 12 (admin pages). Related: UX.199,
+  GEN.771.
+  Prerequisites: none. Related: UX.199.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14286,6 +14320,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 14. Related: GEN.571, GEN.568, UX.208.
   Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
 
+- [ ] **GEN.771 Property sheet: the 40 ratio and 7 index rows state a unit or a scale (shares in percent or ppm, scores as "n of 9", ratios by what they divide) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  describe/sheet.py prints every column whose unit is ratio or index as
+  a bare number through _plain_number: share and fraction rows (metal,
+  rock, ice, envelope, helium, heavy-element, iron oxide, alumina),
+  porosity, cloud cover, Bond albedo, optical depths, greenhouse factor,
+  shielding factor, exposure and ultraviolet indexes, the PHI-6 and
+  suitability scores, Urey and aluminium-26 ratios, eccentricity, spin,
+  the Eddington share, and the four life scores and the birth shell,
+  band and wedge indexes. The water rows are GEN.770 and the length
+  scaling is GEN.769. Do: give each column a display unit in the
+  registry (percent, ppm by size, dimensionless with its scale or range
+  in the label, "n of 9" for the life scores, "n of 6" style for the
+  score rows that have a scale) and make _plain_number refuse a ratio or
+  index column that has none, so a new column cannot print bare. Done: a
+  test over every sheet row shows a unit symbol, a scale, or a noun
+  beside every number; the report's list is empty. Owner: Aux 14.
+  Related: GEN.770, GEN.769, GEN.571, UX.208.
+  Prerequisites: none. Related: GEN.770, GEN.769, GEN.571, UX.208.
+
+- [ ] **GEN.772 Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  The rule only holds if a new column cannot print bare. Do: make the
+  one formatter (unit registry) the only way a sheet, a template, the
+  API and a command prints a quantity, refuse a ratio, index or count
+  with no unit, scale or noun, and add a test that renders a sample body
+  of every class, one page of each template, the OpenAPI document and
+  each command's output and fails on a number with no unit, scale or
+  noun beside it. Done: the test is in the changed-tests gate and fails
+  on a deliberately bare column. Owner: Aux 14. Related: GEN.571,
+  GEN.568, GEN.771, UX.208.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -16249,6 +16322,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   database named planetgen_control. Owner: Bug Hunt (proposed by the
   TODO thread).
   Prerequisites: none. Related: DB.85, TEST.290.
+
+- [ ] **API.33 API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  Not scanned yet. Do: scan the API responses and the OpenAPI field
+  descriptions (the unit is in the field name or its description), the
+  in-site help pages and glossary (DOC.15), the CLI --help text and the
+  numbers the commands print (stats, progress, run summaries, ETA lines,
+  log lines a user reads) for a number with no unit or context; list
+  each finding in the item and fix them. Done: every API field that is a
+  quantity names its unit, and a test over the OpenAPI document fails on
+  a quantity field with no unit. Owner: Aux 12 (API), Core 5 (commands),
+  Aux 14 for the test over the field list. Related: GEN.771, DOC.15.
+  Prerequisites: none. Related: GEN.771, DOC.15.
 
 ## ADM: Admin tools
 
