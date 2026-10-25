@@ -2696,35 +2696,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane, with MAP.260 (the warm-up), which it builds next.
   Prerequisites: none. Related: MAP.258, MAP.260.
 
-- [ ] **MAP.293 Colour by Habitable worlds no longer fills any sector since MAP.267: the legend shows but the sectors keep their normal colour (bug)**
-  Found by Aux 4 with test_habitability_end_to_end_browser.py::
-  test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count
-  (TEST.300), bisected: it passes at 1e79ee02c~1 (and at MAP.261,
-  MAP.266
-  and MAP.292) and fails at 1e79ee02c (MAP.267, #3114) and on main.
-  Picking
-  Color by Habitable worlds in a 3-sector window still shows the legend,
-  but no sector is filled (the patch round the habitable sector does not
-  change colour; the screenshot shows only the labels and a cross), and
-  turning the cell grid on does not help. The test is correct and stays
-  red on main until this is fixed. Owner: Aux 10 (Map nodes; it wrote
-  MAP.267), before it retires.
-  Prerequisites: none. Related: MAP.267, MAP.131, TEST.300.
-
-- [ ] **MAP.294 The sector page map fails to compile its vertex shader at phone width: camHigh, starLow, camLow and viewRotation are undeclared (bug)**
-  Found by Aux 11 (6:40 PM EDT 2026-10-24 as the lane reported) on main:
-  test_web_a11y on the sector page at phone width fails with a WebGL
-  vertex
-  shader error because camHigh, starLow, camLow and viewRotation are
-  undeclared. These names come from the relative-to-eye star buffer
-  (src/html/static/starbuffer.js, MAP.267 #3114, edited again by MAP.291
-  #3132), so the sector page's shader and the star buffer are out of
-  step.
-  Find which shader the sector page compiles, declare or feed the new
-  uniforms and attributes the same way the Galaxy Map does, and keep the
-  a11y test. Owner: Aux 10 (it wrote MAP.267), with MAP.293.
-  Prerequisites: none. Related: MAP.267, MAP.291, MAP.293.
-
 - [ ] **MAP.295 The system infobox on the map does not scale to the size of the map window (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the

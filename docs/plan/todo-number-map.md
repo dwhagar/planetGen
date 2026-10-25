@@ -1791,8 +1791,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.290 | The System Map draws only the close pair of a triple or larger system, not a scene for each extra star | none | done, PR #3054 |
 | MAP.291 | Galaxy view map window does not use the full page width or the page height (bug) | none | done, PR #3132 |
 | MAP.292 | Galaxy Map scroll zoom gets stuck and never reaches a sector, a system or a star (bug) | none | done, PR #3104 |
-| MAP.293 | Colour by Habitable worlds no longer fills any sector since MAP.267: the legend shows but the sectors keep their normal colour (bug) | none | open |
-| MAP.294 | The sector page map fails to compile its vertex shader at phone width: camHigh, starLow, camLow and viewRotation are undeclared (bug) | none | open |
+| MAP.293 | Colour by Habitable worlds no longer fills any sector since MAP.267: the legend shows but the sectors keep their normal colour (bug) | none | done, PR #3167 |
+| MAP.294 | The sector page map fails to compile its vertex shader at phone width: camHigh, starLow, camLow and viewRotation are undeclared (bug) | none | done, PR #3167 |
 | MAP.295 | The system infobox on the map does not scale to the size of the map window (bug) | none | open |
 | MAP.296 | The system infobox on the map lists the nearest systems under the location, each name a link (bug) | none | open |
 | MAP.297 | Remove the sector boxes from the maps: clicking goes to a location, never to a sector block (bug) | none | open |
