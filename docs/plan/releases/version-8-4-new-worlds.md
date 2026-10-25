@@ -66,7 +66,7 @@ Nation-states, the capital and ten largest cities, and the station and space por
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| POP.17 | Which worlds get settlements: the tech gate and the planet inputs (habitable land area, carrying capacity) for a species whose civilization is dated | DB.103, GEN.774 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |
+| POP.17 | Which worlds get settlements: the tech gate and the planet inputs (habitable land area, carrying capacity) for a species whose civilization is dated | DB.103, GEN.774, POP.30 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |
 | POP.18 | Nation-states on a planet: how many, their land shares, names, governments, power and which are dominant | POP.17 |  |
 | POP.19 | Cities: the capital and the ten largest cities of a planet, their populations, names and positions on land | POP.17 |  |
 | POP.20 | Cities belong to nation-states: a probability draw weighted by city size and nation dominance, with the capital in the dominant nation | POP.18, POP.19 |  |

@@ -21,14 +21,14 @@ Needs: the closing order of 8.1 (Boss, 6:40 PM EDT 2026-10-21, updated 10:46 PM 
 Lanes (8:26 PM EDT 2026-10-23, queues in reports/8-1-core-queues-2026-10-22.md and the board in docs/plan/lanes.md): Core 1: GEN.633 (before 8.1, Boss 8:29 AM EDT), GEN.55, then reproducibility, storage, superbubbles and satellites; Core 2: TEST.237, MAP.256 (UX.124 merged, #2716) and the zoom items MAP.263 to MAP.265 and MAP.268 (Map nodes lane takes MAP.258 to MAP.262, MAP.266, MAP.267) (ADM.126 merged, #2677; MAP.174 merged, #2694) (MAP.209, MAP.210 and MAP.249 wait on Boss's retest; MAP.146 is done and retired); ADM.125 is merged (#2646); Core 3: GEN.630, GEN.631 (the split of GEN.316), GEN.332, the GEN.315 remainder and the multi-star, nebula and galaxy-law items; Core 4: GEN.450 (card with Boss) and the binaries and clusters; Core 5: PERF.123 (slice 2 merged as #2665; D1, then C, then D2), the queue and logging items and GEN.301 last; Bugfix 2: finished (all six plan numbers bugs merged; its follow-ups are GEN.636 for Core 4, TEST.294 for Bug Hunt and GEN.637, the GEN.625 sweep re-run); Blocker 2 is finished (GEN.599, GEN.416, GEN.498, GEN.496, GEN.470 and GEN.452 part 1 merged; GEN.452 part 2 is PR #2613, held for the 8.4 epoch); Blocker 3: finished (GEN.427, GEN.478, GEN.495, GEN.458, SEC.32 and GEN.146 merged; `full --check` green at 2:37 PM EDT as the lane reported; lane retired); Bug Hunt: TEST.295 (next), TEST.284 and TEST.290 (waiting for a recurrence), TEST.287, the stable-code hunt, then the TEST.261 audit at the close; Performance: PERF.164, PERF.165 and the findings PERF.156 to PERF.161 (PERF.170, the math-check move, merged as #2696 at 3:04 PM EDT as the lane reported; PERF.162 and PERF.166 moved to the later version); PERF.154 (waiting list) goes to Core 5 last and PERF.155 is in the pool. Finished lanes: Fair scheduling (retired; PERF.150 to PERF.153 merged), the DB lane (retired), Blocker 2 (retired), Blocker 3 (retired 2:37 PM EDT 2026-10-23), Bugfix 2 (retired), Admin suite, Galaxy dials.
 
 ## Release 8.2: Accounts and email invitations
-Status: Boss named it; new version Progress (9:33 PM EDT 2026-10-24): 16 of 53 items finished (30.2 percent), 37 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: Boss named it; new version Progress (9:42 PM EDT 2026-10-24): 16 of 55 items finished (29.1 percent), 39 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: User accounts, with sign-up by an email invitation that only an admin can send
 Today: (new)
 Change: Boss, 12:45 PM EDT. It is already planned as USR.1 to USR.7; the configuration page left this version for 8.1 (Boss, 1:43 PM EDT) and USR.2 stores four roles (user, moderator, admin, Owner) behind one guard so the roles of 10.0 fit without a rebuild; this moves it up and puts the bookmark items (UX.46, UX.47) with it. One change to USR.4 on approval: its decided answer says the invitee's email is optional and the admin may only copy the link; the email invitation becomes the main path, with the link shown only when SMTP is not set up.
 Needs: the settings page (ADM.43, ADM.84), now built in 8.1, is where the SMTP form sits; its Owner tier (ADM.86) opens this version's thread after USR.2; SEC.32 (Argon2id) before USR.2 so new accounts start on it. Mail goes out as a queue job (USR.3), so the queue steps PERF.97 to PERF.100 in 8.1 phase 1 come first.
 
 ## Release 8.3: The moving galaxy
-Status: proposed; the orbital update moves here from 8.0 Progress (12:57 PM EDT 2026-10-24): 33 of 67 items finished (49.3 percent), 34 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: proposed; the orbital update moves here from 8.0 Progress (9:42 PM EDT 2026-10-24): 33 of 68 items finished (48.5 percent), 35 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: The orbital update: every object moves on its orbit each day, with n-body influence, collisions and ejections
 Today: 8.0 the orbital update system (GEN.105)
 Change: GEN.105 needs open items that take database migrations from Core 1 (GEN.289, GEN.294), so it earns its own version after the scatters. GEN.198 (the gravity field evaluator) is placed here, not with the gravity map, because the courses of 8.5 reuse it.
@@ -42,7 +42,7 @@ Change: The planet class work (GEN.33, GEN.28, GEN.27, GEN.90 and the rest) has 
 Needs: The habitability index (built). GEN.33 first, one class per PR. GEN.95 comes before GEN.93 (nebula conditions on planets). POP.13 (the species editor) goes with it because the "find me a world" idea needs species limits.
 
 ## Release 8.5: Courses that bend around gravity wells
-Status: Boss named it; headline unchanged Progress (12:57 PM EDT 2026-10-24): 14 of 43 items finished (32.6 percent), 29 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: Boss named it; headline unchanged Progress (9:42 PM EDT 2026-10-24): 14 of 50 items finished (28.0 percent), 36 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Courses that bend around gravity wells, with waypoints, editable and saved courses (NAV.59)
 Today: 8.5 courses that bend around gravity wells, NAV.59
 Change: No change to the headline. NAV.19 (saved courses in the account) rides here because accounts arrive in 8.2.
@@ -85,7 +85,7 @@ Needs: The building blocks go down to earlier versions (Boss, 11:57 PM EDT): 8.1
 Alternative (Politics and territories): Territories that grow and shift on the map, with borders drawn and polities that trade. Placed at 9.2; it could be a later headline.
 
 ## Release 9.1: The view from a planet
-Status: proposed; Boss chose the headline (11:42 PM EDT) Progress (12:57 PM EDT 2026-10-24): 1 of 20 items finished (5.0 percent), 19 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
+Status: proposed; Boss chose the headline (11:42 PM EDT) Progress (9:42 PM EDT 2026-10-24): 1 of 22 items finished (4.5 percent), 21 open; paused until 8.1 is complete (Boss, 7:44 PM EDT 2026-10-22).
 Headline: Stand on a world and look up: the sky from any planet or moon, with real constellations, rendered as a picture
 Today: (new)
 Change: Boss (11:26 PM EDT, 11:42 PM EDT): the view from a planet moved here from 9.0 and is the headline of 9.1, with the gravity map (MAP.167) as the second feature. Its sky data and research are in 8.9 (VIEW.4, VIEW.6, VIEW.9, DB.64, VIEW.1, VIEW.7, VIEW.8) and it builds on the atmosphere colour of 9.0 (VIEW.11 extends GEN.416). The gravity map keeps its foundations in 8.3 (GEN.198, TEST.131).
