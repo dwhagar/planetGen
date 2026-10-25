@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2340] - 2026-10-25
+
+**Headline:** The hours a person can be outside in a day are now worked out from daylight, dose, heat, cold, air and ultraviolet, with the binding limit named; nothing is stored or shown yet.
+
+### Changed
+- **GEN.768, part 1: the model.** `physics/outside_hours.py` gives the hours of one local day a person can be outside in the equipment the survival rules list: the smallest of the daylight, the day's share of the radiation allowance, the time a garment keeps the core temperature in its limits at the day's hottest and coldest, the breathing gas against an 8-hour shift and the ultraviolet against what the worn garment is rated for, and names the limit that binds. Its numbers are named rows of `protection_limits` with source tiers in the stand-in registry (10 new rows, OH1 to OH10). No generated value, page or column changes yet; the stored column follows the daylight hours of GEN.767.
+
 ## [8.0.2339] - 2026-10-25
 
 **Headline:** What a small or hot planet loses from its air now comes from a model of its thermosphere and its star's XUV history, instead of a fixed ratio of temperatures and a rule of thumb.
