@@ -292,8 +292,14 @@ def test_a_generated_planet_or_moon_description_carries_the_ratings_in_each_form
 
 
 def test_there_is_one_describer_of_the_six_categories():
-    import importlib.util
-    assert importlib.util.find_spec("planetgen.physics.habitability_explain") is None
+    """`protection.rating` words the six categories. `physics/habitability_explain.py` came back with GEN.445 to name the
+    composition behind the Radiation term only (`radiation_terms`), so it may exist, but it may not grow a second describer
+    of the categories: its public functions are the radiation ones."""
+    from planetgen.physics import habitability_explain
+    public = {name for name, value in vars(habitability_explain).items()
+              if not name.startswith("_") and getattr(value, "__module__", None) == habitability_explain.__name__}
+    assert public == {"RadiationTerms", "air_shares", "radiation_terms"}
+    assert not hasattr(protection, "radiation_terms")
 
 
 def test_a_small_dose_prints_in_the_ladders_scientific_form_not_as_a_python_exponent():
