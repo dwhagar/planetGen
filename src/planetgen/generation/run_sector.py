@@ -1103,6 +1103,16 @@ def unplaced_sectors_unit(unit_args, report):
     return {"sectors": done, "pid": os.getpid()}
 
 
+def _forced_args(args, count):
+    """`args` for the forced fill (GEN.180): `--min-habitable COUNT`, which forces a habitable world into that many of the
+    sector's systems (and gives the sector that many systems at least, with a warning rather than a refusal even under
+    `--strict`, as the draws have already failed)."""
+    forced = copy.copy(args)
+    forced.min_habitable = max(int(getattr(args, "min_habitable", 0) or 0), count)
+    forced.strict = False
+    return forced
+
+
 def generate_directed_sector(args, galaxy_seed=None, address=None, **kwargs):
     """
     `generate_sector`, redrawn until the run's `--directive` minimums hold
@@ -1117,7 +1127,8 @@ def generate_directed_sector(args, galaxy_seed=None, address=None, **kwargs):
         return generate_sector(args, **kwargs)
     sector, outcome = directives.generate(
         directive, lambda: generate_sector(args, **kwargs)[1], galaxy_seed=galaxy_seed, address=address,
-        max_attempts=getattr(args, "directive_attempts", None) or directives.DEFAULT_ATTEMPTS)
+        max_attempts=getattr(args, "directive_attempts", None) or directives.DEFAULT_ATTEMPTS,
+        build_forced=lambda count: generate_sector(_forced_args(args, count), **kwargs)[1])
     where = f" {galaxySeed.address_text(address)}" if address is not None else ""
     log.normal(f"Sector{where}: {outcome.describe()}.")
     return sector.name, sector

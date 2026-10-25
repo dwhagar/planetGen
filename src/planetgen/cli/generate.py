@@ -463,8 +463,10 @@ def add_shared_generation_options(parser):
     parser.add_argument('--directive', action='append', default=None, metavar='MINIMUM',
                         help="Redraw each sector until it holds at least this much: systems>=N, "
                              "habitable>=N or type:X>=N (X: O B A F G K M wd bh ns). Repeat for more. "
-                             "After --directive-attempts draws the closest one is kept and the run "
-                             "reports which minimum it missed.")
+                             "After --directive-attempts draws a habitable>=N minimum still missed is "
+                             "met by a forced fill (a habitable world forced into N systems, reported as "
+                             "met_forced); any other minimum the closest draw misses is reported. A minimum no "
+                             "sector can reach is refused before drawing.")
     parser.add_argument('--directive-attempts', type=int, default=directives.DEFAULT_ATTEMPTS,
                         help="Draws to make at most per sector for --directive (default %(default)s).")
     parser.add_argument('--star-type', type=str,
@@ -497,6 +499,29 @@ def add_shared_generation_options(parser):
     parser.add_argument('--strict', action='store_true', help=STRICT_HELP)
 
     add_logging_arguments(parser)
+
+
+def _impossible_directive(directive, args):
+    """
+    Why the `--directive` minimums cannot be met by a sector of this run (GEN.180), or `None`: judged before any drawing
+    from the sector's count, which is `--num-systems` exactly or, for a `sector` run, about `--density` times the
+    sector's expected systems. A `galaxy` or `sectors` run draws a different count in every sector, so the densest sector
+    the model has (`program_constants.PEAK_RELATIVE_DENSITY`) is judged: a minimum even that one cannot hold is refused.
+    """
+    if not directive:
+        return None
+    if args.num_systems is not None:
+        return directives.impossible(directive, systems=args.num_systems)
+    command = getattr(args, 'command', None)
+    if command in ('sector', 'galaxy', 'sectors'):
+        from planetgen.galaxy.sector import SpaceSector
+        mean = (args.density if args.density is not None else 1.0) * SpaceSector("directive check").expected_system_count()
+        if command != 'sector':
+            mean *= program_constants.PEAK_RELATIVE_DENSITY        # a galaxy sector's count follows its place; judge the densest
+        elif args.density is None:
+            return None
+        return directives.impossible(directive, mean=mean)
+    return None
 
 
 def validate_shared_generation_args(args, parser):
@@ -532,9 +557,12 @@ def validate_shared_generation_args(args, parser):
     if args.directive_attempts < 1:
         parser.error("--directive-attempts must be 1 or more.")
     try:
-        directives.parse(args.directive)
+        directive = directives.parse(args.directive)
     except directives.DirectiveError as exc:
         parser.error(f"--directive {exc}")
+    reason = _impossible_directive(directive, args)
+    if reason:
+        parser.error(f"--directive {reason}")
 
     if args.density is not None and args.density <= 0:
         parser.error("--density must be a positive number.")
