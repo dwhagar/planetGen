@@ -278,3 +278,7 @@ Numbers and ratios of fact were read from the sources below; nothing else was ta
 | Erkaev et al. 2020 (arXiv:2010.12342) | arXiv non-exclusive licence (same) | abstract page |
 | arXiv:2302.04241, ancient Martian atmosphere | CC BY 4.0 | abstract page |
 | NASA planetary fact sheets for Venus and Mars (nssdc.gsfc.nasa.gov) | US government work, public domain | publisher |
+
+## Atmospheric escape: a thermosphere model (`docs/design/composition/atmospheric-escape-model.md`, `src/planetgen/physics/thermosphere.py`, GEN.738)
+
+Constants and published test values were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All three carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Johnstone et al. 2018 (1806.06897), Kubyshkina et al. 2018 (1810.06920) and Zhang 2024 (2410.04595). The exobase temperatures and altitudes of Johnstone et al. were read from their figures (values only).
