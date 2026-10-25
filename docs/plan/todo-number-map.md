@@ -13,19 +13,19 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.231 |
-| MAP | MAP.314 |
+| UX | UX.232 |
+| MAP | MAP.316 |
 | NAV | NAV.65 |
-| GEN | GEN.825 |
+| GEN | GEN.827 |
 | PERF | PERF.200 |
-| DB | DB.107 |
-| API | API.35 |
+| DB | DB.108 |
+| API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
 | TEST | TEST.391 |
 | USR | USR.32 |
 | OPS | OPS.77 |
-| DOC | DOC.82 |
+| DOC | DOC.83 |
 | VIEW | VIEW.19 |
 | POP | POP.46 |
 
@@ -557,6 +557,8 @@ Parents marked "new parent" had no old number of their own.
 | API.32 | test_fuzz_web_routes fails on a machine that has a real database named planetgen_control: every galaxy route answers 500 for db=planetgen_control (bug) | none | done, PR #2659 |
 | API.33 | API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug) | none | open |
 | API.34 | API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them | none | open |
+| API.35 | Region names on the wire: a name on charted nodes and the stage and node endpoints, galaxy-map-wire-format.md (regions chain, step 2) | none | open |
+| API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -663,6 +665,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.104 | Storage for a government's territory: homeworld system, growth state and a territory history, ready for 9.2 to make it dynamic | none | open |
 | DB.105 | Storage for world population and the global trade route list: tables, Object IDs, column units and the migration | none | open |
 | DB.106 | Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration | none | open |
+| DB.107 | Region stats: the region_stats table, its save and delete hook and the charted rule (regions chain, step 1b) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -744,6 +747,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.79 | The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C | none | done, PR #3262 |
 | DOC.80 | Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step | none | done, PR #3125 |
 | DOC.81 | Help page: resource locations, what the scores mean and how to find them on the map | none | open |
+| DOC.82 | Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7) | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1568,6 +1572,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.822 | Wire hydro_based_mass_loss_g_s (GEN.738) into the sub-Neptune envelope rows (radius_valley, runaway_history): escape loss changes the stored radii | none | open |
 | GEN.823 | Wire the water-world carbon sink (GEN.814, waterworld_carbon) into the air solve and show the water-world temperatures sit inside the published range | none | open |
 | GEN.824 | The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2 | none | open |
+| GEN.825 | Region names: region_name() for the codec kind region, the anchor and sphere geometry of every 9-block, and a measurement of the squeezed blocks (regions chain, step 1) | none | open |
+| GEN.826 | Random-start and Generate "around a place" fill one anchor sphere, so a normal fill charts a whole region (regions chain, step 1c) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1881,6 +1887,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.311 | Map markers and a menu filter for worlds with life, with sentient life and with a civilization, beside the habitable-world markers | none | open |
 | MAP.312 | Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter | none | open |
 | MAP.313 | Galaxy Map resource richness layer: a heat map of the resource score by sector, by resource kind, with the richest sectors listed | none | open |
+| MAP.314 | Galaxy Map labels the charted regions by zoom: the family word with Reach at 81 and 243, the Region name at 27 and 9, the corner or infobox below that (regions chain, step 3) | none | open |
+| MAP.315 | The map infobox shows the region and its parent: "Region: Vang Zarh (in Vang Reach)", each a link that flies the camera to the block (regions chain, step 4) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -2563,6 +2571,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.228 | The object lists and Nearby filter and sort by the same physical values (G4, step 3) | none | open |
 | UX.229 | Colour contrast of the habitability life scores and tree-leaf stats passes 4.5 to 1 in both themes (bug) | none | done, PR #3280 |
 | UX.230 | The Generate system page options have a valid listbox parent so axe aria-required-parent passes (bug) | none | done, PR #3280 |
+| UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
