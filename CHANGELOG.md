@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2305] - 2026-10-25
+
+**Headline:** `planetgen sector` and `planetgen phenomenon` now only generate; the population pass and the sector paths are commands of their own.
+
+### Changed
+- **`sector` no longer takes `--population` (PERF.124).** A `sector` run saves its sectors and stops; the population pass is `planetgen population`, or a stage of a `galaxy` run.
+- **`phenomenon` no longer saves sector paths, and `--no-settle` is gone (PERF.124).** `planetgen phenomenon --sector-id N` saves the phenomenon and nothing else.
+
+### Added
+- **`planetgen settle --sector-id ID...`.** Saves the paths of the named sectors and the sectors around them (the step that follows `phenomenon --sector-id` for a black hole or neutron star); it takes the place of `--since` and the two cannot be combined.
+
 ## [8.0.2304] - 2026-10-25
 
 **Headline:** `scripts/test.py` checks MySQL, Redis and the test setup before a run, restarts a server that dies during it and carries on without redoing the tests that passed; `full` is no longer called the merge gate.
