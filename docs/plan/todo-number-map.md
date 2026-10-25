@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.215 |
+| UX | UX.223 |
 | MAP | MAP.312 |
 | NAV | NAV.64 |
-| GEN | GEN.797 |
+| GEN | GEN.798 |
 | PERF | PERF.195 |
 | DB | DB.106 |
 | API | API.34 |
 | ADM | ADM.133 |
 | SEC | SEC.37 |
-| TEST | TEST.384 |
+| TEST | TEST.386 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -1065,7 +1065,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.324 | A component pass: clusters, the Clouds and Sagittarius place their stars, and the fill adds the component's density to lambda | none | done, PR #1993 |
 | GEN.325 | Planet cull in dense components by the survival formula and the metallicity factor | none | done, PR #2624 |
 | GEN.326 | Blue stragglers in clusters: N_BSS scales as the core mass to the 0.4 | none | open |
-| GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected | none | open |
+| GEN.327 | The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected | none | done, PR #3217 |
 | GEN.328 | Groups at fill in star-forming cores and OB regions | none | open |
 | GEN.329 | Runaway bookkeeping: runaway_origin and the compact companion left by a supernova | none | done, PR #2634 |
 | GEN.330 | Cluster-hosted compact binaries: the cluster rates replace the field fractions | none | open |
@@ -1535,6 +1535,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.794 | Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra | none | open |
 | GEN.795 | The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug) | none | open |
 | GEN.796 | Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle | none | open |
+| GEN.797 | Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2493,6 +2494,14 @@ Parents marked "new parent" had no old number of their own.
 | UX.212 | Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug) | none | open |
 | UX.213 | Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug) | none | open |
 | UX.214 | Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column | none | open |
+| UX.215 | Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table | none | open |
+| UX.216 | Object pages: the "Rendered example" panel gets an in-universe navigation title | none | open |
+| UX.217 | System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E" | none | open |
+| UX.218 | The class letter on pages is a link to the page for that class (Class M and the rest) | none | open |
+| UX.219 | Planet pages: Atmosphere and Composition are each a heading followed by their table; the composition table is the planet's actual composition by mass | none | open |
+| UX.220 | Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores | none | open |
+| UX.221 | Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities | none | open |
+| UX.222 | Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2982,6 +2991,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.381 | First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp | none | open |
 | TEST.382 | First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp | none | open |
 | TEST.383 | test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug) | none | open |
+| TEST.384 | Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug) | none | open |
+| TEST.385 | Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

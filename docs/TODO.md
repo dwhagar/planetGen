@@ -1083,6 +1083,164 @@ with `clamp()`.
   12.
   Prerequisites: none. Related: UX.150, UX.100, GEN.653.
 
+- [ ] **UX.215 Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table**
+  Boss, 10:26 PM EDT 2026-10-24 (relayed by the coordinator), planet
+  page redesign: "on page TOC should be a menu on the left side and
+  let's put the location links inside at a glance under a Location table
+  item, change the title from 'Rendered Example' to something more
+  fitting the in-universe nav feel, instead of zone E let's have it just
+  say Ecosphere / Habitable Zone and give the range for that zone in
+  appropriate units.  The same goes for Hot Zone and Cold Zone, the
+  class letter 'M' should be a link to what Class M is.  Atmosphere
+  section on a planet display should be a heading, then just show the
+  atmosphere table, since it shows more than the gas list.  Same for
+  composition.  We should show the planet's actual composition by mass
+  in a table.  Then, instead of 'It is a temperate world' (or other
+  text) the system should procedurally generate a short summary of the
+  planet based on the data.  No details, class, surface conditions,
+  safety equipment needed, PHI-6 summary, sustainability score and life
+  scores in paragraph form.  Radiation and Survival equipment along with
+  the PHI-6 score details should come above the atmosphere composition.
+  So should go: About planet; Table; Summary Paragraph; Life Paragraph
+  (only when it exists); Civ / Political Paragraph (only when it
+  exists); PHI-6 Table / Details; Atmosphere Table (w/ heading);
+  Composition Table (w/ heading). Each of those should be a heading in
+  the TOC menu." This item: the TOC (UX.196) becomes a menu fixed on the
+  left side of the page (a drawer under the narrow-screen breakpoint,
+  reachable by keyboard), with an entry for each section heading in the
+  order of UX.221; the links up the chain (galaxy, sector, system,
+  parent star or planet, containing region, UX.144) move into a Location
+  row of the at-a-glance table, where the top breadcrumb used to carry
+  them. Done: a browser test checks the menu entries match the headings
+  and the Location row holds every link of the chain. Rules: every
+  number has a unit or scale (GEN.772); absent or zero values hidden
+  unless the absence matters; collapsible sections start collapsed;
+  tests are `scripts/test.py changed --resume` with a browser test on a
+  sample planet page. Version 8.1. Owner: Aux 11. Part of the planet
+  page redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.216 Object pages: the "Rendered example" panel gets an in-universe navigation title**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Rename the panel (item.html, the rendered example of UX.171)
+  to a title that fits the navigation console feel (for example "Optical
+  survey" for a body, "Chart view" for a system; Aux 11 picks the words,
+  one per kind, and lists them in the PR). Done: no page says "Rendered
+  example"; a test pins the titles. Rules: every number has a unit or
+  scale (GEN.772); absent or zero values hidden unless the absence
+  matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.217 System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E"**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Where a page says a body is in "zone E" (or the zone letters
+  of the star zones), say "Ecosphere / Habitable Zone" for the habitable
+  zone and "Hot Zone" and "Cold Zone" for the inner and outer zones, and
+  give each zone's range from the star: inner and outer edge in AU (with
+  light-minutes beside it for the inner ones, or km for a very close
+  zone; the unit registry picks the unit, GEN.769 rules). Done: a planet
+  page shows "Ecosphere / Habitable Zone, 0.95 to 1.37 AU" (values from
+  the star) in every unit setting; no page prints a bare zone letter.
+  Rules: every number has a unit or scale (GEN.772); absent or zero
+  values hidden unless the absence matters; collapsible sections start
+  collapsed; tests are `scripts/test.py changed --resume` with a browser
+  test on a sample planet page. Version 8.1. Owner: Aux 11. Part of the
+  planet page redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.218 The class letter on pages is a link to the page for that class (Class M and the rest)**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Everywhere a page prints a planet or moon class letter (the
+  at-a-glance table, lists, search, the infobox, the sheet) the letter
+  links to the class page (web/class_pages.py), with the class name
+  beside it where there is room. Done: a browser test follows the link
+  from a class M planet to the Class M page. Rules: every number has a
+  unit or scale (GEN.772); absent or zero values hidden unless the
+  absence matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.219 Planet pages: Atmosphere and Composition are each a heading followed by their table; the composition table is the planet's actual composition by mass**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Atmosphere: a heading, then only the atmosphere table (it
+  holds more than the gas list: pressure, density, scale height,
+  greenhouse and the rest), no separate gas list above it. Composition:
+  a heading, then a table of the planet's actual composition by mass
+  (each component with its mass fraction in percent and its mass in kg
+  or Earth masses, from the stored bulk composition, GEN.642 and DB.70),
+  absent components hidden. Done: both appear as headings in the TOC
+  with tables, for a rocky, an ocean and a gas giant sample, and the
+  composition fractions sum to 100 percent. Rules: every number has a
+  unit or scale (GEN.772); absent or zero values hidden unless the
+  absence matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.220 Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Generate a short summary paragraph (two or three sentences)
+  from the stored data: what kind of world it is (size, mass, surface or
+  giant, what it is made of), its place (orbit, zone, star) and the one
+  or two things that stand out (a thick atmosphere, an ocean, a tidally
+  locked face, rings), in the in-universe voice of the pages. It must
+  not repeat what sits in the tables or sections below: no class,
+  surface conditions, safety equipment, PHI-6 summary, sustainability
+  score or life scores. Procedural: sentences are chosen by rules over
+  the data, not a fixed text per class, and the same planet always gets
+  the same paragraph (a hash of the object id picks among phrasings).
+  Done: 100 sample planets give 100 sensible paragraphs with no repeated
+  block of text for different data, and a test checks the banned content
+  is absent. Rules: every number has a unit or scale (GEN.772); absent
+  or zero values hidden unless the absence matters; collapsible sections
+  start collapsed; tests are `scripts/test.py changed --resume` with a
+  browser test on a sample planet page. Version 8.1. Owner: Aux 11. Part
+  of the planet page redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.221 Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Life paragraph: shown only when Flora, Fauna or Sentient is
+  above 0: what lives there in words from the four life scores and the
+  life stage, present tense (GEN.766), with the food situation. Civ /
+  Political paragraph: shown only when a species with a civilization
+  lives there: the species, its tech band, its polity or polities and
+  nations where POP.18 to POP.20 exist, otherwise only what the stored
+  population tables hold. Hidden entirely when absent. Done: a world
+  with no life shows neither paragraph, a living world shows Life, a
+  civilized world shows both, in a browser test. Rules: every number has
+  a unit or scale (GEN.772); absent or zero values hidden unless the
+  absence matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: UX.220. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.222 Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Put the sections in this order: About planet; the at-a-glance
+  Table; the Summary paragraph; the Life paragraph (only when it
+  exists); the Civilization / Political paragraph (only when it exists);
+  the PHI-6 table and details with Radiation and Survival equipment (all
+  above the atmosphere); the Atmosphere table; the Composition table.
+  Each is a heading and an entry in the left TOC menu. Moons use the
+  same order; stars, belts and the other kinds keep their own orders and
+  move only if they carry the same sections. Done: a browser test reads
+  the heading order on a rocky, an ocean, a gas giant, a living and a
+  civilized sample. Rules: every number has a unit or scale (GEN.772);
+  absent or zero values hidden unless the absence matters; collapsible
+  sections start collapsed; tests are `scripts/test.py changed --resume`
+  with a browser test on a sample planet page. Version 8.1. Owner: Aux
+  11. Part of the planet page redesign: UX.215 to UX.222.
+  Prerequisites: UX.215, UX.220, UX.221. Related: UX.196, UX.195,, UX.219.
+  UX.188.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -5123,7 +5281,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   type of multi-star/star-like-object system", built "into our generator
   throughout to match as close as possible to observed and theoretical
   probabilities (observed are best, theoretical are good too)".
-  Prerequisites: GEN.327, GEN.328. Related: GEN.241, GEN.244, GEN.274,
+  Prerequisites: GEN.328. Related: GEN.241, GEN.244, GEN.274,
   UX.114, GEN.268.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
@@ -5832,40 +5990,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: GEN.161. Related: GEN.162.
-
-- [ ] **GEN.327 The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected**
-  Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). A node of kind group with N
-  members, each with an offset (AU) and a velocity (km/s) at an epoch,
-  and decay_age_yr; internal motion is a straight line, no Kepler
-  elements, and the nightly update does not integrate it
-  (physics/system_tree.py already flies a group's members straight).
-  Default 5% of massive (O and early B) systems younger than 0.3 Myr at
-  scatter time for the few mass-pass stars of that age. A group older
-  than its decay age is never drawn: the generator draws its result, the
-  lightest member ejected as a runaway row (runaway_origin dynamical)
-  and a tighter hierarchical remnant. Stored on scatter rows and built
-  systems (the columns of GEN.129:a); the sector page shows a group with
-  its remaining life. Done: every stored group is younger than its
-  decay_age_yr (audit test 14), a group older than that is replaced by
-  its remnant, and members carry offset and velocity.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): GEN.329 first: it owns the `runaway_origin` column and
-  its values, and this item writes `dynamical` into it. Core 3 may carry
-  the two in one PR; check that the column is in DB.53's remaining
-  slices.
-  Progress (Core 3, GEN.329 merged as #2634, 6:18 AM EDT 2026-10-23 as
-  the lane reported, release 8.0.2007, generator epoch 56, no
-  migration): the runaway origin is stored in stars.flags (the v104
-  column, serialization version 5), which is now always written (0 for
-  none) and sits in NEVER_READ as CHANCE because only a saved runaway
-  reads it; this item is unblocked and writes `dynamical` into the
-  origin as the sweep note above says.
-  Prerequisites: none. Related: GEN.273.
 
 - [ ] **GEN.328 Groups at fill in star-forming cores and OB regions**
   Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -14724,6 +14848,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offset is applied twice. Version 8.1. Owner: Units lane.
   Prerequisites: GEN.773. Related: GEN.773, GEN.656, GEN.769.
 
+- [ ] **GEN.797 Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level**
+  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
+  relayed 10:25 PM EDT 2026-10-24 as the lane reported. The stand-ins
+  live in tuning.py with brackets (member count weights for 3 to 5
+  stars, group radius, a 2.5 km/s dispersion, a 300 AU cap for the
+  remnant hierarchy, the 5 percent birth fraction, the 10,000 to 40,000
+  year decay age). Add a registry row for each
+  (docs/design/research/stand-in-values.md through its builder) with its
+  source, tier, tweak level, falsifier and replacing item, from the
+  Orion Trapezium and other young-group literature where it can be read.
+  Done: every constant has a row and `scripts/build_stand_in_values.py
+  --check` passes. Version 8.1. Owner: Core 3 or the Citations lane.
+  Prerequisites: none. Related: GEN.327, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18130,7 +18268,7 @@ clears each one.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.275, GEN.327. Related: TEST.162, DOC.50, TEST.160.
+  Prerequisites: GEN.275. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
@@ -20165,6 +20303,33 @@ clears each one.
   and in the file, and the cause is written in the PR. Version 8.1.
   Owner: Aux 10 (map nodes and zoom) or Core 2.
   Prerequisites: none. Related: MAP.293, TEST.375.
+
+- [ ] **TEST.384 Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug)**
+  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
+  relayed 10:25 PM EDT 2026-10-24 as the lane reported. Core 3's gate
+  ran 36 failures that were all red on a clean worktree of the base: the
+  habitable_systems point-column and sheet tests, the mantle column
+  tests, the facilities page tests, the VALUES() use in migration 0148,
+  the test_prevalence binary tests, plus test_disk_history that passes
+  alone. The list is in the PR. Find each cause (test, fixture or code),
+  fix it, and keep the tests; file a separate bug where one has a cause
+  outside this group. Done: the group passes on main from a clean
+  checkout in `scripts/test.py changed`. Version 8.1. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
+
+- [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**
+  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
+  relayed 10:25 PM EDT 2026-10-24 as the lane reported. Core 3's gate
+  had 259 browser test setup errors; the cause named is the API
+  fixture's rate limit of 50 requests per hour (the browser tests create
+  their accounts or tokens through the API). A gate that errors 259
+  tests cannot show what a change broke. Make the fixture exempt from
+  the limit (a test setting, not a production change) or give each test
+  run its own limit window, and keep a test that proves the rate limit
+  still works in production mode. Done: `scripts/test.py changed` runs
+  the browser tests with no setup error from the rate limit. Version
+  8.1. Owner: Bug 1 with Aux 12 (API).
+  Prerequisites: none. Related: USR.22, TEST.383.
 
 ## USR: User accounts
 
