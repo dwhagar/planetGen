@@ -18,8 +18,8 @@ STANDINS = (
     "mixture_evolved.TITAN_HUMIDITY", "mixture_evolved.TITAN_HYDROGEN", "mixture_evolved.FROST_ICE",
     "mixture_lava.ALKALI_ACTIVITY_COEFFICIENT", "mixture_lava.COMPOSITION_SCATTER", "mixture_lava.ALUMINA_ACTIVITY_COEFFICIENT", "mixture_coma.DOMINANCE",
     "mixture_rocky.INVENTORY", "mixture_rocky.MAGMATIC_TEMPERATURE_K", "mixture_rocky.QUENCH_TEMPERATURE_K",
-    "mixture_rocky.OXIDATION_TIME_GY", "mixture_trace.ABUNDANCES", "mixture_escape.EXOBASE_RATIO",
-    "mixture_escape.XUV_EXPONENT", "mixture_escape.ESCAPE_WIDTH", "mixture_escape.LOST_BELOW", "mixture_escape.LOST_TOTAL",
+    "mixture_rocky.OXIDATION_TIME_GY", "mixture_trace.ABUNDANCES", "mixture_escape.LOST_BELOW",
+    "mixture_escape.LOST_TOTAL",
     "mixture_evolved.TITAN_MAX_METHANE", "mixture_oxygen.INERT_FLOOR", "mixture_subject.PHOTOSPHERE_BAR",
     "mixture_subject.DAYSIDE_OVER_EQUILIBRIUM",
     "surface_pressure.PROCESSING_ENERGY_J_PER_KG", "surface_pressure.DEGAS_EFFICIENCY_H", "surface_pressure.DEGAS_EFFICIENCY",
@@ -34,6 +34,11 @@ STANDINS = (
     "waterworld_carbon.CRUST_SODIUM_WT", "waterworld_carbon.CARBONATE_FITS", "waterworld_carbon.SEAFLOOR_ACTIVATION_KJ_MOL",
     "waterworld_carbon.SEAFLOOR_PH_EXPONENT", "waterworld_carbon.SEAFLOOR_SPREADING_EXPONENT",
     "waterworld_carbon.SEAFLOOR_SHARE_OF_OUTGASSING", "waterworld_carbon.DEEP_OCEAN_GRADIENT", "waterworld_carbon.PH_PER_PCO2_EXPONENT",
+    "thermosphere.MESOPAUSE_OVER_TEQ", "thermosphere.EXOBASE_RISE_K", "thermosphere.CO2_COOLING_HALF", "thermosphere.CO2_COOLING_EXPONENT",
+    "thermosphere.XUV_EXPONENT", "thermosphere.XUV_FLUX_MAX_EARTH", "thermosphere.MESOPAUSE_PRESSURE_PA",
+    "thermosphere.COLLISION_CROSS_SECTION_M2", "thermosphere.BATES_LENGTH_SCALE_HEIGHTS", "thermosphere.KINETIC_DIAMETER_PM",
+    "thermosphere.DEFAULT_KINETIC_DIAMETER_PM", "thermosphere.ENERGY_LIMITED_EFFICIENCY", "thermosphere.HYDRO_BASED_LOW",
+    "thermosphere.HYDRO_BASED_HIGH", "thermosphere.MAX_EXOBASE_RADII",
 )
 
 
