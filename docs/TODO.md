@@ -3507,19 +3507,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   habitable worlds ranked by habitability score until population exists,
   so in 8.1 the slice is the habitable worlds and still uses its budget
   (Boss, 1:19 AM EDT 2026-10-25, design section 0.3); uninhabitable
-  worlds, gas giants and asteroid fields are the uninhabited slice,
-  ranked by mass per category with an equal share per category (rocky or
-  icy world, gas giant, asteroid field), and non-luminous star-like
-  objects with them; stars by size, brightness and mass (a third each, a
-  star in two lists counts once and the next in line fills); nebulae and
-  dust clouds by volume; regions by share charted, ties by population,
-  labelled first at the farthest zooms. Default weights inhabited 30,
-  stars 30, uninhabited 25, nebulae 10 percent with unused budget
-  redistributed, constants beside the star-fade ones. Done: unit tests
-  on the dense fixture, a sparse fixture labels every drawn marker, no
-  label for an undrawn one. Owner: Aux 10. Rules: no backward-compat
-  shims; every number has a unit or scale (GEN.772); tests are
-  scripts/test.py changed --resume.
+  worlds, gas giants and asteroid belts and fields are the uninhabited
+  slice, ranked by mass per category, where an asteroid belt includes
+  the asteroid fields and those are ranked by the total volume of the
+  region they occupy as a proxy for their mass (Boss, 1:32 AM EDT
+  2026-10-25) with an equal share per category (rocky or icy world, gas
+  giant, asteroid field), and non-luminous star-like objects with them;
+  stars by size, brightness and mass (a third each, a star in two lists
+  counts once and the next in line fills); nebulae and dust clouds by
+  volume; regions by share charted, ties by population, labelled first
+  at the farthest zooms. Default weights inhabited 30, stars 30,
+  uninhabited 25, nebulae 10 percent with unused budget redistributed,
+  constants beside the star-fade ones. Done: unit tests on the dense
+  fixture, a sparse fixture labels every drawn marker, no label for an
+  undrawn one. Owner: Aux 10. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume.
   Prerequisites: API.35. Related: MAP.316, MAP.314, MAP.293.
 
 - [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d)**
@@ -3593,10 +3596,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   uninhabitable world in brown or grey (not red), an inhabited world
   with its own symbol coloured by the habitability score and colour (the
   same palette as the object pages), a gas giant, an asteroid belt or
-  field, a sector, and a region (the last two are the icons for those
-  map nodes and their list rows and menu rows, so a region's token in
-  the charted-regions list of MAP.316 and a sector's on the Sector Map
-  read as what they are). The point-of-interest registry of MAP.305
+  field (a belt includes the asteroid fields; Boss, 1:32 AM EDT
+  2026-10-25), a sector, and a region (the last two are the icons for
+  those map nodes and their list rows and menu rows, so a region's token
+  in the charted-regions list of MAP.316 and a sector's on the Sector
+  Map read as what they are). The point-of-interest registry of MAP.305
   keeps merging crowded marks into one with a count; the merged mark
   shows the strongest kind's symbol. The menu rows of MAP.306 carry the
   same symbols. Done: a browser test per kind (seven) finds its symbol,
