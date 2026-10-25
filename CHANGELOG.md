@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2354] - 2026-10-25
+
+**Headline:** Planets, moons and stars in the system views now turn slowly on their own axes, each at a rate that follows its real day.
+
+### Changed
+- **Bodies turn on their axes (MAP.328).** On the System Map (the spheres drawn under the diagram) and in the 3D system view, every planet, moon and star that has a stored rotation period turns about its own axis: the axis is the stored one in the 3D view and the stored axial tilt in the flat picture, and a body whose tilt is past 90 degrees turns the other way. The speed follows the real day through one rule for every body: the fastest day shows one turn in 20 seconds and nothing is faster, the slowest shows one in 10 minutes and nothing is slower, and a longer day is never faster than a shorter one. Before, every sphere turned at the same fixed rate. A body with no stored period stays still. A new **Spin** button in the System Map's Menu (kept for next time) and the browser's reduced-motion setting hold every body still. The galactic views turn nothing. The turning function is one shared module, `spin.js`, which the Sector Map's stars and the object pages will use too.
+
+TODO items resolved: none (MAP.328 stays open for the Sector Map stars and the object pages). Added: none.
+
 ## [8.0.2353] - 2026-10-25
 
 **Headline:** The Galaxy Map's info card is set at a reading size with its details under a More fold, and the layer legend no longer covers the scale.
