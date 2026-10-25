@@ -1,4 +1,0 @@
-**Headline:** The version code stored with a galaxy seed now carries the API version, the database schema and the generator epoch.
-
-### Changed
-- **The 22-digit version key (DB.102).** After the release it holds the API version (2 digits), the database schema (3) and the generator epoch (3), each read from its own source when the key is made, so a galaxy's key changes when any of them does. The padding was narrowed to make room and the key stays 22 digits, so no column changes: the release is 1 + 2 + 4 digits (largest MAJOR 15, REVISION 255, BUILD 65,535) and Python 1 + 2 + 2. Keys made before this have another layout and match nothing: a stored galaxy's key reads as made by another version until it is planned again, and the generation timing history (`generation_stats`, keyed by the key) starts afresh and restarts whenever the API, schema or epoch moves.
