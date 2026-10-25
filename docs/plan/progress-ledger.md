@@ -1497,3 +1497,4 @@ Baseline: PR #1817.
 | GEN.466 | 8.1 | Surface and small bodies |
 | MAP.304 | 8.1 | Fly-through map |
 | MAP.297 | 8.1 | Fly-through map |
+| GEN.814 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
