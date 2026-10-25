@@ -3536,6 +3536,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests are scripts/test.py changed --resume.
   Prerequisites: GEN.827, API.35. Related: GEN.827, MAP.316, MAP.295,
   MAP.296, MAP.152.
+  Progress (2026-10-09): Part merged as #3312 (Core 2, 2:07 AM EDT
+  2026-10-25 as the lane reported): static/flytofit.js (fitDistance,
+  reachFrom) and the galaxy stage flyToFit({center, radius}) frame a
+  bounding sphere to fill the smaller side of the map window with 8
+  percent to spare (nebula or region never under 2 pc); a planet with
+  moons frames to its outermost moon orbit, a star system's 3D view
+  opens with every orbit in the window, the Galaxy Map fly-to of a
+  system or nebula uses it. Still open: the region node's double click
+  wired to flyToFit, which waits on GEN.827 (extent) and API.35.
 
 - [ ] **MAP.320 Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region**
   Boss, 1:19 AM EDT 2026-10-25 (relayed by the coordinator): "show them
@@ -20758,6 +20767,10 @@ clears each one.
   fix the dense_site fixture to isolate its worlds. Never skip a test to
   get green. Owner: Bug 1 with Aux 10 (the map owner) for the intended
   flow. Done: the module is green in any order on clean main.
+  Finding (2026-10-09): Core 2 (2:07 AM EDT 2026-10-25) adds two more
+  red tests on clean main from the dense_site fixture:
+  test_a_double_click_on_a_star_flies_to_it and
+  test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box.
   Prerequisites: none. Related: MAP.297, TEST.390.
 
 ## USR: User accounts
