@@ -14547,28 +14547,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merged (#2159).
   Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
 
-- [ ] **PERF.124 `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon`**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. Today `planetgen sector
-  --population` also runs the population pass and `planetgen phenomenon`
-  settles its sector unless `--no-settle`. Done: each only generates
-  what its name says; the population pass and the settle are the
-  commands of PERF.123 and PERF.125, asked for in the step list when
-  wanted; `--population` and `--no-settle` are gone on these two with no
-  shim; the Generate page and the one-off pages ask for the settle as a
-  step (PERF.119); a test per command. Owner: Core 5 (proposed; the
-  PERF.118 chain).
-  Prerequisites: none. Related: PERF.119, PERF.120,
-  PERF.123, PERF.125.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
-
 - [ ] **PERF.125 The population pass and the territories pass are separate commands**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
   we can build whatever sequences we want" (the principle of 4:18 PM
@@ -14925,7 +14903,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wrapper run over the step list, the same seed gives the same galaxy as
   before at 1 and 4 workers, and the estimate shows the whole list.
   Owner: Core 5 (proposed, after PERF.125).
-  Prerequisites: PERF.124, PERF.125. Related: PERF.123.
+  Prerequisites: PERF.125. Related: PERF.123.
 
 - [ ] **PERF.174 Every work unit's database connection runs the schema check again: skip it when the schema version is current**
   Found by the Performance lane in PERF.156 to PERF.158 (relayed 7:34 PM

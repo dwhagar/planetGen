@@ -2066,7 +2066,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.121 | `plan` does only the skeleton, and the scatters become one `scatter` command with exactly one kind per run (mass, luminosity, phenomena, nebula field, band) | none | done, PR #2441 |
 | PERF.122 | The map-luminosity fill and the habitability re-score are their own commands, not `plan` flags | none | done, PR #2441 |
 | PERF.123 | `galaxy` stops being a bundle: sector generation, the neighbour link, the backfill, the population pass and the settle are each their own command, and `galaxy` is a step list the wrapper builds | none | done, PR #2865 |
-| PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | none | open |
+| PERF.124 | `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon` | none | done, PR #3194 |
 | PERF.125 | The population pass and the territories pass are separate commands | none | open |
 | PERF.126 | `check-db`: each check is its own command and the report is the list the wrapper runs | none | done, PR #2211 |
 | PERF.127 | `warm_map`: each cache family is its own command and `update.sh` builds the list | none | done, PR #2166 |
