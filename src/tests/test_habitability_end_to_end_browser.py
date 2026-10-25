@@ -289,6 +289,8 @@ def test_a_symbol_opens_its_planets_habitability_group_and_the_help_page_lists_t
     assert target.count() == 1
     assert page.evaluate("() => document.querySelector(':target') === document.getElementById('habitability')")
     assert page.locator('#habitability a.help-link[href^="/help/habitability"]').count() == 1    # one click on to the help page
+    assert page.evaluate("() => document.getElementById('habitability').open")    # UX.204: the link opened the collapsed group
+    assert page.evaluate("() => document.getElementById('sheet-physical').open === false")
     page.go_back()
     page.wait_for_selector("svg.hab-symbol", state="attached")
     page.goto(f"{habitable_galaxy.base_url}/help/habitability", wait_until="load")
