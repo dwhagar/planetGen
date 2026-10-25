@@ -421,7 +421,7 @@ _BODY_NOT_SHOWN = {
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
-    "composition_origin": "how the generator found the composition; bookkeeping, not a fact about the world (UX.202)",
+    "composition_origin": "how the generator found the composition; bookkeeping, not a fact about the world",
     "description": "the page's paragraph text",
     "atmosphere": "described in the paragraph text and the Atmosphere rows",
     "composition": "described in the paragraph text",
