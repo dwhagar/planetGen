@@ -16927,66 +16927,6 @@ Design: [docs/design/operations/login-brute-force-protection.md](design/operatio
   specifically authorizes an exception.
   Prerequisites: none. Related: TEST.261.
 
-- [ ] **SEC.36 Avatars may be GIFs, animated GIFs included: a new avatar picture kind with its own format list and decoder limits**
-  Boss, 7:16 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiFrLn1Ci8KEw4bDYQeEqheq, relayed by the
-  coordinator): "I want to allow GIF's and animated GIF's for avatars."
-  SEC.35 (#3141) had just limited every picture upload to PNG, JPEG and
-  ICO
-  (`PICTURE_FORMATS` in web/assets.py); this adds GIF back for avatars
-  only,
-  on purpose. No avatar exists in the code or the item list today (the
-  `KINDS` of web/assets.py are the site pictures), so this item builds
-  the
-  smallest avatar there is and the user accounts of 8.2 (USR.1) reuse
-  it:
-  (1) a new `avatar` kind in the asset checker whose own format list is
-  PNG,
-  JPEG, ICO and GIF, while `PICTURE_FORMATS` and the site pictures keep
-  the
-  SEC.35 rule (a GIF is still refused for a logo or favicon unless Boss
-  says
-  otherwise, and the TIFF/PPM refusal tests stay); (2) an avatar upload
-  for
-  the signed-in admin account, shown beside the name where the page
-  shows
-  who is signed in and on the Users page; the stored file belongs to the
-  account, replacing it removes the old file, and deleting the account
-  removes it. Safety conditions (Boss's coordinator, for the owner):
-  Pillow is asked for the GIF decoder only (`formats=[...]`), checks the
-  header size before decoding, and the check refuses a file over a pixel
-  cap (width times height), a frame cap, a total decoded pixel cap
-  (width
-  times height times frames, so a small many-frame GIF cannot exhaust
-  memory) and the byte cap (MAX_BYTES); set `Image.MAX_IMAGE_PIXELS` and
-  treat Pillow's DecompressionBombWarning as an error. Decode each frame
-  by
-  iterating it with the caps applied, never `.convert` or `.load` the
-  whole
-  sequence first. Keep the animation (all frames, durations and loop
-  count) but strip all metadata (comments, XMP, application extensions
-  other than the loop block, EXIF, ICC profile): re-encode the frames
-  with
-  Pillow and store that output, never the uploaded bytes. Serve the
-  avatar
-  with its own content type, `X-Content-Type-Options: nosniff`, the CSP
-  of
-  the other pictures, and a long-cache name from a hash of the bytes.
-  Done:
-  tests show a normal GIF and an animated GIF are accepted and stay
-  animated, a GIF with too many frames, too many pixels or a bomb header
-  is
-  refused with a plain sentence, the stored file carries no comment or
-  XMP
-  block, a GIF is refused for the site logo, and the docs name the
-  avatar
-  rules. Owner: Bug 1 (it wrote SEC.35 and has the decoder and test
-  files
-  open), after TEST.365 and TEST.366; nobody has started it. Related to
-  the
-  SEC.33 audit, which should see it merged first.
-  Prerequisites: none. Related: SEC.35, SEC.34, SEC.33, USR.1.
-
 ## TEST: The test suite
 
 From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
@@ -19397,29 +19337,6 @@ clears each one.
   runs. Owner: Bug 1. Related: TEST.344, TEST.364.
   Prerequisites: none. Related: TEST.344, TEST.364.
 
-- [ ] **TEST.372 scripts/test.py and docs/reference/testing.md call `full` "the merge gate", which lanes read as a whole-suite gate for every merge (bug)**
-  Boss, 8:10 PM EDT 2026-10-24 (relayed by the coordinator): "remember
-  we have tests that run based on changed code only and we can resume
-  tests, and I want to make sure we're not over-testing." Lanes are
-  running 2 to 5 hour whole-suite gates
-  (reports/lane-testing-audit-2026-10-24.md). Boss's rule (8:07 PM EDT):
-  every merge tests only what changed or would change; the detailed full
-  run is reserved for the end-of-version bug hunt (TEST.261, SEC.33,
-  GEN.301 `full --check`) before the stamp. Do: change the
-  `scripts/test.py` module help ("full ... the merge gate") and
-  docs/reference/testing.md (the "merge gate" wording, the line that
-  asks for a green `full` at the end of a sequence of related items) so
-  that `changed` with `--resume` is the gate for every merge and `full`
-  is for the end-of-version run and the check that proves `changed`; add
-  to the `changed` run's last line a reminder when it was started
-  without `--resume` after an earlier run of the same build left a
-  progress log (it names the command to resume); keep the PR description
-  line that says which run was used. Done: the help text and the testing
-  doc say the same thing as lanes.md's TESTING RULE, and a test over the
-  help text finds no "merge gate" next to `full`. Owner: Bug 1. Related:
-  TEST.208, TEST.261.
-  Prerequisites: none. Related: TEST.208, TEST.261.
-
 - [ ] **TEST.374 scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug)**
   Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
   lane reported): the patch notes in changes/ for GEN.398, GEN.691 and
@@ -19452,33 +19369,12 @@ clears each one.
   as the lane reported) saw the same two test_web_generate tests
   (generate_anyway and plain_confirm override logging) fail on clean
   main: one more witness for this item.
+  Research (2026-10-09, Progress): Bug 1 fixed
+  test_api_auth_sweep::test_admin_pages_send_an_admin_on_seeded_credentials_to_account
+  in #3189 (the /admin/queue/<run_id>/log download redirected instead of
+  403); the rest of the list is unchecked. Twelve more failures on main
+  are in TEST.379.
   Prerequisites: none. Related: TEST.370, TEST.365, TEST.366, TEST.353.
-
-- [ ] **TEST.376 scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill**
-  Boss, 8:42 PM EDT 2026-10-24 (relayed by the coordinator): "have all
-  tasks running tests check for broken containers". Lane containers
-  restart and kill MySQL and Redis in the middle of a gate (Aux 3's
-  MySQL was OOM-killed today, Bug 1's gate was killed at 6:08 PM EDT as
-  the lane reported); each costs hours. The standing rule is in lanes.md
-  (CONTAINER CHECK) until this lands. Do: scripts/test.py (every mode
-  that runs tests: quick, area, browser, changed, full) (1) runs a
-  preflight before the first test: MySQL and Redis answer, stale lock
-  files in /var/run/mysqld removed, binary logs purged, the
-  PLANETGEN_TEST_* variables from /etc/profile.d/planetgen-test.sh
-  exported, the test MySQL user has GRANT OPTION, argon2-cffi and
-  Playwright present; it repairs what it can and prints what it did; (2)
-  runs a watchdog during the run that checks MySQL and Redis between
-  test files (and on any connection error), and when one is dead
-  restarts it, re-runs the preflight and resumes the run from its
-  progress log instead of starting over or failing the file as a product
-  bug; a service that cannot be restarted stops the run with one plain
-  line naming it. Done: a test that kills MySQL (and one that kills
-  Redis) mid-run ends with the run finished and a note saying what was
-  restarted; the preflight alone is runnable as `scripts/test.py
-  doctor`. Includes the work described in OPS.70 (the lane-start health
-  check and resume), which Bug 1 now owns with this item. Owner: Bug 1.
-  Related: OPS.70, OPS.62, TEST.208.
-  Prerequisites: none. Related: OPS.70, OPS.62, TEST.208.
 
 - [ ] **TEST.377 test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug)**
   Found by Core 2 (UX.125, 8:47 PM EDT 2026-10-24 as the lane reported)
@@ -19500,7 +19396,30 @@ clears each one.
   comment may keep it); check the other entries added by UX.203 and
   UX.204 in the same file for the same. Done: test_no_todo_codes_shown
   passes. Owner: Aux 11. Related: UX.93, UX.202.
+  Research (2026-10-09, Progress): Lane 4 (8:59 PM EDT as the lane
+  reported) also saw test_no_todo_codes_shown name a MAP.220 string at
+  db/point_columns.py:177 on its checkout; that string is not on current
+  main, so confirm the test passes after the UX.202 string is cut.
   Prerequisites: none. Related: UX.93, UX.202.
+
+- [ ] **TEST.379 Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug)**
+  Found by Lane 4 (Aux 12) running the OPS.29 gate on main (8:59 PM EDT
+  2026-10-24 as the lane reported). Not yet in any item:
+  test_api::description_splits_into_every_body, test_eta_estimator
+  (queue page), test_protection (six describers),
+  test_web_browser_fixture_maps (wheel scroll) and test_web_search (star
+  link). Already covered: test_api_auth_sweep admin pages (fixed in
+  #3189 by Bug 1), test_class_pages nebula, test_interior_heat urey
+  ratio, test_memwatch smoke run and test_save_progress (all TEST.375),
+  test_no_todo_codes_shown (TEST.378; Lane 4 also named a MAP.220 string
+  at db/point_columns.py:177, check that TEST.378 removes every code in
+  a shown string). Do: run each on a lane machine set up as documented
+  (TEST.370, TEST.376 preflight), keep the ones that still fail on main,
+  and fix each with no skip; drop the ones that pass, noting the setup
+  they needed. Done: every listed test passes on a documented machine or
+  has its own item with a root cause. Owner: Bug 1. Related: TEST.375,
+  TEST.378, TEST.370.
+  Prerequisites: none. Related: TEST.375, TEST.378, TEST.370.
 
 ## USR: User accounts
 
@@ -19771,6 +19690,10 @@ clears each one.
   database as decided on 2026-10-10 18:44Z, plus the concurrency cap and
   the two settings from the 2026-10-09 research; Redis through
   Flask-Limiter is not used for this limit.
+  Research (2026-10-09, Progress): SEC.36 (#3189) added account pictures
+  (admin_users.avatar, POST and DELETE /api/auth/avatar, an account page
+  section). The Users page and account deletion that USR.1 builds must
+  show the picture and call adminAuth.forget_avatar_file on deletion.
     Prerequisites: USR.26.
 
 - [ ] **USR.9 `seo.privacy_note` text, "download my data" and "delete my account" on the account page**
@@ -20103,31 +20026,6 @@ clears each one.
 
 OPS.1 shipped with the version scheme in `changes/README.md`.
 
-- [ ] **OPS.29 Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts**
-  Follow-up to OPS.8 (built in PR #808): check it against the research.
-  Skip if Apache is absent or stopped (never start it), `configtest`
-  first, `systemctl reload apache2` (or `httpd`), restart only if the
-  script itself installed mod_wsgi and no Generate job runs, check
-  Apache is up and `/api/health` answers, exit non-zero on failure.
-  Cover the gunicorn units (`planetgen-gunicorn` on Linux, `launchctl
-  kill SIGHUP` on macOS) in the same function, since nginx and Caddy
-  hosts have no Apache. State plainly in the docs that a reload aborts
-  in-flight daemon requests after about 4 s while `touch
-  src/html/wsgi.py` does not. Update `docs/deployment/apache.md` (lines
-  22, 29, 164), the `docs/deployment/server-checklist.md` "reload the app" row and
-  the closing text of `update.sh` and `install.sh`; `update.sh` prints
-  "restart" after `a2enmod` though a graceful reload loads new modules.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: print
-  the manual command and end
-  non-zero on a failed reload).
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this next (12:21 PM
-  EDT 2026-10-24 as the lane asked; nobody had reported starting it).
-  Prerequisites: none.
-  Design: [docs/design/operations/ops-scheduling-and-rotation.md](design/operations/ops-scheduling-and-rotation.md)
-
 - [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
   Boss (2026-10-16, 2:06 PM EDT): "Yes plese." to a nightly full backup
   from the daily maintenance run. Target 8.9 (the backups and repair
@@ -20188,28 +20086,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.70 Gate resumes after a restart, and a lane-start health check runs before every gate**
-  Efficiency scan suggestion 5, applied by Boss ("ALL", 2:21 PM EDT
-  2026-10-24). Container and MySQL restarts killed several gates today
-  (the Redis crash fix lane twice, Lane K and Bug Hunt with stale MySQL
-  lock files, binlogs filling disks), each costing 1 to 3 hours. Do: (1)
-  scripts/test.py records the last finished test file and, after a
-  restart, resumes from it instead of from zero; (2) a lane-start health
-  check runs before every gate: MySQL and Redis up, stale lock files in
-  /var/run/mysqld removed, binary logs purged, the test environment
-  variables from /etc/profile.d/planetgen-test.sh exported
-  (PLANETGEN_TEST_REDIS_URL), the test MySQL user has GRANT OPTION,
-  argon2-cffi and Playwright present; it repairs what it can and prints
-  what it did. Done: killing the container mid-gate, then rerunning,
-  resumes at the last finished file with services healthy. Related
-  OPS.62 (the setup script). Owner: Lane Debug, with Bug Hunt for the
-  gate side.
-  Research (2026-10-09, Owner): Taken over by Bug 1 together with
-  TEST.376 (Boss, 8:42 PM EDT 2026-10-24: all test runs check for broken
-  containers); Lane Debug no longer exists. Build it as part of
-  TEST.376.
-  Prerequisites: none. Related: OPS.62, TEST.334.
 
 - [ ] **OPS.71 Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand**
   Efficiency scan suggestion 6, applied by Boss ("ALL", 2:21 PM EDT
