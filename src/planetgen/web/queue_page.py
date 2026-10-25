@@ -45,6 +45,16 @@ ACTION_TEXT = {
                        "ended as failed and the machine is freed so the next run can start."),
     "retry": ("Retry", None),
     "delete": ("Delete", "The run's record and log are deleted. Nothing it generated is touched."),
+    "fill-habitability": ("Regenerate habitability",
+                          "Re-scores the habitability of every planet and moon from the conditions already stored: the "
+                          "PHI-6 index, the six domains with their tiers, the survival equipment levels, the note and "
+                          "the double-star flux swing. It does not re-draw a planet, so after a change that alters how "
+                          "planets are drawn a regeneration is needed instead. It runs as a queue run you can follow "
+                          "here, stop and start again; the result is the same however often it runs."),
+    "fill-map-luminosity": ("Fill map luminosity",
+                            "Fills the map luminosity of the scattered phenomena that do not have it yet, from their "
+                            "stored masses, so the Galaxy Map's glow includes them. It only fills rows still empty. It "
+                            "runs as a queue run you can follow here, stop and start again."),
     "clear-finished": ("Clear finished runs", "Every finished run's record is deleted, leaving the ones still running. "
                                               "Nothing they generated is touched."),
     "queue-pause": ("Pause the queue", "No run starts or takes another unit until you resume the queue. "
@@ -60,6 +70,15 @@ ACTION_TEXT = {
 
 QUEUE_WIDE_ACTIONS = ("clear-finished",)
 """tuple[str]: The controls that act on the whole queue, not one run."""
+
+FILL_COMMANDS = {"fill-habitability": "rescore-habitability", "fill-map-luminosity": "fill-map-luminosity"}
+"""dict: The Queue page's start buttons (ADM.129) and the `planetgen` command each starts as a job, with the rules of
+any generation run: refused while another run is live, one run lock, the audit entry, Stop and Retry."""
+
+
+def _is_site_wide(action):
+    """Whether `action` acts on no particular run (so its confirmation page takes no `?run=`)."""
+    return action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS or action in FILL_COMMANDS
 
 RETRYABLE = ("plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability", "clean-nebula-field",
              "galaxy", "sectors", "link", "backfill", "settle", "sector", "population")
@@ -373,7 +392,7 @@ admin_queue_log.json_only = True  # not a page: tests/test_web_a11y.py skips it
 def _confirm_text(action, run):
     """`(heading, explanation)` for the confirmation page."""
     label, explanation = ACTION_TEXT[action]
-    if action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS:
+    if _is_site_wide(action):
         return f"{label}?", explanation
     if action == "retry":
         plan = _retry_plan(run)
@@ -393,7 +412,7 @@ def admin_queue_confirm(action):
     if action not in ACTION_TEXT:
         abort(404, description="No such action.")
     run = None
-    if not (action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS):
+    if not _is_site_wide(action):
         if not runrecord.RUN_ID_RE.match(run_id):
             abort(404, description="No such run.")
         _body, run = _load(_cookie_header(), run_id)
@@ -426,11 +445,33 @@ def _start_retry(admin, plan, retry_of):
         running = exc.job["title"] if exc.job else "Another job"
         return None, f"{running} is still running. Wait for it to finish, or cancel it first."
     except OSError as exc:
-        log.exception(f"Could not start a retry of {retry_of}: {exc}")
+        log.exception(f"Could not start {plan['title']}: {exc}")
         return None, f"The job could not be started: {exc}"
     activity_log.event("GEN", "job.start", user=admin.get("username"), job=job_id, kind=plan["kind"], db=database,
-                      title=plan["title"], retry_of=retry_of)
+                      title=plan["title"], **({"retry_of": retry_of} if retry_of else {"started_from": "queue page"}))
     return f"Started {plan['title']}.", None
+
+
+def _start_fill(admin, cookie_header, action):
+    """
+    Starts the `planetgen` command behind a start button (`FILL_COMMANDS`, ADM.129) as a Generate page job on this
+    site's database, as a retry does (`_start_retry`). Refused while everything is stopped or another run is live.
+    Returns `(message, error)`.
+    """
+    label = ACTION_TEXT[action][0]
+    body = apiclient.admin_work(cookie_header, limit=1, offset=0)
+    if (body.get("stopped") or {}).get("stopped"):
+        return None, "Everything is stopped. Press Resume first; nothing starts until then."
+    status = body.get("status") or {}
+    if status.get("holder") and not status.get("stale"):
+        return None, (f"{status.get('holder_title') or 'Another run'} is still running. Wait for it to finish, or "
+                      f"cancel it first.")
+    command = FILL_COMMANDS[action]
+    plan = {"kind": command, "title": label, "database": db_name(),
+            "steps": [{"label": f"planetgen {command}",
+                       "argv": [jobs.python_executable(), *jobs.GENERATE_COMMAND, command]}]}
+    message, error = _start_retry(admin, plan, None)
+    return message, error
 
 
 @bp.route("/admin/queue/action", methods=["POST"])
@@ -476,6 +517,10 @@ def admin_queue_action():
             else:
                 state = apiclient.admin_work_workers(cookie_header, count=count, ludicrous=action == "workers-ludicrous")
                 message = f"The bulk queue now asks for {state['wanted']} {'worker' if state['wanted'] == 1 else 'workers'}."
+        elif action in FILL_COMMANDS:
+            message, error = _start_fill(admin, cookie_header, action)
+            if message:
+                target = url_for("web.generate", _anchor="current-job")
         elif action in ("cancel", "clear", "retry", "delete"):
             _body, run = _load(cookie_header, run_id) if runrecord.RUN_ID_RE.match(run_id) else (None, None)
             if run is None:
