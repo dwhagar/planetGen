@@ -2228,6 +2228,27 @@ def test_galaxy_map_glow_shows_the_unlisted_light_and_the_menu_switches_it(page,
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.isVisible() === true")
 
 
+def test_the_glow_fades_out_as_the_stars_resolve_and_never_adds_up(page, dense_site):
+    """MAP.324: from the whole galaxy the unresolved light is a soft glow, but looking into a crowd of stars it is gone
+    (it flooded the map white and hid the stars), and glows that overlap take the stronger, never the sum."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, dense_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapGlow; return g && g.drawn() > 0; }",
+                           timeout=20000)
+    far = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.strongest()")
+    assert 0.05 < far <= 0.4 + 1e-9, far
+    # Blending: the maximum of the premultiplied glows (THREE.MaxEquation is 104), not the sum.
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.mesh.material.blendEquation") == 104
+    for dist in (14.0, 3.0):
+        open_dense_region(page, dense_site, dist)
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.count() > 0", timeout=20000)
+        _settle(page)
+        try:
+            page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.strongest() < 0.01", timeout=20000)
+        except Exception:
+            raise AssertionError((dist, page.evaluate("() => [document.querySelector('#galaxymap3d-canvas').__mapGlow.strongest(), document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist]")))
+
+
 def test_galaxy_map_opens_with_the_glow_off_when_the_address_says_so(page, map_site):
     _open_galaxy(page, map_site, "?hide=glow")
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow !== undefined")

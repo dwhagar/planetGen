@@ -13,7 +13,7 @@
 //
 // The look is a tone curve over the blob's apparent magnitude, judged GLOW_MAG magnitudes deeper than a point of light
 // because the eye reads a glow by its surface brightness (design 2.4), ending at GLOW_ALPHA_MAX so the glow never
-// outshines a star. No DOM and no three.js here: tests/js/galaxyglow.test.mjs holds it to this description.
+// outshines a star, and fading as its block grows past a few hundred pixels (the stars are resolved by then, MAP.324). No DOM and no three.js here: tests/js/galaxyglow.test.mjs holds it to this description.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { geometry } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
@@ -24,8 +24,13 @@ export const GLOW_MAG = 5;
 // The apparent magnitude (after GLOW_MAG) at which a glow begins to show, and the span over which it comes to full strength.
 export const GLOW_LIMIT_MAG = 8;
 export const GLOW_RAMP_MAG = 6;
-// The strongest a glow is drawn: soft, under a star's own core.
-export const GLOW_ALPHA_MAX = 0.55;
+// The strongest a glow is drawn: soft, under a star's own core. Glows are drawn with a maximum blend, not an additive
+// one, so overlapping glows never add up past this (MAP.324).
+export const GLOW_ALPHA_MAX = 0.4;
+// The glow fades as the stars it stands for resolve (MAP.324): a blob whose block is, on the screen, this many pixels in
+// radius (the first number) begins to fade and is gone at the second, the point at which the camera is among the block's
+// own stars and a haze over them only hides them. Radii in CSS pixels, before GLOW_RADIUS_PX caps what is drawn.
+export const GLOW_RESOLVE_PX = [100, 420];
 // A blob's radius in pixels is its block's own radius on screen, kept between these (a blob under a pixel is a point
 // the stars already are; one over the cap would wash the canvas).
 export const GLOW_RADIUS_PX = [3, 220];
@@ -106,8 +111,10 @@ export function glowLook(blob, camera, focalPx) {
   const dz = blob.z - camera[2];
   const distance = Math.max(Math.sqrt(dx * dx + dy * dy + dz * dz), 1e-6);
   const magnitude = apparentMagnitude(absoluteMagnitude(blob.luminosity), distance) - GLOW_MAG;
-  const alpha = GLOW_ALPHA_MAX * ease((GLOW_LIMIT_MAG - magnitude) / GLOW_RAMP_MAG);
-  const radiusPx = Math.min(GLOW_RADIUS_PX[1], Math.max(GLOW_RADIUS_PX[0], (blob.radiusPc * focalPx) / distance));
+  const blockPx = (blob.radiusPc * focalPx) / distance;
+  const unresolved = 1 - ease((blockPx - GLOW_RESOLVE_PX[0]) / (GLOW_RESOLVE_PX[1] - GLOW_RESOLVE_PX[0]));
+  const alpha = GLOW_ALPHA_MAX * ease((GLOW_LIMIT_MAG - magnitude) / GLOW_RAMP_MAG) * unresolved;
+  const radiusPx = Math.min(GLOW_RADIUS_PX[1], Math.max(GLOW_RADIUS_PX[0], blockPx));
   return { alpha, radiusPx, distance };
 }
 

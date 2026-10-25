@@ -54,14 +54,28 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
       "  if (r >= 1.0) discard;",
       // A soft round falloff: bright in the middle, nothing at the rim.
       "  float soft = exp(-r * r * 3.5) * (1.0 - r);",
-      "  gl_FragColor = vec4(vColor, soft * vAlpha);",
+      "  float a = soft * vAlpha;",
+      o.light ? "  gl_FragColor = vec4(vColor, a);" : "  gl_FragColor = vec4(vColor * a, a);",
       "}",
     ].join("\n"),
     transparent: true,
     depthWrite: false,
     depthTest: false,
-    blending: o.light ? THREE.NormalBlending : THREE.AdditiveBlending,
   });
+  // Where glows overlap the brighter one shows and they are not added (a crowd of overlapping blobs added up to white
+  // and hid the stars, MAP.324): a maximum blend of the premultiplied colors on a dark background, normal blending
+  // dark-on-light on a light one.
+  if (o.light) {
+    material.blending = THREE.NormalBlending;
+  } else {
+    material.blending = THREE.CustomBlending;
+    material.blendEquation = THREE.MaxEquation;
+    material.blendSrc = THREE.OneFactor;
+    material.blendDst = THREE.OneFactor;
+    material.blendEquationAlpha = THREE.MaxEquation;
+    material.blendSrcAlpha = THREE.OneFactor;
+    material.blendDstAlpha = THREE.OneFactor;
+  }
   const mesh = new THREE.Mesh(new THREE.BufferGeometry(), material);
   mesh.renderOrder = o.renderOrder === undefined ? 4 : o.renderOrder;
   mesh.frustumCulled = false;
@@ -73,6 +87,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
   let radiusAttribute = null;
   let on = true;
   let drawnCount = 0;
+  let strongestAlpha = 0;
   let signature = "";
 
   // Draws exactly `list` (`blobsOf`'s). Positions are offsets from `centre` rounded to a whole parsec, the mesh sitting
@@ -113,6 +128,18 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
     mesh.updateMatrixWorld();
   }
 
+  // Whether a blob of `radiusPx` reaches the screen (its centre in front of the camera, its disc over the canvas).
+  const spot = new THREE.Vector3();
+  function onScreen(blob, radiusPx) {
+    spot.set(blob.x, blob.y, blob.z).project(camera);
+    if (!(spot.z > -1 && spot.z < 1)) return false;
+    const width = Math.max(1, canvasEl.clientWidth);
+    const height = Math.max(1, canvasEl.clientHeight);
+    const x = (spot.x + 1) / 2 * width;
+    const y = (1 - spot.y) / 2 * height;
+    return x > -radiusPx && x < width + radiusPx && y > -radiusPx && y < height + radiusPx;
+  }
+
   // Sets each blob's radius and strength: `makeWeigh()` gives the cut's weight calculator for the camera (called only when something changed; `null` for whole shares), `focalPx` the
   // camera's focal length in pixels. Nothing is done while the camera, the cut (`stamp` names it) and the layer's state are as they were.
   function update(makeWeigh, focalPx, stamp) {
@@ -123,6 +150,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
     material.uniforms.viewport.value.set(Math.max(1, canvasEl.clientWidth), Math.max(1, canvasEl.clientHeight));
     mesh.visible = on && blobs.length > 0;
     drawnCount = 0;
+    strongestAlpha = 0;
     if (!mesh.visible || !alphaAttribute) return;
     const position = camera.position.toArray();
     const weigh = makeWeigh ? makeWeigh() : null;
@@ -131,6 +159,7 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
       const look = glowLook(blob, position, focalPx);
       const alpha = share > 0 ? look.alpha * share : 0;
       if (alpha > 0.002) drawnCount += 1;
+      if (alpha > strongestAlpha && onScreen(blob, look.radiusPx)) strongestAlpha = alpha;
       for (let c = 0; c < 4; c++) {
         alphaAttribute.array[4 * i + c] = alpha;
         radiusAttribute.array[4 * i + c] = look.radiusPx;
@@ -148,9 +177,10 @@ export function createGlowLayer(scene, camera, canvasEl, options) {
 
   return {
     mesh, setBlobs, update, setVisible,
-    // What is drawn, for the browser tests: how many blobs have a visible strength, how many are held, and whether the
-    // layer is on.
+    // What is drawn, for the browser tests: how many blobs have a visible strength, the strongest of those that reach the
+    // screen (an alpha, 0 to GLOW_ALPHA_MAX), how many are held, and whether the layer is on.
     drawn: () => drawnCount,
+    strongest: () => strongestAlpha,
     count: () => blobs.length,
     isVisible: () => mesh.visible,
     blobs: () => blobs.slice(),
