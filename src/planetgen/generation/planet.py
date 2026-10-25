@@ -243,7 +243,9 @@ class Planet(PlanetaryObject):
     """
 
     moon_origin = None
-    """str or None: A moon's origin (`moon_composition.ORIGINS`) while it is being generated; not stored (its columns are DB.70)."""
+    moon_disk_system = None
+    """str or None, DiskSystem or None: A moon's origin (`moon_composition.ORIGINS`) and its parent's circumplanetary disk while the moon is
+    being generated; not stored (their columns are DB.70)."""
 
     reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
     """
@@ -257,7 +259,7 @@ class Planet(PlanetaryObject):
 
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
-                 is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None):
+                 is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None):
         """
         Initializes a Planet object with its physical and orbital properties.
 
@@ -300,10 +302,13 @@ class Planet(PlanetaryObject):
             moon_origin (str, optional): For a moon, how it came to orbit its parent (`moon_composition.ORIGINS`), drawn by
                                          `generate_moons`: the orbit's inclination follows from it (GEN.714). A moon built
                                          without one keeps the old regular orbit.
+            moon_disk_system (DiskSystem, optional): For a disk moon, its giant parent's circumplanetary disk
+                                                     (`moon_composition.draw_disk_system`), shared by that parent's moons.
         """
         self.system_config = system_config # Store SystemConfig
         self.is_moon = is_moon
         self.moon_origin = moon_origin
+        self.moon_disk_system = moon_disk_system
         self.moons = []
         # This planet's own reflex-offset "wobble" (schema v20) from its
         # moons' combined pull -- 0.0 by default (no moons yet), recomputed
@@ -404,11 +409,12 @@ class Planet(PlanetaryObject):
         return (2.0 * math.pi / self.period) ** 2 * self.distance ** 3
 
     def _draw_moons(self):
-        """Whether a planet left to chance gets moons: an even chance, moved
-        by the run's moons prevalence (GEN.52)."""
+        """Whether a planet left to chance gets moons: an even chance, or for a small body the share of the hosting gate's
+        `satellite-share` table for its population and size (GEN.761), moved by the run's moons prevalence (GEN.52)."""
+        chance = planetPhysics.satellite_share(self)
         if prevalence.percent(self.system_config, "moons"):
-            return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5)
-        return draw.randrange(2) == 1
+            return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5 if chance is None else chance)
+        return draw.randrange(2) == 1 if chance is None else draw.random() < chance
 
     def _encode(self, data):
         """`habitable_zone` is stored as a list (JSON has no tuple type); `moons` are serialized the same way,

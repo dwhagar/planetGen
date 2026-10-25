@@ -12,6 +12,7 @@ The plan lists GEN.565 then GEN.557 then GEN.428. GEN.428, GEN.429 and GEN.411 d
 2. PR GEN.429 kernels: `physics/bulk_structure.py`, pure functions (reference solver, closed forms, small-body mixing). No epoch.
 3. PR GEN.428 + DB.69 (+ the derived radius, density and gravity of GEN.429 in the generator): epoch bump, migration, golden update.
 4. PR GEN.452 part 2 (#2613 rebased) + GEN.411 + DB.71 + GEN.424: epoch bump, migration.
+   Built in three merges (2026-10-24): 4a GEN.452 part 2 (#3041), 4b DB.71 + GEN.424 (#3110, epoch 95), 4c GEN.411 + GEN.422 (epoch 103): the air is the fixed point of `physics/surface_air.py` (`surface-pressure-supply-law.md` section 6), which replaced the class density, molar density and greenhouse ranges, `CLASS_MIXES` and the mixing-ratio draw (GEN.683); the supply law (GEN.726, #3111) came between 4b and 4c.
 5. GEN.565 PlanetaryObject and GEN.557 once lanes A and B land.
 
 ## 1. Accessors (stable from PR 1)

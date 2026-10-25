@@ -39,6 +39,7 @@ from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 from planetgen import tuning as prog_c
+from planetgen.physics.constants import G
 from tests import render_support
 
 SPECTRAL_CLASSES = ["O", "B", "A", "F", "G", "K", "M"]
@@ -113,21 +114,24 @@ def test_planet_physical_properties_stay_sane_for_every_host_star_type(star_type
         assert value > 0, f"{star_type}/{cls}-{zone}: {attr}={value} should be positive"
 
     class_data = prog_c.PLANET_CLASSES[cls]
-    if class_data["atmosphere"] is None:
+    if class_data["atmosphere"] is None or planet.atmospheric_pressure == 0.0:
+        # an airless class, or a body whose host stripped its air (GEN.411: the class no longer sets the
+        # pressure, the air is solved from what the body outgassed, kept and lost)
         assert planet.atmosphere == "None"
         assert planet.atmospheric_pressure == 0.0
     else:
-        # Sanity bounds spanning a thin, Mars-like atmosphere up to a thick,
-        # Venus-like one -- catches regressions like a unit-conversion bug
-        # that silently produced near-zero pressure for every class but M.
-        # Class N is tuned to real Venus values (~9.2MPa mean at a G2V
-        # host, see PLANET_CLASSES["N"]) and reaches ~1.1e7 Pa at the most
-        # luminous hosts this matrix covers -- the upper bound is raised
-        # well past that (not tightened to it) so this stays a broad
-        # regression catch, not a tight per-class assertion (that's
-        # climate_tuning_cli.py/test_climate_tuning.py's job).
-        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure <= 5e7, (
-            f"{star_type}/{cls}-{zone}: atmospheric_pressure={planet.atmospheric_pressure}"
+        # The class no longer fixes a pressure range, so the check is the one physical bound every air has:
+        # it cannot outweigh the planet it sits on.  That still catches a unit-conversion bug (a kPa read as
+        # Pa, a bar as Pa) while letting a thin Mars-like air, a Venus-like one or a deep steam envelope
+        # through; how realistic a class's pressure is belongs to test_surface_air.py.
+        pressure = planet.atmospheric_pressure
+        assert math.isfinite(pressure) and pressure > 0.0, (
+            f"{star_type}/{cls}-{zone}: atmospheric_pressure={pressure}"
+        )
+        surface_gravity = G * planet.mass / (planet.radius * 1000.0) ** 2
+        air_mass = pressure * 4.0 * math.pi * (planet.radius * 1000.0) ** 2 / surface_gravity
+        assert air_mass < planet.mass, (
+            f"{star_type}/{cls}-{zone}: the air ({air_mass:.3g} kg) outweighs the planet ({planet.mass:.3g} kg)"
         )
         assert math.isfinite(planet.scale_height) and planet.scale_height > 0, (
             f"{star_type}/{cls}-{zone}: scale_height={planet.scale_height}"

@@ -691,6 +691,8 @@ FIELD_SPECS = {
         ("ice_shell_thickness_km", "Ice Thickness", lambda v: f"{format_number(v, ',.1f')} km" if v else None),
         ("ocean_depth_km", "Liquid Ocean Depth", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
         ("hp_ice_km", "High-Pressure Ice Below", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
+        # Habitability (schema v153): the PHI-6 score of the surface a visitor would find
+        ("phi4", "PHI-6", lambda v: f"{v:.2f}"),
         _EINSTEIN_RADIUS,
         _SPEED, _PERIOD,
     ],

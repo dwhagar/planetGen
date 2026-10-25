@@ -38,7 +38,7 @@ import math
 from planetgen.physics import gas_equilibrium
 from planetgen.physics import oxygen_fugacity as fo2
 from planetgen.physics.atmosphere_recipes import RECIPES
-from planetgen.physics.mixture_base import MixtureError, atoms_of, bracket, finish, require
+from planetgen.physics.mixture_base import MixtureError, NotApplicable, atoms_of, bracket, finish, require
 from planetgen.util import draw
 
 # --- constants -------------------------------------------------------------------------------------------------------------
@@ -58,26 +58,26 @@ K40_ARGON_BRANCH = 0.104
 # Design brackets: (low, high, shape); "log" is log-uniform, "uniform" is uniform. Each is a stand-in for the research item named.
 INVENTORY = {
     # Ortenzi et al. 2020 Table 1, read in part 05 section 3.1: delivered H2O 0.05 and 0.5 wt%, CO2 0.01 and 0.1 wt% (CO2/H2O = 0.2 in
-    # both), the dry class H2O 0 and CO2 0.6 wt%. The dry water is a bracket (their stored 0.005 wt% is the top of it).
+    # both), the dry class H2O 0 and CO2 0.6 wt% delivered, 0.018 wt% stored. The dry water is a bracket (their stored 0.005 wt% is the
+    # top of it). The dry carbon is the bracket from the stored 0.018 to the wet High case's 0.1 wt%, not the delivered 0.6: an Earth twin
+    # draws the dry class nine times in ten, and 0.6 wt% CO2 is sixteen times the carbon of the bulk silicate Earth (100 ppm C, Bergin
+    # et al. 2015 Table S1), where this bracket's log-middle (0.042 wt% CO2, 115 ppm C) is within a sixth of it (GEN.813).
     "co2_over_h2o_wet": (0.2, 0.2, "uniform"),
     "h2o_dry_wt_percent": (1e-4, 5e-3, "log"),
-    "co2_dry_wt_percent": (0.6, 0.6, "uniform"),
+    "co2_dry_wt_percent": (0.018, 0.1, "log"),
     # The water-rich class (b4: at least 10 weight percent water): the carbon share is open.
     "h2o_rich_wt_percent": (10.0, 50.0, "log"),
     "co2_over_h2o_rich": (5e-3, 0.2, "log"),
     # The nitrogen and sulfur per carbon atom: the bulk silicate Earth (Kargel and Lewis 1993 via Schaefer, Lodders and Fegley
-    # 2012 Table 2: N/C 0.013, S/C 1.7) and the CI chondrites (N/C 0.04, S/C 0.6) are inside; open, GEN.481.
-    "nitrogen_per_carbon": (1e-3, 0.1, "log"),
+    # 2012 Table 2: N/C 0.013, S/C 1.7) and the CI chondrites (N/C 0.04, S/C 0.6) are inside; open, GEN.481. The nitrogen bracket
+    # runs from 0.005 to 0.1: Bergin et al. 2015 Table S1 gives N/C 0.020 for the bulk silicate Earth (C/N 49 plus or minus 9), 0.059
+    # for the CI chondrites, 0.074 for the air of Venus and 0.055 for the air of Mars, and its log-middle 0.022 is the Earth's (GEN.813).
+    "nitrogen_per_carbon": (5e-3, 0.1, "log"),
     "sulfur_per_carbon": (0.1, 3.0, "log"),
     # Potassium of the rock (weight percent), for the 40Ar: the bulk silicate Earth 0.024, the continental crust 2.1: open, GEN.492.
     "potassium_wt_percent": (0.005, 0.1, "log"),
     # The share of the 40Ar produced that has reached the air (part 05 section 3.6: 0.05 to 0.7).
     "argon_degassed": (0.05, 0.7, "uniform"),
-    # The share of the outgassed carbon and sulfur that stays in the air of a body with an ocean and a long-lived geology, the
-    # carbonate-silicate cycle and the sulfate sink having locked the rest in the crust: Earth keeps about 1.5e-5 of its near-surface
-    # carbon in the air (0.9e15 kg C in the CO2 against about 6e19 kg C in the crust's carbonates, TEST point read from memory, not
-    # re-checked); a warmer or younger world keeps more. A design bracket, replaced by the weathering feedback of GEN.481.
-    "weathering_sink": (1e-5, 1e-2, "log"),
 }
 """dict: name -> (low, high, shape), the draws of the inventory that no table of the recipes holds."""
 
@@ -111,7 +111,8 @@ def draw_redox(subject, recipe, constants):
     The recipe draw holds the magma-ocean stage's value `a1` (Sossi 2020: about IW+0.5 at an Earth mass, about IW-2 for a small
     body), the later upper mantle's `a2`, the building blocks' `a3` and the white-dwarf debris `a4`; the body's own geology and age
     pick the one the air was outgassed over. A body with long-lived geology moves from `a1` to `a2` as
-    `1 - exp(-age / tau)` with the oxidation time `tau` of `OXIDATION_TIME_GY`.
+    `1 - exp(-age / tau)` with the oxidation time `tau` of `OXIDATION_TIME_GY`; the later mantle is never more reduced than the
+    magma-ocean surface of the same body (Deng 2020, Hirschmann 2022: the later processes only oxidise; GEN.482b).
 
     Args:
         subject (Subject): With `age_gy` and, for a tectonic body, `long_lived_geology`.
@@ -132,7 +133,7 @@ def draw_redox(subject, recipe, constants):
     if "a2" in values and subject.get("long_lived_geology"):
         tau = bracket(constants, "oxidation_time_gy", OXIDATION_TIME_GY)
         progress = 1.0 - math.exp(-max(subject["age_gy"], 0.0) / tau)
-        return first + (values["a2"] - first) * progress
+        return first + (max(values["a2"], first) - first) * progress
     return first
 
 
@@ -167,23 +168,25 @@ def rocky_inventory(subject, recipe, constants):
     potassium = bracket(constants, "potassium_wt_percent", INVENTORY["potassium_wt_percent"]) / AMU_G_MOL["K"]
     degassed = bracket(constants, "argon_degassed", INVENTORY["argon_degassed"])
     argon = degassed * K40_ARGON_BRANCH * K40_ABUNDANCE * potassium * math.expm1(K40_DECAY_PER_GY * max(subject["age_gy"], 0.0))
-    if subject.get("ocean_present") and subject.get("long_lived_geology"):
-        sink = bracket(constants, "weathering_sink", INVENTORY["weathering_sink"])      # nitrogen and argon stay in the air (GEN.674)
-        carbon *= sink
-        sulfur *= sink
     return {"H": hydrogen, "C": carbon, "N": nitrogen, "S": sulfur, "Ar": argon}
 
 
-def volcanic_gas(subject, recipe, constants):
+def volcanic_gas(subject, recipe, constants, supply=None):
     """
     The first stage: the gas in equilibrium with the mantle at the magmatic temperature and the pressure of the layer, the
     oxygen fugacity held. Draws the redox, the inventory and the magmatic temperature (recorded in `constants`).
 
+    Args:
+        supply (callable, optional): `(inventory) -> {element: share}`, the share of the delivered inventory that the surface holds
+            (`physics/surface_pressure.py`: the share the interior has degassed, less what the sinks took); an element it lacks is
+            taken whole, and a body with no gas at the surface raises `NotApplicable`.
+
     Returns:
-        tuple: `(Equilibrium, redox_diw, inventory)`.
+        tuple: `(Equilibrium, redox_diw, inventory)`; the inventory is the delivered one, before `supply`.
 
     Raises:
         MixtureError: A quantity is missing, or the class has no mantle (no redox row applies).
+        NotApplicable: Nothing has reached the surface.
     """
     require(subject, ("ts_k", "pressure_bar", "mass_earth", "age_gy"))
     redox = draw_redox(subject, recipe, constants)
@@ -191,8 +194,19 @@ def volcanic_gas(subject, recipe, constants):
         raise MixtureError(f"no redox row applies to the class {subject.body_class!r}: it has no mantle to outgas")
     inventory = rocky_inventory(subject, recipe, constants)
     magmatic = bracket(constants, "magmatic_temperature_k", MAGMATIC_TEMPERATURE_K)
-    volcanic = gas_equilibrium.solve(inventory, magmatic, subject["pressure_bar"], fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic))
+    budget = surface_budget(inventory, supply)
+    volcanic = gas_equilibrium.solve(budget, magmatic, subject["pressure_bar"], fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic))
     return volcanic, redox, inventory
+
+
+def surface_budget(inventory, supply):
+    """The delivered `inventory` times the share of each element at the surface (`supply(inventory)`); elements with none are dropped."""
+    shares = {} if supply is None else supply(inventory)
+    budget = {element: atoms * shares.get(element, 1.0) for element, atoms in inventory.items()}
+    budget = {element: atoms for element, atoms in budget.items() if atoms > 0.0}
+    if not budget:
+        raise NotApplicable("no gas has reached the surface")
+    return budget
 
 
 def cool(atoms, subject, constants, volcanic=None, held_diw=None, quenched=True):
@@ -220,7 +234,7 @@ def cool(atoms, subject, constants, volcanic=None, held_diw=None, quenched=True)
     return gas_equilibrium.solve(atoms, temperature, subject["pressure_bar"], fixed_o2_log_fugacity=held)
 
 
-def outgassed_mixture(subject, recipe=None):
+def outgassed_mixture(subject, recipe=None, supply=None):
     """
     The gas a rocky body's mantle outgasses, drawn for `subject` (see the module text).
 
@@ -228,9 +242,10 @@ def outgassed_mixture(subject, recipe=None):
         subject (Subject): The body: its class and the quantities the tables of `ROCKY_CATEGORIES` read, with `ts_k` (surface
             temperature, K), `pressure_bar` (the pressure of the air's base), `mass_earth` and `age_gy`.
         recipe (RecipeDraw, optional): The recipe draw to use; drawn here (`RECIPES.draw_all`) when not given.
+        supply (callable, optional): The share of each element of the delivered inventory that the surface holds (`volcanic_gas`).
 
     Returns:
-        MixtureDraw: The mixture.
+        MixtureDraw: The mixture, with the `moles` of gas per 100 g of mantle.
 
     Raises:
         MixtureError: A quantity is missing, or the hot gas holds more than `UNLISTED_LIMIT` of species the gas table lacks.
@@ -241,7 +256,7 @@ def outgassed_mixture(subject, recipe=None):
         except KeyError as error:
             raise MixtureError(str(error)) from error
     constants = {}
-    volcanic, redox, inventory = volcanic_gas(subject, recipe, constants)
+    volcanic, redox, inventory = volcanic_gas(subject, recipe, constants, supply)
     result = cool(atoms_of(volcanic), subject, constants, volcanic)
     return finish(result, family="rocky", drawn={group: drawn.name for group, drawn in recipe.groups.items()}, redox_diw=redox,
-                  inventory=inventory, constants=constants)
+                  inventory=inventory, constants=constants, supplied=True)

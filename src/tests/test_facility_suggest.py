@@ -18,9 +18,9 @@ DIMENSIONS = ("crime", "housing", "resources", "maintenance", "health")
 
 
 def _inputs(**changes):
-    found = {"habitability": 0.5, "richness": 0.5, "size": 0.5, "nearness": 0.5, "affiliated": True,
-             "energy": 0.5, "materials": 0.5, "information": 0.5, "medical": 0.5, "propulsion": 0.5,
-             "defense": 0.5}
+    found = {"habitability": 0.5, "suitability": 0.5, "radiation": 0.5, "food": 0.5, "biota": None, "richness": 0.5,
+             "size": 0.5, "nearness": 0.5, "affiliated": True, "energy": 0.5, "materials": 0.5, "information": 0.5,
+             "medical": 0.5, "propulsion": 0.5, "defense": 0.5}
     found.update(changes)
     return found
 
@@ -41,17 +41,38 @@ def test_the_same_facility_always_gets_the_same_answer_and_the_noise_is_small():
         assert abs(score - 0.5) <= tuning.FACILITY_RATING_NOISE + 1e-9      # every weight set adds up to 1
 
 
+def test_health_reads_the_food_rung_and_the_radiation_domain_and_housing_reads_suitability():
+    middle = suggest.scores(_inputs(), 5)
+    for changed_input, moved, weight in (("food", "health", 0.2), ("radiation", "health", 0.2),
+                                         ("suitability", "housing", 0.25)):
+        better = suggest.scores(_inputs(**{changed_input: 1.0}), 5)
+        assert better[moved] == pytest.approx(middle[moved] + weight * 0.5), changed_input
+        assert {d: v for d, v in better.items() if d != moved} == pytest.approx(
+            {d: v for d, v in middle.items() if d != moved}), changed_input
+
+
+def test_a_living_world_adds_its_flora_and_fauna_to_resources_and_a_lifeless_one_keeps_the_old_weights():
+    lifeless = suggest.scores(_inputs(), 5)
+    assert lifeless["resources"] == pytest.approx(0.4 * 0.5 + 0.3 * 0.5 + 0.3 * 0.5 + suggest._noise(5, "resources"))
+    barren_of_life = suggest.scores(_inputs(biota=0.0), 5)
+    teeming = suggest.scores(_inputs(biota=1.0), 5)
+    assert teeming["resources"] - barren_of_life["resources"] == pytest.approx(0.2)
+    assert barren_of_life["resources"] == pytest.approx(0.3 * 0.5 + 0.25 * 0.5 + 0.25 * 0.5 + suggest._noise(5, "resources"))
+
+
 def test_a_better_input_never_lowers_a_score_beyond_the_noise():
     low = suggest.scores(_inputs(habitability=0.0, medical=0.0, materials=0.0, energy=0.0, information=0.0,
-                                 nearness=0.0, richness=0.0, size=0.0), 3)
+                                 nearness=0.0, richness=0.0, size=0.0, suitability=0.0, radiation=0.0, food=0.0), 3)
     high = suggest.scores(_inputs(habitability=1.0, medical=1.0, materials=1.0, energy=1.0, information=1.0,
-                                  nearness=1.0, richness=1.0, size=1.0), 3)
+                                  nearness=1.0, richness=1.0, size=1.0, suitability=1.0, radiation=1.0, food=1.0), 3)
     for dimension in DIMENSIONS:
         assert high[dimension] > low[dimension]
     assert suggest.suggest(_inputs(habitability=0.0, medical=0.0, materials=0.0, energy=0.0, information=0.0,
-                                   nearness=0.0, richness=0.0, size=0.0), 3) == {d: "red" for d in DIMENSIONS}
+                                   nearness=0.0, richness=0.0, size=0.0, suitability=0.0, radiation=0.0, food=0.0),
+                           3) == {d: "red" for d in DIMENSIONS}
     assert set(suggest.suggest(_inputs(habitability=1.0, medical=1.0, materials=1.0, energy=1.0, information=1.0,
-                                       nearness=1.0, richness=1.0, size=1.0), 3).values()) == {"green"}
+                                       nearness=1.0, richness=1.0, size=1.0, suitability=1.0, radiation=1.0,
+                                       food=1.0), 3).values()) == {"green"}
 
 
 def test_nobody_policing_a_facility_costs_it_in_crime_only():
@@ -132,3 +153,37 @@ def test_the_example_type_installs_once_and_works(admin, anonymous, world):
     found = anonymous.get(f"/api/facilities/{facility_id}").get_json()
     assert found["fields"] == {"staff": 12, "focus": "Survey"}              # the defaults; `armed` has none
     assert anonymous.post("/api/facility-types/examples").status_code == 401
+
+
+def _scored_rocky_planet(system):
+    return any(p.body_type not in ("a", "g") and getattr(p, "phi4", None) is not None for p in system.planets)
+
+
+def test_a_facility_on_a_world_reads_its_suitability_radiation_food_and_biota(admin, mysql_config):
+    from tests.test_admin_edits import _saved_system
+    from planetgen.physics import habitability
+    _sector_id, system_id = _saved_system(mysql_config, _scored_rocky_planet)
+    conn = store.get_connection(mysql_config)
+    try:
+        planet = conn.execute("SELECT id FROM planets WHERE star_system_id = ? AND body_type NOT IN ('a', 'g') "
+                              "AND phi4 IS NOT NULL AND energy_flux_w_m2 IS NOT NULL LIMIT 1", (system_id,)).fetchone()
+        with conn:
+            conn.execute("UPDATE planets SET life_microbial = 0, life_flora = 5, life_fauna = 4 WHERE id = ?",
+                         (planet["id"],))
+            facility_id = store.add_facility(conn, "New Hope", "colony", "terrestrial", "planet", planet["id"],
+                                             description="A first colony.")
+        living = suggest.gather(conn, facility_id)
+        row = conn.execute("SELECT phi4, phi4_suitability, phi4_radiation FROM planets WHERE id = ?",
+                           (planet["id"],)).fetchone()
+        with conn:
+            conn.execute("UPDATE planets SET life_microbial = 0, life_flora = 0, life_fauna = 0 WHERE id = ?",
+                         (planet["id"],))
+        lifeless = suggest.gather(conn, facility_id)
+    finally:
+        conn.close()
+    assert living["habitability"] == pytest.approx(row["phi4"])
+    assert living["suitability"] == pytest.approx(row["phi4_suitability"])
+    assert living["radiation"] == pytest.approx(row["phi4_radiation"])
+    assert living["food"] == habitability.FOOD_SCORE["biosphere"]
+    assert living["biota"] == pytest.approx(9 / 18)
+    assert lifeless["food"] == habitability.FOOD_SCORE["none"] and lifeless["biota"] is None

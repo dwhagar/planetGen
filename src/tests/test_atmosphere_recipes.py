@@ -82,8 +82,8 @@ def test_the_status_of_each_row_is_the_parts_except_the_rows_the_later_decisions
     statuses = {}
     for entry in RECIPES.entries:
         statuses[entry.status] = statuses.get(entry.status, 0) + 1
-    # the part: SOURCED 8, DERIVED 48, DESIGN 48; Boss's fork 7 (2026-10-18) makes j2 to j4 outputs of the retention physics
-    assert statuses == {"SOURCED": 8, "DERIVED": 51, "DESIGN": 45}
+    # the part: SOURCED 8, DERIVED 54, DESIGN 42 (b1 to b4 moved by GEN.802; a1 and a2 by GEN.482); Boss's fork 7 (2026-10-18) makes j2 to j4 outputs of the retention physics
+    assert statuses == {"SOURCED": 8, "DERIVED": 57, "DESIGN": 39}
     assert {e.id for e in RECIPES.entries if e.status == "DERIVED"} >= {"j2", "j3", "j4"}
 
 
@@ -100,7 +100,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 50, "open": 0, "stand-in": 17}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 55, "open": 0, "stand-in": 12}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -117,8 +117,8 @@ def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
 
 def test_the_stand_ins_are_rows_with_no_measurement_or_built_from_solar_system_bodies():
     stand_ins = {e.id: e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
-    assert stand_ins["a2"] == "GEN.513"
-    assert {"a1", "b5", "n7", "o3"} <= set(stand_ins)
+    assert {"b5", "n7", "o3"} <= set(stand_ins)
+    assert not {"a1", "a2"} & set(stand_ins), "GEN.482 checked both against first-hand ranges at three Solar System bodies"
     assert not {"k1", "k2", "k3", "k4", "k5", "k7"} & set(stand_ins), "the comet rows follow the Robinson database (GEN.520)"
     assert not {"m3", "m4", "m11"} & set(stand_ins), "the life-linked gases are design flags (GEN.525)"
     assert not {"a3", "a4", "f7", "p6"} & set(stand_ins), "rows with a published statistic are not stand-ins"
@@ -165,15 +165,48 @@ def test_example_a_the_redox_classes_at_one_drawn_value():
     assert later["mu"] == pytest.approx(3.5) and later["sigma"] == 1.0
 
 
-def test_example_b_the_delivery_split_by_the_formation_distance_over_the_snow_line():
-    p = probs("b", "E", snow_ratio=0.447)
-    assert p["b1"] == pytest.approx(0.7782, abs=1e-3) and p["b2"] == pytest.approx(0.208, abs=1e-3)
-    assert "b4" not in p                                      # the gate is x above 1
-    # a 5 Earth-mass planet with the plateau at the population synthesis' value 1 (GEN.510): b4 is the logistic of the mass, 0.364
-    p = probs("b", "E", snow_ratio=1.5, mass_earth=5.0, **{"const:b:c_b4": 1.0})
-    assert p["b1"] == pytest.approx(0.0451, abs=1e-3) and p["b2"] == pytest.approx(0.2486, abs=1e-3)
-    assert p["b3"] == pytest.approx(0.3425, abs=1e-3) and p["b4"] == pytest.approx(0.3638, abs=1e-3)
-    assert sum(p.values()) == pytest.approx(1.0, abs=1e-12)
+def test_the_magma_ocean_redox_follows_the_first_hand_ranges_and_rises_above_one_earth_mass_gen_482b():
+    """Hirschmann 2022 section 6.3 and Deng 2020: Moon about -2, Mars about -0.6, Earth about +0.3 to +0.5, width 0.5 to 0.9."""
+    def a1(mass):
+        return RECIPES._dist_of(RECIPES.entry("a1"), Subject("E", {"mass_earth": mass}))
+
+    assert a1(0.0123)["mu"] == pytest.approx(-1.89, abs=0.01) and a1(0.107)["mu"] == pytest.approx(-0.71, abs=0.01)
+    assert a1(0.1)["sigma"] == pytest.approx(0.5) and a1(1.0)["sigma"] == pytest.approx(0.9) and a1(0.01)["sigma"] == pytest.approx(0.5)
+    assert a1(5.4)["mu"] == pytest.approx(0.5 + math.log10(5.4), abs=1e-3), "1.0 per dex above one Earth mass"
+    assert a1(30.0)["mu"] == pytest.approx(a1(5.4)["mu"], abs=1e-3), "held where the base pressure passes the 140 GPa of Deng 2020"
+    assert a1(30.0)["sigma"] == pytest.approx(0.9)
+    later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("E", {"mass_earth": 30.0}))
+    assert later["mu"] == pytest.approx(3.5), "no source for the later mantle of a super-Earth: the Earth value is held"
+
+
+
+def _delivery_law(x, mass):
+    """The class shares of the formation-distance law of GEN.802 from the coefficients of its data file, written out again."""
+    import json
+    import os
+    from planetgen.physics import elements
+    with open(os.path.join(elements.DATA_DIRECTORY, "ngpps_formation_water.json"), encoding="utf-8") as handle:
+        model = json.load(handle)["model"]
+    lx = math.log(min(max(x, model["x_range"][0]), model["x_range"][1]))
+    lm = math.log10(min(max(mass, model["mass_range_earth"][0]), model["mass_range_earth"][1]))
+    hinge = max(0.0, lx - math.log(model["knot"]))
+    events = [1 / (1 + math.exp(-(a + b * lx + c * lm + h * hinge))) for a, b, c, h in model["coefficients"]]
+    events[1], events[2] = min(events[1], events[0]), min(events[2], min(events[1], events[0]))
+    return 1 - events[0], events[0] - events[1], events[1] - events[2], events[2]
+
+
+def test_example_b_the_delivery_split_by_the_formation_distance_over_the_snow_line_and_the_mass():
+    for x, mass in ((0.447, 1.0), (0.75, 5.0), (1.5, 5.0), (0.1, 0.3), (6.0, 100.0)):
+        p = probs("b", "E", snow_ratio=x, mass_earth=mass, **{"const:b:c_b4": 1.0})
+        assert [p.get(row, 0.0) for row in ("b1", "b2", "b3", "b4")] == pytest.approx(list(_delivery_law(x, mass)), abs=2e-6), (x, mass)
+        assert sum(p.values()) == pytest.approx(1.0, abs=2e-5)           # `probs` drops the shares under 1e-5
+    # no gate at the snow line any more: 60 percent of the planets that formed at three quarters of it are water-rich (the population)
+    assert probs("b", "E", snow_ratio=0.75, mass_earth=5.0, **{"const:b:c_b4": 1.0})["b4"] == pytest.approx(0.564, abs=2e-3)
+    # the plateau moves the water-rich planets it removes into the 'high' class
+    full_law = probs("b", "E", snow_ratio=0.75, mass_earth=5.0, **{"const:b:c_b4": 1.0})
+    half = probs("b", "E", snow_ratio=0.75, mass_earth=5.0, **{"const:b:c_b4": 0.5})
+    assert half["b4"] == pytest.approx(0.5 * full_law["b4"]) and half["b3"] == pytest.approx(full_law["b3"] + 0.5 * full_law["b4"])
+    assert half["b1"] == pytest.approx(full_law["b1"]) and half["b2"] == pytest.approx(full_law["b2"])
 
 
 def test_example_c_the_outgassed_regime_under_the_redox_class_and_the_joint_probability():
@@ -231,9 +264,9 @@ def test_the_hydrogen_flag_of_d7_uses_the_jeans_parameter_of_the_part():
 def test_example_e_the_envelope_the_water_world_and_the_hycean_share_the_water_rich_probability():
     s = Subject("V", dict(mass_earth=5.0, core_radius_earth=5 ** 0.27, insolation=100.0, snow_ratio=1.5,
                           v_esc_kms=11.186 * (5 / 5 ** 0.27) ** 0.5, **{"const:e:f_env0": 0.05, "const:e:eta": 0.224, "const:b:c_b4": 0.1454}))
-    assert RECIPES.probability_of("b4", s) == pytest.approx(0.0529, abs=1e-3)
+    assert RECIPES.probability_of("b4", s) == pytest.approx(0.1454 * _delivery_law(1.5, 5.0)[3], abs=1e-9)
     p = dict(RECIPES.probabilities("e", s))
-    assert p == pytest.approx({"e1": 0.820, "e2": 0.127, "e3": 0.041, "e4": 0.012}, abs=1e-3)
+    assert p == pytest.approx({"e1": 0.742, "e2": 0.115, "e3": 0.111, "e4": 0.032}, abs=1e-3)
     bins = RECIPES.bins("e5", Subject("V", {"mass_earth": 5.0}))
     assert [round(b[2], 3) for b in bins] == [0.268, 0.294, 0.268, 0.169]
     z = [0.02, 0.0548, 0.173, 0.424]
@@ -493,8 +526,8 @@ def test_a_row_without_a_source_or_with_a_state_it_does_not_know_is_refused():
         broken(lambda d: row_of(d, "a1").update(state="guessed"))
     with pytest.raises(DataError, match="a5.*partly verified and names no limit"):
         broken(lambda d: row_of(d, "a5").update(state="partly verified", limit=""))
-    with pytest.raises(DataError, match="a2.*stand-in and names no replacement"):
-        broken(lambda d: row_of(d, "a2").update(replacement=""))
+    with pytest.raises(DataError, match="b5.*stand-in and names no replacement"):
+        broken(lambda d: row_of(d, "b5").update(replacement=""))
     with pytest.raises(DataError, match="b1.*open and names no research item"):
         broken(lambda d: row_of(d, "b1").update(state="open", items=[]))
 
@@ -536,7 +569,7 @@ def test_a_weight_that_comes_out_negative_or_a_probability_above_one_is_an_error
     other = broken(lambda d: row_of(d, "e6").update(weight="1.5"))
     with pytest.raises(pt.TableError, match="above 1"):
         other.probability("e6", full("S", **{"drawn.e": "e2"}))
-    other = broken(lambda d: row_of(d, "b1").update(lets={"s": "log(snow_ratio)"}))
+    other = broken(lambda d: row_of(d, "b1").update(lets={}, weight="log(snow_ratio)"))
     with pytest.raises(pt.TableError, match="cannot be evaluated"):
         other.probabilities("b", full("E", snow_ratio=0.0))
 

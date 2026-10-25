@@ -74,6 +74,12 @@ def _no_negative_zero(text):
     return text
 
 
+def counted(noun, count):
+    """`noun` (singular) in the form that goes with `count`: `sector` for 1, `sectors` otherwise. A count is never
+    shown without what it counts (API.33)."""
+    return noun if count == 1 else noun + "s"
+
+
 def format_number(value, spec=",.0f"):
     """
     The site's one number formatter (UX.20): `value` formatted with `spec`

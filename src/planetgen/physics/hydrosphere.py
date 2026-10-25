@@ -54,7 +54,7 @@ The ranges are design defaults, not fits.
 import math
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, clathrate_brine, constants, gases, runaway_history, saturation, water_layer
+from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, runaway_history, saturation, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 from planetgen.physics import unit_registry as units
@@ -64,10 +64,10 @@ _au_to_m = units.converter("au", "m")
 HYDROSPHERE_FIELDS = (
     "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction",
     "ocean_depth_km", "ice_shell_km", "hp_ice_km", "water_base_pressure_pa",
-    "ocean_class", "ocean_ph", "water_activity", "phosphorus", "tidal_flux_w_m2",
+    "ocean_class", "ocean_ph", "water_activity", "phosphorus", "tidal_flux_w_m2", *aquifers.AQUIFER_FIELDS,
 )
 """tuple: What `generate_hydrosphere` sets on a planet or moon, as stored in
-`planets` and `moons` (`tidal_flux_w_m2` is set on an icy moon under ice only)."""
+`planets` and `moons` (`tidal_flux_w_m2` is set on an icy moon under ice only, the aquifer layer on a world with no liquid at its surface)."""
 
 HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocean", "hycean")
 OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutral")
@@ -123,7 +123,8 @@ ICY_MOON_K2_Q = 3e-4
 ICY_MOON_ECCENTRICITY_RANGE = (1e-3, 1e-2)
 SMALL_MOON_MASS_EARTH = 1e-3
 RESONANCE_BOOST_RANGE = (1.0, 50.0)
-ICY_MIN_WATER_FRACTION = atmosphere.ICY_MIN_WATER_FRACTION
+ICY_MIN_WATER_FRACTION = 0.01
+"""float: The water mass fraction from which a body's surface is ice (an icy body holds guest gases in the cages of its ice skin, `surface_air`)."""
 
 
 def water_boiling_k(pressure_pa):
@@ -219,23 +220,56 @@ def _clear(body):
             setattr(body, field, None)
 
 
-def generate_hydrosphere(body, internal_flux_w_m2):
-    """Sets `HYDROSPHERE_FIELDS` on a planet or moon from its class, mass,
-    radius, surface temperature (K), pressure (Pa) and gases. Any ice lid
-    grows to match `internal_flux_w_m2` (plus an icy moon's tides,
-    `moon_tidal_flux_w_m2`). Call after its atmosphere."""
-    _clear(body)
-    if body.body_type == "g":
-        return
+def water_loss_kg(body):
+    """The water escape has stripped from a body, kg (GEN.639; `runaway_history.loss_kg`; no draws)."""
+    return runaway_history.loss_kg(getattr(body, "star", None), getattr(body, "_star_distance_au", None), body.mass, body.radius)
+
+
+def draw_surface_water(body):
+    """
+    The water mass fraction at the surface of a rocky body: what its mantle leaves of the bulk water (rule 1, a seeded draw of the
+    mantle's buffer), less what escape has stripped (GEN.639), plus the part of the mantle's that volcanism returns. Drawn before the
+    air (`planets.calculate_atmospheric_conditions`): the ocean is the reservoir the air's water vapour stands in contact with, and the
+    carbonate cycle needs it, so the air and the ocean are solved together.
+
+    Raises:
+        ValueError: The body has no water mass fraction (its bulk composition is drawn first).
+    """
     w = body.water_mass_fraction
     if w is None:
         raise ValueError(f"{body.planet_class!r} has no water mass fraction: its bulk composition is drawn first")
     surface_w = surface_water_fraction(w)
-    lost_kg = runaway_history.loss_kg(getattr(body, "star", None), getattr(body, "_star_distance_au", None), body.mass, body.radius)
+    lost_kg = water_loss_kg(body)
     if lost_kg:  # GEN.639: escape strips the air and the oceans, and volcanism later returns part of the mantle's water
         lost = min(surface_w, lost_kg / body.mass)
         mantle = w - surface_w  # volcanism returns part of the mantle's water, never more than was lost
         surface_w = surface_w - lost + min(lost, tuning.MANTLE_OUTGAS_SHARE * mantle)
+    return surface_w
+
+
+def ocean_cover(body, surface_w):
+    """The share of the surface a body's surface water (mass fraction `surface_w`) would cover (rule 1 and 2: `ocean_fraction` of the
+    layer it makes)."""
+    return ocean_fraction(water_layer_depth_km(body.mass, body.radius, surface_w), (body.gravity or 0.0) * constants.EARTH_GRAVITY)
+
+
+def generate_hydrosphere(body, internal_flux_w_m2, surface_w):
+    """Sets `HYDROSPHERE_FIELDS` on a planet or moon from its class, mass,
+    radius, surface temperature (K), pressure (Pa) and gases. Any ice lid
+    grows to match `internal_flux_w_m2` (plus an icy moon's tides,
+    `moon_tidal_flux_w_m2`), and a world with no liquid at its surface may hold
+    water underground (`aquifers`, GEN.654). `surface_w` is the surface water mass
+    fraction (`draw_surface_water`). Call after its atmosphere."""
+    _clear(body)
+    if body.body_type == "g":
+        return
+    _generate_surface(body, internal_flux_w_m2, surface_w)
+    aquifers.generate(body, surface_w, internal_flux_w_m2)
+
+
+def _generate_surface(body, internal_flux_w_m2, surface_w):
+    """The surface part of `generate_hydrosphere`: the ocean, its ice and its chemistry; returns `surface_w`."""
+    w = body.water_mass_fraction
     gravity = (body.gravity or 0.0) * constants.EARTH_GRAVITY
     layer_km = water_layer_depth_km(body.mass, body.radius, surface_w)
     covered = ocean_fraction(layer_km, gravity)
@@ -245,19 +279,19 @@ def generate_hydrosphere(body, internal_flux_w_m2):
     pressure = body.atmospheric_pressure or 0.0
     if not covered:
         body.hydrosphere = "dry"
-        return
+        return surface_w
 
     if pressure < saturation.WATER_TRIPLE_POINT_PA and temperature >= VACUUM_ICE_MAX_K:
         body.hydrosphere = "dry"
         body.ocean_fraction, body.land_fraction = 0.0, 1.0
-        return
+        return surface_w
     water_kg = surface_w * body.mass
     salt = None
     if temperature >= WATER_MELTING_K:
         if temperature >= water_boiling_k(pressure):
             body.hydrosphere = "vapour"
             body.ocean_fraction, body.land_fraction = 0.0, 1.0
-            return
+            return surface_w
         column = water_layer.column(body.mass, body.radius, water_kg, covered=covered, bottom_temperature_k=temperature,
                                     pressure_pa=pressure)
         h2 = atmosphere.partial_kpa(body, "h2")
@@ -283,7 +317,7 @@ def generate_hydrosphere(body, internal_flux_w_m2):
     body.ocean_depth_km = liquid_km
     body.water_base_pressure_pa = column.base_pressure_pa
     if not liquid_km:
-        return
+        return surface_w
     kind = ocean_class(body, hp_km, surface_w, covered)
     (ph_lo, ph_hi), (aw_lo, aw_hi) = OCEAN_CHEMISTRY[kind]
     body.ocean_class = kind
@@ -292,6 +326,7 @@ def generate_hydrosphere(body, internal_flux_w_m2):
     if kind == "chloride brine" and salt is not None and clathrate_brine.water_activity(salt) is not None:
         body.water_activity = clathrate_brine.water_activity(salt)  # GEN.762: the drawn salt's own figure
     body.phosphorus = "high" if kind == "soda" else "starved" if kind == "ice-sealed" else "limited"
+    return surface_w
 
 
 def moon_tidal_flux_w_m2(moon, primary_mass_kg, water_mass_fraction):

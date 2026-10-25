@@ -252,6 +252,15 @@ WIDE_BINARY_SEPARATION_CEILING_AU = 1.0e6
 """float: Only where a place's density is zero is the survival limit infinite; no pair is a pair past a few parsecs
 (the Jacobi radius at the halo's density is under 10 pc), and this keeps the log-uniform draw finite."""
 
+HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES = 10.0
+"""float: A class D body in the cold zone farther than this many snow lines from its star is a trans-neptunian body to the
+hosting gate (`planets.hosting_population`, GEN.761); nearer, a belt body. STAND-IN [P]: the Solar System's main belt lies at
+about 1 snow line (2.2 to 3.3 AU against 2.7) and the Kuiper belt starts at Neptune's 30 AU, about 11; bracket 5 to 15."""
+
+HOSTING_COLD_MAX_INCLINATION_DEG = 5.0
+"""float: A trans-neptunian body under this inclination is `trans-neptunian-cold`, the others `trans-neptunian-hot` (the cut of
+Stephens and Noll 2006 behind the gate's binary fractions, 22 and 5.5 percent; GEN.761)."""
+
 # Cap on the sampled binary orbital eccentricity for an S-type pair (see
 # binary.WideBinaryPair.generate's thermal-distribution sampling).
 # Wide binaries never tidally circularize the way the close/P-type pair
@@ -715,21 +724,16 @@ WR_COMPANION_CHANCE = {"WN": 0.52, "WC": 0.90, "WO": 0.90}
 """dict: The share of Wolf-Rayet stars with a companion, by subtype (Dsilva et al., a spectroscopic multiplicity survey of
 Galactic Wolf-Rayet stars: 52% of WN, 96% of WC, capped at 0.9 as in the phenomena catalogue; WO takes WC's)."""
 
-# Piecewise main-sequence mass-luminosity relation, L = coeff * M^exponent
-# (Lsun, Msun), each piece for M below its max_mass_sol and the last one
-# open-ended (Duric 2004; Salaris & Cassisi 2005).
-MS_MASS_LUMINOSITY_PIECES = (
-    {"max_mass_sol": 0.43, "coeff": 0.23, "exponent": 2.3},
-    {"max_mass_sol": 2.0, "coeff": 1.0, "exponent": 4.0},
-    {"max_mass_sol": 55.0, "coeff": 1.4, "exponent": 3.5},
-    {"max_mass_sol": None, "coeff": 32000.0, "exponent": 1.0},
-)
+# The mass range the MIST main-sequence grid holds (GEN.652): a mass outside it is carried out with the power laws at
+# its edge (`physics/main_sequence.py`). The generator's own piecewise luminosity and radius laws that stood here are
+# gone: a main-sequence star's luminosity, temperature and radius are the MIST row of its mass, age and [Fe/H].
+MAIN_SEQUENCE_GRID_MASS_RANGE_SOL = (0.1, 240.0)
 # The "map luminosity" relation (GEN.200): the luminosity a main-sequence star
 # of a given mass would have, used to rank a faint but massive object (a
 # neutron star, a black hole) for the Galaxy Map by the star of its mass
 # (Astronomy Notes, "Mass-Luminosity Relation Explained"; Varsity Tutors,
-# "Stellar Mass & Lifetime"). Same form as MS_MASS_LUMINOSITY_PIECES, whose
-# star generators it does not replace: it has Boss's table's constants and
+# "Stellar Mass & Lifetime"). The star generators no longer
+# read a piecewise law (GEN.652); this is the map's alone, with Boss's table's constants and
 # breaks (1.5 M^3.5 from 2 to 20 Msun, not 1.4 M^3.5 to 55), and above 20 Msun
 # L is proportional to M, its coefficient fixed by continuity with the band
 # below (1.5 * 20^2.5, about 2,683 Lsun per Msun). So 20 Msun is about
@@ -746,10 +750,6 @@ MAP_MASS_LUMINOSITY_PIECES = (
 # mass on record is drawn as a star of this mass.
 BLACK_HOLE_MAP_BRIGHTNESS = 0.8
 MASSLESS_MARKER_MASS_SOL = 1.0
-# Main-sequence mass-radius relation, R = M^exponent (Rsun, Msun), with the
-# exponent changing at 1 Msun (Demircan & Kahraman 1991).
-MS_RADIUS_EXPONENT_BELOW_1_SOL = 0.8
-MS_RADIUS_EXPONENT_ABOVE_1_SOL = 0.57
 # The Sun's effective temperature (IAU 2015 nominal), anchoring
 # Stefan-Boltzmann in solar units: T = T_sun * (L / R^2)^(1/4).
 SUN_EFFECTIVE_TEMPERATURE_K = 5772.0
@@ -828,19 +828,18 @@ POST_AGB_DISK_MASS_RANGE_SOLAR = (0.01, 0.1)
 # power law. The energy factor is the one number the table fixes only through
 # its end: contraction alone, at the luminosity the star radiates, is too
 # quick, and deuterium burning and the heat of the interior pay for part of
-# the light, so the time is stretched by 3.0, the value at which the model
+# the light, so the time is stretched by 2.0, the value at which the model
 # reaches the main sequence at the age the table's radius settles to within
-# 2% of its minimum, rms 0.106 dex over the 18 masses (0.7 to 1.4 solar masses
-# within 0.06 dex, 0.1 to 0.2 up to 0.21 dex too slow). The model ends on the
-# generator's own main sequence (`stellar_evolution`), which is 0.05 to 0.28
-# dex brighter than the table's 1 Gyr star below 1.2 solar masses (the table
-# is solar-composition at 1 Gyr, the generator's relation is anchored on the
-# Sun), so a state against the table is that much too bright at the end of the
-# contraction. At 1 to 10 Myr the luminosity is within 0.25 dex of the table up
+# 2% of its minimum, rms 0.12 dex over the 7 masses of the test (every one within
+# 0.19 dex; 3.0 before GEN.652, when the model ended on the generator's own,
+# brighter and larger main sequence). The model now ends on the MIST main
+# sequence's first row at the star's mass and [Fe/H] (`physics/main_sequence.py`,
+# GEN.652), the same table the star's own record reads, so the track and the star
+# it becomes agree. At 1 to 10 Myr the luminosity is within 0.25 dex of the table up
 # to 0.3 solar masses and up to 0.35 dex too bright from 0.5 to 1.4, where the
 # derived Hayashi phase falls more slowly than the table's.
 PRE_MAIN_SEQUENCE_MAX_MASS_SOL = 8.0
-# No star contracts longer than this: the track takes the lightest star (0.08 solar masses) 0.94 Gyr. A shortcut for
+# No star contracts longer than this: the track takes the lightest star (0.08 solar masses) 0.94 Gyr (GEN.652). A shortcut for
 # the old stars, which are nearly all of them; the test checks it against the track.
 PRE_MAIN_SEQUENCE_LONGEST_YR = 1.0e9
 PROTOSTAR_MAX_AGE_YR = 0.5e6
@@ -850,7 +849,7 @@ BIRTHLINE_RADIUS_1_SOL_RSUN = 3.187
 BIRTHLINE_RADIUS_MASS_EXPONENT = 0.4335
 CONVECTIVE_BINDING_COEFFICIENT = 3.0 / 7.0
 RADIATIVE_BINDING_COEFFICIENT = 3.0 / 4.0
-PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.0
+PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 2.0
 # The disk (VANDAM and the TODO text, GEN.242): Class 0 under 0.15 Myr, I under
 # 0.5, II under 3, and none after; mass 0.01 to 0.3 of the star and outer
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
@@ -874,6 +873,34 @@ Mdot = eps pi R^3 F_xuv / (G M) (Watson et al. 1981; Luger and Barnes 2015 take 
 MANTLE_OUTGAS_SHARE = 0.3
 """float: The share of a planet's mantle water that volcanism brings to the surface after an early runaway has stripped the
 surface reservoir, because escape reaches only the air and the oceans, not the mantle (GEN.639; DESIGN stand-in)."""
+
+AQUIFER_CONDUCTIVITY_W_M_K = 2.0
+"""float: The thermal conductivity of a world's crust, W/m/K, that turns its heat flow into a geotherm (Clifford 1993, JGR 98,
+10973, column average about 2; secondary source, DESIGN stand-in, GEN.654)."""
+
+AQUIFER_POROSITY_SURFACE = 0.2
+"""float: The pore share of the crust at the surface (the lunar and Martian megaregolith value; DESIGN stand-in, GEN.654)."""
+
+AQUIFER_POROSITY_MIN = 0.01
+"""float: The pore share under which the crust holds no usable water, so the water-bearing layer ends (DESIGN stand-in, GEN.654)."""
+
+AQUIFER_POROSITY_SCALE_KM_MARS = 2.82
+"""float: The e-folding depth of the crust's porosity, phi(z) = phi0 exp(-z/K), on Mars (Clifford 1993; secondary source). On
+another world it scales with the inverse of the gravity (DESIGN stand-in, GEN.654)."""
+
+AQUIFER_MARS_GRAVITY_M_S2 = 3.71
+"""float: The gravity `AQUIFER_POROSITY_SCALE_KM_MARS` is for."""
+
+AQUIFER_LIFE_MAX_K = 395.15
+"""float: The hottest water life can use, 122 C (Takai et al. 2008, PNAS 105, 10949, Methanopyrus kandleri); the water-bearing
+layer stops where the geotherm reaches it."""
+
+AQUIFER_MIN_THICKNESS_KM = 0.01
+"""float: A water-bearing layer thinner than this (10 m) is none."""
+
+AQUIFER_REACH_KM = 5.0
+"""float: How deep a base can drill for water (the deepest mines are about 4 km; DESIGN stand-in, GEN.654): an aquifer with its
+top above this depth is a water source for the Water and Suitability rungs, a deeper one only shelters microbes."""
 
 WATER_PER_HYDROGEN_MASS = 8.94
 """float: Kilograms of water gone for each kilogram of hydrogen that escapes (H2O 18.015 g/mol over its two hydrogens
@@ -1470,6 +1497,9 @@ to build, which the worker warm pays for every bin of every population (GEN.651)
 BRIGHT_TABLE_BOUND_MARGIN = 1.1
 """float: What a table's cell bound is multiplied by so a star anywhere in its [Fe/H] bin is under it (calibrated by
 `tests/test_star_population.py`, which draws masses and compositions across every bin and checks the ratio)."""
+BRIGHT_TABLE_MAIN_SEQUENCE_SLACK = 1.1
+"""float: How much brighter than its threshold a cell's bound reads the main sequence (GEN.652): the MIST rows step by a
+few percent over a few tenths of a percent of mass, so the end of a cell's main sequence is read a tenth brighter."""
 
 OBJECT_FIRST_CAPACITIES = (1, 2, 4, 8, 16)
 """tuple: The object counts a sector can take in the object-first scatter (PERF.58): its capacity is the smallest
@@ -1512,12 +1542,38 @@ SPECTROSCOPIC_MAX_AXIS_AU = 0.26
 """float: A pair closer than this is a spectroscopic binary (the catalogue's "close detached binary, a under 0.26 AU",
 design note 13.1); `MemberTree.spectroscopic_nodes`."""
 
-CONTACT_TERTIARY_KEEP_SHARE = 0.54
+CONTACT_TERTIARY_KEEP_SHARE = 0.26
 """float: The share of the contact binaries that hold the placed star and have a tertiary which keep it (GEN.270). The
-member-tree draw gives 84% of contact binaries a tertiary, because the stability screen leaves the inner pair of a
-hierarchy only short periods; stripping the others from 46% of those where the pair holds the placed star brings the
-share to the catalogue's 60% (measured over 600,000 seeded disc systems; a stand-in until GEN.631's fill measures it
-again)."""
+member-tree draw gives 94% of contact binaries a tertiary (84% before GEN.652 read the stars' radii from MIST), because
+the stability screen leaves the inner pair of a hierarchy only short periods; stripping the others from 74% of those where
+the pair holds the placed star brings the share to the catalogue's 60% (measured over 120,000 seeded disc systems: 48% with
+none kept, 94% with all kept; a stand-in until GEN.631's fill measures it again)."""
+
+YOUNG_GROUP_AGE_MAX_YR = 3.0e5
+"""float: A massive system (O or early B, a birth mass of `B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is
+never drawn as a young group (the design note's 0.3 Myr, GEN.327). The share that is a group is the `young-group` row of
+`SYSTEM_TYPE_RATES`."""
+
+YOUNG_GROUP_DECAY_AGE_RANGE_YR = (1.0e4, 4.0e4)
+"""tuple: The range a group's `decay_age_yr` is drawn from, log-uniform: trapezia decay in 1e4 to 4e4 years (arXiv 1809.03537,
+1701.03440, 1908.11437; multi-star-systems.md 3.3). A group younger than its decay age is stored as a group, an older one is
+drawn as its remnant."""
+
+YOUNG_GROUP_SIZE_WEIGHTS = {3: 0.3, 4: 0.4, 5: 0.3}
+"""dict: The weight of each member count of a young group. The Orion Trapezium has 4 to 5 members and the catalogued
+trapezium-type multiples run from 3; the weights are a stand-in [P, bracket 3 to 5 members] until a count by size is read."""
+
+YOUNG_GROUP_RADIUS_AU_RANGE = (3.0e3, 3.0e4)
+"""tuple: The radius within which a young group's members are drawn, in AU, log-uniform (a stand-in [P]: the Trapezium's
+core is some 0.03 pc, 6e3 AU; the bracket is a factor of 3 either side of it)."""
+
+YOUNG_GROUP_VELOCITY_DISPERSION_KMS = 2.5
+"""float: The one-dimensional velocity dispersion of a young group's members, km/s (a stand-in [P]: the Orion Trapezium
+cluster is some 2 to 3 km/s, recalled, not read in this repository). Each component of a member's velocity is a draw of it."""
+
+YOUNG_GROUP_REMNANT_MAX_AXIS_AU = 300.0
+"""float: The widest axis of the hierarchy a decayed group leaves, AU (a stand-in [P]): the lightest member is ejected and the
+rest harden, so the remnant is tighter than the field's draw (multi-star-systems.md, `decayed-trapezium-remnant`)."""
 
 MERGER_MASSIVE_MIN_MASS_SOL = 9.0
 """float: The birth mass from which a star counts as massive for the merger-product and mass-gainer shares (the
@@ -1790,20 +1846,8 @@ PLANET_CLASSES = {
         # reducing mix (water vapor, ammonia, methane).
         "atmosphere": "a thin mix of water vapor, ammonia, and methane",
         "type": "t",
-        # Hottest of the habitable (life-bearing) classes -- youngest,
-        # volcanic, "barely supports life." Dark volcanic rock/minimal ice
-        # keeps albedo low; the greenhouse_multiplier is the highest of the
-        # E/F/G progression, reflecting real methane/ammonia's outsized
-        # per-molecule greenhouse potency versus CO2. Verified via
-        # climate_tuning_cli.py --class E: mean surface_temperature ~399K
-        # over a 400-sample run (up from ~374K before `zone_position_mode`
-        # above started placing E near the zone's hotter inner edge -- still
-        # the top of the E->F->G cooling progression toward M/O/K/L/N
-        # below).
+        # Dark volcanic rock and minimal ice keep the albedo low: the youngest, most volcanic of the habitable classes.
         "albedo_range": (0.10, 0.18),
-        "atm_molar_density_range": (0.0290, 0.0310),
-        "atm_density_range": (0.3, 1.2),
-        "greenhouse_multiplier_range": (4.5, 7.5),
     },
     "F": {
         "description": "a volcanic world with shallow seas",
@@ -1817,14 +1861,8 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.30,
         "atmosphere": "a mix of carbon dioxide, ammonia, and methane",
         "type": "t",
-        # Middle step of the E->F->G cooling progression: cooler than E
-        # (higher albedo, lighter greenhouse_multiplier) but still hotter
-        # than G/M. Verified via climate_tuning_cli.py --class F: mean
-        # surface_temperature ~342K over a 300-sample run.
+        # The middle step of the E->F->G progression: a higher albedo than E.
         "albedo_range": (0.15, 0.22),
-        "atm_molar_density_range": (0.0295, 0.0315),
-        "atm_density_range": (0.3, 1.0),
-        "greenhouse_multiplier_range": (2.5, 4.0),
     },
     "G": {
         "description": "a rocky, barren world",
@@ -1838,15 +1876,8 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.44,
         "atmosphere": "a mix of carbon dioxide, oxygen, and nitrogen",
         "type": "t",
-        # Final step of the E->F->G cooling progression, converging near
-        # M/O's own Earth-like range (the point of the progression --
-        # "moving toward an M, O, K, L, or N"). Verified via
-        # climate_tuning_cli.py --class G: mean surface_temperature ~297K
-        # over a 300-sample run (vs Class M's ~286K, Class O's ~293K).
+        # The final step of the E->F->G progression, converging on M's and O's Earth-like range.
         "albedo_range": (0.20, 0.28),
-        "atm_molar_density_range": (0.0300, 0.0320),
-        "atm_density_range": (0.2, 0.8),
-        "greenhouse_multiplier_range": (1.3, 2.0),
     },
     "H": {
         "description": "a desert world with little liquid water",
@@ -1864,17 +1895,8 @@ PLANET_CLASSES = {
         # liquid water).
         "atmosphere": "a mix of oxygen, nitrogen, argon, and mineral dust",
         "type": "t",
-        # Tuned hot/dry: lower albedo (dark exposed rock, minimal ice/cloud
-        # cover) and a heavier, more CO2-loaded molar density than M/O drive
-        # the heat; lower atm_density than M/O keeps it drier/thinner
-        # (minimal water -> less retained humidity). Verified via
-        # climate_tuning_cli.py --class H: mean surface_temperature ~335K
-        # (vs Class M's ~286K), mean atmospheric_pressure ~38kPa (vs Class
-        # M's ~99kPa) over a 400-sample run.
+        # Hot and dry: dark exposed rock and minimal ice or cloud cover keep the albedo low.
         "albedo_range": (0.18, 0.26),
-        "atm_molar_density_range": (0.0325, 0.0345),
-        "atm_density_range": (0.5, 0.9),
-        "greenhouse_multiplier_range": (2.6, 3.2),
     },
     "I": {
         "description": "an ice giant with a tilted magnetic field",
@@ -1937,28 +1959,9 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.90,
         "atmosphere": "a thin mix of carbon dioxide and nitrogen",
         "type": "t",
-        # Mars analog. Real Mars and Venus have almost identical mean
-        # atmospheric molar mass (~43.3 vs 43.45 g/mol) but differ by ~100x
-        # in greenhouse forcing -- composition (atm_molar_density) alone
-        # can't tell them apart, so K keeps a realistically heavy/CO2-like
-        # molar density (like N/Venus below) but gets a tiny
-        # greenhouse_multiplier instead of N's huge one: same composition,
-        # utterly different quantity/potency. Low atm_density keeps it
-        # genuinely thin (Mars' real ~0.020 kg/m^3). Retuned after
-        # `zone_position_mode` above started actually placing K near the
-        # outer (colder) edge of the zone instead of sharing Class M's
-        # midpoint position -- see docs/TODO.md's now-resolved "Open items"
-        # entry for the history of the old, distance-blind version of this
-        # class (mean surface_temperature ~231K/+9.9%, mean
-        # atmospheric_pressure ~540Pa/-11.6% vs real Mars, "as close as
-        # achievable without a zone change"). Verified via
-        # climate_tuning_cli.py --class K: mean surface_temperature ~214K
-        # (real Mars ~210K, +1.9%), mean atmospheric_pressure ~611Pa (real
-        # Mars ~610Pa, +0.2%) over a 1000-sample run -- the zone change.
+        # Mars analog: a dusty, cold surface. The range is kept from the class's climate tuning; the temperature itself comes from the solved
+        # air (`physics/surface_air.py`).
         "albedo_range": (0.36, 0.44),
-        "atm_molar_density_range": (0.0420, 0.0433),
-        "atm_density_range": (0.022, 0.042),
-        "greenhouse_multiplier_range": (0.02, 0.05),
     },
     "L": {
         "description": "a marginally habitable world",
@@ -1974,18 +1977,8 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.70,
         "atmosphere": "a mix of argon, oxygen, and trace elements",
         "type": "t",
-        # K + "usually has vegetation" -> a modestly thicker, warmer, more
-        # retained atmosphere than K (still CO2/N2-leaning composition, but
-        # a meaningfully larger greenhouse_multiplier and atm_density than
-        # K's near-zero values) -- enough to support vegetation without
-        # approaching M's Earth-like identity. Verified via
-        # climate_tuning_cli.py --class L: mean surface_temperature ~248K
-        # (vs Class K's ~214K), mean atmospheric_pressure ~2.0kPa (vs
-        # Class K's ~611Pa) over a 300-sample run.
+        # Brighter than K (vegetation, more cloud) and darker than M; kept from the class's climate tuning.
         "albedo_range": (0.24, 0.30),
-        "atm_molar_density_range": (0.0400, 0.0430),
-        "atm_density_range": (0.03, 0.08),
-        "greenhouse_multiplier_range": (0.25, 0.45),
     },
     "M": {
         "description": "a temperate terrestrial world",
@@ -2002,21 +1995,8 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.50,
         "atmosphere": "a mix of oxygen, nitrogen, and argon",
         "type": "t",
-        # Tuned to real Earth: albedo ~0.29-0.31 (Earth's own Bond albedo,
-        # ~0.3), atm_molar_density ~0.0288-0.0292 kg/mol (real Earth air,
-        # ~0.02897), atm_density 1.3-1.55 kg/m^3 (near/above Earth's real
-        # ~1.225 -- the corner of the pressure formula that actually reaches
-        # ~1 atm, see docs/analysis/habitability-atmosphere-sanity-review.md),
-        # greenhouse_multiplier 1.65-1.85 (calibrates base_ratio -- the
-        # composition-only greenhouse proxy -- up to Earth's real ~33K
-        # greenhouse effect; see physics.planets.calculate_atmospheric_conditions).
-        # Verified via climate_tuning_cli.py --class M: mean surface_temperature
-        # 286K (-0.6% vs 288K), mean atmospheric_pressure ~98.6kPa (-2.7% vs
-        # 101,325 Pa) over a 400-sample run across the full host-star grid.
+        # Earth's own Bond albedo, about 0.3.
         "albedo_range": (0.29, 0.31),
-        "atm_molar_density_range": (0.0288, 0.0292),
-        "atm_density_range": (1.3, 1.55),
-        "greenhouse_multiplier_range": (1.65, 1.85),
     },
     "N": {
         # "dense, reducing atmosphere" moved onto the atmosphere field
@@ -2034,33 +2014,8 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.05,
         "atmosphere": "a dense, reducing mix of carbon dioxide and sulfides",
         "type": "t",
-        # Venus analog -- tuned to Venus's real surface temperature (737K)
-        # and pressure (~9.2MPa). atm_molar_density near Venus's real
-        # ~0.04345 kg/mol (near-pure CO2); albedo 0.75-0.90 matches Venus's
-        # real highly-reflective cloud deck. Retuned down after
-        # `zone_position_mode` above started actually placing N near the
-        # inner (hotter) edge of the zone instead of sharing Class M's
-        # midpoint position: the old greenhouse_multiplier (370-420) was
-        # far above Venus's own real ratio (~101) specifically to compensate
-        # for the wrong, too-cold midpoint distance (see docs/TODO.md's
-        # now-resolved "Open items" entry for that history); the real
-        # distance now does most of the work, so a much smaller multiplier
-        # reaches the same target. atm_density is still well above Venus's
-        # real ~65 kg/m^3 surface air density: this model's scale-height
-        # formula (calculate_atmospheric_conditions) uses the pre-greenhouse
-        # airless-equilibrium temperature rather than the final,
-        # greenhouse-boosted surface temperature, which understates scale
-        # height (and therefore pressure, P = density * g * H) regardless of
-        # orbital distance -- compensated for here via atm_density rather
-        # than by changing the shared scale-height formula, which affects
-        # every class. Verified via climate_tuning_cli.py --class N: mean
-        # surface_temperature ~737K (+0.0% vs real Venus), mean
-        # atmospheric_pressure ~9.17MPa (-0.3% vs real Venus) over a
-        # 1000-sample run.
+        # Venus analog: its highly reflective cloud deck (Venus' Bond albedo is about 0.77).
         "albedo_range": (0.75, 0.90),
-        "atm_molar_density_range": (0.0433, 0.0435),
-        "atm_density_range": (300, 350),
-        "greenhouse_multiplier_range": (260, 295),
         # No life_chemical (GEN.147): at Venus's 737 K and 9 MPa nothing lives on the
         # surface, and the class is not on HABITABLE_PLANET_CLASSES.
     },
@@ -2076,24 +2031,11 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.42,
         # Text now distinct from Class M's identical-before-this "oxygen,
         # nitrogen, and argon" -- water vapor is a real, tracked constituent
-        # here (and is *lighter* than N2/O2, hence O's atm_molar_density_range
-        # sitting below M's, not above -- see the tuning note below).
+        # here.
         "atmosphere": "a humid mix of oxygen, nitrogen, and water vapor",
         "type": "t",
-        # Tuned warm/wet: a higher albedo than M (more cloud cover over an
-        # ocean-dominated surface -- a real waterworld-climate-literature
-        # finding) is more than offset by a stronger greenhouse_multiplier
-        # (water vapor's real greenhouse contribution), netting *warmer*
-        # than M despite the higher albedo. atm_molar_density is lighter
-        # than M's (water vapor's molar mass, 18g/mol, is below N2/O2's) --
-        # physically correct even though counterintuitive. Verified via
-        # climate_tuning_cli.py --class O: mean surface_temperature ~298K
-        # (vs Class M's ~286K), mean atmospheric_pressure ~83kPa over a
-        # 400-sample run.
+        # Higher than M: more cloud cover over an ocean-dominated surface (the waterworld-climate literature).
         "albedo_range": (0.28, 0.35),
-        "atm_molar_density_range": (0.0270, 0.0285),
-        "atm_density_range": (1.2, 1.5),
-        "greenhouse_multiplier_range": (2.1, 2.4),
     },
     "P": {
         "description": "a cold, glaciated world",
@@ -2116,30 +2058,6 @@ PLANET_CLASSES = {
         # genuine cold bias from the unclamped physics instead of relying on
         # a post-hoc temperature clamp (see physics.planets.calculate_atmospheric_conditions).
         "albedo_range": (0.5, 0.7),
-        # Given the same atm_molar_density_range/atm_density_range/
-        # greenhouse_multiplier_range treatment the M/O/H/K/L/N/E/F/G/V pass
-        # (CHANGELOG.md [5.3.7]) gave the other habitable classes -- P had
-        # already stopped there with just its own albedo_range, per that
-        # pass's note. No single real analog, so this isn't chasing a target
-        # delta the way M/K/N are; instead the composition/quantity/potency
-        # levers are set to make the class's own "cold, glaciated"/"thinning
-        # with age" flavor text physically real rather than incidental.
-        # atm_molar_density stays near Earth's own real ~0.02897 kg/mol
-        # (the class's atmosphere text names oxygen/nitrogen/argon, not a
-        # heavier CO2-like mix the way K/N's do) -- composition isn't what
-        # makes this class cold. atm_density is set thin (between Mars'
-        # ~0.02 and Earth's ~1.2 kg/m^3) for "thinning with age", and
-        # greenhouse_multiplier is set weak (well below M's own 1.65-1.85)
-        # so the cold comes from genuine physics, on top of the high albedo
-        # above, rather than albedo alone. Verified via
-        # climate_tuning_cli.py --class P: mean surface_temperature ~204K
-        # (well below freezing, clearly colder than Class M's ~286K -- see
-        # test_class_p_is_colder_on_average_than_class_m), mean
-        # atmospheric_pressure ~9.5kPa (~0.1 atm, genuinely thin) over a
-        # 400-sample run across the full host-star grid.
-        "atm_molar_density_range": (0.0285, 0.0300),
-        "atm_density_range": (0.05, 0.35),
-        "greenhouse_multiplier_range": (0.3, 0.6),
     },
     "Q": {
         "description": "a world with an eccentric orbit and extreme temperature variations",
@@ -2219,18 +2137,9 @@ PLANET_CLASSES = {
         # hydrogen/helium kept as a minor primordial remnant, not the bulk.
         "atmosphere": "a thick mix of carbon dioxide, oxygen, and trace hydrogen and helium",
         "type": "t",
-        # High gravity (from the larger radius_range above, mean ~1.7g)
-        # retains a genuinely thick, hot atmosphere: heavier molar density
-        # and a stronger greenhouse_multiplier than M/O/H, plus an
-        # atm_density range well above every other terrestrial class except
-        # N. Verified via climate_tuning_cli.py --class V: mean
-        # surface_temperature ~383K, mean atmospheric_pressure ~279kPa
-        # (~2.8 atm) over a 300-sample run -- clearly hot and thick, short
-        # of N/Venus's full extreme.
+        # The life-bearing super-Earth: a rocky albedo, like G's; its high gravity (from the larger radius_range above) is what lets it keep
+        # a thick air, which the solved air (`physics/surface_air.py`) now finds for itself.
         "albedo_range": (0.20, 0.30),
-        "atm_molar_density_range": (0.0380, 0.0420),
-        "atm_density_range": (2.0, 5.0),
-        "greenhouse_multiplier_range": (3.5, 6.0),
     },
 }
 
@@ -2542,22 +2451,6 @@ conditions); a younger one scores in proportion, never less than 1 (DESIGN, GEN.
 MOON_BLACKLIST = ['Q', 'S', 'V']
 """
 list: A list of planet class codes that cannot be generated as moons.
-"""
-
-CO2_MAX_GREENHOUSE_FACTOR = 500
-"""
-int: A generous safety ceiling on greenhouse_factor (physics/planets.py's
-calculate_atmospheric_conditions), not the per-class calibration knob --
-that's PLANET_CLASSES[cls]["greenhouse_multiplier_range"]. Real Venus's own
-airless-equilibrium-to-surface ratio is ~101, still well below N's (the
-Venus analog) own tuned range even after that range was cut roughly in
-half once N's `zone_position_mode` started placing it near the zone's
-real, close-in inner edge instead of sharing Class M's midpoint position
-(see PLANET_CLASSES["N"]'s tuning note) -- the atmospheric-pressure
-scale-height understatement that note describes accounts for the rest of
-the gap. 500 leaves generous headroom above N's own tuned range while
-still guarding against a badly-configured future class producing a
-runaway/non-finite temperature.
 """
 
 FLAVOR_CHANCE_SYSTEM = 0.05 # The chance flavor text will be added to a system.

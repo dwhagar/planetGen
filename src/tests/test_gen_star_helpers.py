@@ -15,7 +15,7 @@ import random
 import pytest
 
 from planetgen.generation import star as starData, star_population
-from planetgen.physics import constants, stellar_evolution
+from planetgen.physics import constants, main_sequence, stellar_evolution
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
@@ -188,7 +188,7 @@ def test_evolve_star_supergiant_luminosity_honours_a_minimum():
     t_ms = stellar_evolution.main_sequence_lifetime_gy(mass)
     rng = random.Random(11)
     growth_low, growth_high = PC.SUPERGIANT_LUMINOSITY_GROWTH_RANGE
-    floor = stellar_evolution.main_sequence_luminosity_sol(mass) * (growth_low + growth_high) / 2
+    floor = stellar_evolution.main_sequence_end_luminosity_sol(mass, 0.0) * (growth_low + growth_high) / 2
     for _ in range(20):
         state = stellar_evolution.evolve_star(mass, t_ms * 1.05, rng, min_luminosity_sol=floor, fe_h=0.0)
         assert state["luminosity_sol"] >= floor
@@ -245,17 +245,36 @@ def test_sampled_ages_stay_in_their_window(population, bias):
 MASSES = [0.08, 0.2, 0.5, 0.9, 0.999, 1.0, 1.5, 3.0, 10.0, 40.0, 150.0]
 
 
-def test_main_sequence_radius_is_increasing_and_solar_at_one():
-    radii = [stellar_evolution.main_sequence_radius_sol(m) for m in MASSES]
+def test_main_sequence_radius_is_increasing_and_near_solar_for_the_sun_at_its_age():
+    radii = [main_sequence.state(m, 0.3 * stellar_evolution.main_sequence_lifetime_gy(m)).radius_sol for m in MASSES]
     assert radii == sorted(radii)
-    assert stellar_evolution.main_sequence_radius_sol(1.0) == 1.0
-    assert stellar_evolution.main_sequence_radius_sol(1 - 1e-9) == pytest.approx(1.0, rel=1e-6)
+    assert main_sequence.state(1.0, 4.57).radius_sol == pytest.approx(1.0, rel=0.1)
 
 
 def test_main_sequence_luminosity_is_increasing_and_positive():
-    lums = [stellar_evolution.main_sequence_luminosity_sol(m) for m in MASSES]
+    lums = [main_sequence.zams_state(m).luminosity_sol for m in MASSES]
     assert all(lum > 0 for lum in lums)
     assert lums == sorted(lums)
+
+
+def test_a_main_sequence_star_brightens_with_age_and_ends_on_its_end_row():
+    for mass in (0.5, 1.0, 3.0, 10.0):
+        t_ms = stellar_evolution.main_sequence_lifetime_gy(mass)
+        ages = [t_ms * share for share in (0.25, 0.5, 0.75, 0.999)]
+        lums = [stellar_evolution.evolve_star(mass, age, fe_h=0.0)["luminosity_sol"] for age in ages]
+        assert lums == sorted(lums), mass
+        assert lums[-1] == pytest.approx(stellar_evolution.main_sequence_end_luminosity_sol(mass, 0.0), rel=0.15)
+
+
+def test_the_age_a_main_sequence_star_reaches_a_brightness_is_where_its_row_does():
+    mass, t_ms = 2.0, stellar_evolution.main_sequence_lifetime_gy(2.0)
+    first, last = (main_sequence.state(mass, age).luminosity_sol for age in (0.0, t_ms))
+    target = (first * last) ** 0.5
+    age = stellar_evolution.main_sequence_bright_from_gy(mass, target, t_ms)
+    assert 0.0 < age < t_ms
+    assert main_sequence.state(mass, age).luminosity_sol == pytest.approx(target, rel=1e-3)
+    assert stellar_evolution.main_sequence_bright_from_gy(mass, first / 2, t_ms) == 0.0
+    assert stellar_evolution.main_sequence_bright_from_gy(mass, last * 2, t_ms) is None
 
 
 def test_main_sequence_lifetime_falls_with_mass():
@@ -433,12 +452,12 @@ def test_map_luminosity_steps_only_a_little_at_the_joins(join_sol, step):
     assert above / below - 1 == pytest.approx(step, abs=0.005)
 
 
-def test_map_luminosity_agrees_with_the_star_generators_where_their_tables_do():
-    for mass in (0.05, 0.2, 0.42, 0.5, 1.0, 1.99):
-        assert stellar_evolution.map_luminosity_sol(mass) == stellar_evolution.main_sequence_luminosity_sol(mass)
-    # Above 2 Msun the tables differ (the map's 1.5 M^3.5, the generators' 1.4 M^3.5), written down in tuning.py.
-    assert stellar_evolution.map_luminosity_sol(10.0) / stellar_evolution.main_sequence_luminosity_sol(10.0) \
-        == pytest.approx(1.5 / 1.4)
+def test_map_luminosity_is_within_a_factor_of_the_star_generators_main_sequence():
+    # The map's table is its own (tuning.py); the generators read MIST (GEN.652). Over a main sequence the two keep
+    # within a factor of four of the star's luminosity at its middle age.
+    for mass in (0.2, 0.5, 1.0, 3.0, 10.0):
+        middle = main_sequence.state(mass, 0.5 * stellar_evolution.main_sequence_lifetime_gy(mass)).luminosity_sol
+        assert 0.25 < stellar_evolution.map_luminosity_sol(mass) / middle < 4.0, mass
 
 
 # --- planetary-nebula central stars (GEN.149) ------------------------------

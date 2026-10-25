@@ -142,8 +142,14 @@ A note's own status line, at its top, is the authority; this page only points at
 | [wd-redox-tuning.md](composition/wd-redox-tuning.md) | The retune of the white-dwarf redox rows a3 and a4 with the detection model (GEN.513) | built |
 | [radioisotope-tuning.md](composition/radioisotope-tuning.md) | The retune of the radioisotope rows o2, o4 and o6 (GEN.514) | built |
 | [radius-valley-tuning.md](composition/radius-valley-tuning.md) | The tuning of the envelope rows e1 and e2 to the Kepler radius valley (GEN.509) | built |
-| [water-delivery-tuning.md](composition/water-delivery-tuning.md) | The mass law of the water-rich row b4 from the Bern population synthesis (GEN.510) | built |
+| [water-delivery-tuning.md](composition/water-delivery-tuning.md) | The delivered-water rows b1 to b4 from the Bern population synthesis: the mass law of GEN.510 and the joint formation-distance law that replaced it (GEN.802) | built |
+| [volatile-delivery-formation-distance.md](composition/volatile-delivery-formation-distance.md) | Water-rich share and delivery classes against formation distance from the Bern population synthesis, and how it relates to the GEN.510 mass law (GEN.481); wired into the rows by GEN.802 | research note |
+| [magma-ocean-redox-against-mass.md](composition/magma-ocean-redox-against-mass.md) | Magma-ocean surface redox against mass, the later-mantle law and small-body building-block redox checked against first-hand sources; Na and K condensation temperatures (GEN.482) | research note |
+| [impact-erosion-and-late-delivery.md](composition/impact-erosion-and-late-delivery.md) | Late accretion, the volatiles the impactors bring and the air they blow away, checked against the Earth, Venus and Mars (GEN.739) | research note |
+| [volatile-inventory-against-planet-totals.md](composition/volatile-inventory-against-planet-totals.md) | The carbon and nitrogen of the rocky outgassing inventory against the totals of the Earth, Venus, Mars and Titan, and the two brackets that changed (GEN.813) | research note |
+| [atmospheric-escape-model.md](composition/atmospheric-escape-model.md) | The thermosphere model, Jeans and diffusion-limited escape, the XUV history and the hydrodynamic mass loss of a hydrogen envelope, checked against the Earth, Venus, Mars, Titan and nine sub-Neptunes (GEN.738) | research note |
 | [clathrate-brine-wiring.md](composition/clathrate-brine-wiring.md) | Hydrate cages in the ice skin and brine lids read by the generator (GEN.762) | built |
+| [iron-branch-tuning.md](composition/iron-branch-tuning.md) | The iron branch of a rocky planet: star-matched or iron-enriched, tuned to the homogeneous samples (GEN.512) | built |
 | [giant-planet-tuning.md](composition/giant-planet-tuning.md) | The retune of the giant enrichment and C/O rows f5 and f7 (GEN.516) | built |
 | [brown-dwarf-types.md](composition/brown-dwarf-types.md) | The brown-dwarf type map from the Kirkpatrick 2021 temperature polynomials, rows g1 to g5 (GEN.517) | built |
 | [aerosol-tuning.md](composition/aerosol-tuning.md) | The titanium cold-trap step, row h4, and what waits for the chemistry module (GEN.519) | built |

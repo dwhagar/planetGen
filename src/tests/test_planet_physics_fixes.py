@@ -1,19 +1,17 @@
 """
-Regression tests for the four Track A physics fixes to the planet
-atmosphere/density model (see planets.py and plausibility.py):
+Regression tests for the Track A physics fixes to the planet model (see planets.py and plausibility.py):
 
   1. Gas-giant density: once a core/envelope blend, now set by the giant
      mass-radius relation (GEN.34).
-  2. Greenhouse factor: no longer inverted (rewarding distance from CO2's
-     own molar density instead of proximity to it).
-  3. Atmospheric pressure: no longer independent of gravity (a gravity-based
-     retention factor is applied to an effective atmosphere density used
-     only in the pressure calculation).
-  4. Class P gets its own ("cold, glaciated") albedo range so it's no
+  2. Class P gets its own ("cold, glaciated") albedo range so it's no
      longer statistically indistinguishable from Class M.
+
+The greenhouse factor and the pressure of an air are not tested here: since GEN.411 and GEN.422 they are the solution of the fixed point
+of `surface_air` (tests/test_surface_air.py), not class ranges.
 
 Run with: pytest src/tests/test_planet_physics_fixes.py
 """
+import copy
 import math
 import statistics
 
@@ -120,165 +118,7 @@ def test_gas_giant_sampled_gravity_is_within_theoretical_bounds():
 
 
 # ---------------------------------------------------------------------------
-# Fix 2: greenhouse factor (no longer inverted)
-# ---------------------------------------------------------------------------
-
-def test_greenhouse_factor_is_monotonically_increasing_with_atm_molar_density():
-    """
-    Direct unit test of the greenhouse-factor formula in
-    calculate_atmospheric_conditions: holding all else equal, a higher
-    atm_molar_density (a heavier/denser atmosphere) must produce a higher
-    (or equal, once capped) greenhouse_factor. The old formula measured
-    *distance* from CO2_BASE_MOLAR_DENSITY, which was not monotonic at all
-    (it decreased as atm_molar_density approached CO2's molar density from
-    below, then increased again beyond it).
-    """
-    def greenhouse_factor(atm_molar_density):
-        return min(
-            prog_c.CO2_MAX_GREENHOUSE_FACTOR,
-            (atm_molar_density / pc.CO2_BASE_MOLAR_DENSITY) * prog_c.CO2_MAX_GREENHOUSE_FACTOR,
-        )
-
-    samples = [0.01, 0.02, 0.03, pc.CO2_BASE_MOLAR_DENSITY, 0.05, 0.08, 0.12]
-    values = [greenhouse_factor(v) for v in samples]
-    assert all(b >= a for a, b in zip(values, values[1:])), values
-    # And it should actually vary (not be flatlined at the cap) across the
-    # terrestrial atmospheric molar density range used elsewhere in the model.
-    assert values[0] < values[-1]
-
-
-def test_greenhouse_factor_peaks_at_co2_base_molar_density_not_far_from_it():
-    """
-    Regression guard against the specific inversion bug: at
-    atm_molar_density == CO2_BASE_MOLAR_DENSITY, the old (buggy) abs()-based
-    formula gave greenhouse_factor == 0 (its minimum), while the new formula
-    gives CO2_MAX_GREENHOUSE_FACTOR (its cap) -- a CO2-like atmosphere should
-    warm a planet, not leave it with zero greenhouse effect.
-    """
-    factor_at_co2_density = min(
-        prog_c.CO2_MAX_GREENHOUSE_FACTOR,
-        (pc.CO2_BASE_MOLAR_DENSITY / pc.CO2_BASE_MOLAR_DENSITY) * prog_c.CO2_MAX_GREENHOUSE_FACTOR,
-    )
-    assert factor_at_co2_density == prog_c.CO2_MAX_GREENHOUSE_FACTOR
-
-
-def test_class_n_is_hotter_on_average_than_class_m():
-    """
-    Class N samples its atm_molar_density at the top of ATMOSPHERIC_MOLAR_DENSITY
-    ["t"] (== physical_constants.ATMOSPHERIC_MOLAR_DENSITY["t"][1], close to
-    CO2_BASE_MOLAR_DENSITY -- see generate_planet_properties's special case),
-    so with the greenhouse inversion fixed, N should now get a real greenhouse
-    boost and come out hotter than Class M on average across a decent sample.
-    """
-    n_records = plausibility.generate_sample("N", "e", N_SAMPLE, include_moons=False)
-    m_records = plausibility.generate_sample("M", "e", N_SAMPLE, include_moons=False)
-
-    n_mean_temp = statistics.mean(r["surface_temperature"] for r in n_records)
-    m_mean_temp = statistics.mean(r["surface_temperature"] for r in m_records)
-
-    assert n_mean_temp > m_mean_temp, (
-        f"Class N mean temp {n_mean_temp:.2f}K should exceed Class M mean temp {m_mean_temp:.2f}K"
-    )
-
-
-# ---------------------------------------------------------------------------
-# Fix 3: atmospheric pressure depends on gravity
-# ---------------------------------------------------------------------------
-
-def test_atmosphere_retention_factor_is_normalized_at_earth_gravity():
-    assert planets._atmosphere_retention_factor(1.0) == pytest.approx(1.0)
-
-
-def test_atmosphere_retention_factor_increases_with_gravity():
-    low = planets._atmosphere_retention_factor(0.3)
-    earth = planets._atmosphere_retention_factor(1.0)
-    high = planets._atmosphere_retention_factor(3.0)
-    assert low < earth < high
-
-
-def _pearson_correlation(xs, ys):
-    """Pearson correlation coefficient, computed directly rather than via
-    `statistics.correlation` (Python 3.10+ only -- this repo's CI matrix
-    still runs a 3.9 job, see CHANGELOG.md)."""
-    n = len(xs)
-    mean_x = sum(xs) / n
-    mean_y = sum(ys) / n
-    cov = sum((x - mean_x) * (y - mean_y) for x, y in zip(xs, ys))
-    var_x = sum((x - mean_x) ** 2 for x in xs)
-    var_y = sum((y - mean_y) ** 2 for y in ys)
-    return cov / (var_x * var_y) ** 0.5
-
-
-def _spearman_correlation(xs, ys):
-    """Rank-based (Spearman) correlation -- more appropriate than Pearson
-    here since atmospheric_pressure = effective_atm_density * gravity_ms2 *
-    scale_height_m mixes gravity's effect multiplicatively with several
-    other independently-random terms (atm_density spans a ~60x range for
-    terrestrial classes alone, atm_molar_density its own range, and the
-    sample also spans terrestrial and gas-giant classes whose gravity/
-    pressure scales differ by orders of magnitude) -- exactly the kind of
-    heavy multiplicative noise and scale mixing that suppresses a raw
-    Pearson r even when the underlying monotonic relationship (higher
-    gravity -> higher pressure) is real and strong."""
-    def rank(values):
-        order = sorted(range(len(values)), key=lambda i: values[i])
-        ranks = [0] * len(values)
-        for rank_pos, i in enumerate(order):
-            ranks[i] = rank_pos
-        return ranks
-
-    return _pearson_correlation(rank(xs), rank(ys))
-
-
-def test_atmospheric_pressure_correlates_positively_with_gravity():
-    """
-    Statistical check across a wide gravity range (terrestrial classes plus
-    gas giants) spanning many host star spectral types: correlation between
-    gravity and atmospheric_pressure should now be positive. Before this
-    fix, gravity canceled out of the pressure formula entirely
-    (atmospheric_pressure = atm_density * R * T / atm_molar_density,
-    independent of gravity), and the observed correlation was ~-0.11 (noise).
-
-    Uses Spearman (rank) rather than Pearson correlation -- see
-    _spearman_correlation's docstring for why a raw Pearson r on this data
-    understates the (real, and now positive) monotonic relationship.
-    Thresholds are calibrated to this class mix specifically: two
-    brown-dwarf-like classes (density/gravity spanning two full orders of
-    magnitude) used to be part of this sample and pulled both correlations
-    much higher (Spearman reliably >0.5) -- since their removal (see
-    CHANGELOG.md), the remaining gas giants (I/J/T) span a much narrower
-    gravity range, so the correlation is real but weaker -- still clearly,
-    consistently positive and a clear improvement over the pre-fix ~-0.11.
-
-    Sample size (TEST.149): measured over 300 repeated samples, Spearman is
-    ~0.60 (sd 0.02) and Pearson only ~0.10 (sd 0.04) with 40 planets per
-    class, so a Pearson r of 0 or less was 2.4 standard deviations away and
-    failed about one run in a hundred on random draws. 320 per class makes
-    that nearly 6 standard deviations.
-    """
-    records = []
-    for cls in ("A", "B", "C", "E", "F", "M", "N", "O", "P"):
-        zone = next((z for z in "hec" if prog_c.PLANET_CLASSES[cls][z]), None)
-        if zone is None:
-            continue
-        records.extend(plausibility.generate_sample(cls, zone, 320, include_moons=False))
-    for cls in ("I", "J", "T"):
-        records.extend(plausibility.generate_sample(cls, "c", 320, include_moons=False))
-
-    records = [r for r in records if r["has_atmosphere"]]
-    gravities = [r["gravity"] for r in records]
-    pressures = [r["atmospheric_pressure"] for r in records]
-    assert len(gravities) >= 2400
-
-    pearson = _pearson_correlation(gravities, pressures)
-    assert pearson > 0, f"gravity/pressure Pearson correlation {pearson:.3f} is not even positive"
-
-    spearman = _spearman_correlation(gravities, pressures)
-    assert spearman > 0.1, f"gravity/pressure Spearman correlation {spearman:.3f} is not clearly positive"
-
-
-# ---------------------------------------------------------------------------
-# Fix 4: Class P is colder than Class M (albedo differentiation)
+# Class P is colder than Class M (albedo differentiation)
 # ---------------------------------------------------------------------------
 
 def test_class_p_has_own_albedo_range_distinct_from_default():
@@ -290,15 +130,17 @@ def test_class_p_has_own_albedo_range_distinct_from_default():
     assert prog_c.PLANET_CLASSES["P"]["albedo_range"] != prog_c.PLANET_CLASSES["M"]["albedo_range"]
 
 
-def test_class_p_is_colder_on_average_than_class_m():
+def test_class_p_is_colder_than_class_m():
+    """Medians, not means: since GEN.411 a world on the edge of its liquid range can land on a hot, steam-thick branch of the fixed point
+    (the air is bistable there), and a few of those at 900 K say nothing about the typical body of the class."""
     m_records = plausibility.generate_sample("M", "e", N_SAMPLE, include_moons=False)
     p_records = plausibility.generate_sample("P", "e", N_SAMPLE, include_moons=False)
 
-    m_mean_temp = statistics.mean(r["surface_temperature"] for r in m_records)
-    p_mean_temp = statistics.mean(r["surface_temperature"] for r in p_records)
+    m_median_temp = statistics.median(r["surface_temperature"] for r in m_records)
+    p_median_temp = statistics.median(r["surface_temperature"] for r in p_records)
 
-    assert p_mean_temp < m_mean_temp, (
-        f"Class P mean temp {p_mean_temp:.2f}K should be colder than Class M mean temp {m_mean_temp:.2f}K"
+    assert p_median_temp < m_median_temp, (
+        f"Class P median temp {p_median_temp:.2f}K should be colder than Class M median temp {m_median_temp:.2f}K"
     )
 
 
@@ -340,10 +182,9 @@ def test_surface_temperature_never_drops_below_the_cosmic_background(host_star, 
     planet = Planet(cfg, host_star, host_star.habitable_zone, distance,
                     planet_class=planet_class, zone_override=zone, moon_count=0)
 
-    class DimStar:
-        luminosity = host_star.luminosity * 1e-12
-
-    planet.star = DimStar()
+    dim_star = copy.copy(host_star)
+    dim_star.luminosity = host_star.luminosity * 1e-12
+    planet.star = dim_star
     planets.calculate_atmospheric_conditions(planet)
     assert planet.surface_temperature == pc.COSMIC_BACKGROUND_TEMPERATURE_K
 

@@ -245,7 +245,8 @@ class World:
     is the stable surface or subsurface liquid ("water", "hydrocarbon",
     "sulfuric" or None); `habitat_dose_sv_yr` is the dose where that liquid
     is (the surface dose for surface water, about the ground's for an ocean
-    under ice); `water_source` is what a base can draw water from. The three dose parts (the cosmic rays
+    under ice); `water_source` is what a base can draw water from; `groundwater` is the liquid held underground by a world with none
+    at its surface (`"none"`, `"reachable"` within `tuning.AQUIFER_REACH_KM` of the surface, or `"deep"`, GEN.654). The three dose parts (the cosmic rays
     with the heliosphere's multiplier, the stellar particles and the ground, Sv/yr; `None` when unknown, then the whole
     dose counts as cosmic rays), the dipole's `cutoff_gv`, the DNA-weighted `uv_index` and the airborne `dust_mg_m3` (`None` when unknown) are what the survival
     equipment (`physics/equipment.py`) reads beyond the score's own inputs."""
@@ -265,6 +266,7 @@ class World:
     surface_dose_sv_yr: float = None
     habitat_dose_sv_yr: float = None
     water_source: str = "liquid"
+    groundwater: str = "none"
     life_stage: str = "none"
     life_on_surface: bool = True
     dose_gcr_sv_yr: float = None
@@ -453,9 +455,15 @@ def water_inputs(world):
               CHAOTROPICITY_CRIT_KJ_KG, CHAOTROPICITY_CRIT_KJ_KG * 2))]
 
 
+AQUIFER_WATER_SCORE = 0.6
+"""float: The Water domain of a world whose only liquid water is an aquifer within reach: Yellow, as the ocean under ice is."""
+
+
 def water_score(world):
     """Water Chemistry: is the water drinkable. A world with no liquid water has none, which is Red
     (Boss, 2026-10-14); a liquid water body scores its worst of pH, water activity and chaotropicity."""
+    if world.groundwater != "none":  # liquid water only underground: Yellow within a drill's reach, Red beyond it (GEN.654)
+        return AQUIFER_WATER_SCORE if world.groundwater == "reachable" else 0.0
     if world.solvent != "water":
         return 0.0
     inputs = water_inputs(world)
@@ -510,10 +518,10 @@ FOOD_SCORE = {"none": 0.2, "microbial": 0.5, "macroscopic": 0.85, "biosphere": 1
 (chemosynthetic mats), Green (bryophytes, invertebrates; whose chemistry may not suit a
 person) and Blue (forest canopies, complex food webs). planetGen's numbers, one per tier."""
 
-WATER_ACCESS_SCORE = {"liquid": 0.9, "ice": 0.6, "hydrated": 0.25, "vapour": 0.2, None: 0.0}
+WATER_ACCESS_SCORE = {"liquid": 0.9, "ice": 0.6, "aquifer": 0.6, "hydrated": 0.25, "vapour": 0.2, None: 0.0}
 """dict: The water rung by the most accessible water (`World.water_source`): Table 2's Green
-(rivers, lakes and rain), Yellow (glacial ice, subglacial liquid), Red (perchlorate brine,
-hydrated minerals, vapour). Fresh liquid water that is also Blue Water Chemistry is Blue (1)."""
+(rivers, lakes and rain), Yellow (glacial ice, subglacial liquid, an aquifer within reach of a drill),
+Red (perchlorate brine, hydrated minerals, vapour). Fresh liquid water that is also Blue Water Chemistry is Blue (1)."""
 
 YELLOW_FLOOR = 0.4
 """float: The lowest score of Yellow: where a domain that cannot make the overall Red is held in the mean."""

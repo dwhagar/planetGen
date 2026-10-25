@@ -585,6 +585,55 @@
       "first_release": "8.0.2308",
       "reason": "A world with flora, fauna or a civilization has food in its Suitability even when its ocean lies under ice (only microbes under the ice or in a deep aquifer are out of reach), and the life and timeline text of the objects a seed gives is in the present tense (GEN.765, GEN.766)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 99,
+      "first_release": "8.0.2312",
+      "reason": "A massive star younger than 0.3 Myr may start in a young group of 3 to 5 stars that breaks up within 40,000 years, and an older one draws the remnant a group leaves (one star fewer, tighter orbits), so those stars have different companions (GEN.327)",
+      "affects": ["scatter", "fill"]
+    },
+    {
+      "epoch": 100,
+      "first_release": "8.0.2315",
+      "reason": "A rocky planet or moon with no liquid at its surface can hold an aquifer in its crust (depth and thickness stored), which makes its water a solvent for life, so worlds that had no life chemistry now draw one and the habitability score and every later draw of such a world change (GEN.654)",
+      "affects": ["fill"]
+    },
+    {
+      "epoch": 101,
+      "first_release": "8.0.2320",
+      "reason": "A rocky planet's iron follows its star's with a scatter of 0.05 dex, and about 1 planet in 100 is iron-enriched (a dry core mass fraction of 0.5 to 0.8): the mass, radius, density and gravity of rocky planets change slightly, and the planet draws after the graphite move (GEN.512)",
+      "affects": ["fill"]
+    },
+    {
+      "epoch": 102,
+      "first_release": "8.0.2324",
+      "reason": "GEN.761 moons ask the hosting gate: small bodies get their moon chance from the satellite-share table",
+      "affects": ["fill"]
+    },
+    {
+      "epoch": 103,
+      "first_release": "8.0.2327",
+      "reason": "A terrestrial rogue planet carries the habitability score of its surface (PHI-6, tiers, life scores and survival kit), so the objects a seed gives for a rogue planet hold values they did not before (GEN.701)",
+      "affects": ["fill"]
+    },
+    {
+      "epoch": 104,
+      "first_release": "8.0.2334",
+      "reason": "A moon's metal, rock, water and ice shares, rock porosity and mass follow from its origin (a disk moon gains ice past its giant's ice line, an impact moon is nearly dry, a captured moon is a rock and ice mix) in place of its class's water range, and a moon lighter than 1e21 kg takes its mass from the tapered compaction law, so every moon's mass, density, gravity and water change (GEN.466)",
+      "affects": ["fill"]
+    },
+    {
+      "epoch": 105,
+      "first_release": "8.0.2342",
+      "reason": "A main-sequence star's luminosity, temperature and radius are read from the MIST isochrones at its mass, age and birth [Fe/H], so a star brightens as it ages and its habitable zone moves with it (GEN.652)",
+      "affects": ["scatter", "fill"]
+    },
+    {
+      "epoch": 106,
+      "first_release": null,
+      "pending": true,
+      "reason": "A rocky or icy planet's or moon's air is the fixed point of its mixture, the pressure its interior has degassed less the carbonate and sulfur sinks, the freeze-out of what its temperature condenses, the hydrate cages of its ice, the greenhouse and the temperature (GEN.411, GEN.422), so every air, surface temperature, pressure, scale height and density changes and a class no longer sets the pressure; a giant's air is its drawn mixture at the 1 bar level",
+      "affects": ["fill"]
     }
   ]
 }

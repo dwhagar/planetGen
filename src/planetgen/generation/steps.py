@@ -114,6 +114,25 @@ here fails `tests/test_step_registry.py`, so a new long step is registered
 a detail bar under its step."""
 
 
+STEP_UNITS = {
+    "sector": "sector", "generate-unplaced-sector": "sector", "link": "sector", "paths": "sector", "backfill": "sector",
+    "topup": "sector", "save": "sector", "map-luminosity": "row", "habitability": "row", "population": "pass",
+    "territories": "pass", "stages": "step", "reset": "step", "migrate": "step", "db-check": "system",
+}
+"""dict: What a bar's count counts, by step kind, as a singular noun (API.33: a number is never shown without its unit).
+A top-level bar of a kind not named here counts `DEFAULT_UNIT`; a detail bar (`kind:label`) names its own items."""
+
+DEFAULT_UNIT = "unit"
+"""str: What a bar of a kind `STEP_UNITS` does not name counts: the work queue's units."""
+
+
+def unit_of(kind):
+    """What the bar of step `kind` counts, as a singular noun, or `None` for a detail bar (`kind:label`) or no kind."""
+    if not kind or ":" in kind:
+        return None
+    return STEP_UNITS.get(kind, DEFAULT_UNIT)
+
+
 class Step:
     """
     One piece of work with its own progress bar, drawn only when it is
@@ -233,6 +252,9 @@ class Step:
                 return          # no display: nothing is drawn, the work is still tracked
             self._display = progress
             fields = {"percent": True} if self.percent else {}
+            unit = unit_of(self.kind)
+            if unit:
+                fields["unit"] = unit
             if self.prior:
                 fields["prior"] = self.prior
             if self.tau:

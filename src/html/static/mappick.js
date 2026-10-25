@@ -260,6 +260,9 @@ export function pageLink(href, label, className) {
 // style.css lays it over the map, in the corner farthest from where the reader last pressed (`data-corner`).
 // `data-state` is "rest" (nothing picked, not drawn), "selected" or "closed" (the reader pressed Close).
 // `reveal()` draws what a map wrote into the panel itself (a measurement) as the popup.
+export const MIN_INFO_SCALE = 0.7;
+export const INFO_SCALE_STEP = 0.05;
+
 export function createInfoPanel(panelEl) {
   const hostIds = panelEl && panelEl.hasAttribute("data-overlay") ? (panelEl.dataset.overlay || "").split(/\s+/).filter(Boolean) : null;
   const hosts = !panelEl || !hostIds ? [] : (hostIds.length
@@ -279,9 +282,25 @@ export function createInfoPanel(panelEl) {
   if (overlay) {
     panelEl.dataset.state = "rest";
     // What happens in the popup is not the map's to handle: a click on its buttons is not a click on the map.
-    ["pointerdown", "mousedown", "click", "dblclick", "wheel", "touchstart"].forEach(function (type) {
+    ["pointerdown", "mousedown", "click", "dblclick", "touchstart"].forEach(function (type) {
       panelEl.addEventListener(type, function (event) { event.stopPropagation(); }, { passive: true });
     });
+    // The wheel scrolls the popup while it has more to show that way (MAP.295, `data-scroll`); at the end of its
+    // scroll, or when it has none, the turn goes on to the map under it, so a popup never takes the zoom away.
+    panelEl.addEventListener("wheel", function (event) {
+      event.stopPropagation();
+      const room = event.deltaY < 0 ? panelEl.scrollTop > 0 : panelEl.scrollTop + panelEl.clientHeight < panelEl.scrollHeight - 1;
+      if (room) return;
+      const host = panelEl.parentElement;
+      const canvas = host && host.querySelector("canvas");
+      if (!canvas) return;
+      event.preventDefault();
+      canvas.dispatchEvent(new WheelEvent("wheel", {
+        bubbles: true, cancelable: true, clientX: event.clientX, clientY: event.clientY,
+        deltaX: event.deltaX, deltaY: event.deltaY, deltaMode: event.deltaMode,
+        ctrlKey: event.ctrlKey, shiftKey: event.shiftKey, altKey: event.altKey, metaKey: event.metaKey,
+      }));
+    }, { passive: false });
   }
 
   // The popup sits in the viewport that is showing, in the corner away from the last press.
@@ -310,6 +329,27 @@ export function createInfoPanel(panelEl) {
       row.appendChild(closeButton());
       panelEl.appendChild(row);
     }
+    fit();
+  }
+
+  // MAP.295: the popup says all it has to say inside the map's window. Its text shrinks a step at a time (the
+  // --info-scale of style.css) until it fits, and what still does not fit at the smallest scale scrolls.
+  function overflows() {
+    return panelEl.scrollHeight > panelEl.clientHeight + 1 || panelEl.scrollWidth > panelEl.clientWidth + 1;
+  }
+  function fit() {
+    if (!overlay || panelEl.dataset.state !== "selected" || typeof panelEl.scrollHeight !== "number") return;
+    panelEl.style.removeProperty("--info-scale");
+    delete panelEl.dataset.scroll;
+    let scale = 1;
+    while (overflows() && scale > MIN_INFO_SCALE + 1e-6) {
+      scale = Math.round((scale - INFO_SCALE_STEP) * 100) / 100;
+      panelEl.style.setProperty("--info-scale", String(scale));
+    }
+    if (overflows()) panelEl.dataset.scroll = "";
+  }
+  if (overlay && typeof ResizeObserver !== "undefined") {
+    hosts.forEach(function (host) { new ResizeObserver(fit).observe(host); });
   }
 
   let bookmarkButton = null;
@@ -371,6 +411,7 @@ export function createInfoPanel(panelEl) {
     actions(spec);
     if (spec.generate) panelEl.appendChild(spec.generate);
     if (spec.hint) hint(spec.hint, true);
+    fit();
   }
 
   function hint(text, keep) {
@@ -381,9 +422,10 @@ export function createInfoPanel(panelEl) {
       if (overlay) panelEl.dataset.state = "rest";
     }
     panelEl.appendChild(el("p", "hint", text));
+    fit();
   }
 
-  return { show: show, hint: hint, reveal: reveal, element: panelEl };
+  return { show: show, hint: hint, reveal: reveal, refit: fit, element: panelEl };
 }
 
 // The one info panel for `panelEl` (so its ☆ button is made once), or

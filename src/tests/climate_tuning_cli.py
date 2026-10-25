@@ -5,14 +5,15 @@ src/tests/climate_tuning_cli.py -- interactive per-class climate tuning tool.
 Not a pytest test module itself (no `test_*` name, so pytest won't collect
 it) -- it lives alongside `physical_plausibility_cli.py` and shares its
 underlying engine (`planetgen/generation/plausibility.py`), but exists specifically
-to let a human iterate on one class's `albedo_range`,
-`atm_molar_density_range`, `atm_density_range`, and `greenhouse_multiplier_range`
+to let a human iterate on one class's `albedo_range`
 (see `planetgen.tuning.PLANET_CLASSES`) without editing
-source between runs: pass candidate values as CLI overrides, see the
+source between runs: pass a candidate value as a CLI override, see the
 resulting temperature/pressure distribution (with a delta against a
 real-world reference where one exists -- Earth for Class M, Mars for K,
-Venus for N), and only once satisfied, write the chosen values into
-`PLANET_CLASSES` permanently.
+Venus for N), and only once satisfied, write the chosen value into
+`PLANET_CLASSES` permanently. The pressure and the greenhouse of a body
+are not class ranges any more (GEN.411, GEN.422): they come from its air
+(`planetgen.physics.surface_air`), so only the albedo can be tuned here.
 
 Overrides are applied as a temporary in-memory monkeypatch of
 `PLANET_CLASSES[class]`, restored after the run -- nothing is written to
@@ -20,10 +21,7 @@ disk by this tool.
 
 Usage:
     python src/tests/climate_tuning_cli.py --class M --n 300
-    python src/tests/climate_tuning_cli.py --class M --n 300 \
-        --greenhouse 1.1 1.3 --molar-density 0.0289 0.0295
-    python src/tests/climate_tuning_cli.py --class K --n 300 \
-        --molar-density 0.042 0.0433 --greenhouse 0.08 0.15 --density 0.015 0.03
+    python src/tests/climate_tuning_cli.py --class M --n 300 --albedo 0.25 0.35
 """
 
 import argparse
@@ -55,29 +53,20 @@ def process_args():
     parser.add_argument("--zone", default="e", help="Zone character to generate in (default: 'e').")
     parser.add_argument("--no-moons", action="store_true", help="Skip moon generation (moons included by default).")
     parser.add_argument("--albedo", nargs=2, type=float, metavar=("LOW", "HIGH"), help="Override albedo_range for this run.")
-    parser.add_argument("--molar-density", nargs=2, type=float, metavar=("LOW", "HIGH"), help="Override atm_molar_density_range (kg/mol) for this run.")
-    parser.add_argument("--density", nargs=2, type=float, metavar=("LOW", "HIGH"), help="Override atm_density_range (kg/m^3) for this run.")
-    parser.add_argument("--greenhouse", nargs=2, type=float, metavar=("LOW", "HIGH"), help="Override greenhouse_multiplier_range for this run.")
     return parser.parse_args()
 
 
 @contextlib.contextmanager
-def temporary_class_overrides(cls, albedo=None, molar_density=None, density=None, greenhouse=None):
+def temporary_class_overrides(cls, albedo=None):
     """
-    Temporarily patches `program_constants.PLANET_CLASSES[cls]` with any of
-    the given (low, high) range overrides, restoring the original dict
+    Temporarily patches `program_constants.PLANET_CLASSES[cls]` with the
+    given (low, high) albedo range override, restoring the original dict
     afterward regardless of how the block exits. Nothing is persisted.
     """
     original = prog_c.PLANET_CLASSES[cls]
     patched = dict(original)
     if albedo is not None:
         patched["albedo_range"] = tuple(albedo)
-    if molar_density is not None:
-        patched["atm_molar_density_range"] = tuple(molar_density)
-    if density is not None:
-        patched["atm_density_range"] = tuple(density)
-    if greenhouse is not None:
-        patched["greenhouse_multiplier_range"] = tuple(greenhouse)
     prog_c.PLANET_CLASSES[cls] = patched
     try:
         yield patched
@@ -110,15 +99,9 @@ def main():
         print(f"Class {cls!r} has no valid zone {args.zone!r}.", file=sys.stderr)
         return 2
 
-    with temporary_class_overrides(
-        cls, albedo=args.albedo, molar_density=args.molar_density,
-        density=args.density, greenhouse=args.greenhouse,
-    ) as patched:
+    with temporary_class_overrides(cls, albedo=args.albedo) as patched:
         print(f"Generating {args.n} Class {cls} bodies in zone {args.zone!r} ...", file=sys.stderr)
         print(f"  albedo_range={patched.get('albedo_range', '(default)')}", file=sys.stderr)
-        print(f"  atm_molar_density_range={patched.get('atm_molar_density_range', '(default)')}", file=sys.stderr)
-        print(f"  atm_density_range={patched.get('atm_density_range', '(default)')}", file=sys.stderr)
-        print(f"  greenhouse_multiplier_range={patched.get('greenhouse_multiplier_range', '(default 1.0, 1.0)')}", file=sys.stderr)
 
         records = plausibility.generate_sample(cls, args.zone, args.n, include_moons=not args.no_moons)
         # Only this class's own records (moons may be a different class).

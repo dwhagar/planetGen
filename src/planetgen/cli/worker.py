@@ -96,8 +96,15 @@ def worker_class():
     PERF.152: a worker of a queue that `pause.holds` takes no job while the Queue page's pause flag is set. It waits
     before it asks for one and, if a job came to it in the moment the flag was set, holds that job (still queued,
     untouched) until the flag is cleared, so a paused queue starts no new unit. A unit already running finishes.
+
+    TEST.371: when it registers, it stops counting among the workers `ensure_workers` is waiting for
+    (`workers.registered`), so one killed soon after it started is replaced at once.
     """
     class WarmWorker(rq.Worker):
+        def register_birth(self):
+            super().register_birth()
+            workers.registered(self.connection, self.queue_names())
+
         def prepare_execution(self, job):
             units.warm_unit(job)
             return super().prepare_execution(job)

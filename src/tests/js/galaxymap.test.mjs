@@ -215,12 +215,16 @@ function expectedCrumbs(m) {
   return S.crumbs(m.view.stage(), outline, F.edgePc).map((c) => c.label);
 }
 
-// Picks the first choice by keyboard and takes it; true when the stage
-// moved on.
+// Opens the window one size down round the first block of the stage (what a wheel run into it carries the view to:
+// the blocks themselves take no click since MAP.297); true when the stage moved on. A window of sectors has none.
 async function drillOnce(m) {
   const before = JSON.stringify(m.view.stage());
-  key(m, "ArrowRight");
-  key(m, "Enter");
+  const outline = S.galaxyOutline(F.edgePc, F.shape, F.galaxyRadius);
+  const stage = m.view.stage();
+  const resolved = S.resolveStage(stage, outline, F.edgePc);
+  const next = resolved.options && resolved.options.length ? S.windowInto(stage, resolved.options[0].blocks[0], null, F.edgePc) : null;
+  if (!next) return false;
+  m.view.go(next);
   await arrive(m);
   return JSON.stringify(m.view.stage()) !== before;
 }
@@ -377,7 +381,7 @@ test("the whole galaxy turns and zooms in to half its fit, never out past it", a
   assert.deepEqual(m.view.stage(), { win: null }, "a drag picks nothing");
 });
 
-test("each step down by keyboard pushes a history entry and a breadcrumb, a window one size down each time", async () => {
+test("each window opened down the ladder pushes a history entry and a breadcrumb, a window one size down each time", async () => {
   const m = await start();
   const seen = [];
   for (let n = 0; n < 12; n++) {
@@ -390,7 +394,7 @@ test("each step down by keyboard pushes a history entry and a breadcrumb, a wind
     assert.equal(button(m, "back").disabled, false);
     assert.equal(button(m, "up").disabled, false);
   }
-  assert.deepEqual(seen.map((stage) => stage.win.centre.m), [81, 27, 9, 3, 1], "a click goes one level down; sectors are the last");
+  assert.deepEqual(seen.map((stage) => stage.win.centre.m), [81, 27, 9, 3, 1], "each step goes one level down; sectors are the last");
   assert.ok(seen.every((stage) => stage.win.g === 9));
 });
 
@@ -520,8 +524,7 @@ test("a stage URL opens that stage; a bad one opens the galaxy and says why", as
 
   const m = await start("http://localhost/galaxy" + query);
   assert.deepEqual(m.view.stage(), deep.view.stage());
-  // The deep map has a sector selected in its window of sectors too.
-  assert.deepEqual(crumbLabels(m), crumbLabels(deep).slice(0, -1));
+  assert.deepEqual(crumbLabels(m), crumbLabels(deep));
 
   const bad = await start("http://localhost/galaxy?cam=nonsense");
   assert.deepEqual(bad.view.stage(), { win: null });
@@ -781,32 +784,18 @@ function clickAt(m, x, y, pointerType) {
   m.view.onPointerUp(new FakeEvent("pointerup", base));
 }
 
-test("clicking a block on the map zooms into a window around its middle", async () => {
+test("the Galaxy Map's blocks take no hover, click, touch or outline (MAP.297)", async () => {
   const m = await start();
-  const spot = pointOver(m, /^Block /);
-  assert.ok(spot, "some block shows a tooltip under the pointer");
-  clickAt(m, spot.x, spot.y);
+  assert.equal(pointOver(m, /^Block /), null, "no block names itself under the pointer");
+  assert.deepEqual(outlines(m), [], "nothing is outlined");
+  for (const [x, y] of [[400, 300], [300, 250], [500, 350]]) {
+    clickAt(m, x, y);
+    clickAt(m, x, y, "touch");
+    clickAt(m, x, y, "touch");
+  }
   await arrive(m);
-  const stage = m.view.stage();
-  assert.equal(stage.win.centre.m, 81);
-  assert.equal(stage.win.g, 9);
-  const block = /^Block ([\d,]+)·(-?\d+)·([\d,]+),/.exec(spot.text);
-  assert.ok(block, spot.text);
-  const parent = P.drillParent(stage.win.centre);
-  assert.equal(parent.shell, Number(block[1].replace(/,/g, "")), "centred on the block clicked");
-  assert.equal(parent.band, Number(block[2]));
-  assert.equal(parent.wedge, Number(block[3].replace(/,/g, "")));
-  assert.match(m.win.location.search, /^\?cam=[-\d.e+,]+$/, "the URL holds the camera");
-});
-
-test("a block the near field has faded out can't be picked (MAP.149)", async () => {
-  const m = await start();
-  assert.ok(pointOver(m, /^Block /), "blocks show their tooltip while the near field lets them");
-  m.view.onPointerLeave();
-  m.host.nearFieldAt = () => 0.2;
-  assert.equal(pointOver(m, /^Block /), null, "nothing is picked below a share of 0.35");
-  m.host.nearFieldAt = () => 0.35;
-  assert.ok(pointOver(m, /^Block /), "a share of 0.35 can be picked");
+  assert.deepEqual(m.view.stage(), { win: null }, "a click or tap on the galaxy opens no window");
+  assert.deepEqual(outlines(m), [], "and outlines nothing");
 });
 
 // The outline lines drawn over the map: [opacity, line count].
@@ -818,17 +807,7 @@ function outlines(m) {
   return found.sort((p, q) => q - p);
 }
 
-test("hovering a block outlines it, and nothing else (MAP.52)", async () => {
-  const m = await start();
-  assert.deepEqual(outlines(m), [], "nothing is outlined until the pointer is over a block");
-  const spot = pointOver(m, /^Block /);
-  assert.ok(spot, "a block under the pointer");
-  assert.deepEqual(outlines(m), [1], "the block itself in full, no neighbours");
-  m.view.onPointerLeave();
-  assert.deepEqual(outlines(m), []);
-});
-
-test("the galaxy's thousands of blocks are one mesh; a window's are one each, the hovered one lit (MAP.150)", async () => {
+test("the galaxy's thousands of blocks are one mesh; a window's are one each (MAP.150)", async () => {
   const m = await start();
   const meshes = () => {
     const found = [];
@@ -842,98 +821,44 @@ test("the galaxy's thousands of blocks are one mesh; a window's are one each, th
   assert.ok(meshes() > 20, "a window has a mesh or two for each block");
 });
 
-test("on touch, the first tap highlights and the second takes it", async () => {
-  const m = await start();
-  const spot = pointOver(m, /^Block /);
-  m.view.onPointerLeave();
-  clickAt(m, spot.x, spot.y, "touch");
-  await arrive(m);
-  assert.deepEqual(m.view.stage(), { win: null }, "one tap only shows what it would pick");
-  assert.equal(m.els.tooltip.hidden, false);
-  clickAt(m, spot.x, spot.y, "touch");
-  await arrive(m);
-  assert.equal(m.view.stage().win.centre.m, 81);
-});
+// The address of a sector whose map opens in place (the sector blocks are not picked on the Galaxy Map since
+// MAP.297: a sector opens from its address, the wheel's arrival or a double click on one of its stars).
+const SECTOR = { shell: 3, band: 0, wedge: 4 };
+const openAddress = (sector) => "http://localhost/galaxy?sector=" + S.sectorDesignation(sector.shell, sector.band, sector.wedge) + "&open=1";
 
-// Drills a fresh map down to a window of sectors.
-async function toSectors(m) {
-  for (let n = 0; n < 6 && !(m.view.stage().win && m.view.stage().win.centre.m === 1); n++) await drillOnce(m);
-  assert.equal(m.view.stage().win.centre.m, 1, "down to sectors");
-}
-
-test("a generated sector opens in place; one uncharted is selected", async () => {
-  let known = null;
-  const server = (query) => {
-    if (!known) return { children: [], sectors: [] };
-    return { children: [], sectors: [Object.assign({ id: 42, name: "Bead", system_count: 3 }, known)] };
-  };
-  const m = await start(undefined, { server });
-  await toSectors(m);
-  key(m, "ArrowRight");
-  const tip = m.els.tooltip.textContent;
-  const match = /^Sector ([\d,]+)·(-?\d+)·([\d,]+),.*uncharted$/.exec(tip);
-  assert.ok(match, "the tooltip names a sector: " + tip);
-  const sector = { shell: Number(match[1].replace(/,/g, "")), band: Number(match[2]), wedge: Number(match[3].replace(/,/g, "")) };
-
-  key(m, "Enter");
-  await arrive(m);
-  assert.equal(m.win.location.assigned.length, 0);
-  const crumbs = crumbLabels(m);
-  assert.equal(crumbs[crumbs.length - 1], "Sector " + S.blockLabel(sector));
-  assert.deepEqual(m.calls.cells[m.calls.cells.length - 1].address, sector);
-
-  known = sector;
-  m.view.invalidate();
-  await arrive(m);
-  key(m, "Enter");
-  await arrive(m);
+test("a generated sector opens in place from its address", async () => {
+  const server = () => ({ children: [], sectors: [Object.assign({ id: 42, name: "Bead", system_count: 3 }, SECTOR)] });
+  const m = await start(openAddress(SECTOR), { server });
   assert.deepEqual(m.win.location.assigned, [], "no page load: the sector opens in the map");
   assert.deepEqual(m.calls.scenes, [42]);
   assert.equal(S.parseStageQuery(m.win.location.search).open, true, "the URL says the sector is open: " + m.win.location.search);
-  assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, sector);
+  assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, SECTOR);
   assert.match(m.win.location.search, /^\?sector=\w+&open=1$/, "the sector link has no window token");
   assert.equal(m.calls.hidden.length, 1, "the galaxy's own stars leave the cell");
   assert.ok(m.calls.hidden[0].r1 > 0);
-  assert.ok(m.view.stage(), "still on the stage that holds it");
   // Up closes it, keeping the sector selected and the cell's stars back.
   m.view.up();
   await arrive(m);
   assert.equal(m.calls.hidden[m.calls.hidden.length - 1], null);
   assert.equal(S.parseStageQuery(m.win.location.search).open, false);
-  assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, sector);
+  assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, SECTOR);
 });
 
-// Drills a fresh map down to a window of sectors and returns the address of the sector
-// the pointer is on next (not generated: the server lists no sectors). Taking a choice
-// on the way down already opens the first sector, so the calls are cleared first.
-async function toAnUnchartedSector(m) {
-  await toSectors(m);
-  key(m, "ArrowRight");
-  const match = /^Sector ([\d,]+)·(-?\d+)·([\d,]+),.*uncharted$/.exec(m.els.tooltip.textContent);
-  assert.ok(match, "the tooltip names a sector: " + m.els.tooltip.textContent);
-  m.calls.uncharted.length = 0;
-  m.calls.hidden.length = 0;
-  return { shell: Number(match[1].replace(/,/g, "")), band: Number(match[2]), wedge: Number(match[3].replace(/,/g, "")) };
-}
-
 test("a sector nothing was generated in opens in place with what the scatters left, marked uncharted (MAP.162)", async () => {
-  const m = await start(undefined, { unchartedScene: (data) => data });
-  const sector = await toAnUnchartedSector(m);
-  key(m, "Enter");
-  await arrive(m);
-  assert.deepEqual(m.calls.uncharted, [sector]);
+  const m = await start(openAddress(SECTOR), { unchartedScene: (data) => data });
+  assert.deepEqual(m.calls.uncharted, [SECTOR]);
   assert.deepEqual(m.calls.scenes, [], "there is no sector to fetch");
   assert.deepEqual(m.win.location.assigned, [], "no page load: it opens in the map");
   const query = S.parseStageQuery(m.win.location.search);
   assert.equal(query.open, true, "the URL says it is open: " + m.win.location.search);
-  assert.deepEqual(query.sector, sector);
+  assert.deepEqual(query.sector, SECTOR);
   assert.ok(m.calls.hidden[m.calls.hidden.length - 1].r1 > 0, "the galaxy's own stars leave the cell");
   // The title, the info panel and the frame all carry the mark.
   const crumbs = crumbLabels(m);
   assert.match(crumbs[crumbs.length - 1], /^Sector .* \(uncharted\)$/);
   const cell = m.calls.cells[m.calls.cells.length - 1];
-  assert.deepEqual(cell.address, sector);
-  assert.equal(cell.uncharted.designation, S.sectorDesignation(sector.shell, sector.band, sector.wedge));
+  assert.deepEqual(cell.address, SECTOR);
+  assert.equal(cell.uncharted.designation, S.sectorDesignation(SECTOR.shell, SECTOR.band, SECTOR.wedge));
   assert.ok(cell.uncharted.stars > 0);
   const badge = m.win.document.querySelector(".sector-uncharted-badge");
   assert.ok(badge && /Uncharted sector/.test(badge.textContent), "the frame carries a badge");
@@ -947,26 +872,20 @@ test("a sector nothing was generated in opens in place with what the scatters le
 });
 
 test("a cell the scatters left empty is only selected, not opened (MAP.162)", async () => {
-  const m = await start(undefined, { unchartedScene: (data) => Object.assign(data, { stars: [], clouds: [] }) });
-  const sector = await toAnUnchartedSector(m);
-  key(m, "Enter");
-  await arrive(m);
-  assert.deepEqual(m.calls.uncharted, [sector]);
-  assert.ok(!S.parseStageQuery(m.win.location.search).open, "it is not open: " + m.win.location.search);
+  const m = await start(openAddress(SECTOR), { unchartedScene: (data) => Object.assign(data, { stars: [], clouds: [] }) });
+  assert.deepEqual(m.calls.uncharted, [SECTOR]);
+  assert.equal(m.calls.hidden.filter((cell) => cell).length, 0, "the galaxy's own stars stay: nothing opened");
   assert.equal(m.win.document.querySelector(".sector-uncharted-badge"), null);
   const cell = m.calls.cells[m.calls.cells.length - 1];
-  assert.deepEqual(cell.address, sector);
+  assert.deepEqual(cell.address, SECTOR);
   assert.equal(cell.uncharted, null);
   assert.ok(!/uncharted/.test(crumbLabels(m).join(" ")));
 });
 
 test("a failed uncharted scene leaves the cell selected (MAP.162)", async () => {
-  const m = await start(undefined, { unchartedScene: () => { throw new Error("HTTP 502"); } });
-  const sector = await toAnUnchartedSector(m);
-  key(m, "Enter");
-  await arrive(m);
+  const m = await start(openAddress(SECTOR), { unchartedScene: () => { throw new Error("HTTP 502"); } });
   assert.equal(m.win.document.querySelector(".sector-uncharted-badge"), null);
-  assert.deepEqual(m.calls.cells[m.calls.cells.length - 1].address, sector);
+  assert.deepEqual(m.calls.cells[m.calls.cells.length - 1].address, SECTOR);
   assert.equal(m.els.notice.hidden, true, "no error notice for what is only an extra");
 });
 

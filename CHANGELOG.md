@@ -2,6 +2,307 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2344] - 2026-10-25
+
+**Headline:** A test run now ends the queue workers it started and did not stop, and says how many it found.
+
+### Added
+- **`scripts/test.py` ends the queue workers a run left running and reports them (TEST.393).** Tests that start real workers start them in a session of their own, so a test that was stopped part way (past its time limit, or in a phase the runner stopped) left them running, and each keeps about 300 MB; about fifty on a 16 GB machine got MySQL killed. A worker whose `--url` names one of the test Redis databases (1 to 15, the machine's own is 0) is a test's. When a run ends, the runner ends all of them (SIGTERM to the worker's session, SIGKILL ten seconds later) and prints `ended N queue worker process(es) a test started and did not stop (the oldest had run ...)`.
+- The test session's own fixture ends the workers on its Redis database when it starts (those of an earlier, stopped session) and when it ends. `src/tests/stray_workers.py` and `test_stray_workers.py` hold the code and its tests (the listing, the filter that never touches the machine's database, the SIGTERM then SIGKILL, and one real process).
+- Not changed: which tests leave workers. A run of the 11 modules that use real queues (166 tests) peaked at 7 workers and left none, so the leak comes from stopped tests; the count in the new line is how to find the test.
+TODO items resolved: TEST.393 (TODO closes it after reading this). Added: none.
+
+## [8.0.2343] - 2026-10-25
+
+**Headline:** When a world loses part of its air, its ozone and its ultraviolet index can now follow it.
+
+### Changed
+- **GEN.668: a loss of air takes the ozone with it.** `radiation.apply_air_loss(body, retained_fraction)` scales a planet's or moon's stored ozone column by the share of the air that is kept and works the ultraviolet index out again from it (a world that loses half its air keeps half its ozone and has a higher index). No step of generation removes air after the ozone is drawn (escape and the water loss act on the air before it), so nothing is called yet and no generated value changes; the function is for the first loss event that does.
+
+## [8.0.2342] - 2026-10-25
+
+**Headline:** A main-sequence star now takes its brightness, colour and size from the MIST isochrones at its mass, age and composition, and it brightens as it ages.
+
+### Changed
+
+- **One main-sequence table (GEN.652).** The generator's own mass-luminosity pieces and mass-radius power law are gone. A main-sequence star's luminosity, effective temperature and radius are the MIST row of its initial mass, its age and its birth [Fe/H] (`physics/main_sequence.py`), so a star is dimmer when young and brighter near the end of its main sequence, and a metal-poor star is hotter than a metal-rich one of the same mass. The pre-main-sequence tracks contract onto the star's own MIST arrival row, a subgiant starts from its last row, and a supergiant brightens from it. The sampling tables for bright stars find the age a star first clears a brightness by reading the same table. A mass below 0.1 solar masses, or an age past MIST's main sequence, takes the row at the table's edge or a power-law extension (stand-in).
+- The composition note of a main-sequence star reports the same row the star's record reads.
+
+generation-output: changed
+
+## [8.0.2341] - 2026-10-25
+
+**Headline:** The Galaxy Map's cards fit the map's window and a system's card lists its nearest systems.
+
+### Changed
+- **The card follows the map's window (MAP.295).** The popup a picked object opens inside the map was a fixed size, so on a smaller map window part of it could run off the edge. It now takes a share of the map's width (more on a wide map, less on a narrow one), is never taller than the window, and its text is a little smaller than before and shrinks a step at a time until everything it says fits. What cannot fit even at the smallest text (a very short window) scrolls inside the card: the wheel over it scrolls the card while it has more to show, then goes on to zoom the map. The card also sits under the map's Menu panel so it never covers the Menu's buttons.
+- **A system's card names its nearest systems (MAP.296).** Under its position a star system's card (the habitable-world markers' card) now lists the systems nearest to it, nearest first with their distances, each name a link to that system's page. They come from the same stored neighbours the system page's "Nearest:" line names.
+
+TODO items resolved: MAP.295, MAP.296. Added: none.
+
+## [8.0.2340] - 2026-10-25
+
+**Headline:** The hours a person can be outside in a day are now worked out from daylight, dose, heat, cold, air and ultraviolet, with the binding limit named; nothing is stored or shown yet.
+
+### Changed
+- **GEN.768, part 1: the model.** `physics/outside_hours.py` gives the hours of one local day a person can be outside in the equipment the survival rules list: the smallest of the daylight, the day's share of the radiation allowance, the time a garment keeps the core temperature in its limits at the day's hottest and coldest, the breathing gas against an 8-hour shift and the ultraviolet against what the worn garment is rated for, and names the limit that binds. Its numbers are named rows of `protection_limits` with source tiers in the stand-in registry (10 new rows, OH1 to OH10). No generated value, page or column changes yet; the stored column follows the daylight hours of GEN.767.
+
+## [8.0.2339] - 2026-10-25
+
+**Headline:** What a small or hot planet loses from its air now comes from a model of its thermosphere and its star's XUV history, instead of a fixed ratio of temperatures and a rule of thumb.
+
+### Changed
+- **Escape model (GEN.738).** The exobase temperature is the mesopause plus a rise that goes with the star's XUV and is cooled by the carbon dioxide of the air, fitted to the upper-atmosphere model of Johnstone et al. 2018. Each species leaves by the Jeans flux through the exobase, at most what the air below can carry up, and the star's XUV decay over the body's age is integrated against the air that is left. The Earth keeps its nitrogen, oxygen, argon and carbon dioxide and loses its hydrogen and helium; Venus keeps all of its air; Mars keeps CO2 and nitrogen; Titan's hydrogen flux is within 15 percent of the measured 9.2e27 per second. The old exobase ratios, XUV exponent and logistic width (registry rows AM19 to AM21) are gone, and the two remaining cutoffs are labelled as numerical.
+- **Envelope mass loss.** The analytic fit of Kubyshkina et al. 2018 for a hydrogen envelope is in `thermosphere.py` and reproduces the nine planets of its Table 2 to a factor of 2.3 or better; it is not wired into the sub-Neptune rows yet. Nothing in the generator draws the mixture yet (it waits on GEN.411 and GEN.422), so no stored value changes today.
+- Tests for the Earth, Venus, Mars, Titan and the nine planets, fifteen stand-in registry rows (GEN.725, AM63 to AM77), a design note (`atmospheric-escape-model.md`) and the licences of the three papers read.
+
+## [8.0.2338] - 2026-10-25
+
+**Headline:** One page test no longer fails on a machine whose MySQL has no `planetgen` login.
+
+### Fixed
+- **`test_web_pages.py::test_in_process_transport_skips_http_inside_a_request` (TEST.370)** asked the app for `/databases`, which lists the schemas on the configured server, with the default configuration's `planetgen` login and no password. On a test machine that has only the test login it failed with `DatabaseLoginError` (an `internal server error` from the API). The test now builds its app with the test server's login.
+- Not changed: the runner's check of the test environment (TEST.376) already stops a lane that has no `PLANETGEN_TEST_MYSQL_USER` set, which is how the same gap shows up in other tests.
+TODO items resolved: TEST.370, and TEST.390 (TODO closes them after reading this: each of Aux 10's tests passes on main; the runner self-tests, test_stages, test_web_fresh_after_cli and the browser map and table tests ran 116 passed, and the other four were fixed by #3189, #3280 and #3291). Added: none.
+
+## [8.0.2337] - 2026-10-25
+
+**Headline:** A queue worker that dies soon after it started is replaced at once instead of after about 90 seconds, and two tests that were red on main are fixed.
+
+### Fixed
+- **A worker killed (or lost to the out-of-memory killer) within 90 seconds of being started was not replaced for the rest of that time (TEST.371).** The count of workers "started and not yet registered" (`planetgen:workers:starting:<queue>`, PERF.181) was only ever cleared by its 90 second expiry, so a worker that had registered was counted twice, once among the live ones and once among the starting ones, and the room left for a replacement stayed taken. A job then waited in the queue with no worker until the count ran out. A worker now takes itself off that count when it registers (`workers.registered`, called from the worker's `register_birth`). `test_workers.py::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs` waited 90 s for this and passed or failed by a second (it failed alone 1 time in 3); it now takes under 5 s, and a new test holds the count.
+- **`test_cache_warmup.py::test_a_family_command_runs_alone_and_warms_only_its_family` (TEST.377)** expected `run-population` to refuse to be cut into units, but every registered command has an expansion now. It makes an inline command of its own to show the refusal.
+TODO items resolved: TEST.371, TEST.377 (TODO closes them after reading this). Added: none.
+
+## [8.0.2336] - 2026-10-25
+
+**Headline:** A planet with an ocean and no land now has a carbon sink in the model, so its carbon dioxide no longer has to stay in the air.
+
+### Added
+- **The carbon of a water world, as a module (GEN.814).** An ocean deep enough to seal the seafloor (1 to 3 GPa) holds its carbon by ocean chemistry and the cations the early ocean leached from the crust; an unsealed world with no land loses carbon to the seafloor, as Kite and Ford 2018 and Krissansen-Totton and Catling 2017 describe. The generator does not call it yet; it joins the air solve with the surface-air work.
+
+## [8.0.2335] - 2026-10-25
+
+**Headline:** The Galaxy Map has no sector boxes any more: a click selects the star or object under it and shows its details, and a double click flies to it.
+
+### Changed
+- **No sector boxes on the Galaxy Map (MAP.297).** Hovering or clicking the map no longer names, outlines, shades or opens a block of sectors; the blocks remain only as the data the map draws from, as the optional Cell grid, on a sector page's own map, and while a NAV end is chosen. The arrow keys no longer move among blocks.
+- **A star takes the click (MAP.304).** Every drawn star is picked from any distance (the nearest to the pointer, the brightest of those level with it): one click selects it and shows its details in the map's window, a click on nothing puts them away, a double click (or Enter on the selected one) flies the camera to it, a sector and a half away at the nearest. The wheel still zooms where it did. The map's help and hint text say so.
+
+## [8.0.2334] - 2026-10-25
+
+**Headline:** A moon's makeup now follows from how it formed, so icy captured moons and rocky impact moons differ in density, ice and metal.
+
+### Changed
+- **A moon's metal, rock, water and ice shares come from its origin (GEN.466).** A disk moon of a giant planet gains ice past its disk's ice line (the disks of one giant's moons share a lifetime and an ice line) and turns from dry to carbonaceous rock with distance, an impact moon of a rocky planet is nearly dry and takes a few percent metal, and a captured moon is a Kuiper-belt-like mix of rock and ice with some ice lost. The water share is no longer drawn from the moon's class range.
+- **A small moon's density comes from the tapered brittle compaction law (GEN.466, GEN.442).** A moon lighter than 1e21 kg has voids that close with size and so a density that rises with its radius; a heavier one is solved from its composition with no macroporosity.
+
+generation-output: changed
+
+## [8.0.2333] - 2026-10-25
+
+**Headline:** The "/9" beside a life score is now easy enough to read on white, and the accessibility test waits for the Generate system menu to finish building.
+
+### Fixed
+- **The "/9" after a life score (the habitability tree and system page) had a contrast of 3.18 to 1 on white**, under the 4.5 to 1 the accessibility test requires (UX.229). It was the score's colour faded to 70% opacity; it now uses the page's muted text colour, which passes in both themes. Eight `test_web_a11y` cases on the system and object pages passed again.
+- **`test_web_a11y` could check the Generate system page before its menu had built** (UX.230). Axe then saw the options without their list around them ("aria-required-parent", once, at phone/light). The test now waits until every Shoelace element on the page is defined and has rendered before it runs axe. The page itself is unchanged: the menu is built by Shoelace and passed in the other three cases.
+TODO items resolved: UX.229, UX.230 (TODO closes them after reading this). Added: none.
+
+## [8.0.2332] - 2026-10-25
+
+**Headline:** The water a rocky planet is drawn to start with now follows the Bern population synthesis against how far from its star it formed and its mass, as one law, instead of a mass-only law plus snow-line guesses.
+
+### Changed
+- **Delivered-water rows b1 to b4 (GEN.802).** Dry, low, high and water-rich delivery come from three nested logits in the formation distance over the snow line, the mass and a hinge at 0.6 of the snow line, fitted to 10,506 planets of the Bern condensed-water population; the old b4 gate at the snow line and the mass-only logistic of GEN.510 are gone, so a planet inside the snow line can be water-rich (a quarter at 0.55, a half at 0.75) and the mass moves the water-rich share only slightly. The tier of the row is 6 (centre) and 7 (width), tweak level 0 (registry AT.b4). The recipes are not read by the generator yet, so no generated value changes.
+
+## [8.0.2331] - 2026-10-25
+
+**Headline:** Suggested facility ratings now read the host's Suitability, food rung, radiation domain and Flora and Fauna, so a facility on a hard-to-live-on world no longer rates Health and Housing from the overall score alone.
+
+### Changed
+- **Facility ratings read more of the host (POP.37).** Health is now 0.4 Medical, 0.2 habitability, 0.2 radiation domain and 0.2 food rung (it was 0.5 and 0.5); Housing is 0.25 habitability, 0.25 Suitability, 0.3 Materials and 0.2 kind size (it was 0.5, 0.3 and 0.2); Resources on a living world takes 0.2 from its Flora and Fauna (biota) out of richness, Energy and nearness. A belt, an orbit, a lifeless world and a world with no score keep the old Resources weights. Maintenance and Crime are unchanged. The suggester is only run on request (the Suggest buttons and the batch route), so no generated world changes and the ratings already set are not touched. The weights and their sources are in `docs/design/habitability/population-and-politics.md`, "Setting ratings".
+
+## [8.0.2330] - 2026-10-25
+
+**Headline:** The browser tests no longer fail with "50 per 1 hour" rate-limit errors, and each app now follows its own API request limit.
+
+### Fixed
+- **The API's default request limit (200 per day, 50 per hour per address) was taken from the first app made in a process and kept for every app made after it** (`Limiter.init_app` keeps only the first default of a shared limiter). A test run builds many apps in one process, so a browser fixture that called the API from one address (`sample_params` makes about 7 calls per module) could not be given a different limit and ran into the hourly 50, which errored 259 browser tests at setup. The limit is now read from the current app's `RATELIMIT_DEFAULT` on each request. On a real server, which makes one app, nothing changes: the limit is still 200 per day and 50 per hour, and an empty setting still turns it off.
+- The browser test sites (`habitability_site`, `map_site_support`, `test_web_a11y`, `test_web_browser_tables`, `test_web_settings_browser`) now set `RATELIMIT_DEFAULT = API_LIMIT_OFF`, so their fixtures cannot be throttled. A route's own limits (login, writes) still apply to them.
+
+### Added
+- `planetgen.api.limiter.API_LIMIT_OFF`, the `RATELIMIT_DEFAULT` that turns the default limit off for a test harness.
+- Tests in `test_web_security_limits.py` that a direct API call is still limited by the default (429 with `rate limit exceeded`, per address), that `API_LIMIT_OFF` is never limited, that two apps in one process keep their own default in either order, and that the production default is unchanged.
+TODO items resolved: TEST.385 (TODO closes it after reading this). Added: none.
+
+## [8.0.2329] - 2026-10-25
+
+**Headline:** The words "rough guess" are gone from every time estimate; a time that has not been timed yet is shown as a range and says so.
+
+### Changed
+- **Time estimates no longer say "rough guess" (PERF.199, bug).** Where this server has not timed the work yet, the Generate page's estimate and review page now show the range with its units and "(not timed yet on this server)", for example "40 s to 5 m 00 s (not timed yet on this server)", instead of one figure and "a rough guess, anywhere from ..." or "a rough default". The Generate job's whole-job bar reads "roughly A to B left (not timed yet)", the Queue page's time left reads "A to B (not timed yet)", the Galaxy banner says "(nothing has been timed yet)", the deep database check's estimate says "not timed yet", and the estimate's source in the run record API is now "not timed yet" instead of "rough guess".
+
+TODO items resolved: PERF.199. Added: none.
+
+## [8.0.2328] - 2026-10-25
+
+**Headline:** An admin edit now works the light a planet sums over the stars out again before the scores are rewritten, so a body in a binary system no longer keeps a habitability score from before the edit.
+
+### Fixed
+- **An edit leaves current scores (ADM.132).** An admin edit (regenerate, class change, star change) already rewrote the habitability, Suitability and life scores of the edited body and its moons, and `save_system_edits` worked every scored body out again from the rows it wrote, but the light swing of a planet in a two-star system (`flux_variation`) was left as it was (NULL on a regenerated planet), so those scores read a stale swing. The edit writer now refreshes it from the final orbits first (`insolation.refresh_system`), as generation and the re-score do. `test_admin_edit_scores.py` proves that after each kind of edit the stored scores of every rocky body equal what `store.refresh_habitability` works out.
+
+## [8.0.2327] - 2026-10-25
+
+**Headline:** A rogue planet now has a habitability score, so an ocean under its ice or under a hydrogen envelope is rated like any other world.
+
+### Changed
+- **Rogue planets are scored (GEN.701, schema v158).** A terrestrial rogue planet keeps the PHI-6 score and its six domain tiers, the four life scores, the four likelihoods behind microbial life, the survival equipment levels (`eq_*` and `shelter_column_g_cm2`) and the chemical energy (`energy_flux_w_m2`), worked out from its surface regime by `planetgen/physics/rogue_habitability.py`: the regime's gas, the water state (an ocean under ice, a hycean ocean, ice or none) and its water column, its own heat as the only energy, and the galactic cosmic-ray dose under its air plus the gamma dose of its crust. No life is drawn for a rogue planet, so its life scores are 0 and the score says what the surface would allow a visitor. There is no star, so no regional temperatures or hours outside are kept. The system page of a rogue planet shows the PHI-6 score; a gas giant and a brown dwarf have none.
+- **Migration 0158, schema v158.** `rogue_planets` gain 37 columns; a galaxy made earlier gets the same numbers from the surface its rows already hold (nothing is drawn). A generated rogue planet carries the score, so a rogue planet's output changes and the generator epoch is bumped.
+- **The property sheet shows it.** `describe/sheet.py` lists the score, the tiers, the life scores and the energy in the Habitability and Life groups of a rogue planet's sheet, and the shelter column beside them.
+
+generation-output: changed
+
+## [8.0.2326] - 2026-10-25
+
+**Headline:** A lava world's vapour now lists aluminium (Al, AlO, Al2O, AlO2, Al2O2) in the proportion its melt gives, instead of none.
+
+### Added
+- **Aluminium in the lava vapour (GEN.818).** The melt model gives Al2O3 an activity equal to its mole fraction (a tier 3 stand-in, registry row AM51: the published melt models of the bulk silicate Earth agree with an ideal solution except for the alkalis), and the species table gains AlO, Al2O, AlO2, Al2O2 and the liquid Al2O3 (99 species, 79 gases). A bulk-silicate-Earth melt at 2500 K has about 2e-7 of its vapour as aluminium and 6e-5 at 3000 K. The mixture draw is not called by the generator yet, so no generated value changes.
+
+## [8.0.2325] - 2026-10-25
+
+**Headline:** The two 20 percent water rows of the ocean-world table in the design notes are recomputed from the built code, and a test now holds every row of that table to it.
+
+### Fixed
+- **Ocean-world table (DOC.79).** The x = 0.2 rows of design part C 2.4 (1 and 5 Earth masses) said 1635 km at 26.0 GPa and 2519 km at 114 GPa, which did not follow from the table's own radii. They now read 1294 km at 19.2 GPa and 2024 km at 84.7 GPa, with the gravity and the surface-pressure estimate rechecked, and the hydrosphere note no longer calls them a non-target. `tests/test_water_layer.py` reads the document table and compares each row with `physics/water_layer.py`. Documents and a test only: no generated value changes.
+
+## [8.0.2324] - 2026-10-25
+
+**Headline:** Small bodies now have moons at the rates observed for asteroids and trans-Neptunian objects.
+
+### Changed
+- **The moon draw asks the hosting gate (GEN.761).** A body must be able to hold a satellite (one must fit, and a stable orbit must exist) before it is given moons. The small bodies of a system (class D, 100 to 1000 km across) used to have moons half the time; they now follow the measured shares of binary asteroids and trans-Neptunian objects: about 5% for small bodies near their star and in a belt, 22% for the cold trans-Neptunian ones and 5.5% for the hot ones. Planets keep their even chance of moons.
+
+generation-output: changed
+
+## [8.0.2323] - 2026-10-25
+
+**Headline:** The command line, the run log file and the job download now write the same log records.
+
+### Changed
+- **The command line's log lines go through the logging layer (UX.122, first slice).** Text on the console is the same as before; `--record-file FILE` (and `--record-json`) also writes every line to a file as a record with its time in UTC, severity and component. A stage's start and skip are the one divider (`=== Stage 4 of 9: Scatter the massive stars ===`), without the trailing full stop the old lines had.
+- **A run's log file and the admin run log are the run's events as records**, one line each, the stage lines in the standard wording ("Stage 2 of 5 finished after 31 s").
+- **A job keeps `records.log` beside `output.log`**, with the runner's stage marks and every line its steps log; the job's log can be downloaded as records with `/admin/generate/jobs/<id>/log?form=records`. The closing line of a step reads "finished after 31 s" or "failed after 31 s: exited with status 2" instead of "exited with status 0 after 31 s".
+
+## [8.0.2322] - 2026-10-25
+
+**Headline:** The carbon and nitrogen a rocky planet's mantle holds now match what the Earth, Venus and Mars are known to hold, so worlds at the Earth's distance no longer start with hundreds of bar of nitrogen.
+
+### Changed
+- **Dry-class carbon (GEN.813).** The dry delivery class drew 0.6 weight percent CO2, sixteen times the carbon of the bulk silicate Earth, and a planet at the Earth's distance draws that class nine times in ten. The bracket is now 0.018 to 0.1 weight percent (the stored dry value to the wet High case of Ortenzi et al. 2020), whose middle is the Earth's 100 ppm of carbon.
+- **Nitrogen per carbon (GEN.813).** The bracket is 0.005 to 0.1 (it was 0.001 to 0.1), whose middle is the Earth's 0.02; the measured values for the Earth, the CI chondrites, Venus and Mars (Bergin et al. 2015) are inside it. Before, 37 percent of draws at the Earth's distance held ten times the Earth's nitrogen; now none do. Nothing in the generator draws the mixture yet (it waits on GEN.411 and GEN.422), so no stored value changes today.
+- A test of the Earth, Venus and Mars totals against the drawn inventory, three stand-in registry rows (GEN.725) and a design note (`volatile-inventory-against-planet-totals.md`).
+
+## [8.0.2321] - 2026-10-25
+
+**Headline:** The sulfate and sulfide balance that decides how much of the sulfur a volcano gives stays in the air is built as a module; nothing calls it yet.
+
+### Added
+- **Sulfur sink (GEN.815).** `physics/sulfur_balance.py` splits the degassed sulfur between the air, a calcium sulfate sink and an iron sulfide sink by the redox of the gas, limited by the crust the volcanism built, and leaves in the air only what the sinks have not yet taken (rain-out over liquid water, sulfation on a dry surface) and what they cannot hold. It replaces the stand-in that kept 1e-5 to 1e-2 of the sulfur in the air of a wet world once the surface-air step uses it. Five stand-ins are in the registry (AM45 to AM49). The module is not called by the generator yet, so no generated value changes.
+
+## [8.0.2320] - 2026-10-25
+
+**Headline:** A rocky planet's iron no longer copies its star exactly: it scatters about the star's, and a rare planet is iron-rich.
+
+### Changed
+- **The iron branch of a rocky planet (GEN.512).** A rocky planet's core now takes its star's iron with a small scatter, and about 1 planet in 100 is iron-enriched (a core of 50 to 80 percent of the dry mass); before, every planet of a star had the star's core exactly. The share is tuned to the homogeneous samples of small planets (1 of 21 iron-rich beyond their measurement error), and the noise of those measurements alone explains that share, so the iron-rich share is an upper limit. Moons, icy, small and carbon bodies are unchanged.
+generation-output: changed
+
+## [8.0.2319] - 2026-10-25
+
+**Headline:** The progress bars, the Generate page's progress line and the Queue page's stage table now say what their counts count.
+
+### Changed
+- **Progress bars on the command line (API.33).** "12/40" now reads "12/40 sectors" (or rows, passes, steps, systems, units, by the bar's kind); a bar of detail items keeps naming its own items.
+- **The Generate page's progress line (UX.211).** "Neighbours: 3 of 40" now ends with what it counts ("3 of 40 sectors") unless the label already says it.
+- **The Queue page (UX.211).** A stage's "5 of 75" now reads "5 of 75 units", and a run with one unit says "unit", not "units".
+- **Phenomena scatter log lines** say "placed 120 phenomena", not "placed 120".
+- **Generate page, Minimum start density** now says that 1.0 is as dense as the Sun's neighborhood.
+
+## [8.0.2318] - 2026-10-25
+
+**Headline:** The planet generator now has a model of the volatiles that late impacts deliver to a rocky planet and the air they blow away.
+
+### Changed
+- **Impact erosion and late delivery (GEN.739).** A new module (`impact_history`) takes the mass a rocky planet accretes after its giant impacts (0.7 percent of an Earth mass for the Earth, falling with mass), the water, carbon dioxide and nitrogen those impactors bring, and the air they erode, and returns what the air and the surface keep. It reproduces the Earth's nitrogen and ocean, Venus's nitrogen, and the result that late impacts alone do not make Mars thin. The supply law has a hook (`impact_inventory`) that turns the result into atoms per 100 g of mantle. Nothing in the generator calls it yet (it waits on GEN.411 and GEN.422), so no stored value changes today.
+- The nine new constants are in the stand-in registry (GEN.725) with their source tier and tweak level. The design note is `docs/design/composition/impact-erosion-and-late-delivery.md`.
+
+## [8.0.2317] - 2026-10-25
+
+**Headline:** The redox of a rocky world's magma ocean now follows the published ranges: its spread grows with mass, it keeps rising above one Earth mass, and the later mantle is never more reduced than the ocean it came from.
+
+### Changed
+- **Width and rise above one Earth mass (GEN.482b).** The spread of the magma-ocean redox grows from 0.5 log units at 0.1 Earth masses to 0.9 at one (the Hirschmann 2022 and Deng 2020 ranges for the Moon, Mars and Earth), and the mean keeps rising by 1.0 per dex of mass up to 5.4 Earth masses, where the pressures of the published calculations end. Nothing in the generator draws the mixture yet (it waits on GEN.411 and GEN.422), so no stored value changes today; the first air of a heavier rocky world will be more oxidised than before once it does.
+- **The later mantle (GEN.482b).** Its mean is held at the Earth value above one Earth mass (no source goes further), and a body never moves to a later mantle more reduced than its own magma-ocean surface.
+- Rows a1 and a2 are listed as partly verified with their limits (GEN.482); row a3 is unchanged because nothing reads it for a body with an air.
+
+## [8.0.2316] - 2026-10-25
+
+**Headline:** The gas table now holds K2, KO, K2O, Na2O and Al, so the vapour over a lava world lists the alkali oxides it makes instead of dropping them.
+
+### Added
+- **Lava-vapour gases (GEN.751).** K2, KO, K2O and Na2O, and Al, are in the NASA thermodynamic table (94 species) and the gas table (108 gases), computed from the NASA fits like the other lava-vapour species. A lava-world draw lists the four alkali species it makes (KO is about 4e-7 bar over a bulk-silicate-Earth melt at 2500 K); aluminium is in the table but the melt model has no aluminium activity yet, so none is drawn. The mixture draw is not called by the generator yet, so no generated value changes.
+
+### Fixed
+- **A K2 star is not the potassium dimer.** The text that marks chemical formulas no longer reads the spectral type "K2" as the gas K2, which the table now holds; the `formula` filter still writes K2 out where it is named.
+
+## [8.0.2315] - 2026-10-25
+
+**Headline:** A dry, frozen or hot world can now hold liquid water underground, which lifts its Water rating and lets microbes live there.
+
+### Changed
+- **Aquifers (GEN.654, DB.92, schema v157).** A rocky world or moon with no liquid at its surface keeps `aquifer_depth_km` and `aquifer_thickness_km`, worked out by `physics/aquifers.py` from its heat flow, its surface temperature and pressure, its gravity and the water left in its surface reservoir: the layer of its crust where the pores are open and the water is liquid and not hotter than life can use. A world with none, a gas giant and a galaxy made earlier keep NULL (migration 0156).
+- **What it does to the score.** The water is a solvent for life (the Microbial score can rise, capped at abiogenesis, so Flora, Fauna and Sentient stay 0), the life sees the ground's dose and the chemical power of the heat flow, and the Water rung is Yellow when the layer starts within 5 km and Red when it is deeper. A world with an ocean at the surface has none. The property sheet lists both numbers.
+- Every parameter is a labelled DESIGN stand-in (`tuning.py`, `DATA-LICENSE.md`); the generator epoch is bumped because worlds that had no life now draw a chemistry.
+
+generation-output: changed
+
+## [8.0.2314] - 2026-10-25
+
+**Headline:** Two research notes check the water-delivery and magma-ocean redox rows against first-hand sources; rows a1 and a2 are now listed as partly verified instead of stand-ins.
+
+### Changed
+- `docs/design/composition/volatile-delivery-formation-distance.md` (GEN.481) gives the water-rich share and the delivery classes against formation distance from the Bern population synthesis, and where it disagrees with the design weights of rows b1 to b4.
+- `docs/design/composition/magma-ocean-redox-against-mass.md` (GEN.482) checks the magma-ocean surface redox (row a1), the later-mantle law (row a2) and the small-body building-block redox (row a3) against Hirschmann 2022, Deng 2020, Sossi 2020 and Schaefer and Fegley 2017, and gives the Na and K condensation temperatures from Lodders 2003.
+- Rows a1 and a2 of the atmosphere possibility table change from stand-in to partly verified with their limits written in the row; the numbers the generator draws do not change.
+
+## [8.0.2313] - 2026-10-25
+
+**Headline:** Two tests that were red on main (the sector save report that took over 15 minutes, and the Generate anyway log) now test what they meant to.
+
+### Fixed
+- **`test_save_progress.py::test_a_sector_save_reports_each_system_it_inserts` timed out at 900 s.** It stored a galaxy shape first, so the sector was filled from the galaxy's density and the `num_systems = 3` it asked for no longer limited it (817 to 1,532 systems and 7,000 to 13,000 phenomena at three addresses, over 15 minutes at the address it used). The test is about the save's progress report, which is the same for any sector, so it no longer stores a shape: the sector has 3 systems and the test takes 2 seconds.
+- **`test_web_generate.py::test_generate_anyway_starts_the_job_and_logs_it` and `test_a_plain_confirm_is_not_logged_as_an_override` counted every activity-log event.** The page's in-process API calls are logged as `call` events by the same function, so the list was `["call", "call", "job.start", ...]`. The two tests now keep only the `job.` events they assert on.
+- Not changed: `test_db_column_round_trip::test_every_column_is_written` passes alone (a load failure in a long run), and the `test_api_auth_sweep` failure was fixed by the run log download change (SEC.36's PR).
+TODO items resolved: none (TODO closes TEST.375 after reading this). Added: none.
+
+## [8.0.2312] - 2026-10-25
+
+**Headline:** A few very young massive stars now start in a small group that is about to break up.
+
+### Changed
+- **Young groups (GEN.327).** One in twenty O and early-B stars younger than 0.3 million years is born in a group of 3 to 5 stars (like the Orion Trapezium) that flies apart within 10,000 to 40,000 years. While it is that young, the star's page lists the group as a "Young group" with the time it has left, and each member has its place and speed. Older stars of the same kind are drawn as what such a group leaves: one star fewer (the lightest is thrown out), the rest in a tighter set of orbits. Because the break-up is so quick, a group you can still see is rare. Massive young stars give different companions than before.
+
+generation-output: changed
+
+## [8.0.2311] - 2026-10-25
+
+**Headline:** The life scores show their scale and the search tag counts say what they count.
+
+### Changed
+- On a planet's or moon's page, in lists, in trees and in search results, the number beside a life shape reads "3/9" instead of a bare 3 (UX.211).
+- A search tag's count reads "24 results" instead of a bare 24 (UX.211).
+
 ## [8.0.2310] - 2026-10-25
 
 **Headline:** The four open weight tables of the bulk and moon recipes now carry a researched stand-in, a source tier, a tweak level and a replacing item.

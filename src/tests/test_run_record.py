@@ -10,6 +10,7 @@ import pytest
 
 from planetgen.queue import progress_rate, redisqueue, runeta, runrecord
 from planetgen.queue.runrecord import Stage
+from planetgen.util import logrecord
 
 
 @pytest.fixture
@@ -106,7 +107,10 @@ def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path
     runrecord.finish_run(conn, run_id, "done", now=103.0)
     path = runrecord.write_log_file(conn, run_id, tmp_path / "jobs")
     text = open(path, encoding="utf-8").read()
-    assert "WARNING disk is slow" in text and text.rstrip().endswith("run done")
+    assert 'level=warning component=run msg="disk is slow"' in text and text.rstrip().endswith('msg="run done" event=run.done')
+    assert text.splitlines()[0] == 'ts=1970-01-01T00:01:40.000Z level=info component=run msg="run started: Fill" event=run.start'
+    assert [logrecord.parse_file_line(line).message for line in text.splitlines()] == [
+        "run started: Fill", "scatter layer 3 saved", "disk is slow", "run done"]
     for n in range(25):
         (tmp_path / "jobs" / f"2020010{n % 10}-{n:06d}-aaaaaaaa.log").write_text("old")
     runrecord.write_log_file(conn, run_id, tmp_path / "jobs", keep=20)
@@ -180,15 +184,15 @@ def test_a_phase_with_no_updates_and_no_history_uses_the_time_per_task_so_far_in
     assert eta.source == "this run so far" and not eta.partial
     assert eta.seconds == pytest.approx(5.0 / (10.0 / 120.0))
     nothing = runeta.estimate(_run(_stage(started=0.0), started=0.0), now=5.0)
-    assert nothing.rough and nothing.source == "rough guess" and not nothing.partial       # PERF.184: a guess, not a blank
+    assert nothing.rough and nothing.source == "not timed yet" and not nothing.partial       # PERF.184: a guess, not a blank
 
 
-def test_a_server_that_never_timed_a_stage_gives_a_rough_guess_from_its_hardware_and_says_so(monkeypatch):
+def test_a_server_that_never_timed_a_stage_estimates_from_its_hardware_and_says_so(monkeypatch):
     """PERF.184 (Boss, 2026-10-24): no benchmark or history, the estimate must still be sensible."""
     monkeypatch.setattr(runeta.roughtime, "host_workers", lambda cores=None, memory_bytes=None: 8)
     started = _stage(started=0.0, units=16)                      # 16 units over 8 workers: 2 rounds of 20 s
     eta = runeta.estimate(_run(started), now=0.0)
-    assert eta.rough and eta.source == "rough guess" and eta.seconds == pytest.approx(40.0)
+    assert eta.rough and eta.source == "not timed yet" and eta.seconds == pytest.approx(40.0)
     assert (eta.low, eta.high) == pytest.approx((16.0, 120.0)), "a guess is wide"
     counted_down = runeta.estimate(_run(started), now=30.0)
     assert counted_down.seconds == pytest.approx(10.0)

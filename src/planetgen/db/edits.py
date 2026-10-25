@@ -16,7 +16,7 @@ its row (with what points at it).
 import uuid
 
 from planetgen.db import kind_tables, object_rows, store
-from planetgen.physics import unit_registry as units
+from planetgen.physics import insolation, unit_registry as units
 
 _au_to_km = units.converter("au", "km")
 
@@ -171,6 +171,7 @@ def save_system_edits(conn, system_id, system, stars=()):
         system (StarSystem): The edited system.
         stars (iterable): Loaded `Star`s (with `db_id`) to update.
     """
+    insolation.refresh_system(system)   # ADM.132: the light each body sums over the stars, from the orbits the edit left
     store.keep_body_numbers(conn, system_id)   # a body deleted below leaves its number used for good (DB.20)
     kept_planets, kept_belts = [], []
     for star_id, planets in _star_ids(conn, system_id, system):
@@ -199,7 +200,7 @@ def save_system_edits(conn, system_id, system, stars=()):
     for comet in list(system.comets) + list(getattr(system, "secondary_comets", [])):
         if getattr(comet, "db_id", None) is not None:
             _save_comet_orbit(conn, comet)
-    store.refresh_system_dose(conn, system_id)
+    store.refresh_system_dose(conn, system_id)   # ADM.132: also works every scored body's habitability, Suitability and life scores out again from the rows just written
     store.assign_uids(conn, system_ids=[system_id])   # bodies added by the edit get their IDs (GEN.174)
     store.touch_star_system(conn, system_id)
 

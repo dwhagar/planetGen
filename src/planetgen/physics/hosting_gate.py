@@ -26,8 +26,9 @@ that reach the inner system), `belt-small-body` (a belt between the snow line an
 `trans-neptunian-hot`, `moon`. The caller classes the body; this module does not guess.
 
 The rows are in `satellite-share`; their numbers and sources are in docs/design/composition/small-body-size-laws.md section 2. All are
-partly verified or stand-ins. A change to a row changes draws, so it needs a generator epoch when a draw reads it; nothing
-reads this module yet.
+partly verified or stand-ins. A change to a row changes draws, so it needs a generator epoch when a draw reads it. The moon draw reads this module
+(GEN.761): `planets.generate_moons` asks `can_host`, and `Planet._draw_moons` takes a class D body's chance of moons from
+`satellite_share` (`planets.hosting_population` names the body).
 """
 
 import math

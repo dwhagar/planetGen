@@ -306,13 +306,13 @@ def _json_script(data):
 GALAXY_MAP_HELP = """<h3>Moving</h3>
   <ul>
     <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom. Turning and zooming go about the cross in the middle of the map; Shift-click (or right-click) a spot to make it the new center, or use the direction star on the map (its middle button puts the center back at the middle of the region you are viewing) and the zoom slider beside it.</li>
-    <li>Hover over the galaxy to see its blocks and click one to zoom into it: the map then shows the blocks
-    one size down around the spot you clicked, and a click on one of those centres on that, and so on down
-    to single sectors.</li>
+    <li>Click a star or any other object for its details, shown over the map; double-click it to fly there. A
+    click on empty space puts the details away, and scrolling toward a spot zooms in on it, down to single
+    sectors.</li>
     <li>Back and Forward retrace your steps; the round Steps button lists them all, with Jump to newest. Up (or
     Esc) goes one step out, Whole galaxy (or Home) starts over, and Re-center puts the camera back to the
     current step's own view.</li>
-    <li>Arrow keys and Enter pick too. The keys 1 to 9 open a bookmark while the map has focus.</li>
+    <li>Enter flies to the selected object. The keys 1 to 9 open a bookmark while the map has focus.</li>
   </ul>
   <h3>Reading the map</h3>
   <ul>
@@ -418,7 +418,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
-                              uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None):
+                              uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
+                              system_nearest_path="/galaxy/system/{id}/nearest"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -479,6 +480,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             (`/galaxy/territories`), fetched when the Territories button
             is pressed. `None` (no polities generated yet) leaves the
             button and its legend out.
+        system_nearest_path (str): The endpoint of a star system's nearest neighbours (`/galaxy/system/{id}/nearest`,
+            `{id}` where the system's id goes), which a system's card lists under its position (MAP.296).
         nebula_shape_path (str): The endpoint of a nebula's mesh (`/galaxy/
             nebula/{id}/shape`, `{id}` where the nebula's id goes), which the
             map draws a nebula from once it is big enough on screen
@@ -539,6 +542,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "locatePath": locate_path,
         "territoryPath": territory_path,
         "nebulaShapePath": nebula_shape_path,
+        "systemNearestPath": system_nearest_path,
         "course": course,
         "made": made,
         "superbubbles": [[b["x"], b["y"], b["z"], b["radius_pc"]] for b in superbubbles or []],
@@ -673,7 +677,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     title = "Sector Map" if pinned else "Galaxy Map"
     info_hint = (
         "Click a star, cloud or body for details." if pinned
-        else "Click a block of the galaxy to look at it more closely."
+        else "Click a star or an object for its details, double-click to fly to it."
     )
     help_html = SECTOR_MAP_HELP if pinned else GALAXY_MAP_HELP
     if pinned:

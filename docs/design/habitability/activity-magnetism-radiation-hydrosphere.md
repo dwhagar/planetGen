@@ -102,8 +102,8 @@ after `t_sat`. This model replaces the stand-in XUV history in
 
 ### 2.2 XUV flux at the planet
 
-`F_XUV = L_XUV / (4 pi d^2)`. With the project's mass-luminosity law
-(`tuning.MS_MASS_LUMINOSITY_PIECES`) and a planet at S = 1 (d = sqrt(L) AU),
+`F_XUV = L_XUV / (4 pi d^2)`. With a star's main-sequence luminosity (the table below was worked from the project's earlier piecewise
+mass-luminosity law, which GEN.652 replaced with the MIST isochrones; the figures are close enough for the scaling) and a planet at S = 1 (d = sqrt(L) AU),
 in units of Earth's present 4.6 erg/cm2/s [C]:
 
 | Star (Msun) | d (AU) | 0.1 Gyr | 0.5 Gyr | 1 Gyr | 2 Gyr | 4.5 Gyr | 8 Gyr |
@@ -502,7 +502,7 @@ the layer is 746 km deep at 11 GPa, not 1,047 km, and the table below (a fixed 1
 5 to 25 percent too deep. `physics/water_layer.py` integrates the column from the surface down with the density of the 300 K isotherm
 of water (IAPWS-95 liquid, then the ice VI, VII and X reference points of the materials table), the gravity of the mass below the
 level, and the area that grows toward the centre; it reproduces design part C 2.4's integrated table within 1 percent for 0.0001 to 0.5
-of an Earth or 5 Earth masses (its two x = 0.2 rows are inconsistent with the table's own radii and are not a test target). The liquid
+of an Earth or 5 Earth masses (its two x = 0.2 rows were recomputed from the code by DOC.79 on 2026-10-25 and are test targets like the rest). The liquid
 stops at the liquidus of the bottom temperature, the melting curves of ice III, V and VI recomputed from the Journaux splines (part C
 2.3: 210 MPa at 251.2 K, 350 at 256.2, 620 at 272.1, 800 at 286.8, 1000 at 300.4, 1500 at 327, 2000 at 347, 2200 at 353.8); below it
 the water is `hp_ice_km`. At Earth gravity the deepest liquid at 280 K is 65 km and at 300 K 88 km (the old table said 73 and 111);
@@ -601,6 +601,31 @@ regimes when an ocean sits under an H2 envelope, below the boiling curve at that
 pressure and shallower than the 5.2 limit. Deeper ones are ice-sealed
 ([atmospheres-retention-and-classes.md](atmospheres-retention-and-classes.md)
 4.3).
+
+### 5.6 Aquifers (GEN.654)
+
+A world with no liquid at its surface (hydrosphere `dry`, `ice` or `vapour`) can hold liquid water in the pores of its crust, where
+the heat flow puts the temperature between the freezing point and the hottest water life can use. The model is `physics/aquifers.py`,
+one column of crust, no draw:
+
+* The geotherm is T(z) = T_surface + q z / k with the stored internal heat flux q (plus an icy moon's tide) and
+  k = 2 W/m/K (`tuning.AQUIFER_CONDUCTIVITY_W_M_K`; Clifford 1993, at second hand). The 273.15 K level lies at (273.15 - T_surface) k / q
+  (about 4 km on a Mars with 30 mW/m2); on a warm surface water boils away until the hydrostatic pressure over it exceeds its vapour
+  pressure.
+* The water-bearing layer ends where the geotherm reaches 122 C (`tuning.AQUIFER_LIFE_MAX_K`, Takai et al. 2008) or where the pores close:
+  porosity falls as 0.2 exp(-z/K), K = 2.82 km scaled by Mars's gravity over the body's (`tuning.AQUIFER_POROSITY_*`), and is gone under 0.01.
+* The surface reservoir (the water that is not in the mantle, after the early runaway took its share, GEN.639), spread as a layer over
+  the whole surface, fills the pores from the bottom of the layer up. A small inventory leaves a deep water table and a thin layer; a
+  large one fills the liquid range to its top. A layer under 10 m is none.
+
+Two numbers are stored (`aquifer_depth_km`, the depth to the top of the layer, and `aquifer_thickness_km`; NULL for a world with none).
+They change the score in four places, all in `habitability_world.py`: the solvent is water (so the likelihood of microbial life is not
+cut to 0), the habitat dose is the ground's (life underground sees the rock's dose only), the energy is the chemical power of the heat
+flow (no light reaches it), and the Water rung is Yellow (`AQUIFER_WATER_SCORE` 0.6) when the top of the layer is within
+`tuning.AQUIFER_REACH_KM` (5 km, a drill's reach), Red when it is deeper (the life is out of reach, so it is no food either). The
+life draw caps such a world at abiogenesis (`life.stage_ceiling`): chemotrophs, so the Microbial score can rise and Flora, Fauna and
+Sentient stay 0. The Martian parameters are DESIGN stand-ins read at second hand (the papers could not be opened); they are labelled
+in `tuning.py` and `DATA-LICENSE.md` until a verified source replaces them.
 
 ## 6. Corrections to the source documents
 

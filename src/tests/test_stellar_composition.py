@@ -302,7 +302,10 @@ def test_the_kind_comes_from_the_stored_class():
 
 # --- The sweep ---------------------------------------------------------------------------------------------------------
 
-def test_a_sweep_of_every_kind_of_star_the_generator_makes_adds_up_and_follows_the_relations():
+def test_a_sweep_of_every_kind_of_star_the_generator_makes_adds_up_and_follows_the_relations(monkeypatch):
+    # The sweep draws stars from 0.04 to 80 solar masses through `evolve_star`, which reads the MIST grid (GEN.652): the
+    # fixture grid holds 0.2 solar masses and up to a one-solar-mass turn-off, so the sweep reads the downloaded files.
+    monkeypatch.undo()
     stream = draw.Stream("gen440-sweep")
     seen = set()
     masses = [0.04, 0.06, 0.09, 0.3, 0.8, 1.0, 1.5, 2.5, 5.0, 9.0, 15.0, 25.0, 40.0, 80.0]

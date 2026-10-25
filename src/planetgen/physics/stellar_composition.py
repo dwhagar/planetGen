@@ -50,11 +50,12 @@ star has no fallback value (no luminosity, temperature, radius or lifetime), a w
 Chandrasekhar table and no layers, a neutron star the Chamel and Haensel 2008 outer crust.
 """
 
+import math
 from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.datasets import fetch, isochrones, neutron_star_matter, white_dwarf_models
-from planetgen.physics import constants, elements
+from planetgen.physics import constants, elements, main_sequence
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
 
@@ -311,7 +312,11 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, te
         else:
             point = isochrones.main_sequence_point(mass_sol, age_gy, fe_h)
             detail["main_sequence_lifetime_gy"] = isochrones.main_sequence_lifetime_gy(mass_sol, fe_h)
-            if point is None:
+            if point is None and tuning.IMF_BREAKS_SOL[0] <= mass_sol < tuning.MAIN_SEQUENCE_GRID_MASS_RANGE_SOL[0]:
+                # GEN.652: a mass under the grid reads the extension the star's own record reads (`main_sequence.state`).
+                row = main_sequence.state(mass_sol, age_gy, fe_h)
+                point = (math.log10(row.luminosity_sol), math.log10(row.temperature_k), math.log10(row.radius_sol))
+            elif point is None:
                 open_items = ("the track does not cover this mass or age (0.1 solar masses and up, 0.1 Myr to about 20 Gy)",)
         detail["main_sequence"] = None if point is None else dict(zip(("log_luminosity_sol", "log_teff_k", "log_radius_sol"), point))
     elif kind == WOLF_RAYET:

@@ -4,6 +4,7 @@ reference of design part C 2.4, the liquidus against the recomputed melting curv
 """
 
 import math
+import pathlib
 
 import pytest
 
@@ -13,12 +14,13 @@ EARTH = constants.EARTH_MASS_TO_KG
 R_EARTH_KM = constants.EARTH_RADIUS_KM
 
 # (mass in Earth masses, water mass fraction, radius in Earth radii, depth km, base pressure GPa): C 2.4's ocean-world table,
-# CMF 0.325, 300 K isotherm, 1 bar at the top. Its two x = 0.2 rows are left out: they do not agree with the table's own radii
-# and gravities (a 0.2 column of 1.84e9 kg/m2 cannot be 1635 km deep at 26 GPa), and the 0.1 and 0.5 rows around them do.
+# CMF 0.325, 300 K isotherm, 1 bar at the top. The x = 0.2 rows were recomputed from this module (DOC.79); the table itself is
+# read by the last tests in this file, so the document and these rows cannot drift apart.
 REFERENCE = (
     (1, 1e-4, 0.9895, 1.2, 0.012), (1, 1e-3, 0.9907, 11.7, 0.119), (1, 1e-2, 1.0004, 102.0, 1.18),
-    (1, 0.1, 1.0583, 746.0, 11.1), (1, 0.5, 1.2301, 3005.0, 45.4),
-    (5, 1e-3, 1.5428, 22.8, 0.51), (5, 1e-2, 1.5571, 173.0, 5.03), (5, 0.1, 1.6419, 1189.0, 48.4), (5, 0.5, 1.8942, 4623.0, 205.0),
+    (1, 0.1, 1.0583, 746.0, 11.1), (1, 0.2, 1.1281, 1294.0, 19.2), (1, 0.5, 1.2301, 3005.0, 45.4),
+    (5, 1e-3, 1.5428, 22.8, 0.51), (5, 1e-2, 1.5571, 173.0, 5.03), (5, 0.1, 1.6419, 1189.0, 48.4), (5, 0.2, 1.7463, 2024.0, 84.7),
+    (5, 0.5, 1.8942, 4623.0, 205.0),
 )
 
 
@@ -92,3 +94,42 @@ def test_a_partly_covered_planet_holds_its_water_in_a_deeper_column():
     full = wl.column(EARTH, R_EARTH_KM, 2.34e-4 * EARTH, bottom_temperature_k=285.0)
     covered = wl.column(EARTH, R_EARTH_KM, 2.34e-4 * EARTH, covered=0.5, bottom_temperature_k=285.0)
     assert covered.liquid_km == pytest.approx(2.0 * full.liquid_km, rel=0.03)
+
+
+DOC = pathlib.Path(__file__).resolve().parents[2] / "docs/design/composition/body-composition-parts/C-volatile-and-giants.md"
+
+
+def _documented_table():
+    rows = []
+    for line in DOC.read_text().splitlines():
+        cells = [cell.strip() for cell in line.strip("|").split("|")]
+        if line.startswith("| ") and len(cells) == 7:
+            try:
+                rows.append(tuple(float(cell) for cell in cells))
+            except ValueError:
+                continue
+    return rows
+
+
+def test_the_documented_ocean_table_has_the_twelve_rows():
+    assert len(_documented_table()) == 12
+
+
+def test_every_documented_row_is_consistent_with_its_own_radius_and_with_the_code():
+    """Depth and base pressure come from the code at the row's own radius; the gravity and the estimate follow from the
+    row's mass, water share and radius, so no row can disagree with its neighbours the way the old x = 0.2 rows did."""
+    for mass, water, radius, depth_km, base_gpa, gravity, estimate_gpa in _documented_table():
+        column = wl.column(mass * EARTH, radius * R_EARTH_KM, water * mass * EARTH, bottom_temperature_k=300.0)
+        label = f"M {mass} x {water}"
+        assert column.depth_km == pytest.approx(depth_km, rel=0.03), label
+        assert column.base_pressure_pa / 1e9 == pytest.approx(base_gpa, rel=0.05 if water < 1e-3 else 0.03), label
+        assert gravity == pytest.approx(9.80665 * mass / radius ** 2, rel=0.005), label
+        area = 4.0 * math.pi * (radius * R_EARTH_KM * 1000.0) ** 2
+        assert estimate_gpa == pytest.approx(gravity * water * mass * EARTH / area / 1e9, rel=0.02, abs=2e-3), label
+
+
+def test_the_documented_depth_and_pressure_rise_with_the_water_share():
+    for mass in (1.0, 5.0):
+        rows = [row for row in _documented_table() if row[0] == mass]
+        assert [row[3] for row in rows] == sorted(row[3] for row in rows)
+        assert [row[4] for row in rows] == sorted(row[4] for row in rows)

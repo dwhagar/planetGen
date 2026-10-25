@@ -1467,3 +1467,47 @@ Baseline: PR #1817.
 | GEN.766 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.765 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.734 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.211 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.792 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.793 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.327 | 8.1 | Multi-star and compact systems |
+| TEST.375 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.374 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.481 | 8.1 | Weight research (atmosphere) |
+| GEN.482 | 8.1 | Weight research (atmosphere) |
+| GEN.654 | 8.1 | Habitability system |
+| DB.92 | 8.1 | Habitability system |
+| GEN.751 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.803 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.739 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.512 | 8.1 | Tuned draws and selection models |
+| GEN.813 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.761 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.79 | 8.1 | Habitability system |
+| GEN.818 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.701 | 8.1 | Habitability system |
+| ADM.132 | 8.1 | Consistency |
+| TEST.318 | 8.1 | Bugs and flaky tests |
+| PERF.199 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.385 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| POP.37 | 8.1 | Consistency |
+| GEN.802 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.230 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.229 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.466 | 8.1 | Surface and small bodies |
+| MAP.304 | 8.1 | Fly-through map |
+| MAP.297 | 8.1 | Fly-through map |
+| GEN.814 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.371 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.367 | 8.1 | The headline closes |
+| TEST.379 | 8.1 | The headline closes |
+| TEST.377 | 8.1 | The headline closes |
+| TEST.390 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.370 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.738 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.384 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.296 | 8.1 | Fly-through map |
+| MAP.295 | 8.1 | Fly-through map |
+| GEN.652 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.668 | 8.1 | Atmosphere colour |
+| TEST.393 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

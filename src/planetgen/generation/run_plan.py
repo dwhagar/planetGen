@@ -1676,7 +1676,7 @@ def _log_phenomena_shells(shells, counts, unit=""):
     nothing for a run that drew none."""
     total = sum(counts.values())
     if total:
-        log.normal(f"Phenomena, shell{'s' if len(shells) > 1 else ''} {_shell_names(shells)}{unit}: placed {total:,}: "
+        log.normal(f"Phenomena, shell{'s' if len(shells) > 1 else ''} {_shell_names(shells)}{unit}: placed {total:,} phenomena: "
                    + ", ".join(f"{count:,} {kind}" for kind, count in sorted(counts.items())) + ".")
 
 
@@ -2497,7 +2497,7 @@ def scatter_phenomena(args):
                         note = _unit_note(unit + 1, len(shape.tasks), shape.weights[unit], "rows")
                         if unit in shape.component_parts:
                             if sum(task_counts.values()):
-                                log.normal(f"Phenomena, components{note}: placed {sum(task_counts.values()):,}: " + ", ".join(
+                                log.normal(f"Phenomena, components{note}: placed {sum(task_counts.values()):,} phenomena: " + ", ".join(
                                     f"{count:,} {kind}" for kind, count in sorted(task_counts.items())) + ".")
                         else:
                             _log_phenomena_shells(shape.shells_of(unit), task_counts, note)

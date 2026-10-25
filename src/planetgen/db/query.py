@@ -4113,7 +4113,8 @@ def _bright_star_entry(row):
 def scatter_member_tree(conn, table, row_id):
     """
     The stored members of an unbuilt scatter row, as a page lists them (UX.114): `members` (`member_no`, `kind`,
-    `state`, `mass_solar`, `parent_node_no`) in member order and `nodes` (`node_no`, `parent_node_no`, `kind`
+    `state`, `mass_solar`, `parent_node_no`, `decay_age_yr`, which only a member of a young group has, GEN.327) in member
+    order and `nodes` (`node_no`, `parent_node_no`, `kind`
     (`close`, `wide`, `compact` or `group`), `mass_solar`, `separation_au`, `period_years`, `eccentricity`), both empty
     for a single object. Reads the two child tables by their primary key, so it is cheap at any galaxy size.
 
@@ -4125,9 +4126,9 @@ def scatter_member_tree(conn, table, row_id):
     source = SCATTER_SOURCES[table]
     members = [
         {"member_no": r["member_no"], "kind": r["kind"], "state": r["state"], "mass_solar": r["mass_solar"],
-         "parent_node_no": r["parent_node_no"]}
+         "parent_node_no": r["parent_node_no"], "decay_age_yr": r["decay_age_yr"]}
         for r in conn.execute(
-            "SELECT member_no, kind, state, mass_solar, parent_node_no FROM scatter_members"
+            "SELECT member_no, kind, state, mass_solar, parent_node_no, decay_age_yr FROM scatter_members"
             " WHERE source = ? AND source_id = ? ORDER BY member_no", (source, int(row_id))).fetchall()]
     nodes = [
         {"node_no": r["node_no"], "parent_node_no": r["parent_node_no"], "kind": r["kind"],

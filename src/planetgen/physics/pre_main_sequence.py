@@ -23,7 +23,7 @@ import functools
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants, stellar_evolution as evolution, unit_registry as units
+from planetgen.physics import constants, main_sequence, unit_registry as units
 from planetgen.util import draw
 
 PROTOSTAR = "protostar"
@@ -57,17 +57,17 @@ def _binding(mass_sol):
     return tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR * constants.G * (mass_sol * constants.SOLAR_MASS_TO_KG) ** 2
 
 
-@functools.lru_cache(maxsize=512)
-def _track(mass_sol):
+@functools.lru_cache(maxsize=4096)
+def _track(mass_sol, fe_h=0.0):
     """
     The constants of the contraction: `r0` (birthline radius), `r_h` (where the Hayashi phase ends), `r_ms`, the
     temperature `t_h` of the Hayashi phase, the main-sequence luminosity `l_ms` (W), the two phase lengths `t1`
     and `t2` (s) and the rate `k4` of the convective phase.
     """
-    r_ms = evolution.main_sequence_radius_sol(mass_sol) * constants.SOLAR_RADIUS_M
-    l_ms = evolution.main_sequence_luminosity_sol(mass_sol) * constants.SOLAR_LUMINOSITY
-    t_ms = evolution.effective_temperature_k(evolution.main_sequence_luminosity_sol(mass_sol),
-                                             evolution.main_sequence_radius_sol(mass_sol))
+    arrival = main_sequence.zams_state(mass_sol, fe_h)     # GEN.652: the MIST row the star contracts onto
+    r_ms = arrival.radius_sol * constants.SOLAR_RADIUS_M
+    l_ms = arrival.luminosity_sol * constants.SOLAR_LUMINOSITY
+    t_ms = arrival.temperature_k
     t_h = min(hayashi_temperature_k(mass_sol), t_ms)
     r_h = r_ms * (t_ms / t_h) ** 2
     r0 = birthline_radius_m(mass_sol)
@@ -81,13 +81,13 @@ def _track(mass_sol):
             "start": start}
 
 
-def contraction_time_yr(mass_sol):
+def contraction_time_yr(mass_sol, fe_h=0.0):
     """The age at which a star of this mass reaches the main sequence, years (the Kelvin-Helmholtz time of the model)."""
-    track = _track(mass_sol)
+    track = _track(mass_sol, fe_h)
     return _s_to_yr(track["t1"] + track["t2"])
 
 
-def stage(mass_sol, age_yr):
+def stage(mass_sol, age_yr, fe_h=0.0):
     """
     `PROTOSTAR`, `PRE_MAIN_SEQUENCE` or None for a star of this initial mass at this age.
 
@@ -97,15 +97,15 @@ def stage(mass_sol, age_yr):
     pre-main-sequence star.
     """
     if (mass_sol >= tuning.PRE_MAIN_SEQUENCE_MAX_MASS_SOL or age_yr >= tuning.PRE_MAIN_SEQUENCE_LONGEST_YR
-            or age_yr >= contraction_time_yr(mass_sol)):
+            or age_yr >= contraction_time_yr(mass_sol, fe_h)):
         return None
     return PROTOSTAR if age_yr < tuning.PROTOSTAR_MAX_AGE_YR else PRE_MAIN_SEQUENCE
 
 
-def _track_state(mass_sol, age_yr):
+def _track_state(mass_sol, age_yr, fe_h=0.0):
     """The luminosity (solar), temperature and radius (solar) of a star on the track at this age, any age up to its
     contraction time, with no regard to the stage limits of `stage`."""
-    track = _track(mass_sol)
+    track = _track(mass_sol, fe_h)
     t = _yr_to_s(age_yr)
     if t <= track["t1"]:
         radius = (track["r0"] ** -3 + 3.0 * track["k4"] * t) ** (-1.0 / 3.0)
@@ -120,7 +120,7 @@ def _track_state(mass_sol, age_yr):
             "radius_sol": radius / constants.SOLAR_RADIUS_M}
 
 
-def state(mass_sol, age_yr):
+def state(mass_sol, age_yr, fe_h=0.0):
     """
     The luminosity, temperature and radius of a contracting star, or None when `stage` is None.
 
@@ -130,13 +130,13 @@ def state(mass_sol, age_yr):
             state: the contraction time), and `disk_class` ("0",
             "I", "II" or "III").
     """
-    which = stage(mass_sol, age_yr)
+    which = stage(mass_sol, age_yr, fe_h)
     if which is None:
         return None
-    on_track = _track_state(mass_sol, age_yr)
+    on_track = _track_state(mass_sol, age_yr, fe_h)
     return {"yerkes_class": which, "luminosity_sol": on_track["luminosity_sol"],
             "temperature_k": on_track["temperature_k"], "radius_km": None,
-            "phase_end_gy": contraction_time_yr(mass_sol) / 1.0e9,
+            "phase_end_gy": contraction_time_yr(mass_sol, fe_h) / 1.0e9,
             "disk_class": disk_class(age_yr)}
 
 

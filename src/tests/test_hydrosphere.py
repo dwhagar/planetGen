@@ -17,6 +17,12 @@ from planetgen.util.random import log_uniform
 from tests.air_support import air, fold_air
 from tests.fuzz_support import deterministic_entropy
 
+
+def _generate_hydrosphere(body, internal_flux_w_m2):
+    """`generate_hydrosphere` after the surface water is drawn, as `planets.calculate_atmospheric_conditions` does."""
+    return hy.generate_hydrosphere(body, internal_flux_w_m2, hy.draw_surface_water(body) if body.body_type != "g" else 0.0)
+
+
 EARTH = constants.EARTH_MASS_TO_KG
 
 
@@ -86,24 +92,24 @@ def _body(planet_class, temperature, pressure_pa, mass_earth=1.0, radius_km=6371
 def test_states_by_temperature_and_pressure():
     draw.set_run_seed(88)
     earth = _body("M", 288.0, 101325.0)
-    hy.generate_hydrosphere(earth, 0.087)
+    _generate_hydrosphere(earth, 0.087)
     assert earth.hydrosphere == "surface ocean" and earth.ocean_class in hy.OCEAN_CLASSES
     assert earth.ocean_fraction + earth.land_fraction == pytest.approx(1.0)
     assert 6.5 <= earth.ocean_ph <= 8.5 or earth.ocean_class != "neutral"
     venus = _body("M", 740.0, 9.2e6)
-    hy.generate_hydrosphere(venus, 0.087)
+    _generate_hydrosphere(venus, 0.087)
     assert venus.hydrosphere == "vapour" and venus.ocean_depth_km is None
     moon = _body("C", 250.0, 0.0)
-    hy.generate_hydrosphere(moon, 0.02)
+    _generate_hydrosphere(moon, 0.02)
     assert moon.hydrosphere == "dry" and moon.land_fraction == 1.0
     snowball = _body("P", 200.0, 50000.0)
-    hy.generate_hydrosphere(snowball, 0.087)
+    _generate_hydrosphere(snowball, 0.087)
     assert snowball.hydrosphere in ("ice", "ice-covered ocean") and snowball.ice_shell_km > 0
     hycean = _body("O", 300.0, 1e6, p_h2_kpa=900.0)
-    hy.generate_hydrosphere(hycean, 0.087)
+    _generate_hydrosphere(hycean, 0.087)
     assert hycean.hydrosphere == "hycean"
     giant = types.SimpleNamespace(body_type="g", water_mass_fraction=0.3)
-    hy.generate_hydrosphere(giant, 1.0)
+    _generate_hydrosphere(giant, 1.0)
     assert giant.water_mass_fraction == 0.3
     assert all(getattr(giant, field) is None for field in hy.HYDROSPHERE_FIELDS if field != "water_mass_fraction")
 
@@ -112,7 +118,7 @@ def test_ocean_worlds_are_mostly_ice_sealed():
     draw.set_run_seed(9)
     worlds = [_body("O", 290.0, 101325.0) for _ in range(100)]
     for world in worlds:
-        hy.generate_hydrosphere(world, 0.087)
+        _generate_hydrosphere(world, 0.087)
     assert all(world.ocean_fraction == 1.0 for world in worlds)
     sealed = [world for world in worlds if world.ocean_class == "ice-sealed"]
     assert len(sealed) > 50
@@ -134,7 +140,7 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
                     continue
                 seen.add(body.hydrosphere)
                 assert body.hydrosphere in hy.HYDROSPHERE_STATES
-                assert body.water_mass_fraction >= 0  # 0: its early runaway greenhouse took it all (GEN.639)
+                assert body.water_mass_fraction >= 0  # 0: its early runaway greenhouse took it all (GEN.639), or a disk moon inside its ice line was anhydrous from the start (GEN.466)
                 if body.water_mass_fraction == 0:
                     assert body.hydrosphere == "dry"
                 assert body.ocean_fraction + body.land_fraction == pytest.approx(1.0)
@@ -156,20 +162,20 @@ def test_an_icy_moon_under_ice_keeps_its_tide_and_a_planet_or_a_warm_moon_keeps_
     for seed in range(8):
         draw.set_run_seed(seed)
         europa = _moon("D", 8.0e-3, 1560.8, 6.709e8 / constants.AU_TO_M)
-        hy.generate_hydrosphere(europa, 0.002)
+        _generate_hydrosphere(europa, 0.002)
         # Europa's own 1.4e11 W over its surface is 4.6e-3 W/m2; the forced eccentricity is 0.001 to 0.01, so a tenth to 2 times
         assert 5e-5 < europa.tidal_flux_w_m2 < 2e-2
         draw.set_run_seed(seed)
         enceladus = _moon("D", 1.8e-5, 252.1, 2.38e8 / constants.AU_TO_M)
-        hy.generate_hydrosphere(enceladus, 0.002)
+        _generate_hydrosphere(enceladus, 0.002)
         assert enceladus.tidal_flux_w_m2 > 0.0  # a small moon is boosted by its resonance
     planet = _body("D", 100.0, 0.0)
-    hy.generate_hydrosphere(planet, 0.002)
+    _generate_hydrosphere(planet, 0.002)
     assert planet.tidal_flux_w_m2 is None
     warm = _moon("D", 8.0e-3, 1560.8, 6.709e8 / constants.AU_TO_M)
     warm.surface_temperature = 290.0
     warm.atmospheric_pressure = 101325.0
-    hy.generate_hydrosphere(warm, 0.002)
+    _generate_hydrosphere(warm, 0.002)
     assert warm.tidal_flux_w_m2 is None  # a liquid surface needs no ice lid, so no tide is drawn
 
 
