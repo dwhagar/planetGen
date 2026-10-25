@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.206 |
+| UX | UX.207 |
 | MAP | MAP.308 |
 | NAV | NAV.63 |
 | GEN | GEN.768 |
@@ -2421,6 +2421,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.203 | Pages state a missing thing in one sentence instead of a table of zeros: no life, no atmosphere (0 Pa), effectively no water | none | open |
 | UX.204 | Every collapsible section on an object page starts collapsed | none | open |
 | UX.205 | Object pages show the day and night time shares, moons with the extra night from their planet | none | open |
+| UX.206 | Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
