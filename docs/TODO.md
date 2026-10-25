@@ -5197,6 +5197,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the wide-binary count first and report it, then build the re-roll with
   that console report. Owner: none (pool); Core 5 may take it if nobody
   started it.
+  Research (2026-10-09, Core 5 report): Core 5 releases this (10:59 PM
+  EDT 2026-10-24 as the lane reported): the count has to run on Boss's
+  own database and re-rolling single systems has no per-system
+  regenerate today (only whole sectors), so it overlaps the GEN.764
+  revise job. Owner: Core 1, built inside GEN.764.
   Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
 - [ ] **GEN.231 Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back**
@@ -17420,6 +17425,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   quantity names its unit, and a test over the OpenAPI document fails on
   a quantity field with no unit. Owner: Aux 12 (API), Core 5 (commands),
   Aux 14 for the test over the field list. Related: GEN.771, DOC.15.
+  Research (2026-10-09, Core 5 report): Core 5 part merged (#3248, 10:59
+  PM EDT 2026-10-24 as the lane reported): command-line progress bars
+  name their unit ("12/40 sectors"), the Generate page and Queue page
+  progress lines end in a noun, the phenomena scatter log says "placed
+  120 phenomena", and "Minimum start density" carries its hint. Still
+  open: the property sheet, API field descriptions and the OpenAPI test
+  (Aux 12, Aux 14), admin pages other than the Queue page (Aux 12), the
+  stats and settings pages.
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
@@ -20831,6 +20844,12 @@ clears each one.
   Lane D (Aux 3) also saw
   test_db_column_round_trip::test_every_column_is_written fail once on
   the disk columns (TEST.387).
+  Research (2026-10-09, Core 5 report): Core 5 (10:59 PM EDT 2026-10-24
+  as the lane reported) also lists red on clean main: test_web_generate
+  override-logging pair, two test_progress_log runner tests,
+  test_work_units batch-fills test. Core 5 fixed test_stages,
+  test_job_tree and test_work_units cases that PERF.125 left red
+  (#3248).
   Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
 
 - [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**
