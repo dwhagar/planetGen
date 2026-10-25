@@ -1188,6 +1188,27 @@ with `clamp()`.
   UX.179, PERF.134, ADM.44, MAP.158.
   Prerequisites: UX.179. Related: UX.179, PERF.134, ADM.44, MAP.158.
 
+- [ ] **UX.207 Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug)**
+  Boss, 8:29 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi6oJmNKFKoyienFmHsrWDEM, relayed by the
+  coordinator), live observation, so a bug: "In the breadcrumb bar label
+  the link for the system as 'System' and the star being the star(s)
+  name." On the Enuakyadas IV page the trail reads Home, Galaxy, Taraatr
+  Velkiso, Enuakyadas, Enuakyadas, Enuakyadas IV, where the third and
+  fourth links are the system and its star, both named Enuakyadas, so
+  they cannot be told apart. Do: on every page whose trail passes
+  through a system and its star(s), the system link reads "System" and
+  the star link reads the star's name (for a multiple system the star
+  names joined as the page already writes them, for example "Alpha A and
+  B"); a lone body that has no star in the trail keeps its place. The
+  same labels in the trail's structured data (JSON-LD breadcrumb list)
+  and the page titles that use the trail. Done: a page test on a
+  single-star system's planet page finds the trail ending "..., System,
+  Enuakyadas, Enuakyadas IV" with the right links, and one on a binary
+  system's planet page finds both star names. Owner: Aux 11 (object
+  pages). Related: UX.200, UX.188.
+  Prerequisites: none. Related: UX.200, UX.188.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -19608,17 +19629,6 @@ clears each one.
   help text finds no "merge gate" next to `full`. Owner: Bug 1. Related:
   TEST.208, TEST.261.
   Prerequisites: none. Related: TEST.208, TEST.261.
-
-- [ ] **TEST.373 test_protection::test_there_is_one_describer_of_the_six_categories fails on main: habitability_explain.py exists again after GEN.445 (bug)**
-  Found by Math lane 2 (8:11 PM EDT 2026-10-24 as the lane reported) on
-  main after #3162; not its change. TEST.363 (#3155) made the describer
-  and habitability_explain agree; since then GEN.445 brought a
-  habitability_explain.py back, so the test that expects one describer
-  of the six categories fails. Do: make one module the describer (the
-  test says which) and have the other import it, or change the test to
-  the module layout GEN.445 chose, with no skip. Done: the test passes
-  on main. Owner: Aux 4 (Lane E, GEN.445). Related: TEST.363, GEN.445.
-  Prerequisites: none. Related: TEST.363, GEN.445.
 
 - [ ] **TEST.374 scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug)**
   Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
