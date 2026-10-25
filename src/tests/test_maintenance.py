@@ -298,7 +298,7 @@ def test_the_api_answers_503_json(client):
 
 
 @pytest.mark.parametrize("path", ["/login", "/login/code", "/logout", "/maintenance", "/static/style.css",
-                                  "/api/auth/login", "/api/auth/login/totp", "/api/auth/logout", "/api/auth/me"])
+                                  "/api/auth/login", "/api/auth/login/totp", "/api/auth/logout", "/api/auth/me", "/api/health"])
 def test_the_sign_in_paths_and_static_files_pass_the_gate(app, path):
     from planetgen.web import maintenance_gate
 

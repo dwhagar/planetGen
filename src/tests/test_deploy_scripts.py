@@ -609,7 +609,7 @@ def test_an_unknown_apache_identity_is_an_error_not_a_silent_exit(name):
 
 # --- reload_web_if_running (OPS.8, OPS.29) -----------------------------------
 
-def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=True, health=True):
+def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=True, health=True, reply=""):
     """Runs the helper with fake `systemctl`, `apache2ctl` and `curl` that log their calls; returns
     `(process, calls)`. `fail` names the systemctl verbs that fail."""
     bin_dir = tmp_path / "bin"
@@ -624,7 +624,7 @@ def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=Tr
     fake("systemctl", 'if [[ "$1" == is-active ]]; then case " %s " in *" $3 "*) exit 0;; esac; exit 3; fi\n'
          'case " %s " in *" $1 "*) exit 1;; esac\nexit 0\n' % (" ".join(active), " ".join(fail)))
     fake("apache2ctl", "exit %d\n" % (0 if configtest else 1))
-    fake("curl", 'echo -n %d\n' % (200 if health else 503))
+    fake("curl", "printf '%%s\\n%%s' '%s' %d\n" % (reply, 200 if health else 503))
     script = (f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; '
               'reload_web_if_running')
     env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1")
@@ -674,7 +674,29 @@ def test_a_gunicorn_host_with_no_apache_reloads_the_unit(tmp_path):
 
 def test_a_reload_that_the_site_does_not_answer_after_is_a_failure(tmp_path):
     proc, _calls = _run_reload(tmp_path, health=False)
-    assert proc.returncode == 1 and "does not answer" in proc.stderr
+    assert proc.returncode == 1 and "health check of Apache failed" in proc.stderr
+
+
+MAINTENANCE_REPLY = '{"status":"ok","maintenance":{"cause":"update","enabled":true,"reason":"Updating planetGen"}}'
+
+
+def test_a_reload_check_that_finds_the_site_closed_for_the_update_still_passes_and_says_why(tmp_path):
+    proc, _calls = _run_reload(tmp_path, reply=MAINTENANCE_REPLY)
+    assert proc.returncode == 0
+    assert "in maintenance mode (cause: update, Updating planetGen)" in proc.stdout
+
+
+def test_a_failed_health_check_names_the_check_the_answer_and_the_maintenance_state(tmp_path):
+    proc, _calls = _run_reload(tmp_path, health=False, reply='{"maintenance":true,"error":"closed"}')
+    assert proc.returncode == 1
+    assert "health check of Apache failed" in proc.stderr and "HTTP 503" in proc.stderr
+    assert "http://127.0.0.1/api/health" in proc.stderr and "The site is in maintenance mode" in proc.stderr
+
+
+def test_the_dirty_tree_warning_leaves_out_the_state_folder_the_update_owns():
+    update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
+    assert "status --porcelain -- . ':(exclude)state'" in update
+    assert 'UPDATE_STEP="reloading what serves the site' in update
 
 
 def test_the_update_ends_non_zero_and_prints_the_commands_when_the_reload_failed():
