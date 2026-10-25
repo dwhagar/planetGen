@@ -22,7 +22,7 @@ release is stamped.
 | API | API.35 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.390 |
+| TEST | TEST.391 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.82 |
@@ -1862,14 +1862,14 @@ Parents marked "new parent" had no old number of their own.
 | MAP.294 | The sector page map fails to compile its vertex shader at phone width: camHigh, starLow, camLow and viewRotation are undeclared (bug) | none | done, PR #3167 |
 | MAP.295 | The system infobox on the map does not scale to the size of the map window (bug) | none | open |
 | MAP.296 | The system infobox on the map lists the nearest systems under the location, each name a link (bug) | none | open |
-| MAP.297 | Remove the sector boxes from the maps: clicking goes to a location, never to a sector block (bug) | none | open |
+| MAP.297 | Remove the sector boxes from the maps: clicking goes to a location, never to a sector block (bug) | none | done, PR #3284 |
 | MAP.298 | Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug) | none | open |
 | MAP.299 | In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug) | none | open |
 | MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | none | open |
 | MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | none | open |
 | MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | none | open |
 | MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | none | open |
-| MAP.304 | Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug) | none | open |
+| MAP.304 | Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug) | none | done, PR #3284 |
 | MAP.305 | Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug) | none | open |
 | MAP.306 | The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug) | none | open |
 | MAP.307 | Stations and facilities become points of interest: interest reasons for the map mark and its menu filter | none | open |
@@ -3056,6 +3056,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.387 | test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug) | none | open |
 | TEST.388 | test_reproducible_draws fails on math.hypot in physics/impact_history.py:140 and physics/iron_branch_tuning.py:79 (bug) | none | open |
 | TEST.389 | test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug) | none | open |
+| TEST.390 | More tests red on a clean copy of main: runner self-tests (on_child), admin queue log route 403, cache warm-up, test_stages, test_web_fresh_after_cli, test_workers killed worker, phenomenon diagram zoom tests, test_web_browser_tables life scores (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
