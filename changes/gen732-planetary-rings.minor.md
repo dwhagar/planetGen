@@ -1,7 +1,0 @@
-**Headline:** Planets have rings: a giant always has a ring system, with its edges, mass, optical depth and ice drawn from the Roche limit, its moons and the snow line.
-
-### Changed
-- **Rings exist as data (GEN.732, schema v160).** `planets` and `moons` keep `ring_kind` (`dusty`, `narrow` or `broad`), `ring_origin`, `ring_inner_km`, `ring_outer_km`, `ring_mass_kg`, `ring_optical_depth` and `ring_ice_fraction`; a body with no ring, every moon and a row made before the migration hold NULL. `planetgen.physics.rings` draws the system after the moons and the snow line are final: the outer edge is a share of the fluid Roche limit of the ring's own material (the four giants of the Solar System fit the range) and stays inside the innermost moon, the inner edge is 1.1 to 1.7 planet radii, the mass is log-uniform per kind, the optical depth follows from the mass, the area and the particle size, and a broad ring beyond the snow line keeps its ice. A giant always has some ring; a terrestrial or dwarf planet has one with probability 0.01. A planet regenerated as another class draws its ring again. The property sheet shows the new rows.
-- **Every number is a labelled stand-in.** The gap plan registry has rows BC20 to BC23 (kind weights, extent, mass, ice share) with their source tier, tweak level and what replaces them; `docs/design/composition/planetary-rings.md` describes the model.
-
-generation-output: changed
