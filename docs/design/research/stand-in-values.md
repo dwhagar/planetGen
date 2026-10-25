@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 151 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 161 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 30 | 0 | 3 | 0 | 0 | 33 |
-| T2 | 34 | 0 | 0 | 0 | 0 | 34 |
+| T2 | 37 | 0 | 0 | 0 | 0 | 37 |
 | T3 | 34 | 0 | 0 | 5 | 0 | 39 |
 | T4 | 5 | 0 | 0 | 0 | 0 | 5 |
-| T5 | 5 | 3 | 0 | 0 | 0 | 8 |
-| T6 | 12 | 5 | 1 | 2 | 0 | 20 |
+| T5 | 6 | 3 | 0 | 0 | 0 | 9 |
+| T6 | 18 | 5 | 1 | 2 | 0 | 26 |
 | T7 | 9 | 2 | 0 | 1 | 0 | 12 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 129 | 10 | 4 | 8 | 0 | 151 |
+| All | 139 | 10 | 4 | 8 | 0 | 161 |
 
 ## How the labels were given
 
@@ -233,3 +233,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM75 | D | T1 | L0 | thermosphere.HYDRO_BASED_LOW | six constants of the boil-off branch, fixed | 1 to 40 Earth masses, 300 to 2,000 K, hydrogen-dominated | test_thermosphere::test_the_hydro_based_rate_reproduces_the_published_rate_of_each_planet_of_the_papers_table | a hydrodynamic model run for the body | READ (Kubyshkina et al. 2018 Table 1 and Eq. 9 and 10, an analytic fit to 7,000 hydrodynamic models; the nine planets of its Table 2 reproduced); source tier 1, tweak level 0 |
 | AM76 | D | T1 | L0 | thermosphere.HYDRO_BASED_HIGH | six constants of the XUV branch, fixed | as AM63 | test_thermosphere::test_the_hydro_based_rate_reproduces_the_published_rate_of_each_planet_of_the_papers_table | the same | READ (Kubyshkina et al. 2018 Table 1, the XUV-driven branch); source tier 1, tweak level 0 |
 | AM77 | P | T7 | L0 | thermosphere.MAX_EXOBASE_RADII | 10 body radii, fixed | hot, light airs | none: no measurement; a bound that keeps the integral finite | a hydrodynamic outflow model | design (a numerical bound for a hot light air over a small body) |
+
+## 6.8 Stand-ins of the hours outside in a day
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| OH1 | B | T2 | L0 | outside_hours: protection_limits.body_mass_kg, body_area_m2, body_specific_heat_j_kg_k | none (the reference adult) | every human visitor | test_the_new_limit_rows_have_a_value_a_unit_and_a_meaning | a species' own body (per-species limit rows, GEN.208) | READ (reference man of ICRP Publication 23, 70 kg; Du Bois skin area 1.8 m2; mean specific heat 3470 J/(kg K), Gagge and Gonzalez), recalled, not opened |
+| OH2 | B | T2 | L0 | protection_limits.skin_temperature_c, core_normal_c, core_cold_limit_c, core_hot_limit_c | none | every human visitor | test_the_new_limit_rows_have_a_value_a_unit_and_a_meaning | per-species limit rows | READ (mean skin 34 C in balance, ISO 9886; core 37 C; hypothermia below 35 C; heat strain at 38.5 C, ISO 7933 and NIOSH), recalled, not opened |
+| OH3 | P | T6 | L0 | protection_limits.work_metabolism_w | 100 to 250 W | a person working outside | test_a_cold_world_is_cut_by_the_cold_near_the_bottom_of_its_garment | a work-rate table by task (the roles, 10.0) | design (a light to moderate working rate over a day, ISO 8996 class 1 is 65 to 130 W/m2 of skin; 150 W is 83 W/m2) |
+| OH4 | P | T6 | L0 | protection_limits.sweat_max_w | 300 to 680 W | an unsealed garment | test_sweat_has_less_to_carry_in_thin_air_and_none_in_a_sealed_suit_or_wet_air | an acclimatisation model | design (the most a person's sweat carries off, 500 W; the physiological peak is about 1 L/h, 680 W) |
+| OH5 | B | T2 | L0 | protection_limits.lewis_k_kpa, clothing_permeability, clo_m2_k_w | none | unsealed garments | test_sweat_has_less_to_carry_in_thin_air_and_none_in_a_sealed_suit_or_wet_air | ISO 7933 read at the source | READ (Lewis relation 16.5 K/kPa and the moisture permeability 0.38 of clothing, ISO 7933; 1 clo is 0.155 m2 K/W, ISO 9920), recalled, not opened |
+| OH6 | D | T5 | L0 | protection_limits.convection_earth_w_m2_k, garment_emissivity; outside_hours._film_w_m2_k | 2 to 8 W/(m2 K) | any pressure | test_sweat_has_less_to_carry_in_thin_air_and_none_in_a_sealed_suit_or_wet_air | a forced-convection (wind) term from the world's winds | COMPUTED (free convection Nu goes as Ra^(1/4), so the film goes as the square root of the gas density; 4 W/(m2 K) is a person in still air; radiation 4 e sigma T^3 with e 0.9) |
+| OH7 | P | T6 | L0 | protection_limits.vent_factor | 0.2 to 0.5 | unsealed garments | test_a_cold_world_is_cut_by_the_cold_near_the_bottom_of_its_garment | a clothing-adjustment model | design (an unsealed garment worn open keeps 30 percent of its insulation in air colder than the skin) |
+| OH8 | P | T6 | L0 | protection_limits.GARMENTS insulation_clo | half to double | Body Protection levels 0 to 5 | test_every_garment_row_is_a_listed_body_name_and_has_a_power_only_where_it_is_active | the equipment items of the sheet (UX.199) | design (insulation of each Body Protection garment, 0.5 to 10 clo: ISO 9920 clothing values for cold-weather, insulated and thermal suits) |
+| OH9 | P | T6 | L0 | protection_limits.GARMENTS cooling_w, heating_w | half to double | Body Protection levels 1 to 5 | test_the_hotter_the_afternoon_the_fewer_the_hours_in_the_same_suit | the equipment items of the sheet (UX.199) | design (cooling 100 to 600 W of a cooling vest, a liquid cooling garment and a suit's thermal control, recalled from NASA's EMU at about 586 W; heating 200 to 300 W of a heated suit) |
+| OH10 | P | T6 | L0 | protection_limits.shift_hours, SUPPLY_SHIFT_SHARE | half to double | Air Supply levels 1 to 4 | test_the_supply_hours_follow_the_shift_and_ambient_air_has_none | per-item supply durations in the equipment items (UX.199) | design (a work shift of 8 hours; one charge of the breathing gas lasts a share of it: mask 1, own gas 0.5, mixed gas 0.75, isolated air 1) |
