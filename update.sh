@@ -285,7 +285,7 @@ if [[ "$DATASETS_MISSING" == 1 ]]; then
     echo "warning: some data sets could not be downloaded (step 3): bulk generation refuses to start until they are." >&2
 fi
 echo "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
-echo "  planetgen population"
+echo "  planetgen population && planetgen territories"
 if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
     echo "Done. Nothing new was pulled."
 else

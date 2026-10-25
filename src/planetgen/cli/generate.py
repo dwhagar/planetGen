@@ -24,7 +24,8 @@ or as the installed `planetgen` command):
     planetgen clear-scatter         -- empty one kind of scatter, so a scatter can draw it again
     planetgen clean-nebula-field    -- count (or with --apply delete) the stored field clouds the keep rate rejects
     planetgen phenomenon [options]  -- one exotic stellar phenomenon
-    planetgen population [options]  -- species, civilizations and territories
+    planetgen population [options]  -- species, civilizations and polities
+    planetgen territories [options] -- which polity owns which system
     planetgen check-math            -- the math check (update.sh runs it; so does the admin page)
     planetgen versions              -- the version keys each update recorded
     planetgen fingerprint [options] -- a digest of the generated content (GEN.58)
@@ -1321,8 +1322,7 @@ def add_fingerprint_arguments(parser):
 
 def add_population_arguments(parser):
     """
-    Adds the `population` subcommand's options: `--rescan`,
-    `--territories-only`, and the MySQL connection and logging args.
+    Adds the `population` subcommand's options: `--rescan`, and the MySQL connection and logging args.
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
@@ -1330,16 +1330,14 @@ def add_population_arguments(parser):
     parser.add_argument('--rescan', action='store_true',
                         help="Forget every species, polity and territory and scan every planet again "
                              "(new names, ages and borders).")
-    parser.add_argument('--territories-only', action='store_true',
-                        help="Only recompute which polity owns which system.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
 
-def validate_population_args(args, parser):
-    """`--rescan` and `--territories-only` contradict each other."""
-    if args.rescan and args.territories_only:
-        parser.error("--rescan and --territories-only cannot be combined.")
+def add_territories_arguments(parser):
+    """Adds the `territories` subcommand's options (PERF.125): the MySQL connection and logging args and nothing else."""
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
 
 
 def build_parser():
@@ -1529,8 +1527,14 @@ def build_parser():
     population_parser = subparsers.add_parser(
         'population',
         description="Population and Politics Pass",
-        help="Name species, date civilizations and draw territories from what is stored.")
+        help="Name species, date civilizations and found polities from what is stored.")
     add_population_arguments(population_parser)
+
+    territories_parser = subparsers.add_parser(
+        'territories',
+        description="Territories Pass",
+        help="Work out which polity owns which system from the polities stored.")
+    add_territories_arguments(territories_parser)
 
     benchmark_parser = subparsers.add_parser(
         'benchmark',
@@ -1601,6 +1605,7 @@ def build_parser():
         'settle': settle_parser,
         'phenomenon': phenomenon_parser,
         'population': population_parser,
+        'territories': territories_parser,
         'check-math': check_math_parser,
         'versions': versions_parser,
         'fingerprint': fingerprint_parser,
@@ -1648,8 +1653,6 @@ def process_args():
         validate_fill_args(args, command_parser)
     elif args.command == 'phenomenon':
         validate_phenomenon_args(args, command_parser)
-    elif args.command == 'population':
-        validate_population_args(args, command_parser)
 
     return args
 
@@ -1721,7 +1724,7 @@ READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benc
 (no activity log lines, job tree node or run history)."""
 
 
-BULK_COMMANDS = ("galaxy", "plan", "scatter", "population")
+BULK_COMMANDS = ("galaxy", "plan", "scatter", "population", "territories")
 """tuple: Subcommands that always generate in bulk, so the data check runs
 first (GEN.590); `sector` joins them when it makes more than one sector
 (`is_bulk_run`)."""
@@ -1761,6 +1764,7 @@ _COMMAND_HANDLERS = {
     'settle': run_galaxy.run_settle,
     'phenomenon': run_phenomenon.run_phenomenon,
     'population': run_population.run_population,
+    'territories': run_population.run_territories,
 }
 
 
@@ -1768,7 +1772,7 @@ DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scat
                 "fill-map-luminosity": ("everything",),
                 "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
                 "clean-nebula-field": ("everything",),
-                "population": ("population",)}
+                "population": ("population",), "territories": ("population",)}
 """dict: The kinds of data change (`planetgen.db.dataversion.CHANGES`) a command makes when it is not just
 generation; any other writing command is `generated`."""
 

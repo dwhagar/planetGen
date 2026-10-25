@@ -2797,6 +2797,7 @@ def run_galaxy(args):
     run_plan.scatter_phenomena(args)        # the last pass of GEN.185: the other phenomena, after the stars
     backfill_after_run(args, edge_pc, started_at)
     run_population.run_population_stage(args)
+    run_population.run_territories_stage(args)
     settle_after_run(args, started_at)
     nebula_blocks_after_run(args)
     block_totals_after_run(args, started_at)
