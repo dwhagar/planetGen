@@ -59,6 +59,18 @@ in `program_constants.py` under "Rogue planet surface conditions".
 longer a 40% roll: a rocky rogue is active when its heat flow reaches
 0.04 W/m^2 (between Mars and Earth); a giant always is.
 
+## Habitability score (GEN.701, schema v153)
+
+A terrestrial rogue is scored like any rocky body (`physics/rogue_habitability.py`, which feeds `habitability_world.compute`), from its stored surface:
+
+- **Gas and water.** The regime gives the gas (all hydrogen under a `hydrogen-envelope` or `hycean` ocean, all nitrogen under a `frozen-atmosphere`, none on `bare-rock`) and the state (`ice-covered ocean`, `hycean`, `ice` or `dry`); the water column the body keeps gives its mass fraction. An ocean takes the middle of its class's pH and water activity, so nothing is drawn.
+- **Energy.** Only its own heat: 1 percent of `internal_heat_flux_w_m2` (no starlight).
+- **Dose.** The galactic cosmic rays under its column of air with no magnetic field, plus the gamma dose of a crust of bulk silicate Earth composition for its age (no radon, no felsic crust); an ocean under ice sees the ground's dose only.
+- **Life.** None is drawn for a rogue, so its four life scores are 0 and its food is the lowest rung; the score says what the surface allows a visitor.
+- **Kept.** The score, the tiers, the life scores, the equipment levels and the energy flux; the regional temperatures are not (there is no star).
+
+A gas giant or brown dwarf has no surface and scores nothing.
+
 ## Simplifications
 
 - The water layer's depth uses liquid water's density. Since GEN.88

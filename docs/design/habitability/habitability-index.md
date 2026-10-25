@@ -63,7 +63,7 @@ recommendation. Informs: GEN.83 to GEN.92.
   ("fallback"), or missed.
 - **Rogue planets** already have internal heat flux, a surface regime,
   ice-shell thickness and ocean depth (`rogue_surface.py`); nothing in a
-  star system has these.
+  star system has these. A terrestrial rogue is scored from its surface too (`rogue_habitability.py`, [rogue-planet-surface.md](../systems/rogue-planet-surface.md)).
 - **Nebulae**: a system's `surrounding_cloud` is set only when it is
   loaded from the database, so generation can't see it.
 - **Life** is decided by class (`HABITABLE_PLANET_CLASSES`), and the life
