@@ -5,36 +5,49 @@ Suggested ratings for a facility (POP.10).
 
 Nothing in the data holds a true crime figure or housing stock, so an admin sets ratings by hand. This is the
 first rule set that fills the ones nobody set: each dimension gets a score from 0 to 1 out of what is stored
-(the host's habitability, the six tech indices of the affiliated species, the kind of facility, the host's
-richness, how far the system is from its polity's capital), a stable draw of up to `tuning.FACILITY_RATING_NOISE`
+(the host's habitability, Suitability, radiation domain, food rung and Flora and Fauna scores, the six tech indices of
+the affiliated species, the kind of facility, the host's richness, how far the system is from its polity's capital), a
+stable draw of up to `tuning.FACILITY_RATING_NOISE`
 either way is added (seeded from the facility, so a rerun gives the same answer), and the score becomes Green at
 `FACILITY_RATING_GREEN` or above, Yellow at `FACILITY_RATING_YELLOW` or above, Red below. See
 `docs/design/habitability/population-and-politics.md`, "Setting ratings".
 
 | Rating | Score |
 |---|---|
-| Health | 0.5 medical + 0.5 habitability |
-| Housing | 0.5 habitability + 0.3 materials + 0.2 kind size |
-| Resources | 0.4 host richness + 0.3 energy + 0.3 nearness |
+| Health | 0.4 medical + 0.2 habitability + 0.2 radiation + 0.2 food |
+| Housing | 0.25 habitability + 0.25 Suitability + 0.3 materials + 0.2 kind size |
+| Resources | 0.4 host richness + 0.3 energy + 0.3 nearness; on a living world 0.3 host richness + 0.2 biota + 0.25 energy + 0.25 nearness |
 | Maintenance | 0.35 materials + 0.25 energy + 0.25 nearness + 0.15 habitability |
 | Crime | 0.5 information + 0.5 nearness, less a penalty when unaffiliated |
 
 (An index counts as its value over 7; nearness is 1 less the system's distance from its polity's capital over
-the polity's reach.)
+the polity's reach. Habitability is the host's PHI-4, Suitability and radiation are its `phi4_suitability` and
+`phi4_radiation`, food is the Suitability food rung worked out from its stored life scores, and biota is its Flora
+and Fauna scores over 18; a host that is not a world, a world without a score and a lifeless world have no biota, and
+the lifeless one keeps the first Resources weights. An orbital host reads `FACILITY_RATING_ORBITAL_HABITABILITY` for
+every host condition.)
 """
 
 import hashlib
 
 from planetgen import tuning
+from planetgen.db import store
+from planetgen.physics import habitability, life_scores
 from planetgen.population import facility_ratings as ratings, tech
 
 _WEIGHTS = {
-    "health": {"medical": 0.5, "habitability": 0.5},
-    "housing": {"habitability": 0.5, "materials": 0.3, "size": 0.2},
+    "health": {"medical": 0.4, "habitability": 0.2, "radiation": 0.2, "food": 0.2},
+    "housing": {"habitability": 0.25, "suitability": 0.25, "materials": 0.3, "size": 0.2},
     "resources": {"richness": 0.4, "energy": 0.3, "nearness": 0.3},
     "maintenance": {"materials": 0.35, "energy": 0.25, "nearness": 0.25, "habitability": 0.15},
     "crime": {"information": 0.5, "nearness": 0.5},
 }
+
+_LIVING_RESOURCES = {"richness": 0.3, "biota": 0.2, "energy": 0.25, "nearness": 0.25}
+"""dict: The Resources weights on a living world (`gather` gives it a `biota`): its Flora and Fauna are a renewable resource."""
+
+MAX_LIFE_SCORE = 9
+"""int: The top of a Flora or Fauna score (`life_scores`), so biota is their sum over twice this."""
 
 
 def _noise(facility_id, dimension):
@@ -60,6 +73,8 @@ def scores(inputs, facility_id):
     """
     found = {}
     for dimension, weights in _WEIGHTS.items():
+        if dimension == "resources" and inputs.get("biota") is not None:
+            weights = _LIVING_RESOURCES
         total = sum(weight * inputs[name] for name, weight in weights.items())
         if dimension == "crime" and not inputs["affiliated"]:
             total -= tuning.FACILITY_RATING_UNAFFILIATED_PENALTY
@@ -72,12 +87,27 @@ def suggest(inputs, facility_id):
     return {dimension: color_for(score) for dimension, score in scores(inputs, facility_id).items()}
 
 
+def _score(value, unknown):
+    """A stored 0 to 1 score, or `unknown` when the body has none."""
+    return unknown if value is None else float(value)
+
+
+def _food(conn, table, stored, unknown):
+    """The Suitability food rung (`habitability.food_score`) of a stored world, from the stage its Microbial, Flora and
+    Fauna scores give (microbes under ice or in a deep aquifer are out of reach), or `unknown` for a body with no score."""
+    world = store.stored_world(conn, table, stored, with_life=False)
+    if world is None:
+        return unknown
+    world.life_stage = life_scores.food_stage(stored["life_microbial"], stored["life_flora"], stored["life_fauna"])
+    return habitability.food_score(world)
+
+
 def gather(conn, facility_id):
     """
     What the rules read about one facility, each input 0 to 1 (`tuning.FACILITY_RATING_UNKNOWN` when it is not
-    stored): `habitability`, `richness`, `size`, `nearness`, the six tech indices of the affiliated species by name
-    (`energy`, `materials`, `information`, `medical`, `propulsion`, `defense`) and `affiliated`. `None` for an
-    unknown facility.
+    stored): `habitability`, `suitability`, `radiation`, `food`, `biota` (`None` unless the host is a living world),
+    `richness`, `size`, `nearness`, the six tech indices of the affiliated species by name (`energy`, `materials`,
+    `information`, `medical`, `propulsion`, `defense`) and `affiliated`. `None` for an unknown facility.
     """
     unknown = tuning.FACILITY_RATING_UNKNOWN
     row = conn.execute(
@@ -85,13 +115,21 @@ def gather(conn, facility_id):
         "WHERE id = ?", (facility_id,)).fetchone()
     if row is None:
         return None
-    habitability = tuning.FACILITY_RATING_ORBITAL_HABITABILITY
+    host = dict.fromkeys(("habitability", "suitability", "radiation", "food"), tuning.FACILITY_RATING_ORBITAL_HABITABILITY)
+    biota = None
     if row["placement"] == "terrestrial":
         table, key = ("planets", row["planet_id"]) if row["planet_id"] else ("moons", row["moon_id"])
-        stored = conn.execute(f"SELECT phi4 FROM {table} WHERE id = ?", (key,)).fetchone()
-        habitability = unknown if stored is None or stored["phi4"] is None else float(stored["phi4"])
+        stored = conn.execute(f"SELECT * FROM {table} WHERE id = ?", (key,)).fetchone()
+        host = dict.fromkeys(host, unknown)
+        if stored is not None and stored["phi4"] is not None:
+            host.update(habitability=float(stored["phi4"]), suitability=_score(stored["phi4_suitability"], unknown),
+                        radiation=_score(stored["phi4_radiation"], unknown), food=_food(conn, table, stored, unknown))
+            flora, fauna = stored["life_flora"] or 0, stored["life_fauna"] or 0
+            if flora or fauna:
+                biota = (flora + fauna) / (2 * MAX_LIFE_SCORE)
     inputs = {
-        "habitability": habitability,
+        **host,
+        "biota": biota,
         "richness": tuning.FACILITY_HOST_RICHNESS.get(row["host_type"], unknown),
         "size": tuning.FACILITY_KIND_SIZE.get(row["kind"], unknown),
         "nearness": 0.0,
