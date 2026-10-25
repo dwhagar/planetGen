@@ -245,6 +245,56 @@ def test_a_star_nearer_the_centre_flags_ozone_loss_on_a_world_with_air():
             assert body.ozone_loss_flag
 
 
+def _rocky_world_with_air():
+    for seed in range(60):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        body = next((b for b in _bodies(system) if b.body_type == "t" and (b.atmospheric_pressure or 0.0) > 0.0), None)
+        if body is not None:
+            return body
+    raise AssertionError("no seed gave a rocky world with air")
+
+
+def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviolet_rises(monkeypatch):
+    """GEN.668: a loss event scales the stored ozone column by the share of the air kept, and the UV index follows."""
+    body = _rocky_world_with_air()
+    monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
+    with deterministic_entropy(1):
+        rad.generate_dose(body)
+    before, uv_before = body.ozone_column_du, body.uv_surface_index
+    assert before == pytest.approx(300.0)
+    rad.apply_air_loss(body, 0.5)
+    assert body.ozone_column_du == pytest.approx(150.0)
+    assert body.uv_surface_index > uv_before
+
+
+def test_an_air_loss_that_keeps_all_of_the_air_changes_nothing_and_one_that_keeps_none_leaves_no_ozone(monkeypatch):
+    body = _rocky_world_with_air()
+    monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
+    with deterministic_entropy(1):
+        rad.generate_dose(body)
+    uv = body.uv_surface_index
+    rad.apply_air_loss(body, 1.0)
+    assert body.ozone_column_du == pytest.approx(300.0) and body.uv_surface_index == pytest.approx(uv)
+    rad.apply_air_loss(body, 0.0)
+    assert body.ozone_column_du == 0.0 and body.uv_surface_index > uv
+
+
+def test_the_ozone_after_an_air_loss_is_held_between_none_and_all_of_it():
+    from planetgen.physics import ozone
+    assert ozone.column_after_air_loss(300.0, 0.5) == 150.0
+    assert ozone.column_after_air_loss(300.0, 1.7) == 300.0
+    assert ozone.column_after_air_loss(300.0, -0.2) == 0.0
+    assert ozone.column_after_air_loss(-4.0, 0.5) == 0.0
+
+
+def test_a_body_with_no_ozone_column_is_left_as_it_is_by_an_air_loss():
+    body = types.SimpleNamespace(ozone_column_du=None, uv_surface_index=None)
+    rad.apply_air_loss(body, 0.5)
+    assert body.ozone_column_du is None and body.uv_surface_index is None
+
+
 def _system_with_rocky_worlds():
     for seed in range(40):
         cfg = SystemConfig()

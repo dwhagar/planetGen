@@ -29,6 +29,7 @@ Use:
     median_column_du(star_teff_k, pal)             # the fit, no draw
     draw_column_du(star_teff_k, p_o2_pa, gravity_g)  # the stored value: one draw
     column_mean_partial_pressure_pa(column_du, pressure_pa, mean_molar_mass_kg_mol, gravity_m_s2)
+    column_after_air_loss(column_du, retained_fraction)  # a loss event that kept that share of the air (GEN.668)
 """
 
 import math
@@ -145,3 +146,10 @@ def column_mean_partial_pressure_pa(column_du, pressure_pa, mean_molar_mass_kg_m
         return 0.0
     air_cm2 = pressure_pa / (mean_molar_mass_kg_mol * gravity_m_s2) * AVOGADRO * 1e-4
     return column_du * DOBSON_CM2 / air_cm2 * pressure_pa
+
+
+def column_after_air_loss(column_du, retained_fraction):
+    """The ozone column, DU, left when a loss event (stripping, impact or escape) keeps `retained_fraction` of the air (GEN.668):
+    the ozone is a layer of the air above the ground, so its column goes with the air that is kept; 0 kept leaves none, and a
+    share above 1 or below 0 is held to 1 and 0."""
+    return max(column_du, 0.0) * min(max(retained_fraction, 0.0), 1.0)
