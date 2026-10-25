@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2289] - 2026-10-25
+
+**Headline:** The Galaxy Map's sector blocks draw again: the sectors' colour (such as Color by Habitable worlds) was missing since the one-star-buffer change, and the sector page map failed at phone width.
+
+### Fixed
+- **The block prism shader compiles again (MAP.293, MAP.294).** The relative-to-eye position lines of the star buffer (MAP.267) had gone into the block prism vertex shader, which has no such uniforms, instead of the star vertex shader: the blocks' shader did not compile, so no sector was filled or coloured, and the sector page map showed the same error at phone width. The star shader now takes the lines, as the star buffer meant, and a browser test draws the filled blocks at desktop and phone widths and fails on any shader error.
+
 ## [8.0.2288] - 2026-10-25
 
 **Headline:** Every stand-in value now has a source tier and a tweak level, and one generated page lists them all.
