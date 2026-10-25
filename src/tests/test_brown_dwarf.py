@@ -135,7 +135,7 @@ def test_dwarfs_of_one_temperature_spread_over_types_by_the_maps_scatter():
 
     assert 0.7 < spread(1600.0) < 1.6                                  # 134 K at about 100 K per subtype near L5
     assert spread(1220.0) > 2.0                                         # the nearly flat L/T transition
-    assert 1.5 < spread(800.0) < 4.5                                    # 79 K at about 40 K per subtype near T6
+    assert 0.4 < spread(800.0) < 0.9                                    # 79 K at about 130 K per subtype near T8
 
 
 def test_a_cooler_brown_dwarf_has_a_later_type_on_average():
