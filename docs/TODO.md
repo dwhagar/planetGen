@@ -5197,6 +5197,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the wide-binary count first and report it, then build the re-roll with
   that console report. Owner: none (pool); Core 5 may take it if nobody
   started it.
+  Research (2026-10-09, Core 5 report): Core 5 releases this (10:59 PM
+  EDT 2026-10-24 as the lane reported): the count has to run on Boss's
+  own database and re-rolling single systems has no per-system
+  regenerate today (only whole sectors), so it overlaps the GEN.764
+  revise job. Owner: Core 1, built inside GEN.764.
   Prerequisites: none. Related: GEN.228 (done, PR #1610).
 
 - [ ] **GEN.231 Generate a whole block on the shell ladder: the generate --block mode and the block buttons come back**
@@ -5943,7 +5948,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.738, GEN.739, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.738, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -13741,25 +13746,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Prerequisites: none. Related: GEN.511, GEN.483, GEN.675.
 
-- [ ] **GEN.739 Impact erosion and late delivery of atmospheres, with history**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  A5; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: n/a (left
-  out). Today: There is no impact erosion or late delivery of volatiles.
-  Real physics: impact-driven loss and delivery with history. Do: add an
-  impact history to the supply law (GEN.726) so that late veneers and
-  erosion change the inventory. Done: the inventory includes impact
-  delivery and loss, with a test against the observed volatile budgets
-  of the terrestrial planets. Each stand-in it touches records its
-  source tier and tweak level in the gap plan registry (GEN.725). Owner:
-  pool (first free lane; 8.1 core lanes do not take it before 8.1
-  closes).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: none. Related: GEN.726, GEN.481.
-
 - [ ] **GEN.740 Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere)**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   A12; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -15025,25 +15011,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-in registry rows are updated. Changes drawn output:
   `tests.golden_update --reason ... --affects fill` and the next epoch.
   Version 8.1. Owner: Citations lane (Aux 17).
+  Research (2026-10-09, Citations lane report): The Citations lane did
+  GEN.482b itself (#3240, 10:48 PM EDT 2026-10-24 as the lane reported)
+  and does not take this one. Owner: Aux 8 (atmosphere recipes), after
+  GEN.815 and GEN.818.
   Prerequisites: none. Related: GEN.481, GEN.510, GEN.725.
-
-- [ ] **GEN.803 Wire the magma-ocean redox findings: the a1 width and its extension above 1 Earth mass, link a2 to a1, split a3 by building-block type (GEN.482b)**
-  Citations lane (Aux 17), GEN.481 and GEN.482 merged #3220, relayed
-  10:35 PM EDT 2026-10-24 as the lane reported
-  (docs/design/composition/volatile-delivery-formation-distance.md and
-  magma-ocean-redox-against-mass.md). a1 mean is inside the first-hand
-  ranges at the Moon, Mars and Earth (Hirschmann 2022, Deng 2020, Sossi
-  2020) but its width 0.5 is too narrow for Earth (0.9) and its clamp
-  above 1 Earth mass is unsourced; a2 sits inside one sd of its three
-  anchors and should be linked to a1; the a3 check bracket misses
-  carbonaceous material (IW+1.6 to +2.6), so a3 splits by building-block
-  type. Do: widen a1 and extend it above 1 Earth mass with a source,
-  link a2 to a1, split a3 by building-block type, and update the recipe
-  data. Done: a sample of 1,000 magma oceans lands inside the first-hand
-  ranges at the three anchors, with the registry rows updated. Changes
-  drawn output: `tests.golden_update --reason ... --affects fill` and
-  the next epoch. Version 8.1. Owner: Citations lane (Aux 17).
-  Prerequisites: none. Related: GEN.482, GEN.802, GEN.725.
 
 - [ ] **GEN.804 Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1)**
   Unused stored values audit chain
@@ -15286,6 +15258,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects <stage>` and the next epoch; tests are `scripts/test.py
   changed --resume`.
   Prerequisites: none. Related: GEN.751, GEN.725.
+
+- [ ] **GEN.819 Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet**
+  GEN.739 (#3246) added physics/impact_history.py and
+  surface_pressure.impact_inventory (H, C and N atoms per 100 g of
+  mantle from late accretion, impact delivery and impact erosion,
+  Sakuraba et al. 2019, Brasser et al. 2016) with registry rows AM36 to
+  AM44; nothing in the generator calls it. Once the air fixed point
+  (GEN.411, GEN.422) lands, make the supply law read impact_inventory
+  for rocky planets and moons and take the generator epoch with
+  --affects fill. Done: Earth, Venus and Mars samples land inside the
+  brackets of the design note (Earth N2 near 3.9e18 kg, kept water near
+  the 1.4e21 kg ocean, Mars thin by escape). Owner: the Citations lane.
+  Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); tests are `scripts/test.py changed --resume`.
+  Prerequisites: GEN.411, GEN.422. Related: GEN.739, GEN.411, GEN.422,
+  GEN.726.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -17437,6 +17425,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   quantity names its unit, and a test over the OpenAPI document fails on
   a quantity field with no unit. Owner: Aux 12 (API), Core 5 (commands),
   Aux 14 for the test over the field list. Related: GEN.771, DOC.15.
+  Research (2026-10-09, Core 5 report): Core 5 part merged (#3248, 10:59
+  PM EDT 2026-10-24 as the lane reported): command-line progress bars
+  name their unit ("12/40 sectors"), the Generate page and Queue page
+  progress lines end in a noun, the phenomena scatter log says "placed
+  120 phenomena", and "Minimum start density" carries its hint. Still
+  open: the property sheet, API field descriptions and the OpenAPI test
+  (Aux 12, Aux 14), admin pages other than the Queue page (Aux 12), the
+  stats and settings pages.
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
@@ -20848,6 +20844,12 @@ clears each one.
   Lane D (Aux 3) also saw
   test_db_column_round_trip::test_every_column_is_written fail once on
   the disk columns (TEST.387).
+  Research (2026-10-09, Core 5 report): Core 5 (10:59 PM EDT 2026-10-24
+  as the lane reported) also lists red on clean main: test_web_generate
+  override-logging pair, two test_progress_log runner tests,
+  test_work_units batch-fills test. Core 5 fixed test_stages,
+  test_job_tree and test_work_units cases that PERF.125 left red
+  (#3248).
   Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
 
 - [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**
