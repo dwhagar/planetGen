@@ -13201,88 +13201,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registering.
   Prerequisites: none. Related: GEN.272, GEN.675.
 
-- [ ] **GEN.725 Stand-in values carry a source tier and a tweak level: two new columns in the gap plan registry and one document in docs listing every stand-in, where it came from, its tier and how far it was tuned for outcome**
-  Boss, 3:40 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi6t7ZkqguwGhLAkNu9m7G3P, in the physics
-  gaps thread, relayed by the coordinator): for the gaps that have
-  stand-in values, the stand-ins may be used to tweak the outcome, and
-  are to be based on as much real information as possible. Source tiers,
-  in order: (1) Verified; (2) Confident Unverified; (3) Marginal
-  Unverified; (4) Unverified; (5) Confident educated guess based on
-  physics; (6) Marginal educated guess based on physics; (7) Educated
-  guess based on inferred physics; (8) Educated guess based on reputable
-  fringe or new physics (theories not yet tested); (9) Educated guess
-  based on needed output (full tweak to match outcomes). In every tier,
-  an unverified or guessed value may be tweaked to fit the probabilities
-  we want to see. Boss also wants 'a full list document in docs of all
-  stand in values, where they came from, and a kind of tweak level (how
-  much are they tweaked for outcome vs left as they were envisioned)'.
-  Do: (a) add two columns to the gap plan registry, source tier (one of
-  the nine above) and tweak level (five steps, decided by Boss, 4:01 PM
-  EDT 2026-10-24: L0 as envisioned, L1 nudged inside source
-  uncertainty, L2 tuned to a published statistic, L3 hand-tuned against
-  a sweep, L4 fitted to outcome with no independent source); (b) give every
-  existing registry row both values, from its evidence label and the
-  item that tuned it; (c) write the document
-  docs/design/stand-in-values.md listing every stand-in value (name,
-  value, where it came from, tier, tweak level, validity range, test,
-  replacing item), generated from the registry where possible so it
-  cannot drift, and list it in docs/design/README.md; (d) a test that
-  every registry row has both columns filled. Rule from now on: a lane
-  that adds a stand-in records its tier and tweak level in the same PR.
-  Coordinate with the read-only physics gaps thread, which is compiling
-  the gaps. Owner: pool (the lane that did GEN.675, Lane L, knows the
-  registry; otherwise the first free atmosphere lane). Related: GEN.675,
-  GEN.707, GEN.711, GEN.724.
-  Sources (2026-10-09): Update 4:22 PM EDT 2026-10-24, from
-  reports/secondhand-citations-2026-10-24.md (written 4:25 PM EDT as the
-  lane reported; second-hand citations thread): registry input: the
-  report proposes a tier per second-hand find (mostly Confident
-  Unverified): ICRP 103 wR and wT, SLB via BurnMan, Fray and Schmitt
-  coefficients via the Arrokoth supplement, French 2009 via Mazevet and
-  AQUA, Hapke via Hammond 2025, Myhre via IPCC TAR, Ayers via Gao 2014,
-  JPL via GEOS-Chem (labelled JPL 15-10, not 19-5). Two flags to resolve
-  in gap-filling-plan.md: the CFC-12 coefficient is 0.32 in IPCC TAR
-  Table 6.2 but 0.33 at line 272, and the NH3 factor 1.078 at line 294
-  differs from Irwin 2019. Still not found: Bogaard and King factors,
-  Fray validity windows, Frost 1991 constants, Wolff 2009, dose depth
-  tables. The warm-giant 0.35 percent figure is not found (Unverified);
-  the flare exponent 1.99 is found (Capistrant and Dittmann 2025).
-  Boss's reference list has two author errors (Zhu 2020 is Yang, Xie and
-  Zhou 2020; HAZMAT VII is Loyd et al.).
-  Sources (2026-10-09): Update 4:41 PM EDT 2026-10-24, from
-  reports/secondhand-citations-2026-10-24.md Parts 8 and 9 (as the lane
-  reported): (1) papers Boss cannot access, never re-list: Fray and
-  Schmitt 2009, ICRP 103, Karkoschka 1994 and Karkoschka and Tomasko,
-  Tomasko 2008, Ayers 1980, Frost 1991, Hirschmann 2012, Palme and
-  O'Neill 2014, JPL 19-5, Bogaard 1978, Huebner 1992, Huebner and
-  Mukherjee 2015. (2) Second-hand data for the registry, tiers to be
-  assigned by the registry owner: Frost buffer constants via
-  PetroBuffer; Palme and O'Neill via the Wang 2018 concordance (K 237,
-  Th 0.0746, U 0.0198); 62 JPL 19-5 rate lines from GEOS-Chem (label the
-  older-vintage chlorine test reactions); Bogaard-derived King factors
-  via PICASO (SO2 1.0626, H2S 1.0019, Marginal); Huebner photo rates via
-  the Leiden database (Heays 2017) scaled to 1 au (NH3 1.54e-4 against
-  the plan's 1.80e-4, within 15 percent; HCN 7.9e-6 against Biver 1.6e-5
-  to 1.9e-5, a factor 2 conflict, so keep the range). (3) Boss uploaded
-  Wolff 2009, Lodders 2003, Paranicas 2009 and Gronoff 2011, now
-  first-hand (Lodders: water ice 182 K, ammonia hydrate 131 K, methane
-  clathrate 78 K at 1e-4 bar, 22.75 percent of oxygen in rock first;
-  Wolff solar-band w0 0.922 to 0.926, 0.940 for the smaller-grain case).
-  Cooper 2001, Patterson 2012, Nordheim 2018 and Gronoff 2009 are still
-  unread.
-  Research (2026-10-09, Update 6:36 PM EDT): Update 6:36 PM EDT
-  2026-10-24 (GEN.762 merged as #3128, Aux 13; epoch 96): two stand-ins
-  to register, with the tier and tweak level TODO proposes from the
-  lane's report (the registry owner confirms or corrects): (1) ice skin
-  depth over a body's clathrate-bearing crust, 1 m to 1 km drawn
-  log-uniform: tier 6 Marginal educated guess based on physics, tweak
-  level L0 as envisioned; (2) equal weights for the brine salt species
-  (perchlorate and the other eutectic salts): tier 4 Unverified, tweak
-  level L0. Both in clathrate_brine callers in
-  atmosphere.generate_atmosphere and hydrosphere.generate_hydrosphere.
-  Prerequisites: none. Related: GEN.675, GEN.707, GEN.711, GEN.724.
-
 - [ ] **GEN.727 Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   F3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -19585,6 +19503,36 @@ clears each one.
   the module layout GEN.445 chose, with no skip. Done: the test passes
   on main. Owner: Aux 4 (Lane E, GEN.445). Related: TEST.363, GEN.445.
   Prerequisites: none. Related: TEST.363, GEN.445.
+
+- [ ] **TEST.374 scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug)**
+  Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
+  lane reported): the patch notes in changes/ for GEN.398, GEN.691 and
+  GEN.719 (Math lane 2, #3162) carry a "### Tests" heading, which
+  `bump_version.py --check-pr` refuses (notes need "### Changed" and a
+  Headline; map-unresolved-glow had the same earlier). Do: fix the three
+  notes (move the test lines under "### Changed" or drop the heading)
+  and make the check say which heading it refused, so a lane sees it
+  before merge. Done: `bump_version.py --check-pr` passes on main.
+  Owner: Math 2 for the three notes; Bug 1 for the clearer message.
+  Related: TEST.372.
+  Prerequisites: none. Related: TEST.372.
+
+- [ ] **TEST.375 Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug)**
+  Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
+  lane reported): test_api_auth_sweep (2 tests), test_class_pages
+  phenomenon links (6; TEST.365 fixed six class-page tests in #3142, so
+  these may be new or environmental), test_db_column_round_trip (written
+  columns), test_save_progress sector save, test_web_generate
+  generate_anyway (2) and test_memwatch smoke run (TEST.366 was dropped
+  as not reproducing after #3125), plus test_interior_heat urey ratio
+  (TEST.353, already done). Do: run each on a lane machine set up as
+  documented (the planetgen database account gap of TEST.370 explains
+  several), keep the ones that still fail on main, and fix each with no
+  skip; drop the ones that pass, noting which machine setup they needed.
+  Done: every listed test passes on a documented machine, or has its own
+  item with a root cause. Owner: Bug 1. Related: TEST.370, TEST.365,
+  TEST.366, TEST.353.
+  Prerequisites: none. Related: TEST.370, TEST.365, TEST.366, TEST.353.
 
 ## USR: User accounts
 
