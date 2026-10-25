@@ -381,9 +381,10 @@ def mutual_hill_radius_m(distance1_m, distance2_m, mass1_kg, mass2_kg, central_m
 def circular_orbital_speed_kms(distance_au, period_years):
     """
     Tangential speed of a circular orbit, given its radius and period:
-    `v = 2*pi*r / T`. Exact (constant at every point of the orbit), since
-    this generator only ever models circular orbits for planets and moons
-    (see `physics.planets.generate_orbital_motion_properties`) -- unlike
+    `v = 2*pi*r / T`. Exact for a circle (constant at every point of the
+    orbit); a planet or moon is on an ellipse (GEN.727,
+    `physics.orbit_elements`) whose speed is vis-viva's, and this is the
+    speed of the circle of its semi-major axis -- unlike
     `calculate_galactic_orbit`, which has to *assume* a rotation-curve
     model to get a speed at all, a planet's/moon's period is already known
     exactly from Kepler's third law (`physics.planets.

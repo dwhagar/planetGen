@@ -40,10 +40,10 @@ def test_a_planet_moon_and_comet_move_at_their_orbital_speed_along_their_orbit()
     planet = next(p for p in system.planets if isinstance(p, Planet) and p.moons)
     for body in (planet, planet.moons[0], system.comets[0]):
         assert _speed(body) == pytest.approx(body.orbital_speed_kms, rel=1e-9)
-    for body in (planet, planet.moons[0]):  # on a circle the velocity is perpendicular to the radius
-        radius = (body.position_x, body.position_y, body.position_z)
-        velocity = (body.velocity_x_kms, body.velocity_y_kms, body.velocity_z_kms)
-        assert sum(r * v for r, v in zip(radius, velocity)) == pytest.approx(0.0, abs=1e-6 * body.distance * _speed(body))
+    for body in (planet, planet.moons[0]):  # the velocity is vis-viva's (GEN.727: the orbit is an ellipse; a circle's is perpendicular to the radius)
+        radius = math.sqrt(body.position_x ** 2 + body.position_y ** 2 + body.position_z ** 2)
+        mu = (2.0 * math.pi / body.period) ** 2 * body.distance ** 3
+        assert _speed(body) == pytest.approx(math.sqrt(mu * (2.0 / radius - 1.0 / body.distance)) * KM_S_PER_AU_YR, rel=1e-9)
     assert planet.spatial.get_speed("system") == pytest.approx(planet.orbital_speed_kms * 1000.0, rel=1e-9)
 
 
@@ -161,8 +161,6 @@ def test_a_saved_system_keeps_every_bodys_velocity(mysql_config):
 
 
 def test_advancing_the_orbits_moves_the_velocity_with_the_position(mysql_config):
-    from planetgen.physics.orbits import circular_orbital_velocity_au_per_year
-
     _system, system_id = _saved_system(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
@@ -170,14 +168,19 @@ def test_advancing_the_orbits_moves_the_velocity_with_the_position(mysql_config)
         store.advance_comet_orbits(conn, store.orbit_clock(conn, 0.37))
         for table in ("planets", "moons"):
             for row in conn.execute(f"SELECT * FROM {table} WHERE star_system_id = ?", (system_id,)).fetchall():
-                phase_deg = body_state.argument_of_latitude_deg(
-                    (row["position_x_km"], row["position_y_km"], row["position_z_km"]),
-                    row["orbital_inclination_deg"], row["orbital_ascending_node_deg"])
-                expected = circular_orbital_velocity_au_per_year(
-                    row["distance_km"] / pc.AU_TO_KM, row["orbital_inclination_deg"], row["orbital_ascending_node_deg"],
-                    phase_deg, row["period_years"])
-                got = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
-                assert got == pytest.approx(tuple(v * KM_S_PER_AU_YR for v in expected), rel=1e-9, abs=1e-9)
+                # the speed at the new place is vis-viva's, and the angular momentum is still along the orbit's normal
+                position = tuple(row[f"position_{axis}_km"] for axis in "xyz")
+                velocity = tuple(row[f"velocity_{axis}_kms"] for axis in "xyz")
+                radius = math.sqrt(sum(c * c for c in position))
+                mu = 4.0 * math.pi ** 2 * row["distance_km"] ** 3 / row["period_years"] ** 2   # km^3 / yr^2
+                speed_km_yr = math.sqrt(sum(c * c for c in velocity)) * pc.SECONDS_PER_YEAR
+                assert speed_km_yr ** 2 == pytest.approx(mu * (2.0 / radius - 1.0 / row["distance_km"]), rel=1e-7)
+                momentum = (position[1] * velocity[2] - position[2] * velocity[1], position[2] * velocity[0] - position[0] * velocity[2],
+                            position[0] * velocity[1] - position[1] * velocity[0])
+                inclination, node = math.radians(row["orbital_inclination_deg"]), math.radians(row["orbital_ascending_node_deg"])
+                normal = (math.sin(node) * math.sin(inclination), -math.cos(node) * math.sin(inclination), math.cos(inclination))
+                size = math.sqrt(sum(c * c for c in momentum))
+                assert sum(m * n for m, n in zip(momentum, normal)) / size == pytest.approx(1.0, abs=1e-9)
         for row in conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchall():
             speed = math.sqrt(row["velocity_x_kms"] ** 2 + row["velocity_y_kms"] ** 2 + row["velocity_z_kms"] ** 2)
             assert speed == pytest.approx(row["orbital_speed_kms"], rel=1e-9)

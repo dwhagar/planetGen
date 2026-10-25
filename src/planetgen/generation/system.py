@@ -1223,7 +1223,7 @@ class StarSystem:
                             # constrain where its own replacement can land.
                             estimated_distance = self._forced_habitable_distance(planets[:i - 1])
                             planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
-                                            planet_class="M")
+                                            planet_class="M", planned_objects=system_objects)
                             planets[i - 1] = planet
                             i -= 1
                             found_hab = True
@@ -1237,7 +1237,7 @@ class StarSystem:
 
                     if hz:
                         planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
-                                        planet_class="M")
+                                        planet_class="M", planned_objects=system_objects)
                         found_hab = True
                         planets.append(planet)
                         if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
@@ -1273,7 +1273,8 @@ class StarSystem:
                     planets.append(AsteroidBelt(self.system_config, star, estimated_distance, min_distance, max_distance)) # Pass system_config
                     found_belt = True
                 else:
-                    planet = Planet(self.system_config, star, habitable_zone, estimated_distance) # Pass system_config
+                    planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
+                                    planned_objects=system_objects)
                     if planet.planet_class == "M":
                         found_hab = True
                     planets.append(planet)

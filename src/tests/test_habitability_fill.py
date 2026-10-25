@@ -90,7 +90,7 @@ def test_a_system_comes_back_with_the_numbers_generation_stored(mysql_config):
         conn.close()
 
 
-def test_a_double_star_system_gets_its_flux_swing_back_and_a_lone_star_gets_none(mysql_config):
+def test_a_double_star_system_gets_its_flux_swing_back_and_a_lone_star_gets_its_orbits(mysql_config):
     saved = _save_systems(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
@@ -102,7 +102,9 @@ def test_a_double_star_system_gets_its_flux_swing_back_and_a_lone_star_gets_none
                       if b["body_type"] != "g" and b["scored"] is not None]
             assert swings and all(value is not None for value in swings)
             if kind is None:
-                assert all(value == 0.0 for value in swings)
+                # GEN.727: the swing of an eccentric orbit, 0 only for a circle
+                assert all(0.0 <= value <= 1.0 for value in swings)
+                assert any(value > 0.0 for value in swings)
             else:
                 assert any(value > 0.0 for value in swings), kind
     finally:

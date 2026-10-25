@@ -166,7 +166,7 @@ _STAR = (
 _BODY_GROUPS = (
     *_rows("identity", ("planet_class", "Class", TEXT), ("zone", "Zone", TEXT)),
     *_rows("orbit", ("distance_km", "Distance from its star"), ("period_years", "Orbital period"),
-           ("orbital_speed_kms", "Orbital speed"), ("orbital_inclination_deg", "Inclination"),
+           ("orbital_speed_kms", "Orbital speed"), ("eccentricity", "Eccentricity"), ("orbital_inclination_deg", "Inclination"),
            ("orbital_ascending_node_deg", "Longitude of the ascending node"), ("hill_radius_km", "Hill radius"),
            ("min_orbit_distance_km", "Closest stable orbit for a moon"), ("dynamical_state", "Dynamical state", TEXT),
            ("habitable_zone_inner_km", "Habitable zone, inner edge"),

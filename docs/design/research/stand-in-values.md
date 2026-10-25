@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 112 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 123 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 18 | 0 | 0 | 0 | 0 | 18 |
-| T2 | 29 | 0 | 0 | 0 | 0 | 29 |
-| T3 | 25 | 0 | 0 | 0 | 0 | 25 |
-| T4 | 4 | 0 | 0 | 0 | 0 | 4 |
-| T5 | 4 | 2 | 0 | 0 | 0 | 6 |
-| T6 | 10 | 3 | 1 | 4 | 0 | 18 |
+| T1 | 21 | 0 | 0 | 0 | 0 | 21 |
+| T2 | 31 | 0 | 0 | 0 | 0 | 31 |
+| T3 | 27 | 0 | 0 | 0 | 0 | 27 |
+| T4 | 5 | 0 | 0 | 0 | 0 | 5 |
+| T5 | 6 | 2 | 0 | 0 | 0 | 8 |
+| T6 | 11 | 3 | 1 | 4 | 0 | 19 |
 | T7 | 9 | 2 | 0 | 1 | 0 | 12 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 99 | 7 | 1 | 5 | 0 | 112 |
+| All | 110 | 7 | 1 | 5 | 0 | 123 |
 
 ## How the labels were given
 
@@ -194,3 +194,19 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM33 | D | T5 | L1 | surface_pressure.HEAT_FLUX_EARTH_W_M2 | 0.0614 W per m2, fixed | the reference of the outgassing flux | test_surface_pressure::test_the_earth_is_the_balance_at_its_modern_flux_land_and_temperature | a mobile-lid heat loss in `interior_heat` | CALIBRATED on the interior model's own Earth twin, mid rheology (source tier 5, tweak level 1) |
 | AM34 | P | T6 | L0 | mixture_subject.PHOTOSPHERE_BAR | 0.1 bar, fixed | the regime of hot giants and brown dwarfs (rows h and g read the edge at this pressure) | test_mixture_subject::test_a_giant_gets_its_layer_temperatures_and_the_photosphere_pressure | the cooling-track and atmosphere model of the giant lane | design (the recipe quantity's own definition: about 0.1 bar for the dayside emission of a hot giant) |
 | AM35 | D | T5 | L0 | mixture_subject.DAYSIDE_OVER_EQUILIBRIUM | 1.278, fixed | every body the draw reads a dayside temperature of (hot giants, lava worlds) | test_mixture_subject::test_the_earth_gives_the_quantities_the_world_gives | a heat-redistribution model | COMPUTED (a day hemisphere alone catches the starlight: f = 2/3 against 1/4, so T rises by (8/3)^(1/4); the upper bound of the dayside, no redistribution) |
+
+## 6.8 Stand-ins of the orbit elements
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|
+| OE1 | B | T1 | L0 | orbit_elements.MULTI_SIGMA | 0.083, fixed | planets of systems with two or more planets | a law fitted to planets of every period and size | READ (Van Eylen et al. 2019 abstract: multi-planet systems consistent with a half-Gaussian of 0.083, +0.015 -0.020) |
+| OE2 | B | T1 | L0 | orbit_elements.SINGLE_MODERATE_FRACTION | 0.76, fixed | a system with one planet | the same | READ (the same abstract: 0.76, +0.21 -0.12, of single transiting systems have a moderate eccentricity) |
+| OE3 | B | T1 | L0 | orbit_elements.SINGLE_RAYLEIGH_MODE | 0.26, fixed | the moderate share of single planets | the same | READ (the same abstract: a Rayleigh law that peaks at 0.26, +0.04 -0.06) |
+| OE4 | T | T2 | L0 | orbit_elements.draw_planet_eccentricity | the three above | every planet | radial-velocity and direct-imaging eccentricities by period and mass | the laws of OE1 to OE3 used outside the planets they were fitted to (Kepler's, mostly under 100 days) and with the planets the generator counts, not the ones a transit survey finds |
+| OE5 | P | T4 | L0 | orbit_elements.MAX_ECCENTRICITY | 0.9, fixed | every planet and moon | none needed | design (the laws put almost nothing beyond it; the periapsis cut comes first for a close orbit) |
+| OE6 | B | T2 | L0 | orbit_elements.MUTUAL_INCLINATION_SIGMA_DEG | 1.6 degrees, fixed | planets | a law of the plane scatter of giants and of systems beyond the Kepler range | Fabrycky et al. 2014: Rayleigh mutual inclination of 1.0 to 2.2 degrees (read in an earlier session, not again for this item); a planet's own angle to the plane is that over the square root of two |
+| OE7 | P | T3 | L0 | orbit_elements.REGULAR_MOON_ECCENTRICITY_RANGE | 0.001 to 0.01, log | moons of disk, impact, ring or binary origin | a forced eccentricity from the resonances and neighbours of the moon system | the forced eccentricities of the regular satellites of the giants run from 0.001 to 0.03 and the Moon 0.055; the range is the one the tide of GEN.700 already drew from |
+| OE8 | T | T5 | L0 | orbit_elements.draw_moon_eccentricity | the Hill cut of `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION` | captured moons | capture and evolution of an irregular moon | the thermal distribution of eccentricities, f(e) = 2 e, of a body captured on a wide orbit (Jeans 1919, recalled), cut at the stable part of the parent's Hill sphere |
+| OE9 | P | T3 | L0 | orbit_elements.GIANT_TIDAL_Q, GIANT_TIDAL_LOVE_NUMBER_K2 | 1e5 and 0.3, fixed | the tide of a gas giant | per-body Q and k2 (GEN.731) | Jupiter: k2 about 0.38 and Q from 3.5e4 to about 1e6 from the Galilean moons' orbits (recalled; GEN.731 gives every body its own) |
+| OE10 | T | T5 | L0 | orbit_elements.circularisation_time_yr | Q 100, k2 0.03 for rock and ice | every planet and moon | per-body Q and k2 (GEN.731) | the circularisation time of a synchronously rotating body, tau = (2/21)(Q/k2)(m/M)(a/R)^5/n (Goldreich and Soter 1966), with the rocky Q and k2 of `constants.MOON_TIDAL_DISSIPATION_Q` and `MOON_TIDAL_LOVE_NUMBER_K2` |
+| OE11 | T | T6 | L0 | insolation.companion_swing | in phase, fixed | planets of a binary | a time series of the sum | the swing of the planet's own orbit and the companion's are taken in phase, the largest the pair can give; their periods differ and the extremes meet only now and then |

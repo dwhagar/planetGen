@@ -287,15 +287,18 @@ export function positionsAt(scene, years) {
 }
 
 // The points of one orbit's path, relative to what it goes round, in km: a
-// circular orbit's circle, a comet's ellipse or the near part of its
-// parabola (out to `maxAu`). `samples` points, the first repeated at the
-// end of a closed path.
+// planet's or moon's ellipse (a circle when its eccentricity is 0), a
+// comet's ellipse or the near part of its parabola (out to `maxAu`).
+// `samples` points, the first repeated at the end of a closed path.
 export function orbitPath(orbit, samples = 128, maxAu = COMET_PATH_LIMIT_AU) {
   const out = [];
   if (!orbit.kepler) {
-    const r = orbit.distance_km / AU_KM;
+    const e = orbit.eccentricity || 0;
+    const semiLatus = (orbit.distance_km / AU_KM) * (1 - e * e);
+    const periapsis = rad(orbit.arg_periapsis_deg || 0);
     for (let n = 0; n <= samples; n += 1) {
-      const p = orbitalPosition(r, orbit.inclination_deg, orbit.ascending_node_deg, (360 * n) / samples);
+      const nu = (2 * Math.PI * n) / samples;
+      const p = orbitalPosition(semiLatus / (1 + e * Math.cos(nu)), orbit.inclination_deg, orbit.ascending_node_deg, deg(periapsis + nu));
       out.push([p[0] * AU_KM, p[1] * AU_KM, p[2] * AU_KM]);
     }
     return out;

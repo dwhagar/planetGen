@@ -396,7 +396,7 @@ TABLES = {
         "ratio": (
             "water_mass_fraction", "ocean_fraction", "land_fraction", "water_activity", "dose_helio_mult", "phi4",
             "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
-            "l_solv", "l_chem", "l_ener", "flux_variation",
+            "l_solv", "l_chem", "l_ener", "flux_variation", "eccentricity",
             "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index", "al26_ratio", "urey_ratio",
             "tau_haze", "tau_dust", "tau_cloud", "cloud_cover", "aerosol_draw",
             "bond_albedo", "greenhouse_factor",
@@ -622,7 +622,7 @@ TABLES = {
         "ratio": (
             "water_mass_fraction", "ocean_fraction", "land_fraction", "water_activity", "dose_helio_mult", "phi4",
             "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
-            "l_solv", "l_chem", "l_ener", "flux_variation",
+            "l_solv", "l_chem", "l_ener", "flux_variation", "eccentricity",
             "xuv_exposure_index", "flare_irradiation_index", "uv_surface_index", "al26_ratio", "urey_ratio",
             "tau_haze", "tau_dust", "tau_cloud", "cloud_cover", "aerosol_draw",
             "bond_albedo", "greenhouse_factor",

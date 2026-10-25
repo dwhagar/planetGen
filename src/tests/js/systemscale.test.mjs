@@ -57,6 +57,17 @@ test("layoutPositions sums offsets up the parents", () => {
   assert.ok(Math.hypot(moon[0] - planet[0] - offset[0], moon[1] - planet[1] - offset[1], moon[2] - planet[2] - offset[2]) < 1e-9);
 });
 
+test("a planet's path is the ellipse of its eccentricity, periapsis first (GEN.727)", () => {
+  const orbit = { ...scene.planets[0].orbit, eccentricity: 0.4, arg_periapsis_deg: 90 };
+  const path = P.orbitPath(orbit, 64);
+  assert.equal(path.length, 65);
+  const radii = path.map((p) => Math.hypot(...p) / AU_KM);
+  assert.ok(Math.abs(Math.min(...radii) - 1.5 * 0.6) < 1e-9, "periapsis is a (1 - e)");
+  assert.ok(Math.abs(Math.max(...radii) - 1.5 * 1.4) < 1e-9, "apoapsis is a (1 + e)");
+  assert.ok(Math.abs(radii[0] - 1.5 * 0.6) < 1e-9, "the path starts at periapsis");
+  assert.ok(Math.hypot(...path[0].map((v, i) => v - path[64][i])) < 1, "and closes");
+});
+
 test("orbit paths close up for planets and open out for a parabolic comet", () => {
   const circle = P.orbitPath(scene.planets[0].orbit, 64);
   assert.equal(circle.length, 65);

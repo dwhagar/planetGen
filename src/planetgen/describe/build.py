@@ -380,6 +380,7 @@ def _planet_facts(planet):
         fact("distance", "Distance", _au(planet.distance)),
         fact("period", "Period", _years(planet.period)),
         fact("speed", "Speed", _kms(planet.orbital_speed_kms)),
+        fact("eccentricity", "Eccentricity", qty("ratio", planet.eccentricity)),
         fact("radius", "Radius", _radius_km(planet.radius)),
         fact("gravity", "Gravity", _gravity(planet.gravity)),
         fact("mass", "Mass", _mass(planet.mass)),

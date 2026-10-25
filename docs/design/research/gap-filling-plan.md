@@ -529,6 +529,24 @@ Every bracket, width and ratio the mixture draw (`physics/mixture_*.py`, GEN.451
 
 The opacities of the greenhouse module (`atmosphere_state`, GEN.423) are not here: GEN.703 (lane E) moved them to `physics/infrared_opacity.py`, where its own stand-ins are stated. Not stand-ins and so not listed: `LAMBDA_KEPT` (theory: escape speed six times the rms speed, 6^2 x 3/2), `REFERENCE_AGE_GY` (the age the threshold is stated for), `UNLISTED_LIMIT` and the numerical floors.
 
+### 6.8 Stand-ins of the orbit elements (GEN.727)
+
+The eccentricity and inclination laws of planets and moons (`physics/orbit_elements.py`) and what the code does with them. Kinds, tiers and tweak levels as in 6.1 and in the list of every stand-in. The anchor of the first three rows is the abstract of Van Eylen et al. 2019 (AJ 157, 61, arXiv:1807.00549), read for this item; the paper is of small planets close to their stars, and the laws are used for every planet at every distance, which is row OE4.
+
+| fill_id | kind | tier | tweak | evidence | constant | knobs | validity | replaced_by |
+|---|---|---|---|---|---|---|---|---|
+| OE1 | B | T1 | L0 | READ (Van Eylen et al. 2019 abstract: multi-planet systems consistent with a half-Gaussian of 0.083, +0.015 -0.020) | orbit_elements.MULTI_SIGMA | 0.083, fixed | planets of systems with two or more planets | a law fitted to planets of every period and size |
+| OE2 | B | T1 | L0 | READ (the same abstract: 0.76, +0.21 -0.12, of single transiting systems have a moderate eccentricity) | orbit_elements.SINGLE_MODERATE_FRACTION | 0.76, fixed | a system with one planet | the same |
+| OE3 | B | T1 | L0 | READ (the same abstract: a Rayleigh law that peaks at 0.26, +0.04 -0.06) | orbit_elements.SINGLE_RAYLEIGH_MODE | 0.26, fixed | the moderate share of single planets | the same |
+| OE4 | T | T2 | L0 | the laws of OE1 to OE3 used outside the planets they were fitted to (Kepler's, mostly under 100 days) and with the planets the generator counts, not the ones a transit survey finds | orbit_elements.draw_planet_eccentricity | the three above | every planet | radial-velocity and direct-imaging eccentricities by period and mass |
+| OE5 | P | T4 | L0 | design (the laws put almost nothing beyond it; the periapsis cut comes first for a close orbit) | orbit_elements.MAX_ECCENTRICITY | 0.9, fixed | every planet and moon | none needed |
+| OE6 | B | T2 | L0 | Fabrycky et al. 2014: Rayleigh mutual inclination of 1.0 to 2.2 degrees (read in an earlier session, not again for this item); a planet's own angle to the plane is that over the square root of two | orbit_elements.MUTUAL_INCLINATION_SIGMA_DEG | 1.6 degrees, fixed | planets | a law of the plane scatter of giants and of systems beyond the Kepler range |
+| OE7 | P | T3 | L0 | the forced eccentricities of the regular satellites of the giants run from 0.001 to 0.03 and the Moon 0.055; the range is the one the tide of GEN.700 already drew from | orbit_elements.REGULAR_MOON_ECCENTRICITY_RANGE | 0.001 to 0.01, log | moons of disk, impact, ring or binary origin | a forced eccentricity from the resonances and neighbours of the moon system |
+| OE8 | T | T5 | L0 | the thermal distribution of eccentricities, f(e) = 2 e, of a body captured on a wide orbit (Jeans 1919, recalled), cut at the stable part of the parent's Hill sphere | orbit_elements.draw_moon_eccentricity | the Hill cut of `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION` | captured moons | capture and evolution of an irregular moon |
+| OE9 | P | T3 | L0 | Jupiter: k2 about 0.38 and Q from 3.5e4 to about 1e6 from the Galilean moons' orbits (recalled; GEN.731 gives every body its own) | orbit_elements.GIANT_TIDAL_Q, GIANT_TIDAL_LOVE_NUMBER_K2 | 1e5 and 0.3, fixed | the tide of a gas giant | per-body Q and k2 (GEN.731) |
+| OE10 | T | T5 | L0 | the circularisation time of a synchronously rotating body, tau = (2/21)(Q/k2)(m/M)(a/R)^5/n (Goldreich and Soter 1966), with the rocky Q and k2 of `constants.MOON_TIDAL_DISSIPATION_Q` and `MOON_TIDAL_LOVE_NUMBER_K2` | orbit_elements.circularisation_time_yr | Q 100, k2 0.03 for rock and ice | every planet and moon | per-body Q and k2 (GEN.731) |
+| OE11 | T | T6 | L0 | the swing of the planet's own orbit and the companion's are taken in phase, the largest the pair can give; their periods differ and the extremes meet only now and then | insolation.companion_swing | in phase, fixed | planets of a binary | a time series of the sum |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

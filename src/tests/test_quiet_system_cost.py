@@ -9,6 +9,7 @@ and recomputed its position from the circle. The new step reads the due rows, st
 held to a small multiple of the old.
 """
 
+import math
 import time
 
 import pytest
@@ -88,13 +89,19 @@ def test_a_quiet_system_costs_about_what_the_old_phase_update_cost(mysql_config)
         assert moved == rows
         after = conn.execute(f"SELECT * FROM {scratch} ORDER BY id").fetchall()
 
-        # Every body kept its circle: the same distance from what it goes round and the same speed.
+        # Every body kept its orbit (GEN.727: an ellipse): its energy (so its semi-major axis, the stored distance)
+        # and its angular momentum are what they were.
+        def energy_and_momentum(row):
+            mu = (2.0 * math.pi / (row["period_years"] * pc.SECONDS_PER_YEAR)) ** 2 * row["distance_km"] ** 3
+            r = [row[f"position_{a}_km"] for a in "xyz"]
+            v = [row[f"velocity_{a}_kms"] for a in "xyz"]
+            h = (r[1] * v[2] - r[2] * v[1], r[2] * v[0] - r[0] * v[2], r[0] * v[1] - r[1] * v[0])
+            return (sum(c * c for c in v) / 2 - mu / math.sqrt(sum(c * c for c in r)),
+                    math.sqrt(sum(c * c for c in h)))
+
         for old, new in zip(before, after):
-            radius = (sum(new[f"position_{a}_km"] ** 2 for a in "xyz")) ** 0.5
-            assert radius == pytest.approx(old["distance_km"], rel=1e-9)
             assert new["epoch_unix"] == pytest.approx(Clock.end_unix)
-            speed = sum(new[f"velocity_{a}_kms"] ** 2 for a in "xyz") ** 0.5
-            assert speed == pytest.approx(old["orbital_speed_kms"], rel=1e-9)
+            assert energy_and_momentum(new) == pytest.approx(energy_and_momentum(old), rel=1e-8)
 
         conn.execute(f"UPDATE {scratch} SET epoch_unix = 0, next_update_due = 0")
         started = time.perf_counter()

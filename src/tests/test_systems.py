@@ -21,12 +21,11 @@ from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.generation.binary import BinaryStarProxy
-from planetgen.physics import body_state, constants
+from planetgen.physics import constants
 from planetgen import tuning as prog_c
 from tests import render_support
-from planetgen.physics.orbits import (
-    circular_orbital_speed_kms, minimum_update_interval_years, mutual_hill_radius_au, mutual_hill_radius_m, orbital_position_au,
-)
+from planetgen.physics.orbits import minimum_update_interval_years, mutual_hill_radius_au, mutual_hill_radius_m
+from planetgen.physics.constants import AU_TO_KM, SECONDS_PER_YEAR
 
 # One representative star type per Yerkes class, spanning several spectral
 # letters, so the system-generation sweep exercises every evolutionary track
@@ -284,12 +283,9 @@ def _all_planets_and_moons(system):
 
 def assert_positions_and_speeds_are_consistent(system):
     """
-    Every planet's/moon's `position_x/y/z` must sit exactly on the sphere
-    of radius `distance` (the point `orbital_position_au` derives is, by
-    construction, at that fixed radius from the orbital anchor regardless
-    of inclination/node/phase), `orbital_speed_kms` must match
-    `circular_orbital_speed_kms(distance, period)`, and
-    `min_update_interval_years` must match
+    Every planet's/moon's `position_x/y/z` must lie in its orbital plane and between its periapsis and apoapsis
+    (`distance` is the semi-major axis, `eccentricity` the orbit's, GEN.727), `orbital_speed_kms` must be the vis-viva
+    speed at that place, and `min_update_interval_years` must match
     `minimum_update_interval_years(period)` -- a guard against the same
     "recomputed value silently drifts from a corrected distance"
     staleness bug `StarSystem.validate_system`'s own docstring warns
@@ -297,21 +293,19 @@ def assert_positions_and_speeds_are_consistent(system):
     (see `planetPhysics.update_orbital_position`).
     """
     for body in _all_planets_and_moons(system):
-        radius = math.sqrt(body.position_x ** 2 + body.position_y ** 2 + body.position_z ** 2)
-        assert radius == pytest.approx(body.distance, rel=1e-9), (
-            f"{body.name}: position radius {radius} AU != distance {body.distance} AU"
+        position = (body.position_x, body.position_y, body.position_z)
+        radius = math.sqrt(sum(c * c for c in position))
+        low, high = body.distance * (1.0 - body.eccentricity), body.distance * (1.0 + body.eccentricity)
+        assert low * (1 - 1e-9) <= radius <= high * (1 + 1e-9), (
+            f"{body.name}: position radius {radius} AU is outside its orbit's {low} to {high} AU"
         )
-        phase_deg = body_state.argument_of_latitude_deg(
-            (body.position_x, body.position_y, body.position_z),
-            body.orbital_inclination_deg, body.orbital_ascending_node_deg)
-        expected_position = orbital_position_au(
-            body.distance, body.orbital_inclination_deg,
-            body.orbital_ascending_node_deg, phase_deg,
-        )
-        assert (body.position_x, body.position_y, body.position_z) == pytest.approx(expected_position)
+        inclination, node = math.radians(body.orbital_inclination_deg), math.radians(body.orbital_ascending_node_deg)
+        normal = (math.sin(node) * math.sin(inclination), -math.cos(node) * math.sin(inclination), math.cos(inclination))
+        assert sum(c * n for c, n in zip(position, normal)) == pytest.approx(0.0, abs=1e-9 * radius)
 
-        expected_speed = circular_orbital_speed_kms(body.distance, body.period)
-        assert body.orbital_speed_kms == pytest.approx(expected_speed, rel=1e-9), (
+        mu_au3_yr2 = (2.0 * math.pi / body.period) ** 2 * body.distance ** 3
+        expected_speed = math.sqrt(mu_au3_yr2 * (2.0 / radius - 1.0 / body.distance)) * AU_TO_KM / SECONDS_PER_YEAR
+        assert body.orbital_speed_kms == pytest.approx(expected_speed, rel=1e-6), (
             f"{body.name}: orbital_speed_kms {body.orbital_speed_kms} != expected {expected_speed}"
         )
 

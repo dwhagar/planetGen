@@ -167,7 +167,7 @@ def test_generate_orbital_motion_properties_locks_a_close_moon_around_an_old_sys
     star = types.SimpleNamespace(age=5.0)
     moon = types.SimpleNamespace(
         is_moon=True, body_type="t", distance=0.0005, mass=5e20, radius=800,
-        period=0.001, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
+        period=0.001, eccentricity=0.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
     )
     generate_orbital_motion_properties(moon, primary_mass_kg=6e24)
     expected_locked_hours = moon.period * pc.SECONDS_PER_YEAR / 3600
@@ -184,7 +184,7 @@ def test_generate_orbital_motion_properties_does_not_lock_a_far_moon_around_a_yo
     star = types.SimpleNamespace(age=1.0)
     moon = types.SimpleNamespace(
         is_moon=True, body_type="t", distance=0.05, mass=5e22, radius=2000,
-        period=5.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
+        period=5.0, eccentricity=0.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
     )
     generate_orbital_motion_properties(moon, primary_mass_kg=6e23)
     min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS["t"]
@@ -199,7 +199,7 @@ def test_a_close_in_planet_locks_to_its_star():
     star = types.SimpleNamespace(age=100.0)
     planet = types.SimpleNamespace(
         is_moon=False, body_type="t", distance=0.0005, mass=5e20, radius=800,
-        period=0.001, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
+        period=0.001, eccentricity=0.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
     )
     generate_orbital_motion_properties(planet, primary_mass_kg=6e30)
     assert planet.rotation_period_hours == pytest.approx(planet.period * pc.SECONDS_PER_YEAR / 3600)
@@ -310,27 +310,49 @@ def test_circular_orbital_speed_kms_matches_manual_formula():
     assert speed == pytest.approx(expected, rel=1e-9)
 
 
-def test_generated_bodies_have_position_on_the_distance_sphere_and_matching_speed(bodies):
+def _orbit_range(body):
+    """The closest and farthest a body goes from what it orbits: `a (1 - e)` and `a (1 + e)` (GEN.727)."""
+    return body.distance * (1.0 - body.eccentricity), body.distance * (1.0 + body.eccentricity)
+
+
+def test_generated_bodies_have_position_between_periapsis_and_apoapsis_and_vis_viva_speed(bodies):
     planets, moons = bodies
     for body in planets + moons:
         radius = math.sqrt(body.position_x ** 2 + body.position_y ** 2 + body.position_z ** 2)
-        assert radius == pytest.approx(body.distance, rel=1e-9)
+        low, high = _orbit_range(body)
+        assert low * (1 - 1e-9) <= radius <= high * (1 + 1e-9)
 
-        expected_speed = circular_orbital_speed_kms(body.distance, body.period)
-        assert body.orbital_speed_kms == pytest.approx(expected_speed, rel=1e-9)
+        # vis-viva: v^2 = mu (2 / r - 1 / a), mu from Kepler's third law (the pull the period was made with)
+        mu_au3_yr2 = (2 * math.pi / body.period) ** 2 * body.distance ** 3
+        expected_speed = math.sqrt(mu_au3_yr2 * (2 / radius - 1 / body.distance)) * pc.AU_TO_KM / pc.SECONDS_PER_YEAR
+        assert body.orbital_speed_kms == pytest.approx(expected_speed, rel=1e-6)
+
+
+def test_a_circular_body_has_the_circular_speed_and_sits_on_its_distance():
+    from planetgen.generation.planet import Planet
+    from planetgen.physics.planets import update_orbital_position
+
+    body = types.SimpleNamespace(
+        distance=1.3, period=1.3 ** 1.5, eccentricity=0.0, orbital_inclination_deg=12.0, orbital_ascending_node_deg=40.0,
+        set_position_au=lambda *xyz: setattr(body, "xyz", xyz), set_velocity_kms=lambda *xyz: None)
+    update_orbital_position(body, 77.0)
+    assert math.sqrt(sum(c * c for c in body.xyz)) == pytest.approx(1.3, rel=1e-12)
+    assert body.orbital_speed_kms == pytest.approx(circular_orbital_speed_kms(1.3, 1.3 ** 1.5), rel=1e-9)
+    assert Planet.eccentricity == 0.0
 
 
 def test_moon_position_is_relative_to_its_planet_not_the_star(bodies):
     """
     A moon's `distance`/orbital elements (and so its derived position) are
     relative to its parent planet, not the star -- a moon's `position_x/y/z`
-    magnitude should match its own (planet-relative) `distance`.
+    magnitude should lie between its own (planet-relative) periapsis and apoapsis.
     """
     planets, moons = bodies
     for planet in planets:
         for moon in planet.moons:
             moon_radius = math.sqrt(moon.position_x ** 2 + moon.position_y ** 2 + moon.position_z ** 2)
-            assert moon_radius == pytest.approx(moon.distance, rel=1e-9)
+            low, high = _orbit_range(moon)
+            assert low * (1 - 1e-9) <= moon_radius <= high * (1 + 1e-9)
 
 
 # ---------------------------------------------------------------------------

@@ -47,10 +47,11 @@ def test_a_circumbinary_planets_light_swings_by_the_luminosity_centroid_offset()
     assert insolation.circumbinary_swing(1.0, 0.01, 1.0, 0.1, 0.2, 4.0) == pytest.approx(swing / 4)
 
 
-def test_a_lone_star_has_no_variation_and_a_generated_system_sets_it_on_every_body():
+def test_a_lone_star_swings_only_by_the_orbit_and_a_generated_system_sets_it_on_every_body():
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from planetgen.util import draw
+    from planetgen.physics.orbit_elements import flux_swing
     from tests.fuzz_support import deterministic_entropy
 
     seen = {"close": 0, "wide": 0, None: 0}
@@ -71,8 +72,8 @@ def test_a_lone_star_has_no_variation_and_a_generated_system_sets_it_on_every_bo
             for moon in planet.moons:
                 assert moon.flux_variation is not None and 0.0 <= moon.flux_variation <= 1.0
                 if system.binary_type is None:
-                    assert moon.flux_variation == 0.0
+                    assert moon.flux_variation == pytest.approx(flux_swing(planet.eccentricity))
             if system.binary_type is None and planet.body_type != "g":
-                assert planet.flux_variation == 0.0
+                assert planet.flux_variation == pytest.approx(flux_swing(planet.eccentricity))
     assert seen[None] > 0 and seen["close"] + seen["wide"] > 0
     assert swung > 0
