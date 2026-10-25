@@ -3646,6 +3646,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are scripts/test.py changed --resume.
   Prerequisites: none. Related: MAP.295, MAP.320, MAP.321.
 
+- [ ] **MAP.324 The soft glow around stars on the Galaxy Map floods the view: at sector and sector-block zoom it makes big white blobs and haze that hide the stars, the black holes and the selection, so finding anything is nearly impossible (bug)**
+  Boss, 2:29 AM EDT 2026-10-25, three screenshots (glow-1 to glow-3 in
+  the project uploads): the blur effect for stars is too distracting for
+  the purpose. Do: make the glow far subtler as the view closes in (fade
+  it out as stars resolve into points, cap its peak brightness and the
+  sum of overlapping glows so it never washes out to white, keep
+  selection rings, black holes and labels always on top of it), tune the
+  GLOW_* constants in galaxyglow.js against the screenshots, and keep
+  the glow switch. Done: a browser test that renders a dense sector view
+  with the glow on and checks that a selected star, a black hole and a
+  label stay readable (a contrast bound against the glow), and the same
+  view at galaxy scale keeps its soft look. Owner: Aux 10 (the glow,
+  MAP.266). Rules: no backward-compat shims; tests are scripts/test.py
+  changed --resume.
+  Prerequisites: none. Related: MAP.266, MAP.323.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
