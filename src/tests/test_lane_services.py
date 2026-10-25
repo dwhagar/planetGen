@@ -236,8 +236,8 @@ class _Fake:
         dog = self.dogs[-1]
         outcome = self.attempts.pop(0)
         with open(self.progress, "a", encoding="utf-8") as log:
-            for nodeid in self.passed_per_attempt.pop(0):
-                log.write(json.dumps({"kind": "test", "nodeid": nodeid, "outcome": "passed"}) + "\n")
+            log.writelines(json.dumps({"kind": "test", "nodeid": nodeid, "outcome": "passed"}) + "\n"
+                           for nodeid in self.passed_per_attempt.pop(0))
         if outcome == "restarted":
             dog.events.append("MySQL stopped answering and was restarted at 01:02:03Z")
             dog.what = dog.events[-1]

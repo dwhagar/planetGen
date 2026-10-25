@@ -254,7 +254,7 @@ def run_watched(label, marker, workers, extra, environment, progress_path, say=p
     totals, restarts = {}, []
     while True:
         child = []
-        watchdog = services.Watchdog(environment, on_trip=lambda found: child and child[0].terminate())
+        watchdog = services.Watchdog(environment, on_trip=lambda found, started=child: started and started[0].terminate())
         before = len(passed_nodeids(progress_path))
         watchdog.start()
         try:
