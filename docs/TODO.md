@@ -6255,7 +6255,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.733, GEN.735, GEN.736, GEN.737, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -13350,26 +13350,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   five items; takes it only if nobody has started it.
   Prerequisites: none. Related: GEN.699, GEN.727, GEN.737.
 
-- [ ] **GEN.732 Planetary rings: existence, mass, extent and composition from the Roche limit and a disrupted moon or captured body**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  F10; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: n/a (left
-  out). Today: No planetary rings exist in the data; the painter
-  (MAP.275) is to draw rings with gaps but has nothing to draw from.
-  Real physics: ring mass and extent from the Roche limit and the origin
-  (a disrupted moon or captured body), with composition. Do: add a ring
-  model and stored fields (inner and outer radius, optical depth,
-  composition class), drawn from the planet's moons, impacts and Roche
-  limit. Done: rings exist as data, the painter reads them, and a test
-  checks Saturn, Uranus and Neptune-like cases. GEN.670 is colour
-  research only. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: none. Related: MAP.275, GEN.670.
-
 - [ ] **GEN.733 Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   C4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -15235,6 +15215,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after GEN.778. Rules: no backward-compat shims; the epoch carries
   --affects.
   Prerequisites: none. Related: GEN.441, GEN.778, .
+
+- [ ] **GEN.836 Moon ring hooks and rogue planets use the ring fields: has_ring for moon origin in moon_composition, and rogue planets draw rings**
+  Follow-up from Aux 14 (GEN.732 merged as #3348, as the lane reported
+  4:52 AM EDT 2026-10-25): moons do not use the new ring fields yet
+  (has_ring for a moon's origin in moon_composition is not read) and
+  rogue planets do not draw rings. Do: moon_composition reads the ring
+  fields so a ringed moon is possible where the physics allows it
+  (inside its parent's Roche zone for a captured or disrupted satellite,
+  as the ring law in GEN.732 states), rogue planets draw rings with the
+  same law and no host, each with the inner and outer edge, mass,
+  optical depth and ice share on the property sheet. Done: tests
+  generate moons and rogues across the mass range and check every ring
+  obeys the law; one migration and epoch at merge (--affects fill).
+  Owner: Aux 14 or a free lane. Rules: no backward-compat shims; the
+  generation-merge lock applies.
+  Prerequisites: none. Related: GEN.732, MAP.275, GEN.557.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -21009,6 +21005,17 @@ clears each one.
   TEST.399). Rules: no backward-compat shims; never skip or quarantine a
   test; scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.399, GEN.764.
+
+- [ ] **TEST.405 The system page tests and the migration 0148 habitable_systems test are red on main (bug)**
+  Found by Aux 14 (as the lane reported 4:52 AM EDT 2026-10-25) as known
+  reds on clean main, not that lane's change: the system-page tests and
+  the migration 0148 habitable_systems test. Do: run them on clean main,
+  name the failing assertion of each, find the commit that moved them
+  (GEN.441, GEN.732, GEN.652 or the habitability work), and fix the code
+  or the expectation with the reason in the PR. Done: both pass on main.
+  Owner: Bug 1 after TEST.399 and TEST.400, or a free lane. Rules: never
+  skip or quarantine a test; scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.399, TEST.400.
 
 ## USR: User accounts
 
