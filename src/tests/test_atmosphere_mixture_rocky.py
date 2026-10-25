@@ -136,8 +136,9 @@ def test_an_earth_like_oxidised_volcano_gas_is_water_carbon_dioxide_and_sulfur_d
         with draw.bound(seed):
             result = md.outgassed_mixture(subject(ts_k=1200.0, pressure_bar=1.0))
         if result.drawn["b"] in ("b2", "b3") and result.redox_diw > 3.0 and result.constants["magmatic_temperature_k"] < 1200.0 + 1.0:
-            top = list(result.mole_fractions)[:3]
-            assert "H2O" in top and "CO2" in top
+            fractions = result.mole_fractions
+            assert next(iter(fractions)) == "H2O"
+            assert fractions["CO2"] > max(fractions.get("CO", 0.0), fractions.get("CH4", 0.0)), "CO2 is the carbon gas of an oxidised vent"
             return
     pytest.skip("no wet, oxidised draw below 1200 K in 80 seeds")
 
