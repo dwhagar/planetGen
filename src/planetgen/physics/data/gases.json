@@ -8663,6 +8663,116 @@
    "state": "partly verified",
    "limit": "identity not reached",
    "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "Al",
+   "name": "atomic aluminum",
+   "cas": null,
+   "molar_mass_research_g_mol": 26.982,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 21.38,
+    "1000": 20.84
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "K2",
+   "name": "dipotassium",
+   "cas": null,
+   "molar_mass_research_g_mol": 78.196,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 37.99,
+    "1000": 37.05
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "KO",
+   "name": "potassium monoxide",
+   "cas": null,
+   "molar_mass_research_g_mol": 55.097,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 35.38,
+    "1000": 38.09
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "K2O",
+   "name": "potassium oxide vapor",
+   "cas": null,
+   "molar_mass_research_g_mol": 94.195,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 54.22,
+    "1000": 57.76
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "Na2O",
+   "name": "sodium oxide vapor",
+   "cas": null,
+   "molar_mass_research_g_mol": 61.979,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 56.82,
+    "1000": 61.71
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   }
  ]
 }
