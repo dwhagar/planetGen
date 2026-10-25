@@ -1,0 +1,223 @@
+#!/usr/bin/env python3
+"""
+Builds the list of every stand-in value (GEN.725) from the stand-in registry of the gap-filling plan.
+
+    python scripts/build_stand_in_values.py            # write docs/design/research/stand-in-values.md
+    python scripts/build_stand_in_values.py --check    # build in memory and fail if the committed file differs
+
+The registry is the markdown tables of `docs/design/research/gap-filling-plan.md`: the ranked fills of section 5 (5.1 to 5.3), the
+generated dial ranges of 6.3a, the fills of the shared download step in 6.6 and the stand-ins of the atmosphere mixture draw in 6.7.
+Every one of those tables carries a Tier column (Boss's nine source tiers, T1 to T9) and a Tweak column (L0 to L4). The list is
+copied from them and never typed by hand, so it cannot drift; `src/tests/test_stand_in_values.py` fails when it does or when a row
+lacks a tier or a tweak.
+"""
+
+import argparse
+import os
+import re
+import sys
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+PLAN = os.path.join(HERE, "..", "docs", "design", "research", "gap-filling-plan.md")
+OUT = os.path.join(HERE, "..", "docs", "design", "research", "stand-in-values.md")
+
+TIERS = (
+    ("T1", "Verified", "read in the source and the value is the source's"),
+    ("T2", "Confident unverified", "from a source we trust but have not opened or cannot check"),
+    ("T3", "Marginal unverified", "from a source we doubt, or a bracket from sources that disagree"),
+    ("T4", "Unverified", "no source at all for the value, only a reason for its range"),
+    ("T5", "Confident educated guess based on physics", "a law of physics fixes the form and the size to within a factor of a few"),
+    ("T6", "Marginal educated guess based on physics", "physics fixes the form, but the size is argued, not derived"),
+    ("T7", "Educated guess based on inferred physics", "the physics is itself inferred from other bodies or other regimes"),
+    ("T8", "Educated guess based on reputable fringe or new physics", "a published but not yet accepted mechanism"),
+    ("T9", "Educated guess based on needed output (full tweak)", "chosen so that the generated sky matches what has to come out"),
+)
+TWEAKS = (
+    ("L0", "As envisioned", "the value is used as its source gives it"),
+    ("L1", "Nudged inside the source's uncertainty", "moved within the error bar the source prints"),
+    ("L2", "Tuned to a published statistic", "moved until a published count or distribution is reproduced (a tuning target)"),
+    ("L3", "Hand-tuned against a sweep", "chosen by running the generator over many draws and looking at the outcome"),
+    ("L4", "Fitted to the outcome with no independent source", "the number is whatever makes the output right"),
+)
+
+TIER_CODE = re.compile(r"T[1-9]\b")
+TWEAK_CODE = re.compile(r"L[0-4]\b")
+
+SECTIONS = (
+    ("5.1", "5.1 Galaxy laws", ("Id", "Kind", "Tier", "Tweak", "Fill (ranked)", "Wrong if", "Result lands as")),
+    ("5.2", "5.2 Body composition", ("Id", "Kind", "Tier", "Tweak", "Fill (ranked)", "Wrong if", "Result lands as")),
+    ("5.3", "5.3 Atmosphere", ("Id", "Kind", "Tier", "Tweak", "Fill (ranked)", "Wrong if", "Result lands as")),
+    ("6.3a", "6.3a Ranges of the galaxy shape dials", ("Lever", "Range", "Label", "Tier", "Tweak", "Source")),
+    ("6.6", "6.6 Fills of the shared download step", ("fill_id", "kind", "tier", "tweak", "stand-in", "replaced_by", "sources")),
+    ("6.7", "6.7 Stand-ins of the atmosphere mixture draw",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+)
+"""tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""
+
+
+def _cells(line):
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
+def registry_tables(text):
+    """
+    Every registry table of the plan.
+
+    Returns:
+        dict: Section number to `(header, rows)`; `header` the list of column names and `rows` lists of cells. Rows whose cell
+            count differs from the header are returned too (the test names them).
+    """
+    tables, section, lines = {}, None, text.splitlines()
+    wanted = {number for number, _, _ in SECTIONS}
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        heading = re.match(r"#{2,4} (\d+\.\d+a?)\b", line)
+        if heading:
+            section = heading.group(1)
+        if section in wanted and section not in tables and line.startswith("|") and i + 1 < len(lines) and lines[i + 1].startswith("|---"):
+            header, rows, i = _cells(line), [], i + 2
+            while i < len(lines) and lines[i].startswith("|"):
+                rows.append(_cells(lines[i]))
+                i += 1
+            tables[section] = (header, rows)
+            continue
+        i += 1
+    return tables
+
+
+def problems(tables):
+    """The registry rows that lack a tier or a tweak, or that have the wrong number of cells, one sentence each."""
+    found = []
+    for number, _, _ in SECTIONS:
+        if number not in tables:
+            found.append(f"section {number} has no registry table")
+            continue
+        header, rows = tables[number]
+        lowered = [name.lower() for name in header]
+        if "tier" not in lowered or "tweak" not in lowered:
+            found.append(f"section {number} has no Tier and Tweak columns")
+            continue
+        if not rows:
+            found.append(f"section {number} has no rows")
+        tier_at, tweak_at = lowered.index("tier"), lowered.index("tweak")
+        for row in rows:
+            if len(row) != len(header):
+                found.append(f"{number} row {row[0]!r}: {len(row)} cells for {len(header)} columns")
+                continue
+            if not TIER_CODE.match(row[tier_at]) or len(set(re.findall(r"T\d+", row[tier_at])) - {t for t, _, _ in TIERS}):
+                found.append(f"{number} row {row[0]!r}: tier {row[tier_at]!r} is not T1 to T9")
+            if not TWEAK_CODE.fullmatch(row[tweak_at]):
+                found.append(f"{number} row {row[0]!r}: tweak {row[tweak_at]!r} is not L0 to L4")
+    return found
+
+
+def _first_option(text):
+    """The first-ranked option of a "Fill (ranked)" cell (`1 ... 2 ...`), or the cell when it is not ranked."""
+    match = re.match(r"1 (.*?)(?: 2 [A-Z`(].*)?$", text)
+    return match.group(1).strip() if match else text
+
+
+def _counts(tables):
+    """The number of rows at each tier and each tweak, counting the first code of a cell."""
+    tier_count = {code: 0 for code, _, _ in TIERS}
+    tweak_count = {code: 0 for code, _, _ in TWEAKS}
+    cross = {(t, w): 0 for t, _, _ in TIERS for w, _, _ in TWEAKS}
+    total = 0
+    for number, _, _ in SECTIONS:
+        header, rows = tables[number]
+        lowered = [name.lower() for name in header]
+        for row in rows:
+            tier, tweak = TIER_CODE.match(row[lowered.index("tier")]).group(0), row[lowered.index("tweak")]
+            tier_count[tier] += 1
+            tweak_count[tweak] += 1
+            cross[(tier, tweak)] += 1
+            total += 1
+    return total, tier_count, tweak_count, cross
+
+
+def render(plan_text):
+    """The text of the list."""
+    tables = registry_tables(plan_text)
+    bad = problems(tables)
+    if bad:
+        raise SystemExit("the registry is not complete:\n  " + "\n  ".join(bad))
+    total, tier_count, tweak_count, cross = _counts(tables)
+    out = [
+        "# Every stand-in value, with its source tier and its tweak level (GEN.725)",
+        "",
+        "Status: generated from the stand-in registry of [gap-filling-plan.md](gap-filling-plan.md) by `scripts/build_stand_in_values.py`;"
+        " do not edit it by hand (`python scripts/build_stand_in_values.py --write` rewrites it, and a test fails when it differs"
+        " from the registry). The tier and the tweak level of each row are the registry's; a row's owner confirms them.",
+        "",
+        "A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels"
+        " (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier)"
+        " and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row"
+        " to the registry with both labels in the same pull request.",
+        "",
+        f"There are {total} rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier"
+        " of each part, and its tweak is the highest level any part has.",
+        "",
+        "## The source tiers",
+        "",
+        "| Tier | Name | Meaning |",
+        "|---|---|---|",
+    ]
+    out += [f"| {code} | {name} | {meaning} |" for code, name, meaning in TIERS]
+    out += ["", "Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3:40 PM EDT on 2026-10-24).",
+            "", "## The tweak levels", "", "| Level | Name | Meaning |", "|---|---|---|"]
+    out += [f"| {code} | {name} | {meaning} |" for code, name, meaning in TWEAKS]
+    out += ["", "## How many rows are at each tier and tweak level", "",
+            "| Tier | " + " | ".join(code for code, _, _ in TWEAKS) + " | All |",
+            "|---|" + "---|" * (len(TWEAKS) + 1)]
+    for code, _, _ in TIERS:
+        out.append(f"| {code} | " + " | ".join(str(cross[(code, w)]) for w, _, _ in TWEAKS) + f" | {tier_count[code]} |")
+    out.append("| All | " + " | ".join(str(tweak_count[w]) for w, _, _ in TWEAKS) + f" | {total} |")
+    out += [
+        "",
+        "## How the labels were given",
+        "",
+        "- **Tier** follows the kind of the fill and the evidence label of its inputs: a derived (D) fill from a source we read is T1 or"
+        " T2; a bracket (B) is T2 or T3 by how many sources agree and whether we opened them; a theory (T) fill is T5 to T7 by how"
+        " much of the physics is derived and how much inferred; a placeholder (P) with no source is T4 or, when physics argues its"
+        " size, T6 or T7. Rows whose parts differ list each part.",
+        "- **Tweak** is L0 unless the value was moved after the fact. The L3 rows (hand-tuned against a sweep) are the mantle redox"
+        " laws AT.a1 and a2, the atmosphere draws AT.b4 and b5, BC6 and AM19 (the exobase ratios); the L2 row is AM10 (the alkali"
+        " activity, tuned to Kite et al. 2016); L1 rows are nudged inside the source's error bar. No row is L4: a row at L4 needs the"
+        " item that justified it.",
+        "- The recipe rows of the atmosphere draw (`atmosphere_recipes_data.py`) are not rows here one by one. Those that carry a"
+        " tuning target in `tuning_targets.json` (a3, a4, e1, f5, f7, k1 to k5, k7, o2) are L2: their weights were tuned to a published"
+        " statistic.",
+        "",
+    ]
+    for number, title, columns in SECTIONS:
+        header, rows = tables[number]
+        out += [f"## {title}", "", "| " + " | ".join(columns) + " |", "|" + "---|" * len(columns)]
+        for row in rows:
+            cells = dict(zip(header, row))
+            shown = [(_first_option(cells[name]) if name == "Fill (ranked)" else cells[name]) for name in columns]
+            out.append("| " + " | ".join(shown) + " |")
+        out.append("")
+    return "\n".join(out).rstrip("\n") + "\n"
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description=__doc__.strip().splitlines()[0])
+    parser.add_argument("--check", action="store_true", help="fail if the committed list differs from the registry")
+    args = parser.parse_args(argv)
+    with open(PLAN, encoding="utf-8") as handle:
+        text = render(handle.read())
+    if args.check:
+        current = open(OUT, encoding="utf-8").read() if os.path.exists(OUT) else ""
+        if current != text:
+            print("docs/design/research/stand-in-values.md is out of date; run python scripts/build_stand_in_values.py", file=sys.stderr)
+            return 1
+        return 0
+    with open(OUT, "w", encoding="utf-8") as handle:
+        handle.write(text)
+    print(f"wrote {os.path.relpath(OUT)}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
