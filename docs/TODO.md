@@ -13121,24 +13121,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   names is left. Owner: Condition-based classes lane.
   Prerequisites: GEN.689.
 
-- [ ] **GEN.701 Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields**
-  Source: reports/habitability-model-gaps-2026-10-23.md item 3 (build
-  plan row 3), relayed by lane D at 1:59 AM EDT 2026-10-24 as the lane
-  reported. rogue_planets has no habitability columns and RoguePlanet
-  never calls habitability_world, although a rogue with a liquid ocean
-  under ice or under a hydrogen envelope is the case Suitability and the
-  life scores were built for. Do: score columns on rogue_planets
-  (entries in db/column_units.py), a World built from the surface regime
-  (pressure, temperature, a hydrogen envelope as H2, ocean depth, the
-  galactic cosmic-ray dose through the column mass, heat flow as the
-  only energy), and the API fields. Wanderers (GEN.557) may replace the
-  rogue body chain, so check GEN.557 and GEN.687 first and build on
-  whichever representation is current. Done: a test that a Hycean-like
-  rogue scores above a bare ice rogue, and the scores show in the API. A
-  new migration and the next free epoch at merge. Owner: lane D; check
-  nobody started it first.
-  Prerequisites: none. Related: GEN.557, GEN.687.
-
 - [ ] **GEN.705 The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug)**
   Found by Core 3 while merging GEN.631 (#2915, epoch 72), as the lane
   reported at 5:30 AM EDT 2026-10-24; report
@@ -16073,6 +16055,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects <stage>` and the next epoch; tests are `scripts/test.py
   changed --resume`.
   Prerequisites: none. Related: PERF.125, GEN.411.
+
+- [ ] **PERF.199 The words "rough guess" are removed from every ETA, time left and time estimate display (bug)**
+  Boss, 2026-10-24 11:56 PM EDT: 'rough guess text on ETA progress needs
+  to go'. The wording appears in: generation/stats.py:568 (the estimate
+  text, 'a rough guess, anywhere from X to Y'), web/queue_page.py:118
+  (the Queue page ' (rough guess)' suffix), web/generate_page.py:1269
+  (the Generate page 'a rough guess until a unit is timed'),
+  web/templates/generate_review.html:19 (the review page Time line),
+  web/lib/galaxystatus.py:60 (the galaxy status line), db/check.py:471
+  (check-db output), plus the ROUGH source label in queue/runeta.py. Do:
+  show the estimate without the words (a range with its unit is enough;
+  where the speed is not measured yet say 'not timed yet' once, plainly,
+  not 'rough guess'), keep the internal source flag if code needs it,
+  and update every test that pins the old text. Done: a search of the
+  pages, the API text and the command output finds no 'rough guess' in
+  any user-visible string; tests pin the new text. Owner: Aux 16
+  (performance, owner of the estimates).
+  Prerequisites: none. Related: PERF.184, PERF.178.
 
 ## DB: Database and schema
 

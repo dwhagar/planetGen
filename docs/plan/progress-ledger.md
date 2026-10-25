@@ -1485,3 +1485,4 @@ Baseline: PR #1817.
 | GEN.761 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | DOC.79 | 8.1 | Habitability system |
 | GEN.818 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.701 | 8.1 | Habitability system |
