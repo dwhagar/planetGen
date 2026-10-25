@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 8:49 PM EDT 2026-10-24: 1034 of 1442 items finished (71.7 percent), 408 open, 35 dropped (GEN.564 folded into GEN.764, Core 1 7:32 PM EDT; TEST.366 dropped as no longer reproducing after #3125, Bug 1 7:20 PM EDT as the lane reported; TEST.335 dropped as not reproduced on main, Bug 1 7:14 PM EDT as the lane reported; TEST.360 and TEST.361 dropped as not reproduced on main, Bug 1 6:35 PM EDT as the lane reported; TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 88, phase 2 43, phase 3 25, phase 4 13, phase 5 59, phase 6 22, phase 7 17, phase 8 4, phase 9 28, phase 10 2, phase 11 87, phase 12 20 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 8:52 PM EDT 2026-10-24: 1041 of 1443 items finished (72.1 percent), 402 open, 35 dropped (GEN.564 folded into GEN.764, Core 1 7:32 PM EDT; TEST.366 dropped as no longer reproducing after #3125, Bug 1 7:20 PM EDT as the lane reported; TEST.335 dropped as not reproduced on main, Bug 1 7:14 PM EDT as the lane reported; TEST.360 and TEST.361 dropped as not reproduced on main, Bug 1 6:35 PM EDT as the lane reported; TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 87, phase 2 43, phase 3 25, phase 4 13, phase 5 59, phase 6 22, phase 7 17, phase 8 4, phase 9 28, phase 10 2, phase 11 82, phase 12 20 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -79,7 +79,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.180 | Directives: a forced fill (met_forced) after K failed draws, and refusal of impossible requests up front |  | Left over from GEN.96. |
 | GEN.229 | Repair or re-roll the wide binaries that already break the stability rule |  |  |
 
 ### Bugs and flaky tests
@@ -687,19 +686,14 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.765 | A world with Flora 5, Fauna 5 and Sentient 5 scores Suitability Red with "no food readily available": the food rung ignores the life the scores say is there (bug) |  |  |
 | GEN.764 | Bring a galaxy to the current generator epoch without a full regeneration: record the epoch each stored result was made under and redo only what an epoch bump changed | DB.75 |  |
 | UX.187 | Pages, lists, the API and the help text show every physics rectification output |  |  |
+| TEST.378 | test_no_todo_codes_shown fails on main: the composition_origin reason in describe/sheet.py names UX.202 in a shown string (bug) |  |  |
 | UX.209 | Object pages order: At a glance, then About, then the Properties list, then the other details (bug) |  |  |
 | UX.208 | Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column |  |  |
-| UX.207 | Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug) |  |  |
 | TEST.375 | Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug) |  |  |
 | TEST.374 | scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug) |  |  |
 | TEST.371 | test_workers::a_worker_that_is_killed fails under load and passes alone (bug) |  |  |
 | TEST.370 | test_web_pages in_process_transport fails: DatabaseLoginError, there is no planetgen database account on the lane machine (bug) |  |  |
 | UX.205 | Object pages show the day and night time shares, moons with the extra night from their planet | GEN.767, GEN.768 |  |
-| UX.204 | Every collapsible section on an object page starts collapsed |  |  |
-| UX.203 | Pages state a missing thing in one sentence instead of a table of zeros: no life, no atmosphere (0 Pa), effectively no water |  |  |
-| UX.202 | Remove the "How the composition was found" line from the object pages (bug) |  |  |
-| UX.201 | A Nav button on object pages opens one menu: navigate from here, navigate to here, nearby locations (bug) |  |  |
-| UX.200 | The Location block lists a system and its star separately when they share a name, shows "not inside any nebula" style lines, and links the Galaxy (bug) |  |  |
 | UX.199 | Pages show raw or placeholder values: "not stored" rows in At a glance, and a raw key such as Technological_civilization (bug) |  |  |
 | UX.198 | The Atmosphere section of the planet property sheet shows 14 empty rows (bug) |  |  |
 | UX.196 | Every page gets an automatic table of contents built from its headings (bug) | UX.195 |  |

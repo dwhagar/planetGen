@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.130 |
 | SEC | SEC.37 |
-| TEST | TEST.378 |
+| TEST | TEST.379 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -911,7 +911,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | done, PR #1410 |
 | GEN.178 | Magnetic fields: the induced field of an ocean moon | none | done, PR #1447 |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector | none | open |
-| GEN.180 | Directives: a forced fill (met_forced) after K failed draws, and refusal of impossible requests up front | none | open |
+| GEN.180 | Directives: a forced fill (met_forced) after K failed draws, and refusal of impossible requests up front | none | done, PR #3188 |
 | GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables | none | merged into GEN.180 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | GEN.182 | Some comets' orbits do not bring them back: they are ejected into space (bug) | none | done, PR #938 |
 | GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses | none | done, PR #969 |
@@ -2417,14 +2417,14 @@ Parents marked "new parent" had no old number of their own.
 | UX.197 | The habitability icons link to the habitability section of the planet information page, not to the help page (bug) | none | done, PR #3150 |
 | UX.198 | The Atmosphere section of the planet property sheet shows 14 empty rows (bug) | none | open |
 | UX.199 | Pages show raw or placeholder values: "not stored" rows in At a glance, and a raw key such as Technological_civilization (bug) | none | open |
-| UX.200 | The Location block lists a system and its star separately when they share a name, shows "not inside any nebula" style lines, and links the Galaxy (bug) | none | open |
-| UX.201 | A Nav button on object pages opens one menu: navigate from here, navigate to here, nearby locations (bug) | none | open |
-| UX.202 | Remove the "How the composition was found" line from the object pages (bug) | none | open |
-| UX.203 | Pages state a missing thing in one sentence instead of a table of zeros: no life, no atmosphere (0 Pa), effectively no water | none | open |
-| UX.204 | Every collapsible section on an object page starts collapsed | none | open |
+| UX.200 | The Location block lists a system and its star separately when they share a name, shows "not inside any nebula" style lines, and links the Galaxy (bug) | none | done, PR #3188 |
+| UX.201 | A Nav button on object pages opens one menu: navigate from here, navigate to here, nearby locations (bug) | none | done, PR #3188 |
+| UX.202 | Remove the "How the composition was found" line from the object pages (bug) | none | done, PR #3188 |
+| UX.203 | Pages state a missing thing in one sentence instead of a table of zeros: no life, no atmosphere (0 Pa), effectively no water | none | done, PR #3188 |
+| UX.204 | Every collapsible section on an object page starts collapsed | none | done, PR #3188 |
 | UX.205 | Object pages show the day and night time shares, moons with the extra night from their planet | none | open |
 | UX.206 | Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view | none | open |
-| UX.207 | Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug) | none | open |
+| UX.207 | Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug) | none | done, PR #3188 |
 | UX.208 | Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column | none | open |
 | UX.209 | Object pages order: At a glance, then About, then the Properties list, then the other details (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
@@ -2910,6 +2910,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.375 | Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug) | none | open |
 | TEST.376 | scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill | none | open |
 | TEST.377 | test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug) | none | open |
+| TEST.378 | test_no_todo_codes_shown fails on main: the composition_origin reason in describe/sheet.py names UX.202 in a shown string (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
