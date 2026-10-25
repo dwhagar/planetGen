@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.232 |
-| MAP | MAP.323 |
+| MAP | MAP.324 |
 | NAV | NAV.65 |
 | GEN | GEN.830 |
 | PERF | PERF.200 |
@@ -1508,7 +1508,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.757 | Piece of GEN.411: the ocean water-vapour cap and the sulfur uptake functions (physics/mixture_sinks.py) | none | done, PR #3129 |
 | GEN.758 | Piece of GEN.411: mechanical test fixes for the deleted class ranges | none | done, PR #3311 |
 | GEN.759 | Wire the r-process Th/U enrichment (rprocess_enrichment, GEN.663) into the radiogenic heat module | none | open |
-| GEN.760 | Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw | none | open |
+| GEN.760 | Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw | none | done, PR #3317 |
 | GEN.761 | Wire the satellite hosting gate (hosting_gate, GEN.579) into the moon draw | none | done, PR #3258 |
 | GEN.762 | Wire the clathrate and eutectic brine limits (clathrate_brine, GEN.471) into the icy body atmosphere and ocean draw | none | done, PR #3128 |
 | GEN.763 | The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug) | none | open |
@@ -1875,7 +1875,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.295 | The system infobox on the map does not scale to the size of the map window (bug) | none | done, PR #3299 |
 | MAP.296 | The system infobox on the map lists the nearest systems under the location, each name a link (bug) | none | done, PR #3299 |
 | MAP.297 | Remove the sector boxes from the maps: clicking goes to a location, never to a sector block (bug) | none | done, PR #3284 |
-| MAP.298 | Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug) | none | open |
+| MAP.298 | Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug) | none | done, PR #3316 |
 | MAP.299 | In a dense area no name overlaps another and each keeps a buffer; when names must be cut, the lower mass or brightness goes (bug) | none | open |
 | MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | none | open |
 | MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | none | open |
@@ -1900,6 +1900,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.320 | Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region | none | open |
 | MAP.321 | Point-of-interest markers by level: a star carries its best world marker in the star views, the planet or moon carries its own marker at the system level, and regions show inhabited tokens | none | open |
 | MAP.322 | Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e) | none | open |
+| MAP.323 | The legend on the Galaxy Map covers the scale text: stack them so the legend sits above the scale and they never overlap (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
