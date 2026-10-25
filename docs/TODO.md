@@ -3039,6 +3039,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.3).
   Prerequisites: MAP.305, MAP.306. Related: MAP.305, MAP.306, MAP.221.
 
+- [ ] **MAP.308 A planet with moons has its own system map: the lunar orbits, the planet drawn from its rendered look at the moons' scale, and the atmosphere glow in the viewing space (bug)**
+  Boss, 8:21 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiXusv3d6qZJcFqozPyUbjCa, relayed by the
+  coordinator), live observation, so a bug: "planets that have moons
+  should have their own system map that shows the lunar orbits with the
+  planet rendered image now sized relative to the moons and viewing
+  space including the atmospheric glow effect." What exists: the System
+  Map (src/html/static/systemmap.js) already has a moon scene reached by
+  clicking a planet twice ("Click again to view its moon system"), drawn
+  like the star scene. Do: give every planet that has moons its own moon
+  system map, reached from the planet's page and from the system map:
+  the moon orbits as ellipses from the stored orbits (the orbit tree,
+  MAP.253), the planet drawn at the centre from its look record
+  (MAP.287: the rendered image of the planet, not a flat circle) at a
+  size relative to the moons' orbits and the moons' own sizes (the
+  planet's radius against the orbit radii at one scale, with a
+  true-scale toggle, so Jupiter's moons are not drawn inside a dot and
+  Earth's Moon is not drawn touching it), each moon drawn from its look
+  record, and the viewing space including the planet's atmosphere glow
+  (the colour glow ring of MAP.244; the pressure and composition glow of
+  MAP.277 once it lands). Clicking a moon opens the shared info box
+  (MAP.254); moons and the planet are links to their pages. A planet
+  without moons has no such map and its page does not offer one. Done:
+  browser tests on a planet with several moons (orbits drawn from stored
+  elements, planet from its look, glow present, scale relationship
+  planet radius to orbit radius within one pixel of the computed ratio)
+  and on a planet with no moons (no map link). Owner: Core 2 (the System
+  Map and the infobox work; lighter queue than Aux 10), after MAP.295
+  and MAP.296 which touch the same file. Related: MAP.287, MAP.253,
+  MAP.254, MAP.244, MAP.277, MAP.275, MAP.295.
+  Prerequisites: none. Related: MAP.287, MAP.253, MAP.254, MAP.244,
+  MAP.277, MAP.275, MAP.295.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
