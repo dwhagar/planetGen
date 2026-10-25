@@ -15177,6 +15177,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed generated value carries `tests.golden_update --reason ...
   --affects <stage>` and the next epoch; tests are `scripts/test.py
   changed --resume`.
+  Research (2026-10-09, Aux 8 report): Module merged (#3252, 11:08 PM
+  EDT 2026-10-24 as the lane reported): physics/sulfur_balance.py splits
+  the degassed sulfur between the air, a calcium sulfate sink and an
+  iron sulfide sink by redox, limited by crust, with rain-out and
+  sulfation lifetimes; stand-in rows AM45 to AM49. Stays open until 4c
+  (GEN.411, GEN.422) calls it and drops SULFUR_SURFACE_KEPT; Aux 8
+  confirms the wiring. Known limit stated in the doc: the mean-rate
+  steady state leaves a dry world almost no SO2 (Venus holds about 14
+  mbar).
   Prerequisites: GEN.411, GEN.422. Related: GEN.757, GEN.751, GEN.725.
 
 - [ ] **GEN.816 A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5)**
