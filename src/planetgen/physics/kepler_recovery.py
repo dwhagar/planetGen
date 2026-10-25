@@ -39,6 +39,7 @@ import os
 from dataclasses import dataclass
 
 from planetgen.generation import tuning_harness
+from planetgen.physics import constants as physical_constants
 from planetgen.physics import elements
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
@@ -51,7 +52,7 @@ MODEL_ID = "kepler-recovery"
 
 G_SI = 6.674e-11
 M_SUN_KG = 1.989e30
-R_SUN_M = 6.957e8
+R_SUN_M = physical_constants.SOLAR_RADIUS_M
 R_EARTH_M = 6.371e6
 DAY_S = 86400.0
 IMPACT_NODES = 10
