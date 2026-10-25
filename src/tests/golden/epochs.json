@@ -600,8 +600,7 @@
     },
     {
       "epoch": 101,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2320",
       "reason": "A rocky planet's iron follows its star's with a scatter of 0.05 dex, and about 1 planet in 100 is iron-enriched (a dry core mass fraction of 0.5 to 0.8): the mass, radius, density and gravity of rocky planets change slightly, and the planet draws after the graphite move (GEN.512)",
       "affects": ["fill"]
     }
