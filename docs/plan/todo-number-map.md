@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.130 |
 | SEC | SEC.37 |
-| TEST | TEST.376 |
+| TEST | TEST.377 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -2908,6 +2908,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.373 | test_protection::test_there_is_one_describer_of_the_six_categories fails on main: habitability_explain.py exists again after GEN.445 (bug) | none | done, PR #3155 |
 | TEST.374 | scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug) | none | open |
 | TEST.375 | Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug) | none | open |
+| TEST.376 | scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
