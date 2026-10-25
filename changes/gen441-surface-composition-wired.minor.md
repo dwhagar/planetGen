@@ -5,4 +5,6 @@
 
 ### Changed
 - **The ground dose reads the stored ground.** The gamma and radon dose used a basaltic crust with a drawn felsic share (`RADIOGENIC_FELSIC_FRACTION_MAX`, `radiogenic.SURFACE_RESERVOIRS`, both gone); it now reads the area-weighted K, Th and U of the body's own ground (`surface_composition.land_rock_ppm`), so an ultramafic world has a lower ground dose than a basaltic one and a granitoid one a higher.
-- generation-output: changed (generator epoch 108: the ground dose and the stream after the hydrosphere move for every rocky body).
+This changes the generated output (generator epoch 108): the ground dose and the stream after the hydrosphere move for every rocky body.
+
+generation-output: changed
