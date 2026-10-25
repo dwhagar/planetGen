@@ -20967,21 +20967,6 @@ clears each one.
   scripts/test.py changed --resume.
   Prerequisites: none. Related: GEN.441, TEST.261.
 
-- [ ] **TEST.400 test_habitability_fill::test_the_command_re_scores_every_system is red on main: Namespace has no attribute 'command' in generate.validate_fill_args (bug)**
-  Found by the 4c lane (about 4:17 AM EDT) on origin/main 081337a9f:
-  test_the_command_re_scores_every_system fails with AttributeError: the
-  argparse Namespace has no attribute 'command' in
-  generate.validate_fill_args; it blocks every generation merge's gate.
-  Do: find the change that added the 'command' read (or removed the
-  sub-command) in generate.validate_fill_args and the
-  rescore-habitability command (ADM.129, GEN.764 revise job), make the
-  command and the validator agree, and keep the rescore command tested
-  end to end. Done: the test passes on main. Owner: Bug 1, second in its
-  queue (after the golden seed test), or the owner of the breaking
-  change once identified. Rules: no backward-compat shims; never skip or
-  quarantine the test; scripts/test.py changed --resume.
-  Prerequisites: none. Related: ADM.129, GEN.764.
-
 - [ ] **TEST.401 test_atmosphere_mixture_escape (abiotic oxygen) and test_atmosphere_mixture_rocky (delivered-water class) are red on main (bug)**
   Found by the 4c lane (about 4:17 AM EDT): two atmosphere tests were
   red on main before 4c merged and stay red: the abiotic oxygen case in
@@ -21028,20 +21013,6 @@ clears each one.
   shims; never skip or quarantine a test; scripts/test.py changed
   --resume.
   Prerequisites: none. Related: PERF.174, PERF.175, PERF.193.
-
-- [ ] **TEST.404 golden_update's first run wrote galaxy.json with the sector section made before the epoch bump, so test_golden_seed failed until a second run on the same tree (bug)**
-  Found by Aux 5 (as the lane reported 4:18 AM EDT): the first python -m
-  tests.golden_update run after an epoch bump wrote galaxy.json with the
-  sector section made before the bump, so test_golden_seed failed until
-  golden_update ran a second time on the same tree. Do: make
-  golden_update read the epoch it just wrote (or bump first and
-  regenerate every section after), so one run leaves a consistent tree;
-  add a test that runs the tool once on a fixture tree after a bump and
-  checks every section carries the new epoch. Done: one run is enough.
-  Owner: Bug 1 (with TEST.399, same area; this may be the cause of
-  TEST.399). Rules: no backward-compat shims; never skip or quarantine a
-  test; scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.399, GEN.764.
 
 - [ ] **TEST.405 The system page tests and the migration 0148 habitable_systems test are red on main (bug)**
   Found by Aux 14 (as the lane reported 4:52 AM EDT 2026-10-25) as known
