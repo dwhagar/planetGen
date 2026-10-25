@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2336] - 2026-10-25
+
+**Headline:** A planet with an ocean and no land now has a carbon sink in the model, so its carbon dioxide no longer has to stay in the air.
+
+### Added
+- **The carbon of a water world, as a module (GEN.814).** An ocean deep enough to seal the seafloor (1 to 3 GPa) holds its carbon by ocean chemistry and the cations the early ocean leached from the crust; an unsealed world with no land loses carbon to the seafloor, as Kite and Ford 2018 and Krissansen-Totton and Catling 2017 describe. The generator does not call it yet; it joins the air solve with the surface-air work.
+
 ## [8.0.2335] - 2026-10-25
 
 **Headline:** The Galaxy Map has no sector boxes any more: a click selects the star or object under it and shows its details, and a double click flies to it.
