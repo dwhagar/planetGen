@@ -1,6 +1,6 @@
 # Magma-ocean redox against mass and the later mantle (GEN.482, AR3)
 
-Status: research note, written on the night of 2026-10-24 (as the lane reported) by the Citations lane. Rows a1, a2 and a3 of the atmosphere possibility table (`scripts/atmosphere_recipes_data.py`, part 09 of `docs/design/composition/atmosphere-composition-parts/`) are checked against first-hand sources. GEN.482 (the check) changed nothing the generator draws; GEN.482b (section 7, done the same night) wired the findings and carries a generator epoch.
+Status: research note, written on the night of 2026-10-24 (as the lane reported) by the Citations lane. Rows a1, a2 and a3 of the atmosphere possibility table (`scripts/atmosphere_recipes_data.py`, part 09 of `docs/design/composition/atmosphere-composition-parts/`) are checked against first-hand sources. GEN.482 (the check) changed nothing the generator draws; GEN.482b (section 7, done the same night) wired the findings; no epoch, because nothing in the generator draws the mixture yet (the golden battery is unchanged).
 
 ## 1. The answer in short
 
@@ -97,7 +97,7 @@ The row, as it ships, is a normal distribution centred at -1.25 with width 0.22,
 
 The authors' text agrees: the most oxidised mixture is CI at "about QFM-1" (about IW+2.6 at 1500 K by the Frost 1991 buffers; the polynomials above give +2.0, so the text is read off a figure) and the most reduced is EH at "about IW-1", with all mixtures between the two. The unsupported part of row a3 is therefore not its reduced end (which the white-dwarf data and Schaefer and Fegley both give, -1.0 to -0.5 at 1500 K) but its use for every small body: carbonaceous (CI, CV, C-complex) material outgasses at IW+1.6 to +2.6. The two scales also differ (white-dwarf values are core-formation redox of differentiated parents; Schaefer and Fegley are outgassing of chondritic material), so no single number covers both. The row is not changed: nothing reads a3 for a body with an air today (section 7, point 5).
 
-## 7. GEN.482b: what was wired (carries a generator epoch)
+## 7. GEN.482b: what was wired (no epoch: the generator does not draw the mixture yet)
 
 1. a1 width: `0.5 + 0.4 clamp(log10 M + 1, 0, 1)` (0.5 at 0.1 Earth masses and below, 0.9 at 1 and above).
 2. a1 mean above 1 Earth mass: plus `clamp(log10 M, 0, 0.7324)`, that is 1.0 log unit per dex of mass up to 5.4 Earth masses (+1.23) and held there, where the base pressure passes the 140 GPa of Deng's calculations (assuming the base pressure scales as M to the 0.55). The bracket 0 to 2 per dex stays the stated uncertainty; this is the part that stays a stand-in.
