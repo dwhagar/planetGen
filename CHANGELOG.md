@@ -2,6 +2,45 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2317] - 2026-10-25
+
+**Headline:** The redox of a rocky world's magma ocean now follows the published ranges: its spread grows with mass, it keeps rising above one Earth mass, and the later mantle is never more reduced than the ocean it came from.
+
+### Changed
+- **Width and rise above one Earth mass (GEN.482b).** The spread of the magma-ocean redox grows from 0.5 log units at 0.1 Earth masses to 0.9 at one (the Hirschmann 2022 and Deng 2020 ranges for the Moon, Mars and Earth), and the mean keeps rising by 1.0 per dex of mass up to 5.4 Earth masses, where the pressures of the published calculations end. Nothing in the generator draws the mixture yet (it waits on GEN.411 and GEN.422), so no stored value changes today; the first air of a heavier rocky world will be more oxidised than before once it does.
+- **The later mantle (GEN.482b).** Its mean is held at the Earth value above one Earth mass (no source goes further), and a body never moves to a later mantle more reduced than its own magma-ocean surface.
+- Rows a1 and a2 are listed as partly verified with their limits (GEN.482); row a3 is unchanged because nothing reads it for a body with an air.
+
+## [8.0.2316] - 2026-10-25
+
+**Headline:** The gas table now holds K2, KO, K2O, Na2O and Al, so the vapour over a lava world lists the alkali oxides it makes instead of dropping them.
+
+### Added
+- **Lava-vapour gases (GEN.751).** K2, KO, K2O and Na2O, and Al, are in the NASA thermodynamic table (94 species) and the gas table (108 gases), computed from the NASA fits like the other lava-vapour species. A lava-world draw lists the four alkali species it makes (KO is about 4e-7 bar over a bulk-silicate-Earth melt at 2500 K); aluminium is in the table but the melt model has no aluminium activity yet, so none is drawn. The mixture draw is not called by the generator yet, so no generated value changes.
+
+### Fixed
+- **A K2 star is not the potassium dimer.** The text that marks chemical formulas no longer reads the spectral type "K2" as the gas K2, which the table now holds; the `formula` filter still writes K2 out where it is named.
+
+## [8.0.2315] - 2026-10-25
+
+**Headline:** A dry, frozen or hot world can now hold liquid water underground, which lifts its Water rating and lets microbes live there.
+
+### Changed
+- **Aquifers (GEN.654, DB.92, schema v157).** A rocky world or moon with no liquid at its surface keeps `aquifer_depth_km` and `aquifer_thickness_km`, worked out by `physics/aquifers.py` from its heat flow, its surface temperature and pressure, its gravity and the water left in its surface reservoir: the layer of its crust where the pores are open and the water is liquid and not hotter than life can use. A world with none, a gas giant and a galaxy made earlier keep NULL (migration 0156).
+- **What it does to the score.** The water is a solvent for life (the Microbial score can rise, capped at abiogenesis, so Flora, Fauna and Sentient stay 0), the life sees the ground's dose and the chemical power of the heat flow, and the Water rung is Yellow when the layer starts within 5 km and Red when it is deeper. A world with an ocean at the surface has none. The property sheet lists both numbers.
+- Every parameter is a labelled DESIGN stand-in (`tuning.py`, `DATA-LICENSE.md`); the generator epoch is bumped because worlds that had no life now draw a chemistry.
+
+generation-output: changed
+
+## [8.0.2314] - 2026-10-25
+
+**Headline:** Two research notes check the water-delivery and magma-ocean redox rows against first-hand sources; rows a1 and a2 are now listed as partly verified instead of stand-ins.
+
+### Changed
+- `docs/design/composition/volatile-delivery-formation-distance.md` (GEN.481) gives the water-rich share and the delivery classes against formation distance from the Bern population synthesis, and where it disagrees with the design weights of rows b1 to b4.
+- `docs/design/composition/magma-ocean-redox-against-mass.md` (GEN.482) checks the magma-ocean surface redox (row a1), the later-mantle law (row a2) and the small-body building-block redox (row a3) against Hirschmann 2022, Deng 2020, Sossi 2020 and Schaefer and Fegley 2017, and gives the Na and K condensation temperatures from Lodders 2003.
+- Rows a1 and a2 of the atmosphere possibility table change from stand-in to partly verified with their limits written in the row; the numbers the generator draws do not change.
+
 ## [8.0.2313] - 2026-10-25
 
 **Headline:** Two tests that were red on main (the sector save report that took over 15 minutes, and the Generate anyway log) now test what they meant to.

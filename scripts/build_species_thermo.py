@@ -49,6 +49,7 @@ WANTED = {
     "P2": "g", "PH3": "g", "HF": "g",
     # Alkalis, silicon, iron, magnesium, titanium, vanadium, aluminium, calcium (lava vapour, hot giants, part 05 sections 4, 7, 8)
     "Na": "g", "NaOH": "g", "Na2": "g", "NaO": "g", "K": "g", "KOH": "g",
+    "AL": "g", "K2": "g", "KO": "g", "K2O": "g", "Na2O": "g",     # the rest of the lava vapour's alkali and aluminium species (GEN.751; "AL" is the file's spelling)
     "Fe": "g", "FeO": "g", "Fe(OH)2": "g", "Mg": "g", "MgO": "g", "MgOH": "g", "Mg(OH)2": "g",
     "Si": "g", "SiO": "g", "SiO2": "g", "SiH4": "g", "SiS": "g",
     "Ti": "g", "TiO": "g", "TiO2": "g", "V": "g", "VO": "g", "Cr": "g", "Ca": "g", "CaO": "g", "CaOH": "g",

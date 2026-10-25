@@ -875,6 +875,34 @@ MANTLE_OUTGAS_SHARE = 0.3
 """float: The share of a planet's mantle water that volcanism brings to the surface after an early runaway has stripped the
 surface reservoir, because escape reaches only the air and the oceans, not the mantle (GEN.639; DESIGN stand-in)."""
 
+AQUIFER_CONDUCTIVITY_W_M_K = 2.0
+"""float: The thermal conductivity of a world's crust, W/m/K, that turns its heat flow into a geotherm (Clifford 1993, JGR 98,
+10973, column average about 2; secondary source, DESIGN stand-in, GEN.654)."""
+
+AQUIFER_POROSITY_SURFACE = 0.2
+"""float: The pore share of the crust at the surface (the lunar and Martian megaregolith value; DESIGN stand-in, GEN.654)."""
+
+AQUIFER_POROSITY_MIN = 0.01
+"""float: The pore share under which the crust holds no usable water, so the water-bearing layer ends (DESIGN stand-in, GEN.654)."""
+
+AQUIFER_POROSITY_SCALE_KM_MARS = 2.82
+"""float: The e-folding depth of the crust's porosity, phi(z) = phi0 exp(-z/K), on Mars (Clifford 1993; secondary source). On
+another world it scales with the inverse of the gravity (DESIGN stand-in, GEN.654)."""
+
+AQUIFER_MARS_GRAVITY_M_S2 = 3.71
+"""float: The gravity `AQUIFER_POROSITY_SCALE_KM_MARS` is for."""
+
+AQUIFER_LIFE_MAX_K = 395.15
+"""float: The hottest water life can use, 122 C (Takai et al. 2008, PNAS 105, 10949, Methanopyrus kandleri); the water-bearing
+layer stops where the geotherm reaches it."""
+
+AQUIFER_MIN_THICKNESS_KM = 0.01
+"""float: A water-bearing layer thinner than this (10 m) is none."""
+
+AQUIFER_REACH_KM = 5.0
+"""float: How deep a base can drill for water (the deepest mines are about 4 km; DESIGN stand-in, GEN.654): an aquifer with its
+top above this depth is a water source for the Water and Suitability rungs, a deeper one only shelters microbes."""
+
 WATER_PER_HYDROGEN_MASS = 8.94
 """float: Kilograms of water gone for each kilogram of hydrogen that escapes (H2O 18.015 g/mol over its two hydrogens
 2.016 g/mol; the oxygen is dragged along or left behind to oxidise the crust, and neither returns the water)."""

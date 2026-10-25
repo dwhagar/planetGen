@@ -13,21 +13,21 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.224 |
+| UX | UX.229 |
 | MAP | MAP.314 |
 | NAV | NAV.65 |
-| GEN | GEN.800 |
-| PERF | PERF.195 |
+| GEN | GEN.819 |
+| PERF | PERF.199 |
 | DB | DB.107 |
 | API | API.35 |
-| ADM | ADM.134 |
+| ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.387 |
+| TEST | TEST.388 |
 | USR | USR.32 |
-| OPS | OPS.72 |
+| OPS | OPS.75 |
 | DOC | DOC.82 |
 | VIEW | VIEW.19 |
-| POP | POP.38 |
+| POP | POP.46 |
 
 ## Why this exists
 
@@ -522,6 +522,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.131 | Editable civilizations: edit a species, rename or split a nation, move a city, transfer a city between nations, set the dominant nation and place or remove a port, as approved plans | none | open |
 | ADM.132 | After an admin edit of a planet or moon, its habitability, Suitability and life scores are recomputed, and a test proves it (check) (bug) | none | open |
 | ADM.133 | Admin edits of resource locations: change a belt, field or body's resource grades and scores as an aspect of the edit-everything plan, with a lock so regeneration keeps them | none | open |
+| ADM.134 | /admin/queue/<run_id>/log answers 302 to a visitor, but the auth sweep expects 403 for a json_only view: test_admin_pages_send_an_admin_on_seeded_credentials_to_account and test_admin_pages_send_anonymous_visitors_to_login fail on clean main (bug) | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -647,7 +648,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.89 | Giants store their interior layers: the layer boundaries, the helium share per layer, the core flag, core mass and core composition | none | done, PR #3089 |
 | DB.90 | Planets and moons store the derived class and a reclassification step keeps it true after an edit or a rebuild | none | open |
 | DB.91 | Planets and moons store the four life scores and drop phi_bio, phi_cpx and phi_tech | none | done, PR #2930 |
-| DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | none | open |
+| DB.92 | Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers) | none | done, PR #3221 |
 | DB.93 | Planets and moons store the equipment levels and regional temperatures and drop equipment_tier; the API serves one equipment object | none | done, PR #2766 |
 | DB.94 | The object index, resolve_object and the search panels read the moons of free planets | none | done, PR #2881 |
 | DB.95 | The sector_objects view includes the moons of free planets | none | dropped (lane B finding, 2:53 AM EDT 2026-10-24: nothing reads the sector_objects view, schema.sql is applied before migrations so a view naming moons.rogue_planet_id would break opening an older database, and DB.94 lists free moons by sector) |
@@ -1223,8 +1224,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.478 | The atmosphere possibility tables: the 16 categories and 104 rows of part 09, loaded through the gated table loader, with every row that has no sourced weight flagged and drawn from its bracket | none | done, PR #2587 |
 | GEN.479 | The class atmosphere mixes contradict the checked chemistry: classes C, D and S have no mix, free oxygen sits in seven classes with no life rule, class L is 60 percent argon, E and F hold ammonia and methane at 340 to 400 K, N reads reducing and is oxidised, and I, J and T share one mix in every zone (bug) | none | open |
 | GEN.480 | Source the occurrence weights of bare rock, hydrogen-helium envelope and water-rich worlds and of the envelope metal fraction, by radius, mass and insolation (AR1) | none | open |
-| GEN.481 | Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2) | none | open |
-| GEN.482 | Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3) | none | open |
+| GEN.481 | Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2) | none | done, PR #3220 |
+| GEN.482 | Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3) | none | done, PR #3220 |
 | GEN.483 | Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4) | none | open |
 | GEN.484 | Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5) | none | open |
 | GEN.485 | Source the hot-Jupiter thermochemistry above 2200 K, a Kzz distribution and the edges of the 1500 K and 2200 K regimes (AR6) | none | open |
@@ -1396,7 +1397,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.651 | Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag | none | done, PR #2952 |
 | GEN.652 | The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug) | none | open |
 | GEN.653 | Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life | none | done, PR #2930 |
-| GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only | none | open |
+| GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only | none | done, PR #3221 |
 | GEN.655 | Survival equipment: one physics/equipment.py returns the list of needs (required or recommended) for the four slots, and replaces habitability.equipment and protection.requirements | none | done, PR #2766 |
 | GEN.656 | Regional temperatures (Polar, Northern, Equatorial, Southern; day side, terminator and night side for locked worlds) and the day and night swing, with the regional sentences of the detail text | none | done, PR #2844 |
 | GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH | none | open |
@@ -1493,7 +1494,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.748 | Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's | none | open |
 | GEN.749 | Trapped radiation belts and the magnetosphere's shielding beyond a dipole size | none | open |
 | GEN.750 | Evolutionary timeline: a model of the time to each life stage from conditions (Boss ruled: model it from physics) | none | open |
-| GEN.751 | Add the lava-vapour gases Al, K2, KO, K2O and Na2O to the gas table, from the research parts, so the lava-world air has its full species list | none | open |
+| GEN.751 | Add the lava-vapour gases Al, K2, KO, K2O and Na2O to the gas table, from the research parts, so the lava-world air has its full species list | none | done, PR #3222 |
 | GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | none | open |
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | none | open |
 | GEN.754 | Wiring guard: the stand-in registry says what the generator reads, and a test fails for a table or module nothing reads | none | open |
@@ -1542,6 +1543,25 @@ Parents marked "new parent" had no old number of their own.
 | GEN.797 | Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level | none | open |
 | GEN.798 | Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers) | none | open |
 | GEN.799 | Resource scan: compute the grade, mass and score of every resource for belts, fields, giants and icy bodies from their stored composition, as its own command and galaxy stage | none | open |
+| GEN.800 | Wire the stored magnetosphere and stellar activity outputs into escape, dose and habitability (G2) | none | open |
+| GEN.801 | Wire the giant-planet interior outputs into the field, the heat and the description (G3) | none | open |
+| GEN.802 | Wire the formation-distance water law into the atmosphere recipes b1 to b4 and reconcile it with the GEN.510 mass law (GEN.481b) | none | open |
+| GEN.803 | Wire the magma-ocean redox findings: the a1 width and its extension above 1 Earth mass, link a2 to a1, split a3 by building-block type (GEN.482b) | none | open |
+| GEN.804 | Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1) | none | open |
+| GEN.805 | The surface dose and the habitability radiation component read the stored flare irradiation index and magnetopause (G2, step 2) | none | open |
+| GEN.806 | Delete the duplicate XUV recomputation in physics/mixture_subject.py and read xuv_exposure_index (G2, step 3) | none | open |
+| GEN.807 | Stellar activity (flare rate, XUV saturation) follows the star's rotation: rotation_period_hours, flare_alpha and xuv_saturated get readers (G2, step 4) | none | open |
+| GEN.808 | The ozone-loss flag feeds the UV limit on life and the surface look (G2, step 5) | none | open |
+| GEN.809 | A giant's dipole moment and class come from the metallic-hydrogen shell and the dilute core (G3, step 1) | none | open |
+| GEN.810 | A giant's internal heat reads the interior layers and the helium shell (G3, step 2) | none | open |
+| GEN.811 | The description of a giant says what its interior is (G3, step 3) | none | open |
+| GEN.812 | Greenhouse module: a water-vapour profile that dries with height, and pressure broadening checked against Venus and Earth, so an Earth twin at its own fixed point comes out near 288 K (finding 1) | none | open |
+| GEN.813 | Volatile inventory brackets recalibrated against the totals of the Earth, Venus, Mars and Titan, not only the ratios (finding 2) | none | open |
+| GEN.814 | A water-rich world (class O, 10 to 50 wt% water) gets a carbon sink: seafloor weathering and the high-pressure ice that seals the mantle (finding 3) | none | open |
+| GEN.815 | Sulfur sink: a sulfate and sulfide balance replaces the stand-in SULFUR_SURFACE_KEPT (finding 4) | none | open |
+| GEN.816 | A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5) | none | open |
+| GEN.817 | Rogue and starless bodies: their air goes through the same fixed point (finding 7) | none | open |
+| GEN.818 | Aluminium in the melt model: an Al2O3 activity (with a tier) so a lava draw can make aluminium vapour (GEN.751 follow-up) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1990,6 +2010,9 @@ Parents marked "new parent" had no old number of their own.
 | OPS.69 | Remove all wiki functionality: the upload and download code, the wikitext renderer, the wiki routes, UI, settings and columns; the export to Markdown stays | none | done, PR #2963 |
 | OPS.70 | Gate resumes after a restart, and a lane-start health check runs before every gate | none | done, PR #3192 |
 | OPS.71 | Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand | none | open |
+| OPS.72 | Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7) | none | open |
+| OPS.73 | Delete the dead tuning knobs (HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM, RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD, STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET, NAV_COURSE_DECIMAL_PLACES, STELLAR_U_TH_UNCERTAINTY) (G7, step 1) | none | open |
+| OPS.74 | Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -2184,6 +2207,10 @@ Parents marked "new parent" had no old number of their own.
 | PERF.192 | The nebula field slab stage queues one unit per 50 pc slab with no cap handling, so a large galaxy can exceed the 4000-unit limit (bug) | none | open |
 | PERF.193 | The nebula block totals pass keeps the level-3 cover as Python dicts, about 2 GB on a 12 pc galaxy: hold it as numpy arrays (bug) | none | open |
 | PERF.194 | The phenomena stage progress line still says "186M to place": the weight is printed as a number of phenomena instead of work (bug) | none | open |
+| PERF.195 | Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5) | none | open |
+| PERF.196 | Decide: show the object timing records or stop recording them (G5, step 1) | none | open |
+| PERF.197 | Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2) | none | open |
+| PERF.198 | Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -2221,6 +2248,14 @@ Parents marked "new parent" had no old number of their own.
 | POP.35 | Dynamic world populations: populations step forward with the nightly update from the stored growth state, so cities and capacity follow the habitability scores over time | none | open |
 | POP.36 | Dynamic trade routes: routes grow, shift and close as populations, ports and territories change, using the same hop pathfinding | none | open |
 | POP.37 | Facility ratings read Suitability, the food rung and the life scores: Health and Housing use only PHI-4 today | none | open |
+| POP.38 | Species traits and facility needs read the homeworld and host: dose, pressure, air, thermal range, day length and the equipment kit (G1) | none | open |
+| POP.39 | Facility constants are registered with a tier and tweak level, and a facility's richness reads the host's stored composition (G6) | none | open |
+| POP.40 | Species traits take radiation tolerance, pressure and air tolerance, thermal range and day length from the homeworld (G1, step 1) | none | open |
+| POP.41 | Facility ratings (health, housing, maintenance, resources) read the host's dose, pressure, air and temperature (G1, step 2) | none | open |
+| POP.42 | Facility need and upkeep read the equipment kit the host requires (eq_body_*, eq_rad_suit*, eq_gas_filter, eq_co2_scrub, eq_dust, eq_supply*, eq_shelter*, outside_hours) (G1, step 3) | none | open |
+| POP.43 | Settlement and facility pages say why: the species traits and the host's dose, air and kit behind each rating (G1, step 4) | none | open |
+| POP.44 | Register the facility constants (_WEIGHTS, FACILITY_HOST_RICHNESS, FACILITY_KIND_SIZE, FACILITY_RATING_*) in the GEN.725 registry with tier and tweak level (G6, step 1) | none | open |
+| POP.45 | A facility's richness reads the host's stored composition and resource scores instead of a per-type constant (G6, step 2) | none | open |
 | SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | done, PR #220 |
 | SEC.2 | Security audit findings of 2026-09-30 (new parent) | none | done in 7.5.0, PR #112, except SEC.17 to SEC.19 |
 | SEC.3 | Seeded admin/password login claimable | 39 (2026-09-30 19:02Z to 20:27Z) | done in 7.5.0, PR #112 |
@@ -2512,6 +2547,11 @@ Parents marked "new parent" had no old number of their own.
 | UX.221 | Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities | none | open |
 | UX.222 | Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu | none | open |
 | UX.223 | Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score | none | open |
+| UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) | none | open |
+| UX.225 | Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4) | none | open |
+| UX.226 | Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1) | none | open |
+| UX.227 | The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2) | none | open |
+| UX.228 | The object lists and Nearby filter and sort by the same physical values (G4, step 3) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -3004,6 +3044,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.384 | Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug) | none | open |
 | TEST.385 | Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug) | none | open |
 | TEST.386 | First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp | none | open |
+| TEST.387 | test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

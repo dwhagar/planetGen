@@ -82,8 +82,8 @@ def test_the_status_of_each_row_is_the_parts_except_the_rows_the_later_decisions
     statuses = {}
     for entry in RECIPES.entries:
         statuses[entry.status] = statuses.get(entry.status, 0) + 1
-    # the part: SOURCED 8, DERIVED 48, DESIGN 48; Boss's fork 7 (2026-10-18) makes j2 to j4 outputs of the retention physics
-    assert statuses == {"SOURCED": 8, "DERIVED": 51, "DESIGN": 45}
+    # the part: SOURCED 8, DERIVED 50, DESIGN 46 (a1 and a2 moved by GEN.482); Boss's fork 7 (2026-10-18) makes j2 to j4 outputs of the retention physics
+    assert statuses == {"SOURCED": 8, "DERIVED": 53, "DESIGN": 43}
     assert {e.id for e in RECIPES.entries if e.status == "DERIVED"} >= {"j2", "j3", "j4"}
 
 
@@ -100,7 +100,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 50, "open": 0, "stand-in": 17}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 52, "open": 0, "stand-in": 15}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -117,8 +117,8 @@ def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
 
 def test_the_stand_ins_are_rows_with_no_measurement_or_built_from_solar_system_bodies():
     stand_ins = {e.id: e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
-    assert stand_ins["a2"] == "GEN.513"
-    assert {"a1", "b5", "n7", "o3"} <= set(stand_ins)
+    assert {"b5", "n7", "o3"} <= set(stand_ins)
+    assert not {"a1", "a2"} & set(stand_ins), "GEN.482 checked both against first-hand ranges at three Solar System bodies"
     assert not {"k1", "k2", "k3", "k4", "k5", "k7"} & set(stand_ins), "the comet rows follow the Robinson database (GEN.520)"
     assert not {"m3", "m4", "m11"} & set(stand_ins), "the life-linked gases are design flags (GEN.525)"
     assert not {"a3", "a4", "f7", "p6"} & set(stand_ins), "rows with a published statistic are not stand-ins"
@@ -163,6 +163,21 @@ def test_example_a_the_redox_classes_at_one_drawn_value():
     assert d["mu"] == pytest.approx(0.5)
     later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("E", {"mass_earth": 1.0}))
     assert later["mu"] == pytest.approx(3.5) and later["sigma"] == 1.0
+
+
+def test_the_magma_ocean_redox_follows_the_first_hand_ranges_and_rises_above_one_earth_mass_gen_482b():
+    """Hirschmann 2022 section 6.3 and Deng 2020: Moon about -2, Mars about -0.6, Earth about +0.3 to +0.5, width 0.5 to 0.9."""
+    def a1(mass):
+        return RECIPES._dist_of(RECIPES.entry("a1"), Subject("E", {"mass_earth": mass}))
+
+    assert a1(0.0123)["mu"] == pytest.approx(-1.89, abs=0.01) and a1(0.107)["mu"] == pytest.approx(-0.71, abs=0.01)
+    assert a1(0.1)["sigma"] == pytest.approx(0.5) and a1(1.0)["sigma"] == pytest.approx(0.9) and a1(0.01)["sigma"] == pytest.approx(0.5)
+    assert a1(5.4)["mu"] == pytest.approx(0.5 + math.log10(5.4), abs=1e-3), "1.0 per dex above one Earth mass"
+    assert a1(30.0)["mu"] == pytest.approx(a1(5.4)["mu"], abs=1e-3), "held where the base pressure passes the 140 GPa of Deng 2020"
+    assert a1(30.0)["sigma"] == pytest.approx(0.9)
+    later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("E", {"mass_earth": 30.0}))
+    assert later["mu"] == pytest.approx(3.5), "no source for the later mantle of a super-Earth: the Earth value is held"
+
 
 
 def test_example_b_the_delivery_split_by_the_formation_distance_over_the_snow_line():
@@ -493,8 +508,8 @@ def test_a_row_without_a_source_or_with_a_state_it_does_not_know_is_refused():
         broken(lambda d: row_of(d, "a1").update(state="guessed"))
     with pytest.raises(DataError, match="a5.*partly verified and names no limit"):
         broken(lambda d: row_of(d, "a5").update(state="partly verified", limit=""))
-    with pytest.raises(DataError, match="a2.*stand-in and names no replacement"):
-        broken(lambda d: row_of(d, "a2").update(replacement=""))
+    with pytest.raises(DataError, match="b5.*stand-in and names no replacement"):
+        broken(lambda d: row_of(d, "b5").update(replacement=""))
     with pytest.raises(DataError, match="b1.*open and names no research item"):
         broken(lambda d: row_of(d, "b1").update(state="open", items=[]))
 

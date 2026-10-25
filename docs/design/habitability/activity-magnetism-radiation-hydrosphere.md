@@ -602,6 +602,31 @@ pressure and shallower than the 5.2 limit. Deeper ones are ice-sealed
 ([atmospheres-retention-and-classes.md](atmospheres-retention-and-classes.md)
 4.3).
 
+### 5.6 Aquifers (GEN.654)
+
+A world with no liquid at its surface (hydrosphere `dry`, `ice` or `vapour`) can hold liquid water in the pores of its crust, where
+the heat flow puts the temperature between the freezing point and the hottest water life can use. The model is `physics/aquifers.py`,
+one column of crust, no draw:
+
+* The geotherm is T(z) = T_surface + q z / k with the stored internal heat flux q (plus an icy moon's tide) and
+  k = 2 W/m/K (`tuning.AQUIFER_CONDUCTIVITY_W_M_K`; Clifford 1993, at second hand). The 273.15 K level lies at (273.15 - T_surface) k / q
+  (about 4 km on a Mars with 30 mW/m2); on a warm surface water boils away until the hydrostatic pressure over it exceeds its vapour
+  pressure.
+* The water-bearing layer ends where the geotherm reaches 122 C (`tuning.AQUIFER_LIFE_MAX_K`, Takai et al. 2008) or where the pores close:
+  porosity falls as 0.2 exp(-z/K), K = 2.82 km scaled by Mars's gravity over the body's (`tuning.AQUIFER_POROSITY_*`), and is gone under 0.01.
+* The surface reservoir (the water that is not in the mantle, after the early runaway took its share, GEN.639), spread as a layer over
+  the whole surface, fills the pores from the bottom of the layer up. A small inventory leaves a deep water table and a thin layer; a
+  large one fills the liquid range to its top. A layer under 10 m is none.
+
+Two numbers are stored (`aquifer_depth_km`, the depth to the top of the layer, and `aquifer_thickness_km`; NULL for a world with none).
+They change the score in four places, all in `habitability_world.py`: the solvent is water (so the likelihood of microbial life is not
+cut to 0), the habitat dose is the ground's (life underground sees the rock's dose only), the energy is the chemical power of the heat
+flow (no light reaches it), and the Water rung is Yellow (`AQUIFER_WATER_SCORE` 0.6) when the top of the layer is within
+`tuning.AQUIFER_REACH_KM` (5 km, a drill's reach), Red when it is deeper (the life is out of reach, so it is no food either). The
+life draw caps such a world at abiogenesis (`life.stage_ceiling`): chemotrophs, so the Microbial score can rise and Flora, Fauna and
+Sentient stay 0. The Martian parameters are DESIGN stand-ins read at second hand (the papers could not be opened); they are labelled
+in `tuning.py` and `DATA-LICENSE.md` until a verified source replaces them.
+
 ## 6. Corrections to the source documents
 
 | # | Source and section | Statement | Correction |

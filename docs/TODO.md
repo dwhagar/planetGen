@@ -1247,7 +1247,7 @@ with `clamp()`.
   sections start collapsed; tests are `scripts/test.py changed --resume`
   with a browser test on a sample planet page. Version 8.1. Owner: Aux
   11. Part of the planet page redesign: UX.215 to UX.222.
-  Prerequisites: UX.215, UX.220, UX.221. Related: UX.196, UX.195,, UX.219.
+  Prerequisites: UX.215, UX.220, UX.221. Related: UX.196, UX.195, UX.219.
   UX.188.
 
 - [ ] **UX.223 Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score**
@@ -1274,6 +1274,99 @@ with `clamp()`.
   tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
+
+- [ ] **UX.224 A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug)**
+  Boss, 10:33 PM EDT 2026-10-24 (relayed by the coordinator): "should
+  never have both Habitable, Inhabited, and Habitable Class in a
+  planet's chips or description since Inhabited means it is both
+  inhabitable and a habitable class." web/lib/habitability_chips.py
+  chips_html adds Habitable, Habitable class and Inhabited
+  independently, so an inhabited habitable-class world shows all three;
+  the same holds for the moon chips and for the description text that
+  names them. Do: show only the most specific of the three (Inhabited
+  over Habitable over Habitable class), likewise Habitable moon over
+  Habitable-class moon, in the chips on pages, lists, search and the
+  infobox, and make the description say it once; update the chip help
+  (habitability_ref.CHIPS) so Inhabited says it is habitable and of a
+  habitable class. Done: a unit test for every combination of the three
+  flags and a browser test on an inhabited world showing one chip.
+  Version 8.1. Owner: Aux 11 (chips and description), with Aux 3 if the
+  flag logic sits in habitability. Rules: no backward-compat shims;
+  every number has a unit or scale (GEN.772); draws through draw.py; a
+  changed generated value carries `tests.golden_update --reason ...
+  --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`; stand-ins get GEN.725 registry rows.
+  Prerequisites: none. Related: UX.100, UX.181, GEN.643.
+
+- [ ] **UX.225 Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4)**
+  Unused stored values audit (the "Find stored values nothing uses"
+  thread, report reports/unused-stored-values-audit-2026-10-24.md,
+  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
+  Boss's 10:16 PM EDT instruction to file every stored or calculated
+  value nothing uses that is not already in the works. None of it is a
+  wrong number on a page today. G4. db/query.py SEARCH_TAG_FACETS is tag
+  facets only; objectlist.SORTS has name, class, mass and radius;
+  SYSTEM_SORTS name, sector, octant and binary. There is no range filter
+  or sort on gravity, surface temperature, pressure, orbit distance, day
+  length, year length, star mass, luminosity or age, surface dose,
+  magnetic field, ocean depth, moon count or any atmosphere gas. Add
+  numeric range filters and sort keys for the stored physical values on
+  the search page, the object lists, Nearby and /api/search, with the
+  unit shown (unit registry GEN.568) so 'planets with 0.8 to 1.2 g and a
+  dose under 2 mSv a year' is one query. Done: a browser test runs that
+  query on a sample galaxy and the API documents the parameters. Version
+  8.2, phase 2. Owner: Aux 11 with Aux 12 for the API. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  draws through draw.py; a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`; stand-ins get
+  GEN.725 registry rows.
+  Prerequisites: UX.214, UX.226, UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
+
+- [ ] **UX.226 Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). SEARCH_TAG_FACETS is tag facets only and the sorts are name,
+  class, mass and radius. Add a registry of numeric keys (gravity,
+  surface temperature, pressure, orbit distance, day length, year
+  length, star mass, luminosity, age, surface dose, magnetic field,
+  ocean depth, moon count and each atmosphere gas) with unit, range
+  filter and sort, read from the stored columns and the unit registry
+  (GEN.568). Done: a query for 0.8 to 1.2 g and a dose under 2 mSv a
+  year works through the API, documented. Version 8.2, phase 2. Owner:
+  Aux 12 with Aux 11. Rules: no backward-compat shims; every number has
+  a unit or scale (GEN.772); a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: UX.214. Related: UX.225, UX.214, GEN.568.
+
+- [ ] **UX.227 The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). Range inputs and sort options on the search page for the keys
+  of UX.226, with the unit beside each, shown as filter chips
+  (active_filters). Done: a browser test sets a gravity and a dose range
+  and gets the right planets. Version 8.2, phase 2. Owner: Aux 11.
+  Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); a changed generated value carries `tests.golden_update
+  --reason ... --affects <stage>` and the next epoch; tests are
+  `scripts/test.py changed --resume`.
+  Prerequisites: UX.226. Related: UX.225.
+
+- [ ] **UX.228 The object lists and Nearby filter and sort by the same physical values (G4, step 3)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). The planet, moon, star and system lists and Nearby gain the
+  range filters and sort keys of UX.226. Done: a browser test on a list
+  and on Nearby. Version 8.2, phase 2. Owner: Aux 11. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772); a
+  changed generated value carries `tests.golden_update --reason ...
+  --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`.
+  Prerequisites: UX.226. Related: UX.225.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -5850,7 +5943,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220,, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.738, GEN.739, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.751, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.738, GEN.739, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -9039,147 +9132,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   paper wins as the newest. The migration-delivery logistic of
   Emsenhuber 2021 (centre 6.1 Earth masses, slope 6.3 per dex) is the
   nearest law.
-  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
-
-- [ ] **GEN.481 Source the volatile delivery against formation distance: the water mass fraction by a_form and the snow-line law over time (AR2)**
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. AR2 (the lane's R2, renamed here because the body
-  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
-  docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md,
-  rows b1 to b6 of the weighted atmosphere tables: Volatile delivery
-  versus formation distance: population-synthesis tables of water mass
-  fraction against a_form (Thiabaud 2014 arXiv:1312.3085 data; the 2015
-  paper arXiv:1507.01343 body unread), the nebula water partial pressure
-  and T_snow versus time (which sets the snow-line law), and the mapping
-  to Ortenzi's Dry, Low and High classes. It meets GEN.458 (the snow
-  line) and GEN.468 (the water share). Until it lands those rows are
-  `DESIGN` rows: the generator draws a seeded value inside the bracket
-  the row gives and the loader lists them as `open` (GEN.472); nothing
-  is fixed. Every source is opened and read before a number is taken
-  from it. Done: a note gives the sourced weights or the derivation with
-  citations, the rows change from DESIGN to SOURCED or DERIVED, and
-  TEST.214 lists fewer `open` rows. Owner: unowned (research; Boss or a
-  read-only research lane).
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the note's R2 (volatile
-  delivery by tracking planetesimals and pebbles across the snow lines).
-  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
-  docs/design/composition/tunable-gaps.md): row b5 (sub-percent water) needs a named
-  source: no ensemble measures it; b6 (rogue water) is not a separate
-  draw. The NGPPS formation-stage tables (DACE, Zenodo 10527170, open,
-  no licence field) are the public source of water against formation
-  distance (migrant probability logistic in mass, centre 6.1 Earth
-  masses). Part 09 R2's source is wrong: Thiabaud 2014 (arXiv:1312.3085)
-  is about refractories and mentions water five times.
-  Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
-  answers relayed in words by the coordinator;
-  docs/design/research/gap-filling-plan.md section 8): AT.b5 sub-percent water:
-  ships as a labelled placeholder, log-uniform.
-  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
-  for this line; labelled stand-in at the widest bracket under the
-  widest-range rule, replaced when a measurement exists. AT.b5, the
-  sub-percent water fraction.
-  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
-  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 8
-  (water-rich share 0.20 for 1.5 to 4 Earth radii, 0.05 for rocky below
-  1.5) and the shared nebular-temperature driver a_eff = a_form /
-  sqrt(L_star / L_sun) of finding 2, so water, redox and potassium
-  cannot contradict each other. Each row carries its source tier and
-  tweak level in the report; record both in the registry (GEN.725) in
-  the same PR that uses the value. Nothing changes a generated world
-  until the owning item uses it.
-  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
-  card 'Yes, pool lanes may start them'): free pool lanes may start
-  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
-  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
-  only items nobody has started and confirms with TODO first. Proposed
-  owner: a research thread (the coordinator starts it); GEN.481 and
-  GEN.482 gate the inputs of GEN.726.
-  Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
-
-- [ ] **GEN.482 Source the magma-ocean fO2 prior against mass and the oxidation law of the later mantle (AR3)**
-  Atmosphere research lane, update of about 2:00 AM EDT as the lane
-  reported (findings 11 to 20 and section 3b of
-  docs/design/composition/atmosphere-composition.md; parts 08A, 08B and 09), filed
-  by the TODO thread. AR3 (the lane's R3, renamed here because the body
-  lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
-  docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md,
-  rows a1, a2, a3 of the weighted atmosphere tables: Magma-ocean fO2
-  prior against mass and the later-mantle oxidation law: the Sossi 2020
-  data (part 08), Gaillard 2014 and 2021, Hirschmann 2012 (graphite and
-  carbon solubility), the degassed 40Ar fraction by tectonic regime and
-  the redox of small-body building blocks. It meets GEN.451. Until it
-  lands those rows are `DESIGN` rows: the generator draws a seeded value
-  inside the bracket the row gives and the loader lists them as `open`
-  (GEN.472); nothing is fixed. Every source is opened and read before a
-  number is taken from it. Done: a note gives the sourced weights or the
-  derivation with citations, the rows change from DESIGN to SOURCED or
-  DERIVED, and TEST.214 lists fewer `open` rows. Owner: unowned
-  (research; Boss or a read-only research lane).
-  Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
-  docs/design/composition/tunable-gaps.md): row a3 and a4 are tunable to 22
-  white-dwarf debris values (Doyle 2020 and 2023): centre -1.25 +/-
-  0.10, sd 0.45, intrinsic about 0.22 (builder GEN.513); rows a1
-  (magma-ocean fO2 against mass) and a2 (the later mantle) need a named
-  source: the Earth end and the slope are Solar System only, the mass
-  slope has no observational anchor beyond theory (derive the surface
-  fO2 from the ocean base pressure and draw only the scatter, Deng 0.5
-  and Guimond 0.3 to 0.4 dex); source needs Deng 2020 Fig. 3 data,
-  Hirschmann 2021 full text, a primary Na and K condensation-temperature
-  source.
-  Papers list (2026-10-17, filed by the TODO thread;
-  docs/design/research/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
-  papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): AT.a1 and a2: Hirschmann 2012 and
-  Gaillard and Scaillet 2014 and Gaillard et al. 2022 are on list B;
-  Sossi 2020 is already read.
-  Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
-  the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
-  summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AT.a1 and a2: Gaillard and Scaillet
-  2014 (equations 1 to 11 without coefficients; its text claims
-  convergence to FMQ-2 +-0.5 at 10 to 0.01 bar while its own Figure 2
-  shows about FMQ-2.75 with 0.7 dex spread at 0.01 bar) and Pahlevan,
-  Schaefer and Hirschmann (Earth only, last magma-ocean equilibration
-  above IW+1, H2/H2O below 0.3; its Figure 5 top axis contradicts its
-  Figure 2 by a factor of 6 to 9) give no mass law and no later-mantle
-  oxidation law. The stand-ins stay. Hirschmann 2012 and Gaillard 2021
-  and 2022 are not uploaded.
-  Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): AT.a1, a2 mantle redox: the iron-wuestite identity delta IW = 2
-  log10(a_FeO / a_Fe), with the white-dwarf zero point -1.25 +- 0.10;
-  the calibration is Hirschmann 2021 and the introduction is Frost 1991:
-  do NOT cite the buffer to O'Neill and Eggins 2002, which is about
-  activity coefficients of FeO, NiO, CoO and Mo oxides. The white-dwarf
-  (core formation) scale differs from the surface magma-ocean scale and
-  needs a conversion test.
-  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
-  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 1: FeO
-  (wt percent) = 8 (a_eff / 1 AU)^2.1, clipped 0.5 to 35, and the core
-  iron offset from it. The exponents still need the primary fO2 papers
-  (Hirschmann, Gaillard), which sit behind closed publishers, so they
-  stay unverified. Each row carries its source tier and tweak level in
-  the report; record both in the registry (GEN.725) in the same PR that
-  uses the value. Nothing changes a generated world until the owning
-  item uses it.
-  Sources (2026-10-09): Update 4:22 PM EDT 2026-10-24, from
-  reports/secondhand-citations-2026-10-24.md (written 4:25 PM EDT as the
-  lane reported; second-hand citations thread): Gaillard and Scaillet
-  2014 and Gaillard 2022 (HAL) are open first-hand, plus Putirka and Xu
-  supplement tables and Zeleznik 1991 (NIST); the fO2 exponents can now
-  be read from the primary papers, which moves the redox stand-in toward
-  Verified.
-  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
-  card 'Yes, pool lanes may start them'): free pool lanes may start
-  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
-  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
-  only items nobody has started and confirms with TODO first. Proposed
-  owner: the same research thread as GEN.481.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.483 Source the cosmic-shoreline constants and the pressure caps by retention regime (AR4)**
@@ -12942,24 +12894,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   0.7, and that the habitable zone edges move with age. Owner: Lane A
   (it holds GEN.553 and GEN.652).
 
-- [ ] **GEN.654 Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only**
-  Boss, 7:12 PM EDT 2026-10-23, via lane D (design note
-  /mnt/project-files/design-drafts/red-dwarf-water-and-star-regeneration-2026-10-23.md,
-  mechanism b3): aquifers for habitable-world requests and for the
-  worlds themselves. Owner: Habitability lane D, built after GEN.649
-  merges. Depth to liquid water about (273 - T_surface) k / q (k near 2
-  W/m/K, q the stored internal heat flux), if the crust holds water down
-  to that depth (porosity falls with depth, so the practical limit is a
-  few km); thickness of the water-bearing layer. Water rung: liquid
-  water within reach underground (a Yellow rung like the ocean under
-  ice). Suitability: shelter and water within reach. Life: it raises the
-  Microbial score only (0 to 9), not Flora, Fauna or Sentient. Step 4 of
-  the GEN.648 ladder. Changes stored values (epoch with GEN.649, testing
-  mode). Done: the model with cases (a dry hot world, a frozen world, a
-  tidally heated moon), the rungs, the Microbial rule, tests,
-  determinism across worker counts, and the design doc states it.
-  Prerequisites: none. Related: GEN.648, GEN.649, GEN.653.
-
 - [ ] **GEN.657 Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH**
   Section 11 item 6 of the design draft. Do: the toxic rows (H2S, CO,
   NH3, Cl2, SO2, HCN and the rest of the table) read from the gas rows
@@ -14140,24 +14074,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Prerequisites: none. Related: GEN.649, GEN.740.
 
-- [ ] **GEN.751 Add the lava-vapour gases Al, K2, KO, K2O and Na2O to the gas table, from the research parts, so the lava-world air has its full species list**
-  Left over from GEN.674 (Lane L, PR #3072, relayed 4:19 PM EDT
-  2026-10-24 as the lane reported; reason in
-  docs/design/composition/mixture-draw.md; filed by the TODO thread).
-  The gas table is generated from research parts 01 and 03, so the five
-  gases belong there, not in the code that reads the table. Do: add the
-  five species to the research parts with their sources, regenerate the
-  table, give each a thermodynamic entry and a test that a lava-world
-  draw can contain them, and register any stand-in with its tier and
-  tweak level (GEN.725). Done: the five gases exist in the table with
-  sources and a lava-world test. Owner: pool (first free atmosphere
-  lane).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: none. Related: GEN.674, GEN.703.
-
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
   The GEN.422 fixed point of surface temperature and pressure has no
   climate feedback. Add the three feedbacks that move it: ice-albedo
@@ -15042,6 +14958,335 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: DB.106, GEN.798. Related: GEN.477, PERF.125, PERF.120.
 
+- [ ] **GEN.800 Wire the stored magnetosphere and stellar activity outputs into escape, dose and habitability (G2)**
+  Unused stored values audit (the "Find stored values nothing uses"
+  thread, report reports/unused-stored-values-audit-2026-10-24.md,
+  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
+  Boss's 10:16 PM EDT instruction to file every stored or calculated
+  value nothing uses that is not already in the works. None of it is a
+  wrong number on a page today. G2. physics/magnetism.py stores
+  xuv_flux_earth, xuv_exposure_index, flare_irradiation_index,
+  magnetopause_rp and dipole_class with no reader outside the sheet;
+  physics/mixture_subject.py recomputes its own XUV index; atmosphere
+  escape and retention do not read the flare index; stars write
+  rotation_period_hours, spin axis, axial_tilt_deg, flare_alpha and
+  xuv_saturated that nothing reads; ozone_loss_flag feeds nothing. Do
+  one wiring item: escape and retention (GEN.738), the dose and the
+  habitability radiation component read the stored XUV, flare and
+  magnetopause values; delete the duplicate XUV recomputation in
+  mixture_subject.py; tie stellar activity (flare rate, XUV saturation)
+  to stellar rotation; the ozone-loss flag feeds the UV life limit.
+  Done: each stored output has a reader (a test lists none of them in
+  NEVER_READ) and the duplicate is gone. Version 8.4, phase 1. Owner:
+  Aux 4 or Aux 5. Rules: no backward-compat shims; every number has a
+  unit or scale (GEN.772); draws through draw.py; a changed generated
+  value carries `tests.golden_update --reason ... --affects <stage>` and
+  the next epoch; tests are `scripts/test.py changed --resume`;
+  stand-ins get GEN.725 registry rows.
+  Prerequisites: GEN.804, GEN.805, GEN.806, GEN.807, GEN.808. Related: GEN.736, GEN.738, GEN.746, GEN.749, GEN.804, GEN.805, GEN.806, GEN.807, GEN.808.
+  GEN.788, TEST.11.
+
+- [ ] **GEN.801 Wire the giant-planet interior outputs into the field, the heat and the description (G3)**
+  Unused stored values audit (the "Find stored values nothing uses"
+  thread, report reports/unused-stored-values-audit-2026-10-24.md,
+  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
+  Boss's 10:16 PM EDT instruction to file every stored or calculated
+  value nothing uses that is not already in the works. None of it is a
+  wrong number on a page today. G3. physics/giant_interior.py stores
+  interior_kind, dilute_core_mass_earth, metallization_pressure_gpa,
+  helium_depletion, has_helium_shell and interior_layers; only
+  core_mass_earth has a reader. Do: a giant's dipole moment and class
+  come from the metallic-hydrogen shell (outer radius of metallization,
+  dilute core), its internal heat reads the layer structure, and the
+  description says what the interior is. Done: a Jupiter-like, a
+  Saturn-like and a hot giant sample change their field and text with
+  their interior, and the six columns have readers. Version 8.4, phase
+  1. Owner: Aux 6 (bulk composition), after GEN.733. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  draws through draw.py; a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`; stand-ins get
+  GEN.725 registry rows.
+  Prerequisites: GEN.733, GEN.809, GEN.810, GEN.811. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
+
+- [ ] **GEN.802 Wire the formation-distance water law into the atmosphere recipes b1 to b4 and reconcile it with the GEN.510 mass law (GEN.481b)**
+  Citations lane (Aux 17), GEN.481 and GEN.482 merged #3220, relayed
+  10:35 PM EDT 2026-10-24 as the lane reported
+  (docs/design/composition/volatile-delivery-formation-distance.md and
+  magma-ocean-redox-against-mass.md). The Bern population puts
+  water-rich planets at x = a_form / a_snow of 0.15 to 0.95 (2 to 85
+  percent of the water), only 6.8 percent start at x below 1, so the b4
+  gate x >= 1 and the b1 to b3 centre are contradicted; the GEN.510 mass
+  law and this law must not be multiplied. Wire the law into recipes b1
+  to b4, reconcile it with GEN.510 (one law, not two), update the recipe
+  data and its builder. Done: the water share of a sample of 1,000
+  planets follows the sourced population against formation distance and
+  mass, a test pins that the two laws are not multiplied, and the
+  stand-in registry rows are updated. Changes drawn output:
+  `tests.golden_update --reason ... --affects fill` and the next epoch.
+  Version 8.1. Owner: Citations lane (Aux 17).
+  Prerequisites: none. Related: GEN.481, GEN.510, GEN.725.
+
+- [ ] **GEN.803 Wire the magma-ocean redox findings: the a1 width and its extension above 1 Earth mass, link a2 to a1, split a3 by building-block type (GEN.482b)**
+  Citations lane (Aux 17), GEN.481 and GEN.482 merged #3220, relayed
+  10:35 PM EDT 2026-10-24 as the lane reported
+  (docs/design/composition/volatile-delivery-formation-distance.md and
+  magma-ocean-redox-against-mass.md). a1 mean is inside the first-hand
+  ranges at the Moon, Mars and Earth (Hirschmann 2022, Deng 2020, Sossi
+  2020) but its width 0.5 is too narrow for Earth (0.9) and its clamp
+  above 1 Earth mass is unsourced; a2 sits inside one sd of its three
+  anchors and should be linked to a1; the a3 check bracket misses
+  carbonaceous material (IW+1.6 to +2.6), so a3 splits by building-block
+  type. Do: widen a1 and extend it above 1 Earth mass with a source,
+  link a2 to a1, split a3 by building-block type, and update the recipe
+  data. Done: a sample of 1,000 magma oceans lands inside the first-hand
+  ranges at the three anchors, with the registry rows updated. Changes
+  drawn output: `tests.golden_update --reason ... --affects fill` and
+  the next epoch. Version 8.1. Owner: Citations lane (Aux 17).
+  Prerequisites: none. Related: GEN.482, GEN.802, GEN.725.
+
+- [ ] **GEN.804 Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). physics/magnetism.py stores xuv_flux_earth,
+  xuv_exposure_index, flare_irradiation_index and magnetopause_rp that
+  nothing reads. Escape and retention (GEN.738) read them instead of
+  recomputing, and a planet inside a large magnetopause loses less.
+  Done: two planets differing only in field strength retain different
+  atmospheres, test-pinned. Version 8.4, phase 1. Owner: Aux 4 or Aux 5.
+  Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); a changed generated value carries `tests.golden_update
+  --reason ... --affects <stage>` and the next epoch; tests are
+  `scripts/test.py changed --resume`.
+  Prerequisites: none. Related: GEN.800, GEN.738, GEN.736.
+
+- [ ] **GEN.805 The surface dose and the habitability radiation component read the stored flare irradiation index and magnetopause (G2, step 2)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). physics/radiation.py uses only magnetic_moment_a_m2. Make the
+  dose and the PHI-6 radiation component read the flare irradiation
+  index and the magnetopause size. Done: a flare-active star's planet
+  shows a higher dose than a quiet star's at the same distance. Version
+  8.4, phase 1. Owner: Aux 4. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); a changed generated value
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: GEN.804. Related: GEN.800, GEN.445.
+
+- [ ] **GEN.806 Delete the duplicate XUV recomputation in physics/mixture_subject.py and read xuv_exposure_index (G2, step 3)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). mixture_subject.py recomputes its own XUV index. Read the
+  stored one and delete the duplicate (no shim). Done: one XUV
+  implementation, with the tests green. Version 8.4, phase 1. Owner: Aux
+  8. Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); a changed generated value carries `tests.golden_update
+  --reason ... --affects <stage>` and the next epoch; tests are
+  `scripts/test.py changed --resume`.
+  Prerequisites: GEN.804. Related: GEN.800.
+
+- [ ] **GEN.807 Stellar activity (flare rate, XUV saturation) follows the star's rotation: rotation_period_hours, flare_alpha and xuv_saturated get readers (G2, step 4)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). Stars write rotation_period_hours, spin axis, axial_tilt_deg,
+  flare_alpha and xuv_saturated that nothing reads. Tie the flare rate
+  and the XUV saturation to the rotation period (the activity-rotation
+  relation), and let the stored values feed GEN.804 and GEN.805. Done: a
+  fast rotator has a higher flare rate than a slow one of the same mass,
+  and the six columns have readers. Version 8.4, phase 1. Owner: Aux 2
+  (stars). Rules: no backward-compat shims; every number has a unit or
+  scale (GEN.772); a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: none. Related: GEN.800, GEN.788.
+
+- [ ] **GEN.808 The ozone-loss flag feeds the UV limit on life and the surface look (G2, step 5)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). ozone_loss_flag (physics/radiation.py) is displayed and read
+  by nothing. Let it raise the UV dose reaching the surface, which
+  limits the life stage and lightens the sky and ground look. Done: a
+  world whose ozone is lost shows the higher UV dose and the lower life
+  score. Version 8.4, phase 1. Owner: Aux 4. Rules: no backward-compat
+  shims; every number has a unit or scale (GEN.772); a changed generated
+  value carries `tests.golden_update --reason ... --affects <stage>` and
+  the next epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: GEN.805. Related: GEN.800, GEN.748.
+
+- [ ] **GEN.809 A giant's dipole moment and class come from the metallic-hydrogen shell and the dilute core (G3, step 1)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). physics/giant_interior.py stores interior_kind,
+  dilute_core_mass_earth, metallization_pressure_gpa, helium_depletion,
+  has_helium_shell and interior_layers; only core_mass_earth is read.
+  magnetism.py takes the giant's dipole from the outer radius of
+  metallization and the dilute core. Done: Jupiter-like, Saturn-like and
+  hot-giant samples differ in field with their interior. Version 8.4,
+  phase 1. Owner: Aux 6, after GEN.733. Rules: no backward-compat shims;
+  every number has a unit or scale (GEN.772); a changed generated value
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: GEN.733. Related: GEN.801, GEN.733, GEN.736.
+
+- [ ] **GEN.810 A giant's internal heat reads the interior layers and the helium shell (G3, step 2)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). The internal heat of a giant reads interior_layers,
+  helium_depletion and has_helium_shell (helium rain heating). Done: a
+  Saturn-like giant with a helium shell has a larger internal heat flux
+  than one without, and the columns have readers. Version 8.4, phase 1.
+  Owner: Aux 6. Rules: no backward-compat shims; every number has a unit
+  or scale (GEN.772); a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: GEN.733. Related: GEN.801, GEN.735.
+
+- [ ] **GEN.811 The description of a giant says what its interior is (G3, step 3)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). The description text names the interior kind, the metallic
+  layer, the dilute core and the helium shell where they exist, in the
+  in-universe voice of the pages. Done: three samples read differently
+  and a test pins the wording keys. Version 8.4, phase 1. Owner: Aux 6
+  with Aux 11. Rules: no backward-compat shims; every number has a unit
+  or scale (GEN.772); a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: GEN.809, GEN.810. Related: GEN.801, GEN.415.
+
+- [ ] **GEN.812 Greenhouse module: a water-vapour profile that dries with height, and pressure broadening checked against Venus and Earth, so an Earth twin at its own fixed point comes out near 288 K (finding 1)**
+  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
+  reports/air-fixed-point-findings-2026-10-24.md finding 1. With the
+  water vapour held at 0.77 of saturation at the answer's own
+  temperature an Earth twin (1 bar N2, 400 ppm CO2, 239 W/m2 absorbed)
+  comes out at 319 K, not 288 K; the module is right only when given the
+  Earth's measured water (292 K). Likely cause: the surface vapour
+  pressure is taken as the column mixing ratio all the way up; real air
+  is drier aloft (Manabe and Wetherald humidity falls with height). Add
+  the vapour profile in the module (not in surface_air). Also dry air at
+  400 ppm CO2 warms from 263 K at 1 bar N2 to 274 K at 3 bar and 340 K
+  at 87 bar: check the pressure broadening against published
+  line-by-line values. Done: the Earth twin lands within 2 K of 288 K
+  with the feedback live, and 106 of 300 forced class M habitable-zone
+  draws above 400 K falls to the share the physics gives. Owner: Aux 4
+  (lane E, the greenhouse module GEN.423 and GEN.703). Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  stand-ins get GEN.725 registry rows with a tier and tweak level; a
+  changed generated value carries `tests.golden_update --reason ...
+  --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`.
+  Prerequisites: GEN.411, GEN.422. Related: GEN.423, GEN.703, GEN.752,
+  GEN.411.
+
+- [ ] **GEN.813 Volatile inventory brackets recalibrated against the totals of the Earth, Venus, Mars and Titan, not only the ratios (finding 2)**
+  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
+  reports/air-fixed-point-findings-2026-10-24.md finding 2. The dry
+  class carries 0.6 wt% CO2 (about sixteen times the bulk silicate
+  Earth's carbon), nitrogen follows by N/C up to 0.1 (one seed: 87 bar
+  of N2 on a 1.8 Earth-mass planet) and sulfur by S/C up to 3. The
+  carbonate balance removes the carbon of a wet world whatever the
+  supply, but nitrogen has no sink, so those worlds start with a thick
+  N2 air. Recalibrate the GEN.481 brackets (GEN.725 tweak level L2) so
+  the four known bodies fall inside their ranges and state the source of
+  each total. Done: the four bodies reproduce within the stated spread;
+  the tweak level is listed. Owner: the Citations lane (GEN.481 owner)
+  with GEN.802 and GEN.803. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); stand-ins get GEN.725 registry
+  rows with a tier and tweak level; a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: GEN.411, GEN.422. Related: GEN.481, GEN.802, GEN.803,
+  GEN.725.
+
+- [ ] **GEN.814 A water-rich world (class O, 10 to 50 wt% water) gets a carbon sink: seafloor weathering and the high-pressure ice that seals the mantle (finding 3)**
+  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
+  reports/air-fixed-point-findings-2026-10-24.md finding 3. Silicate
+  weathering needs land (land fraction below 1e-6 of the reference), so
+  a water world has no carbon sink, its CO2 stays in the air and 31 of
+  40 land hot (median 1470 K). Model seafloor weathering and the
+  high-pressure-ice seal after Kite and Ford 2018 and Krissansen-Totton
+  and Catling 2017 and say what the model does not do. Done: the
+  water-world temperature distribution is within the published range,
+  with the sources cited. Owner: Aux 6 (bulk composition) or Aux 8.
+  Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); stand-ins get GEN.725 registry rows with a tier and tweak
+  level; a changed generated value carries `tests.golden_update --reason
+  ... --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`.
+  Prerequisites: GEN.411, GEN.422. Related: GEN.422, GEN.654.
+
+- [ ] **GEN.815 Sulfur sink: a sulfate and sulfide balance replaces the stand-in SULFUR_SURFACE_KEPT (finding 4)**
+  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
+  reports/air-fixed-point-findings-2026-10-24.md finding 4. Lane L's
+  solubility (GEN.757) is the physical Henry's-law solubility only.
+  Before the stand-in SULFUR_SURFACE_KEPT (1e-5 to 1e-2 of degassed
+  sulfur stays in the air with an ocean, the old weathering sink's
+  bracket) a wet world held 300 bar of S2. Replace it with a sulfate and
+  sulfide balance (redox dependent) and remove the stand-in from the
+  registry. Done: the sulfur in the air of wet and dry worlds comes from
+  the balance; the registry row is gone. Owner: Aux 8 (Lane L). Rules:
+  no backward-compat shims; every number has a unit or scale (GEN.772);
+  stand-ins get GEN.725 registry rows with a tier and tweak level; a
+  changed generated value carries `tests.golden_update --reason ...
+  --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`.
+  Prerequisites: GEN.411, GEN.422. Related: GEN.757, GEN.751, GEN.725.
+
+- [ ] **GEN.816 A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5)**
+  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
+  reports/air-fixed-point-findings-2026-10-24.md finding 5. The module
+  states the known gap: the 1 bar temperature of a giant is the
+  greenhouse of absorbed starlight alone. Add the internal heat flux
+  (GEN.735, and the interior layers of GEN.810) so a Jupiter-like giant
+  at 5 AU lands near 165 K. Done: Jupiter, Saturn, Uranus and Neptune
+  samples land near their 1 bar temperatures. Owner: Aux 6 (giants).
+  Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); stand-ins get GEN.725 registry rows with a tier and tweak
+  level; a changed generated value carries `tests.golden_update --reason
+  ... --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`.
+  Prerequisites: GEN.411, GEN.422. Related: GEN.735, GEN.810, GEN.801.
+
+- [ ] **GEN.817 Rogue and starless bodies: their air goes through the same fixed point (finding 7)**
+  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
+  reports/air-fixed-point-findings-2026-10-24.md finding 7.
+  mixture_subject refuses a body with no star by name; the rogue path
+  has its own surface (rogue_surface), so nothing breaks, but a rogue
+  planet's air does not go through the fixed point. Route rogue bodies
+  through the same solve with the internal heat as the only energy
+  source. Done: a rogue planet's air comes from the solved mixture and a
+  test pins it. Owner: Aux 8 or a free pool lane. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  stand-ins get GEN.725 registry rows with a tier and tweak level; a
+  changed generated value carries `tests.golden_update --reason ...
+  --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`.
+  Prerequisites: GEN.411, GEN.422. Related: GEN.411, GEN.422.
+
+- [ ] **GEN.818 Aluminium in the melt model: an Al2O3 activity (with a tier) so a lava draw can make aluminium vapour (GEN.751 follow-up)**
+  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
+  reports/air-fixed-point-findings-2026-10-24.md finding 0. GEN.751 put
+  Al in the gas and thermodynamics tables but the melt model has no
+  aluminium activity, so no lava draw makes any. Add an Al2O3 activity
+  stand-in with a tier and tweak level in the GEN.725 registry, from the
+  published silicate-melt activity data. Done: a lava world's vapour
+  lists aluminium in the right proportion, with the source stated.
+  Owner: Aux 8 (Lane L), after the sulfur sink. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  stand-ins get GEN.725 registry rows with a tier and tweak level; a
+  changed generated value carries `tests.golden_update --reason ...
+  --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`.
+  Prerequisites: none. Related: GEN.751, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15802,6 +16047,72 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.397, GEN.398, PERF.184.
   Prerequisites: none. Related: GEN.397, GEN.398, PERF.184.
 
+- [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
+  Unused stored values audit (the "Find stored values nothing uses"
+  thread, report reports/unused-stored-values-audit-2026-10-24.md,
+  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
+  Boss's 10:16 PM EDT instruction to file every stored or calculated
+  value nothing uses that is not already in the works. None of it is a
+  wrong number on a page today. G5. generation/object_timing.py writes
+  object_timing_stats and object_timing_samples on every run and nothing
+  reads them (only the module, the model and db/fingerprint.py). Show
+  them where generation cost matters (the run page and `planetgen
+  stats`) or stop recording them, and delete the tables with a migration
+  if so. Done: either a reader with a test, or the recording, the tables
+  and the fingerprint entry gone. Version 8.2, phase 2. Owner: Aux 16
+  (Performance). Rules: no backward-compat shims; every number has a
+  unit or scale (GEN.772); draws through draw.py; a changed generated
+  value carries `tests.golden_update --reason ... --affects <stage>` and
+  the next epoch; tests are `scripts/test.py changed --resume`;
+  stand-ins get GEN.725 registry rows.
+  Prerequisites: PERF.196, PERF.197. Related: PERF.125, PERF.196, PERF.197.
+
+- [ ] **PERF.196 Decide: show the object timing records or stop recording them (G5, step 1)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). generation/object_timing.py writes object_timing_stats and
+  object_timing_samples every run; nothing reads them. Decide, with a
+  number from a run (cost of recording against the use), whether to show
+  them on the run page and `planetgen stats` or stop recording, and
+  write the decision in the item. Done: the decision with its reason.
+  Version 8.2, phase 2. Owner: Aux 16. Rules: no backward-compat shims;
+  every number has a unit or scale (GEN.772); a changed generated value
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: none. Related: PERF.195.
+
+- [ ] **PERF.197 Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). Do what PERF.196 decided: either a reader on the run page and
+  `planetgen stats` with a test, or the recording, the two tables, a
+  migration dropping them and the db/fingerprint.py entry gone (no
+  shim). Done: as decided, tests green. Version 8.2, phase 2. Owner: Aux
+  16. Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); a changed generated value carries `tests.golden_update
+  --reason ... --affects <stage>` and the next epoch; tests are
+  `scripts/test.py changed --resume`.
+  Prerequisites: PERF.196. Related: PERF.195.
+
+- [ ] **PERF.198 Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6)**
+  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
+  reports/air-fixed-point-findings-2026-10-24.md finding 6.
+  util/detmath.matmul (pure Python, 28,000 calls in one system) is 40
+  percent of the time of a system and gas_equilibrium.solve costs 17 ms
+  a call with 130 calls a system. Add a cache of equal solves or a
+  faster deterministic matmul that gives bit-identical results, and
+  measure before and after on the 160-system sweep (mean 1.1 s a system,
+  max 5.3 s). Done: the sweep is at least 30 percent faster with
+  identical stored values. Owner: Aux 16 (performance). Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  stand-ins get GEN.725 registry rows with a tier and tweak level; a
+  changed generated value carries `tests.golden_update --reason ...
+  --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`.
+  Prerequisites: none. Related: PERF.125, GEN.411.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -16437,18 +16748,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
-
-- [ ] **DB.92 Planets and moons store the depth to liquid water and the thickness of the water-bearing layer (aquifers)**
-  Boss, 7:12 PM EDT 2026-10-23, via lane D (design note
-  /mnt/project-files/design-drafts/red-dwarf-water-and-star-regeneration-2026-10-23.md,
-  mechanism b3): aquifers for habitable-world requests and for the
-  worlds themselves. Owner: Habitability lane D, built after GEN.649
-  merges. One column pair (km) on planets and moons with their Alembic
-  revision and schema version, declared in db/column_units.py in the
-  same PR, the loader and writer, the API field and the rebuild step for
-  older rows. Done: round trip, migration test, the schema document
-  lists the columns.
-  Prerequisites: GEN.654. Related: GEN.654, DB.91.
 
 - [ ] **DB.96 Store the atmosphere colour and the cloud cover on planets and moons**
   The RGB integer from GEN.418 and GEN.419 and the cloud cover; one
@@ -17832,7 +18131,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   with its tier and tweak labels; tests are `scripts/test.py changed
   --resume` only; no fixed content from the Milky Way or the Solar
   System.
-  Prerequisites: POP.22. Related: ADM.62, ADM.63, ADM.64, ADM.65,, DB.104, POP.26.
+  Prerequisites: POP.22. Related: ADM.62, ADM.63, ADM.64, ADM.65, DB.104, POP.26.
   ADM.69, POP.13.
   Research (2026-10-09, Progress): Governments (polities) are aspects
   too: count, homeworld, reach, territory and capital (storage DB.104,
@@ -17915,6 +18214,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: DB.106, GEN.799. Related: ADM.62, ADM.130, ADM.131.
+
+- [ ] **ADM.134 /admin/queue/<run_id>/log answers 302 to a visitor, but the auth sweep expects 403 for a json_only view: test_admin_pages_send_an_admin_on_seeded_credentials_to_account and test_admin_pages_send_anonymous_visitors_to_login fail on clean main (bug)**
+  Blocker I (Aux 1) reported 10:40 PM EDT 2026-10-24 as the lane
+  reported: src/tests/test_api_auth_sweep.py fails in its gate with no
+  web file changed. web.admin_queue_log is marked json_only in
+  queue_page.py:367 yet answers 302 to an anonymous visitor where the
+  sweep expects a plain 403 (it came in with PERF.99 or PERF.186 or
+  later). Decide which is right (a JSON endpoint answers 403, not a
+  login redirect) and fix the view or the sweep, with a test. Done: both
+  sweep tests pass on main. Owner: the Queue page owner (Perf lane, Core
+  5).
+  Prerequisites: none. Related: PERF.99, PERF.186, TEST.384.
 
 ## SEC: Security
 
@@ -20529,6 +20840,14 @@ clears each one.
   fix it, and keep the tests; file a separate bug where one has a cause
   outside this group. Done: the group passes on main from a clean
   checkout in `scripts/test.py changed`. Version 8.1. Owner: Bug 1.
+  Research (2026-10-09, Lane L report): Added 10:42 PM EDT 2026-10-24
+  (Lane L, GEN.751 gate, as the lane reported): also red on clean main:
+  test_progress_log (2 tests), test_redis_cleanup,
+  test_resume_across_builds (stubs of run_phase lack the new on_child
+  argument), test_job_tree galaxy-run-ends-done (times out at 257 s).
+  Lane D (Aux 3) also saw
+  test_db_column_round_trip::test_every_column_is_written fail once on
+  the disk columns (TEST.387).
   Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
 
 - [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**
@@ -20566,6 +20885,19 @@ clears each one.
   MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
   nothing in 8.1.
   Prerequisites: MAP.312, UX.223. Related: TEST.380, TEST.381, TEST.382.
+
+- [ ] **TEST.387 test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug)**
+  Aux 3 (Lane D) saw test_every_column_is_written fail once in a batch
+  run (10:40 PM EDT 2026-10-24 as the lane reported): the four disk
+  columns were NULL in every row because the random draw produced no
+  star with a disk; it passes alone on main. The sheet fill audit
+  (reports/sheet-fill-summary-2026-10-25.md) shows only 1 of 522 stars
+  has a disk, so the test depends on luck. Make the test deterministic:
+  seed a fixture with a disk star, or exclude columns that are
+  conditionally written by a rule, and have the rule stated in one
+  place. Related fill items GEN.778 to GEN.791 (disk producer). Done:
+  the test passes on any seed, 20 runs in a row. Owner: Bug 1.
+  Prerequisites: none. Related: GEN.778.
 
 ## USR: User accounts
 
@@ -21248,6 +21580,74 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   both took the same epoch and migration both merge in turn with no hand
   edits, and a test covers the renumbering. Owner: Lane 4.
   Prerequisites: none. Related: OPS.56.
+
+- [ ] **OPS.72 Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7)**
+  Unused stored values audit (the "Find stored values nothing uses"
+  thread, report reports/unused-stored-values-audit-2026-10-24.md,
+  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
+  Boss's 10:16 PM EDT instruction to file every stored or calculated
+  value nothing uses that is not already in the works. None of it is a
+  wrong number on a page today. G7. Constants in tuning.py with no
+  reader: HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM,
+  RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
+  STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET,
+  NAV_COURSE_DECIMAL_PLACES (and STELLAR_U_TH_UNCERTAINTY, read only in
+  a docstring). Defined and never called:
+  generation/validation.class_allowed_in_zone,
+  generation/run_sector.build_sector_configs,
+  generation/run_plan.shell_chunks,
+  generation/phenomenon_scatter.draw_mass,
+  physics/surface_pressure.mantle_mass_kg,
+  web/lib/tileprefetch.build_nodes,
+  web/lib/apiclient.get_galaxy_phenomena,
+  web/seo_pages.register_card_renderer, util/settings.read_config and
+  settings_hash, web/generate_page.mass_limit_argv. Delete each (no
+  shims), or wire it where the knob says something a page should honour;
+  check first that no item still needs it. Done: the knobs and helpers
+  are gone, the tests pass, and a scan finds no tuning constant without
+  a reader. Version 8.1. Owner: any free pool lane (small, one gate).
+  Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); draws through draw.py; a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`; stand-ins get
+  GEN.725 registry rows.
+  Prerequisites: OPS.73, OPS.74. Related: GEN.754, OPS.73, OPS.74.
+
+- [ ] **OPS.73 Delete the dead tuning knobs (HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM, RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD, STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET, NAV_COURSE_DECIMAL_PLACES, STELLAR_U_TH_UNCERTAINTY) (G7, step 1)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). Constants in tuning.py with no reader
+  (STELLAR_U_TH_UNCERTAINTY is read only in a docstring). Check no open
+  item needs each, delete it, and add a test that no tuning constant
+  lacks a reader. Done: the knobs are gone and the scan test passes.
+  Version 8.1. Owner: any free pool lane. Rules: no backward-compat
+  shims; every number has a unit or scale (GEN.772); a changed generated
+  value carries `tests.golden_update --reason ... --affects <stage>` and
+  the next epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: none. Related: OPS.72.
+
+- [ ] **OPS.74 Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). Defined and never called:
+  generation/validation.class_allowed_in_zone,
+  generation/run_sector.build_sector_configs,
+  generation/run_plan.shell_chunks,
+  generation/phenomenon_scatter.draw_mass,
+  physics/surface_pressure.mantle_mass_kg,
+  web/lib/tileprefetch.build_nodes,
+  web/lib/apiclient.get_galaxy_phenomena,
+  web/seo_pages.register_card_renderer, util/settings.read_config and
+  settings_hash, web/generate_page.mass_limit_argv. Delete each, or wire
+  it where it says something a page should honour; check no open item
+  needs it. Done: gone, tests green. Version 8.1. Owner: any free pool
+  lane. Rules: no backward-compat shims; every number has a unit or
+  scale (GEN.772); a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: none. Related: OPS.72.
 
 ## DOC: Documentation
 
@@ -23015,4 +23415,150 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Research (2026-10-09, Progress): Pulled forward into 8.1 by Boss,
   10:16 PM EDT 2026-10-24; owner pool (Core 5 style), unstarted.
   Prerequisites: none. Related: POP.16, POP.17, GEN.653.
+
+- [ ] **POP.38 Species traits and facility needs read the homeworld and host: dose, pressure, air, thermal range, day length and the equipment kit (G1)**
+  Unused stored values audit (the "Find stored values nothing uses"
+  thread, report reports/unused-stored-values-audit-2026-10-24.md,
+  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
+  Boss's 10:16 PM EDT instruction to file every stored or calculated
+  value nothing uses that is not already in the works. None of it is a
+  wrong number on a page today. G1. population/model.py species_traits
+  takes only gravity and surface temperature from the homeworld;
+  facility_suggest.py reads the host's PHI-4, a fixed richness per host
+  type and fixed size per kind, and nothing of the dose, pressure, air,
+  temperature or the equipment kit (eq_body_*, eq_rad_suit*,
+  eq_gas_filter, eq_co2_scrub, eq_dust, eq_supply*, eq_shelter*,
+  shelter_column_g_cm2, outside_hours); nothing in population/ reads
+  physics/equipment.py. Fix: species traits take radiation tolerance,
+  pressure and air tolerance, thermal range and day length from the
+  homeworld; facility ratings (health, housing, maintenance, resources)
+  and a facility's upkeep read the host's equipment kit and dose; the
+  settlement and facility pages say why. Done: a species on a high-dose
+  world has a radiation tolerance, a facility on a world that needs a
+  pressure suit rates lower and carries the kit as upkeep, and the pages
+  say why. Version 8.4, phase 2. Owner: the population lane with Aux 4
+  (radiation). Rules: no backward-compat shims; every number has a unit
+  or scale (GEN.772); draws through draw.py; a changed generated value
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`; stand-ins
+  get GEN.725 registry rows.
+  Prerequisites: POP.37, POP.17, POP.40, POP.41, POP.42, POP.43. Related: POP.37, POP.17, GEN.445, POP.40, POP.41, POP.42, POP.43.
+
+- [ ] **POP.39 Facility constants are registered with a tier and tweak level, and a facility's richness reads the host's stored composition (G6)**
+  Unused stored values audit (the "Find stored values nothing uses"
+  thread, report reports/unused-stored-values-audit-2026-10-24.md,
+  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
+  Boss's 10:16 PM EDT instruction to file every stored or calculated
+  value nothing uses that is not already in the works. None of it is a
+  wrong number on a page today. G6. facility_suggest._WEIGHTS and
+  tuning.FACILITY_HOST_RICHNESS, FACILITY_KIND_SIZE and
+  FACILITY_RATING_* are hand-set constants that decide every facility
+  rating and are the only source of richness; none is in the GEN.725
+  registry. Add a registry row for each (source, tier, tweak level,
+  falsifier, replacing item) and make richness read the host's stored
+  composition where it exists: belt composition and the resource scores
+  of GEN.799, surface minerals (GEN.441), instead of a per-type
+  constant. Done: every constant has a row,
+  `scripts/build_stand_in_values.py --check` passes, and a facility on a
+  metal-rich belt rates higher on resources than one on a bare rock.
+  Version 8.4, phase 2. Owner: the population lane with the GEN.725
+  owner. Rules: no backward-compat shims; every number has a unit or
+  scale (GEN.772); draws through draw.py; a changed generated value
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`; stand-ins
+  get GEN.725 registry rows.
+  Prerequisites: POP.37, GEN.799, POP.44, POP.45. Related: POP.37, GEN.725, GEN.799, POP.44, POP.45.
+
+- [ ] **POP.40 Species traits take radiation tolerance, pressure and air tolerance, thermal range and day length from the homeworld (G1, step 1)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). population/model.py species_traits takes only gravity and
+  surface temperature. Add the surface dose, pressure, air, thermal
+  range and day length of the homeworld to the traits of the species
+  that lives there, with the unit of each and the stand-ins in the
+  GEN.725 registry. Done: a species on a high-dose world has a radiation
+  tolerance and one on a thin-air world a pressure tolerance, stored and
+  shown. Version 8.4, phase 2. Owner: the population lane with Aux 4.
+  Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); a changed generated value carries `tests.golden_update
+  --reason ... --affects <stage>` and the next epoch; tests are
+  `scripts/test.py changed --resume`.
+  Prerequisites: POP.17. Related: POP.38, POP.17, GEN.445.
+
+- [ ] **POP.41 Facility ratings (health, housing, maintenance, resources) read the host's dose, pressure, air and temperature (G1, step 2)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). facility_suggest.gather reads only phi4, a fixed richness and
+  a fixed size. Make the ratings read the host's surface dose, pressure,
+  air and temperature (and Suitability and the food rung through
+  POP.37), so a facility on a hostile world rates differently from one
+  on a mild world. Done: two hosts that differ only in dose rate
+  differently, test-pinned. Version 8.4, phase 2. Owner: the population
+  lane. Rules: no backward-compat shims; every number has a unit or
+  scale (GEN.772); a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: POP.37. Related: POP.38, POP.37.
+
+- [ ] **POP.42 Facility need and upkeep read the equipment kit the host requires (eq_body_*, eq_rad_suit*, eq_gas_filter, eq_co2_scrub, eq_dust, eq_supply*, eq_shelter*, outside_hours) (G1, step 3)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). Nothing in population/ reads physics/equipment.py. A facility
+  on a world that needs a pressure suit and a dose-limited stay carries
+  the kit as an upkeep cost and a technology need (the species' tech
+  index must reach the kit's level). Done: a facility on a world that
+  needs a pressure suit has the kit listed in its upkeep and rates lower
+  on maintenance. Version 8.4, phase 2. Owner: the population lane with
+  the equipment owner. Rules: no backward-compat shims; every number has
+  a unit or scale (GEN.772); a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: POP.41. Related: POP.38, GEN.445.
+
+- [ ] **POP.43 Settlement and facility pages say why: the species traits and the host's dose, air and kit behind each rating (G1, step 4)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). The species, settlement and facility pages show the traits of
+  POP.40 and the host's dose, pressure, air and kit behind each rating
+  of POP.41 and POP.42, each with its unit. Done: a browser test on a
+  sample facility shows the reasons. Version 8.4, phase 2. Owner: Aux 11
+  style. Rules: no backward-compat shims; every number has a unit or
+  scale (GEN.772); a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: POP.40, POP.42. Related: POP.38, UX.188.
+
+- [ ] **POP.44 Register the facility constants (_WEIGHTS, FACILITY_HOST_RICHNESS, FACILITY_KIND_SIZE, FACILITY_RATING_*) in the GEN.725 registry with tier and tweak level (G6, step 1)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). These hand-set constants decide every facility rating and are
+  not in docs/design/research/stand-in-values.md. Add a row for each
+  (source, tier, tweak level, falsifier, replacing item). Done: every
+  constant has a row and `scripts/build_stand_in_values.py --check`
+  passes. Version 8.4, phase 2. Owner: the population lane with the
+  GEN.725 owner. Rules: no backward-compat shims; every number has a
+  unit or scale (GEN.772); a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: POP.37. Related: POP.39, GEN.725.
+
+- [ ] **POP.45 A facility's richness reads the host's stored composition and resource scores instead of a per-type constant (G6, step 2)**
+  Unused stored values audit chain
+  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
+  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
+  issue). Richness comes from the host's belt composition and resource
+  scores (GEN.799) and surface minerals (GEN.441) where they exist,
+  falling back to the registered constant only for hosts without
+  composition. Done: a facility on a metal-rich belt rates higher on
+  resources than one on a bare rock. Version 8.4, phase 2. Owner: the
+  population lane. Rules: no backward-compat shims; every number has a
+  unit or scale (GEN.772); a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`.
+  Prerequisites: POP.44, GEN.799. Related: POP.39, GEN.799, GEN.441.
 
