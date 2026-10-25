@@ -2977,30 +2977,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   icons; Aux 10). Owner: Core 2.
   Prerequisites: none. Related: MAP.295, MAP.288, MAP.298.
 
-- [ ] **MAP.297 Remove the sector boxes from the maps: clicking goes to a location, never to a sector block (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: clicking goes to a sector
-  block, which we need to get rid of; the map should be about locations.
-  Do: remove the drawn and clickable sector box, meaning the hover and
-  selected sector outline (MAP.265), the pick of a sector block on the
-  Galaxy Map, and any block outline a click can land on, so a click on
-  the map picks an item (a star, system, comet, rogue planet, cluster or
-  nebula), the nearest item under the pointer, or nothing. What stays:
-  the sector-block nodes as internal data (the node cut, the unresolved
-  glow, MAP.258 to MAP.262, MAP.266) and the optional grid tool, which
-  stays a tool and not the default display (Boss, 5:51 PM EDT
-  2026-10-23, zoom card 2). Done: a browser test clicks in empty space
-  and on a dense region of the fixture and gets an item or nothing,
-  never a sector box, and no sector outline is drawn on hover or select.
-  Part of one chain filed from that message: TEST.368 (fixture galaxy),
-  MAP.295 and MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking,
-  labels, zoom, icons; Aux 10). Owner: Aux 10 (it owns the node layer);
-  the pick code is in galaxymap3d.js, which Core 2 also edits, so the
-  two lanes message each other before touching it.
-  Prerequisites: TEST.368. Related: MAP.257, MAP.265, MAP.122, MAP.210,
-  MAP.140.
-
 - [ ] **MAP.298 Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
@@ -3114,37 +3090,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   marker code is its to extend); MAP.293 (colour-by Habitable) is the
   same area, so it goes first.
   Prerequisites: TEST.368, MAP.305. Related: MAP.220, MAP.293, GEN.643, MAP.298.
-
-- [ ] **MAP.304 Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug)**
-  Boss, 7:33 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiKvKv7nchhgm2mEPPktTDrW, relayed by the
-  coordinator), live observation, so a bug: "also I should be able to
-  click on any object or icon in my map view, double-click to fly to the
-  item / object, selecting brings up the infobox in the map window. Make
-  sure the infobox is never cut off, we can make the fonts a little
-  smaller." Do: every drawn object and every icon on the Galaxy and
-  sector
-  maps (stars, systems, comets, rogue planets, clusters, nebulae, the
-  habitable icons of MAP.303, the facility and vessel icons) takes a
-  single
-  click that selects it and opens its infobox inside the map window, and
-  a
-  double-click that flies the camera to it (MAP.140 and the flight of
-  MAP.226); a click on empty space selects nothing and closes the
-  infobox.
-  The pick is by object ID across scales (MAP.268) and never lands on a
-  sector box (MAP.297). The infobox sizing is MAP.295. Done: a browser
-  test
-  on the fixture galaxy (TEST.368) single-clicks one object of every
-  kind
-  and sees its infobox inside the map window, and double-clicks one and
-  ends the flight at it. Part of the Boss map UX chain: TEST.368,
-  MAP.295
-  to MAP.304. Owner: Aux 10 (click and double-click picking); the
-  infobox
-  is Core 2's MAP.295.
-  Prerequisites: TEST.368. Related: MAP.140, MAP.226, MAP.268, MAP.295,
-  MAP.297, MAP.298, MAP.303.
 
 - [ ] **MAP.305 Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug)**
   Boss, 7:35 PM EDT 2026-10-24 (message
@@ -20612,6 +20557,13 @@ clears each one.
   code is wrong, fix it, and keep the test. Done: the test passes alone
   and in the file, and the cause is written in the PR. Version 8.1.
   Owner: Aux 10 (map nodes and zoom) or Core 2.
+  Finding (2026-10-09): Aux 10 finding (12:50 AM EDT 2026-10-25): the
+  page header now pushes the map canvas below the 600 px test window
+  (canvas top at 403), and four map tests fail identically on
+  origin/main for that reason: wheel_zoom_turns_about_the_centre,
+  one_wheel_scroll_runs, black_hole_markers_have_a_toggle and the
+  sector_reach wheel anchor. Fix by scrolling the canvas into view in
+  the tests. Owner Aux 10 (taking it after MAP.311).
   Prerequisites: none. Related: MAP.293, TEST.375.
 
 - [ ] **TEST.384 Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug)**
@@ -20713,6 +20665,20 @@ clears each one.
   tables is the first suspect. Done: confirmed or cleared with the
   commit named; if real, fixed with a test. Owner: Bug 1.
   Prerequisites: none. Related: TEST.384, GEN.512, GEN.761.
+
+- [ ] **TEST.390 More tests red on a clean copy of main: runner self-tests (on_child), admin queue log route 403, cache warm-up, test_stages, test_web_fresh_after_cli, test_workers killed worker, phenomenon diagram zoom tests, test_web_browser_tables life scores (bug)**
+  Reported by Aux 10 (12:50 AM EDT 2026-10-25) as failing on main and
+  not caused by its work: the runner self-tests (on_child), the admin
+  queue log route returning 403, the cache warm-up test, test_stages,
+  test_web_fresh_after_cli, the killed-worker test in test_workers, the
+  phenomenon diagram zoom tests, and the life scores in
+  test_web_browser_tables. Rerun each alone on a clean main first
+  (several may be gate load or the stale epoch 102 golden fixed by
+  GEN.466); fix every real one at the cause, never skip. Done: the list
+  is green on a clean main or each remaining failure has its own item.
+  Owner Bug 1 (after TEST.384). Rules: no backward-compat shims; tests
+  are scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.384, TEST.383.
 
 ## USR: User accounts
 
