@@ -15,7 +15,7 @@ SNOW_LINE_AU = 2.7
 
 def masses(distance_au, count=400, star_kg=SUN_KG, fe_h=0.0, seed=1):
     stream = draw.Stream(seed)
-    return [planet_mass.planet_mass(distance_au, star_kg, SNOW_LINE_AU, fe_h, stream) for _ in range(count)]
+    return [planet_mass.planet_mass(distance_au, star_kg, SNOW_LINE_AU, fe_h, 10.0 ** fe_h, stream) for _ in range(count)]
 
 
 def median_earth(draws):
@@ -23,8 +23,8 @@ def median_earth(draws):
 
 
 def test_same_stream_same_planet():
-    first = planet_mass.planet_mass(5.0, SUN_KG, SNOW_LINE_AU, 0.0, draw.Stream(7))
-    second = planet_mass.planet_mass(5.0, SUN_KG, SNOW_LINE_AU, 0.0, draw.Stream(7))
+    first = planet_mass.planet_mass(5.0, SUN_KG, SNOW_LINE_AU, 0.0, 1.0, draw.Stream(7))
+    second = planet_mass.planet_mass(5.0, SUN_KG, SNOW_LINE_AU, 0.0, 1.0, draw.Stream(7))
     assert first == second
 
 
@@ -32,7 +32,7 @@ def test_the_core_is_the_isolation_mass_times_the_assembly_factor_at_zero_scatte
     monkeypatch.setattr(tuning, "PLANET_ASSEMBLY_SCATTER_DEX", 0.0)
     density = formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, tuning.PLANET_DISC_SOLIDS_ENHANCEMENT)
     expected = formation.isolation_mass_kg(1.0, density, SUN_KG) / tuning.GIANT_IMPACT_SURVIVAL_FRACTION
-    got = planet_mass.assembled_core_kg(1.0, SUN_KG, SNOW_LINE_AU, 0.0, draw.Stream(3))
+    got = planet_mass.assembled_core_kg(1.0, SUN_KG, SNOW_LINE_AU, 1.0, draw.Stream(3))
     assert got == pytest.approx(expected)
 
 

@@ -139,6 +139,16 @@ def star_key(star):
     return stellar_composition.abundance_key(mass=star.mass, age_gy=star.age, distance_ly=distance_ly)
 
 
+def metal_ratio_to_solar(star):
+    """
+    Z / Z0 of `star` (GEN.464): its metal mass fraction over the reference Sun-like mix's, the factor the disc's solids scale with. 1 for a
+    compact remnant, which has no [Fe/H] (its disc is `REMNANT_DISC_RATIOS`, not drawn from a metal fraction).
+    """
+    if getattr(star, "metallicity_fe_h", None) is None:
+        return 1.0
+    return stellar_abundances.metal_ratio_to_solar(_ratios(star.metallicity_fe_h, star.age, star_key(star)).z)
+
+
 REMNANT_DISC_RATIOS = HostRatios(fe=0.8, si=0.9, al=0.07, ca=0.06, ni=0.045, c_over_o=2.0, y_envelope=0.25, z=1.0)
 """HostRatios: What the planets of a compact remnant are made of (the carbon-rich debris disc of a disrupted white dwarf, PSR B1257+12's;
 exotic-environments-planets-and-compact-binaries.md section 2.1): refractories in the proportions of the Sun's and C/O of 2, which

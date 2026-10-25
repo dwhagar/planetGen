@@ -70,7 +70,7 @@ def draw_snow_line_au(luminosity_w, stream=None):
 
 
 @finite_domain()
-def disk_surface_density_scale(star_mass_kg, fe_h=0.0):
+def disk_surface_density_scale(star_mass_kg, metal_ratio=1.0):
     """
     How much a star's own protoplanetary disk's solid surface density
     should be scaled relative to the Sun's (MMSN) value, based on the
@@ -81,15 +81,17 @@ def disk_surface_density_scale(star_mass_kg, fe_h=0.0):
 
     Args:
         star_mass_kg (float): The star's mass, in kilograms.
-        fe_h (float): The star's [Fe/H] in dex (GEN.158): the disk's solids
-            scale as `10^[Fe/H]`. Zero (solar) leaves the scale as it was.
+        metal_ratio (float): The star's metal mass fraction over the Sun-like reference's, Z / Z0 (GEN.464,
+            `bulk_draw.metal_ratio_to_solar`): the disk's solids scale with it. It is `10^[Fe/H]` for a thin-disc star
+            of solar abundance ratios and 1.7 to 3 times that for a metal-poor high-alpha star, whose oxygen and
+            magnesium are enhanced. 1 (solar) leaves the scale as it was.
 
     Returns:
         float: A dimensionless scale factor, 1.0 for a solar-mass star of
             solar metallicity.
     """
     solar_masses = star_mass_kg / physical_constants.SOLAR_MASS_TO_KG
-    return solar_masses ** tuning.DISK_MASS_STELLAR_MASS_EXPONENT * 10.0 ** fe_h
+    return solar_masses ** tuning.DISK_MASS_STELLAR_MASS_EXPONENT * metal_ratio
 
 
 @finite_domain()

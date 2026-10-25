@@ -501,6 +501,18 @@ As built (GEN.590, wiring SC1 to SC3). Boss's answer on the card 'Should star co
 
 As built (GEN.599, Boss 5:53 PM EDT on 2026-10-21): the refusal of GEN.590 stays the default, and a run told in so many words to disregard missing data takes the best fallback instead (`fetch.set_disregard_missing_data`; `--disregard-missing-data`, the Generate page's box, the API's `disregard_missing_data`; every worker takes the run's option from its run record). Each dataset states its `fallback` in the catalogue and a reader asks `Located.use_stand_in`. The fallbacks, each now labelled `STAND_IN` in `stellar_abundances.RELATIONS` and named in the star's `open_items`: SC1 none (a main-sequence star has no luminosity, temperature, radius or lifetime, because the repository holds no track; the Baraffe et al. 2015 rows cover brown dwarfs only), SC2 the zero-temperature Chandrasekhar mass-radius table of GEN.439 (`white_dwarf_mass_radius.json` and `scripts/build_white_dwarf_table.py`, restored from before GEN.590; no layers), SC3 the Chamel and Haensel 2008 Table 2 outer crust (`stellar_abundances.NEUTRON_STAR_OUTER_CRUST`, restored; one sequence and no crust model name). The refusal message names every file to download with its URL and the setup command. The run's own record is its command line in the run history (the flag is in it); no table was added.
 
+### 6.6a Stand-ins of the white-dwarf cooling (GEN.742)
+
+Source tiers and tweak levels as Boss ruled them on 10-24 (GEN.725): tier T1 verified ... T9 educated guess from needed output; tweak L0 as first envisioned, L1 nudged inside the source's uncertainty, L2 tuned to a published statistic, L3 hand-tuned against a sweep, L4 fitted to an outcome with no source. The sequences themselves are SC2 (Bedard et al. 2020, read as downloaded). Design note: `docs/design/systems/white-dwarf-state.md`.
+
+| fill_id | kind | tier | tweak | what stands in | replaced_by |
+|---|---|---|---|---|---|
+| WD1 | T | T5 | L0 | the cooling age starts at the sequences' first model (about 100,000 K); the time from the end of the asymptotic branch to there is not counted | a pre-white-dwarf track (GEN.741) |
+| WD2 | P | T3 | L0 | a white dwarf older than a sequence's last model (about 1,500 K) is held at that model | a model of the cool end below 1,500 K |
+| WD3 | P | T6 | L0 | a white dwarf above 1.30 solar masses (an oxygen-neon core) reads the 1.30 carbon-oxygen sequence | oxygen-neon sequences (GEN.743) |
+| WD4 | P | T3 | L0 | 0.80 of white dwarfs have a hydrogen atmosphere (`tuning.STELLAR_WD_DA_SHARE`), whatever the temperature | BC19, the share against effective temperature |
+| WD5 | T | T5 | L0 | the Mestel power law (`tuning.WD_COOLING_*`), taken only when the run disregards missing data | none: the sequence download is required |
+
 ### 6.7 Stand-ins of the atmosphere mixture draw (GEN.675)
 
 Every bracket, width and ratio the mixture draw (`physics/mixture_*.py`, GEN.451, GEN.454, GEN.479, GEN.499, GEN.693) holds that is not a verified measurement has a row here: fill id, kind (D derived, B bracket, T theory, P placeholder, section 1), evidence, the constant (`module.NAME`), its knobs as the code holds them (low, high, shape; `log` and `uniform` as `draw.py` reads them), the range inside which it is meant to hold, the test that fails when the value stops reproducing its anchor (or why there is none), and what replaces it. A test (`test_atmosphere_standin_registry.py`) fails on a row whose constant or test does not exist, and on a constant of the list in that test with no row. Oxygen ceilings are not here: they are Boss's decisions (10-24), not stand-ins.

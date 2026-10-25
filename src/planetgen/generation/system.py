@@ -38,7 +38,7 @@ from planetgen.util import log
 from planetgen.generation import pulsar_planets, remnant_orbits
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import planet_zones
+from planetgen.physics import bulk_draw, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
 from planetgen.physics.formation import (
     disk_surface_density_scale, isolation_mass_kg, mmsn_surface_density_gcm2,
@@ -2191,7 +2191,7 @@ class StarSystem:
         star_mass_kg = star.mass
         star_factor = star_mass_kg / constants.SOLAR_MASS_TO_KG
         snow_line = star.snow_line_au
-        density_scale = disk_surface_density_scale(star_mass_kg, star.metallicity_fe_h or 0.0)
+        density_scale = disk_surface_density_scale(star_mass_kg, bulk_draw.metal_ratio_to_solar(star))
         outer_edge_au = min(
             tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * snow_line,
             star.system_perimeter,

@@ -28,6 +28,7 @@ section.
 import functools
 import math
 
+from planetgen.datasets import fetch, white_dwarf_models
 from planetgen.galaxy import scales
 from planetgen.physics import (
     constants, giant_branch, main_sequence, metallicity, ms_lifetime, remnant_mass, wolf_rayet)
@@ -603,14 +604,32 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     else:
         final_mass = remnant_mass.white_dwarf_mass_sol(mass_sol)
         cooling_age = max(age_gy - t_agb, pc.WD_MIN_COOLING_AGE_GY)
-        luminosity = pc.WD_COOLING_L0_SOL * (final_mass / 0.6) * cooling_age ** pc.WD_COOLING_EXPONENT
-        luminosity = min(max(luminosity, pc.WD_LUMINOSITY_RANGE_SOL[0]), pc.WD_LUMINOSITY_RANGE_SOL[1])
-        radius_km = white_dwarf_radius_km(final_mass)
-        radius_sol = _km_to_m(radius_km) / constants.SOLAR_RADIUS_M
-        state.update(yerkes_class="VII", mass_sol=final_mass, luminosity_sol=luminosity,
-                     temperature_k=effective_temperature_k(luminosity, radius_sol), radius_km=radius_km,
-                     lifespan_gy=float("inf"), phase_end_gy=float("inf"))
+        state.update(_white_dwarf_state(final_mass, cooling_age, rng))
     return state
+
+
+def _white_dwarf_state(final_mass_sol, cooling_age_gy, rng):
+    """
+    A white dwarf of `final_mass_sol` that began cooling `cooling_age_gy` ago (GEN.742): the Bedard et al. 2020 cooling sequences
+    (`datasets.white_dwarf_models.cooling_state`) give its effective temperature, luminosity, radius and the crystallised share of its
+    core, on a hydrogen atmosphere (a thick hydrogen layer, `tuning.STELLAR_WD_DA_SHARE` of white dwarfs) or a helium one (thin).
+    When the sequences are not downloaded and the run disregards missing data (GEN.599) it is the Mestel power law of the cooling age
+    and the Chandrasekhar-type radius instead, labelled in `fetch.stand_ins_used`.
+    """
+    if fetch.locate(white_dwarf_models.DATASET).use_stand_in("the Mestel power law of the white-dwarf cooling"):
+        luminosity = tuning.WD_COOLING_L0_SOL * (final_mass_sol / 0.6) * cooling_age_gy ** tuning.WD_COOLING_EXPONENT
+        luminosity = min(max(luminosity, tuning.WD_LUMINOSITY_RANGE_SOL[0]), tuning.WD_LUMINOSITY_RANGE_SOL[1])
+        radius_km = white_dwarf_radius_km(final_mass_sol)
+        radius_sol = _km_to_m(radius_km) / constants.SOLAR_RADIUS_M
+        return dict(yerkes_class="VII", mass_sol=final_mass_sol, luminosity_sol=luminosity,
+                    temperature_k=effective_temperature_k(luminosity, radius_sol), radius_km=radius_km,
+                    lifespan_gy=float("inf"), phase_end_gy=float("inf"))
+    hydrogen = rng.random() < tuning.STELLAR_WD_DA_SHARE
+    cooled = white_dwarf_models.cooling_state(final_mass_sol, cooling_age_gy, "thick" if hydrogen else "thin")
+    return dict(yerkes_class="VII", mass_sol=final_mass_sol, luminosity_sol=cooled.luminosity_sol, temperature_k=cooled.teff_k,
+                radius_km=cooled.radius_solar * constants.SOLAR_RADIUS_M / 1000.0, lifespan_gy=float("inf"),
+                phase_end_gy=float("inf"), crystallised_fraction=cooled.crystallised_fraction,
+                white_dwarf_atmosphere="DA" if hydrogen else "non-DA")
 
 
 def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=False,

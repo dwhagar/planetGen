@@ -161,11 +161,11 @@ def test_star_params_shape_and_units():
     assert params["type"].endswith("Main Sequence Star")
 
 
-def test_white_dwarf_params_keep_the_mass_radius_relation():
+def test_white_dwarf_params_keep_the_radius_of_the_cooling_sequences():
     state = stellar_evolution.evolve_star(2.0, 9.0)
     assert state["yerkes_class"] == "VII"
     params = stellar_evolution.star_params(2.0, 9.0, state)
-    assert params["radius_km"] == stellar_evolution.white_dwarf_radius_km(state["mass_sol"])
+    assert params["radius_km"] == state["radius_km"]
     assert math.isinf(params["lifespan_gy"]) and math.isinf(params["phase_end_age_gy"])
 
 

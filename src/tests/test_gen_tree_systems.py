@@ -167,4 +167,6 @@ def test_the_star_cap_and_the_multi_star_prevalence_reach_the_draw():
     capped = [len(_system(seed, MAX_STARS=2)[0].stars) for seed in range(300)]
     assert max(capped) <= 2
     few = [len(_system(seed, PREVALENCE={"multi_star": -100})[0].stars) for seed in range(600)]
-    assert max(few) <= 4
+    many = [len(_system(seed, PREVALENCE={"multi_star": 100})[0].stars) for seed in range(600)]
+    # the scale thins and thickens the table's counts, it does not forbid them (a white dwarf of a massive progenitor can still be one of five)
+    assert sum(few) < sum(many) and sum(count >= 4 for count in few) < sum(count >= 4 for count in many)
