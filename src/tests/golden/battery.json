@@ -21,12 +21,12 @@
       "5f1d7ce043386f4f91361a0fd895cbca7569d8674e1f539b8f5b735944ca7c84"
     ],
     "sector-a": [
-      "b9b2eab1e26a99fa9f9beaf3aeeeb023a2df8b1c1bfc6b38f81278d3abeb5d09",
-      "3197b1d7b152b024e27b3526bb1f1c5c6dae8e5c8e8f49e8d3f2c4acf90a0625"
+      "cfd87791fbb96a82424dcffb1a271eb3d2cf801e767b719025f30b5124d8d90d",
+      "6bb7343b8bb4a47a756f3c7cc72a7a25f88e3aedf97815601795c1bb37337e66"
     ],
     "sector-b": [
-      "a6ff3759008192705d093547d6984166f163f55fcc7dc98acd2eecbf28f37080",
-      "d21bdbc0f30bcc5c50269ae74fb93cf9fe744e5022496dfbaed0d05e5fd393e2"
+      "45e6202eac396862d918741702d19e09df7fce51a49c33e11da9776b7a33ddca",
+      "95739698aa6e53480d6ed84f0900750b5ee0cab4889b89c8cb6d74385b9c1178"
     ],
     "unit-seed": [
       "2b777a442eac9286c4b45163a3eb4d94298a1afd37c69dc201aa4e6ea13470fd",
@@ -39,5 +39,5 @@
     "platform": "Linux-6.18.44-fc-v153-x86_64-with-glibc2.39",
     "python": "3.13.17"
   },
-  "overall": "51de825b3a80b1fa68d3f027e9578bcab6565310f1754543167f42ce2c22d27b"
+  "overall": "dbc1d34eb8f292370ab918d5ef0a71b1e6db4383e31662ffab466580b1ee4f69"
 }

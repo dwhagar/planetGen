@@ -639,6 +639,13 @@
       "first_release": "8.0.2348",
       "reason": "A brown dwarf's L, T or Y spectral type is drawn through the census temperature map with its scatter (134 K among L dwarfs, 79 K among T and Y dwarfs) instead of read from the mean relation, so the type of a brown dwarf changes wherever one is made; the golden battery gains a brown dwarf case (GEN.760)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 108,
+      "first_release": null,
+      "pending": true,
+      "reason": "A planet or moon has an eccentric orbit (Van Eylen 2019 planet eccentricity, a regular moon's forced eccentricity and a captured moon's thermal one, tidal circularisation of planets and captured moons) and a Rayleigh mutual inclination, so every planet and moon is placed on an ellipse, its light is that of its mean flux with a seasonal swing, and orbit spacing, belts and moon stability use periapsis and apoapsis (GEN.727)",
+      "affects": ["fill"]
     }
   ]
 }
