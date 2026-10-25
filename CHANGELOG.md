@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2347] - 2026-10-25
+
+**Headline:** The Galaxy Map names the stars and other objects it draws, and a click on a name selects that item and flies to it.
+
+### Changed
+- **Names on every visible item (MAP.298).** Beside the sectors, systems, planets and nebulae it already named, the Galaxy Map now writes the name of each named star it draws and of each named object of the other kinds (comets, rogue planets, black holes, neutron stars) where there is room, the brightest first. Two new entries in the Menu's Labels group, "Star names" and "Object names", turn them off.
+- **A name is a link.** The pointer over a name marks it; a click on it selects the item (its details open in the map's window) and flies the camera to it.
+- **Packed nodes carry star names.** The packed node (`TILE_FORMAT` 4) lists the names of its named stars by id, so the cached nodes are rebuilt once.
+
 ## [8.0.2346] - 2026-10-25
 
 **Headline:** Flying to a star system, a planet with moons or a nebula frames it to fill the view.
