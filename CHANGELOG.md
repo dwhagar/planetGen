@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2293] - 2026-10-25
+
+**Headline:** The Queue page can start the habitability re-score and the map-luminosity fill with a button.
+
+### Added
+- **Start a fill panel on the admin Queue page (ADM.129).** "Regenerate habitability" re-scores every planet and moon from
+  its stored conditions (it re-draws nothing), and "Fill map luminosity" fills the map luminosity of scattered
+  phenomena that lack it. Each button asks for confirmation, then starts `planetgen rescore-habitability` or
+  `planetgen fill-map-luminosity` as a job with the rules of any generation run: refused while another run is live or
+  everything is stopped, the one-run lock, an activity-log entry, progress on the Queue page, Stop everything and Retry.
+
 ## [8.0.2292] - 2026-10-25
 
 **Headline:** A server with no timing history now shows a rough time left, labelled as a guess, instead of "estimating".
