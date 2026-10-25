@@ -1542,12 +1542,12 @@ SPECTROSCOPIC_MAX_AXIS_AU = 0.26
 """float: A pair closer than this is a spectroscopic binary (the catalogue's "close detached binary, a under 0.26 AU",
 design note 13.1); `MemberTree.spectroscopic_nodes`."""
 
-CONTACT_TERTIARY_KEEP_SHARE = 0.54
+CONTACT_TERTIARY_KEEP_SHARE = 0.26
 """float: The share of the contact binaries that hold the placed star and have a tertiary which keep it (GEN.270). The
-member-tree draw gives 84% of contact binaries a tertiary, because the stability screen leaves the inner pair of a
-hierarchy only short periods; stripping the others from 46% of those where the pair holds the placed star brings the
-share to the catalogue's 60% (measured over 600,000 seeded disc systems; a stand-in until GEN.631's fill measures it
-again)."""
+member-tree draw gives 94% of contact binaries a tertiary (84% before GEN.652 read the stars' radii from MIST), because
+the stability screen leaves the inner pair of a hierarchy only short periods; stripping the others from 74% of those where
+the pair holds the placed star brings the share to the catalogue's 60% (measured over 120,000 seeded disc systems: 48% with
+none kept, 94% with all kept; a stand-in until GEN.631's fill measures it again)."""
 
 YOUNG_GROUP_AGE_MAX_YR = 3.0e5
 """float: A massive system (O or early B, a birth mass of `B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is
