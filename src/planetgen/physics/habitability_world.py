@@ -29,7 +29,7 @@ section 8):
 * **Energy.** A surface liquid gets 6% of the starlight (Earth's 1361 W/m2
   gives its 80 W/m2 of usable light) or the chemical power of the body's
   heat flow, 1% of it (Earth's 0.09 W/m2 gives 9e-4), whichever is more; an
-  ocean under ice gets the chemical power only, and the heat flow it counts is its own plus the tide of an icy moon (`tidal_flux_w_m2`).
+  ocean under ice gets the chemical power only, and the heat flow it counts is its own plus the tide of its orbit (`tidal_flux_w_m2`, GEN.737).
 * **Dose.** The stored `surface_dose_msv_yr`, in Sv; the habitat of an ocean
   under ice sees only the ground's.
 * **Water source** (for the base): "liquid" at a surface ocean, "ice" for
@@ -423,7 +423,7 @@ def _clear(body):
 def generate(body, internal_flux_w_m2):
     """Sets `BODY_FIELDS` on a planet or moon. Call last, once its air,
     water and dose are set and `magnetism.update_exposure` has given its
-    distance from its star; `internal_flux_w_m2` is its own heat flow, and an icy moon's tide (`tidal_flux_w_m2`) is added to it."""
+    distance from its star; `internal_flux_w_m2` is its own heat flow, and the tide of its orbit (`tidal_flux_w_m2`, GEN.737) is added to it."""
     _clear(body)
     if body.body_type == "g":
         return

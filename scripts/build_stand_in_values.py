@@ -53,6 +53,10 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.8", "6.8 Stand-ins of the orbit elements",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
+    ("6.9", "6.9 Stand-ins of the tidal heating",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
+    ("6.10", "6.10 Stand-ins of the spin and its despinning",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""
 

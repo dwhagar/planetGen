@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements
-from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin
+from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -770,52 +770,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
 
 def internal_heat_flux_w_m2(planet):
     """A rocky body's own heat flow, W/m^2, at its star's age now: radiogenic plus primordial heat (`interior_heat.update_heat`, GEN.699),
-    stored with the body (its Urey ratio is an output). 0 for a body with no stored content (a giant, or a row from before GEN.699)."""
+    stored with the body (its Urey ratio is an output), and with it the flow of its tide from its orbit (GEN.737, `tidal_flux_w_m2`, not in
+    this figure: the habitability energy term adds the two). 0 for a body with no stored content (a giant, or a row from before GEN.699)."""
     found = interior_heat.update_heat(planet)
-    return found.flux_w_m2 if found is not None else 0.0
-
-
-def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_period_hours):
-    """
-    Estimates how long tidal forces would take to lock `moon`'s rotation
-    to its orbital period, in seconds, via the standard simplified
-    tidal-despinning formula (Murray & Dermott, "Solar System Dynamics"):
-
-        t_lock = omega0 * a^6 * I * Q / (3 * G * M_primary^2 * k2 * R_moon^5)
-
-    with the uniform-sphere moment of inertia I = (2/5) * m_moon * R^2
-    substituted in, which simplifies to:
-
-        t_lock = (2*Q / (15*k2)) * (omega0 * a^6 * m_moon) / (G * M_primary^2 * R_moon^3)
-
-    `Q`/`k2` are fixed representative values for a rocky/icy body
-    (`constants.MOON_TIDAL_DISSIPATION_Q`/`_LOVE_NUMBER_K2` --
-    see that constant's own comment for real-example verification), not
-    modeled per body.
-
-    Args:
-        moon (Planet): The moon (`is_moon=True`) -- must already have
-                       `distance` (AU), `mass` (kg), and `radius` (km) set.
-        primary_mass_kg (float): The parent planet's mass, in kg -- the
-                                 actual body raising the tide, not the
-                                 grandparent star `moon.star` points at.
-        initial_rotation_period_hours (float): The moon's assumed
-                                               pre-locking rotation period,
-                                               in hours -- despinning takes
-                                               longer starting from a
-                                               faster spin (more angular
-                                               momentum to shed).
-
-    Returns:
-        float: Estimated locking timescale, in seconds.
-    """
-    omega0 = 2 * math.pi / _h_to_s(initial_rotation_period_hours)
-    distance_m = _au_to_m(moon.distance)
-    radius_m = _km_to_m(moon.radius)
-    q_over_k2 = constants.MOON_TIDAL_DISSIPATION_Q / constants.MOON_TIDAL_LOVE_NUMBER_K2
-    numerator = omega0 * (distance_m ** 6) * moon.mass
-    denominator = constants.G * (primary_mass_kg ** 2) * (radius_m ** 3)
-    return (2 * q_over_k2 / 15) * (numerator / denominator)
+    return found.own_flux_w_m2 if found is not None else 0.0
 
 
 def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_distance_au=None):
@@ -873,20 +831,15 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
 
     `rotation_period_hours` is a separate, purely descriptive "day length"
     stat (this generator doesn't track rotational phase -- nothing consumes
-    "which side currently faces the primary"). A candidate (pre-locking)
-    rotation period is always drawn first from a `body_type`-appropriate
-    range (see `generate_spin`, which also draws the spin axis); for a
-    planet or moon, that candidate is kept only if real tidal physics
-    (`_tidal_locking_timescale_seconds`) says there *hasn't* been enough
-    time (`planet.star.age`, the best available proxy for the system's
-    age -- planets/moons don't carry an independent age of their own) to
-    lock it yet. Otherwise the moon ends up actually locked
-    (`rotation_period_hours` == its own orbital period, converted to
-    hours) -- which real physics makes the norm for large or close-in
-    moons, not a rare special case, but genuinely not universal: a large
-    moon far from a low-mass primary can easily have a locking timescale
-    longer than the system itself, which is exactly why not every moon
-    comes out tidally locked here either.
+    "which side currently faces the primary"). `generate_spin` draws the
+    body's birth spin and wears it down by the tide of what it orbits for the
+    age of its star (`tidal_spin`, GEN.731): the moon ends up locked
+    (`rotation_period_hours` == its own orbital period, converted to hours)
+    or in a spin-orbit resonance when the tide has had time to bring it there,
+    which is the norm for large or close-in moons, not a rare special case,
+    but genuinely not universal: a large moon far from a low-mass primary can
+    easily have a locking time longer than the system itself, which is
+    exactly why not every moon comes out tidally locked here either.
 
     Args:
         planet (Planet): The planet or moon to set these properties on.
@@ -918,38 +871,30 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
 
 def generate_spin(planet, primary_mass_kg):
     """
-    Draws a planet's or moon's `rotation_period_hours` and spin axis
-    (GEN.104; `physics.spin.SPIN_FIELDS`). A tidally locked body (its
-    locking time under the system's age, against the body it orbits) turns
-    once per orbit with its axis on the orbit normal; any other gets a
-    `body_type` rotation period and a tilt drawn by `physics.spin`. Called
-    again when a move changes the body's period, since that can flip the
-    lock.
+    Draws a planet's or moon's `rotation_period_hours` and spin axis (GEN.104, GEN.731; `physics.spin.SPIN_FIELDS`). It is born spinning (a
+    rocky planet at the rate and angle the giant impacts that built it leave, `spin.accretion_spin`; a moon at a rate from
+    `spin.planet_day_hours`, as a gas giant) and the tide of what it orbits then wears the spin toward the orbit's rate for the age of its
+    star (`tidal_spin.evolve`, the body's own Love number and quality factor, the orbit's eccentricity from `generate_orbit_shape`). A body
+    the tide has brought all the way down turns once an orbit (locked) or in a spin-orbit resonance such as Mercury's 3:2
+    (`spin.spin_state`), with its axis on the orbit normal; any other keeps its tilt, a rocky planet's from the impacts and a moon's or giant's
+    a Rayleigh one. Called again when a move changes the body's period, since that can change the state.
     """
-    candidate_rotation_period_hours = spin.planet_day_hours(planet.body_type)
-
-    # GEN.104: planets lock to their star by the same rule as moons to
-    # their planet (close-in worlds end up with one face to the star).
-    lock_timescale_s = _tidal_locking_timescale_seconds(
-        planet, primary_mass_kg, candidate_rotation_period_hours
-    )
-    system_age_s = _yr_to_s(_gyr_to_yr(planet.star.age))
-    is_locked = lock_timescale_s < system_age_s
-
-    if is_locked:
-        planet.rotation_period_hours = planet.period * _yr_to_h(1.0)
+    age_s = _yr_to_s(_gyr_to_yr(planet.star.age))
+    semi_major_axis_m = _au_to_m(planet.distance)
+    eccentricity = getattr(planet, "eccentricity", 0.0) or 0.0
+    impact_tilt = None
+    if planet.body_type == "t" and not planet.is_moon:
+        spin_rate, impact_tilt = spin.accretion_spin(planet.mass, planet.radius)
     else:
-        planet.rotation_period_hours = candidate_rotation_period_hours
-
-    # GEN.104: the spin axis, tilted from the orbit normal. Locked bodies
-    # spin upright; rocky planets take the impact-modified tilt, gas giants
-    # and moons a Rayleigh one.
-    if is_locked:
+        spin_rate = 2.0 * math.pi / _h_to_s(spin.planet_day_hours(planet.body_type))
+    spin_rate, ratio = tidal_spin.evolve(planet, primary_mass_kg, semi_major_axis_m, spin_rate, age_s, eccentricity)
+    period_hours = planet.period * _yr_to_h(1.0)
+    if ratio is not None:
+        planet.rotation_period_hours = period_hours / ratio
         tilt = 0.0
-    elif planet.body_type == "t" and not planet.is_moon:
-        tilt = spin.impact_tilt_deg()
     else:
-        tilt = spin.rayleigh_tilt_deg()
+        planet.rotation_period_hours = 2.0 * math.pi / spin_rate / 3600.0
+        tilt = impact_tilt if impact_tilt is not None else spin.rayleigh_tilt_deg()
     spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
                                             planet.orbital_ascending_node_deg), tilt)
     # GEN.86: the field depends on the rotation just set.
@@ -1275,7 +1220,7 @@ def generate_moons(planet, moon_count=None):
         # log-uniformly gives every order of magnitude equal weight instead,
         # which both matches that real spacing pattern better and -- since
         # tidal-locking timescale scales with distance^6
-        # (_tidal_locking_timescale_seconds) -- stops real tidal-locking
+        # (`tidal_spin.locking_time_s`) -- stops real tidal-locking
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
         moon_distance_km = math.exp(draw.uniform(math.log(total_orbit_distance), math.log(high_orbit)))

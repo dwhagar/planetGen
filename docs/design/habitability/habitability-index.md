@@ -45,10 +45,10 @@ recommendation. Informs: GEN.83 to GEN.92.
   age, habitable zone, heliosphere radius. No XUV or flare activity. The
   habitable zone is a fixed pair of fluxes (1.1 and 0.53) for every star, and
   a main-sequence star's luminosity is constant for its life.
-- **Spin**: planets and moons lock by the tidal-locking time (GEN.104, which
-  also adds the spin vector); an unlocked rocky planet's day is log-uniform
-  from 8 to 48 h (Kokubo and Genda 2010; Boss 2026-10-10), a gas giant's
-  uniform from 8 to 20 h.
+- **Spin**: a rocky planet is born spinning at the rate and tilt the giant impacts that built it leave (Kokubo and Genda 2010, GEN.731:
+  a median day of 2 to 3 hours, an isotropic axis), a moon log-uniform from 8 to 48 h, a gas giant uniform from 8 to 20 h; the tide of
+  what it orbits then slows the spin for the age of the star (`tidal_spin`), to a lock (one turn per orbit), to a spin-orbit resonance
+  such as Mercury's 3:2, or not at all.
 - **"Habitable" is the PHI-6 rating, not a class** (Boss, 2026-10-23, GEN.643): a
   world is habitable when its overall PHI-6 colour is Blue or Green
   (`habitability.is_habitable`, the one function the API's `habitable`

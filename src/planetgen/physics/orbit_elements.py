@@ -34,9 +34,8 @@ stable part of its parent's Hill sphere (`MOON_PROGRADE_STABLE_HILL_FRACTION`, t
 
 **Tides.** Raised in the body by what it orbits, they circularise its orbit on `circularisation_time_yr`,
 `tau_e = (2 / 21) (Q / k2) (m / M) (a / R)^5 / n` (Goldreich and Soter 1966, the standard result for a synchronously rotating body;
-`e` falls as `exp(-t / tau_e)`). Q and k2 are the representative values of `constants.MOON_TIDAL_DISSIPATION_Q` and
-`MOON_TIDAL_LOVE_NUMBER_K2` for a rocky or icy body and `GIANT_TIDAL_Q`, `GIANT_TIDAL_LOVE_NUMBER_K2` for a gas giant (tier T3: the
-real values of one body span a decade; GEN.731 gives every body its own).
+`e` falls as `exp(-t / tau_e)`). Q and k2 are the body's own (`tidal_heating.response`, GEN.731: the rigid-sphere k2 of its mass and radius for
+rock, the icy and the gas-giant values for the rest), the same that despin it (`tidal_spin`).
 
 Use:
 
@@ -50,7 +49,7 @@ import math
 from scipy import special
 
 from planetgen import tuning
-from planetgen.physics import constants
+from planetgen.physics import constants, tidal_heating
 from planetgen.util import draw
 
 MULTI_SIGMA = 0.083
@@ -71,10 +70,6 @@ PLANET_INCLINATION_SIGMA_DEG = MUTUAL_INCLINATION_SIGMA_DEG / math.sqrt(2.0)
 
 REGULAR_MOON_ECCENTRICITY_RANGE = (0.001, 0.01)
 """tuple: Log-uniform range of the forced eccentricity of a regular moon (the range `hydrosphere` drew its tide from before GEN.727; T3, L0)."""
-
-GIANT_TIDAL_Q = 1.0e5
-GIANT_TIDAL_LOVE_NUMBER_K2 = 0.3
-"""Q and k2 of a gas giant (Jupiter: k2 about 0.38 from Juno, Q between 3.5e4 and about 1e6 from the Galilean moons' orbits; T3, L0)."""
 
 
 def _half_gaussian(sigma, e_max):
@@ -195,13 +190,6 @@ def max_moon_eccentricity(semi_major_axis_au, hill_radius_au):
     return min(max(reach / semi_major_axis_au - 1.0, 0.0), MAX_ECCENTRICITY)
 
 
-def dissipation(body):
-    """`(Q, k2)` of a body: those of a gas giant for a giant, the rocky or icy representative values for anything else."""
-    if getattr(body, "body_type", None) == "g":
-        return GIANT_TIDAL_Q, GIANT_TIDAL_LOVE_NUMBER_K2
-    return constants.MOON_TIDAL_DISSIPATION_Q, constants.MOON_TIDAL_LOVE_NUMBER_K2
-
-
 def circularisation_time_yr(body, primary_mass_kg, semi_major_axis_au):
     """
     How long the tide raised in `body` by the body it orbits takes to cut its eccentricity by a factor of e, years:
@@ -209,7 +197,7 @@ def circularisation_time_yr(body, primary_mass_kg, semi_major_axis_au):
     """
     if not body.mass or not body.radius or not primary_mass_kg:
         return math.inf
-    q, k2 = dissipation(body)
+    k2, q = tidal_heating.response(body)
     a_m = semi_major_axis_au * constants.AU_TO_M
     n = math.sqrt(constants.G * primary_mass_kg / a_m ** 3)
     seconds = (2.0 / 21.0) * (q / k2) * (body.mass / primary_mass_kg) * (a_m / (body.radius * 1000.0)) ** 5 / n

@@ -14,6 +14,7 @@ from planetgen.generation import validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
+from planetgen.physics import tidal_heating
 from planetgen.physics import constants, insolation, kepler, orbit_elements as oe
 from planetgen.physics import planets as planet_physics
 from planetgen.util import draw
@@ -202,7 +203,7 @@ def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_
     sun = 1.989e30
     near = oe.circularisation_time_yr(earth, sun, 0.02)
     far = oe.circularisation_time_yr(earth, sun, 1.0)
-    assert 1e6 < near < 1e8
+    assert 1e5 < near < 1e8
     assert far > 1e15
     assert oe.circularised(0.3, 5e9, near) < 1e-6
     assert oe.circularised(0.3, 5e9, far) == pytest.approx(0.3, rel=1e-6)
@@ -214,8 +215,11 @@ def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_
 
 def test_a_gas_giant_dissipates_less_than_a_rock_of_its_size():
     giant = _body(1.9e27, 70_000.0, "g")
-    assert oe.dissipation(giant) == (oe.GIANT_TIDAL_Q, oe.GIANT_TIDAL_LOVE_NUMBER_K2)
-    assert oe.dissipation(_body(1.0, 1.0)) == (constants.MOON_TIDAL_DISSIPATION_Q, constants.MOON_TIDAL_LOVE_NUMBER_K2)
+    assert tidal_heating.response(giant) == (tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
+    k2, q = tidal_heating.response(_body(5.972e24, 6371.0))
+    assert q == tidal_heating.ROCK_TIDAL_Q and k2 == pytest.approx(tidal_heating.rigid_k2(5.972e24, 6.371e6))
+    icy = types.SimpleNamespace(mass=1.0e22, radius=1000.0, body_type="t", water_mass_fraction=0.4)
+    assert tidal_heating.response(icy) == (tidal_heating.ICY_K2, tidal_heating.ROCK_TIDAL_Q)
 
 
 # --- Generated systems -------------------------------------------------------------------------------------------------
