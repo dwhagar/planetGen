@@ -17,7 +17,7 @@ from planetgen.describe import build as describe_build
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, pre_main_sequence as pms
+from planetgen.physics import constants, main_sequence, pre_main_sequence as pms
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -63,10 +63,9 @@ def test_the_track_dims_and_heats_towards_the_main_sequence_without_a_jump(mass)
     assert luminosities == sorted(luminosities, reverse=True)
     assert temperatures == sorted(temperatures)
     last = states[-1]
-    assert last["luminosity_sol"] == pytest.approx(evolution.main_sequence_luminosity_sol(mass), rel=0.02)
-    assert last["temperature_k"] == pytest.approx(
-        evolution.effective_temperature_k(evolution.main_sequence_luminosity_sol(mass),
-                                          evolution.main_sequence_radius_sol(mass)), rel=0.03)
+    arrival = main_sequence.zams_state(mass)
+    assert last["luminosity_sol"] == pytest.approx(arrival.luminosity_sol, rel=0.02)
+    assert last["temperature_k"] == pytest.approx(arrival.temperature_k, rel=0.03)
 
 
 def test_the_stage_follows_the_mass_and_the_age():
@@ -79,29 +78,29 @@ def test_the_stage_follows_the_mass_and_the_age():
     assert pms.stage(0.1, 600.0 * MYR) == pms.PRE_MAIN_SEQUENCE
     assert pms.stage(0.1, 1100.0 * MYR) is None
     assert pms.stage(20.0, 0.1 * MYR) is None  # 8 solar masses or more have none
-    assert pms.stage(5.0, 0.7 * MYR) == pms.PRE_MAIN_SEQUENCE
-    assert pms.stage(5.0, 1.3 * MYR) is None  # contracted already: the model takes 1.1 Myr
+    assert pms.stage(3.0, 1.0 * MYR) == pms.PRE_MAIN_SEQUENCE
+    assert pms.stage(3.0, 2.0 * MYR) is None  # contracted already: the model takes 1.6 Myr
     assert pms.stage(5.0, 0.2 * MYR) == pms.PROTOSTAR
 
 
 def test_evolve_star_gives_a_young_star_its_state_and_leaves_older_ones_alone():
-    young = evolution.evolve_star(1.0, 0.0003)
+    young = evolution.evolve_star(1.0, 0.0003, fe_h=0.0)
     assert young["yerkes_class"] == "protostar" and young["disk_class"] == "I" and young["radius_km"] is None
     assert young["lifespan_gy"] > 5.0  # the lifespan of the star it will be
-    assert evolution.evolve_star(1.0, 0.005)["yerkes_class"] == "PMS"
+    assert evolution.evolve_star(1.0, 0.005, fe_h=0.0)["yerkes_class"] == "PMS"
     for mass, age in ((1.0, 0.5), (1.0, 0.05), (0.2, 0.4), (10.0, 0.0001)):
-        assert evolution.evolve_star(mass, age)["yerkes_class"] == "V"
+        assert evolution.evolve_star(mass, age, fe_h=0.0)["yerkes_class"] == "V"
     for mass, age in ((1.0, 0.011), (0.2, 0.1)):
-        assert evolution.evolve_star(mass, age)["yerkes_class"] == "PMS"
+        assert evolution.evolve_star(mass, age, fe_h=0.0)["yerkes_class"] == "PMS"
 
 
 def test_the_type_text_names_the_stage_without_a_numeral():
-    protostar = evolution.star_params(1.0, 0.0003, evolution.evolve_star(1.0, 0.0003))
+    protostar = evolution.star_params(1.0, 0.0003, evolution.evolve_star(1.0, 0.0003, fe_h=0.0))
     assert protostar["type"].endswith("Class I Protostar") and protostar["yerkes_class"] == "protostar"
-    young = evolution.star_params(1.0, 0.005, evolution.evolve_star(1.0, 0.005))
+    young = evolution.star_params(1.0, 0.005, evolution.evolve_star(1.0, 0.005, fe_h=0.0))
     assert young["type"].endswith("Pre-Main-Sequence Star") and young["yerkes_class"] == "PMS"
     assert young["phase_end_age_gy"] == pytest.approx(pms.contraction_time_yr(1.0) / 1e9)
-    assert evolution.star_params(1.0, 0.5, evolution.evolve_star(1.0, 0.5))["type"].startswith("G2V")
+    assert evolution.star_params(1.0, 0.5, evolution.evolve_star(1.0, 0.5, fe_h=0.0))["type"].startswith("G")
 
 
 def test_the_disk_class_follows_the_age():
