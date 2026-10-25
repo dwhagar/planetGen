@@ -1,8 +1,8 @@
 {
   "cases": {
     "bright-star-scatter": [
-      "e1bb002b50f53801c665cf91124282ee0735bdf19bd6d681a3fb88b1e7504161",
-      "3c99698dfd59b6f77efaf72e348165f729d9795bab49337d2a47571223521981"
+      "9d835b21ec21214c3508409ab064583408b7b116f757b65dcb4d2ef7755caf0b",
+      "5fcf675f7df1779a089349dba9ef5e35e98980d1324d699e0f181346d39b9f75"
     ],
     "nebula-shape": [
       "f6f52d5ea2cfa0dcd05e8dd3965e8d04f77f26f701d8eddac42c3495b42e362c",
@@ -17,12 +17,12 @@
       "5f1d7ce043386f4f91361a0fd895cbca7569d8674e1f539b8f5b735944ca7c84"
     ],
     "sector-a": [
-      "4e2cdcec12f61f10274145306e39443ed1d15b648ea6d0c30447e14fbbd5929e",
-      "5550104056657f694e1e60b2d8cd4c5442801039a0cff5ce8e48817f2b27d156"
+      "690df120514363484af00333d83a939956921783dc452c4fb94fe0dd03d8fc5d",
+      "b0a1ce19ccf090a3baf4e100b297ab753f3d5a929976bc33b27ae8c439e07355"
     ],
     "sector-b": [
-      "94371ab778d6633232ba398883d3dddd3754178932c56c5991630fec6fc58b3d",
-      "684fc4e13047873c7bfcf282e0be8ba7019b887e5cb047392ee0a07a74410c32"
+      "e6d7cc1372592883a28fa13b8fcaa3f7a872ed8e6a50f517e4c4871e60b889a7",
+      "8d1fad8946a05ab66ebc9171ae85f269663cf9a32f1fee21eddc9d5b69b31403"
     ],
     "unit-seed": [
       "2b777a442eac9286c4b45163a3eb4d94298a1afd37c69dc201aa4e6ea13470fd",
@@ -31,9 +31,9 @@
   },
   "made_on": {
     "astropy": "8.0.2",
-    "numpy": "2.5.3",
+    "numpy": "2.5.4",
     "platform": "Linux-6.18.44-fc-v153-x86_64-with-glibc2.39",
     "python": "3.13.17"
   },
-  "overall": "20e93eb01a30b3aca149965ccadff8b16899937acd2144b9a5e88f35aa7e607d"
+  "overall": "d5f9834812dc407b13509e3bb278ab14e86e6c8d4c2dcc3c86e8f0703d6c04a0"
 }
