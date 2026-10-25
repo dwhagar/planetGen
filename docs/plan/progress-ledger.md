@@ -1433,3 +1433,6 @@ Baseline: PR #1817.
 | TEST.363 | 8.1 | The headline closes |
 | TEST.362 | 8.1 | The headline closes |
 | GEN.310 | 8.1 | Queue, caches and performance |
+| GEN.398 | 8.1 | Bugs and flaky tests |
+| GEN.719 | 8.1 | Nebula and young stars |
+| GEN.691 | 8.1 | Habitability system |
