@@ -624,9 +624,8 @@
     },
     {
       "epoch": 105,
-      "first_release": null,
-      "pending": true,
-      "reason": "A main-sequence star's luminosity, temperature and radius are read from the MIST isochrones at its mass, age and birth [Fe/H], so a star brightens as it ages and its habitable zone moves with it (GEN.652); and a planet or moon has an eccentric orbit (Van Eylen 2019 planet eccentricity, a regular moon's forced eccentricity, tidal circularisation of planets and captured moons) and a Rayleigh mutual inclination, so every planet and moon is placed on an ellipse, its light is that of its mean flux with a seasonal swing, and orbit spacing, belts and moon stability use periapsis and apoapsis (GEN.727)",
+      "first_release": "8.0.2342",
+      "reason": "A main-sequence star's luminosity, temperature and radius are read from the MIST isochrones at its mass, age and birth [Fe/H], so a star brightens as it ages and its habitable zone moves with it (GEN.652)",
       "affects": ["scatter", "fill"]
     }
   ]

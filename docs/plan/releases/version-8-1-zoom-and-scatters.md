@@ -12,7 +12,7 @@ Two headlines. Infinite zoom: one camera flies from the whole galaxy to a star s
 
 ## Where it stands
 
-As of 1:48 AM EDT 2026-10-25: 1096 of 1539 items finished (71.2 percent), 443 open, 36 dropped (TEST.374 dropped as not reproduced on main, Bug 1 10:31 PM EDT as the lane reported; GEN.564 folded into GEN.764, Core 1 7:32 PM EDT; TEST.366 dropped as no longer reproducing after #3125, Bug 1 7:20 PM EDT as the lane reported; TEST.335 dropped as not reproduced on main, Bug 1 7:14 PM EDT as the lane reported; TEST.360 and TEST.361 dropped as not reproduced on main, Bug 1 6:35 PM EDT as the lane reported; TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 83, phase 2 44, phase 3 24, phase 4 13, phase 5 55, phase 6 29, phase 7 17, phase 8 4, phase 9 31, phase 10 2, phase 11 115, phase 12 19 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
+As of 1:59 AM EDT 2026-10-25: 1099 of 1539 items finished (71.4 percent), 440 open, 36 dropped (TEST.374 dropped as not reproduced on main, Bug 1 10:31 PM EDT as the lane reported; GEN.564 folded into GEN.764, Core 1 7:32 PM EDT; TEST.366 dropped as no longer reproducing after #3125, Bug 1 7:20 PM EDT as the lane reported; TEST.335 dropped as not reproduced on main, Bug 1 7:14 PM EDT as the lane reported; TEST.360 and TEST.361 dropped as not reproduced on main, Bug 1 6:35 PM EDT as the lane reported; TEST.337 and TEST.339 dropped as not reproduced on main, Bug Hunt 10:41 AM EDT as the lane reported; TEST.326 dropped as a duplicate of TEST.313, TODO 4:07 AM EDT; DB.95 dropped by TODO on lane B's finding, 2:53 AM EDT: nothing reads the view and DB.94 covers free moons; PERF.162 and PERF.166 moved to the later version, Boss 12:27 PM EDT; GEN.695 to GEN.698 dropped, Boss 1:22 AM EDT: class B never has hydrogen or helium). Open by phase: phase 1 83, phase 2 44, phase 3 24, phase 4 13, phase 5 55, phase 6 29, phase 7 17, phase 8 4, phase 9 31, phase 10 2, phase 11 114, phase 12 19 (phases 6 to 11 are the composition and sky colour suite pulled in from 8.4 and 9.0 by Boss at 5:48 PM EDT; phase 12 is the headline). Only this version is being built (Boss, 7:44 PM EDT 2026-10-22); the database chain finished with DB.85 (#2582, revision 0130, no generator epoch, so epoch 51 was still free then; since, 51 to 53 are taken: GEN.307, GEN.315 slice 1 and GEN.628, and 54 is next). Closing order: the audits TEST.185, TEST.184, TEST.159 and TEST.160 (merged, re-run as TEST.283), PERF.146 (merged as #2559) with PERF.164 and PERF.165, then SEC.33 and TEST.261 in their own threads, then GEN.301. Lane queues: docs/plan/lanes.md and reports/8-1-core-queues-2026-10-22.md.
 
 ## Phase 1: Foundations and open trees
 
@@ -369,7 +369,6 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.553 | One star-like body draw: origin, birth, state and [Fe/H], with the initial-final relation, the remnant mass, radius and age rules in one place |  |  |
-| GEN.652 | The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug) | GEN.553 |  |
 | GEN.662 | Cluster and satellite stars draw a halo [Fe/H] for their lifetimes (stand-in, bug) |  | Stand-in until GEN.651 lands |
 | GEN.661 | Bright-star counts still use the reference-composition fraction (stand-in, bug) |  | Stand-in until GEN.651 lands |
 | GEN.565 | The mass object core and its three family classes: StellarObject, PlanetaryObject and SmallBody, with state and parent as data, replace the nine kind classes |  |  |
@@ -599,7 +598,6 @@ Moved into 8.1 from 9.0 phase 1 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column |  | Follow-up of GEN.413 |
 | GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | GEN.411 | Follow-up of GEN.413 |
 
 ## Phase 11: Composition and colour in the product
@@ -740,15 +738,14 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.778 | Fill tidal_flux_w_m2 for planets and moons: tidal heating flux at the surface from eccentricity, spin and the body's interior (never filled in the sample) |  |  |
 | TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) |  |  |
 | TEST.392 | test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug) |  |  |
-| TEST.393 | Each gate leaves about 50 orphaned planetgen.cli.worker processes that can fill 16 GB of RAM and get mysqld OOM-killed: tests that start detached workers do not reap them (bug) |  |  |
 | TEST.394 | Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug) |  |  |
 | TEST.383 | test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug) |  |  |
 | UX.205 | Object pages show the day and night time shares, moons with the extra night from their planet | GEN.767, GEN.768 |  |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |
 | GEN.763 | The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug) |  |  |
-| GEN.760 | Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw | GEN.652 |  |
+| GEN.760 | Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw |  |  |
 | GEN.759 | Wire the r-process Th/U enrichment (rprocess_enrichment, GEN.663) into the radiogenic heat module |  |  |
-| GEN.755 | Check whether the downloaded MIST grid holds post-main-sequence phases; if not, add a setup fetch under GEN.741 | GEN.652 |  |
+| GEN.755 | Check whether the downloaded MIST grid holds post-main-sequence phases; if not, add a setup fetch under GEN.741 |  |  |
 
 ## Phase 12: The headline closes
 

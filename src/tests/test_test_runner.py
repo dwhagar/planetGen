@@ -33,6 +33,8 @@ def _progress_logs_in_a_throwaway_directory(tmp_path, monkeypatch):
     # ... and must not look at, or restart, the services the tests running beside this one stand on (TEST.376); the
     # tests of the check itself are in test_lane_services.py.
     monkeypatch.setattr(runner, "_services", lambda: _QuietServices)
+    # ... nor end the queue workers of the tests beside this one (TEST.393).
+    monkeypatch.setattr(runner, "reap_strays", lambda: "")
 
 
 class _QuietWatchdog:

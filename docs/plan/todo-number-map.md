@@ -1400,7 +1400,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.649 | The four life scores: Microbial, Flora, Fauna and Sentient, each 0 (none) to 9 (abundant), from the evolutionary stage and the surface conditions; human operability is removed | none | done, PR #2930 |
 | GEN.650 | Design: the planet mass law once the class no longer supplies the mass: the isolation mass at the formation distance, the snow line and the host, replacing the class mass ranges of decision 28 (design note, prerequisite of GEN.646) | none | done, PR #2947 |
 | GEN.651 | Wire the star's [Fe/H] into the star evolution: birth [Fe/H] is drawn before the state and passed to the lifetime and the giant branch, and the composition function is read by more than the white-dwarf flag | none | done, PR #2952 |
-| GEN.652 | The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug) | none | open |
+| GEN.652 | The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug) | none | done, PR #3304 |
 | GEN.653 | Suitability's food rung reads the Flora and Fauna scores: Flora is always good food, both are better, Fauna includes all animal life | none | done, PR #2930 |
 | GEN.654 | Aquifers: a world with a dry, frozen or too hot surface can hold liquid water underground, within reach of the 273 K level; the depth feeds the Water and Suitability rungs and the Microbial score only | none | done, PR #3221 |
 | GEN.655 | Survival equipment: one physics/equipment.py returns the list of needs (required or recommended) for the four slots, and replaces habitability.equipment and protection.requirements | none | done, PR #2766 |
@@ -1416,7 +1416,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | done, PR #2815 |
 | GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | done, PR #2799 |
 | GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | none | open |
-| GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | open |
+| GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | done, PR #3307 |
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows | none | open |
 | GEN.670 | Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition | none | open |
 | GEN.671 | Where a hardened suit works against the radiation, the needs say "required hardened suit" and "recommended hardened habitat" | none | done, PR #2883 |
@@ -3079,7 +3079,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.390 | More tests red on a clean copy of main: runner self-tests (on_child), admin queue log route 403, cache warm-up, test_stages, test_web_fresh_after_cli, test_workers killed worker, phenomenon diagram zoom tests, test_web_browser_tables life scores (bug) | none | done, PR #3293 |
 | TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) | none | open |
 | TEST.392 | test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug) | none | open |
-| TEST.393 | Each gate leaves about 50 orphaned planetgen.cli.worker processes that can fill 16 GB of RAM and get mysqld OOM-killed: tests that start detached workers do not reap them (bug) | none | open |
+| TEST.393 | Each gate leaves about 50 orphaned planetgen.cli.worker processes that can fill 16 GB of RAM and get mysqld OOM-killed: tests that start detached workers do not reap them (bug) | none | done, PR #3308 |
 | TEST.394 | Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
