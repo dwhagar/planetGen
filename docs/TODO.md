@@ -1039,23 +1039,25 @@ with `clamp()`.
   Core 2 (Aux 10 for the galaxy map nodes). Related: UX.199, GEN.771.
   Prerequisites: none. Related: UX.199.
 
-- [ ] **UX.211 Pages, lists, search, Nearby and the admin pages: every number carries a unit, a noun or a label (scan) (bug)**
-  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
-  TODO find where we output numbers without units or context, and make
-  TODO items all as bugs, we should never have numbers without units or
-  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
-  Sample of nearby.html, habitability.html and system.html was fine
-  (counts carry a noun), but the scan is not complete. Do: scan every
-  template under web/templates and its macros (system and object lists,
-  search results, class and habitability pages, the nav chart, the
-  generate, queue, stats and settings pages, partials) for a rendered
-  number with no unit, noun or label beside it; list each finding in the
-  item and fix them (a count says what it counts, a score its scale, a
-  time its unit, a size its unit). Done: the scan list is attached and
-  every finding is fixed. Owner: Aux 11 (object pages, lists), Core 5
-  (generate and queue pages), Aux 12 (admin pages). Related: UX.199,
-  GEN.771.
-  Prerequisites: none. Related: UX.199.
+- [ ] **UX.212 Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug)**
+  Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
+  as the lane reported; Boss rule: never a number without a unit or
+  context. Found by the UX.211 probe of the a11y sample: elements whose
+  whole text is a bare number. Give every admin statistics and queue
+  tile its noun or unit (for example '18 jobs queued'), and every
+  settings value its unit or scale. Done: the probe lists no bare number
+  on the admin pages and a browser test pins it. Version 8.1. Owner: Aux
+  12 (account, API and ops).
+  Prerequisites: none. Related: UX.208, GEN.772.
+
+- [ ] **UX.213 Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug)**
+  Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
+  as the lane reported; Boss rule: never a number without a unit or
+  context. The Generate page's task option values 1/2/4/6 print with no
+  unit or noun. Name what they count (workers, tasks, threads) beside
+  each. Done: the probe lists no bare number on the Generate page and a
+  browser test pins it. Version 8.1. Owner: Core 5.
+  Prerequisites: none. Related: UX.208, GEN.772.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
