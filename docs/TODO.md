@@ -5943,7 +5943,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.738, GEN.739, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.738, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -13741,25 +13741,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Prerequisites: none. Related: GEN.511, GEN.483, GEN.675.
 
-- [ ] **GEN.739 Impact erosion and late delivery of atmospheres, with history**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  A5; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: n/a (left
-  out). Today: There is no impact erosion or late delivery of volatiles.
-  Real physics: impact-driven loss and delivery with history. Do: add an
-  impact history to the supply law (GEN.726) so that late veneers and
-  erosion change the inventory. Done: the inventory includes impact
-  delivery and loss, with a test against the observed volatile budgets
-  of the terrestrial planets. Each stand-in it touches records its
-  source tier and tweak level in the gap plan registry (GEN.725). Owner:
-  pool (first free lane; 8.1 core lanes do not take it before 8.1
-  closes).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: none. Related: GEN.726, GEN.481.
-
 - [ ] **GEN.740 Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere)**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   A12; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -15272,6 +15253,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects <stage>` and the next epoch; tests are `scripts/test.py
   changed --resume`.
   Prerequisites: none. Related: GEN.751, GEN.725.
+
+- [ ] **GEN.819 Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet**
+  GEN.739 (#3246) added physics/impact_history.py and
+  surface_pressure.impact_inventory (H, C and N atoms per 100 g of
+  mantle from late accretion, impact delivery and impact erosion,
+  Sakuraba et al. 2019, Brasser et al. 2016) with registry rows AM36 to
+  AM44; nothing in the generator calls it. Once the air fixed point
+  (GEN.411, GEN.422) lands, make the supply law read impact_inventory
+  for rocky planets and moons and take the generator epoch with
+  --affects fill. Done: Earth, Venus and Mars samples land inside the
+  brackets of the design note (Earth N2 near 3.9e18 kg, kept water near
+  the 1.4e21 kg ocean, Mars thin by escape). Owner: the Citations lane.
+  Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); tests are `scripts/test.py changed --resume`.
+  Prerequisites: GEN.411, GEN.422. Related: GEN.739, GEN.411, GEN.422,
+  GEN.726.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
