@@ -13,10 +13,11 @@ last values: the objects at the hydrogen-burning limit settle on a plateau, whic
 exist in the numbers the 20 pc census counts. The temperature is capped at `tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K` (a
 late-M dwarf). The luminosity is `4 pi R^2 sigma Teff^4` of the two.
 
-The spectral type is the mean relation of Kirkpatrick et al. 2021 (ApJS 253:7, Table 13, from 525 L, T and Y dwarfs
-within 20 pc), inverted: L0 is 2,238 K, T0 1,255 K, Y0 461 K. Their relation has a scatter of 134 K among L dwarfs and 79 K
-among T and Y dwarfs; that is measurement scatter and is not drawn, so a brown dwarf of a given temperature always has
-the one type. Above L0 it is a late-M dwarf, named by the stellar scale (`stellar_evolution.spectral_letter_and_subclass`).
+The spectral type is the map of Kirkpatrick et al. 2021 (ApJS 253:7, Table 13, from 525 L, T and Y dwarfs within 20 pc,
+`brown_dwarf_types`): L0 is 2,238 K, T0 1,255 K, Y0 461 K. The map has a scatter of 134 K among L dwarfs and 79 K among T
+and Y dwarfs, and a dwarf's type is drawn with it (GEN.760) on a stream of its temperature, so a given dwarf always has the
+one type but dwarfs of one temperature do not all share it. Above L0 it is a late-M dwarf, named by the stellar scale
+(`stellar_evolution.spectral_letter_and_subclass`).
 
 Masses follow the substellar mass function of the same census, `dN/dM ~ M^-0.6` (alpha 0.6 +- 0.1).
 
@@ -30,7 +31,7 @@ import bisect
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants, stellar_evolution as evolution
+from planetgen.physics import brown_dwarf_types, constants, stellar_evolution as evolution
 from planetgen.util import draw
 
 
@@ -102,44 +103,18 @@ def luminosity_sol(mass_sol, age_gy):
     return radius ** 2 * (temperature / tuning.SUN_EFFECTIVE_TEMPERATURE_K) ** 4
 
 
-def _fit_temperature_k(coefficients, number):
-    return sum(coefficient * number ** power for power, coefficient in enumerate(coefficients))
-
-
-def type_temperature_k(number):
-    """The mean effective temperature of the spectral subclass number `number` (0 = L0, 10 = T0, 20 = Y0), kelvin
-    (`tuning.BROWN_DWARF_SPECTRAL_TYPE_FITS`)."""
-    for _low, high, coefficients, _rms in tuning.BROWN_DWARF_SPECTRAL_TYPE_FITS:
-        if number <= high:
-            return _fit_temperature_k(coefficients, number)
-    raise ValueError(f"spectral subclass number {number} is past the last fit")
-
-
-def spectral_number(temperature_k):
-    """The L, T, Y subclass number (0 = L0, 10 = T0, 20 = Y0) whose mean temperature is `temperature_k`
-    (`tuning.BROWN_DWARF_SPECTRAL_TYPE_FITS` inverted), or None when the temperature is that of L0 or hotter. Colder
-    than the last fit's end (22) is 22."""
-    fits = tuning.BROWN_DWARF_SPECTRAL_TYPE_FITS
-    if temperature_k >= _fit_temperature_k(fits[0][2], fits[0][0]):
-        return None
-    for low, high, coefficients, _rms in fits:
-        if temperature_k >= _fit_temperature_k(coefficients, high) or high == fits[-1][1]:
-            break
-    c0, c1, c2 = coefficients
-    if c2 == 0.0:
-        number = (temperature_k - c0) / c1
-    else:
-        # The smaller root is the one inside the fit's range (the parabola turns over beyond it).
-        number = (-c1 - math.sqrt(c1 * c1 - 4.0 * c2 * (c0 - temperature_k))) / (2.0 * c2)
-    return min(max(number, low), high)
-
-
 def spectral_type(temperature_k):
-    """The spectral type of a brown dwarf of this effective temperature: `"M8"` (a late-M dwarf, above L0), `"L5"`,
-    `"T2"` or `"Y0"`. The subclass is the whole number the mean relation reaches."""
-    number = spectral_number(temperature_k)
+    """
+    The spectral type of a brown dwarf of this effective temperature: `"M8"` (a late-M dwarf), `"L5"`, `"T2"` or `"Y0"`
+    (GEN.760). The map of Kirkpatrick et al. 2021 (`brown_dwarf_types`) gives the type's mean temperature with a scatter
+    of 134 K among L dwarfs and 79 K among T and Y dwarfs, and the type is drawn with it (`brown_dwarf_types.drawn_number`)
+    on a stream of the temperature alone, so the same dwarf has the same type wherever it is read from its stored
+    temperature. A temperature that reads as L0 or hotter after the offset is a late-M dwarf, named by the stellar scale.
+    """
+    number, read_at = brown_dwarf_types.drawn_number(
+        temperature_k, draw.Stream(f"brown-dwarf-type:{float(temperature_k)!r}"))
     if number is None:
-        letter, subclass = evolution.spectral_letter_and_subclass(temperature_k)
+        letter, subclass = evolution.spectral_letter_and_subclass(read_at)
         return f"{letter}{subclass}"
     letter = "L" if number < 10.0 else "T" if number < 20.0 else "Y"
     return f"{letter}{int(number) % 10 if letter != 'Y' else int(number) - 20}"

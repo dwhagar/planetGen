@@ -15,6 +15,11 @@ Use:
     teff_of_type(5.0)                    # 1613.5 K, an L5
     boundary_teff("t-y")                 # 460 K, the temperature of a Y0
     type_probabilities(700.0)            # {"T": ..., "late T": ..., "Y": ...} at a temperature, with the map's scatter
+    number_of_teff(1000.0)               # 12.1, the mean relation read backwards (None above L0)
+    drawn_number(1000.0, rng)            # the type of one dwarf at that temperature, the map's scatter drawn (GEN.760)
+
+The generator reads `drawn_number` for the type of every brown dwarf (`brown_dwarf.spectral_type`, GEN.760); the soft
+class windows of the atmosphere recipes read the same scatter through `type_probabilities`.
 """
 
 import json
@@ -127,3 +132,40 @@ def type_probabilities(teff_k):
         return _PHI((boundary_teff(boundary_id) - teff_k) / boundary_scatter_k(boundary_id))
     m_l, l_t, t_late, t_y = (cooler(b) for b in ("m-l", "l-t", "t-late-t", "t-y"))
     return {"late M": 1.0 - m_l, "L": m_l - l_t, "T": l_t - t_late, "late T": t_late - t_y, "Y": t_y}
+
+
+def number_of_teff(teff_k):
+    """
+    The spectral type number (L0 = 0, T0 = 10, Y0 = 20) whose mean temperature on the map is `teff_k`: the map read
+    backwards. None when the temperature is that of L0 or hotter (a late-M dwarf, named by the stellar scale); colder than
+    the last piece's end it is that end.
+    """
+    if teff_k >= teff_of_type(MAP.pieces[0].s_min):
+        return None
+    low, high = MAP.pieces[0].s_min, MAP.pieces[-1].s_max
+    if teff_k <= teff_of_type(high):
+        return high
+    for _ in range(60):
+        middle = 0.5 * (low + high)
+        if teff_of_type(middle) > teff_k:
+            low = middle
+        else:
+            high = middle
+    return 0.5 * (low + high)
+
+
+def drawn_number(teff_k, rng):
+    """
+    The type of one brown dwarf at `teff_k`, as `(number, temperature_k)`: the temperature it reads on the map is its own
+    plus a Gaussian offset of the scatter of the piece its mean type is on (Kirkpatrick et al. 2021: the dwarfs of one type
+    spread by that many Kelvin), and the number is the map read backwards at that temperature. `number` is None when that
+    temperature is the one of a late-M dwarf; `temperature_k` is the temperature the type was read at. The L/T transition,
+    where the map is nearly flat, spreads a type over several subtypes, as the census does.
+    """
+    mean = number_of_teff(teff_k)
+    if mean is None:
+        scatter = MAP.pieces[0].rms_k
+    else:
+        scatter = scatter_k(mean)
+    shifted = teff_k + rng.gauss(0.0, scatter)
+    return number_of_teff(shifted), shifted

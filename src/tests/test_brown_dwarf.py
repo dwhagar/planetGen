@@ -9,13 +9,15 @@ The 20 pc census's densities (Kirkpatrick et al. 2021, Table 15) are test target
 plausible spread of temperatures. None of them is an input of the generator."""
 
 
+import pathlib
+
 import pytest
 
 from planetgen import tuning
 from planetgen.generation import multistar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
-from planetgen.physics import brown_dwarf, constants
+from planetgen.physics import brown_dwarf, brown_dwarf_types, constants
 from planetgen.util import draw
 from planetgen.web import scatter_members_view
 from tests import render_support
@@ -96,34 +98,63 @@ def test_a_mass_outside_the_models_has_no_track():
 
 
 def test_the_types_start_where_kirkpatrick_et_al_put_them():
-    assert brown_dwarf.type_temperature_k(0) == pytest.approx(2237.5)
-    assert brown_dwarf.type_temperature_k(10) == pytest.approx(1254.8, abs=0.5)
-    assert brown_dwarf.type_temperature_k(20) == pytest.approx(460.6, abs=0.5)
+    assert brown_dwarf_types.teff_of_type(0) == pytest.approx(2237.5)
+    assert brown_dwarf_types.teff_of_type(10) == pytest.approx(1254.8, abs=0.5)
+    assert brown_dwarf_types.teff_of_type(20) == pytest.approx(460.6, abs=0.5)
     # Y0 is inside the 371 to 510 K they measured.
-    assert 371.0 < brown_dwarf.type_temperature_k(20) < 510.0
-    # The fits meet where one range ends and the next begins.
+    assert 371.0 < brown_dwarf_types.teff_of_type(20) < 510.0
+    # The pieces meet where one range ends and the next begins.
     for number in (8.75, 14.75):
-        below, above = brown_dwarf.type_temperature_k(number - 1e-9), brown_dwarf.type_temperature_k(number + 1e-9)
+        below, above = brown_dwarf_types.teff_of_type(number - 1e-9), brown_dwarf_types.teff_of_type(number + 1e-9)
         assert below == pytest.approx(above, abs=0.5)
 
 
-@pytest.mark.parametrize("temperature, expected", [
-    (3000.0, "M"), (2300.0, "M"), (2200.0, "L0"), (1600.0, "L5"), (1300.0, "L8"), (1200.0, "T2"), (900.0, "T6"),
-    (700.0, "T7"), (500.0, "T9"), (455.0, "Y0"), (300.0, "Y1"), (200.0, "Y2"),
+def test_the_map_read_backwards_gives_the_number_back():
+    for number in (0.5, 4.0, 8.0, 10.0, 14.0, 18.0, 20.0, 21.5):
+        assert brown_dwarf_types.number_of_teff(brown_dwarf_types.teff_of_type(number)) == pytest.approx(number, abs=1e-6)
+    assert brown_dwarf_types.number_of_teff(2300.0) is None
+    assert brown_dwarf_types.number_of_teff(100.0) == brown_dwarf_types.MAP.pieces[-1].s_max
+
+
+@pytest.mark.parametrize("temperature, letters", [
+    (3000.0, "M"), (2800.0, "ML"), (1600.0, "L"), (1200.0, "LT"), (900.0, "T"), (500.0, "TY"), (200.0, "Y"),
 ])
-def test_the_type_is_read_from_the_temperature(temperature, expected):
-    assert brown_dwarf.spectral_type(temperature).startswith(expected)
+def test_the_type_is_drawn_about_the_mean_of_the_map_and_stays_with_the_temperature(temperature, letters):
+    assert brown_dwarf.spectral_type(temperature)[0] in letters
+    assert brown_dwarf.spectral_type(temperature) == brown_dwarf.spectral_type(temperature)
 
 
-def test_a_cooler_brown_dwarf_never_has_an_earlier_type():
-    order = "MLTY"
-    previous = None
-    for temperature in range(3000, 150, -25):
-        letter = brown_dwarf.spectral_type(float(temperature))[0]
-        number = brown_dwarf.spectral_number(float(temperature))
-        key = (order.index(letter), -1.0 if number is None else number)
-        assert previous is None or key >= previous
-        previous = key
+def test_dwarfs_of_one_temperature_spread_over_types_by_the_maps_scatter():
+    """Kirkpatrick et al. 2021: 134 K among L dwarfs, 79 K among T and Y. At 1600 K (L5) the types spread over about
+    134 / 100 K per subtype, a few subtypes; the flat L/T transition spreads them over many more."""
+    def spread(center):
+        numbers = [brown_dwarf_types.drawn_number(center, draw.Stream(f"spread:{center}:{k}"))[0] for k in range(2000)]
+        numbers = [n for n in numbers if n is not None]
+        mean = sum(numbers) / len(numbers)
+        return (sum((n - mean) ** 2 for n in numbers) / len(numbers)) ** 0.5
+
+    assert 0.7 < spread(1600.0) < 1.6                                  # 134 K at about 100 K per subtype near L5
+    assert spread(1220.0) > 2.0                                         # the nearly flat L/T transition
+    assert 1.5 < spread(800.0) < 4.5                                    # 79 K at about 40 K per subtype near T6
+
+
+def test_a_cooler_brown_dwarf_has_a_later_type_on_average():
+    means = []
+    for temperature in range(2000, 250, -250):
+        numbers = [brown_dwarf_types.drawn_number(float(temperature), draw.Stream(f"mean:{temperature}:{k}"))[0]
+                   for k in range(400)]
+        numbers = [n for n in numbers if n is not None]
+        means.append(sum(numbers) / len(numbers))
+    assert means == sorted(means)
+
+
+def test_the_generator_draws_the_type_through_the_map():
+    """The wiring guard (GEN.760): `brown_dwarf.spectral_type` calls `brown_dwarf_types.drawn_number`, and nothing reads
+    the old fits of the mean relation."""
+    source = pathlib.Path(brown_dwarf.__file__).read_text(encoding="utf-8")
+    assert "brown_dwarf_types.drawn_number(" in source
+    assert not hasattr(tuning, "BROWN_DWARF_SPECTRAL_TYPE_FITS")
+    assert not hasattr(brown_dwarf, "type_temperature_k") and not hasattr(brown_dwarf, "spectral_number")
 
 
 def test_the_temperatures_of_a_census_spread_as_the_20_pc_census_does():

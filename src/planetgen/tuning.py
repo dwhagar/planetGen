@@ -3257,16 +3257,6 @@ alpha = 0.6 +- 0.1 from the 20 pc census of 525 L, T and Y dwarfs). It is drawn 
 `IMF_BREAKS_SOL[0]`, since continuing it would give 0.7 brown dwarfs per star against the census's 0.2 (the
 free-floating rate `PHENOMENON_DENSITY_PC3["brown-dwarf"]`)."""
 
-BROWN_DWARF_SPECTRAL_TYPE_FITS = (
-    (0.0, 8.75, (2237.5, -144.96, 4.0301), 134.0),
-    (8.75, 14.75, (1437.9, -18.309, 0.0), 79.0),
-    (14.75, 22.0, (5141.3, -368.65, 6.7301), 79.0),
-)
-"""tuple: Kirkpatrick et al. 2021 Table 13 (read): `Teff` (K) as a polynomial in the spectral subclass number
-(0 = L0, 10 = T0, 20 = Y0), per range of that number: `(low, high, coefficients c0 + c1 x + c2 x^2, rms K)` (T0 to T6 is a straight line, so its c2 is 0). The
-scatter is the fit's, the measurement's, and is not drawn. Y0 falls at 461 K, inside the 371 to 510 K the paper
-measured."""
-
 ROGUE_GIANT_PHOTOSPHERE_PRESSURE_BAR = 0.3
 """float: Where a Jupiter-gravity giant's photosphere (optical depth 2/3)
 sits. It fixes one Rosseland mean opacity (kappa = (2/3) g / P) for every
