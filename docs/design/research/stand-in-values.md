@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 112 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 121 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 20 | 0 | 0 | 0 | 0 | 20 |
-| T2 | 28 | 0 | 0 | 0 | 0 | 28 |
+| T1 | 21 | 0 | 1 | 0 | 0 | 22 |
+| T2 | 31 | 0 | 0 | 0 | 0 | 31 |
 | T3 | 24 | 0 | 0 | 0 | 0 | 24 |
-| T4 | 4 | 0 | 0 | 0 | 0 | 4 |
-| T5 | 4 | 2 | 0 | 0 | 0 | 6 |
-| T6 | 10 | 3 | 1 | 4 | 0 | 18 |
+| T4 | 5 | 0 | 0 | 0 | 0 | 5 |
+| T5 | 5 | 3 | 0 | 0 | 0 | 8 |
+| T6 | 10 | 4 | 1 | 4 | 0 | 19 |
 | T7 | 9 | 2 | 0 | 1 | 0 | 12 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 99 | 7 | 1 | 5 | 0 | 112 |
+| All | 105 | 9 | 2 | 5 | 0 | 121 |
 
 ## How the labels were given
 
@@ -194,3 +194,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM33 | D | T5 | L1 | surface_pressure.HEAT_FLUX_EARTH_W_M2 | 0.0614 W per m2, fixed | the reference of the outgassing flux | test_surface_pressure::test_the_earth_is_the_balance_at_its_modern_flux_land_and_temperature | a mobile-lid heat loss in `interior_heat` | CALIBRATED on the interior model's own Earth twin, mid rheology (source tier 5, tweak level 1) |
 | AM34 | P | T6 | L0 | mixture_subject.PHOTOSPHERE_BAR | 0.1 bar, fixed | the regime of hot giants and brown dwarfs (rows h and g read the edge at this pressure) | test_mixture_subject::test_a_giant_gets_its_layer_temperatures_and_the_photosphere_pressure | the cooling-track and atmosphere model of the giant lane | design (the recipe quantity's own definition: about 0.1 bar for the dayside emission of a hot giant) |
 | AM35 | D | T5 | L0 | mixture_subject.DAYSIDE_OVER_EQUILIBRIUM | 1.278, fixed | every body the draw reads a dayside temperature of (hot giants, lava worlds) | test_mixture_subject::test_the_earth_gives_the_quantities_the_world_gives | a heat-redistribution model | COMPUTED (a day hemisphere alone catches the starlight: f = 2/3 against 1/4, so T rises by (8/3)^(1/4); the upper bound of the dayside, no redistribution) |
+| AM36 | D | T1 | L0 | impact_history.LATE_ACCRETED_PERCENT_EARTH | 0.7 weight percent of an Earth mass planet | rocky planets and moons near 1 AU of a solar mass star; the leftover planetesimal mass is the Solar System's | test_impact_history::test_the_mean_late_accreted_mass_follows_the_four_means_of_brasser_et_al_2016_table_1_inside_their_scatter | an exoplanet system's veneer constraint | READ (Brasser et al. 2016 Table 1: Earth 0.7 plus or minus 0.5 weight percent from N-body runs; Walker 2009 through the same paper: 0.5 to 0.8 from the highly siderophile elements; source tier 1, tweak level 0) |
+| AM37 | D | T5 | L1 | impact_history.LATE_ACCRETED_MASS_EXPONENT | -1/3 | planets from Mercury to Venus in mass; the Moon (0.025 weight percent) is not on the law | test_impact_history::test_the_mean_late_accreted_mass_follows_the_four_means_of_brasser_et_al_2016_table_1_inside_their_scatter | a population synthesis of leftover planetesimals | DERIVED (cross section over mass, R^2/M with R as M^(1/3); checked against the four means of Brasser et al. 2016 Table 1: 1.9, 0.75, 0.7, 1.5 against 2.7, 0.8, 0.7, 1.4; source tier 5, tweak level 1) |
+| AM38 | B | T1 | L2 | impact_history.LATE_ACCRETED_LN_SIGMA | 0.65, capped at 3 weight percent | the late-accreted fraction | test_impact_history::test_the_drawn_fraction_is_recorded_scattered_and_capped | a population synthesis of leftover planetesimals | READ and tuned (the Earth's 0.7 plus or minus 0.5 of Brasser et al. 2016 is 0.65 in the log; source tier 1, tweak level 2) |
+| AM39 | B | T2 | L0 | impact_history.VENEER_VOLATILES | H2O 0.10, CO2 0.02, N2 0.002 of the impactor mass (carbonaceous reference) | the late accretion | test_impact_history::test_the_earth_twin_keeps_an_n2_air_that_the_observed_one_lies_inside_the_bracket_of_the_veneer_scale | the originals of the three citations | 2ND-HAND (Sakuraba et al. 2019 section 2.4, read, citing Raymond et al. 2004: 10 percent water, de Niem et al. 2012: 2 percent CO2, Grady and Wright 2003: 0.2 percent N2; source tier 2, tweak level 0) |
+| AM40 | B | T6 | L1 | impact_history.VENEER_VOLATILE_SCALE | 0.01 to 1, log | the late accretion | test_impact_history::test_the_veneer_scale_is_drawn_inside_its_bracket_and_recorded | the composition of the late veneer from isotopes | design (the nominal 0.1 of Sakuraba et al. 2019 after Fischer-Goedde and Kleine 2017 and Dauphas 2017: an enstatite-like late veneer; 0.01 their lower value; 1 carbonaceous; source tier 6, tweak level 1) |
+| AM41 | D | T5 | L0 | impact_history.V_INF_OVER_V_ORBIT | 0.6 | planets on near-circular orbits | test_impact_history::test_the_impact_speed_is_the_published_one_for_the_inner_planets | an encounter model for other systems | DERIVED (Brasser et al. 2016 Table 1 impact speeds 34.2, 24.3, 21.1, 13.4 km/s with the escape speeds are 0.71, 0.63, 0.60, 0.51 of the orbital speed; source tier 5, tweak level 0) |
+| AM42 | B | T2 | L0 | impact_history.DIAMETER_RANGE_KM | 0.0316 to 1000 km, mass per unit diameter flat | the late accretion | test_impact_history::test_a_thin_air_loses_less_per_impactor_mass_and_a_big_impactor_less_than_a_small_one | Bottke et al. 2005 | 2ND-HAND (Sakuraba et al. 2019 section 2.6, read: the main-belt size distribution of Bottke et al. 2005, cumulative number as D^-3, between 10^-1.5 and 10^3 km; source tier 2, tweak level 0) |
+| AM43 | D | T2 | L0 | impact_history.SVETSOV_GAMMA | adiabatic index 13/11, k = 5, density 3320 and 2630 kg per m3 | air erosion by impacts; Schlichting et al. 2015 (read) gives a stronger erosion by the largest impactors, about 10 times at 15 km/s | test_impact_history::test_a_slow_impact_that_cannot_launch_the_plume_past_escape_erodes_nothing | Svetsov 2007 and a new hydrocode | READ (Svetsov 2000, 2007 as written in Eq. 5 to 7 of Sakuraba et al. 2019, read; the leading term is checked in the test; source tier 2, tweak level 0) |
+| AM44 | P | T4 | L0 | impact_history.IMPACTOR_ESCAPE_COEFFICIENT | 0.07, share of the impactor's vapour that escapes (0.1 to 0.17 for the inner planets) | the late accretion | test_impact_history::test_the_impactor_vapour_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets | Shuvalov 2009 | 2ND-HAND (Shuvalov 2009 through Eq. 8 of Sakuraba et al. 2019: the upper branch 0.07 (rho_t / rho_imp) (V / v_esc); source tier 4, tweak level 0) |

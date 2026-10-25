@@ -263,3 +263,7 @@ Numbers and short quotations of fact were read from the sources below; nothing e
 | Schaefer and Fegley 2017, Astrophys. J. 843, 120 (public copy on the NSF Public Access Repository) | (c) American Astronomical Society, all rights reserved; values and the Table 2 fits only | publisher |
 | Gaillard et al. 2022, Earth Planet. Sci. Lett. 577, 117255 (HAL archive copy insu-03383209) | Elsevier paper deposited in an open archive; no licence printed on the copy; values only | file |
 | Deng, Du, Karki, Ghosh and Lee 2020, Nature Communications 11, 2007 (PMC7181735) | CC BY 4.0 | publisher |
+
+## Impact erosion and late delivery (`docs/design/composition/impact-erosion-and-late-delivery.md`, `src/planetgen/physics/impact_history.py`, GEN.739)
+
+Formulas, constants and the planets' observed totals were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All four carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Sakuraba, Kurokawa and Genda 2019 (1805.07094); Brasser et al. 2016 (1609.01785); Schlichting, Sari and Yalinewich 2015 (1406.6435); Raymond et al. 2013 (1306.4325). Svetsov 2000 and 2007 and Shuvalov 2009 were not opened; their formulas are used as printed in Sakuraba et al.
