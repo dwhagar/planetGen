@@ -5034,6 +5034,12 @@ p.hint a {
   opacity: 0;
   transition: opacity 0.2s ease;
 }
+/* A name under the pointer reads as a link (MAP.298): a click on it selects its item and flies there. */
+.map-labels .map-label[data-hot] {
+  text-decoration: underline;
+  color: #fff;
+}
+.map-labels[data-light] .map-label[data-hot] { color: #000; }
 .map-labels[data-light] .map-label {
   color: #10131f;
   text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 8px rgba(255, 255, 255, 0.9);

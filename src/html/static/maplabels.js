@@ -21,7 +21,8 @@
 //
 // `createLabelLayer` is the DOM part: one `<span class="map-label">` per placed label in a container laid over
 // the map, pooled, faded in and out (no fade under reduced motion) and never picking (the container has
-// pointer-events none: a label does not hide the thing's own pick and hover). The text is set with textContent
+// pointer-events none: a label does not hide the thing's own pick and hover); `at(x, y)` tells the map which placed
+// label a point is on, so a click on a name can fly to its item (MAP.298). The text is set with textContent
 // only, never markup: names are database content.
 
 export const DEFAULT_BUDGET = 60;
@@ -263,14 +264,42 @@ export function createLabelLayer(options) {
     return placed;
   }
 
-  // For the browser tests: what is placed now, [{id, kind, text}].
+  // For the browser tests: what is placed now, [{id, kind, text, left, top, width, height}] (the box in CSS pixels of the view).
   function shown() {
-    return lastPlaced.map(function (item) { return { id: item.candidate.id, kind: item.candidate.kind, text: item.candidate.text }; });
+    return lastPlaced.map(function (item) {
+      return { id: item.candidate.id, kind: item.candidate.kind, text: item.candidate.text, left: item.left, top: item.top,
+        width: item.width, height: item.height };
+    });
   }
 
   function clear() {
     update([]);
   }
 
-  return { update: update, shown: shown, clear: clear };
+  // MAP.298: the placed label under a point of the view (CSS pixels from the layer's top left), or null: the labels
+  // never take the pointer themselves (the wheel, a drag and a pick go through them), the map asks where one is.
+  function at(x, y) {
+    for (let n = 0; n < lastPlaced.length; n++) {
+      const item = lastPlaced[n];
+      if (x >= item.left && x <= item.left + item.width && y >= item.top && y <= item.top + item.height) return item.candidate;
+    }
+    return null;
+  }
+
+  // The label under the pointer, if any, is marked (data-hot) so it reads as something to click.
+  let hot = null;
+  function setHot(id) {
+    if (id === hot) return;
+    if (hot !== null) {
+      const before = live.get(hot);
+      if (before) delete before.element.dataset.hot;
+    }
+    hot = id === undefined ? null : id;
+    if (hot !== null) {
+      const now = live.get(hot);
+      if (now) now.element.dataset.hot = "";
+    }
+  }
+
+  return { update: update, shown: shown, clear: clear, at: at, setHot: setHot };
 }

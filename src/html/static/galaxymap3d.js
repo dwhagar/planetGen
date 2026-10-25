@@ -3267,6 +3267,14 @@ function initGalaxyMap3d(canvasEl, data) {
     showPlacedInfo: showPlacedInfo,
     showCellInfo: showCellInfo,
     showHint: function (text) { showHint(text, false); },
+    // MAP.298: the names over the map are clicked through here, not as elements of their own.
+    labelAt: function (clientX, clientY) {
+      if (!galaxyLabels) return null;
+      var box = canvasEl.getBoundingClientRect();
+      return galaxyLabels.at(clientX - box.left, clientY - box.top);
+    },
+    labelHot: function (id) { if (galaxyLabels) galaxyLabels.setHot(id); },
+    labelAct: function (label) { actOnLabel(label); },
     picker: picker,
     clearSelection: function () { selectionRing.hide(); },
     restingHint: restingHint,
@@ -3406,7 +3414,10 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.refresh();
     galaxyLabels = createGalaxyLabels({
       THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),
-      sources: { sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: stageView.bodyLabels, nebulae: cloudLabels },
+      sources: {
+        sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: stageView.bodyLabels, nebulae: cloudLabels,
+        stars: starNames, objects: objectNames,
+      },
     });
     canvasEl.__mapLabels = galaxyLabels;    // the browser tests read what is placed
   }
@@ -3422,6 +3433,7 @@ function initGalaxyMap3d(canvasEl, data) {
       found.push({
         id: "cloud:" + cloudKey(cloud), text: cloud.name || cloudTypeLabel(cloud),
         x: sprite.position.x, y: sprite.position.y, z: sprite.position.z, pixels: 2 * cloudPixels(cloud, distance),
+        ref: { kind: "nebula", cloud: cloud },
       });
     });
     return found;
@@ -3534,10 +3546,16 @@ function initGalaxyMap3d(canvasEl, data) {
     var tierMag = starPoints.geometry.getAttribute("starTierMag");
     var clipped = starPoints.geometry.getAttribute("starClipped");
     var list = [];
+    var objects = [];
     if (absolute && tierMag) {
       for (var i = 0; i < n; i++) {
         var star = starList[i];
-        if (star.phenomenon || !(starShares[i] >= STAR_PICK_MIN_SHARE) || (clipped && clipped.array[i] > 0.5)) continue;
+        if (!(starShares[i] >= STAR_PICK_MIN_SHARE) || (clipped && clipped.array[i] > 0.5)) continue;
+        // The other objects that are named (MAP.298): kept for the labels, picked by their own layer.
+        if (star.phenomenon) {
+          if (star.name && drawnByTheGalaxy(star.x, star.y, star.z)) objects.push(star);
+          continue;
+        }
         if (!container && stageView.outsideOutline(star)) continue;  // the halo layer below names those
         if (uniforms.magOn.value > 0.5) {
           var dx = star.x - p.x;
@@ -3552,8 +3570,57 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     // The brightest last, so among stars level on the screen the brightest wins (the layer's lastWins).
     list.sort(function (a, b) { return a.luminosity_sol - b.luminosity_sol; });
-    pickableCache = { signature: signature, list: list };
+    pickableCache = { signature: signature, list: list, objects: objects };
     return list;
+  }
+
+  // MAP.298: what the label engine may name besides the open sector's systems: the named stars the map draws and the
+  // named objects of the other kinds, the brightest few hundred of each (the engine keeps the ones with room).
+  var NAMED_LIMIT = 400;
+  function starNames() {
+    var found = [];
+    var list = pickableStars();
+    for (var i = list.length - 1; i >= 0 && found.length < NAMED_LIMIT; i--) {
+      var star = list[i];
+      if (star.name) {
+        found.push({ id: "star:" + star.id, text: star.name, x: star.x, y: star.y, z: star.z,
+          luminositySol: star.luminosity_sol || 0, ref: { kind: "star", star: star } });
+      }
+    }
+    return found;
+  }
+  function objectNames() {
+    pickableStars();
+    return pickableCache.objects.slice(0, NAMED_LIMIT).map(function (point) {
+      return { id: "object:" + point.type + ":" + point.id, text: point.name, x: point.x, y: point.y, z: point.z,
+        luminositySol: point.map_luminosity_sol || point.luminosity_sol || 0, ref: { kind: "object", point: point } };
+    });
+  }
+
+  // A click on a name (MAP.298): the item is selected as a click on it would and the camera flies to it.
+  function actOnLabel(label) {
+    var ref = label.ref;
+    if (!ref) return;
+    if (ref.kind === "star") {
+      highlightPosition(ref.star.x, ref.star.y, ref.star.z);
+      showStarInfo(ref.star);
+      stageView.flyToEntry(ref.star);
+    } else if (ref.kind === "object") {
+      highlightPosition(ref.point.x, ref.point.y, ref.point.z);
+      showPointInfo(ref.point);
+      stageView.flyToEntry(ref.point);
+    } else if (ref.kind === "system") {
+      stageView.selectEntry(ref.entry);
+      stageView.flyToEntry(ref.entry);
+    } else if (ref.kind === "body") {
+      stageView.selectBody(ref.entry);
+    } else if (ref.kind === "nebula") {
+      highlightPosition(ref.cloud.x, ref.cloud.y, ref.cloud.z);
+      showCloudInfo(ref.cloud);
+      stageView.flyToEntry({ x: ref.cloud.x, y: ref.cloud.y, z: ref.cloud.z, r: ref.cloud.radius_pc });
+    } else if (ref.kind === "sector") {
+      stageView.locate(ref.sector);
+    }
   }
 
   // For tests (MAP.304): the stars a click can pick now, brightest first, with where each is on the screen (CSS pixels
