@@ -16056,6 +16056,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed --resume`.
   Prerequisites: none. Related: PERF.125, GEN.411.
 
+- [ ] **PERF.199 The words "rough guess" are removed from every ETA, time left and time estimate display (bug)**
+  Boss, 2026-10-24 11:56 PM EDT: 'rough guess text on ETA progress needs
+  to go'. The wording appears in: generation/stats.py:568 (the estimate
+  text, 'a rough guess, anywhere from X to Y'), web/queue_page.py:118
+  (the Queue page ' (rough guess)' suffix), web/generate_page.py:1269
+  (the Generate page 'a rough guess until a unit is timed'),
+  web/templates/generate_review.html:19 (the review page Time line),
+  web/lib/galaxystatus.py:60 (the galaxy status line), db/check.py:471
+  (check-db output), plus the ROUGH source label in queue/runeta.py. Do:
+  show the estimate without the words (a range with its unit is enough;
+  where the speed is not measured yet say 'not timed yet' once, plainly,
+  not 'rough guess'), keep the internal source flag if code needs it,
+  and update every test that pins the old text. Done: a search of the
+  pages, the API text and the command output finds no 'rough guess' in
+  any user-visible string; tests pin the new text. Owner: Aux 16
+  (performance, owner of the estimates).
+  Prerequisites: none. Related: PERF.184, PERF.178.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
