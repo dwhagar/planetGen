@@ -4176,6 +4176,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   "Apply all 29", as the coordinator reported it): GEN.428 and GEN.411
   are added to this item's Prerequisites line, so the build reads the
   wait that the 2026-10-16, 11:58 PM EDT sweep text names.
+  Finding (2026-10-09): Aux 16's class distribution check (2:09 AM EDT
+  2026-10-25): class P (glaciated) is under 0.05 percent of planets and
+  0.3 percent in the ecosphere, Q never occurs, O is 0.1 percent; decide
+  after the cut-over (GEN.689) whether P has a target rate or only needs
+  to be possible when conditions allow it; the rule is part of TEST.395.
   Related: GEN.412, GEN.423, GEN.428.
 
 - [ ] **GEN.28 Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z)**
@@ -13273,6 +13278,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
   to go forward without correcting the physics"); it is a prerequisite
   of the headline GEN.301.
+  Finding (2026-10-09): Aux 16's check (2:09 AM EDT 2026-10-25): the
+  count today averages 8.5 bodies per system (median 9, max 27) with 8.6
+  percent empty systems; that counts down to dwarf planets, so compare
+  detections only after cutting to detectable sizes. Occurrence by host
+  mass of giants is its own item GEN.828, and the missing 2 to 20
+  Earth-mass population is GEN.829.
   Prerequisites: none. Related: GEN.503, GEN.504, GEN.650.
 
 - [ ] **GEN.729 Planet spacing from the observed period-ratio and size-uniformity statistics, with stability checked**
@@ -15102,6 +15113,66 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   backward-compat shims; every number has a unit or scale (GEN.772);
   tests are scripts/test.py changed --resume.
   Prerequisites: GEN.825. Related: GEN.825, DB.107.
+
+- [ ] **GEN.828 Giant planet occurrence falls with host mass and rises with metallicity, and hot Jupiters are rare: giants per M dwarf are about 0.48 today against 0.03 to 0.06 observed, hot Jupiters 0.117 per M dwarf and 0.026 per FGK star against under 0.002 and 0.005 to 0.01**
+  Found by Aux 16 (report
+  /mnt/project-files/reports/planet-class-distribution-check-2026-10-25.md,
+  data in reports/data/planet-class-distribution/, asked by Boss 2:09 AM
+  EDT 2026-10-25; 2,000 systems from the system draw, so the star mix is
+  74 percent below 0.5 solar masses, not a galaxy draw). Observed rates
+  in the report are quoted from memory and are Unverified until Aux 17
+  (Citations) checks them against the papers (Fressin 2013, Petigura
+  2018, Zhu 2018, Dressing and Charbonneau 2015, Fulton 2021, Bryson
+  2021, Wright 2012, Johnson 2010, Bonfils 2013); do that first and
+  record the bands with their source tier in the stand-in registry
+  (GEN.725). Measured: giants of 100 Earth masses or more per star 0.48
+  for M dwarfs, 0.49 for K, 0.33 for FGK, 0.09 for 1.3 to 3 solar
+  masses; cold giants at 1 to 10 AU per FGK star 0.144 (reasonable,
+  observed 0.10 to 0.15). Do: find the draw that sets the giant count
+  and the inner-giant (migration) draw, make giant occurrence a function
+  of host mass and [Fe/H] (GEN.651) with the observed shape (rare below
+  about 0.5 solar masses, peak near 1 to 1.5), and cut hot Jupiters to
+  the observed fraction of stars, far lower for M dwarfs. Changes stored
+  values: a new generator epoch with --affects plan. Done: a
+  distribution test (TEST.395) shows giants per star by host-mass bin
+  and hot Jupiters per FGK and M star inside the sourced bands. Owner:
+  pool (first free lane; Boss priority 2, physics chains), Aux 17
+  sources the bands first. Rules: no backward-compat shims; every number
+  has a unit or scale (GEN.772); tests are scripts/test.py changed
+  --resume; no fixed content from the Milky Way or the Solar System.
+  Prerequisites: none. Related: GEN.728, GEN.651, GEN.503, GEN.504,
+  GEN.729.
+
+- [ ] **GEN.829 A 2 to 20 Earth-mass population exists: sub-Neptunes with a hydrogen envelope, 0.5 to 1 planets per FGK star inside 1 AU against 0.195 today, and the mass function falls steadily above about 10 Earth masses**
+  Found by Aux 16 (report
+  /mnt/project-files/reports/planet-class-distribution-check-2026-10-25.md,
+  data in reports/data/planet-class-distribution/, asked by Boss 2:09 AM
+  EDT 2026-10-25; 2,000 systems from the system draw, so the star mix is
+  74 percent below 0.5 solar masses, not a galaxy draw). Observed rates
+  in the report are quoted from memory and are Unverified until Aux 17
+  (Citations) checks them against the papers (Fressin 2013, Petigura
+  2018, Zhu 2018, Dressing and Charbonneau 2015, Fulton 2021, Bryson
+  2021, Wright 2012, Johnson 2010, Bonfils 2013); do that first and
+  record the bands with their source tier in the stand-in registry
+  (GEN.725). Measured: 2 to 10 Earth masses are 99 percent class S and
+  10 to 50 are class I (77 percent) and J (23 percent); class T never
+  occurs; planets per star by mass bin 2 to 10 / 10 to 50 / 50 to 300
+  Earth masses are 0.56 / 1.01 / 0.62 (inverted: Neptune-mass planets
+  outnumber 2 to 10 Earth-mass ones, observation falls steadily above
+  about 10). Do: draw the mass of a planet beyond the snow line or
+  inside from a sourced mass function with the sub-Neptune peak, so 1.5
+  to 4 Earth-radius planets with a hydrogen envelope exist in the
+  observed numbers (the radius valley GEN.509 and the envelope loss
+  GEN.822 then apply); the kind comes from formation (GEN.681), not from
+  a class letter, and the sub-Neptune class (GEN.350) is assigned from
+  the conditions after the cut-over. Changes stored values: a new
+  generator epoch with --affects plan. Done: TEST.395 shows planets per
+  star by mass bin inside the sourced bands. Owner: pool (first free
+  lane; Boss priority 2), with the class lane (Aux 9) for the kind
+  rules. Rules: no backward-compat shims; every number has a unit or
+  scale (GEN.772); tests are scripts/test.py changed --resume.
+  Prerequisites: none. Related: GEN.728, GEN.681, GEN.350, GEN.509,
+  GEN.822, GEN.650.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20772,6 +20843,25 @@ clears each one.
   test_a_double_click_on_a_star_flies_to_it and
   test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box.
   Prerequisites: none. Related: MAP.297, TEST.390.
+
+- [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
+  From Aux 16's planet class distribution check (2:09 AM EDT 2026-10-25;
+  report
+  /mnt/project-files/reports/planet-class-distribution-check-2026-10-25.md,
+  script classes.py in reports/data/planet-class-distribution/). Do:
+  turn the script into a test (a seeded galaxy draw so the host mix is
+  the galaxy's, not the system draw's 74 percent M dwarfs) with each
+  observed rate as a band whose source and tier come from Aux 17's
+  sourcing; repeat the check on the final classes after GEN.689; decide
+  with Boss whether classes O (0.1 percent of planets), P (under 0.05
+  percent) and Q (zero) have a target rate or are only tested for being
+  possible when conditions allow them. Done: the test passes on main
+  with the bands recorded in the registry, and a failure names the bin
+  that left its band. Owner: Aux 16 started it; Aux 16 is retiring, so
+  pool (first free lane). Rules: tests are scripts/test.py changed
+  --resume; the full run belongs to the end-of-version bug hunt only.
+  Prerequisites: GEN.689, GEN.828, GEN.829, GEN.728. Related: GEN.646,
+  GEN.689, GEN.27, GEN.350.
 
 ## USR: User accounts
 
