@@ -2,6 +2,23 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2344] - 2026-10-25
+
+**Headline:** A test run now ends the queue workers it started and did not stop, and says how many it found.
+
+### Added
+- **`scripts/test.py` ends the queue workers a run left running and reports them (TEST.393).** Tests that start real workers start them in a session of their own, so a test that was stopped part way (past its time limit, or in a phase the runner stopped) left them running, and each keeps about 300 MB; about fifty on a 16 GB machine got MySQL killed. A worker whose `--url` names one of the test Redis databases (1 to 15, the machine's own is 0) is a test's. When a run ends, the runner ends all of them (SIGTERM to the worker's session, SIGKILL ten seconds later) and prints `ended N queue worker process(es) a test started and did not stop (the oldest had run ...)`.
+- The test session's own fixture ends the workers on its Redis database when it starts (those of an earlier, stopped session) and when it ends. `src/tests/stray_workers.py` and `test_stray_workers.py` hold the code and its tests (the listing, the filter that never touches the machine's database, the SIGTERM then SIGKILL, and one real process).
+- Not changed: which tests leave workers. A run of the 11 modules that use real queues (166 tests) peaked at 7 workers and left none, so the leak comes from stopped tests; the count in the new line is how to find the test.
+TODO items resolved: TEST.393 (TODO closes it after reading this). Added: none.
+
+## [8.0.2343] - 2026-10-25
+
+**Headline:** When a world loses part of its air, its ozone and its ultraviolet index can now follow it.
+
+### Changed
+- **GEN.668: a loss of air takes the ozone with it.** `radiation.apply_air_loss(body, retained_fraction)` scales a planet's or moon's stored ozone column by the share of the air that is kept and works the ultraviolet index out again from it (a world that loses half its air keeps half its ozone and has a higher index). No step of generation removes air after the ozone is drawn (escape and the water loss act on the air before it), so nothing is called yet and no generated value changes; the function is for the first loss event that does.
+
 ## [8.0.2342] - 2026-10-25
 
 **Headline:** A main-sequence star now takes its brightness, colour and size from the MIST isochrones at its mass, age and composition, and it brightens as it ages.

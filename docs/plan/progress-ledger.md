@@ -1509,3 +1509,5 @@ Baseline: PR #1817.
 | MAP.296 | 8.1 | Fly-through map |
 | MAP.295 | 8.1 | Fly-through map |
 | GEN.652 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.668 | 8.1 | Atmosphere colour |
+| TEST.393 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

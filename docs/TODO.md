@@ -13013,18 +13013,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: lane I's PR 4 successor or the lane that finishes GEN.411.
   Prerequisites: GEN.411. Related: GEN.413, GEN.411.
 
-- [ ] **GEN.668 Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column**
-  Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
-  GEN.413 merged as #2761): the loss events of GEN.189 set a flag only;
-  the stored ozone_column_du is not reduced by a stripping or loss
-  event. Done: a loss event scales the stored ozone column (and the UV
-  index that reads it) by the retained fraction, with a test of a planet
-  that loses half its air. Owner: none yet (pool).
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Aux 4 takes it while GEN.768 part 2
-  waits on GEN.767.
-  Prerequisites: none. Related: GEN.413, GEN.189.
-
 - [ ] **GEN.669 Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows**
   Finding of Core 4 (10:20 PM EDT 2026-10-23 as the lane reported), left
   open on purpose. (1) GEN.450 (merged as #2776, epoch 64): the radial
@@ -21029,17 +21017,6 @@ clears each one.
   with Bug 1 reviewing. Done: the module runs in a fraction of the time
   with the same sample size and tolerances.
   Prerequisites: none. Related: TEST.384, PERF.186.
-
-- [ ] **TEST.393 Each gate leaves about 50 orphaned planetgen.cli.worker processes that can fill 16 GB of RAM and get mysqld OOM-killed: tests that start detached workers do not reap them (bug)**
-  Found on lane machines (1:38 AM EDT 2026-10-25, reported by Aux 4's
-  lane thread through the coordinator relay). Do: every test that starts
-  a detached worker reaps it in a fixture finalizer (terminate, wait,
-  kill), and scripts/test.py checks for stray planetgen.cli.worker
-  processes at the start and end of a run and reports them (TEST.376
-  already checks MySQL and Redis on every run). Owner: Bug 1. Done:
-  after a full gate no planetgen.cli.worker process remains, and a test
-  that leaks one fails.
-  Prerequisites: none. Related: TEST.376, PERF.181, TEST.390.
 
 - [ ] **TEST.394 Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug)**
   Found by Core 2 (1:39 AM EDT 2026-10-25 as the lane reported):

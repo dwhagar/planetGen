@@ -207,6 +207,28 @@ def _services():
     return lane_services
 
 
+def reap_strays():
+    """
+    TEST.393: ends the queue workers the run left behind (tests start real ones in sessions of their own, and a test that
+    was stopped never tells them to stop; each keeps about 300 MB until it is idle) and returns the sentence that says
+    how many and how old, or "" when there were none.
+    """
+    try:
+        sys.path.insert(0, os.path.join(ROOT, "src"))
+        try:
+            from tests import stray_workers
+        finally:
+            sys.path.pop(0)
+        found = stray_workers.reap_all()
+    except Exception as exc:  # noqa: BLE001 -- the report must never fail a run
+        return f"no stray worker check ({exc})"
+    if not found:
+        return ""
+    oldest = max(worker["seconds"] for worker in found)
+    return (f"{len(found)} queue worker process(es) a test started and did not stop (the oldest had run "
+            f"{minutes(oldest)}); a test that starts real workers has to stop them")
+
+
 MAX_RESTARTS = 5
 """int: How many times one phase is started again after a service was restarted under it."""
 
@@ -641,6 +663,9 @@ def main(argv=None):
         return 130
     finally:
         signal.signal(signal.SIGTERM, previous_handler)
+        left = reap_strays()
+        if left:
+            print(f"scripts/test.py {key}: ended {left}", flush=True)
     seconds = time.time() - started
     if not args.resume:  # a resumed run is short because it skipped tests; it says nothing about the usual time
         save_run(key, seconds, status == 0)
