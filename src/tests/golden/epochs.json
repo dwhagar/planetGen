@@ -603,6 +603,13 @@
       "first_release": "8.0.2320",
       "reason": "A rocky planet's iron follows its star's with a scatter of 0.05 dex, and about 1 planet in 100 is iron-enriched (a dry core mass fraction of 0.5 to 0.8): the mass, radius, density and gravity of rocky planets change slightly, and the planet draws after the graphite move (GEN.512)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 102,
+      "first_release": null,
+      "pending": true,
+      "reason": "GEN.761 moons ask the hosting gate: small bodies get their moon chance from the satellite-share table",
+      "affects": ["fill"]
     }
   ]
 }

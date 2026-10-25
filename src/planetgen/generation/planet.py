@@ -404,11 +404,12 @@ class Planet(PlanetaryObject):
         return (2.0 * math.pi / self.period) ** 2 * self.distance ** 3
 
     def _draw_moons(self):
-        """Whether a planet left to chance gets moons: an even chance, moved
-        by the run's moons prevalence (GEN.52)."""
+        """Whether a planet left to chance gets moons: an even chance, or for a small body the share of the hosting gate's
+        `satellite-share` table for its population and size (GEN.761), moved by the run's moons prevalence (GEN.52)."""
+        chance = planetPhysics.satellite_share(self)
         if prevalence.percent(self.system_config, "moons"):
-            return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5)
-        return draw.randrange(2) == 1
+            return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5 if chance is None else chance)
+        return draw.randrange(2) == 1 if chance is None else draw.random() < chance
 
     def _encode(self, data):
         """`habitable_zone` is stored as a list (JSON has no tuple type); `moons` are serialized the same way,
