@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2318] - 2026-10-25
+
+**Headline:** The planet generator now has a model of the volatiles that late impacts deliver to a rocky planet and the air they blow away.
+
+### Changed
+- **Impact erosion and late delivery (GEN.739).** A new module (`impact_history`) takes the mass a rocky planet accretes after its giant impacts (0.7 percent of an Earth mass for the Earth, falling with mass), the water, carbon dioxide and nitrogen those impactors bring, and the air they erode, and returns what the air and the surface keep. It reproduces the Earth's nitrogen and ocean, Venus's nitrogen, and the result that late impacts alone do not make Mars thin. The supply law has a hook (`impact_inventory`) that turns the result into atoms per 100 g of mantle. Nothing in the generator calls it yet (it waits on GEN.411 and GEN.422), so no stored value changes today.
+- The nine new constants are in the stand-in registry (GEN.725) with their source tier and tweak level. The design note is `docs/design/composition/impact-erosion-and-late-delivery.md`.
+
 ## [8.0.2317] - 2026-10-25
 
 **Headline:** The redox of a rocky world's magma ocean now follows the published ranges: its spread grows with mass, it keeps rising above one Earth mass, and the later mantle is never more reduced than the ocean it came from.
