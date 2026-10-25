@@ -40,7 +40,7 @@ Derived; the generator has no redistribution model yet, so every body gets the h
 
 FILE_HOST_TYPES = {"F": "F", "G": "G", "K": "K", "M": "M"}
 """dict: The spectral letters of the recipe tables' hosts. A hotter star (O, B, A) takes the F rows and a brown dwarf (L, T, Y) the M rows,
-the nearest the tables have; a white dwarf is `WD` and a pulsar `PSR`."""
+the nearest the tables have; a white dwarf is `WD`, a pulsar or a black hole `PSR`."""
 
 
 def host_type_of(star):
@@ -55,7 +55,7 @@ def host_type_of(star):
         raise MixtureError("the star has no spectral type, so the host type of the mixture draw cannot be built")
     letter = str(kind).strip()[:1].upper()
     name = type(star).__name__.lower()
-    if "pulsar" in name or "neutron" in name:
+    if "pulsar" in name or "neutron" in name or "blackhole" in name:  # a black hole is a bare remnant like a pulsar: no photosphere
         return "PSR"
     if letter == "D" or getattr(star, "yerkes_class", None) in ("VII", "D"):
         return "WD"
