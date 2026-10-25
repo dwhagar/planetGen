@@ -1511,3 +1511,7 @@ Baseline: PR #1817.
 | GEN.652 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.668 | 8.1 | Atmosphere colour |
 | TEST.393 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.411 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.422 | 8.1 | Mixture and stored values |
+| GEN.683 | 8.1 | Consistency |
+| GEN.758 | 8.1 | Radiation chain for habitability (GEN.445) |
