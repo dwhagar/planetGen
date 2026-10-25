@@ -169,3 +169,74 @@ def test_a_standard_cell_is_framed_by_the_standard_fill_sphere_and_a_squeezed_on
     for cell in squeezed:
         radius = named_regions.framing_radius_pc(cell, EDGE)
         assert 7.0 < radius == named_regions.inscribed_radius_pc(cell, EDGE) < named_regions.REGION_RADIUS_PC
+
+
+def _addresses(cell, count=None):
+    addresses = list(drill.block_addresses(cell))
+    return addresses if count is None else addresses[:count]
+
+
+def test_a_lone_sector_gets_the_framing_sphere_about_itself():
+    cell = CELLS[0]
+    address = _addresses(cell)[0]
+    extent = named_regions.region_extent(cell, [address], EDGE)
+    assert extent.radius_pc == named_regions.framing_radius_pc(cell, EDGE)
+    assert (extent.clumps, extent.sectors, extent.sectors_in_sphere) == (1, 1, 1)
+    assert extent.centre_pc == pytest.approx(spherical.sector_position_pc(*address, EDGE), abs=1e-6)
+
+
+def test_a_whole_cell_is_one_clump_inside_its_own_sphere_and_a_sphere_never_shrinks_under_the_framing_radius():
+    for cell in CELLS[:4]:
+        addresses = _addresses(cell)
+        extent = named_regions.region_extent(cell, addresses, EDGE)
+        assert extent.clumps == 1 and extent.sectors == extent.sectors_in_sphere == len(addresses)
+        assert extent.radius_pc >= named_regions.framing_radius_pc(cell, EDGE)
+        anchor = named_regions.anchor_pc(cell, EDGE)
+        assert math.dist(extent.centre_pc, anchor) < 2 * EDGE * 9
+
+
+def test_the_sphere_holds_every_sector_of_the_clump_whole():
+    cell = CELLS[0]
+    addresses = _addresses(cell)
+    rng = random.Random(3)
+    for _ in range(5):
+        chosen = rng.sample(addresses, 60)
+        extent = named_regions.region_extent(cell, chosen, EDGE)
+        group = named_regions.clumps_of(chosen)[0]
+        for address in group:
+            for corner in spherical.sector_cell_vertices_pc(*address, EDGE):
+                assert math.dist(extent.centre_pc, corner) <= extent.radius_pc * 1.0001
+
+
+def test_two_far_apart_clumps_make_the_sphere_of_the_larger_one_and_both_are_counted():
+    cell = CELLS[0]
+    addresses = _addresses(cell)
+    anchor = named_regions.anchor_pc(cell, EDGE)
+    by_distance = sorted(addresses, key=lambda a: math.dist(spherical.sector_position_pc(*a, EDGE), anchor))
+    near = [a for a in by_distance if math.dist(spherical.sector_position_pc(*a, EDGE), anchor) < 7.0]
+    far = [a for a in by_distance[::-1][:3]]
+    assert not set(far) & set(near)
+    extent = named_regions.region_extent(cell, near + far, EDGE)
+    groups = named_regions.clumps_of(near + far)
+    assert extent.clumps == len(groups) >= 2
+    assert extent.sectors == len(near) + len(far)
+    assert extent.sectors_in_sphere < extent.sectors
+    assert set(groups[0]) == set(near)
+    assert math.dist(extent.centre_pc, anchor) < 5.0
+
+
+def test_clumps_are_face_connected_largest_first_and_the_same_in_any_order():
+    cell = CELLS[1]
+    addresses = _addresses(cell)[:50]
+    shuffled = list(reversed(addresses))
+    assert named_regions.clumps_of(addresses) == named_regions.clumps_of(shuffled)
+    groups = named_regions.clumps_of(addresses)
+    assert sum(len(g) for g in groups) == len(set(addresses))
+    assert [len(g) for g in groups] == sorted((len(g) for g in groups), reverse=True)
+
+
+def test_a_region_needs_a_sector():
+    with pytest.raises(ValueError):
+        named_regions.region_extent(CELLS[0], [], EDGE)
+    with pytest.raises(ValueError):
+        named_regions.bounding_sphere([], EDGE)

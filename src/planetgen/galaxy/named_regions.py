@@ -12,6 +12,9 @@ and the name, both pure functions of the block and the galaxy's naming key:
   fill of the cell (a sphere of `REGION_RADIUS_PC`, 109 sectors) is centred.
 * **The framing radius** is that standard radius, or the cell's inscribed radius where the grid squeezes the cell below it
   (next to the core and the poles), so the sphere never leaves its cell.
+* **The extent** (GEN.827) is the sphere a region is drawn and framed with: the bounding sphere of the largest face-connected
+  clump of its generated sectors (`region_extent`), never smaller than the framing sphere. Every other clump of the cell
+  still counts toward the share charted; it is not inside the sphere (no line joins two unrelated places).
 * **The name** is "Word Word Region": the codec kind `region` on seven hex digits, the first four from a hash of the
   cell's 81-block (the family: every cell of one 81-block starts with the same word) and the last three the cell's ordinal
   among the 9-blocks of its 81-block (so two cells of one family never share a name). The 81-block alone is "Word Reach".
@@ -24,6 +27,9 @@ Two blocks 324 pc apart sharing a family word is harmless; two neighbours doing 
 import functools
 import hashlib
 import math
+from collections import namedtuple
+
+import numpy as np
 
 from planetgen import tuning
 from planetgen.galaxy import drill, spherical
@@ -201,3 +207,73 @@ def family_name(family, key, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
     """The name of the 81-block `family`: the first word of its regions, "Fardoo Reach"."""
     digits = family_digits(family, key, edge_pc) + "0" * ORDINAL_DIGITS
     return f"{_word(digits, key).split(' ')[0]} Reach"
+
+
+SPHERE_ITERATIONS = 400
+"""int: Steps of the bounding-sphere search (`bounding_sphere`): the sphere's radius is within 1 / sqrt(steps) = 5 percent of
+the smallest one that holds the points."""
+
+Extent = namedtuple("Extent", ["centre_pc", "radius_pc", "clumps", "sectors", "sectors_in_sphere"])
+"""The extent of a region (`region_extent`): the sphere's centre `(x, y, z)` and radius in parsecs, how many face-connected
+clumps the cell's generated sectors form, how many sectors there are, and how many of them the sphere holds."""
+
+
+def bounding_sphere(centres_pc, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
+    """
+    A sphere that holds the sectors whose centres are `centres_pc` (an N by 3 array, parsecs): the smallest sphere through the
+    centres (found by the Badoiu and Clarkson steps, within 5 percent of the smallest) with the circumradius of a sector,
+    `sqrt(3) / 2` edges, added so the whole of each sector is inside. Deterministic.
+
+    Returns:
+        tuple: `(centre, radius)` as `(x, y, z)` and parsecs.
+    """
+    points = np.asarray(centres_pc, dtype=float).reshape(-1, 3)
+    if not len(points):
+        raise ValueError("a bounding sphere needs at least one sector")
+    centre = points[0].copy()
+    for step in range(1, SPHERE_ITERATIONS):
+        farthest = points[int(np.argmax(((points - centre) ** 2).sum(axis=1)))]
+        centre += (farthest - centre) / (step + 1)
+    radius = float(np.sqrt(((points - centre) ** 2).sum(axis=1).max())) + math.sqrt(3) / 2 * edge_pc
+    return (float(centre[0]), float(centre[1]), float(centre[2])), radius
+
+
+def clumps_of(addresses):
+    """The face-connected groups of the sector addresses `(shell, band, wedge)` (neighbours by `spherical.neighbor_addresses`),
+    largest first, ties by the smallest address."""
+    left = {tuple(address) for address in addresses}
+    groups = []
+    while left:
+        start = min(left)
+        left.remove(start)
+        group, stack = [start], [start]
+        while stack:
+            for other in spherical.neighbor_addresses(*stack.pop()):
+                if other in left:
+                    left.remove(other)
+                    group.append(other)
+                    stack.append(other)
+        groups.append(sorted(group))
+    return sorted(groups, key=lambda group: (-len(group), group[0]))
+
+
+def region_extent(block, addresses, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
+    """
+    The extent of the 9-block `block` holding the generated sectors `addresses`: the bounding sphere of the largest
+    face-connected clump (ties by the smallest address), at least `framing_radius_pc` in radius. A sphere smaller than that is
+    the framing radius about the clump's sphere centre, so a lone sector gets a sensible frame; a chain of sectors is one
+    clump, and the clumps of a cell that were made apart are not joined by a sphere that covers the gap between them.
+
+    Raises:
+        ValueError: With no sector.
+    """
+    block = _check_region(block)
+    groups = clumps_of(addresses)
+    if not groups:
+        raise ValueError("a region needs at least one generated sector")
+    centres = np.array([spherical.sector_position_pc(*address, edge_pc) for address in groups[0]])
+    centre, radius = bounding_sphere(centres, edge_pc)
+    radius = max(radius, framing_radius_pc(block, edge_pc))
+    held = int((((np.array([spherical.sector_position_pc(*a, edge_pc) for g in groups for a in g]) - centre) ** 2)
+                .sum(axis=1) <= radius ** 2).sum())
+    return Extent(centre, radius, len(groups), sum(len(group) for group in groups), held)
