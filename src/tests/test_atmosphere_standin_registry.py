@@ -40,6 +40,7 @@ STANDINS = (
     "thermosphere.COLLISION_CROSS_SECTION_M2", "thermosphere.BATES_LENGTH_SCALE_HEIGHTS", "thermosphere.KINETIC_DIAMETER_PM",
     "thermosphere.DEFAULT_KINETIC_DIAMETER_PM", "thermosphere.ENERGY_LIMITED_EFFICIENCY", "thermosphere.HYDRO_BASED_LOW",
     "thermosphere.HYDRO_BASED_HIGH", "thermosphere.MAX_EXOBASE_RADII",
+    "envelope_escape.ONSET_GY", "envelope_escape.BARE_BELOW", "envelope_escape.MAX_ENVELOPE", "envelope_escape.TEQ_OVER_INSOLATION_FOURTH",
 )
 
 

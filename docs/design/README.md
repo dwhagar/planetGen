@@ -146,6 +146,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [wd-redox-tuning.md](composition/wd-redox-tuning.md) | The retune of the white-dwarf redox rows a3 and a4 with the detection model (GEN.513) | built |
 | [radioisotope-tuning.md](composition/radioisotope-tuning.md) | The retune of the radioisotope rows o2, o4 and o6 (GEN.514) | built |
 | [radius-valley-tuning.md](composition/radius-valley-tuning.md) | The tuning of the envelope rows e1 and e2 to the Kepler radius valley (GEN.509) | built |
+| [envelope-escape-wiring.md](composition/envelope-escape-wiring.md) | The hydro-based envelope loss wired to rows e1 and e2 and the radius valley, with the 1 Gyr onset as a tuned stand-in (GEN.822) | built |
 | [water-delivery-tuning.md](composition/water-delivery-tuning.md) | The delivered-water rows b1 to b4 from the Bern population synthesis: the mass law of GEN.510 and the joint formation-distance law that replaced it (GEN.802) | built |
 | [volatile-delivery-formation-distance.md](composition/volatile-delivery-formation-distance.md) | Water-rich share and delivery classes against formation distance from the Bern population synthesis, and how it relates to the GEN.510 mass law (GEN.481); wired into the rows by GEN.802 | research note |
 | [magma-ocean-redox-against-mass.md](composition/magma-ocean-redox-against-mass.md) | Magma-ocean surface redox against mass, the later-mantle law and small-body building-block redox checked against first-hand sources; Na and K condensation temperatures (GEN.482) | research note |

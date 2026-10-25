@@ -82,8 +82,8 @@ Design requirement (project owner): for every composition category there is a ta
 
 | id | option | gate | weight w (symbols above) | weight source | status | notes |
 |---|---|---|---|---|---|---|
-| e1 | Bare rock (envelope stripped) | S, V, I, T, R[P]; M 1 to 30; not d1-only | (1-p[b4]) min(1, f_lost/f_env0); f_lost = eps pi R^3 E_cum S / (G M^2), eps 0.1 (0.05 to 0.2), E_cum=3.1e16 J/m2 at S=1 over 4.5 Gyr; f_env0=c[0.005,0.10] | energy-limited form: Lopez and Fortney 2013 (READ); eps range (2ND-HAND); E_cum and f_env0 from the project doc ([C]) | DERIVED | envelope fraction 0.5 to 10 % of mass |
-| e2 | H/He envelope retained | same | (1-p[b4]) (1 - min(1, f_lost/f_env0)) | same | DERIVED | goes to e5, e6 |
+| e1 | Bare rock (envelope stripped) | S, V, I, T, R[P]; M 1 to 30; not d1-only | (1-p[b4]) (share lost); share lost = 1 - envelope left / f_env0 M, the envelope left from the hydro-based loss rate of Kubyshkina et al. 2018 integrated over the star's XUV history from the onset age (GEN.822); f_env0=c[0.05,0.2] | hydro-based rate: Kubyshkina et al. 2018 (READ); XUV history: Johnstone-type decay of `activity` (DESIGN); onset age and f_env0 tuned to the radius valley (GEN.509, GEN.822) | DERIVED | envelope fraction 0.5 to 10 % of mass |
+| e2 | H/He envelope retained | same | (1-p[b4]) (1 - share lost) | same | DERIVED | goes to e5, e6 |
 | e3 | Water world, steam/ocean, no H2 envelope | same, p[b4]>0 | p[b4] (1-eta), eta=c[0.1,0.5] | TEST: GJ 9827 d H2O>31 % (READ) | DESIGN R1 | |
 | e4 | Hycean (H2 <=0.1 wt%, water >=10 wt%, bottom 300 to 400 K) | same | p[b4] eta | Madhusudhan 2021 (READ) | DESIGN R1 | radii up to 2.6 R_E at 10 M_E |
 | e5 | Envelope metal mass fraction Z (BINS) | L2, parent=e2 | LU[0.01, 0.6]: bins 0.01-0.03, 0.03-0.1, 0.1-0.3, 0.3-0.6 | bracket from TEST planets: GJ 1214b >100x solar, TOI-270 d 58 wt%, K2-18b near solar to tens of x (READ); occurrence-weighted distribution NOT REACHED | DESIGN R1 | mean molecular weight mu = 2.4 + 3.1 log10(Z/0.01)/log10(58) (matches 2.4 and 5.5, part 05 s5) |

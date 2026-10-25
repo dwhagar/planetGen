@@ -2,6 +2,8 @@
 
 Status: built 2026-10-24 (lane "Source and tune atmosphere draws"). Module `src/planetgen/physics/radius_valley.py`, four targets in `physics/data/tuning_targets.json` (`e1-valley-slope`, `e1-valley-radius`; `e1-valley-flux-slope`, `e1-valley-mass-slope` from GEN.722), rows e1 and e2 of `scripts/atmosphere_recipes_data.py`, tests in `src/tests/test_radius_valley.py`. It uses the Kepler recovery model (GEN.504, `kepler-recovery.md`) and the Lopez and Fortney 2014 radius law of `bulk_structure.py`. Decision D2 of `tunable-gaps.md` (XUV energy-limited loss with variable efficiency, a core-mass distribution as a third knob, Lopez and Fortney as the radius law) is followed.
 
+Superseded in part (GEN.822, `envelope-escape-wiring.md`): the energy-limited loss, its efficiency and the `eta` ridge of sections 1 and 2 are gone; rows e1 and e2 and the survey now use the hydro-based loss of Kubyshkina et al. 2018, integrated from `ONSET_GY` = 1 Gyr, with the core-mass width at 0.25 in ln and the `f_env0` bracket at 0.05 to 0.2. The targets and the survey method here still hold.
+
 ## 1. What is tuned and what to
 
 Rows e1 (the planet keeps its envelope) and e2 (it lost it) weigh `min(1, f_lost / f_env0)` against its complement. Two constants matter: the starting envelope fraction `f_env0` and the efficiency of the loss. Nothing measures them for one planet; the population does, through the valley in the period-radius plane (Petigura et al. 2022, arXiv:2201.10020, READ in the worker report): slope d log R / d log P = -0.11 +- 0.02, and a valley radius of 1.84 +- 0.03 R_E (6371 km) at 10 days.
