@@ -859,6 +859,97 @@ def test_the_system_view_opens_with_every_orbit_in_the_window(page, base_url, si
     assert seen <= _fit_half_field(page) / 1.08 + 1e-6, (seen, got)
 
 
+def _moon_scene_facts(page, scene_id):
+    return page.evaluate("""(id) => {
+        const scene = document.querySelector('#sysmap-root .sysmap-svg:not(.sysmap-orbits-layer)[data-scene="' + id + '"]');
+        const orbits = document.querySelector('#sysmap-root .sysmap-orbits-layer[data-scene="' + id + '"]');
+        const circle = (g) => g.querySelector('circle.sysmap-body-fill');
+        const self = scene.querySelector('[data-self="true"]');
+        const rect = (el) => el.getBoundingClientRect();
+        const planet = rect(circle(self));
+        return {
+            hidden: scene.classList.contains('sysmap-hidden'),
+            paths: orbits.querySelectorAll('path.sysmap-orbit').length,
+            circles: orbits.querySelectorAll('circle.sysmap-orbit').length,
+            moons: scene.querySelectorAll('[data-kind="moon"]').length,
+            perKm: parseFloat(scene.dataset.pxperkm), enlarge: parseFloat(scene.dataset.enlarge),
+            note: scene.dataset.scaleNote, twin: scene.dataset.scaleTwin,
+            planetPx: planet.width / 2, look: !!self.dataset.look,
+            scale: scene.getBoundingClientRect().width / scene.viewBox.baseVal.width,
+        };
+    }""", scene_id)
+
+
+def test_a_planet_with_moons_has_its_own_moon_system_map(page, base_url, site_app):
+    """MAP.308: a planet with moons opens a map of them at one linear scale: each moon on its stored orbit's ellipse,
+    the planet drawn from its look record, a note of how much bodies are enlarged and a True scale switch that draws
+    them at their true size; the planet's page links straight to it, and the link is in the URL."""
+    client = site_app.test_client()
+    system_id, scene = _system_with_moons(client)
+    planet = next(p for p in scene["planets"] if p["moons"])
+    # A planet whose bodies are drawn bigger than true has a True scale twin; find one if the generated systems have it.
+    twinned = None
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        found = re.search(rb'data-scene="(planet-[^"]+)"(?=[^>]*data-scale-twin)', client.get(f"/system/{system['id']}").data)
+        if found:
+            twinned = (system["id"], found.group(1).decode())
+            break
+    if twinned:
+        system_id, twin_scene = twinned
+        scene = client.get(f"/api/systems/{system_id}/scene").get_json()
+        planet = next(p for p in scene["planets"] if p["moons"] and f"planet-{p['id']}" == twin_scene)
+    page.add_init_script("try { window.localStorage.setItem('planetgen.systemView', '3d'); } catch (e) {}")
+    link = page.request.get(f"{base_url}/object/{planet['ref']}")
+    assert link.status == 200
+    moon_href = re.search(r'href="([^"]*scene=planet-[^"]+)">moon system map', link.text())
+    assert moon_href, "the planet's page offers its moon system map"
+    _open(page, base_url + moon_href.group(1).replace("&amp;", "&"), '#sysmap-root[data-ready="true"]')
+    default_id = f"planet-{planet['id']}"
+    assert _active_scene(page) == default_id
+    facts = _moon_scene_facts(page, default_id)
+    assert not facts["hidden"] and facts["look"], facts
+    assert facts["paths"] == len(planet["moons"]) and facts["circles"] == 0 and facts["moons"] == len(planet["moons"]), facts
+    assert page.locator("#sysview3d").is_hidden(), "a link to a moon system map opens the diagram, not the 3D view"
+    crumb = page.locator("#sysmap-crumb")
+    assert "Moons of " + planet["name"] in crumb.inner_text()
+    assert facts["note"]
+    if not twinned:
+        assert facts["twin"] is None and facts["enlarge"] == pytest.approx(1.0, abs=0.06), facts
+        assert crumb.get_by_role("button", name="True scale").count() == 0
+        return
+    assert facts["twin"] == default_id + "-true"
+    # The True scale switch: the other scene, the URL follows, the planet is drawn to the scale of the orbits.
+    crumb.get_by_role("button", name="True scale").click()
+    assert _active_scene(page) == default_id + "-true"
+    assert f"scene={default_id}-true" in page.url
+    true = _moon_scene_facts(page, default_id + "-true")
+    assert true["perKm"] == pytest.approx(facts["perKm"], rel=1e-4), (facts, true)
+    assert true["enlarge"] == pytest.approx(1.0) and "true size" in true["note"], true
+    radius_km = planet["radius_km"]
+    assert true["planetPx"] / true["scale"] == pytest.approx(max(radius_km * true["perKm"], 2.0), abs=1.0), (true, radius_km)
+    assert facts["planetPx"] / facts["scale"] >= true["planetPx"] / true["scale"] - 1.0
+    crumb.get_by_role("button", name="Enlarge bodies").click()
+    assert _active_scene(page) == default_id
+    crumb.get_by_role("button", name="Back to system").click()
+    assert _active_scene(page) == "system" and "scene=" not in page.url
+
+
+def test_a_planet_without_moons_offers_no_moon_system_map(page, base_url, site_app):
+    """MAP.308: a planet without moons has no moon system map, and its page does not offer one."""
+    client = site_app.test_client()
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
+        bare = [p for p in scene["planets"] if not p["moons"]]
+        if bare:
+            break
+    else:
+        pytest.skip("every generated planet has a moon")
+    response = page.request.get(f"{base_url}/object/{bare[0]['ref']}")
+    assert response.status == 200 and "moon system map" not in response.text() and "scene=planet-" not in response.text()
+    page.goto(f"{base_url}/system/{system['id']}?scene=planet-{bare[0]['id']}", wait_until="load")
+    page.wait_for_selector('#sysmap-root[data-ready="true"]', state="attached")
+
+
 def _inside_window(page, selector):
     box = page.evaluate("""(sel) => {
         const r = document.querySelector(sel).getBoundingClientRect();

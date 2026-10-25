@@ -1,0 +1,6 @@
+**Headline:** A planet with moons has its own moon system map: ellipses, the planet at the scale of the orbits, and a True scale switch.
+
+### Changed
+- **The moon system map is drawn to scale (MAP.308).** Clicking a planet that has moons (or the new "moon system map" link on the planet's page) opens a map of its moons on one linear scale: each moon sits at its stored position on its own orbit's ellipse (worked out from its stored position and speed, so an eccentric moon's orbit looks eccentric), not on a circle squeezed onto a log scale. The planet is drawn from its look record as before, with its air glow. Bodies are small against their orbits, so the map draws the planet and every moon larger than true by one factor (the planet 14 to 40 pixels across and never closer than 40 percent of the way to the nearest moon) and says "Orbits to scale; the planet and moons are drawn N times their true size"; a **True scale** button under the map draws everything at its true size and distance, and **Enlarge bodies** goes back. A planet already large against its moons' orbits gets the one map, at true size. The scene is in the address (`?scene=planet-...`), so the map has a link of its own. A planet without moons has no such map and its page does not offer one.
+
+TODO items resolved: MAP.308. Added: none.

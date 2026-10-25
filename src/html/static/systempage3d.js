@@ -184,7 +184,8 @@ if (root && diagram && diagramButton && button3d) {
 
   const params = new URLSearchParams(window.location.search);
   // 3D is the default; a visitor who last chose the diagram gets the diagram.
-  if (params.get("view") === "3d" || params.get("object") || remembered() !== "diagram") {
+  // MAP.308: a link to a moon system map (`?scene=planet-<id>`) opens the diagram that holds it.
+  if (!params.get("scene") && (params.get("view") === "3d" || params.get("object") || remembered() !== "diagram")) {
     choose3d(params.get("object"));
   }
 }

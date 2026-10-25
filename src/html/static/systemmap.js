@@ -762,10 +762,12 @@ var SVG_NS = "http://www.w3.org/2000/svg";
 
 function sceneScale(sceneEl) {
   var lo = parseFloat(sceneEl.dataset.lokm), hi = parseFloat(sceneEl.dataset.hikm);
+  // MAP.308: a moon system is on one linear scale (`data-pxperkm`), so a straight line in km is a straight line.
+  var perKm = parseFloat(sceneEl.dataset.pxperkm);
   return {
-    lo: lo, hi: hi, c: parseFloat(sceneEl.dataset.cpx),
+    lo: lo, hi: hi, c: parseFloat(sceneEl.dataset.cpx), perKm: perKm,
     min: parseFloat(sceneEl.dataset.minpx), spread: parseFloat(sceneEl.dataset.spreadpx),
-    ok: isFinite(lo) && isFinite(hi) && lo > 0,
+    ok: (isFinite(lo) && isFinite(hi) && lo > 0) || (isFinite(perKm) && perKm > 0),
   };
 }
 
@@ -773,6 +775,9 @@ function kmToPx(scale, x, y) {
   var d = Math.hypot(x, y);
   if (d <= 0) {
     return { x: scale.c, y: scale.c };
+  }
+  if (scale.perKm > 0) {
+    return { x: scale.c + x * scale.perKm, y: scale.c - y * scale.perKm };
   }
   var r;
   if (scale.hi <= scale.lo) {
@@ -961,6 +966,15 @@ function initSystemMap(root) {
     return noun + self.dataset.name;
   }
 
+  // MAP.308: the scene on screen is in the URL (`?scene=planet-<id>`), so a moon system map has a link.
+  function rememberScene(sceneId) {
+    var params = new URLSearchParams(window.location.search);
+    if (sceneId === "system") params.delete("scene");
+    else params.set("scene", sceneId);
+    var query = params.toString().replace(/%2C/gi, ",");
+    window.history.replaceState(window.history.state, "", window.location.pathname + (query ? "?" + query : "") + window.location.hash);
+  }
+
   function showScene(sceneId) {
     var active = null;
     scenes.forEach(function (scene) {
@@ -1002,7 +1016,25 @@ function initSystemMap(root) {
         current.textContent = label;
         crumb.appendChild(current);
       }
+      // MAP.308: a moon system comes at an enlarged body size and at true size; this switches between them.
+      if (active.dataset.scaleTwin) {
+        var trueNow = active.dataset.scaleTrue === "true";
+        var twinBtn = document.createElement("button");
+        twinBtn.type = "button";
+        twinBtn.className = "starmap-btn sysmap-scale-btn";
+        twinBtn.textContent = trueNow ? "Enlarge bodies" : "True scale";
+        twinBtn.setAttribute("aria-pressed", trueNow ? "true" : "false");
+        twinBtn.addEventListener("click", function () {
+          showScene(active.dataset.scaleTwin);
+        });
+        crumb.appendChild(twinBtn);
+        var note = document.createElement("span");
+        note.className = "sysmap-scale-note hint";
+        note.textContent = active.dataset.scaleNote || "";
+        crumb.appendChild(note);
+      }
     }
+    rememberScene(sceneId);
 
     clearMeasureSelection();
     layoutLabels(active);
@@ -1122,7 +1154,9 @@ function initSystemMap(root) {
     }
   });
 
-  showScene("system");
+  // `?scene=planet-<id>` (a moon system map's link, MAP.308) opens that scene when the page has it.
+  var wanted = new URLSearchParams(window.location.search).get("scene");
+  showScene(wanted && scenes.some(function (scene) { return scene.dataset.scene === wanted; }) ? wanted : "system");
   // The handlers are on: a page that tests the map waits for this rather
   // than for a fixed time (TEST.104).
   root.setAttribute("data-ready", "true");
