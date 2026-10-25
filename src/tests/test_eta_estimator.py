@@ -236,9 +236,41 @@ def test_the_overall_bar_counts_every_stage_of_the_job_not_every_step():
     assert view["overall_value"] == pytest.approx(70.0 / (70.0 + 5.0 + 40.0))
 
 
-def test_the_overall_bar_says_estimating_without_any_time_for_the_running_step():
+def test_the_overall_bar_gives_a_rough_guess_without_any_time_for_the_running_step(monkeypatch):
+    """PERF.184: a server with no timings guesses from its hardware, says so, and keeps the bar moving."""
+    monkeypatch.setattr(generate_page.roughtime, "host_workers", lambda cores=None, memory_bytes=None: 10)
     view = generate_page.overall_view(_job(step_estimates=[]), None, now=1050.0)
-    assert view["overall_value"] is None and view["overall_remaining_label"] == "estimating the time left"
+    assert view["overall_value"] is not None and "rough guess" in view["overall_remaining_label"]
+    assert view["overall_remaining_label"].startswith("roughly ")
+
+
+def test_the_overall_bar_still_says_estimating_before_the_step_has_started():
+    view = generate_page.overall_view(_job(step_estimates=[], step_started_at=None, step=0), None, now=1050.0)
+    assert view["overall_value"] is None
+
+
+def test_the_queue_page_marks_a_rough_time_as_a_guess_with_its_wide_range():
+    text = queue_page._eta_text({"seconds": 100.0, "low": 40.0, "high": 300.0, "rough": True}, live=True)
+    assert text == "40 s to 5 m 0 s (rough guess)" or text.endswith("(rough guess)")
+    assert "rough" not in queue_page._eta_text({"seconds": 100.0, "rough": False}, live=True)
+
+
+def test_a_time_worked_out_from_the_default_speed_is_labelled_a_rough_guess_with_a_range():
+    unmeasured = Estimate(sectors=5, systems=50.0, stars=65.0, bytes=1000, seconds=100.0, workers=4, measured=False)
+    assert "a rough guess, anywhere from" in unmeasured.summary() and "speed not yet measured" in unmeasured.summary()
+    measured = Estimate(sectors=5, systems=50.0, stars=65.0, bytes=1000, seconds=100.0, workers=4, measured=True)
+    assert "rough guess" not in measured.summary()
+
+
+def test_the_rough_guess_scales_with_the_hosts_workers_and_the_stages_units():
+    from planetgen.queue import roughtime
+    assert roughtime.host_workers(cores=10, memory_bytes=None) == 8
+    assert roughtime.host_workers(cores=64, memory_bytes=1 << 30) == 2, "memory caps the workers"
+    assert roughtime.host_workers(cores=1, memory_bytes=None) == 1
+    assert roughtime.stage_seconds(units=16, workers=8) == 2 * roughtime.UNIT_SECONDS
+    assert roughtime.stage_seconds(units=3, workers=8) == roughtime.UNIT_SECONDS, "no more workers than units"
+    assert roughtime.stage_seconds(units=None, workers=4) == roughtime.UNKNOWN_STAGE_WORKER_SECONDS / 4
+    assert roughtime.rough_range(None) is None
 
 
 def test_the_overall_bar_is_full_for_a_succeeded_job():

@@ -30,7 +30,7 @@ import time
 import redis
 
 from planetgen.datasets import fetch
-from planetgen.queue import commands, progress_file, redisqueue, runrecord, runwait, units, workers
+from planetgen.queue import commands, progress_file, redisqueue, runrecord, runwait, stagetimes, units, workers
 from planetgen.util import log
 from planetgen.util.settings import get_settings
 
@@ -283,8 +283,11 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                                      f"start Redis to run this: {exc}") from exc
     by_key = {step.key: step for step in steps}
     recorded = [by_key.get(step.key, step) for step in (listing or steps)]
+    times = stagetimes.lookup(conn, [step.key for step in steps])
     stages = [runrecord.Stage(step.key, step.label, workers=workers_count or 1,
-                              expected_seconds=expected_seconds(step, (rows or {}).get(step.key)),
+                              expected_seconds=(expected_seconds(step, (rows or {}).get(step.key))
+                                                or times.get(step.key, {}).get("seconds")),
+                              worker_rate=times.get(step.key, {}).get("worker_rate"),
                               row=(rows or {}).get(step.key)) for step in steps]
     debug = (log.areas_spec() or "all") if log.console_debug() else ""     # a debug run: the workers relay their lines
     start = lambda: runrecord.start_run(       # noqa: E731

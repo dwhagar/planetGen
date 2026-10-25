@@ -24,6 +24,11 @@ function draw(note, answer) {
   }
 }
 
+// Imported with this module's own `?v=` query, as systemmap.js explains.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { fieldsReady } = await import(`./fieldsready.js${VERSION_QUERY}`);
+await fieldsReady();
+
 for (const note of document.querySelectorAll("[data-size-report]")) {
   const form = note.closest("form");
   let timer = null;
@@ -53,6 +58,7 @@ for (const note of document.querySelectorAll("[data-size-report]")) {
   const later = () => { clearTimeout(timer); timer = setTimeout(ask, WAIT_MS); };
   form.addEventListener("input", later);
   form.addEventListener("change", later);
+  form.addEventListener("sl-change", later);
   note.hidden = true;
   ask();
 }

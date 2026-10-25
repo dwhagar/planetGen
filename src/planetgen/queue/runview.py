@@ -36,7 +36,8 @@ def eta_view(run, now):
         return None
     eta = runeta.estimate(run, now)
     return {"seconds": eta.seconds, "low": eta.low, "high": eta.high, "source": eta.source,
-            "from_earlier_runs": eta.from_earlier_runs, "partial": eta.partial, "stalled": eta.stalled}
+            "from_earlier_runs": eta.from_earlier_runs, "partial": eta.partial, "stalled": eta.stalled,
+            "rough": eta.rough}
 
 
 def summary(run, now):

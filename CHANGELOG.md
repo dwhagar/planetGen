@@ -2,6 +2,50 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2294] - 2026-10-25
+
+**Headline:** The Generate pages' boxes are now the same form fields as the rest of the site, and they still line up.
+
+### Changed
+- **The Generate pages use the one form field (UX.125).** Every text, number and choice box and every tick box on the Generate task pages, the one-off system page and the recipe name boxes is now the site's one form field (a labelled Shoelace box with a slot for the quiet hint line or the server's error, and a plain twin for a browser without script, so the pages post as before). The boxes on a line still sit level with a matching width however long a label is, in both themes and at phone width. The live "how big" line, the star mix total and the shape dials follow the new boxes and the limit sliders keep their own number box. Radio choices, the sliders, the sector finder's search box and the system file's text area stay as they were.
+
+TODO items resolved: UX.125. Added: none.
+
+## [8.0.2293] - 2026-10-25
+
+**Headline:** The Queue page can start the habitability re-score and the map-luminosity fill with a button.
+
+### Added
+- **Start a fill panel on the admin Queue page (ADM.129).** "Regenerate habitability" re-scores every planet and moon from
+  its stored conditions (it re-draws nothing), and "Fill map luminosity" fills the map luminosity of scattered
+  phenomena that lack it. Each button asks for confirmation, then starts `planetgen rescore-habitability` or
+  `planetgen fill-map-luminosity` as a job with the rules of any generation run: refused while another run is live or
+  everything is stopped, the one-run lock, an activity-log entry, progress on the Queue page, Stop everything and Retry.
+
+## [8.0.2292] - 2026-10-25
+
+**Headline:** A server with no timing history now shows a rough time left, labelled as a guess, instead of "estimating".
+
+### Fixed
+- **Time estimates broke on a server that had never timed a stage (PERF.184).** A run's time left, the banner's
+  hours and the Generate page's whole-job bar said "estimating" until a first unit finished, and left a later stage out
+  of the total. They now start from a rough guess: the stage's units over the workers the host can run at once (its
+  cores and memory) at a default cost per unit. The guess is labelled "rough guess" with a wide range (0.4 to 3 times the
+  figure), the sector estimate says "anywhere from A to B" while its speed is the default, and each figure is replaced
+  by the run's own pace as units finish.
+- **A stage with no stored history now learns.** When a stage of a queue run ends, its time and its cost per worker second
+  are folded into a running average (`queue/stagetimes.py`), so the next run of the warm-up and the fills starts from
+  what the last one took, and the estimate tightens run after run.
+
+## [8.0.2291] - 2026-10-25
+
+**Headline:** The Location block is tidier, there is one Nav button, and the composition-origin row is gone.
+
+### Changed
+- The Location block lists a star and its system once when they share a name, no longer links the Galaxy, and says nothing about clouds the object is not in; with nothing to show the block is left out (UX.200).
+- The separate Navigate from here, Navigate to here and What's nearby buttons are one Nav button whose menu holds Navigate from here, Navigate to here and Nearby locations (UX.201).
+- The "How the composition was found" row is removed from the property sheet of planets and moons; the stored column stays (UX.202).
+
 ## [8.0.2290] - 2026-10-25
 
 **Headline:** The map browser tests have a dense fixture galaxy to fly into, ready for the zoom, label, pick and icon work.

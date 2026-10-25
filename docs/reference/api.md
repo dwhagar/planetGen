@@ -858,8 +858,9 @@ forced credential change. They back the admin stats page
   "cancelling", "done", "failed" or "cancelled"), "error", "live", "stale",
   "created", "started", "updated", "finished", "seconds", "stage": {"index",
   "count", "label", "state"}, "units", "units_done", "percent", "eta":
-  {"seconds", "low", "high", "source", "from_earlier_runs", "partial",
-  "stalled"} or null}`, all read from the run record in Redis (`holder` is
+  {"seconds", "low", "high", "source" ("live", "recorded", "earlier runs", "this run so far" or "rough guess"),
+  "from_earlier_runs", "partial", "stalled", "rough" (PERF.184: part of the time is a guess from the host's workers and
+  the stage's units, so `low` and `high` are wide)} or null}`, all read from the run record in Redis (`holder` is
   the run that owns the machine; `stale` says it has not been heard from
   for `max(120 s, 3 x its longest unit)`). `load.kind` is `load` (the 1, 5
   and 15 minute load average); `load.values` is null where the system has

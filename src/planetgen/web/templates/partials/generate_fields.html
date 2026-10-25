@@ -1,17 +1,16 @@
 {#- planetgen/web/templates/partials/generate_fields.html -- the Generate page's field macros (imported `with context`
     by generate_task.html): number boxes, the limit sliders (UX.116), the scatter limits, prevalence, star mix and
-    overrides. Each is drawn once per task page. -#}
+    overrides. Each is drawn once per task page. Every text, number and choice box and every tick box is the one form
+    field (UX.125, partials/ui_fields.html: a Shoelace element with a plain twin in a <noscript>); the sliders, whose
+    box is a native number input that limitsliders.js drives, and the radio choices stay native. -#}
+{% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
 {%- macro field(name, label, value="", kind="number", step="any", min=None, max=None, placeholder=None, required=False, hint=None) -%}
-<label class="search-field">{{ label }}
-  <input type="{{ kind }}" name="{{ name }}" value="{{ form.get(name, value) if form else value }}"
-    {%- if kind == "number" %} step="{{ step }}" inputmode="decimal"{% endif %}
-    {%- if min is not none %} min="{{ min }}"{% endif %}
-    {%- if max is not none %} max="{{ max }}"{% endif %}
-    {%- if placeholder %} placeholder="{{ placeholder }}"{% endif %}
-    {%- if required %} required{% endif %}
-    {%- if kind == "text" %} autocomplete="off" autocapitalize="off" spellcheck="false"{% endif %}>
-  {%- if hint %}<span class="field-hint">{{ hint }}</span>{% endif %}
-</label>
+{%- set shown = form.get(name, value) if form else value -%}
+{%- if kind == "number" -%}
+{{ ui_input(name, label, shown, type="number", required=required, hint=hint, step=step, inputmode="decimal", min=min, max=max, placeholder=placeholder) }}
+{%- else -%}
+{{ ui_input(name, label, shown, type=kind, required=required, hint=hint, min=min, max=max, placeholder=placeholder, autocomplete="off", autocapitalize="off", spellcheck="false") }}
+{%- endif -%}
 {%- endmacro -%}
 {#- UX.116: one control for every scatter and fill limit: a slider that moves a number box at its end, which shows the
     value and takes a typed one (static/limitsliders.js; `spec` is a web/limit_sliders.LimitSlider). The box is the form
@@ -39,16 +38,12 @@
 {%- macro compact_limit(id) -%}
 {%- set use_star = (not form) or form.get("compact_use_star") -%}
 {%- set chosen = (form.get("compact_min_mass") if form else none) or compact_presets[-1] -%}
+{%- set presets = [] -%}
+{%- for preset in compact_presets %}{% set _ = presets.append({"value": preset|int, "label": preset|int}) %}{% endfor -%}
 <fieldset class="generate-compact" data-compact-limit>
   <legend>{{ compact_label }}</legend>
-  <label class="generate-compact-star"><input type="checkbox" name="compact_use_star" value="1" id="{{ id }}-star"
-    {%- if use_star %} checked{% endif %}> Use the star mass setting</label>
-  <label for="{{ id }}">Or neutron stars and black holes from
-    <select id="{{ id }}" name="compact_min_mass">
-      {%- for preset in compact_presets %}
-      <option value="{{ preset|int }}"{% if preset|int == chosen|float|int %} selected{% endif %}>{{ preset|int }}</option>
-      {%- endfor %}
-    </select> solar masses</label>
+  {{ ui_checkbox("compact_use_star", "Use the star mass setting", checked=use_star, id=id ~ "-star") }}
+  {{ ui_select("compact_min_mass", "Or neutron stars and black holes from this many solar masses", presets, chosen|float|int, id=id) }}
   <span class="field-hint">Every neutron star and black hole at least this heavy is placed across the whole galaxy;
   lighter ones are drawn when their sector is made. The central black hole or quasar is always created. Lower
   limits fill the database: {% for preset, cost in compact_warnings %}{{ preset|int }} solar mass{{ "es" if preset > 1 }} is {{ cost }}{{ "; " if not loop.last else "." }}{% endfor %}</span>
@@ -60,33 +55,16 @@
 {%- macro lever_input(row) -%}
 {%- set shown = form.get(row.name, "") if form else "" -%}
 {%- if row.kind == "enum" -%}
-<label class="search-field">{{ row.label }}
-  <select name="{{ row.name }}" data-lever="{{ row.name }}">
-    {#- Blank is Auto. With one entry (spiral) the blank option is that entry; with more, Auto comes first. -#}
-    <option value=""{% if not shown %} selected{% endif %}>{{ row.choices[0]|capitalize if row.choices|length == 1 else "Auto" }}</option>
-    {%- if row.choices|length > 1 %}
-    {%- for choice in row.choices %}
-    <option value="{{ choice }}"{% if shown == choice %} selected{% endif %}>{{ choice|capitalize }}</option>
-    {%- endfor %}
-    {%- endif %}
-  </select>
-  <span class="field-hint">{{ row.help }} Auto: {{ row.auto_text }}.</span>
-</label>
+{#- Blank is Auto. With one entry (spiral) the blank option is that entry; with more, Auto comes first. -#}
+{%- set choices = [{"value": "", "label": row.choices[0]|capitalize if row.choices|length == 1 else "Auto"}] -%}
+{%- if row.choices|length > 1 %}{% for choice in row.choices %}{% set _ = choices.append({"value": choice, "label": choice|capitalize}) %}{% endfor %}{% endif -%}
+{{ ui_select(row.name, row.label, choices, shown, hint=row.help ~ " Auto: " ~ row.auto_text ~ ".", **{"data-lever": row.name}) }}
+{%- elif row.kind == "length" -%}
+{{ ui_input(row.name, row.label, shown, hint=row.help ~ " Allowed " ~ row.range_text() ~ ". Auto: " ~ row.auto_text ~ ". " ~ row.units_text(), placeholder="Auto", autocomplete="off", autocapitalize="off", spellcheck="false", **{"data-lever": row.name}) }}
 {%- else -%}
-<label class="search-field">{{ row.label }}{% if row.unit and row.kind != "length" %} ({{ row.unit }}){% endif %}
-  {%- if row.kind == "length" %}
-  <input type="text" name="{{ row.name }}" value="{{ shown }}" data-lever="{{ row.name }}" placeholder="Auto" autocomplete="off"
-    autocapitalize="off" spellcheck="false" aria-describedby="{{ row.name }}-units">
-  <span class="field-hint">{{ row.help }} Allowed {{ row.range_text() }}. Auto: {{ row.auto_text }}.
-  <span id="{{ row.name }}-units">{{ row.units_text() }}</span></span>
-  {%- else %}
-  <input type="number" name="{{ row.name }}" value="{{ shown }}" step="any" inputmode="decimal"
-    min="{{ row.minimum }}" max="{{ row.maximum }}" data-lever="{{ row.name }}" data-step="{{ row.step }}" data-dial="{{ row.dial }}"
-    {%- if row.name == "mass" %} data-no-dark-halo-below="{{ halo_min_stellar_mass }}" data-simple-below="{{ full_structure_min_mass }}"{% endif %}
-    placeholder="Auto">
-  <span class="field-hint">{{ row.help }} Allowed {{ row.range_text() }}. Auto: {{ row.auto_text }}.</span>
-  {%- endif %}
-</label>
+{%- set extra = {"data-lever": row.name, "data-step": row.step, "data-dial": row.dial} -%}
+{%- if row.name == "mass" %}{% set _ = extra.update({"data-no-dark-halo-below": halo_min_stellar_mass, "data-simple-below": full_structure_min_mass}) %}{% endif -%}
+{{ ui_input(row.name, row.label ~ (" (" ~ row.unit ~ ")" if row.unit else ""), shown, type="number", hint=row.help ~ " Allowed " ~ row.range_text() ~ ". Auto: " ~ row.auto_text ~ ".", step="any", inputmode="decimal", min=row.minimum, max=row.maximum, placeholder="Auto", **extra) }}
 {%- endif -%}
 {%- endmacro -%}
 {%- macro plan_inputs() -%}
@@ -142,8 +120,7 @@
   <legend>Core</legend>
   <p class="hint">Where the nuclear cluster and disc dominate, the scatter can draw its line a little higher: the core is
   the densest part of the galaxy and holds far more stars than can be made.</p>
-  <label class="generate-check"><input type="checkbox" name="core_follow" value="1" data-core-follow
-    {%- if following %} checked{% endif %}> Follow the galaxy-wide limits ({{ core_factor_percent }}% of them)</label>
+  {{ ui_checkbox("core_follow", "Follow the galaxy-wide limits (" ~ core_factor_percent ~ "% of them)", checked=following, **{"data-core-follow": true}) }}
   <div class="search-fields">
     {{ limit_slider(id ~ "-floor", sliders.core_min_luminosity, "Stars at least this bright are placed in the core.", follows=(floor_id ~ "-box", core_factor), value=core_floor_default) }}
     {{ limit_slider(id ~ "-mass", sliders.core_mass_limit, "Stars born at least this heavy are placed in the core.", follows=(mass_id ~ "-box", core_factor), value=core_mass_default) }}
@@ -228,25 +205,17 @@
 </details>
 {%- endmacro -%}
 {%- macro skip_scatter(id) -%}
-<label class="search-field generate-check generate-skip"><span><input type="checkbox" id="{{ id }}" name="skip_scatters" value="1"
-  {%- if form and form.get("skip_scatters") %} checked{% endif %}> Skip all scatters</span>
-  <span class="field-hint">Runs no scatter at all: no massive stars, bright stars, neutron stars, black holes or other phenomena are placed across the whole galaxy. Normally they are, right after the plan, or on a new galaxy once its first sectors are generated, leaving those out.</span></label>
+{{ ui_checkbox("skip_scatters", "Skip all scatters", checked=(form and form.get("skip_scatters")), id=id, hint="Runs no scatter at all: no massive stars, bright stars, neutron stars, black holes or other phenomena are placed across the whole galaxy. Normally they are, right after the plan, or on a new galaxy once its first sectors are generated, leaving those out.") }}
 {%- endmacro -%}
 {#- GEN.599: a job refuses to start while a downloaded data file is missing; this box says to go ahead with each missing dataset's labelled fallback. -#}
 {%- macro disregard_data(id, ticked=False) -%}
-<label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="disregard_missing_data" value="1"
-  {%- if ticked or (form and form.get("disregard_missing_data")) %} checked{% endif %}> Disregard missing data files</span>
-  <span class="field-hint">A job refuses to start while a downloaded data file is missing (run <code>update.sh</code> to download it). Ticked, it starts anyway, takes a labelled fallback for each missing dataset, and says so in the job log.</span></label>
+{{ ui_checkbox("disregard_missing_data", "Disregard missing data files", checked=(ticked or (form and form.get("disregard_missing_data"))), id=id, hint=("A job refuses to start while a downloaded data file is missing (run <code>update.sh</code> to download it). Ticked, it starts anyway, takes a labelled fallback for each missing dataset, and says so in the job log.")|safe) }}
 {%- endmacro -%}
 {#- Debug mode for this one job: every step of it writes each decision it makes (every draw, branch, stage, unit, SQL
     statement, cache hit, the queue workers' lines too) to the job log. -#}
 {%- macro debug_box(id) -%}
-<label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="debug" value="1"
-  {%- if form and form.get("debug") %} checked{% endif %}> Debug: log every decision to the job log</span>
-  <span class="field-hint">Every step of the job writes each decision it makes, with a timestamp: every random draw, choice, stage, unit, SQL statement and cache hit, the queue workers' lines too. It is a great deal of text; the Debug log setting in <code>config.json</code> does this for every job and writes the debug log file as well.</span></label>
+{{ ui_checkbox("debug", "Debug: log every decision to the job log", checked=(form and form.get("debug")), id=id, hint=("Every step of the job writes each decision it makes, with a timestamp: every random draw, choice, stage, unit, SQL statement and cache hit, the queue workers' lines too. It is a great deal of text; the Debug log setting in <code>config.json</code> does this for every job and writes the debug log file as well.")|safe) }}
 {%- endmacro -%}
 {%- macro confirm_field(id) -%}
-<label class="search-field">Type the database name to confirm
-  <input type="text" id="{{ id }}" name="confirm" placeholder="{{ database }}" required autocomplete="off" autocapitalize="off" spellcheck="false">
-</label>
+{{ ui_input("confirm", "Type the database name to confirm", "", required=True, placeholder=database, id=id, autocomplete="off", autocapitalize="off", spellcheck="false") }}
 {%- endmacro -%}
