@@ -77,14 +77,19 @@ changes the golden files under `src/tests/golden/` and bumps the **generator epo
 `src/tests/golden/epochs.json` (OPS.56). Three things go together, and `--check-pr` fails a PR that has only some
 of them:
 
-1. the golden files changed;
-2. the epoch bumped by one: run `python -m tests.golden_update --reason "what changed and why"` after regenerating the
-   golden files (it refuses under CI, with no golden change, and a second time in the same change);
+1. the golden files changed (TEST.77: `python -m tests.golden_update` rewrites them, about ten minutes, and needs the
+   test database);
+2. the epoch bumped by one: `python -m tests.golden_update --reason "what changed and why" --affects fill` (it
+   refuses under CI, with no golden change, and a second time in the same change). `--affects` names the deepest
+   stages the change altered, from `plan`, `scatter`, `fill`, `population` (comma separated): GEN.764 redoes exactly
+   those in a galaxy made under the epoch before, and `plan` means such a galaxy needs a full regeneration. Every
+   epoch after the first has the list, and `--check-pr` refuses one without it;
 3. a line `generation-output: changed` in the PR's note, inside the section it belongs to.
 
-Until the first golden file is checked in (the golden test, TEST.77), there is nothing to change in step 1, so
-steps 2 and 3 go together alone. A change that leaves the output as it was touches none of them. `planetgen.util.generator_epoch.generator_epoch()`
-reads the epoch; stamping the release fills in the epoch's `first_release`.
+The PR that adds the first golden files needs no epoch bump (the rule asks whether golden files existed at the merge
+base). A change that leaves the output as it was touches none of them.
+`planetgen.util.generator_epoch.generator_epoch()` reads the epoch; stamping the release fills in the epoch's
+`first_release`.
 
 ## Commands
 

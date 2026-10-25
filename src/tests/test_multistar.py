@@ -85,6 +85,18 @@ def test_a_single_object_has_one_member_and_no_orbit():
     assert tree.members[0].kind == "main-sequence" and tree.members[0].parent_node_no is None
 
 
+def test_a_forced_single_object_has_no_companion_whatever_it_became():
+    """GEN.719: n_stars=1 (no binaries, one star) is one member for a star that is now a white dwarf or a neutron star,
+    and for a placed white dwarf, neutron star or black hole, where the companion table used to add one anyway."""
+    placed = [(multistar.Placed("star", 1.0), 14.0e9), (multistar.Placed("star", 1.0), 4.6e9),
+              (multistar.Placed("white-dwarf", 0.6, 1.5), 5.0e9), (multistar.Placed("neutron-star", 1.4, 15.0), 5.0e9),
+              (multistar.Placed("black-hole", 10.0, 40.0), 5.0e9), (multistar.Placed("star", 0.4), 13.0e9)]
+    for object_, age in placed:
+        for seed in range(150):
+            tree = _tree(object_, age, seed, n_stars=1)
+            assert tree.member_count == 1 and tree.nodes == (), (object_, age, seed)
+
+
 def test_the_same_stream_gives_the_same_tree_and_another_gives_another():
     placed = multistar.Placed("star", 20.0)
     assert _tree(placed, 1.0e6, 5) == _tree(placed, 1.0e6, 5)

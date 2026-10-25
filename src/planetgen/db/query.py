@@ -39,7 +39,7 @@ import zlib
 import pymysql
 
 from planetgen.db.store import (
-    STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, get_galaxy_shape_pins, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
 from planetgen.db import countcache, hostednebula, nebula_blocks, point_columns
@@ -2366,7 +2366,6 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
     query = (f"SELECT * FROM ({_phenomena_union()}) AS phenomena{where} "
              f"ORDER BY {column} IS NULL, {column} {'DESC' if descending else 'ASC'}, name, type, id")
     start = offset or 0
-    built_limit = limit
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params.extend([limit, start])

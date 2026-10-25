@@ -689,7 +689,7 @@ def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scr
     page.locator("#search-planets [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
     first = page.locator("#search-planets tbody tr", has_text="World 000").first
     assert first.locator("svg.hab-symbol").count() == 7
-    first_links = first.locator(".hab-symbols a.help-link[href*='/help/habitability#']")      # read now: scrolling drops the row
+    first_links = first.locator(".hab-symbols a.help-link[href*='#habitability'], .hab-symbols a.help-link[href*='#life']")      # read now: scrolling drops the row
     assert first_links.count() == 11    # the seven symbols and the four life scores (UX.152)
     first_hrefs = first_links.evaluate_all("els => els.map(e => e.getAttribute('href'))")
     page.locator("#search-planets .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
@@ -700,12 +700,12 @@ def test_search_planet_rows_draw_their_habitability_symbols_with_and_without_scr
     assert labels[0].startswith("Overall habitability: ") and "Pressure: Blue" in labels
     assert last.locator("svg.hab-symbol use").first.get_attribute("href").endswith("#hab-overall")
     assert last.locator("svg.hab-symbol.tier-red").count() >= 1
-    # UX.181: each symbol, drawn by the page or by datatable.js, is a link to its section of the habitability page.
-    last_links = last.locator(".hab-symbols a.help-link[href*='/help/habitability#']")
+    # UX.197: each symbol, drawn by the page or by datatable.js, links to the Habitability group of that body's page.
+    last_links = last.locator(".hab-symbols a.help-link[href*='#habitability'], .hab-symbols a.help-link[href*='#life']")
     assert last_links.count() == 11
     for hrefs in (first_hrefs, last_links.evaluate_all("els => els.map(e => e.getAttribute('href'))")):
-        assert hrefs[0].endswith("/help/habitability#overall")
-        assert hrefs[1].endswith("/help/habitability#domain-pressure")
+        assert all(href.endswith("#habitability") and "/object/planet:" in href for href in hrefs[:7])    # UX.197
+        assert all(href.endswith("#life") for href in hrefs[7:])
 
 
 def test_search_planet_rows_draw_one_equipment_chip_per_item_with_and_without_scripts(page, table_site):
@@ -748,7 +748,7 @@ def test_search_planet_rows_draw_the_four_life_scores_with_and_without_scripts(p
         assert [(label, score) for label, score, _ in drawn] == [
             ("Microbial life: 3 of 9", "3"), ("Flora: none", "0"), ("Fauna: 1 of 9", "1"), ("Sentient life: none", "0")]
         assert "hab-life-none" in drawn[1][2] and "hab-life-none" in drawn[3][2] and "hab-life-none" not in drawn[0][2]
-    assert last_row.locator(".hab-life-cluster a.help-link[href$='#life-fauna']").count() == 1
+    assert last_row.locator(".hab-life-cluster a.help-link[href$='#life']").count() == 4
 
 
 # --- UX.117: the Apply filters button never goes away ------------------------------------------------

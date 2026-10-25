@@ -46,7 +46,7 @@ that comes from the six PHI-6 domains (pressure, temperature, air, water,
 radiation, suitability; Blue, Green, Yellow, Red) under the gates of GEN.207, and the Habitable,
 Habitable moon and Inhabited chips. Planets around pulsars, neutron stars
 and black holes follow a host rule. The Equipment search has a facet for
-the labels. The explanation page is /help/habitability under the Help menu (UX.90, UX.180); every symbol, life score and chip links to its own section of it (UX.181), and a class letter or name links to its class page (UX.182). UX.100: a system page's planet and moon rows show
+the labels. The explanation page is /help/habitability under the Help menu (UX.90, UX.180); every chip, and the symbols and life scores on the help page itself, link to their own section of it (UX.181); on a planet's or moon's page, in a list and in a tree a body's symbols and life scores link to the Habitability and Life groups of that body's own page (UX.197), whose Habitability group carries a link on to the help page, and a class letter or name links to its class page (UX.182). UX.100: a system page's planet and moon rows show
 the overall PHI-6 symbol and the six domain symbols (UX.101) beside the equipment chip, instead of the notes (the
 tooltip, the per-domain colour words and the three stored scores); each row names its class (and a "Habitable class"
 chip for a habitable one, with no Terrestrial or Gas Giant label) and counts its moons. The Search page's planet and

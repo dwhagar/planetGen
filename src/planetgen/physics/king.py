@@ -20,7 +20,6 @@ import math
 
 import numpy as np
 from scipy.integrate import solve_ivp
-from scipy.special import erf
 
 from planetgen import tuning
 from planetgen.physics import constants

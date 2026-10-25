@@ -31,11 +31,9 @@ rocky family and gives the pieces their own seeded design brackets, each a stand
 """
 
 import dataclasses
-import math
 
-from planetgen.physics import gas_equilibrium, saturation
+from planetgen.physics import saturation
 from planetgen.physics import mixture_oxygen, mixture_rocky
-from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureDraw, NotApplicable, atoms_of, bracket, finish, require
 
 WATER_RESIDUAL = (1e-5, 1e-3, "log")

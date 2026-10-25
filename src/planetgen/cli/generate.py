@@ -55,7 +55,7 @@ from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, luminosity_floor, prevalence
-from planetgen.galaxy import seed as galaxySeed, spherical, version_check, version_key
+from planetgen.galaxy import drill, seed as galaxySeed, spherical, version_check, version_key
 from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -656,9 +656,10 @@ def add_sectors_arguments(parser):
                                  "band of the shell) and --wedge (one sector).")
     mode_group.add_argument('--block', metavar='M.I.S.SLAB',
                             help="Block mode: generate every not-yet-generated sector the galaxy's outline "
-                                 "allows inside one Galaxy Map drill-down block, given by its key "
-                                 "(size.shell.wedge.slab, as in the map's stage links). Refused until "
-                                 "the Galaxy Map's ladder is rebuilt on shells.")
+                                 "allows inside one block of the Galaxy Map's ladder, given by its key "
+                                 "(size.shell.band.wedge, as in the map's stage links; the size is 243, "
+                                 "81, 27, 9 or 3). Sectors are generated shell by shell outward, with "
+                                 "the same progress and cancel as the other modes.")
     mode_group.add_argument('--center-sector', type=int, metavar='SECTOR_ID',
                             help="Local-neighborhood mode: generate every not-yet-generated sector "
                                  "within --radius-pc of the given, already galaxy-placed sector's own "
@@ -796,8 +797,8 @@ def validate_sectors_args(args, parser):
     include `add_shared_generation_options`'s own validation (`validate_shared_generation_args`).
     """
     if getattr(args, "block", None) is not None:
-        parser.error("--block: the Galaxy Map's blocks are being rebuilt on shells; until then fill "
-                     "a --shell, a --shell --band, or a span (--shells/--bands/--wedges).")
+        _validate_block(args, parser)
+        return
 
     course = getattr(args, "course", None)
     if course is not None:
@@ -904,6 +905,26 @@ def _validate_course(args, parser):
     ) if value is not None]
     if others:
         parser.error(f"--course can't be combined with {', '.join(others)}.")
+    args.sector_name = args.system_file = args.num_orbits = args.name = None
+
+
+def _validate_block(args, parser):
+    """Checks `--block` (GEN.310): a key of a block of a stage level (`drill.parse_stage_key`), nothing that names another
+    region, a `--limit` in range; shapes `args` like the other modes."""
+    others = [flag for flag, value in (
+        ("--band", args.band), ("--wedge", args.wedge), ("--radius-pc", args.radius_pc),
+        ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
+        ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges),
+    ) if value is not None]
+    if others:
+        parser.error(f"--block can't be combined with {', '.join(others)}.")
+    try:
+        block = drill.parse_stage_key(args.block)
+    except ValueError as exc:
+        parser.error(f"--block: {exc}")
+    args.block = drill.format_drill_key(block)
+    if args.limit is not None and not 1 <= args.limit <= limits.MAX_GENERATE_LIMIT:
+        parser.error(f"--limit must be between 1 and {limits.MAX_GENERATE_LIMIT}.")
     args.sector_name = args.system_file = args.num_orbits = args.name = None
 
 

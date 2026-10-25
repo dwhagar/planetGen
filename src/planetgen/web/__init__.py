@@ -154,11 +154,12 @@ def habitability_symbol(name, tier, detail=None, link=True):
     return Markup(habitability_symbols.symbol_html(name, tier, static_url("icons.svg"), detail, _habitability_help_url(link)))
 
 
-def habitability_symbol_row(body, with_overall=True, with_life=True):
+def habitability_symbol_row(body, with_overall=True, with_life=True, page=None):
     """The symbols of one body's row (`habitability_symbols.symbol_row`), overall first and the life cluster last,
-    each linked to its section of the habitability page (UX.181); empty for an unscored body."""
+    each linked to its section of the habitability page (UX.181), or with `page` (the body's own page) to that page's
+    Habitability and Life groups; empty for an unscored body."""
     return Markup(habitability_symbols.symbol_row(body, static_url("icons.svg"), with_overall, with_life,
-                                                  _habitability_help_url(True)))
+                                                  _habitability_help_url(True), page))
 
 
 def habitability_life(name, score, link=True):

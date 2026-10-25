@@ -41,6 +41,10 @@ selector; Scale, Structure, Edge, Halo and Census are the five dials; Pattern is
 STATUSES = ("verified", "derived", "bracket", "theory", "placeholder")
 """tuple: The labels a range's source can carry."""
 
+TIER_OF_STATUS = {"verified": "T1", "derived": "T2", "bracket": "T3", "theory": "T5", "placeholder": "T4"}
+"""dict: The source tier (Boss's nine, docs/design/stand-in-values.md) each label gives a range; GEN.725. A range whose label is
+`placeholder` has no source at all (T4, unverified); the tier is the owner's to change when the range is read."""
+
 KINDS = ("float", "int", "enum", "length")
 
 
@@ -98,6 +102,9 @@ class Lever:
     advanced: bool = False
     log: bool = False
     """bool: Whether a slider for the row runs on a logarithmic scale (a mass, a density)."""
+    tweak: str = "L0"
+    """str: How far the range was moved to fit outcomes (GEN.725): L0 as first envisioned from its source, up to L4 fitted to an
+    outcome with no independent source."""
 
     @property
     def dest(self):
@@ -526,9 +533,9 @@ REGISTRY_END = "<!-- dial-ranges:end -->"
 
 def registry_block():
     """The registry rows for the shape dials' ranges in `docs/design/research/gap-filling-plan.md` (GEN.609): one per lever."""
-    lines = [REGISTRY_BEGIN, "| Lever | Range | Label | Source |", "|---|---|---|---|"]
+    lines = [REGISTRY_BEGIN, "| Lever | Range | Label | Tier | Tweak | Source |", "|---|---|---|---|---|---|"]
     for row in LEVERS:
-        lines.append(f"| `{row.flag}` | {row.range_text()}{row._abs_text()} | {row.status} | {row.source} |")
+        lines.append(f"| `{row.flag}` | {row.range_text()}{row._abs_text()} | {row.status} | {TIER_OF_STATUS[row.status]} | {row.tweak} | {row.source} |")
     lines.append(REGISTRY_END)
     return "\n".join(lines)
 

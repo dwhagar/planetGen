@@ -12,7 +12,6 @@ mark every field in one round trip. The limits are the ones the routes
 always had (`routes.MAX_NAME_LENGTH` and the rest).
 """
 
-import math
 from typing import Annotated, Any, Dict, List, Literal, Optional, Union
 
 from pydantic import (
@@ -251,6 +250,13 @@ class NeighborhoodRequest(Body):
     """`POST /api/sectors/<id>/generate-neighborhood` (every field optional)."""
 
     radius_ly: Optional[Number] = Field(default=None, gt=0, le=generationLimits.MAX_GENERATE_RADIUS_LY)
+    estimate_only: StrictBool = False
+    disregard_missing_data: StrictBool = False
+
+
+class BlockGenerateRequest(Body):
+    """`POST /api/galaxy/blocks/<key>/generate` (every field optional)."""
+
     estimate_only: StrictBool = False
     disregard_missing_data: StrictBool = False
 

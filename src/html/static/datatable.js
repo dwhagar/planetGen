@@ -222,7 +222,7 @@ function cellNode(cell, iconUrl, helpUrl) {
     td.append(form);
   } else if (cell.symbols) {
     // The habitability symbols (UX.100), drawn from the icon sprite as the page draws them with no scripts.
-    td.append(symbolRow(cell.symbols, iconUrl, helpUrl, cell.life));
+    td.append(symbolRow(cell.symbols, iconUrl, cell.page || helpUrl, cell.life));
   } else if (cell.chips) {
     // The equipment chips (UX.154): solid for a required item, outlined for a recommended one, in the colour of the
     // PHI-6 domain it comes from.

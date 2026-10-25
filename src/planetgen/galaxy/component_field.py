@@ -177,7 +177,6 @@ class ComponentField:
 
     def _build_index(self):
         """Grid cell -> the components whose tidal sphere, grown by the cell cube's reach, touches it."""
-        grid = tuning.CLUSTER_GRID_PC
         margin = self.edge_pc * (tuning.CLUSTER_NEAR_EDGES + 1.0)
         index = {}
         for i, (center, reach) in enumerate(zip(self._centers, self._reach)):

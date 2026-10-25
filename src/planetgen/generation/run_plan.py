@@ -36,7 +36,6 @@ from planetgen.galaxy import nebula_field as nebulaField, seed as galaxySeed
 from planetgen.galaxy import dials
 from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.names import naming_key
-from planetgen.physics import constants
 from planetgen import tuning as program_constants
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
@@ -535,7 +534,6 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
-        extents = _outline(conn)
         filled = store.filled_sector_addresses(conn)
         if filled:
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
@@ -876,6 +874,16 @@ class _ScatterShape:
             reach_on=data["reach_on"], e_value=data["e_value"], band_share=data["band_share"],
             component_count=data["component_count"])
 
+    def expected_of(self, key):
+        """The stars task `key` is expected to place: its shells' expected stars (the outline's and the part of each
+        shell beyond it), the far shells' together, or the components' share. The task's `weights` also count the
+        bands it walks, so they are not a count of stars (GEN.398)."""
+        if key == self.far_key:
+            return self.expected[self.first_far]
+        if key in self.component_parts:
+            return self.tasks[key][0][2]
+        return sum(self.expected[shell] for shell, _high, _weight in self.tasks[key])
+
     def log_line(self, label):
         return (f"{label}: about {round(sum(self.expected.values())):,} stars expected in "
                 f"{sum(self.sizes.values()):,} shells, {self.reach_shell:,} shells being the grid's reach"
@@ -1111,7 +1119,7 @@ class _ScatterTally:
         def task_done(result):
             task_counts = result["counts"]
             types = collections.Counter({(name, plural): count for name, plural, count in result["types"]})
-            note = _unit_note(key + 1, len(shape.tasks), shape.weights[key])
+            note = _unit_note(key + 1, len(shape.tasks), shape.expected_of(key))
             if key in shape.component_parts:
                 if sum(types.values()):
                     log.normal(f"{self.label}, {shape.names[key]}{note}: added {sum(types.values()):,} stars: "
@@ -1382,7 +1390,6 @@ def add_bright_star_band(args):
             raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
         settings = store.bright_star_scatter_settings(conn)
         mass_limit = store.bright_star_mass_limit(conn)
-        mass_range = None if mass_limit is None else (None, mass_limit)
         if settings is None:
             log.normal("No bright stars are scattered yet, so there is no level to go below. Run "
                        f"'planetgen scatter --luminosity --bright-star-min-luminosity {target:g}' instead.")
@@ -1392,12 +1399,10 @@ def add_bright_star_band(args):
         # floor up to its old one, and a tier whose floor does not fall adds nothing.
         older = scatter_limits.ScatterLimits.of(skeleton, current, mass_limit)
         newer = scatter_limits.ScatterLimits.of(skeleton, target, mass_limit)
-        tiered = scatter_limits.band_pass(newer, older)
         if target >= current:
             log.normal(f"Nothing to add: every star of {current:g} L_sun or more is already placed, "
                        f"and {target:g} is not below that.")
             return None
-        extents = _outline(conn)
         filled = store.filled_sector_addresses(conn)
         # Sectors a backfill took to their own level (GEN.44) already hold
         # part of the band: the shell scatter leaves them out and each gets
@@ -2464,7 +2469,6 @@ def scatter_phenomena(args):
         counts = {}
         galaxy_components = _galaxy_components(mysql_config)
         shape = _plan_phenomena(skeleton, extents, galaxy_components, min_mass_solar)
-        e_value = skeleton.expected_system_count_at_density_1
         log.normal(f"Phenomena: about {round(shape.expected_rows):,} to place in {shape.shell_total:,} shells "
                    f"({phenomenon_scatter.cut_summary(min_mass_solar)}).")
         if filled:

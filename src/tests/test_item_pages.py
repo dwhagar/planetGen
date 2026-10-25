@@ -279,3 +279,9 @@ def test_a_page_lists_a_row_only_when_it_holds_something_or_its_absence_matters(
     assert shown == ["atmospheric_pressure_pa", "p_co2_kpa", "surface_temperature_k"]
     assert sheet_context(sheet)["hidden_rows"] == 1
     assert [r["label"] for r in glance_view(sheet)] == ["surface_temperature_k", "atmospheric_pressure_pa"]
+
+
+def test_the_symbols_on_a_planets_page_go_to_its_own_habitability_group_and_that_group_links_the_help_page(client):
+    """UX.197: the icons link to this page's Habitability section, whose help link goes on to the levels page."""
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert f'href="/object/{PLANET}#habitability"' in page

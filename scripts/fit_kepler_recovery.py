@@ -33,7 +33,6 @@ Only the fitted numbers are written; the injection and stellar rows are not kept
 Needs network access for the queries and numpy and scipy.
 """
 
-import io
 import json
 import math
 import os

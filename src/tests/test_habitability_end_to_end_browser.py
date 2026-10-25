@@ -259,22 +259,18 @@ def test_the_habitable_world_marker_finds_the_system_with_the_stored_count_and_g
 
 # --- 4. The help page -------------------------------------------------------------------------------------------------
 
-def test_a_symbol_opens_the_help_page_at_its_section_and_the_page_lists_the_tiers_the_score_reads(page, habitable_galaxy):
+def test_a_symbol_opens_its_planets_habitability_group_and_the_help_page_lists_the_tiers_the_score_reads(page, habitable_galaxy):
     page.goto(f"{habitable_galaxy.base_url}/lists/planet", wait_until="load")
     page.wait_for_selector("svg.hab-symbol", state="attached")
-    for anchor in ("overall", "domain-radiation"):
-        link = page.locator(f'a.help-link[href="/help/habitability#{anchor}"]').first
-        link.click()
-        page.wait_for_url(f"**/help/habitability#{anchor}")
-        target = page.locator(f"#{anchor}")
-        assert target.count() == 1
-        assert page.evaluate("(id) => document.querySelector(':target') === document.getElementById(id)", anchor)
-        box = target.bounding_box()
-        assert box and box["y"] >= 0, "the section sits under the sticky header"
-        page.go_back()
-        page.wait_for_selector("svg.hab-symbol", state="attached")
-
-    # The levels table is the one the score reads: every cell of every row comes from the limits the score uses.
+    link = page.locator('a.help-link[href$="#habitability"]').first
+    link.click()
+    page.wait_for_url("**/object/planet:*#habitability")
+    target = page.locator("#habitability")
+    assert target.count() == 1
+    assert page.evaluate("() => document.querySelector(':target') === document.getElementById('habitability')")
+    assert page.locator('#habitability a.help-link[href^="/help/habitability"]').count() == 1    # one click on to the help page
+    page.go_back()
+    page.wait_for_selector("svg.hab-symbol", state="attached")
     page.goto(f"{habitable_galaxy.base_url}/help/habitability", wait_until="load")
     text = " ".join(page.evaluate("document.body.textContent").split())
     rows = [(domain, row) for domain, variables in habitability_ref.domains() for row in variables]

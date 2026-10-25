@@ -577,7 +577,7 @@ with `clamp()`.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.310. Related: GEN.231.
+  Prerequisites: none. Related: GEN.231.
 
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -983,31 +983,158 @@ with `clamp()`.
   at an existing heading id. Owner: Aux 11, after UX.195.
   Prerequisites: UX.195. Related: UX.195, UX.172, UX.188.
 
-- [ ] **UX.197 The habitability icons link to the habitability section of the planet information page, not to the help page (bug)**
-  Boss, 7:41 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9LcRMXpJUGS2PLuWn5phzu, relayed by the
-  coordinator): "info pages, system pages, planet pages, star pages, all
-  pages need to get a TOC build based on headings, all sections and
-  tables should carry headings from 1 (title / main) and descending.
-  Also change the habitability icon links to go to the habitability
-  section of of the planet information page." Today every habitability
-  symbol, life score and equipment or Habitable chip links straight to
-  its section of the habitability help page (UX.181). Change the
-  destination: an icon in a list, search row, sector or system table,
-  map infobox or a page's own basics line goes to that planet's own
-  information page at its habitability section
-  (/object/<ref>#habitability, the section anchor of the planet page,
-  which the owner adds with a heading id if the section has none), and
-  on the planet's own page the icon scrolls to that section. The help
-  page stays one click away: the section's heading carries a help link
-  (the existing help-link markup) to the matching part of the
-  habitability help page. Done: a browser test clicks a habitability
-  icon in a sector list and in a search row and lands on the planet page
-  at the habitability section, and clicks the help link there and lands
-  on the help page; the help-link coverage test (TEST.331, DOC.6) is
-  updated to the new rule. Owner: Aux 11 (UX.181 was the lane's
-  help-link work).
-  Prerequisites: none. Related: UX.181, UX.195, TEST.331, DOC.6, UX.189.
+- [ ] **UX.198 The Atmosphere section of the planet property sheet shows 14 empty rows (bug)**
+  Boss, 7:45 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
+  coordinator), live observation from the page of Enuakyadas IV (object
+  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: in the page
+  text the Atmosphere section of the property sheet lists 14 rows with
+  no label and no value, between the Composition and Climate sections
+  (the planet does have an atmosphere: the About block lists nitrogen
+  69.9 percent, oxygen 29 percent, argon and trace gases). Do: find
+  whether the sheet registry rows for the gas-by-gas values (after the
+  4b gas table, migration 0155) are rendering with empty labels for a
+  world, or the section lists gases that have no row; make the section
+  show the atmosphere in plain rows (total pressure, the main gases with
+  their shares, the mean molecular mass, the scale height) and show
+  nothing for a gas with no value. If the cause is the stored gas rows
+  themselves, hand that part to Aux 1. Done: a page test on a planet
+  with an atmosphere finds every row in the Atmosphere section with a
+  label and a value and no empty row. Owner: Aux 11 (property sheet and
+  pages); Aux 1 if the cause is data. Related: UX.187, TEST.358.
+  Prerequisites: none. Related: UX.187, TEST.358, UX.173.
+
+- [ ] **UX.199 Pages show raw or placeholder values: "not stored" rows in At a glance, and a raw key such as Technological_civilization (bug)**
+  Boss, 7:45 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
+  coordinator), live observation from the page of Enuakyadas IV (object
+  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: two display
+  faults in the same paste. (1) "Hours of daylight a person can be
+  outside: not stored" appears in the At a glance table and again in the
+  Rotation section, although the rule (Boss, 10-24, UX.188 to UX.194) is
+  that a value that is none or zero is left out unless its absence
+  matters. Do: leave out a "not stored" row unless the absence matters
+  to a captain, and where it does matter say why in a sentence
+  ("Daylight hours need the planet's rotation and a stored day length").
+  (2) The Life section shows "Life stage: Technological_civilization",
+  the stored key. Do: show the name a person reads ("Technological
+  civilization", the label the text already uses) for every stored key
+  that reaches a page (life stage, evolutionary pace, hydrosphere,
+  dynamical state and the rest), through the sheet registry's label for
+  the value, and add a test that lists every enumerated stored value
+  shown and fails on an underscore or capitalised key. Owner: Aux 11.
+  Related: UX.188, UX.187.
+  Prerequisites: none. Related: UX.188, UX.190, UX.187.
+
+- [ ] **UX.200 The Location block lists a system and its star separately when they share a name, shows "not inside any nebula" style lines, and links the Galaxy (bug)**
+  Boss, 7:48 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy, relayed by the
+  coordinator), live observation of the Location block on an object
+  page, so a bug: Boss: "the system and star can both be listed which
+  they have the same name, so its location should be in the system, the
+  star doesn't need to be listed separately. Instead of saying 'not
+  inside any nebula' or similar just don't put that line at all. We also
+  don't need the 'Galaxy' link, we can figure out it's in the galaxy."
+  Do: (1) when a star and its system share a name (a single star
+  system), the Location block lists only the system, and the star's own
+  page gives its place as in that system; (2) a Location line that says
+  there is nothing ("Not inside any nebula or supernova remnant" and
+  every sibling) is left out entirely, so a line appears only when it
+  holds a place; (3) remove the Galaxy link from the block. Done: a page
+  test on a single-star system finds one line for the system and none
+  for the star, a test on a star outside any nebula finds no "not
+  inside" wording, and no Galaxy link is in the block. Owner: Aux 11
+  (object pages). Related: UX.188, UX.195.
+  Prerequisites: none. Related: UX.188, UX.195, UX.187.
+
+- [ ] **UX.201 A Nav button on object pages opens one menu: navigate from here, navigate to here, nearby locations (bug)**
+  Boss, 7:48 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy, relayed by the
+  coordinator), live observation of the Location block on an object
+  page, so a bug: Boss: "Make a Nav button that opens a menu with the
+  nav from here, to here, and nearby locations." Do: replace the
+  separate Navigate from and Navigate to links on object pages with one
+  Nav button that opens a small menu with three entries: navigate from
+  here, navigate to here, and nearby locations (the nearest systems or
+  objects, each a link). The menu opens by keyboard and click, closes on
+  escape, and works on a phone width. Done: a browser test opens the
+  menu on a system page, finds the three entries, follows nearby
+  locations to another object, and the old separate links are gone.
+  Owner: Aux 11. Related: UX.200, MAP.293.
+  Prerequisites: none. Related: UX.200, UX.187.
+
+- [ ] **UX.202 Remove the "How the composition was found" line from the object pages (bug)**
+  Boss, 7:49 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy was the Location
+  note; this one is cmsg_01RuNTFUNB92A8cm5CbojQAi8J89Q4swLrpuV9PJ6FR7HG,
+  relayed by the coordinator), live observation, so a bug: "UX, 'how the
+  composition was found' line needs to be removed". Cause: the row
+  `composition_origin` ("How the composition was found") in the
+  Composition group of the property sheet registry (describe/sheet.py
+  line 185). Do: remove the row from the sheet and from every page that
+  shows it (planet, moon, star), keeping the stored column and the
+  composition paragraph (GEN.430, GEN.642 text is Aux 6's and is not
+  changed by this item). Done: a page test finds no "How the composition
+  was found" on a planet, moon or star page, and the sheet test's "every
+  column shown or excused" excuses composition_origin as stored but not
+  shown. Owner: Aux 11 (object pages); Aux 6 (Lane J, composition) is
+  told so its composition text does not re-add the line. Related:
+  UX.187, TEST.358, GEN.430.
+  Prerequisites: none. Related: UX.187, TEST.358, GEN.430.
+
+- [ ] **UX.203 Pages state a missing thing in one sentence instead of a table of zeros: no life, no atmosphere (0 Pa), effectively no water**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), Boss: "if a planet has no life, just make a note in the
+  description and don't show the table full of 0's, same for atmosphere
+  if it is 0 Pa just put 'None' for atmosphere, also if there is
+  effectively no water on the planet then put that in the description
+  and omit that section to avoid all the 0's." Do: (1) a world with no
+  life (all four life scores 0, no life stage) gets one sentence in the
+  description and no Life table; (2) a world whose surface pressure is 0
+  Pa (or below the registry's vacuum limit) shows the Atmosphere entry
+  as "None" and no Atmosphere section or gas rows; (3) a world with
+  effectively no water (hydrosphere none or ocean and ice fraction below
+  the registry's limit, and no vapour) says so in the description and
+  the Water section is omitted; the limits are named constants in one
+  place. This extends the absent-value rule of UX.188 to UX.194 to whole
+  sections. Done: page tests on a barren airless dry world find no Life
+  table, no Atmosphere section, no Water section and the three
+  sentences; a world with a thin atmosphere or a trace of water still
+  shows its section. Owner: Aux 11. Related: UX.188, UX.198, UX.199,
+  GEN.766.
+  Prerequisites: none. Related: UX.188, UX.198, UX.199, GEN.766.
+
+- [ ] **UX.204 Every collapsible section on an object page starts collapsed**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), Boss: "all sections that can be collapsed should be
+  collapsed at start". Do: every collapsible section (property sheet
+  groups, the long text blocks, the tables) starts collapsed when the
+  page loads, on planet, moon, star, system and every other object page;
+  the headings stay visible and the table of contents (UX.196) still
+  opens a section when its link is followed; a section the visitor
+  opened stays open while they use the page. Done: a browser test loads
+  a planet page and finds every collapsible section collapsed, follows a
+  contents link and finds that section open. Owner: Aux 11. Related:
+  UX.195, UX.196.
+  Prerequisites: none. Related: UX.195, UX.196.
+
+- [ ] **UX.205 Object pages show the day and night time shares, moons with the extra night from their planet**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), the display half of the day and night shares request.
+  Do: planet and moon pages show the share of time in daylight and in
+  night (and for a moon the extra night in its parent's shadow, with the
+  length of the longest eclipse) in the rotation group and in one
+  sentence of the description; a tidally locked world says so (day side,
+  terminator, night side); an object with no day or night (a star, a
+  free body with no rotation stored) shows nothing; also replaces the
+  "Hours of daylight a person can be outside: not stored" row (UX.199)
+  with these shares. Done: page tests on Earth-like, locked and moon
+  cases find the shares and the sentence. Owner: Aux 11, after GEN.767
+  supplies the columns. Related: UX.199, GEN.767.
+  Prerequisites: GEN.767. Related: UX.199, UX.203.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -3574,199 +3701,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   density is this item.
   Prerequisites: TEST.182.
 
-- [ ] **GEN.55 Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal)**
-  Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
-  the database, and put it in the log at the top of any generation, also
-  populate the TODO upward from here to eventually build a system that a
-  version number and a seed value would reproduce the same galaxy by the
-  end of the phases."
-  Changed by Boss (2026-10-09 20:42Z): "remove the idea of us letting
-  the USER regenerate an entire galaxy from the seed and version, we'll
-  use that internally, but no need for it to go anywhere else." The seed
-  stays as an internal mechanism: parallel workers, fills, backfills, the
-  phenomenon scatter and its sector fill, and the settle step all rely on
-  the same seed and address giving the same data. There is no user-facing
-  rebuild of a galaxy from a seed and a version: no `generate.py
-  reproduce`, no seed and version pages, no JSON net-difference file, no
-  daily merge or backup slots. This item is done when its last internal
-  sub-item is. Order:
-  - Phase 0: GEN.39 (per-unit seeds, after PERF.21) with DB.6 and
-    OPS.10 (done).
-  - Phase 1: GEN.56 (every draw seeded), GEN.57 (a sector's contents
-    depend only on the seed, the version and its address), DB.7 (the
-    version kept with each sector), GEN.58 (a fingerprint), TEST.77 (the
-    golden-seed test), OPS.13 (each update records the key, keeping the
-    last 10) and OPS.14 (a warning when the running key differs from the
-    galaxy's). GEN.47's nebula field (done, PR #419) uses the derived
-    seeds.
-  - Phase 2: PERF.18 and GEN.42 give the one-process stars for one seed
-    (already in their Done text); OPS.15 has each update say whether it
-    changes generated output.
-  - Phase 3: API.17 makes a remote run produce what the server would
-    (kept for remote generation; open question for Boss).
-  Anything that draws new randomness later (GEN.42, PERF.18, API.12,
-  API.13) uses the derived seeds and keeps TEST.77 green.
-  Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-
-  - [ ] **OPS.16 A daily maintenance script for Linux and macOS, with its lock helper**
-    Boss (2026-10-02 02:28Z): "We're going to have to build a
-    maintenance script for powershell and bash that will run the
-    positional update script, then kick off this delta script ..."
-    Scope cut by Boss (2026-10-09 20:42Z): the delta merge and the
-    18-slot JSON backups (GEN.61, OPS.18) are dropped with the user-facing
-    galaxy rebuild, so this script runs the positional update only (and
-    any later daily step). Decided (Boss, 2026-10-09 20:52Z): keep the
-    daily positional update.
-    Done: `scripts/maintenance.sh` (Linux and macOS) runs once a day:
-    the positional update (a step list of the PERF.118 wrapper, replacing `planetgen.cli.orbits`). A lock keeps two
-    runs
-    from overlapping, every step logs to the normal log, and the script
-    exits non-zero on any failure. Optionally it also runs OPS.15's
-    fingerprint check, so changed output is noticed daily. A test runs
-    it on a small galaxy and checks a second run started during the
-    first exits at once. Prerequisites: none.
-    Research (2026-10-09, db-check-and-parity-repair.md): the parity
-    export and checksum must not cover the columns the orbit update
-    rewrites, or the daily run invalidates all of them; the run also
-    refiles systems and phenomena into other sectors, so sector
-    membership of placed objects changes daily.
-    Research (2026-10-09, ops-scheduling-and-rotation.md): restructure:
-    implement the logic once as a step list of the PERF.118 wrapper (this research named `planetgen.cli.nightly`; see the Decided note below)
-    (`planetgen.cli.maintenance` already exists: maintenance mode on and
-    off, UX.112) (steps,
-    lock, `--if-due`, `--dry-run`, `--only STEP`, rotating log file,
-    exit codes 0/1/2/75) and make `scripts/maintenance.sh` and `.ps1`
-    thin launchers that find the right Python and run it as the web
-    user. Take `locks/maintenance.lock` plus a check of
-    `jobs.active_job()`; exit 75 when skipped; alert after N skipped
-    days. Treat Redis as optional. Iterate every galaxy database. Run
-    orbits in-process or as `planetgen.cli.orbits` (this item's text
-    says `updateOrbits.py`, which no longer exists). Decided (Boss,
-    2026-10-10 18:44Z, defaults approved; default: skip the day while a
-    Generate job runs, exit 75,
-    alert after 3 skipped days).
-    Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
-    2026-10-10 04:25Z).
-    The lock helper (OPS.30, folded in) is built first; the thread order
-    is OPS.16, OPS.17.
-    Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-    2026-10-17): OPS.30 folded in. The lock helper comes first in this
-    item: `planetgen/util/locks.py` with `filelock`, a sidecar info
-    file, `timeout=0` helpers and `PermissionError` handling, plus a
-    two-process test on Linux and macOS (the Windows parts are dropped
-    by OPS.39).
-    Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT
-    2026-10-21 "Apply all 29", as the coordinator reported it): the
-    nightly run is not a `planetgen.cli.nightly` command and not
-    `cli.orbits`: it is a step list of the PERF.118 wrapper, and the
-    steps are the single-purpose commands that replace `cli.orbits` (the
-    orbital update of GEN.105 and the other one-job commands of
-    docs/design/architecture/command-inventory.md). `scripts/maintenance.sh` stays a
-    thin launcher of that wrapper run; `cli.nightly` is not built as
-    a second wrapper. The decision of Boss, 2026-10-17, 4:19 PM EDT
-    (every command does one thing, the order lives only in the wrapper
-    step list) is filed on GEN.105.
-    Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-
-  - [ ] **OPS.17 Install and update set up the daily maintenance schedule**
-    Done: `install.sh`, `install.ps1`, `update.sh` and `update.ps1`
-    (with `deploy-common.*`) set up OPS.16's daily run: a systemd timer
-    or cron entry on Linux, launchd on macOS, Task Scheduler on
-    Windows. Update leaves an existing schedule as it is and adds a
-    missing one. The deployment docs say how to change the time or turn
-    it off. Same scripts as OPS.7, OPS.8 and OPS.13, so it lands after
-    them. Prerequisite: OPS.16.
-    Research (2026-10-09, ops-scheduling-and-rotation.md): re-scope to
-    extending `examples/maintenance/install-maintenance-timer.sh` and
-    `install-maintenance-task.ps1` (they exist) and calling them from
-    install and update with the rules create if missing, leave if
-    present, refresh the service text by version stamp. Default per OS:
-    systemd timer (UTC `OnCalendar`, `Persistent=true`), cron.d
-    fallback, launchd with `RunAtLoad` and `--if-due`, Task Scheduler as
-    SYSTEM with `StartWhenAvailable`. Retire the monthly
-    `planetgen-orbits@` timers, tasks and plists when the daily run is
-    installed. Keep the monthly `planetgen-update.timer` (it takes the
-    maintenance lock and waits up to 30 minutes; open question for
-    Boss). Add `maintenance.schedule: auto|off` to `config.json`. Fix
-    and test `org.planetgen.update.plist`, and correct
-    `docs/deployment/macos.md` (an asleep Mac runs at wake; only a
-    powered-off Mac skips).
-    Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
-    2026-10-10 04:25Z).
-    Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-
-  - [ ] **TEST.77 A golden-seed regression test**
-    Done: a fixed 128-bit seed builds a small galaxy (plan, a few
-    sectors, a scatter and a backfill) at 1 and 4 workers, and its
-    fingerprint (GEN.58) must match the one pinned in
-    `src/tests/golden/`, pinned per release with the version it was made
-    on. When generation
-    output changes, the test fails until the PR updates the pinned
-    fingerprint and its `changes/` note says generation output changed
-    (`bump_version.py --check` checks the two go together). It runs on
-    every CI Python leg. Prerequisite: none (GEN.57 done). [generation, infra]
-    Research (2026-10-09, reproducible-galaxies.md): replace "pinned per
-    release with the version it was made on" with "pinned per
-    `generator_epoch`, one golden for all legs". Add tier A (the
-    database-free battery, 3 to 5 s) to the Windows and macOS CI jobs
-    (`ci.yml`'s matrix is Linux only; `macos-latest` is Apple Silicon);
-    keep 1 against 4 workers as tier B and the hash-seed and locale
-    probe as tier C; add one full-text "Rosetta" sector for readable
-    diffs. The epoch item owns the `golden_update` tool and the
-    `--check-pr` rule. Needs the deterministic math helpers first. Once
-    GEN.42 lands, include one block-first backfill in the golden galaxy.
-    Generator epoch (Core 2, #1927, 2026-10-16, 9:42 PM EDT): GEN.135
-    made the generator epoch 2 (nebula shapes and the last bits of
-    positions differ); the epoch and golden-files rule is waived until
-    this item is built.
-    Generator epoch 3 (GEN.306, #1942, 11:28 PM EDT as the lane
-    reported): population streams are keyed on the homeworld's unique
-    ID; the golden files still do not exist, so the epoch and its note
-    went in together, as for epoch 2.
-    Epoch plan (Core 3, as the coordinator reported at 11:42 PM EDT):
-    the horizontal branch change (GEN.286, GEN.287, #1932) shipped
-    without an epoch entry (the golden files do not exist yet, so the PR
-    rule did not fail). A small PR carrying GEN.286/287's note and the
-    GEN.407 constants takes generator epoch 4 with the
-    `generation-output: changed` line; GEN.322 (which adds rows) takes
-    epoch 5.
-    Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-  Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-    Owner: Core 1 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue
-    is in reports/8-1-core-queues-2026-10-22.md; this replaces any
-    earlier owner line).
-    Prerequisites: none.
-
-  - [ ] **API.17 Remote generation reproduces what the server would make**
-    Done: a remote run (API.12's download, API.13's generation without a
-    database) with the same seed and release produces exactly what the
-    server would for those sectors, checked by fingerprint (GEN.58); and
-    API.8 can verify an upload by re-running a sample of its sectors on
-    the server and comparing. Prerequisites: API.12, API.13, GEN.57,
-    API.8.
-    Decided (Boss, 2026-10-09 20:52Z): keep the fingerprint check. This
-    is remote generation matching the server, not a user rebuild of a
-    galaxy from a seed and version.
-    Research (2026-10-09, reproducible-galaxies.md): the remote path
-    calls the same pure generation function; compare fingerprints at 9
-    digits; per api-design-standards.md the handshake compares epoch and
-    battery digest rather than the full version key. A remote machine
-    with a different OS, architecture or Python micro version cannot
-    match the fingerprint unless the key is loosened or the check is
-    advisory.
-    Needs API.8, because its Done changes the verification flow (API.8
-    verifies an upload by re-running a sample of its sectors on the
-    server and comparing) (2026-10-16 review).
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-    Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-    Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-    2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core
-    1 held it before; this replaces any earlier owner line).
-
 - [ ] **GEN.90 Refactor the planet classes around the habitability index**
   Boss (2026-10-03 05:38Z): "Refactor all planetary classes to better
   align with our habitability index system and the research for the
@@ -4872,7 +4806,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.310, UX.127. Related: GEN.101, MAP.120.
+  Prerequisites: UX.127. Related: GEN.101, MAP.120.
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
   Step 10 of the whole-sphere train. High-velocity clouds are the one
@@ -5678,26 +5612,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   builder of the adaptive per-cell cap (GEN.280 is the core density);
   the "that GEN.280 builds" wording is replaced.
   Prerequisites: none. Related: GEN.281, GEN.283, ADM.43.
-
-- [ ] **GEN.310 Fill a whole block of the shell ladder: planetgen generate --block and the queue job**
-  Split from GEN.231 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). A block of the new ladder (its m,
-  shell, band and wedge, docs/design/galaxy/spherical-block-ladder.md) is a
-  region that the generate command and the work queue can fill, nearest
-  sectors first, with the same progress and cancel as a neighbourhood
-  fill (there is no resume); `--block` takes the new block address; the
-  work-queue job route (`api/workqueue.py`) accepts a block so the map
-  can start it; the refusal text in `cli/generate.py` and its test in
-  `test_gen_cli_errors.py` are deleted. Done: `planetgen generate
-  --block <address>` fills the block on the new queue and a cancel stops
-  it; an API job for a block starts and reports progress; tests for the
-  command and the route.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Research (2026-10-09, 10-24 Core 5): Unblocked: PERF.99 merged
-  (#3030). Core 5 is on it now.
-  Prerequisites: none. Related: GEN.231.
 
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
   Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -7115,40 +7029,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
-
-- [ ] **GEN.398 The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug)**
-  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
-  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
-  galaxy, seed 0123456789abcdef0123456789abcdef; note
-  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md). The
-  massive-star pass logged "about 156,808 stars expected" and placed
-  265,909 (70 percent over; the per-chunk "added N stars" lines sum to
-  265,909); the bright-star pass logged "about 693,089" and placed
-  778,980 (12 percent over). scatter-queue-feasibility.md had the
-  sampler within 1.5 sigma of expected at 8 solar masses. It may be only
-  the coarse WEIGHT_BAND_SAMPLES estimate behind the log line, or the
-  sampler after GEN.333 and GEN.280. Fails on main, every run.
-  Reproducer: `planetgen plan --redo-scatters mass luminosity` on a
-  planned galaxy and compare the two log lines. Done: the cause is named
-  (estimate or sampler); if the sampler is wrong the placed count
-  matches the integral of the density within k Poisson sigma over a
-  small galaxy test, and if only the estimate is coarse the log line
-  uses the better estimate; the test stays.
-  Owner: Core 3 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
-  PM EDT via the coordinator: add the 14 code-contradicts-physics items
-  to the Math lane; assessment
-  reports/physics-grounding-assessment-2026-10-24.md contradiction 7):
-  Owner: Math lane. This replaces any earlier owner line on this item.
-  Taken from Core 3, which has not started it; the Math lane confirms
-  with TODO before starting.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
-  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
-  nobody started it.
-  Prerequisites: none. Related: GEN.322, GEN.333, GEN.280, GEN.321.
 
 - [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
   Boss (2026-10-16, 10:11 PM EDT, in the Core 1 thread): on the GEN.368
@@ -13030,40 +12910,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   names is left. Owner: Condition-based classes lane.
   Prerequisites: GEN.689.
 
-- [ ] **GEN.691 The Suitability sentence says "no food readily available, but there is water and shelter available" while the Water row is Red and "undrinkable without heavy treatment" (bug)**
-  Found by the Habitability text consistency lane from Boss's pasted
-  class B planet page (his message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiDs1DawrZoMKQtWYK4tvujG, relayed 12:11 AM
-  EDT 2026-10-24 as the lane reported). The Suitability water rung (is
-  water accessible) and the Water row (the chemistry, drinkable or not)
-  are different tests but are worded as if they were one, so the page
-  contradicts itself. Do: reword the Suitability clause
-  (physics/protection.py _suitability_clause) so water access and water
-  quality read consistently with the Water row, e.g. name the treatment
-  needed; add a test that the sentence never says water is available
-  without the Water row's treatment note. Done: the class B page reads
-  consistently and the test passes. Owner: Habitability lane D
-  (habitability model).
-  Research (2026-10-09, Decided): Decided (Boss, 12:39 AM EDT 2026-10-24
-  (his message cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva,
-  relayed by the coordinator)), answer 3, option 1: a Green Water or
-  Suitability row that says a mask is needed is allowed (a Green rating
-  may still need a mask). The wording must not contradict the rows, but
-  the combination Green with a mask is valid. Owner: Habitability text
-  lane / lane D.
-  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
-  PM EDT via the coordinator: add the 14 code-contradicts-physics items
-  to the Math lane; assessment
-  reports/physics-grounding-assessment-2026-10-24.md contradiction 13):
-  Owner: Math lane. This replaces any earlier owner line on this item.
-  Taken from lane D, which has not started it; the Math lane confirms
-  with TODO before starting.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
-  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
-  nobody started it.
-  Prerequisites: none.
-
 - [ ] **GEN.701 Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields**
   Source: reports/habitability-model-gaps-2026-10-23.md item 3 (build
   plan row 3), relayed by lane D at 1:59 AM EDT 2026-10-24 as the lane
@@ -13262,40 +13108,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread; nobody has started it; Lane E reported the finding but is
   not building it).
   Prerequisites: none. Related: GEN.703, GEN.715, GEN.423.
-
-- [ ] **GEN.719 A white dwarf primary makes draw_member_tree ignore n_stars=1, so a binary_system prevalence of -100 still yields a wide double white dwarf (bug)**
-  Found by Lane K (11:32 AM EDT 2026-10-24 as the lane reported) when
-  its PR 2956 shifted the draw stream and
-  test_prevalence::test_no_binaries_at_minus_100 failed (seed 3, system
-  471); the test passes again on the current stream by luck. Root cause:
-  multistar.draw_member_tree ignores n_stars=1 for a compact or white
-  dwarf placed object ("ignored for a compact or white dwarf placed
-  object"), because the companions come from MEMBER_STATE_BY_PLACED, so
-  a binary_system prevalence of -100 (no binaries) still gives a wide
-  double white dwarf. A latent bug in the GEN.631 tree, not in lane K's
-  change. Do: make n_stars=1 (and a prevalence of -100) produce a single
-  object for a placed white dwarf or compact object too, or state in the
-  docs why a placed compact object always has its companion and make the
-  test and the dial say so. Done: a test that forces no binaries and
-  finds no double white dwarf in a few hundred seeded systems, and the
-  epoch is bumped if a drawn value changes (next free at merge). Owner:
-  none (the star scatter lane, Core 3 or Core 1, is the nearest owner).
-  Research (2026-10-09, Lane H confirmation): Update 3:06 PM EDT
-  2026-10-24 (Lane H, relayed as the lane reported):
-  test_prevalence::test_no_binaries_at_minus_100 also fails on clean
-  main e7ff546 (0.002 binaries instead of 0), which is this item. Owner
-  unchanged.
-  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
-  PM EDT via the coordinator: add the 14 code-contradicts-physics items
-  to the Math lane; assessment
-  reports/physics-grounding-assessment-2026-10-24.md contradiction 14):
-  Owner: Math lane. This replaces any earlier owner line on this item.
-  Free; the Math lane confirms with TODO before starting.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
-  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
-  nobody started it.
-  Prerequisites: none. Related: GEN.631, GEN.332.
 
 - [ ] **GEN.720 star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug)**
   Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
@@ -14388,6 +14200,104 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the refill, not a rescatter) are carried in Core 1's design draft,
   /mnt/project-files/design-drafts/bring-a-galaxy-to-the-current-epoch-2026-10-24.md.
   Owner Core 1 as decided above.
+  Research (2026-10-09, Step 1 merged): Step 1 of 4 merged as #3157
+  (Core 1, about 8:10 PM EDT 2026-10-24 as the lane reported): every
+  generator epoch carries an affects list (plan, scatter, fill,
+  population; the 96 old epochs classified from their reasons). Next:
+  step 2, the per-stage epoch record (a migration).
+
+- [ ] **GEN.765 A world with Flora 5, Fauna 5 and Sentient 5 scores Suitability Red with "no food readily available": the food rung ignores the life the scores say is there (bug)**
+  Boss, 7:45 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
+  coordinator), live observation from the page of Enuakyadas IV (object
+  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: the planet
+  shows Microbial, Flora, Fauna and Sentient scores of 5 and a
+  technological civilization, yet its Suitability reads "There is no
+  food readily available, and only limited water" (score 0.2, Red).
+  Boss: "there should be food if there is flora and fauna and a sentient
+  species. So we need to figure out why sustainability says there is no
+  food." Cause found by TODO in the code (the owner verifies it by
+  running the planet): physics/habitability_world.py line 325 sets
+  `life_on_surface = hydrosphere != "ice-covered ocean"`, and
+  `food_score` (physics/habitability.py line 537) turns the food stage
+  into "none" when it is false. The planet's hydrosphere is "Ice-covered
+  ocean" with 79 percent of its surface above sea level and a 243 K
+  mean, so the rule treats all life as living only under the ice, while
+  the life scores (life_scores.scores, GEN.649) draw Flora, Fauna and
+  Sentient without that condition and the page text describes forests
+  and farms. The two rules disagree. Do: make one rule. Life lives where
+  the surface allows it, so decide from the stored conditions (land
+  fraction above sea level, the temperature range, the pressure) whether
+  the life is on the surface, under the ice, or both, and use that same
+  answer for the life scores, the food rung, the shelter wording and the
+  page text; a world whose sentient species farms has food. Done: a test
+  builds this planet (an ice-covered ocean with land) and gets
+  Suitability from its food (not Red for lack of food), a test keeps the
+  under-ice-only case (a fully frozen ocean world with no land) at no
+  surface food with Flora and Fauna capped to what lives under the ice,
+  and no stored world has a sentient score above 0 with the food rung at
+  none. Owner: Aux 3 (Lane D, habitability model; it wrote the rungs).
+  Related: GEN.653, GEN.649, GEN.207.
+  Prerequisites: none. Related: GEN.653, GEN.649, GEN.207, GEN.643.
+
+- [ ] **GEN.766 Generated life text states what is detected, in the present tense: no "speculative", "could", "would" or "boasts" (bug)**
+  Boss, 7:45 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
+  coordinator), live observation from the page of Enuakyadas IV (object
+  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: the Life
+  and timeline paragraphs of the planet page say "Life based on melanin
+  could arise on this planet, and it would evolve at a standard pace",
+  "On a speculative timeline at that pace, the system is about 13.8 Gyr
+  old. Its latest milestone would be technological civilization..." and
+  "The planet boasts a fully mature...". Boss: "Whatever we decide, the
+  planet data should match, and stop saying speculative, if it's
+  generated we're going to say that's what is detected on the planet."
+  Do: rewrite the life describer (describe/build.py
+  `_timeline_sentences` and the life sentence, describe/life_facts.py)
+  so a generated world's life is stated as fact in the present tense
+  ("Life based on melanin has arisen here and evolves at a standard
+  pace"; "The system is about 13.8 Gyr old. The latest milestone is
+  technological civilization, reached when the system was 4.5 Gyr
+  old."), with no speculative, could, would or boasts wording; the
+  paragraph must match the stored data and the four scores (GEN.765: if
+  the scores say Fauna 5 the text names fauna and its food), and no
+  milestone sentence when none is reached. The module and design wording
+  that calls the timelines speculative (generation/evolution.py, the
+  docs) is changed to match. Done: a test over generated planets of each
+  life stage finds none of those words in the text, and the text names
+  what the scores hold. Owner: Aux 3 (it owns the life model), with Aux
+  4 (Lane E) for the wording. Related: GEN.765.
+  Prerequisites: none. Related: GEN.765, GEN.207, GEN.649.
+
+- [ ] **GEN.767 Day and night time shares for every object that has a day or night, with the extra night when the parent planet blocks the sun**
+  Boss, 7:54 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
+  coordinator), Boss: "I want day/night time shares for each object that
+  has a day or night including moons that accounts for any extra night
+  from the sun being blocked by their planet." TODO checked the code:
+  the day and night temperature swing exists (GEN.656) and the eclipse
+  of a binary star pair (GEN.270), but there is no stored fraction of
+  time in daylight and no eclipse of a moon by its planet;
+  `outside_hours` is the dose-limited hours of a working year outside
+  (physics/equipment.py), not daylight. Do: derive, from the rotation
+  period, the orbital period, the axial tilt, the star's angular size
+  and the lock state, the share of the day the star is above the horizon
+  (at the equator and as a planet mean, polar day and night where the
+  tilt gives them, 100 percent or 0 percent on the two sides of a
+  tidally locked world with libration noted); for a moon add the share
+  of its orbit spent in its parent's shadow (the eclipse fraction from
+  the parent radius, the moon's orbital distance and inclination and the
+  star's size) and the extra night this adds, both for a moon locked to
+  its planet and for a free one; store the shares as columns
+  (db/column_units.py in the same PR, one migration, one epoch), numbers
+  from a named function in one module, no stand-in value. Done: tests
+  with a hand-computed Earth (about 50 percent at the equator, longer
+  polar day and night by tilt), a locked planet (day side 100, night
+  side 0), Io-like and Moon-like moons with their eclipse fractions, and
+  a moon whose planet never blocks the sun (inclined orbit) at zero
+  extra night. Owner: Aux 5 (Lane H: heat, surface dose, GEN.656
+  regional temperatures). Related: GEN.656, GEN.270, GEN.444.
+  Prerequisites: none. Related: GEN.656, GEN.270, GEN.444, UX.205.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15203,6 +15113,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   well under 1 GB, and record the before and after peak in the item.
   Owner: Aux 16 (Performance).
   Prerequisites: none. Related: PERF.187, PERF.184.
+
+- [ ] **PERF.194 The phenomena stage progress line still says "186M to place": the weight is printed as a number of phenomena instead of work (bug)**
+  Found by Math lane 2 (8:11 PM EDT 2026-10-24 as the lane reported)
+  while fixing GEN.398: the phenomena-stage progress weight wording
+  ("186M to place") remains after GEN.397 and GEN.398. Do: print the
+  weight as the work the stage does (sectors and phenomena groups
+  placed, or the percent of the stage), consistent with the PERF.184
+  time estimate, in `planetgen plan` stage 2 and the Generate page
+  progress. Done: a test over the progress text of the phenomena stage
+  finds no raw count of phenomena as a weight. Owner: Core 5 (PERF.184
+  owner; the estimate and the progress text are one piece). Related:
+  GEN.397, GEN.398, PERF.184.
+  Prerequisites: none. Related: GEN.397, GEN.398, PERF.184.
 
 ## DB: Database and schema
 
@@ -19546,41 +19469,6 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
-- [ ] **TEST.362 test_object_rows read-back fails on main with KeyError partial_pa (bug)**
-  Reported by Aux 13 while merging GEN.762 (#3128, 6:33 PM EDT as the
-  lane reported): a test in test_object_rows reads an atmosphere row
-  back
-  and raises KeyError: 'partial_pa'. Not from GEN.762. This is separate
-  from TEST.332 (the comet missing from the row-kind set). Find whether
-  the column was renamed by the supply-law or 4b changes or the test is
-  stale, fix it and record which. Owner: Bug 1.
-  Prerequisites: none. Related: TEST.332.
-
-- [ ] **TEST.363 test_protection describer disagrees with habitability_explain on main (bug)**
-  Reported by Aux 13 while merging GEN.762 (#3128, 6:33 PM EDT as the
-  lane reported): the test_protection describer check fails against
-  habitability_explain on main and is not from GEN.762. Find which side
-  is
-  right after the life score and radiation changes, fix the other, and
-  record which. Owner: Bug 1.
-  Prerequisites: none. Related: GEN.762.
-
-- [ ] **TEST.364 Clean up the unused imports, unused variables and redefinitions that ruff and vulture report (82 ruff F findings, 12 vulture hits)**
-  Found by Bug 1 in its TEST.261 prep sweeps
-  (reports/test261-pre-audit-sweeps-2026-10-24.md, dead and unused code,
-  6:36 PM EDT 2026-10-24 as the lane reported): ruff F reports 82
-  findings
-  (56 unused imports, 13 unused variables, 12 redefinitions while
-  unused,
-  1 loop variable shadowing an import, 68 auto-fixable) and vulture at
-  80
-  percent reports 12 lines. Do: remove them (no shims; where an import
-  is
-  kept for a re-export, make the re-export explicit), keep behaviour the
-  same, and add a ruff F check to the fast checks if one is not there.
-  Owner: Bug 1 after the two SEC items; not a security fix.
-  Prerequisites: none. Related: SEC.33, TEST.261.
-
 - [ ] **TEST.367 Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug)**
   Reported by Core 1 while merging API.15 (#3136, 6:43 PM EDT 2026-10-24
   as the lane reported); they fail identically on origin/main on its
@@ -19631,6 +19519,72 @@ clears each one.
   first in the chain; Core 2 uses it for MAP.295 and MAP.296.
   Prerequisites: none. Related: TEST.344, MAP.295, MAP.297, MAP.298,
   MAP.299, MAP.300, MAP.301.
+
+- [ ] **TEST.370 test_web_pages in_process_transport fails: DatabaseLoginError, there is no planetgen database account on the lane machine (bug)**
+  Found by Bug 1 running scripts/test.py quick on clean main (8:00 PM
+  EDT 2026-10-24 as the lane reported):
+  test_web_pages::in_process_transport fails with a DatabaseLoginError
+  because the 'planetgen' account does not exist on a fresh lane
+  machine; this is the gap left by OPS.62 (the setup script verify step)
+  which creates the schema but not that account. Do: make the test use
+  the test account the other web tests use, or have the setup script
+  (and the lane machine bootstrap in /etc/profile.d/planetgen-test.sh)
+  create the account, so scripts/test.py quick is green on a clean
+  machine; no skip. Done: the test passes on a lane machine set up from
+  the documented script. Owner: Bug 1. Related: OPS.62, TEST.364.
+  Research (2026-10-09, Core 5 full run): Core 5 (8:06 PM EDT 2026-10-24
+  as the lane reported) saw 44 failures in a full run on its lane
+  machine, all but two also red on the base commit: test_web_facilities
+  x18, test_class_pages x6 and others. TEST.350 and TEST.365 were
+  merged, so these are most likely the same lane machine gap (missing
+  planetgen database account). Bug 1: check them on a machine set up as
+  documented before filing anything new.
+  Prerequisites: none. Related: OPS.62, TEST.364.
+
+- [ ] **TEST.371 test_workers::a_worker_that_is_killed fails under load and passes alone (bug)**
+  Found by Bug 1 running scripts/test.py quick on clean main (8:00 PM
+  EDT 2026-10-24 as the lane reported):
+  test_workers::a_worker_that_is_killed fails in a full quick run
+  (4-core lane machine, 36 minutes) and passes when run alone. Do: find
+  the timing the test depends on (a fixed sleep or a wait shorter than
+  the load allows) and make it wait for the state it needs, with no skip
+  and no retry decorator. Done: the test passes in three full quick
+  runs. Owner: Bug 1. Related: TEST.344, TEST.364.
+  Prerequisites: none. Related: TEST.344, TEST.364.
+
+- [ ] **TEST.372 scripts/test.py and docs/reference/testing.md call `full` "the merge gate", which lanes read as a whole-suite gate for every merge (bug)**
+  Boss, 8:10 PM EDT 2026-10-24 (relayed by the coordinator): "remember
+  we have tests that run based on changed code only and we can resume
+  tests, and I want to make sure we're not over-testing." Lanes are
+  running 2 to 5 hour whole-suite gates
+  (reports/lane-testing-audit-2026-10-24.md). Boss's rule (8:07 PM EDT):
+  every merge tests only what changed or would change; the detailed full
+  run is reserved for the end-of-version bug hunt (TEST.261, SEC.33,
+  GEN.301 `full --check`) before the stamp. Do: change the
+  `scripts/test.py` module help ("full ... the merge gate") and
+  docs/reference/testing.md (the "merge gate" wording, the line that
+  asks for a green `full` at the end of a sequence of related items) so
+  that `changed` with `--resume` is the gate for every merge and `full`
+  is for the end-of-version run and the check that proves `changed`; add
+  to the `changed` run's last line a reminder when it was started
+  without `--resume` after an earlier run of the same build left a
+  progress log (it names the command to resume); keep the PR description
+  line that says which run was used. Done: the help text and the testing
+  doc say the same thing as lanes.md's TESTING RULE, and a test over the
+  help text finds no "merge gate" next to `full`. Owner: Bug 1. Related:
+  TEST.208, TEST.261.
+  Prerequisites: none. Related: TEST.208, TEST.261.
+
+- [ ] **TEST.373 test_protection::test_there_is_one_describer_of_the_six_categories fails on main: habitability_explain.py exists again after GEN.445 (bug)**
+  Found by Math lane 2 (8:11 PM EDT 2026-10-24 as the lane reported) on
+  main after #3162; not its change. TEST.363 (#3155) made the describer
+  and habitability_explain agree; since then GEN.445 brought a
+  habitability_explain.py back, so the test that expects one describer
+  of the six categories fails. Do: make one module the describer (the
+  test says which) and have the other import it, or change the test to
+  the module layout GEN.445 chose, with no skip. Done: the test passes
+  on main. Owner: Aux 4 (Lane E, GEN.445). Related: TEST.363, GEN.445.
+  Prerequisites: none. Related: TEST.363, GEN.445.
 
 ## USR: User accounts
 

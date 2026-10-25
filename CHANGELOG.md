@@ -2,6 +2,65 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2284] - 2026-10-25
+
+**Headline:** `planetgen sectors --block` fills one block of the Galaxy Map's ladder, and an admin API route starts the same fill as a job.
+
+### Changed
+- **Fill a block of the ladder (GEN.310).** `planetgen sectors --block <m.shell.band.wedge>` (and `planetgen galaxy --block`) generates every not-yet-generated sector the stored outline holds inside that block (243, 81, 27, 9 or 3), inner shells first, with the same size estimate, progress, cancel, `--limit` and `--yes` as a shell or a span. The old refusal ("blocks are being rebuilt on shells") is gone.
+- **The Galaxy Map's fill route (GEN.310).** `POST /api/galaxy/blocks/<key>/generate` (admin) starts the same fill as a queued job with the bright-star backfill and settle after it, or answers an estimate with `"estimate_only": true`; it answers 413 for a block of more than 2 million sectors.
+
+## [8.0.2283] - 2026-10-25
+
+**Headline:** Every generator epoch now says which stages of generation it changed, the first step to bringing an existing galaxy up to date without regenerating all of it.
+
+### Changed
+- **Each epoch lists the stages it changed (GEN.764).** `src/tests/golden/epochs.json` gives every epoch after the first an `affects` list from `plan`, `scatter`, `fill`, `population` (the deepest stages its change altered), and lists the stages at the top. The 96 existing epochs were classified by reading their reasons, conservatively: when in doubt a stage is listed, and an epoch that changed the galaxy's shape or density counts as `plan`.
+- **`python -m tests.golden_update --reason "..." --affects fill`.** A new epoch needs `--affects` (checked before the ten-minute rewrite of the golden files starts); a second run in the same change can change the pending epoch's list. `scripts/bump_version.py --check-pr` refuses an epoch without a valid list.
+- **`planetgen.util.generator_epoch`** gains `stages()`, `affects(epoch)`, `stages_between(recorded, current)` (what a result made under an older epoch has to redo) and `needs_full_regeneration(recorded, current)`, and one `format_epochs` that every writer of the file uses so the short lists stay on one line.
+- No generated output changes.
+
+TODO items resolved: none (GEN.764 step 1 of 4). Added: none.
+
+## [8.0.2282] - 2026-10-25
+
+**Headline:** Five tests that went red on main when the air moved into the gas tables, the queue ETA became a dict and the Radiation describer came back now match the code.
+
+### Fixed
+- **`test_age_needs.py` (2 tests): the test bodies kept their gases as `p_<gas>_kpa` keys.** Since DB.71 and GEN.424 (#3110) the rules read the air from `gas_partials_pa`, so a carbon-dioxide or reducing atmosphere counted as no air and came out `watered`. The test's `body()` now folds the keys into that field with `tests/air_support.fold_air`.
+- **`test_object_rows.py` read-back test: its fake connection had no `planet_gases` or `moon_gases` rows,** so `body_gases` failed with `KeyError: 'partial_pa'`. The fake now answers those tables with each body's own gases, and the read-back compares them too.
+- **`test_eta_estimator.py` queue page test passed a float where `_eta_text` takes the ETA dict** (`{"seconds", "stalled"}` since PERF.99). It now passes the dict, and a stalled and a seconds-less ETA are covered.
+- **`test_protection.py::test_there_is_one_describer_of_the_six_categories` asserted `physics/habitability_explain.py` did not exist.** GEN.445 (#3052) brought that module back to name the composition behind the Radiation term only. The test now holds the rule it stood for: the module's public names are just the radiation ones, so a second describer of the six categories cannot appear in it.
+- Not changed: `test_web_pages.py::test_in_process_transport_skips_http_inside_a_request` fails here with `DatabaseLoginError` for the `planetgen` account, the OPS.62 gap on lane machines, not a code bug.
+TODO items resolved: none (these six tests were red on main with no item of their own). Added: none.
+
+## [8.0.2281] - 2026-10-24
+
+**Headline:** 56 unused imports, 12 duplicate imports and 13 unused variables are gone from the code, and a loop variable no longer hides the `html` module in the TODO page builder.
+
+### Fixed
+- **Dead code that `ruff` (rule set F) and `vulture` reported (TEST.364).** Removed: 56 imports nothing used (for example `CAMERA_START_THETA_DEG` in `web/warmup.py`, `to_paragraph` in `generation/planet.py`), the physics imports `db/store.py` listed twice, and 13 local variables that were set and never read (for example `extents` and `e_value` in `generation/run_plan.py`, `by_node` in `physics/system_tree.py`). Before each import went, the source and the tests were searched for anything that imported it from that module or patched it by name: nothing did. `ruff check --select F` is clean on `src/planetgen` and `scripts`.
+- **`scripts/build_todo_docs.py` reused the name `html` for a loop variable,** hiding the `html` module it imports; the loop now says `page_html`.
+TODO items resolved: TEST.364. Added: none.
+
+## [8.0.2280] - 2026-10-24
+
+**Headline:** A pinned test now checks that a fixed seed still makes exactly the same sectors, at one worker and at four, so a change to what the generator makes can no longer slip in unnoticed.
+
+### Changed
+- **The golden-seed test (TEST.77).** `tests/test_golden_seed.py` compares what a fixed seed makes with three files under `src/tests/golden/`: the battery's digest of each case (`battery.json`), three small cases as readable text (`rosetta.txt`, so a failure reads as a diff) and a small galaxy of a fixed 128-bit seed, built at one worker and at four, with a digest of the plan, every sector and each section of a sector with systems (`galaxy.json`). A failure says whether the shape or only a number changed.
+- **`python -m tests.golden_update --reason "..."` now rewrites the golden files** (about ten minutes, it needs the test database) and then bumps the generator epoch; `--no-write` keeps files already written. After a merge conflict in them, take main's files and run it again.
+- **The epoch rule is judged against main.** `bump_version.py --check-pr` asks whether golden files existed at the merge base, so the PR that adds the first golden files needs no epoch bump; a later PR that changes generated output must change the golden files, bump the epoch and say `generation-output: changed` together.
+
+TODO items resolved: TEST.77, GEN.55 (its last sub-item). Added: none.
+
+## [8.0.2279] - 2026-10-24
+
+**Headline:** The habitability icons now open the habitability section of the planet's own page.
+
+### Changed
+- On a planet's or moon's page, in the lists and in the summary trees, the habitability symbols and the four life scores link to the Habitability and Life sections of that body's page (`/object/<ref>#habitability`), not to the help page. The Habitability section has a link on to the page that explains the colours and symbols (UX.197).
+
 ## [8.0.2278] - 2026-10-24
 
 **Headline:** The class page tests' fake property sheet names its kind, so the six phenomenon page tests pass again.

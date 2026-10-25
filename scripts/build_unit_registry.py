@@ -10,7 +10,6 @@ read their factors from.
 tests/test_unit_registry_js.py runs the check, so a change to the registry fails the suite until this script has been run.
 """
 
-import dataclasses
 import json
 import os
 import sys

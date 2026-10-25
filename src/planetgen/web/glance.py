@@ -12,7 +12,7 @@ A row that would say none or 0 is left out unless its absence is the answer (a s
 from planetgen.describe import model
 from planetgen.describe.html import inline_html
 from planetgen.web import item_pages
-from planetgen.web.helpers import trusted_html, page_url
+from planetgen.web.helpers import trusted_html
 from planetgen.web.lib import habitability_symbols
 from planetgen.web.lib.fmt import esc
 
@@ -40,7 +40,8 @@ def system_rows(detail, facilities, symbols):
     Args:
         detail (dict): `GET /api/systems/<id>`.
         facilities (dict or list): `GET /api/systems/<id>/facilities` (its `items`, or the list itself).
-        symbols (callable): Draws the symbols of a scored body (`web.habitability_symbol_row`).
+        symbols (callable): Draws the symbols of a scored body, `symbols(body, page=<its page's URL>)`
+            (`web.habitability_symbol_row`).
     """
     rows = []
     stars = detail.get("stars") or []
@@ -60,8 +61,8 @@ def system_rows(detail, facilities, symbols):
     rows.append({"label": "Habitable worlds", "html": esc(f"{len(good):,}" if good else "none")})
     if scored:
         tier, kind, body = min(scored, key=lambda item: item[0])
-        link = f'<a href="{esc(item_pages.item_url(f"{kind}:{body["id"]}"))}">{esc(body["name"])}</a>'
-        rows.append({"label": "Best world", "html": f"{link} {symbols(body)}"})
+        url = item_pages.item_url(f"{kind}:{body['id']}")
+        rows.append({"label": "Best world", "html": f'<a href="{esc(url)}">{esc(body["name"])}</a> {symbols(body, page=url)}'})
     held = facilities.get("items") if isinstance(facilities, dict) else facilities
     if held:
         rows.append({"label": "Facilities", "html": esc(f"{len(held):,}")})

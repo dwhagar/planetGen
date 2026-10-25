@@ -29,7 +29,7 @@ import uuid
 from planetgen import tuning
 from planetgen.cli import benchmark
 from planetgen.db import login, store
-from planetgen.util import log, memwatch
+from planetgen.util import log
 from planetgen.web import generate_page, job_runner, jobs
 
 GROUPS = ("mysql", "workers", "step", "host")
