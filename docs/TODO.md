@@ -15241,6 +15241,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation-merge lock applies.
   Prerequisites: none. Related: GEN.732, MAP.275, GEN.557.
 
+- [ ] **GEN.837 Forced class M and class P planets in the habitable zone carry far too much steam: about a third of 300 draws sit above 400 K because the wet volatile inventories give hundreds of bar (bug)**
+  Found by Aux 4 (as the lane reported 5:35 AM EDT 2026-10-25), on a
+  base that already holds GEN.813 (#3254). Forced class M planets (G2V
+  host, middle of the habitable zone, seed 1, 300 draws): 110 above 400
+  K, 90 below 273 K, median 325.6 K; the same sweep on main without
+  GEN.812 gives 107 above 400 K, median 328 K. In a 120-draw look at the
+  hot ones, 44 were above 400 K and 40 of those were water-dominated,
+  with a median surface pressure of 554 bar (examples: 122 bar of 60
+  percent steam, 14 percent CO2 and 15 percent H2S at 645 K; 660 bar of
+  83 percent steam at 844 K; 30,000 bar at 1,423 K). The planets have
+  Earth-like masses (4.6 to 7.4e24 kg) at about 1.3 AU, so the water,
+  sulfur and carbon inventories give many Earth oceans of steam (the
+  Earth ocean is 270 bar); the greenhouse module only turns that into
+  heat. Class P shows the same (95 to 100 of 300 above 400 K). Do: trace
+  the inventory totals for the wet classes (delivered water, outgassed
+  H2O, CO2 and H2S brackets from GEN.813 and GEN.815), decide what share
+  of the inventory stays in the surface and mantle reservoirs rather
+  than the atmosphere (a ceiling on the atmospheric fraction, or a
+  surface ocean sink), and cut the hot tail so a class M planet in the
+  habitable zone is mostly 250 to 330 K, with any tuning recorded in the
+  stand-in registry (GEN.725) with its tweak level and reason. Done: the
+  same 300-draw sweep has no more than a few percent above 400 K and the
+  Earth twin keeps its 270 bar ocean. Owner: Aux 17 (wrote GEN.813) or
+  Aux 6 (bulk composition); the coordinator asked for this item. Changes
+  generated output, so it needs the generation lock, an epoch with
+  --affects fill.
+  Prerequisites: none. Related: GEN.813, GEN.815, GEN.812.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -20939,21 +20967,6 @@ clears each one.
   scripts/test.py changed --resume.
   Prerequisites: none. Related: GEN.441, TEST.261.
 
-- [ ] **TEST.400 test_habitability_fill::test_the_command_re_scores_every_system is red on main: Namespace has no attribute 'command' in generate.validate_fill_args (bug)**
-  Found by the 4c lane (about 4:17 AM EDT) on origin/main 081337a9f:
-  test_the_command_re_scores_every_system fails with AttributeError: the
-  argparse Namespace has no attribute 'command' in
-  generate.validate_fill_args; it blocks every generation merge's gate.
-  Do: find the change that added the 'command' read (or removed the
-  sub-command) in generate.validate_fill_args and the
-  rescore-habitability command (ADM.129, GEN.764 revise job), make the
-  command and the validator agree, and keep the rescore command tested
-  end to end. Done: the test passes on main. Owner: Bug 1, second in its
-  queue (after the golden seed test), or the owner of the breaking
-  change once identified. Rules: no backward-compat shims; never skip or
-  quarantine the test; scripts/test.py changed --resume.
-  Prerequisites: none. Related: ADM.129, GEN.764.
-
 - [ ] **TEST.401 test_atmosphere_mixture_escape (abiotic oxygen) and test_atmosphere_mixture_rocky (delivered-water class) are red on main (bug)**
   Found by the 4c lane (about 4:17 AM EDT): two atmosphere tests were
   red on main before 4c merged and stay red: the abiotic oxygen case in
@@ -21001,20 +21014,6 @@ clears each one.
   --resume.
   Prerequisites: none. Related: PERF.174, PERF.175, PERF.193.
 
-- [ ] **TEST.404 golden_update's first run wrote galaxy.json with the sector section made before the epoch bump, so test_golden_seed failed until a second run on the same tree (bug)**
-  Found by Aux 5 (as the lane reported 4:18 AM EDT): the first python -m
-  tests.golden_update run after an epoch bump wrote galaxy.json with the
-  sector section made before the bump, so test_golden_seed failed until
-  golden_update ran a second time on the same tree. Do: make
-  golden_update read the epoch it just wrote (or bump first and
-  regenerate every section after), so one run leaves a consistent tree;
-  add a test that runs the tool once on a fixture tree after a bump and
-  checks every section carries the new epoch. Done: one run is enough.
-  Owner: Bug 1 (with TEST.399, same area; this may be the cause of
-  TEST.399). Rules: no backward-compat shims; never skip or quarantine a
-  test; scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.399, GEN.764.
-
 - [ ] **TEST.405 The system page tests and the migration 0148 habitable_systems test are red on main (bug)**
   Found by Aux 14 (as the lane reported 4:52 AM EDT 2026-10-25) as known
   reds on clean main, not that lane's change: the system-page tests and
@@ -21025,6 +21024,23 @@ clears each one.
   Owner: Bug 1 after TEST.399 and TEST.400, or a free lane. Rules: never
   skip or quarantine a test; scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.399, TEST.400.
+
+- [ ] **TEST.406 Four tests are red on main: test_surface_air stored-partials sum (1e-9 relative) and test_resume_across_builds, test_progress_log (2), test_redis_cleanup fail with an unexpected keyword on_child (bug)**
+  Found by Aux 4 (as the lane reported 5:33 AM
+  EDT 2026-10-25) on clean main, not that lane's change:
+  test_surface_air::test_the_stored_partials_add_up_to_the_pressure_and_the_state_follows_from_them
+  fails because a giant's summed pressure is 99999.99989688 against
+  100000 (1e-9 relative); test_resume_across_builds, test_progress_log
+  (2 tests) and test_redis_cleanup fail with an unexpected keyword
+  'on_child'. Do: run each on clean main, name the commit that moved it,
+  then fix the code or the expectation with the reason in the PR (the
+  partials sum may need a relative tolerance that matches the stored
+  precision, which is a stand-in tolerance to record; the on_child
+  keyword is a signature mismatch between a caller and the progress or
+  worker helper). Done: all four pass on main. Owner: Bug 1 after
+  TEST.399 and TEST.400, or a free lane. Rules: never skip or quarantine
+  a test; scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.405.
 
 ## USR: User accounts
 
