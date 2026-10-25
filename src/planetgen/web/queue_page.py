@@ -373,7 +373,7 @@ def admin_queue_log(run_id):
     """A run's whole log as a plain-text download."""
     _admin, bounce = _require_admin()
     if bounce is not None:
-        return bounce
+        abort(403)   # a file download, not a page: a plain 403 like the other json_only views
     if not runrecord.RUN_ID_RE.match(run_id):
         abort(404, description="No such run.")
     try:

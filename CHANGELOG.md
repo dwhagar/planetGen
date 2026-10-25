@@ -2,6 +2,78 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2305] - 2026-10-25
+
+**Headline:** `planetgen sector` and `planetgen phenomenon` now only generate; the population pass and the sector paths are commands of their own.
+
+### Changed
+- **`sector` no longer takes `--population` (PERF.124).** A `sector` run saves its sectors and stops; the population pass is `planetgen population`, or a stage of a `galaxy` run.
+- **`phenomenon` no longer saves sector paths, and `--no-settle` is gone (PERF.124).** `planetgen phenomenon --sector-id N` saves the phenomenon and nothing else.
+
+### Added
+- **`planetgen settle --sector-id ID...`.** Saves the paths of the named sectors and the sectors around them (the step that follows `phenomenon --sector-id` for a black hole or neutron star); it takes the place of `--since` and the two cannot be combined.
+
+## [8.0.2304] - 2026-10-25
+
+**Headline:** `scripts/test.py` checks MySQL, Redis and the test setup before a run, restarts a server that dies during it and carries on without redoing the tests that passed; `full` is no longer called the merge gate.
+
+### Added
+- **A check before every run (TEST.376).** `scripts/test.py` loads the `PLANETGEN_TEST_*` variables from `/etc/profile.d/planetgen-test.sh` when they are missing, starts MySQL and Redis when they do not answer, purges the MySQL binary logs when under 3 GB of disk is free, and checks `argon2-cffi` and `playwright` 1.56.0. What it cannot repair stops the run with `PREFLIGHT FAILED: ...` and exit 2. `scripts/test.py env` does only the check; `--no-preflight` skips it. Before this a database test with MySQL down was skipped, not failed, and a run without `PLANETGEN_TEST_MYSQL_USER` failed with `DatabaseLoginError` as the wrong account.
+- **A watchdog during every run.** MySQL and Redis are asked every 15 seconds. A server that is gone is restarted, the phase's pytest is stopped and started again without the tests that already passed (the progress log, as `--resume` does), up to 5 times a phase; the closing line says how many restarts there were. A server that cannot be restarted ends the run with `FAIL` and exit 3, and `--resume` continues it.
+
+### Changed
+- **`full` is the end-of-version run, not the merge gate (TEST.372).** The help of `scripts/test.py` and docs/reference/testing.md now say an ordinary merge needs a green `changed` run (finished with `--resume` after an interruption), and that the whole suite is for TEST.261, SEC.33 and GEN.301.
+
+TODO items resolved: TEST.372, TEST.376. Added: none.
+
+## [8.0.2303] - 2026-10-25
+
+**Headline:** The update reloads the web server more safely: it tests Apache's configuration first, covers gunicorn hosts, and checks the site answers.
+
+### Changed
+- **`update.sh` reload (OPS.29).** Apache is checked with `apache2ctl configtest` before it is reloaded, so a broken config leaves the running Apache serving; it is restarted only when the update just installed or enabled mod_wsgi (other modules load on a reload). The `planetgen-gunicorn` unit (Linux) and the launchd gunicorn daemon (macOS) are reloaded the same way, and `/api/health` must answer afterwards (`PLANETGEN_HEALTH_URL` sets another address). A failed step ends the update non-zero and prints the command to run by hand; nothing running prints the commands and ends zero. The docs (`apache.md`, the server checklist) say a reload aborts requests a mod_wsgi daemon is serving after about 4 seconds.
+
+## [8.0.2302] - 2026-10-25
+
+**Headline:** The run log download answers a plain 403 to someone who is not signed in as an admin, like the other file downloads, instead of a login redirect.
+
+### Fixed
+- **`/admin/queue/<run_id>/log` redirected to the login page for an admin still on the seeded credentials.** The view is marked `json_only` (a download, not a page), and the access sweep in `test_api_auth_sweep.py` expects those to answer 403; it was red on main. The view now aborts with 403 where `/admin/settings/export` already does.
+TODO items resolved: none (the test was red on main with no item of its own). Added: none.
+
+## [8.0.2301] - 2026-10-25
+
+**Headline:** An account can have a picture, and it may be a GIF, an animated GIF too, checked under frame and pixel caps and stored as a clean copy.
+
+### Added
+- **Your picture (SEC.36).** The account page has a "Your picture" section to upload or remove a PNG, JPEG, ICO or GIF, and the picture shows beside "Signed in as". `POST /api/auth/avatar` and `DELETE /api/auth/avatar` do the same for the API, and `GET /api/auth/me` returns the picture's address. Control schema v20 adds `admin_users.avatar` (the update adds the column).
+- **The avatar rules.** At most 1 MiB, 1024 by 1024 pixels a frame, 100 frames, and 16 million pixels over all the frames. A GIF or PNG with several frames stays animated with its durations and loop count. The upload is refused in a plain sentence when it is over a cap, is a bomb header, or is another format.
+
+### Security
+- **A GIF is read only for an account picture, and never from the uploaded bytes.** Pillow is told which four formats to try, the size is read from the header before anything is decoded, a decompression-bomb warning is an error, `Image.MAX_IMAGE_PIXELS` is lowered to 25 million, and frames are unpacked one at a time under the caps. What is stored is Pillow's new encoding of the pixels, so comments, XMP, ICC profiles, EXIF and application extensions other than the loop block do not survive. It is served with its own content type and `nosniff`. The site logo, icons and preview picture keep the SEC.35 rule and still refuse a GIF.
+
+TODO items resolved: SEC.36. Added: none.
+
+## [8.0.2300] - 2026-10-25
+
+**Headline:** Rows that were never stored are no longer listed on object pages.
+
+### Changed
+- A property whose value was never stored (such as hours of daylight a person can be outside on a world with no rotation data) is left out of "At a glance" and the property list instead of showing "not stored"; the line at the end of the list counts them (UX.199).
+- The Atmosphere section lists no gas the air does not hold and never a blank row (UX.198).
+
+## [8.0.2299] - 2026-10-25
+
+**Headline:** A sector that drawing cannot make to a habitable-worlds minimum is now met by a forced fill, and an impossible request is refused up front.
+
+### Added
+- **Forced fill for a habitable-worlds directive (GEN.180).** After K draws (`tuning.DIRECTIVE_ATTEMPTS`, 200) a
+  `--directive habitable>=N` still missed builds the sector once more with a habitable world forced into N systems, and the run
+  says `met_forced`. Before, the closest draw was kept and the run only warned.
+- **Impossible directives are refused before any drawing.** A minimum a sector reaches with a probability under one in a
+  billion, judged from the Poisson tail of the system count and the compound-Poisson table of habitable worlds, and that the
+  forced fill cannot reach, stops the command line (and the Generate page's estimate) with the reason.
+
 ## [8.0.2298] - 2026-10-25
 
 **Headline:** The breadcrumb trail calls the system link "System" and the star link by the star's name.

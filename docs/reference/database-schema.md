@@ -574,7 +574,7 @@ for every stored rogue, seeded by its name, and resets
 `has_internal_heat` to the computed answer.
 
 **Population and politics (v44).** Filled by `planetgen population`
-(or `--population` on a `sector` run, or a `galaxy` run, or the optional question
+(or a `galaxy` run, or the optional question
 the install and update scripts ask) from what is already stored; see
 docs/design/habitability/population-and-politics.md. `species` holds one dominant
 species per life world (a planet whose evolutionary milestone is

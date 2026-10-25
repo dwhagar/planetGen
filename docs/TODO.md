@@ -1002,100 +1002,6 @@ with `clamp()`.
   Related: UX.188, UX.187.
   Prerequisites: none. Related: UX.188, UX.190, UX.187.
 
-- [ ] **UX.200 The Location block lists a system and its star separately when they share a name, shows "not inside any nebula" style lines, and links the Galaxy (bug)**
-  Boss, 7:48 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy, relayed by the
-  coordinator), live observation of the Location block on an object
-  page, so a bug: Boss: "the system and star can both be listed which
-  they have the same name, so its location should be in the system, the
-  star doesn't need to be listed separately. Instead of saying 'not
-  inside any nebula' or similar just don't put that line at all. We also
-  don't need the 'Galaxy' link, we can figure out it's in the galaxy."
-  Do: (1) when a star and its system share a name (a single star
-  system), the Location block lists only the system, and the star's own
-  page gives its place as in that system; (2) a Location line that says
-  there is nothing ("Not inside any nebula or supernova remnant" and
-  every sibling) is left out entirely, so a line appears only when it
-  holds a place; (3) remove the Galaxy link from the block. Done: a page
-  test on a single-star system finds one line for the system and none
-  for the star, a test on a star outside any nebula finds no "not
-  inside" wording, and no Galaxy link is in the block. Owner: Aux 11
-  (object pages). Related: UX.188, UX.195.
-  Prerequisites: none. Related: UX.188, UX.195, UX.187.
-
-- [ ] **UX.201 A Nav button on object pages opens one menu: navigate from here, navigate to here, nearby locations (bug)**
-  Boss, 7:48 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy, relayed by the
-  coordinator), live observation of the Location block on an object
-  page, so a bug: Boss: "Make a Nav button that opens a menu with the
-  nav from here, to here, and nearby locations." Do: replace the
-  separate Navigate from and Navigate to links on object pages with one
-  Nav button that opens a small menu with three entries: navigate from
-  here, navigate to here, and nearby locations (the nearest systems or
-  objects, each a link). The menu opens by keyboard and click, closes on
-  escape, and works on a phone width. Done: a browser test opens the
-  menu on a system page, finds the three entries, follows nearby
-  locations to another object, and the old separate links are gone.
-  Owner: Aux 11. Related: UX.200, MAP.293.
-  Prerequisites: none. Related: UX.200, UX.187.
-
-- [ ] **UX.202 Remove the "How the composition was found" line from the object pages (bug)**
-  Boss, 7:49 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy was the Location
-  note; this one is cmsg_01RuNTFUNB92A8cm5CbojQAi8J89Q4swLrpuV9PJ6FR7HG,
-  relayed by the coordinator), live observation, so a bug: "UX, 'how the
-  composition was found' line needs to be removed". Cause: the row
-  `composition_origin` ("How the composition was found") in the
-  Composition group of the property sheet registry (describe/sheet.py
-  line 185). Do: remove the row from the sheet and from every page that
-  shows it (planet, moon, star), keeping the stored column and the
-  composition paragraph (GEN.430, GEN.642 text is Aux 6's and is not
-  changed by this item). Done: a page test finds no "How the composition
-  was found" on a planet, moon or star page, and the sheet test's "every
-  column shown or excused" excuses composition_origin as stored but not
-  shown. Owner: Aux 11 (object pages); Aux 6 (Lane J, composition) is
-  told so its composition text does not re-add the line. Related:
-  UX.187, TEST.358, GEN.430.
-  Prerequisites: none. Related: UX.187, TEST.358, GEN.430.
-
-- [ ] **UX.203 Pages state a missing thing in one sentence instead of a table of zeros: no life, no atmosphere (0 Pa), effectively no water**
-  Boss, 7:54 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
-  coordinator), Boss: "if a planet has no life, just make a note in the
-  description and don't show the table full of 0's, same for atmosphere
-  if it is 0 Pa just put 'None' for atmosphere, also if there is
-  effectively no water on the planet then put that in the description
-  and omit that section to avoid all the 0's." Do: (1) a world with no
-  life (all four life scores 0, no life stage) gets one sentence in the
-  description and no Life table; (2) a world whose surface pressure is 0
-  Pa (or below the registry's vacuum limit) shows the Atmosphere entry
-  as "None" and no Atmosphere section or gas rows; (3) a world with
-  effectively no water (hydrosphere none or ocean and ice fraction below
-  the registry's limit, and no vapour) says so in the description and
-  the Water section is omitted; the limits are named constants in one
-  place. This extends the absent-value rule of UX.188 to UX.194 to whole
-  sections. Done: page tests on a barren airless dry world find no Life
-  table, no Atmosphere section, no Water section and the three
-  sentences; a world with a thin atmosphere or a trace of water still
-  shows its section. Owner: Aux 11. Related: UX.188, UX.198, UX.199,
-  GEN.766.
-  Prerequisites: none. Related: UX.188, UX.198, UX.199, GEN.766.
-
-- [ ] **UX.204 Every collapsible section on an object page starts collapsed**
-  Boss, 7:54 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
-  coordinator), Boss: "all sections that can be collapsed should be
-  collapsed at start". Do: every collapsible section (property sheet
-  groups, the long text blocks, the tables) starts collapsed when the
-  page loads, on planet, moon, star, system and every other object page;
-  the headings stay visible and the table of contents (UX.196) still
-  opens a section when its link is followed; a section the visitor
-  opened stays open while they use the page. Done: a browser test loads
-  a planet page and finds every collapsible section collapsed, follows a
-  contents link and finds that section open. Owner: Aux 11. Related:
-  UX.195, UX.196.
-  Prerequisites: none. Related: UX.195, UX.196.
-
 - [ ] **UX.205 Object pages show the day and night time shares, moons with the extra night from their planet**
   Boss, 7:54 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
@@ -1160,27 +1066,6 @@ with `clamp()`.
   UX.179, PERF.134, ADM.44, MAP.158.
   Prerequisites: UX.179. Related: UX.179, PERF.134, ADM.44, MAP.158.
 
-- [ ] **UX.207 Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug)**
-  Boss, 8:29 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi6oJmNKFKoyienFmHsrWDEM, relayed by the
-  coordinator), live observation, so a bug: "In the breadcrumb bar label
-  the link for the system as 'System' and the star being the star(s)
-  name." On the Enuakyadas IV page the trail reads Home, Galaxy, Taraatr
-  Velkiso, Enuakyadas, Enuakyadas, Enuakyadas IV, where the third and
-  fourth links are the system and its star, both named Enuakyadas, so
-  they cannot be told apart. Do: on every page whose trail passes
-  through a system and its star(s), the system link reads "System" and
-  the star link reads the star's name (for a multiple system the star
-  names joined as the page already writes them, for example "Alpha A and
-  B"); a lone body that has no star in the trail keeps its place. The
-  same labels in the trail's structured data (JSON-LD breadcrumb list)
-  and the page titles that use the trail. Done: a page test on a
-  single-star system's planet page finds the trail ending "..., System,
-  Enuakyadas, Enuakyadas IV" with the right links, and one on a binary
-  system's planet page finds both star names. Owner: Aux 11 (object
-  pages). Related: UX.200, UX.188.
-  Prerequisites: none. Related: UX.200, UX.188.
-
 - [ ] **UX.208 Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column**
   Boss, 8:29 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi6oJmNKFKoyienFmHsrWDEM was the breadcrumb
@@ -1231,6 +1116,10 @@ with `clamp()`.
   follows the new order. Done: a page test finds the section order on a
   planet, a moon and a star page and the contents list in the same
   order. Owner: Aux 11 (object pages). Related: UX.195, UX.196, UX.204.
+  Research (2026-10-09, Progress): Part of this landed with #3185
+  (UX.203, UX.204, UX.207), whose title says About before Properties:
+  Aux 11 confirms whether the order At a glance, About, Properties list,
+  other details is complete before UX.209 is retired.
   Prerequisites: none. Related: UX.195, UX.196, UX.204.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -4630,29 +4519,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.96, GEN.97.
-
-- [ ] **GEN.180 Directives: a forced fill (met_forced) after K failed draws, and refusal of impossible requests up front**
-  Left over from GEN.96 (PR #915, Foundations lane 1). Done: when a
-  directive is not met after K draws (K set in tuning.py), the generator
-  takes the fallback fill marked `met_forced` instead of failing or
-  looping, and the result says it was forced; a test covers a directive
-  that cannot be met by drawing.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): GEN.181 folded in. Also refuse impossible requests up
-  front: before any drawing, a directive whose requested mix cannot
-  occur in the sector (judged from the compound-Poisson tables) is
-  refused with the reason, in the Generate page and the CLI. GEN.179
-  stores the `met_forced` status in its attempt record.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: Core 5 (Boss, 2026-10-17, 10:39 AM EDT, card "Apply TODO's
-  three small lane reorderings?", tapped "Apply all three", relayed in
-  words; Core 1 confirmed at 10:41 AM EDT as the lane reported that it
-  has not started it): it sits beside PERF.99, GEN.310 and GEN.231,
-  whose files it shares (the Generate page, cli/generate.py,
-  run_plan.py). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.96, GEN.179.
 
 - [ ] **GEN.197 Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split**
   Source: docs/design/architecture/object-id-options.md section 0 (Boss decided
@@ -14378,6 +14244,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.767. Related: GEN.767, GEN.656, GEN.725, UX.199,
   UX.205.
 
+- [ ] **GEN.769 Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug)**
+  Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "ice shell
+  thickness shows measure in km in some situations where it should show
+  meters or less (i.e. 0.00109 km)". On the property sheet
+  (describe/sheet.py) the ice shell thickness, ocean depth and
+  high-pressure ice thickness columns (ice_shell_km,
+  ice_shell_thickness_km, ocean_depth_km, hp_ice_km) are stored in km
+  and shown as a plain km number when their quantity is not on a length
+  ladder, so a thin shell prints as 0.00109 km. Do: find every length
+  column and Document quantity that skips the length ladder (mm, cm, m,
+  km, then au, ly and so on by magnitude) and put it on one, so a value
+  under 1 km reads in m (under 1 m in cm or mm), a value over 1000 km
+  stays in km, in the sheet, the API description and the map infobox
+  alike; one function picks the unit from the registry (GEN.571), no
+  per-column table. Done: 0.00109 km shows as 1.09 m, 2.4e-7 km as 0.24
+  mm, 3500 km stays 3500 km; a test over every length column of the
+  sheet shows no value below 1 in its unit. Owner: Aux 14. Related:
+  GEN.571, GEN.568, UX.199.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.199.
+
+- [ ] **GEN.770 Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug)**
+  Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "water, and
+  other things are less clear as well we should have some kind of units
+  with water activity, surface under ocean, surface above sea level,
+  water share of the mass, etc." On the property sheet these
+  dimensionless columns (water_mass_fraction, ocean_fraction,
+  land_fraction, water_activity, ocean_pH and the other ratio-unit
+  columns) print a bare number with no unit, so 0.0004 and 0.71 do not
+  say what they are. Do: give each a stated unit by what it is: the
+  shares (water share of the mass, surface under ocean, surface above
+  sea level) as a percent when above 1 percent, in ppm when below
+  (0.0004 as 400 ppm), with the whole-surface pair adding to 100
+  percent; water activity as a pure number between 0 and 1 with its
+  scale in the label ("Water activity (0 to 1, life needs about 0.6 or
+  more)"); pH with its scale; and every other ratio column on the sheet
+  a label that says what it is a ratio of. Register the display unit
+  (percent, ppm, dimensionless) in the unit registry and column_units,
+  not in the sheet. Done: no water-group row shows a bare number; a test
+  lists every ratio-unit column of the sheet and its stated unit. Owner:
+  Aux 14. Related: GEN.571, GEN.568, UX.208.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14633,28 +14541,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.118 chain).
   Prerequisites: none. Related: PERF.118, PERF.121, PERF.122,
   PERF.123, PERF.124, PERF.125, PERF.126, PERF.127, PERF.128.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
-
-- [ ] **PERF.124 `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon`**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. Today `planetgen sector
-  --population` also runs the population pass and `planetgen phenomenon`
-  settles its sector unless `--no-settle`. Done: each only generates
-  what its name says; the population pass and the settle are the
-  commands of PERF.123 and PERF.125, asked for in the step list when
-  wanted; `--population` and `--no-settle` are gone on these two with no
-  shim; the Generate page and the one-off pages ask for the settle as a
-  step (PERF.119); a test per command. Owner: Core 5 (proposed; the
-  PERF.118 chain).
-  Prerequisites: none. Related: PERF.119, PERF.120,
-  PERF.123, PERF.125.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
@@ -15017,7 +14903,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wrapper run over the step list, the same seed gives the same galaxy as
   before at 1 and 4 workers, and the estimate shows the whole list.
   Owner: Core 5 (proposed, after PERF.125).
-  Prerequisites: PERF.124, PERF.125. Related: PERF.123.
+  Prerequisites: PERF.125. Related: PERF.123.
 
 - [ ] **PERF.174 Every work unit's database connection runs the schema check again: skip it when the schema version is current**
   Found by the Performance lane in PERF.156 to PERF.158 (relayed 7:34 PM
@@ -17060,66 +16946,6 @@ Design: [docs/design/operations/login-brute-force-protection.md](design/operatio
   seed reproducibility counts as High. This holds unless Boss
   specifically authorizes an exception.
   Prerequisites: none. Related: TEST.261.
-
-- [ ] **SEC.36 Avatars may be GIFs, animated GIFs included: a new avatar picture kind with its own format list and decoder limits**
-  Boss, 7:16 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiFrLn1Ci8KEw4bDYQeEqheq, relayed by the
-  coordinator): "I want to allow GIF's and animated GIF's for avatars."
-  SEC.35 (#3141) had just limited every picture upload to PNG, JPEG and
-  ICO
-  (`PICTURE_FORMATS` in web/assets.py); this adds GIF back for avatars
-  only,
-  on purpose. No avatar exists in the code or the item list today (the
-  `KINDS` of web/assets.py are the site pictures), so this item builds
-  the
-  smallest avatar there is and the user accounts of 8.2 (USR.1) reuse
-  it:
-  (1) a new `avatar` kind in the asset checker whose own format list is
-  PNG,
-  JPEG, ICO and GIF, while `PICTURE_FORMATS` and the site pictures keep
-  the
-  SEC.35 rule (a GIF is still refused for a logo or favicon unless Boss
-  says
-  otherwise, and the TIFF/PPM refusal tests stay); (2) an avatar upload
-  for
-  the signed-in admin account, shown beside the name where the page
-  shows
-  who is signed in and on the Users page; the stored file belongs to the
-  account, replacing it removes the old file, and deleting the account
-  removes it. Safety conditions (Boss's coordinator, for the owner):
-  Pillow is asked for the GIF decoder only (`formats=[...]`), checks the
-  header size before decoding, and the check refuses a file over a pixel
-  cap (width times height), a frame cap, a total decoded pixel cap
-  (width
-  times height times frames, so a small many-frame GIF cannot exhaust
-  memory) and the byte cap (MAX_BYTES); set `Image.MAX_IMAGE_PIXELS` and
-  treat Pillow's DecompressionBombWarning as an error. Decode each frame
-  by
-  iterating it with the caps applied, never `.convert` or `.load` the
-  whole
-  sequence first. Keep the animation (all frames, durations and loop
-  count) but strip all metadata (comments, XMP, application extensions
-  other than the loop block, EXIF, ICC profile): re-encode the frames
-  with
-  Pillow and store that output, never the uploaded bytes. Serve the
-  avatar
-  with its own content type, `X-Content-Type-Options: nosniff`, the CSP
-  of
-  the other pictures, and a long-cache name from a hash of the bytes.
-  Done:
-  tests show a normal GIF and an animated GIF are accepted and stay
-  animated, a GIF with too many frames, too many pixels or a bomb header
-  is
-  refused with a plain sentence, the stored file carries no comment or
-  XMP
-  block, a GIF is refused for the site logo, and the docs name the
-  avatar
-  rules. Owner: Bug 1 (it wrote SEC.35 and has the decoder and test
-  files
-  open), after TEST.365 and TEST.366; nobody has started it. Related to
-  the
-  SEC.33 audit, which should see it merged first.
-  Prerequisites: none. Related: SEC.35, SEC.34, SEC.33, USR.1.
 
 ## TEST: The test suite
 
@@ -19531,29 +19357,6 @@ clears each one.
   runs. Owner: Bug 1. Related: TEST.344, TEST.364.
   Prerequisites: none. Related: TEST.344, TEST.364.
 
-- [ ] **TEST.372 scripts/test.py and docs/reference/testing.md call `full` "the merge gate", which lanes read as a whole-suite gate for every merge (bug)**
-  Boss, 8:10 PM EDT 2026-10-24 (relayed by the coordinator): "remember
-  we have tests that run based on changed code only and we can resume
-  tests, and I want to make sure we're not over-testing." Lanes are
-  running 2 to 5 hour whole-suite gates
-  (reports/lane-testing-audit-2026-10-24.md). Boss's rule (8:07 PM EDT):
-  every merge tests only what changed or would change; the detailed full
-  run is reserved for the end-of-version bug hunt (TEST.261, SEC.33,
-  GEN.301 `full --check`) before the stamp. Do: change the
-  `scripts/test.py` module help ("full ... the merge gate") and
-  docs/reference/testing.md (the "merge gate" wording, the line that
-  asks for a green `full` at the end of a sequence of related items) so
-  that `changed` with `--resume` is the gate for every merge and `full`
-  is for the end-of-version run and the check that proves `changed`; add
-  to the `changed` run's last line a reminder when it was started
-  without `--resume` after an earlier run of the same build left a
-  progress log (it names the command to resume); keep the PR description
-  line that says which run was used. Done: the help text and the testing
-  doc say the same thing as lanes.md's TESTING RULE, and a test over the
-  help text finds no "merge gate" next to `full`. Owner: Bug 1. Related:
-  TEST.208, TEST.261.
-  Prerequisites: none. Related: TEST.208, TEST.261.
-
 - [ ] **TEST.374 scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug)**
   Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
   lane reported): the patch notes in changes/ for GEN.398, GEN.691 and
@@ -19586,33 +19389,12 @@ clears each one.
   as the lane reported) saw the same two test_web_generate tests
   (generate_anyway and plain_confirm override logging) fail on clean
   main: one more witness for this item.
+  Research (2026-10-09, Progress): Bug 1 fixed
+  test_api_auth_sweep::test_admin_pages_send_an_admin_on_seeded_credentials_to_account
+  in #3189 (the /admin/queue/<run_id>/log download redirected instead of
+  403); the rest of the list is unchecked. Twelve more failures on main
+  are in TEST.379.
   Prerequisites: none. Related: TEST.370, TEST.365, TEST.366, TEST.353.
-
-- [ ] **TEST.376 scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill**
-  Boss, 8:42 PM EDT 2026-10-24 (relayed by the coordinator): "have all
-  tasks running tests check for broken containers". Lane containers
-  restart and kill MySQL and Redis in the middle of a gate (Aux 3's
-  MySQL was OOM-killed today, Bug 1's gate was killed at 6:08 PM EDT as
-  the lane reported); each costs hours. The standing rule is in lanes.md
-  (CONTAINER CHECK) until this lands. Do: scripts/test.py (every mode
-  that runs tests: quick, area, browser, changed, full) (1) runs a
-  preflight before the first test: MySQL and Redis answer, stale lock
-  files in /var/run/mysqld removed, binary logs purged, the
-  PLANETGEN_TEST_* variables from /etc/profile.d/planetgen-test.sh
-  exported, the test MySQL user has GRANT OPTION, argon2-cffi and
-  Playwright present; it repairs what it can and prints what it did; (2)
-  runs a watchdog during the run that checks MySQL and Redis between
-  test files (and on any connection error), and when one is dead
-  restarts it, re-runs the preflight and resumes the run from its
-  progress log instead of starting over or failing the file as a product
-  bug; a service that cannot be restarted stops the run with one plain
-  line naming it. Done: a test that kills MySQL (and one that kills
-  Redis) mid-run ends with the run finished and a note saying what was
-  restarted; the preflight alone is runnable as `scripts/test.py
-  doctor`. Includes the work described in OPS.70 (the lane-start health
-  check and resume), which Bug 1 now owns with this item. Owner: Bug 1.
-  Related: OPS.70, OPS.62, TEST.208.
-  Prerequisites: none. Related: OPS.70, OPS.62, TEST.208.
 
 - [ ] **TEST.377 test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug)**
   Found by Core 2 (UX.125, 8:47 PM EDT 2026-10-24 as the lane reported)
@@ -19624,6 +19406,40 @@ clears each one.
   the test passes on a documented machine, or the root cause is fixed.
   Owner: Bug 1. Related: TEST.375, TEST.370.
   Prerequisites: none. Related: TEST.375, TEST.370.
+
+- [ ] **TEST.378 test_no_todo_codes_shown fails on main: the composition_origin reason in describe/sheet.py names UX.202 in a shown string (bug)**
+  Found by Core 5 (8:51 PM EDT 2026-10-24 as the lane reported) on clean
+  main after #3174. src/planetgen/describe/sheet.py (the _BODY_NOT_SHOWN
+  entry for composition_origin, line 421) carries "(UX.202)" inside a
+  string, and test_no_todo_codes_shown (UX.93) forbids a TODO code in
+  the strings the code shows. Do: cut the code from the string (a
+  comment may keep it); check the other entries added by UX.203 and
+  UX.204 in the same file for the same. Done: test_no_todo_codes_shown
+  passes. Owner: Aux 11. Related: UX.93, UX.202.
+  Research (2026-10-09, Progress): Lane 4 (8:59 PM EDT as the lane
+  reported) also saw test_no_todo_codes_shown name a MAP.220 string at
+  db/point_columns.py:177 on its checkout; that string is not on current
+  main, so confirm the test passes after the UX.202 string is cut.
+  Prerequisites: none. Related: UX.93, UX.202.
+
+- [ ] **TEST.379 Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug)**
+  Found by Lane 4 (Aux 12) running the OPS.29 gate on main (8:59 PM EDT
+  2026-10-24 as the lane reported). Not yet in any item:
+  test_api::description_splits_into_every_body, test_eta_estimator
+  (queue page), test_protection (six describers),
+  test_web_browser_fixture_maps (wheel scroll) and test_web_search (star
+  link). Already covered: test_api_auth_sweep admin pages (fixed in
+  #3189 by Bug 1), test_class_pages nebula, test_interior_heat urey
+  ratio, test_memwatch smoke run and test_save_progress (all TEST.375),
+  test_no_todo_codes_shown (TEST.378; Lane 4 also named a MAP.220 string
+  at db/point_columns.py:177, check that TEST.378 removes every code in
+  a shown string). Do: run each on a lane machine set up as documented
+  (TEST.370, TEST.376 preflight), keep the ones that still fail on main,
+  and fix each with no skip; drop the ones that pass, noting the setup
+  they needed. Done: every listed test passes on a documented machine or
+  has its own item with a root cause. Owner: Bug 1. Related: TEST.375,
+  TEST.378, TEST.370.
+  Prerequisites: none. Related: TEST.375, TEST.378, TEST.370.
 
 ## USR: User accounts
 
@@ -19894,6 +19710,10 @@ clears each one.
   database as decided on 2026-10-10 18:44Z, plus the concurrency cap and
   the two settings from the 2026-10-09 research; Redis through
   Flask-Limiter is not used for this limit.
+  Research (2026-10-09, Progress): SEC.36 (#3189) added account pictures
+  (admin_users.avatar, POST and DELETE /api/auth/avatar, an account page
+  section). The Users page and account deletion that USR.1 builds must
+  show the picture and call adminAuth.forget_avatar_file on deletion.
     Prerequisites: USR.26.
 
 - [ ] **USR.9 `seo.privacy_note` text, "download my data" and "delete my account" on the account page**
@@ -20226,31 +20046,6 @@ clears each one.
 
 OPS.1 shipped with the version scheme in `changes/README.md`.
 
-- [ ] **OPS.29 Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts**
-  Follow-up to OPS.8 (built in PR #808): check it against the research.
-  Skip if Apache is absent or stopped (never start it), `configtest`
-  first, `systemctl reload apache2` (or `httpd`), restart only if the
-  script itself installed mod_wsgi and no Generate job runs, check
-  Apache is up and `/api/health` answers, exit non-zero on failure.
-  Cover the gunicorn units (`planetgen-gunicorn` on Linux, `launchctl
-  kill SIGHUP` on macOS) in the same function, since nginx and Caddy
-  hosts have no Apache. State plainly in the docs that a reload aborts
-  in-flight daemon requests after about 4 s while `touch
-  src/html/wsgi.py` does not. Update `docs/deployment/apache.md` (lines
-  22, 29, 164), the `docs/deployment/server-checklist.md` "reload the app" row and
-  the closing text of `update.sh` and `install.sh`; `update.sh` prints
-  "restart" after `a2enmod` though a graceful reload loads new modules.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: print
-  the manual command and end
-  non-zero on a failed reload).
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this next (12:21 PM
-  EDT 2026-10-24 as the lane asked; nobody had reported starting it).
-  Prerequisites: none.
-  Design: [docs/design/operations/ops-scheduling-and-rotation.md](design/operations/ops-scheduling-and-rotation.md)
-
 - [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
   Boss (2026-10-16, 2:06 PM EDT): "Yes plese." to a nightly full backup
   from the daily maintenance run. Target 8.9 (the backups and repair
@@ -20311,28 +20106,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.70 Gate resumes after a restart, and a lane-start health check runs before every gate**
-  Efficiency scan suggestion 5, applied by Boss ("ALL", 2:21 PM EDT
-  2026-10-24). Container and MySQL restarts killed several gates today
-  (the Redis crash fix lane twice, Lane K and Bug Hunt with stale MySQL
-  lock files, binlogs filling disks), each costing 1 to 3 hours. Do: (1)
-  scripts/test.py records the last finished test file and, after a
-  restart, resumes from it instead of from zero; (2) a lane-start health
-  check runs before every gate: MySQL and Redis up, stale lock files in
-  /var/run/mysqld removed, binary logs purged, the test environment
-  variables from /etc/profile.d/planetgen-test.sh exported
-  (PLANETGEN_TEST_REDIS_URL), the test MySQL user has GRANT OPTION,
-  argon2-cffi and Playwright present; it repairs what it can and prints
-  what it did. Done: killing the container mid-gate, then rerunning,
-  resumes at the last finished file with services healthy. Related
-  OPS.62 (the setup script). Owner: Lane Debug, with Bug Hunt for the
-  gate side.
-  Research (2026-10-09, Owner): Taken over by Bug 1 together with
-  TEST.376 (Boss, 8:42 PM EDT 2026-10-24: all test runs check for broken
-  containers); Lane Debug no longer exists. Build it as part of
-  TEST.376.
-  Prerequisites: none. Related: OPS.62, TEST.334.
 
 - [ ] **OPS.71 Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand**
   Efficiency scan suggestion 6, applied by Boss ("ALL", 2:21 PM EDT

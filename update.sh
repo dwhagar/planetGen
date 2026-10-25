@@ -59,9 +59,12 @@
 #   9. Imports the web app as Apache's user, so anything still unusable
 #      fails here instead of as a 500.
 #
-# At the end, on Linux, it reloads Apache itself when Apache is running
-# (restarts it when step 6 just enabled a module) and says so; if Apache
-# isn't running it prints the command instead (OPS.8).
+# At the end it reloads what serves the site when that is running (OPS.8, OPS.29): Apache
+# (after its own configtest; restarted only when step 6 just installed mod_wsgi), the
+# planetgen-gunicorn unit on Linux, or the launchd gunicorn daemon on macOS, then checks
+# that /api/health answers. A failed step ends the update non-zero and prints the command
+# to run by hand; nothing running prints the command and ends zero. A reload aborts a
+# mod_wsgi request still running after about 4 seconds; touching src/html/wsgi.py does not.
 #
 # After the steps it starts building the site's caches in the background
 # (`planetgen warm`, MAP.134, PERF.104 and PERF.127): the Galaxy Map's opening
@@ -283,27 +286,23 @@ if [[ "$DATASETS_MISSING" == 1 ]]; then
 fi
 echo "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
 echo "  planetgen population"
-if is_macos; then
-    if [[ "$before" != "$after" ]]; then
-        echo "Done. Reload gunicorn so the site runs the new code (a running Generate job is left alone):"
-        echo "  sudo launchctl kill SIGHUP system/$GUNICORN_LABEL"
-    else
-        echo "Done. Nothing new was pulled."
-    fi
-elif (( APACHE_NEEDS_RESTART )); then
-    if reload_apache_if_running; then
-        echo "Done. An Apache module was just enabled, so Apache was restarted to load it."
-    else
-        echo "Done. An Apache module was just enabled: restart Apache to load it:"
-        echo "  sudo systemctl restart apache2"
-    fi
-elif [[ "$before" != "$after" ]]; then
-    if reload_apache_if_running; then
-        echo "Done. The site is running the new code."
-    else
-        echo "Done. Reload Apache so the site runs the new code:"
-        echo "  sudo systemctl reload apache2"
-    fi
-else
+if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
     echo "Done. Nothing new was pulled."
+else
+    reload_status=0
+    reload_web_if_running || reload_status=$?
+    if (( reload_status == 0 )); then
+        if (( APACHE_NEEDS_RESTART )); then
+            echo "Done. mod_wsgi was just installed, so Apache was restarted to load it."
+        else
+            echo "Done. The site is running the new code."
+        fi
+    elif (( reload_status == 1 )); then
+        echo "Done, but the site was not reloaded cleanly (see the warning above); the old code may still be serving." >&2
+        print_reload_commands >&2
+        exit 1
+    else
+        echo "Done. Nothing that serves the site is running, so nothing was reloaded. When it is, run:"
+        print_reload_commands
+    fi
 fi

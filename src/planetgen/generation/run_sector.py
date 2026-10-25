@@ -49,7 +49,6 @@ from planetgen.generation.phenomena import registry
 from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.generation import run_common
 from planetgen.generation import run_phenomenon
-from planetgen.generation import run_population
 from planetgen.generation import run_system
 from planetgen.queue import commands, redisqueue, runrecord, units, wrapper
 
@@ -1049,7 +1048,6 @@ def run_sector(args):
 
     if args.num_sectors > 1:
         log.normal(f"Generated {args.num_sectors} sectors.")
-    run_population.run_population_after(args)
 
 
 UNPLACED_UNITS_MAX = 256
