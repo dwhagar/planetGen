@@ -1490,6 +1490,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.228 merged (#2032): the address holds the camera, so region
   stepping reads and writes the camera address, not the old window
   address.
+  Split (2026-10-09): Boss, 2:38 AM EDT 2026-10-25, sector level:
+  MAP.327 (dim everything outside the sector bounds; a labelled icon at
+  the centre of each visible wall moves to the neighbour) is the
+  sector-level slice of this item and is built by Aux 10; this item
+  keeps the block and system levels, the slabs above and below, and the
+  arrow keys. Core 2 and Aux 10 agree who draws the dimmed neighbours
+  first.
   Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
@@ -3685,6 +3692,68 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --resume.
   Prerequisites: none. Related: MAP.295, MAP.296, MAP.315, MAP.323,
   MAP.324.
+  Added (2026-10-09): Boss, 2:38 AM EDT 2026-10-25: the translucent
+  background of the infobox needs to be a bit darker (more opaque, so
+  text and the glow behind it stay apart); part of this item. Done adds:
+  a browser test reads the card's background alpha and fails below the
+  chosen floor.
+
+- [ ] **MAP.326 Zooming in from the Galaxy Map does not carry smoothly into the star system map: on no system could Boss zoom from the galaxy into the system view as one continuous move (bug)**
+  Boss, 2:38 AM EDT 2026-10-25, live observation: 'I should be able to
+  zoom smoothly from the galaxy map into the star system map as I zoom
+  in and I couldn't do that on any system.' Repro to confirm first: open
+  the Galaxy Map, pick any charted star with planets, scroll in on it
+  from the sector level; expect the view to hand over to that system's
+  own map (orbits, planets at true scale) in one continuous move with
+  nothing popping, and scroll out to carry back. Do: find where the
+  hand-over stops (the camera's minimum distance, the system frame not
+  being entered, the node cut, or the system view needing a click and a
+  page load) and make the single space (MAP.257) enter the system frame
+  when the camera is within its extent, with the system's orbits, bodies
+  and labels fading in as the stars fade out. Done: a browser test
+  scrolls from a sector view into three different systems (a single
+  star, a binary, a system with a planet with moons) and ends inside
+  each system's view with no page load, and back out. Owner: Core 2
+  (owns the system view and fly-to, MAP.319) with Aux 10 for the zoom
+  layer (MAP.300, MAP.301). Rules: no backward-compat shims; tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: MAP.257, MAP.300, MAP.301, MAP.319,
+  MAP.308.
+
+- [ ] **MAP.327 Sector view dims everything outside the sector's bounds and puts a clearly labelled move icon at the centre of each visible wall facing an adjacent sector**
+  Boss, 2:38 AM EDT 2026-10-25: the star field outside the sector makes
+  the sector view hard to read, so dim everything outside the sector
+  bounds, and have clear labelled icons to move to the adjacent sectors,
+  placed at the centre of the visible wall facing each neighbour. Do: in
+  the sector view draw stars and objects outside the sector box at a low
+  fixed opacity (no glow, no labels, no comets or rogue planets, as
+  MAP.121 already says), keep the sector's own contents at full
+  strength, and put one icon on the centre of each wall of the box that
+  faces a neighbouring sector (north, south, east, west, up, down: only
+  walls in view, never on the galaxy's absolute boundary, MAP.141), each
+  labelled with the neighbour's address, a click flies the camera to
+  that neighbour's frame (one camera move, the URL carries the camera,
+  MAP.228), and the icons stay readable at any zoom (screen-sized, drawn
+  over the glow). This is the sector-level slice of MAP.121
+  (neighbouring regions on every map), which stays open for the block
+  and system levels. Done: a browser test checks the outside is dimmer
+  than the inside by a fixed ratio, that each in-view wall has one
+  labelled icon at its centre, and that a click arrives at the
+  neighbour. Owner: Aux 10 (Boss said Aux 10 via the coordinator) with
+  Core 2, who owns MAP.121 and the arrow keys, told so the two do not
+  build twice. Rules: no backward-compat shims; tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: MAP.121, MAP.141, MAP.228, MAP.324,
+  MAP.325, MAP.297.
+  Added (2026-10-09): Boss, 2:41 AM EDT 2026-10-25: also a locked
+  wireframe border around the current sector once in sector view; in
+  galactic view put the same wireframe border around the current
+  region's boundaries too, with no dimming. It is a fixed visual marker
+  for the boundaries (a reference for the space): it does not follow the
+  cursor, it stays put as the camera moves. Done adds: a browser test
+  finds the sector wireframe in sector view, the region wireframe in
+  galactic view (and no dimming there), and checks its world position
+  does not change when the mouse moves.
 
 ## NAV: Navigation and courses
 
@@ -16721,75 +16790,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   review only; the column itself ships with each item.
   Prerequisites: none. Related: DB.67, DB.70, DB.71, DB.96, DB.99,
   DB.100, GEN.754.
-
-- [ ] **DB.102 The version key stored with the galaxy seed carries the API version, the database schema and the generator epoch after the release version, with the zero padding shortened to make room**
-  Boss, 6:45 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi62uh29QxUqRyE3ZTiENsmK, relayed by the
-  coordinator): "the version code w/i the seed and version blocks for
-  generation now should include the API, DB, and epoch numbers after the
-  version string, shorten the padding to make room." Reading chosen by
-  TODO
-  (the owner confirms it against the code): the "seed and version
-  blocks"
-  are the galaxy seed and the version key of src/planetgen/galaxy/
-  version_key.py (DB.6; docs/design/generation/reproducible-galaxies.md,
-  section 4), the 22 hex digit code stored in `galaxy_shape`, the run
-  history, `generation_stats`, `version_key_history` and the run line
-  (CHAR(22) columns in db/models.py). Today it is the release (MAJOR 4,
-  REVISION 4, BUILD 6 digits), Python (2+2+2), OS (1) and architecture
-  (1).
-  This is NOT OPS.64, which is the release string's PEP 440 suffix for
-  8.2
-  (8.2.2100+db134.gen62.api5); OPS.64 stays as it is, but both read the
-  same three sources, so build one helper for them. Do: after the
-  release
-  part add the API version (api/version.py API_VERSION, now 9), the
-  database schema (SCHEMA_VERSION, now 155) and the generator epoch
-  (src/tests/golden/epochs.json, now 96), each read from its own source
-  at
-  the time the key is made, never typed. Make room by narrowing the
-  padding: the release parts are far wider than they need (4 digits for
-  a
-  MAJOR that is 8, 4 for a REVISION, 6 for a BUILD), and Python's three
-  parts are 2 digits each. Choose widths that keep every value with room
-  to
-  grow and keep the key at 22 digits if they fit (then no column changes
-  and no migration); if they do not fit, widen the CHAR(22) columns with
-  a
-  migration (ask TODO for the next number). Raise ValueError when a
-  value
-  does not fit, as the helper does now. Consequences for the owner: (1)
-  every existing key stops matching, which is fine in testing mode
-  (Boss,
-  5:42 PM EDT 2026-10-23: new epochs, DB versions and API versions are
-  fine), but old rows must either be rewritten by the migration or left
-  and reported by `version_check` as generated by an older key; no shim
-  that reads both layouts. (2) Any DB schema, epoch or API bump now
-  changes
-  the key, so `generation_stats` (keyed by version_key, PERF.32, old
-  rows
-  deleted on a new key) restarts its buckets at each of them, and
-  `version_check` reports a galaxy as made by another version after a
-  migration that changes no generated output; say in the docs that this
-  is
-  intended, or make the owner list the effect in the item's note. (3)
-  Update
-  the module docstring table, reproducible-galaxies.md section 4, the
-  run
-  line format (OPS.10) and the tests that quote a key
-  (test_version_history, test_sector_versions, test_generation_stats,
-  test_disk_history, test_migration_generator_epoch_record,
-  test_db_columns_and_indexes, the density_identity fixture) in the same
-  PR. Done: a key built on this tree ends with the API, schema and epoch
-  of
-  that tree, a test reads all three from their sources and fails if the
-  key
-  ignores one, and the docs gate passes. Takes a generator epoch only if
-  the key changes what a seed generates (it should not). Owner: Aux 12
-  (Lane 4, the database lane that built the version key in DB.6 and owns
-  the migrations; takes it first, ahead of DB.96, after OPS.29);
-  nobody has started it.
-  Prerequisites: none. Related: OPS.64, OPS.10, DB.6, PERF.32.
 
 - [ ] **DB.103 Storage for nation-states and cities: tables, Object IDs, column units and the migration**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
