@@ -1439,3 +1439,6 @@ Baseline: PR #1817.
 | GEN.725 | 8.1 | Mixture and stored values |
 | MAP.294 | 8.1 | Fly-through map |
 | MAP.293 | 8.1 | Fly-through map |
+| TEST.373 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.184 | 8.1 | The headline closes |
+| ADM.129 | 8.1 | The headline closes |

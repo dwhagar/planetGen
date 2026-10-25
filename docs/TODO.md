@@ -1188,6 +1188,79 @@ with `clamp()`.
   UX.179, PERF.134, ADM.44, MAP.158.
   Prerequisites: UX.179. Related: UX.179, PERF.134, ADM.44, MAP.158.
 
+- [ ] **UX.207 Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug)**
+  Boss, 8:29 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi6oJmNKFKoyienFmHsrWDEM, relayed by the
+  coordinator), live observation, so a bug: "In the breadcrumb bar label
+  the link for the system as 'System' and the star being the star(s)
+  name." On the Enuakyadas IV page the trail reads Home, Galaxy, Taraatr
+  Velkiso, Enuakyadas, Enuakyadas, Enuakyadas IV, where the third and
+  fourth links are the system and its star, both named Enuakyadas, so
+  they cannot be told apart. Do: on every page whose trail passes
+  through a system and its star(s), the system link reads "System" and
+  the star link reads the star's name (for a multiple system the star
+  names joined as the page already writes them, for example "Alpha A and
+  B"); a lone body that has no star in the trail keeps its place. The
+  same labels in the trail's structured data (JSON-LD breadcrumb list)
+  and the page titles that use the trail. Done: a page test on a
+  single-star system's planet page finds the trail ending "..., System,
+  Enuakyadas, Enuakyadas IV" with the right links, and one on a binary
+  system's planet page finds both star names. Owner: Aux 11 (object
+  pages). Related: UX.200, UX.188.
+  Prerequisites: none. Related: UX.200, UX.188.
+
+- [ ] **UX.208 Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column**
+  Boss, 8:29 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi6oJmNKFKoyienFmHsrWDEM was the breadcrumb
+  note; this one is the coordinator's relay of "I want all 'not stored'
+  text to be in the pathway", 8:24 PM EDT): every property a page can
+  show as "not stored", or leave out under "N properties with no value
+  are not listed" (27 on the Enuakyadas IV page), must have a filling
+  item in the generation pathway so the text goes away. TODO's static
+  check (reports/not-stored-audit-2026-10-24.md) found a writer in the
+  generation code for every sheet column, so the empty ones are
+  conditional (class, kind, stage order), which only a run shows. Do:
+  (1) add to describe/sheet.py one registry `APPLIES` of the sheet
+  columns by body kind and class (planet, moon, star, belt, comet and
+  the phenomena; class letters or the class family: rocky, icy, giant,
+  locked, airless, and so on) saying where a column applies and why it
+  does not elsewhere (a sentence per rule); (2) a test and a report
+  script (scripts/sheet_fill_report.py, writes a table to the console
+  and to reports/) that generate sample bodies of every class (at least
+  30 per class, fixed seeds) and, for each sheet column, count filled,
+  empty where it applies, and empty where the registry says it does not;
+  (3) the sheet shows "not applicable" (or leaves the row out, per
+  UX.203) for a column that does not apply and never shows "not stored"
+  for one that does; the test fails for an applicable column that is
+  empty in any sample; (4) deliver the report to TODO, which files one
+  filling item per empty applicable column with an owner and an 8.1 slot
+  and lists them in reports/. Done: the test passes on main with the
+  empty applicable columns excused by filed item numbers (a list in the
+  test, each entry an item id that is open), and the Enuakyadas IV page
+  has no "not stored" row. Owner: Aux 11 (property sheet). Related:
+  UX.188, UX.198, UX.199, UX.203, UX.205, TEST.358, GEN.767, GEN.768.
+  Prerequisites: none. Related: UX.188, UX.198, UX.199, UX.203, UX.205,
+  TEST.358, GEN.767, GEN.768.
+
+- [ ] **UX.209 Object pages order: At a glance, then About, then the Properties list, then the other details (bug)**
+  Boss, 8:33 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi11fUYtyP7MHaYzSWdusHa8, relayed by the
+  coordinator), live observation, so a bug: "The properties list of
+  details should come after the 'About' section of the info page and
+  right under at a glance". Today the Enuakyadas IV page runs At a
+  glance, Properties (the long list of groups), then About, so the long
+  list pushes the description far down. TODO's reading (the
+  coordinator's): the order is At a glance, About (the short facts table
+  and the description text), Properties (the grouped list), then the
+  rest (habitability notes, radiation, survival equipment, life text,
+  part-of line). Do: reorder the planet, moon, star, belt, comet and
+  phenomenon pages to that order, with About directly under At a glance;
+  headings stay one outline (UX.195) and the table of contents (UX.196)
+  follows the new order. Done: a page test finds the section order on a
+  planet, a moon and a star page and the contents list in the same
+  order. Owner: Aux 11 (object pages). Related: UX.195, UX.196, UX.204.
+  Prerequisites: none. Related: UX.195, UX.196, UX.204.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -15072,31 +15145,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none yet.
   Prerequisites: none. Related: PERF.181, GEN.633, PERF.98, PERF.99.
 
-- [ ] **PERF.184 Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug)**
-  Boss's live observation (relayed 2:34 PM EDT 2026-10-24 by the
-  coordinator; filed by the TODO thread). Kind: wrong output. When the
-  server has no benchmark run on record, the time estimates (the
-  Generate page plan line, the run's remaining time) break instead of
-  giving a best guess. Do: when there is no benchmark, estimate from the
-  best available information (hardware found on the host such as core
-  count and memory, the size of the plan, and defaults for the cost per
-  star, per layer and per unit) and say that it is a rough guess and how
-  wide it is. As the system records how long each star, layer or unit
-  actually takes, fold those timings into the estimate so it tightens as
-  the run goes and on later runs. Done: a fresh server with no benchmark
-  shows a sensible estimate; the estimate changes after recorded timings
-  arrive; tests for both. Owner: Core 5 (the queue and speed lane;
-  proposed by the TODO thread because no lane owns estimates since
-  PERF.178 went to a finished lane).
-  Red test (2026-10-09): Update 4:30 PM EDT 2026-10-24: the coordinator
-  reports
-  test_eta_estimator.py::test_the_queue_page_shows_a_range_or_estimating
-  fails on main after #3078 (PERF.186 and PERF.183). Core 5 owns this
-  item and the estimator: confirm whether #3078 broke it or it was
-  already red, then fix the test or the page without weakening the test.
-  Done includes that test passing on main.
-  Prerequisites: none. Related: PERF.178, PERF.174.
-
 - [ ] **PERF.188 The bright-star fraction table build (star_population._bright_windows) takes 60 to 130 seconds per test in pure Python**
   Found by Bug Hunt while fixing the load flakes of TEST.344 (relayed
   5:04 PM EDT 2026-10-24 as the lane reported; filed by the TODO
@@ -17024,39 +17072,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   settings; after GEN.631 reads them, so the page can be tried end to
   end).
   Prerequisites: none. Related: GEN.267, UX.125.
-
-- [ ] **ADM.129 Admin page buttons that start the habitability re-score and the map luminosity fill through the queue**
-  Boss, 7:00 PM EDT 2026-10-24 (as Core 5 reported it): asked whether
-  there is a way to regenerate all the habitability data. Today the only
-  way
-  is the command line, `planetgen rescore-habitability` (a queue run,
-  GEN.217
-  and PERF.106, split into one unit per run of ids by
-  PERF.116/PERF.122),
-  and `planetgen fill-map-luminosity` for the map luminosity. Do: add an
-  admin button "Regenerate habitability" that starts the same
-  rescore-habitability run through the queue, and one for "Fill map
-  luminosity", each with exactly the rules of a generation run: the
-  Busy check and the one-run lock (PERF.181), the first run line with
-  the
-  galaxy seed and version key (OPS.10), the admin audit log entry, the
-  Stop button (PERF.186), progress on the Queue page, and the retry
-  (web/queue_page.py RETRYABLE already lists both commands). Put the
-  buttons
-  where the other admin run starters are (the Generate page or the Queue
-  page; the owner picks, one place only), refuse them while another run
-  is
-  active, and show on the button what it does in one line (it re-scores
-  the stored planets and moons from their stored conditions; it does not
-  re-draw a planet, so after a physics or class change that alters the
-  draws, use the regenerate-sector or the planned regenerate-planet path
-  instead). Done: a test starts each run from the page and sees the
-  queue
-  run, the lock and the audit entry; the admin help names both buttons.
-  Owner: Core 5, after PERF.184 (it offered to take it; nobody else has
-  it).
-  Prerequisites: none. Related: GEN.217, PERF.106, PERF.116, PERF.122,
-  PERF.181, PERF.186, OPS.10.
 
 ## SEC: Security
 
@@ -19609,17 +19624,6 @@ clears each one.
   TEST.208, TEST.261.
   Prerequisites: none. Related: TEST.208, TEST.261.
 
-- [ ] **TEST.373 test_protection::test_there_is_one_describer_of_the_six_categories fails on main: habitability_explain.py exists again after GEN.445 (bug)**
-  Found by Math lane 2 (8:11 PM EDT 2026-10-24 as the lane reported) on
-  main after #3162; not its change. TEST.363 (#3155) made the describer
-  and habitability_explain agree; since then GEN.445 brought a
-  habitability_explain.py back, so the test that expects one describer
-  of the six categories fails. Do: make one module the describer (the
-  test says which) and have the other import it, or change the test to
-  the module layout GEN.445 chose, with no skip. Done: the test passes
-  on main. Owner: Aux 4 (Lane E, GEN.445). Related: TEST.363, GEN.445.
-  Prerequisites: none. Related: TEST.363, GEN.445.
-
 - [ ] **TEST.374 scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug)**
   Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
   lane reported): the patch notes in changes/ for GEN.398, GEN.691 and
@@ -19648,7 +19652,37 @@ clears each one.
   Done: every listed test passes on a documented machine, or has its own
   item with a root cause. Owner: Bug 1. Related: TEST.370, TEST.365,
   TEST.366, TEST.353.
+  Research (2026-10-09, Core 5 witness): Core 5 (8:32 PM EDT 2026-10-24
+  as the lane reported) saw the same two test_web_generate tests
+  (generate_anyway and plain_confirm override logging) fail on clean
+  main: one more witness for this item.
   Prerequisites: none. Related: TEST.370, TEST.365, TEST.366, TEST.353.
+
+- [ ] **TEST.376 scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill**
+  Boss, 8:42 PM EDT 2026-10-24 (relayed by the coordinator): "have all
+  tasks running tests check for broken containers". Lane containers
+  restart and kill MySQL and Redis in the middle of a gate (Aux 3's
+  MySQL was OOM-killed today, Bug 1's gate was killed at 6:08 PM EDT as
+  the lane reported); each costs hours. The standing rule is in lanes.md
+  (CONTAINER CHECK) until this lands. Do: scripts/test.py (every mode
+  that runs tests: quick, area, browser, changed, full) (1) runs a
+  preflight before the first test: MySQL and Redis answer, stale lock
+  files in /var/run/mysqld removed, binary logs purged, the
+  PLANETGEN_TEST_* variables from /etc/profile.d/planetgen-test.sh
+  exported, the test MySQL user has GRANT OPTION, argon2-cffi and
+  Playwright present; it repairs what it can and prints what it did; (2)
+  runs a watchdog during the run that checks MySQL and Redis between
+  test files (and on any connection error), and when one is dead
+  restarts it, re-runs the preflight and resumes the run from its
+  progress log instead of starting over or failing the file as a product
+  bug; a service that cannot be restarted stops the run with one plain
+  line naming it. Done: a test that kills MySQL (and one that kills
+  Redis) mid-run ends with the run finished and a note saying what was
+  restarted; the preflight alone is runnable as `scripts/test.py
+  doctor`. Includes the work described in OPS.70 (the lane-start health
+  check and resume), which Bug 1 now owns with this item. Owner: Bug 1.
+  Related: OPS.70, OPS.62, TEST.208.
+  Prerequisites: none. Related: OPS.70, OPS.62, TEST.208.
 
 ## USR: User accounts
 
@@ -20353,6 +20387,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   resumes at the last finished file with services healthy. Related
   OPS.62 (the setup script). Owner: Lane Debug, with Bug Hunt for the
   gate side.
+  Research (2026-10-09, Owner): Taken over by Bug 1 together with
+  TEST.376 (Boss, 8:42 PM EDT 2026-10-24: all test runs check for broken
+  containers); Lane Debug no longer exists. Build it as part of
+  TEST.376.
   Prerequisites: none. Related: OPS.62, TEST.334.
 
 - [ ] **OPS.71 Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand**

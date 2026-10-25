@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.207 |
+| UX | UX.210 |
 | MAP | MAP.309 |
 | NAV | NAV.63 |
 | GEN | GEN.769 |
@@ -22,7 +22,7 @@ release is stamped.
 | API | API.33 |
 | ADM | ADM.130 |
 | SEC | SEC.37 |
-| TEST | TEST.376 |
+| TEST | TEST.377 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -517,7 +517,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.126 | Generate: a live 'how big' count while typing a command or filling the form | none | done, PR #2677 |
 | ADM.127 | Generate form for a new galaxy: tighter star brightness section, sliders above their boxes, a box that invokes no scatters, one degrees on arm pitch, Edge as one typed value with units (bug) | none | done, PR #2608 |
 | ADM.128 | The admin one-off system page and the API schema offer the star count and the cap (stars and max_stars) | none | open |
-| ADM.129 | Admin page buttons that start the habitability re-score and the map luminosity fill through the queue | none | open |
+| ADM.129 | Admin page buttons that start the habitability re-score and the map luminosity fill through the queue | none | done, PR #3181 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -2124,7 +2124,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.181 | CRITICAL (bug): MySQL is killed out of memory during New galaxy Stage 7 (scatter --mass), 65,536 shells and 19,795 components (bug) | none | done, PR #3031 |
 | PERF.182 | Finish an incomplete run: resume a New galaxy run that died partway from the stage it stopped in | none | open |
 | PERF.183 | Nightly New galaxy smoke: stage times and peak memory per stage, fail above a budget | none | done, PR #3078 |
-| PERF.184 | Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug) | none | open |
+| PERF.184 | Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug) | none | done, PR #3176 |
 | PERF.185 | A hard host-wide cap on the total number of planetgen worker processes, across every lane and command, as a second guard against memory exhaustion | none | done, PR #3040 |
 | PERF.186 | CRITICAL (bug): Cancel does not cancel, python workers keep saturating the host; add a working Stop everything that cancels all runs, kills all workers and blocks any new start until the owner says so (bug) | none | done, PR #3078 |
 | PERF.187 | The phenomena scatter holds 6.4 GB in its own process while every other generate step stays under 300 MB: find what it keeps and bound it (high priority) (bug) | none | done, PR #3125 |
@@ -2424,6 +2424,9 @@ Parents marked "new parent" had no old number of their own.
 | UX.204 | Every collapsible section on an object page starts collapsed | none | open |
 | UX.205 | Object pages show the day and night time shares, moons with the extra night from their planet | none | open |
 | UX.206 | Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view | none | open |
+| UX.207 | Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug) | none | open |
+| UX.208 | Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column | none | open |
+| UX.209 | Object pages order: At a glance, then About, then the Properties list, then the other details (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -2902,9 +2905,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.370 | test_web_pages in_process_transport fails: DatabaseLoginError, there is no planetgen database account on the lane machine (bug) | none | open |
 | TEST.371 | test_workers::a_worker_that_is_killed fails under load and passes alone (bug) | none | open |
 | TEST.372 | scripts/test.py and docs/reference/testing.md call `full` "the merge gate", which lanes read as a whole-suite gate for every merge (bug) | none | open |
-| TEST.373 | test_protection::test_there_is_one_describer_of_the_six_categories fails on main: habitability_explain.py exists again after GEN.445 (bug) | none | open |
+| TEST.373 | test_protection::test_there_is_one_describer_of_the_six_categories fails on main: habitability_explain.py exists again after GEN.445 (bug) | none | done, PR #3155 |
 | TEST.374 | scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug) | none | open |
 | TEST.375 | Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug) | none | open |
+| TEST.376 | scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
