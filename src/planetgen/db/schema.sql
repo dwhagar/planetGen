@@ -3437,6 +3437,43 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    phi4                        DOUBLE NULL,  -- v158 (GEN.701): the habitability score of the surface a visitor would find (rogue_habitability.py)
+    phi4_pressure               DOUBLE NULL,  -- v153
+    phi4_temperature            DOUBLE NULL,  -- v153
+    phi4_air                    DOUBLE NULL,  -- v153
+    phi4_water                  DOUBLE NULL,  -- v153
+    phi4_radiation              DOUBLE NULL,  -- v153
+    phi4_suitability            DOUBLE NULL,  -- v153
+    tier_pressure               TINYINT NULL,  -- v153
+    tier_temperature            TINYINT NULL,  -- v153
+    tier_air                    TINYINT NULL,  -- v153
+    tier_water                  TINYINT NULL,  -- v153
+    tier_radiation              TINYINT NULL,  -- v153
+    tier_suitability            TINYINT NULL,  -- v153
+    life_microbial              TINYINT UNSIGNED NULL,  -- v153
+    life_flora                  TINYINT UNSIGNED NULL,  -- v153
+    life_fauna                  TINYINT UNSIGNED NULL,  -- v153
+    life_sentient               TINYINT UNSIGNED NULL,  -- v153
+    l_solv                      DOUBLE NULL,  -- v153
+    l_chem                      DOUBLE NULL,  -- v153
+    l_ener                      DOUBLE NULL,  -- v153
+    l_rad                       DOUBLE NULL,  -- v153
+    eq_body                     TINYINT NULL,  -- v153
+    eq_body_kind                TINYINT NULL,  -- v153
+    eq_body_rec                 TINYINT NULL,  -- v153
+    eq_body_rec_kind            TINYINT NULL,  -- v153
+    eq_rad_suit                 TINYINT NULL,  -- v153
+    eq_rad_suit_rec             TINYINT NULL,  -- v153
+    eq_mobility                 TINYINT NULL,  -- v153
+    eq_dust                     TINYINT NULL,  -- v153
+    eq_gas_filter               TINYINT NULL,  -- v153
+    eq_co2_scrub                TINYINT NULL,  -- v153
+    eq_supply                   TINYINT NULL,  -- v153
+    eq_supply_rec               TINYINT NULL,  -- v153
+    eq_shelter                  TINYINT NULL,  -- v153
+    eq_shelter_rec              TINYINT NULL,  -- v153
+    shelter_column_g_cm2        DOUBLE NULL,  -- v153
+    energy_flux_w_m2            DOUBLE NULL,  -- v153
 
     UNIQUE KEY uq_rogue_planets_uid (uid),
     KEY idx_rogue_planets_parent (parent_type, parent_id),

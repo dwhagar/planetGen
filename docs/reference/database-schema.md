@@ -1677,6 +1677,13 @@ from any star.
 | `surface_temperature_k`, `surface_pressure_pa` | DOUBLE | nullable | Added in v48: at the ground, or a giant's at 1 bar. |
 | `ice_shell_thickness_km`, `ocean_depth_km`, `has_liquid_water` | DOUBLE, DOUBLE, BOOLEAN | nullable | Added in v48: its ice lid and buried (or envelope-warmed) ocean; NULL when there is none. |
 | `hp_ice_km` | DOUBLE | nullable | Added in v74 (GEN.88): high-pressure ice under the deepest liquid the liquidus allows; NULL when there is none. |
+| `phi4`, `phi4_pressure`, `phi4_temperature`, `phi4_air`, `phi4_water`, `phi4_radiation`, `phi4_suitability` | DOUBLE | nullable | Added in v153 (GEN.701). The PHI-6 score of the rogue planet's surface and its six domains, as on `planets`. NULL for a gas giant or brown dwarf. |
+| `tier_pressure`, `tier_temperature`, `tier_air`, `tier_water`, `tier_radiation`, `tier_suitability` | TINYINT | nullable | Added in v153. Each domain's colour (0 Blue to 3 Red). |
+| `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | Added in v153. The four life scores. A rogue planet has no life draw, so a scored one holds 0 in each. |
+| `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v153. The four likelihoods behind microbial life, as on `planets`. |
+| `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`, `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter`, `eq_shelter_rec` | TINYINT | nullable | Added in v153. The survival equipment levels a visitor needs, as on `planets`. |
+| `shelter_column_g_cm2` | DOUBLE | nullable | Added in v153. The shelter column, as on `planets` (NULL when no shelter applies). |
+| `energy_flux_w_m2` | DOUBLE | nullable | Added in v153. The chemical power life could use: 1% of `internal_heat_flux_w_m2` (no starlight). |
 | `galactic_orbital_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a rogue planet is always standalone). Its speed column was dropped in v103 (GEN.336): the speed is the length of `velocity_x/y/z_kms` (a star and a close pair read their system's). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this rogue planet's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
 | `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
@@ -2202,6 +2209,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v158 (GEN.701): the habitability score of a rogue planet
+
+Migration 0158 adds 37 score columns (`phi4` and its six domains, the six tiers, the four life scores, `l_solv`, `l_chem`, `l_ener`, `l_rad`, the fourteen `eq_*` levels with `shelter_column_g_cm2`, and `energy_flux_w_m2`) to `rogue_planets`, at the end of the table (no regional temperatures or hours outside: a rogue planet has no star), and fills them for every terrestrial row from the surface it already holds, by `physics/rogue_habitability.py`, in pages of ids (a row with `phi4` set is done). Nothing is drawn. A gas giant or brown dwarf keeps NULL.
 
 ### v157 (GEN.654, DB.92): the aquifer of a world
 
