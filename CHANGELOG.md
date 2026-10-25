@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2306] - 2026-10-25
+
+**Headline:** Pages get an "On this page" contents list, and every page is checked for a clean heading outline.
+
+### Changed
+- Every page with three or more sections shows an "On this page" list after its title, built from its headings; following an entry into a collapsed section opens it (UX.196).
+- The accessibility suite now fails a page with more than one h1, a skipped heading level, or a table with no heading, caption or label (UX.195).
+
 ## [8.0.2305] - 2026-10-25
 
 **Headline:** `planetgen sector` and `planetgen phenomenon` now only generate; the population pass and the sector paths are commands of their own.
