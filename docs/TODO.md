@@ -14244,6 +14244,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.767. Related: GEN.767, GEN.656, GEN.725, UX.199,
   UX.205.
 
+- [ ] **GEN.769 Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug)**
+  Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "ice shell
+  thickness shows measure in km in some situations where it should show
+  meters or less (i.e. 0.00109 km)". On the property sheet
+  (describe/sheet.py) the ice shell thickness, ocean depth and
+  high-pressure ice thickness columns (ice_shell_km,
+  ice_shell_thickness_km, ocean_depth_km, hp_ice_km) are stored in km
+  and shown as a plain km number when their quantity is not on a length
+  ladder, so a thin shell prints as 0.00109 km. Do: find every length
+  column and Document quantity that skips the length ladder (mm, cm, m,
+  km, then au, ly and so on by magnitude) and put it on one, so a value
+  under 1 km reads in m (under 1 m in cm or mm), a value over 1000 km
+  stays in km, in the sheet, the API description and the map infobox
+  alike; one function picks the unit from the registry (GEN.571), no
+  per-column table. Done: 0.00109 km shows as 1.09 m, 2.4e-7 km as 0.24
+  mm, 3500 km stays 3500 km; a test over every length column of the
+  sheet shows no value below 1 in its unit. Owner: Aux 14. Related:
+  GEN.571, GEN.568, UX.199.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.199.
+
+- [ ] **GEN.770 Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug)**
+  Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "water, and
+  other things are less clear as well we should have some kind of units
+  with water activity, surface under ocean, surface above sea level,
+  water share of the mass, etc." On the property sheet these
+  dimensionless columns (water_mass_fraction, ocean_fraction,
+  land_fraction, water_activity, ocean_pH and the other ratio-unit
+  columns) print a bare number with no unit, so 0.0004 and 0.71 do not
+  say what they are. Do: give each a stated unit by what it is: the
+  shares (water share of the mass, surface under ocean, surface above
+  sea level) as a percent when above 1 percent, in ppm when below
+  (0.0004 as 400 ppm), with the whole-surface pair adding to 100
+  percent; water activity as a pure number between 0 and 1 with its
+  scale in the label ("Water activity (0 to 1, life needs about 0.6 or
+  more)"); pH with its scale; and every other ratio column on the sheet
+  a label that says what it is a ratio of. Register the display unit
+  (percent, ppm, dimensionless) in the unit registry and column_units,
+  not in the sheet. Done: no water-group row shows a bare number; a test
+  lists every ratio-unit column of the sheet and its stated unit. Owner:
+  Aux 14. Related: GEN.571, GEN.568, UX.208.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14499,28 +14541,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.118 chain).
   Prerequisites: none. Related: PERF.118, PERF.121, PERF.122,
   PERF.123, PERF.124, PERF.125, PERF.126, PERF.127, PERF.128.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
-
-- [ ] **PERF.124 `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon`**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. Today `planetgen sector
-  --population` also runs the population pass and `planetgen phenomenon`
-  settles its sector unless `--no-settle`. Done: each only generates
-  what its name says; the population pass and the settle are the
-  commands of PERF.123 and PERF.125, asked for in the step list when
-  wanted; `--population` and `--no-settle` are gone on these two with no
-  shim; the Generate page and the one-off pages ask for the settle as a
-  step (PERF.119); a test per command. Owner: Core 5 (proposed; the
-  PERF.118 chain).
-  Prerequisites: none. Related: PERF.119, PERF.120,
-  PERF.123, PERF.125.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
@@ -14883,7 +14903,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wrapper run over the step list, the same seed gives the same galaxy as
   before at 1 and 4 workers, and the estimate shows the whole list.
   Owner: Core 5 (proposed, after PERF.125).
-  Prerequisites: PERF.124, PERF.125. Related: PERF.123.
+  Prerequisites: PERF.125. Related: PERF.123.
 
 - [ ] **PERF.174 Every work unit's database connection runs the schema check again: skip it when the schema version is current**
   Found by the Performance lane in PERF.156 to PERF.158 (relayed 7:34 PM
