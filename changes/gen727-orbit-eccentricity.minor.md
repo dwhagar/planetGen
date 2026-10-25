@@ -3,9 +3,10 @@
 ### Changed
 - **Planets and moons have an eccentricity and a mutual inclination (GEN.727).** A planet's eccentricity is drawn from the
   Kepler laws (Van Eylen et al. 2019: a half-Gaussian of width 0.083 for a system of several planets, a mixture peaking
-  near 0.26 for a lone one), a regular moon's from 0.001 to 0.01 and a captured moon's from the tidal law, both cut where
-  the orbit would leave the stable region (periapsis outside the Roche limit, apoapsis inside the Hill sphere). Tidal
-  circularisation over the star's age pulls close, large bodies back toward a circle. Inclination is Rayleigh about a
+  near 0.26 for a lone one), a regular moon's forced eccentricity from 0.001 to 0.01 (kept for good, as Io's is by its
+  neighbours) and a captured moon's from the thermal law, all cut where the orbit would leave the stable region (periapsis
+  outside the Roche limit, apoapsis inside the Hill sphere). Tidal circularisation over the star's age pulls close planets
+  and captured moons back toward a circle. Inclination is Rayleigh about a
   plane shared with the others (mutual inclination 1.6 degrees over the square root of two).
 - **The state vector is the ellipse.** Position and velocity come from the orbital elements, the stored distance is the
   semi-major axis, and the orbit update steps the state on its conic. The new `eccentricity` column (planets and moons,

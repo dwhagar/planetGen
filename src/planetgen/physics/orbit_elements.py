@@ -6,7 +6,7 @@ Eccentricity and inclination of the orbits of planets and moons (GEN.727)
 
 A planet or moon used to go round on a circle with a plane tilt drawn flat between two bounds. Real orbits are ellipses, and the
 ellipse carries the light a planet gets (the mean flux rises as `1 / sqrt(1 - e^2)`), the seasons (the flux swings between periapsis
-and apoapsis), the room the neighbours need (apoapsis against periapsis) and a moon's tide (`hydrosphere.tidal_heating_w`, GEN.737).
+and apoapsis), the room the neighbours need (apoapsis against periapsis) and a body's tide (`tidal_heating`, GEN.737).
 This module draws the elements and holds the few functions of them the rest of the generator uses.
 
 **Planets.** The eccentricity of a planet of a system with two or more planets follows the positive half of a zero-mean Gaussian of
@@ -32,7 +32,8 @@ satellites of the giants lie between 0.001 and 0.03, the Moon at 0.055; the rang
 an orbit with the thermal distribution of eccentricities, `f(e) = 2 e`, cut at the largest value that keeps its apoapsis inside the
 stable part of its parent's Hill sphere (`MOON_PROGRADE_STABLE_HILL_FRACTION`, tier T5, tweak L0).
 
-**Tides.** Raised in the body by what it orbits, they circularise its orbit on `circularisation_time_yr`,
+**Tides.** Raised in the body by what it orbits, they circularise the orbit of a planet or a captured moon (a regular moon's forced
+eccentricity is renewed by its neighbours and stays, so the tide it raises keeps heating it, GEN.737) on `circularisation_time_yr`,
 `tau_e = (2 / 21) (Q / k2) (m / M) (a / R)^5 / n` (Goldreich and Soter 1966, the standard result for a synchronously rotating body;
 `e` falls as `exp(-t / tau_e)`). Q and k2 are the representative values of `constants.MOON_TIDAL_DISSIPATION_Q` and
 `MOON_TIDAL_LOVE_NUMBER_K2` for a rocky or icy body and `GIANT_TIDAL_Q`, `GIANT_TIDAL_LOVE_NUMBER_K2` for a gas giant (tier T3: the

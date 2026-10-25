@@ -824,7 +824,9 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
     is the number of planets and belts planned round its star, one for a single planet; `None` counts as several), cut where its
     periapsis would fall inside the star's Roche limit; a moon's from how it came to be there (`planet.moon_origin`), cut where its
     apoapsis would leave its parent's stable Hill sphere (`parent_distance_au` is the parent's distance from the star). The tides of the
-    orbit then take what they can in the age of the star. Draws the eccentricity before the climate, which goes by the mean light of
+    orbit then take what they can in the age of the star, from a planet's and a captured moon's eccentricity, which nothing renews; a
+    regular moon's is forced (by its neighbours and the resonances among them, as Io's is by Europa and Ganymede) and stays, which is what
+    makes its tide a lasting heat source (GEN.737). Draws the eccentricity before the climate, which goes by the mean light of
     the orbit; the plane and the angles come with the rest of the motion (`generate_orbital_motion_properties`).
 
     Args:
@@ -842,6 +844,9 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
     else:
         e_max = orbit_elements.max_planet_eccentricity(planet.distance, planet.star, planet)
         birth = orbit_elements.draw_planet_eccentricity(None if planned_objects is None else planned_objects > 1, e_max)
+    if planet.is_moon and planet.moon_origin != "captured":
+        planet.eccentricity = birth
+        return
     time_yr = orbit_elements.circularisation_time_yr(planet, primary_mass_kg, planet.distance)
     planet.eccentricity = orbit_elements.circularised(birth, _gyr_to_yr(planet.star.age), time_yr)
 

@@ -578,7 +578,7 @@
       "epoch": 97,
       "first_release": null,
       "pending": true,
-      "reason": "A planet or moon has an eccentric orbit (Van Eylen 2019 planet eccentricity, regular and captured moon eccentricity, tidal circularisation) and a Rayleigh mutual inclination, so every planet and moon is placed on an ellipse, its light is that of its mean flux with a seasonal swing, and orbit spacing, belts and moon stability use periapsis and apoapsis (GEN.727)",
+      "reason": "A planet or moon has an eccentric orbit (Van Eylen 2019 planet eccentricity, a regular moon's forced eccentricity and a captured moon's thermal one, tidal circularisation of planets and captured moons) and a Rayleigh mutual inclination, so every planet and moon is placed on an ellipse, its light is that of its mean flux with a seasonal swing, and orbit spacing, belts and moon stability use periapsis and apoapsis (GEN.727)",
       "affects": ["fill"]
     }
   ]
