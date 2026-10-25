@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2303] - 2026-10-25
+
+**Headline:** The update reloads the web server more safely: it tests Apache's configuration first, covers gunicorn hosts, and checks the site answers.
+
+### Changed
+- **`update.sh` reload (OPS.29).** Apache is checked with `apache2ctl configtest` before it is reloaded, so a broken config leaves the running Apache serving; it is restarted only when the update just installed or enabled mod_wsgi (other modules load on a reload). The `planetgen-gunicorn` unit (Linux) and the launchd gunicorn daemon (macOS) are reloaded the same way, and `/api/health` must answer afterwards (`PLANETGEN_HEALTH_URL` sets another address). A failed step ends the update non-zero and prints the command to run by hand; nothing running prints the commands and ends zero. The docs (`apache.md`, the server checklist) say a reload aborts requests a mod_wsgi daemon is serving after about 4 seconds.
+
 ## [8.0.2302] - 2026-10-25
 
 **Headline:** The run log download answers a plain 403 to someone who is not signed in as an admin, like the other file downloads, instead of a login redirect.
