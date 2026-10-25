@@ -14621,32 +14621,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   UX.208. Suggested owner: Core 3 or Aux 9 (class lane).
   Prerequisites: none. Related: UX.208, GEN.646, GEN.681.
 
-- [ ] **GEN.792 File the GEN.725 registry rows from the second-hand citations report: first-hand sources, second-hand fallbacks and the final open list**
-  Citations lane (Aux 17) final report, relayed 9:50 PM EDT 2026-10-24
-  as the lane reported: reports/secondhand-citations-2026-10-24.md, Part
-  10 (Boss's uploads that make rows first-hand, and the final open
-  list). Add or update each row in docs/design/stand-in-values.md
-  (GEN.725) from Part 10: the source now first-hand (the papers Boss
-  uploaded), the second-hand fallback where the paper is not accessible,
-  and the tier and tweak level; the rows still open stay labelled with
-  the replacing item. Done: every row of Part 10 is in the registry with
-  its source basis, and the registry test passes. Version 8.1. Owner:
-  Aux 17 (Citations) or the next free pool lane.
-  Prerequisites: none. Related: GEN.725, GEN.711.
-
-- [ ] **GEN.793 Settle two source flags in the registry: CFC-12 forcing coefficient 0.32 (IPCC TAR) against 0.33 (gap plan), and the NH3 1.078 factor against Irwin 2019**
-  Citations lane (Aux 17) final report, relayed 9:50 PM EDT 2026-10-24
-  as the lane reported: reports/secondhand-citations-2026-10-24.md, Part
-  10 (Boss's uploads that make rows first-hand, and the final open
-  list). Myhre et al. 1998 Table 3 is now uploaded, so the CFC-12
-  coefficient can be read first-hand and the wrong one corrected in the
-  gap plan and the registry; the NH3 1.078 factor is checked against
-  Irwin et al. 2019 (arXiv 1812.05383, ExoMol CoYuTe NH3 line list) and
-  kept, corrected or replaced. Done: both flags carry a verified value
-  with the source and page, and any code that used the wrong value is
-  changed (a changed number carries `tests.golden_update --reason ...`).
-  Version 8.1. Owner: Aux 17 (Citations) or the next free pool lane.
-  Prerequisites: none. Related: GEN.725, GEN.715.
+- [ ] **GEN.794 Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra**
+  Citations lane (Aux 17), GEN.793 merged #3211, relayed 9:56 PM EDT
+  2026-10-24 as the lane reported: Irwin 2019 is an absorption line list
+  with no photolysis rate, so it cannot settle the factor; it stays a
+  labelled stand-in (T4, bracket 1.05 to 1.10, quiet rate 1.54e-4 to
+  1.8e-4 per second at 1 au) until the Huebner and Mukherjee 2015 NH3
+  quiet and active line is reachable (Boss cannot access the paper; use
+  a second-hand source or compute it from the Cheng 2006 cross section
+  with measured solar spectra). Done: the factor and the rates carry a
+  source and the registry row (GEN.725) is updated with tier and tweak
+  level; a changed value carries tests.golden_update --reason ....
+  Version 8.4. Owner: pool, after 8.1.
+  Prerequisites: none. Related: GEN.501, GEN.725, GEN.793.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
