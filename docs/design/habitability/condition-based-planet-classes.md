@@ -56,3 +56,8 @@ Built (class lane): C1 the classifier and rule file, C2 the sweep, C4 the class 
 ## Age needs from conditions (GEN.686, built)
 
 A star's age is raised until it is old enough for its planets. That minimum no longer reads the class letter: `physics/age_needs.py` and `physics/data/age_needs.json` give each finished body a tier from its stored conditions (giants, airless bodies and small worlds need none; hot dense or reducing air is `molten`; heavy worlds, cold thin air and carbon-dioxide air are `settled`; temperate worlds with air are `watered`; cold worlds are `frozen`), and each tier names its minimum age on the fast, normal and slow evolutionary scales. The ages are the old `PLANET_CLASSES` `age_ranges` minimums (planetGen values with no source), so 99.4% of 4,612 sampled bodies need exactly the age they needed before. `age_ranges` is deleted.
+
+## A sample that holds every class (GEN.791, planets built)
+
+`SystemConfig.FORCE_CLASS` (a test and admin option, not saved with a system) gives a generated system at least one planet of the named class in the first orbital slot; `generation/class_sample.py` `fill(per_class, seed)` tops a sample up until every class has that many planets, for checks that need all twenty (the property sheet fill audit, UX.208). Random generation gives under 30 planets of ten classes in 400 systems. Moons are next, after Core 3's moon generation work (GEN.761) merges. At the class cut-over the switch becomes a condition request (an ocean world, PHI-6 Blue or Green) through the same path as `+habitable_world`.
+
