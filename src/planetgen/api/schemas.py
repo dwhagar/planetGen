@@ -254,6 +254,13 @@ class NeighborhoodRequest(Body):
     disregard_missing_data: StrictBool = False
 
 
+class BlockGenerateRequest(Body):
+    """`POST /api/galaxy/blocks/<key>/generate` (every field optional)."""
+
+    estimate_only: StrictBool = False
+    disregard_missing_data: StrictBool = False
+
+
 class FacilityRatings(Body):
     """The ratings of a facility: a colour word each (`green`, `yellow`, `red`), or `null` to clear one."""
 

@@ -103,6 +103,8 @@ def change_for_write(method, path):
         match = pattern.fullmatch(path)
         if match:
             return kind, {"sector_id": match.group(1)}
+    if re.fullmatch(r"/galaxy/blocks/[0-9.]+/generate", path):         # GEN.310: a block fill places sectors anywhere
+        return "generated", {}
     if path == "/sectors" and method == "POST":
         return "sector-set", {}
     match = re.fullmatch(rf"/sectors/{_ID}", path)

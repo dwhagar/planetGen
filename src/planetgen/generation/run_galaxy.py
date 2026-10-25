@@ -8,7 +8,7 @@ The `galaxy` command: many sectors placed as one galaxy, each at its
 shell/band/wedge address in the spherical grid, with its systems inside
 the sector's own cell. Modes: `--shell` (a shell, or with `--band` one band
 of it, or with `--wedge` too one sector), `--shells/--bands/--wedges` (a
-span), `--center-sector`/`--radius-pc` (local neighborhood), `--course`,
+span), `--block` (a block of the Galaxy Map's ladder), `--center-sector`/`--radius-pc` (local neighborhood), `--course`,
 or none (random start).
 `ensure_sector_generated` and `generate_sector_neighborhood` are the
 same per-sector logic for the web, run when a visitor reaches a sector,
@@ -27,7 +27,7 @@ import pymysql
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
-from planetgen.galaxy import density, resolution as galaxyResolution, seed as galaxySeed, version_check
+from planetgen.galaxy import density, drill, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, redisqueue, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -2083,6 +2083,84 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     return {"generated": generated, "estimate": estimate.as_dict(), **counts}
 
 
+def generate_block(block_key, config=None, estimate_only=False):
+    """
+    Non-CLI counterpart to `planetgen sectors --block` (GEN.310) -- for the Galaxy Map's "generate this block" action
+    (`planetgen/api/routes.py`'s `generate_block_route`). The same work as the command: every not-yet-generated
+    sector the stored outline holds inside the block `block_key` names (`drill.block_addresses`), shell by shell
+    outward, as runs through the wrapper (`_generate_batch_as_runs`), with the bright-star backfill and the settle
+    after them for the sectors made. A plain result dict instead of prints, and a catchable `ValueError` for a key that
+    names no block.
+
+    Args:
+        block_key (str): `m.shell.band.wedge` of a block of a stage level (`drill.parse_stage_key`).
+        config (MySQLConfig, optional): Connection parameters.
+        estimate_only (bool): Only work out the size and time (PERF.3); nothing is written.
+
+    Returns:
+        dict: `generated`, `already_existed`, `skipped`, `candidates` (the block's addresses inside the outline) and
+            `outside_galaxy` (its addresses past the outline, left out) -- all int -- and `estimate`
+            (`generationStats.Estimate.as_dict`).
+
+    Raises:
+        ValueError: `block_key` names no block of a stage level.
+        EnumerationTooLarge: The block holds more sectors than a web request may list (PERF.36).
+        GenerationRefused: The database disk can't hold it (nothing was written).
+        RuntimeError: The galaxy's skeleton has never been built.
+        DatasetsMissing: A downloaded data file is missing (a real run only); nothing is written.
+    """
+    block = drill.parse_stage_key(block_key)
+    edge_pc = run_common._edge_pc()
+    config = config or store.DEFAULT_MYSQL_CONFIG
+    if not estimate_only:
+        require_datasets()
+    batch_density = _BatchDensity(config)
+    bounds = batch_density.bounds
+
+    inside, outside, shells = 0, 0, set()
+    for shell, band, _wedge in drill.block_addresses(block):
+        if bounds.qualifies(shell, band):
+            inside += 1
+            shells.add(shell)
+            if inside > run_common.WEB_ENUMERATION_LIMIT:
+                raise EnumerationTooLarge(
+                    f"Block {drill.format_drill_key(block)} holds more than {run_common.WEB_ENUMERATION_LIMIT:,} sectors, "
+                    f"too many to list in one request: fill a smaller block, or run 'planetgen sectors --block' with --limit.")
+        else:
+            outside += 1
+
+    def addresses():
+        return ((shell, band, wedge) for shell, band, wedge in drill.block_addresses(block)
+                if bounds.qualifies(shell, band))
+
+    conn = store.get_connection(config)
+    try:
+        occupied = set(store.get_occupied_addresses(conn, shells))
+    finally:
+        conn.close()
+
+    args = _default_generation_args(config=config)
+    args.density = None            # density-driven from the skeleton (_BatchDensity), not the flat default
+    args.num_systems = None
+    args.workers = 1               # one worker generates the run's sectors, one at a time
+
+    pending = _Pending.of_addresses(args, addresses, occupied, batch_density, edge_pc)
+    batch, estimate_args, total = _plan_pending(pending)
+    counts = {"already_existed": pending.existed, "skipped": pending.skipped, "candidates": inside,
+              "outside_galaxy": outside}
+    estimate = run_common._estimate_sectors(args, estimate_args, total)
+    if estimate_only:
+        run_common._RUN_STATS.clear()
+        return {"generated": 0, "estimate": estimate.as_dict(), **counts}
+    if estimate.refusal:
+        run_common._RUN_STATS.clear()
+        raise GenerationRefused(estimate.refusal)
+
+    _created_ids, generated = _generate_batch_as_runs(
+        args, batch, f"Sectors (block {drill.format_drill_key(block)})", edge_pc, config, center_pc=None)
+    return {"generated": generated, "estimate": estimate.as_dict(), **counts}
+
+
 def _whole_neighborhood_inside(bounds, position_pc, radius_pc, edge_pc):
     """Whether the centre and the six points `radius_pc` out along the axes
     all lie inside the outline: a cheap test that the neighborhood is not
@@ -2393,6 +2471,8 @@ def _address_plan(args, edge_pc, batch_density, say=log.normal):
     if getattr(args, "course", None) is not None:
         return _course_plan(args, say)
     bounds = batch_density.bounds
+    if getattr(args, "block", None) is not None:
+        return _block_plan(args, bounds, say)
     if getattr(args, "span", None) is not None or any(
             getattr(args, name, None) is not None for name in ("shells", "bands", "wedges")):
         span = _span_of(args)
@@ -2422,6 +2502,33 @@ def _address_plan(args, edge_pc, batch_density, say=log.normal):
         addresses = lambda: span.addresses(bounds)
     _refuse_if_very_large(args, what, total, "(--limit N generates only the first N not-yet-generated sectors).")
     return AddressPlan(what, total, [shell_index], addresses)
+
+
+def _block_plan(args, bounds, say):
+    """
+    `_address_plan` of block mode (GEN.310): the sectors the galaxy's outline holds inside the block `args.block` names
+    (`drill.block_addresses`), shell by shell outward, so the inner sectors are generated first. A block the outline
+    does not reach holds none. The key was checked by the command line; a key read back from a run's arguments is
+    checked again.
+    """
+    try:
+        block = drill.parse_stage_key(args.block)
+    except ValueError as exc:
+        log.error(f"--block: {exc}")
+        raise SystemExit(1) from exc
+    what = f"block {drill.format_drill_key(block)}"
+
+    def addresses():
+        return ((shell, band, wedge) for shell, band, wedge in drill.block_addresses(block)
+                if bounds.qualifies(shell, band))
+
+    total = sum(1 for _address in addresses())
+    if total == 0:
+        say(f"{what.capitalize()} holds no sector inside the galaxy's outline: nothing to generate.")
+        return None
+    _refuse_if_very_large(args, what, total, "(--limit N generates only the first N not-yet-generated sectors).")
+    shells = sorted({shell for shell, _band, _wedge in addresses()})
+    return AddressPlan(what, total, shells, addresses)
 
 
 def _refuse_if_very_large(args, what, total, hint):
@@ -2679,7 +2786,7 @@ def _run_galaxy_mode(args, edge_pc, progress):
     """`run_galaxy`'s dispatch to the mode its arguments ask for."""
     if not _random_start_mode(args):
         stages.enter("sectors")
-    if getattr(args, "span", None) is not None or getattr(args, "course", None) is not None:
+    if any(getattr(args, name, None) is not None for name in ("span", "course", "block")):
         run_addresses(args, edge_pc, progress)
     elif args.wedge is not None:
         run_single_sector(args, edge_pc, progress)

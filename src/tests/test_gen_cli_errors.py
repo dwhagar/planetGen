@@ -65,8 +65,15 @@ def _error(monkeypatch, capsys, command, argv):
 # ---------------------------------------------------------------------------
 
 GALAXY_ERRORS = [
-    # --block (refused until the ladder is rebuilt on shells)
-    (["--block", "3.2.1.0"], "--block: the Galaxy Map's blocks are being rebuilt on shells"),
+    # --block (GEN.310)
+    (["--block", "x"], "--block: not a block key: 'x'"),
+    (["--block", "5.2.0.0"], "--block: block size must be one of"),
+    (["--block", "729.2.0.0"], "--block: stage block size must be one of"),
+    (["--block", "3.2.99.0"], "--block: no such block: '3.2.99.0'"),
+    (["--block", "3.2.0.0", "--band", "0"], "--block can't be combined with --band."),
+    (["--block", "3.2.0.0", "--radius-pc", "5"], "--block can't be combined with --radius-pc."),
+    (["--block", "3.2.0.0", "--shells", "1"], "--block can't be combined with --shells."),
+    (["--block", "3.2.0.0", "--limit", "0"], f"--limit must be between 1 and {MAX_LIMIT}."),
     # --shell
     (["--shell", "-1"], "--shell must be >= 0."),
     (["--shell", MAX_SHELL + 1], f"--shell must be at most {MAX_SHELL}."),

@@ -102,6 +102,23 @@ def test_a_span_is_cut_into_the_sectors_the_outline_holds_less_those_that_exist_
     assert run_galaxy.planned_items(limited) == (wanted[:9], [])
 
 
+def test_a_block_is_cut_into_its_sectors_the_outline_holds_inner_shells_first_less_those_that_exist(mysql_config):
+    """GEN.310: the cut of a `--block` run names the block's sectors from the arguments alone (the key is plain JSON)."""
+    from planetgen.galaxy import drill
+    from planetgen.generation import run_galaxy
+    _plan_wide_galaxy(mysql_config)
+    block = drill.drill_chain_of(30, 0, 0)[-2]
+    key = drill.format_drill_key(block)
+    args, params = _planned_params(mysql_config, "--block", key, "--num-systems", "1")
+    assert args.block == key
+    bounds = run_galaxy._BatchDensity(mysql_config).bounds
+    wanted = [address for address in drill.block_addresses(block) if bounds.qualifies(address[0], address[1])]
+    assert wanted and [a[0] for a in wanted] == sorted(a[0] for a in wanted)
+    assert run_galaxy.planned_items(params) == ([index for address in wanted for index in address], [])
+    _args_limited, limited = _planned_params(mysql_config, "--block", key, "--limit", "4", "--num-systems", "1")
+    assert run_galaxy.planned_items(limited) == ([index for address in wanted[:4] for index in address], [])
+
+
 def test_a_shell_run_hands_its_stage_the_arguments_that_name_the_sectors_not_the_sectors(
         mysql_config, monkeypatch, redis_server):
     _plan_wide_galaxy(mysql_config)
