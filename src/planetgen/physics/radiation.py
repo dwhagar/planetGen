@@ -40,7 +40,10 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    ratio to the Sun, no ozone exponent.
 6. **Ozone loss (`ozone_loss_flag`).** True when there is ozone and either
    the system's lethal galactic events exceed one per 100 Myr or particle
-   events deliver 100 mSv/yr at the ozone layer (X = 10 g/cm2).
+   events deliver 100 mSv/yr at the ozone layer (X = 10 g/cm2). A loss
+   event that removes air (stripping, impact, escape) scales the stored
+   column by the share of the air kept and the UV index follows
+   (`apply_air_loss`, GEN.668); the flag keeps its meaning.
 7. **Galactic hazard (`lethal_event_rate_per_gyr`, on the star).** A
    supernova within 8 pc, 1.5 per Gyr at 8 kpc from the centre, times
    `exp((8 kpc - R) / 1.45 kpc)` (250x at the centre), plus gamma-ray bursts
@@ -379,6 +382,20 @@ def generate_dose(body):
     ozone_sep = sep_dose_msv_yr(free, OZONE_LAYER_G_CM2, cutoff)
     body.ozone_loss_flag = bool(body.ozone_column_du > 0.0 and (
         (hazard is not None and hazard > LETHAL_EVENT_LIMIT_PER_GYR) or ozone_sep >= OZONE_SEP_MSV_YR))
+
+
+def apply_air_loss(body, retained_fraction):
+    """
+    Takes a loss event that kept `retained_fraction` of a rocky body's air into its stored ozone and ultraviolet (GEN.668): the
+    ozone column scales by the share kept (`ozone.column_after_air_loss`) and the UV index is worked out again from it. The
+    caller applies the loss to the air itself (its pressure and gases) first; the UV index reads the air as it stands.
+    A body with no stored ozone column (a giant, or a row saved before it) is left as it is.
+    """
+    column = getattr(body, "ozone_column_du", None)
+    if column is None:
+        return
+    body.ozone_column_du = ozone.column_after_air_loss(column, retained_fraction)
+    body.uv_surface_index = body_radiation.dna_dose_index(body)
 
 
 def column_g_cm2(pressure_pa, gravity_g):
