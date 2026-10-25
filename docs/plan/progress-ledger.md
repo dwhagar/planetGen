@@ -1471,3 +1471,5 @@ Baseline: PR #1817.
 | GEN.792 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.793 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.327 | 8.1 | Multi-star and compact systems |
+| TEST.375 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.374 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

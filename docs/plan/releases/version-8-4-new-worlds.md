@@ -78,3 +78,10 @@ Nation-states, the capital and ten largest cities, and the station and space por
 | POP.22 | The settlements stage: its own command, its place in the galaxy run and the rescan rules | POP.21 |  |
 | POP.23 | Pages and API for nations, cities and ports: the planet page sections, nation and city pages, species and polity links | POP.22 |  |
 | TEST.381 | First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp | POP.23, POP.27 |  |
+
+### Resource pages
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.223 | Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score | GEN.799 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
+| TEST.386 | First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp | MAP.312, UX.223 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |
