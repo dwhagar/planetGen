@@ -12950,47 +12950,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
   Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
 
-- [ ] **GEN.652 The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug)**
-  Gap found by the pipeline report
-  /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
-  (filed by the TODO thread at the coordinator's word, 6:33 PM EDT
-  2026-10-23). Conflict A of the report:
-  tuning.MS_MASS_LUMINOSITY_PIECES (radius exponents 0.8 and 0.57,
-  Hurley-Pols-Tout lifetimes) against the MIST isochrones star_makeup
-  reads (luminosity, temperature, radius, lifetime against mass, age and
-  [Fe/H]); for one star the two can disagree and no item makes one the
-  source of the other; the stellar-composition note leaves the Z
-  dependence "open; Z-independent as a stand-in". Decide with the [Fe/H]
-  wiring item (Boss question 1: option 1 replaces the piecewise laws
-  with MIST) and remove the other table, no shim. Owner: none (pool),
-  with the item before. Done: one main-sequence source, a test that a
-  star's stored and composition luminosity agree, the old table gone.
-  Prerequisites: GEN.553. Related: GEN.553, GEN.440, GEN.467.
-  Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1):
-  MIST is the single main-sequence table and the piecewise laws are
-  removed, no shim. Owner: the Composition-first stars lane (moved from Core 4 at
-  7:53 PM EDT 2026-10-23), with GEN.553 and GEN.651 in one epoch.
-  Research (2026-10-09, Update): Lane A (7:55 AM EDT 2026-10-24, as the
-  lane reported): GEN.651 merged (#2952). The Hurley-Pols-Tout lifetime
-  formulae are fitted for Z 1e-4 to 0.03, so ms_lifetime.zeta now clamps
-  to that range (tuning.MS_LIFETIME_Z_RANGE); stars outside it use the
-  edge value. Label it a stand-in in the gap plan registry when GEN.652
-  settles the one main-sequence source.
-  Priority (2026-10-09): Update 5:13 PM EDT 2026-10-24 (Boss asked how
-  firmly the generator rests on real physics, 4:07 PM EDT; assessment
-  reports/physics-grounding-assessment-2026-10-24.md, contradiction 1,
-  relayed by the coordinator): GOES TO THE FRONT of Lane A's queue
-  (after the part of GEN.553 it needs). The assessment found that
-  evolve_star holds a living main-sequence star at its zero-age
-  luminosity until it leaves the main sequence, so a star never
-  brightens: a solar-mass star ends main-sequence life far brighter than
-  it began and the Sun was about 30 percent fainter at formation. Done
-  now also includes: luminosity, radius and temperature along the main
-  sequence follow age (and [Fe/H]) from the MIST isochrones, a test that
-  the Sun at 4.6 Gyr is near 1 solar luminosity and at zero age near
-  0.7, and that the habitable zone edges move with age. Owner: Lane A
-  (it holds GEN.553 and GEN.652).
-
 - [ ] **GEN.657 Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH**
   Section 11 item 6 of the design draft. Do: the toxic rows (H2S, CO,
   NH3, Cl2, SO2, HCN and the rest of the table) read from the gas rows
