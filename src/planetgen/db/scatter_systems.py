@@ -28,7 +28,8 @@ SOURCES = {"bright_stars": 1, "phenomenon_scatter": 2}
 
 _MEMBER_COLUMNS = (
     "source", "source_id", "member_no", "parent_node_no", "slot", "kind", "state", "flags", "mass_solar",
-    "initial_mass_solar", "seed", "epoch_unix")
+    "initial_mass_solar", "seed", "epoch_unix", "offset_x_au", "offset_y_au", "offset_z_au", "velocity_x_kms",
+    "velocity_y_kms", "velocity_z_kms", "decay_age_yr")
 _READ_ROWS = 1000
 _ORBIT_NODE_FIELDS = tuple(field.name for field in dataclasses.fields(OrbitNode))
 _NODE_COLUMNS = (
@@ -52,8 +53,11 @@ def delete_member_tree(conn, table, row_id):
 
 
 def _member_values(source, row_id, tree, epoch_unix):
+    """The `scatter_members` rows of a tree; a member of a `group` node (GEN.327) also has its offset, velocity and the
+    group's decay age, every other member has NULL for the seven."""
     return [(source, row_id, m.member_no, m.parent_node_no, m.slot, m.kind, m.state, m.flags, m.mass_solar,
-             m.initial_mass_solar, m.seed, epoch_unix) for m in tree.members]
+             m.initial_mass_solar, m.seed, epoch_unix, *(m.offset_au or (None,) * 3), *(m.velocity_kms or (None,) * 3),
+             m.decay_age_yr) for m in tree.members]
 
 
 def _node_values(source, row_id, tree, epoch_unix):
@@ -245,6 +249,18 @@ def read_member_tree(conn, table, row_id):
             " ascending_node_deg, arg_periapsis_deg, mean_anomaly_deg, epoch_unix, period_years, kind"
             " FROM scatter_nodes WHERE source = ? AND source_id = ? ORDER BY node_no", (source, row_id)).fetchall()]
     return members, nodes
+
+
+def groups_past_decay(conn):
+    """
+    The ids of the `bright_stars` rows whose stored young group is no younger than its `decay_age_yr` (audit 14, GEN.327):
+    a group is stored only while its star is younger than that, an older one is drawn as its remnant, so a healthy scatter
+    returns an empty list. (Only a star has a group: a scattered phenomenon never does.)
+    """
+    return [r["id"] for r in conn.execute(
+        "SELECT DISTINCT t.id FROM scatter_members m JOIN bright_stars t ON m.source = ? AND m.source_id = t.id"
+        " WHERE m.decay_age_yr IS NOT NULL AND t.age_gy * 1e9 >= m.decay_age_yr ORDER BY t.id",
+        (SOURCES["bright_stars"],)).fetchall()]
 
 
 def member_positions_pc(conn, table, row_id, unix):

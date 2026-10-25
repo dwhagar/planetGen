@@ -31,9 +31,9 @@
   },
   "made_on": {
     "astropy": "8.0.2",
-    "numpy": "2.5.4",
+    "numpy": "2.5.3",
     "platform": "Linux-6.18.44-fc-v153-x86_64-with-glibc2.39",
-    "python": "3.13.17"
+    "python": "3.13.16"
   },
   "overall": "18b227844de99c357adf43224c813a212873e7f5294d3be2a58d7e272e20ac96"
 }

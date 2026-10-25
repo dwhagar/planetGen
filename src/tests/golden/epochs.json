@@ -585,6 +585,13 @@
       "first_release": "8.0.2308",
       "reason": "A world with flora, fauna or a civilization has food in its Suitability even when its ocean lies under ice (only microbes under the ice or in a deep aquifer are out of reach), and the life and timeline text of the objects a seed gives is in the present tense (GEN.765, GEN.766)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 99,
+      "first_release": null,
+      "pending": true,
+      "reason": "A massive star younger than 0.3 Myr may start in a young group of 3 to 5 stars that breaks up within 40,000 years, and an older one draws the remnant a group leaves (one star fewer, tighter orbits), so those stars have different companions (GEN.327)",
+      "affects": ["scatter", "fill"]
     }
   ]
 }
