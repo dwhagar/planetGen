@@ -591,6 +591,13 @@
       "first_release": "8.0.2312",
       "reason": "A massive star younger than 0.3 Myr may start in a young group of 3 to 5 stars that breaks up within 40,000 years, and an older one draws the remnant a group leaves (one star fewer, tighter orbits), so those stars have different companions (GEN.327)",
       "affects": ["scatter", "fill"]
+    },
+    {
+      "epoch": 100,
+      "first_release": null,
+      "pending": true,
+      "reason": "A rocky planet's iron follows its star's with a scatter of 0.05 dex, and about 1 planet in 100 is iron-enriched (a dry core mass fraction of 0.5 to 0.8): the mass, radius, density and gravity of rocky planets change slightly, and the planet draws after the graphite move (GEN.512)",
+      "affects": ["fill"]
     }
   ]
 }
