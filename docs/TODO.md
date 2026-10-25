@@ -577,7 +577,7 @@ with `clamp()`.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.310. Related: GEN.231.
+  Prerequisites: none. Related: GEN.231.
 
 - [ ] **UX.130 Console design brief: colours, type, panel shapes and iconography, approved by Boss**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -4806,7 +4806,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: GEN.310, UX.127. Related: GEN.101, MAP.120.
+  Prerequisites: UX.127. Related: GEN.101, MAP.120.
 
 - [ ] **GEN.239 High-velocity clouds and the Magellanic Stream as placed gas clouds (later)**
   Step 10 of the whole-sphere train. High-velocity clouds are the one
@@ -5612,26 +5612,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   builder of the adaptive per-cell cap (GEN.280 is the core density);
   the "that GEN.280 builds" wording is replaced.
   Prerequisites: none. Related: GEN.281, GEN.283, ADM.43.
-
-- [ ] **GEN.310 Fill a whole block of the shell ladder: planetgen generate --block and the queue job**
-  Split from GEN.231 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). A block of the new ladder (its m,
-  shell, band and wedge, docs/design/galaxy/spherical-block-ladder.md) is a
-  region that the generate command and the work queue can fill, nearest
-  sectors first, with the same progress and cancel as a neighbourhood
-  fill (there is no resume); `--block` takes the new block address; the
-  work-queue job route (`api/workqueue.py`) accepts a block so the map
-  can start it; the refusal text in `cli/generate.py` and its test in
-  `test_gen_cli_errors.py` are deleted. Done: `planetgen generate
-  --block <address>` fills the block on the new queue and a cancel stops
-  it; an API job for a block starts and reports progress; tests for the
-  command and the route.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Research (2026-10-09, 10-24 Core 5): Unblocked: PERF.99 merged
-  (#3030). Core 5 is on it now.
-  Prerequisites: none. Related: GEN.231.
 
 - [ ] **GEN.312 Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I**
   Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -19641,6 +19621,13 @@ clears each one.
   create the account, so scripts/test.py quick is green on a clean
   machine; no skip. Done: the test passes on a lane machine set up from
   the documented script. Owner: Bug 1. Related: OPS.62, TEST.364.
+  Research (2026-10-09, Core 5 full run): Core 5 (8:06 PM EDT 2026-10-24
+  as the lane reported) saw 44 failures in a full run on its lane
+  machine, all but two also red on the base commit: test_web_facilities
+  x18, test_class_pages x6 and others. TEST.350 and TEST.365 were
+  merged, so these are most likely the same lane machine gap (missing
+  planetgen database account). Bug 1: check them on a machine set up as
+  documented before filing anything new.
   Prerequisites: none. Related: OPS.62, TEST.364.
 
 - [ ] **TEST.371 test_workers::a_worker_that_is_killed fails under load and passes alone (bug)**
