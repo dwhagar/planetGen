@@ -263,11 +263,11 @@ without a galaxy (a cube sector, no address). <code>planetgen system
 territories are a separate pass over what is already stored, so system
 generation does not change and an old galaxy can be populated without a
 regenerate. It is off by default: it runs from <code>planetgen population</code>,
-after <code>planetgen sector</code> or <code>galaxy</code> only with <code>--population</code>, or when
+as a stage of a <code>planetgen galaxy</code> run, or when
 someone answers y to the installer's prompt (Flow 5).</p>
 <div class="diagram"><pre class="mermaid">flowchart TD
     PopCLI[&quot;planetgen population&lt;br/&gt;run_population&quot;] --&gt; Pass[&quot;population.run_pass&quot;]
-    After[&quot;planetgen sector / galaxy&lt;br/&gt;--population&lt;br/&gt;run_population_after&quot;] --&gt; Pass
+    After[&quot;planetgen galaxy&lt;br/&gt;run_population_stage&quot;] --&gt; Pass
     Inst[&quot;install.sh / update.sh&lt;br/&gt;offer_population_pass&quot;] -.-&gt; PopCLI
     Pass --&gt; Scan[&quot;scan_life_worlds&lt;br/&gt;planets past the watermark,&lt;br/&gt;parse_timeline, has_civilization&quot;]
     Scan --&gt; Civ[&quot;refresh_civilizations&lt;br/&gt;era_for_age, found or dissolve polities,&lt;br/&gt;reach_ly&quot;]

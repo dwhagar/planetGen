@@ -283,7 +283,7 @@ def _pass_lock_name(conn):
 def _one_pass_at_a_time(conn):
     """
     Holds this database's population lock (`GET_LOCK`) for a whole pass,
-    so two passes at once -- a `--population` run finishing while
+    so two passes at once -- a `galaxy` run's population stage finishing while
     another, or `planetgen population`, is still going (TEST.37) --
     take turns: the second waits, then sees the first's species and
     watermark, rather than both naming the same worlds and one failing

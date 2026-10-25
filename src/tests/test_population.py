@@ -399,18 +399,15 @@ def test_api(mysql_config, galaxy, client):
     assert territories["points"] and territories["polities"]
 
 
-def test_fills_skip_population_unless_asked(monkeypatch):
-    """Off by default (Boss, 2026-10-01): a sector/galaxy run only runs the
-    pass with --population."""
-    import argparse
-    calls = []
-    monkeypatch.setattr(store, "get_connection", lambda *a, **k: calls.append(1))
-    run_population.run_population_after(argparse.Namespace(population=False))
-    assert calls == []
-    parser, _commands = generate_cli.build_parser()
-    assert not hasattr(parser.parse_args(["galaxy"]), "population")      # `galaxy` always runs it (PERF.123)
-    assert parser.parse_args(["sector"]).population is False
-    assert parser.parse_args(["sector", "--population"]).population is True
+def test_sector_and_galaxy_runs_no_longer_take_a_population_option_and_the_pass_is_its_own_command(capsys):
+    """PERF.124 (Boss, 2026-10-01 made it optional; PERF.124 made it a command of its own): `sector` only generates."""
+    parser, commands = generate_cli.build_parser()
+    assert "--population" not in commands["sector"].format_help()
+    assert "--population" not in commands["galaxy"].format_help()
+    with pytest.raises(SystemExit):
+        parser.parse_args(["sector", "--population"])
+    assert not hasattr(run_population, "run_population_after")
+    assert parser.parse_args(["population"]).command == "population"
 
 
 def test_population_status(mysql_config, client):
