@@ -1059,6 +1059,222 @@ with `clamp()`.
   browser test pins it. Version 8.1. Owner: Core 5.
   Prerequisites: none. Related: UX.208, GEN.772.
 
+- [ ] **UX.214 Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  The search page and the planet and moon lists show a Habitability
+  symbol column (sortable=False) and filter by nothing about it; Nearby
+  has no habitability or life field at all; the API takes
+  +habitable_world as a request only. Add: filters and sort for the
+  overall PHI-6 colour, each domain, Suitability, Flora, Fauna, Sentient
+  and the food rung, 'has life' and 'has a civilization' filters, on the
+  search page, the lists, Nearby and the API query parameters, with the
+  filter chips that active_filters already shows. Done: a browser test
+  filters and sorts a sample galaxy by each, and the API documents the
+  parameters. Version 8.1. Owner: Aux 11 (pages), with UX.150 which
+  covers the class and PHI-6 colour only. Rules: a unit or scale on
+  every number (GEN.772); tests are `scripts/test.py changed --resume`;
+  no fixed content from the Milky Way or the Solar System.
+  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
+  2026-10-24 (fix each): Aux 11 (Lane 3, pages), API parameters with Aux
+  12.
+  Prerequisites: none. Related: UX.150, UX.100, GEN.653.
+
+- [ ] **UX.215 Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table**
+  Boss, 10:26 PM EDT 2026-10-24 (relayed by the coordinator), planet
+  page redesign: "on page TOC should be a menu on the left side and
+  let's put the location links inside at a glance under a Location table
+  item, change the title from 'Rendered Example' to something more
+  fitting the in-universe nav feel, instead of zone E let's have it just
+  say Ecosphere / Habitable Zone and give the range for that zone in
+  appropriate units.  The same goes for Hot Zone and Cold Zone, the
+  class letter 'M' should be a link to what Class M is.  Atmosphere
+  section on a planet display should be a heading, then just show the
+  atmosphere table, since it shows more than the gas list.  Same for
+  composition.  We should show the planet's actual composition by mass
+  in a table.  Then, instead of 'It is a temperate world' (or other
+  text) the system should procedurally generate a short summary of the
+  planet based on the data.  No details, class, surface conditions,
+  safety equipment needed, PHI-6 summary, sustainability score and life
+  scores in paragraph form.  Radiation and Survival equipment along with
+  the PHI-6 score details should come above the atmosphere composition.
+  So should go: About planet; Table; Summary Paragraph; Life Paragraph
+  (only when it exists); Civ / Political Paragraph (only when it
+  exists); PHI-6 Table / Details; Atmosphere Table (w/ heading);
+  Composition Table (w/ heading). Each of those should be a heading in
+  the TOC menu." This item: the TOC (UX.196) becomes a menu fixed on the
+  left side of the page (a drawer under the narrow-screen breakpoint,
+  reachable by keyboard), with an entry for each section heading in the
+  order of UX.221; the links up the chain (galaxy, sector, system,
+  parent star or planet, containing region, UX.144) move into a Location
+  row of the at-a-glance table, where the top breadcrumb used to carry
+  them. Done: a browser test checks the menu entries match the headings
+  and the Location row holds every link of the chain. Rules: every
+  number has a unit or scale (GEN.772); absent or zero values hidden
+  unless the absence matters; collapsible sections start collapsed;
+  tests are `scripts/test.py changed --resume` with a browser test on a
+  sample planet page. Version 8.1. Owner: Aux 11. Part of the planet
+  page redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.216 Object pages: the "Rendered example" panel gets an in-universe navigation title**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Rename the panel (item.html, the rendered example of UX.171)
+  to a title that fits the navigation console feel (for example "Optical
+  survey" for a body, "Chart view" for a system; Aux 11 picks the words,
+  one per kind, and lists them in the PR). Done: no page says "Rendered
+  example"; a test pins the titles. Rules: every number has a unit or
+  scale (GEN.772); absent or zero values hidden unless the absence
+  matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.217 System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E"**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Where a page says a body is in "zone E" (or the zone letters
+  of the star zones), say "Ecosphere / Habitable Zone" for the habitable
+  zone and "Hot Zone" and "Cold Zone" for the inner and outer zones, and
+  give each zone's range from the star: inner and outer edge in AU (with
+  light-minutes beside it for the inner ones, or km for a very close
+  zone; the unit registry picks the unit, GEN.769 rules). Done: a planet
+  page shows "Ecosphere / Habitable Zone, 0.95 to 1.37 AU" (values from
+  the star) in every unit setting; no page prints a bare zone letter.
+  Rules: every number has a unit or scale (GEN.772); absent or zero
+  values hidden unless the absence matters; collapsible sections start
+  collapsed; tests are `scripts/test.py changed --resume` with a browser
+  test on a sample planet page. Version 8.1. Owner: Aux 11. Part of the
+  planet page redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.218 The class letter on pages is a link to the page for that class (Class M and the rest)**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Everywhere a page prints a planet or moon class letter (the
+  at-a-glance table, lists, search, the infobox, the sheet) the letter
+  links to the class page (web/class_pages.py), with the class name
+  beside it where there is room. Done: a browser test follows the link
+  from a class M planet to the Class M page. Rules: every number has a
+  unit or scale (GEN.772); absent or zero values hidden unless the
+  absence matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.219 Planet pages: Atmosphere and Composition are each a heading followed by their table; the composition table is the planet's actual composition by mass**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Atmosphere: a heading, then only the atmosphere table (it
+  holds more than the gas list: pressure, density, scale height,
+  greenhouse and the rest), no separate gas list above it. Composition:
+  a heading, then a table of the planet's actual composition by mass
+  (each component with its mass fraction in percent and its mass in kg
+  or Earth masses, from the stored bulk composition, GEN.642 and DB.70),
+  absent components hidden. Done: both appear as headings in the TOC
+  with tables, for a rocky, an ocean and a gas giant sample, and the
+  composition fractions sum to 100 percent. Rules: every number has a
+  unit or scale (GEN.772); absent or zero values hidden unless the
+  absence matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Research (2026-10-09, Progress): Boss, 10:30 PM EDT 2026-10-24
+  (relayed by the coordinator): atmosphere composition is measured by
+  the standard measure for an atmosphere, whether partial pressure or
+  mole (volume) fraction, and it is named in the table heading; use the
+  mole fraction as the main column with the partial pressure beside it,
+  and put the measure in the heading (for example "Atmosphere
+  composition (mole fraction, partial pressure in kPa)"). The solid
+  composition table is by mass and says so in its heading ("Composition
+  (mass fraction)").
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.220 Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Generate a short summary paragraph (two or three sentences)
+  from the stored data: what kind of world it is (size, mass, surface or
+  giant, what it is made of), its place (orbit, zone, star) and the one
+  or two things that stand out (a thick atmosphere, an ocean, a tidally
+  locked face, rings), in the in-universe voice of the pages. It must
+  not repeat what sits in the tables or sections below: no class,
+  surface conditions, safety equipment, PHI-6 summary, sustainability
+  score or life scores. Procedural: sentences are chosen by rules over
+  the data, not a fixed text per class, and the same planet always gets
+  the same paragraph (a hash of the object id picks among phrasings).
+  Done: 100 sample planets give 100 sensible paragraphs with no repeated
+  block of text for different data, and a test checks the banned content
+  is absent. Rules: every number has a unit or scale (GEN.772); absent
+  or zero values hidden unless the absence matters; collapsible sections
+  start collapsed; tests are `scripts/test.py changed --resume` with a
+  browser test on a sample planet page. Version 8.1. Owner: Aux 11. Part
+  of the planet page redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.221 Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Life paragraph: shown only when Flora, Fauna or Sentient is
+  above 0: what lives there in words from the four life scores and the
+  life stage, present tense (GEN.766), with the food situation. Civ /
+  Political paragraph: shown only when a species with a civilization
+  lives there: the species, its tech band, its polity or polities and
+  nations where POP.18 to POP.20 exist, otherwise only what the stored
+  population tables hold. Hidden entirely when absent. Done: a world
+  with no life shows neither paragraph, a living world shows Life, a
+  civilized world shows both, in a browser test. Rules: every number has
+  a unit or scale (GEN.772); absent or zero values hidden unless the
+  absence matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: UX.220. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.222 Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Put the sections in this order: About planet; the at-a-glance
+  Table; the Summary paragraph; the Life paragraph (only when it
+  exists); the Civilization / Political paragraph (only when it exists);
+  the PHI-6 table and details with Radiation and Survival equipment (all
+  above the atmosphere); the Atmosphere table; the Composition table.
+  Each is a heading and an entry in the left TOC menu. Moons use the
+  same order; stars, belts and the other kinds keep their own orders and
+  move only if they carry the same sections. Done: a browser test reads
+  the heading order on a rocky, an ocean, a gas giant, a living and a
+  civilized sample. Rules: every number has a unit or scale (GEN.772);
+  absent or zero values hidden unless the absence matters; collapsible
+  sections start collapsed; tests are `scripts/test.py changed --resume`
+  with a browser test on a sample planet page. Version 8.1. Owner: Aux
+  11. Part of the planet page redesign: UX.215 to UX.222.
+  Prerequisites: UX.215, UX.220, UX.221. Related: UX.196, UX.195,, UX.219.
+  UX.188.
+
+- [ ] **UX.223 Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" The object pages of belts,
+  fields, giants and icy moons gain a Resources section (a table of
+  resource, grade in percent, mass in kg or tonnes, difficulty and
+  score, absent resources hidden), a resource score in the at-a-glance
+  table, and the explanation of how it was worked out; the belt, planet
+  and moon lists and the search page gain filters and sorting by
+  resource kind and minimum score (with UX.214's score filters); the API
+  returns the same fields. Done: pages and lists for a sample galaxy and
+  a browser test of the filter. Version 8.4, phase 2. Owner: Aux 11
+  style. Rules: draws through draw.py; stand-ins get GEN.725 registry
+  rows with tier and tweak level; every number has a unit or scale
+  (GEN.772) and a column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -3034,6 +3250,81 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: MAP.309. Related: MAP.295, MAP.296.
 
+- [ ] **MAP.311 Map markers and a menu filter for worlds with life, with sentient life and with a civilization, beside the habitable-world markers**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  MAP.220, MAP.303 and MAP.306 cover habitable worlds (PHI-6 Yellow and
+  above) and kinds; nothing marks a world that has life, a sentient
+  species or a civilization, which Boss's design uses everywhere else.
+  Add three marker kinds and menu filters (life, sentient, civilization
+  with its tech band) on the Galaxy Map, the Sector Map and the System
+  Map, from the stored life scores and the population tables. Done: a
+  browser test turns each filter on in a sample galaxy and sees only
+  those systems. Version 8.1. Owner: Core 2 (map menu). Rules: a unit or
+  scale on every number (GEN.772); tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
+  2026-10-24 (fix each): Aux 10 (map nodes and menu), after MAP.306.
+  Prerequisites: none. Related: MAP.220, MAP.303, MAP.306, MAP.307.
+
+- [ ] **MAP.312 Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" Add interest reasons to the
+  registry of the point-of-interest mark (MAP.305), the same way gas
+  giants are one (hydrogen fuel and water ice): a system holding a belt
+  or field rich in metals, in minerals, in water ice and volatiles, or
+  in carbon, each listing the belt or field by name with its resource
+  and score in the mark's infobox with a link, and each with its own row
+  in the menu filter of MAP.306 (pull forward, shown or hidden), plus a
+  minimum score setting; the gas giant reason now says what it offers
+  (hydrogen fuel, water ice from its moons and rings). Read from
+  body_resources through the (system, reason) side table of MAP.305, not
+  by reading every belt. Done: a browser test on a fixture system with a
+  metal-rich belt finds the mark, the reason with the resource in the
+  infobox and the menu row. Version 8.3, phase 4. Owner: Aux 10 style.
+  Rules: draws through draw.py; stand-ins get GEN.725 registry rows with
+  tier and tweak level; every number has a unit or scale (GEN.772) and a
+  column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: GEN.799, MAP.305, MAP.306. Related: MAP.305, MAP.306,
+  MAP.307.
+
+- [ ] **MAP.313 Galaxy Map resource richness layer: a heat map of the resource score by sector, by resource kind, with the richest sectors listed**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" A layer in the Galaxy Map
+  menu (beside the territories and trade routes layers) that colours
+  each sector by the summed resource score of the belts, fields, giants
+  and icy bodies in it, by resource kind or overall, with a legend, a
+  reduced-motion setting and a list of the richest sectors that flies to
+  the one picked; read from a per-sector aggregate built by
+  `resource-scan`, not from each body. Done: a browser test turns the
+  layer on in a sample galaxy and the richest sector matches the
+  aggregate. Version 9.0, phase 1. Owner: Core 2. Rules: draws through
+  draw.py; stand-ins get GEN.725 registry rows with tier and tweak
+  level; every number has a unit or scale (GEN.772) and a column_units
+  entry; a change to drawn output carries `tests.golden_update --reason
+  ... --affects fill` and the next epoch; tests are `scripts/test.py
+  changed --resume`; no fixed content from the Milky Way or the Solar
+  System. Part of the resource locations tree: GEN.798, DB.106, GEN.799,
+  MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
+  nothing in 8.1.
+  Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3506,6 +3797,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests are `scripts/test.py changed --resume`; no fixed content from
   the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.33, MAP.309. Related: NAV.61, NAV.5.
+
+- [ ] **NAV.64 Find the nearest resource location from a position or along a course, by resource kind and minimum score**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" A query, an API and a map
+  tool: from a system or a point, or along a saved course (NAV.4),
+  return the nearest resource locations of a chosen kind and minimum
+  score, with the distance in light-years, the travel time at a chosen
+  speed and the detour a course takes to pass them; uses the cell-key
+  index and the (system, reason) table so it is fast on a large galaxy.
+  Done: tests with a known galaxy and a browser test of the tool.
+  Version 8.5, phase 4. Owner: Core 2 with the navigation lane. Rules:
+  draws through draw.py; stand-ins get GEN.725 registry rows with tier
+  and tweak level; every number has a unit or scale (GEN.772) and a
+  column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: MAP.312, NAV.63. Related: NAV.63, NAV.4, NAV.5.
 
 ## GEN: Generation and physics
 
@@ -5079,7 +5394,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   type of multi-star/star-like-object system", built "into our generator
   throughout to match as close as possible to observed and theoretical
   probabilities (observed are best, theoretical are good too)".
-  Prerequisites: GEN.327, GEN.328. Related: GEN.241, GEN.244, GEN.274,
+  Prerequisites: GEN.328. Related: GEN.241, GEN.244, GEN.274,
   UX.114, GEN.268.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
@@ -5788,40 +6103,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: GEN.161. Related: GEN.162.
-
-- [ ] **GEN.327 The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected**
-  Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). A node of kind group with N
-  members, each with an offset (AU) and a velocity (km/s) at an epoch,
-  and decay_age_yr; internal motion is a straight line, no Kepler
-  elements, and the nightly update does not integrate it
-  (physics/system_tree.py already flies a group's members straight).
-  Default 5% of massive (O and early B) systems younger than 0.3 Myr at
-  scatter time for the few mass-pass stars of that age. A group older
-  than its decay age is never drawn: the generator draws its result, the
-  lightest member ejected as a runaway row (runaway_origin dynamical)
-  and a tighter hierarchical remnant. Stored on scatter rows and built
-  systems (the columns of GEN.129:a); the sector page shows a group with
-  its remaining life. Done: every stored group is younger than its
-  decay_age_yr (audit test 14), a group older than that is replaced by
-  its remnant, and members carry offset and velocity.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): GEN.329 first: it owns the `runaway_origin` column and
-  its values, and this item writes `dynamical` into it. Core 3 may carry
-  the two in one PR; check that the column is in DB.53's remaining
-  slices.
-  Progress (Core 3, GEN.329 merged as #2634, 6:18 AM EDT 2026-10-23 as
-  the lane reported, release 8.0.2007, generator epoch 56, no
-  migration): the runaway origin is stored in stars.flags (the v104
-  column, serialization version 5), which is now always written (0 for
-  none) and sits in NEVER_READ as CHANCE because only a saved runaway
-  reads it; this item is unblocked and writes `dynamical` into the
-  origin as the sweep note above says.
-  Prerequisites: none. Related: GEN.273.
 
 - [ ] **GEN.328 Groups at fill in star-forming cores and OB regions**
   Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -14680,6 +14961,87 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offset is applied twice. Version 8.1. Owner: Units lane.
   Prerequisites: GEN.773. Related: GEN.773, GEN.656, GEN.769.
 
+- [ ] **GEN.797 Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level**
+  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
+  relayed 10:25 PM EDT 2026-10-24 as the lane reported. The stand-ins
+  live in tuning.py with brackets (member count weights for 3 to 5
+  stars, group radius, a 2.5 km/s dispersion, a 300 AU cap for the
+  remnant hierarchy, the 5 percent birth fraction, the 10,000 to 40,000
+  year decay age). Add a registry row for each
+  (docs/design/research/stand-in-values.md through its builder) with its
+  source, tier, tweak level, falsifier and replacing item, from the
+  Orion Trapezium and other young-group literature where it can be read.
+  Done: every constant has a row and `scripts/build_stand_in_values.py
+  --check` passes. Version 8.1. Owner: Core 3 or the Citations lane.
+  Prerequisites: none. Related: GEN.327, GEN.725.
+
+- [ ] **GEN.798 Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers)**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" Write
+  docs/design/composition/resource-locations.md. It decides: (1) the
+  resource kinds: iron and nickel, precious metals (gold, platinum
+  group), other minerals and rare earths, silicates and building rock,
+  water ice and other volatiles, carbon and organics, and fuel (hydrogen
+  and helium from a giant); (2) what the stored data gives today
+  (asteroid_belt_composition holds named components with a concentration
+  word of high, moderate, small or trace; belt density dense, sparse or
+  typical; GEN.477 and GEN.473 replace the four names with a composition
+  drawn from the star, the distance and the belt mass) and the
+  quantities the design needs on top: grade (mass fraction of each
+  resource), a mass estimate in kg, and a recovery difficulty (depth,
+  gravity well, distance from the star and from a port); (3) the
+  resource score, 0 to 9 like the life scores, per kind and overall, and
+  how a gas giant (hydrogen and helium fuel, its icy moons and rings),
+  an icy moon, a comet swarm, a metallic asteroid (type M), a
+  carbonaceous one (type C) and a silicate one (type S) score; (4) what
+  is fixed until 9.1 and what the nightly update may change later
+  (mining depletes). Sources: asteroid taxon composition literature and
+  meteorite compositions, with GEN.725 tier labels for every invented
+  number. Done: the design is in the docs with sources and stand-in
+  list, and every later item of the tree cites it. Version 8.2, phase 3.
+  Owner: a research thread with Aux 6 (bulk composition). Rules: draws
+  through draw.py; stand-ins get GEN.725 registry rows with tier and
+  tweak level; every number has a unit or scale (GEN.772) and a
+  column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: GEN.477. Related: GEN.477, GEN.473, GEN.725, MAP.305.
+
+- [ ] **GEN.799 Resource scan: compute the grade, mass and score of every resource for belts, fields, giants and icy bodies from their stored composition, as its own command and galaxy stage**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" Implement the design: from
+  the stored belt and field composition (GEN.477), the bulk composition
+  of icy moons and comets (GEN.466, DB.70) and the giants' hydrogen and
+  helium envelopes, compute the grade, mass_kg, difficulty and scores
+  into body_resources. Its own registered command `resource-scan` and a
+  stage after `population`, with rescan rules (a changed composition
+  recomputes only that body). Derived from stored values, so it carries
+  no draws unless the design adds a seeded noise term; where it does,
+  `--affects fill` and the next epoch. Done: a sample galaxy has
+  resource rows for belts, fields and giants, an M-type belt scores high
+  on iron and metals, a C-type on carbon and water, and the same seed
+  gives the same rows. Version 8.3, phase 4. Owner: Aux 6 style. Rules:
+  draws through draw.py; stand-ins get GEN.725 registry rows with tier
+  and tweak level; every number has a unit or scale (GEN.772) and a
+  column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: DB.106, GEN.798. Related: GEN.477, PERF.125, PERF.120.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -16309,6 +16671,33 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.29, DB.103. Related: DB.101, POP.21.
 
+- [ ] **DB.106 Storage for resource locations: grade, mass estimate and score per resource for belts, fields, giants and icy bodies, with column units and the migration**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" New table `body_resources`
+  (body kind and id, resource kind, grade as a mass fraction, mass_kg,
+  difficulty, score 0 to 9, epoch of the state) with the foreign keys
+  and delete rules of the existing composition tables, an index by
+  resource kind and score for the map and the filters, a per-body
+  overall resource score column on asteroid_belts and the giant planet
+  tables, the Object ID rules, a column_units entry for every numeric
+  column, the Alembic revision (next free migration) with the old-schema
+  fixture and the read functions. Nothing is computed yet. Done: the
+  migration round-trips and test_db_column_round_trip passes. Version
+  8.2, phase 3. Owner: Aux 12 style. Rules: draws through draw.py;
+  stand-ins get GEN.725 registry rows with tier and tweak level; every
+  number has a unit or scale (GEN.772) and a column_units entry; a
+  change to drawn output carries `tests.golden_update --reason ...
+  --affects fill` and the next epoch; tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Part of the resource locations tree: GEN.798, DB.106, GEN.799,
+  MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
+  nothing in 8.1.
+  Prerequisites: GEN.798. Related: DB.70, DB.101.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -16750,6 +17139,29 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   a quantity field with no unit. Owner: Aux 12 (API), Core 5 (commands),
   Aux 14 for the test over the field list. Related: GEN.771, DOC.15.
   Prerequisites: none. Related: GEN.771, DOC.15.
+
+- [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" The API returns
+  body_resources for belts, fields, giants and icy bodies with units; a
+  galaxy uploaded for remote generation (API.8 verification) is checked
+  for the resource rows and scores against its stored compositions, and
+  a missing or inconsistent resource row is reported or recomputed by
+  `resource-scan` on the server. Done: tests for the API fields and for
+  an uploaded galaxy with a wrong row. Version 8.9, phase 2. Owner: Aux
+  12 style. Rules: draws through draw.py; stand-ins get GEN.725 registry
+  rows with tier and tweak level; every number has a unit or scale
+  (GEN.772) and a column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: GEN.799. Related: API.8, API.30, API.33.
 
 ## ADM: Admin tools
 
@@ -17460,6 +17872,50 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: ADM.130. Related: ADM.52, ADM.58, ADM.60, ADM.66,
   ADM.81, POP.13.
 
+- [ ] **ADM.132 After an admin edit of a planet or moon, its habitability, Suitability and life scores are recomputed, and a test proves it (check) (bug)**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  admin/edits.py changes a planet's class, orbit, star or parent
+  (re-draws the body, moves its moons) and nothing in the file calls the
+  habitability or life scoring, so a stale PHI-6, Suitability or life
+  stage may stay on the body or its moons until `rescore-habitability`
+  (ADM.129) runs. Check: edit a sample planet and read its scores before
+  and after. If they stay stale, this is a bug: recompute the scores for
+  the edited body and its moons in the same transaction (the same call
+  the generator makes) and add a test. If the edit already rescored
+  through another path, name it in the item and add the test. Version
+  8.1. Owner: Aux 3 (habitability model) or Core 1.
+  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
+  2026-10-24 (fix each): Aux 3 (habitability model), a check first, then
+  the fix if the scores go stale.
+  Prerequisites: none. Related: ADM.129, GEN.688.
+
+- [ ] **ADM.133 Admin edits of resource locations: change a belt, field or body's resource grades and scores as an aspect of the edit-everything plan, with a lock so regeneration keeps them**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" Add resource grade, mass and
+  score of a belt, field, giant or icy body to the aspect catalogue
+  (ADM.62) so an admin can change them in a plan, see the before and
+  after on the approval screen, lock them, and have regeneration and the
+  nightly scan keep an edited value; the Edit any field editor lists
+  them. Done: an edit round-trips through plan, approval and lock in a
+  test. Version 8.6, phase 4. Owner: pool with the edit-everything lane.
+  Rules: draws through draw.py; stand-ins get GEN.725 registry rows with
+  tier and tweak level; every number has a unit or scale (GEN.772) and a
+  column_units entry; a change to drawn output carries
+  `tests.golden_update --reason ... --affects fill` and the next epoch;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the resource locations
+  tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
+  ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
+  Prerequisites: DB.106, GEN.799. Related: ADM.62, ADM.130, ADM.131.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -18065,7 +18521,7 @@ clears each one.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.275, GEN.327. Related: TEST.162, DOC.50, TEST.160.
+  Prerequisites: GEN.275. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
@@ -19928,45 +20384,6 @@ clears each one.
   runs. Owner: Bug 1. Related: TEST.344, TEST.364.
   Prerequisites: none. Related: TEST.344, TEST.364.
 
-- [ ] **TEST.374 scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug)**
-  Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
-  lane reported): the patch notes in changes/ for GEN.398, GEN.691 and
-  GEN.719 (Math lane 2, #3162) carry a "### Tests" heading, which
-  `bump_version.py --check-pr` refuses (notes need "### Changed" and a
-  Headline; map-unresolved-glow had the same earlier). Do: fix the three
-  notes (move the test lines under "### Changed" or drop the heading)
-  and make the check say which heading it refused, so a lane sees it
-  before merge. Done: `bump_version.py --check-pr` passes on main.
-  Owner: Math 2 for the three notes; Bug 1 for the clearer message.
-  Related: TEST.372.
-  Prerequisites: none. Related: TEST.372.
-
-- [ ] **TEST.375 Tests Lane L reports red on clean main: test_api_auth_sweep (2), test_class_pages phenomenon links (6), test_db_column_round_trip, test_save_progress sector save, test_web_generate generate_anyway (2), test_memwatch smoke run (bug)**
-  Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
-  lane reported): test_api_auth_sweep (2 tests), test_class_pages
-  phenomenon links (6; TEST.365 fixed six class-page tests in #3142, so
-  these may be new or environmental), test_db_column_round_trip (written
-  columns), test_save_progress sector save, test_web_generate
-  generate_anyway (2) and test_memwatch smoke run (TEST.366 was dropped
-  as not reproducing after #3125), plus test_interior_heat urey ratio
-  (TEST.353, already done). Do: run each on a lane machine set up as
-  documented (the planetgen database account gap of TEST.370 explains
-  several), keep the ones that still fail on main, and fix each with no
-  skip; drop the ones that pass, noting which machine setup they needed.
-  Done: every listed test passes on a documented machine, or has its own
-  item with a root cause. Owner: Bug 1. Related: TEST.370, TEST.365,
-  TEST.366, TEST.353.
-  Research (2026-10-09, Core 5 witness): Core 5 (8:32 PM EDT 2026-10-24
-  as the lane reported) saw the same two test_web_generate tests
-  (generate_anyway and plain_confirm override logging) fail on clean
-  main: one more witness for this item.
-  Research (2026-10-09, Progress): Bug 1 fixed
-  test_api_auth_sweep::test_admin_pages_send_an_admin_on_seeded_credentials_to_account
-  in #3189 (the /admin/queue/<run_id>/log download redirected instead of
-  403); the rest of the list is unchecked. Twelve more failures on main
-  are in TEST.379.
-  Prerequisites: none. Related: TEST.370, TEST.365, TEST.366, TEST.353.
-
 - [ ] **TEST.377 test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug)**
   Found by Core 2 (UX.125, 8:47 PM EDT 2026-10-24 as the lane reported)
   on clean main. Do: run it on a lane machine set up as documented
@@ -20089,6 +20506,66 @@ clears each one.
   --resume`; no fixed content from the Milky Way or the Solar System.
   Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.34. Related: TEST.380, TEST.381, POP.33, MAP.310, NAV.63.
+
+- [ ] **TEST.383 test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug)**
+  Aux 4 final full check (219 minutes, 24446 passed, 24 failed), relayed
+  10:20 PM EDT 2026-10-24 as the lane reported; list in
+  reports/lane-e-full-check-2026-10-24.md. This test fails when run
+  alone (not an order dependence), in the wheel zoom anchor on empty
+  space of the sector reach map. Find out whether the test or the zoom
+  code is wrong, fix it, and keep the test. Done: the test passes alone
+  and in the file, and the cause is written in the PR. Version 8.1.
+  Owner: Aux 10 (map nodes and zoom) or Core 2.
+  Prerequisites: none. Related: MAP.293, TEST.375.
+
+- [ ] **TEST.384 Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug)**
+  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
+  relayed 10:25 PM EDT 2026-10-24 as the lane reported. Core 3's gate
+  ran 36 failures that were all red on a clean worktree of the base: the
+  habitable_systems point-column and sheet tests, the mantle column
+  tests, the facilities page tests, the VALUES() use in migration 0148,
+  the test_prevalence binary tests, plus test_disk_history that passes
+  alone. The list is in the PR. Find each cause (test, fixture or code),
+  fix it, and keep the tests; file a separate bug where one has a cause
+  outside this group. Done: the group passes on main from a clean
+  checkout in `scripts/test.py changed`. Version 8.1. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
+
+- [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**
+  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
+  relayed 10:25 PM EDT 2026-10-24 as the lane reported. Core 3's gate
+  had 259 browser test setup errors; the cause named is the API
+  fixture's rate limit of 50 requests per hour (the browser tests create
+  their accounts or tokens through the API). A gate that errors 259
+  tests cannot show what a change broke. Make the fixture exempt from
+  the limit (a test setting, not a production change) or give each test
+  run its own limit window, and keep a test that proves the rate limit
+  still works in production mode. Done: `scripts/test.py changed` runs
+  the browser tests with no setup error from the rate limit. Version
+  8.1. Owner: Bug 1 with Aux 12 (API).
+  Prerequisites: none. Related: USR.22, TEST.383.
+
+- [ ] **TEST.386 First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" Generate a galaxy, run
+  `resource-scan`, read the belt, field and giant pages, the lists and
+  the POI filter on the maps, check the scores against the composition
+  and the design's examples, and file every wrong or unclear result as
+  its own bug. Done: a dated report in reports/ and every finding filed.
+  Version 8.4, phase 2. Owner: Bug 1. Rules: draws through draw.py;
+  stand-ins get GEN.725 registry rows with tier and tweak level; every
+  number has a unit or scale (GEN.772) and a column_units entry; a
+  change to drawn output carries `tests.golden_update --reason ...
+  --affects fill` and the next epoch; tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Part of the resource locations tree: GEN.798, DB.106, GEN.799,
+  MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
+  nothing in 8.1.
+  Prerequisites: MAP.312, UX.223. Related: TEST.380, TEST.381, TEST.382.
 
 ## USR: User accounts
 
@@ -21378,6 +21855,29 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (pool); lane H wrote the document.
   Prerequisites: none. Related: GEN.461, DOC.77.
 
+- [ ] **DOC.81 Help page: resource locations, what the scores mean and how to find them on the map**
+  Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
+  asteroid belts or fields that have valuable materials (gold, minerals,
+  iron, etc etc etc) also should be on the POI list to be highlighted,
+  same reason gas giants are there (hydrogen fuel and water in the form
+  of ice) valuable resource locations.  Have foundations of each
+  starting in 8.2 and going as far as 9.0" A help page for the resource
+  locations: the resource kinds, the score from 0 to 9 and how it is
+  worked out, where the points of interest and the filters are, the
+  nearest-resource tool, and the pages that show them, in the
+  pilot's-console voice. Done: the page exists, links from the help
+  index and the object pages, and the coverage test lists it. Version
+  8.7, phase 1. Owner: Aux 11 style. Rules: draws through draw.py;
+  stand-ins get GEN.725 registry rows with tier and tweak level; every
+  number has a unit or scale (GEN.772) and a column_units entry; a
+  change to drawn output carries `tests.golden_update --reason ...
+  --affects fill` and the next epoch; tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Part of the resource locations tree: GEN.798, DB.106, GEN.799,
+  MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
+  nothing in 8.1.
+  Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
+
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**
@@ -22488,4 +22988,31 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   --resume`; no fixed content from the Milky Way or the Solar System.
   Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.33, POP.35, MAP.309. Related: POP.33, POP.24.
+
+- [ ] **POP.37 Facility ratings read Suitability, the food rung and the life scores: Health and Housing use only PHI-4 today**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  population/facility_suggest.py rates a facility from the host's phi4
+  only (Health 0.5 medical + 0.5 habitability, Housing 0.5 habitability
+  + 0.3 materials + 0.2 size, Maintenance 0.15 habitability). It never
+  reads Suitability, the food rung (Flora and Fauna) or the Sentient
+  score, so a base on a world with food and shelter rates the same as
+  one with none, and a facility on a world with a sentient species is
+  not rated against it. Decide which ratings take which score (Health
+  from the food rung and radiation tier, Housing from Suitability,
+  Resources from Flora and Fauna for a living world), write the weights
+  and the sources in docs/design/habitability/population-and-politics.md
+  and change the ratings; a changed rating is drawn output and carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch. Version 8.1 (pulled forward from 8.4, Boss, 10:16 PM EDT
+  2026-10-24: "fix each"; the weights do not need the settlements
+  design). Owner: pool (Core 5 style). Rules: a unit or scale on every number (GEN.772); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System.
+  Research (2026-10-09, Progress): Pulled forward into 8.1 by Boss,
+  10:16 PM EDT 2026-10-24; owner pool (Core 5 style), unstarted.
+  Prerequisites: none. Related: POP.16, POP.17, GEN.653.
 
