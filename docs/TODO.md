@@ -22249,18 +22249,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
 
-- [ ] **DOC.79 The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C**
-  Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
-  #2993). Part C of the design document for the compressed water layer
-  lists reference rows at a water share of x=0.2 that do not agree with
-  each other. Do: recompute the reference rows from the built code
-  (physics for the integrated water column, for example 0.1 Earth mass
-  of water on 1 Earth mass is 746 km deep) and make the rows consistent.
-  Done: every x=0.2 row in part C matches the code to the stated
-  rounding, and a test or script check pins the numbers. Owner: none
-  (pool); lane H wrote the document.
-  Prerequisites: none. Related: GEN.461, DOC.77.
-
 - [ ] **DOC.81 Help page: resource locations, what the scores mean and how to find them on the map**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
