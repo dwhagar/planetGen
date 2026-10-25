@@ -15125,26 +15125,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.411, GEN.422. Related: GEN.423, GEN.703, GEN.752,
   GEN.411.
 
-- [ ] **GEN.813 Volatile inventory brackets recalibrated against the totals of the Earth, Venus, Mars and Titan, not only the ratios (finding 2)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 2. The dry
-  class carries 0.6 wt% CO2 (about sixteen times the bulk silicate
-  Earth's carbon), nitrogen follows by N/C up to 0.1 (one seed: 87 bar
-  of N2 on a 1.8 Earth-mass planet) and sulfur by S/C up to 3. The
-  carbonate balance removes the carbon of a wet world whatever the
-  supply, but nitrogen has no sink, so those worlds start with a thick
-  N2 air. Recalibrate the GEN.481 brackets (GEN.725 tweak level L2) so
-  the four known bodies fall inside their ranges and state the source of
-  each total. Done: the four bodies reproduce within the stated spread;
-  the tweak level is listed. Owner: the Citations lane (GEN.481 owner)
-  with GEN.802 and GEN.803. Rules: no backward-compat shims; every
-  number has a unit or scale (GEN.772); stand-ins get GEN.725 registry
-  rows with a tier and tweak level; a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Prerequisites: GEN.411, GEN.422. Related: GEN.481, GEN.802, GEN.803,
-  GEN.725.
-
 - [ ] **GEN.814 A water-rich world (class O, 10 to 50 wt% water) gets a carbon sink: seafloor weathering and the high-pressure ice that seals the mantle (finding 3)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
   reports/air-fixed-point-findings-2026-10-24.md finding 3. Silicate
@@ -15250,6 +15230,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.772); tests are `scripts/test.py changed --resume`.
   Prerequisites: GEN.411, GEN.422. Related: GEN.739, GEN.411, GEN.422,
   GEN.726.
+  Research (2026-10-09, Citations lane report): Also does the part of
+  GEN.813 that waits on 4c (Citations lane, 11:09 PM EDT 2026-10-24):
+  run the Earth, Venus and Mars twins through the air fixed point and
+  check the totals the recalibrated brackets (#3254) give.
 
 - [ ] **GEN.820 Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample**
   GEN.512 merged as #3250 (generator epoch 101, --affects fill):
@@ -15266,6 +15250,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `tests.golden_update --reason ... --affects <stage>` and the next
   epoch.
   Prerequisites: none. Related: GEN.512, GEN.725.
+
+- [ ] **GEN.821 Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure**
+  The GEN.813 lane (Citations, 11:09 PM EDT 2026-10-24 as the lane
+  reported) found that Titan has no volatile inventory in the code: the
+  titan family takes its pressure. Add an ice-moon nitrogen inventory
+  from ammonia ice (Erkaev et al. 2020 Table 2) so the supply law and
+  the air fixed point (GEN.411, GEN.422) derive a Titan-like moon's
+  nitrogen and methane. Done: a Titan sample lands near 1.5 bar of N2
+  with methane, with the source and tier in the GEN.725 registry. Owner:
+  the Citations lane. Rules: no backward-compat shims; stand-ins get
+  registry rows; a changed generated value carries `tests.golden_update
+  --reason ... --affects <stage>` and the next epoch.
+  Prerequisites: GEN.411, GEN.422. Related: GEN.813, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
