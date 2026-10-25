@@ -241,9 +241,13 @@ def test_suitability_is_the_lowest_of_water_food_and_shelter():
     assert hab.suitability_score(irradiated) == pytest.approx(hab.radiation_score(irradiated))
 
 
-def test_life_in_an_ocean_under_ice_is_no_food_on_the_surface():
-    buried = World(101.3, 15, {"O2": 0.21}, ph=8.1, life_stage="biosphere", life_on_surface=False)
-    assert hab.food_score(buried) == hab.FOOD_SCORE["none"]
+def test_microbes_in_an_ocean_under_ice_are_no_food_but_flora_and_fauna_are():
+    """Boss, 2026-10-24: a world scored with Flora, Fauna and a civilization had no food because its ocean is under ice."""
+    microbes = World(101.3, 15, {"O2": 0.21}, ph=8.1, life_stage="microbial", life_on_surface=False)
+    assert hab.food_score(microbes) == hab.FOOD_SCORE["none"]
+    for stage in ("macroscopic", "biosphere"):
+        world = World(101.3, 15, {"O2": 0.21}, ph=8.1, life_stage=stage, life_on_surface=False)
+        assert hab.food_score(world) == hab.FOOD_SCORE[stage]
 
 
 def test_a_world_with_no_liquid_water_has_red_water_and_red_suitability_so_yellow_overall():
