@@ -14244,6 +14244,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.767. Related: GEN.767, GEN.656, GEN.725, UX.199,
   UX.205.
 
+- [ ] **GEN.769 Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug)**
+  Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "ice shell
+  thickness shows measure in km in some situations where it should show
+  meters or less (i.e. 0.00109 km)". On the property sheet
+  (describe/sheet.py) the ice shell thickness, ocean depth and
+  high-pressure ice thickness columns (ice_shell_km,
+  ice_shell_thickness_km, ocean_depth_km, hp_ice_km) are stored in km
+  and shown as a plain km number when their quantity is not on a length
+  ladder, so a thin shell prints as 0.00109 km. Do: find every length
+  column and Document quantity that skips the length ladder (mm, cm, m,
+  km, then au, ly and so on by magnitude) and put it on one, so a value
+  under 1 km reads in m (under 1 m in cm or mm), a value over 1000 km
+  stays in km, in the sheet, the API description and the map infobox
+  alike; one function picks the unit from the registry (GEN.571), no
+  per-column table. Done: 0.00109 km shows as 1.09 m, 2.4e-7 km as 0.24
+  mm, 3500 km stays 3500 km; a test over every length column of the
+  sheet shows no value below 1 in its unit. Owner: Aux 14. Related:
+  GEN.571, GEN.568, UX.199.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.199.
+
+- [ ] **GEN.770 Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug)**
+  Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "water, and
+  other things are less clear as well we should have some kind of units
+  with water activity, surface under ocean, surface above sea level,
+  water share of the mass, etc." On the property sheet these
+  dimensionless columns (water_mass_fraction, ocean_fraction,
+  land_fraction, water_activity, ocean_pH and the other ratio-unit
+  columns) print a bare number with no unit, so 0.0004 and 0.71 do not
+  say what they are. Do: give each a stated unit by what it is: the
+  shares (water share of the mass, surface under ocean, surface above
+  sea level) as a percent when above 1 percent, in ppm when below
+  (0.0004 as 400 ppm), with the whole-surface pair adding to 100
+  percent; water activity as a pure number between 0 and 1 with its
+  scale in the label ("Water activity (0 to 1, life needs about 0.6 or
+  more)"); pH with its scale; and every other ratio column on the sheet
+  a label that says what it is a ratio of. Register the display unit
+  (percent, ppm, dimensionless) in the unit registry and column_units,
+  not in the sheet. Done: no water-group row shows a bare number; a test
+  lists every ratio-unit column of the sheet and its stated unit. Owner:
+  Aux 14. Related: GEN.571, GEN.568, UX.208.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
