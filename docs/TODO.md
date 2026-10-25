@@ -14437,6 +14437,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related: GEN.767, GEN.656, GEN.725, UX.199, UX.205.
   Prerequisites: GEN.767. Related: GEN.767, GEN.656, GEN.725, UX.199,
   UX.205.
+  Progress (2026-10-09): Progress (Aux 4, 1:35 AM EDT 2026-10-25): part
+  1 merged as #3297, the model of the hours a person can be outside in
+  one local day (daylight, the day's share of the radiation allowance,
+  the worn garment against the day's heat and cold, breathing gas
+  against an 8-hour shift, ultraviolet against the garment rating, and
+  which limit binds), constants in protection_limits rows OH1 to OH10 in
+  the stand-in registry, design section 17 of
+  survival-equipment-fields.md; nothing stored or shown yet. Part 2
+  (stored outside_hours_day and its binding limit, relabel the yearly
+  outside_hours on the sheet, one migration and epoch) waits for
+  GEN.767's daylight_hours (Aux 5).
 
 - [ ] **GEN.769 Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug)**
   Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "ice shell
