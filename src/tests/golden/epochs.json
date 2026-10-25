@@ -573,6 +573,13 @@
       "first_release": "8.0.2269",
       "reason": "A cold icy body holds CO2, CO, N2, CH4 and H2S above their clathrate dissociation pressure in the water cages of a drawn ice skin, so its air is thinner, and a cold body with very little surface water melts its ice at a drawn perchlorate eutectic, so its lid is thinner or absent and its brine ocean takes that salt's water activity (GEN.762)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 97,
+      "first_release": null,
+      "pending": true,
+      "reason": "A rocky planet or moon past its star's runaway greenhouse limit while the star was young and bright loses water (energy-limited escape of the steam, from 30 Myr to the star's age), so the water mass fraction of planets in the zone of cool stars falls, to nothing for most (GEN.639)",
+      "affects": ["fill"]
     }
   ]
 }
