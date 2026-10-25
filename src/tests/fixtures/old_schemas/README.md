@@ -43,3 +43,4 @@ Commit each file came from:
 - v157: b8644eec (GEN.654 aquifers, before GEN.701 rogue planet scores)
 - v158: 09c27ebb (GEN.701 rogue planet scores, before GEN.441 surface composition)
 - v159: 081337a9 (GEN.441 surface composition, before GEN.732 rings)
+- v160: cca3b2b03 (GEN.732 rings, before DB.107 region stats)

@@ -583,6 +583,23 @@ galaxy_block_stats = sa.Table(
 )
 
 
+region_stats = sa.Table(
+    'region_stats',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('sector_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('capacity', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('clump_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('extent_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_radius_pc', mysql.DOUBLE(), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 galaxy_components = sa.Table(
     'galaxy_components',
     metadata,
