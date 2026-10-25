@@ -68,9 +68,8 @@ from planetgen.physics import constants, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
     _power_law_integral, _sample_power_law, agb_bright_chance, birth_fe_h, evolve_star, giant_bright_chance,
-    giant_end_fraction,
-    has_core_helium_phases, horizontal_branch_bright_chance, main_sequence_lifetime_gy, main_sequence_luminosity_sol,
-    population_age_range_gy, sample_living_star, star_params, subgiant_end_fraction, subgiant_end_luminosity_sol,
+    giant_end_fraction, has_core_helium_phases, horizontal_branch_bright_chance, main_sequence_bright_from_gy,
+    main_sequence_end_luminosity_sol, main_sequence_lifetime_gy, population_age_range_gy, sample_living_star, star_params, subgiant_end_fraction, subgiant_end_luminosity_sol,
 )
 from planetgen.util import draw
 
@@ -116,6 +115,7 @@ def _wolf_rayet_bright_chance(min_luminosity_sol):
     return math.log(high / min_luminosity_sol) / math.log(high / low)
 
 
+@functools.lru_cache(maxsize=1 << 19)
 def _bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     """
     Every age window in which a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` can be at
@@ -127,10 +127,11 @@ def _bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     t_ms = main_sequence_lifetime_gy(mass_sol, fe_h)
     t_sub = t_ms * subgiant_end_fraction(mass_sol, fe_h)
     t_giant = t_ms * giant_end_fraction(mass_sol, fe_h)
-    l_ms = main_sequence_luminosity_sol(mass_sol)
+    l_ms = main_sequence_end_luminosity_sol(mass_sol, fe_h)
     windows = []
-    if l_ms >= min_luminosity_sol:
-        windows.append((0.0, t_ms, 1.0))
+    bright_from = main_sequence_bright_from_gy(mass_sol, min_luminosity_sol, t_ms, fe_h)
+    if bright_from is not None:
+        windows.append((bright_from, t_ms, 1.0))
     if mass_sol >= pc.SUPERGIANT_MIN_MASS_SOL:
         chance = _supergiant_bright_chance(l_ms, min_luminosity_sol)
         wr_start = wolf_rayet.start_gy(mass_sol, t_ms, t_giant, fe_h)
@@ -140,7 +141,7 @@ def _bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
             windows.append((wr_start, t_giant, _wolf_rayet_bright_chance(min_luminosity_sol)))
         if chance > 0:
             windows.append((t_ms, wr_start, chance))
-        return windows
+        return tuple(windows)
     # A subgiant brightens linearly from l_ms to the base of its giant branch.
     progress = (min_luminosity_sol - l_ms) / (subgiant_end_luminosity_sol(mass_sol, fe_h) - l_ms)
     if progress < 1:
@@ -157,7 +158,7 @@ def _bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
         chance = agb_bright_chance(min_luminosity_sol)
         if chance > 0:
             windows.append((t_horizontal, t_agb, chance))
-    return windows
+    return tuple(windows)
 
 
 def _bright_measure(mass_sol, min_luminosity_sol, window, fe_h=0.0):
@@ -221,10 +222,18 @@ def _bright_measure_terms(low_mass, high_mass, min_luminosity_sol, fe_h):
     t_long = main_sequence_lifetime_gy(low_mass, fe_h)
     t_short = main_sequence_lifetime_gy(high_mass, fe_h)
     sub_low, sub_high, giant_low, giant_high = _phase_fraction_bounds(low_mass, high_mass, fe_h)
-    l_max = main_sequence_luminosity_sol(high_mass)
+    # The MIST main sequence is not exactly monotone in the mass (GEN.652: its end steps by up to a few percent over a
+    # few tenths of a percent of mass), so the cell's best case is read at three masses and `MAIN_SEQUENCE_BOUND_SLACK`
+    # either way, not only at the top one.
+    masses = (low_mass, math.sqrt(low_mass * high_mass), high_mass)
+    slack = tuning.BRIGHT_TABLE_MAIN_SEQUENCE_SLACK
+    l_max = slack * max(main_sequence_end_luminosity_sol(mass, fe_h) for mass in masses)
     terms = {}
-    if l_max >= min_luminosity_sol:
-        terms["main sequence"] = (0.0, t_long, 1.0)
+    starts = [start for start in (main_sequence_bright_from_gy(mass, min_luminosity_sol / slack,
+                                                               main_sequence_lifetime_gy(mass, fe_h), fe_h)
+                                  for mass in masses) if start is not None]
+    if starts:
+        terms["main sequence"] = (min(starts), t_long, 1.0)
     if low_mass >= pc.SUPERGIANT_MIN_MASS_SOL:
         chance = _supergiant_bright_chance(l_max, min_luminosity_sol)
         terms["supergiant"] = (t_short, t_long * pc.GIANT_PHASE_END_MS_FRACTION, chance)
@@ -234,7 +243,7 @@ def _bright_measure_terms(low_mass, high_mass, min_luminosity_sol, fe_h):
                 t_short * pc.GIANT_PHASE_END_MS_FRACTION - tuning.WR_PHASE_MYR / wolf_rayet.MYR_PER_GY,
                 t_long * pc.GIANT_PHASE_END_MS_FRACTION, _wolf_rayet_bright_chance(min_luminosity_sol))
         return terms
-    if subgiant_end_luminosity_sol(high_mass, fe_h) > min_luminosity_sol:
+    if slack * max(subgiant_end_luminosity_sol(mass, fe_h) for mass in masses) > min_luminosity_sol:
         terms["subgiant"] = (t_short, t_long * sub_high, 1.0)
     # A heavier giant starts its branch higher, so the chance at the cell's top mass bounds the cell's, except right
     # at a light star's tip, which falls a little with the mass: the greatest of three masses covers that.

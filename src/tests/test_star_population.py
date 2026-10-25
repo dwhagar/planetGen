@@ -15,7 +15,7 @@ import random
 
 import pytest
 
-from planetgen.physics import constants as phys_c
+from planetgen.physics import constants as phys_c, main_sequence
 from planetgen import tuning as prog_c
 from planetgen.physics import stellar_evolution as se
 from planetgen.generation import star_population as sp
@@ -61,8 +61,10 @@ EXPECTED_SHARES = [
     ("K dwarf", 11.0, 18.0),
     ("G dwarf", 2.0, 6.0),
     ("F dwarf", 1.2, 3.0),
-    ("A dwarf", 0.4, 1.2),
-    ("B dwarf", 0.07, 0.4),
+    # GEN.652: on the MIST main sequence a star is A-type (7500 to 10000 K) between about 1.75 and 2.4 solar masses and
+    # cools out of it before its main sequence ends, narrower than the piecewise law's 1.4 to 2.4, so A and B are rarer.
+    ("A dwarf", 0.1, 0.4),
+    ("B dwarf", 0.03, 0.15),
     ("white dwarf", 4.0, 7.0),
     ("subgiant", 0.08, 0.3),  # GEN.502: a light star's subgiant phase is 5% of its main sequence, not 10%
     ("giant", 0.12, 0.5),
@@ -85,9 +87,10 @@ def test_supergiants_are_vanishingly_rare(population):
 
 def test_main_sequence_luminosity_follows_mass(population):
     _, states = population
-    for mass, _, state in states:
+    for mass, age, state in states:
         if state["yerkes_class"] == "V":
-            assert state["luminosity_sol"] == pytest.approx(se.main_sequence_luminosity_sol(mass))
+            row = main_sequence.state(mass, age, state["metallicity_fe_h"])
+            assert state["luminosity_sol"] == pytest.approx(row.luminosity_sol)
 
 
 def test_every_state_is_in_its_own_phase(population):
@@ -143,7 +146,8 @@ def test_random_stars_are_self_consistent():
         if star.yerkes_class == "V":
             mass_sol = star.mass / phys_c.SOLAR_MASS_TO_KG
             luminosity_sol = star.luminosity / phys_c.SOLAR_LUMINOSITY
-            assert luminosity_sol == pytest.approx(se.main_sequence_luminosity_sol(mass_sol))
+            row = main_sequence.state(star.initial_mass_sol, star.age, star.metallicity_fe_h)
+            assert luminosity_sol == pytest.approx(row.luminosity_sol, rel=1e-6)
 
 
 def test_large_stars_are_massive_and_alive():

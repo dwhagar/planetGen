@@ -101,6 +101,14 @@ def test_a_stage_has_one_wording_for_start_finish_and_failure_and_one_divider():
         logrecord.stage_record("stage.begin", "generate", 1, 2)
 
 
+def test_a_skipped_stage_says_why_in_the_same_divider():
+    skipped = logrecord.stage_record(logrecord.STAGE_SKIPPED, "stages", 4, 9, "Scatter the massive stars", reason="no layers")
+    assert skipped.message == "Stage 4 of 9: Scatter the massive stars -- skipped: no layers"
+    assert skipped.severity == "info" and skipped.fields == {"event": "stage.skipped", "stage": 4, "stages": 9}
+    assert logrecord.plain_line(skipped) == "=== Stage 4 of 9: Scatter the massive stars -- skipped: no layers ==="
+    assert logrecord.parse_file_line(logrecord.file_line(skipped)) == skipped
+
+
 def test_the_stage_wording_is_the_stage_markers():
     from planetgen.util import stagemark
     assert logrecord.stage_start(4, 12, "x").startswith(stagemark.marker(4, 12))

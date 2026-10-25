@@ -177,7 +177,7 @@ def test_the_recipes_loader_refuses_a_tunable_row_with_no_target():
     with pytest.raises(TargetError, match="atmosphere-a:a5"):
         th.TARGETS.require(recipes.tables)
     assert {"a3", "a4"} <= {e.id for e in RECIPES.entries if e.tunable}
-    assert {e.id for e in RECIPES.entries if e.tunable} == {t.row_id for t in th.TARGETS}
+    assert {e.id for e in RECIPES.entries if e.tunable} == {t.row_id for t in th.TARGETS if t.row.startswith("atmosphere-")}
 
 
 # --- the comparison --------------------------------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 {% extends "generate_base.html" %}
 {% from "partials/generate_fields.html" import field, limit_slider, plan_inputs, scatter_limits, mass_limit_slider,
         bright_floor_slider, compact_limit, advanced_sector_inputs, prevalence_inputs, skip_scatter, disregard_data, debug_box, confirm_field with context %}
+{% from "partials/ui_fields.html" import ui_checkbox with context %}
 {% block generate_head %}
 <script type="module" src="{{ static_url('generatelevers.js') }}"></script>
 <script type="module" src="{{ static_url('limitsliders.js') }}"></script>
@@ -45,12 +46,13 @@
         <div class="search-fields">
           {{ field("radius_pc", "Radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc) }}
           {{ field("max_shell", "Highest shell", placeholder="Milky Way size", step="1", min=0, max=max_shell) }}
-          {{ field("min_start_density", "Minimum start density", placeholder="any", min=0) }}
+          {{ field("min_start_density", "Minimum start density", placeholder="any", min=0,
+                   hint="1.0 is as dense as the Sun's neighborhood.") }}
           {{ field("neighborhoods", "Neighborhoods", placeholder="1", step="1", min=1, max=max_neighborhoods,
                    hint="More than one makes that many, each whole inside the galaxy and at least twice the radius from the others.") }}
           {{ field("neighborhood_gamma", "Density bias", placeholder="0", min=0, max=10,
                    hint="0 picks starts evenly by volume; higher favors denser space.") }}
-          <label class="search-field generate-check"><span><input type="checkbox" name="avoid_filled_space" value="1"{% if form and form.get("avoid_filled_space") %} checked{% endif %}> Keep away from filled space: drop any start whose neighborhood touches sectors already generated</span></label>
+          {{ ui_checkbox("avoid_filled_space", "Keep away from filled space: drop any start whose neighborhood touches sectors already generated", checked=(form and form.get("avoid_filled_space"))) }}
         </div>
         {%- elif value == "sector" %}
         <div class="sector-finder" data-finder data-locate-url="{{ url_for('web.galaxy_locate') }}"
@@ -110,13 +112,13 @@
           {{ field("shell_index", "Shell", step="1", min=0, max=max_shell) }}
           {{ field("shell_band", "Band", placeholder="every band", step="1") }}
           {{ field("shell_limit", "Limit (sectors)", placeholder="the whole shell", step="1", min=1, max=max_limit) }}
-          <label class="search-field generate-check"><span><input type="checkbox" name="whole_shell" value="1"> Allow a shell over 2,000 sectors without a limit</span></label>
+          {{ ui_checkbox("whole_shell", "Allow a shell over 2,000 sectors without a limit") }}
         {%- else %}
           {{ field("span_shells", "Shells", kind="text", placeholder="all, e.g. 10:20") }}
           {{ field("span_bands", "Bands", kind="text", placeholder="all, e.g. -2:2") }}
           {{ field("span_wedges", "Wedges (one shell and band only)", kind="text", placeholder="the whole band, e.g. 4:9") }}
           {{ field("span_limit", "Limit (sectors)", placeholder="the whole span", step="1", min=1, max=max_limit) }}
-          <label class="search-field generate-check"><span><input type="checkbox" name="whole_span" value="1"> Allow a span over 2,000 sectors without a limit</span></label>
+          {{ ui_checkbox("whole_span", "Allow a span over 2,000 sectors without a limit") }}
         {%- endif %}
         </div>
       </div>
@@ -195,16 +197,13 @@
       A plain plan uses {{ num(summary.bright.default_min_luminosity_sol, ",.0f") }} and up.</p>
       {%- endif %}
       <fieldset class="redo-scatter">
-        <label class="redo-scatter-check"><input type="checkbox" name="redo_mass" value="1" id="redo-mass"
-          {%- if form and form.get("redo_mass") %} checked{% endif %}> Massive stars (the stellar mass limit below)</label>
+        {{ ui_checkbox("redo_mass", "Massive stars (the stellar mass limit below)", checked=(form and form.get("redo_mass")), id="redo-mass") }}
       </fieldset>
       <fieldset class="redo-scatter">
-        <label class="redo-scatter-check"><input type="checkbox" name="redo_luminosity" value="1" id="redo-luminosity"
-          {%- if form and form.get("redo_luminosity") %} checked{% endif %}> Bright stars (the luminosity floor below)</label>
+        {{ ui_checkbox("redo_luminosity", "Bright stars (the luminosity floor below)", checked=(form and form.get("redo_luminosity")), id="redo-luminosity") }}
       </fieldset>
       <fieldset class="redo-scatter">
-        <label class="redo-scatter-check"><input type="checkbox" name="redo_phenomena" value="1" id="redo-phenomena"
-          {%- if form and form.get("redo_phenomena") %} checked{% endif %}> Phenomena (neutron stars, black holes, nebulae and the rest; the limit below)</label>
+        {{ ui_checkbox("redo_phenomena", "Phenomena (neutron stars, black holes, nebulae and the rest; the limit below)", checked=(form and form.get("redo_phenomena")), id="redo-phenomena") }}
       </fieldset>
     </fieldset>
     <fieldset class="generate-mode scatter-limits-block">
@@ -229,8 +228,7 @@
     <p>Looks for damage in <code>{{ database }}</code>: the schema version, table health, rows whose parent is gone,
     ids that would clash, impossible values, sector counts and version keys. It changes nothing, and the job ends
     with one pass or fail line per check.</p>
-    <label class="check"><input type="checkbox" name="deep" value="1"{% if form and form.get("deep") %} checked{% endif %}> Deep check: also validate every star system
-      and run the slower table checks. The Review step shows the time it expects.</label>
+    {{ ui_checkbox("deep", "Deep check: also validate every star system and run the slower table checks. The Review step shows the time it expects.", checked=(form and form.get("deep"))) }}
     {%- elif task.key == "wipe" %}
     <p>Deletes every sector, system, phenomenon and the plan from <code>{{ database }}</code>. This can't be undone.
     Admin logins and API keys are kept.</p>

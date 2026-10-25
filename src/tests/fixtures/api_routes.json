@@ -36,6 +36,8 @@
   "/api/auth/api-keys GET",
   "/api/auth/api-keys POST",
   "/api/auth/api-keys/<int:key_id> DELETE",
+  "/api/auth/avatar DELETE",
+  "/api/auth/avatar POST",
   "/api/auth/change-credentials POST",
   "/api/auth/confirm-password POST",
   "/api/auth/login POST",

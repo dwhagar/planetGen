@@ -2,7 +2,7 @@
 {% block content %}
 <section class="panel">
   <h2>Username and password</h2>
-  <p>Signed in as <strong>{{ admin.username }}</strong>.</p>
+  <p class="signed-in">{% if admin.avatar %}<img class="avatar" src="{{ admin.avatar }}" alt="Your picture" width="48" height="48">{% endif %}Signed in as <strong>{{ admin.username }}</strong>.</p>
   {%- if forced %}
   <p class="hint">This account still uses the first password the installer printed. Choose a new username and password before using the admin pages.</p>
   {%- endif %}
@@ -29,6 +29,36 @@
     </div>
   </form>
 </section>
+{%- if not forced %}
+<section class="panel" id="picture" aria-labelledby="picture-heading">
+  <h2 id="picture-heading">Your picture</h2>
+  {%- if avatar.error %}
+  <p class="error" role="alert">{{ avatar.error }}</p>
+  {%- endif %}
+  {%- if avatar.message %}
+  <p class="hint" role="status">{{ avatar.message }}</p>
+  {%- endif %}
+  <p>A PNG, JPEG, ICO or GIF, an animated GIF too, up to {{ max_avatar_kb }} KB, 1024 by 1024 pixels and 100 frames at most. The site keeps a clean copy of the picture without the comments and other details a file can carry.</p>
+  <form method="post" action="{{ url_for('web.account_avatar') }}" enctype="multipart/form-data" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <div class="search-field">
+      <label for="avatar-file">New picture</label>
+      <input type="file" id="avatar-file" name="file" accept=".png,.jpg,.jpeg,.ico,.gif" required>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">Upload</button>
+    </div>
+  </form>
+  {%- if admin.avatar %}
+  <form method="post" action="{{ url_for('web.account_avatar') }}" class="settings-confirm">
+    {{ csrf_field() }}
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <button type="submit" name="remove" value="1" class="btn btn-secondary">Remove my picture</button>
+  </form>
+  {%- endif %}
+</section>
+{%- endif %}
 {%- if totp and totp.status is not none and totp.status is defined %}
 <section class="panel" id="two-factor">
   <h2>Two-factor sign-in</h2>

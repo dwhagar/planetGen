@@ -104,6 +104,13 @@ def test_a_text_marks_only_registry_formulas_and_charged_elements():
     assert chem.mark_html("<b> H2O") == "&lt;b&gt; H<sub>2</sub>O"
 
 
+def test_the_potassium_dimer_is_written_where_named_and_a_k2_star_is_not_a_gas():
+    """GEN.751 put K2 in the gas table; the K2 star's type is the same token."""
+    assert chem.html("K2") == "K<sub>2</sub>" and chem.text("K2") == "K₂"
+    assert chem.split("a K2 star and H2") == ["a K2 star and ", chem.Formula("H2")]
+    assert "K2" not in chem.known() and "KO" not in chem.known() and "K2O" in chem.known()
+
+
 def test_the_document_s_chem_item_is_written_by_every_renderer():
     value = model.chem_text("H2, CO and Fe2+")
     assert value == [{"chem": "H2"}, ", CO and ", {"chem": "Fe2+"}]

@@ -165,7 +165,8 @@ pytest -n auto -m area_api                # one part of the program
 scripts/test.py quick           # not database, browser or heavy tests
 scripts/test.py area web db     # the tests of those areas
 scripts/test.py browser         # the headless-browser tests alone
-scripts/test.py full            # everything: the merge gate
+scripts/test.py full            # everything: the end-of-version run, not the gate of an ordinary merge
+scripts/test.py env             # only check (and repair) MySQL, Redis, the test variables and packages
 scripts/test.py full -- -x      # anything after -- goes to pytest
 ```
 
@@ -191,9 +192,42 @@ ALONE" (a real failure). A lane quoting a flake in a TODO item should paste
 that line and the record from `.test-failures.jsonl` instead of "failed once,
 passed alone". `--no-rerun` skips the second step.
 
-A pull request needs a green `scripts/test.py changed` (below) or, at the end of
-a sequence of related items, a green `scripts/test.py full` (or `pytest -n auto`
-as before).
+A pull request needs a green `scripts/test.py changed` (below), finished with
+`--resume` if the run was interrupted, and no more: the whole suite
+(`scripts/test.py full`, `full --check`) is the end-of-version bug hunt
+(TEST.261, SEC.33, GEN.301), not the gate of an ordinary merge, and not run
+again on a merge candidate after main moved (run `changed --resume`, which
+reruns only what main's change touched). The PR description says which run it used.
+
+### Containers: the check before a run and the watchdog (TEST.376)
+
+A lane machine is a container that restarts, and MySQL and Redis go down with it. A
+database test whose server is down is skipped, not failed, and a run without
+`PLANETGEN_TEST_MYSQL_USER` logs in as `planetgen` and fails with
+`DatabaseLoginError`, so a broken container used to look like a green or a red
+run. `scripts/test.py` (`src/tests/lane_services.py`) now looks first and watches
+while it runs:
+
+- **Before the run**, every command (`scripts/test.py env` does only this, and
+  `--no-preflight` skips it): the `PLANETGEN_TEST_*` variables are loaded from
+  `/etc/profile.d/planetgen-test.sh` when they are missing; MySQL and Redis are
+  started when they do not answer (the commands `planetgen-env-up` runs, or
+  `PLANETGEN_TEST_MYSQL_START` / `PLANETGEN_TEST_REDIS_START`); the MySQL binary
+  logs are purged when under 3 GB is free; `argon2-cffi` must be installed and,
+  for the browser tests, `playwright` must be 1.56.0 (the image's Chromium; do
+  not run `playwright install`). What it cannot repair is printed as
+  `PREFLIGHT FAILED: ...` and nothing runs (exit 2). The same check runs again
+  at the start of each phase.
+- **During the run**, a watchdog asks MySQL and Redis every 15 seconds. A server
+  that is gone is restarted at once, the phase's pytest is stopped and started
+  again without the tests that already passed (the progress log, as `--resume`
+  does), up to 5 times a phase, and the closing line says
+  `(N service restart(s): ...)`. A server that cannot be brought back ends the run
+  with exit 3, `FAIL`, and the same command with `--resume` continues it once the
+  services are up. A server that still has its process (`mysqld_safe` restarts a
+  crashed `mysqld` itself, crash recovery answers late) is waited for, not
+  started over, and a MySQL that only holds its port must miss three answers in a
+  row before it counts as dead.
 
 ### Telling when a run is done
 
@@ -252,7 +286,7 @@ runs. The reused passes are copied into the new build's log, so a second resume 
 duration is not stored as the command's usual time. A different environment (a package, Python, a server, a
 `PLANETGEN_*` variable or the day) reuses nothing: the run says `RESUMING build <id>: nothing from the earlier runs
 can be reused (<why>); every test runs` and runs every test. When no earlier run of the command left a log it runs
-nothing, exits with 2 and says so. Resuming is never automatic and not part of the merge gate, and a PR that was
+nothing, exits with 2 and says so. Resuming is never automatic; it is how an interrupted `changed` run is finished, and a PR that was
 merged on a resumed run says which build and runs it continued. Tests that failed, errored, were running when the run
 stopped or never started run again; a test that passed earlier is not run again, so a test that only passes after
 another test ran before it is not checked again either.
@@ -294,10 +328,9 @@ used file imports) a changed file, every test that starts a subprocess when
 `src/planetgen/`, `src/html/` or `scripts/` changed, and every test the record
 has not seen or saw fail. A change to `conftest.py`, `pytest.ini`, a support
 module or the test fixtures runs everything, and so does a missing record
-(which that run then writes). A green `changed` run is the merge gate for small changes and for the steps
-of a sequence of related items (Boss, 2026-10-14); the whole suite
-(`scripts/test.py full --check`) is run when a sequence is finished, and the
-daily CI run on main backstops both. A PR description says which one it used.
+(which that run then writes). A green `changed` run is the merge gate (Boss, 2026-10-14, restated 2026-10-24: every
+merge tests only what changed or would change); the whole suite
+(`scripts/test.py full --check`) is the end-of-version bug hunt. A PR description says which one it used.
 `scripts/test.py full --check` is also how the selection is proved: it
 should never print a `MISSED:` line, and if it does, tell the test-suite thread.
 

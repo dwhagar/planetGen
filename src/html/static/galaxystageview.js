@@ -1417,6 +1417,23 @@ export function createStageView(host) {
     },
   });
 
+  // MAP.297: the blocks are not picked by the pointer on the Galaxy Map (the map is about locations, not sector boxes):
+  // a hover, click or double click goes to the stars, objects and markers, or to nothing. They are still the layer the
+  // wheel's crossing from one window to the next reads (blockUnderWheel). A sector page's map (pinned) keeps its
+  // neighbouring sectors pickable: a click there opens that sector's page. Choosing a NAV end (needGenerated) is
+  // the one thing on the Galaxy Map that is still a choice among blocks.
+  function blocksPickable() {
+    return !!pinned || needGenerated;
+  }
+  function pointerLayers(layer) {
+    return blocksPickable() || layer !== choiceLayer;
+  }
+  // What the wheel's anchoring and crossings look at: not the map's own stars (MAP.304), which take the pointer's
+  // click and hover only, so a zoom aims where it did.
+  function notMapStars(layer) {
+    return layer.name !== "stars";
+  }
+
   // Whether choice `index` can be picked: not while choosing a NAV end
   // and it holds nothing generated.
   function pickable(index) {
@@ -1513,7 +1530,7 @@ export function createStageView(host) {
   }
 
   function setHover(next) {
-    hover = next;
+    hover = blocksPickable() ? next : null;
     applyHover();
   }
 
@@ -1543,6 +1560,11 @@ export function createStageView(host) {
       });
     });
     if (!animation) setDisplayFade(display, 1);
+    // MAP.297: no sector box is outlined or shaded on the Galaxy Map, hovered, selected or entered.
+    if (!blocksPickable()) {
+      clearOutline();
+      return;
+    }
     // MAP.201: the sector selected (one that is not opened, as an
     // unfilled one cannot be) stays outlined until something else is
     // selected, whether or not the pointer is on it.
@@ -1661,6 +1683,9 @@ export function createStageView(host) {
 
   function baseHint(r) {
     if (!r || !r.kind) return "";
+    if (!blocksPickable()) {
+      return "Click a star or an object for its details, double-click to fly to it, or scroll to zoom toward it.";
+    }
     if (isSectorView(r)) {
       return "Click a sector to open it; a sector that isn't charted yet shows where it is"
         + (host.canGenerate ? " and how to chart it." : ".");
@@ -2269,7 +2294,7 @@ export function createStageView(host) {
     ray.setFromCamera(new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1), camera);
     const origin = ray.ray.origin;
     const direction = ray.ray.direction;
-    const found = picker.pick(clientX, clientY);
+    const found = picker.pick(clientX, clientY, notMapStars);
     const forward = new THREE.Vector3(view.target[0], view.target[1], view.target[2]).sub(origin).normalize();
     const onPlane = MC.pointOnFocusPlane(origin.toArray(), direction.toArray(), view.target, forward.toArray());
     // A pointer on the cross zooms about the cross (MAP.199), whatever the column behind it holds.
@@ -2474,7 +2499,7 @@ export function createStageView(host) {
     const onMap = event && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     const x = onMap ? event.clientX : rect.left + rect.width / 2;
     const y = onMap ? event.clientY : rect.top + rect.height / 2;
-    const front = picker.pick(x, y);
+    const front = picker.pick(x, y, notMapStars);
     const halo = !stage.win && front && front.layer !== choiceLayer ? front : null;
     const point = halo ? [halo.entry.x, halo.entry.y, halo.entry.z] : found ? null : anchorUnder(x, y);
     if (!point) return null;
@@ -2565,6 +2590,8 @@ export function createStageView(host) {
       return SYS.distanceForPixels(SYS.FULL_PX * 1.5, systemRadii.get(entry.href) || SYS.NOMINAL_RADIUS_PC, heightPx, camera.fov);
     }
     if (entry.r > 0) return entry.r / (0.6 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    // MAP.304: a star or point of the map comes to a sector and a half away, no farther than the view is now.
+    if (entry.luminosity_sol != null) return Math.min(view.dist, 1.5 * edgePc);
     return view.dist;
   }
 
@@ -2646,7 +2673,7 @@ export function createStageView(host) {
 
   function hoverAt(event) {
     if (animation || event.pointerType === "touch") return;
-    const found = picker.pick(event.clientX, event.clientY);
+    const found = picker.pick(event.clientX, event.clientY, pointerLayers);
     hoverOther(found);
     if (found && found.layer !== choiceLayer) {
       if (hover && !hover.sticky) setHover(null);
@@ -2668,7 +2695,7 @@ export function createStageView(host) {
     // Inside a container, a phenomenon under the click is shown rather
     // than the block picked. Stars never take the click (MAP.101): in a
     // dense sector they would hide it.
-    const found = picker.pick(event.clientX, event.clientY);
+    const found = picker.pick(event.clientX, event.clientY, pointerLayers);
     if (found && found.layer !== choiceLayer) {
       showTooltip("", 0, 0);
       // Picking an object takes the light off a choice the arrow keys left lit, so Enter then goes to the object.
@@ -2678,7 +2705,11 @@ export function createStageView(host) {
     }
     if (host.clearSelection) host.clearSelection();
     const index = found ? found.entry : -1;
-    if (index < 0) return;
+    if (index < 0) {
+      // MAP.304: a click on nothing selects nothing and puts the panel away.
+      if (!blocksPickable() && !sectorStage.deselect()) host.showHint(hintFor(resolved));
+      return;
+    }
     if (type === "touch" && touchPending !== index) {
       // First tap highlights, a second on the same thing acts.
       touchPending = index;
@@ -2718,7 +2749,7 @@ export function createStageView(host) {
   // camera to it. On anything else it is two clicks, as ever (a touch screen's second tap on a block acts on it).
   function doubleClickAt(event, type) {
     if (animation) return;
-    const found = picker.pick(event.clientX, event.clientY);
+    const found = picker.pick(event.clientX, event.clientY, pointerLayers);
     // MAP.245: on empty space (nothing picked) it flies half way toward the point under the pointer. A block stays
     // two clicks.
     if (!found && flyHalfWayTo(event)) return;
@@ -2816,6 +2847,11 @@ export function createStageView(host) {
       return;
     }
     if (animation) return;
+    // MAP.297: there are no choices to move among on the Galaxy Map: Enter flies to the selected object.
+    if (!blocksPickable()) {
+      if (key === "Enter") flyToEntry(sectorStage.selectedEntry());
+      return;
+    }
     // MAP.146: with nothing lit among the choices, Enter flies to the selected object of the scene.
     if (key === "Enter" && !(hover && hover.option != null && display && display.options.length)) {
       flyToEntry(sectorStage.selectedEntry());

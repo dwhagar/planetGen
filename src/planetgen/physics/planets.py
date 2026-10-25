@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements
-from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin
+from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -1131,6 +1131,38 @@ def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None, pa
     return True
 
 
+def hosting_population(planet):
+    """
+    What the hosting gate (`physics.hosting_gate`) calls `planet`: a class D body (the generator's small bodies, 50 to 500 km
+    in radius) is a `trans-neptunian-cold` or `trans-neptunian-hot` body past `tuning.HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES`
+    snow lines of its star (cold under `tuning.HOSTING_COLD_MAX_INCLINATION_DEG` of inclination, Stephens and Noll 2006), a
+    `belt-small-body` in the cold zone short of that, and an `inner-small-body` in the hot or habitable zone; every other
+    planet is a `planet`, which the gate's share table has no rows for (its host-class table decides).
+    """
+    if planet.planet_class != "D":
+        return "planet"
+    if planet.zone != "c":
+        return "inner-small-body"
+    if planet.distance < tuning.HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES * planet.star.snow_line_au:
+        return "belt-small-body"
+    inclination = planet.orbital_inclination_deg or 0.0
+    return "trans-neptunian-cold" if inclination < tuning.HOSTING_COLD_MAX_INCLINATION_DEG else "trans-neptunian-hot"
+
+
+def hosting_host(planet):
+    """`planet` as the hosting gate reads it (`hosting_gate.Host`): its population, size, mass and orbit about what it
+    orbits (the planets of this generator are on circular orbits); a gas or ice giant is fluid."""
+    return hosting_gate.Host(
+        hosting_population(planet), 2.0 * _km_to_m(planet.radius), planet.mass, parent_mass_kg=planet.primary_mass_kg,
+        orbit_radius_m=_au_to_m(planet.distance), fluid=tuning.PLANET_CLASSES[planet.planet_class]["type"] != "t")
+
+
+def satellite_share(planet):
+    """The chance that `planet` has satellites from the gate's `satellite-share` table, or `None` for a planet the table has
+    no rows for (the host-class chance of the draw decides)."""
+    return hosting_gate.satellite_share(hosting_host(planet))
+
+
 def moon_orbit_bounds_km(planet):
     """
     The range of orbits, in km from `planet`'s center, where a moon of it
@@ -1246,6 +1278,11 @@ def generate_moons(planet, moon_count=None):
     """
     if moon_count == 0:
         return
+    # GEN.761: a body asks the hosting gate first (a satellite must fit, a stable orbit must exist, and the body's
+    # population and size must have a chance of satellites at all); the share of the gated table is the draw's, in
+    # `Planet._draw_moons`
+    if not hosting_gate.can_host(hosting_host(planet)).allowed:
+        return
     # A gas giant placed in 'e' with HABITABLE_WORLD=False must not roll a
     # habitable-class moon either: moon_class_options applies the same
     # _habitable_classes_barred rule as generate_planet_properties.
@@ -1255,6 +1292,8 @@ def generate_moons(planet, moon_count=None):
     low_orbit, high_orbit = moon_orbit_bounds_km(planet)
     total_orbit_distance = low_orbit
     parent_kind = moon_composition.parent_kind(planet.envelope_mass_fraction or 0.0, planet.mass)
+    # GEN.466: a giant's regular moons share one circumplanetary disk (the lifetime, the ice line, the ice ramp)
+    disk_system = moon_composition.draw_disk_system(planet.mass) if parent_kind == moon_composition.GIANT else None
 
     # Deferred import: planet imports this module at load time, so Planet
     # can't be imported here at module level without a circular import.
@@ -1290,7 +1329,7 @@ def generate_moons(planet, moon_count=None):
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
-                          moon_origin=origin, host_eccentricity=planet.eccentricity)
+                          moon_origin=origin, moon_disk_system=disk_system, host_eccentricity=planet.eccentricity)
         planet.moons.append(new_moon)
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
 

@@ -20,6 +20,9 @@ surface, and the sinks that take gas back.
 * *Ocean.* Water vapour is capped by the saturation pressure and sulfur gases are taken up by an ocean; both are the callers' (they
   have the temperature).
 
+* *Impacts.* The late accretion delivers and erodes gas before the degassing has done much (`impact_history`, GEN.739); `impact_inventory`
+  turns its balance into the same element budget and the caller adds it.
+
 Escape is not subtracted: the retention rows (`d1` to `d5`) and the Jeans filter of `mixture_escape` own it.
 
 Every number that is not read from a source is a design constant with its source tier and tweak level in
@@ -28,7 +31,7 @@ Every number that is not read from a source is a design constant with its source
 
 import math
 
-from planetgen.physics import elements
+from planetgen.physics import elements, impact_history
 from planetgen.physics.mixture_base import bracket
 
 # --- degassing --------------------------------------------------------------------------------------------------------------
@@ -115,6 +118,27 @@ def degassed_inventory(inventory, released_j, mantle_kg, efficiencies):
     """
     share = degassed_share(released_j, mantle_kg)
     return {element: atoms * share * efficiencies.get(element, 1.0) for element, atoms in inventory.items()}
+
+
+def impact_inventory(balance, mantle_kg):
+    """
+    The element budget the late accretion left at the surface (GEN.739): the air and the part held in the ground, ocean or ice of
+    `impact_history.veneer_balance`, in moles of atoms per 100 g of mantle like `degassed_inventory`, to be added to it. Gas the impactors
+    brought is already at the surface, so no degassed share applies; the sinks that follow do.
+
+    Args:
+        balance (dict): The result of `impact_history.veneer_balance`.
+        mantle_kg (float): The mantle's mass (`mantle_mass_kg`).
+
+    Returns:
+        dict: `{"H", "C", "N"}` moles of atoms per 100 g of mantle.
+    """
+    if mantle_kg <= 0.0:
+        return {"H": 0.0, "C": 0.0, "N": 0.0}
+    held = {species: balance["air_kg"][species] + balance["kept_kg"][species] for species in impact_history.SPECIES}
+    moles = {species: kg * 1000.0 / impact_history.MOLAR_MASS[species] for species, kg in held.items()}
+    per_100_g = 0.1 / mantle_kg
+    return {"H": 2.0 * moles["H2O"] * per_100_g, "C": moles["CO2"] * per_100_g, "N": 2.0 * moles["N2"] * per_100_g}
 
 
 def gas_mass_kg(atoms, mantle_kg):

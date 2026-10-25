@@ -66,9 +66,9 @@ def conflicts(body, paragraphs):
         return found
     if not body.has_timeline:
         return found + ["timeline: the page shows one for a body that has none"]
-    stage_names = {name for name in _STAGE_NAMES if f"milestone would be {name}," in timeline}
+    stage_names = {name for name in _STAGE_NAMES if f"milestone is {name}," in timeline}
     if body.life_stage is None:
-        if stage_names or "No significant milestone" not in timeline:
+        if stage_names or "No milestone has been reached" not in timeline:
             found.append(f"milestone: none was reached and the text says {sorted(stage_names)}")
     else:
         expected_name = evolution.stage_name(body.life_stage, body.life_chemical).lower()
@@ -155,7 +155,7 @@ def test_the_pace_is_worded_once_and_the_timeline_follows_it(scale, chemical):
         timeline = " ".join(inline_text(sentence) for sentence in describe_build._timeline_sentences(facts))
         assert _PACE_WORDS.findall(life) == [life_facts.pace_label(scale)]
         assert _PACE_WORDS.findall(timeline) == [], "the timeline says no pace of its own"
-        assert timeline.startswith("On a speculative timeline at that pace, the system is about 13.8 Gyr old.")
+        assert timeline.startswith("The system is about 13.8 Gyr old.")
 
 
 def test_a_world_with_no_pace_says_none_and_the_timeline_does_not_refer_to_one():
@@ -194,7 +194,7 @@ def test_the_checker_catches_a_changed_pace_milestone_chemistry_or_missing_timel
     assert conflicts(body, {**paragraphs, "timeline": paragraphs["timeline"] + f" It runs at a {other} pace."})
     name = evolution.stage_name(body.life_stage, body.life_chemical).lower()
     wrong = next(n for n in _STAGE_NAMES if n != name)
-    assert conflicts(body, {**paragraphs, "timeline": paragraphs["timeline"].replace(f"would be {name},", f"would be {wrong},")})
+    assert conflicts(body, {**paragraphs, "timeline": paragraphs["timeline"].replace(f"is {name},", f"is {wrong},")})
     swapped = next(c for c in tuning.LIFE_CHEMICALS if c != body.life_chemical)
     assert conflicts(body, {**paragraphs, "life": paragraphs["life"].replace(
         f"based on {body.life_chemical.lower()}", f"based on {swapped.lower()}")})

@@ -17,7 +17,8 @@ stage, or a4, the white-dwarf debris), in units of the iron-wuestite buffer. Wit
 the partial pressure of any gas j of those elements follows with no iteration: `ln p_j = sum_el nu_el m_el - g(j)`, the standard
 state being 1 bar. The mole fractions are the partial pressures over their sum; the pressure the vapour sums to is the vapour pressure
 over the melt (Kite et al. 2016's `p_eq_bar` of the recipe row `i6`, which this reproduces within a factor 10; it is the generator's
-to use, not this module's). Aluminium is in the melt's mole fractions but its gases are not in the gas table and are not computed.
+to use, not this module's). The oxides are all in the vapour's elements, aluminium included (GEN.818): its gases are Al, AlO, Al2O, AlO2 and Al2O2 of the
+species table, from an Al2O3 activity that is its mole fraction (`ALUMINA_ACTIVITY_COEFFICIENT`).
 
 The melt is the bulk silicate Earth's oxides (McDonough and Sun 1995, TEST composition, the only quantitative anchor of part 05
 section 4) with each oxide's mass share scattered by `COMPOSITION_SCATTER` dex (design: no body's mantle is the Earth's; the bulk
@@ -49,11 +50,12 @@ atoms per formula unit)."""
 COMPOSITION_SCATTER = 0.15
 """float: The dex each oxide's share of the melt is scattered by (design)."""
 
-LIQUID = {"SiO2": "SiO2(L)", "MgO": "MgO(L)", "Na2O": "Na2O(L)", "K2O": "K2O(L)", "CaO": "CaO(L)", "TiO2": "TiO2(L)"}
+LIQUID = {"SiO2": "SiO2(L)", "MgO": "MgO(L)", "Na2O": "Na2O(L)", "K2O": "K2O(L)", "CaO": "CaO(L)", "TiO2": "TiO2(L)",
+          "Al2O3": "AL2O3(L)"}
 """dict: Oxide -> the liquid phase of the species table."""
 
-ELEMENTS = ("O", "Na", "K", "Mg", "Si", "Fe", "Ca", "Ti")
-"""tuple: The elements the vapour is made of (the melt's, less aluminium)."""
+ELEMENTS = ("O", "Na", "K", "Mg", "Si", "Fe", "Ca", "Ti", "Al")
+"""tuple: The elements the vapour is made of (the melt's)."""
 
 ALKALI_ACTIVITY_COEFFICIENT = (3e-9, 3e-8, "log")
 """tuple: The activity coefficient of Na2O and K2O in the silicate melt (an ideal solution has 1; the alkali oxides are held in the
@@ -61,6 +63,14 @@ silicate network and their activities are many orders of magnitude below their m
 that reproduces Kite et al. 2016's vapour pressure over a BSE melt (2e-4 bar at 2000 K, 8e-3 bar at 2500 K; READ) and the sequence
 of Miguel et al. 2011 (sodium first, SiO, Mg and Fe from the 2000 to 2500 K range up; READ, tables not reached), which the ideal
 solution misses by a factor 1e4 at 2000 K. The research item that replaces it is the melt activity model of GEN.499."""
+
+ALUMINA_ACTIVITY_COEFFICIENT = 1.0
+"""float: The activity coefficient of Al2O3 in the silicate melt, so that its activity is its mole fraction (the liquid at the melt's
+temperature is the standard state). A stand-in (tier 3, tweak level 0): Fegley, Lodders and Jacobson (2023) compare activity-coefficient
+models of the bulk silicate Earth melt with an ideal solution and find them agreeing except for the alkali elements, with aluminium
+not named among the sensitive ones and its condensation temperature the same for the dry and the wet melt (read in the abstract only;
+the paper and its Al2O3 value are not opened). The alkalis are the exception that `ALKALI_ACTIVITY_COEFFICIENT` carries. The research
+item that replaces it is the melt activity model of GEN.499."""
 
 VOLATILE_BEARING_PER_CARBON = 1.0
 """float: Moles of carbon the volatile-bearing gas is computed for (only its CO2 to CO ratio matters)."""
@@ -100,7 +110,7 @@ def element_potentials(activities, temperature_k, redox_diw):
     m_oxygen = 0.5 * (species_thermo.g_over_rt("O2", t) + fo2.log_fo2(redox_diw, t) * math.log(10.0))
     potentials = {"O": m_oxygen}
     for oxide, (_, metal, atoms, oxygen) in OXIDES.items():
-        if metal in ("Al", "Fe"):
+        if metal == "Fe":
             continue
         g_liquid = species_thermo.SPECIES[LIQUID[oxide]].supercooled_g_over_rt(t, SUPERCOOLED_BELOW_K)
         potentials[metal] = (g_liquid + math.log(activities[oxide]) - oxygen * m_oxygen) / atoms
@@ -150,7 +160,8 @@ def vapour_mixture(subject, recipe, *, temperature_name="tp_k", oxides_wt_percen
         raise MixtureError("no redox row applies to the melt")
     fractions = melt_composition(constants, oxides_wt_percent)
     gamma = bracket(constants, "alkali_activity_coefficient", ALKALI_ACTIVITY_COEFFICIENT)
-    activities = {oxide: value * (gamma if oxide in ("Na2O", "K2O") else 1.0) for oxide, value in fractions.items()}
+    coefficient = {"Na2O": gamma, "K2O": gamma, "Al2O3": ALUMINA_ACTIVITY_COEFFICIENT}
+    activities = {oxide: value * coefficient.get(oxide, 1.0) for oxide, value in fractions.items()}
     potentials = element_potentials(activities, temperature, redox)
     pressures = vapour_pressures(potentials, temperature)
     constants["vapour_pressure_bar"] = sum(pressures.values())

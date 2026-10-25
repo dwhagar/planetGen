@@ -170,7 +170,12 @@ REGISTRY = _commands(
     CommandSpec("generate-system", "Generate one system (`planetgen system`): one unit",
                 unit=("planetgen.generation.run_system", "system_unit"),
                 expand=("planetgen.generation.run_system", "expand_system"), whole=True),
-    CommandSpec("run-population", "Run the population pass"),
+    CommandSpec("run-population", "Run the population pass: species, civilizations and polities, one unit",
+                unit=("planetgen.generation.run_population", "population_unit"),
+                expand=("planetgen.generation.run_population", "expand_population"), whole=True),
+    CommandSpec("run-territories", "Recompute the territories: which polity owns which system, one unit",
+                unit=("planetgen.generation.run_population", "territories_unit"),
+                expand=("planetgen.generation.run_population", "expand_territories"), whole=True),
     CommandSpec("settle-sector-paths", "Save the sector paths: one unit per run of sectors",
                 unit=("planetgen.generation.run_galaxy", "save_sector_paths_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_save_sector_paths"),
@@ -250,7 +255,7 @@ KIND_OF_STAGE = {
     "neighborhood": "generate-neighborhood", "clear-mass": "clear-scatter", "clear-luminosity": "clear-scatter",
     "clear-phenomena": "clear-scatter", "clear-nebula-field": "clear-scatter",
     "sectors": "generate-sectors", "link": "link-neighbours", "population": "run-population",
-    "settle": "settle-sector-paths",
+    "territories": "run-territories", "settle": "settle-sector-paths",
 }
 """dict: The command that does each stage of `generation/stages.py`."""
 
@@ -338,7 +343,7 @@ def expand_function(kind):
 
 
 STAGED_COMMANDS = ("galaxy", "sectors", "plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability",
-                   "clean-nebula-field", "link", "backfill", "settle")
+                   "clean-nebula-field", "link", "backfill", "settle", "population", "territories")
 """tuple: The commands whose stages (`generation/stages.py`) the wrapper turns into steps."""
 
 

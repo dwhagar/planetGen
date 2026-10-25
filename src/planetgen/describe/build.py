@@ -338,15 +338,14 @@ def _atmosphere_composition(planet):
 
 
 def _timeline_sentences(life):
-    """The speculative timeline, written from the `life_facts.LifeFacts` alone: the system's age, then the latest
-    milestone (the pace is the one the life sentence names)."""
+    """The timeline, written from the `life_facts.LifeFacts` alone: the system's age, then the latest milestone the
+    world's life has reached (a generated world states what is there)."""
     timeline = life.timeline
-    opening = "On a speculative timeline" + ("" if life.pace is None else " at that pace")
-    sentences = [inline(opening, ", the system is about ", _gy(timeline.system_age_gyr), " old.")]
+    sentences = [inline("The system is about ", _gy(timeline.system_age_gyr), " old.")]
     if timeline.stage is None:
-        sentences.append(inline("No significant milestone is predicted yet at the system's age."))
+        sentences.append(inline("No milestone has been reached yet at the system's age."))
     else:
-        sentences.append(inline("Its latest milestone would be ", timeline.stage_name, ", reached when the system was ",
+        sentences.append(inline("Its latest milestone is ", timeline.stage_name, ", reached when the system was ",
                                 _gy(timeline.milestone_age_gyr), " old. ", timeline.stage_text))
     return sentences
 
@@ -362,15 +361,23 @@ def _colours(names):
 
 
 def _life_sentences(life):
-    """The life paragraph, written from the `life_facts.LifeFacts` alone."""
+    """The life paragraph, written from the `life_facts.LifeFacts` alone, in the present tense: life that has reached a
+    milestone lives on the world; a world that suits a chemistry and has no life yet says so."""
     if life is None:
         return []
-    pace = "" if life.pace is None else f", and it would evolve at a {life.pace} pace"
-    sentences = [f"Life based on {life.chemical} could arise on this {life.noun}{pace}."]
+    lives = life.timeline is None or life.timeline.stage is not None
+    if lives:
+        pace = "" if life.pace is None else f", evolving at a {life.pace} pace"
+        sentences = [f"Life based on {life.chemical} lives on this {life.noun}{pace}."]
+        subject = "that life"
+    else:
+        pace = "" if life.pace is None else f", which evolves at a {life.pace} pace"
+        sentences = [f"Conditions on this {life.noun} suit life based on {life.chemical}{pace}, but none has appeared yet."]
+        subject = "such life"
     if life.visible:
-        sentences.append(f"In visible light that life would look {_colours(life.visible)}.")
+        sentences.append(f"In visible light {subject} looks {_colours(life.visible)}.")
     if life.non_visible:
-        sentences.append(f"Outside visible light it would show {_colours(life.non_visible)}.")
+        sentences.append(f"Outside visible light {'it' if lives else 'such life'} shows {_colours(life.non_visible)}.")
     return sentences
 
 

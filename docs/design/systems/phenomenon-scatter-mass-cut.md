@@ -290,11 +290,7 @@ and MAP.171). Its constants are `tuning.MAP_MASS_LUMINOSITY_PIECES`:
 So 20 Msun is about 53,700 Lsun and a 4 million Msun black hole about 1e10 Lsun. The bands step by about 3.6% at 0.43 Msun and 6.2%
 at 2 Msun (the table's constants as given; it does not matter for a visibility rank), and not at all at 20.
 
-**It is not the star generators' relation.** `stellar_evolution.main_sequence_luminosity_sol` (`tuning.MS_MASS_LUMINOSITY_PIECES`) has
-the same three bands up to 2 Msun, then 1.4 M^3.5 to 55 Msun and a linear law above that. The star generators keep theirs: changing
-it would change every massive star the generators draw, and the supergiant luminosities built on it. The two share one evaluator and
-agree to 2 Msun; between 2 and 20 Msun the map's is 7% higher, and above 55 Msun it is lower (1.07e10 against 1.28e11 Lsun at 4
-million Msun). Nothing may call the map function for a star's own luminosity, or the generators' for a map rank.
+**It is not the star generators' relation.** Since GEN.652 the star generators read the MIST main sequence (`physics/main_sequence.py`), by mass, age and [Fe/H]; the map's table (`tuning.MAP_MASS_LUMINOSITY_PIECES`) stays its own, a visibility rank. The two agree within a factor of a few across the main sequence. Nothing may call the map function for a star's own luminosity, or the main-sequence state for a map rank.
 
 ## What a run at the default cut places (GEN.677)
 

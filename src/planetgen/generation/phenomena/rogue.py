@@ -23,7 +23,7 @@ import math
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import hosts
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, small_body_composition, spin
+from planetgen.physics import brown_dwarf as brownDwarf, constants, planets as planetPhysics, rogue_habitability, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
@@ -182,7 +182,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
     FIELD_UNITS = {
         "name": "text", "planet_type": "text", "planet_class": "text", "mass_bin": "text", "mass_kg": "kg",
         "radius_km": "km", "composition": "text", "has_internal_heat": "flag", "has_moons": "flag",
-        **ROGUE_SURFACE_UNITS, **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
+        **ROGUE_SURFACE_UNITS, **rogue_habitability.ROGUE_UNITS, **GALACTIC_MOTION_UNITS, "rotation_period_hours": "h", **spin.SPIN_UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
@@ -283,11 +283,12 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
 
     def _apply_surface_conditions(self, conditions):
-        """Sets `ROGUE_SURFACE_FIELDS` and `has_internal_heat` from a
-        `rogue_surface_conditions` result."""
+        """Sets `ROGUE_SURFACE_FIELDS`, `has_internal_heat` and the habitability score
+        (`rogue_habitability.ROGUE_FIELDS`) from a `rogue_surface_conditions` result."""
         for field in ROGUE_SURFACE_FIELDS:
             setattr(self, field, conditions[field])
         self.has_internal_heat = conditions["has_internal_heat"]
+        rogue_habitability.generate(self)  # the score a visitor would get on its surface; no life is drawn for a rogue
 
     @classmethod
     def from_dict(cls, data, system_config):

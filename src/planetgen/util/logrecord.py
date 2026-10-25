@@ -56,7 +56,11 @@ COMPONENT_PATTERN = re.compile(r"^[a-z][a-z0-9_.-]{0,23}$")
 FIELD_PATTERN = re.compile(r"^[a-z][a-z0-9_]{0,31}$")
 
 STAGE_START, STAGE_FINISH, STAGE_FAILED = "stage.start", "stage.finish", "stage.failed"
-"""str: The `event` field of the three records that mark a stage; the display draws them as dividers."""
+STAGE_SKIPPED = "stage.skipped"
+"""str: The `event` field of the records that mark a stage (it starts, it finishes, it fails, it is skipped); the display
+draws each as a divider."""
+
+STAGE_EVENTS = (STAGE_START, STAGE_FINISH, STAGE_FAILED, STAGE_SKIPPED)
 
 _NUMBER_LIKE = re.compile(r"^-?(?:\d+(?:\.\d*)?(?:[eE][+-]?\d+)?|\.\d+(?:[eE][+-]?\d+)?)$")
 _BARE_VALUE = re.compile(r'^[^\s"\\=\x00-\x1f\x7f\u0085\u2028\u2029]+$')
@@ -275,6 +279,11 @@ def stage_finish(first, total, seconds, count=1):
     return f"{stagemark.marker(first, total, count)} finished after {seconds:.0f} s"
 
 
+def stage_skipped(first, total, label, reason, count=1):
+    """The message of a skipped stage's record: `"Stage 4 of 12: label -- skipped: reason"`."""
+    return f"{stagemark.marker(first, total, count)}: {label} -- skipped: {reason}"
+
+
 def stage_failed(first, total, seconds, reason, count=1):
     """The message of a stage's failure record: `"Stage 4 of 12 failed after 31 s: reason"`."""
     return f"{stagemark.marker(first, total, count)} failed after {seconds:.0f} s: {reason}"
@@ -282,13 +291,13 @@ def stage_failed(first, total, seconds, reason, count=1):
 
 def stage_record(event, component, first, total, label=None, seconds=0.0, reason=None, count=1, now=None):
     """
-    The record of a stage's start (`STAGE_START`, with its `label`), finish (`STAGE_FINISH`, after `seconds`) or failure
-    (`STAGE_FAILED`, after `seconds`, with the `reason`): the one wording of each, the severity `info`, `info` and
-    `error`, and the fields `event`, `stage` (the first stage), `stages` (how many there are in all), `count` (when more
+    The record of a stage's start (`STAGE_START`, with its `label`), finish (`STAGE_FINISH`, after `seconds`), failure
+    (`STAGE_FAILED`, after `seconds`, with the `reason`) or skip (`STAGE_SKIPPED`, with its `label` and the `reason`): the
+    one wording of each, the severity `info`, `info`, `error` and `info`, and the fields `event`, `stage` (the first stage), `stages` (how many there are in all), `count` (when more
     than one) and `seconds` (finish and failure).
 
     Raises:
-        ValueError: An `event` that is not one of the three.
+        ValueError: An `event` that is not one of `STAGE_EVENTS`.
     """
     if event == STAGE_START:
         severity, message = "info", stage_start(first, total, label, count)
@@ -296,12 +305,14 @@ def stage_record(event, component, first, total, label=None, seconds=0.0, reason
         severity, message = "info", stage_finish(first, total, seconds, count)
     elif event == STAGE_FAILED:
         severity, message = "error", stage_failed(first, total, seconds, reason, count)
+    elif event == STAGE_SKIPPED:
+        severity, message = "info", stage_skipped(first, total, label, reason, count)
     else:
         raise ValueError(f"no stage event {event!r}")
     fields = {"event": event, "stage": first, "stages": total}
     if count != 1:
         fields["count"] = count
-    if event != STAGE_START:
+    if event in (STAGE_FINISH, STAGE_FAILED):
         fields["seconds"] = round(seconds, 1)
     return Record.at(time.time() if now is None else now, severity, component, message, **fields)
 
@@ -325,7 +336,7 @@ def display_line(record, tz=None, times=True, component=True, fields=True):
     parts.append(f"{record.severity.upper():<8}")
     if component:
         parts.append(f"{record.component}:")
-    divider = record.event in (STAGE_START, STAGE_FINISH, STAGE_FAILED)
+    divider = record.event in STAGE_EVENTS
     parts.append(f"=== {record.message} ===" if divider else record.message)
     if fields and not divider and record.fields:
         parts.append("(" + " ".join(f"{name}={_value_text(value)}" for name, value in record.fields.items()) + ")")
@@ -334,23 +345,26 @@ def display_line(record, tz=None, times=True, component=True, fields=True):
 
 def plain_line(record):
     """The command line's text without times: a divider for a stage's marks, the message for `debug`, `info` and
-    `notice`, and the message after `warning: `, `error: ` or `critical: ` for the rest."""
-    if record.event in (STAGE_START, STAGE_FINISH, STAGE_FAILED):
+    `notice`, and the message after `warning: `, `error: ` or `critical: ` for the rest (unless the message already
+    begins with that word, as `Error: ...` does)."""
+    if record.event in STAGE_EVENTS:
         return f"=== {record.message} ==="
-    if SYSLOG_CODES[record.severity] >= SYSLOG_CODES["notice"]:
+    if SYSLOG_CODES[record.severity] >= SYSLOG_CODES["notice"] or record.message.lower().startswith(record.severity):
         return record.message
     return f"{record.severity}: {record.message}"
 
 
 def record_of(log_record):
     """The `Record` of a standard `logging.LogRecord`: its level as a severity, the logger's name (less a leading
-    `planetgen.`) as the component, the fields `get_logger` attached, and its time."""
+    `planetgen.`; for the program's own logger the module that logged) as the component, the fields `get_logger` attached, and its time."""
     level = log_record.levelno
     severity = "debug"
     for name in SEVERITIES:
         if level >= LOGGING_LEVELS[name]:
             severity = name
     component = log_record.name.removeprefix("planetgen.").lower() or "planetgen"
+    if component == "planetgen" and getattr(log_record, "module", None):
+        component = log_record.module.lower()          # the program's own logger: the module that logged is the component
     component = re.sub(r"[^a-z0-9_.-]", "_", component)[:24]
     if not COMPONENT_PATTERN.match(component):
         component = "planetgen"

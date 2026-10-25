@@ -66,6 +66,8 @@ CREATE TABLE IF NOT EXISTS admin_users (
     role                      VARCHAR(16) NOT NULL DEFAULT 'admin',
     status                    VARCHAR(16) NOT NULL DEFAULT 'active',
     owner_flag                TINYINT AS (CASE WHEN role = 'owner' THEN 1 END) VIRTUAL,
+    -- v20 (SEC.36): the name of the account's picture in the assets folder (`planetgen/web/assets.py`), or NULL.
+    avatar                    VARCHAR(40) NULL,
 
     UNIQUE (username),
     UNIQUE KEY uq_admin_users_email (email),

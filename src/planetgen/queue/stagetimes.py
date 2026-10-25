@@ -9,7 +9,7 @@ fills) still has an estimate from its second run on, and the figure tightens as 
 never run has none, and `runeta` then falls back to `roughtime`.
 
 Kept in Redis beside the run records (the same prefix, so a test's isolated prefix isolates it too): losing it only
-returns the estimates to the rough guess.
+returns the estimates to the untimed estimate (`roughtime`).
 """
 
 import json

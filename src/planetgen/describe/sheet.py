@@ -23,7 +23,7 @@ import dataclasses
 from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
-from planetgen.physics import constants, gases, habitability_world, unit_registry
+from planetgen.physics import constants, gases, habitability_world, regional_temperature, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number
 
@@ -201,7 +201,8 @@ _BODY_GROUPS = (
            ("hp_ice_km", "High-pressure ice thickness"), ("ocean_class", "Ocean chemistry", TEXT),
            ("ocean_ph", "Ocean pH"), ("water_activity", "Water activity"),
            ("water_base_pressure_pa", "Pressure at the bottom of the water layer"),
-           ("tidal_flux_w_m2", "Tidal heat flow")),
+           ("tidal_flux_w_m2", "Tidal heat flow"), ("aquifer_depth_km", "Depth to underground water"),
+           ("aquifer_thickness_km", "Thickness of the underground water")),
     *_rows("magnetism", ("dipole_class", "Dipole field", TEXT), ("magnetic_moment_a_m2", "Magnetic moment"),
            ("induced_moment_a_m2", "Induced magnetic moment"), ("magnetopause_rp", "Magnetopause distance")),
     *_rows("radiation", ("surface_dose_msv_yr", "Surface dose"), ("dose_gcr_msv_yr", "Dose from cosmic rays"),
@@ -218,6 +219,9 @@ _BODY_GROUPS = (
            ("tier_suitability", "Suitability rating", TIER), ("tier_radiation", "Radiation rating", TIER)),
     *_rows("life", ("life_chemical", "Life chemistry", TEXT), ("evolutionary_pace", "Evolutionary pace", TEXT), ("life_stage", "Life stage", TEXT),
            ("life_milestone_age_gyr", "Age of that stage"), ("life_system_age_gyr", "Age of the system when it was written"),
+           ("life_age_abiogenesis_gyr", "Age of abiogenesis"), ("life_age_photosynthesis_gyr", "Age of photosynthesis"),
+           ("life_age_complex_cells_gyr", "Age of complex cells"), ("life_age_multicellularity_gyr", "Age of multicellularity"),
+           ("life_age_technological_civilization_gyr", "Age of technological civilization"),
            ("life_microbial", "Microbial life score"), ("life_flora", "Flora score"), ("life_fauna", "Fauna score"),
            ("life_sentient", "Sentient life score"),
            ("l_solv", "Solvent suitability"), ("l_chem", "Chemistry suitability"), ("l_ener", "Energy suitability"),
@@ -313,6 +317,18 @@ _ROGUE_PLANET = (
            ("surface_pressure_pa", "Surface pressure")),
     *_rows("water", ("has_liquid_water", "Liquid water", FLAG), ("ice_shell_thickness_km", "Ice shell thickness"),
            ("ocean_depth_km", "Ocean depth"), ("hp_ice_km", "High-pressure ice thickness")),
+    *_rows("habitability", ("phi4", "Habitability score (PHI-6)"), ("phi4_pressure", "Pressure score"),
+           ("phi4_temperature", "Temperature score"), ("phi4_air", "Air score"), ("phi4_water", "Water score"),
+           ("phi4_suitability", "Suitability score"), ("phi4_radiation", "Radiation score"),
+           ("tier_pressure", "Pressure rating", TIER), ("tier_temperature", "Temperature rating", TIER),
+           ("tier_air", "Air rating", TIER), ("tier_water", "Water rating", TIER),
+           ("tier_suitability", "Suitability rating", TIER), ("tier_radiation", "Radiation rating", TIER),
+           ("energy_flux_w_m2", "Chemical energy from its own heat")),
+    *_rows("life", ("life_microbial", "Microbial life score"), ("life_flora", "Flora score"),
+           ("life_fauna", "Fauna score"), ("life_sentient", "Sentient life score"),
+           ("l_solv", "Solvent suitability"), ("l_chem", "Chemistry suitability"), ("l_ener", "Energy suitability"),
+           ("l_rad", "Radiation tolerance")),
+    *_rows("radiation", ("shelter_column_g_cm2", "Shelter column")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
@@ -418,7 +434,7 @@ _BODY_NOT_SHOWN = {
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
-    "composition_origin": "how the generator found the composition; bookkeeping, not a fact about the world (UX.202)",
+    "composition_origin": "how the generator found the composition; bookkeeping, not a fact about the world",
     "description": "the page's paragraph text",
     "atmosphere": "described in the paragraph text and the Atmosphere rows",
     "composition": "described in the paragraph text",
@@ -488,7 +504,10 @@ NOT_SHOWN = {
     "supernova_remnant": _phenomenon_not_shown(
         "supernova_remnant", compact_remnant_black_hole_id="the black hole it left behind, a link in its contents",
         compact_remnant_neutron_star_id="the neutron star it left behind, a link in its contents"),
-    "rogue_planet": _phenomenon_not_shown("rogue_planet"),
+    "rogue_planet": _phenomenon_not_shown(
+        "rogue_planet", **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec",
+                                  "eq_mobility", "eq_dust", "eq_gas_filter", "eq_co2_scrub", "eq_supply", "eq_supply_rec",
+                                  "eq_shelter", "eq_shelter_rec"), _EQUIPMENT)),
     "interstellar_comet": _phenomenon_not_shown("interstellar_comet"),
     "quasar": _phenomenon_not_shown("quasar"),
     "globular_cluster": _container_not_shown(),
@@ -551,7 +570,7 @@ def _value(spec, table, stored):
         return [NOT_STORED]
     quantity = spec.quantity
     if quantity == TEXT:
-        text = str(stored)
+        text = str(stored).replace("_", " ")    # a stored key such as technological_civilization reads as words
         return [text[:1].upper() + text[1:]]
     if quantity == FLAG:
         return ["Yes" if stored else "No"]
@@ -571,6 +590,129 @@ def _value(spec, table, stored):
         si = value * info.factor + getattr(info, "offset", 0.0)
         return [model.qty(kind, value, unit, sol=_solar_ratio(kind, si))]
     return [model.qty(kind, value, unit)]
+
+
+VACUUM_LIMIT_PA = 1e-3
+"""float: A surface pressure below this is no atmosphere for a page: it says "None" and lists no gases (UX.203)."""
+
+NO_WATER_MASS_FRACTION = 1e-6
+"""float: A dry body holding less water than this share of its mass has no water for a page (UX.203)."""
+
+NO_OCEAN_FRACTION = 1e-4
+"""float: A dry body with less of its surface under ocean than this has no water for a page (UX.203)."""
+
+LIFE_SCORES = ("life_microbial", "life_flora", "life_fauna", "life_sentient")
+"""tuple: The four life scores of a body (0 to 9); a body with all four stored and 0 has no life."""
+
+MISSING_SENTENCES = {
+    "life": "No life has been found here.",
+    "atmosphere": "It has no atmosphere.",
+    "water": "It has effectively no water.",
+}
+"""dict: The sentence a page says for each section it leaves out (`missing`), in the order the page says them."""
+
+
+def missing(kind, stored):
+    """
+    The sections of a body's page that hold only zeros (UX.203), as a list of keys of `MISSING_SENTENCES`: `life` (all
+    four life scores stored and 0), `atmosphere` (a stored surface pressure under `VACUUM_LIMIT_PA`) and `water` (a
+    dry hydrosphere with under `NO_WATER_MASS_FRACTION` of water by mass and under `NO_OCEAN_FRACTION` of the surface
+    under ocean). A value that is not stored never counts as none. Only planets and moons have these sections.
+
+    Args:
+        kind (str): The kind of the sheet.
+        stored (dict): The stored column values by sheet key.
+    """
+    if kind not in GAS_TABLES:
+        return []
+    found = []
+    scores = [stored.get(key) for key in LIFE_SCORES]
+    if all(score is not None for score in scores) and not any(scores):
+        found.append("life")
+    pressure = stored.get("atmospheric_pressure_pa")
+    if pressure is not None and pressure < VACUUM_LIMIT_PA:
+        found.append("atmosphere")
+    if (stored.get("hydrosphere") == "dry" and (stored.get("water_mass_fraction") or 0) < NO_WATER_MASS_FRACTION
+            and (stored.get("ocean_fraction") or 0) < NO_OCEAN_FRACTION):
+        found.append("water")
+    return found
+
+
+GIANT_CLASSES = frozenset("IJT")
+"""frozenset: The planet classes that are giants (ice giant, gas giant, gas dwarf): no surface, a deep envelope."""
+
+AIRLESS_CLASSES = frozenset("CDS")
+"""frozenset: The classes with no air (dead world, small icy body, airless super-Earth): no air column to describe."""
+
+_GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa",
+               "helium_depletion", "has_helium_shell", "envelope_helium_fraction", "envelope_z_fraction")
+_BANDS_AND_ZONES = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k",
+                    "temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
+_SURFACE = (
+    "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
+    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km",
+    "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
+    "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
+    "dose_ground_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2",
+    "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
+    "tier_pressure", "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
+    "life_microbial", "life_flora", "life_fauna", "life_sentient", "l_solv", "l_chem", "l_ener", "l_rad",
+    "c_k0_ppm", "c_th0_ppm", "c_u0_ppm", "al26_ratio", "urey_ratio", "internal_heat_flux_w_m2", "mantle_eta0_pa_s",
+    "mantle_activation_kj_mol", *_BANDS_AND_ZONES,
+    "life_chemical", "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
+    "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
+    "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
+)
+_OCEAN = ("ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "water_base_pressure_pa")
+OCEAN_STATES = ("surface ocean", "ice-covered ocean", "hycean")
+"""tuple: The hydrospheres that hold a liquid ocean, the ones the ocean columns describe."""
+_LIFE_DETAIL = ("life_chemical", "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
+                "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
+                "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
+_BANDS = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k")
+_ZONES = ("temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
+_AIR = ("atm_density", "atm_molar_density", "scale_height_km", "tau_haze", "tau_dust", "tau_cloud", "cloud_cover")
+
+def _locked(row):
+    """Whether a body's stored rotation period is its orbital period (the regional temperatures are then three zones)."""
+    if row is None or row.get("rotation_period_hours") is None or row.get("period_years") is None:
+        return None
+    return regional_temperature.is_locked(row["rotation_period_hours"], row["period_years"])
+
+
+_BODY_RULES = [
+    (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES,
+     "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world"),
+    (_SURFACE, lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
+    (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES,
+     "a dead world, a small icy body and an airless super-Earth have no air column to give a density, scale height or haze"),
+    (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
+     "an ocean's depth, chemistry, pH and water activity exist only where there is a liquid ocean"),
+    (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
+     "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
+    (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
+     "a world with no magnetic field has no magnetopause"),
+    (_BANDS, lambda klass, row: _locked(row) is not True,
+     "a tidally locked world has day, terminator and night zones in place of latitude bands"),
+    (_ZONES, lambda klass, row: _locked(row) is not False,
+     "a world that turns on its own has latitude bands in place of day, terminator and night zones"),
+]
+
+APPLIES = {"planet": _BODY_RULES, "moon": _BODY_RULES}
+"""dict: Where a sheet column does not apply (UX.208), `{kind: [(keys, test, reason)]}`: each rule names the column keys, a
+function `(class) -> bool` that is true for the classes the columns apply to, and the sentence that says why they do not
+apply elsewhere. A column no rule names applies to every class of its kind, so one that is empty there is a gap in the
+generation pathway, not a rule."""
+
+
+def applies(kind, klass, key, row=None):
+    """Whether the column `key` applies to a body of `kind` and class `klass`: true unless a rule of `APPLIES` names it
+    and rejects the class, or (for a rule that reads the body) the stored `row` (a mapping of its columns)."""
+    for keys, test, _reason in APPLIES.get(kind, ()):
+        if key in keys and not test(klass, row):
+            return False
+    return True
 
 
 GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "moon_id")}
@@ -623,4 +765,5 @@ def sheet(conn, kind, object_id):
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "stored": True,
                                      "absent": not pascals, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
-    return {"kind": kind, "groups": groups}
+    stored = {spec.key: row[spec.stored_column()] for spec in specs}
+    return {"kind": kind, "groups": groups, "missing": missing(kind, stored)}

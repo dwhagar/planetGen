@@ -10,7 +10,7 @@ import pytest
 from planetgen.util import draw
 from planetgen.physics import constants
 from planetgen.generation.config import SystemConfig
-from planetgen.physics.stellar_evolution import main_sequence_luminosity_sol
+from planetgen.physics import main_sequence
 from planetgen.generation.system import StarSystem
 
 STAR_TYPES = [None, "G2V", "M2V", "O5V", "B3V", "A0V", "K1III", "M2VII", "M2IA"]
@@ -57,5 +57,5 @@ def test_a_specified_type_secondary_follows_from_its_own_mass(star_type):
             # A main-sequence companion sits on (a little above, as it ages)
             # the mass-luminosity relation, not wherever its type's range
             # happened to put it.
-            ratio = lum_sol / main_sequence_luminosity_sol(mass_sol)
+            ratio = lum_sol / main_sequence.zams_state(mass_sol, secondary.metallicity_fe_h).luminosity_sol
             assert 0.5 < ratio < 3.0, (star_type, seed, secondary.type, mass_sol, lum_sol)

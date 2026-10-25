@@ -23,7 +23,7 @@ import time
 
 from planetgen.galaxy import dials
 from planetgen.queue import progress_file
-from planetgen.util import log, stagemark
+from planetgen.util import log, logrecord
 
 SECTOR_MODES = ("block", "span", "course", "shell", "center_sector")
 
@@ -82,6 +82,7 @@ def galaxy_stages(args):
         Stage("phenomena", "Scatter the phenomena"),
         Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("population", "Run the population pass"),
+        Stage("territories", "Recompute the territories"),
         Stage("settle", "Save the sector paths"),
     ]
 
@@ -149,7 +150,9 @@ SINGLE_STAGE_COMMANDS = {"fill-map-luminosity": Stage("map-luminosity", "Fill th
                          "clean-nebula-field": Stage("nebula-field", "Clean up the nebula field"),
                          "link": Stage("link", "Link the neighbours"),
                          "backfill": Stage("backfill", "Scatter the massive stars from the neighborhood"),
-                         "settle": Stage("settle", "Save the sector paths")}
+                         "settle": Stage("settle", "Save the sector paths"),
+                         "population": Stage("population", "Run the population pass"),
+                         "territories": Stage("territories", "Recompute the territories")}
 """dict: The commands that do one stage and nothing else (PERF.122, PERF.123), by command name."""
 
 
@@ -459,7 +462,7 @@ def begin(stages, args=None, command=None):
 
 
 def _under_banner():
-    """Whether the job runner's banner (`stagemark.section`, "=== Stage 4 of 13: label ===") already names the one
+    """Whether the job runner's banner ("=== Stage 4 of 13: label ===") already names the one
     stage this run has: a step of a web job holds the stages of its command, and the banner says which; a step of
     one stage is that stage."""
     return len(_state["stages"]) == 1 and os.environ.get(STAGE_OFFSET_ENV, "") != ""
@@ -479,9 +482,14 @@ def _announce(index, skipped=None):
         _state["open"] = record
     offset, job_total = _numbering()
     if skipped:
-        log.normal(f"{stagemark.marker(offset + index + 1, job_total)}: {stage.label} -- skipped: {skipped}.")
+        mark = logrecord.stage_record(logrecord.STAGE_SKIPPED, "stages", offset + index + 1, job_total, stage.label,
+                                      reason=skipped)
     elif not _under_banner():
-        log.normal(f"{stagemark.marker(offset + index + 1, job_total)}: {stage.label}.")
+        mark = logrecord.stage_record(logrecord.STAGE_START, "stages", offset + index + 1, job_total, stage.label)
+    else:
+        mark = None
+    if mark is not None:        # the console draws it as the one divider, the record file holds it with its fields
+        log.normal(mark.message, extra={"fields": mark.fields})
     progress_file.set_stage(index + 1, total, stage.label, skipped)
 
 

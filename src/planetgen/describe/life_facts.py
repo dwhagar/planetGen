@@ -17,7 +17,7 @@ from planetgen.generation import evolution
 
 @dataclass(frozen=True)
 class Timeline:
-    """The speculative timeline of a world: the system's age and the latest milestone reached by it."""
+    """The timeline of a world: the system's age and the latest milestone reached by it."""
     system_age_gyr: float
     stage: str | None
     stage_name: str | None
@@ -38,8 +38,8 @@ class LifeFacts:
 
 def pace_label(scale):
     """How a pace is worded, from a `tuning.EVOLUTIONARY_TIMELINES` key: `fast` is "hyper-accelerated", `normal`
-    "standard", `slow` "decelerated"."""
-    return tuning.EVOLUTIONARY_TIMELINES[scale]["evolutionary_pace"].lower()
+    "standard", `slow` "decelerated" (`tuning.EVOLUTIONARY_PACE_LABELS`)."""
+    return tuning.EVOLUTIONARY_PACE_LABELS[scale]
 
 
 def resolve(planet):

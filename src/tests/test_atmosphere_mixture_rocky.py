@@ -68,6 +68,15 @@ def test_a_white_dwarf_debris_body_takes_its_own_redox_row_and_a_small_body_the_
     assert md.draw_redox(subject(), RecipeDraw(), {}) is None
 
 
+def test_the_later_mantle_is_never_more_reduced_than_the_magma_ocean_surface_of_the_same_body():
+    """GEN.482b: Deng 2020 and Hirschmann 2022 find that the later processes only oxidise the mantle."""
+    old = subject(long_lived_geology=True, age_gy=9.0)
+    recipe = RecipeDraw(values={"a1": 1.2, "a2": -0.5})
+    assert md.draw_redox(old, recipe, {}) == pytest.approx(1.2)
+    recipe = RecipeDraw(values={"a1": 0.0, "a2": 3.0})
+    assert md.draw_redox(old, recipe, {}) == pytest.approx(3.0, abs=0.05)
+
+
 def test_a_reduced_mantle_gives_carbon_monoxide_and_an_oxidised_one_carbon_dioxide_and_sulfur_dioxide():
     reduced, oxidised = [], []
     for seed in range(40):
@@ -127,8 +136,9 @@ def test_an_earth_like_oxidised_volcano_gas_is_water_carbon_dioxide_and_sulfur_d
         with draw.bound(seed):
             result = md.outgassed_mixture(subject(ts_k=1200.0, pressure_bar=1.0))
         if result.drawn["b"] in ("b2", "b3") and result.redox_diw > 3.0 and result.constants["magmatic_temperature_k"] < 1200.0 + 1.0:
-            top = list(result.mole_fractions)[:3]
-            assert "H2O" in top and "CO2" in top
+            fractions = result.mole_fractions
+            assert next(iter(fractions)) == "H2O"
+            assert fractions["CO2"] > max(fractions.get("CO", 0.0), fractions.get("CH4", 0.0)), "CO2 is the carbon gas of an oxidised vent"
             return
     pytest.skip("no wet, oxidised draw below 1200 K in 80 seeds")
 

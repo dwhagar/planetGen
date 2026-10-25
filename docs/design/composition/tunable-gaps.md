@@ -295,4 +295,6 @@ All under `docs/design/composition/tunable-gaps-sources/` (copied unchanged from
 
 **Built (GEN.509, 2026-10-24):** rows e1 and e2 are tuned to the Kepler radius valley (`docs/design/composition/radius-valley-tuning.md`): `f_env0` log-uniform 0.035 to 0.08 with the loss efficiency 10 f_env0, one degenerate ridge; two targets (slope -0.11, radius 1.84 at 10 d).
 
-**Built in part (GEN.510, 2026-10-24):** row b4 follows the Bern logistic in mass (`docs/design/composition/water-delivery-tuning.md`), plateau bracketed 0 to 1; b1 to b3, b5, b6 stay stand-ins; the Luque and Palle density comparison is open.
+**Built in part (GEN.510, 2026-10-24; replaced by GEN.802, 2026-10-25):** rows b1 to b4 follow one Bern-population law in the formation distance and the mass (`docs/design/composition/water-delivery-tuning.md` section 0), plateau bracketed 0 to 1; b5 and b6 stay stand-ins; the Luque and Palle density comparison is open.
+
+**Built in part (GEN.512, 2026-10-25):** the iron branch of a rocky planet (`docs/design/composition/iron-branch-tuning.md`): star-matched with a scatter, or iron-enriched, weight tuned to 1 of 21; the coreless branch, the slope and a larger sample are open.

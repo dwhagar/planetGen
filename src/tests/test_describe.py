@@ -234,7 +234,7 @@ def test_the_life_sentences_are_short_and_plain():
             section = next(s for s in model.sections(document) if s["title"] == body.name)
             life = [_plain(sentence) for block in section["blocks"] if block["type"] == "prose" and block["role"] == "life"
                     for sentence in block["text"]]
-            assert life and life[0].startswith(f"Life based on {body.life_chemical.lower()} could arise on this ")
+            assert life and f"life based on {body.life_chemical.lower()}" in life[0].lower() and "could arise" not in life[0]
             assert all(len(sentence) < 160 and "suitable for the development" not in sentence for sentence in life)
             seen += 1
     assert seen > 0
@@ -352,6 +352,6 @@ def test_the_timeline_is_written_from_the_stored_state_with_the_ladders():
             if block is None:
                 continue
             text = " ".join(_plain(sentence) for sentence in block["text"])
-            assert "Billion Years" not in text and "Million Years" not in text and "speculative timeline" in text
+            assert "Billion Years" not in text and "Million Years" not in text and "speculative" not in text and "would" not in text
             seen += 1
     assert seen > 0

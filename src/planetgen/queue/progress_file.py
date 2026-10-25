@@ -40,7 +40,8 @@ _stage = None
 """dict | None: The stage the run is in (`set_stage`), written into every report."""
 
 
-def report(completed, total=None, description=None, force=False, rate=None, eta_s=None, detail=None, percent=False):
+def report(completed, total=None, description=None, force=False, rate=None, eta_s=None, detail=None, percent=False,
+           unit=None):
     """
     Writes the current progress to `$PLANETGEN_PROGRESS_FILE`, if set.
     Never raises: progress is a nicety, never a reason to fail a run.
@@ -60,6 +61,8 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
             `description`, `completed`, `total` and `eta_s`.
         percent (bool): Show this bar as a share done, not as counts
             (PERF.9's weighted bright-star bar).
+        unit (str, optional): What the counts count, a singular noun (`steps.STEP_UNITS`), so a page never shows a bare
+            number (API.33).
     """
     global _last_write
     path = os.environ.get(ENV_VAR)
@@ -80,6 +83,7 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
         "eta_s": _finite_or_none(eta_s),
         "detail": detail,
         "percent": bool(percent),
+        "unit": unit,
         "stage": _stage,
         "updated_at": now,
     }

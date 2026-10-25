@@ -28,6 +28,7 @@ Rules (docs/design/architecture/unified-unit-quantity.md, Boss's cards Q3 and Q4
 
 import dataclasses
 
+from planetgen import tuning
 from planetgen.physics import constants, unit_registry
 
 _yr_to_s = unit_registry.converter("yr", "s")
@@ -370,7 +371,7 @@ TABLES = {
         "km": (
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
             "habitable_zone_inner_km", "habitable_zone_outer_km", "position_x_km", "position_y_km", "position_z_km",
-            "ocean_depth_km", "ice_shell_km", "hp_ice_km",
+            "ocean_depth_km", "ice_shell_km", "hp_ice_km", "aquifer_depth_km", "aquifer_thickness_km",
         ),
         "kg": ("mass_kg",),
         "km3": ("volume_km3",),
@@ -382,7 +383,7 @@ TABLES = {
         "kg/mol": ("atm_molar_density",),
         "Pa": ("atmospheric_pressure_pa", "water_base_pressure_pa"),
         "count": ("flavor_text_count",),
-        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr"),
+        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS),
         "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg"),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
@@ -595,7 +596,7 @@ TABLES = {
         "km": (
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
             "habitable_zone_inner_km", "habitable_zone_outer_km", "position_x_km", "position_y_km", "position_z_km",
-            "ocean_depth_km", "ice_shell_km", "hp_ice_km", "reflex_offset_x_km", "reflex_offset_y_km",
+            "ocean_depth_km", "ice_shell_km", "hp_ice_km", "aquifer_depth_km", "aquifer_thickness_km", "reflex_offset_x_km", "reflex_offset_y_km",
             "reflex_offset_z_km",
         ),
         "kg": ("mass_kg",),
@@ -608,7 +609,7 @@ TABLES = {
         "kg/mol": ("atm_molar_density",),
         "Pa": ("atmospheric_pressure_pa", "water_base_pressure_pa"),
         "count": ("flavor_text_count",),
-        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr"),
+        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS),
         "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg"),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
@@ -681,16 +682,27 @@ TABLES = {
         "km": ("radius_km", "ice_shell_thickness_km", "ocean_depth_km", "hp_ice_km"),
         "flag": ("has_internal_heat", "has_moons", "has_liquid_water"),
         "Gyr": ("age_gy", "galactic_orbital_period_gy"),
-        "W_m2": ("internal_heat_flux_w_m2",),
+        "W_m2": ("internal_heat_flux_w_m2", "energy_flux_w_m2"),
         "K": ("effective_temperature_k", "surface_temperature_k"),
         "Pa": ("surface_pressure_pa",),
         "deg": ("galactic_orbital_phase_deg", "axial_tilt_deg"),
         "yr": ("galactic_min_update_interval_years",),
         "unix_s": ("epoch_unix", "next_update_due"),
         "h": ("rotation_period_hours",),
+        "g/cm2": ("shelter_column_g_cm2",),
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "pc": ("center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc"),
         "key": ("cell_key",),
+        "index": (
+            "tier_pressure", "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
+            *EQUIPMENT_LEVELS,
+            "life_microbial", "life_flora", "life_fauna", "life_sentient",
+        ),
+        "ratio": (
+            "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
+            "l_solv", "l_chem", "l_ener",
+        ),
+        "rad": ("l_rad",),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
     },
     "scatter_members": {

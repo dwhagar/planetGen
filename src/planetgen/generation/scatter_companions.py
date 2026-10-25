@@ -157,7 +157,9 @@ def star_tree(row):
     The member tree of one `bright_stars` row (`store.BRIGHT_STAR_COLUMNS` order), or `None` for a single object.
     The row is the placed object: a star of its stored mass, birth mass and age (a white dwarf, class VII, a white
     dwarf), and the system is as old as the star. A runaway star (`runaway_draw`) carries the flag of its channel on
-    member 0, and a supernova-channel runaway that kept a compact companion has it in its tree.
+    member 0, and a supernova-channel runaway that kept a compact companion has it in its tree. A massive star under
+    `tuning.YOUNG_GROUP_AGE_MAX_YR` may be born in a young group (`multistar.draw_young_group`, GEN.327): a `group` node
+    while it is younger than the group's decay age, the hierarchy the group left otherwise.
     """
     seed = row[_STAR_COLUMN["seed"]]
     white_dwarf = row[_STAR_COLUMN["yerkes_class"]] == "VII"
@@ -167,7 +169,7 @@ def star_tree(row):
     age_yr = max(row[_STAR_COLUMN["age_gy"]], 1.0e-6) * 1.0e9
     runaway = None if white_dwarf else runaway_draw(seed, placed.birth_mass_solar)
     tree = multistar.draw_member_tree(placed, age_yr, draw.Stream(f"{seed}:{MEMBERS_STREAM}"),
-                                      bound_runaway=runaway is not None and runaway.bound_companion)
+                                      bound_runaway=runaway is not None and runaway.bound_companion, groups=True)
     if not tree.nodes:
         return None
     if runaway is not None:

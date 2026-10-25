@@ -21,6 +21,7 @@ from planetgen.web.lib.datatable import Column, Result, Table, time_text
 from planetgen.queue import progress_rate, runrecord, warmphases
 from planetgen.admin import activity_log
 from planetgen.util import log
+from planetgen.util.format import counted
 
 from . import bp, jobs, tables
 from .admin_pages import format_bytes, _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
@@ -81,7 +82,7 @@ def _is_site_wide(action):
     return action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS or action in FILL_COMMANDS
 
 RETRYABLE = ("plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability", "clean-nebula-field",
-             "galaxy", "sectors", "link", "backfill", "settle", "sector", "population")
+             "galaxy", "sectors", "link", "backfill", "settle", "sector", "population", "territories")
 """tuple[str]: The `planetgen` commands whose run Retry starts again (the command line the run recorded)."""
 
 
@@ -114,7 +115,7 @@ def _eta_text(eta, live):
         low, high = eta["low"], eta["high"]
     low_text, high_text = _duration(low), _duration(high)
     text = high_text if low_text == high_text else f"{low_text} to {high_text}"
-    return f"{text} (rough guess)" if eta.get("rough") else text
+    return f"{text} (not timed yet)" if eta.get("rough") else text
 
 
 def _actions(run):
@@ -134,7 +135,7 @@ def _progress_text(run):
         return ""
     where = f"stage {stage['index'] + 1} of {stage['count']}: {stage['label']}" if run["live"] else \
         f"{stage['count']} stage{'s' if stage['count'] != 1 else ''}"
-    units = f", {run['units_done']} of {run['units']} units" if run["units"] else ""
+    units = f", {run['units_done']} of {run['units']} {counted('unit', run['units'])}" if run["units"] else ""
     return where + units
 
 
@@ -341,7 +342,7 @@ def _stage_rows(run):
         "label": stage["label"],
         "state": stage["state"],
         "state_label": STAGE_STATE_LABELS[stage["state"]],
-        "units": f"{stage['done']} of {stage['units']}" if stage["units"] else "",
+        "units": f"{stage['done']} of {stage['units']} {counted('unit', stage['units'])}" if stage["units"] else "",
         "started": _iso(stage["started"]),
         "duration": _duration(stage["seconds"]),
         "longest": _duration(stage["longest_unit"]) if stage.get("longest_unit") else "",
@@ -373,7 +374,7 @@ def admin_queue_log(run_id):
     """A run's whole log as a plain-text download."""
     _admin, bounce = _require_admin()
     if bounce is not None:
-        return bounce
+        abort(403)   # a file download, not a page: a plain 403 like the other json_only views
     if not runrecord.RUN_ID_RE.match(run_id):
         abort(404, description="No such run.")
     try:

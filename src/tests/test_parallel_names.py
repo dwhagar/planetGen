@@ -17,6 +17,7 @@ import threading
 
 import pytest
 
+from tests.population_support import populate
 from planetgen.db import store
 from planetgen.population import model
 from planetgen.generation.config import SystemConfig
@@ -202,7 +203,7 @@ def test_two_population_passes_at_once_name_each_world_once(mysql_config):
     def run(_index):
         conn = store.get_connection(mysql_config)
         try:
-            return model.run_pass(conn)
+            return populate(conn)
         finally:
             conn.close()
 
@@ -248,7 +249,7 @@ def test_two_passes_drawing_the_same_names_still_save_unique_ones(mysql_config, 
 def _pass_on_own_connection(config, **kwargs):
     conn = store.get_connection(config)
     try:
-        return model.run_pass(conn, **kwargs)
+        return populate(conn, **kwargs)
     finally:
         conn.close()
 

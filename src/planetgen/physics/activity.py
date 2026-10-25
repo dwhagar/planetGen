@@ -176,6 +176,13 @@ def coronal_xuv_w(l_x_w):
     return l_x_w + l_euv_erg / ERG_PER_J
 
 
+def coronal_xuv_at(mass_sol, age_gy, luminosity_w):
+    """`L_XUV` of the corona of a `mass_sol` star at `age_gy`, W, at the nominal (unscattered) saturation age and decay of
+    `ACTIVITY_TABLE`; the photosphere's share is not added (the history of an escape model needs the shape of the decay)."""
+    t_sat, decay = _interp(ACTIVITY_TABLE, mass_sol)
+    return coronal_xuv_w(lx_lbol_at(age_gy, saturated_lx_lbol(mass_sol), t_sat, decay) * luminosity_w)
+
+
 def blackbody_fraction_above(energy_ev, temperature_k):
     """The share of a blackbody's output above `energy_ev` (the series of
     the Planck integral)."""

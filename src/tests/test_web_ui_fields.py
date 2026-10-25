@@ -98,3 +98,13 @@ def test_the_pilot_pages_draw_their_fields_with_the_macro(client):
     search = client.get("/search").get_data(as_text=True)
     assert 'sl-input name="q"' in search and 'sl-input name="star_min_radius_km"' in search
     assert 'sl-select name="sector"' in client.get("/nearby").get_data(as_text=True)
+
+
+def test_a_hint_sits_under_the_field_until_there_is_an_error(client):
+    """UX.125: the Generate page's quiet line under a box, in the help-text slot and in the plain twin."""
+    html = _render(client, '{{ ui_input("a", "A", "1", hint="Usual: 1%") }}{{ ui_input("b", "B", "2", error="bad", hint="Usual: 2%") }}'
+                           '{{ ui_checkbox("c", "C", hint="Does C") }}')
+    assert html.count('<span slot="help-text" class="field-hint">Usual: 1%</span>') == 1
+    assert html.count('<span class="field-hint">Usual: 1%</span>') == 1          # the twin in <noscript>
+    assert "Usual: 2%" not in html and 'role="alert">bad</span>' in html
+    assert re.search(r'<sl-checkbox name="c"[^>]*>\s*C\s*<span slot="help-text" class="field-hint">Does C</span>', html)

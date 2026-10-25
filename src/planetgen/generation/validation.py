@@ -861,7 +861,7 @@ def stabilize_star_system(system, pinned=(), allow_removal=False):
 
 
 def reapply_life(body):
-    """A body's life chemistry, evolution speed and (for a habitable
-    planet) evolutionary timeline, re-rolled after its class or climate
-    changed (`planetLife.apply_life_data`)."""
-    planetLife.apply_life_data(body)
+    """A body's life chemistry, evolutionary pace and timeline, worked out again after its class or climate
+    changed (`planetLife.apply_life_data`). The chemistry and the pace it had stay when the new climate still allows them
+    (DB.100); only one that no longer fits is drawn again."""
+    planetLife.apply_life_data(body, keep_stored=True)

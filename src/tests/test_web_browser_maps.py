@@ -302,83 +302,40 @@ def _wait_settled(page, before=None, timeout_s=90.0):
             return
 
 
-HOVER_SCAN = """([here, wanted, steps]) => {
-    const canvas = document.querySelector("#galaxymap3d-canvas");
-    const tip = document.querySelector("#galaxymap3d-tooltip");
-    const box = canvas.getBoundingClientRect();
-    const re = wanted ? new RegExp(wanted) : null;
-    for (let j = 2; j < steps - 1; j++) {
-        for (let i = 2; i < steps - 1; i++) {
-            const x = box.left + (i / steps) * box.width, y = box.top + (j / steps) * box.height;
-            if (document.elementFromPoint(x, y) !== canvas) continue;  // only where a real click lands on the map
-            canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: x, clientY: y, bubbles: true, pointerType: "mouse"}));
-            const text = tip.hidden ? "" : tip.textContent;
-            if (text && text.split(/[:,] /)[0].trim() !== here && (!re || re.test(text))) return [x, y, text];
-        }
-    }
-    return null;
-}"""
-"""str: Moves the pointer over the map with pointer events sent from the page, in the same 21 x 21 grid the real pointer used
-to visit (a Playwright move and a read for each of 441 points took 120 s under load, TEST.139 stage 4), and returns
-[x, y, tooltip] of the first spot whose tooltip names a choice matching `wanted` other than `here`."""
-
-
-HOVER_RETRIES = 20
-
-
-def _hover_choice(page, wanted=None):
-    """Finds a spot on the map whose tooltip names a choice (matching `wanted`, a regex), moves the real pointer there
-    and returns (x, y, text) once the tooltip still names it, or None. A tooltip naming where the map already is gets
-    passed over: under load it can still show the choice that was just clicked. The scan sends pointer events from the
-    page; a spot the map is still redrawing under can name another choice for the real pointer (TEST.109), so the
-    scan is made again until the real pointer reads the same."""
-    here = _crumbs(page)[-1]
-    tooltip = page.locator("#galaxymap3d-tooltip")
-    for _ in range(HOVER_RETRIES):
-        found = page.evaluate(HOVER_SCAN, [here, wanted, 24])
-        if found:
-            x, y, _text = found
-            page.mouse.move(x, y)
-            text = tooltip.inner_text() if tooltip.is_visible() else ""
-            if text and _label_of(text) != here and (wanted is None or re.search(wanted, text)):
-                return x, y, text
-        page.wait_for_timeout(250)  # the map ignores the pointer while a stage's flight runs
-    return None
-
-
 def _open_galaxy(page, base_url, query=""):
     _open(page, f"{base_url}/galaxy{query}", "#galaxymap3d-canvas")
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _wait_settled(page)
 
 
-def _click_choice(page, wanted=None):
-    found = _hover_choice(page, wanted)
-    assert found, f"nothing to click on the Galaxy Map ({wanted}); at {_crumbs(page)}"
-    x, y, text = found
+WINDOW_SIZES = [243, 81, 27, 9, 3, 1]
+"""The sizes of the windows on the way down from the whole galaxy to a sector, round the core's cells (the first window
+the galaxy opens is the 81-block one)."""
+
+
+def _descend(page):
+    """Opens the window one size down, round the core's cell, as a wheel run toward it hands off to the next (a click
+    on a sector block took it down before MAP.297 removed the blocks from the Galaxy Map). Returns the window's
+    size."""
     before = _state(page)
-    page.mouse.click(x, y)
+    win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
+    size = WINDOW_SIZES[1] if not win else WINDOW_SIZES[WINDOW_SIZES.index(win["centre"]["m"]) + 1]
+    cell = {"m": size, "shell": 0, "band": 0, "wedge": 0}
+    page.evaluate("(cell) => document.querySelector('#galaxymap3d-canvas').galaxyOpenWindow(cell)", cell)
     _wait_settled(page, before)
-    assert _state(page) != before, f"clicking {text!r} did nothing"
-    return text
-
-
-def _label_of(tooltip):
-    """The breadcrumb label a tooltip's choice leads to: its text up to
-    the first ': ' or ', ' (a sector's own label has commas in its
-    numbers, "Sector 3,837·14·12,287")."""
-    return re.split(r"[:,] ", tooltip, maxsplit=1)[0].strip()
+    assert _state(page) != before, f"opening the window of {size} did nothing"
+    return size
 
 
 @pytest.mark.viewport(1280, 900)
-def test_galaxy_map_drill_down_by_clicks(page, base_url):
+def test_galaxy_map_drill_down_by_windows(page, base_url):
     _open_galaxy(page, base_url)
     assert _crumbs(page) == ["Galaxy"]
     assert _query(page) == ""
     steps = [("", ["Galaxy"])]
     reached_sector = False
     for _ in range(16):
-        _click_choice(page)
+        _descend(page)
         crumbs = _crumbs(page)
         query = _query(page)
         if crumbs[-1].startswith("Sector "):
@@ -481,7 +438,7 @@ def test_galaxy_map_free_camera_from_a_window_down(page, base_url):
     _open_galaxy(page, base_url)
     reset_view = page.locator('#galaxymap3d-controls [data-action="reset-view"]')
     assert not reset_view.is_disabled(), "the whole galaxy turns (MAP.85)"
-    _click_choice(page)
+    _descend(page)
     assert parse_qs(_query(page))["win"][0].startswith("81."), "the galaxy's first pick is a window of 81-blocks"
 
     canvas = "#galaxymap3d-canvas"
@@ -549,7 +506,7 @@ def test_galaxy_map_buttons(page, base_url):
     # One step down: Back and Up work; Back then enables Forward. (The Menu's
     # star filters make it tall enough to cover the map, so it is closed.)
     page.click("#galaxymap3d-menu > summary")
-    _click_choice(page)
+    _descend(page)
     for action in ("back", "up"):
         assert not controls.locator(f'[data-action="{action}"]').is_disabled()
     controls.locator('[data-action="back"]').click()
@@ -566,7 +523,7 @@ def test_galaxy_map_forward_to_current_jumps_to_the_newest_view(page, base_url):
     steps = page.locator("#galaxymap3d-steps")
     current = steps.locator('[data-action="current"]')
     for _ in range(3):
-        _click_choice(page)
+        _descend(page)
     deepest = (_query(page), _crumbs(page))
     assert current.is_disabled(), "already at the newest view"
     for _ in range(2):

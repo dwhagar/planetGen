@@ -6,6 +6,8 @@
   "debug": false,
   "debug_areas": "",
   "log_file": "/var/log/planetgen.log",
+  "record_file": "",
+  "record_format": "logfmt",
   "log_dir": "",
   "log_rotation": "auto",
   "settings": {

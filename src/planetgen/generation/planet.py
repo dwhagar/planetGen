@@ -23,6 +23,7 @@ defined separately in `asteroidData`.
 
 import math
 
+from planetgen import tuning
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import aerosols, atmosphere, bulk_composition, climate_draws, constants, giant_interior, habitability_world, hydrosphere, interior_heat, magnetism, planets as planetPhysics, radiation, radiogenic
@@ -181,6 +182,9 @@ class Planet(PlanetaryObject):
                                          `normal`, `slow`), drawn once by `life.apply_life_data`; `None` when the
                                          body has no life chemistry. Every sentence about the pace reads it.
         life_milestone_age_gyr, life_system_age_gyr (float or None): The milestone's age and the system's, Gy.
+        life_age_abiogenesis_gyr ... life_age_technological_civilization_gyr (float or None): The age at which the
+                                  world's pace reaches each milestone (`tuning.LIFE_SCHEDULE_FIELDS`, Gy; set by
+                                  `life.apply_life_data` with the pace, `None` without one).
         flavor_key (str or None): The flavour line `life.decide_flavor_text` drew, as `category:index` into the
                                   `tuning` flavour lists (`flavor_text` reads it).
         flavor_text_count (int): The number of flavor texts added to this planet.
@@ -193,7 +197,7 @@ class Planet(PlanetaryObject):
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
         "life_chemical", "reflection_spectrum_visible",
         "reflection_spectrum_non_visible", "life_stage", "evolutionary_pace",
-        "life_milestone_age_gyr", "life_system_age_gyr", "flavor_key",
+        "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS, "flavor_key",
         "flavor_text_count", "habitable_zone", "volume", "period",
         "orbital_inclination_deg", "orbital_ascending_node_deg", "eccentricity",
         "position_x", "position_y", "position_z", "orbital_speed_kms",
@@ -246,7 +250,9 @@ class Planet(PlanetaryObject):
     it gets goes by. A circle by default: a body made without them is on one."""
 
     moon_origin = None
-    """str or None: A moon's origin (`moon_composition.ORIGINS`) while it is being generated; not stored (its columns are DB.70)."""
+    moon_disk_system = None
+    """str or None, DiskSystem or None: A moon's origin (`moon_composition.ORIGINS`) and its parent's circumplanetary disk while the moon is
+    being generated; not stored (their columns are DB.70)."""
 
     reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
     """
@@ -260,7 +266,7 @@ class Planet(PlanetaryObject):
 
     def __init__(self, system_config: SystemConfig, star, habitable_zone, distance,
                  radius=None, planet_class=None, mass=None, zone_override=None, distance_override=None,
-                 is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None,
+                 is_moon=False, moon_count=None, primary_mass_kg=None, moon_origin=None, moon_disk_system=None,
                  planned_objects=None, host_eccentricity=0.0):
         """
         Initializes a Planet object with its physical and orbital properties.
@@ -308,10 +314,13 @@ class Planet(PlanetaryObject):
                                              whose eccentricity follows the broader law (GEN.727); `None` is taken as several.
             host_eccentricity (float, optional): For a moon, its parent planet's eccentricity (the light a moon gets goes by its
                                                  parent's orbit).
+            moon_disk_system (DiskSystem, optional): For a disk moon, its giant parent's circumplanetary disk
+                                                     (`moon_composition.draw_disk_system`), shared by that parent's moons.
         """
         self.system_config = system_config # Store SystemConfig
         self.is_moon = is_moon
         self.moon_origin = moon_origin
+        self.moon_disk_system = moon_disk_system
         self.moons = []
         # This planet's own reflex-offset "wobble" (schema v20) from its
         # moons' combined pull -- 0.0 by default (no moons yet), recomputed
@@ -349,6 +358,8 @@ class Planet(PlanetaryObject):
         self.evolutionary_pace = None
         self.life_milestone_age_gyr = None
         self.life_system_age_gyr = None
+        for field in tuning.LIFE_SCHEDULE_FIELDS:
+            setattr(self, field, None) # The pace's milestone ages, set with the pace
         self.flavor_key = None # Set later by life.decide_flavor_text
         self.flavor_text_count = 0 # Initialize flavor text count for this planet
         self.orbital_inclination_deg = None
@@ -414,11 +425,12 @@ class Planet(PlanetaryObject):
         return (2.0 * math.pi / self.period) ** 2 * self.distance ** 3
 
     def _draw_moons(self):
-        """Whether a planet left to chance gets moons: an even chance, moved
-        by the run's moons prevalence (GEN.52)."""
+        """Whether a planet left to chance gets moons: an even chance, or for a small body the share of the hosting gate's
+        `satellite-share` table for its population and size (GEN.761), moved by the run's moons prevalence (GEN.52)."""
+        chance = planetPhysics.satellite_share(self)
         if prevalence.percent(self.system_config, "moons"):
-            return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5)
-        return draw.randrange(2) == 1
+            return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5 if chance is None else chance)
+        return draw.randrange(2) == 1 if chance is None else draw.random() < chance
 
     def _encode(self, data):
         """`habitable_zone` is stored as a list (JSON has no tuple type); `moons` are serialized the same way,

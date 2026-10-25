@@ -10,7 +10,7 @@ present); the ozone rows are lane F's.
 | Step | Owner | Where |
 |---|---|---|
 | Which regime the air is in (redox, delivery, outgassed class, retention class, envelope) | GEN.478 | `physics/atmosphere_recipes.py`, 104 rows |
-| Free energies of the gases and condensates | this | `physics/species_thermo.py`, from the NASA Glenn database (89 species) |
+| Free energies of the gases and condensates | this | `physics/species_thermo.py`, from the NASA Glenn database (99 species) |
 | The equilibrium gas of an element budget at T and P, optionally over a mantle of a given fO2 | this | `physics/gas_equilibrium.py` |
 | Regimes to mole fractions of the gases of the table | this | `physics/mixture_draw.py`, `draw_mixture` |
 | The subject of a generated body: the quantities the tables and the chemistry read, built from its stored fields and its star | GEN.756 | `physics/mixture_subject.py`, `subject_of_body` |
@@ -60,13 +60,76 @@ this only limits what the drawn air can show. Limits: the physical solubility on
 takes more), the Henry law's 273.15 to 323.15 K with the nearest end standing in outside, and full saturation (a bound, not Earth's
 0.6 to 0.8 relative humidity).
 
+## Where the degassed sulfur goes (GEN.815)
+
+The supply law brings sulfur to the surface; the sulfur sink decides how much of it the air keeps (`physics/sulfur_balance.py`). It
+replaces the stand-in `SULFUR_SURFACE_KEPT` (1e-5 to 1e-2 of the sulfur stays in the air with an ocean), under which a wet world could
+hold hundreds of bar of S2. Two solid sinks take sulfur out of the gas: sulfate (SO2 and SO3 with calcium as CaSO4) and sulfide (H2S, S2
+and COS with iron as FeS and FeS2). Which one a mole goes to is the redox of the gas it arrived in: `oxidised_share_of` reads the share of
+the sulfur that is bonded to oxygen from the equilibrium gas of the outgassing stage.
+
+* **Capacity.** The crust the volcanism built holds the calcium and the iron: `crust_column_kg_m2(released_j, radius_m)` is the Earth
+  twin's crust per processed mantle (`CRUST_PER_PROCESSED_MANTLE`) times the mantle `surface_pressure` says the interior has processed,
+  over the area. One calcium binds one sulfur as sulfate, one iron one sulfur as sulfide. Sulfur beyond the capacity stays in the air whole,
+  so a body whose inventory is far larger than its crust (the open question of the inventory brackets, GEN.481) shows it.
+* **Rate.** The sulfur that goes to the sinks arrived at its mean rate; the air holds `min(1, tau / age)` of it (the steady state of
+  outgassing against removal, as the carbonate balance is). `tau` is the lifetime against rain-out and oxidation over liquid water
+  (`WET_LIFETIME_DAYS`, 0.5 to 7 days) and against sulfation of the surface rock on a dry surface (`DRY_LIFETIME_YEARS`, 0.5 to 5 million
+  years, Fegley and Prinn 1989 for Venus).
+* **Output.** `balance(...)` returns the sulfur in the air, in the sulfate sink and in the sulfide sink, mol per square metre; they
+  sum to the degassed sulfur. The air's sulfur is what the caller puts into the closed system for the equilibrium, and the ocean's
+  Henry's-law uptake (`mixture_sinks`) acts on it afterwards.
+
+Limits (stated): sulfate and carbonate share the calcium and the balance does not take the carbonate's share (so the sulfate capacity is
+an upper bound where a carbonate sink is full); the mean-rate steady state gives a dry world almost no sulfur in the air, while Venus holds
+about 14 mbar of SO2, which only recent resupply explains (Fegley and Prinn say so too); the lifetimes are brackets, not rate laws of
+temperature; the share of the sulfur the melt keeps is `surface_pressure.DEGAS_EFFICIENCY`. Five stand-ins, registry rows AM45 to AM49.
+
+## Where the carbon of a world with no land goes (GEN.814)
+
+Silicate weathering (`surface_pressure.carbonate_pco2_bar`) needs land, and an ocean world has none, so its carbon dioxide had no sink: the
+findings of `reports/air-fixed-point-findings-2026-10-24.md` (finding 3) have 31 of 40 water-rich worlds hot (median 1470 K). The model is
+`physics/waterworld_carbon.py`, after Kite and Ford 2018 (ApJ 864, 75) and Krissansen-Totton and Catling 2017 (Nat. Commun. 8, 15423).
+`sink_kind(sealed, land_fraction)` is the dispatch the air solve takes: sealed seafloor, then ocean chemistry; else land, then the
+continental balance; else seafloor weathering.
+
+* **The seal.** An ocean heavy enough that the seafloor pressure `g m` reaches `SEAL_PRESSURE_PA` (1 to 3 GPa) stops the mantle melting enough
+  to exchange carbon with the water, and high-pressure ice (VI and VII) sits on the floor. The system of air, ocean and shallow crust is then
+  closed for carbon `SEAL_TIME_GY` (0.1 Gy) after the last giant impact; the caller gives it the carbon degassed up to then.
+* **A sealed world's air is ocean chemistry** (`ocean_pco2`). The carbon is shared between the air, dissolved dioxide, bicarbonate and
+  carbonate, and calcite, by the carbonate equilibria (`CARBONATE_FITS`, fresh water) and the charge balance of the cations the early ocean
+  leached from `ALTERED_CRUST_KM` (0.1 to 50 km) of basalt (`leached_cations_mol_m2`: sodium 2.8 wt% and calcium 8.5 wt% of the rock). More
+  cations than carbon holds the carbon as carbonate and leaves the air nearly empty (the floor `MIN_PCO2_BAR`); more carbon than cations
+  leaves the rest to the air at tens of bar. `sealed_state` solves the pCO2 and the temperature together (the ocean degasses as it warms,
+  so the coolest crossing of the scan is taken) with the greenhouse of `atmosphere_state` and the saturated vapour.
+* **An unsealed world with no land** has working volcanoes and a seafloor that dissolves and precipitates carbonate (`seafloor_pco2_bar`):
+  the rate is Arrhenius in the pore-water temperature (`SEAFLOOR_ACTIVATION_KJ_MOL`, 40 to 110), a power of the pCO2
+  (`SEAFLOOR_PH_EXPONENT / 1.34`) and of the heat flow, and it is 0.45 of 6.6 Tmol C per year (`SEAFLOOR_SHARE_OF_OUTGASSING`) at the modern
+  state. The temperature does the work: at the modern heat flow a 300 K world balances at about half a bar, a 288 K one needs hundreds of
+  bar, a 310 K one a few millibar.
+
+What the sweep of Kite and Ford's prior shows (tested): at 300 K, carbon 1e-6 to 1e-1 of the ocean's mass and a rock layer of 0.1 to 50 km, a
+sixth of the worlds sit at 0.2 to 20 bar (their "frequent" range), nearly three quarters hold their carbon whole in the ocean (under a
+micro-bar), and 7 percent are above 20 bar. The water-world temperatures of the findings report are not recomputed here: that needs Lane I's solve (4c), and
+the greenhouse module's water-vapour feedback is too strong (finding 1), so the cold end of `sealed_state` sits at the freezing point
+(274 K for 240 W/m2) and not under it. With the real greenhouse a carbon-rich ocean (CO2 a tenth of the water's mass) has no balance below water's
+critical point, as for Kite and Ford, who find the high-carbon end hot.
+
+Limits (stated): the ocean is an ideal solution with fresh-water constants (seawater's first dissociation constant is about three times the
+fresh water's, so a salty ocean holds more bicarbonate at a given pCO2) held to 273 to 373 K; only calcite precipitates (no magnesium or iron
+carbonate, no dolomite, no hydrous carbonates, no clathrate); the cations are one leach of a basalt of a drawn thickness, not a reaction
+network, and sulfate competes for the same calcium (`sulfur_balance`); the surface ocean's temperature is used throughout; the seal is a
+pressure threshold, not a solidus calculation; the seafloor law is one pore-space rate law and not the inverse model of Krissansen-Totton and
+Catling (no Michaelis-Menten variant, no pelagic fraction); the class O inventory brackets (GEN.481) reach a CO2 to H2O mass ratio of 0.2,
+above the 1e-1 top of Kite and Ford's carbon. Eleven stand-ins, registry rows AM52 to AM62.
+
 ## Rocky outgassing
 
 1. **Redox.** `a1` (magma-ocean stage: Sossi 2020) for a body without long-lived geology; for a tectonic body it moves to `a2` (the
    later upper mantle) as `1 - exp(-age / tau)` with `tau` seeded in 0.1 to 1.5 Gyr. A white-dwarf host takes `a4`, a small body `a3`.
    The recipe's class row `a5`/`a6`/`a7` describes the magma-ocean stage only; the chemistry reads the blended number.
 2. **Inventory.** Delivered water and CO2 from the `b` class (Ortenzi 2020 Table 1: CO2/H2O = 0.2 for the wet classes, dry class
-   CO2 0.6 wt%), N and S per carbon in design brackets (BSE and CI chondrite values inside them), 40Ar from the potassium of the rock
+   CO2 0.018 to 0.1 wt%, GEN.813), N and S per carbon in design brackets (BSE and CI chondrite values inside them), 40Ar from the potassium of the rock
    and the age.
 3. **The volcano's gas**: equilibrium with the mantle at the magmatic temperature (1100 to 1500 K) and the pressure of the layer, with
    the oxygen fugacity held.
@@ -133,9 +196,12 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
   gated on the retention rows `d4` and `d5`, and the shoreline (a fit to hot rocky exoplanets, extrapolated to an escape speed of 1.2
   km/s) gives a Pluto-like body `d1` (airless), so the Pluto-like family is never drawn for it. Boss decided (fork 7, 10-18) that
   these families are an output of the escape and retention physics; the retention physics of cold volatile bodies (the sublimation
-  supply against hydrodynamic escape) is not built, and changing the gate without it would be a design flag, which he ruled out. The
-  gas table lacks Al, K2, KO, K2O and Na2O for the lava vapour: the table is generated from the research parts 01 and 03, so the
-  rows belong there first; until then a hot melt that makes more than `UNLISTED_LIMIT` of them is refused by name.
+  supply against hydrodynamic escape) is not built, and changing the gate without it would be a design flag, which he ruled out. GEN.751
+  added K2, KO, K2O and Na2O to the gas table and the species table (research part 01 section 5, computed from the NASA fits, no
+  phase data; the file spells aluminium `AL`), so the lava vapour lists them (KO is about 4e-7 bar over a BSE melt at 2500 K). GEN.818 then gave the melt an Al2O3 activity (its mole fraction, `mixture_lava.ALUMINA_ACTIVITY_COEFFICIENT` = 1, tier 3: Fegley,
+  Lodders and Jacobson 2023 find the activity-coefficient models of the BSE melt agree with an ideal solution except for the alkalis,
+  abstract only), added AlO, Al2O, AlO2 and Al2O2 and the liquid Al2O3 to the species table (99 species), and put Al in the vapour's
+  elements: a BSE melt at 2500 K now has about 2e-7 of its vapour as aluminium, mostly AlO and Al (Al is refractory), 6e-5 at 3000 K.
 - Design brackets this module added, each to be replaced by the research item named: `INVENTORY["weathering_sink"]` (GEN.481), `WATER_RESIDUAL`, `SULFUR_SINK`,
   `WATER_PHOTOLYSED`, `OCEAN_WATER_WT_PERCENT`, `CARBON_PER_OCEAN_WATER`, `OXYGEN_SINK`, `TITAN_HUMIDITY`, `TITAN_HYDROGEN`, `FROST_ICE`
   (`mixture_evolved`; GEN.481 and the ice composition item), `ALKALI_ACTIVITY_COEFFICIENT` and `COMPOSITION_SCATTER` (`mixture_lava`; the

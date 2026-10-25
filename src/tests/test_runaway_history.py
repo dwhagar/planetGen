@@ -63,7 +63,7 @@ def test_a_planet_well_inside_the_zone_of_a_sun_like_star_loses_many_oceans():
 
 
 def test_a_cool_star_dries_the_planets_of_its_present_zone():
-    star = _star(0.3, 0.013, 3400.0, 5.0)
+    star = _star(0.3, 0.011, 3416.0, 5.0)     # a 0.3 solar mass star on the MIST main sequence at 5 Gy (GEN.652)
     zone = orbits.hz_limits(star.luminosity, star.temperature)
     assert runaway_history.loss_kg(star, zone[1] * 0.5 + zone[0] * 0.5, *EARTH) > 1 * EARTH_OCEAN_KG
     assert runaway_history.loss_kg(star, 1.0, *EARTH) == 0.0

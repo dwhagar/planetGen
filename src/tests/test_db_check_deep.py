@@ -53,7 +53,7 @@ def test_the_estimate_is_a_guess_until_a_speed_is_recorded(saved, monkeypatch):
         conn.close()
     assert estimate.systems >= 1 and not estimate.measured
     assert estimate.seconds == pytest.approx(estimate.systems * check.DEEP_FALLBACK_SECONDS_PER_SYSTEM)
-    assert "rough guess" in estimate.summary()
+    assert "not timed yet" in estimate.summary() and "guess" not in estimate.summary()
     assert estimate.as_dict()["deep_check"] is True
 
 

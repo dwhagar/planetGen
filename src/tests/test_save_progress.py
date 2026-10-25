@@ -5,7 +5,7 @@ from planetgen import tuning
 from planetgen.generation import run_galaxy, steps
 from planetgen.galaxy.spherical import sector_position_pc
 
-from tests.test_phenomenon_scatter import EDGE_PC, _seed_galaxy
+from tests.test_phenomenon_scatter import EDGE_PC
 
 
 class _Channel:
@@ -17,7 +17,8 @@ class _Channel:
 
 
 def test_a_sector_save_reports_each_system_it_inserts(mysql_config):
-    _seed_galaxy(mysql_config)
+    # No stored galaxy shape on purpose (TEST.375): with one, the sector is filled from the galaxy's density and the
+    # 3 systems asked for do not limit it (hundreds of systems, over 15 minutes); the save's report is the same.
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 3
     address = (1, 0, 2)

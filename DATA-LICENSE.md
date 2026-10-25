@@ -145,6 +145,10 @@ maximum greenhouse rows). Published paper; values only. The paper's raw text is 
 
 Ten more coefficients of the same table (GEN.639): the runaway greenhouse sets for 0.1 and 5 Earth masses (`KOPPARAPU_RUNAWAY_GREENHOUSE_BY_MASS`). Published paper; values only.
 
+## The aquifer model (`src/planetgen/physics/aquifers.py`, GEN.654)
+
+Values only, read at second hand (the papers' full text could not be opened) and labelled DESIGN stand-ins in `tuning.py` until a verified source replaces them: the crust's porosity law phi = phi0 exp(-z/K) with K = 2.82 km on Mars and phi0 = 0.2, and the crust's thermal conductivity of about 2 W/m/K, from Clifford 1993, JGR 98, 10973 (a published paper); the upper temperature limit of life, 122 C, from Takai et al. 2008, PNAS 105, 10949. The drill's reach (5 km) and the minimum layer (10 m) are planetGen's own.
+
 ## The water layer of the structure solver (`src/planetgen/physics/bulk_structure.py`, GEN.429)
 
 | Source | What was kept | Terms known |
@@ -162,3 +166,119 @@ The keys are the source keys of the file. Published values only; no third-party 
 | `semenov-2023` | Semenov, Stoporev et al. 2023, Int. J. Mol. Sci. 24, 9321 | Open access (MDPI); two quadruple points only |
 | `chevrier-2009` | Chevrier, Hanley and Altheide 2009, GRL 36, L10202 | Published abstract; two eutectic points only |
 | `pestova-2005` | Pestova et al. 2005, Marion et al. 2010, as quoted by arXiv:1811.00862 and arXiv:2012.00100 | Second-hand; one eutectic point |
+
+## Papers, datasets and code read for the second-hand citation pass (10-24, `reports/secondhand-citations-2026-10-24.md`)
+
+No code or data from these sources is in the repository. The pass produced a report; any value a lane later copies into a data
+file takes its terms from the row here, and the lane adds its own section above. Raw papers and downloaded files stay out of the
+repository. The "Basis" column says how the terms were learned: **file** (printed in the PDF Boss uploaded), **arXiv** (the licence
+shown on the paper's arXiv abstract page), **repo** (the LICENSE file of the code repository, read 10-24), or **publisher** (the
+publisher's usual terms; no statement was seen, so treat as unconfirmed).
+
+### Uploaded by Boss
+
+| Source | Terms | Basis |
+|---|---|---|
+| Curtis et al. 2020, ApJ 904, 140 | CC BY 4.0 | file |
+| Anenburg 2026, "Oxygen Fugacity Buffers and an Interactive Calculator", G-cubed 10.1029/2026GC013032 | Open access, Creative Commons Attribution (version not printed) | file |
+| Summa, Monaco, Lazzeretti and Zanasi 2021, J. Phys. Chem. Lett. 12, 8855 | (c) 2021 The Authors; ACS open licence, type not printed | file |
+| Sossi, Burnham, Badro, Lanzirotti, Newville and O'Neill 2020, Science Advances 6, eabd1387 (Redox state of Earth's magma ocean and its Venus-like early atmosphere) | AAAS exclusive licensee; Creative Commons Attribution NonCommercial 4.0 (CC BY-NC); only values are read | file |
+| JPCA perspective on atmospheric photochemistry (2024) | CC BY 4.0 | file |
+| Wolff et al. 2009, JGR 114, E00D04 | (c) AGU 2009; the Wiley page states open-access articles fall under their Creative Commons licence, type not printed | file |
+| Lodders 2003, ApJ 591, 1220 | (c) American Astronomical Society, all rights reserved; values only | file |
+| Palme and O'Neill 2003, Treatise on Geochemistry 2.01 | (c) Elsevier; values only | publisher |
+| Pahlevan, Schaefer and Hirschmann 2019, magma ocean outgassing and hydrogen isotopes (EPSL) | (c) Elsevier; values only | publisher |
+| Rudnick and Gao 2003, Treatise on Geochemistry 3.01 | (c) 2003 Elsevier Ltd; values only | file |
+| Hirschmann 2021, Geochim. Cosmochim. Acta 313, 74 | (c) Elsevier; values only (the IW buffer is already used by the repository) | publisher |
+| Bierson and Nimmo 2019, Icarus (density of Kuiper Belt objects) | (c) 2019 Elsevier, accepted manuscript | file |
+| Gaillard and Scaillet 2014, EPSL 403, 307 | HAL open archive copy; Elsevier holds the copyright | file |
+| Li, Cheng and Yang 2019, Geo-fO2, G-cubed 10.1029/2019GC008273 | (c) 2019 AGU; type of any open licence not printed | file |
+| Stixrude and Lithgow-Bertelloni 2011, Geophys. J. Int. 184, 1180 | (c) Oxford University Press and the Royal Astronomical Society; values only | publisher |
+| Zeleznik 1991, J. Phys. Chem. Ref. Data 20, 1157 | (c) 1991 US Secretary of Commerce, assigned to the American Institute of Physics and ACS; reprint read from the NIST reference data pages; values only | file |
+| Tabazadeh et al. 1997, GRL 24, 1931 | (c) American Geophysical Union; values only | file |
+| Myhre et al. 1998, GRL 25, 2715 | (c) American Geophysical Union; values only | file |
+| Bucholtz 1995, Appl. Opt. 34, 2765 | (c) Optica (formerly OSA); values only | publisher |
+| Bates 1984, Planet. Space Sci. 32, 785 | (c) Elsevier; values only | publisher |
+| King 1923, Proc. R. Soc. A 104, 333 | Royal Society archive copy; a 1923 paper, no licence statement; values only | publisher |
+| Sneep and Ubachs 2005, JQSRT 92, 293 | (c) Elsevier; values only | publisher |
+| Irwin et al. 2018, detection of H2S above the clouds of Uranus | Author manuscript; Nature Astronomy terms apply | publisher |
+| Hassler et al. 2014, Science 343, 1244797 (Mars RAD) | (c) AAAS; values only | publisher |
+| Mumma and Charnley 2011, Annu. Rev. Astron. Astrophys. 49, 471 | (c) 2011 Annual Reviews | file |
+| Paranicas, Cooper and Garrett 2009, Europa (Univ. of Arizona Press), 529 | (c) University of Arizona Press; no statement in the chapter text; values only | publisher |
+| Gronoff et al. 2011, A&A 529, A143 | (c) ESO; no Creative Commons statement printed in the file | publisher |
+| Poyatos et al. 2026 and Postolec et al. 2026, A&A manuscripts | (c) ESO 2026; author manuscripts, no Creative Commons statement printed | file |
+| Gunther et al. 2020, TESS flares, AJ | DTU Orbit copy; copyright and moral rights remain with the authors or other copyright owners | file |
+| McBride, Zehe and Gordon 2002, NASA Glenn coefficients (NASA/TP-2002-211556) | US Government work, no copyright asserted | publisher |
+| ICRP Publication 103 free extract and preface | (c) ICRP; the full report was not read | file |
+
+### Open papers read through arXiv, with the licence shown on the abstract page
+
+| Licence | arXiv papers |
+|---|---|
+| CC BY 4.0 | Hammond et al. 2025 (2409.04386); He et al. 2022, Titan haze optical constants (2112.08521); Bower et al. 2022 (2110.08029); Drozdovskaya et al. 2023 (2307.11486); Beth et al., ROSINA ion zoo (2008.08430); Merg et al. 2025 (2505.09490); Blum and Bischoff (2207.12731) |
+| CC BY-NC-SA 4.0 | Seignovert et al. 2017 (1704.00842); Maurice et al. 2023 (2301.07505) |
+| CC0 1.0 | Chabrier 2021, H/He equation of state II (2107.04434) |
+| Public domain dedication | Davenport 2014 (1410.7779) |
+| arXiv non-exclusive licence (copyright stays with the authors; read and cite, no redistribution) | Vainio et al. 2017 (1707.00485); Koldobskiy et al. 2021 (2101.10234); Asvestari et al. 2017 (1612.02446); Wang, Lineweaver and Ireland 2018 (1708.08718); Lisse et al. 2021 (2009.02277); Mazevet et al. 2019 (1810.05658); Haldemann et al. 2020, AQUA (2009.10098); Gao et al. 2014 (1312.3750); the Mauna Kea extinction paper (1210.2619); Irwin et al. 2019 (1812.05383); Bailey et al. 2011 (1102.2554); Corlies et al. 2021 (2012.02247); Zahnle et al. 2020 (2001.00095); Ranjan and Sasselov 2017 (1610.06223); Heays, Bosman and van Dishoeck 2017 (1701.04459); Biver et al. 2012 (1201.4318); Chabrier, Mazevet and Soubiran 2019 (1902.01852); Schlichting, Sari and Yalinewich 2015 (1406.6435); Foley 2015 (1509.00427); Charnoz et al. 2009 (0912.3017); the stagnant-lid carbon cycle paper (1712.03614); Yoshizaki and McDonough (1909.07560) |
+| arXiv assumed-licence (pre-2003 paper) | Crida, Morbidelli and Masset 2006 (astro-ph/0511082) |
+
+Only formulas, numbers and tables of facts were read from these papers, each with its citation in the report.
+
+### Datasets, tables and code
+
+| Source | Terms | Basis |
+|---|---|---|
+| PetroBuffer (P. Liggins; Frost 1991 and Campbell 2009 buffer constants as coded) | MIT | repo |
+| GEOS-Chem (JPL 19-5 and 15-10 rate lines) | MIT | repo |
+| PICASO (King factors from Bogaard 1978) | GNU GPL v3 | repo |
+| BurnMan (Stixrude and Lithgow-Bertelloni parameters) | GNU GPL (v2 or later per its package metadata) | publisher |
+| VolFe (one benchmark value only) | Not confirmed; only a number quoted on its documentation page was used | n/a |
+| Chabrier DirEOS2019 and DirEOS2021 tables (`perso.ens-lyon.fr/gilles.chabrier/DirEOS/`) | No licence in the README; the 2021 paper is CC0 | file |
+| Leiden photodissociation and photoionisation database (home.strw.leidenuniv.nl/~ewine/photo/) | Free download; cite Heays et al. 2017 | publisher |
+| IPCC Third Assessment Report, WG1 Chapter 6 (Myhre expressions, Table 6.2) | (c) IPCC; reproduction with attribution allowed | publisher |
+| Wikipedia "Equivalent dose" and "Effective dose" | CC BY-SA 4.0 for the text; values are ICRP's | publisher |
+| Canadian Nuclear Safety Commission radiation protection regulations schedule | Crown copyright, reproduction allowed with attribution | publisher |
+| Putirka and Xu 2021, Nature Communications, supplement and peer review file | CC BY 4.0 (Nature Communications open access) | publisher |
+| Vainio 2017 event table typed into `sep-band-parameters-vainio2017.csv` (report folder only) | Facts from the paper; stays out of the repository | n/a |
+
+### Not read at all
+
+Fray and Schmitt 2009, ICRP 103 (full report), Karkoschka 1994, Karkoschka and Tomasko 2009/2010, Tomasko et al. 2008, Ayers,
+Gillett and Gras 1980, Frost 1991, Hirschmann 2012, Palme and O'Neill 2014, JPL Publication 19-5, Bogaard et al. 1978, Huebner et
+al. 1992, Huebner and Mukherjee 2015, Cooper et al. 2001, Patterson et al. 2012, Nordheim et al. 2018, Gronoff et al. 2009,
+Dartnell. Where a lane uses a number carried by another work, the report cites that work and its tier. Their terms are the
+publishers' and are not recorded here because nothing was taken from the originals.
+
+## Water against formation distance (`docs/design/composition/volatile-delivery-formation-distance.md`, GEN.481)
+
+Derived counts and logistic fits from the Bern NGPPS NG76 population: Burn et al. 2024 (Nature Astronomy 8, 463), data and code of Zenodo record 10527170 (no licence field), and the starting distances of the same planets from the public DACE population ng76. Emsenhuber et al. 2021 (A&A 656, A69; arXiv:2007.05561) was read for the disc model. The raw files are never in the repository and are downloaded only by the reproduction script kept in the project files.
+
+## Magma-ocean redox against mass (`docs/design/composition/magma-ocean-redox-against-mass.md`, GEN.482)
+
+Numbers and short quotations of fact were read from the sources below; nothing else was taken. Raw files stay out of the repository.
+
+| Source | Terms | Basis |
+|---|---|---|
+| Hirschmann 2022, Geochim. Cosmochim. Acta 328, 221 (public copy on the NSF Public Access Repository) | (c) Elsevier, all rights reserved; values only | publisher |
+| Schaefer and Fegley 2017, Astrophys. J. 843, 120 (public copy on the NSF Public Access Repository) | (c) American Astronomical Society, all rights reserved; values and the Table 2 fits only | publisher |
+| Gaillard et al. 2022, Earth Planet. Sci. Lett. 577, 117255 (HAL archive copy insu-03383209) | Elsevier paper deposited in an open archive; no licence printed on the copy; values only | file |
+| Deng, Du, Karki, Ghosh and Lee 2020, Nature Communications 11, 2007 (PMC7181735) | CC BY 4.0 | publisher |
+
+## Impact erosion and late delivery (`docs/design/composition/impact-erosion-and-late-delivery.md`, `src/planetgen/physics/impact_history.py`, GEN.739)
+
+Formulas, constants and the planets' observed totals were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All four carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Sakuraba, Kurokawa and Genda 2019 (1805.07094); Brasser et al. 2016 (1609.01785); Schlichting, Sari and Yalinewich 2015 (1406.6435); Raymond et al. 2013 (1306.4325). Svetsov 2000 and 2007 and Shuvalov 2009 were not opened; their formulas are used as printed in Sakuraba et al.
+
+## Volatile inventory against the totals of the Earth, Venus, Mars and Titan (`docs/design/composition/volatile-inventory-against-planet-totals.md`, `src/planetgen/physics/mixture_rocky.py`, GEN.813)
+
+Numbers and ratios of fact were read from the sources below; nothing else was taken. Raw files stay out of the repository.
+
+| Source | Terms | Basis |
+|---|---|---|
+| Bergin et al. 2015 (arXiv:1507.04756) | arXiv non-exclusive licence (copyright stays with the authors; read and cite, no redistribution) | abstract page |
+| Erkaev et al. 2020 (arXiv:2010.12342) | arXiv non-exclusive licence (same) | abstract page |
+| arXiv:2302.04241, ancient Martian atmosphere | CC BY 4.0 | abstract page |
+| NASA planetary fact sheets for Venus and Mars (nssdc.gsfc.nasa.gov) | US government work, public domain | publisher |
+
+## Atmospheric escape: a thermosphere model (`docs/design/composition/atmospheric-escape-model.md`, `src/planetgen/physics/thermosphere.py`, GEN.738)
+
+Constants and published test values were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All three carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Johnstone et al. 2018 (1806.06897), Kubyshkina et al. 2018 (1810.06920) and Zhang 2024 (2410.04595). The exobase temperatures and altitudes of Johnstone et al. were read from their figures (values only).
