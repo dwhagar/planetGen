@@ -3662,6 +3662,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed --resume.
   Prerequisites: none. Related: MAP.266, MAP.323.
 
+- [ ] **MAP.325 The Galaxy Map infobox is too dense for a readable font: a block card lists ten rows plus a help paragraph in tiny text, and it sits over the zoom controls (bug)**
+  Boss, 2:30 AM EDT 2026-10-25, from the same three screenshots as
+  MAP.324: the text size of the infobox is too small to read; reduce the
+  density of the information so the font can be a reasonable size. Seen:
+  a block card (Block 1-0-5, 81 sectors a side) shows shells, row,
+  wedge, sectors, charted, center x y z, distance from core, shell
+  depth, latitude, longitude and a three-line help paragraph, all at
+  about 11 px, and the card overlaps the zoom slider and the arrow pad.
+  Do: per card kind keep the essentials (name or designation, what it
+  is, size, distance, charted share, the one or two facts a person
+  navigates by), put the rest behind a More fold that starts collapsed
+  and in the object page, move the help text to the Menu help, set the
+  body text to the normal reading size with the MAP.295 shrink-to-fit
+  only as a last step, and keep the card clear of the zoom controls.
+  Done: a browser test that reads the font size of a block, sector, star
+  and region card and fails below the reading size, and checks that no
+  card overlaps the zoom controls. Owner: Core 2 (infobox, after MAP.315
+  or sooner if smaller). Rules: absent or zero values hidden unless
+  absence matters; collapsible sections start collapsed (Boss rule
+  10-24); no backward-compat shims; tests are scripts/test.py changed
+  --resume.
+  Prerequisites: none. Related: MAP.295, MAP.296, MAP.315, MAP.323,
+  MAP.324.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
