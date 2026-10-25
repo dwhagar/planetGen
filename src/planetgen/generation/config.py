@@ -37,6 +37,16 @@ SERIALIZABLE_FIELDS = [
 
 
 class SystemConfig:
+    FORCE_CLASS = None
+    """
+    str or None: A planet class letter (e.g. "O") the system must hold at least one planet of (GEN.791). A test and admin
+    option for a sample that needs every class (`generation/class_sample.py`), not a recipe field: a class attribute, so a
+    config holds it only when a caller sets it, it is not saved with the system and a default run never sets it. The first
+    orbital slot is that class, placed in a zone that allows it (`StarSystem.calculate_distance_for_class`), and a system
+    whose attempts all lost the planet reports "a planet of class X" in `StarSystem.unmet_requirements`. It cannot be
+    combined with `SLOTS` (slots already name classes). Defaults to None.
+    """
+
     def __init__(self):
         self.system_flavor_count = 0
         self.recent_flavor_texts = [] # Stores recently used flavor texts to avoid repetition
@@ -187,16 +197,6 @@ class SystemConfig:
         asteroid belts combined) to generate, overriding the normal
         mass-based random estimate. If None, the count is estimated/randomized
         as usual (subject to MAX_PLANETS/PLANETS). Defaults to None.
-        """
-
-        self.FORCE_CLASS = None
-        """
-        str or None: A planet class letter (e.g. "O") the system must hold at least one planet of (GEN.791). A test and
-        admin option for a sample that needs every class (`generation/class_sample.py`), not a recipe field: it is not
-        saved with the system and a default run never sets it. The first orbital slot is that class, placed in a zone
-        that allows it (`StarSystem.calculate_distance_for_class`), and a system whose attempts all lost the planet
-        reports "a planet of class X" in `StarSystem.unmet_requirements`. It cannot be combined with `SLOTS` (slots
-        already name classes). Defaults to None.
         """
 
         self.SLOTS = None
