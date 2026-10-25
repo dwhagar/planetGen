@@ -41,3 +41,4 @@ Commit each file came from:
 - v155: 56aeec64 (DB.71 gas tables, before DB.100 life schedule)
 - v156: 5b007799 (DB.100 life schedule, before GEN.654 aquifers)
 - v157: b8644eec (GEN.654 aquifers, before GEN.701 rogue planet scores)
+- v158: 09c27ebb (GEN.701 rogue planet scores, before GEN.441 surface composition)

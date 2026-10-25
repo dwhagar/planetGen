@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, metallicity, moon_composition
-from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air
+from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -650,6 +650,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
 
     # GEN.88: water, land, ice and the ocean's chemistry.
     hydrosphere.generate_hydrosphere(planet, 0.0 if heat is None else heat.flux_w_m2, surface_w)
+    # GEN.441: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature, the air and the water.
+    surface_composition.generate_surface(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
 

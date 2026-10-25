@@ -41,8 +41,9 @@ Use:
 import math
 from dataclasses import dataclass, field
 
+from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import hydrosphere, materials, saturation
+from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, materials, mixture, saturation
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -97,6 +98,9 @@ GRAINS = (SLAB, CRUSHED, POWDER)
 ICE_FORMULAS = {"water_ice": "H2O", "co2_ice": "CO2", "ch4_ice": "CH4", "nh3_ice": "NH3", "n2_ice": "N2", "so2_ice": "SO2",
                 "co_ice": "CO", "hcn_ice": "HCN"}
 """dict: The ice rows of the materials table and the formula whose saturation curve says when each stands."""
+
+ICE_ROW_OF_FORMULA = {formula: row for row, formula in ICE_FORMULAS.items() if row != "water_ice"}
+"""dict: The materials row of each non-water ice, by the formula comet volatiles are listed under."""
 
 VACUUM_ICE_PA = saturation.pressure_pa("H2O", hydrosphere.VACUUM_ICE_MAX_K)
 """float: The vapour pressure at which an ice survives in vacuum for billions of years: water's at the 220 K that
@@ -172,8 +176,22 @@ RESERVOIRS = {
     "basaltic": {"k_ppm": 1162.0, "th_ppm": 0.252, "u_ppm": 0.083, "model": "N-MORB (Gale et al. 2013)"},
     "felsic": {"k_ppm": 23244.0, "th_ppm": 10.5, "u_ppm": 2.7, "model": "upper continental crust (Rudnick and Gao 2014)"},
 }
-"""dict: The K, Th and U of the ground types that have a measured reservoir model. The others (anorthositic, clay, oxidised,
-metal, carbon, evaporite, sulfur, ice) have none in the sources read and are left to the caller's default."""
+"""dict: The K, Th and U of the ground types that have a measured reservoir model."""
+
+RESERVOIR_OF = {"ultramafic": "ultramafic", "basaltic": "basaltic", "felsic": "felsic", "clay": "basaltic", "oxidised": "basaltic"}
+"""dict: Which reservoir a ground type's K, Th and U follow. Clay and iron-oxidised ground are altered basalt (Hu et al. 2012 Table 2),
+so they keep its heat producers; anorthositic, metal, carbon, evaporite and sulfur ground have no reservoir in the sources read and are
+left to the caller's default."""
+
+GROUND_FRACTION_TYPES = (OCEAN, ICE, "ultramafic", "anorthositic", "basaltic", "felsic", "clay", "oxidised", "metal", "carbon",
+                         "evaporite", "sulfur")
+"""tuple: The ground types a body's areal mix is stored for, in column order."""
+
+FRACTION_FIELDS = tuple(f"ground_{name}_fraction" for name in GROUND_FRACTION_TYPES)
+"""tuple: The stored areal share of each ground type (`ground_ocean_fraction`, ...), `None` for a body with no solid ground."""
+
+COLUMN_FIELDS = ("ground_type", "ground_grain", *FRACTION_FIELDS)
+"""tuple: Everything a body stores of its surface composition (columns of `planets` and `moons`)."""
 
 
 @dataclass(frozen=True)
@@ -438,18 +456,102 @@ def band_albedo(composition):
 
 def crust_reservoir(composition):
     """
-    The K, Th and U (ppm by mass) of the crust, area-weighted over the land types that have a measured reservoir
-    (`RESERVOIRS`), and the share of the land they cover.
+    The K, Th and U (ppm by mass) of the crust, area-weighted over the land types that have a reservoir (`RESERVOIR_OF`), and the
+    share of the land they cover.
 
     Returns:
         tuple: `({k_ppm, th_ppm, u_ppm} or None, covered share of the land)`.
     """
-    land = {name: share for name, share in composition.mix.items() if name not in (OCEAN, ICE)}
+    return _reservoir_of_mix(composition.mix)
+
+
+def _reservoir_of_mix(mix):
+    land = {name: share for name, share in mix.items() if name not in (OCEAN, ICE) and share}
     total_land = math.fsum(land.values())
-    known = {name: share for name, share in land.items() if name in RESERVOIRS}
+    known = {}
+    for name, share in land.items():
+        if name in RESERVOIR_OF:
+            reservoir = RESERVOIR_OF[name]
+            known[reservoir] = known.get(reservoir, 0.0) + share
     weight = math.fsum(known.values())
     if total_land <= 0.0 or weight <= 0.0:
         return None, 0.0
     result = {key: math.fsum(RESERVOIRS[name][key] * share for name, share in known.items()) / weight
               for key in ("k_ppm", "th_ppm", "u_ppm")}
     return result, weight / total_land
+
+
+def land_rock_ppm(body):
+    """
+    `(K, Th, U)` ppm of the rock a body's land is made of, for the ground dose: the area-weighted reservoirs of its stored ground
+    (`crust_reservoir`), with the land that has no reservoir of its own taking basalt's (the secondary crust of any body that was
+    still melting, part E 3.2 rule 4). A body with no stored ground, or no land, is basalt.
+    """
+    basalt = RESERVOIRS["basaltic"]
+    default = (basalt["k_ppm"], basalt["th_ppm"], basalt["u_ppm"])
+    mix = mix_of(body)
+    if mix is None:
+        return default
+    reservoir, covered = _reservoir_of_mix(mix)
+    if reservoir is None:
+        return default
+    return tuple(covered * reservoir[key] + (1.0 - covered) * fallback
+                 for key, fallback in zip(("k_ppm", "th_ppm", "u_ppm"), default))
+
+
+def mix_of(body):
+    """The stored areal mix of `body` as `{ground type: share}` (types with no share left out), or `None` for a body with no solid
+    ground or one saved before the columns."""
+    values = {name: getattr(body, f"ground_{name}_fraction", None) for name in GROUND_FRACTION_TYPES}
+    if all(value is None for value in values.values()):
+        return None
+    return {name: value for name, value in values.items() if value}
+
+
+def inputs_of(body):
+    """The `SurfaceInputs` of a planet or moon that has its air, water and heat flow (called after the hydrosphere)."""
+    from planetgen.physics import magnetism, planets
+
+    pressure = getattr(body, "atmospheric_pressure", None) or 0.0
+    partials = mixture.partial_pressures_pa(body)
+    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    return SurfaceInputs(
+        planet_class=body.planet_class, surface_temperature_k=body.surface_temperature or 0.0, pressure_pa=pressure,
+        o2_partial_pa=partials.get("O2", 0.0), partial_pressures_pa=partials,
+        water_mass_fraction=getattr(body, "water_mass_fraction", None) or 0.0,
+        ice_mass_fraction=getattr(body, "ice_mass_fraction", None) or 0.0,
+        rock_mass_fraction=getattr(body, "rock_mass_fraction", None) or 0.0,
+        metal_mass_fraction=getattr(body, "metal_mass_fraction", None) or 0.0,
+        rock_feo_fraction=getattr(body, "rock_feo_fraction", None), carbon_rock=bool(getattr(body, "carbon_rock", False)),
+        volatile_shares=_volatile_shares(body), hydrosphere=getattr(body, "hydrosphere", None),
+        ocean_fraction=getattr(body, "ocean_fraction", None) or 0.0, ocean_class=getattr(body, "ocean_class", None),
+        internal_heat_flux_w_m2=planets.internal_heat_flux_w_m2(body),
+        age_gy=getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY,
+        mobile_lid_chance=magnetism.mobile_lid_chance(body, mass_earth))
+
+
+def _volatile_shares(body):
+    """The other ices' proportions: a stand-in until the species are stored, the mean comet volatiles (`bulk_draw.RANGES`) of the
+    body's non-water ice, as shares of that ice."""
+    if not (getattr(body, "ice_mass_fraction", None) or 0.0) > 0.0:
+        return {}
+    percent = comet_population.median_volatiles(bulk_draw.RANGES["other_ice_comet_class"])
+    shares = {ICE_ROW_OF_FORMULA[name]: value for name, value in percent.items() if name in ICE_ROW_OF_FORMULA and value > 0.0}
+    total = math.fsum(shares.values())
+    return {name: value / total for name, value in shares.items()} if total > 0.0 else {}
+
+
+def generate_surface(body):
+    """Sets `COLUMN_FIELDS` on a planet or moon from its stored composition, hydrosphere and air (call after the hydrosphere). A giant
+    has no ground (every field `None`)."""
+    for field in COLUMN_FIELDS:
+        setattr(body, field, None)
+    if body.body_type == "g":
+        return
+    result = draw_surface(inputs_of(body))
+    if result is None:
+        return
+    body.ground_type = result.ground_type
+    body.ground_grain = result.grain
+    for name in GROUND_FRACTION_TYPES:
+        setattr(body, f"ground_{name}_fraction", result.mix.get(name, 0.0))

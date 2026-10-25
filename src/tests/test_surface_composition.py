@@ -1,6 +1,7 @@
 """Tests for physics/surface_composition.py (GEN.441): shares sum to one, agree with the bulk fractions, the temperature and the air."""
 
 import math
+import types
 
 import pytest
 
@@ -171,3 +172,55 @@ def test_reservoir_orders_heat_producers():
     for key in ("k_ppm", "th_ppm", "u_ppm"):
         assert ultramafic[key] < basaltic[key] < felsic[key]
     assert sc.crust_reservoir(sc.SurfaceComposition("ice", {sc.ICE: 1.0}, {"water_ice": 1.0}, sc.POWDER)) == (None, 0.0)
+
+
+def _bodies(count=25):
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+
+    cfg = SystemConfig()
+    cfg.PLANETS = True
+    cfg.MAX_PLANETS = True
+    cfg.BINARY_SYSTEM = False
+    bodies = []
+    for seed in range(count):
+        with draw.bound(seed):
+            system = StarSystem(system_config=cfg)
+        for planet in system.planets:
+            if hasattr(planet, "moons"):
+                bodies += [planet, *planet.moons]
+    return bodies
+
+
+def test_every_generated_body_has_a_consistent_ground():
+    bodies = _bodies()
+    solid = [b for b in bodies if b.body_type != "g"]
+    assert solid and any(b.body_type == "g" for b in bodies)
+    for body in bodies:
+        if body.body_type == "g":
+            assert all(getattr(body, field) is None for field in sc.COLUMN_FIELDS)
+            continue
+        mix = sc.mix_of(body)
+        assert math.fsum(mix.values()) == pytest.approx(1.0, abs=1e-9)
+        assert body.ground_type in sc.GROUND_FRACTION_TYPES and body.ground_grain in sc.GRAINS
+        # agrees with the bulk fractions, the temperature and the water
+        if mix.get(sc.ICE):
+            assert body.surface_temperature < 273.15
+        if mix.get(sc.OCEAN):
+            assert body.hydrosphere in ("surface ocean", "hycean")
+        if mix.get("carbon"):
+            assert body.carbon_rock
+        if mix.get("metal"):
+            assert body.metal_mass_fraction >= sc.RANGES["metal_stripped"]
+        assert "felsic" not in mix or body.hydrosphere is not None
+
+
+def test_the_ground_dose_follows_the_stored_ground():
+    felsic = types.SimpleNamespace(**{f"ground_{name}_fraction": 1.0 if name == "felsic" else 0.0 for name in sc.GROUND_FRACTION_TYPES})
+    ultramafic = types.SimpleNamespace(**{f"ground_{name}_fraction": 1.0 if name == "ultramafic" else 0.0 for name in sc.GROUND_FRACTION_TYPES})
+    none = types.SimpleNamespace()
+    assert sc.land_rock_ppm(felsic)[1] > sc.land_rock_ppm(none)[1] > sc.land_rock_ppm(ultramafic)[1]
+    assert sc.land_rock_ppm(none) == (sc.RESERVOIRS["basaltic"]["k_ppm"], sc.RESERVOIRS["basaltic"]["th_ppm"],
+                                      sc.RESERVOIRS["basaltic"]["u_ppm"])
+    ocean_only = types.SimpleNamespace(**{f"ground_{name}_fraction": 1.0 if name == "ocean" else 0.0 for name in sc.GROUND_FRACTION_TYPES})
+    assert sc.land_rock_ppm(ocean_only) == sc.land_rock_ppm(none)
