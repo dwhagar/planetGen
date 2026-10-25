@@ -3393,10 +3393,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   centroid of the charted spheres, not the block centre; an unfilled
   galaxy shows nothing. The suffix words Region and Reach are
   placeholders for Boss. Done: label tests at each zoom, no label for
-  uncharted space. Owner: Aux 10. Rules: no backward-compat shims; every
-  number has a unit or scale (GEN.772); tests are scripts/test.py
-  changed --resume. The galactic-level map draws the regions themselves
-  (MAP.317), so these labels are what a user reads there.
+  uncharted space. Owner: Core 4 (Boss, 1:45 AM EDT 2026-10-25: Core 4
+  takes labels by zoom with the icons once its current item is done),
+  moved from Aux 10. Rules: no backward-compat shims; every number has a
+  unit or scale (GEN.772); tests are scripts/test.py changed --resume.
+  The galactic-level map draws the regions themselves (MAP.317), so
+  these labels are what a user reads there.
   Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826, API.35.
 
 - [ ] **MAP.315 The map infobox shows the region and its parent: "Region: Vang Zarh (in Vang Reach)", each a link that flies the camera to the block (regions chain, step 4)**
@@ -3575,11 +3577,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the map menu and on the object pages; the existing tokens (black hole,
   neutron star, quasar, nebula) are unchanged. The best world's token
   and habitability score ride the existing node worlds payload
-  (MAP.220), no new endpoint (design section 0.3). Owner: Aux 10 (the
-  legend on the object pages with Aux 11). Rules: no backward-compat
-  shims; every number has a unit or scale (GEN.772); tests are
-  scripts/test.py changed --resume; no fixed content from the Milky Way
-  or the Solar System.
+  (MAP.220), no new endpoint (design section 0.3). Owner: Core 4 (Boss,
+  1:45 AM EDT 2026-10-25: Core 4 takes the icons once its current item
+  is done), moved from Aux 10 (the legend on the object pages with Aux
+  11). Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); tests are scripts/test.py changed --resume; no fixed
+  content from the Milky Way or the Solar System.
   Prerequisites: MAP.305. Related: MAP.303, MAP.305, MAP.306, MAP.311,
   MAP.312, MAP.316.
 
@@ -9281,6 +9284,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   q = 1.17, width 0.247 dex (arXiv:2507.02136); Zahnle and Catling draw
   the line by eye and give no K; 'TRAPPIST-1 b and c under 0.1 bar' is
   in no paper read (at or above 1 bar disfavoured). Builder GEN.511.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 17 (Citations) takes it while
+  GEN.819 waits on 4c; then GEN.484 and GEN.488 if still idle. Needs
+  nothing from 4c.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.484 Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5)**
@@ -13011,6 +13018,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   complex organics in the table and the comet draw reading it. Owner:
   Blocker 3 data owner of GEN.427 (finished lane; the TODO thread
   proposes lane K, which found it, takes it).
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 9 (class lane) takes it while
+  GEN.646 waits on 4c; a small table fix.
   Prerequisites: none. Related: GEN.427, GEN.442.
 
 - [ ] **GEN.661 Bright-star counts still use the reference-composition fraction (stand-in, bug)**
@@ -13051,6 +13061,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   event. Done: a loss event scales the stored ozone column (and the UV
   index that reads it) by the retained fraction, with a test of a planet
   that loses half its air. Owner: none yet (pool).
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 4 takes it while GEN.768 part 2
+  waits on GEN.767.
   Prerequisites: none. Related: GEN.413, GEN.189.
 
 - [ ] **GEN.669 Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows**
@@ -13465,6 +13478,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry. Done: the three open points in the design note are closed or
   registered as labelled stand-ins. Owner: Lane Draws (after GEN.510 and
   GEN.512).
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Math 2 takes it when free.
   Prerequisites: none. Related: GEN.509, GEN.510.
 
 - [ ] **GEN.723 Refresh the hot-Jupiter recipe rows h1 to h3: their edge points were computed with the deleted gas-equilibrium module and sit up to 16 K (0.6 percent) above the surviving solver**
@@ -13476,6 +13491,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so it needs an epoch. Done: the rows agree with the solver to the
   table's rounding. Owner: pool (Lane L is retiring; first free
   atmosphere lane takes it). Prerequisites: none.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Math 1 takes it when free.
   Prerequisites: none. Related: GEN.672, GEN.674.
 
 - [ ] **GEN.724 Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps**
@@ -14204,6 +14221,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry (GEN.725). Requested by Boss through the coordinator, 5:34 PM
   EDT 2026-10-24: wire it as fast as possible. Owner: Lane H after
   GEN.735 (heat owner); nobody has started it.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 5 takes it after GEN.767 (heat and
+  dose lane).
   Prerequisites: none. Related: GEN.663, GEN.699, GEN.735, GEN.754.
 
 - [ ] **GEN.760 Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw**
@@ -15374,9 +15394,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   instead of a random address; the Generate page offers "this region"
   (snap to the anchor, 12 pc). Done: a finished fill of one anchor
   sphere is charted and named; a test pins the snap; no change to what a
-  sector generates, so no epoch. Owner: Core 3. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
+  sector generates, so no epoch. Owner: Bug 1 (Boss, 1:45 AM EDT
+  2026-10-25: Bug 1 takes it when DB.107 lands, after its current item),
+  moved from Core 3. Rules: no backward-compat shims; every number has a
+  unit or scale (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: GEN.825, DB.107. Related: GEN.825, DB.107.
 
 - [ ] **GEN.827 Region extent: the bounding sphere of a cell's generated sectors (never under the 12 pc fill sphere) and the measurement of two far-apart clumps (regions chain, step 1d)**
@@ -16018,6 +16039,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   load, so it is the same cause as this item, now with a second
   measurement. Owner: Performance (unchanged); Lane OOM does not take
   it.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 16 takes it after PERF.182 and
+  PERF.198.
   Prerequisites: none. Related: PERF.146.
 
 - [ ] **PERF.175 benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug)**
@@ -16029,6 +16053,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --keep on the success path. Done: a test that the databases survive a
   successful run with --keep and go without it. Owner: Performance
   (proposed by the TODO thread, because the lane found it).
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 16 takes it with PERF.174.
   Prerequisites: none. Related: PERF.146.
 
 - [ ] **PERF.178 The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug)**
@@ -17162,9 +17188,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Done: a sector's mass_sum equals the sum of its bodies in a test,
   saving and deleting update it, the region sum equals its sectors, the
   backfill fills an existing galaxy, order-independence test passes.
-  Owner: Core 3 (with DB.107). Rules: no backward-compat shims; every
-  number has a unit or scale (GEN.772); tests are scripts/test.py
-  changed --resume.
+  Owner: Bug 1 (Boss, 1:45 AM EDT 2026-10-25: Bug 1 takes it when DB.107
+  lands, after its current item), moved from Core 3 (DB.107 stays with
+  Core 3). Rules: no backward-compat shims; every number has a unit or
+  scale (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: DB.107. Related: DB.107, MAP.322, MAP.317.
 
 ## API: The JSON API
@@ -20666,6 +20693,9 @@ clears each one.
   previous version's fixture (schema_v144 was missing on main and was
   added). The shared downgrade helper of this item works within that
   baseline.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Bug 1 takes it after TEST.393 and
+  TEST.394.
   Prerequisites: none. Related: DB.98.
 
 - [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
@@ -21749,6 +21779,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   fails loudly when a number was already used. Done: two branches that
   both took the same epoch and migration both merge in turn with no hand
   edits, and a test covers the renumbering. Owner: Lane 4.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Bug 1 takes it after TEST.328 (with
+  Core 4 if it is free).
   Prerequisites: none. Related: OPS.56.
 
 - [ ] **OPS.72 Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7)**
