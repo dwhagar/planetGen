@@ -1,0 +1,4 @@
+**Headline:** The water a rocky planet is drawn to start with now follows the Bern population synthesis against how far from its star it formed and its mass, as one law, instead of a mass-only law plus snow-line guesses.
+
+### Changed
+- **Delivered-water rows b1 to b4 (GEN.802).** Dry, low, high and water-rich delivery come from three nested logits in the formation distance over the snow line, the mass and a hinge at 0.6 of the snow line, fitted to 10,506 planets of the Bern condensed-water population; the old b4 gate at the snow line and the mass-only logistic of GEN.510 are gone, so a planet inside the snow line can be water-rich (a quarter at 0.55, a half at 0.75) and the mass moves the water-rich share only slightly. The tier of the row is 6 (centre) and 7 (width), tweak level 0 (registry AT.b4). The recipes are not read by the generator yet, so no generated value changes.

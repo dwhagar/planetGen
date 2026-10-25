@@ -17,6 +17,9 @@ row), `p('id')` (the probability of a row in its own table at this subject) and 
 continuous row's value lies in [lo, hi]).
 """
 
+import json
+import os
+
 ROCKY = list("ABCDEFGHKLMNOPQSV") + list("UYZ")   # the planned rocky classes (PLANNED_CLASSES) have the rocky tables' rows too
 AIR = list("ABEFGHKLMNOPQV")
 GIANT = list("IJT")
@@ -43,6 +46,38 @@ def c(quantity, minimum=None, maximum=None, equals=None, one_of=None):
 def drawn(group, *ids):
     """The gate of a row that is drawn only under a parent row of an earlier group."""
     return c(f"drawn.{group}", one_of=ids) if len(ids) > 1 else c(f"drawn.{group}", equals=ids[0])
+
+
+_WATER_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "src", "planetgen", "physics", "data", "ngpps_formation_water.json")
+with open(_WATER_FILE, encoding="utf-8") as _handle:
+    _WATER = json.load(_handle)
+
+
+def _water_logit(k):
+    """The logit of the k-th nested event of the formation-distance law (GEN.802), as an expression of lx, lm and hinge."""
+    a, b, c, h = _WATER["model"]["coefficients"][k]
+    return f"{a} + {b}*lx + {c}*lm + {h}*hinge"
+
+
+_WATER_X, _WATER_M = _WATER["model"]["x_range"], _WATER["model"]["mass_range_earth"]
+WATER_LETS = {
+    "lx": f"log(clamp(snow_ratio, {_WATER_X[0]}, {_WATER_X[1]}))",
+    "lm": f"log10(clamp(mass_earth, {_WATER_M[0]}, {_WATER_M[1]}))",
+    "hinge": f"max(0, lx - log({_WATER['model']['knot']}))",
+    "nd": f"1/(1 + exp(-({_water_logit(0)})))",
+    "hi": f"min(nd, 1/(1 + exp(-({_water_logit(1)}))))",
+    "ri": f"min(hi, 1/(1 + exp(-({_water_logit(2)}))))",
+}
+"""dict: The lets of rows b1 to b4: `nd` is the probability that the planet is not dry, `hi` that it holds at least 0.16 percent water, `ri` that it
+holds at least 10 percent (the nested events of `ngpps_formation_water.json`, held in order). The four weights are the class shares."""
+
+WATER_LIMIT = ("a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit "
+               "standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's "
+               "cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because "
+               "published water-rich shares run from at most 3 percent (Rogers 2025) to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)")
+WATER_CORRECTION = ("Replaced 2026-10-25 (GEN.802): the weights (1-s)^2, 2s(1-s), s^2 with s = 1/(1 + exp(-ln x/0.4)) and the water-rich mass logistic of GEN.510 "
+                    "(centre 6.1 Earth masses) with the gate x >= 1 are one law now: the planets of the population that formed inside the snow line are 26 to 60 percent "
+                    "water-rich at x = 0.55 to 0.75, and the mass dependence at fixed x is weak (the mass law was a migration effect, counted once here).")
 
 
 # The tables that compete for 100 percent: a group is drawn once, from the rows of it that pass the subject.
@@ -122,21 +157,11 @@ MACHINE = {
     "a7": dict(kind="option", group="a", classes=ROCKY, weight="phi((redox_diw - 2.5)/0.5)"),
 
     # ---- b. delivered volatile inventory ----
-    "b1": dict(state="stand-in", replacement="GEN.510", kind="option", group="b", classes=ROCKY, weight="(1 - s)**2",
-               lets={"s": "1/(1 + exp(-log(snow_ratio)/0.4))"}),
-    "b2": dict(state="stand-in", replacement="GEN.510", kind="option", group="b", classes=ROCKY, weight="2*s*(1 - s)",
-               lets={"s": "1/(1 + exp(-log(snow_ratio)/0.4))"}),
-    "b3": dict(state="stand-in", replacement="GEN.510", kind="option", group="b", classes=ROCKY, weight="s**2",
-               lets={"s": "1/(1 + exp(-log(snow_ratio)/0.4))"}),
-    "b4": dict(state="partly verified", limit="a MODEL label: the water-rich share against mass is the logistic fitted to the Bern population synthesis (NGPPS, Zenodo 10527170), not an observation; the plateau c_b4 (model value 1, the logistic as fitted) is bracketed 0 to 1 because published shares run from at most 3 percent (Rogers 2025) to 87 percent (decision D1) and the model's own plateau is 0.92; the logistic centre and slope are not tuned to the Luque and Palle densities (GEN.510)",
-               kind="option", group="b", classes=ROCKY + ["I"], when=[c("snow_ratio", minimum=1.0)],
-               weight="q/(1 - q)", lets={"q": "min(0.999, c_b4/(1 + exp(-6.28*(log10(mass_earth) - 0.788))))"},
-               source="Bern NGPPS NG76 nominal population (Emsenhuber 2021; Burn 2024, arXiv:2401.04380), window 0.5 < P < 100 d, 0.5 to 30 Earth masses (2076 planets, 490 water-rich): "
-                      "P(water-rich | mass) = 1/(1 + exp(-6.28 (log10 M - 0.788))), centre 6.1 Earth masses (bootstrap 5.9 to 6.3), slope 6.0 to 6.6 per dex (COMPUTED by the group 2 worker, "
-                      "tunable-gaps-sources/group2-delivery-retention.md section 2.2). Bin fractions in physics/data/ngpps_water_fraction.json",
-               correction="Replaced 2026-10-24 (GEN.510): the weight c_b4 s^3 of the snow-line ratio alone, with c_b4 log-uniform from 0.05 to 0.4, had no mass dependence; "
-                          "the migration that brings water in grows with mass (a 1 Earth-mass planet is 2 percent water-rich, a 12 Earth-mass planet 91 percent). "
-                          "The weight is q/(1 - q) with q = c_b4 L(mass), so that, as the weights of b1 to b3 sum to 1, the probability of b4 is q."),
+    "b1": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY, weight="1 - nd", lets=WATER_LETS,
+               correction=WATER_CORRECTION),
+    "b2": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY, weight="nd - hi", lets=WATER_LETS),
+    "b3": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY, weight="hi - ri + (1 - c_b4)*ri", lets=WATER_LETS),
+    "b4": dict(state="partly verified", limit=WATER_LIMIT, kind="option", group="b", classes=ROCKY + ["I"], weight="c_b4*ri", lets=WATER_LETS),
     "b5": dict(state="stand-in", replacement="GEN.510", kind="param", classes=ROCKY, when=[drawn("b", "b2", "b3")],
                dist={"kind": "loguniform", "lo": 5e-4, "hi": 5e-3}),
     "b6": dict(state="stand-in", replacement="GEN.510", kind="binary", classes=["C", "D", "S", "I"], when=[c("zone", equals="r")],
