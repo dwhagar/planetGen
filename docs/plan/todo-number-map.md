@@ -1041,7 +1041,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.307 | The object-ID collision number keyed on the lower address | none | done, PR #2595 |
 | GEN.308 | A block-first sampler for the backfill: a Poisson candidate count from the block's density bound, then thinning | none | done, PR #2070 |
 | GEN.309 | The backfill picks the draw path per block and gives the same stars wherever it lands | none | done, PR #2934 |
-| GEN.310 | Fill a whole block of the shell ladder: planetgen generate --block and the queue job | none | open |
+| GEN.310 | Fill a whole block of the shell ladder: planetgen generate --block and the queue job | none | done, PR #3159 |
 | GEN.311 | Built systems store and load their orbit tree: insert_star_system, load_star_system and serialization read and write orbit_nodes | none | done, PR #2481 |
 | GEN.312 | Naming for trees: path codes (Aa, Ab, Ba) with branch words at wide splits, and planet stems such as Pikkita Ba I | none | open |
 | GEN.313 | Orbital update of built systems: advance_orbital_phases for nodes and the GEN.109 hooks | none | open |
