@@ -233,6 +233,9 @@ _BODY_GROUPS = (
     *_rows("composition", ("interior_kind", "Kind of interior", TEXT), ("core_mass_earth", "Compact core mass"),
            ("dilute_core_mass_earth", "Dilute core mass"), ("metallization_pressure_gpa", "Pressure where hydrogen turns metallic"),
            ("helium_depletion", "Helium left in the molecular envelope"), ("has_helium_shell", "Helium-rich shell", FLAG)),
+    *_rows("composition", ("ring_kind", "Kind of ring system", TEXT), ("ring_origin", "Where the ring came from", TEXT),
+           ("ring_inner_km", "Ring inner edge"), ("ring_outer_km", "Ring outer edge"), ("ring_mass_kg", "Ring mass"),
+           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share")),
 )
 
 _PLANET = _MOON = _BODY_GROUPS

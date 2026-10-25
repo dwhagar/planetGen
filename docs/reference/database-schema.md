@@ -2212,6 +2212,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v160 (GEN.732): the ring system of a planet
+
+Migration 0160 adds `ring_kind` (`dusty`, `narrow` or `broad`), `ring_origin` (`moon_erosion`, `disrupted_moon` or `captured_body`), `ring_inner_km`, `ring_outer_km`, `ring_mass_kg`, `ring_optical_depth` (a mean over the area the ring covers) and `ring_ice_fraction` (DOUBLE, nullable) to `planets` and `moons`, after `has_helium_shell`. One summed ring system per body (`planetgen.physics.rings`, `docs/design/composition/planetary-rings.md`); NULL for a body with no ring, for every moon, and for a row made before v157, which gets its rings when the galaxy is regenerated.
+
 ### v158 (GEN.701): the habitability score of a rogue planet
 
 Migration 0158 adds 37 score columns (`phi4` and its six domains, the six tiers, the four life scores, `l_solv`, `l_chem`, `l_ener`, `l_rad`, the fourteen `eq_*` levels with `shelter_column_g_cm2`, and `energy_flux_w_m2`) to `rogue_planets`, at the end of the table (no regional temperatures or hours outside: a rogue planet has no star), and fills them for every terrestrial row from the surface it already holds, by `physics/rogue_habitability.py`, in pages of ids (a row with `phi4` set is done). Nothing is drawn. A gas giant or brown dwarf keeps NULL.
@@ -2241,7 +2245,7 @@ Migration 0153 adds `mantle_eta0_pa_s`, `mantle_activation_kj_mol` and `internal
 Migration 0152 adds `tidal_flux_w_m2` (DOUBLE, nullable) to `planets` and `moons`, at the end of each table (a planet has no tide and keeps NULL). The generator drew the tide before and discarded it after thickening or thinning the ice lid; it is now kept and added to the heat flow the chemical energy of the ocean's life reads (`energy_flux_w_m2`, [habitability-index.md](../design/habitability/habitability-index.md) section 8). The forced eccentricity behind a tide is not stored, so a moon saved earlier keeps NULL and its stored energy flux; only a moon generated now has it. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index); a column already there is left alone. The version is detected from `planets.tidal_flux_w_m2`.
 ### v159 (GEN.441): the surface composition of every planet and moon
 
-Migration 0159 adds to `planets` and `moons`: `ground_type` (VARCHAR(16)), `ground_grain` (VARCHAR(8)) and twelve DOUBLE columns, `ground_<type>_fraction` for `ocean`, `ice`, `ultramafic`, `anorthositic`, `basaltic`, `felsic`, `clay`, `oxidised`, `metal`, `carbon`, `evaporite` and `sulfur`, all nullable, each at the end of the table. Nothing is backfilled: a ground needs the draws of the generator epoch, so a row made before the revision keeps NULL and the regenerated galaxy replaces it. A stopped run can be started again (a column already there is skipped).
+Migration 0160 adds to `planets` and `moons`: `ground_type` (VARCHAR(16)), `ground_grain` (VARCHAR(8)) and twelve DOUBLE columns, `ground_<type>_fraction` for `ocean`, `ice`, `ultramafic`, `anorthositic`, `basaltic`, `felsic`, `clay`, `oxidised`, `metal`, `carbon`, `evaporite` and `sulfur`, all nullable, each at the end of the table. Nothing is backfilled: a ground needs the draws of the generator epoch, so a row made before the revision keeps NULL and the regenerated galaxy replaces it. A stopped run can be started again (a column already there is skipped).
 
 ### v151 (GEN.461): the pressure under the water layer
 

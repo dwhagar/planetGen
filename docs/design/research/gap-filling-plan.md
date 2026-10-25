@@ -89,6 +89,10 @@ Scripts, data and logs behind every number marked COMPUTED or DATA: `/mnt/projec
 | BC17 | Al-26 and Fe-60 from the birth environment (R4, GEN.476) | yields and enrichment odds | one measured system | GEN.476 | 9.0 |
 | BC18 | Core light elements (T7) | not checked in tunable-gaps | cores are unobservable | GEN.428 | 9.0 |
 | BC19 | White-dwarf spectral type against temperature (T3) | not checked in tunable-gaps | large ensembles exist but were not read | GEN.463 family | 9.0 |
+| BC20 | Ring system: kind weights by parent and the chance of a ring on a terrestrial or dwarf planet (T3) | the weights | four giants, no terrestrial ring | GEN.732 | 8.1 |
+| BC21 | Ring extent: outer edge against the Roche limit, inner edge in planet radii (T3) | the two ranges | four ring systems | GEN.732 | 8.1 |
+| BC22 | Ring mass and the particle size behind its optical depth (T3) | the mass range per kind | recalled masses of four systems | GEN.732 | 8.1 |
+| BC23 | Ring ice share beyond the snow line (T3) | the share per kind | Saturn's 90 to 99 percent; no ice seen in Uranus's or Neptune's | GEN.732 | 8.1 |
 
 ### 2.3 Atmosphere (tunable-gaps classes S and X, the thin F rows, and the data inputs)
 
@@ -361,6 +365,10 @@ Reading the tables: **Kind** is the kind of the first-ranked fill (D, B, T, P, s
 | BC17 | T | T6 | L0 | 1 Al-26 and Fe-60 from supernova and Wolf-Rayet yields with the odds of a nearby massive star from the embedded cluster mass function. | Bernoulli with cluster-size probability | enrichment ratios in a second system fall outside | measured ratios replace the odds |
 | BC18 | T | T7 | L1 | 1 Core light elements from partitioning theory with the mantle redox of 4.8: total mass fraction of the core lognormal, median 0.08, 0.2 dex, clipped 0.02 to 0.20 (Earth's outer core is 5 to 10 percent lighter than iron-nickel; today's code draws 0.03 to 0.12 uniform, physics/bulk_draw.py RANGES, from Hirose et al. 2021); split by Dirichlet(8) over S, Si, O, H with means O = 0.05 + 0.45 s, Si = 0.60 - 0.40 s, S = 0.25, H = 0.05, renormalised, where s = 1 / (1 + exp(-(dIW_core + 2))): more oxidised, more oxygen in metal. | Dirichlet concentration 8; total 0.02 to 0.20 (P) | seismic or density deficits for a second body contradict | any measured second body (GEN.777) |
 | BC19 | B | T2 | L0 | 1 DA fraction against effective temperature from the large catalogues reachable through VizieR (DATA job; Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card answers relayed in words by the coordinator): downloaded at build time, tests offline, 6.5). | binomial about the fitted fraction | a larger catalogue changes the fraction outside its errors | the catalogue replaces the bracket |
+| BC20 | T | T6 (kinds), T7 (chance, origin weights) | L0 | 1 A giant's ring is `dusty`, `narrow` or `broad` in the ratio 1 : 2 : 1 (Jupiter; Uranus and Neptune; Saturn; n = 4). A terrestrial or dwarf planet has a ring with probability 0.01 (dusty, narrow). The origin is moon erosion for dust, a disrupted moon for narrow rings, and for a broad ring a disrupted moon or a captured body with equal weight (Canup 2010; Dones 1991; no source weighs them). | weights from four systems (P) | a ring census of exoplanets or a second broad ring changes the weights | the census replaces (GEN.732 draws it) |
+| BC21 | T | T5 (limit), T6 (fractions) | L2 | 1 The fluid Roche limit 2.456 R (rho_planet / rho_ring)^(1/3) with the ring's mixture density (ice 917, rock 2500 kg/m3, volume additive); the outer edge is U(0.75, 1.1) of it (Saturn 1.05, Jupiter 0.93, Neptune 0.88, Uranus 0.76: the range just holds the four), held inside 0.95 of the innermost moon; the inner edge U(1.1, 1.7) planet radii (Saturn's D ring 1.11, Uranus's 6 ring 1.64, Neptune's Galle ring 1.7) and below the outer one. | outer 0.75 to 1.1, inner 1.1 to 1.7 (P) | a ring beyond its Roche limit by more than 10 percent, or inside 1.1 radii | a larger ring sample replaces |
+| BC22 | T | T3 (masses), T6 (ranges) | L0 | 1 Log-uniform mass per kind: dusty 1e7 to 1e11 kg (Jupiter's dust 1e7 to 1e9), narrow 1e13 to 1e17 kg (Uranus about 1e16), broad 1e18 to 1e21 kg (Saturn 1.5e19, Iess et al. 2019, recalled), capped at 1e-4 of the planet's mass. The mean optical depth is an output, 3 M / (4 rho r A f), for particles of radius 1 m (10 micrometres for dust) covering a share f of the annulus (1e-3 to 1e-2 for narrow rings). | decades either side of one value per kind (P) | a measured ring mass outside its kind's range | any measured exoring replaces |
+| BC23 | T | T3 | L0 | 1 A broad ring beyond the snow line is 90 to 99 percent water ice (Saturn, Cuzzi et al. 2018, recalled), a narrow ring 0 to 30 percent (Uranus's and Neptune's are dark, no ice seen); dust and any ring inside the snow line are rock (0). | the ranges (P) | an icy ring is seen inside the snow line, or a dark ring around a cold giant is ice-rich | spectra of exorings replace |
 
 ### 5.3 Atmosphere
 
@@ -385,7 +393,7 @@ Reading the tables: **Kind** is the kind of the first-ranked fill (D, B, T, P, s
 
 ### 5.4 Count of the best fills
 
-57 lines. By the kind of the first-ranked fill: **D 15** (GR3, GR4, GR9a, GR10, GR12, GR15, GX1, GX5, BC1, BC2, BC15, BC16, AT.a1/a2, AD3, AD6), **B 28**, **T 11**, **P 3** (BC11, AT.b5, AT.n7).
+61 lines. By the kind of the first-ranked fill: **D 15** (GR3, GR4, GR9a, GR10, GR12, GR15, GX1, GX5, BC1, BC2, BC15, BC16, AT.a1/a2, AD3, AD6), **B 28**, **T 15**, **P 3** (BC11, AT.b5, AT.n7).
 
 ## 6. One convention for every filled value: the stand-in registry
 

@@ -13,6 +13,7 @@ loads fails). The exceptions below each say why.
 import pytest
 
 from planetgen import tuning
+from planetgen.physics import rings
 from planetgen.db import store
 from tests.column_read_support import columns_read, tracking_reads
 from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
@@ -98,6 +99,8 @@ NULL_IN_THIS_GALAXY = {
     **{("moons", column): CHANCE for column in (
         "interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa", "helium_depletion",
         "has_helium_shell")},
+    # A moon has no ring (GEN.732).
+    **{("moons", column): CHANCE for column in rings.BODY_FIELDS},
     **{("moon_interior_layers", column): CHANCE for column in (
         "id", "moon_id", "layer_index", "kind", "state", "top_pressure_gpa", "bottom_pressure_gpa", "mass_earth",
         "top_radius_fraction", "bottom_radius_fraction", "hydrogen", "helium", "iron", "rock", "water_liquid", "ice_x",
