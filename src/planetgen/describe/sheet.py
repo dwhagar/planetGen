@@ -554,7 +554,7 @@ def _value(spec, table, stored):
         return [NOT_STORED]
     quantity = spec.quantity
     if quantity == TEXT:
-        text = str(stored)
+        text = str(stored).replace("_", " ")    # a stored key such as technological_civilization reads as words
         return [text[:1].upper() + text[1:]]
     if quantity == FLAG:
         return ["Yes" if stored else "No"]
@@ -574,6 +574,52 @@ def _value(spec, table, stored):
         si = value * info.factor + getattr(info, "offset", 0.0)
         return [model.qty(kind, value, unit, sol=_solar_ratio(kind, si))]
     return [model.qty(kind, value, unit)]
+
+
+VACUUM_LIMIT_PA = 1e-3
+"""float: A surface pressure below this is no atmosphere for a page: it says "None" and lists no gases (UX.203)."""
+
+NO_WATER_MASS_FRACTION = 1e-6
+"""float: A dry body holding less water than this share of its mass has no water for a page (UX.203)."""
+
+NO_OCEAN_FRACTION = 1e-4
+"""float: A dry body with less of its surface under ocean than this has no water for a page (UX.203)."""
+
+LIFE_SCORES = ("life_microbial", "life_flora", "life_fauna", "life_sentient")
+"""tuple: The four life scores of a body (0 to 9); a body with all four stored and 0 has no life."""
+
+MISSING_SENTENCES = {
+    "life": "No life has been found here.",
+    "atmosphere": "It has no atmosphere.",
+    "water": "It has effectively no water.",
+}
+"""dict: The sentence a page says for each section it leaves out (`missing`), in the order the page says them."""
+
+
+def missing(kind, stored):
+    """
+    The sections of a body's page that hold only zeros (UX.203), as a list of keys of `MISSING_SENTENCES`: `life` (all
+    four life scores stored and 0), `atmosphere` (a stored surface pressure under `VACUUM_LIMIT_PA`) and `water` (a
+    dry hydrosphere with under `NO_WATER_MASS_FRACTION` of water by mass and under `NO_OCEAN_FRACTION` of the surface
+    under ocean). A value that is not stored never counts as none. Only planets and moons have these sections.
+
+    Args:
+        kind (str): The kind of the sheet.
+        stored (dict): The stored column values by sheet key.
+    """
+    if kind not in GAS_TABLES:
+        return []
+    found = []
+    scores = [stored.get(key) for key in LIFE_SCORES]
+    if all(score is not None for score in scores) and not any(scores):
+        found.append("life")
+    pressure = stored.get("atmospheric_pressure_pa")
+    if pressure is not None and pressure < VACUUM_LIMIT_PA:
+        found.append("atmosphere")
+    if (stored.get("hydrosphere") == "dry" and (stored.get("water_mass_fraction") or 0) < NO_WATER_MASS_FRACTION
+            and (stored.get("ocean_fraction") or 0) < NO_OCEAN_FRACTION):
+        found.append("water")
+    return found
 
 
 GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "moon_id")}
@@ -626,4 +672,5 @@ def sheet(conn, kind, object_id):
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value, "text": inline_text(value), "stored": True,
                                      "absent": not pascals, "show_absent": spec.key in SHOW_WHEN_ABSENT.get(kind, ())})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
-    return {"kind": kind, "groups": groups}
+    stored = {spec.key: row[spec.stored_column()] for spec in specs}
+    return {"kind": kind, "groups": groups, "missing": missing(kind, stored)}
