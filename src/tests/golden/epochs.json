@@ -642,8 +642,7 @@
     },
     {
       "epoch": 108,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2355",
       "reason": "The ground of every rocky body is drawn from its bulk fractions, temperature, air and water and stored, the ground dose reads it, and the draws after the hydrosphere move (GEN.441)",
       "affects": ["fill"]
     }
