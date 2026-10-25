@@ -576,6 +576,25 @@ Every bracket, width and ratio the mixture draw (`physics/mixture_*.py`, GEN.451
 
 The opacities of the greenhouse module (`atmosphere_state`, GEN.423) are not here: GEN.703 (lane E) moved them to `physics/infrared_opacity.py`, where its own stand-ins are stated. Not stand-ins and so not listed: `LAMBDA_KEPT` (theory: escape speed six times the rms speed, 6^2 x 3/2), `REFERENCE_AGE_GY` (the age the threshold is stated for), `UNLISTED_LIMIT` and the numerical floors.
 
+### 6.8 Stand-ins of the hours outside in a day (GEN.768)
+
+Every number the hours-outside model (`physics/outside_hours.py`, GEN.768) holds that is not a verified measurement has a row here: the reference body, the garments' insulation and thermal power, the work rate, the sweat limit and the shift. Earth's sea-level pressure and temperature (`earth_pressure_kpa`, `earth_temperature_k`) are standard-atmosphere definitions, not stand-ins. Nothing is drawn: the hours follow from the stored equipment levels, the temperatures, the daylight and the dose.
+
+<!-- outside-hours-standins:begin -->
+| fill_id | kind | tier | tweak | evidence | constant | knobs | validity | falsifier | replaced_by |
+|---|---|---|---|---|---|---|---|---|---|
+| OH1 | B | T2 | L0 | READ (reference man of ICRP Publication 23, 70 kg; Du Bois skin area 1.8 m2; mean specific heat 3470 J/(kg K), Gagge and Gonzalez), recalled, not opened | outside_hours: protection_limits.body_mass_kg, body_area_m2, body_specific_heat_j_kg_k | none (the reference adult) | every human visitor | test_the_new_limit_rows_have_a_value_a_unit_and_a_meaning | a species' own body (per-species limit rows, GEN.208) |
+| OH2 | B | T2 | L0 | READ (mean skin 34 C in balance, ISO 9886; core 37 C; hypothermia below 35 C; heat strain at 38.5 C, ISO 7933 and NIOSH), recalled, not opened | protection_limits.skin_temperature_c, core_normal_c, core_cold_limit_c, core_hot_limit_c | none | every human visitor | test_the_new_limit_rows_have_a_value_a_unit_and_a_meaning | per-species limit rows |
+| OH3 | P | T6 | L0 | design (a light to moderate working rate over a day, ISO 8996 class 1 is 65 to 130 W/m2 of skin; 150 W is 83 W/m2) | protection_limits.work_metabolism_w | 100 to 250 W | a person working outside | test_a_cold_world_is_cut_by_the_cold_near_the_bottom_of_its_garment | a work-rate table by task (the roles, 10.0) |
+| OH4 | P | T6 | L0 | design (the most a person's sweat carries off, 500 W; the physiological peak is about 1 L/h, 680 W) | protection_limits.sweat_max_w | 300 to 680 W | an unsealed garment | test_sweat_has_less_to_carry_in_thin_air_and_none_in_a_sealed_suit_or_wet_air | an acclimatisation model |
+| OH5 | B | T2 | L0 | READ (Lewis relation 16.5 K/kPa and the moisture permeability 0.38 of clothing, ISO 7933; 1 clo is 0.155 m2 K/W, ISO 9920), recalled, not opened | protection_limits.lewis_k_kpa, clothing_permeability, clo_m2_k_w | none | unsealed garments | test_sweat_has_less_to_carry_in_thin_air_and_none_in_a_sealed_suit_or_wet_air | ISO 7933 read at the source |
+| OH6 | D | T5 | L0 | COMPUTED (free convection Nu goes as Ra^(1/4), so the film goes as the square root of the gas density; 4 W/(m2 K) is a person in still air; radiation 4 e sigma T^3 with e 0.9) | protection_limits.convection_earth_w_m2_k, garment_emissivity; outside_hours._film_w_m2_k | 2 to 8 W/(m2 K) | any pressure | test_sweat_has_less_to_carry_in_thin_air_and_none_in_a_sealed_suit_or_wet_air | a forced-convection (wind) term from the world's winds |
+| OH7 | P | T6 | L0 | design (an unsealed garment worn open keeps 30 percent of its insulation in air colder than the skin) | protection_limits.vent_factor | 0.2 to 0.5 | unsealed garments | test_a_cold_world_is_cut_by_the_cold_near_the_bottom_of_its_garment | a clothing-adjustment model |
+| OH8 | P | T6 | L0 | design (insulation of each Body Protection garment, 0.5 to 10 clo: ISO 9920 clothing values for cold-weather, insulated and thermal suits) | protection_limits.GARMENTS insulation_clo | half to double | Body Protection levels 0 to 5 | test_every_garment_row_is_a_listed_body_name_and_has_a_power_only_where_it_is_active | the equipment items of the sheet (UX.199) |
+| OH9 | P | T6 | L0 | design (cooling 100 to 600 W of a cooling vest, a liquid cooling garment and a suit's thermal control, recalled from NASA's EMU at about 586 W; heating 200 to 300 W of a heated suit) | protection_limits.GARMENTS cooling_w, heating_w | half to double | Body Protection levels 1 to 5 | test_the_hotter_the_afternoon_the_fewer_the_hours_in_the_same_suit | the equipment items of the sheet (UX.199) |
+| OH10 | P | T6 | L0 | design (a work shift of 8 hours; one charge of the breathing gas lasts a share of it: mask 1, own gas 0.5, mixed gas 0.75, isolated air 1) | protection_limits.shift_hours, SUPPLY_SHIFT_SHARE | half to double | Air Supply levels 1 to 4 | test_the_supply_hours_follow_the_shift_and_ambient_air_has_none | per-item supply durations in the equipment items (UX.199) |
+<!-- outside-hours-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

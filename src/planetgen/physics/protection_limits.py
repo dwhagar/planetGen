@@ -88,6 +88,27 @@ LIMIT_ROWS = (
     Limit("dust_recommended_mg_m3", 0.1, "mg/m3", "airborne dust from here: a dust filter is recommended (NASA-STD-3001: Mars dust, 0.1 mg/m3 for 30 days)", None, None),
     Limit("dust_required_mg_m3", 10.0, "mg/m3", "airborne dust from here: a dust filter is required (NASA-STD-3001 short-term ceiling for particles under 10 micrometres)", None, None),
     Limit("work_hours_outside_yr", 2000.0, "h", "a working year outside, for the suit worn to go out from a shelter", None, None),
+    # --- Hours outside in a day (GEN.768): the body, the garments and the shift. The values are in the stand-in registry of
+    # the gap-filling plan (section 6.8) with their source tier and tweak level ---
+    Limit("body_mass_kg", 70.0, "kg", "the reference adult (ICRP Publication 23)", None, None),
+    Limit("body_area_m2", 1.8, "m2", "the reference adult's skin area (Du Bois)", None, None),
+    Limit("body_specific_heat_j_kg_k", 3470.0, "J/(kg K)", "the body's mean specific heat (Gagge and Gonzalez)", None, None),
+    Limit("skin_temperature_c", 34.0, "C", "the mean skin temperature of a person in thermal balance (ISO 9886)", None, None),
+    Limit("core_normal_c", 37.0, "C", "the core temperature at the start of a day outside", None, None),
+    Limit("core_cold_limit_c", 35.0, "C", "mild hypothermia: the core temperature below which a person is injured", None, None),
+    Limit("core_hot_limit_c", 38.5, "C", "the core temperature limit of heat strain (ISO 7933, NIOSH)", None, None),
+    Limit("work_metabolism_w", 150.0, "W", "a person working outside at a light to moderate rate over the whole day, ISO 8996 class 1 (65 to 130 W/m2 of skin)", None, None),
+    Limit("sweat_max_w", 500.0, "W", "the cooling a person's sweat carries off at most, in dry air", None, None),
+    Limit("vent_factor", 0.3, "1", "the share of its insulation an unsealed garment keeps when it is worn open in air colder than the skin", None, None),
+    Limit("lewis_k_kpa", 16.5, "K/kPa", "the Lewis relation between the convective and the evaporative heat transfer coefficients (ISO 7933)", None, None),
+    Limit("clothing_permeability", 0.38, "1", "the moisture permeability index of clothing (Woodcock; ISO 7933)", None, None),
+    Limit("clo_m2_k_w", 0.155, "m2 K/W", "the thermal resistance of one clo (ISO 9920)", None, None),
+    Limit("garment_emissivity", 0.9, "1", "the emissivity of a garment's outer surface to the surroundings", None, None),
+    Limit("convection_earth_w_m2_k", 4.0, "W/(m2 K)", "the convective film of a person in still air at Earth's sea level; it goes as "
+          "the square root of the gas density", None, None),
+    Limit("earth_pressure_kpa", 101.325, "kPa", "Earth's sea-level pressure", None, None),
+    Limit("earth_temperature_k", 288.15, "K", "Earth's sea-level standard temperature", None, None),
+    Limit("shift_hours", 8.0, "h", "a work shift outside", None, None),
 )
 
 Toxic = namedtuple("Toxic", "gas chronic_kpa idlh_kpa skin source")
@@ -131,6 +152,32 @@ RADIATION_STEPS = (
 """tuple: The five steps, lightest first (the real gear each stands for is in
 docs/design/survival-equipment-fields.md 4.5; the thicknesses are planetGen defaults)."""
 
+Garment = namedtuple("Garment", "insulation_clo cooling_w heating_w sealed")
+"""What a Body Protection garment does for the heat balance of the body under it (GEN.768): its `insulation_clo` (ISO 9920,
+1 clo is 0.155 m2 K/W), the `cooling_w` and `heating_w` of its active thermal control, and whether it is `sealed` (the sweat
+has nowhere to go)."""
+
+GARMENTS = {
+    (0, "none"): Garment(2.0, 0.0, 0.0, False),
+    (1, "cold"): Garment(3.0, 0.0, 0.0, False),
+    (1, "heat"): Garment(0.5, 100.0, 0.0, False),
+    (1, "uv"): Garment(1.0, 0.0, 0.0, False),
+    (2, "cold"): Garment(5.0, 0.0, 0.0, False),
+    (2, "heat"): Garment(3.0, 500.0, 0.0, False),
+    (2, "diving"): Garment(4.0, 0.0, 200.0, False),
+    (2, "uv"): Garment(1.5, 0.0, 0.0, False),
+    (3, "cold"): Garment(8.0, 450.0, 250.0, True),
+    (3, "heat"): Garment(8.0, 500.0, 0.0, True),
+    (3, "chemical"): Garment(2.0, 0.0, 0.0, True),
+    (4, "pressure"): Garment(3.0, 450.0, 250.0, True),
+    (5, "pressure"): Garment(10.0, 600.0, 300.0, True),
+    (5, "heat"): Garment(10.0, 600.0, 300.0, True),
+}
+"""dict: The `Garment` of each `(Body Protection level, kind)` of `equipment.BODY_NAMES`; a level 6 body (a vehicle) is not
+worn. The cooling and heating powers stand for a liquid cooling and ventilation garment (NASA EMU, 400 to 600 W) and a
+heated suit (200 to 300 W); the insulations for ISO 9920 clothing values. Each has a source tier and a tweak level in the
+stand-in registry (the gap-filling plan, section 6.8)."""
+
 LIMITS = {row.name: row for row in LIMIT_ROWS}
 """dict: The limits by name."""
 
@@ -154,3 +201,15 @@ def chosen_pairs():
         assert row.value == pick(row.built, row.notes), row.name
         out.append((row.name, row.built, row.notes, row.value))
     return out
+
+
+SUPPLY_SHIFT_SHARE = {1: 1.0, 2: 0.5, 3: 0.75, 4: 1.0}
+"""dict: The share of a work shift (`shift_hours`) one charge of the breathing gear of Air Supply level 1 (gas-mix mask), 2 (own
+gas), 3 (mixed-gas rig) and 4 (isolated air) lasts; level 0 (ambient) has no gas to run out. A person works one shift
+outside a day on one charge (GEN.768)."""
+
+
+def supply_hours(level):
+    """The hours of gas a person has outside in a day at Air Supply `level`, or `None` for ambient air."""
+    share = SUPPLY_SHIFT_SHARE.get(level)
+    return None if share is None else share * limit("shift_hours")
