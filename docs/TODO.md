@@ -1002,100 +1002,6 @@ with `clamp()`.
   Related: UX.188, UX.187.
   Prerequisites: none. Related: UX.188, UX.190, UX.187.
 
-- [ ] **UX.200 The Location block lists a system and its star separately when they share a name, shows "not inside any nebula" style lines, and links the Galaxy (bug)**
-  Boss, 7:48 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy, relayed by the
-  coordinator), live observation of the Location block on an object
-  page, so a bug: Boss: "the system and star can both be listed which
-  they have the same name, so its location should be in the system, the
-  star doesn't need to be listed separately. Instead of saying 'not
-  inside any nebula' or similar just don't put that line at all. We also
-  don't need the 'Galaxy' link, we can figure out it's in the galaxy."
-  Do: (1) when a star and its system share a name (a single star
-  system), the Location block lists only the system, and the star's own
-  page gives its place as in that system; (2) a Location line that says
-  there is nothing ("Not inside any nebula or supernova remnant" and
-  every sibling) is left out entirely, so a line appears only when it
-  holds a place; (3) remove the Galaxy link from the block. Done: a page
-  test on a single-star system finds one line for the system and none
-  for the star, a test on a star outside any nebula finds no "not
-  inside" wording, and no Galaxy link is in the block. Owner: Aux 11
-  (object pages). Related: UX.188, UX.195.
-  Prerequisites: none. Related: UX.188, UX.195, UX.187.
-
-- [ ] **UX.201 A Nav button on object pages opens one menu: navigate from here, navigate to here, nearby locations (bug)**
-  Boss, 7:48 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy, relayed by the
-  coordinator), live observation of the Location block on an object
-  page, so a bug: Boss: "Make a Nav button that opens a menu with the
-  nav from here, to here, and nearby locations." Do: replace the
-  separate Navigate from and Navigate to links on object pages with one
-  Nav button that opens a small menu with three entries: navigate from
-  here, navigate to here, and nearby locations (the nearest systems or
-  objects, each a link). The menu opens by keyboard and click, closes on
-  escape, and works on a phone width. Done: a browser test opens the
-  menu on a system page, finds the three entries, follows nearby
-  locations to another object, and the old separate links are gone.
-  Owner: Aux 11. Related: UX.200, MAP.293.
-  Prerequisites: none. Related: UX.200, UX.187.
-
-- [ ] **UX.202 Remove the "How the composition was found" line from the object pages (bug)**
-  Boss, 7:49 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiHzQ15ayumCJ2pTwJciXRKy was the Location
-  note; this one is cmsg_01RuNTFUNB92A8cm5CbojQAi8J89Q4swLrpuV9PJ6FR7HG,
-  relayed by the coordinator), live observation, so a bug: "UX, 'how the
-  composition was found' line needs to be removed". Cause: the row
-  `composition_origin` ("How the composition was found") in the
-  Composition group of the property sheet registry (describe/sheet.py
-  line 185). Do: remove the row from the sheet and from every page that
-  shows it (planet, moon, star), keeping the stored column and the
-  composition paragraph (GEN.430, GEN.642 text is Aux 6's and is not
-  changed by this item). Done: a page test finds no "How the composition
-  was found" on a planet, moon or star page, and the sheet test's "every
-  column shown or excused" excuses composition_origin as stored but not
-  shown. Owner: Aux 11 (object pages); Aux 6 (Lane J, composition) is
-  told so its composition text does not re-add the line. Related:
-  UX.187, TEST.358, GEN.430.
-  Prerequisites: none. Related: UX.187, TEST.358, GEN.430.
-
-- [ ] **UX.203 Pages state a missing thing in one sentence instead of a table of zeros: no life, no atmosphere (0 Pa), effectively no water**
-  Boss, 7:54 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
-  coordinator), Boss: "if a planet has no life, just make a note in the
-  description and don't show the table full of 0's, same for atmosphere
-  if it is 0 Pa just put 'None' for atmosphere, also if there is
-  effectively no water on the planet then put that in the description
-  and omit that section to avoid all the 0's." Do: (1) a world with no
-  life (all four life scores 0, no life stage) gets one sentence in the
-  description and no Life table; (2) a world whose surface pressure is 0
-  Pa (or below the registry's vacuum limit) shows the Atmosphere entry
-  as "None" and no Atmosphere section or gas rows; (3) a world with
-  effectively no water (hydrosphere none or ocean and ice fraction below
-  the registry's limit, and no vapour) says so in the description and
-  the Water section is omitted; the limits are named constants in one
-  place. This extends the absent-value rule of UX.188 to UX.194 to whole
-  sections. Done: page tests on a barren airless dry world find no Life
-  table, no Atmosphere section, no Water section and the three
-  sentences; a world with a thin atmosphere or a trace of water still
-  shows its section. Owner: Aux 11. Related: UX.188, UX.198, UX.199,
-  GEN.766.
-  Prerequisites: none. Related: UX.188, UX.198, UX.199, GEN.766.
-
-- [ ] **UX.204 Every collapsible section on an object page starts collapsed**
-  Boss, 7:54 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
-  coordinator), Boss: "all sections that can be collapsed should be
-  collapsed at start". Do: every collapsible section (property sheet
-  groups, the long text blocks, the tables) starts collapsed when the
-  page loads, on planet, moon, star, system and every other object page;
-  the headings stay visible and the table of contents (UX.196) still
-  opens a section when its link is followed; a section the visitor
-  opened stays open while they use the page. Done: a browser test loads
-  a planet page and finds every collapsible section collapsed, follows a
-  contents link and finds that section open. Owner: Aux 11. Related:
-  UX.195, UX.196.
-  Prerequisites: none. Related: UX.195, UX.196.
-
 - [ ] **UX.205 Object pages show the day and night time shares, moons with the extra night from their planet**
   Boss, 7:54 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
@@ -1160,27 +1066,6 @@ with `clamp()`.
   UX.179, PERF.134, ADM.44, MAP.158.
   Prerequisites: UX.179. Related: UX.179, PERF.134, ADM.44, MAP.158.
 
-- [ ] **UX.207 Breadcrumb bar: the system link is labelled "System" and the star link carries the star(s) name (bug)**
-  Boss, 8:29 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi6oJmNKFKoyienFmHsrWDEM, relayed by the
-  coordinator), live observation, so a bug: "In the breadcrumb bar label
-  the link for the system as 'System' and the star being the star(s)
-  name." On the Enuakyadas IV page the trail reads Home, Galaxy, Taraatr
-  Velkiso, Enuakyadas, Enuakyadas, Enuakyadas IV, where the third and
-  fourth links are the system and its star, both named Enuakyadas, so
-  they cannot be told apart. Do: on every page whose trail passes
-  through a system and its star(s), the system link reads "System" and
-  the star link reads the star's name (for a multiple system the star
-  names joined as the page already writes them, for example "Alpha A and
-  B"); a lone body that has no star in the trail keeps its place. The
-  same labels in the trail's structured data (JSON-LD breadcrumb list)
-  and the page titles that use the trail. Done: a page test on a
-  single-star system's planet page finds the trail ending "..., System,
-  Enuakyadas, Enuakyadas IV" with the right links, and one on a binary
-  system's planet page finds both star names. Owner: Aux 11 (object
-  pages). Related: UX.200, UX.188.
-  Prerequisites: none. Related: UX.200, UX.188.
-
 - [ ] **UX.208 Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column**
   Boss, 8:29 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi6oJmNKFKoyienFmHsrWDEM was the breadcrumb
@@ -1231,6 +1116,10 @@ with `clamp()`.
   follows the new order. Done: a page test finds the section order on a
   planet, a moon and a star page and the contents list in the same
   order. Owner: Aux 11 (object pages). Related: UX.195, UX.196, UX.204.
+  Research (2026-10-09, Progress): Part of this landed with #3185
+  (UX.203, UX.204, UX.207), whose title says About before Properties:
+  Aux 11 confirms whether the order At a glance, About, Properties list,
+  other details is complete before UX.209 is retired.
   Prerequisites: none. Related: UX.195, UX.196, UX.204.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -4630,29 +4519,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.96, GEN.97.
-
-- [ ] **GEN.180 Directives: a forced fill (met_forced) after K failed draws, and refusal of impossible requests up front**
-  Left over from GEN.96 (PR #915, Foundations lane 1). Done: when a
-  directive is not met after K draws (K set in tuning.py), the generator
-  takes the fallback fill marked `met_forced` instead of failing or
-  looping, and the result says it was forced; a test covers a directive
-  that cannot be met by drawing.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): GEN.181 folded in. Also refuse impossible requests up
-  front: before any drawing, a directive whose requested mix cannot
-  occur in the sector (judged from the compound-Poisson tables) is
-  refused with the reason, in the Generate page and the CLI. GEN.179
-  stores the `met_forced` status in its attempt record.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: Core 5 (Boss, 2026-10-17, 10:39 AM EDT, card "Apply TODO's
-  three small lane reorderings?", tapped "Apply all three", relayed in
-  words; Core 1 confirmed at 10:41 AM EDT as the lane reported that it
-  has not started it): it sits beside PERF.99, GEN.310 and GEN.231,
-  whose files it shares (the Generate page, cli/generate.py,
-  run_plan.py). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: GEN.96, GEN.179.
 
 - [ ] **GEN.197 Orbital event record: the `record_event` writer and the object-ID rules for ejection, capture, merger and split**
   Source: docs/design/architecture/object-id-options.md section 0 (Boss decided
@@ -19624,6 +19490,17 @@ clears each one.
   the test passes on a documented machine, or the root cause is fixed.
   Owner: Bug 1. Related: TEST.375, TEST.370.
   Prerequisites: none. Related: TEST.375, TEST.370.
+
+- [ ] **TEST.378 test_no_todo_codes_shown fails on main: the composition_origin reason in describe/sheet.py names UX.202 in a shown string (bug)**
+  Found by Core 5 (8:51 PM EDT 2026-10-24 as the lane reported) on clean
+  main after #3174. src/planetgen/describe/sheet.py (the _BODY_NOT_SHOWN
+  entry for composition_origin, line 421) carries "(UX.202)" inside a
+  string, and test_no_todo_codes_shown (UX.93) forbids a TODO code in
+  the strings the code shows. Do: cut the code from the string (a
+  comment may keep it); check the other entries added by UX.203 and
+  UX.204 in the same file for the same. Done: test_no_todo_codes_shown
+  passes. Owner: Aux 11. Related: UX.93, UX.202.
+  Prerequisites: none. Related: UX.93, UX.202.
 
 ## USR: User accounts
 

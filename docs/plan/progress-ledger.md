@@ -1444,3 +1444,10 @@ Baseline: PR #1817.
 | ADM.129 | 8.1 | The headline closes |
 | UX.125 | 8.1 | Admin control suite |
 | DB.100 | 8.1 | Habitability system |
+| GEN.180 | 8.1 | Generate page and directives |
+| UX.207 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.204 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.203 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.202 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.201 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.200 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
