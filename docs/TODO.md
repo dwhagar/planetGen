@@ -20155,6 +20155,17 @@ clears each one.
   Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.34. Related: TEST.380, TEST.381, POP.33, MAP.310, NAV.63.
 
+- [ ] **TEST.383 test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug)**
+  Aux 4 final full check (219 minutes, 24446 passed, 24 failed), relayed
+  10:20 PM EDT 2026-10-24 as the lane reported; list in
+  reports/lane-e-full-check-2026-10-24.md. This test fails when run
+  alone (not an order dependence), in the wheel zoom anchor on empty
+  space of the sector reach map. Find out whether the test or the zoom
+  code is wrong, fix it, and keep the test. Done: the test passes alone
+  and in the file, and the cause is written in the PR. Version 8.1.
+  Owner: Aux 10 (map nodes and zoom) or Core 2.
+  Prerequisites: none. Related: MAP.293, TEST.375.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
