@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2309] - 2026-10-25
+
+**Headline:** A report now shows which property-sheet columns are never filled for which kind of world.
+
+### Changed
+- `scripts/sheet_fill_report.py` generates sample systems and counts, for every kind, class and sheet column, how often it is filled, empty where it applies and empty where it does not. The rules that say where a column does not apply (giants have no surface, airless worlds have no air column, oceans need a liquid ocean, and so on) are in `describe/sheet.py` (`APPLIES`) with a sentence of reason each (UX.208).
+
 ## [8.0.2308] - 2026-10-25
 
 **Headline:** A world with flora, fauna or a civilization now has food in its Suitability rating even when its ocean is under ice, and the life and timeline text says what is there, in the present tense.
