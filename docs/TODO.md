@@ -14945,28 +14945,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.725 registry rows.
   Prerequisites: GEN.733, GEN.809, GEN.810, GEN.811. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
 
-- [ ] **GEN.802 Wire the formation-distance water law into the atmosphere recipes b1 to b4 and reconcile it with the GEN.510 mass law (GEN.481b)**
-  Citations lane (Aux 17), GEN.481 and GEN.482 merged #3220, relayed
-  10:35 PM EDT 2026-10-24 as the lane reported
-  (docs/design/composition/volatile-delivery-formation-distance.md and
-  magma-ocean-redox-against-mass.md). The Bern population puts
-  water-rich planets at x = a_form / a_snow of 0.15 to 0.95 (2 to 85
-  percent of the water), only 6.8 percent start at x below 1, so the b4
-  gate x >= 1 and the b1 to b3 centre are contradicted; the GEN.510 mass
-  law and this law must not be multiplied. Wire the law into recipes b1
-  to b4, reconcile it with GEN.510 (one law, not two), update the recipe
-  data and its builder. Done: the water share of a sample of 1,000
-  planets follows the sourced population against formation distance and
-  mass, a test pins that the two laws are not multiplied, and the
-  stand-in registry rows are updated. Changes drawn output:
-  `tests.golden_update --reason ... --affects fill` and the next epoch.
-  Version 8.1. Owner: Citations lane (Aux 17).
-  Research (2026-10-09, Citations lane report): The Citations lane did
-  GEN.482b itself (#3240, 10:48 PM EDT 2026-10-24 as the lane reported)
-  and does not take this one. Owner: Aux 8 (atmosphere recipes), after
-  GEN.815 and GEN.818.
-  Prerequisites: none. Related: GEN.481, GEN.510, GEN.725.
-
 - [ ] **GEN.804 Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1)**
   Unused stored values audit chain
   (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
@@ -15117,7 +15095,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   high-pressure-ice seal after Kite and Ford 2018 and Krissansen-Totton
   and Catling 2017 and say what the model does not do. Done: the
   water-world temperature distribution is within the published range,
-  with the sources cited. Owner: Aux 6 (bulk composition) or Aux 8.
+  with the sources cited. Owner: Aux 8 (Lane L, taken 12:26 AM EDT 2026-10-25).
   Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); stand-ins get GEN.725 registry rows with a tier and tweak
   level; a changed generated value carries `tests.golden_update --reason
