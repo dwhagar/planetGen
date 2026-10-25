@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.212 |
 | MAP | MAP.311 |
 | NAV | NAV.64 |
-| GEN | GEN.775 |
+| GEN | GEN.792 |
 | PERF | PERF.195 |
 | DB | DB.106 |
 | API | API.34 |
@@ -1471,7 +1471,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.731 | Planet spin: day length from accretion angular momentum, tidal despinning with per-body Q and k2, and spin-orbit resonances | none | open |
 | GEN.732 | Planetary rings: existence, mass, extent and composition from the Roche limit and a disrupted moon or captured body | none | open |
 | GEN.733 | Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model | none | open |
-| GEN.734 | Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance | none | open |
+| GEN.734 | Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance | none | done, PR #3207 |
 | GEN.735 | Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate | none | open |
 | GEN.736 | Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model | none | open |
 | GEN.737 | Tidal heating from the orbit's real eccentricity for rocky bodies and planets, with the random 1 to 50 boost removed | none | open |
@@ -1512,6 +1512,23 @@ Parents marked "new parent" had no old number of their own.
 | GEN.772 | Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug) | none | open |
 | GEN.773 | A temperature difference is never converted as a temperature: the day and night swing of 9.07 K shows as 9.07 K (or 9.07 C degrees), not -264 C (bug) | none | open |
 | GEN.774 | Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows | none | open |
+| GEN.775 | Replace the planet-minus-star Fe/Mg scatter and super-Mercury tail (registry row BC8) with a larger sample of rocky planets with precise masses and stellar Fe/Mg | none | open |
+| GEN.776 | Replace the rogue-planet volatile loss at ejection (registry row BC11) with a measured atmosphere or free-floating-planet volatile survey | none | open |
+| GEN.777 | Replace the core light-element split (registry row BC18) with a second body that has seismic or core-density data | none | open |
+| GEN.778 | Fill tidal_flux_w_m2 for planets and moons: tidal heating flux at the surface from eccentricity, spin and the body's interior (never filled in the sample) | none | open |
+| GEN.779 | Fill induced_moment_a_m2: the induced magnetic dipole moment of conducting oceans and cores in a varying field (never filled; every planet empty) | none | open |
+| GEN.780 | Fill porosity for rocky and icy bodies: the surface and crust porosity from composition and gravity (never filled) | none | open |
+| GEN.781 | Fill hp_ice_km: the thickness of the high-pressure ice layer under an ocean (never filled) | none | open |
+| GEN.782 | Fill ice_shell_km for every world with a surface ice shell, and state in the sheet rule which worlds have none | none | open |
+| GEN.783 | Fill shelter_column_g_cm2: the column mass of rock or ice that shields a shelter from radiation, for every world where it applies | none | open |
+| GEN.784 | Fill energy_flux_w_m2 and flux_variation for giant planets: internal and absorbed energy flux and its variation (never filled for classes I, J, T) | none | open |
+| GEN.785 | Fill star decay_age_yr and lethal_event_rate_per_gyr (never filled for any star) | none | open |
+| GEN.786 | Fill star state (never filled for any star): the evolutionary state of each star | none | open |
+| GEN.787 | Fill star disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au for the stars that have a disk (never filled except for one G star) | none | open |
+| GEN.788 | Fill star flare_alpha, uv_c_share, log_lx_lbol and lifespan_gy for stars of classes A to F and the G and K stars where they are empty | none | open |
+| GEN.789 | Write the sheet rule for wide_binary_a_crit_km: not applicable to a single star, filled for a binary (348 of 522 stars empty) | none | open |
+| GEN.790 | Write the sheet rule for the comet columns mean_anomaly_deg, orbital_period_years and period_class (54 of 234 comets empty) | none | open |
+| GEN.791 | Generator switch that forces a planet or moon class so a sample can hold at least 30 of every class (random generation gives under 30 of classes O, P, T, V, E, K, L, N, F, G) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
