@@ -11979,6 +11979,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Group 1 (2026-10-09): Group 1 (10 sites) merged in #2801 (lane J,
   about 10:55 PM EDT 2026-10-23 as the lane reported); further file
   groups stay open.
+  Part merged (2026-10-09): Part merged as #3352 (Aux 14, as the lane
+  reported 5:01 AM EDT 2026-10-25): the Kepler recovery, radius valley,
+  mass-radius and JWST tuning modules read the Sun's radius from the one
+  shared constant (bit-identical, no epoch, no golden change). Keep
+  open: the remaining sites (solar mass 1.989e30 copies,
+  physics/units.py helpers, light-year conversions) change the last
+  digit and need an epoch; that pass takes a place in the
+  generation-merge lock, ideally in one PR and one epoch together with
+  GEN.836 (moon and rogue rings) so the two share a golden run.
   Prerequisites: none. Related: GEN.550, GEN.565, GEN.568, GEN.569.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
 
