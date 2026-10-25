@@ -2124,7 +2124,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.181 | CRITICAL (bug): MySQL is killed out of memory during New galaxy Stage 7 (scatter --mass), 65,536 shells and 19,795 components (bug) | none | done, PR #3031 |
 | PERF.182 | Finish an incomplete run: resume a New galaxy run that died partway from the stage it stopped in | none | open |
 | PERF.183 | Nightly New galaxy smoke: stage times and peak memory per stage, fail above a budget | none | done, PR #3078 |
-| PERF.184 | Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug) | none | open |
+| PERF.184 | Time estimates break when the server has no benchmark run: estimate from what is known and update as the system records how long each star, layer or unit takes (bug) | none | done, PR #3176 |
 | PERF.185 | A hard host-wide cap on the total number of planetgen worker processes, across every lane and command, as a second guard against memory exhaustion | none | done, PR #3040 |
 | PERF.186 | CRITICAL (bug): Cancel does not cancel, python workers keep saturating the host; add a working Stop everything that cancels all runs, kills all workers and blocks any new start until the owner says so (bug) | none | done, PR #3078 |
 | PERF.187 | The phenomena scatter holds 6.4 GB in its own process while every other generate step stays under 300 MB: find what it keeps and bound it (high priority) (bug) | none | done, PR #3125 |
