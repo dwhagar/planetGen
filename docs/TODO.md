@@ -20914,6 +20914,15 @@ clears each one.
   red tests on clean main from the dense_site fixture:
   test_a_double_click_on_a_star_flies_to_it and
   test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box.
+  Finding (2026-10-09): Bug 1, as the lane reported 3:10 AM EDT
+  2026-10-25: the 11 red fixture-map tests have two test-side causes:
+  the default 800x600 test window cuts the map off below the taller
+  header, and since MAP.298 a click or hover on a name takes the click
+  instead of the star or marker under it. Fix in progress: default test
+  window 1000x800, maps opened with the names hidden except in the tests
+  of the names (marked labels). TEST.383 (wheel anchor test, bound
+  assumed a square-ish window) handed from Aux 10 to Bug 1, which now
+  computes the focus-plane distance of the corner.
   Prerequisites: none. Related: MAP.297, TEST.390.
 
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
@@ -20934,24 +20943,6 @@ clears each one.
   --resume; the full run belongs to the end-of-version bug hunt only.
   Prerequisites: GEN.689, GEN.828, GEN.829, GEN.728. Related: GEN.646,
   GEN.689, GEN.27, GEN.350.
-
-- [ ] **TEST.396 test_fuzz_web_routes is red on main: the admin queue log route answers 302 where the test expects 403 (bug)**
-  Core 2, as the lane reported 3:00 AM EDT 2026-10-25 (not its change),
-  after merging #3327: test_fuzz_web_routes fails on main for the admin
-  queue log route, 302 against an expected 403. Find out which side
-  moved (the route now redirects an anonymous or non-admin caller to the
-  login page where the test and the rule say a refusal, or the test list
-  of expected codes is stale after a route change) and fix that side. If
-  the route should refuse with 403 for a signed-in non-admin and
-  redirect only a visitor who is not signed in, say which and pin it in
-  the test; do not loosen the test to accept either without a reason.
-  Check TEST.390 and the other admin routes for the same pattern. Done:
-  test_fuzz_web_routes passes on main in scripts/test.py changed
-  --resume and the admin routes answer one documented code each. Owner:
-  Bug 1 (one-off while DB.107 lands), or Aux 12 if the fault is in the
-  access rules. Rules: no backward-compat shims; never skip or
-  quarantine the test.
-  Prerequisites: none. Related: TEST.390, TEST.394.
 
 ## USR: User accounts
 
