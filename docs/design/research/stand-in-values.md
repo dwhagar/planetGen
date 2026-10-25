@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 128 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 139 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 21 | 0 | 3 | 0 | 0 | 24 |
-| T2 | 31 | 0 | 0 | 0 | 0 | 31 |
-| T3 | 28 | 0 | 0 | 0 | 0 | 28 |
+| T1 | 28 | 0 | 3 | 0 | 0 | 31 |
+| T2 | 32 | 0 | 0 | 0 | 0 | 32 |
+| T3 | 31 | 0 | 0 | 0 | 0 | 31 |
 | T4 | 5 | 0 | 0 | 0 | 0 | 5 |
 | T5 | 5 | 3 | 0 | 0 | 0 | 8 |
 | T6 | 11 | 5 | 1 | 3 | 0 | 20 |
 | T7 | 9 | 2 | 0 | 1 | 0 | 12 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 110 | 10 | 4 | 4 | 0 | 128 |
+| All | 121 | 10 | 4 | 4 | 0 | 139 |
 
 ## How the labels were given
 
@@ -210,3 +210,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM49 | B | T3 | L0 | sulfur_balance.CRUST_IRON_WT | 0.074, fixed | the crust the volcanism builds (a basalt) | test_sulfur_balance::test_the_capacity_is_one_calcium_and_one_iron_per_sulfur | the crust composition of the surface composition model | READ from memory, not re-checked (mid-ocean ridge basalt 9.5 wt% FeO, White and Klein 2014) |
 | AM50 | B | T1 | L2 | mixture_rocky.INVENTORY | dry class CO2 0.018 to 0.1 wt%, log | rocky bodies | test_volatile_inventory_totals::test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it | the Ortenzi dry case reproduced, or the carbon of the Venus and Mars interiors | READ (Ortenzi et al. 2020 Table 1: dry class stored 0.018 wt% CO2, wet High delivered 0.1) and tuned to the bulk silicate Earth's 100 ppm carbon (Bergin et al. 2015 Table S1); the delivered 0.6 wt% is not used (GEN.813) |
 | AM51 | B | T3 | L0 | mixture_lava.ALUMINA_ACTIVITY_COEFFICIENT | 1, fixed (Al2O3 activity is its mole fraction) | a silicate melt near the bulk silicate Earth's (a more aluminous or alkali-rich melt is not ideal) | test_atmosphere_mixture_lava::test_a_more_aluminous_melt_has_more_aluminium_in_its_vapour | the melt activity model of GEN.499 | SECOND-HAND (Fegley, Lodders and Jacobson 2023: the activity-coefficient models of the BSE melt agree with an ideal solution except for the alkalis, aluminium not among the sensitive elements; abstract only) |
+| AM52 | B | T3 | L0 | waterworld_carbon.SEAL_PRESSURE_PA | 1 to 3 GPa, uniform | the seafloor pressure of an ocean world | test_waterworld_carbon::test_the_drawn_brackets_stay_inside_their_ranges_and_are_recorded | a mantle melting model with the solidus of a water-world interior (GEN.411 interior) | SECOND-HAND (Kite and Ford 2018 impose an abrupt 1 GPa cutoff and note that the mantle stops melting enough between 1 and 3 GPa, Kite et al. 2009 and Noack et al. 2016; text read, the cited papers not) |
+| AM53 | B | T1 | L0 | waterworld_carbon.SEAL_TIME_GY | 0.1 Gy, fixed | a sealed world | test_waterworld_carbon::test_the_dispatch_follows_the_seal_then_the_land | a degassing history of the sealed mantle that ends when the melt column does | READ (Kite and Ford 2018 section 2 item 4: C exchange between mantle and ocean shuts down within about 1e8 yr of the last giant impact; the system is closed after t0 = 0.1 Gy) |
+| AM54 | B | T3 | L0 | waterworld_carbon.ALTERED_CRUST_KM | 0.1 to 50 km, log | a sealed world | test_waterworld_carbon::test_the_leached_cations_scale_with_the_crust_and_match_the_concentration_of_kite_and_ford | a reaction-transport model of the early ocean and the crust | SECOND-HAND (Kite and Ford 2018 section 3.1: effective rock-layer thickness 0.1 to 50 km, from Earth-like extrusive alteration to a pervasive stagnant-lid pile, intrusive to extrusive ratio included; text read) |
+| AM55 | B | T1 | L0 | waterworld_carbon.CRUST_SODIUM_WT | 0.028, fixed | the crust the volcanism builds (a basalt) | test_waterworld_carbon::test_the_leached_cations_scale_with_the_crust_and_match_the_concentration_of_kite_and_ford | the crust composition of the surface composition model | READ (Kite and Ford 2018 Eq. 4: Na0 = 0.028 of the crust from Gale et al. 2013; calcium from the crust of AM48; rock density 3000 kg per m3) |
+| AM56 | B | T3 | L0 | waterworld_carbon.CARBONATE_FITS | five fits, fresh water, 273 to 373 K (clamped), no activity corrections | a sealed ocean | test_waterworld_carbon::test_the_carbonate_constants_reproduce_the_values_at_298_k | the Pitzer or TEOS-10 constants of seawater with the salinity of the leached ocean | READ from memory, not re-checked (Plummer and Busenberg 1982 for the carbonate system and calcite, Harned and Hamer 1933 for water; each reproduces the 298.15 K value in the test) |
+| AM57 | B | T1 | L0 | waterworld_carbon.SEAFLOOR_ACTIVATION_KJ_MOL | 40 to 110 kJ per mol, uniform | an unsealed world with no land | test_waterworld_carbon::test_the_drawn_brackets_stay_inside_their_ranges_and_are_recorded | the posterior of an inverse model of the world, or a measured seafloor alteration law | READ (Krissansen-Totton and Catling 2017 Table 1 prior of the basalt dissolution activation energy, E_bas; posterior 75, 53 to 97 kJ per mol) |
+| AM58 | B | T1 | L0 | waterworld_carbon.SEAFLOOR_PH_EXPONENT | 0 to 0.5, uniform | an unsealed world with no land | test_waterworld_carbon::test_the_drawn_brackets_stay_inside_their_ranges_and_are_recorded | as AM57 | READ (Krissansen-Totton and Catling 2017 Table 1 prior of gamma, the pH exponent of the seafloor dissolution; posterior 0.27, 0.11 to 0.43) |
+| AM59 | B | T1 | L0 | waterworld_carbon.SEAFLOOR_SPREADING_EXPONENT | 0 to 1, uniform | an unsealed world with no land | test_waterworld_carbon::test_the_drawn_brackets_stay_inside_their_ranges_and_are_recorded | as AM57 | READ (Krissansen-Totton and Catling 2017 Table 1 prior of beta, the spreading-rate exponent; posterior 0.47, 0.15 to 0.82; here the heat flow plays the spreading) |
+| AM60 | B | T1 | L0 | waterworld_carbon.SEAFLOOR_SHARE_OF_OUTGASSING | 0.0682, fixed | an unsealed world with no land | test_waterworld_carbon::test_the_modern_seafloor_sink_is_the_small_share_of_the_outgassing_of_the_source | a seafloor flux budget measured per unit crust age | READ (Krissansen-Totton and Catling 2017: modern seafloor carbonate precipitation 0.45 Tmol C per yr over the modern outgassing 6.6 Tmol C per yr) |
+| AM61 | B | T1 | L0 | waterworld_carbon.DEEP_OCEAN_GRADIENT | 1.02, with 274.037 K at 285 K and +9 K | an unsealed world with a liquid ocean | test_waterworld_carbon::test_the_seafloor_rate_is_the_modern_one_at_the_modern_state | an ocean circulation model for the deep and pore temperatures | READ (Krissansen-Totton and Catling 2017 Eq. 12: deep ocean 1.02 K per K of the surface, 274.037 K at 285 K, pore water 9 K warmer) |
+| AM62 | B | T2 | L0 | waterworld_carbon.PH_PER_PCO2_EXPONENT | 1.34, fixed | seafloor weathering, pCO2 below tens of bar | test_waterworld_carbon::test_the_seafloor_rate_rises_with_the_temperature_the_carbon_dioxide_and_the_heat_flow | the carbonate speciation of the pore water at the pCO2 of the world | SECOND-HAND (Krissansen-Totton and Catling 2017 Eq. 1 as restated: the hydrogen ion molality rises as the pCO2 to the 1/1.34, after Brady and Gislason 1997; the equation was an image in the text read) |

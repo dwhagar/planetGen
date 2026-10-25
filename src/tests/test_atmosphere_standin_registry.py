@@ -30,6 +30,10 @@ STANDINS = (
     "impact_history.DIAMETER_RANGE_KM", "impact_history.SVETSOV_GAMMA", "impact_history.IMPACTOR_ESCAPE_COEFFICIENT",
     "sulfur_balance.WET_LIFETIME_DAYS", "sulfur_balance.DRY_LIFETIME_YEARS", "sulfur_balance.CRUST_PER_PROCESSED_MANTLE",
     "sulfur_balance.CRUST_CALCIUM_WT", "sulfur_balance.CRUST_IRON_WT",
+    "waterworld_carbon.SEAL_PRESSURE_PA", "waterworld_carbon.SEAL_TIME_GY", "waterworld_carbon.ALTERED_CRUST_KM",
+    "waterworld_carbon.CRUST_SODIUM_WT", "waterworld_carbon.CARBONATE_FITS", "waterworld_carbon.SEAFLOOR_ACTIVATION_KJ_MOL",
+    "waterworld_carbon.SEAFLOOR_PH_EXPONENT", "waterworld_carbon.SEAFLOOR_SPREADING_EXPONENT",
+    "waterworld_carbon.SEAFLOOR_SHARE_OF_OUTGASSING", "waterworld_carbon.DEEP_OCEAN_GRADIENT", "waterworld_carbon.PH_PER_PCO2_EXPONENT",
 )
 
 
