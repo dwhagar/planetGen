@@ -657,6 +657,13 @@
       "first_release": "8.0.2366",
       "reason": "The sulfur in the air of a rocky or icy world is what the sulfate and sulfide sinks of its crust leave (rain-out over an ocean, sulfation of the rock on a dry surface), not a drawn share (GEN.815), so the sulfur gases of many airs, and the pressure and temperature that follow, change",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 111,
+      "first_release": null,
+      "pending": true,
+      "reason": "A planet's or moon's composition text is now written from its stored bulk fractions by fixed thresholds in place of the class's fixed string (GEN.430), so the text of every body is new",
+      "affects": ["fill"]
     }
   ]
 }
