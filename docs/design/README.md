@@ -144,6 +144,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [radius-valley-tuning.md](composition/radius-valley-tuning.md) | The tuning of the envelope rows e1 and e2 to the Kepler radius valley (GEN.509) | built |
 | [water-delivery-tuning.md](composition/water-delivery-tuning.md) | The mass law of the water-rich row b4 from the Bern population synthesis (GEN.510) | built |
 | [clathrate-brine-wiring.md](composition/clathrate-brine-wiring.md) | Hydrate cages in the ice skin and brine lids read by the generator (GEN.762) | built |
+| [iron-branch-tuning.md](composition/iron-branch-tuning.md) | The iron branch of a rocky planet: star-matched or iron-enriched, tuned to the homogeneous samples (GEN.512) | built |
 | [giant-planet-tuning.md](composition/giant-planet-tuning.md) | The retune of the giant enrichment and C/O rows f5 and f7 (GEN.516) | built |
 | [brown-dwarf-types.md](composition/brown-dwarf-types.md) | The brown-dwarf type map from the Kirkpatrick 2021 temperature polynomials, rows g1 to g5 (GEN.517) | built |
 | [aerosol-tuning.md](composition/aerosol-tuning.md) | The titanium cold-trap step, row h4, and what waits for the chemistry module (GEN.519) | built |
