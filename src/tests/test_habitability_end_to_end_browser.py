@@ -166,6 +166,26 @@ def _legend_number(text):
     return float(text.replace(",", ""))
 
 
+@pytest.mark.parametrize("size", [{"width": 1280, "height": 800}, {"width": 400, "height": 800}])
+def test_every_galaxy_map_shader_compiles_over_a_sector_window(page, habitable_galaxy, size):
+    """MAP.293, MAP.294: every material of the Galaxy Map (stars, glow, block prisms, markers) compiles in the view that
+    shows sectors, at a desktop and a phone width. A shader that does not compile draws nothing (the sectors' colour
+    vanished) and logs one console error the first time it is used, so the view that fills them is drawn here."""
+    problems = []
+    page.on("console", lambda message: problems.append(message.text) if message.type == "error" else None)
+    page.set_viewport_size(size)
+    _open_galaxy(page, habitable_galaxy.base_url, "")
+    page.evaluate("([cell, g]) => document.querySelector('#galaxymap3d-canvas').galaxyOpenWindow(cell, g)",
+                  [{"m": 1, "shell": 1, "band": 0, "wedge": 0}, 3])
+    _settle(page)
+    _open_menu(page)
+    page.select_option("#galaxymap3d-color-by", "habitable")      # the blocks' own shader is only used once they are filled
+    _open_menu_closed(page)
+    _settle(page)
+    page.wait_for_timeout(500)
+    assert not [text for text in problems if "shader" in text.lower() or "WebGLProgram" in text], problems
+
+
 def test_a_sector_is_coloured_by_its_habitable_worlds_and_the_legend_holds_the_stored_count(page, habitable_galaxy):
     # The stage the map reads carries the stored count for the block that holds both sectors.
     _open_galaxy(page, habitable_galaxy.base_url, "")

@@ -786,8 +786,7 @@ function initGalaxyMap3d(canvasEl, data) {
         "  vFill = prismFill;",
         "  vUv = faceUv;",
         "  vCenter = prismCenter;",
-        "  vec3 relative = (position - camHigh) + (starLow - camLow);",
-      "  vec4 mvPosition = vec4(viewRotation * relative, 1.0);",
+        "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
         "  vView = mvPosition.xyz;",
         "  gl_Position = projectionMatrix * mvPosition;",
         "  #include <logdepthbuf_vertex>",
@@ -1608,7 +1607,8 @@ function initGalaxyMap3d(canvasEl, data) {
       "  vColor = starColor;",
       "  float zoomShown = starNode;",
       "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0) * mix(1.0, zoomShown, zoomFadeOn);",
-      "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
+      "  vec3 relative = (position - camHigh) + (starLow - camLow);",
+      "  vec4 mvPosition = vec4(viewRotation * relative, 1.0);",
       // MAP.187: stars are not part of the near field -- it thins the blocks'
       // density and cell boxes only, so a star never vanishes in front of
       // the camera or on the line to the focus.
