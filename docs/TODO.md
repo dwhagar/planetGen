@@ -21006,6 +21006,39 @@ clears each one.
   scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.398, PERF.181.
 
+- [ ] **TEST.403 Three scatter tests are far too slow: test_a_galaxy_with_no_scatter_still_rolls_its_own runs over 4.5 minutes, and two others hang for an hour under -n 4 (bug)**
+  Found by Aux 5 (Lane H, as the lane reported 4:18 AM EDT 2026-10-25)
+  on clean main:
+  tests/test_phenomenon_scatter.py::test_a_galaxy_with_no_scatter_still_rolls_its_own
+  runs over 4.5 minutes, stuck in store.nearest and
+  refresh_nearest_systems;
+  test_a_plan_records_its_cut_and_a_fill_draws_below_it and
+  test_built_neutron_stars_sit_where_the_scatter_put_them hang for an
+  hour under -n 4. Do: profile the three, find the shared slow call
+  (store.nearest or refresh_nearest_systems doing a full scan, a missing
+  index, a galaxy size too large for the fixture) and make the fixture
+  smaller or the call indexed so each finishes in seconds; no test is
+  skipped. Done: the three tests each finish within the per-test time
+  limit under -n 4. Owner: Aux 16 (performance) if still running,
+  otherwise a free lane (PERF.174/175 family). Rules: no backward-compat
+  shims; never skip or quarantine a test; scripts/test.py changed
+  --resume.
+  Prerequisites: none. Related: PERF.174, PERF.175, PERF.193.
+
+- [ ] **TEST.404 golden_update's first run wrote galaxy.json with the sector section made before the epoch bump, so test_golden_seed failed until a second run on the same tree (bug)**
+  Found by Aux 5 (as the lane reported 4:18 AM EDT): the first python -m
+  tests.golden_update run after an epoch bump wrote galaxy.json with the
+  sector section made before the bump, so test_golden_seed failed until
+  golden_update ran a second time on the same tree. Do: make
+  golden_update read the epoch it just wrote (or bump first and
+  regenerate every section after), so one run leaves a consistent tree;
+  add a test that runs the tool once on a fixture tree after a bump and
+  checks every section carries the new epoch. Done: one run is enough.
+  Owner: Bug 1 (with TEST.399, same area; this may be the cause of
+  TEST.399). Rules: no backward-compat shims; never skip or quarantine a
+  test; scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.399, GEN.764.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
