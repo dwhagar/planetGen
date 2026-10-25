@@ -539,3 +539,4 @@ Update 11:55 PM EDT 2026-10-24: retired GEN.818 (#3264, Aux 8, as the lane repor
 
 Update 11:57 PM EDT 2026-10-24: retired GEN.701 (#3265, Aux 3, as the lane reported 11:56 PM EDT: rogue planets get habitability scores; migration 0158, generator epoch 103). 4c did not take 103 as expected; next free epoch 104, migration 0159. Aux 3 is on ADM.132, then POP.37. Filed OPS.75 and OPS.76 (Boss's update.sh bugs) for Aux 12, merged in #3266.
 Filed PERF.199 (Boss bug, 11:56 PM EDT: the words 'rough guess' come out of every ETA and time estimate display), owner Aux 16.
+Update 12:06 AM EDT 10-25: ADM.132 retired (PR #3268, Lane D).

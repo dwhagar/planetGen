@@ -18140,27 +18140,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: ADM.130. Related: ADM.52, ADM.58, ADM.60, ADM.66,
   ADM.81, POP.13.
 
-- [ ] **ADM.132 After an admin edit of a planet or moon, its habitability, Suitability and life scores are recomputed, and a test proves it (check) (bug)**
-  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
-  are there any other places where are habitability / life scores aren't
-  used and should be?" Found by the TODO thread's code audit of
-  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
-  population/facility_suggest.py, admin/edits.py, population/model.py).
-  admin/edits.py changes a planet's class, orbit, star or parent
-  (re-draws the body, moves its moons) and nothing in the file calls the
-  habitability or life scoring, so a stale PHI-6, Suitability or life
-  stage may stay on the body or its moons until `rescore-habitability`
-  (ADM.129) runs. Check: edit a sample planet and read its scores before
-  and after. If they stay stale, this is a bug: recompute the scores for
-  the edited body and its moons in the same transaction (the same call
-  the generator makes) and add a test. If the edit already rescored
-  through another path, name it in the item and add the test. Version
-  8.1. Owner: Aux 3 (habitability model) or Core 1.
-  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
-  2026-10-24 (fix each): Aux 3 (habitability model), a check first, then
-  the fix if the scores go stale.
-  Prerequisites: none. Related: ADM.129, GEN.688.
-
 - [ ] **ADM.133 Admin edits of resource locations: change a belt, field or body's resource grades and scores as an aspect of the edit-everything plan, with a lock so regeneration keeps them**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
