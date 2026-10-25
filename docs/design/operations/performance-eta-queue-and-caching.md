@@ -145,6 +145,19 @@ eta  = remaining_cost / rate
 - A multi-step job adds the steps' remaining costs; a step not yet started contributes its PERF.3 `Estimate.seconds`, stored on the step node when the job is planned (today it contributes nothing).
 - One function serves the terminal bar, the published record, the Queue page, the banner and DB.15's migration bar (units = batches of rows). It is pure and testable with a fake clock.
 
+**No history at all (PERF.184, Boss 2026-10-24).** A server that has never run a stage has no `R0`, no stored time and no
+finished unit. The estimate then falls back, last of all, to a rough guess (`queue/roughtime.py`): the stage's units over
+the workers the host can run at once (`CORE_SHARE` of the cores, held to the memory at `WORKER_MEMORY_MB` a worker), at
+`UNIT_SECONDS` a unit, or `UNKNOWN_STAGE_WORKER_SECONDS` over the workers for a stage not expanded yet. It is labelled
+"rough guess", its range is 0.4 to 3 times the figure instead of the usual 0.88 to 1.15, and it is replaced by the run's
+own pace after the first unit. Both constants are stand-ins (tier: educated guess from needed output, L3). A stage that
+ends adds its wall seconds and its cost per worker second to a running average in Redis (`queue/stagetimes.py`, one
+field per stage key, the newest run weighing half); the next run of that stage starts from them (`expected_seconds` and a
+rate), so a stage with no stored row in the control database has a recorded estimate from its second run on. The sector
+estimate of the Generate page (`generation/stats.estimate`) says "a rough guess, anywhere from A to B" while the speed is
+the default per system, and the Generate job's whole-job bar says "roughly A to B left (a rough guess until a unit is
+timed)" until a stage reports.
+
 ETA over true time left for this estimator, 40 seeds [C, `perf/eta_band.py`]:
 
 | Done | Normal runs (P10 / P50 / P90) | Load spike (median) | Recorded rate 2.5 times off (median) |

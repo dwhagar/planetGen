@@ -57,7 +57,8 @@ def message(hours, view):
     if hours is None:
         return f"{lead} Working out how long it will take."
     unit = "hour" if hours == 1 else "hours"
-    guess = " (a guess from earlier runs)" if view.get("from_earlier_runs") else ""
+    guess = (" (a rough guess, nothing has been timed yet)" if view.get("eta_rough")
+             else " (a guess from earlier runs)" if view.get("from_earlier_runs") else "")
     return f"{lead} It should finish in about {hours} {unit}{guess}."
 
 

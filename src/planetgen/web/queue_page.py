@@ -91,8 +91,11 @@ def _eta_text(eta, live):
     if eta.get("stalled"):
         return "waiting on progress"
     low, high = progress_rate.eta_range(eta["seconds"])
+    if eta.get("rough") and eta.get("low") is not None:       # PERF.184: a guess from the host, not from timings
+        low, high = eta["low"], eta["high"]
     low_text, high_text = _duration(low), _duration(high)
-    return high_text if low_text == high_text else f"{low_text} to {high_text}"
+    text = high_text if low_text == high_text else f"{low_text} to {high_text}"
+    return f"{text} (rough guess)" if eta.get("rough") else text
 
 
 def _actions(run):
