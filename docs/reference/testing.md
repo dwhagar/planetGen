@@ -229,6 +229,18 @@ while it runs:
   started over, and a MySQL that only holds its port must miss three answers in a
   row before it counts as dead.
 
+### Queue workers a test left behind (TEST.393)
+
+A test that starts real queue workers (`workers.ensure_workers`) starts them in a session of
+their own, so they outlive it; one that was stopped part way never tells them to stop, and each
+keeps about 300 MB (fifty filled a 16 GB machine and MySQL was killed). Every test worker's
+Redis is a database of its own, 1 to 15, and a real worker is started with `--url` naming it, so
+`src/tests/stray_workers.py` can tell a test's worker from the machine's (database 0). The
+conftest ends the workers on its own xdist worker's database when its session starts and when it
+ends, and `scripts/test.py` ends every one still running when a run is over and says how many
+and how old the oldest was. A test that starts real workers should still stop them; the count in
+that line is the way to find the test that did not.
+
 ### Telling when a run is done
 
 `scripts/test.py` always ends with one line: `PASS in <time>: <counts>`, `FAIL in <time>: <counts>`, or `INTERRUPTED ...`
