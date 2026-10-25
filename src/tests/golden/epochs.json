@@ -621,6 +621,13 @@
       "first_release": "8.0.2334",
       "reason": "A moon's metal, rock, water and ice shares, rock porosity and mass follow from its origin (a disk moon gains ice past its giant's ice line, an impact moon is nearly dry, a captured moon is a rock and ice mix) in place of its class's water range, and a moon lighter than 1e21 kg takes its mass from the tapered compaction law, so every moon's mass, density, gravity and water change (GEN.466)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 105,
+      "first_release": null,
+      "pending": true,
+      "reason": "A rocky or icy planet's or moon's air is the fixed point of its mixture, the pressure its interior has degassed less the carbonate and sulfur sinks, the freeze-out of what its temperature condenses, the hydrate cages of its ice, the greenhouse and the temperature (GEN.411, GEN.422), so every air, surface temperature, pressure, scale height and density changes and a class no longer sets the pressure; a giant's air is its drawn mixture at the 1 bar level",
+      "affects": ["fill"]
     }
   ]
 }
