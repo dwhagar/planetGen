@@ -1416,7 +1416,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.665 | Two tuning targets are weaker than they look: the white-dwarf redox sample is 7 stars and the mass-radius cut barely filters | none | done, PR #2815 |
 | GEN.666 | The life text on a planet page contradicts itself: one paragraph says life would evolve at a normal pace, the next says hyper-accelerated (bug) | none | done, PR #2799 |
 | GEN.667 | Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands | none | open |
-| GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | open |
+| GEN.668 | Atmosphere loss events (GEN.189) do not yet reduce the stored ozone column | none | done, PR #3307 |
 | GEN.669 | Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows | none | open |
 | GEN.670 | Research for body rendering: band, storm and Rossby scale laws, vegetation tint by host spectrum, ring colour by composition | none | open |
 | GEN.671 | Where a hardened suit works against the radiation, the needs say "required hardened suit" and "recommended hardened habitat" | none | done, PR #2883 |
