@@ -1138,7 +1138,26 @@ with `clamp()`.
   with these shares. Done: page tests on Earth-like, locked and moon
   cases find the shares and the sentence. Owner: Aux 11, after GEN.767
   supplies the columns. Related: UX.199, GEN.767.
-  Prerequisites: GEN.767. Related: UX.199, UX.203.
+  Research (2026-10-09, Daylight and outside hours): Boss, 8:22 PM EDT
+  2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiGGDyBByq5momrqKfYqJRdr, relayed by the
+  coordinator): "make sure we have an item to fill in the hours of
+  daylight a person can be outside, and a value for how many hours of
+  daylight the planet has." TODO checked the code: the stored
+  `outside_hours` (physics/equipment.py `_outside_hours`) is the hours
+  outside in a working year that the listed radiation suit allows before
+  the dose limit, `None` unless a limit; the property sheet
+  (describe/sheet.py line 177) labels it "Hours of daylight a person can
+  be outside", which it is not, so it shows "not stored" nearly
+  everywhere. No value for the hours of daylight of the planet exists.
+  Add to this item: show both new values, the hours of daylight of the
+  planet (GEN.767 `daylight_hours`) and the hours a person can be
+  outside in a day with the binding limit in words (GEN.GEN.768
+  `outside_hours_day`), in At a glance and the rotation group, and
+  relabel the yearly dose-limited `outside_hours` row "Hours a person
+  can work outside per year (dose limit)"; the "not stored" row then
+  disappears (UX.199).
+  Prerequisites: GEN.767, GEN.768. Related: UX.199, UX.203.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
@@ -14252,7 +14271,67 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a moon whose planet never blocks the sun (inclined orbit) at zero
   extra night. Owner: Aux 5 (Lane H: heat, surface dose, GEN.656
   regional temperatures). Related: GEN.656, GEN.270, GEN.444.
+  Research (2026-10-09, Daylight hours): Boss, 8:22 PM EDT 2026-10-24
+  (message cmsg_01RuNTFUNB92A8cm5CbojQAiGGDyBByq5momrqKfYqJRdr, relayed
+  by the coordinator): "make sure we have an item to fill in the hours
+  of daylight a person can be outside, and a value for how many hours of
+  daylight the planet has." TODO checked the code: the stored
+  `outside_hours` (physics/equipment.py `_outside_hours`) is the hours
+  outside in a working year that the listed radiation suit allows before
+  the dose limit, `None` unless a limit; the property sheet
+  (describe/sheet.py line 177) labels it "Hours of daylight a person can
+  be outside", which it is not, so it shows "not stored" nearly
+  everywhere. No value for the hours of daylight of the planet exists.
+  Add to this item: store the length of the daylight part of one day in
+  hours (`daylight_hours`: the solar day length from the rotation and
+  orbit times the daylight share, at the equator, with the planet mean
+  and polar day or night noted; a locked world has no day, only the day
+  side, terminator and night side), as a column with its unit in
+  db/column_units.py, so the planet page can say how many hours of
+  daylight the planet has. Done adds: tests with Earth (about 12 h at
+  the equator), a fast spinner and a locked world.
   Prerequisites: none. Related: GEN.656, GEN.270, GEN.444, UX.205.
+
+- [ ] **GEN.768 Hours a person can be outside in a day: daylight hours limited by heat, cold, pressure, air supply and radiation dose, computed and stored per planet and moon**
+  Boss, 8:22 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiGGDyBByq5momrqKfYqJRdr, relayed by the
+  coordinator): "make sure we have an item to fill in the hours of
+  daylight a person can be outside, and a value for how many hours of
+  daylight the planet has." TODO checked the code: the stored
+  `outside_hours` (physics/equipment.py `_outside_hours`) is the hours
+  outside in a working year that the listed radiation suit allows before
+  the dose limit, `None` unless a limit; the property sheet
+  (describe/sheet.py line 177) labels it "Hours of daylight a person can
+  be outside", which it is not, so it shows "not stored" nearly
+  everywhere. No value for the hours of daylight of the planet exists.
+  Do: compute and store `outside_hours_day`, the hours of daylight a
+  person can be outside in one local day wearing the equipment the
+  survival rules list for the world (physics/equipment.py levels): the
+  smallest of (1) the daylight hours of the day (GEN.767's
+  `daylight_hours`; for a locked world the hours the terminator belt
+  allows or none), (2) the daily share of the radiation allowance (the
+  hours a year the listed suit allows, `outside_hours`, over the days of
+  the year, and the full day when there is no dose limit), (3) the
+  exposure time to heat or cold injury in the listed body protection (a
+  named function of the surface temperature range over the day from the
+  GEN.656 regional temperatures and the garment's insulation, with named
+  constants in protection_limits.py), (4) the air supply of the listed
+  breathing gear against the work shifts (a shift length constant), (5)
+  the UV exposure rule of the listed garment. Store the binding limit as
+  its kind (daylight, dose, heat, cold, air, uv) beside the hours so the
+  page can say why. No stand-in values: constants come from the
+  protection limits registry with their source tier (GEN.725). Relabel
+  the existing yearly `outside_hours` on the sheet as "Hours a person
+  can work outside per year (dose limit)" so it is no longer mistaken
+  for daylight hours. Done: tests for Earth (the full daylight), a hot
+  desert world (heat binds), a cold world (cold binds), a high-dose
+  world (dose binds), a locked world, and a vacuum world (air binds);
+  the column and its unit are in column_units.py; one migration and one
+  epoch with `--affects fill`. Owner: Aux 4 (Lane E: radiation,
+  protection limits, the equipment rules), after GEN.767 (Aux 5).
+  Related: GEN.767, GEN.656, GEN.725, UX.199, UX.205.
+  Prerequisites: GEN.767. Related: GEN.767, GEN.656, GEN.725, UX.199,
+  UX.205.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
