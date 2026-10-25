@@ -186,10 +186,17 @@ def test_the_shadow_sweep_keeps_most_drawn_letters():
     import class_shadow_cli
 
     bodies = class_shadow_cli.sample_bodies(25, seed=3, habitable_share=0.4)
-    pairs = class_shadow_cli.compare(bodies)
+    # A moon draws its composition from its origin (GEN.466) and its letter first, so its derived letter differs wherever the
+    # origin gave an icy body a rocky class (a captured or outer disk moon): moons agree until the cut-over (GEN.646) only in part.
+    # The planets still take their composition from their class and must keep their letters.
+    planets = [entry for entry in bodies if not entry[0].is_moon]
+    pairs = class_shadow_cli.compare(planets)
     total = sum(pairs.values())
     same = sum(n for (drawn, derived), n in pairs.items() if drawn == derived)
     assert total > 100 and same / total > 0.9
+    moons = class_shadow_cli.compare([entry for entry in bodies if entry[0].is_moon])
+    assert sum(moons.values()) > 100
+    pairs = class_shadow_cli.compare(bodies)
     report = class_shadow_cli.format_report(pairs, 25, 3)
     assert "keep their letter" in report and "Confusion table" in report
 
