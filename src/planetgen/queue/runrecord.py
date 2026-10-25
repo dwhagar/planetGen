@@ -98,6 +98,8 @@ class Stage:
         expected_seconds (float, optional): How long earlier runs took this stage (PERF.32's recorded timing),
             the ETA's fallback while the stage reports nothing.
         prior_rate (float, optional): Cost units per second recorded for this kind of work (`R0`).
+        worker_rate (float, optional): Cost units per worker second this server recorded for the stage's last runs
+            (`stagetimes`), which `runeta` turns into a rate once the units are known (PERF.184).
         workers (int): Workers the stage runs on, for the ETA's time constant.
         row (dict, optional): The `generation_stage_runs` row the unit that completes the stage writes (PERF.106:
             `command`, `n`, `total`, `label` and `settings`; `generation.stages.hand_over_open_stage`); none for a
@@ -110,6 +112,7 @@ class Stage:
     cost: float = None
     expected_seconds: float = None
     prior_rate: float = None
+    worker_rate: float = None
     workers: int = 1
     row: dict = None
 
@@ -425,7 +428,23 @@ def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None):
         log(conn, run_id, f"unit {unit} done", kind="unit.done", now=now, stage=index, unit=unit)
     if advance:
         log(conn, run_id, f"stage done: {stage['label']}", kind="stage.done", now=now, stage=index)
+        _record_stage_time(conn, run_id, index, stage["key"])
     return UnitDone(bool(counted), bool(advance), int(done))
+
+
+def _record_stage_time(conn, run_id, index, key):
+    """Folds the stage that has just ended into what the server knows of its kind (`stagetimes`, PERF.184). Best
+    effort: an estimate's memory is not worth failing a unit for."""
+    from planetgen.queue import stagetimes
+    try:
+        counters = {_s(k): _s(v) for k, v in conn.hgetall(stage_key(run_id, index)).items()}
+        started, ended = counters.get("started"), counters.get("ended")
+        if started is None or ended is None:
+            return
+        stagetimes.record(conn, key, float(ended) - float(started), float(counters.get("cost_done") or 0.0),
+                          float(counters.get("seconds") or 0.0))
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def request_cancel(conn, run_id, now=None):

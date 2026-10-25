@@ -559,9 +559,17 @@ class Estimate:
             "summary": self.summary(),
         }
 
+    def time_text(self):
+        """The time as the summary says it: the figure, and, when the speed was not measured on this server (the
+        default per system, PERF.184), the range it is a guess within."""
+        if self.measured:
+            return format_duration(self.seconds)
+        low, high = self.seconds * UNMEASURED_LOW_FACTOR, self.seconds * UNMEASURED_HIGH_FACTOR
+        return f"{format_duration(self.seconds)} (a rough guess, anywhere from {format_duration(low)} to {format_duration(high)})"
+
     def summary(self):
         """One line for a person."""
-        text = (f"About {format_bytes(self.bytes)} and {format_duration(self.seconds)} for {self.sectors:,} "
+        text = (f"About {format_bytes(self.bytes)} and {self.time_text()} for {self.sectors:,} "
                 f"sector{'s' if self.sectors != 1 else ''} (~{round(self.systems):,} star systems, "
                 f"~{round(self.stars):,} stars, {self.workers} worker{'s' if self.workers != 1 else ''}"
                 f"{'' if self.measured else ', speed not yet measured on this server'}"
@@ -573,6 +581,11 @@ class Estimate:
             text += f" Free space not measured: {self.disk_note}; nothing is refused for space."
         return text
 
+
+UNMEASURED_LOW_FACTOR = 0.4
+UNMEASURED_HIGH_FACTOR = 3.0
+"""float: The range, in times the figure, a time worked out from `DEFAULT_SECONDS_PER_SYSTEM` is a guess within (the
+same as `queue.roughtime`'s); a speed measured on this server needs none."""
 
 MAX_SYSTEMS_PER_SECTOR = 1e9
 """float: The most systems one sector counts for in an estimate (an
