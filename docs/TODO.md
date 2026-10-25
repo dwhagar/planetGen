@@ -1078,6 +1078,9 @@ with `clamp()`.
   covers the class and PHI-6 colour only. Rules: a unit or scale on
   every number (GEN.772); tests are `scripts/test.py changed --resume`;
   no fixed content from the Milky Way or the Solar System.
+  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
+  2026-10-24 (fix each): Aux 11 (Lane 3, pages), API parameters with Aux
+  12.
   Prerequisites: none. Related: UX.150, UX.100, GEN.653.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -3071,6 +3074,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   those systems. Version 8.1. Owner: Core 2 (map menu). Rules: a unit or
   scale on every number (GEN.772); tests are `scripts/test.py changed
   --resume`; no fixed content from the Milky Way or the Solar System.
+  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
+  2026-10-24 (fix each): Aux 10 (map nodes and menu), after MAP.306.
   Prerequisites: none. Related: MAP.220, MAP.303, MAP.306, MAP.307.
 
 ## NAV: Navigation and courses
@@ -17515,6 +17520,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the generator makes) and add a test. If the edit already rescored
   through another path, name it in the item and add the test. Version
   8.1. Owner: Aux 3 (habitability model) or Core 1.
+  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
+  2026-10-24 (fix each): Aux 3 (habitability model), a check first, then
+  the fix if the scores go stale.
   Prerequisites: none. Related: ADM.129, GEN.688.
 
 ## SEC: Security
@@ -22564,9 +22572,12 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   and the sources in docs/design/habitability/population-and-politics.md
   and change the ratings; a changed rating is drawn output and carries
   `tests.golden_update --reason ... --affects population` and the next
-  epoch. Version 8.4. Owner: pool, after the settlements design
-  (POP.16). Rules: a unit or scale on every number (GEN.772); tests are
+  epoch. Version 8.1 (pulled forward from 8.4, Boss, 10:16 PM EDT
+  2026-10-24: "fix each"; the weights do not need the settlements
+  design). Owner: pool (Core 5 style). Rules: a unit or scale on every number (GEN.772); tests are
   `scripts/test.py changed --resume`; no fixed content from the Milky
   Way or the Solar System.
-  Prerequisites: POP.16. Related: POP.16, POP.17, GEN.653.
+  Research (2026-10-09, Progress): Pulled forward into 8.1 by Boss,
+  10:16 PM EDT 2026-10-24; owner pool (Core 5 style), unstarted.
+  Prerequisites: none. Related: POP.16, POP.17, GEN.653.
 
