@@ -3652,6 +3652,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: MAP.317, DB.108. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
 
+- [ ] **MAP.323 The legend on the Galaxy Map covers the scale text: stack them so the legend sits above the scale and they never overlap (bug)**
+  Boss, 2:24 AM EDT 2026-10-25 (live observation): on the Galaxy Map the
+  legend covers the scale text. Do: lay the two out in one bottom corner
+  stack, the legend above the scale, so neither overlaps the other at
+  any window size or text size (the popup already follows the window
+  size, MAP.295); the same stack holds on the system and sector maps if
+  they carry both. Done: a browser test that measures the two boxes and
+  fails if they intersect at the narrow and wide window sizes. Owner:
+  Core 2 (map interface layout). Rules: no backward-compat shims; tests
+  are scripts/test.py changed --resume.
+  Prerequisites: none. Related: MAP.295, MAP.320, MAP.321.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
