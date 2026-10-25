@@ -19573,41 +19573,6 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
-- [ ] **TEST.362 test_object_rows read-back fails on main with KeyError partial_pa (bug)**
-  Reported by Aux 13 while merging GEN.762 (#3128, 6:33 PM EDT as the
-  lane reported): a test in test_object_rows reads an atmosphere row
-  back
-  and raises KeyError: 'partial_pa'. Not from GEN.762. This is separate
-  from TEST.332 (the comet missing from the row-kind set). Find whether
-  the column was renamed by the supply-law or 4b changes or the test is
-  stale, fix it and record which. Owner: Bug 1.
-  Prerequisites: none. Related: TEST.332.
-
-- [ ] **TEST.363 test_protection describer disagrees with habitability_explain on main (bug)**
-  Reported by Aux 13 while merging GEN.762 (#3128, 6:33 PM EDT as the
-  lane reported): the test_protection describer check fails against
-  habitability_explain on main and is not from GEN.762. Find which side
-  is
-  right after the life score and radiation changes, fix the other, and
-  record which. Owner: Bug 1.
-  Prerequisites: none. Related: GEN.762.
-
-- [ ] **TEST.364 Clean up the unused imports, unused variables and redefinitions that ruff and vulture report (82 ruff F findings, 12 vulture hits)**
-  Found by Bug 1 in its TEST.261 prep sweeps
-  (reports/test261-pre-audit-sweeps-2026-10-24.md, dead and unused code,
-  6:36 PM EDT 2026-10-24 as the lane reported): ruff F reports 82
-  findings
-  (56 unused imports, 13 unused variables, 12 redefinitions while
-  unused,
-  1 loop variable shadowing an import, 68 auto-fixable) and vulture at
-  80
-  percent reports 12 lines. Do: remove them (no shims; where an import
-  is
-  kept for a re-export, make the re-export explicit), keep behaviour the
-  same, and add a ruff F check to the fast checks if one is not there.
-  Owner: Bug 1 after the two SEC items; not a security fix.
-  Prerequisites: none. Related: SEC.33, TEST.261.
-
 - [ ] **TEST.367 Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug)**
   Reported by Core 1 while merging API.15 (#3136, 6:43 PM EDT 2026-10-24
   as the lane reported); they fail identically on origin/main on its
@@ -19658,6 +19623,31 @@ clears each one.
   first in the chain; Core 2 uses it for MAP.295 and MAP.296.
   Prerequisites: none. Related: TEST.344, MAP.295, MAP.297, MAP.298,
   MAP.299, MAP.300, MAP.301.
+
+- [ ] **TEST.370 test_web_pages in_process_transport fails: DatabaseLoginError, there is no planetgen database account on the lane machine (bug)**
+  Found by Bug 1 running scripts/test.py quick on clean main (8:00 PM
+  EDT 2026-10-24 as the lane reported):
+  test_web_pages::in_process_transport fails with a DatabaseLoginError
+  because the 'planetgen' account does not exist on a fresh lane
+  machine; this is the gap left by OPS.62 (the setup script verify step)
+  which creates the schema but not that account. Do: make the test use
+  the test account the other web tests use, or have the setup script
+  (and the lane machine bootstrap in /etc/profile.d/planetgen-test.sh)
+  create the account, so scripts/test.py quick is green on a clean
+  machine; no skip. Done: the test passes on a lane machine set up from
+  the documented script. Owner: Bug 1. Related: OPS.62, TEST.364.
+  Prerequisites: none. Related: OPS.62, TEST.364.
+
+- [ ] **TEST.371 test_workers::a_worker_that_is_killed fails under load and passes alone (bug)**
+  Found by Bug 1 running scripts/test.py quick on clean main (8:00 PM
+  EDT 2026-10-24 as the lane reported):
+  test_workers::a_worker_that_is_killed fails in a full quick run
+  (4-core lane machine, 36 minutes) and passes when run alone. Do: find
+  the timing the test depends on (a fixed sleep or a wait shorter than
+  the load allows) and make it wait for the state it needs, with no skip
+  and no retry decorator. Done: the test passes in three full quick
+  runs. Owner: Bug 1. Related: TEST.344, TEST.364.
+  Prerequisites: none. Related: TEST.344, TEST.364.
 
 ## USR: User accounts
 

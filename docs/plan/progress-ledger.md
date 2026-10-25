@@ -1428,3 +1428,7 @@ Baseline: PR #1817.
 | UX.197 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.55 | 8.1 | Reproducible galaxies |
 | TEST.77 | 8.1 | Reproducible galaxies |
+| TEST.364 | 8.1 | The headline closes |
+| TEST.369 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.363 | 8.1 | The headline closes |
+| TEST.362 | 8.1 | The headline closes |
