@@ -16927,66 +16927,6 @@ Design: [docs/design/operations/login-brute-force-protection.md](design/operatio
   specifically authorizes an exception.
   Prerequisites: none. Related: TEST.261.
 
-- [ ] **SEC.36 Avatars may be GIFs, animated GIFs included: a new avatar picture kind with its own format list and decoder limits**
-  Boss, 7:16 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiFrLn1Ci8KEw4bDYQeEqheq, relayed by the
-  coordinator): "I want to allow GIF's and animated GIF's for avatars."
-  SEC.35 (#3141) had just limited every picture upload to PNG, JPEG and
-  ICO
-  (`PICTURE_FORMATS` in web/assets.py); this adds GIF back for avatars
-  only,
-  on purpose. No avatar exists in the code or the item list today (the
-  `KINDS` of web/assets.py are the site pictures), so this item builds
-  the
-  smallest avatar there is and the user accounts of 8.2 (USR.1) reuse
-  it:
-  (1) a new `avatar` kind in the asset checker whose own format list is
-  PNG,
-  JPEG, ICO and GIF, while `PICTURE_FORMATS` and the site pictures keep
-  the
-  SEC.35 rule (a GIF is still refused for a logo or favicon unless Boss
-  says
-  otherwise, and the TIFF/PPM refusal tests stay); (2) an avatar upload
-  for
-  the signed-in admin account, shown beside the name where the page
-  shows
-  who is signed in and on the Users page; the stored file belongs to the
-  account, replacing it removes the old file, and deleting the account
-  removes it. Safety conditions (Boss's coordinator, for the owner):
-  Pillow is asked for the GIF decoder only (`formats=[...]`), checks the
-  header size before decoding, and the check refuses a file over a pixel
-  cap (width times height), a frame cap, a total decoded pixel cap
-  (width
-  times height times frames, so a small many-frame GIF cannot exhaust
-  memory) and the byte cap (MAX_BYTES); set `Image.MAX_IMAGE_PIXELS` and
-  treat Pillow's DecompressionBombWarning as an error. Decode each frame
-  by
-  iterating it with the caps applied, never `.convert` or `.load` the
-  whole
-  sequence first. Keep the animation (all frames, durations and loop
-  count) but strip all metadata (comments, XMP, application extensions
-  other than the loop block, EXIF, ICC profile): re-encode the frames
-  with
-  Pillow and store that output, never the uploaded bytes. Serve the
-  avatar
-  with its own content type, `X-Content-Type-Options: nosniff`, the CSP
-  of
-  the other pictures, and a long-cache name from a hash of the bytes.
-  Done:
-  tests show a normal GIF and an animated GIF are accepted and stay
-  animated, a GIF with too many frames, too many pixels or a bomb header
-  is
-  refused with a plain sentence, the stored file carries no comment or
-  XMP
-  block, a GIF is refused for the site logo, and the docs name the
-  avatar
-  rules. Owner: Bug 1 (it wrote SEC.35 and has the decoder and test
-  files
-  open), after TEST.365 and TEST.366; nobody has started it. Related to
-  the
-  SEC.33 audit, which should see it merged first.
-  Prerequisites: none. Related: SEC.35, SEC.34, SEC.33, USR.1.
-
 ## TEST: The test suite
 
 From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
@@ -19452,6 +19392,11 @@ clears each one.
   as the lane reported) saw the same two test_web_generate tests
   (generate_anyway and plain_confirm override logging) fail on clean
   main: one more witness for this item.
+  Research (2026-10-09, Progress): Bug 1 fixed
+  test_api_auth_sweep::test_admin_pages_send_an_admin_on_seeded_credentials_to_account
+  in #3189 (the /admin/queue/<run_id>/log download redirected instead of
+  403); the rest of the list is unchecked. Twelve more failures on main
+  are in TEST.379.
   Prerequisites: none. Related: TEST.370, TEST.365, TEST.366, TEST.353.
 
 - [ ] **TEST.376 scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill**
@@ -19500,7 +19445,30 @@ clears each one.
   comment may keep it); check the other entries added by UX.203 and
   UX.204 in the same file for the same. Done: test_no_todo_codes_shown
   passes. Owner: Aux 11. Related: UX.93, UX.202.
+  Research (2026-10-09, Progress): Lane 4 (8:59 PM EDT as the lane
+  reported) also saw test_no_todo_codes_shown name a MAP.220 string at
+  db/point_columns.py:177 on its checkout; that string is not on current
+  main, so confirm the test passes after the UX.202 string is cut.
   Prerequisites: none. Related: UX.93, UX.202.
+
+- [ ] **TEST.379 Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug)**
+  Found by Lane 4 (Aux 12) running the OPS.29 gate on main (8:59 PM EDT
+  2026-10-24 as the lane reported). Not yet in any item:
+  test_api::description_splits_into_every_body, test_eta_estimator
+  (queue page), test_protection (six describers),
+  test_web_browser_fixture_maps (wheel scroll) and test_web_search (star
+  link). Already covered: test_api_auth_sweep admin pages (fixed in
+  #3189 by Bug 1), test_class_pages nebula, test_interior_heat urey
+  ratio, test_memwatch smoke run and test_save_progress (all TEST.375),
+  test_no_todo_codes_shown (TEST.378; Lane 4 also named a MAP.220 string
+  at db/point_columns.py:177, check that TEST.378 removes every code in
+  a shown string). Do: run each on a lane machine set up as documented
+  (TEST.370, TEST.376 preflight), keep the ones that still fail on main,
+  and fix each with no skip; drop the ones that pass, noting the setup
+  they needed. Done: every listed test passes on a documented machine or
+  has its own item with a root cause. Owner: Bug 1. Related: TEST.375,
+  TEST.378, TEST.370.
+  Prerequisites: none. Related: TEST.375, TEST.378, TEST.370.
 
 ## USR: User accounts
 
@@ -19771,6 +19739,10 @@ clears each one.
   database as decided on 2026-10-10 18:44Z, plus the concurrency cap and
   the two settings from the 2026-10-09 research; Redis through
   Flask-Limiter is not used for this limit.
+  Research (2026-10-09, Progress): SEC.36 (#3189) added account pictures
+  (admin_users.avatar, POST and DELETE /api/auth/avatar, an account page
+  section). The Users page and account deletion that USR.1 builds must
+  show the picture and call adminAuth.forget_avatar_file on deletion.
     Prerequisites: USR.26.
 
 - [ ] **USR.9 `seo.privacy_note` text, "download my data" and "delete my account" on the account page**
@@ -20102,31 +20074,6 @@ clears each one.
 ## OPS: Installers, hosting, CI, releases
 
 OPS.1 shipped with the version scheme in `changes/README.md`.
-
-- [ ] **OPS.29 Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts**
-  Follow-up to OPS.8 (built in PR #808): check it against the research.
-  Skip if Apache is absent or stopped (never start it), `configtest`
-  first, `systemctl reload apache2` (or `httpd`), restart only if the
-  script itself installed mod_wsgi and no Generate job runs, check
-  Apache is up and `/api/health` answers, exit non-zero on failure.
-  Cover the gunicorn units (`planetgen-gunicorn` on Linux, `launchctl
-  kill SIGHUP` on macOS) in the same function, since nginx and Caddy
-  hosts have no Apache. State plainly in the docs that a reload aborts
-  in-flight daemon requests after about 4 s while `touch
-  src/html/wsgi.py` does not. Update `docs/deployment/apache.md` (lines
-  22, 29, 164), the `docs/deployment/server-checklist.md` "reload the app" row and
-  the closing text of `update.sh` and `install.sh`; `update.sh` prints
-  "restart" after `a2enmod` though a graceful reload loads new modules.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: print
-  the manual command and end
-  non-zero on a failed reload).
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this next (12:21 PM
-  EDT 2026-10-24 as the lane asked; nobody had reported starting it).
-  Prerequisites: none.
-  Design: [docs/design/operations/ops-scheduling-and-rotation.md](design/operations/ops-scheduling-and-rotation.md)
 
 - [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
   Boss (2026-10-16, 2:06 PM EDT): "Yes plese." to a nightly full backup
