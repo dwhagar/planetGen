@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 121 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 126 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 21 | 0 | 1 | 0 | 0 | 22 |
 | T2 | 31 | 0 | 0 | 0 | 0 | 31 |
-| T3 | 24 | 0 | 0 | 0 | 0 | 24 |
+| T3 | 28 | 0 | 0 | 0 | 0 | 28 |
 | T4 | 5 | 0 | 0 | 0 | 0 | 5 |
 | T5 | 5 | 3 | 0 | 0 | 0 | 8 |
-| T6 | 10 | 4 | 1 | 4 | 0 | 19 |
+| T6 | 10 | 5 | 1 | 4 | 0 | 20 |
 | T7 | 9 | 2 | 0 | 1 | 0 | 12 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 105 | 9 | 2 | 5 | 0 | 121 |
+| All | 109 | 10 | 2 | 5 | 0 | 126 |
 
 ## How the labels were given
 
@@ -203,3 +203,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM42 | B | T2 | L0 | impact_history.DIAMETER_RANGE_KM | 0.0316 to 1000 km, mass per unit diameter flat | the late accretion | test_impact_history::test_a_thin_air_loses_less_per_impactor_mass_and_a_big_impactor_less_than_a_small_one | Bottke et al. 2005 | 2ND-HAND (Sakuraba et al. 2019 section 2.6, read: the main-belt size distribution of Bottke et al. 2005, cumulative number as D^-3, between 10^-1.5 and 10^3 km; source tier 2, tweak level 0) |
 | AM43 | D | T2 | L0 | impact_history.SVETSOV_GAMMA | adiabatic index 13/11, k = 5, density 3320 and 2630 kg per m3 | air erosion by impacts; Schlichting et al. 2015 (read) gives a stronger erosion by the largest impactors, about 10 times at 15 km/s | test_impact_history::test_a_slow_impact_that_cannot_launch_the_plume_past_escape_erodes_nothing | Svetsov 2007 and a new hydrocode | READ (Svetsov 2000, 2007 as written in Eq. 5 to 7 of Sakuraba et al. 2019, read; the leading term is checked in the test; source tier 2, tweak level 0) |
 | AM44 | P | T4 | L0 | impact_history.IMPACTOR_ESCAPE_COEFFICIENT | 0.07, share of the impactor's vapour that escapes (0.1 to 0.17 for the inner planets) | the late accretion | test_impact_history::test_the_impactor_vapour_that_escapes_is_a_tenth_to_a_fifth_for_the_inner_planets | Shuvalov 2009 | 2ND-HAND (Shuvalov 2009 through Eq. 8 of Sakuraba et al. 2019: the upper branch 0.07 (rho_t / rho_imp) (V / v_esc); source tier 4, tweak level 0) |
+| AM45 | B | T3 | L0 | sulfur_balance.WET_LIFETIME_DAYS | 0.5 to 7 days, log | bodies with liquid water at the surface (rain-out and oxidation to sulfate) | test_sulfur_balance::test_the_lifetime_draws_stay_in_their_brackets_and_are_recorded | an atmospheric chemistry and rain-out model | READ from memory, not re-checked (tropospheric SO2 and H2S live one to a few days over liquid water, the sulfate aerosol up to a week) |
+| AM46 | B | T3 | L0 | sulfur_balance.DRY_LIFETIME_YEARS | 5e5 to 5e6 years, log | bodies without liquid water at the surface (the lifetime is the Venus rate at its surface temperature, not a rate law) | test_sulfur_balance::test_a_dry_world_keeps_more_than_a_wet_one_for_the_longer_lifetime | a rate law of sulfation against temperature and surface rock | SECOND-HAND (Fegley and Prinn 1989: sulfation of the surface rock removes the SO2 of Venus in about 1.9 million years; a factor of three either side) |
+| AM47 | D | T6 | L1 | sulfur_balance.CRUST_PER_PROCESSED_MANTLE | 0.0157 kg of crust per kg of mantle processed, fixed | rocky bodies whose crust is made like the Earth's (a stagnant lid or a thick crust makes more) | test_sulfur_balance::test_the_earth_twin_builds_the_crust_of_the_earth | a melting and crust-growth model of the interior | CALIBRATED on the Earth twin of the interior model (2.8e22 kg of crust from THETA_EARTH mantle masses processed; one planet, source tier 6, tweak level 1) |
+| AM48 | B | T3 | L0 | sulfur_balance.CRUST_CALCIUM_WT | 0.085, fixed | the crust the volcanism builds (a basalt) | test_sulfur_balance::test_the_capacity_is_one_calcium_and_one_iron_per_sulfur | the crust composition of the surface composition model | READ from memory, not re-checked (mid-ocean ridge basalt 11.9 wt% CaO, White and Klein 2014) |
+| AM49 | B | T3 | L0 | sulfur_balance.CRUST_IRON_WT | 0.074, fixed | the crust the volcanism builds (a basalt) | test_sulfur_balance::test_the_capacity_is_one_calcium_and_one_iron_per_sulfur | the crust composition of the surface composition model | READ from memory, not re-checked (mid-ocean ridge basalt 9.5 wt% FeO, White and Klein 2014) |
