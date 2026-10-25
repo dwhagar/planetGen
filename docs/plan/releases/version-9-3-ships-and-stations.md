@@ -23,7 +23,7 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | USR.29 | Vessel and station objects: add, move along a course and list, with ownership | NAV.4, GEN.105 | Split from USR.10. |
-| POP.11 | Scatter space vessels and stations for the races in their territories | USR.29 |  |
+| POP.11 | Scatter space vessels and stations for the races in their territories | USR.29 | Stations and space ports are scattered by POP.21 in 8.4; this item keeps the space vessels (Boss, 9:27 PM EDT 2026-10-24). |
 | USR.30 | Add a ship or station from a page and see it and its track on the maps | USR.29 | Split from USR.10. |
 | USR.10 | Users add their own objects (ships and stations) and track their movement on the map | USR.29, USR.30 |  |
 | MAP.221 | Station and vessel icons on the Galaxy Map | USR.29, POP.11 | Split from MAP.132. |

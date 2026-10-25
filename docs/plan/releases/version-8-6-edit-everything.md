@@ -155,6 +155,13 @@ Regeneration to a specification for every kind of object and region, with the ke
 |---|---|---|---|
 | ADM.81 | Edit any stored field of any object as a plan: one generic editor driven by the aspect catalogue | ADM.63, ADM.66, ADM.69 |  |
 
+### Civilization editors
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| ADM.130 | Aspects for civilizations: species, nations, cities, ports and stations in the aspect catalogue, with keep marks and locks | POP.22, ADM.62, ADM.63, DB.104, POP.26 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |
+| ADM.131 | Editable civilizations: edit a species, rename or split a nation, move a city, transfer a city between nations, set the dominant nation and place or remove a port, as approved plans | ADM.130, ADM.66, ADM.69 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |
+
 ## Phase 5: Close-out: proof, help and the headline
 
 End-to-end and property tests, the admin help, and the items that close ADM.35 and ADM.57.

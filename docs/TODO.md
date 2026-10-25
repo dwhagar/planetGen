@@ -14274,6 +14274,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.656, GEN.769, GEN.770, GEN.771,
   GEN.571.
 
+- [ ] **GEN.774 Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2."
+  Register the draw streams (names, order, the unit of work each is
+  keyed to, the planet uid as the key) in draw.py so no settlement code
+  touches a random source directly, and add the GEN.725 registry rows
+  for every stand-in constant the design names (nation count law,
+  dominance spread, rank-size exponent, largest-city cap, assignment
+  weighting) with their tier and tweak labels. Done: a test lists the
+  streams and the registry rows and fails on a settlement draw outside
+  draw.py; no output changes yet (no epoch). Version 8.2, phase 3.
+  Owner: Draws lane (Aux 13) or Aux 8 for the registry rows. Rules for
+  every item of this tree: draws go through draw.py (one named stream
+  per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.16. Related: GEN.725, GEN.772.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15791,6 +15821,76 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   nobody has started it.
   Prerequisites: none. Related: OPS.64, OPS.10, DB.6, PERF.32.
 
+- [ ] **DB.103 Storage for nation-states and cities: tables, Object IDs, column units and the migration**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." New
+  tables `nations` (id, uid, planet_id, species_id, polity_id nullable,
+  name, government, land_share, population, dominance, is_dominant,
+  color) and `cities` (id, uid, planet_id, nation_id, name, rank,
+  population, is_capital, is_world_capital, latitude and longitude in
+  degrees, elevation) with their Object ID kinds (96-bit uid, one new
+  type code each), foreign keys with the delete rules of the existing
+  population tables, a column_units entry for every numeric column, the
+  Alembic revision (next free migration) with the old-schema fixture,
+  and the read functions. Nothing is drawn yet. Done: the migration
+  round-trips, test_db_column_round_trip and the unit registry tests
+  pass for the new columns, and the tables are in docs/reference.
+  Version 8.2, phase 3. Owner: Aux 12 style (database foundations).
+  Rules for every item of this tree: draws go through draw.py (one named
+  stream per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.16. Related: DB.101, DB.102, POP.9, GEN.568.
+
+- [ ] **DB.104 Storage for a government's territory: homeworld system, growth state and a territory history, ready for 9.2 to make it dynamic**
+  Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
+  need an option to specify how many space-fairing governments there
+  are, and have it generated so we can have those territories dynamic in
+  9.2 as well, and we need to be able to specify how many space-fairing
+  governments there are, these would be governments who control multiple
+  worlds and sectors within the map, the homeworld of said government
+  must be within their territory. Build that out from 9.1 being
+  finalized backwards to no earlier than 8.2." Built backwards: 9.2
+  needs the governments' growth state and a history to extend (DB.104),
+  which needs governments generated to a count (POP.26) with territories
+  of several worlds and sectors around the homeworld (POP.27), which
+  needs the option and its storage (POP.25), which needs the design
+  (POP.16). All of it lands in 8.2, so 8.3 to 9.1 sit on a stable base
+  and nothing in 8.1 changes. A space-faring government here is a polity
+  of the existing population pass. Add to `polities` the columns 9.2
+  will advance: homeworld_system_id (the system of the founding species'
+  homeworld, not null, always inside the territory), reach_ly and the
+  growth law's constants (base reach, growth rate in ly per square root
+  of year, the cap), claim_strength, founded_age_years and
+  territory_epoch; and a `polity_territory_history` table (polity_id,
+  epoch, owned_systems, owned_sectors, reach_ly) whose first row is
+  written when the territory is first drawn, so 9.2 appends instead of
+  rebuilding. Column units for every numeric column, the Alembic
+  revision (next free migration) with the old-schema fixture and the
+  read functions. Nothing changes in the drawn territories. Done:
+  migration round-trips, test_db_column_round_trip passes for the new
+  columns, and the first history row exists for every polity after a
+  population run. Version 8.2, phase 3. Owner: Aux 12 style. Rules:
+  draws through draw.py (GEN.774 streams); a PR that changes drawn
+  output carries `tests.golden_update --reason ... --affects population`
+  and the next epoch; every number has a unit or scale (GEN.772) and a
+  column_units entry; stand-ins get GEN.725 registry rows with tier and
+  tweak labels; tests are `scripts/test.py changed --resume`; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.16, DB.103. Related: DB.101, POP.9, GEN.568.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -16871,6 +16971,76 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   settings; after GEN.631 reads them, so the page can be tried end to
   end).
   Prerequisites: none. Related: GEN.267, UX.125.
+
+- [ ] **ADM.130 Aspects for civilizations: species, nations, cities, ports and stations in the aspect catalogue, with keep marks and locks**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Extend
+  the aspect catalogue (ADM.62, ADM.63) with the settlement objects so
+  the keep-or-regenerate matrix (ADM.69) and the locks (ADM.65) cover
+  them: species traits and tech, nations (name, government, land share,
+  dominance, dominant flag), cities (name, population, position, nation,
+  capital flag), ports and stations (type, owner, place), with the
+  dependencies between them (a city's nation, a nation's capital) and
+  the rule that a regeneration of a planet keeps locked nations and
+  cities. Done: the catalogue lists every settlement field with its
+  dependencies and a test checks each stored column is an aspect.
+  Version 8.6, phase 1-2 of that version. Owner: the Edit everything
+  lane. Rules for every item of this tree: draws go through draw.py (one
+  named stream per draw, order fixed); a PR that changes drawn output
+  carries `tests.golden_update --reason ... --affects population` and
+  takes the next epoch; every number it adds has a unit or scale
+  (GEN.772) and a column_units entry (new numeric columns in
+  db/column_units.py); every stand-in value gets a GEN.725 registry row
+  with its tier and tweak labels; tests are `scripts/test.py changed
+  --resume` only; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: POP.22. Related: ADM.62, ADM.63, ADM.64, ADM.65,, DB.104, POP.26.
+  ADM.69, POP.13.
+  Research (2026-10-09, Progress): Governments (polities) are aspects
+  too: count, homeworld, reach, territory and capital (storage DB.104,
+  generation POP.26).
+
+- [ ] **ADM.131 Editable civilizations: edit a species, rename or split a nation, move a city, transfer a city between nations, set the dominant nation and place or remove a port, as approved plans**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." On the
+  plan engine (ADM.58 to ADM.60) and the approval screen (ADM.66):
+  editors for the species (POP.13 covers its page), nations (rename,
+  change government, change land share, add or remove a nation, set
+  dominance and the dominant flag), cities (rename, resize, move on the
+  planet, transfer to another nation, set the capital) and ports and
+  stations (add, remove, move, change owner). Every edit is a plan with
+  before and after, undoable, and an edited object is marked admin-made
+  and survives a rescan and a reseed. Done: each editor makes a plan,
+  the plan applies and undoes, an edited city survives `settlements` run
+  again, and an end-to-end test over the headline scenario (move a city
+  to a rival nation). Version 8.6, phase 3. Owner: the Edit everything
+  lane. Rules for every item of this tree: draws go through draw.py (one
+  named stream per draw, order fixed); a PR that changes drawn output
+  carries `tests.golden_update --reason ... --affects population` and
+  takes the next epoch; every number it adds has a unit or scale
+  (GEN.772) and a column_units entry (new numeric columns in
+  db/column_units.py); every stand-in value gets a GEN.725 registry row
+  with its tier and tweak labels; tests are `scripts/test.py changed
+  --resume` only; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: ADM.130. Related: ADM.52, ADM.58, ADM.60, ADM.66,
+  ADM.81, POP.13.
 
 ## SEC: Security
 
@@ -19437,6 +19607,37 @@ clears each one.
   TEST.261, PERF.125, POP.11, POP.13.
   Prerequisites: none. Related: TEST.261, PERF.125, POP.11, POP.13.
 
+- [ ] **TEST.381 First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." As
+  TEST.380 does for species and polities: generate a galaxy, run
+  `settlements`, read a planet page, a nation, a city and a port, check
+  the dominance and the city to nation split against the design, and
+  file every wrong or unclear result as its own bug item. Done: a dated
+  report in reports/ and every finding filed. Version 8.4, phase 2.
+  Owner: Bug 1. Rules for every item of this tree: draws go through
+  draw.py (one named stream per draw, order fixed); a PR that changes
+  drawn output carries `tests.golden_update --reason ... --affects
+  population` and takes the next epoch; every number it adds has a unit
+  or scale (GEN.772) and a column_units entry (new numeric columns in
+  db/column_units.py); every stand-in value gets a GEN.725 registry row
+  with its tier and tweak labels; tests are `scripts/test.py changed
+  --resume` only; no fixed content from the Milky Way or the Solar
+  System.
+  Research (2026-10-09, Progress): Also check the governments: the
+  option's count against the result, every homeworld inside its
+  territory and each territory holding several worlds and sectors
+  (POP.27).
+  Prerequisites: POP.23. Related: TEST.380, TEST.261, POP.27.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21085,4 +21286,466 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Moved to phase 2 with the shell as its prerequisite, so it is built on
   the shared table, form and confirmation and is not missed by the audit
   and the conversion (2026-10-16 review).
+
+- [ ] **POP.16 Design: settlements and nation-states on a planet with a technological civilization (the tech gate, nation count and dominance laws, the city size law, the city to nation draw, space ports), with the sources and stand-in tiers**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Write
+  docs/design/habitability/settlements.md and get Boss's answers on the
+  open points. It decides: (1) the tech gate, the lowest tech band at
+  which a species' homeworld gets cities and nations (the Agrarian band
+  of the tech table, TL 0.5 and above, is the proposal; a Primal species
+  gets none) and the tech at which space ports and stations scatter
+  (Atomic, TL 2.5 and above, for orbital stations; Fusion, 3.5 and
+  above, for in-system ports); (2) the number of nation-states on a
+  planet, drawn from the habitable land area, the species' traits and
+  the tech band (a stand-in law, tier and sources named); (3) each
+  nation's dominance, a power score from its land share, its population
+  and the tech spread, with one or more nations flagged dominant; (4)
+  the city size law for the capital and the ten largest cities
+  (rank-size with a tech-limited largest city and the planet's carrying
+  capacity as the cap); (5) the draw that assigns each city to a nation,
+  a probability weighted by city size and nation dominance so that a
+  more powerful nation tends to hold the biggest cities, the capital
+  going to the dominant nation; (6) what is fixed (all of it, until 9.2)
+  and which fields 9.2 will make dynamic; (7) how it composes with the
+  existing species, polities and territories (a polity still owns
+  systems; nations are on one planet) and with editing (8.6). Open
+  points to ask Boss through the coordinator only if the research cannot
+  settle them. Done: the design is in
+  docs/design/habitability/settlements.md with its sources and its
+  stand-in list, and every later item of this tree cites it. Owner: a
+  research thread (Math 1 style) with Aux 11 for the page parts. Version
+  8.2, phase 3 (the foundation). Rules for every item of this tree:
+  draws go through draw.py (one named stream per draw, order fixed); a
+  PR that changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and takes the next epoch; every number it adds
+  has a unit or scale (GEN.772) and a column_units entry (new numeric
+  columns in db/column_units.py); every stand-in value gets a GEN.725
+  registry row with its tier and tweak labels; tests are
+  `scripts/test.py changed --resume` only; no fixed content from the
+  Milky Way or the Solar System.
+  Prerequisites: none. Related: POP.7, POP.8, POP.9, POP.10, GEN.725,
+  GEN.772.
+  Research (2026-10-09, Progress): Also decides the governments rules of
+  POP.25 to POP.27: the separation between homeworlds, the reach floor,
+  the way chance-extra civilizations are held back, and the largest
+  count a galaxy can hold.
+
+- [ ] **POP.17 Which worlds get settlements: the tech gate and the planet inputs (habitable land area, carrying capacity) for a species whose civilization is dated**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." For
+  every species with a dated civilization at or above the design's gate
+  band, compute the inputs the later items read: the planet's habitable
+  land area (from the land fraction, radius and the habitability of the
+  surface), the carrying capacity in people (from the tech band, the
+  land and the food score) and the settlement flags (cities yes or no,
+  ports yes or no). Stored on the species row or a small
+  `settlement_inputs` table (one of the two, named in the design). Done:
+  a species below the gate gets no cities and no nations, a species at
+  the gate gets inputs, the unit tests cover each band edge, and nothing
+  is shown yet. Version 8.4, phase 2. Owner: Core 5 style (the
+  population commands). Rules for every item of this tree: draws go
+  through draw.py (one named stream per draw, order fixed); a PR that
+  changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and takes the next epoch; every number it adds
+  has a unit or scale (GEN.772) and a column_units entry (new numeric
+  columns in db/column_units.py); every stand-in value gets a GEN.725
+  registry row with its tier and tweak labels; tests are
+  `scripts/test.py changed --resume` only; no fixed content from the
+  Milky Way or the Solar System.
+  Prerequisites: DB.103, GEN.774. Related: POP.9, POP.7.
+
+- [ ] **POP.18 Nation-states on a planet: how many, their land shares, names, governments, power and which are dominant**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Draw
+  the nation count for each gated world, split the habitable land among
+  them, name them, give each a government form (the 14 forms of
+  program_constants.GOVERNMENT_FORMS, distinct from the polity forms or
+  the same list, as the design says), compute each nation's dominance
+  (power) and flag the dominant nation or nations. Rows go to `nations`;
+  the species' polity (if spacefaring) links to the dominant nation.
+  Fixed once drawn until 9.2. Done: every gated world has between one
+  and the law's maximum nations, shares sum to the habitable land, at
+  least one nation is dominant, and the draws are reproducible from the
+  planet's uid. Version 8.4, phase 2. Owner: Core 5 style. Rules for
+  every item of this tree: draws go through draw.py (one named stream
+  per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.17. Related: POP.8.
+
+- [ ] **POP.19 Cities: the capital and the ten largest cities of a planet, their populations, names and positions on land**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." For
+  each gated world draw the ten largest cities (fewer when the world's
+  population or tech cannot support ten) with populations from the
+  design's rank-size law capped by carrying capacity, choose the world's
+  capital, name each city, and place each on a land position (latitude,
+  longitude and elevation) from the planet's surface so none sits in an
+  ocean, a pole beyond habitability or on top of another city. Rows go
+  to `cities` with no nation yet. Fixed until 9.2. Done: populations
+  fall in rank order, the capital is flagged, positions are on land and
+  apart by the design's minimum distance, and a test covers a small and
+  a large world. Version 8.4, phase 2. Owner: Core 5 style. Rules for
+  every item of this tree: draws go through draw.py (one named stream
+  per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.17. Related: POP.8.
+
+- [ ] **POP.20 Cities belong to nation-states: a probability draw weighted by city size and nation dominance, with the capital in the dominant nation**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Assign
+  each of the ten largest cities (and the capital) to a nation by a draw
+  whose weight rises with the nation's dominance and the city's size, so
+  a more powerful nation tends to hold the biggest cities; the world
+  capital goes to the dominant nation (the first of them if there are
+  several); every nation with land gets at least its capital where the
+  nation count allows. Writes `cities.nation_id` and the nation's own
+  capital. Fixed until 9.2. Done: over a sample of 1,000 worlds the
+  dominant nation holds more of the top three cities than its land share
+  would give, no city is unassigned, and the draw is reproducible from
+  the planet's uid. Version 8.4, phase 2. Owner: Core 5 style. Rules for
+  every item of this tree: draws go through draw.py (one named stream
+  per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Research (2026-10-09, Progress): The dominant nation of a planet links
+  to its species' government (polity) when the species is space-faring
+  (governments: POP.26).
+  Prerequisites: POP.18, POP.19. Related: POP.8.
+
+- [ ] **POP.21 Station and space port scatter: orbital stations, space ports and starbases placed for each nation and polity from the tech gate, as stored facilities**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Using
+  the existing `facilities` table (kinds station, starbase, outpost,
+  colony; placements orbital and standalone; facility types and ratings
+  of POP.10; affiliation to a polity), place stations and space ports
+  for each gated nation and spacefaring polity inside their territory: a
+  space port in orbit or on the surface at each world capital and at the
+  larger cities, orbital stations around worlds of a polity, starbases
+  at chokepoints of the territory, counts and tech limits from the
+  design (Atomic and above for orbital stations, Fusion and above for
+  in-system ports). The facility gets its nation and city links. Fixed
+  until 9.2. This carves the station part out of POP.11 (which keeps the
+  space vessels); the map shows them once MAP.307 (8.3) has the filters.
+  Done: no station for a species below the gate, every placed facility
+  sits inside its owner's territory, and the draws are reproducible.
+  Version 8.4, phase 2. Owner: Core 5 style. Rules for every item of
+  this tree: draws go through draw.py (one named stream per draw, order
+  fixed); a PR that changes drawn output carries `tests.golden_update
+  --reason ... --affects population` and takes the next epoch; every
+  number it adds has a unit or scale (GEN.772) and a column_units entry
+  (new numeric columns in db/column_units.py); every stand-in value gets
+  a GEN.725 registry row with its tier and tweak labels; tests are
+  `scripts/test.py changed --resume` only; no fixed content from the
+  Milky Way or the Solar System.
+  Prerequisites: POP.20. Related: POP.10, POP.11, MAP.307, USR.29.
+
+- [ ] **POP.22 The settlements stage: its own command, its place in the galaxy run and the rescan rules**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Wire
+  the gate, nations, cities, assignment and port scatter as one
+  registered command `settlements` (PERF.120: one command does one
+  thing; its inventory entry and test_command_rules pass), a stage of
+  the galaxy run after `territories`, and rescan rules: re-running over
+  an unchanged world draws nothing new, a world whose species or tech
+  changed is redrawn only for the parts that depend on the change, and
+  an edited nation or city (8.6) is never redrawn. Epoch bump with
+  `--affects population`. Done: `planetgen settlements` runs on a
+  generated galaxy, the galaxy run lists it as its own stage, and the
+  rescan tests pass. Version 8.4, phase 2. Owner: Core 5 style. Rules
+  for every item of this tree: draws go through draw.py (one named
+  stream per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.21. Related: PERF.120, PERF.125.
+
+- [ ] **POP.23 Pages and API for nations, cities and ports: the planet page sections, nation and city pages, species and polity links**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." The
+  planet page gets a Nations section (name, government, share of land,
+  population, dominant marker) and a Largest cities section (rank, name,
+  nation, population, capital marker, position), each nation and city
+  has its own object page and API entry, the species and polity pages
+  link to their nations, and the station and space port rows link to
+  their city. Sections absent when the world has none (absent values
+  hidden, UX rules), collapsed at start, with units on every number
+  (GEN.772). Done: pages and API for a sample world, sections hidden for
+  a world below the gate, and a browser test. Version 8.4, phase 2.
+  Owner: Aux 11. Rules for every item of this tree: draws go through
+  draw.py (one named stream per draw, order fixed); a PR that changes
+  drawn output carries `tests.golden_update --reason ... --affects
+  population` and takes the next epoch; every number it adds has a unit
+  or scale (GEN.772) and a column_units entry (new numeric columns in
+  db/column_units.py); every stand-in value gets a GEN.725 registry row
+  with its tier and tweak labels; tests are `scripts/test.py changed
+  --resume` only; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: POP.22. Related: UX.143, UX.211, API.33.
+
+- [ ] **POP.24 Settlements become dynamic: nations and cities grow, borders and dominance shift and cities change hands over time**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2."
+  Version 9.2 turns the fixed settlements of the 8.x chain dynamic, on
+  the time and update machinery of 8.3: city populations grow and
+  shrink, nations rise and fall in dominance, cities change nation, new
+  cities appear and ports follow their owners, all as slow steps of the
+  orbital-update style nightly run with a journal so an admin edit (8.6)
+  is never undone by the simulation unless the admin allows it. This
+  item holds the version's place; its breakdown (growth law, border
+  drift, trade) follows Boss's answers on 9.2. Done: breakdown filed
+  with items, sources and stand-in tiers. Version 9.2. Owner: not
+  assigned. Rules for every item of this tree: draws go through draw.py
+  (one named stream per draw, order fixed); a PR that changes drawn
+  output carries `tests.golden_update --reason ... --affects population`
+  and takes the next epoch; every number it adds has a unit or scale
+  (GEN.772) and a column_units entry (new numeric columns in
+  db/column_units.py); every stand-in value gets a GEN.725 registry row
+  with its tier and tweak labels; tests are `scripts/test.py changed
+  --resume` only; no fixed content from the Milky Way or the Solar
+  System.
+  Research (2026-10-09, Progress): Builds on the stored growth state and
+  territory history of DB.104 and the governments of POP.26 and POP.27:
+  9.2 advances reach and claims and appends history rows; it never
+  rebuilds a government's start.
+  Prerequisites: ADM.131, TEST.381. Related: POP.8, ADM.81, DB.104, POP.26, POP.27.
+
+- [ ] **POP.25 Option: how many space-faring governments the galaxy has (a number, or natural), on the Generate page, the CLI, the API and the stored plan**
+  Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
+  need an option to specify how many space-fairing governments there
+  are, and have it generated so we can have those territories dynamic in
+  9.2 as well, and we need to be able to specify how many space-fairing
+  governments there are, these would be governments who control multiple
+  worlds and sectors within the map, the homeworld of said government
+  must be within their territory. Build that out from 9.1 being
+  finalized backwards to no earlier than 8.2." Built backwards: 9.2
+  needs the governments' growth state and a history to extend (DB.104),
+  which needs governments generated to a count (POP.26) with territories
+  of several worlds and sectors around the homeworld (POP.27), which
+  needs the option and its storage (POP.25), which needs the design
+  (POP.16). All of it lands in 8.2, so 8.3 to 9.1 sit on a stable base
+  and nothing in 8.1 changes. A space-faring government here is a polity
+  of the existing population pass. Add the setting
+  `spacefaring_governments`: an integer from 0 up, or `natural` (the
+  default: the 1 in 1,000 civilization chance decides, as today). It is
+  a field on the Generate page with a hint line ("how many space-faring
+  governments the galaxy should have; natural lets chance decide"), a
+  flag `--governments N` on `planetgen population` and `planetgen
+  galaxy`, a field in the generate API request and recipe, and it is
+  stored with the galaxy plan so a revise job (GEN.764) and a rescan
+  read it. The estimate on the Generate page and the CLI refuse a count
+  the galaxy cannot hold (more than its life worlds capable of a
+  civilization, with the reason) before any drawing, as the directive
+  check of GEN.180 does. Done: the option is accepted, stored and echoed
+  on the plan and the galaxy page; a refused count says why; `natural`
+  changes nothing. The effect arrives with POP.26 in the same version.
+  Version 8.2, phase 3. Owner: Core 5 style (Generate and commands).
+  Rules: draws through draw.py (GEN.774 streams); a PR that changes
+  drawn output carries `tests.golden_update --reason ... --affects
+  population` and the next epoch; every number has a unit or scale
+  (GEN.772) and a column_units entry; stand-ins get GEN.725 registry
+  rows with tier and tweak labels; tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Prerequisites: POP.16. Related: GEN.180, GEN.764, PERF.125.
+
+- [ ] **POP.26 Generate the requested number of space-faring governments: force civilizations where chance gives too few, hold back extra ones where it gives too many, homeworlds spread apart**
+  Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
+  need an option to specify how many space-fairing governments there
+  are, and have it generated so we can have those territories dynamic in
+  9.2 as well, and we need to be able to specify how many space-fairing
+  governments there are, these would be governments who control multiple
+  worlds and sectors within the map, the homeworld of said government
+  must be within their territory. Build that out from 9.1 being
+  finalized backwards to no earlier than 8.2." Built backwards: 9.2
+  needs the governments' growth state and a history to extend (DB.104),
+  which needs governments generated to a count (POP.26) with territories
+  of several worlds and sectors around the homeworld (POP.27), which
+  needs the option and its storage (POP.25), which needs the design
+  (POP.16). All of it lands in 8.2, so 8.3 to 9.1 sit on a stable base
+  and nothing in 8.1 changes. A space-faring government here is a polity
+  of the existing population pass. When the option is a number N: if the
+  natural count is below N, force civilizations on the N minus natural
+  best-suited life worlds (highest habitability and life score, a
+  civilization age drawn conditioned to the Interstellar era or later)
+  and report `met_forced` as GEN.180 does; if above N, found only N
+  governments (the choice by the oldest civilization with a draw for
+  ties) and keep the others as species that are not space-faring in this
+  galaxy (the design POP.16 picks one: re-draw their age below the
+  Interstellar start, or keep the species and found no polity; it must
+  not delete a species). Homeworlds of the N governments are drawn so
+  they lie apart by at least the design's separation (about twice the
+  base reach, so each has room to hold several worlds and sectors); if
+  the galaxy cannot give N separated homeworlds the run reports the
+  largest it could and why. Each government records its homeworld
+  system. All draws reproducible from the galaxy seed. Done: a galaxy
+  generated with N=5 has exactly 5 polities, each with a distinct
+  separated homeworld, `met_forced` appears when chance would give
+  fewer, and the same seed gives the same five. Version 8.2, phase 3.
+  Owner: Core 5 style. Rules: draws through draw.py (GEN.774 streams); a
+  PR that changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and the next epoch; every number has a unit or
+  scale (GEN.772) and a column_units entry; stand-ins get GEN.725
+  registry rows with tier and tweak labels; tests are `scripts/test.py
+  changed --resume`; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: POP.25, DB.104, GEN.774. Related: GEN.180, POP.17.
+
+- [ ] **POP.27 Territories of several worlds and sectors: every government holds a minimum, its homeworld is always inside, and the check is a test**
+  Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
+  need an option to specify how many space-fairing governments there
+  are, and have it generated so we can have those territories dynamic in
+  9.2 as well, and we need to be able to specify how many space-fairing
+  governments there are, these would be governments who control multiple
+  worlds and sectors within the map, the homeworld of said government
+  must be within their territory. Build that out from 9.1 being
+  finalized backwards to no earlier than 8.2." Built backwards: 9.2
+  needs the governments' growth state and a history to extend (DB.104),
+  which needs governments generated to a count (POP.26) with territories
+  of several worlds and sectors around the homeworld (POP.27), which
+  needs the option and its storage (POP.25), which needs the design
+  (POP.16). All of it lands in 8.2, so 8.3 to 9.1 sit on a stable base
+  and nothing in 8.1 changes. A space-faring government here is a polity
+  of the existing population pass. Change the territories pass so a
+  government's territory is never a lone system: a reach floor (a
+  stand-in with tier and sources) gives every government at least a
+  design minimum of systems across at least two sectors where the galaxy
+  has them within range, and the claims resolution (the weighted Voronoi
+  split of the existing pass) keeps each homeworld system in its own
+  government's territory by construction and as a tested invariant. When
+  two governments' floors overlap the stronger claim wins and the
+  loser's floor is satisfied from its other side or reported. The
+  territory is written with its first history row. Done: for any seed,
+  every polity owns at least the minimum systems and sectors (or has a
+  reported reason), no system has two owners, and every homeworld system
+  belongs to its own polity; a property test runs over 50 seeds. Version
+  8.2, phase 3. Owner: Core 5 style. Rules: draws through draw.py
+  (GEN.774 streams); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch; every number has a unit or scale (GEN.772) and a column_units
+  entry; stand-ins get GEN.725 registry rows with tier and tweak labels;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System.
+  Prerequisites: POP.26. Related: PERF.125.
+
+- [ ] **POP.28 Show the governments: the option and result on the Generate page and galaxy page, a government page with its worlds, systems and sectors, and the territories overlay legend**
+  Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
+  need an option to specify how many space-fairing governments there
+  are, and have it generated so we can have those territories dynamic in
+  9.2 as well, and we need to be able to specify how many space-fairing
+  governments there are, these would be governments who control multiple
+  worlds and sectors within the map, the homeworld of said government
+  must be within their territory. Build that out from 9.1 being
+  finalized backwards to no earlier than 8.2." Built backwards: 9.2
+  needs the governments' growth state and a history to extend (DB.104),
+  which needs governments generated to a count (POP.26) with territories
+  of several worlds and sectors around the homeworld (POP.27), which
+  needs the option and its storage (POP.25), which needs the design
+  (POP.16). All of it lands in 8.2, so 8.3 to 9.1 sit on a stable base
+  and nothing in 8.1 changes. A space-faring government here is a polity
+  of the existing population pass. The galaxy page and the Generate page
+  show the requested count and the result (natural, N met, N
+  met_forced); each government's page lists its homeworld, capital, the
+  number of worlds, systems and sectors it holds and links to them; the
+  Territories overlay legend lists the governments with their colours
+  and sizes (every number with its unit or noun, GEN.772); the API
+  returns the same. Sections hidden when absent, collapsed at start.
+  Done: pages and API for a galaxy with N=5, and a browser test of the
+  legend. Version 8.2, phase 3. Owner: Aux 11 and Core 2 (the overlay
+  legend). Rules: draws through draw.py (GEN.774 streams); a PR that
+  changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and the next epoch; every number has a unit or
+  scale (GEN.772) and a column_units entry; stand-ins get GEN.725
+  registry rows with tier and tweak labels; tests are `scripts/test.py
+  changed --resume`; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: POP.27. Related: UX.143, MAP.132, UX.211.
 
