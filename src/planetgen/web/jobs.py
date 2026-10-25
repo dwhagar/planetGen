@@ -84,6 +84,9 @@ database environment."""
 CANCEL_NAME = "cancel"
 """str: Must match `planetgen.web.job_runner.CANCEL_NAME`."""
 
+RECORDS_NAME = "records.log"
+"""str: The job's log as records (UX.122), in the job's folder. Must match `planetgen.web.job_runner.RECORDS_FILE`."""
+
 QUEUE_PREFIX = "planetgen-web-"
 """str: A job's RQ queue and its worker are this plus the job's id."""
 

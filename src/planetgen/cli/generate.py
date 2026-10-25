@@ -218,6 +218,11 @@ def add_logging_arguments(parser):
     parser.add_argument('--debug-areas', metavar='AREAS', default=None,
                         help="Limit --debug to some kinds of output: " + ", ".join(log.AREAS) + " (comma "
                              "separated; a leading - leaves one out, as in -draw). The default is all of them.")
+    parser.add_argument('--record-file', metavar='FILE', default=None,
+                        help="Also write every log line to FILE as a record: one per line, the time in UTC "
+                             "(PLANETGEN_RECORD_FILE does the same).")
+    parser.add_argument('--record-json', action='store_true',
+                        help="Write the --record-file records as JSON lines.")
     parser.add_argument('--quiet', '--silent', dest='quiet', action='store_true',
                         help="Suppress all output except errors.")
     parser.add_argument('--disregard-missing-data', action='store_true',
@@ -1801,6 +1806,7 @@ def main():
         level = log.DEBUG       # --debug, or debug mode in config.json: every command writes its decisions to stdout
     else:
         level = log.NORMAL
+    log.apply_record_arguments(args)
     try:
         # A command whose own result goes to stdout (`--output -`) keeps stdout for it; the debug lines go to stderr.
         log.configure(level, debug_file=(args.debug or None), to_stderr=getattr(args, "output", None) == "-",

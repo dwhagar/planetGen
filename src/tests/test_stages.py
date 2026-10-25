@@ -95,13 +95,13 @@ def test_entering_a_stage_announces_the_skipped_ones_before_it_and_the_rest_at_t
     stages.enter("settle")         # the ones between are skipped
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("Stage 1 of 10: Generate the starting sector.")
+    assert text.startswith("Stage 1 of 10: Generate the starting sector")
     assert "stages:" not in text and "stage:" not in text      # PERF.145: no list of the stages up front
-    assert "Stage 2 of 10: Generate the neighborhood -- skipped: not needed." in text
-    assert "Stage 4 of 10: Scatter the massive stars -- skipped: no layers." in text
-    assert "Stage 8 of 10: Run the population pass -- skipped: not needed." in text
-    assert "Stage 9 of 10: Recompute the territories -- skipped: not needed." in text
-    assert "Stage 10 of 10: Save the sector paths." in text
+    assert "Stage 2 of 10: Generate the neighborhood -- skipped: not needed" in text
+    assert "Stage 4 of 10: Scatter the massive stars -- skipped: no layers" in text
+    assert "Stage 8 of 10: Run the population pass -- skipped: not needed" in text
+    assert "Stage 9 of 10: Recompute the territories -- skipped: not needed" in text
+    assert "Stage 10 of 10: Save the sector paths" in text
     assert json.loads((tmp_path / "progress.json").read_text())["stage"]["index"] == 10
 
 
@@ -424,10 +424,10 @@ def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
     stages.enter("settle")
     stages.finish()
     text = "\n".join(lines)
-    assert text.startswith("Stage 4 of 13: Generate the starting sector.")      # a step of 10 stages: the banner names the step
+    assert text.startswith("Stage 4 of 13: Generate the starting sector")      # a step of 10 stages: the banner names the step
     assert "stages (stages" not in text
-    assert "Stage 5 of 13: Generate the neighborhood -- skipped: not needed." in text
-    assert "Stage 13 of 13: Save the sector paths." in text
+    assert "Stage 5 of 13: Generate the neighborhood -- skipped: not needed" in text
+    assert "Stage 13 of 13: Save the sector paths" in text
 
 
 def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
@@ -438,7 +438,7 @@ def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
     stages.begin(stages.scatter_stages(_scatter("--phenomena")))
     stages.enter("phenomena")
     stages.finish()
-    assert lines == ["Stage 1 of 1: Scatter the phenomena."]       # no banner here, so this line is the one mention
+    assert lines == ["Stage 1 of 1: Scatter the phenomena"]       # no banner here, so this line is the one mention
 
 
 def test_a_step_of_one_stage_under_the_runners_banner_logs_nothing_for_it_but_a_skipped_stage_says_why(monkeypatch):
@@ -454,7 +454,7 @@ def test_a_step_of_one_stage_under_the_runners_banner_logs_nothing_for_it_but_a_
     stages.begin(stages.scatter_stages(_scatter("--phenomena")))
     stages.skip("phenomena", "nothing to scatter")
     stages.finish()
-    assert lines == ["Stage 4 of 13: Scatter the phenomena -- skipped: nothing to scatter."]
+    assert lines == ["Stage 4 of 13: Scatter the phenomena -- skipped: nothing to scatter"]
 
 
 def test_every_stage_of_every_command_is_logged_at_most_once(monkeypatch):
@@ -513,7 +513,11 @@ def test_the_new_galaxy_log_counts_eleven_tasks_not_ten(tmp_path):
     log_text = (job_dir / "output.log").read_text()
     assert "=== Stage 1 of 11: " in log_text and "=== Stage 3 of 11: " in log_text
     assert "=== Stages 4 to 5 of 11: " in log_text and "of 10" not in log_text
-    assert "=== Stages 4 to 5 exited with status 0" in log_text
+    assert "=== Stages 4 to 5 of 11 finished after " in log_text
+    from planetgen.util import logrecord
+    records = [logrecord.parse_file_line(line) for line in (job_dir / "records.log").read_text().splitlines()]
+    assert [logrecord.plain_line(r) for r in records if r.event] == [line for line in log_text.splitlines() if line.startswith("=== ")]
+    assert sum(1 for r in records if r.event == logrecord.STAGE_START) == 10
     assert "\n3 11\n" in log_text      # the sectors step's process was told its stages start at 4 of 11
 
 
@@ -545,5 +549,31 @@ def test_every_stage_marker_comes_from_one_formatter():
     assert stagemark.marker(4, 12, 9) == "Stages 4 to 12 of 12"
     assert stagemark.section(1, 12, 1, "Reset") == "=== Stage 1 of 12: Reset ==="
     assert stagemark.section(4, 12, 9, "Generate") == "=== Stages 4 to 12 of 12: Generate ==="
-    assert stagemark.finished(4, 9, 0, 30.6) == "=== Stages 4 to 12 exited with status 0 after 31 s ==="
-    assert stagemark.finished(2, 1, 1, 4) == "=== Stage 2 exited with status 1 after 4 s ==="
+    from planetgen.util import logrecord
+    done = logrecord.stage_record(logrecord.STAGE_FINISH, "job", 4, 12, seconds=30.6, count=9)
+    failed = logrecord.stage_record(logrecord.STAGE_FAILED, "job", 2, 12, seconds=4, reason="exited with status 1")
+    assert logrecord.plain_line(done) == "=== Stages 4 to 12 of 12 finished after 31 s ==="
+    assert logrecord.plain_line(failed) == "=== Stage 2 of 12 failed after 4 s: exited with status 1 ==="
+
+
+def test_a_stage_announcement_is_one_divider_on_the_console_and_one_record_in_the_record_file(tmp_path, monkeypatch, capsys):
+    """UX.122: the same stage mark is the plain divider the console shows and the record the record file holds."""
+    from planetgen.util import logrecord
+    monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
+    monkeypatch.delenv(stages.STAGE_TOTAL_ENV, raising=False)
+    path = tmp_path / "records.log"
+    log.set_record_file(str(path))
+    log.configure(log.NORMAL)
+    try:
+        stages.begin(stages.scatter_stages(_scatter("--phenomena")))
+        stages.enter("phenomena")
+        stages.finish()
+        for handler in log._logger.handlers:
+            handler.flush()
+    finally:
+        log.set_record_file(None)
+        log.configure(log.NORMAL)
+    records = [logrecord.parse_file_line(line) for line in path.read_text().splitlines()]
+    assert [(r.event, r.message) for r in records] == [("stage.start", "Stage 1 of 1: Scatter the phenomena")]
+    assert records[0].fields == {"event": "stage.start", "stage": 1, "stages": 1}
+    assert capsys.readouterr().out.splitlines() == ["=== Stage 1 of 1: Scatter the phenomena ==="]

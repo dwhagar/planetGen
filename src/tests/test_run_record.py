@@ -10,6 +10,7 @@ import pytest
 
 from planetgen.queue import progress_rate, redisqueue, runeta, runrecord
 from planetgen.queue.runrecord import Stage
+from planetgen.util import logrecord
 
 
 @pytest.fixture
@@ -106,7 +107,10 @@ def test_the_event_stream_is_the_log_and_can_be_followed_and_kept(conn, tmp_path
     runrecord.finish_run(conn, run_id, "done", now=103.0)
     path = runrecord.write_log_file(conn, run_id, tmp_path / "jobs")
     text = open(path, encoding="utf-8").read()
-    assert "WARNING disk is slow" in text and text.rstrip().endswith("run done")
+    assert 'level=warning component=run msg="disk is slow"' in text and text.rstrip().endswith('msg="run done" event=run.done')
+    assert text.splitlines()[0] == 'ts=1970-01-01T00:01:40.000Z level=info component=run msg="run started: Fill" event=run.start'
+    assert [logrecord.parse_file_line(line).message for line in text.splitlines()] == [
+        "run started: Fill", "scatter layer 3 saved", "disk is slow", "run done"]
     for n in range(25):
         (tmp_path / "jobs" / f"2020010{n % 10}-{n:06d}-aaaaaaaa.log").write_text("old")
     runrecord.write_log_file(conn, run_id, tmp_path / "jobs", keep=20)
