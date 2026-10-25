@@ -252,6 +252,15 @@ WIDE_BINARY_SEPARATION_CEILING_AU = 1.0e6
 """float: Only where a place's density is zero is the survival limit infinite; no pair is a pair past a few parsecs
 (the Jacobi radius at the halo's density is under 10 pc), and this keeps the log-uniform draw finite."""
 
+HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES = 10.0
+"""float: A class D body in the cold zone farther than this many snow lines from its star is a trans-neptunian body to the
+hosting gate (`planets.hosting_population`, GEN.761); nearer, a belt body. STAND-IN [P]: the Solar System's main belt lies at
+about 1 snow line (2.2 to 3.3 AU against 2.7) and the Kuiper belt starts at Neptune's 30 AU, about 11; bracket 5 to 15."""
+
+HOSTING_COLD_MAX_INCLINATION_DEG = 5.0
+"""float: A trans-neptunian body under this inclination is `trans-neptunian-cold`, the others `trans-neptunian-hot` (the cut of
+Stephens and Noll 2006 behind the gate's binary fractions, 22 and 5.5 percent; GEN.761)."""
+
 # Cap on the sampled binary orbital eccentricity for an S-type pair (see
 # binary.WideBinaryPair.generate's thermal-distribution sampling).
 # Wide binaries never tidally circularize the way the close/P-type pair

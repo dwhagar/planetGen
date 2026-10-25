@@ -267,3 +267,14 @@ Numbers and short quotations of fact were read from the sources below; nothing e
 ## Impact erosion and late delivery (`docs/design/composition/impact-erosion-and-late-delivery.md`, `src/planetgen/physics/impact_history.py`, GEN.739)
 
 Formulas, constants and the planets' observed totals were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All four carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Sakuraba, Kurokawa and Genda 2019 (1805.07094); Brasser et al. 2016 (1609.01785); Schlichting, Sari and Yalinewich 2015 (1406.6435); Raymond et al. 2013 (1306.4325). Svetsov 2000 and 2007 and Shuvalov 2009 were not opened; their formulas are used as printed in Sakuraba et al.
+
+## Volatile inventory against the totals of the Earth, Venus, Mars and Titan (`docs/design/composition/volatile-inventory-against-planet-totals.md`, `src/planetgen/physics/mixture_rocky.py`, GEN.813)
+
+Numbers and ratios of fact were read from the sources below; nothing else was taken. Raw files stay out of the repository.
+
+| Source | Terms | Basis |
+|---|---|---|
+| Bergin et al. 2015 (arXiv:1507.04756) | arXiv non-exclusive licence (copyright stays with the authors; read and cite, no redistribution) | abstract page |
+| Erkaev et al. 2020 (arXiv:2010.12342) | arXiv non-exclusive licence (same) | abstract page |
+| arXiv:2302.04241, ancient Martian atmosphere | CC BY 4.0 | abstract page |
+| NASA planetary fact sheets for Venus and Mars (nssdc.gsfc.nasa.gov) | US government work, public domain | publisher |

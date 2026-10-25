@@ -493,6 +493,15 @@ with `clamp()`.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
+  Research (2026-10-09, Aux 16 report): First slice merged (#3256, Aux
+  16, 11:20 PM EDT 2026-10-24 as the lane reported): the command line
+  text, the run log file, the job runner stage lines and a new
+  records.log beside a job output.log come from the UX.121 record layer;
+  new options --record-file and --record-json (settings record_file,
+  record_format) write every log line as a record and the job page
+  offers them at /log?form=records. Still open: finish and failure lines
+  on the command line, the commands that print directly (about 154 print
+  calls), the activity log shape decision, per-command tests.
   Prerequisites: none. Related: UX.102.
 
 - [ ] **UX.123 The Generate page log, the admin log pages and update.sh output use the layer**
@@ -9697,39 +9706,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
-- [ ] **GEN.512 Tuned draw builder B4: the iron branch**
-  Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
-  as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
-  the TODO thread. Builder group B4 of section 4 (one worker). Rows: T5.
-  Shared data and fit: Plotnykov 2025, Brinkman 2024, Adibekyan 2021,
-  Schulze 2021. Needs: mass and radius error injection.  Do: replace the
-  seeded bracket of each DESIGN row of GEN.478 in these rows by a seeded
-  draw whose knobs are tuned through the harness to the published
-  statistics of section 3 of the report (knob, statistic, target with N,
-  uncertainty, source and label), inside the validity range of the data
-  and flagged outside it; rows of class P become formulas of their
-  inputs and rows of class S or X are not tuned. Solar System values are
-  test points only (NO FIXED CONTENT). Done: every tuned row has a
-  target-table entry the loader checks, the simulate-and-compare test
-  passes within the stated sigma, no value rests on a Solar System body
-  alone, and the part 09 row carries its state (Decided 3:02 AM EDT
-  rule). A retune changes the table version and is a generator epoch
-  bump. Owner: Core 4 (proposed, with the composition chain).
-  Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC8: the planet-minus-star Fe/Mg slope 0.94 (+1.02/-1.07) is
-  Plotnykov, Valencia and Ross 2026 (preprint arXiv:2511.17717), not the 2020 paper; of the two
-  verified papers by the same group the newest wins.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): cite the
-  fit as Plotnykov, Valencia and Ross 2026 (preprint arXiv:2511.17717),
-  not Plotnykov 2025 or the 2020 paper (2026-10-17, 1:16 PM EDT).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.505. Related: GEN.503, GEN.478, GEN.472.
-  Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
-
 - [ ] **GEN.515 Tuned draw builder B7: ground and petrology**
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
@@ -15158,26 +15134,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.411, GEN.422. Related: GEN.423, GEN.703, GEN.752,
   GEN.411.
 
-- [ ] **GEN.813 Volatile inventory brackets recalibrated against the totals of the Earth, Venus, Mars and Titan, not only the ratios (finding 2)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 2. The dry
-  class carries 0.6 wt% CO2 (about sixteen times the bulk silicate
-  Earth's carbon), nitrogen follows by N/C up to 0.1 (one seed: 87 bar
-  of N2 on a 1.8 Earth-mass planet) and sulfur by S/C up to 3. The
-  carbonate balance removes the carbon of a wet world whatever the
-  supply, but nitrogen has no sink, so those worlds start with a thick
-  N2 air. Recalibrate the GEN.481 brackets (GEN.725 tweak level L2) so
-  the four known bodies fall inside their ranges and state the source of
-  each total. Done: the four bodies reproduce within the stated spread;
-  the tweak level is listed. Owner: the Citations lane (GEN.481 owner)
-  with GEN.802 and GEN.803. Rules: no backward-compat shims; every
-  number has a unit or scale (GEN.772); stand-ins get GEN.725 registry
-  rows with a tier and tweak level; a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Prerequisites: GEN.411, GEN.422. Related: GEN.481, GEN.802, GEN.803,
-  GEN.725.
-
 - [ ] **GEN.814 A water-rich world (class O, 10 to 50 wt% water) gets a carbon sink: seafloor weathering and the high-pressure ice that seals the mantle (finding 3)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
   reports/air-fixed-point-findings-2026-10-24.md finding 3. Silicate
@@ -15210,6 +15166,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed generated value carries `tests.golden_update --reason ...
   --affects <stage>` and the next epoch; tests are `scripts/test.py
   changed --resume`.
+  Research (2026-10-09, Aux 8 report): Module merged (#3252, 11:08 PM
+  EDT 2026-10-24 as the lane reported): physics/sulfur_balance.py splits
+  the degassed sulfur between the air, a calcium sulfate sink and an
+  iron sulfide sink by redox, limited by crust, with rain-out and
+  sulfation lifetimes; stand-in rows AM45 to AM49. Stays open until 4c
+  (GEN.411, GEN.422) calls it and drops SULFUR_SURFACE_KEPT; Aux 8
+  confirms the wiring. Known limit stated in the doc: the mean-rate
+  steady state leaves a dry world almost no SO2 (Venus holds about 14
+  mbar).
   Prerequisites: GEN.411, GEN.422. Related: GEN.757, GEN.751, GEN.725.
 
 - [ ] **GEN.816 A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5)**
@@ -15274,6 +15239,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.772); tests are `scripts/test.py changed --resume`.
   Prerequisites: GEN.411, GEN.422. Related: GEN.739, GEN.411, GEN.422,
   GEN.726.
+  Research (2026-10-09, Citations lane report): Also does the part of
+  GEN.813 that waits on 4c (Citations lane, 11:09 PM EDT 2026-10-24):
+  run the Earth, Venus and Mars twins through the air fixed point and
+  check the totals the recalibrated brackets (#3254) give.
+
+- [ ] **GEN.820 Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample**
+  GEN.512 merged as #3250 (generator epoch 101, --affects fill):
+  bulk-iron-branch table in bulk_draw.py, tuning sample
+  physics/iron_branch_tuning.py, targets t5-outlier-share and
+  t5-within-share. Left open by the lane (11:05 PM EDT 2026-10-24 as the
+  lane reported): (1) the coreless branch has no count to tune against;
+  (2) a slope other than 1 needs a pivot; (3) the scatter 0.05 dex is a
+  stand-in (give it a source or a tier and tweak level in GEN.725); (4)
+  a larger tuning sample. Done: each is either closed with a source or
+  listed in the registry with its tier. Owner: the lane that did GEN.512
+  (source and tune atmosphere draws). Rules: no backward-compat shims;
+  stand-ins get GEN.725 registry rows; a changed generated value carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch.
+  Prerequisites: none. Related: GEN.512, GEN.725.
+
+- [ ] **GEN.821 Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure**
+  The GEN.813 lane (Citations, 11:09 PM EDT 2026-10-24 as the lane
+  reported) found that Titan has no volatile inventory in the code: the
+  titan family takes its pressure. Add an ice-moon nitrogen inventory
+  from ammonia ice (Erkaev et al. 2020 Table 2) so the supply law and
+  the air fixed point (GEN.411, GEN.422) derive a Titan-like moon's
+  nitrogen and methane. Done: a Titan sample lands near 1.5 bar of N2
+  with methane, with the source and tier in the GEN.725 registry. Owner:
+  the Citations lane. Rules: no backward-compat shims; stand-ins get
+  registry rows; a changed generated value carries `tests.golden_update
+  --reason ... --affects <stage>` and the next epoch.
+  Prerequisites: GEN.411, GEN.422. Related: GEN.813, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20850,6 +20848,21 @@ clears each one.
   test_work_units batch-fills test. Core 5 fixed test_stages,
   test_job_tree and test_work_units cases that PERF.125 left red
   (#3248).
+  Research (2026-10-09, GEN.512 lane report): Also red on main (GEN.512
+  lane, 11:05 PM EDT 2026-10-24 as the lane reported): test_work_units,
+  test_single_system_forcing.
+  Research (2026-10-09, Aux 16 report): Aux 16 (11:20 PM EDT 2026-10-24
+  as the lane reported) also lists red on main: six stage-count tests in
+  test_stages after the tenth stage (territories) was added
+  (test_a_random_start_galaxy_run_has_nine_stages,
+  test_a_galaxy_run_with_an_address_has_one_sector_stage,
+  test_each_stage_is_stored_with_its_time_settings,
+  test_a_total_too_small_for_the_runs_stages_is_ignored and two more),
+  test_web_pages::test_in_process_transport_skips_http_inside_a_request,
+  test_web_search::test_a_star_result_links_to_its_row_on_the_system_page
+  (hangs),
+  test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems (RQ
+  StopRequested after 10 minutes).
   Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
 
 - [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**

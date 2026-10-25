@@ -60,13 +60,38 @@ this only limits what the drawn air can show. Limits: the physical solubility on
 takes more), the Henry law's 273.15 to 323.15 K with the nearest end standing in outside, and full saturation (a bound, not Earth's
 0.6 to 0.8 relative humidity).
 
+## Where the degassed sulfur goes (GEN.815)
+
+The supply law brings sulfur to the surface; the sulfur sink decides how much of it the air keeps (`physics/sulfur_balance.py`). It
+replaces the stand-in `SULFUR_SURFACE_KEPT` (1e-5 to 1e-2 of the sulfur stays in the air with an ocean), under which a wet world could
+hold hundreds of bar of S2. Two solid sinks take sulfur out of the gas: sulfate (SO2 and SO3 with calcium as CaSO4) and sulfide (H2S, S2
+and COS with iron as FeS and FeS2). Which one a mole goes to is the redox of the gas it arrived in: `oxidised_share_of` reads the share of
+the sulfur that is bonded to oxygen from the equilibrium gas of the outgassing stage.
+
+* **Capacity.** The crust the volcanism built holds the calcium and the iron: `crust_column_kg_m2(released_j, radius_m)` is the Earth
+  twin's crust per processed mantle (`CRUST_PER_PROCESSED_MANTLE`) times the mantle `surface_pressure` says the interior has processed,
+  over the area. One calcium binds one sulfur as sulfate, one iron one sulfur as sulfide. Sulfur beyond the capacity stays in the air whole,
+  so a body whose inventory is far larger than its crust (the open question of the inventory brackets, GEN.481) shows it.
+* **Rate.** The sulfur that goes to the sinks arrived at its mean rate; the air holds `min(1, tau / age)` of it (the steady state of
+  outgassing against removal, as the carbonate balance is). `tau` is the lifetime against rain-out and oxidation over liquid water
+  (`WET_LIFETIME_DAYS`, 0.5 to 7 days) and against sulfation of the surface rock on a dry surface (`DRY_LIFETIME_YEARS`, 0.5 to 5 million
+  years, Fegley and Prinn 1989 for Venus).
+* **Output.** `balance(...)` returns the sulfur in the air, in the sulfate sink and in the sulfide sink, mol per square metre; they
+  sum to the degassed sulfur. The air's sulfur is what the caller puts into the closed system for the equilibrium, and the ocean's
+  Henry's-law uptake (`mixture_sinks`) acts on it afterwards.
+
+Limits (stated): sulfate and carbonate share the calcium and the balance does not take the carbonate's share (so the sulfate capacity is
+an upper bound where a carbonate sink is full); the mean-rate steady state gives a dry world almost no sulfur in the air, while Venus holds
+about 14 mbar of SO2, which only recent resupply explains (Fegley and Prinn say so too); the lifetimes are brackets, not rate laws of
+temperature; the share of the sulfur the melt keeps is `surface_pressure.DEGAS_EFFICIENCY`. Five stand-ins, registry rows AM45 to AM49.
+
 ## Rocky outgassing
 
 1. **Redox.** `a1` (magma-ocean stage: Sossi 2020) for a body without long-lived geology; for a tectonic body it moves to `a2` (the
    later upper mantle) as `1 - exp(-age / tau)` with `tau` seeded in 0.1 to 1.5 Gyr. A white-dwarf host takes `a4`, a small body `a3`.
    The recipe's class row `a5`/`a6`/`a7` describes the magma-ocean stage only; the chemistry reads the blended number.
 2. **Inventory.** Delivered water and CO2 from the `b` class (Ortenzi 2020 Table 1: CO2/H2O = 0.2 for the wet classes, dry class
-   CO2 0.6 wt%), N and S per carbon in design brackets (BSE and CI chondrite values inside them), 40Ar from the potassium of the rock
+   CO2 0.018 to 0.1 wt%, GEN.813), N and S per carbon in design brackets (BSE and CI chondrite values inside them), 40Ar from the potassium of the rock
    and the age.
 3. **The volcano's gas**: equilibrium with the mantle at the magmatic temperature (1100 to 1500 K) and the pressure of the layer, with
    the oxygen fugacity held.

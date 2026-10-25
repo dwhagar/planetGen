@@ -29,6 +29,8 @@ STANDINS = (
     "impact_history.LATE_ACCRETED_PERCENT_EARTH", "impact_history.LATE_ACCRETED_MASS_EXPONENT", "impact_history.LATE_ACCRETED_LN_SIGMA",
     "impact_history.VENEER_VOLATILES", "impact_history.VENEER_VOLATILE_SCALE", "impact_history.V_INF_OVER_V_ORBIT",
     "impact_history.DIAMETER_RANGE_KM", "impact_history.SVETSOV_GAMMA", "impact_history.IMPACTOR_ESCAPE_COEFFICIENT",
+    "sulfur_balance.WET_LIFETIME_DAYS", "sulfur_balance.DRY_LIFETIME_YEARS", "sulfur_balance.CRUST_PER_PROCESSED_MANTLE",
+    "sulfur_balance.CRUST_CALCIUM_WT", "sulfur_balance.CRUST_IRON_WT",
 )
 
 

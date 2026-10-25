@@ -58,16 +58,21 @@ K40_ARGON_BRANCH = 0.104
 # Design brackets: (low, high, shape); "log" is log-uniform, "uniform" is uniform. Each is a stand-in for the research item named.
 INVENTORY = {
     # Ortenzi et al. 2020 Table 1, read in part 05 section 3.1: delivered H2O 0.05 and 0.5 wt%, CO2 0.01 and 0.1 wt% (CO2/H2O = 0.2 in
-    # both), the dry class H2O 0 and CO2 0.6 wt%. The dry water is a bracket (their stored 0.005 wt% is the top of it).
+    # both), the dry class H2O 0 and CO2 0.6 wt% delivered, 0.018 wt% stored. The dry water is a bracket (their stored 0.005 wt% is the
+    # top of it). The dry carbon is the bracket from the stored 0.018 to the wet High case's 0.1 wt%, not the delivered 0.6: an Earth twin
+    # draws the dry class nine times in ten, and 0.6 wt% CO2 is sixteen times the carbon of the bulk silicate Earth (100 ppm C, Bergin
+    # et al. 2015 Table S1), where this bracket's log-middle (0.042 wt% CO2, 115 ppm C) is within a sixth of it (GEN.813).
     "co2_over_h2o_wet": (0.2, 0.2, "uniform"),
     "h2o_dry_wt_percent": (1e-4, 5e-3, "log"),
-    "co2_dry_wt_percent": (0.6, 0.6, "uniform"),
+    "co2_dry_wt_percent": (0.018, 0.1, "log"),
     # The water-rich class (b4: at least 10 weight percent water): the carbon share is open.
     "h2o_rich_wt_percent": (10.0, 50.0, "log"),
     "co2_over_h2o_rich": (5e-3, 0.2, "log"),
     # The nitrogen and sulfur per carbon atom: the bulk silicate Earth (Kargel and Lewis 1993 via Schaefer, Lodders and Fegley
-    # 2012 Table 2: N/C 0.013, S/C 1.7) and the CI chondrites (N/C 0.04, S/C 0.6) are inside; open, GEN.481.
-    "nitrogen_per_carbon": (1e-3, 0.1, "log"),
+    # 2012 Table 2: N/C 0.013, S/C 1.7) and the CI chondrites (N/C 0.04, S/C 0.6) are inside; open, GEN.481. The nitrogen bracket
+    # runs from 0.005 to 0.1: Bergin et al. 2015 Table S1 gives N/C 0.020 for the bulk silicate Earth (C/N 49 plus or minus 9), 0.059
+    # for the CI chondrites, 0.074 for the air of Venus and 0.055 for the air of Mars, and its log-middle 0.022 is the Earth's (GEN.813).
+    "nitrogen_per_carbon": (5e-3, 0.1, "log"),
     "sulfur_per_carbon": (0.1, 3.0, "log"),
     # Potassium of the rock (weight percent), for the 40Ar: the bulk silicate Earth 0.024, the continental crust 2.1: open, GEN.492.
     "potassium_wt_percent": (0.005, 0.1, "log"),

@@ -764,6 +764,18 @@ class Settings(_Section):
                         env="PLANETGEN_LOG_FILE", restart=True, editable=False, group="logging",
                         label="Debug log file",
                         summary="The file the debug log is written to.")
+    record_file: str = opt("", "A file every log line of a planetgen command is also written to as a record: one per "
+                           "line, the time in UTC. Empty writes none; the --record-file option does the same for "
+                           "one command.",
+                           env="PLANETGEN_RECORD_FILE", restart=True, editable=False, group="logging",
+                           label="Record file",
+                           summary="A file that gets every log line as a machine-readable record, for a tool to read.")
+    record_format: Literal["logfmt", "json"] = opt(
+        "logfmt", "The form of the record file's lines: logfmt (key=value) or json (one object per line).",
+        env="PLANETGEN_RECORD_FORMAT", restart=True, editable=False, group="logging",
+        choice_labels={"logfmt": "Key and value pairs", "json": "JSON lines"},
+        label="Record file form",
+        summary="Whether the record file is written as key=value lines or as JSON lines.")
     log_dir: str = opt("", "The folder of the always-on activity log; empty means /var/log/planetgen on Linux, "
                        "/Library/Logs/planetgen on macOS.",
                        env="PLANETGEN_LOG_DIR", restart=True, editable=False, group="logging",
