@@ -15193,6 +15193,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.728, GEN.681, GEN.350, GEN.509,
   GEN.822, GEN.650.
 
+- [ ] **GEN.830 A class O (ocean) planet in zone e reaches a surface pressure of 9.05e9 Pa (about 90,000 bar) with the solved air: unphysical for an air above a liquid ocean (bug)**
+  Found by the 4c lane (Blocker I, relayed by the coordinator 2:36 AM
+  EDT 2026-10-25): in test_planets a class O planet in zone e reaches
+  9.05e9 Pa; before 4c the sweep ceiling was 5e7 Pa. PR #3321 (merged)
+  raised the test ceiling to 1e10 Pa so the test is not red, which hides
+  the question. Do: find which term of the air fixed point (GEN.411,
+  GEN.422) drives it, the supply law (GEN.726), the sinks (the ocean
+  carbon sink GEN.814, the high-pressure ice seal), freeze-out or the
+  greenhouse feedback for massive water worlds; the air above a liquid
+  ocean cannot hold tens of thousands of bar of volatiles that the ocean
+  dissolves or the ice shell seals, so cap it by the physics
+  (solubility, the sink, the seal) and not by a clamp. Done: massive
+  water worlds keep a surface pressure inside the range the physics
+  allows, a test with a physical bound replaces the raised ceiling, and
+  the reason is recorded in the stand-in registry if a value is tuned.
+  Owner: Aux 8 (with GEN.823 and GEN.814). Changes stored values: a new
+  generator epoch with --affects fill if the pressure changes. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: none. Related: GEN.411, GEN.422, GEN.726, GEN.814,
+  GEN.823.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
