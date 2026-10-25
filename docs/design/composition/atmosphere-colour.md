@@ -45,7 +45,7 @@ The foundations sit in 8.4 because the classes are reworked there (GEN.90). VIEW
 | 4 | "Atmosphere colour" replaces "sky colour" and the planet colour | Decided, same |
 | 5 | Absolute colour, no adaptation; giants included | Decided, card of the evening of 2026-10-16 (minute not recorded) |
 | 6 | One gas and compound table with every compound the descriptions mention | Decided, 11:24 to 11:25 PM EDT |
-| 7 | Nothing fixed per class, no presets; Solar System rows live in tests only (TEST.215) | Decided, standing rule; 1:44 AM EDT on stand-ins |
+| 7 | Nothing fixed per class, no presets; Solar System rows live in tests only (TEST.215) | Decided, standing rule; 1:43 AM EDT on stand-ins |
 | 8 | Value-changing chain stays in 8.4, outside the 8.1 stamp | Decided, 12:13 AM EDT, 2026-10-17 |
 | 9 | Radius reference level 1 bar | Decided, 1:24 AM EDT |
 | 10 | Gated possibility tables, stand-in marker, one shared component table | Decided, 1:40 to 1:51 AM EDT |

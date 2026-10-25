@@ -724,21 +724,16 @@ WR_COMPANION_CHANCE = {"WN": 0.52, "WC": 0.90, "WO": 0.90}
 """dict: The share of Wolf-Rayet stars with a companion, by subtype (Dsilva et al., a spectroscopic multiplicity survey of
 Galactic Wolf-Rayet stars: 52% of WN, 96% of WC, capped at 0.9 as in the phenomena catalogue; WO takes WC's)."""
 
-# Piecewise main-sequence mass-luminosity relation, L = coeff * M^exponent
-# (Lsun, Msun), each piece for M below its max_mass_sol and the last one
-# open-ended (Duric 2004; Salaris & Cassisi 2005).
-MS_MASS_LUMINOSITY_PIECES = (
-    {"max_mass_sol": 0.43, "coeff": 0.23, "exponent": 2.3},
-    {"max_mass_sol": 2.0, "coeff": 1.0, "exponent": 4.0},
-    {"max_mass_sol": 55.0, "coeff": 1.4, "exponent": 3.5},
-    {"max_mass_sol": None, "coeff": 32000.0, "exponent": 1.0},
-)
+# The mass range the MIST main-sequence grid holds (GEN.652): a mass outside it is carried out with the power laws at
+# its edge (`physics/main_sequence.py`). The generator's own piecewise luminosity and radius laws that stood here are
+# gone: a main-sequence star's luminosity, temperature and radius are the MIST row of its mass, age and [Fe/H].
+MAIN_SEQUENCE_GRID_MASS_RANGE_SOL = (0.1, 240.0)
 # The "map luminosity" relation (GEN.200): the luminosity a main-sequence star
 # of a given mass would have, used to rank a faint but massive object (a
 # neutron star, a black hole) for the Galaxy Map by the star of its mass
 # (Astronomy Notes, "Mass-Luminosity Relation Explained"; Varsity Tutors,
-# "Stellar Mass & Lifetime"). Same form as MS_MASS_LUMINOSITY_PIECES, whose
-# star generators it does not replace: it has Boss's table's constants and
+# "Stellar Mass & Lifetime"). The star generators no longer
+# read a piecewise law (GEN.652); this is the map's alone, with Boss's table's constants and
 # breaks (1.5 M^3.5 from 2 to 20 Msun, not 1.4 M^3.5 to 55), and above 20 Msun
 # L is proportional to M, its coefficient fixed by continuity with the band
 # below (1.5 * 20^2.5, about 2,683 Lsun per Msun). So 20 Msun is about
@@ -755,10 +750,6 @@ MAP_MASS_LUMINOSITY_PIECES = (
 # mass on record is drawn as a star of this mass.
 BLACK_HOLE_MAP_BRIGHTNESS = 0.8
 MASSLESS_MARKER_MASS_SOL = 1.0
-# Main-sequence mass-radius relation, R = M^exponent (Rsun, Msun), with the
-# exponent changing at 1 Msun (Demircan & Kahraman 1991).
-MS_RADIUS_EXPONENT_BELOW_1_SOL = 0.8
-MS_RADIUS_EXPONENT_ABOVE_1_SOL = 0.57
 # The Sun's effective temperature (IAU 2015 nominal), anchoring
 # Stefan-Boltzmann in solar units: T = T_sun * (L / R^2)^(1/4).
 SUN_EFFECTIVE_TEMPERATURE_K = 5772.0
@@ -837,19 +828,18 @@ POST_AGB_DISK_MASS_RANGE_SOLAR = (0.01, 0.1)
 # power law. The energy factor is the one number the table fixes only through
 # its end: contraction alone, at the luminosity the star radiates, is too
 # quick, and deuterium burning and the heat of the interior pay for part of
-# the light, so the time is stretched by 3.0, the value at which the model
+# the light, so the time is stretched by 2.0, the value at which the model
 # reaches the main sequence at the age the table's radius settles to within
-# 2% of its minimum, rms 0.106 dex over the 18 masses (0.7 to 1.4 solar masses
-# within 0.06 dex, 0.1 to 0.2 up to 0.21 dex too slow). The model ends on the
-# generator's own main sequence (`stellar_evolution`), which is 0.05 to 0.28
-# dex brighter than the table's 1 Gyr star below 1.2 solar masses (the table
-# is solar-composition at 1 Gyr, the generator's relation is anchored on the
-# Sun), so a state against the table is that much too bright at the end of the
-# contraction. At 1 to 10 Myr the luminosity is within 0.25 dex of the table up
+# 2% of its minimum, rms 0.12 dex over the 7 masses of the test (every one within
+# 0.19 dex; 3.0 before GEN.652, when the model ended on the generator's own,
+# brighter and larger main sequence). The model now ends on the MIST main
+# sequence's first row at the star's mass and [Fe/H] (`physics/main_sequence.py`,
+# GEN.652), the same table the star's own record reads, so the track and the star
+# it becomes agree. At 1 to 10 Myr the luminosity is within 0.25 dex of the table up
 # to 0.3 solar masses and up to 0.35 dex too bright from 0.5 to 1.4, where the
 # derived Hayashi phase falls more slowly than the table's.
 PRE_MAIN_SEQUENCE_MAX_MASS_SOL = 8.0
-# No star contracts longer than this: the track takes the lightest star (0.08 solar masses) 0.94 Gyr. A shortcut for
+# No star contracts longer than this: the track takes the lightest star (0.08 solar masses) 0.94 Gyr (GEN.652). A shortcut for
 # the old stars, which are nearly all of them; the test checks it against the track.
 PRE_MAIN_SEQUENCE_LONGEST_YR = 1.0e9
 PROTOSTAR_MAX_AGE_YR = 0.5e6
@@ -859,7 +849,7 @@ BIRTHLINE_RADIUS_1_SOL_RSUN = 3.187
 BIRTHLINE_RADIUS_MASS_EXPONENT = 0.4335
 CONVECTIVE_BINDING_COEFFICIENT = 3.0 / 7.0
 RADIATIVE_BINDING_COEFFICIENT = 3.0 / 4.0
-PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 3.0
+PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 2.0
 # The disk (VANDAM and the TODO text, GEN.242): Class 0 under 0.15 Myr, I under
 # 0.5, II under 3, and none after; mass 0.01 to 0.3 of the star and outer
 # radius 10 to 300 AU, each log-uniform; the inner edge is where a blackbody
@@ -1507,6 +1497,9 @@ to build, which the worker warm pays for every bin of every population (GEN.651)
 BRIGHT_TABLE_BOUND_MARGIN = 1.1
 """float: What a table's cell bound is multiplied by so a star anywhere in its [Fe/H] bin is under it (calibrated by
 `tests/test_star_population.py`, which draws masses and compositions across every bin and checks the ratio)."""
+BRIGHT_TABLE_MAIN_SEQUENCE_SLACK = 1.1
+"""float: How much brighter than its threshold a cell's bound reads the main sequence (GEN.652): the MIST rows step by a
+few percent over a few tenths of a percent of mass, so the end of a cell's main sequence is read a tenth brighter."""
 
 OBJECT_FIRST_CAPACITIES = (1, 2, 4, 8, 16)
 """tuple: The object counts a sector can take in the object-first scatter (PERF.58): its capacity is the smallest
@@ -1549,12 +1542,12 @@ SPECTROSCOPIC_MAX_AXIS_AU = 0.26
 """float: A pair closer than this is a spectroscopic binary (the catalogue's "close detached binary, a under 0.26 AU",
 design note 13.1); `MemberTree.spectroscopic_nodes`."""
 
-CONTACT_TERTIARY_KEEP_SHARE = 0.54
+CONTACT_TERTIARY_KEEP_SHARE = 0.26
 """float: The share of the contact binaries that hold the placed star and have a tertiary which keep it (GEN.270). The
-member-tree draw gives 84% of contact binaries a tertiary, because the stability screen leaves the inner pair of a
-hierarchy only short periods; stripping the others from 46% of those where the pair holds the placed star brings the
-share to the catalogue's 60% (measured over 600,000 seeded disc systems; a stand-in until GEN.631's fill measures it
-again)."""
+member-tree draw gives 94% of contact binaries a tertiary (84% before GEN.652 read the stars' radii from MIST), because
+the stability screen leaves the inner pair of a hierarchy only short periods; stripping the others from 74% of those where
+the pair holds the placed star brings the share to the catalogue's 60% (measured over 120,000 seeded disc systems: 48% with
+none kept, 94% with all kept; a stand-in until GEN.631's fill measures it again)."""
 
 YOUNG_GROUP_AGE_MAX_YR = 3.0e5
 """float: A massive system (O or early B, a birth mass of `B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is

@@ -48,7 +48,7 @@ def test_the_placed_share_is_the_mass_pass_plus_the_lighter_bright_stars():
         placed = sp.placed_star_fraction(3000.0, 8.0, population)
         assert placed == pytest.approx(massive + sp.bright_star_fraction(3000.0, population, (None, 8.0)))
         # Stars of 8 to 9 solar masses are dimmer than 3000 Lsun on the main sequence, so the mass pass adds some.
-        assert placed >= sp.bright_star_fraction(3000.0, population) - 1e-18
+        assert placed >= sp.bright_star_fraction(3000.0, population) * (1.0 - 1e-12)
     assert sp.placed_star_fraction(3000.0, None, "young") == sp.bright_star_fraction(3000.0, "young")
 
 

@@ -2962,46 +2962,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane, with MAP.260 (the warm-up), which it builds next.
   Prerequisites: none. Related: MAP.258, MAP.260.
 
-- [ ] **MAP.295 The system infobox on the map does not scale to the size of the map window (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: the infobox does not scale
-  to the size of the map window. Do: size the infobox popup from the map
-  window (the width and height MAP.291 now fits to the page and the
-  browser window, never under 320 px), so a larger window gets a larger
-  box with its content readable, and a small window or a phone keeps it
-  inside the window with its own scroll. Done: a browser test at three
-  window sizes (desktop, tablet, phone) shows the box inside the window
-  and growing with it. Part of one chain filed from that message:
-  TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core 2),
-  MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner:
-  Core 2 (maps and interface; it wrote MAP.288 and MAP.291).
-  Research (2026-10-09, Added 7:33 PM EDT): Added (Boss, 7:33 PM EDT
-  2026-10-24, message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiKvKv7nchhgm2mEPPktTDrW, relayed by the
-  coordinator): "Make sure the infobox is never cut off, we can make the
-  fonts a little smaller." So the box never extends past the map window
-  on any side at any window size or content length (it scrolls inside
-  itself), and the infobox font size may be reduced a step. Done adds:
-  the browser test checks the box's rectangle lies inside the map window
-  for the longest system card on the fixture. Owner Core 2.
-  Prerequisites: none. Related: MAP.288, MAP.291, MAP.296.
-
-- [ ] **MAP.296 The system infobox on the map lists the nearest systems under the location, each name a link (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: to help fix the infobox,
-  show the nearest systems under the location line of the system infobox
-  on the map, each nearest system's name a link that flies to it (the
-  data is the nearest systems the system page already shows,
-  web/system_pages.py). Done: a browser test opens a system infobox on
-  the fixture galaxy, sees the nearest systems listed below the
-  location, and following a name flies to that system. Part of one chain
-  filed from that message: TEST.368 (fixture galaxy), MAP.295 and
-  MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
-  icons; Aux 10). Owner: Core 2.
-  Prerequisites: none. Related: MAP.295, MAP.288, MAP.298.
-
 - [ ] **MAP.298 Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
@@ -3433,10 +3393,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   centroid of the charted spheres, not the block centre; an unfilled
   galaxy shows nothing. The suffix words Region and Reach are
   placeholders for Boss. Done: label tests at each zoom, no label for
-  uncharted space. Owner: Aux 10. Rules: no backward-compat shims; every
-  number has a unit or scale (GEN.772); tests are scripts/test.py
-  changed --resume. The galactic-level map draws the regions themselves
-  (MAP.317), so these labels are what a user reads there.
+  uncharted space. Owner: Core 4 (Boss, 1:45 AM EDT 2026-10-25: Core 4
+  takes labels by zoom with the icons once its current item is done),
+  moved from Aux 10. Rules: no backward-compat shims; every number has a
+  unit or scale (GEN.772); tests are scripts/test.py changed --resume.
+  The galactic-level map draws the regions themselves (MAP.317), so
+  these labels are what a user reads there.
   Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826, API.35.
 
 - [ ] **MAP.315 The map infobox shows the region and its parent: "Region: Vang Zarh (in Vang Reach)", each a link that flies the camera to the block (regions chain, step 4)**
@@ -3615,11 +3577,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the map menu and on the object pages; the existing tokens (black hole,
   neutron star, quasar, nebula) are unchanged. The best world's token
   and habitability score ride the existing node worlds payload
-  (MAP.220), no new endpoint (design section 0.3). Owner: Aux 10 (the
-  legend on the object pages with Aux 11). Rules: no backward-compat
-  shims; every number has a unit or scale (GEN.772); tests are
-  scripts/test.py changed --resume; no fixed content from the Milky Way
-  or the Solar System.
+  (MAP.220), no new endpoint (design section 0.3). Owner: Core 4 (Boss,
+  1:45 AM EDT 2026-10-25: Core 4 takes the icons once its current item
+  is done), moved from Aux 10 (the legend on the object pages with Aux
+  11). Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); tests are scripts/test.py changed --resume; no fixed
+  content from the Milky Way or the Solar System.
   Prerequisites: MAP.305. Related: MAP.303, MAP.305, MAP.306, MAP.311,
   MAP.312, MAP.316.
 
@@ -7842,7 +7805,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proportions of a drawn possibility use the table weights directly
   where a sourced kernel exists, and a Dirichlet draw around those
   weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
+  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
   Solar System shapes (the asteroid taxon shares and the zone kernel,
   the Earth rock-type library) enter a table only as flagged temporary
   stand-ins, each with its own research item that replaces it with a
@@ -8310,7 +8273,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proportions of a drawn possibility use the table weights directly
   where a sourced kernel exists, and a Dirichlet draw around those
   weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
+  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
   Solar System shapes (the asteroid taxon shares and the zone kernel,
   the Earth rock-type library) enter a table only as flagged temporary
   stand-ins, each with its own research item that replaces it with a
@@ -8913,7 +8876,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proportions of a drawn possibility use the table weights directly
   where a sourced kernel exists, and a Dirichlet draw around those
   weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
+  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
   Solar System shapes (the asteroid taxon shares and the zone kernel,
   the Earth rock-type library) enter a table only as flagged temporary
   stand-ins, each with its own research item that replaces it with a
@@ -8941,7 +8904,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:44 AM EDT, Stand-in only), filed by the TODO thread. R1 in the
+  1:43 AM EDT, Stand-in only), filed by the TODO thread. R1 in the
   lane's words: the replacement research is planetesimal composition as
   a function of formation temperature (the condensation sequence of
   parts C and D), then dynamical mixing by giant-planet migration and
@@ -8994,7 +8957,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proportions of a drawn possibility use the table weights directly
   where a sourced kernel exists, and a Dirichlet draw around those
   weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
+  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
   Solar System shapes (the asteroid taxon shares and the zone kernel,
   the Earth rock-type library) enter a table only as flagged temporary
   stand-ins, each with its own research item that replaces it with a
@@ -9022,7 +8985,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:44 AM EDT, Stand-in only), filed by the TODO thread. R2 in the
+  1:43 AM EDT, Stand-in only), filed by the TODO thread. R2 in the
   lane's words: derive crust and mantle end-members from the body's own
   bulk oxides (the mantle oxides of part B) by melting and
   differentiation, with partial-melt and fractional-crystallisation
@@ -9037,7 +9000,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:44 AM EDT, Stand-in only), filed by the TODO thread. R3: the
+  1:43 AM EDT, Stand-in only), filed by the TODO thread. R3: the
   stand-in is the meteorite-group library (CI, CM, CO and CV, H, L, LL,
   enstatite, iron and the achondrites, with grain densities, porosities
   and chemistry; table T14 of section 14.2, part D 2.2), which the taxon
@@ -9057,7 +9020,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:44 AM EDT, Stand-in only), filed by the TODO thread. R4: the
+  1:43 AM EDT, Stand-in only), filed by the TODO thread. R4: the
   stand-in is the log-uniform Al-26 ratio of 5.25e-6 to 5.25e-4 taken
   from the Solar System's own value and range (table T23, parts A 2.9, D
   2.5 and E 2.8), which the radiogenic module (GEN.459) draws. Research:
@@ -9321,6 +9284,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   q = 1.17, width 0.247 dex (arXiv:2507.02136); Zahnle and Catling draw
   the line by eye and give no K; 'TRAPPIST-1 b and c under 0.1 bar' is
   in no paper read (at or above 1 bar disfavoured). Builder GEN.511.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 17 (Citations) takes it while
+  GEN.819 waits on 4c; then GEN.484 and GEN.488 if still idle. Needs
+  nothing from 4c.
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.484 Source the giant planets' C/O distribution and the fraction of carbon-rich hosts (AR5)**
@@ -12983,47 +12950,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
   Step 4 of the ladder is GEN.654 (aquifers, stored by DB.92).
 
-- [ ] **GEN.652 The two main-sequence tables disagree: evolve_star reads mass-only piecewise laws and star_makeup reads MIST; one becomes the source of the other (bug)**
-  Gap found by the pipeline report
-  /mnt/project-files/reports/planet-generation-pipeline-2026-10-23.md
-  (filed by the TODO thread at the coordinator's word, 6:33 PM EDT
-  2026-10-23). Conflict A of the report:
-  tuning.MS_MASS_LUMINOSITY_PIECES (radius exponents 0.8 and 0.57,
-  Hurley-Pols-Tout lifetimes) against the MIST isochrones star_makeup
-  reads (luminosity, temperature, radius, lifetime against mass, age and
-  [Fe/H]); for one star the two can disagree and no item makes one the
-  source of the other; the stellar-composition note leaves the Z
-  dependence "open; Z-independent as a stand-in". Decide with the [Fe/H]
-  wiring item (Boss question 1: option 1 replaces the piecewise laws
-  with MIST) and remove the other table, no shim. Owner: none (pool),
-  with the item before. Done: one main-sequence source, a test that a
-  star's stored and composition luminosity agree, the old table gone.
-  Prerequisites: GEN.553. Related: GEN.553, GEN.440, GEN.467.
-  Decided (Boss, 6:39 PM EDT 2026-10-23, pipeline card 4, option 1):
-  MIST is the single main-sequence table and the piecewise laws are
-  removed, no shim. Owner: the Composition-first stars lane (moved from Core 4 at
-  7:53 PM EDT 2026-10-23), with GEN.553 and GEN.651 in one epoch.
-  Research (2026-10-09, Update): Lane A (7:55 AM EDT 2026-10-24, as the
-  lane reported): GEN.651 merged (#2952). The Hurley-Pols-Tout lifetime
-  formulae are fitted for Z 1e-4 to 0.03, so ms_lifetime.zeta now clamps
-  to that range (tuning.MS_LIFETIME_Z_RANGE); stars outside it use the
-  edge value. Label it a stand-in in the gap plan registry when GEN.652
-  settles the one main-sequence source.
-  Priority (2026-10-09): Update 5:13 PM EDT 2026-10-24 (Boss asked how
-  firmly the generator rests on real physics, 4:07 PM EDT; assessment
-  reports/physics-grounding-assessment-2026-10-24.md, contradiction 1,
-  relayed by the coordinator): GOES TO THE FRONT of Lane A's queue
-  (after the part of GEN.553 it needs). The assessment found that
-  evolve_star holds a living main-sequence star at its zero-age
-  luminosity until it leaves the main sequence, so a star never
-  brightens: a solar-mass star ends main-sequence life far brighter than
-  it began and the Sun was about 30 percent fainter at formation. Done
-  now also includes: luminosity, radius and temperature along the main
-  sequence follow age (and [Fe/H]) from the MIST isochrones, a test that
-  the Sun at 4.6 Gyr is near 1 solar luminosity and at zero age near
-  0.7, and that the habitable zone edges move with age. Owner: Lane A
-  (it holds GEN.553 and GEN.652).
-
 - [ ] **GEN.657 Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH**
   Section 11 item 6 of the design draft. Do: the toxic rows (H2S, CO,
   NH3, Cl2, SO2, HCN and the rest of the table) read from the gas rows
@@ -13051,6 +12977,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   complex organics in the table and the comet draw reading it. Owner:
   Blocker 3 data owner of GEN.427 (finished lane; the TODO thread
   proposes lane K, which found it, takes it).
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 9 (class lane) takes it while
+  GEN.646 waits on 4c; a small table fix.
   Prerequisites: none. Related: GEN.427, GEN.442.
 
 - [ ] **GEN.661 Bright-star counts still use the reference-composition fraction (stand-in, bug)**
@@ -13091,6 +13020,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   event. Done: a loss event scales the stored ozone column (and the UV
   index that reads it) by the retained fraction, with a test of a planet
   that loses half its air. Owner: none yet (pool).
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 4 takes it while GEN.768 part 2
+  waits on GEN.767.
   Prerequisites: none. Related: GEN.413, GEN.189.
 
 - [ ] **GEN.669 Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows**
@@ -13505,6 +13437,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry. Done: the three open points in the design note are closed or
   registered as labelled stand-ins. Owner: Lane Draws (after GEN.510 and
   GEN.512).
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Math 2 takes it when free.
   Prerequisites: none. Related: GEN.509, GEN.510.
 
 - [ ] **GEN.723 Refresh the hot-Jupiter recipe rows h1 to h3: their edge points were computed with the deleted gas-equilibrium module and sit up to 16 K (0.6 percent) above the surviving solver**
@@ -13516,6 +13450,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so it needs an epoch. Done: the rows agree with the solver to the
   table's rounding. Owner: pool (Lane L is retiring; first free
   atmosphere lane takes it). Prerequisites: none.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Math 1 takes it when free.
   Prerequisites: none. Related: GEN.672, GEN.674.
 
 - [ ] **GEN.724 Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps**
@@ -14244,6 +14180,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry (GEN.725). Requested by Boss through the coordinator, 5:34 PM
   EDT 2026-10-24: wire it as fast as possible. Owner: Lane H after
   GEN.735 (heat owner); nobody has started it.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 5 takes it after GEN.767 (heat and
+  dose lane).
   Prerequisites: none. Related: GEN.663, GEN.699, GEN.735, GEN.754.
 
 - [ ] **GEN.760 Wire the brown dwarf spectral-type map (brown_dwarf_types, GEN.517) into the brown dwarf draw**
@@ -15414,9 +15353,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   instead of a random address; the Generate page offers "this region"
   (snap to the anchor, 12 pc). Done: a finished fill of one anchor
   sphere is charted and named; a test pins the snap; no change to what a
-  sector generates, so no epoch. Owner: Core 3. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
+  sector generates, so no epoch. Owner: Bug 1 (Boss, 1:45 AM EDT
+  2026-10-25: Bug 1 takes it when DB.107 lands, after its current item),
+  moved from Core 3. Rules: no backward-compat shims; every number has a
+  unit or scale (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: GEN.825, DB.107. Related: GEN.825, DB.107.
 
 - [ ] **GEN.827 Region extent: the bounding sphere of a cell's generated sectors (never under the 12 pc fill sphere) and the measurement of two far-apart clumps (regions chain, step 1d)**
@@ -16058,6 +15998,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   load, so it is the same cause as this item, now with a second
   measurement. Owner: Performance (unchanged); Lane OOM does not take
   it.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 16 takes it after PERF.182 and
+  PERF.198.
   Prerequisites: none. Related: PERF.146.
 
 - [ ] **PERF.175 benchmark --suite accepts --keep but drops the scratch databases on success: make it honour --keep (bug)**
@@ -16069,6 +16012,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --keep on the success path. Done: a test that the databases survive a
   successful run with --keep and go without it. Owner: Performance
   (proposed by the TODO thread, because the lane found it).
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Aux 16 takes it with PERF.174.
   Prerequisites: none. Related: PERF.146.
 
 - [ ] **PERF.178 The plan estimate said 33 GB and 2 min 33 s but the neighbourhood took 4 min 28 s, and the line reads "Refused ... Going ahead" (bug)**
@@ -17202,9 +17147,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Done: a sector's mass_sum equals the sum of its bodies in a test,
   saving and deleting update it, the region sum equals its sectors, the
   backfill fills an existing galaxy, order-independence test passes.
-  Owner: Core 3 (with DB.107). Rules: no backward-compat shims; every
-  number has a unit or scale (GEN.772); tests are scripts/test.py
-  changed --resume.
+  Owner: Bug 1 (Boss, 1:45 AM EDT 2026-10-25: Bug 1 takes it when DB.107
+  lands, after its current item), moved from Core 3 (DB.107 stays with
+  Core 3). Rules: no backward-compat shims; every number has a unit or
+  scale (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: DB.107. Related: DB.107, MAP.322, MAP.317.
 
 ## API: The JSON API
@@ -19603,7 +19549,7 @@ clears each one.
   proportions of a drawn possibility use the table weights directly
   where a sourced kernel exists, and a Dirichlet draw around those
   weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
+  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
   Solar System shapes (the asteroid taxon shares and the zone kernel,
   the Earth rock-type library) enter a table only as flagged temporary
   stand-ins, each with its own research item that replaces it with a
@@ -19642,11 +19588,11 @@ clears each one.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:44 AM EDT, Stand-in only), filed by the TODO thread. R5: the Earth,
+  1:43 AM EDT, Stand-in only), filed by the TODO thread. R5: the Earth,
   Mars, Moon, Galilean-moon and Sirius B targets in the parts stay as
   calibration, and measured Solar System shapes must never be a source
   of a generator table (the standing no-fixed-content rule, and Boss's
-  ruling of 1:44 AM EDT). Do: move the calibration rows into the test
+  ruling of 1:43 AM EDT). Do: move the calibration rows into the test
   files with a `calibration_only` flag and assert that no table row of
   the possibility-table loader (GEN.472) is sourced only from a measured
   Solar System body, and that every `stand-in` row names a replacement
@@ -20706,6 +20652,9 @@ clears each one.
   previous version's fixture (schema_v144 was missing on main and was
   added). The shared downgrade helper of this item works within that
   baseline.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Bug 1 takes it after TEST.393 and
+  TEST.394.
   Prerequisites: none. Related: DB.98.
 
 - [ ] **TEST.331 test_web_browser_tables search_planet_rows_draw_their_habitability_symbols fails: no a.help-link in the search planet rows (bug)**
@@ -21091,6 +21040,23 @@ clears each one.
   after a full gate no planetgen.cli.worker process remains, and a test
   that leaks one fails.
   Prerequisites: none. Related: TEST.376, PERF.181, TEST.390.
+
+- [ ] **TEST.394 Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug)**
+  Found by Core 2 (1:39 AM EDT 2026-10-25 as the lane reported):
+  test_sector_page_map_keeps_to_its_sector,
+  test_galaxy_map_a_sector_is_selected_from_the_galaxy_view,
+  test_galaxy_map_the_picked_sector_stays_picked_across_a_wheel_crossing,
+  test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view,
+  test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it
+  and test_a_selection_is_shown_once_and_over_the_map, all in the
+  sector-click flow, plus dense_site leaking extra worlds into the
+  shared fixture so the module result depends on test order. Do:
+  root-cause each (the sector-click flow changed with MAP.297, which
+  merged), rewrite the tests to the new flow where the flow is intended,
+  fix the dense_site fixture to isolate its worlds. Never skip a test to
+  get green. Owner: Bug 1 with Aux 10 (the map owner) for the intended
+  flow. Done: the module is green in any order on clean main.
+  Prerequisites: none. Related: MAP.297, TEST.390.
 
 ## USR: User accounts
 
@@ -21772,6 +21738,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   fails loudly when a number was already used. Done: two branches that
   both took the same epoch and migration both merge in turn with no hand
   edits, and a test covers the renumbering. Owner: Lane 4.
+  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
+  take one-off 8.1 items. Owner: Bug 1 takes it after TEST.328 (with
+  Core 4 if it is free).
   Prerequisites: none. Related: OPS.56.
 
 - [ ] **OPS.72 Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7)**

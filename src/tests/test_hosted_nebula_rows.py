@@ -29,7 +29,7 @@ from planetgen.galaxy.spherical import sector_address_at
 
 def _params(k, age_gy=0.002):
     mass = float(np.linspace(8.0, 40.0, 400)[k])
-    return evolution.star_params(mass, age_gy, evolution.evolve_star(mass, age_gy))
+    return evolution.star_params(mass, age_gy, evolution.evolve_star(mass, age_gy, fe_h=0.0))     # GEN.652: the colour follows [Fe/H]
 
 
 def _row(k, params=None):

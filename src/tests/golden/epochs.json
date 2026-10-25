@@ -624,10 +624,9 @@
     },
     {
       "epoch": 105,
-      "first_release": null,
-      "pending": true,
-      "reason": "A rocky or icy planet's or moon's air is the fixed point of its mixture, the pressure its interior has degassed less the carbonate and sulfur sinks, the freeze-out of what its temperature condenses, the hydrate cages of its ice, the greenhouse and the temperature (GEN.411, GEN.422), so every air, surface temperature, pressure, scale height and density changes and a class no longer sets the pressure; a giant's air is its drawn mixture at the 1 bar level",
-      "affects": ["fill"]
+      "first_release": "8.0.2342",
+      "reason": "A main-sequence star's luminosity, temperature and radius are read from the MIST isochrones at its mass, age and birth [Fe/H], so a star brightens as it ages and its habitable zone moves with it (GEN.652)",
+      "affects": ["scatter", "fill"]
     }
   ]
 }
