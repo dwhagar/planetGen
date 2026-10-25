@@ -140,7 +140,7 @@ def test_generated_bodies_store_a_consistent_hydrosphere():
                     continue
                 seen.add(body.hydrosphere)
                 assert body.hydrosphere in hy.HYDROSPHERE_STATES
-                assert body.water_mass_fraction >= 0  # 0: its early runaway greenhouse took it all (GEN.639)
+                assert body.water_mass_fraction >= 0  # 0: its early runaway greenhouse took it all (GEN.639), or a disk moon inside its ice line was anhydrous from the start (GEN.466)
                 if body.water_mass_fraction == 0:
                     assert body.hydrosphere == "dry"
                 assert body.ocean_fraction + body.land_fraction == pytest.approx(1.0)

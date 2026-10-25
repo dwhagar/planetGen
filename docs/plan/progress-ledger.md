@@ -1489,3 +1489,9 @@ Baseline: PR #1817.
 | ADM.132 | 8.1 | Consistency |
 | TEST.318 | 8.1 | Bugs and flaky tests |
 | PERF.199 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.385 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| POP.37 | 8.1 | Consistency |
+| GEN.802 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.230 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.229 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.466 | 8.1 | Surface and small bodies |

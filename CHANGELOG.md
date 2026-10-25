@@ -2,6 +2,39 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2334] - 2026-10-25
+
+**Headline:** A moon's makeup now follows from how it formed, so icy captured moons and rocky impact moons differ in density, ice and metal.
+
+### Changed
+- **A moon's metal, rock, water and ice shares come from its origin (GEN.466).** A disk moon of a giant planet gains ice past its disk's ice line (the disks of one giant's moons share a lifetime and an ice line) and turns from dry to carbonaceous rock with distance, an impact moon of a rocky planet is nearly dry and takes a few percent metal, and a captured moon is a Kuiper-belt-like mix of rock and ice with some ice lost. The water share is no longer drawn from the moon's class range.
+- **A small moon's density comes from the tapered brittle compaction law (GEN.466, GEN.442).** A moon lighter than 1e21 kg has voids that close with size and so a density that rises with its radius; a heavier one is solved from its composition with no macroporosity.
+
+generation-output: changed
+
+## [8.0.2333] - 2026-10-25
+
+**Headline:** The "/9" beside a life score is now easy enough to read on white, and the accessibility test waits for the Generate system menu to finish building.
+
+### Fixed
+- **The "/9" after a life score (the habitability tree and system page) had a contrast of 3.18 to 1 on white**, under the 4.5 to 1 the accessibility test requires (UX.229). It was the score's colour faded to 70% opacity; it now uses the page's muted text colour, which passes in both themes. Eight `test_web_a11y` cases on the system and object pages passed again.
+- **`test_web_a11y` could check the Generate system page before its menu had built** (UX.230). Axe then saw the options without their list around them ("aria-required-parent", once, at phone/light). The test now waits until every Shoelace element on the page is defined and has rendered before it runs axe. The page itself is unchanged: the menu is built by Shoelace and passed in the other three cases.
+TODO items resolved: UX.229, UX.230 (TODO closes them after reading this). Added: none.
+
+## [8.0.2332] - 2026-10-25
+
+**Headline:** The water a rocky planet is drawn to start with now follows the Bern population synthesis against how far from its star it formed and its mass, as one law, instead of a mass-only law plus snow-line guesses.
+
+### Changed
+- **Delivered-water rows b1 to b4 (GEN.802).** Dry, low, high and water-rich delivery come from three nested logits in the formation distance over the snow line, the mass and a hinge at 0.6 of the snow line, fitted to 10,506 planets of the Bern condensed-water population; the old b4 gate at the snow line and the mass-only logistic of GEN.510 are gone, so a planet inside the snow line can be water-rich (a quarter at 0.55, a half at 0.75) and the mass moves the water-rich share only slightly. The tier of the row is 6 (centre) and 7 (width), tweak level 0 (registry AT.b4). The recipes are not read by the generator yet, so no generated value changes.
+
+## [8.0.2331] - 2026-10-25
+
+**Headline:** Suggested facility ratings now read the host's Suitability, food rung, radiation domain and Flora and Fauna, so a facility on a hard-to-live-on world no longer rates Health and Housing from the overall score alone.
+
+### Changed
+- **Facility ratings read more of the host (POP.37).** Health is now 0.4 Medical, 0.2 habitability, 0.2 radiation domain and 0.2 food rung (it was 0.5 and 0.5); Housing is 0.25 habitability, 0.25 Suitability, 0.3 Materials and 0.2 kind size (it was 0.5, 0.3 and 0.2); Resources on a living world takes 0.2 from its Flora and Fauna (biota) out of richness, Energy and nearness. A belt, an orbit, a lifeless world and a world with no score keep the old Resources weights. Maintenance and Crime are unchanged. The suggester is only run on request (the Suggest buttons and the batch route), so no generated world changes and the ratings already set are not touched. The weights and their sources are in `docs/design/habitability/population-and-politics.md`, "Setting ratings".
+
 ## [8.0.2330] - 2026-10-25
 
 **Headline:** The browser tests no longer fail with "50 per 1 hour" rate-limit errors, and each app now follows its own API request limit.

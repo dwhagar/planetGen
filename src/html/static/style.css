@@ -2022,7 +2022,8 @@ a.btn.btn-secondary.btn-active:visited {
 }
 
 .hab-life-of {
-  opacity: 0.7;
+  /* The muted text colour, not a faded copy of the score's: opacity 0.7 gave 3.18:1 on white (UX.229). */
+  color: var(--text-muted);
 }
 
 .hab-life-none {

@@ -8559,116 +8559,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread; Core 4 was proposed but has not started it; Core 4 must
   release it first).
 
-- [ ] **GEN.466 Moons draw their origin type, ice fraction and composition from the parent, the circumplanetary ice line and the age**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/composition/body-composition-research.md, parts in
-  docs/design/composition/body-composition-parts/), filed by the TODO thread. Part D
-  sections 2.8 to 2.11: moons form as regular satellites from a
-  circumplanetary disk (the ice fraction rises past the disk's ice
-  line), from a giant impact, by capture, from a ring, or as a binary
-  partner, and each origin leaves a composition (the regular-satellite
-  ice ramp, the iron share of an impact moon, a captured body's
-  small-body composition). Today a moon takes the class density of the
-  rocky classes, and class D bodies draw a rocky density. Do: classify
-  each moon's origin from the stored parent mass, age and orbit (a
-  seeded classifier), draw the moon-system partition (the alpha over f
-  mass ratio, the number of moons, the ice ramp from the disk's ice
-  line) and the moon's rock, ice and iron shares through the same
-  materials table (GEN.427) and mixing rule (small moons) or structure
-  solver (large moons, hand-off mass in GEN.429), with the compaction
-  law of GEN.442; the large ocean moons read the hydrosphere of GEN.461.
-  Part D's check: the zero-pressure rule gives 0.29 to 0.33 ice for a
-  Ganymede-like moon against about 0.45 from interior models, so the
-  design stays inside that spread. Changes stored values, so it ships
-  with a generator epoch bump. Done: shares sum to one, the origin
-  classes are all reachable, the ice share rises with the distance from
-  the parent beyond the ice line in the physical direction, the same
-  system gives the same moons at any worker count, and a test says so.
-  Owner: Core 4 (proposed, with the composition chain).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related:
-  GEN.442,
-  GEN.457, GEN.461, DB.70.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): the moon origin types are the rows of one gated table
-  (the origin type is the possibility, the supported classes are the
-  parent's class and the moon's size range), with the weights from the
-  parent, the circumplanetary ice line and the age; the ice fraction and
-  composition follow from the drawn row.
-  Decided (Boss, 2026-10-17, as the coordinator relayed his card taps):
-  (1) 1:43 AM EDT, "Weights, Dirichlet where unsure": the mixture
-  proportions of a drawn possibility use the table weights directly
-  where a sourced kernel exists, and a Dirichlet draw around those
-  weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
-  Solar System shapes (the asteroid taxon shares and the zone kernel,
-  the Earth rock-type library) enter a table only as flagged temporary
-  stand-ins, each with its own research item that replaces it with a
-  derived or general distribution. Here the mixture proportions follow
-  those two rules.
-  Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
-  filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
-  4.11): BC6 moons: Sasaki 2010 (ice line 20 R_J (M_p/M_J)^(2/3) (tau/5
-  Myr)^(-1/3)) and Cilibrasi 2018 (85 percent icy, Galilean-like in 20
-  percent) disagree on the ice fraction: two verified sources, the
-  newest wins (Cilibrasi 2018), the 0.5 to 0.85 bracket stays where
-  either is in doubt. T19 Kuiper Belt rock fraction: rising with size
-  against a constant 70 percent with porosity; the dates were not
-  recorded, so the draw stays.
-  Boss, 1:23 PM EDT (relayed by the coordinator): no measurement exists
-  for this line; labelled stand-in at the widest bracket under the
-  widest-range rule, replaced when a measurement exists. BC6, moon
-  composition against distance and origin: no confirmed exomoon.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, contradiction sweep cards, taps 6:10 to 6:12 PM EDT
-  2026-10-18, as the coordinator reported them): fork 15, "0.5 to 0.85,
-  Cilibrasi centre": the moon ice fraction (BC6) draws over the widest
-  bracket 0.5 to 0.85 with Cilibrasi 2018 as the centre and test target,
-  a labelled stand-in replaced when a measurement exists.
-  Decided for the compaction hand-over (Boss, 8:13 PM EDT 2026-10-21,
-  card "Taper porosity, 1e19 to 1e21 kg"
-  cmsg_01RuNTFUNB92A8cm5CbojQAiPSvSbu9zLMXNK4qVkmZUgA, relayed by the
-  Blocker 2 lane, decision S9 of
-  docs/design/composition/small-bodies-composition.md): porosity tapers to zero in
-  log mass between 1e19 and 1e21 kg (the paper's law stays; the
-  endpoints are flagged stand-in until viscous compaction replaces
-  them), and the Galilean-class solver test still comes before 1e21 kg
-  to 0.1 Earth masses is called validated. This replaces the hand-over
-  shift of 2:10 PM EDT, because the Bierson and Nimmo law alone cannot
-  close the 1e20 kg porosity jump by moving the hand-over (density stays
-  1.32 to 1.35 times low up to 3e23 kg).
-  Research (2026-10-09, Update): Lane K (7:50 AM EDT 2026-10-24, as the
-  lane reported): the moon origin and disk composition module merged in
-  #2956 but is UNWIRED (no draw uses it yet). Do not mark done.
-  Research (2026-10-09, Update): Lane K (8:56 AM EDT 2026-10-24, as the
-  lane reported): the wiring waits on the class cut-over GEN.646,
-  because a class-first moon draw contradicts an origin composition. The
-  moon inclination range blocks captured moons: filed as GEN.714.
-  Research (2026-10-09, 10-24 reorg): Lane reorganisation (Boss 2:11 PM
-  EDT 2026-10-24, reports/lane-reorg-2026-10-24.md): top blocker 7, 14
-  wait; Blocker I after PR 4 (Lane K keeps GEN.714 and then DB.70).
-  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
-  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 5: moon
-  ice fraction f_ice = 0.50 x 0.5 (1 + tanh(ln(r / r_s) / 0.23)) with
-  the circumplanetary ice line r_s; the Galilean anchors are recalled,
-  not read. Each row carries its source tier and tweak level in the
-  report; record both in the registry (GEN.725) in the same PR that uses
-  the value. Nothing changes a generated world until the owning item
-  uses it.
-  Research (2026-10-09, Owner): Owner reconciled: Lane K (wiring, in its
-  queue after GEN.714 and GEN.462). The 'returned to the pool' line
-  above is superseded for this item. (TODO, 2026-10-24 5:27 PM EDT, from
-  the physics fix plan thread's reconcile ask.)
-
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
   (docs/design/composition/body-composition-parts/F-boss-note-check.md; 2026-10-17,
@@ -11239,7 +11129,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.556, GEN.557, GEN.466. Related: GEN.550, GEN.457.
+  Prerequisites: GEN.556, GEN.557. Related: GEN.550, GEN.457.
 
 - [ ] **GEN.559 Unbound comets: a size law and a cut, composition from the comet table, derived activity and velocity**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
@@ -14929,28 +14819,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.725 registry rows.
   Prerequisites: GEN.733, GEN.809, GEN.810, GEN.811. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
 
-- [ ] **GEN.802 Wire the formation-distance water law into the atmosphere recipes b1 to b4 and reconcile it with the GEN.510 mass law (GEN.481b)**
-  Citations lane (Aux 17), GEN.481 and GEN.482 merged #3220, relayed
-  10:35 PM EDT 2026-10-24 as the lane reported
-  (docs/design/composition/volatile-delivery-formation-distance.md and
-  magma-ocean-redox-against-mass.md). The Bern population puts
-  water-rich planets at x = a_form / a_snow of 0.15 to 0.95 (2 to 85
-  percent of the water), only 6.8 percent start at x below 1, so the b4
-  gate x >= 1 and the b1 to b3 centre are contradicted; the GEN.510 mass
-  law and this law must not be multiplied. Wire the law into recipes b1
-  to b4, reconcile it with GEN.510 (one law, not two), update the recipe
-  data and its builder. Done: the water share of a sample of 1,000
-  planets follows the sourced population against formation distance and
-  mass, a test pins that the two laws are not multiplied, and the
-  stand-in registry rows are updated. Changes drawn output:
-  `tests.golden_update --reason ... --affects fill` and the next epoch.
-  Version 8.1. Owner: Citations lane (Aux 17).
-  Research (2026-10-09, Citations lane report): The Citations lane did
-  GEN.482b itself (#3240, 10:48 PM EDT 2026-10-24 as the lane reported)
-  and does not take this one. Owner: Aux 8 (atmosphere recipes), after
-  GEN.815 and GEN.818.
-  Prerequisites: none. Related: GEN.481, GEN.510, GEN.725.
-
 - [ ] **GEN.804 Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1)**
   Unused stored values audit chain
   (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
@@ -15101,7 +14969,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   high-pressure-ice seal after Kite and Ford 2018 and Krissansen-Totton
   and Catling 2017 and say what the model does not do. Done: the
   water-world temperature distribution is within the published range,
-  with the sources cited. Owner: Aux 6 (bulk composition) or Aux 8.
+  with the sources cited. Owner: Aux 8 (Lane L, taken 12:26 AM EDT 2026-10-25).
   Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); stand-ins get GEN.725 registry rows with a tier and tweak
   level; a changed generated value carries `tests.golden_update --reason
@@ -16431,7 +16299,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.441, GEN.462, GEN.466. Related:
+  Prerequisites: GEN.441, GEN.462. Related:
   DB.69, DB.67, DB.68.
   Finding F11 of the Body composition research lane (section 14.5 of
   docs/design/composition/body-composition-research.md, tables E1 to E4; 2026-10-17,
@@ -20788,20 +20656,6 @@ clears each one.
   StopRequested after 10 minutes).
   Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
 
-- [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**
-  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
-  relayed 10:25 PM EDT 2026-10-24 as the lane reported. Core 3's gate
-  had 259 browser test setup errors; the cause named is the API
-  fixture's rate limit of 50 requests per hour (the browser tests create
-  their accounts or tokens through the API). A gate that errors 259
-  tests cannot show what a change broke. Make the fixture exempt from
-  the limit (a test setting, not a production change) or give each test
-  run its own limit window, and keep a test that proves the rate limit
-  still works in production mode. Done: `scripts/test.py changed` runs
-  the browser tests with no setup error from the rate limit. Version
-  8.1. Owner: Bug 1 with Aux 12 (API).
-  Prerequisites: none. Related: USR.22, TEST.383.
-
 - [ ] **TEST.386 First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -23374,33 +23228,6 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.33, POP.35, MAP.309. Related: POP.33, POP.24.
 
-- [ ] **POP.37 Facility ratings read Suitability, the food rung and the life scores: Health and Housing use only PHI-4 today**
-  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
-  are there any other places where are habitability / life scores aren't
-  used and should be?" Found by the TODO thread's code audit of
-  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
-  population/facility_suggest.py, admin/edits.py, population/model.py).
-  population/facility_suggest.py rates a facility from the host's phi4
-  only (Health 0.5 medical + 0.5 habitability, Housing 0.5 habitability
-  + 0.3 materials + 0.2 size, Maintenance 0.15 habitability). It never
-  reads Suitability, the food rung (Flora and Fauna) or the Sentient
-  score, so a base on a world with food and shelter rates the same as
-  one with none, and a facility on a world with a sentient species is
-  not rated against it. Decide which ratings take which score (Health
-  from the food rung and radiation tier, Housing from Suitability,
-  Resources from Flora and Fauna for a living world), write the weights
-  and the sources in docs/design/habitability/population-and-politics.md
-  and change the ratings; a changed rating is drawn output and carries
-  `tests.golden_update --reason ... --affects population` and the next
-  epoch. Version 8.1 (pulled forward from 8.4, Boss, 10:16 PM EDT
-  2026-10-24: "fix each"; the weights do not need the settlements
-  design). Owner: pool (Core 5 style). Rules: a unit or scale on every number (GEN.772); tests are
-  `scripts/test.py changed --resume`; no fixed content from the Milky
-  Way or the Solar System.
-  Research (2026-10-09, Progress): Pulled forward into 8.1 by Boss,
-  10:16 PM EDT 2026-10-24; owner pool (Core 5 style), unstarted.
-  Prerequisites: none. Related: POP.16, POP.17, GEN.653.
-
 - [ ] **POP.38 Species traits and facility needs read the homeworld and host: dose, pressure, air, thermal range, day length and the equipment kit (G1)**
   Unused stored values audit (the "Find stored values nothing uses"
   thread, report reports/unused-stored-values-audit-2026-10-24.md,
@@ -23427,7 +23254,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   carries `tests.golden_update --reason ... --affects <stage>` and the
   next epoch; tests are `scripts/test.py changed --resume`; stand-ins
   get GEN.725 registry rows.
-  Prerequisites: POP.37, POP.17, POP.40, POP.41, POP.42, POP.43. Related: POP.37, POP.17, GEN.445, POP.40, POP.41, POP.42, POP.43.
+  Prerequisites: POP.17, POP.40, POP.41, POP.42, POP.43. Related: POP.37, POP.17, GEN.445, POP.40, POP.41, POP.42, POP.43.
 
 - [ ] **POP.39 Facility constants are registered with a tier and tweak level, and a facility's richness reads the host's stored composition (G6)**
   Unused stored values audit (the "Find stored values nothing uses"
@@ -23452,7 +23279,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   carries `tests.golden_update --reason ... --affects <stage>` and the
   next epoch; tests are `scripts/test.py changed --resume`; stand-ins
   get GEN.725 registry rows.
-  Prerequisites: POP.37, GEN.799, POP.44, POP.45. Related: POP.37, GEN.725, GEN.799, POP.44, POP.45.
+  Prerequisites: GEN.799, POP.44, POP.45. Related: POP.37, GEN.725, GEN.799, POP.44, POP.45.
 
 - [ ] **POP.40 Species traits take radiation tolerance, pressure and air tolerance, thermal range and day length from the homeworld (G1, step 1)**
   Unused stored values audit chain

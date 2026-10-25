@@ -1141,6 +1141,8 @@ def generate_moons(planet, moon_count=None):
     low_orbit, high_orbit = moon_orbit_bounds_km(planet)
     total_orbit_distance = low_orbit
     parent_kind = moon_composition.parent_kind(planet.envelope_mass_fraction or 0.0, planet.mass)
+    # GEN.466: a giant's regular moons share one circumplanetary disk (the lifetime, the ice line, the ice ramp)
+    disk_system = moon_composition.draw_disk_system(planet.mass) if parent_kind == moon_composition.GIANT else None
 
     # Deferred import: planet imports this module at load time, so Planet
     # can't be imported here at module level without a circular import.
@@ -1176,7 +1178,7 @@ def generate_moons(planet, moon_count=None):
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
-                          moon_origin=origin)
+                          moon_origin=origin, moon_disk_system=disk_system)
         planet.moons.append(new_moon)
         total_orbit_distance = _au_to_km(new_moon.distance) + _au_to_km(new_moon.min_orbit_distance)
 

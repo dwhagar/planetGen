@@ -41,16 +41,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 27 | 0 | 0 | 0 | 0 | 27 |
 | T4 | 5 | 0 | 0 | 0 | 0 | 5 |
 | T5 | 5 | 3 | 0 | 0 | 0 | 8 |
-| T6 | 10 | 6 | 1 | 4 | 0 | 21 |
+| T6 | 11 | 6 | 1 | 3 | 0 | 21 |
 | T7 | 10 | 2 | 0 | 1 | 0 | 13 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 110 | 11 | 4 | 5 | 0 | 130 |
+| All | 111 | 11 | 4 | 4 | 0 | 130 |
 
 ## How the labels were given
 
 - **Tier** follows the kind of the fill and the evidence label of its inputs: a derived (D) fill from a source we read is T1 or T2; a bracket (B) is T2 or T3 by how many sources agree and whether we opened them; a theory (T) fill is T5 to T7 by how much of the physics is derived and how much inferred; a placeholder (P) with no source is T4 or, when physics argues its size, T6 or T7. Rows whose parts differ list each part.
-- **Tweak** is L0 unless the value was moved after the fact. The L3 rows (hand-tuned against a sweep) are the mantle redox laws AT.a1 and a2, the atmosphere draws AT.b4 and b5, BC6 and AM19 (the exobase ratios); the L2 row is AM10 (the alkali activity, tuned to Kite et al. 2016); L1 rows are nudged inside the source's error bar. No row is L4: a row at L4 needs the item that justified it.
+- **Tweak** is L0 unless the value was moved after the fact. The L3 rows (hand-tuned against a sweep) are the mantle redox laws AT.a1 and a2, the atmosphere draw AT.b5, BC6 and AM19 (the exobase ratios); the L2 row is AM10 (the alkali activity, tuned to Kite et al. 2016); L1 rows are nudged inside the source's error bar. No row is L4: a row at L4 needs the item that justified it.
 - The recipe rows of the atmosphere draw (`atmosphere_recipes_data.py`) are not rows here one by one. Those that carry a tuning target in `tuning_targets.json` (a3, a4, e1, f5, f7, k1 to k5, k7, o2) are L2: their weights were tuned to a published statistic.
 
 ## 5.1 Galaxy laws
@@ -109,7 +109,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Id | Kind | Tier | Tweak | Fill (ranked) | Wrong if | Result lands as |
 |---|---|---|---|---|---|---|
 | AT.a1, a2 | D | T7 | L3 | dIW = 2 log10(x_FeO / x_Fe) (4.8) with the 22-value white-dwarf ensemble (-1.25 ± 0.10) as zero point. | the white-dwarf ensemble disagrees with the identity by more than the correction | a larger ensemble replaces the zero point |
-| AT.b4 | T | T6 | L3 | Water-rich share from formation theory (the published 0 to 87 percent runs by model). | a population study measures the share | a population study |
+| AT.b4 | T | T6 | L0 | Water-rich share from formation theory: the Bern population synthesis against formation distance and mass, one joint law for rows b1 to b4 (GEN.802, docs/design/composition/volatile-delivery-formation-distance.md; the published 0 to 87 percent runs by model, so the plateau c_b4 stays a 0 to 1 draw). Class thresholds that map the model's water fraction to Ortenzi's cases are DESIGN (tier 6). | a population study measures the share | a population study |
 | AT.b5 | P | T6 | L3 | Log-uniform sub-percent water, labelled (Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card answers relayed in words by the coordinator): ships as a placeholder). | any measurement | any ensemble |
 | AT.n7 | P | T6 | L1 | Haze yield log-uniform within the degenerate range, labelled (Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card answers relayed in words by the coordinator): ships as a placeholder). | degeneracy resolved by spectra | spectra |
 | AT.k7 | T | T1 (O2, 67P noble gases), T2 (N2 over CO) | L0 | Single-comet species ranked by trapping in amorphous ice: ordering by volatility. | a second comet shows the opposite order | any second comet |

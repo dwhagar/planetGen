@@ -37,8 +37,8 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, constants, elements, hydrosphere,
-                               stellar_abundances, stellar_composition)
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, constants, elements, hydrosphere,
+                               moon_composition, stellar_abundances, stellar_composition)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -343,24 +343,56 @@ def draw_terrestrial(body, radius_given, mass_given):
     ratios = host_ratios(body.star)
     kind = ROCK_KIND_TABLE.draw(body.planet_class, {"c_over_o": ratios.c_over_o}).name
     carbon_rock = kind != "silicate"
-    water, ice = _water_and_ice(body)
+    inverse = body.planet_class == "S" or (radius_given and mass_given)
+    origin = None if inverse else getattr(body, "moon_origin", None)
+    # A moon that holds its origin (GEN.466) takes its water, ice, rock and metal from it, not from its class's range
+    water, ice = (0.0, 0.0) if origin else _water_and_ice(body)
     feo = draw.uniform(*_feo_range(body.planet_class))
     light = draw.uniform(*RANGES["core_light_elements"])
-    porosity = _porosity(body)
+    porosity = None if origin else _porosity(body)
     graphite = draw.uniform(*RANGES["graphite_over_rock"]) if carbon_rock else 0.0
 
-    inverse = body.planet_class == "S" or (radius_given and mass_given)
     if inverse:
         _draw_inverse(body, ratios, water, ice, feo, light, carbon_rock, graphite, mass_given)
         return
 
     ratios = iron_branch_ratios(body, ratios, feo, light, carbon_rock, graphite)
     part = dry_partition(ratios, feo, light, carbon_rock, graphite)
+    if origin:
+        _draw_moon(body, origin, part, mass_given)
+        return
     metal, rock = _normalise(part.metal, part.rock, water, ice)
     bulk = bulk_composition.BulkFractions(
         metal=metal, rock=rock, water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo, rock_al2o3=part.rock_al2o3,
         rock_mg_si=part.rock_mg_si, porosity=porosity, carbon_rock=carbon_rock, origin="drawn")
     _settle(body, bulk, mass_given)
+
+
+def _draw_moon(body, origin, part, mass_given):
+    """
+    A moon's composition from its origin (GEN.466, `moon_composition`): the metal, rock, water and ice shares and the porosity of the
+    origin's makeup, the rock's FeO, Al2O3 and Mg/Si from the star as for any rocky body. Below `compaction.TAPER_END_KG` the mass
+    follows from the radius by the tapered brittle law of GEN.442; heavier, the structure solver decides, with no macroporosity.
+    """
+    system = getattr(body, "moon_disk_system", None)
+    if origin == "disk" and system is None:    # a moon built on its own: the disk of a body of its parent's mass
+        system = moon_composition.draw_disk_system(body.primary_mass_kg)
+    makeup = moon_composition.draw_moon(origin, body.distance * constants.AU_TO_KM, system)
+    bulk = bulk_composition.BulkFractions(
+        metal=makeup.metal, rock=makeup.rock, water=makeup.water, ice=makeup.ice, envelope=0.0, rock_feo=part.rock_feo,
+        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=makeup.porosity, carbon_rock=False, origin="drawn")
+    if mass_given:
+        _settle(body, bulk, mass_given)
+        return
+    try:
+        mass_kg = moon_composition.mass_from_radius_kg(makeup, body.radius)
+    except compaction.OutOfRange:    # heavier than the taper's end: the solver, and the voids are closed
+        _settle(body, dataclasses.replace(bulk, porosity=None), mass_given)
+        return
+    volume_m3 = 4.0 / 3.0 * math.pi * (body.radius * 1000.0) ** 3
+    grain = makeup.grain_density_kg_m3
+    body.mass = mass_kg
+    _store(body, dataclasses.replace(bulk, porosity=max(0.0, 1.0 - mass_kg / volume_m3 / grain)))
 
 
 def _x_fe(bulk):
