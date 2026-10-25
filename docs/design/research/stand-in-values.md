@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 171 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 178 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 31 | 0 | 3 | 0 | 0 | 34 |
-| T2 | 37 | 0 | 0 | 0 | 0 | 37 |
-| T3 | 35 | 0 | 1 | 5 | 0 | 41 |
-| T4 | 5 | 0 | 0 | 2 | 0 | 7 |
+| T2 | 38 | 0 | 0 | 0 | 0 | 38 |
+| T3 | 38 | 0 | 1 | 5 | 0 | 44 |
+| T4 | 8 | 0 | 0 | 2 | 0 | 10 |
 | T5 | 7 | 3 | 1 | 0 | 0 | 11 |
 | T6 | 19 | 5 | 1 | 2 | 0 | 27 |
 | T7 | 10 | 2 | 0 | 1 | 0 | 13 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 1 | 1 |
-| All | 144 | 10 | 6 | 10 | 1 | 171 |
+| All | 151 | 10 | 6 | 10 | 1 | 178 |
 
 ## How the labels were given
 
@@ -268,3 +268,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RV2 | P | T4 | L3 | radius_valley.CORE_MASS_SIGMA 0.4 (log-normal width of the core mass, in ln units) | 0.3 to 0.5 | the survey of hosts 0.5 to 1.4 solar masses | any width in the band moves a slope by more than 1 sigma; (0.5 with an envelope width of 0.4) puts the period slope 2.1 sigma off | a published width of the core-mass distribution | design (no published width read; swept against the three slopes, test_radius_valley::test_the_widths_leave_the_slopes_within_their_errors) |
 | RV3 | P | T4 | L3 | radius_valley.ENVELOPE_SIGMA 0.6 (log-normal width of the starting envelope fraction, in ln units) | 0.4 to 0.8 | the survey of hosts 0.5 to 1.4 solar masses | as RV2 | a published width of the starting envelopes | design (no published width read; the same sweep as RV2) |
 | RV4 | D | T5 | L0 | radius_valley.mass_slopes_of: the stellar-mass slope beta read off the surveyed valley (0.00 +- 0.02 from the loss as written) | none | hosts of 0.5 to 1.4 solar masses | a stellar-mass dependent XUV energy added to the loss (a real photoevaporation) | a survey that wires it in | COMPUTED (survey of 12000 planets over 18 cells of flux and host mass; core-powered theory predicts beta 0.00, photoevaporation -0.17, Berger et al. 2023) |
+
+## 6.11 Stand-ins of the young-group draw
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| MS1 | P | T4 | L0 | system_types.SYSTEM_TYPE_RATES | 0.05, fixed (the `young-group` row) | O and early-B systems younger than 0.3 Myr | test_gen_young_groups::test_the_group_share_is_the_registry_default | a count of trapezia against O and early-B stars of an association (a catalogue read first-hand) | design note 13.1: 412 catalogued trapezium-type multiples, about 10 percent true after projection, 3 to 5 per OB association (second-hand, not opened); the 5 percent of massive systems is inferred from them [I], with no range given |
+| MS2 | P | T4 | L0 | tuning.YOUNG_GROUP_AGE_MAX_YR | 3.0e5 yr, fixed | the age under which a massive star may be in a group | test_gen_young_groups::test_only_a_young_massive_star_can_be_in_a_group_and_the_others_draw_nothing | the ages of trapezium members read from a young cluster census | design: the 0.3 Myr limit is the design note's default for how long a massive star can still be in a group; no source |
+| MS3 | B | T2 | L0 | tuning.YOUNG_GROUP_DECAY_AGE_RANGE_YR | 1.0e4 to 4.0e4 yr, log | groups of 3 to 5 stars of a few thousand to thirty thousand AU | test_gen_young_groups::test_no_drawn_group_is_past_its_decay_age_at_any_age | the decay times of the three papers, read, as a distribution rather than a range | 2ND-HAND (design note 3.3 cites arXiv 1809.03537, 1701.03440 and 1908.11437: bound lifetime 1e4 to 4e4 yr, 41 of 100 left after two crossing times; not opened here) |
+| MS4 | B | T3 | L0 | tuning.YOUNG_GROUP_SIZE_WEIGHTS | 3 stars 0.3, 4 stars 0.4, 5 stars 0.3 | 3 to 5 members | test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest | a count of members by group size from a trapezium catalogue | RECALLED (the Orion Trapezium has 4 to 5 members; trapezium-type multiples start at 3), design note 13.1; the weights inside the bracket are a placeholder |
+| MS5 | B | T3 | L0 | tuning.YOUNG_GROUP_RADIUS_AU_RANGE | 3.0e3 to 3.0e4 AU, log | a group of O and early-B stars | none: no measurement here; the draw's own tests keep the centre of mass at rest, they do not test the size | the measured separations of the Trapezium and of the catalogued trapezia | RECALLED (the Trapezium's core is some 0.03 pc, 6e3 AU, not read in the repository); the bracket is a factor of 3 either side |
+| MS6 | B | T3 | L0 | tuning.YOUNG_GROUP_VELOCITY_DISPERSION_KMS | 2.5 km/s, one dimension, fixed | a young group while it holds | test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest | the measured dispersion of the Trapezium (proper-motion work), read | RECALLED (the Orion Trapezium cluster is some 2 to 3 km/s, not read in the repository) |
+| MS7 | P | T4 | L0 | tuning.YOUNG_GROUP_REMNANT_MAX_AXIS_AU | 300 AU, fixed | the hierarchy a decayed group leaves | test_gen_young_groups::test_a_group_older_than_its_decay_age_is_never_drawn_but_its_remnant_is | an N-body result for the remnant axes of a decayed trapezium (the decay papers of MS3 report them) | design: the remnant is the group's hierarchy hardened after the lightest member is ejected; the 300 AU cap is a guess with no source |

@@ -6,7 +6,7 @@ Builds the list of every stand-in value (GEN.725) from the stand-in registry of 
     python scripts/build_stand_in_values.py --check    # build in memory and fail if the committed file differs
 
 The registry is the markdown tables of `docs/design/research/gap-filling-plan.md`: the ranked fills of section 5 (5.1 to 5.3), the
-generated dial ranges of 6.3a, the fills of the shared download step in 6.6 and the stand-ins of the atmosphere mixture draw in 6.7.
+generated dial ranges of 6.3a, the fills of the shared download step in 6.6 and the stand-ins of the atmosphere mixture draw in 6.7 and those of the young-group draw in 6.8.
 Every one of those tables carries a Tier column (Boss's nine source tiers, T1 to T9) and a Tweak column (L0 to L4). The list is
 copied from them and never typed by hand, so it cannot drift; `src/tests/test_stand_in_values.py` fails when it does or when a row
 lacks a tier or a tweak.
@@ -56,6 +56,8 @@ SECTIONS = (
     ("6.9", "6.9 Stand-ins of how a rendered body is drawn",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.10", "6.10 Stand-ins of the radius valley",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.11", "6.11 Stand-ins of the young-group draw",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""
