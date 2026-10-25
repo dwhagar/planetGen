@@ -124,7 +124,10 @@ def life_ceiling(planet):
 def stage_ceiling(planet):
     """The most advanced milestone the habitability index allows on `planet` (`evolution.MILESTONE_KEYS`), or `None` for
     no limit: photosynthesis (microbial life) when the complex-life score is under `HABITABILITY_LIFE_SCORE_MIN`
-    (`life_ceiling`); nothing else caps it, since the class letter no longer does (GEN.92)."""
+    (`life_ceiling`), and abiogenesis when the only liquid water is an aquifer (`habitability_world.groundwater`); nothing else caps it,
+    since the class letter no longer does (GEN.92)."""
+    if habitability_world.groundwater(habitability_world.values_from_body(planet)) != "none":
+        return "abiogenesis"  # liquid water only underground (GEN.654): chemotrophs, no light and no flora
     return "photosynthesis" if life_ceiling(planet) == "microbial" else None
 
 
