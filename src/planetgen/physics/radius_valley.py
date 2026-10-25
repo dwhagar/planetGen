@@ -39,6 +39,7 @@ import math
 from typing import NamedTuple
 
 from planetgen.physics import bulk_structure, kepler_recovery
+from planetgen.physics import constants as physical_constants
 from planetgen.util import draw
 
 PLANETS = 4000
@@ -85,7 +86,7 @@ G = 6.674e-11
 M_EARTH = 5.972e24
 R_EARTH = 6.371e6
 M_SUN = 1.989e30
-R_SUN = 6.957e8
+R_SUN = physical_constants.SOLAR_RADIUS_M
 MAX_RADIUS_RATIO = 0.07
 """float: The largest radius ratio the recovery model covers (kepler_recovery validity); a larger planet is not counted."""
 
