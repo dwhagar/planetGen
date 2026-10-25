@@ -14303,6 +14303,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.770, GEN.771, GEN.571.
   Prerequisites: none. Related: GEN.656, GEN.769, GEN.770, GEN.771,
   GEN.571.
+  Research (2026-10-09, Progress): Boss, 10:07 PM EDT 2026-10-24 asked
+  for the plus-or-minus form or the full range, and a high and low for
+  every regional temperature: filed as the next two items of this group
+  (the swing label and the regional ranges), same owner.
 
 - [ ] **GEN.774 Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
@@ -14634,6 +14638,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   level; a changed value carries tests.golden_update --reason ....
   Version 8.4. Owner: pool, after 8.1.
   Prerequisites: none. Related: GEN.501, GEN.725, GEN.793.
+
+- [ ] **GEN.795 The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug)**
+  Boss, 10:07 PM EDT 2026-10-24 (relayed by the coordinator): "For the
+  variance can we either use the proper +/- symbol or just +/- so that
+  it's clear that it's a range or put the actual temperature range?
+  Also, I'd like to have for each temperature (polar, mean, southern,
+  etc) it to have an actual range, what is the high and low that puts
+  that value right in the middle." The swing row (temp_swing_k, GEN.773
+  puts it on the difference kind) must say it is a variation about a
+  value: print the plus-or-minus sign with the difference (for example
+  'Day to night swing: ±9.07 K', '±9.07 C degrees', '±16.3 F degrees')
+  or, better, print the actual low and high temperatures it implies.
+  State in the label which the generator stores (half range or full
+  range). Same in the API text, the description and the Properties list.
+  Done: the swing never shows without ± or a low-to-high range, in every
+  temperature unit, and a browser test pins it. Version 8.1. Owner:
+  Units lane (Aux 14 or the numbers-without-units lane), with GEN.773.
+  Prerequisites: none. Related: GEN.773, GEN.769, GEN.656.
+
+- [ ] **GEN.796 Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle**
+  Boss, 10:07 PM EDT 2026-10-24 (relayed by the coordinator): "For the
+  variance can we either use the proper +/- symbol or just +/- so that
+  it's clear that it's a range or put the actual temperature range?
+  Also, I'd like to have for each temperature (polar, mean, southern,
+  etc) it to have an actual range, what is the high and low that puts
+  that value right in the middle." For every entry of
+  REGIONAL_TEMPERATURES (db/column_units.py), show the low and the high
+  that put the stated value exactly in the middle (value minus and plus
+  the half range), for example '-10 C, range -25 to +5 C'. The half
+  range comes from the day and night swing (and the seasonal swing where
+  the generator has one), so work out which swing applies to each
+  region; where no swing is stored for a region, say that the range is
+  not stored rather than printing a guess, and file the missing
+  producer. The ranges are computed, not stored twice: one function
+  gives the low and high for a value, a swing and a unit (a difference,
+  never an absolute conversion, GEN.773), and every page, the API and
+  the description use it. Done: every regional temperature on a sample
+  planet shows low and high with the value in the middle, in kelvin,
+  Celsius and Fahrenheit, and a test checks the midpoint and that no
+  offset is applied twice. Version 8.1. Owner: Units lane.
+  Prerequisites: GEN.773. Related: GEN.773, GEN.656, GEN.769.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
