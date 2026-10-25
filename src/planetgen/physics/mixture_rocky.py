@@ -111,7 +111,8 @@ def draw_redox(subject, recipe, constants):
     The recipe draw holds the magma-ocean stage's value `a1` (Sossi 2020: about IW+0.5 at an Earth mass, about IW-2 for a small
     body), the later upper mantle's `a2`, the building blocks' `a3` and the white-dwarf debris `a4`; the body's own geology and age
     pick the one the air was outgassed over. A body with long-lived geology moves from `a1` to `a2` as
-    `1 - exp(-age / tau)` with the oxidation time `tau` of `OXIDATION_TIME_GY`.
+    `1 - exp(-age / tau)` with the oxidation time `tau` of `OXIDATION_TIME_GY`; the later mantle is never more reduced than the
+    magma-ocean surface of the same body (Deng 2020, Hirschmann 2022: the later processes only oxidise; GEN.482b).
 
     Args:
         subject (Subject): With `age_gy` and, for a tectonic body, `long_lived_geology`.
@@ -132,7 +133,7 @@ def draw_redox(subject, recipe, constants):
     if "a2" in values and subject.get("long_lived_geology"):
         tau = bracket(constants, "oxidation_time_gy", OXIDATION_TIME_GY)
         progress = 1.0 - math.exp(-max(subject["age_gy"], 0.0) / tau)
-        return first + (values["a2"] - first) * progress
+        return first + (max(values["a2"], first) - first) * progress
     return first
 
 

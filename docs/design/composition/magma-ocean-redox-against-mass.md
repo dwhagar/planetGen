@@ -1,12 +1,12 @@
 # Magma-ocean redox against mass and the later mantle (GEN.482, AR3)
 
-Status: research note, written on the night of 2026-10-24 (as the lane reported) by the Citations lane. Rows a1, a2 and a3 of the atmosphere possibility table (`scripts/atmosphere_recipes_data.py`, part 09 of `docs/design/composition/atmosphere-composition-parts/`) are checked against first-hand sources. Nothing the generator draws changes: the means and widths in the code stay as they are, so no epoch is needed. The follow-up that would change them is GEN.482b (section 7).
+Status: research note, written on the night of 2026-10-24 (as the lane reported) by the Citations lane. Rows a1, a2 and a3 of the atmosphere possibility table (`scripts/atmosphere_recipes_data.py`, part 09 of `docs/design/composition/atmosphere-composition-parts/`) are checked against first-hand sources. GEN.482 (the check) changed nothing the generator draws; GEN.482b (section 7, done the same night) wired the findings; no epoch, because nothing in the generator draws the mixture yet (the golden battery is unchanged).
 
 ## 1. The answer in short
 
-- **a1, the magma-ocean surface redox against mass.** The present mean, `clamp(-2 + 1.25 (log10 M + 2), -2, 0.5)`, is inside the published ranges for all three Solar System anchors (table 3.1: the Moon, Mars and Earth), within 0.2 log units of the middle of each. The row is therefore a checked fit to three sourced points, not a free guess. What the sources do not support: the width (0.5 flat is too narrow for Earth, where the published span is 3.0 log units wide, so a standard deviation of about 0.9), and the flat clamp at +0.5 above 1 Earth mass (the physics keeps rising up to the pressure where the calculations stop, about 140 GPa at the magma-ocean base).
+- **a1, the magma-ocean surface redox against mass.** The present mean, `clamp(-2 + 1.25 (log10 M + 2), -2, 0.5)`, is inside the published ranges for all three Solar System anchors (table 3.1: the Moon, Mars and Earth), within 0.2 log units of the middle of each. The row is therefore a checked fit to three sourced points, not a free guess. What the sources do not support: the width (0.5 flat is too narrow for Earth, where the published span is 3.0 log units wide, so a standard deviation of about 0.9), and the flat clamp at +0.5 above 1 Earth mass (the physics keeps rising up to the pressure where the calculations stop, about 140 GPa at the magma-ocean base). Both are now wired (section 7).
 - **a2, the later upper mantle.** `3.5 + 2 log10 M` with width 1.0 passes through the three sourced anchors within one standard deviation (Earth IW+3.5, Mars about IW to IW+1, Moon IW to IW-2). It is a three-point fit and nothing more: no source gives the law above 1 Earth mass, and at 10 Earth masses the code gives +5.5, which nothing supports.
-- **a1 and a2 are drawn independently, but the sources say they are linked**: the later mantle is never reduced below its own magma-ocean surface and the gap grows with mass (section 5). That is a design decision for GEN.482b.
+- **a1 and a2 are drawn independently, but the sources say they are linked**: the later mantle is never reduced below its own magma-ocean surface and the gap grows with mass (section 5). GEN.482b takes the larger of the two.
 - **a3, small-body building blocks.** The check bracket in the row (`-1.4 to 0`) only covers the reduced half of Schaefer and Fegley's Table 2. The same table puts carbonaceous material (CI, CV) at IW+1.6 to IW+2.6 at 1 bar and 1500 K. Row a3's draw (normal, centre -1.25, width 0.22, from white-dwarf debris) is for differentiated rocky debris and does not describe C-complex bodies (section 6).
 - **Na and K condensation temperatures** (the primary source the gap note asked for): Lodders 2003 Table 8, 50 percent condensation at 10^-4 bar: Na 958 K, K 1006 K, both in feldspar (section 8).
 - **Not found:** the degassed 40Ar fraction against tectonic regime (no source with a number other than Earth's about 43 percent in part 07), Hirschmann 2012 (paywalled, Boss cannot fetch it), Gaillard and Scaillet 2014 coefficients (the earlier paper note says equations without coefficients).
@@ -95,18 +95,15 @@ The row, as it ships, is a normal distribution centred at -1.25 with width 0.22,
 | 1500 | +1.98 | +1.65 | -0.53 | -1.03 | -0.91 |
 | 2000 | +1.22 | +1.57 | -0.51 | -0.98 | -0.80 |
 
-The authors' text agrees: the most oxidised mixture is CI at "about QFM-1" (about IW+2.6 at 1500 K by the Frost 1991 buffers; the polynomials above give +2.0, so the text is read off a figure) and the most reduced is EH at "about IW-1", with all mixtures between the two. The unsupported part of row a3 is therefore not its reduced end (which the white-dwarf data and Schaefer and Fegley both give, -1.0 to -0.5 at 1500 K) but its use for every small body: carbonaceous (CI, CV, C-complex) material outgasses at IW+1.6 to +2.6. The two scales also differ (white-dwarf values are core-formation redox of differentiated parents; Schaefer and Fegley are outgassing of chondritic material), so no single number covers both. The row is not changed here; the finding goes to GEN.482b (section 7).
+The authors' text agrees: the most oxidised mixture is CI at "about QFM-1" (about IW+2.6 at 1500 K by the Frost 1991 buffers; the polynomials above give +2.0, so the text is read off a figure) and the most reduced is EH at "about IW-1", with all mixtures between the two. The unsupported part of row a3 is therefore not its reduced end (which the white-dwarf data and Schaefer and Fegley both give, -1.0 to -0.5 at 1500 K) but its use for every small body: carbonaceous (CI, CV, C-complex) material outgasses at IW+1.6 to +2.6. The two scales also differ (white-dwarf values are core-formation redox of differentiated parents; Schaefer and Fegley are outgassing of chondritic material), so no single number covers both. The row is not changed: nothing reads a3 for a body with an air today (section 7, point 5).
 
-## 7. Follow-up (needs a design decision and an epoch)
+## 7. GEN.482b: what was wired (no epoch: the generator does not draw the mixture yet)
 
-Proposed item **GEN.482b**: wire the findings into rows a1, a2, a3.
-
-1. a1: width `0.5 + 0.4 clamp(log10 M + 1, 0, 1)`; replace the clamp at 0.5 with a continuing slope (1.0 per dex, the range 0 to 2 per dex as the stated bracket) up to a cap; the cap stays a stand-in until some source covers super-Earth magma oceans.
-2. a2: draw it as a1 plus a non-negative gap that grows with mass (0.7 at the Moon to 3 at Earth), or keep independent draws and reject draws with a2 below a1; cap the extrapolation above 1 Earth mass.
-3. a3: split by building-block type: reduced (E-type, differentiated: the white-dwarf draw) and carbonaceous (C-complex: IW+1.6 to +2.6, from Schaefer and Fegley Table 2).
-4. Any change of these draws needs an epoch (`--affects` the atmosphere stage) and the tests that pin the design numbers updated (`test_atmosphere_recipes`).
-
-The existing rows stay valid until then: the means are inside the published ranges.
+1. a1 width: `0.5 + 0.4 clamp(log10 M + 1, 0, 1)` (0.5 at 0.1 Earth masses and below, 0.9 at 1 and above).
+2. a1 mean above 1 Earth mass: plus `clamp(log10 M, 0, 0.7324)`, that is 1.0 log unit per dex of mass up to 5.4 Earth masses (+1.23) and held there, where the base pressure passes the 140 GPa of Deng's calculations (assuming the base pressure scales as M to the 0.55). The bracket 0 to 2 per dex stays the stated uncertainty; this is the part that stays a stand-in.
+3. a2 mean: `3.5 + 2 clamp(log10 M, -3, 0)`: the Earth value is held above 1 Earth mass (no source for a super-Earth's later mantle), and the 6 clip of the row is no longer reached.
+4. `draw_redox` takes the larger of a2 and a1 for the later mantle, so a body never moves to a later mantle more reduced than its own magma-ocean surface (Deng 2020 and Hirschmann 2022: the later processes only oxidise).
+5. a3: not changed. No code reads a3 for a body with an air today (an asteroid is airless and takes no mixture; the rocky path takes a3 only when a1 is absent), so a split by building-block type has no consumer. It waits for one (the first body that outgasses from a carbonaceous parent), with the carbonaceous range IW+1.6 to +2.6 of section 6 as its source.
 
 ## 8. Na and K condensation temperatures
 
