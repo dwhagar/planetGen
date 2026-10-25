@@ -589,6 +589,20 @@ def _overflow(page):
     return []
 
 
+def _wait_for_components(page):
+    """Waits until every Shoelace element on the page is defined and has rendered once.
+
+    An `sl-option` is given its `option` role at once, but the `listbox` it needs as a parent is rendered inside its
+    `sl-select`'s shadow root; axe run before that reported "aria-required-parent" (/admin/generate/system at phone/light
+    in the TEST.385 run, though not at the other three viewport and scheme cases)."""
+    page.evaluate("""async () => {
+        const tags = new Set([...document.querySelectorAll("*")].map(e => e.localName).filter(n => n.startsWith("sl-")));
+        await Promise.all([...tags].map(tag => customElements.whenDefined(tag)));
+        await Promise.all([...document.querySelectorAll("*")].filter(e => e.localName.startsWith("sl-") && e.updateComplete)
+                          .map(e => e.updateComplete));
+    }""")
+
+
 @pytest.mark.parametrize("scheme", SCHEMES)
 @pytest.mark.parametrize("viewport", sorted(VIEWPORTS))
 @pytest.mark.parametrize("endpoint", PAGE_ENDPOINTS)
@@ -617,6 +631,7 @@ def test_page_is_accessible_and_fits(browser, axe_source, base_url, page_targets
         response = page.goto(base_url + path, wait_until="load")
         assert response.status == 200, f"{path} answered {response.status}"
         page.wait_for_timeout(100)
+        _wait_for_components(page)
 
         if SCREENSHOT_DIR:
             os.makedirs(SCREENSHOT_DIR, exist_ok=True)
