@@ -23376,33 +23376,6 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.33, POP.35, MAP.309. Related: POP.33, POP.24.
 
-- [ ] **POP.37 Facility ratings read Suitability, the food rung and the life scores: Health and Housing use only PHI-4 today**
-  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
-  are there any other places where are habitability / life scores aren't
-  used and should be?" Found by the TODO thread's code audit of
-  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
-  population/facility_suggest.py, admin/edits.py, population/model.py).
-  population/facility_suggest.py rates a facility from the host's phi4
-  only (Health 0.5 medical + 0.5 habitability, Housing 0.5 habitability
-  + 0.3 materials + 0.2 size, Maintenance 0.15 habitability). It never
-  reads Suitability, the food rung (Flora and Fauna) or the Sentient
-  score, so a base on a world with food and shelter rates the same as
-  one with none, and a facility on a world with a sentient species is
-  not rated against it. Decide which ratings take which score (Health
-  from the food rung and radiation tier, Housing from Suitability,
-  Resources from Flora and Fauna for a living world), write the weights
-  and the sources in docs/design/habitability/population-and-politics.md
-  and change the ratings; a changed rating is drawn output and carries
-  `tests.golden_update --reason ... --affects population` and the next
-  epoch. Version 8.1 (pulled forward from 8.4, Boss, 10:16 PM EDT
-  2026-10-24: "fix each"; the weights do not need the settlements
-  design). Owner: pool (Core 5 style). Rules: a unit or scale on every number (GEN.772); tests are
-  `scripts/test.py changed --resume`; no fixed content from the Milky
-  Way or the Solar System.
-  Research (2026-10-09, Progress): Pulled forward into 8.1 by Boss,
-  10:16 PM EDT 2026-10-24; owner pool (Core 5 style), unstarted.
-  Prerequisites: none. Related: POP.16, POP.17, GEN.653.
-
 - [ ] **POP.38 Species traits and facility needs read the homeworld and host: dose, pressure, air, thermal range, day length and the equipment kit (G1)**
   Unused stored values audit (the "Find stored values nothing uses"
   thread, report reports/unused-stored-values-audit-2026-10-24.md,
@@ -23429,7 +23402,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   carries `tests.golden_update --reason ... --affects <stage>` and the
   next epoch; tests are `scripts/test.py changed --resume`; stand-ins
   get GEN.725 registry rows.
-  Prerequisites: POP.37, POP.17, POP.40, POP.41, POP.42, POP.43. Related: POP.37, POP.17, GEN.445, POP.40, POP.41, POP.42, POP.43.
+  Prerequisites: POP.17, POP.40, POP.41, POP.42, POP.43. Related: POP.37, POP.17, GEN.445, POP.40, POP.41, POP.42, POP.43.
 
 - [ ] **POP.39 Facility constants are registered with a tier and tweak level, and a facility's richness reads the host's stored composition (G6)**
   Unused stored values audit (the "Find stored values nothing uses"
@@ -23454,7 +23427,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   carries `tests.golden_update --reason ... --affects <stage>` and the
   next epoch; tests are `scripts/test.py changed --resume`; stand-ins
   get GEN.725 registry rows.
-  Prerequisites: POP.37, GEN.799, POP.44, POP.45. Related: POP.37, GEN.725, GEN.799, POP.44, POP.45.
+  Prerequisites: GEN.799, POP.44, POP.45. Related: POP.37, GEN.725, GEN.799, POP.44, POP.45.
 
 - [ ] **POP.40 Species traits take radiation tolerance, pressure and air tolerance, thermal range and day length from the homeworld (G1, step 1)**
   Unused stored values audit chain
