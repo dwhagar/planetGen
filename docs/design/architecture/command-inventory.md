@@ -17,8 +17,8 @@ Naming (decided by Boss, 5:14 to 5:16 PM EDT on 2026-10-18, cards F1 to F7): one
 | `planetgen clear-scatter` | Empties one kind of scatter's stored rows: `--mass`, `--luminosity`, `--phenomena` or `--nebula-field`, run before `scatter` to redo it (PERF.121, Boss's F7, done) | Yes | none |
 | `planetgen fill-map-luminosity`, `rescore-habitability`, `clean-nebula-field` | One fill or clean-up each, with no setting of a scatter (PERF.122, done) | Yes | none |
 | `planetgen galaxy` | Sector generation in nine modes (random start with neighborhood, shell, block, center sector, band, wedge, course), the neighbour link, the three scatters, the backfill, the population pass and the settle, with no option to leave one out (PERF.123) | No: eight jobs in one run | PERF.123 |
-| `planetgen sector` | Generates sectors; `--population` also runs the population pass | Almost: population leaves it | PERF.124 |
-| `planetgen phenomenon` | Generates one phenomenon, then settles its sector unless `--no-settle` | Almost: settle leaves it | PERF.124 |
+| `planetgen sector` | Generates sectors and nothing else (`--population` is gone, PERF.124, done) | Yes | none |
+| `planetgen phenomenon` | Generates one phenomenon and saves it (`--no-settle` is gone; the settle is `planetgen settle --sector-id ID`, PERF.124, done) | Yes | none |
 | `planetgen system` | Generates one system and prints or writes it | Yes | none (registered by PERF.118) |
 | `planetgen population` | The population pass and the territories pass (`--territories-only`, `--rescan`) | No: two passes | PERF.125 |
 | `planetgen check-db` | Builds the list of the nine `check-*` commands (one per check: revision, tables, extended tables, orphans, ids, values, counts, version keys, systems) the arguments name, and hands it to the wrapper as a check run | Yes: each check is its own command; this only builds the list (PERF.126, done) | PERF.126 |

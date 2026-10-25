@@ -5,8 +5,7 @@ Run Population
 ==============
 
 The `population` command: species, civilizations and territories from
-what is already stored (`planetgen.population.model`), also run after a
-`sector` or `galaxy` run given `--population`.
+what is already stored (`planetgen.population.model`), and the same pass as a stage of a `galaxy` run.
 """
 
 from planetgen.cli.stage_progress import StageProgress
@@ -42,13 +41,6 @@ def run_population(args):
     finally:
         conn.close()
     log.normal(f"Population: {_population_summary(counts)}")
-
-
-def run_population_after(args):
-    """The population pass after a `sector` run, only with
-    `--population` (off by default, Boss 2026-10-01)."""
-    if getattr(args, "population", False):
-        run_population_stage(args)
 
 
 def run_population_stage(args):

@@ -12,7 +12,7 @@ them.
 """
 
 
-from planetgen.db import sector_paths, store
+from planetgen.db import store
 from planetgen import tuning as program_constants
 from planetgen.util import draw
 from planetgen.util import log
@@ -120,11 +120,3 @@ def run_phenomenon(args):
     run_common.RUN_COUNTS["phenomena"] += 1
     log.normal(f"Saved {TYPE_LABELS[phenomenon_type]} to the database (id={phenomenon_id}, "
                f"{mysql_config.database}@{mysql_config.host}:{mysql_config.port}).")
-    if args.sector_id is not None and not getattr(args, "no_settle", False):
-        # GEN.126: a black hole or neutron star bends the paths of the bodies around it.
-        conn = store.get_connection(mysql_config)
-        try:
-            saved = sector_paths.settle_sectors(conn, [args.sector_id])
-        finally:
-            conn.close()
-        log.normal(f"Saved {saved:,} sector paths.")
