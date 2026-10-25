@@ -21018,17 +21018,6 @@ clears each one.
   with the same sample size and tolerances.
   Prerequisites: none. Related: TEST.384, PERF.186.
 
-- [ ] **TEST.393 Each gate leaves about 50 orphaned planetgen.cli.worker processes that can fill 16 GB of RAM and get mysqld OOM-killed: tests that start detached workers do not reap them (bug)**
-  Found on lane machines (1:38 AM EDT 2026-10-25, reported by Aux 4's
-  lane thread through the coordinator relay). Do: every test that starts
-  a detached worker reaps it in a fixture finalizer (terminate, wait,
-  kill), and scripts/test.py checks for stray planetgen.cli.worker
-  processes at the start and end of a run and reports them (TEST.376
-  already checks MySQL and Redis on every run). Owner: Bug 1. Done:
-  after a full gate no planetgen.cli.worker process remains, and a test
-  that leaks one fails.
-  Prerequisites: none. Related: TEST.376, PERF.181, TEST.390.
-
 - [ ] **TEST.394 Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug)**
   Found by Core 2 (1:39 AM EDT 2026-10-25 as the lane reported):
   test_sector_page_map_keeps_to_its_sector,
