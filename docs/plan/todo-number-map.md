@@ -1898,7 +1898,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.26 | Installer mixes apt's NumPy-1 builds (astropy, erfa, scikit-image) with pip's NumPy 2, so the requirements probe fails (bug) | none | done, PR #467 |
 | OPS.27 | The Windows installer and docs point at Redis in WSL, not Memurai | none | done, PR #475 |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | none | done, PR #2654 |
-| OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts | none | done, PR #0 |
+| OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts | none | done, PR #3192 |
 | OPS.30 | A lock helper for the maintenance run | none | merged into OPS.16 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | OPS.31 | Lint every example plist, XML and service file in CI | none | done, PR #1715 |
 | OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | done, PR #865 |
@@ -2185,7 +2185,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.33 | Release gate: a full security code audit of the whole code base, done before every major or minor version change (8.1 first) | none | open |
 | SEC.34 | Upgrade Pillow from 12.3.0 to 13.0.0 in both lock files (37 advisories fixed in 13.0.0) | none | done, PR #3141 |
 | SEC.35 | The picture upload opens the file with every format Pillow knows before refusing all but PNG, JPEG and ICO: restrict the formats on open | none | done, PR #3141 |
-| SEC.36 | Avatars may be GIFs, animated GIFs included: a new avatar picture kind with its own format list and decoder limits | none | done, PR #0 |
+| SEC.36 | Avatars may be GIFs, animated GIFs included: a new avatar picture kind with its own format list and decoder limits | none | done, PR #3192 |
 | USR.1 | User accounts | none | open |
 | USR.2 | Accounts with roles: user, moderator, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings in the admin config | 65 (2026-10-01 02:13Z to 05:29Z) | open |
