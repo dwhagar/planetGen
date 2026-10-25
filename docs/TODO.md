@@ -15025,25 +15025,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-in registry rows are updated. Changes drawn output:
   `tests.golden_update --reason ... --affects fill` and the next epoch.
   Version 8.1. Owner: Citations lane (Aux 17).
+  Research (2026-10-09, Citations lane report): The Citations lane did
+  GEN.482b itself (#3240, 10:48 PM EDT 2026-10-24 as the lane reported)
+  and does not take this one. Owner: Aux 8 (atmosphere recipes), after
+  GEN.815 and GEN.818.
   Prerequisites: none. Related: GEN.481, GEN.510, GEN.725.
-
-- [ ] **GEN.803 Wire the magma-ocean redox findings: the a1 width and its extension above 1 Earth mass, link a2 to a1, split a3 by building-block type (GEN.482b)**
-  Citations lane (Aux 17), GEN.481 and GEN.482 merged #3220, relayed
-  10:35 PM EDT 2026-10-24 as the lane reported
-  (docs/design/composition/volatile-delivery-formation-distance.md and
-  magma-ocean-redox-against-mass.md). a1 mean is inside the first-hand
-  ranges at the Moon, Mars and Earth (Hirschmann 2022, Deng 2020, Sossi
-  2020) but its width 0.5 is too narrow for Earth (0.9) and its clamp
-  above 1 Earth mass is unsourced; a2 sits inside one sd of its three
-  anchors and should be linked to a1; the a3 check bracket misses
-  carbonaceous material (IW+1.6 to +2.6), so a3 splits by building-block
-  type. Do: widen a1 and extend it above 1 Earth mass with a source,
-  link a2 to a1, split a3 by building-block type, and update the recipe
-  data. Done: a sample of 1,000 magma oceans lands inside the first-hand
-  ranges at the three anchors, with the registry rows updated. Changes
-  drawn output: `tests.golden_update --reason ... --affects fill` and
-  the next epoch. Version 8.1. Owner: Citations lane (Aux 17).
-  Prerequisites: none. Related: GEN.482, GEN.802, GEN.725.
 
 - [ ] **GEN.804 Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1)**
   Unused stored values audit chain
