@@ -10,6 +10,7 @@ import importlib.util
 import json
 import os
 import sys
+import threading
 
 import pytest
 
@@ -29,6 +30,30 @@ def _progress_logs_in_a_throwaway_directory(tmp_path, monkeypatch):
     monkeypatch.setattr(runner, "PROGRESS_DIR", str(tmp_path / "progress"))
     # ... and must not clear the test Redis, which the tests running beside this one are using (TEST.152).
     monkeypatch.setattr(runner, "clear_test_redis", lambda: "")
+    # ... and must not look at, or restart, the services the tests running beside this one stand on (TEST.376); the
+    # tests of the check itself are in test_lane_services.py.
+    monkeypatch.setattr(runner, "_services", lambda: _QuietServices)
+
+
+class _QuietWatchdog:
+    """A watchdog that never trips."""
+
+    def __init__(self, environ, on_trip, **options):
+        self.events, self.what, self.failed, self.tripped = [], "", False, threading.Event()
+
+    def start(self):
+        pass
+
+    def stop(self):
+        pass
+
+
+class _QuietServices:
+    Watchdog = _QuietWatchdog
+
+    @staticmethod
+    def preflight(environ, browser=True, say=print):
+        return []
 
 
 @pytest.mark.parametrize("name, area", [
@@ -80,7 +105,7 @@ def test_full_runs_the_real_queue_tests_alone_and_the_browser_tests_last_on_fewe
 def test_budget_runs_only_the_budget_tests_on_one_worker_and_switches_them_on(monkeypatch):
     assert runner.build_phases("budget", [], 8, 2) == [("budget", "budget", 1)]
     seen = []
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: seen.append(environment) or (0, {"passed": 1}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: seen.append(environment) or (0, {"passed": 1}))
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     assert runner.main(["budget"]) == 0
@@ -112,7 +137,7 @@ def test_a_run_is_remembered_for_the_next_one(tmp_path, monkeypatch):
 
 def test_everything_after_a_double_dash_goes_to_pytest(monkeypatch):
     calls = []
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: calls.append(command) or (0, {"passed": 1}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: calls.append(command) or (0, {"passed": 1}))
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     assert runner.main(["quick", "--", "-x", "-k", "login", "--durations=5"]) == 0
@@ -174,7 +199,7 @@ def test_changed_runs_the_same_phases_as_full():
 
 def test_changed_options_reach_pytest(monkeypatch):
     calls = []
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: calls.append(command) or (5, {}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: calls.append(command) or (5, {}))
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     assert runner.main(["changed", "--base", "HEAD~1"]) == 0
@@ -192,15 +217,15 @@ def test_the_last_line_says_pass_fail_or_interrupted(monkeypatch, capsys):
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     monkeypatch.setattr(runner, "rerun_failures", lambda environment: None)
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: (0, {"passed": 7, "skipped": 1}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: (0, {"passed": 7, "skipped": 1}))
     assert runner.main(["quick"]) == 0
     assert "quick: PASS in" in capsys.readouterr().out.splitlines()[-1]
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: (1, {"passed": 5, "failed": 2}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: (1, {"passed": 5, "failed": 2}))
     assert runner.main(["quick"]) == 1
     last = capsys.readouterr().out.splitlines()[-1]
     assert "quick: FAIL in" in last and "5 passed, 2 failed" in last
 
-    def stopped(command, environment):
+    def stopped(command, environment, **options):
         raise KeyboardInterrupt("SIGTERM")
 
     monkeypatch.setattr(runner, "run_phase", stopped)
@@ -229,7 +254,7 @@ def test_the_last_line_counts_the_tests_that_timed_out(monkeypatch, capsys):
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     monkeypatch.setattr(runner, "rerun_failures", lambda environment: None)
     monkeypatch.setattr(runner, "timed_out_tests", lambda: ["t.py::test_slow"])
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: (1, {"passed": 5, "failed": 1}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: (1, {"passed": 5, "failed": 1}))
     assert runner.main(["quick"]) == 1
     out = capsys.readouterr().out
     assert "TIMED OUT: 1 test(s)" in out and "  t.py::test_slow" in out
@@ -267,7 +292,7 @@ def test_a_phase_says_when_the_machine_cut_its_workers(monkeypatch, capsys):
     monkeypatch.setattr(runner, "available_memory_mb", lambda: 2200)
     monkeypatch.setattr(runner.os, "getloadavg", lambda: (0.0, 0.0, 0.0))
     seen = []
-    monkeypatch.setattr(runner, "run_phase", lambda command, environment: seen.append(command) or (0, {"passed": 1}))
+    monkeypatch.setattr(runner, "run_phase", lambda command, environment, **options: seen.append(command) or (0, {"passed": 1}))
     monkeypatch.setattr(runner, "save_run", lambda *args: None)
     monkeypatch.setattr(runner, "load_runs", lambda: {})
     assert runner.main(["full", "-n", "6"]) == 0

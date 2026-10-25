@@ -7,7 +7,10 @@ Picks and runs a slice of the test suite (TEST.139, docs/design/operations/test-
     scripts/test.py browser               the headless-browser tests alone
     scripts/test.py changed [--base REF]  only the tests the changes since REF can affect (a fast loop, not a gate)
     scripts/test.py budget                the big-galaxy query budget (opt-in, builds 2,000,000 systems once; not a gate)
-    scripts/test.py full                  everything: the merge gate; also refreshes the map `changed` reads
+    scripts/test.py env                   only the check below, and the repairs it makes; runs no test
+    scripts/test.py full                  everything: the end-of-version run (TEST.261, SEC.33, GEN.301), not the gate of an
+                                          ordinary merge (that is `changed`, with `--resume` after an interruption); it
+                                          also refreshes the map `changed` reads
     scripts/test.py full --check          ... and lists failing tests `changed` would not have selected
     scripts/test.py full -- -x -k login   anything after `--` goes to pytest as it is
     scripts/test.py <command> --global-docs  also the freshness tests of the generated global documents (TODO's and the stamp's)
@@ -25,6 +28,14 @@ The two parallel phases are also capped by what the machine has free when the ph
 worker per `--worker-mb` MB of available memory (browser workers: `--browser-worker-mb`) and, for the first phase, no
 more than the cores the current load leaves idle, never fewer than one. A lane machine that is also running other
 lanes' gates then gets fewer workers instead of timeouts and OOM kills; the phase line says when it capped. `--no-worker-cap` turns the cap off.
+
+Containers (TEST.376): before every run, `src/tests/lane_services.py` loads the `PLANETGEN_TEST_*` variables from
+/etc/profile.d/planetgen-test.sh when they are missing, starts MySQL and Redis when they do not answer, purges the
+MySQL binlogs when the disk is nearly full and checks `argon2-cffi` and (for the browser tests) `playwright` 1.56.0;
+what it cannot repair stops the run before it starts (exit 2, `--no-preflight` skips the check). While a phase runs a
+watchdog asks MySQL and Redis every 15 seconds; one that is gone is restarted at once, the phase's pytest is stopped and
+started again without the tests that already passed (the progress log, as `--resume` does), up to 5 times a phase, so a
+container kill costs the tests that were in flight and not the run. The closing line says how many times it happened.
 
 Failures: every failing test's full report (traceback, worker, machine load) is kept in `.test-failures.jsonl`,
 and when the run ends the failed tests are run again alone, on one worker, each with the verdict "passes alone"
@@ -159,12 +170,14 @@ def summary_counts(line):
     return counts
 
 
-def run_phase(command, environment):
+def run_phase(command, environment, on_child=None):
     """Runs one pytest command, passing its output through line by line. Returns (exit code, counts from its
     summary line). If this process is interrupted the child is stopped first and the interrupt goes on."""
     counts = {}
     child = subprocess.Popen(command, cwd=ROOT, env=environment, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                              text=True, errors="replace", bufsize=1)
+    if on_child:
+        on_child(child)
     try:
         for line in child.stdout:
             sys.stdout.write(line)
@@ -183,6 +196,87 @@ def run_phase(command, environment):
 def describe_counts(counts):
     order = ("passed", "failed", "errors", "skipped", "xfailed", "xpassed", "deselected")
     return ", ".join(f"{counts[word]} {word}" for word in order if counts.get(word)) or "no tests ran"
+
+
+def _services():
+    sys.path.insert(0, os.path.join(ROOT, "src"))
+    try:
+        from tests import lane_services
+    finally:
+        sys.path.pop(0)
+    return lane_services
+
+
+MAX_RESTARTS = 5
+"""int: How many times one phase is started again after a service was restarted under it."""
+
+
+class ServicesLost(RuntimeError):
+    """A service could not be brought back, or kept dying; the run stops with the reason."""
+
+
+def passed_nodeids(progress_path):
+    """The ids of the tests the progress log records as passed (so far)."""
+    return {nodeid for nodeid, line in _progress_modules()[1].read(progress_path)[1].items()
+            if line.get("outcome") == "passed"}
+
+
+def skipping(extra, passed, path):
+    """`extra` (pytest options) with `--skip-passed` naming a list of the tests it already named plus `passed`, written
+    to `path`."""
+    extra = list(extra)
+    names = set(passed)
+    if "--skip-passed" in extra:
+        at = extra.index("--skip-passed")
+        try:
+            with open(extra[at + 1], encoding="utf-8") as earlier:
+                names |= set(json.load(earlier))
+        except (OSError, ValueError, IndexError):
+            pass
+        del extra[at:at + 2]
+    with open(path, "w", encoding="utf-8") as skip:
+        json.dump(sorted(names), skip)
+    return extra + ["--skip-passed", path]
+
+
+def run_watched(label, marker, workers, extra, environment, progress_path, say=print):
+    """
+    Runs one phase under the services watchdog. A MySQL or Redis that went away is restarted by the watchdog, which
+    stops the phase; it is then started again without the tests that passed so far, at most `MAX_RESTARTS` times.
+
+    Returns:
+        tuple: `(exit code, counts, restarts)`, the counts adding the tests that passed in the stopped attempts.
+
+    Raises:
+        ServicesLost: A service could not be restarted, or the phase kept being cut short.
+    """
+    services = _services()
+    totals, restarts = {}, []
+    while True:
+        child = []
+        watchdog = services.Watchdog(environment, on_trip=lambda found: child and child[0].terminate())
+        before = len(passed_nodeids(progress_path))
+        watchdog.start()
+        try:
+            code, counts = run_phase(pytest_command(marker, workers, extra), environment, on_child=child.append)
+        finally:
+            watchdog.stop()
+        if not watchdog.tripped.is_set() or counts:     # a phase that printed its summary was over before the stop
+            restarts += watchdog.events
+            for word, number in counts.items():
+                totals[word] = totals.get(word, 0) + number
+            return code, totals, restarts
+        restarts += watchdog.events
+        done = len(passed_nodeids(progress_path)) - before
+        totals["passed"] = totals.get("passed", 0) + done
+        if watchdog.failed:
+            raise ServicesLost(f"{watchdog.what}; the {label} phase cannot go on")
+        if len(restarts) > MAX_RESTARTS:
+            raise ServicesLost(f"the services were restarted {len(restarts)} times in the {label} phase "
+                               f"({'; '.join(restarts)}); something keeps killing them")
+        say(f"--- {label}: {watchdog.what}; the phase is stopped and started again without the {done} tests that "
+            f"passed in it (restart {len(restarts)} of at most {MAX_RESTARTS})")
+        extra = skipping(extra, passed_nodeids(progress_path), progress_path + ".restart.skip")
 
 
 def _progress_modules():
@@ -399,7 +493,7 @@ def minutes(seconds):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("command", choices=("quick", "area", "browser", "budget", "changed", "full"))
+    parser.add_argument("command", choices=("quick", "area", "browser", "budget", "changed", "full", "env"))
     parser.add_argument("areas", nargs="*", help="for `area`: " + ", ".join(AREAS))
     parser.add_argument("-n", "--workers", type=int, default=os.cpu_count() or 1,
                         help="workers for the non-browser tests (default: every core)")
@@ -416,6 +510,9 @@ def main(argv=None):
     parser.add_argument("--resume", action="store_true",
                         help="continue the last run of this same build: skip the tests that passed in it (never "
                         "automatic; the last line says the run was resumed)")
+    parser.add_argument("--no-preflight", action="store_true",
+                        help="do not check (and repair) MySQL, Redis, the test variables and the packages first, and "
+                        "do not watch the servers during the run (TEST.376)")
     parser.add_argument("--check", action="store_true",
                         help="for `full`: list the failing tests `changed` would not have selected")
     parser.add_argument("--global-docs", action="store_true",
@@ -440,6 +537,17 @@ def main(argv=None):
         if refusal:
             print(f"scripts/test.py full --check: {refusal} Nothing was run.", flush=True)
             return 2
+    if args.command == "env" or not args.no_preflight:
+        problems = _services().preflight(os.environ, browser=args.command != "quick",
+                                         say=lambda text: print(f"scripts/test.py {args.command}: {text}", flush=True))
+        if problems:
+            for problem in problems:
+                print(f"scripts/test.py {args.command}: PREFLIGHT FAILED: {problem}", flush=True)
+            print(f"scripts/test.py {args.command}: Nothing was run (--no-preflight runs anyway).", flush=True)
+            return 2
+        if args.command == "env":
+            print("scripts/test.py env: MySQL, Redis, the test variables and the packages are in order.", flush=True)
+            return 0
     if args.global_docs:
         os.environ["PLANETGEN_GLOBAL_DOCS"] = "1"
     extra = depmap_options(args.command, args.base, args.check) + extra
@@ -472,6 +580,7 @@ def main(argv=None):
 
     status = 0
     totals = {}
+    restarts = []
     try:
         os.remove(FAILURES_FILE)
     except OSError:
@@ -498,13 +607,30 @@ def main(argv=None):
                 capped = f" (capped: {why})" if why else ""
             first_phase = False
             print(f"--- {label}: -m {marker!r}, {workers} worker(s){capped}", flush=True)
-            code, counts = run_phase(pytest_command(marker, workers, extra_for_pytest), environment)
+            if args.no_preflight:
+                code, counts = run_phase(pytest_command(marker, workers, extra_for_pytest), environment)
+            else:
+                refused = _services().preflight(environment, browser=label == "browser", say=lambda text: print(
+                    f"scripts/test.py {key}: {text}", flush=True))   # a server that fell over between two phases
+                if refused:
+                    raise ServicesLost("; ".join(refused))
+                code, counts, found = run_watched(label, marker, workers, extra_for_pytest, environment, progress_path)
+                restarts += found
             for word, number in counts.items():
                 totals[word] = totals.get(word, 0) + number
             if code not in (0, 5):  # 5: nothing collected in this phase
                 status = status or code
         if status and not args.no_rerun:
+            if not args.no_preflight:
+                _services().preflight(environment, browser=False, say=lambda text: print(
+                    f"scripts/test.py {key}: {text}", flush=True))
             rerun_failures(environment)
+    except ServicesLost as lost:
+        seconds = round(time.time() - started)
+        print(f"scripts/test.py {key}: FAIL in {minutes(seconds)}: {lost}. Stopped in the {phase} phase; build "
+              f"{identifier} keeps what passed, and the same command with --resume continues it once the "
+              "services are back.", flush=True)
+        return 3
     except KeyboardInterrupt as stop:
         seconds = round(time.time() - started)
         _, logged = _progress_modules()[1].read(progress_path)
@@ -527,7 +653,8 @@ def main(argv=None):
                if args.resume and progress.skip_file else
                f" (RESUMED build {identifier}: 0 more passed earlier, {progress.note})" if args.resume else "")
     print(f"scripts/test.py {key}: {'PASS' if status == 0 else 'FAIL'} in {minutes(round(seconds))}: "
-          f"{describe_counts(totals)}" + (f" ({len(timed_out)} TIMED OUT)" if timed_out else "") + resumed, flush=True)
+          f"{describe_counts(totals)}" + (f" ({len(timed_out)} TIMED OUT)" if timed_out else "")
+          + (f" ({len(restarts)} service restart(s): {'; '.join(restarts)})" if restarts else "") + resumed, flush=True)
     return status
 
 
