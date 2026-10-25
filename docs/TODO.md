@@ -11213,6 +11213,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   This overrides the 8.1-only pause for it and any earlier owner line,
   and allows new generator epochs, database versions and API versions.
   Owner: Habitability lane I (the spine, to be started).
+  Folded in (2026-10-09): Folded in GEN.817 (Aux 1, Blocker I, via the
+  coordinator 3:17 AM EDT 2026-10-25): rogue and starless bodies' air
+  goes through the same fixed point because this item already rebuilds a
+  rogue as an ordinary Planet through calculate_atmospheric_conditions,
+  so a separate GEN.817 build would be thrown away. Add to this item:
+  starless bodies use their internal heat as the only absorbed flux, and
+  the host type PSR row serves the mixture subject. Done adds: a rogue
+  planet's air comes from the same solve as a bound planet's, with no
+  absorbed stellar flux term, and a test pins the internal-heat-only
+  case. Needs GEN.553 (Aux 2) and GEN.565 first; assigned to a fresh
+  lane when GEN.553 lands.
 - [ ] **GEN.558 Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
@@ -15044,22 +15055,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ... --affects <stage>` and the next epoch; tests are `scripts/test.py
   changed --resume`.
   Prerequisites: GEN.422. Related: GEN.735, GEN.810, GEN.801.
-
-- [ ] **GEN.817 Rogue and starless bodies: their air goes through the same fixed point (finding 7)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 7.
-  mixture_subject refuses a body with no star by name; the rogue path
-  has its own surface (rogue_surface), so nothing breaks, but a rogue
-  planet's air does not go through the fixed point. Route rogue bodies
-  through the same solve with the internal heat as the only energy
-  source. Done: a rogue planet's air comes from the solved mixture and a
-  test pins it. Owner: Aux 8 or a free pool lane. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  stand-ins get GEN.725 registry rows with a tier and tweak level; a
-  changed generated value carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`.
-  Prerequisites: GEN.422. Related: GEN.411, GEN.422.
 
 - [ ] **GEN.819 Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet**
   GEN.739 (#3246) added physics/impact_history.py and
