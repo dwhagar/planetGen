@@ -20524,21 +20524,6 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
-- [ ] **TEST.367 Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug)**
-  Reported by Core 1 while merging API.15 (#3136, 6:43 PM EDT 2026-10-24
-  as the lane reported); they fail identically on origin/main on its
-  lane:
-  test_admin_edits.py::test_system_page_regenerates_a_planet and
-  ::test_system_page_changes_a_class, and test_api_auth_sweep.py::
-  test_admin_pages_send_an_admin_on_seeded_credentials_to_account and
-  ::test_admin_pages_send_anonymous_visitors_to_login (302 where 403 is
-  expected for /admin/queue/<run_id>/log). Find whether the tests are
-  stale
-  after the recent page and queue changes or the pages are wrong, fix
-  and
-  record which. Owner: Bug 1.
-  Prerequisites: none. Related: TEST.365, API.15.
-
 - [ ] **TEST.368 A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
@@ -20595,47 +20580,6 @@ clears each one.
   planetgen database account). Bug 1: check them on a machine set up as
   documented before filing anything new.
   Prerequisites: none. Related: OPS.62, TEST.364.
-
-- [ ] **TEST.371 test_workers::a_worker_that_is_killed fails under load and passes alone (bug)**
-  Found by Bug 1 running scripts/test.py quick on clean main (8:00 PM
-  EDT 2026-10-24 as the lane reported):
-  test_workers::a_worker_that_is_killed fails in a full quick run
-  (4-core lane machine, 36 minutes) and passes when run alone. Do: find
-  the timing the test depends on (a fixed sleep or a wait shorter than
-  the load allows) and make it wait for the state it needs, with no skip
-  and no retry decorator. Done: the test passes in three full quick
-  runs. Owner: Bug 1. Related: TEST.344, TEST.364.
-  Prerequisites: none. Related: TEST.344, TEST.364.
-
-- [ ] **TEST.377 test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug)**
-  Found by Core 2 (UX.125, 8:47 PM EDT 2026-10-24 as the lane reported)
-  on clean main. Do: run it on a lane machine set up as documented
-  (TEST.376 preflight, TEST.370), find the root cause (the cache size it
-  fills, a disk or MySQL limit on the lane machine, or a real change in
-  the warmup count) and fix it with no skip; if it passes on a
-  documented machine, drop this item and note the setup it needed. Done:
-  the test passes on a documented machine, or the root cause is fixed.
-  Owner: Bug 1. Related: TEST.375, TEST.370.
-  Prerequisites: none. Related: TEST.375, TEST.370.
-
-- [ ] **TEST.379 Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug)**
-  Found by Lane 4 (Aux 12) running the OPS.29 gate on main (8:59 PM EDT
-  2026-10-24 as the lane reported). Not yet in any item:
-  test_api::description_splits_into_every_body, test_eta_estimator
-  (queue page), test_protection (six describers),
-  test_web_browser_fixture_maps (wheel scroll) and test_web_search (star
-  link). Already covered: test_api_auth_sweep admin pages (fixed in
-  #3189 by Bug 1), test_class_pages nebula, test_interior_heat urey
-  ratio, test_memwatch smoke run and test_save_progress (all TEST.375),
-  test_no_todo_codes_shown (TEST.378; Lane 4 also named a MAP.220 string
-  at db/point_columns.py:177, check that TEST.378 removes every code in
-  a shown string). Do: run each on a lane machine set up as documented
-  (TEST.370, TEST.376 preflight), keep the ones that still fail on main,
-  and fix each with no skip; drop the ones that pass, noting the setup
-  they needed. Done: every listed test passes on a documented machine or
-  has its own item with a root cause. Owner: Bug 1. Related: TEST.375,
-  TEST.378, TEST.370.
-  Prerequisites: none. Related: TEST.375, TEST.378, TEST.370.
 
 - [ ] **TEST.380 First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp**
   Boss, 9:21 PM EDT 2026-10-24 (relayed by the coordinator): "When are
