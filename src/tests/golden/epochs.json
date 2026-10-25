@@ -612,8 +612,7 @@
     },
     {
       "epoch": 103,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2327",
       "reason": "A terrestrial rogue planet carries the habitability score of its surface (PHI-6, tiers, life scores and survival kit), so the objects a seed gives for a rogue planet hold values they did not before (GEN.701)",
       "affects": ["fill"]
     }

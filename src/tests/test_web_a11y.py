@@ -53,7 +53,7 @@ from planetgen.util import draw
 from planetgen.web.app import create_app  # noqa: E402
 from planetgen.api.authz import SESSION_COOKIE_NAME  # noqa: E402
 from planetgen.api.config import Config  # noqa: E402
-from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
+from planetgen.api.limiter import API_LIMIT_OFF, PAGE_LIMITS_OFF  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.admin import auth
 from planetgen.db.store import MySQLConfig  # noqa: E402
@@ -306,6 +306,7 @@ def site_app(site_db):
         # One browser loads every page, and the Galaxy Map's tiles, from
         # one address: the per-IP page limits aren't under test here.
         RATELIMIT_PAGES = PAGE_LIMITS_OFF
+        RATELIMIT_DEFAULT = API_LIMIT_OFF   # fixtures and pages call the API from one address (TEST.385)
 
     # TEST.232, TEST.246: these tests check every page's layout and accessibility, not the slow-page answer (PERF.105).
     # On a loaded run the first build of /search or /phenomena can take over `tuning.SLOW_PAGE_SECONDS`; the cost rule

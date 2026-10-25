@@ -24,7 +24,7 @@ import pytest
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.util import settings as settings_model
-from planetgen.api.limiter import DEFAULT_PAGE_LIMITS
+from planetgen.api.limiter import API_LIMIT_OFF, DEFAULT_PAGE_LIMITS, PAGE_LIMITS_OFF
 from planetgen.api.routes import DATABASE_UNAVAILABLE
 from planetgen.db.store import MySQLConfig
 
@@ -121,6 +121,35 @@ def test_an_empty_limit_turns_it_off():
     client = _app({"search": "", "other": ""}).test_client()
     assert 429 not in _statuses(client, "/search?q=x", 40)
     assert 429 not in _statuses(client, "/sectors", 40)
+
+
+def test_the_api_default_limit_applies_to_a_direct_call():
+    client = _app(PAGE_LIMITS_OFF, default="2 per hour").test_client()
+    assert _statuses(client, "/api/systems", 2) == [503, 503]
+    response = _get(client, "/api/systems")
+    assert response.status_code == 429
+    assert response.get_json()["error"] == "rate limit exceeded"
+    # Another address has its own budget.
+    assert _get(client, "/api/systems", ip="10.0.0.2").status_code == 503
+
+
+def test_the_api_default_limit_can_be_turned_off_for_a_test_harness():
+    client = _app(PAGE_LIMITS_OFF, default=API_LIMIT_OFF).test_client()
+    assert set(_statuses(client, "/api/systems", 60)) == {503}
+
+
+def test_each_app_keeps_its_own_default_limit_in_one_process():
+    # `Limiter.init_app` keeps only the first app's default for a shared instance: an app made later must still
+    # follow its own `RATELIMIT_DEFAULT`, whichever order the harness builds them in (TEST.385).
+    limited = _app(PAGE_LIMITS_OFF, default="2 per hour").test_client()
+    unlimited = _app(PAGE_LIMITS_OFF, default=API_LIMIT_OFF).test_client()
+    assert _statuses(limited, "/api/systems", 3, ip="10.0.1.1")[-1] == 429
+    assert set(_statuses(unlimited, "/api/systems", 10, ip="10.0.1.2")) == {503}
+    assert _get(limited, "/api/systems", ip="10.0.1.3").status_code == 503
+
+
+def test_production_config_keeps_the_hourly_default_limit():
+    assert Config.RATELIMIT_DEFAULT == "200 per day;50 per hour"
 
 
 # --- HSTS --------------------------------------------------------------------

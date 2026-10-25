@@ -2,6 +2,46 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2330] - 2026-10-25
+
+**Headline:** The browser tests no longer fail with "50 per 1 hour" rate-limit errors, and each app now follows its own API request limit.
+
+### Fixed
+- **The API's default request limit (200 per day, 50 per hour per address) was taken from the first app made in a process and kept for every app made after it** (`Limiter.init_app` keeps only the first default of a shared limiter). A test run builds many apps in one process, so a browser fixture that called the API from one address (`sample_params` makes about 7 calls per module) could not be given a different limit and ran into the hourly 50, which errored 259 browser tests at setup. The limit is now read from the current app's `RATELIMIT_DEFAULT` on each request. On a real server, which makes one app, nothing changes: the limit is still 200 per day and 50 per hour, and an empty setting still turns it off.
+- The browser test sites (`habitability_site`, `map_site_support`, `test_web_a11y`, `test_web_browser_tables`, `test_web_settings_browser`) now set `RATELIMIT_DEFAULT = API_LIMIT_OFF`, so their fixtures cannot be throttled. A route's own limits (login, writes) still apply to them.
+
+### Added
+- `planetgen.api.limiter.API_LIMIT_OFF`, the `RATELIMIT_DEFAULT` that turns the default limit off for a test harness.
+- Tests in `test_web_security_limits.py` that a direct API call is still limited by the default (429 with `rate limit exceeded`, per address), that `API_LIMIT_OFF` is never limited, that two apps in one process keep their own default in either order, and that the production default is unchanged.
+TODO items resolved: TEST.385 (TODO closes it after reading this). Added: none.
+
+## [8.0.2329] - 2026-10-25
+
+**Headline:** The words "rough guess" are gone from every time estimate; a time that has not been timed yet is shown as a range and says so.
+
+### Changed
+- **Time estimates no longer say "rough guess" (PERF.199, bug).** Where this server has not timed the work yet, the Generate page's estimate and review page now show the range with its units and "(not timed yet on this server)", for example "40 s to 5 m 00 s (not timed yet on this server)", instead of one figure and "a rough guess, anywhere from ..." or "a rough default". The Generate job's whole-job bar reads "roughly A to B left (not timed yet)", the Queue page's time left reads "A to B (not timed yet)", the Galaxy banner says "(nothing has been timed yet)", the deep database check's estimate says "not timed yet", and the estimate's source in the run record API is now "not timed yet" instead of "rough guess".
+
+TODO items resolved: PERF.199. Added: none.
+
+## [8.0.2328] - 2026-10-25
+
+**Headline:** An admin edit now works the light a planet sums over the stars out again before the scores are rewritten, so a body in a binary system no longer keeps a habitability score from before the edit.
+
+### Fixed
+- **An edit leaves current scores (ADM.132).** An admin edit (regenerate, class change, star change) already rewrote the habitability, Suitability and life scores of the edited body and its moons, and `save_system_edits` worked every scored body out again from the rows it wrote, but the light swing of a planet in a two-star system (`flux_variation`) was left as it was (NULL on a regenerated planet), so those scores read a stale swing. The edit writer now refreshes it from the final orbits first (`insolation.refresh_system`), as generation and the re-score do. `test_admin_edit_scores.py` proves that after each kind of edit the stored scores of every rocky body equal what `store.refresh_habitability` works out.
+
+## [8.0.2327] - 2026-10-25
+
+**Headline:** A rogue planet now has a habitability score, so an ocean under its ice or under a hydrogen envelope is rated like any other world.
+
+### Changed
+- **Rogue planets are scored (GEN.701, schema v158).** A terrestrial rogue planet keeps the PHI-6 score and its six domain tiers, the four life scores, the four likelihoods behind microbial life, the survival equipment levels (`eq_*` and `shelter_column_g_cm2`) and the chemical energy (`energy_flux_w_m2`), worked out from its surface regime by `planetgen/physics/rogue_habitability.py`: the regime's gas, the water state (an ocean under ice, a hycean ocean, ice or none) and its water column, its own heat as the only energy, and the galactic cosmic-ray dose under its air plus the gamma dose of its crust. No life is drawn for a rogue planet, so its life scores are 0 and the score says what the surface would allow a visitor. There is no star, so no regional temperatures or hours outside are kept. The system page of a rogue planet shows the PHI-6 score; a gas giant and a brown dwarf have none.
+- **Migration 0158, schema v158.** `rogue_planets` gain 37 columns; a galaxy made earlier gets the same numbers from the surface its rows already hold (nothing is drawn). A generated rogue planet carries the score, so a rogue planet's output changes and the generator epoch is bumped.
+- **The property sheet shows it.** `describe/sheet.py` lists the score, the tiers, the life scores and the energy in the Habitability and Life groups of a rogue planet's sheet, and the shelter column beside them.
+
+generation-output: changed
+
 ## [8.0.2326] - 2026-10-25
 
 **Headline:** A lava world's vapour now lists aluminium (Al, AlO, Al2O, AlO2, Al2O2) in the proportion its melt gives, instead of none.

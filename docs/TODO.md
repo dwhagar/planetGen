@@ -13121,24 +13121,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   names is left. Owner: Condition-based classes lane.
   Prerequisites: GEN.689.
 
-- [ ] **GEN.701 Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields**
-  Source: reports/habitability-model-gaps-2026-10-23.md item 3 (build
-  plan row 3), relayed by lane D at 1:59 AM EDT 2026-10-24 as the lane
-  reported. rogue_planets has no habitability columns and RoguePlanet
-  never calls habitability_world, although a rogue with a liquid ocean
-  under ice or under a hydrogen envelope is the case Suitability and the
-  life scores were built for. Do: score columns on rogue_planets
-  (entries in db/column_units.py), a World built from the surface regime
-  (pressure, temperature, a hydrogen envelope as H2, ocean depth, the
-  galactic cosmic-ray dose through the column mass, heat flow as the
-  only energy), and the API fields. Wanderers (GEN.557) may replace the
-  rogue body chain, so check GEN.557 and GEN.687 first and build on
-  whichever representation is current. Done: a test that a Hycean-like
-  rogue scores above a bare ice rogue, and the scores show in the API. A
-  new migration and the next free epoch at merge. Owner: lane D; check
-  nobody started it first.
-  Prerequisites: none. Related: GEN.557, GEN.687.
-
 - [ ] **GEN.705 The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug)**
   Found by Core 3 while merging GEN.631 (#2915, epoch 72), as the lane
   reported at 5:30 AM EDT 2026-10-24; report
@@ -18140,27 +18122,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: ADM.130. Related: ADM.52, ADM.58, ADM.60, ADM.66,
   ADM.81, POP.13.
 
-- [ ] **ADM.132 After an admin edit of a planet or moon, its habitability, Suitability and life scores are recomputed, and a test proves it (check) (bug)**
-  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
-  are there any other places where are habitability / life scores aren't
-  used and should be?" Found by the TODO thread's code audit of
-  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
-  population/facility_suggest.py, admin/edits.py, population/model.py).
-  admin/edits.py changes a planet's class, orbit, star or parent
-  (re-draws the body, moves its moons) and nothing in the file calls the
-  habitability or life scoring, so a stale PHI-6, Suitability or life
-  stage may stay on the body or its moons until `rescore-habitability`
-  (ADM.129) runs. Check: edit a sample planet and read its scores before
-  and after. If they stay stale, this is a bug: recompute the scores for
-  the edited body and its moons in the same transaction (the same call
-  the generator makes) and add a test. If the edit already rescored
-  through another path, name it in the item and add the test. Version
-  8.1. Owner: Aux 3 (habitability model) or Core 1.
-  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
-  2026-10-24 (fix each): Aux 3 (habitability model), a check first, then
-  the fix if the scores go stale.
-  Prerequisites: none. Related: ADM.129, GEN.688.
-
 - [ ] **ADM.133 Admin edits of resource locations: change a belt, field or body's resource grades and scores as an aspect of the edit-everything plan, with a lock so regeneration keeps them**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -20358,19 +20319,6 @@ clears each one.
   2 (the test belongs to the sector reach work), or Bug Hunt if Core 2
   is busy.
   Prerequisites: none. Related: TEST.313.
-
-- [ ] **TEST.318 test_web_generate_size::test_the_line_is_the_estimate_only_output_for_the_same_values fails on untouched main: refused True vs False (bug)**
-  Found by lane G at 12:43 AM EDT 2026-10-24 (as the lane reported)
-  during the gate of #2856: the test fails on untouched main, the
-  estimate-only output and the real line disagree on whether the plan is
-  refused (True against False), run time 23 s. Fails on main: yes.
-  Likely from the estimate wording change of PERF.178 (#2831) or the
-  Redis memory change of #2836; the Generation-log analysis lane owns
-  that area. Do: find which change made the two outputs disagree, fix
-  the code or the test so the line is the estimate only output for the
-  same values, without loosening what it checks. Done: the test passes
-  on main. Owner: Generation-log analysis lane (PERF.178 owner).
-  Prerequisites: none. Related: PERF.178.
 
 - [ ] **TEST.319 test_datasets_real::test_the_catalogue_reports_nothing_missing fails when the ozone_uv file is not downloaded (bug)**
   Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as

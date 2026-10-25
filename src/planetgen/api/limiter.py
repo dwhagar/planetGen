@@ -11,11 +11,12 @@ individual view functions want to decorate themselves with
 single shared instance is how both modules end up talking about the same
 limiter rather than each creating their own.
 
-The global default limits and storage backend are configured through
-`app.config` (`RATELIMIT_DEFAULT`/`RATELIMIT_STORAGE_URI`, see
-`config.py`) rather than passed to the constructor here, since `Limiter`
-reads those from the app at `init_app` time -- this module doesn't need
-its own copy of that configuration.
+The storage backend is configured through `app.config`
+(`RATELIMIT_STORAGE_URI`, see `config.py`). The global default limit
+(`RATELIMIT_DEFAULT`) is read from the current app on each request
+(`default_limit`): `Limiter.init_app` keeps only the first app's default for
+a shared instance, so a second app made in one process (every test harness)
+would otherwise inherit the first one's.
 """
 
 from flask import current_app, request
@@ -63,13 +64,14 @@ def limit_key():
 
 def exempt_from_default_limits():
     """
-    True for the requests the *default* per-address limits skip: the
-    Flask-served pages' in-process calls (`is_in_process_call`) and a
+    True for the requests the *default* per-address limits skip: every one
+    when the app's `RATELIMIT_DEFAULT` is empty, the Flask-served pages'
+    in-process calls (`is_in_process_call`) and a
     request carrying a valid API key, which is held to its own route limits
     instead (API.9: the per-address default must not cap a `read` key at 50
     calls an hour).
     """
-    if is_in_process_call():
+    if is_in_process_call() or not default_limit():
         return True
     try:
         from planetgen.api.authz import request_api_key_id
@@ -78,7 +80,14 @@ def exempt_from_default_limits():
         return False
 
 
-limiter = Limiter(key_func=limit_key, default_limits_exempt_when=exempt_from_default_limits)
+def default_limit():
+    """The current app's `RATELIMIT_DEFAULT` (empty turns the default limit off, see `exempt_from_default_limits`)."""
+    return current_app.config.get("RATELIMIT_DEFAULT") or ""
+
+
+limiter = Limiter(
+    key_func=limit_key, default_limits=[default_limit], default_limits_exempt_when=exempt_from_default_limits,
+)
 
 
 # ---------------------------------------------------------------------
@@ -114,6 +123,10 @@ DEFAULT_PAGE_LIMITS = RatePages().model_dump()
 PAGE_LIMITS_OFF = {name: "" for name in DEFAULT_PAGE_LIMITS}
 """dict: A `RATELIMIT_PAGES` that turns every page limit off (for a test
 harness that loads many pages from one address)."""
+
+API_LIMIT_OFF = ""
+"""str: A `RATELIMIT_DEFAULT` that turns the API's per-address default limit (50 per hour) off, for a test harness whose
+fixtures and browser pages call the API from one address (TEST.385). A route's own limits (login, writes) still apply."""
 
 
 def configured_page_limit(name):

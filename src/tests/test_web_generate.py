@@ -807,7 +807,7 @@ def test_a_deep_check_shows_its_time_before_starting(site, client, no_spawn, mon
     resp = _post(client, action="check_db", deep="1")
     assert resp.status_code == 200 and no_spawn == []
     html = resp.get_data(as_text=True)
-    assert "1,200" in html and "rough guess" in html and 'name="estimate_ok" value="1"' in html
+    assert "1,200" in html and "not timed yet" in html and 'name="estimate_ok" value="1"' in html
     assert asked[0][-len(DEEP_CHECKS) - 1:] == [*DEEP_CHECKS, "--yes"]
     assert _post(client, action="check_db", deep="1", estimate_ok="1").status_code == 303
     (job,) = no_spawn
