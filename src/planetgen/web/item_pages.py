@@ -82,7 +82,8 @@ def _crumbs(found, name):
 
 def location(parents, inside):
     """
-    The Location block (UX.144): the places above an item as links, galaxy first, and the cloud it sits inside.
+    The Location block (UX.144): the places above an item as links, and the cloud it sits inside. The galaxy is left out
+    (UX.200: it is the galaxy anyway), and a star that shares the name of the system above it is listed once, as the system.
 
     Args:
         parents (list[dict]): The API's parent chain (`ref`, `kind`, `name`), galaxy first.
@@ -91,9 +92,10 @@ def location(parents, inside):
     chain = []
     for parent in parents:
         if parent["kind"] == "galaxy":
-            chain.append({"label": "Galaxy", "url": page_url("galaxy")})
-        else:
-            chain.append({"label": parent["name"], "url": item_url(parent["ref"])})
+            continue
+        if parent["kind"] == "star" and chain and chain[-1]["label"] == parent["name"]:
+            continue
+        chain.append({"label": parent["name"], "url": item_url(parent["ref"])})
     cloud = None if not inside else {"name": inside["name"], "url": own_page_url(inside["type"], inside["id"])}
     return {"chain": chain, "inside": cloud}
 

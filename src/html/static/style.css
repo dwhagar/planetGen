@@ -2102,12 +2102,7 @@ a.help-link:focus-visible {
   margin: 0;
 }
 
-/* UX.27: the system page's buttons (Navigate from here, Navigate to here,
-   Show on Galaxy Map, Bookmark) stay on one row. The row is a size
-   container; when it is narrower than the four buttons need, the two
-   navigate buttons give way to one Navigate menu (From here / To here),
-   and below the width of three buttons Show on Galaxy Map moves into that
-   menu too, leaving Navigate and Bookmark. */
+/* UX.27, UX.201: the page's buttons (the Nav menu, Show on Galaxy Map, Bookmark) stay on one row. */
 .page-subhead .page-actions.nav-row {
   flex-wrap: nowrap;
   align-items: center;
@@ -2123,31 +2118,6 @@ a.help-link:focus-visible {
 
 .page-actions.nav-row > * {
   white-space: nowrap;
-}
-
-.page-actions.nav-row .nav-menu,
-.page-actions.nav-row .nav-menu-galaxy {
-  display: none;
-}
-
-@container nav-row (max-width: 38rem) {
-  .page-actions.nav-row .nav-wide {
-    display: none;
-  }
-
-  .page-actions.nav-row .nav-menu {
-    display: inline-block;
-  }
-}
-
-@container nav-row (max-width: 26rem) {
-  .page-actions.nav-row .nav-galaxy {
-    display: none;
-  }
-
-  .page-actions.nav-row .nav-menu-galaxy {
-    display: block;
-  }
 }
 
 .api-key-value {

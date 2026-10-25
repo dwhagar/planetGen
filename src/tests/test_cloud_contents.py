@@ -119,10 +119,10 @@ def test_a_body_inside_a_nebula_says_where_it_is(client, galaxy):
         assert f'Inside: <a href="/phenomenon/nebula/{printed["veil"]}">Test Veil</a>' in page
 
 
-def test_a_body_in_open_space_says_it_is_in_none(client, galaxy):
+def test_a_body_in_open_space_says_nothing_of_clouds(client, galaxy):
     _ids, printed = galaxy
     star = client.get(f"/api/systems/{printed['outside']}").get_json()["stars"][0]
     page = client.get(f"/object/star:{star['id']}").get_data(as_text=True)
-    assert "Not inside any nebula or supernova remnant." in page and "Test Veil" not in page
+    assert "Not inside any nebula" not in page and "Test Veil" not in page
     system_page = client.get(f"/system/{printed['outside']}").get_data(as_text=True)
-    assert 'id="location"' in system_page and "Not inside any nebula or supernova remnant." in system_page
+    assert 'id="location"' in system_page and "Not inside any nebula" not in system_page    # UX.200
