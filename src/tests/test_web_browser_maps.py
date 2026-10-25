@@ -802,6 +802,63 @@ def test_system_page_3d_view_paints_its_bodies_from_the_look_record(page, base_u
         assert shown["texture"].split(":")[0] == str(body["look"]["seed"]), (body["ref"], shown)
 
 
+def _system_with_moons(client):
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
+        if any(planet["moons"] for planet in scene["planets"]):
+            return system["id"], scene
+    pytest.fail("no generated system has a planet with moons")
+
+
+def _fit_half_field(page):
+    """Half the smaller field of view of the 3D system view's camera now, in radians."""
+    return page.evaluate("""() => {
+        const view = document.querySelector('#sysview3d-canvas').systemView;
+        const canvas = document.querySelector('#sysview3d-canvas');
+        const tan = Math.tan(view.camera.fov * Math.PI / 360);
+        return Math.atan(Math.min(tan, tan * canvas.clientWidth / canvas.clientHeight));
+    }""")
+
+
+def test_flying_to_a_planet_with_moons_fills_the_view_with_its_moon_system(page, base_url, site_app):
+    """MAP.319: flying to a planet that has moons puts the camera where the sphere holding the planet and its
+    outermost moon orbit fills the smaller side of the view (8 percent to spare), and a planet with no moon is just
+    come close to."""
+    system_id, scene = _system_with_moons(site_app.test_client())
+    page.goto(f"{base_url}/system/{system_id}?view=3d", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    planet = next(p for p in scene["planets"] if p["moons"])
+    page.evaluate("(ref) => document.querySelector('#sysview3d-canvas').systemFlyTo(ref)", planet["ref"])
+    page.wait_for_function("() => !document.querySelector('#sysview3d-canvas').systemView.flying()", timeout=20000)
+    got = page.evaluate("""(ref) => { const v = document.querySelector('#sysview3d-canvas').systemView;
+        return {distance: v.distance(), reach: v.reachOf(ref), framing: v.framing(v.reachOf(ref))}; }""", planet["ref"])
+    assert got["reach"] and got["reach"] > 0, got
+    assert got["distance"] == pytest.approx(got["framing"], rel=1e-6), got
+    # The sphere of that radius, seen from that far, takes 1/1.08 of half the smaller field.
+    import math
+    seen = math.asin(got["reach"] / got["distance"])
+    assert seen == pytest.approx(_fit_half_field(page) / 1.08, rel=0.02), (seen, got)
+    bare = [p for p in scene["planets"] if not p["moons"]]
+    if bare:
+        page.evaluate("(ref) => document.querySelector('#sysview3d-canvas').systemFlyTo(ref)", bare[0]["ref"])
+        page.wait_for_function("() => !document.querySelector('#sysview3d-canvas').systemView.flying()", timeout=20000)
+        assert page.evaluate("(ref) => document.querySelector('#sysview3d-canvas').systemView.reachOf(ref)", bare[0]["ref"]) is None
+
+
+def test_the_system_view_opens_with_every_orbit_in_the_window(page, base_url, site_app):
+    """MAP.319: a star system's view starts at the distance where the sphere holding every body and orbit line out to
+    the outermost apoapsis fills the view."""
+    system_id, scene = _system_with_planets(site_app.test_client())
+    page.goto(f"{base_url}/system/{system_id}?view=3d", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    got = page.evaluate("""() => { const v = document.querySelector('#sysview3d-canvas').systemView;
+        return {distance: v.distance(), reach: v.reachOf(null)}; }""")
+    import math
+    assert got["reach"] > 0, got
+    seen = math.asin(min(1.0, got["reach"] / got["distance"]))
+    assert seen <= _fit_half_field(page) / 1.08 + 1e-6, (seen, got)
+
+
 def _inside_window(page, selector):
     box = page.evaluate("""(sel) => {
         const r = document.querySelector(sel).getBoundingClientRect();

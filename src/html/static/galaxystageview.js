@@ -62,6 +62,7 @@ const NF = await import(`./nearfield.js${VERSION_QUERY}`);
 const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 const SR = await import(`./sectorreach.js${VERSION_QUERY}`);
 const SYS = await import(`./systemreach.js${VERSION_QUERY}`);
+const FIT = await import(`./flytofit.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
@@ -2581,15 +2582,18 @@ export function createStageView(host) {
     centreOn(goal);
   }
 
-  // MAP.146: how far from `entry` the camera comes to look at it: a star with a system, to where its system's disc is
-  // whole (the nearest zoom allows); a cloud or body of a radius, to where it fills most of the view; anything else
-  // keeps the distance the view has.
+  // MAP.146, MAP.319: how far from `entry` the camera comes to look at it: a star with a system or a cloud or body of
+  // a radius, to where its bounding sphere fills the view (flytofit.js; the zoom the view allows clamps it, so a
+  // system comes no nearer than its disc whole); anything else keeps the distance the view has.
+  function aspectNow() {
+    return (canvasEl.clientWidth || 800) / (canvasEl.clientHeight || 600);
+  }
+
   function distanceToLookAt(entry) {
-    const heightPx = canvasEl.clientHeight || 600;
     if (entry.href && entry.endpoint && entry.endpoint.indexOf("system:") === 0) {
-      return SYS.distanceForPixels(SYS.FULL_PX * 1.5, systemRadii.get(entry.href) || SYS.NOMINAL_RADIUS_PC, heightPx, camera.fov);
+      return FIT.fitDistance(systemRadii.get(entry.href) || SYS.NOMINAL_RADIUS_PC, camera.fov, aspectNow());
     }
-    if (entry.r > 0) return entry.r / (0.6 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    if (entry.r > 0) return FIT.fitDistance(entry.r, camera.fov, aspectNow(), { minRadius: FIT.MIN_VIEW_RADIUS_PC });
     // MAP.304: a star or point of the map comes to a sector and a half away, no farther than the view is now.
     if (entry.luminosity_sol != null) return Math.min(view.dist, 1.5 * edgePc);
     return view.dist;
@@ -2611,6 +2615,13 @@ export function createStageView(host) {
       view = Object.assign({}, kept, { target: point.slice(), dist: to.dist, quat: to.quat.clone(), zoom: zoom });
       applyView();
     });
+  }
+
+  // MAP.319: flies the camera to look at a bounding sphere, `target` = {center: [x, y, z] pc, radius pc}, from where it
+  // fills the view (the region, system, moon system or nebula it bounds), keeping the viewing direction.
+  function flyToFit(target) {
+    if (!target || !target.center) return;
+    flyToPoint(target.center, FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: FIT.MIN_VIEW_RADIUS_PC }));
   }
 
   // Flies the camera to an object of the sector scene (a star, a phenomenon): a double click on it, its Go to
@@ -2635,6 +2646,10 @@ export function createStageView(host) {
 
   // For the browser tests: the stage on screen.
   canvasEl.galaxyStage = function () { return stage; };
+
+  // For the browser tests: flies to a bounding sphere (MAP.319).
+  canvasEl.galaxyFlyToFit = function (target) { flyToFit(target); };
+  canvasEl.galaxyFov = function () { return camera.fov; };
 
   // For the browser tests: whether the camera is on its way to a stage, waiting for the stage's data or flying
   // (the trail follows the camera, MAP.227, so it is read once the camera has landed).
@@ -3480,6 +3495,8 @@ export function createStageView(host) {
     colorBy: function () { return colorBy; },
     setNeedGenerated: setNeedGenerated,
     stage: function () { return stage; },
+    // MAP.319: flies to a bounding sphere, {center: [x, y, z] pc, radius pc}, so it fills the view.
+    flyToFit: flyToFit,
     // The opened sector's entries (MAP.68): "Show on map" buttons select
     // one by key.
     // The world point under a screen point (MAP.150); read by the tests.
