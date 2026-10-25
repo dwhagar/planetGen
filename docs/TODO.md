@@ -13023,6 +13023,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
   take one-off 8.1 items. Owner: Aux 4 takes it while GEN.768 part 2
   waits on GEN.767.
+  Clarification (2026-10-09): Clarification (TODO, 1:52 AM EDT
+  2026-10-25, after Aux 4 proposed a particle-dose reading): this item
+  means a PHYSICAL loss of air. When a GEN.189 loss event (stripping,
+  impact or escape) removes air, the stored ozone_column_du and the UV
+  index that reads it scale by the retained air fraction; the test is a
+  planet that loses half its air. The proposed particle-dose reduction
+  of the ozone column (column x 1/(1 + dose at the ozone layer / 100 mSv
+  per yr), Segura 2010) is a separate effect: file it as its own item if
+  wanted.
   Prerequisites: none. Related: GEN.413, GEN.189.
 
 - [ ] **GEN.669 Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows**
