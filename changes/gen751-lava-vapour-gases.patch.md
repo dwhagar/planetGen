@@ -2,3 +2,6 @@
 
 ### Added
 - **Lava-vapour gases (GEN.751).** K2, KO, K2O and Na2O, and Al, are in the NASA thermodynamic table (94 species) and the gas table (108 gases), computed from the NASA fits like the other lava-vapour species. A lava-world draw lists the four alkali species it makes (KO is about 4e-7 bar over a bulk-silicate-Earth melt at 2500 K); aluminium is in the table but the melt model has no aluminium activity yet, so none is drawn. The mixture draw is not called by the generator yet, so no generated value changes.
+
+### Fixed
+- **A K2 star is not the potassium dimer.** The text that marks chemical formulas no longer reads the spectral type "K2" as the gas K2, which the table now holds; the `formula` filter still writes K2 out where it is named.
