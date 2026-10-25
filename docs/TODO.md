@@ -2962,46 +2962,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane, with MAP.260 (the warm-up), which it builds next.
   Prerequisites: none. Related: MAP.258, MAP.260.
 
-- [ ] **MAP.295 The system infobox on the map does not scale to the size of the map window (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: the infobox does not scale
-  to the size of the map window. Do: size the infobox popup from the map
-  window (the width and height MAP.291 now fits to the page and the
-  browser window, never under 320 px), so a larger window gets a larger
-  box with its content readable, and a small window or a phone keeps it
-  inside the window with its own scroll. Done: a browser test at three
-  window sizes (desktop, tablet, phone) shows the box inside the window
-  and growing with it. Part of one chain filed from that message:
-  TEST.368 (fixture galaxy), MAP.295 and MAP.296 (infobox, Core 2),
-  MAP.297 to MAP.303 (clicking, labels, zoom, icons; Aux 10). Owner:
-  Core 2 (maps and interface; it wrote MAP.288 and MAP.291).
-  Research (2026-10-09, Added 7:33 PM EDT): Added (Boss, 7:33 PM EDT
-  2026-10-24, message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiKvKv7nchhgm2mEPPktTDrW, relayed by the
-  coordinator): "Make sure the infobox is never cut off, we can make the
-  fonts a little smaller." So the box never extends past the map window
-  on any side at any window size or content length (it scrolls inside
-  itself), and the infobox font size may be reduced a step. Done adds:
-  the browser test checks the box's rectangle lies inside the map window
-  for the longest system card on the fixture. Owner Core 2.
-  Prerequisites: none. Related: MAP.288, MAP.291, MAP.296.
-
-- [ ] **MAP.296 The system infobox on the map lists the nearest systems under the location, each name a link (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: to help fix the infobox,
-  show the nearest systems under the location line of the system infobox
-  on the map, each nearest system's name a link that flies to it (the
-  data is the nearest systems the system page already shows,
-  web/system_pages.py). Done: a browser test opens a system infobox on
-  the fixture galaxy, sees the nearest systems listed below the
-  location, and following a name flies to that system. Part of one chain
-  filed from that message: TEST.368 (fixture galaxy), MAP.295 and
-  MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
-  icons; Aux 10). Owner: Core 2.
-  Prerequisites: none. Related: MAP.295, MAP.288, MAP.298.
-
 - [ ] **MAP.298 Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
@@ -21091,6 +21051,23 @@ clears each one.
   after a full gate no planetgen.cli.worker process remains, and a test
   that leaks one fails.
   Prerequisites: none. Related: TEST.376, PERF.181, TEST.390.
+
+- [ ] **TEST.394 Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug)**
+  Found by Core 2 (1:39 AM EDT 2026-10-25 as the lane reported):
+  test_sector_page_map_keeps_to_its_sector,
+  test_galaxy_map_a_sector_is_selected_from_the_galaxy_view,
+  test_galaxy_map_the_picked_sector_stays_picked_across_a_wheel_crossing,
+  test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view,
+  test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it
+  and test_a_selection_is_shown_once_and_over_the_map, all in the
+  sector-click flow, plus dense_site leaking extra worlds into the
+  shared fixture so the module result depends on test order. Do:
+  root-cause each (the sector-click flow changed with MAP.297, which
+  merged), rewrite the tests to the new flow where the flow is intended,
+  fix the dense_site fixture to isolate its worlds. Never skip a test to
+  get green. Owner: Bug 1 with Aux 10 (the map owner) for the intended
+  flow. Done: the module is green in any order on clean main.
+  Prerequisites: none. Related: MAP.297, TEST.390.
 
 ## USR: User accounts
 
