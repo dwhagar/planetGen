@@ -178,7 +178,8 @@ planetgen galaxy       # generate sectors in the galaxy
 planetgen sector       # one or more standalone sectors
 planetgen system       # one star system
 planetgen phenomenon   # one exotic phenomenon
-planetgen population   # optional: species, civilizations and territories
+planetgen population   # optional: species, civilizations and polities
+planetgen territories  # optional: which polity owns which system (after population)
 ```
 
 Common examples:

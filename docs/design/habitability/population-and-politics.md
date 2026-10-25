@@ -195,9 +195,8 @@ with no regenerate:
    (`_db.sectors_reached_by`), then the systems in them, so the cost is
    the sum of the territories, not polities times all systems.
 
-Flags: `--rescan` (forget every species, and with them every polity and
-territory, and scan every planet again) and `--territories-only` (only
-step 3). The two can't be combined.
+Flag: `--rescan` (forget every species, and with them every polity and
+territory, and scan every planet again). Step 3 is the command `planetgen territories` (PERF.125); run it after the population pass and after a `--rescan`.
 
 Population is optional and off by default (Boss, 2026-10-01): nothing
 runs it unless asked. `planetgen galaxy` and `planetgen sector` run

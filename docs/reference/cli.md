@@ -23,7 +23,8 @@ planetgen link --since TIME     # link the sectors saved since TIME to their nei
 planetgen backfill --since TIME # the bright-star backfill out from the sectors saved since TIME
 planetgen settle --since TIME   # save the paths of the sectors saved since TIME and of those around them
 planetgen phenomenon [options]  # one exotic stellar phenomenon
-planetgen population [options]  # species, civilizations and territories
+planetgen population [options]  # species, civilizations and polities
+planetgen territories [options] # which polity owns which system
 planetgen check-math [-v]       # the math check (update.sh runs it)
 planetgen fingerprint [options] # a digest of the generated content, to compare two builds
 planetgen check-db [options]    # look for damage in the database (writes nothing)
@@ -275,7 +276,7 @@ The web Generate page and the API check the same bounds
 (`src/planetgen/generation/limits.py`).
 
 A `galaxy` run does every stage (PERF.123), with no option to leave one out: the sectors, the link to their
-neighbours, the galaxy-wide scatters, the backfill, the population pass and the paths. After the sectors it scatters
+neighbours, the galaxy-wide scatters, the backfill, the population pass, the territories pass and the paths. After the sectors it scatters
 the bright stars galaxy-wide, as `planetgen scatter --mass` and `scatter --luminosity` do, and then the phenomena, as
 `scatter --phenomena` does, leaving out every sector already generated, so the scatter never draws stars for sectors
 the run filled; `--bright-star-min-luminosity` (9000 solar luminosities by default), `--phenomenon-min-mass` and
@@ -284,7 +285,7 @@ generated, the bright stars around the run's edge are backfilled: four steps out
 face apart, no diagonals) get every star born from 1 solar mass up in the nearest step, 2 in the next, then 5, then 8,
 and a sector already generated never gets any. Last it saves the path every star system, rogue planet and comet takes
 through its sector, for the sectors it created and the ones around them. Whoever wants fewer stages runs the commands
-in turn: `planetgen sectors`, then `link`, `scatter`, `backfill`, `population` and `settle`, as the Generate page does.
+in turn: `planetgen sectors`, then `link`, `scatter`, `backfill`, `population`, `territories` and `settle`, as the Generate page does.
 
 ### Parallel generation
 
@@ -616,17 +617,16 @@ their own) — see `database-schema.md`'s "v18"/"v21" notes.
 `planetgen population` is an optional pass over what is already
 stored: it names the dominant species of every world with complex life,
 gives technological civilizations an age and an era (Industrial through
-Elder), founds one polity per spacefaring species, and works out which
-systems each polity owns (reach up to 100 ly from its capital). It is
-off by default and never runs on its own.
+Elder) and founds one polity per spacefaring species. Which systems each polity owns (reach up to 100 ly from its
+capital) is the `territories` pass, its own command (PERF.125). Neither runs on its own except as stages of a `galaxy` run.
 
 ```bash
 planetgen population                     # scan what isn't scanned yet
 planetgen population --rescan            # forget everything and start over (new names, ages and borders)
-planetgen population --territories-only  # only recompute who owns which system
+planetgen territories                    # work out who owns which system, from the polities stored (run after population)
 ```
 
-`planetgen sector` does not run it (PERF.124: `sector` only generates; the `--population` option is gone), and `planetgen galaxy` runs it as one of its stages. The install scripts offer it (y/N,
+`planetgen sector` does not run it (PERF.124: `sector` only generates; the `--population` option is gone), and `planetgen galaxy` runs it, and then the territories pass, as stages. `--rescan` forgets the polities and with them the territories, so run `planetgen territories` after it. Each pass is a one-unit command of the work queue (`run-population`, `run-territories`). The install scripts offer it (y/N,
 default N after 30 seconds; `POPULATION=1` or `-Population` runs it
 without asking). The website hides species, polities and the Galaxy
 Map's Territories overlay until it has made something to show
@@ -700,7 +700,7 @@ planetgen benchmark --sectors 20 --workers 1,2,4 --profile --output bench.json
 
 ### The performance suite
 
-`planetgen benchmark --suite` (PERF.146) times every part of a galaxy run on its own, at a size you pick, in scratch databases of its own, and writes the result as JSON for the next run to compare with. Where `planetgen benchmark` times one small fill, the suite runs these steps one after another, each as the real command in a child process (so a worker's cost is in it): `plan`, `scatter-mass`, `scatter-luminosity`, `scatter-phenomena`, `scatter-nebula-field`, `scatter-band`, `fill-nebula-blocks`, `fill` (one `planetgen galaxy --shell` run, with the time of each stage it records), `population`, `rescore-habitability`, `fill-map-luminosity` (after emptying the column it fills) and `warm`.
+`planetgen benchmark --suite` (PERF.146) times every part of a galaxy run on its own, at a size you pick, in scratch databases of its own, and writes the result as JSON for the next run to compare with. Where `planetgen benchmark` times one small fill, the suite runs these steps one after another, each as the real command in a child process (so a worker's cost is in it): `plan`, `scatter-mass`, `scatter-luminosity`, `scatter-phenomena`, `scatter-nebula-field`, `scatter-band`, `fill-nebula-blocks`, `fill` (one `planetgen galaxy --shell` run, with the time of each stage it records), `population`, `territories`, `rescore-habitability`, `fill-map-luminosity` (after emptying the column it fills) and `warm`.
 
 ```bash
 planetgen benchmark --suite --size small --workers 3 --output small.json

@@ -81,7 +81,7 @@ def _is_site_wide(action):
     return action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS or action in FILL_COMMANDS
 
 RETRYABLE = ("plan", "scatter", "clear-scatter", "fill-map-luminosity", "rescore-habitability", "clean-nebula-field",
-             "galaxy", "sectors", "link", "backfill", "settle", "sector", "population")
+             "galaxy", "sectors", "link", "backfill", "settle", "sector", "population", "territories")
 """tuple[str]: The `planetgen` commands whose run Retry starts again (the command line the run recorded)."""
 
 
