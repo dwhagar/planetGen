@@ -14151,30 +14151,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   possible. Owner: Lane A after GEN.652; nobody has started it.
   Prerequisites: GEN.652. Related: GEN.517, GEN.652, GEN.741, GEN.754.
 
-- [ ] **GEN.761 Wire the satellite hosting gate (hosting_gate, GEN.579) into the moon draw**
-  hosting_gate.py (can_host(body) in three parts and the gated satellite
-  share by size class, GEN.579, merged) is never imported; moon counts
-  are still drawn without it. Make the moon draw ask can_host first and
-  take the satellite share from the gated table. It touches the shared
-  system-draw code, so the owner confirms with the lane that holds that
-  code before starting. Found by the physics fix plan thread
-  (reports/physics-fix-plan-2026-10-24.md section 16: built, merged and
-  never imported by the generator). No shim: the generator calls the
-  module, the old path is deleted, and a test fails if the module has no
-  caller (the wiring guard GEN.754). Takes a generator epoch in merge
-  order (next free is 95). Each stand-in it touches records its source
-  tier and tweak level in the registry (GEN.725). Requested by Boss
-  through the coordinator, 5:34 PM EDT 2026-10-24: wire it as fast as
-  possible. Owner: Core 3 (system and moon draw area; to confirm);
-  nobody has started it.
-  Research (2026-10-09, Owner): Owner confirmed: Core 3 took it at 5:39
-  PM EDT 2026-10-24 (as the lane reported), ahead of GEN.327; it edits
-  generate_moons in physics/planets.py and takes the next free epoch at
-  merge. Other lanes touching the moon draw (class lane GEN.681, Math 2
-  GEN.727/GEN.737, GEN.466) wait for it or tell Core 3 and TODO what
-  they changed.
-  Prerequisites: none. Related: GEN.579, GEN.466, GEN.754.
-
 - [ ] **GEN.763 The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug)**
   Found by Bug Hunt while fixing TEST.353 (#3103, 5:45 PM EDT 2026-10-24
   as the lane reported): for seed 5, a moon of 0.0004 Earth masses,
