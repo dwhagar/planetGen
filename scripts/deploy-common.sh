@@ -194,8 +194,8 @@ redis_answers() {
 # block) and wsgi (runs the Flask app: every page and the API). mod_wsgi
 # comes from libapache2-mod-wsgi-py3, installed here when apt can.
 # Warns rather than fails when Apache itself isn't installed yet. Sets
-# APACHE_NEEDS_RESTART=1 when it enabled anything, so the caller can say
-# Apache needs a restart.
+# APACHE_NEEDS_RESTART=1 when it installed or enabled mod_wsgi, so the caller can say
+# a restart (only mod_wsgi does; the other modules load on a reload).
 ensure_apache_modules() {
     if ! command -v a2enmod >/dev/null 2>&1; then
         echo "warning: a2enmod not found -- is apache2 installed?" >&2
@@ -223,29 +223,112 @@ ensure_apache_modules() {
             fi
         fi
     done
-    if (( ${#enabled[@]} )); then
-        APACHE_NEEDS_RESTART=1
-    fi
+    # Only mod_wsgi needs a restart to load; a graceful reload takes the other modules (OPS.29).
+    local was
+    for was in ${enabled[@]+"${enabled[@]}"}; do
+        [[ "$was" == wsgi ]] && APACHE_NEEDS_RESTART=1
+    done
     check_apache_venv_rules
     check_mod_wsgi_python
 }
 
-# Reloads Apache itself when it is running (OPS.8), or restarts it when a
-# module was just enabled (APACHE_NEEDS_RESTART=1). Prints "reloaded" or
-# "restarted" on success; returns 1 when it didn't act (no systemctl, Apache
-# not running, or the command failed), so the caller prints the command for
-# the admin to run. The caller must be root; update.sh always is.
-reload_apache_if_running() {
-    local verb=reload
-    (( APACHE_NEEDS_RESTART )) && verb=restart
-    command -v systemctl >/dev/null 2>&1 || return 1
-    systemctl is-active --quiet apache2 2>/dev/null || return 1
-    if systemctl "$verb" apache2 >/dev/null 2>&1; then
-        echo "${verb}ed Apache."
-        return 0
+# Reloads what serves the site, when it is running (OPS.8, OPS.29), and says what it did. It never starts anything:
+# Apache (unit apache2 or httpd) is checked with its own configtest first and reloaded (a graceful reload loads new
+# modules too), or restarted only when this update just installed or enabled mod_wsgi (APACHE_NEEDS_RESTART=1, which
+# ensure_apache_modules sets for that alone); the update guard is held until the script ends, so no Generate job
+# runs then. gunicorn (the planetgen-gunicorn unit on Linux, launchd's org.planetgen.gunicorn on macOS) gets a SIGHUP,
+# which starts new workers and leaves a Generate job alone. Afterwards each answers /api/health (PLANETGEN_HEALTH_URL
+# names another address; HEALTH_WAIT_SECONDS, default 20, is how long it waits).
+# A reload aborts the requests a mod_wsgi daemon is serving after about 4 seconds (touching src/html/wsgi.py does
+# not), which is why a reload is quick and a long request at that moment can fail.
+# Returns 0 when everything reloaded answers, 1 when a step failed (the caller prints the command and ends non-zero),
+# 2 when nothing that serves the site is running (the caller prints the command, the update is fine).
+reload_web_if_running() {
+    local acted=0 failed=0 unit="" verb=reload check=""
+    if is_macos; then
+        if launchctl print "system/$GUNICORN_LABEL" >/dev/null 2>&1; then
+            if launchctl kill SIGHUP "system/$GUNICORN_LABEL" >/dev/null 2>&1; then
+                echo "reloaded gunicorn."
+                acted=1
+                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || failed=1
+            else
+                echo "warning: launchctl kill SIGHUP system/$GUNICORN_LABEL failed." >&2
+                failed=1
+            fi
+        fi
+    elif command -v systemctl >/dev/null 2>&1; then
+        for unit in apache2 httpd; do
+            systemctl is-active --quiet "$unit" 2>/dev/null && break
+            unit=""
+        done
+        if [[ -n "$unit" ]]; then
+            (( APACHE_NEEDS_RESTART )) && verb=restart
+            acted=1
+            if ! apache_configtest; then
+                echo "warning: Apache's configuration test failed, so Apache was not ${verb}ed (the running one keeps serving)." >&2
+                failed=1
+            elif systemctl "$verb" "$unit" >/dev/null 2>&1; then
+                echo "${verb}ed Apache."
+                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1/api/health}" Apache || failed=1
+            else
+                echo "warning: systemctl $verb $unit failed." >&2
+                failed=1
+            fi
+        fi
+        if systemctl is-active --quiet planetgen-gunicorn 2>/dev/null; then
+            acted=1
+            if systemctl reload planetgen-gunicorn >/dev/null 2>&1; then
+                echo "reloaded gunicorn."
+                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || failed=1
+            else
+                echo "warning: systemctl reload planetgen-gunicorn failed." >&2
+                failed=1
+            fi
+        fi
     fi
-    echo "warning: systemctl $verb apache2 failed." >&2
-    return 1
+    (( failed )) && return 1
+    (( acted )) && return 0
+    return 2
+}
+
+# The commands that reload what serves the site by hand, for the host this is (OPS.29).
+print_reload_commands() {
+    if is_macos; then
+        echo "  sudo launchctl kill SIGHUP system/$GUNICORN_LABEL"
+    else
+        echo "  sudo apache2ctl configtest && sudo systemctl reload apache2     (Apache)"
+        echo "  sudo systemctl reload planetgen-gunicorn                        (nginx or Caddy hosts)"
+    fi
+}
+
+# Apache's own configuration test (apache2ctl, apachectl or httpd -t); true when there is none to run.
+apache_configtest() {
+    local tool
+    for tool in apache2ctl apachectl; do
+        if command -v "$tool" >/dev/null 2>&1; then
+            "$tool" configtest >/dev/null 2>&1
+            return
+        fi
+    done
+    if command -v httpd >/dev/null 2>&1; then
+        httpd -t >/dev/null 2>&1
+        return
+    fi
+    return 0
+}
+
+# Waits up to HEALTH_WAIT_SECONDS for $1 (an address) to answer below 400, naming $2 in the warning; true without curl.
+wait_for_health() {
+    command -v curl >/dev/null 2>&1 || return 0
+    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} ))
+    until [[ "$(curl -s --max-time 5 -o /dev/null -w '%{http_code}' "$1" 2>/dev/null)" =~ ^[23] ]]; do
+        if (( SECONDS >= end )); then
+            echo "warning: $2 was reloaded but $1 does not answer." >&2
+            return 1
+        fi
+        sleep 1
+    done
+    return 0
 }
 
 # The Apache files that can hold planetGen's vhost: the enabled sites and
