@@ -19409,6 +19409,34 @@ clears each one.
   TEST.378, TEST.370.
   Prerequisites: none. Related: TEST.375, TEST.378, TEST.370.
 
+- [ ] **TEST.380 First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp**
+  Boss, 9:21 PM EDT 2026-10-24 (relayed by the coordinator): "When are
+  we due to fully do civilizations and territories? We haven't even
+  tested it yet." What exists on main: the population pass (species,
+  civilizations, polities; `planetgen population`) and the territories
+  pass (which polity owns which system; `planetgen territories`, split
+  by PERF.125), the tech levels and facility types (POP.7 to POP.10),
+  the Galaxy Map Territories overlay, and the species list and polity
+  pages; unit tests cover the code (test_population*.py,
+  test_web_population.py), but nobody has read the results on a real
+  generated galaxy since the physics, habitability and life changes of
+  the last two weeks (the life text now comes from the stored milestone
+  schedule, DB.100; life scores and habitability changed). Do: on a
+  generated galaxy of at least a few thousand systems with life worlds,
+  run `population` then `territories`; read the Species list, a species
+  page, a polity page, a system's Territory line and the map overlay;
+  check the numbers against
+  docs/design/habitability/population-and-politics.md (the 1 in 1,000
+  civilization chance, ages, tech levels, spacefaring share, polity
+  count, owned systems, nothing owned twice); and file every wrong or
+  unclear result as its own (bug) item. Also note anything the 9.2
+  version needs that is missing. Done: a dated report in reports/
+  listing what was run, what looked right and every finding as an item.
+  Owner: Bug 1 (with the end-of-version bug hunt TEST.261; needs the
+  galaxy Boss's server holds, or a lane machine generation). Related:
+  TEST.261, PERF.125, POP.11, POP.13.
+  Prerequisites: none. Related: TEST.261, PERF.125, POP.11, POP.13.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
