@@ -1442,3 +1442,5 @@ Baseline: PR #1817.
 | TEST.373 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | PERF.184 | 8.1 | The headline closes |
 | ADM.129 | 8.1 | The headline closes |
+| UX.125 | 8.1 | Admin control suite |
+| DB.100 | 8.1 | Habitability system |
