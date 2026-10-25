@@ -3774,6 +3774,51 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galactic view (and no dimming there), and checks its world position
   does not change when the mouse moves.
 
+- [ ] **MAP.328 Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views)**
+  Boss, 2:48 AM EDT 2026-10-25: 'rendered objects should slowly rotate
+  on their axis in all views, all stars should do the same in all views
+  where it can be seen (excludes galactic views).' Do: every body drawn
+  as a sphere or mesh (planets, moons, asteroids and comets that have a
+  shape, stars in the sector view, the star system views and the object
+  view) turns about its own axis. The axis follows the stored axial tilt
+  and the direction follows the stored spin direction (retrograde turns
+  the other way); the rate is the body's stored rotation period scaled
+  by one shared view-time factor so the slowest day still shows a
+  visible turn and the fastest does not strobe (a cap of about one turn
+  in 20 seconds, a floor of about one turn in 10 minutes, the same
+  factor on every body so the order of speeds stays true). Bodies with
+  no stored period (or tidally locked, which then turn once per orbit)
+  use the period the generator gives them and never a made-up one: if a
+  value is absent the body is left still and the gap is listed in the
+  PR. The galactic views (galaxy, regions, sector blocks as points and
+  glows) do not rotate anything. The turn is drawn with the painter's
+  own texture and lighting so the terminator, glow and clouds stay put
+  relative to the star while the surface turns; with MAP.277 and MAP.280
+  the clouds turn a little differently from the ground. A menu switch
+  'Spin' (default on) and the reduced-motion setting turn it off. Done:
+  a browser test samples a planet's texture offset twice a second apart
+  and sees it change at the capped rate, a retrograde body turns the
+  other way, a locked moon turns once per orbit, stars turn in the
+  sector view and nothing turns in the galaxy view, and the switch and
+  reduced-motion stop it. Owner: Core 2 (the system and object views)
+  with Aux 10 for stars in the sector view. Version: 8.1 (small, rides
+  the existing renderer). Related to the rendering-from-composition
+  chain R0-R12 only for the painter hooks (MAP.275, MAP.277, MAP.280);
+  it does not wait on them. Rules: no backward-compat shims; tests are
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: MAP.193, MAP.275, MAP.277, MAP.280,
+  MAP.285, GEN.731.
+  Added (2026-10-09): Boss, 2:48 AM EDT 2026-10-25: this is particularly
+  true of every individual object details page: the rendered example on
+  every star, planet, moon, belt body and other object page turns slowly
+  on its axis with the same rule. Owner for the object pages: Aux 11,
+  who reuses the same turning function Core 2 builds (one function, one
+  scale factor, one Spin switch and reduced-motion handling shared by
+  the map views and the pages; the pages are the first thing Boss will
+  look at). Done adds: a browser test on a star page, a planet page and
+  a moon page samples the rendered example twice and sees it turn at the
+  capped rate.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
