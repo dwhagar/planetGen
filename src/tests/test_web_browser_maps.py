@@ -761,7 +761,7 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     page.click("#sysview3d-faster")
     assert page.locator("#sysview3d-rate").inner_text() != "Paused"
     page.click("#sysview3d-now")
-    assert page.locator("#sysview3d-rate").inner_text() == "1×"
+    assert page.locator("#sysview3d-rate").inner_text() == "Time: real time (1×)"
 
     # Reload on the address: back in 3D with the body selected.
     selected = page.locator("#sysmap-info h3").inner_text()

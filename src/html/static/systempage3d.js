@@ -80,7 +80,7 @@ if (root && diagram && diagramButton && button3d) {
   function showRate() {
     els.play.textContent = clock.playing() ? "Pause" : "Play";
     els.play.setAttribute("aria-pressed", clock.playing() ? "true" : "false");
-    els.rate.textContent = clock.playing() ? clock.rate().label : "Paused";
+    els.rate.textContent = clock.playing() ? "Time: " + clock.rate().label : "Paused";
   }
 
   function fillList(list) {
