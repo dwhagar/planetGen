@@ -1377,22 +1377,6 @@ with `clamp()`.
   changed --resume`.
   Prerequisites: UX.226. Related: UX.225.
 
-- [ ] **UX.229 Colour contrast of the habitability life scores and tree-leaf stats passes 4.5 to 1 in both themes (bug)**
-  Found by the a11y gate (test_web_a11y, object_page and system pages,
-  all 8 viewport and theme cases): axe color-contrast fails on
-  .hab-life-score and the tree-leaf stats; text #74788c on #1c1e2b in
-  dark and #8c909c on white in light, 4.5:1 needed. Use theme tokens
-  that pass in both themes; the gate must pass with no excuse entry.
-  Owner Bug 1 (Aux 3 area: habitability tree icons).
-  Prerequisites: none.
-
-- [ ] **UX.230 The Generate system page options have a valid listbox parent so axe aria-required-parent passes (bug)**
-  Found by the a11y gate (test_web_a11y generate_system, phone-light):
-  sl-option elements inside the select have no listbox or group parent
-  (axe aria-required-parent). Fix the markup or the component use so the
-  rule passes; no excuse entry. Owner Bug 1.
-  Prerequisites: none.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
