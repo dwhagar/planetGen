@@ -17,7 +17,7 @@ import pymysql
 import pytest
 
 from planetgen.api.config import Config
-from planetgen.api.limiter import PAGE_LIMITS_OFF
+from planetgen.api.limiter import API_LIMIT_OFF, PAGE_LIMITS_OFF
 from planetgen.db import block_stats, objectindex, store
 from planetgen.db.store import MySQLConfig
 from planetgen.galaxy import spherical
@@ -65,6 +65,7 @@ def _config_for(site_config):
         SESSION_COOKIE_SECURE = False
         SECRET_KEY = "habitability-site-secret"
         RATELIMIT_PAGES = PAGE_LIMITS_OFF
+        RATELIMIT_DEFAULT = API_LIMIT_OFF   # fixtures and pages call the API from one address (TEST.385)
 
     return SiteConfig
 

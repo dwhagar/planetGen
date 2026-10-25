@@ -20,7 +20,7 @@ from tests.served import make_quiet_server
 sync_api = pytest.importorskip("playwright.sync_api")
 
 from planetgen.api.config import Config  # noqa: E402
-from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
+from planetgen.api.limiter import API_LIMIT_OFF, PAGE_LIMITS_OFF  # noqa: E402
 from planetgen.db import query as queryDb  # noqa: E402
 from planetgen.web import sector_page  # noqa: E402
 from planetgen.web.app import create_app  # noqa: E402
@@ -204,6 +204,7 @@ class _SiteConfig(Config):
     SESSION_COOKIE_SECURE = False
     SECRET_KEY = "table-fixture-secret"
     RATELIMIT_PAGES = PAGE_LIMITS_OFF
+    RATELIMIT_DEFAULT = API_LIMIT_OFF   # fixtures and pages call the API from one address (TEST.385)
 
 
 @pytest.fixture(scope="module")

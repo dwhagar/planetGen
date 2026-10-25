@@ -24,7 +24,7 @@ from planetgen.admin import auth  # noqa: E402
 from planetgen.api import settings as settings_api  # noqa: E402
 from planetgen.api.authz import SESSION_COOKIE_NAME  # noqa: E402
 from planetgen.api.config import Config  # noqa: E402
-from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
+from planetgen.api.limiter import API_LIMIT_OFF, PAGE_LIMITS_OFF  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.util import logpaths, settings, settings_view  # noqa: E402
 from planetgen.web.app import create_app  # noqa: E402
@@ -61,6 +61,7 @@ def server(mysql_config, config):
         SESSION_COOKIE_SECURE = False
         SECRET_KEY = "settings-browser-secret"
         RATELIMIT_PAGES = PAGE_LIMITS_OFF
+        RATELIMIT_DEFAULT = API_LIMIT_OFF   # fixtures and pages call the API from one address (TEST.385)
 
     auth.bootstrap_control_schema(mysql_config)
     conn = store.get_control_connection(mysql_config)
