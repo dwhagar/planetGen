@@ -91,7 +91,7 @@ temperature; the share of the sulfur the melt keeps is `surface_pressure.DEGAS_E
    later upper mantle) as `1 - exp(-age / tau)` with `tau` seeded in 0.1 to 1.5 Gyr. A white-dwarf host takes `a4`, a small body `a3`.
    The recipe's class row `a5`/`a6`/`a7` describes the magma-ocean stage only; the chemistry reads the blended number.
 2. **Inventory.** Delivered water and CO2 from the `b` class (Ortenzi 2020 Table 1: CO2/H2O = 0.2 for the wet classes, dry class
-   CO2 0.6 wt%), N and S per carbon in design brackets (BSE and CI chondrite values inside them), 40Ar from the potassium of the rock
+   CO2 0.018 to 0.1 wt%, GEN.813), N and S per carbon in design brackets (BSE and CI chondrite values inside them), 40Ar from the potassium of the rock
    and the age.
 3. **The volcano's gas**: equilibrium with the mantle at the magmatic temperature (1100 to 1500 K) and the pressure of the layer, with
    the oxygen fugacity held.

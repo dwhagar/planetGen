@@ -557,10 +557,10 @@
    "id": "b1",
    "category": "b",
    "kind": "option",
-   "option": "Dry delivery (H2O 0, CO2 0.6 wt%)",
+   "option": "Dry delivery (H2O about 0, CO2 0.018 to 0.1 wt%)",
    "gate_text": "ROCKY, MOON, ROGUE; x known",
    "weight_text": "(1-s)^2; s = 1/(1+exp(-ln(x)/0.4)); x = a_form/a_snow; a_snow = sqrt(L_form/Lsun) (278.6/T_snow)^2 AU, T_snow=170 K gives 2.69 AU",
-   "source": "classes and wt%: Ortenzi 2020 Table 1 (READ); two-reservoir mixing and width 0.4 DESIGN; T_snow bracket 161 to 213 K COMPUTED from the water-ice p_sat fit (part 05 s12.1) at nebula partial pressure 1e-9 to 1e-5 bar (that pressure unsourced)",
+   "source": "classes and wt%: Ortenzi 2020 Table 1 (READ), except the dry CO2: the delivered 0.6 wt% is replaced by a log bracket from the stored 0.018 to the High case's 0.1 wt%, tuned to the bulk silicate Earth's 100 ppm carbon (GEN.813, `volatile-inventory-against-planet-totals.md`); two-reservoir mixing and width 0.4 DESIGN; T_snow bracket 161 to 213 K COMPUTED from the water-ice p_sat fit (part 05 s12.1) at nebula partial pressure 1e-9 to 1e-5 bar (that pressure unsourced)",
    "status": "DESIGN",
    "research": [
     "R2"

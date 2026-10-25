@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 126 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 127 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 21 | 0 | 1 | 0 | 0 | 22 |
+| T1 | 21 | 0 | 3 | 0 | 0 | 24 |
 | T2 | 31 | 0 | 0 | 0 | 0 | 31 |
-| T3 | 28 | 0 | 0 | 0 | 0 | 28 |
+| T3 | 27 | 0 | 0 | 0 | 0 | 27 |
 | T4 | 5 | 0 | 0 | 0 | 0 | 5 |
 | T5 | 5 | 3 | 0 | 0 | 0 | 8 |
 | T6 | 10 | 5 | 1 | 4 | 0 | 20 |
 | T7 | 9 | 2 | 0 | 1 | 0 | 12 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 109 | 10 | 2 | 5 | 0 | 126 |
+| All | 108 | 10 | 4 | 5 | 0 | 127 |
 
 ## How the labels were given
 
@@ -171,8 +171,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM10 | D | T6 | L2 | mixture_lava.ALKALI_ACTIVITY_COEFFICIENT | 3e-9 to 3e-8, log | silicate melt, 1500 to 3000 K | test_atmosphere_mixture_lava::test_the_vapour_pressure_over_the_melt_is_kites_within_a_factor_of_four_from_2000_to_2500_k | GEN.499 melt activity model | READ (Kite et al. 2016: vapour over a BSE melt, 2e-4 bar at 2000 K, 8e-3 bar at 2500 K) |
 | AM11 | P | T7 | L0 | mixture_lava.COMPOSITION_SCATTER | 0.15 dex per oxide | lava worlds with no stored melt | test_atmosphere_mixture_lava::test_a_stored_melt_composition_replaces_the_drawn_one | the bulk composition of lane J | design |
 | AM12 | P | T3 | L0 | mixture_coma.DOMINANCE | rows k1 (CO2 over CO), k2 (CO over CO2), k3 (comparable) | comets and icy asteroids | test_atmosphere_mixture_evolved::test_a_coma_is_water_with_the_drawn_ratios_and_the_class_ordering_of_carbon_dioxide_and_monoxide | the comet composition survey | design |
-| AM13 | D | T1 | L0 | mixture_rocky.INVENTORY | wet class water 0.05 to 0.5 wt%, CO2 over H2O 0.2; dry class CO2 0.6 wt% | rocky bodies | test_atmosphere_mixture_rocky::test_the_inventory_follows_the_delivered_water_class | GEN.481 | READ (Ortenzi et al. 2020 Table 1) |
-| AM14 | B | T3 | L0 | mixture_rocky.INVENTORY | N/C 1e-3 to 0.1 and S/C 0.1 to 3, log; dry water 1e-4 to 5e-3 wt%; rich water 10 to 50 wt%, CO2 over H2O 5e-3 to 0.2; potassium 0.005 to 0.1 wt%; degassed 40Ar share 0.05 to 0.7 | rocky bodies | test_atmosphere_mixture_rocky::test_argon_grows_with_the_age_of_the_body | GEN.481 (delivery), GEN.492 (radioisotopes) | READ (bulk silicate Earth and CI chondrite ratios) |
+| AM13 | D | T1 | L0 | mixture_rocky.INVENTORY | wet class water 0.05 to 0.5 wt%, CO2 over H2O 0.2 | rocky bodies | test_atmosphere_mixture_rocky::test_the_inventory_follows_the_delivered_water_class | GEN.481 | READ (Ortenzi et al. 2020 Table 1) |
+| AM14 | B | T1 | L2 | mixture_rocky.INVENTORY | N/C 5e-3 to 0.1 and S/C 0.1 to 3 (Kargel and Lewis via Schaefer et al., T3 L0), log; dry water 1e-4 to 5e-3 wt%; rich water 10 to 50 wt%, CO2 over H2O 5e-3 to 0.2; potassium 0.005 to 0.1 wt%; degassed 40Ar share 0.05 to 0.7 | rocky bodies | test_atmosphere_mixture_rocky::test_argon_grows_with_the_age_of_the_body | GEN.481 (delivery), GEN.492 (radioisotopes) | READ (Bergin et al. 2015 Table S1: N/C 0.020 for the bulk silicate Earth, 0.059 CI, 0.074 Venus air, 0.055 Mars air) and tuned (log-middle 0.022 is the Earth's, GEN.813) |
 | AM15 | B | T2 | L0 | mixture_rocky.MAGMATIC_TEMPERATURE_K | 1100 to 1500 K, uniform | volcanic gas | test_atmosphere_mixture_rocky::test_an_earth_like_oxidised_volcano_gas_is_water_carbon_dioxide_and_sulfur_dioxide_at_the_vent | GEN.482 | READ (part 05 section 3.4: basalt erupts at 1450 to 1550 K) |
 | AM16 | B | T2 | L0 | mixture_rocky.QUENCH_TEMPERATURE_K | 400 to 900 K, log | cool bodies | test_atmosphere_mixture_rocky::test_the_equilibrium_temperature_is_the_surface_one_above_the_quench_and_the_quench_below_it | GEN.482 | READ (Zahnle and Marley 2014: 400 to 600 K; Liggins 2022: 800 K) |
 | AM17 | B | T3 | L0 | mixture_rocky.OXIDATION_TIME_GY | 0.1 to 1.5 Gy, log | bodies with long-lived geology | test_atmosphere_mixture_rocky::test_the_redox_of_a_young_or_inert_body_is_the_magma_ocean_stage_and_of_an_old_tectonic_one_the_later_mantle | GEN.482 | READ (Aulbach and Stagno 2016: present upper-mantle redox by about 3.5 Ga) |
@@ -208,3 +208,4 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM47 | D | T6 | L1 | sulfur_balance.CRUST_PER_PROCESSED_MANTLE | 0.0157 kg of crust per kg of mantle processed, fixed | rocky bodies whose crust is made like the Earth's (a stagnant lid or a thick crust makes more) | test_sulfur_balance::test_the_earth_twin_builds_the_crust_of_the_earth | a melting and crust-growth model of the interior | CALIBRATED on the Earth twin of the interior model (2.8e22 kg of crust from THETA_EARTH mantle masses processed; one planet, source tier 6, tweak level 1) |
 | AM48 | B | T3 | L0 | sulfur_balance.CRUST_CALCIUM_WT | 0.085, fixed | the crust the volcanism builds (a basalt) | test_sulfur_balance::test_the_capacity_is_one_calcium_and_one_iron_per_sulfur | the crust composition of the surface composition model | READ from memory, not re-checked (mid-ocean ridge basalt 11.9 wt% CaO, White and Klein 2014) |
 | AM49 | B | T3 | L0 | sulfur_balance.CRUST_IRON_WT | 0.074, fixed | the crust the volcanism builds (a basalt) | test_sulfur_balance::test_the_capacity_is_one_calcium_and_one_iron_per_sulfur | the crust composition of the surface composition model | READ from memory, not re-checked (mid-ocean ridge basalt 9.5 wt% FeO, White and Klein 2014) |
+| AM50 | B | T1 | L2 | mixture_rocky.INVENTORY | dry class CO2 0.018 to 0.1 wt%, log | rocky bodies | test_volatile_inventory_totals::test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it | the Ortenzi dry case reproduced, or the carbon of the Venus and Mars interiors | READ (Ortenzi et al. 2020 Table 1: dry class stored 0.018 wt% CO2, wet High delivered 0.1) and tuned to the bulk silicate Earth's 100 ppm carbon (Bergin et al. 2015 Table S1); the delivered 0.6 wt% is not used (GEN.813) |
