@@ -1242,6 +1242,25 @@ with `clamp()`.
   Prerequisites: none. Related: UX.188, UX.198, UX.199, UX.203, UX.205,
   TEST.358, GEN.767, GEN.768.
 
+- [ ] **UX.209 Object pages order: At a glance, then About, then the Properties list, then the other details (bug)**
+  Boss, 8:33 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi11fUYtyP7MHaYzSWdusHa8, relayed by the
+  coordinator), live observation, so a bug: "The properties list of
+  details should come after the 'About' section of the info page and
+  right under at a glance". Today the Enuakyadas IV page runs At a
+  glance, Properties (the long list of groups), then About, so the long
+  list pushes the description far down. TODO's reading (the
+  coordinator's): the order is At a glance, About (the short facts table
+  and the description text), Properties (the grouped list), then the
+  rest (habitability notes, radiation, survival equipment, life text,
+  part-of line). Do: reorder the planet, moon, star, belt, comet and
+  phenomenon pages to that order, with About directly under At a glance;
+  headings stay one outline (UX.195) and the table of contents (UX.196)
+  follows the new order. Done: a page test finds the section order on a
+  planet, a moon and a star page and the contents list in the same
+  order. Owner: Aux 11 (object pages). Related: UX.195, UX.196, UX.204.
+  Prerequisites: none. Related: UX.195, UX.196, UX.204.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
