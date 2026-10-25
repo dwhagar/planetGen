@@ -15249,6 +15249,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --reason ... --affects <stage>` and the next epoch.
   Prerequisites: GEN.411, GEN.422. Related: GEN.813, GEN.725.
 
+- [ ] **GEN.822 Wire hydro_based_mass_loss_g_s (GEN.738) into the sub-Neptune envelope rows (radius_valley, runaway_history): escape loss changes the stored radii**
+  GEN.738 (Citations lane, PR #3260, 11:44 PM EDT 2026-10-24 as the lane
+  reported) adds the thermosphere model, Jeans and diffusion-limited
+  escape, the XUV history integral and a hydro-based envelope rate, with
+  registry rows AM51 to AM65; nothing calls it yet. Wire
+  hydro_based_mass_loss_g_s into the sub-Neptune envelope rows
+  (radius_valley, runaway_history) so the envelope a small planet keeps
+  follows the escape model. This changes stored radii and takes a
+  generator epoch with --affects fill. Done: the radius valley position
+  and the share of stripped cores come out of the model, within the
+  published range (GEN.722), registry rows listed. Owner: the Citations
+  lane. Rules: no backward-compat shims; stand-ins get GEN.725 registry
+  rows; tests are `scripts/test.py changed --resume`.
+  Prerequisites: GEN.738. Related: GEN.738, GEN.722, GEN.725, GEN.800.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
