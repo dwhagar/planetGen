@@ -10,7 +10,7 @@ present); the ozone rows are lane F's.
 | Step | Owner | Where |
 |---|---|---|
 | Which regime the air is in (redox, delivery, outgassed class, retention class, envelope) | GEN.478 | `physics/atmosphere_recipes.py`, 104 rows |
-| Free energies of the gases and condensates | this | `physics/species_thermo.py`, from the NASA Glenn database (94 species) |
+| Free energies of the gases and condensates | this | `physics/species_thermo.py`, from the NASA Glenn database (99 species) |
 | The equilibrium gas of an element budget at T and P, optionally over a mantle of a given fO2 | this | `physics/gas_equilibrium.py` |
 | Regimes to mole fractions of the gases of the table | this | `physics/mixture_draw.py`, `draw_mixture` |
 | The subject of a generated body: the quantities the tables and the chemistry read, built from its stored fields and its star | GEN.756 | `physics/mixture_subject.py`, `subject_of_body` |
@@ -161,9 +161,10 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
   these families are an output of the escape and retention physics; the retention physics of cold volatile bodies (the sublimation
   supply against hydrodynamic escape) is not built, and changing the gate without it would be a design flag, which he ruled out. GEN.751
   added K2, KO, K2O and Na2O to the gas table and the species table (research part 01 section 5, computed from the NASA fits, no
-  phase data; the file spells aluminium `AL`), so the lava vapour lists them (KO is about 4e-7 bar over a BSE melt at 2500 K). Al is
-  in the table too, but the melt model carries no aluminium activity (`mixture_lava.ELEMENTS` is the melt's less aluminium), so the
-  vapour holds none until Al2O3 has an activity there (a stand-in to be tiered when it comes).
+  phase data; the file spells aluminium `AL`), so the lava vapour lists them (KO is about 4e-7 bar over a BSE melt at 2500 K). GEN.818 then gave the melt an Al2O3 activity (its mole fraction, `mixture_lava.ALUMINA_ACTIVITY_COEFFICIENT` = 1, tier 3: Fegley,
+  Lodders and Jacobson 2023 find the activity-coefficient models of the BSE melt agree with an ideal solution except for the alkalis,
+  abstract only), added AlO, Al2O, AlO2 and Al2O2 and the liquid Al2O3 to the species table (99 species), and put Al in the vapour's
+  elements: a BSE melt at 2500 K now has about 2e-7 of its vapour as aluminium, mostly AlO and Al (Al is refractory), 6e-5 at 3000 K.
 - Design brackets this module added, each to be replaced by the research item named: `WATER_RESIDUAL`, `SULFUR_SINK`,
   `WATER_PHOTOLYSED`, `OCEAN_WATER_WT_PERCENT`, `CARBON_PER_OCEAN_WATER`, `OXYGEN_SINK`, `TITAN_HUMIDITY`, `TITAN_HYDROGEN`, `FROST_ICE`
   (`mixture_evolved`; GEN.481 and the ice composition item), `ALKALI_ACTIVITY_COEFFICIENT` and `COMPOSITION_SCATTER` (`mixture_lava`; the

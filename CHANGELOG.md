@@ -2,6 +2,20 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2326] - 2026-10-25
+
+**Headline:** A lava world's vapour now lists aluminium (Al, AlO, Al2O, AlO2, Al2O2) in the proportion its melt gives, instead of none.
+
+### Added
+- **Aluminium in the lava vapour (GEN.818).** The melt model gives Al2O3 an activity equal to its mole fraction (a tier 3 stand-in, registry row AM51: the published melt models of the bulk silicate Earth agree with an ideal solution except for the alkalis), and the species table gains AlO, Al2O, AlO2, Al2O2 and the liquid Al2O3 (99 species, 79 gases). A bulk-silicate-Earth melt at 2500 K has about 2e-7 of its vapour as aluminium and 6e-5 at 3000 K. The mixture draw is not called by the generator yet, so no generated value changes.
+
+## [8.0.2325] - 2026-10-25
+
+**Headline:** The two 20 percent water rows of the ocean-world table in the design notes are recomputed from the built code, and a test now holds every row of that table to it.
+
+### Fixed
+- **Ocean-world table (DOC.79).** The x = 0.2 rows of design part C 2.4 (1 and 5 Earth masses) said 1635 km at 26.0 GPa and 2519 km at 114 GPa, which did not follow from the table's own radii. They now read 1294 km at 19.2 GPa and 2024 km at 84.7 GPa, with the gravity and the surface-pressure estimate rechecked, and the hydrosphere note no longer calls them a non-target. `tests/test_water_layer.py` reads the document table and compares each row with `physics/water_layer.py`. Documents and a test only: no generated value changes.
+
 ## [8.0.2324] - 2026-10-25
 
 **Headline:** Small bodies now have moons at the rates observed for asteroids and trans-Neptunian objects.

@@ -15184,22 +15184,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed --resume`.
   Prerequisites: GEN.411, GEN.422. Related: GEN.411, GEN.422.
 
-- [ ] **GEN.818 Aluminium in the melt model: an Al2O3 activity (with a tier) so a lava draw can make aluminium vapour (GEN.751 follow-up)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 0. GEN.751 put
-  Al in the gas and thermodynamics tables but the melt model has no
-  aluminium activity, so no lava draw makes any. Add an Al2O3 activity
-  stand-in with a tier and tweak level in the GEN.725 registry, from the
-  published silicate-melt activity data. Done: a lava world's vapour
-  lists aluminium in the right proportion, with the source stated.
-  Owner: Aux 8 (Lane L), after the sulfur sink. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  stand-ins get GEN.725 registry rows with a tier and tweak level; a
-  changed generated value carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`.
-  Prerequisites: none. Related: GEN.751, GEN.725.
-
 - [ ] **GEN.819 Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet**
   GEN.739 (#3246) added physics/impact_history.py and
   surface_pressure.impact_inventory (H, C and N atoms per 100 g of
@@ -20905,6 +20889,29 @@ clears each one.
   the test passes on any seed, 20 runs in a row. Owner: Bug 1.
   Prerequisites: none. Related: GEN.778.
 
+- [ ] **TEST.388 test_reproducible_draws fails on math.hypot in physics/impact_history.py:140 and physics/iron_branch_tuning.py:79 (bug)**
+  Aux 8 (Lane L, 11:54 PM EDT 2026-10-24 as the lane reported, gate of
+  GEN.818 #3264): the guard test test_reproducible_draws fails because
+  math.hypot is used in impact_history.py (GEN.739, #3246, Citations
+  lane) and iron_branch_tuning.py (GEN.512, #3250, Math lane); the
+  reproducible-draw rule allows only the deterministic math helpers
+  (util/detmath). Replace math.hypot with the deterministic helper in
+  both files. Done: the guard passes. Owner: the Citations lane for
+  impact_history.py, the Math lane for iron_branch_tuning.py.
+  Prerequisites: none. Related: TEST.384, GEN.739, GEN.512.
+
+- [ ] **TEST.389 test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug)**
+  Aux 8 (Lane L, 11:54 PM EDT 2026-10-24 as the lane reported): in the
+  gate of GEN.818 (nothing of that change is in generation)
+  test_golden_seed's one-versus-four-workers check reports a
+  sector-structure difference; on clean main alone it timed out at 900
+  s, so it is unconfirmed. Check against epoch 101 (GEN.512, #3250) and
+  epoch 102 (GEN.761, #3258): run it on main and on the commit before
+  #3250. If a worker-count difference is real, the draw order of the new
+  tables is the first suspect. Done: confirmed or cleared with the
+  commit named; if real, fixed with a test. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.384, GEN.512, GEN.761.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21655,6 +21662,42 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   epoch; tests are `scripts/test.py changed --resume`.
   Prerequisites: none. Related: OPS.72.
 
+- [ ] **OPS.75 update.sh ends with "the update failed at step 9/9, checking that the web app imports" when the import check passed and the real failure is the health check after the Apache reload; the site stays closed with a wrong reason (bug)**
+  Boss, 2026-10-24 11:53 PM EDT (live run on his server, PlanetGen
+  8.0.2324): steps 1 to 8 passed; step 9/9 printed 'The web app and the
+  generator import cleanly', then 'Apache was reloaded but
+  http://127.0.0.1/api/health does not answer', then 'error: the update
+  failed at step 9/9, checking that the web app imports. The site stays
+  closed (maintenance mode) because the database may be half migrated.'
+  The message is wrong twice: the import check passed (the failing check
+  is the health check after the reload) and the database was not half
+  migrated (step 5 said schema v157 current). The health check most
+  likely runs while the site is still closed in maintenance mode, which
+  answers 503, so it can never pass; verify that. Do: (1) report the
+  check that failed, by name; (2) retry the health check for a bounded
+  time after the reload; (3) run it against a path that answers while
+  closed, or open the site first when the migration finished cleanly,
+  then check; (4) say whether the site is in maintenance mode and why (a
+  failed migration, or only a failed health check), and when only the
+  health check failed leave the site open or say how to open it in one
+  command. Also: the cache warm-up (warm-map) that the update cancelled
+  at the start was restarted at the end; confirm that is wanted and say
+  so in the output. Done: a run where the health check needs a moment
+  passes, a run where it truly fails names it and the maintenance state
+  correctly, tests pin the messages. Owner: Aux 12 (ops).
+  Prerequisites: none. Related: OPS.29, OPS.63.
+
+- [ ] **OPS.76 update.sh warns "uncommitted local changes in /var/lib/planetGen -- these will be overwritten: ?? state/" on every update although state/ is expected (bug)**
+  Boss, 2026-10-24 11:53 PM EDT, same run: step 1 warns that the
+  untracked state/ directory will be overwritten. state/ holds the
+  maintenance switch and backups, is expected to be untracked and is
+  never overwritten by the pull. Do: ignore state/ in the
+  uncommitted-changes check (and list any other expected runtime paths),
+  warn only about tracked changes that the pull would really overwrite.
+  Done: a clean install prints no warning and a modified tracked file
+  still does; a test pins both. Owner: Aux 12 (ops).
+  Prerequisites: none. Related: OPS.29.
+
 ## DOC: Documentation
 
 - [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
@@ -22248,18 +22291,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
-
-- [ ] **DOC.79 The compressed-water-layer design document has inconsistent x=0.2 reference rows in part C**
-  Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
-  #2993). Part C of the design document for the compressed water layer
-  lists reference rows at a water share of x=0.2 that do not agree with
-  each other. Do: recompute the reference rows from the built code
-  (physics for the integrated water column, for example 0.1 Earth mass
-  of water on 1 Earth mass is 746 km deep) and make the rows consistent.
-  Done: every x=0.2 row in part C matches the code to the stated
-  rounding, and a test or script check pins the numbers. Owner: none
-  (pool); lane H wrote the document.
-  Prerequisites: none. Related: GEN.461, DOC.77.
 
 - [ ] **DOC.81 Help page: resource locations, what the scores mean and how to find them on the map**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,

@@ -102,6 +102,7 @@ from planetgen.names.uniqueness import (
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.planet import Planet
 from planetgen.physics.position import MAX_UPDATE_INTERVAL_S, THRESHOLDS_M, update_interval_s
+from planetgen.physics import rogue_habitability
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, interstellar_comet_designation
 from planetgen.galaxy.sector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
@@ -3639,6 +3640,7 @@ ROGUE_PLANET_FIELDS = (
     object_rows.computed("has_internal_heat", lambda planet, context: int(planet.has_internal_heat)),
     object_rows.computed("has_moons", lambda planet, context: int(planet.has_moons)),
     object_rows.computed(tuple(ROGUE_SURFACE_FIELDS), lambda planet, context: _rogue_surface_values(planet)),
+    object_rows.each(rogue_habitability.ROGUE_FIELDS),
     _FREE_VECTOR_FIELD, _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD,
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
 )
