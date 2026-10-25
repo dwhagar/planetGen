@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 164 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 168 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 31 | 0 | 3 | 0 | 0 | 34 |
 | T2 | 37 | 0 | 0 | 0 | 0 | 37 |
-| T3 | 33 | 0 | 0 | 5 | 0 | 38 |
-| T4 | 5 | 0 | 0 | 0 | 0 | 5 |
-| T5 | 6 | 3 | 0 | 0 | 0 | 9 |
+| T3 | 33 | 0 | 1 | 5 | 0 | 39 |
+| T4 | 5 | 0 | 0 | 2 | 0 | 7 |
+| T5 | 7 | 3 | 0 | 0 | 0 | 10 |
 | T6 | 18 | 6 | 1 | 2 | 0 | 27 |
 | T7 | 10 | 2 | 0 | 1 | 0 | 13 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 1 | 1 |
-| All | 140 | 11 | 4 | 8 | 1 | 164 |
+| All | 141 | 11 | 5 | 10 | 1 | 168 |
 
 ## How the labels were given
 
@@ -256,3 +256,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
 | SP1 | P | T9 | L4 | spin.js FASTEST_SECONDS_PER_TURN 20, SLOWEST_SECONDS_PER_TURN 600, FASTEST_PERIOD_HOURS 2, SLOWEST_PERIOD_HOURS 1000 (seconds per turn on screen = 20 x 30^t, t the log position of the period from 2 h to 1000 h, clamped) | none (a display choice) | every body drawn as a sphere in the system views and on object pages; the galactic views turn nothing | the spin.test.mjs tests of the cap, the floor and the order of speeds | a reader-set speed, if one is ever asked for | design (Boss, 2:48 AM EDT 2026-10-25: rendered objects turn slowly on their axes; the range is fitted so the fastest still shows a turn and the slowest is not stuck) |
+
+## 6.10 Stand-ins of the radius valley
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| RV1 | P | T3 | L2 | radius_valley loss: energy-limited XUV loss with the energy proportional to the bolometric flux (`XUV_ENERGY_J_M2 * F`), no stellar-mass dependence of its own; the mechanism (photoevaporation or core-powered mass loss) is not chosen | `f_env0` 0.035 to 0.08 with `eta` = 10 `f_env0` (the ridge) | hosts of 0.5 to 1.4 solar masses | a measured stellar-mass slope of the valley outside beta -0.17 to 0.00, or a period slope outside -0.10 to -0.14 | a mechanism chosen by a sample of about 5000 planets (Rogers and Owen 2021) | READ (abstracts: Berger et al. 2023 alpha 0.069 +0.019 -0.023, beta -0.046 +0.125 -0.117; Petigura et al. 2022 period slope -0.10 +- 0.03; the 2025 re-analysis arXiv:2503.08347, period slope -0.142 toward core-powered, flux slope 0.136 toward photoevaporation); the sources disagree by axis, so the widest range is kept |
+| RV2 | P | T4 | L3 | radius_valley.CORE_MASS_SIGMA 0.4 (log-normal width of the core mass, in ln units) | 0.3 to 0.5 | the survey of hosts 0.5 to 1.4 solar masses | any width in the band moves a slope by more than 1 sigma; (0.5 with an envelope width of 0.4) puts the period slope 2.1 sigma off | a published width of the core-mass distribution | design (no published width read; swept against the three slopes, test_radius_valley::test_the_widths_leave_the_slopes_within_their_errors) |
+| RV3 | P | T4 | L3 | radius_valley.ENVELOPE_SIGMA 0.6 (log-normal width of the starting envelope fraction, in ln units) | 0.4 to 0.8 | the survey of hosts 0.5 to 1.4 solar masses | as RV2 | a published width of the starting envelopes | design (no published width read; the same sweep as RV2) |
+| RV4 | D | T5 | L0 | radius_valley.mass_slopes_of: the stellar-mass slope beta read off the surveyed valley (0.00 +- 0.02 from the loss as written) | none | hosts of 0.5 to 1.4 solar masses | a stellar-mass dependent XUV energy added to the loss (a real photoevaporation) | a survey that wires it in | COMPUTED (survey of 12000 planets over 18 cells of flux and host mass; core-powered theory predicts beta 0.00, photoevaporation -0.17, Berger et al. 2023) |

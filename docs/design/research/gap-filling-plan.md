@@ -607,6 +607,19 @@ The slow turn of a rendered body on its axis (`static/spin.js`) takes the body's
 | SP1 | P | T9 | L4 | spin.js FASTEST_SECONDS_PER_TURN 20, SLOWEST_SECONDS_PER_TURN 600, FASTEST_PERIOD_HOURS 2, SLOWEST_PERIOD_HOURS 1000 (seconds per turn on screen = 20 x 30^t, t the log position of the period from 2 h to 1000 h, clamped) | none (a display choice) | every body drawn as a sphere in the system views and on object pages; the galactic views turn nothing | the spin.test.mjs tests of the cap, the floor and the order of speeds | a reader-set speed, if one is ever asked for | design (Boss, 2:48 AM EDT 2026-10-25: rendered objects turn slowly on their axes; the range is fitted so the fastest still shows a turn and the slowest is not stuck) |
 <!-- rendered-body-standins:end -->
 
+### 6.10 Stand-ins of the radius valley (GEN.722)
+
+The radius-valley survey (`physics/radius_valley.py`, `docs/design/composition/radius-valley-tuning.md`) tunes the atmosphere recipes' envelope and loss knobs to the valley of the planets Kepler found. Four numbers in it are not verified measurements. Nothing it computes is read by the generator yet, so no generated value depends on these rows.
+
+<!-- radius-valley-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| RV1 | P | T3 | L2 | radius_valley loss: energy-limited XUV loss with the energy proportional to the bolometric flux (`XUV_ENERGY_J_M2 * F`), no stellar-mass dependence of its own; the mechanism (photoevaporation or core-powered mass loss) is not chosen | `f_env0` 0.035 to 0.08 with `eta` = 10 `f_env0` (the ridge) | hosts of 0.5 to 1.4 solar masses | a measured stellar-mass slope of the valley outside beta -0.17 to 0.00, or a period slope outside -0.10 to -0.14 | a mechanism chosen by a sample of about 5000 planets (Rogers and Owen 2021) | READ (abstracts: Berger et al. 2023 alpha 0.069 +0.019 -0.023, beta -0.046 +0.125 -0.117; Petigura et al. 2022 period slope -0.10 +- 0.03; the 2025 re-analysis arXiv:2503.08347, period slope -0.142 toward core-powered, flux slope 0.136 toward photoevaporation); the sources disagree by axis, so the widest range is kept |
+| RV2 | P | T4 | L3 | radius_valley.CORE_MASS_SIGMA 0.4 (log-normal width of the core mass, in ln units) | 0.3 to 0.5 | the survey of hosts 0.5 to 1.4 solar masses | any width in the band moves a slope by more than 1 sigma; (0.5 with an envelope width of 0.4) puts the period slope 2.1 sigma off | a published width of the core-mass distribution | design (no published width read; swept against the three slopes, test_radius_valley::test_the_widths_leave_the_slopes_within_their_errors) |
+| RV3 | P | T4 | L3 | radius_valley.ENVELOPE_SIGMA 0.6 (log-normal width of the starting envelope fraction, in ln units) | 0.4 to 0.8 | the survey of hosts 0.5 to 1.4 solar masses | as RV2 | a published width of the starting envelopes | design (no published width read; the same sweep as RV2) |
+| RV4 | D | T5 | L0 | radius_valley.mass_slopes_of: the stellar-mass slope beta read off the surveyed valley (0.00 +- 0.02 from the loss as written) | none | hosts of 0.5 to 1.4 solar masses | a stellar-mass dependent XUV energy added to the loss (a real photoevaporation) | a survey that wires it in | COMPUTED (survey of 12000 planets over 18 cells of flux and host mass; core-powered theory predicts beta 0.00, photoevaporation -0.17, Berger et al. 2023) |
+<!-- radius-valley-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
