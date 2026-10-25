@@ -1377,6 +1377,22 @@ with `clamp()`.
   changed --resume`.
   Prerequisites: UX.226. Related: UX.225.
 
+- [ ] **UX.229 Colour contrast of the habitability life scores and tree-leaf stats passes 4.5 to 1 in both themes (bug)**
+  Found by the a11y gate (test_web_a11y, object_page and system pages,
+  all 8 viewport and theme cases): axe color-contrast fails on
+  .hab-life-score and the tree-leaf stats; text #74788c on #1c1e2b in
+  dark and #8c909c on white in light, 4.5:1 needed. Use theme tokens
+  that pass in both themes; the gate must pass with no excuse entry.
+  Owner Bug 1 (Aux 3 area: habitability tree icons).
+  Prerequisites: none.
+
+- [ ] **UX.230 The Generate system page options have a valid listbox parent so axe aria-required-parent passes (bug)**
+  Found by the a11y gate (test_web_a11y generate_system, phone-light):
+  sl-option elements inside the select have no listbox or group parent
+  (axe aria-required-parent). Fix the markup or the component use so the
+  rule passes; no excuse entry. Owner Bug 1.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -20787,20 +20803,6 @@ clears each one.
   test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems (RQ
   StopRequested after 10 minutes).
   Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
-
-- [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**
-  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
-  relayed 10:25 PM EDT 2026-10-24 as the lane reported. Core 3's gate
-  had 259 browser test setup errors; the cause named is the API
-  fixture's rate limit of 50 requests per hour (the browser tests create
-  their accounts or tokens through the API). A gate that errors 259
-  tests cannot show what a change broke. Make the fixture exempt from
-  the limit (a test setting, not a production change) or give each test
-  run its own limit window, and keep a test that proves the rate limit
-  still works in production mode. Done: `scripts/test.py changed` runs
-  the browser tests with no setup error from the rate limit. Version
-  8.1. Owner: Bug 1 with Aux 12 (API).
-  Prerequisites: none. Related: USR.22, TEST.383.
 
 - [ ] **TEST.386 First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
