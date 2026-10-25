@@ -1,4 +1,0 @@
-**Headline:** An admin edit now works the light a planet sums over the stars out again before the scores are rewritten, so a body in a binary system no longer keeps a habitability score from before the edit.
-
-### Fixed
-- **An edit leaves current scores (ADM.132).** An admin edit (regenerate, class change, star change) already rewrote the habitability, Suitability and life scores of the edited body and its moons, and `save_system_edits` worked every scored body out again from the rows it wrote, but the light swing of a planet in a two-star system (`flux_variation`) was left as it was (NULL on a regenerated planet), so those scores read a stale swing. The edit writer now refreshes it from the final orbits first (`insolation.refresh_system`), as generation and the re-score do. `test_admin_edit_scores.py` proves that after each kind of edit the stored scores of every rocky body equal what `store.refresh_habitability` works out.
