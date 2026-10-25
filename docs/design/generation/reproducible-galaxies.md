@@ -170,13 +170,16 @@ galaxy seed, the key and its outcome.
 
 | Part | Digits | Values |
 |---|---|---|
-| PlanetGen MAJOR, REVISION, BUILD | 4 + 4 + 6 | MAJOR.REVISION.BUILD, each packed (a plain sum collides: 7.127.352 and 7.128.351 both sum to 486) |
-| Python major, minor, micro | 2 + 2 + 2 | One digit each would overflow at 3.16, and micro releases pass 15 |
+| PlanetGen MAJOR, REVISION, BUILD | 1 + 2 + 4 | MAJOR.REVISION.BUILD, each packed (a plain sum collides: 7.127.352 and 7.128.351 both sum to 486); at most 15, 255 and 65,535 (DB.102 narrowed the padding) |
+| API version | 2 | `API_VERSION`, at most 255 (DB.102) |
+| Database schema | 3 | The newest Alembic revision, at most 4,095 (DB.102) |
+| Generator epoch | 3 | `tests/golden/epochs.json`, at most 4,095 (DB.102) |
+| Python major, minor, micro | 1 + 2 + 2 | Minor and micro pass 15 |
 | OS | 1 | 0 Linux, 1 Windows, 2 other Unix and BSD, 3 macOS, F unknown |
 | Architecture (`platform.machine()`) | 1 | 0 x86-64, 1 ARM64 (Apple Silicon included), 2 32-bit x86, 3 32-bit ARM, 4 RISC-V 64, F unknown |
 
-PlanetGen 7.127.352 on Python 3.12.3, Linux, x86-64 is
-`0007007F000160030C0300`. One helper computes it from the running code,
+PlanetGen 7.127.352 with API 9, schema 155 and epoch 96, on Python 3.12.3, Linux, x86-64 is
+`77F01600909B06030C0300` (before DB.102: `0007007F000160030C0300`, which matches nothing now). One helper computes it from the running code,
 so the log line, the update history and the mismatch warning agree. It
 is stored with the galaxy (DB.6) and with each sector (DB.7, phase 1),
 next to the full version string, Python version and platform.
@@ -216,7 +219,7 @@ full key text living on the `generation_runs` row. Detail:
   web or API job and work queue run first writes, at normal level, the
   galaxy seed, the version with its key, and the run's command, for
   example `Galaxy seed 3f2a...c901, PlanetGen 7.127.352
-  (0007007F000160030C0300), run: sector 12 3 0`.
+  (77F01600909B06030C0300), run: sector 12 3 0`.
   As built (OPS.10): `versionKey.run_line` writes it, first thing after
   `planetgen` sets up logging (a `plan --seed` names the seed given,
   otherwise the stored one, `none yet` before the first plan), and

@@ -1,28 +1,44 @@
 # planetgen/galaxy/version_key.py
 
 """
-The version key (DB.6; docs/design/generation/reproducible-galaxies.md, section 4):
+The version key (DB.6, DB.102; docs/design/generation/reproducible-galaxies.md, section 4):
 22 uppercase hex digits naming exactly what a galaxy seed needs to make
-the same galaxy again -- the PlanetGen release and the environment it ran
-in. One helper (`version_key`) computes it from the running code, so the
+the same galaxy again -- the PlanetGen release, the API version, the
+database schema and the generator epoch, and the environment it ran in.
+One helper (`version_key`) computes it from the running code, so the
 galaxy, each run's history row and the log line agree.
 
-| Part                              | Digits    |
-|-----------------------------------|-----------|
-| PlanetGen MAJOR, REVISION, BUILD  | 4 + 4 + 6 |
-| Python major, minor, micro        | 2 + 2 + 2 |
-| OS                                | 1         |
-| Architecture                      | 1         |
+| Part                              | Digits | Largest value |
+|-----------------------------------|--------|---------------|
+| PlanetGen MAJOR                   | 1      | 15            |
+| PlanetGen REVISION                | 2      | 255           |
+| PlanetGen BUILD                   | 4      | 65,535        |
+| API version                       | 2      | 255           |
+| Database schema                   | 3      | 4,095         |
+| Generator epoch                   | 3      | 4,095         |
+| Python major                      | 1      | 15            |
+| Python minor, micro               | 2 + 2  | 255 each      |
+| OS                                | 1      |               |
+| Architecture                      | 1      |               |
 
-PlanetGen 7.127.352 on Python 3.12.3, Linux, x86-64 is
-`0007007F000160030C0300`. Each part is packed in its own digits, not
-added up: a plain sum collides (7.127.352 and 7.128.351 both sum to 486).
+PlanetGen 7.127.352 with API 9, schema 155 and epoch 96, on Python 3.12.3,
+Linux, x86-64 is `77F01600909B06030C0300`. Each part is packed in its
+own digits, not added up: a plain sum collides (7.127.352 and 7.128.351
+both sum to 486). Each number is read from its own source when the key is
+made (`planetgen.api.version.API_VERSION`, the newest Alembic revision,
+`tests/golden/epochs.json`), never typed here. A key made before DB.102
+has another layout and matches none.
 """
 
 import platform
 import sys
 
+import functools
+
 from planetgen._version import __version__
+from planetgen.api.version import API_VERSION
+from planetgen.db import alembic_runner
+from planetgen.util import generator_epoch
 
 KEY_DIGITS = 22
 """int: A version key's length in hex digits."""
@@ -75,7 +91,13 @@ def _release_parts(version):
     return tuple(int(part) for part in parts)
 
 
-def version_key(version=None, python=None, system=None, machine=None):
+@functools.lru_cache(maxsize=1)
+def schema_version():
+    """The database schema the running code expects: the newest Alembic revision (read once a process)."""
+    return alembic_runner.head_version()
+
+
+def version_key(version=None, python=None, system=None, machine=None, api=None, schema=None, epoch=None):
     """
     The 22-hex-digit version key.
 
@@ -86,6 +108,9 @@ def version_key(version=None, python=None, system=None, machine=None):
             Python's by default.
         system (str, optional): `platform.system()`'s answer.
         machine (str, optional): `platform.machine()`'s answer.
+        api (int, optional): The API version; the running code's by default.
+        schema (int, optional): The database schema; the running code's by default.
+        epoch (int, optional): The generator epoch; the running code's by default.
 
     Returns:
         str: 22 uppercase hex digits.
@@ -95,8 +120,10 @@ def version_key(version=None, python=None, system=None, machine=None):
     """
     major, revision, build = _release_parts(__version__ if version is None else version)
     py_major, py_minor, py_micro = tuple(sys.version_info[:3] if python is None else python)
-    widths = ((major, 4), (revision, 4), (build, 6), (py_major, 2), (py_minor, 2), (py_micro, 2),
-              (os_digit(system), 1), (arch_digit(machine), 1))
+    widths = ((major, 1), (revision, 2), (build, 4),
+              (API_VERSION if api is None else api, 2), (schema_version() if schema is None else schema, 3),
+              (generator_epoch.generator_epoch() if epoch is None else epoch, 3),
+              (py_major, 1), (py_minor, 2), (py_micro, 2), (os_digit(system), 1), (arch_digit(machine), 1))
     for value, digits in widths:
         if not 0 <= value < 16 ** digits:
             raise ValueError(f"{value} doesn't fit in {digits} hex digits")
