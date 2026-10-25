@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2322] - 2026-10-25
+
+**Headline:** The carbon and nitrogen a rocky planet's mantle holds now match what the Earth, Venus and Mars are known to hold, so worlds at the Earth's distance no longer start with hundreds of bar of nitrogen.
+
+### Changed
+- **Dry-class carbon (GEN.813).** The dry delivery class drew 0.6 weight percent CO2, sixteen times the carbon of the bulk silicate Earth, and a planet at the Earth's distance draws that class nine times in ten. The bracket is now 0.018 to 0.1 weight percent (the stored dry value to the wet High case of Ortenzi et al. 2020), whose middle is the Earth's 100 ppm of carbon.
+- **Nitrogen per carbon (GEN.813).** The bracket is 0.005 to 0.1 (it was 0.001 to 0.1), whose middle is the Earth's 0.02; the measured values for the Earth, the CI chondrites, Venus and Mars (Bergin et al. 2015) are inside it. Before, 37 percent of draws at the Earth's distance held ten times the Earth's nitrogen; now none do. Nothing in the generator draws the mixture yet (it waits on GEN.411 and GEN.422), so no stored value changes today.
+- A test of the Earth, Venus and Mars totals against the drawn inventory, three stand-in registry rows (GEN.725) and a design note (`volatile-inventory-against-planet-totals.md`).
+
 ## [8.0.2321] - 2026-10-25
 
 **Headline:** The sulfate and sulfide balance that decides how much of the sulfur a volcano gives stays in the air is built as a module; nothing calls it yet.
