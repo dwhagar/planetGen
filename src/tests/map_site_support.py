@@ -527,6 +527,19 @@ class FixtureApi:
     def get_system_scene(self, db, system_id):
         return system_scene_payload(system_id)
 
+    def get_system(self, db, system_id):
+        """`GET /api/systems/<id>` for a habitable fixture system: just what the Galaxy Map's card reads, its three
+        nearest neighbours among the fixture's habitable systems (MAP.296)."""
+        world = next((w for w in self.worlds if str(w["id"]) == str(system_id)), None)
+        if world is None:
+            raise apiclient.NotFoundError(f"No such system: {system_id}")
+        others = sorted((w for w in self.worlds if w is not world),
+                        key=lambda w: math.dist((w["x"], w["y"], w["z"]), (world["x"], world["y"], world["z"])))[:3]
+        return {"id": world["id"], "name": world["name"], "nearest_neighbors": [
+            {"id": w["id"], "name": w["name"],
+             "distance_ly": pc_to_ly(math.dist((w["x"], w["y"], w["z"]), (world["x"], world["y"], world["z"])))}
+            for w in others]}
+
     def get_bright_stars_in_cell(self, db, shell_index, band_index, wedge_index):
         return []
 
@@ -556,7 +569,7 @@ class FixtureApi:
 _APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "get_superbubbles", "get_containers", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
               "get_galaxy_changes", "get_galaxy_nebula_cover", "get_nebula_shape", "get_system_scene",
-              "get_uncharted_sector")
+              "get_uncharted_sector", "get_system")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_nodes", "get_galaxy_stage", "get_galaxy_window")
 
 
