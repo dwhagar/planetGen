@@ -2331,8 +2331,8 @@ export function createStageView(host) {
   // MAP.292: while the next window's data is on its way (`arriving`, the camera kept where it is) the wheel is not held
   // to the end of the range it carried the view to: the view goes on coming closer meanwhile, so a scroll is not stopped
   // for as long as the data takes, and the next window takes the camera over where it has got to.
-  function wheelPolicy() {
-    const policy = zoomPolicyFor(resolved);
+  function wheelPolicy(at) {
+    const policy = zoomPolicyFor(resolved, at);
     return arriving && MC.canZoom(policy) ? MC.zoomPolicy(policy.kind, policy.nearest * ARRIVING_OVERSHOOT, policy.farthest) : policy;
   }
 
@@ -2377,7 +2377,10 @@ export function createStageView(host) {
     }
     const asked = limitedStep(anchor, factor);
     const before = view.dist;
-    view.zoom = MC.clampDistance(wheelPolicy(), view.zoom * asked, 1);
+    // MAP.326: how near the camera may come is judged from the point being zoomed toward (a star under the pointer),
+    // not from the view's middle, which can be a sector's width from that star: judged from the middle the wheel
+    // stopped short of the star and never reached its system.
+    view.zoom = MC.clampDistance(wheelPolicy(anchor), view.zoom * asked, 1);
     reframe();
     const taken = before > 0 ? view.dist / before : 1;
     view.target = MC.targetAboutAnchor(view.target, anchor, taken);
@@ -2439,7 +2442,9 @@ export function createStageView(host) {
   // True when this tick moved across.
   function zoomAcross(deltaPx, event) {
     if (animation || pinned || arriving) return false;
-    const policy = zoomPolicyFor(resolved);
+    // MAP.326: in an opened sector the range and the star to go in to are those of the point under the pointer.
+    const under = event && entered && !enteredSystem && isFree(resolved) && view.fit ? anchorUnder(event.clientX, event.clientY) : null;
+    const policy = zoomPolicyFor(resolved, under);
     if (deltaPx > 0 && view.zoom >= policy.farthest * 0.999 && (enteredSystem || entered || !isWholeGalaxy(resolved))) {
       up({ keepCamera: true });
       return true;
@@ -2453,7 +2458,7 @@ export function createStageView(host) {
       if (!host.fetchSystemScene) return false;
       const picked = sectorStage.selectedEntry();
       const star = picked && picked.endpoint && picked.endpoint.indexOf("system:") === 0 && picked.href
-        ? picked : nearestStar(view.target, view.dist * NEAREST_STAR_REACH);
+        ? picked : (under && nearestStar(under, view.dist * NEAREST_STAR_REACH)) || nearestStar(view.target, view.dist * NEAREST_STAR_REACH);
       if (!star) return false;
       enterSystem(star, { push: true, fly: false });
       return true;
