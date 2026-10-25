@@ -585,6 +585,13 @@
       "first_release": "8.0.2308",
       "reason": "A world with flora, fauna or a civilization has food in its Suitability even when its ocean lies under ice (only microbes under the ice or in a deep aquifer are out of reach), and the life and timeline text of the objects a seed gives is in the present tense (GEN.765, GEN.766)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 99,
+      "first_release": null,
+      "pending": true,
+      "reason": "A rocky planet's iron follows its star's with a scatter of 0.05 dex, and about 1 planet in 100 is iron-enriched (a dry core mass fraction of 0.5 to 0.8): the mass, radius, density and gravity of rocky planets change slightly, and the planet draws after the graphite move (GEN.512)",
+      "affects": ["fill"]
     }
   ]
 }
