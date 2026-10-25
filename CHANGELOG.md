@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2296] - 2026-10-25
+
+**Headline:** A world with no life, no air or no water says so in a sentence instead of a table of zeros.
+
+### Changed
+- On a planet's or moon's page, a world with all four life scores at 0 has no Life table, a surface pressure under 0.001 Pa shows the Atmosphere as "None" with no gas rows, and a dry world with effectively no water has no Water section; each is one sentence in "About" (UX.203).
+
 ## [8.0.2295] - 2026-10-25
 
 **Headline:** The life and timeline paragraphs of a world are written from its stored row alone, and an edit keeps the life a world already has.
