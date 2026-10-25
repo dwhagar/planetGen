@@ -76,14 +76,25 @@ _SHORE = {"delta": _DELTA, "p_atm": _P_ATM}
 
 MACHINE = {
     # ---- a. mantle redox ----
-    "a1": dict(state="stand-in", replacement="GEN.513", kind="param", classes=ROCKY, sets="redox_diw",
+    "a1": dict(state="partly verified", kind="param", classes=ROCKY, sets="redox_diw",
+               limit="the mean is inside the first-hand ranges at three Solar System anchors (Moon, Mars, Earth); the width 0.5 is narrower than the "
+                     "Earth range (0.9 fits it) and the clamp at +0.5 above 1 Earth mass has no source (GEN.482, GEN.482b)",
+               source="Hirschmann 2022 (GCA 328, section 6.3 and Table 1): magma-ocean surface delta IW Earth -1.2 to +1.8, Mars -1.4 to +0.2, core-forming "
+                      "Moon -2.2 to -1.5; Deng 2020 Fig. 2 (Moon about -2); Sossi 2020 0.037 Fe3+/sumFe; the mean is within 0.3 of the middle of "
+                      "each range (READ, COMPUTED); the floor on sigma 0.22 is COMPUTED; the slope between and above the anchors, the width 0.5 and "
+                      "the clamp 0.5 are DESIGN (docs/design/composition/magma-ocean-redox-against-mass.md)",
                correction="Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses (a class A to Q world of 500 to "
                           "1500 km radius) with no redox row at all, and the mean's own clamp already holds -2 below 0.01.",
                dist={"kind": "normal", "mu": "clamp(-2 + 1.25*(log10(mass_earth) + 2), -2, 0.5)", "sigma": 0.5}),
     "a2": dict(kind="param", classes=AIR, when=[c("long_lived_geology", equals=True)], sets="redox_diw_later",
-               state="stand-in", replacement="GEN.513",
+               state="partly verified",
+               limit="a straight-line fit to three Solar System anchors (Earth IW+3.5, Mars IW to IW+1, Moon IW to IW-2), each inside one standard "
+                     "deviation; no source above 1 Earth mass and no link to a1 (GEN.482, GEN.482b)",
+               source="Earth IW+3.5 (Deng 2020 with its refs 37, 6, 7; Hirschmann 2022 section 4: above IW+3), Mars most reduced basalts IW and primitive "
+                      "mantle IW to IW+1 (Hirschmann 2022 introduction and section 4), Moon basalts IW to IW-2 (Deng 2020 refs 8 to 10); the law "
+                      "3.5 + 2 log10 M, the width 1.0 and the clip are DESIGN (READ, COMPUTED; docs/design/composition/magma-ocean-redox-against-mass.md)",
                dist={"kind": "normal", "mu": "3.5 + 2*log10(mass_earth)", "sigma": 1.0, "range": [-6, 6]},
-               correction="A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2): a flagged stand-in until GEN.482."),
+               correction="A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2); checked against first-hand anchors by GEN.482, which leaves the numbers as they are."),
     "a3": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1; the width 0.22 is tuned with the detection model (GEN.513)", kind="param", classes=["asteroid", "C", "D"], sets="redox_diw", tunable=True,
                dist={"kind": "normal", "mu": -1.25, "sigma": 0.22},
                source="22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians (Doyle 2020 Table "

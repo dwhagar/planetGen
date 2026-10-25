@@ -178,7 +178,7 @@ publisher's usual terms; no statement was seen, so treat as unconfirmed).
 | Curtis et al. 2020, ApJ 904, 140 | CC BY 4.0 | file |
 | Anenburg 2026, "Oxygen Fugacity Buffers and an Interactive Calculator", G-cubed 10.1029/2026GC013032 | Open access, Creative Commons Attribution (version not printed) | file |
 | Summa, Monaco, Lazzeretti and Zanasi 2021, J. Phys. Chem. Lett. 12, 8855 | (c) 2021 The Authors; ACS open licence, type not printed | file |
-| Pahlevan et al., Science Advances (Redox state of Earth's magma ocean), 2020 | CC BY-NC (NonCommercial); only values are read | file |
+| Sossi, Burnham, Badro, Lanzirotti, Newville and O'Neill 2020, Science Advances 6, eabd1387 (Redox state of Earth's magma ocean and its Venus-like early atmosphere) | AAAS exclusive licensee; Creative Commons Attribution NonCommercial 4.0 (CC BY-NC); only values are read | file |
 | JPCA perspective on atmospheric photochemistry (2024) | CC BY 4.0 | file |
 | Wolff et al. 2009, JGR 114, E00D04 | (c) AGU 2009; the Wiley page states open-access articles fall under their Creative Commons licence, type not printed | file |
 | Lodders 2003, ApJ 591, 1220 | (c) American Astronomical Society, all rights reserved; values only | file |
@@ -244,3 +244,18 @@ Gillett and Gras 1980, Frost 1991, Hirschmann 2012, Palme and O'Neill 2014, JPL 
 al. 1992, Huebner and Mukherjee 2015, Cooper et al. 2001, Patterson et al. 2012, Nordheim et al. 2018, Gronoff et al. 2009,
 Dartnell. Where a lane uses a number carried by another work, the report cites that work and its tier. Their terms are the
 publishers' and are not recorded here because nothing was taken from the originals.
+
+## Water against formation distance (`docs/design/composition/volatile-delivery-formation-distance.md`, GEN.481)
+
+Derived counts and logistic fits from the Bern NGPPS NG76 population: Burn et al. 2024 (Nature Astronomy 8, 463), data and code of Zenodo record 10527170 (no licence field), and the starting distances of the same planets from the public DACE population ng76. Emsenhuber et al. 2021 (A&A 656, A69; arXiv:2007.05561) was read for the disc model. The raw files are never in the repository and are downloaded only by the reproduction script kept in the project files.
+
+## Magma-ocean redox against mass (`docs/design/composition/magma-ocean-redox-against-mass.md`, GEN.482)
+
+Numbers and short quotations of fact were read from the sources below; nothing else was taken. Raw files stay out of the repository.
+
+| Source | Terms | Basis |
+|---|---|---|
+| Hirschmann 2022, Geochim. Cosmochim. Acta 328, 221 (public copy on the NSF Public Access Repository) | (c) Elsevier, all rights reserved; values only | publisher |
+| Schaefer and Fegley 2017, Astrophys. J. 843, 120 (public copy on the NSF Public Access Repository) | (c) American Astronomical Society, all rights reserved; values and the Table 2 fits only | publisher |
+| Gaillard et al. 2022, Earth Planet. Sci. Lett. 577, 117255 (HAL archive copy insu-03383209) | Elsevier paper deposited in an open archive; no licence printed on the copy; values only | file |
+| Deng, Du, Karki, Ghosh and Lee 2020, Nature Communications 11, 2007 (PMC7181735) | CC BY 4.0 | publisher |
