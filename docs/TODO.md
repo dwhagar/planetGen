@@ -3627,18 +3627,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: MAP.317, DB.108. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
 
-- [ ] **MAP.323 The legend on the Galaxy Map covers the scale text: stack them so the legend sits above the scale and they never overlap (bug)**
-  Boss, 2:24 AM EDT 2026-10-25 (live observation): on the Galaxy Map the
-  legend covers the scale text. Do: lay the two out in one bottom corner
-  stack, the legend above the scale, so neither overlaps the other at
-  any window size or text size (the popup already follows the window
-  size, MAP.295); the same stack holds on the system and sector maps if
-  they carry both. Done: a browser test that measures the two boxes and
-  fails if they intersect at the narrow and wide window sizes. Owner:
-  Core 2 (map interface layout). Rules: no backward-compat shims; tests
-  are scripts/test.py changed --resume.
-  Prerequisites: none. Related: MAP.295, MAP.320, MAP.321.
-
 - [ ] **MAP.324 The soft glow around stars on the Galaxy Map floods the view: at sector and sector-block zoom it makes big white blobs and haze that hide the stars, the black holes and the selection, so finding anything is nearly impossible (bug)**
   Boss, 2:29 AM EDT 2026-10-25, three screenshots (glow-1 to glow-3 in
   the project uploads): the blur effect for stars is too distracting for
@@ -3654,35 +3642,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.266). Rules: no backward-compat shims; tests are scripts/test.py
   changed --resume.
   Prerequisites: none. Related: MAP.266, MAP.323.
-
-- [ ] **MAP.325 The Galaxy Map infobox is too dense for a readable font: a block card lists ten rows plus a help paragraph in tiny text, and it sits over the zoom controls (bug)**
-  Boss, 2:30 AM EDT 2026-10-25, from the same three screenshots as
-  MAP.324: the text size of the infobox is too small to read; reduce the
-  density of the information so the font can be a reasonable size. Seen:
-  a block card (Block 1-0-5, 81 sectors a side) shows shells, row,
-  wedge, sectors, charted, center x y z, distance from core, shell
-  depth, latitude, longitude and a three-line help paragraph, all at
-  about 11 px, and the card overlaps the zoom slider and the arrow pad.
-  Do: per card kind keep the essentials (name or designation, what it
-  is, size, distance, charted share, the one or two facts a person
-  navigates by), put the rest behind a More fold that starts collapsed
-  and in the object page, move the help text to the Menu help, set the
-  body text to the normal reading size with the MAP.295 shrink-to-fit
-  only as a last step, and keep the card clear of the zoom controls.
-  Done: a browser test that reads the font size of a block, sector, star
-  and region card and fails below the reading size, and checks that no
-  card overlaps the zoom controls. Owner: Core 2 (infobox, after MAP.315
-  or sooner if smaller). Rules: absent or zero values hidden unless
-  absence matters; collapsible sections start collapsed (Boss rule
-  10-24); no backward-compat shims; tests are scripts/test.py changed
-  --resume.
-  Prerequisites: none. Related: MAP.295, MAP.296, MAP.315, MAP.323,
-  MAP.324.
-  Added (2026-10-09): Boss, 2:38 AM EDT 2026-10-25: the translucent
-  background of the infobox needs to be a bit darker (more opaque, so
-  text and the glow behind it stay apart); part of this item. Done adds:
-  a browser test reads the card's background alpha and fails below the
-  chosen floor.
 
 - [ ] **MAP.326 Zooming in from the Galaxy Map does not carry smoothly into the star system map: on no system could Boss zoom from the galaxy into the system view as one continuous move (bug)**
   Boss, 2:38 AM EDT 2026-10-25, live observation: 'I should be able to
@@ -20801,6 +20760,12 @@ clears each one.
   one_wheel_scroll_runs, black_hole_markers_have_a_toggle and the
   sector_reach wheel anchor. Fix by scrolling the canvas into view in
   the tests. Owner Aux 10 (taking it after MAP.311).
+  Finding (2026-10-09): Core 2, as the lane reported 3:19 AM EDT
+  2026-10-25:
+  test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it is
+  red on clean main (the view drifts off the line of sight by about
+  0.004 pc); same family as the wheel anchor test Bug 1 is fixing
+  (window shape), Bug 1 checks both in the run.
   Prerequisites: none. Related: MAP.293, TEST.375.
 
 - [ ] **TEST.386 First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp**
@@ -20918,6 +20883,15 @@ clears each one.
   of the names (marked labels). TEST.383 (wheel anchor test, bound
   assumed a square-ish window) handed from Aux 10 to Bug 1, which now
   computes the focus-plane distance of the corner.
+  Finding (2026-10-09): Core 2, as the lane reported 3:19 AM EDT
+  2026-10-25, red on clean main after #3331 (not its change):
+  test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked
+  (tooltip empty on hover of Fixture Maw), likely the same
+  name-takes-the-click cause as the 11 fixture-map tests Bug 1 is
+  fixing, so Bug 1 checks it in that run; and
+  test_sector_map_click_on_the_selected_nebula_clears_it flaked once (no
+  spot named Fixture Veil) and passed on re-run (a second failure is
+  real).
   Prerequisites: none. Related: MAP.297, TEST.390.
 
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
