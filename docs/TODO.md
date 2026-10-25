@@ -3744,6 +3744,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   look at). Done adds: a browser test on a star page, a planet page and
   a moon page samples the rendered example twice and sees it turn at the
   capped rate.
+  Part merged (2026-10-09): Part merged as #3337 (Core 2, as the lane
+  reported 3:56 AM EDT 2026-10-25): planets, moons and stars turn slowly
+  on the System Map and in the 3D system view, each at a speed that
+  follows its real day (fastest one turn in 20 s, slowest one in 10
+  minutes, a longer day never faster), retrograde bodies the other way,
+  bodies with no stored period stay still; a Spin button in the System
+  Map Menu and the reduced-motion setting hold everything still. The
+  shared function is static/spin.js (Spin.turn, tick, pictureAxisOf);
+  the look record now carries spinH, axis and tiltDeg. The rate law is
+  recorded as stand-in SP1 (tier T9, tweak level L4) in gap-filling-plan
+  6.9 and the generated stand-in list. Still open: stars in the sector
+  view (Aux 10) and the object details pages (Aux 11), both on the
+  shared function.
 
 ## NAV: Navigation and courses
 
