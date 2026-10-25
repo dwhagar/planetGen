@@ -1473,3 +1473,8 @@ Baseline: PR #1817.
 | GEN.327 | 8.1 | Multi-star and compact systems |
 | TEST.375 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.374 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.481 | 8.1 | Weight research (atmosphere) |
+| GEN.482 | 8.1 | Weight research (atmosphere) |
+| GEN.654 | 8.1 | Habitability system |
+| DB.92 | 8.1 | Habitability system |
+| GEN.751 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
