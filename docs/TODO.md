@@ -11183,6 +11183,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   absorbed stellar flux term, and a test pins the internal-heat-only
   case. Needs GEN.553 (Aux 2) and GEN.565 first; assigned to a fresh
   lane when GEN.553 lands.
+  Handoff (2026-10-09): Aux 8 (Lane L), as the lane reported 3:52 AM EDT
+  2026-10-25: GEN.817 was already built, not pushed or merged, as one
+  git am-able commit at
+  /mnt/project-files/handoffs/gen817-rogue-air-routing-2026-10-25.patch
+  (made on the pre-4c main; conflicts only in the registry rows). It
+  holds physics/rogue_air.py (a rogue's mixture-draw subject with no
+  host and no starlight, the setting fields the air solve takes, a
+  giant's reference temperature from its own cooling),
+  rogue_surface.rocky_heat and radiated_flux_w_m2 (internal heat plus
+  the background as the greenhouse's energy; same draws as before), the
+  retention rows d reading host_type none (delta -30: a rogue keeps what
+  it degasses; unchanged for every bound body), 31 tests that draw a
+  mixture for each rogue class C D S I J T, a docs section, and a
+  stand-in row for the formation distance over the snow line (drawn 0.03
+  to 4, log). The lane that builds this item applies it with git am
+  instead of rebuilding it.
 - [ ] **GEN.558 Moons of wanderers: ejection survivors and isolated-disk moons are table rows, and the fixed 20% boolean is gone**
   Part of GEN.550 (Boss's request, 2026-10-17, 11:19 and 11:21 PM EDT as
   the coordinator relayed). Design draft
