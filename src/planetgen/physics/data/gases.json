@@ -8773,6 +8773,94 @@
    "state": "partly verified",
    "limit": "identity not reached",
    "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "AlO",
+   "name": "aluminum monoxide",
+   "cas": null,
+   "molar_mass_research_g_mol": 42.981,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 30.91,
+    "1000": 37.14
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "Al2O",
+   "name": "dialuminum monoxide",
+   "cas": null,
+   "molar_mass_research_g_mol": 69.963,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 52.04,
+    "1000": 60.65
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "AlO2",
+   "name": "aluminum dioxide",
+   "cas": null,
+   "molar_mass_research_g_mol": 58.98,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 51.73,
+    "1000": 60.7
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
+  },
+  {
+   "formula": "Al2O2",
+   "name": "dialuminum dioxide",
+   "cas": null,
+   "molar_mass_research_g_mol": 85.962,
+   "ir": null,
+   "volatility": null,
+   "photolysis_threshold_nm": null,
+   "photolysis_channel": null,
+   "absorbs_near_uv": null,
+   "identity_status": "NOT REACHED",
+   "cp_j_mol_k": {
+    "100": null,
+    "300": 68.23,
+    "1000": 83.8
+   },
+   "extras_note": "no phase data; free energy in species_thermo.py",
+   "thermal_status": "COMPUTED",
+   "state": "partly verified",
+   "limit": "identity not reached",
+   "source": "docs/design/composition/atmosphere-composition-parts/01-gas-table-thermodynamics.md T1, T2, T3 (section 5 for the species it adds)"
   }
  ]
 }

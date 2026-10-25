@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 127 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 128 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 21 | 0 | 3 | 0 | 0 | 24 |
 | T2 | 31 | 0 | 0 | 0 | 0 | 31 |
-| T3 | 27 | 0 | 0 | 0 | 0 | 27 |
+| T3 | 28 | 0 | 0 | 0 | 0 | 28 |
 | T4 | 5 | 0 | 0 | 0 | 0 | 5 |
 | T5 | 5 | 3 | 0 | 0 | 0 | 8 |
 | T6 | 10 | 5 | 1 | 4 | 0 | 20 |
 | T7 | 9 | 2 | 0 | 1 | 0 | 12 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 108 | 10 | 4 | 5 | 0 | 127 |
+| All | 109 | 10 | 4 | 5 | 0 | 128 |
 
 ## How the labels were given
 
@@ -209,3 +209,4 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM48 | B | T3 | L0 | sulfur_balance.CRUST_CALCIUM_WT | 0.085, fixed | the crust the volcanism builds (a basalt) | test_sulfur_balance::test_the_capacity_is_one_calcium_and_one_iron_per_sulfur | the crust composition of the surface composition model | READ from memory, not re-checked (mid-ocean ridge basalt 11.9 wt% CaO, White and Klein 2014) |
 | AM49 | B | T3 | L0 | sulfur_balance.CRUST_IRON_WT | 0.074, fixed | the crust the volcanism builds (a basalt) | test_sulfur_balance::test_the_capacity_is_one_calcium_and_one_iron_per_sulfur | the crust composition of the surface composition model | READ from memory, not re-checked (mid-ocean ridge basalt 9.5 wt% FeO, White and Klein 2014) |
 | AM50 | B | T1 | L2 | mixture_rocky.INVENTORY | dry class CO2 0.018 to 0.1 wt%, log | rocky bodies | test_volatile_inventory_totals::test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it | the Ortenzi dry case reproduced, or the carbon of the Venus and Mars interiors | READ (Ortenzi et al. 2020 Table 1: dry class stored 0.018 wt% CO2, wet High delivered 0.1) and tuned to the bulk silicate Earth's 100 ppm carbon (Bergin et al. 2015 Table S1); the delivered 0.6 wt% is not used (GEN.813) |
+| AM51 | B | T3 | L0 | mixture_lava.ALUMINA_ACTIVITY_COEFFICIENT | 1, fixed (Al2O3 activity is its mole fraction) | a silicate melt near the bulk silicate Earth's (a more aluminous or alkali-rich melt is not ideal) | test_atmosphere_mixture_lava::test_a_more_aluminous_melt_has_more_aluminium_in_its_vapour | the melt activity model of GEN.499 | SECOND-HAND (Fegley, Lodders and Jacobson 2023: the activity-coefficient models of the BSE melt agree with an ideal solution except for the alkalis, aluminium not among the sensitive elements; abstract only) |
