@@ -395,8 +395,8 @@ def test_a_node_keeps_what_the_page_reads():
     assert node["aggregate"]["lights"]["star_luminosity_sol"] == 1234.5679
     assert node["stars"][0] == {
         "id": 7, "x": 1.235, "y": -2.0, "z": 0.0, "luminosity_sol": 1235.0, "temperature_k": 5780,
-        "radius_sol": 1.23, "star_type": "G"}
-    assert node["generated"][0]["system_id"] == 12 and "name" not in node["generated"][0]
+        "radius_sol": 1.23, "star_type": "G", "name": "Named"}
+    assert node["generated"][0]["system_id"] == 12 and node["generated"][0]["name"] == "Named"
 
 
 def test_a_star_without_a_radius_or_temperature_stays_without(api):

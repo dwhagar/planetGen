@@ -2686,8 +2686,22 @@ export function createStageView(host) {
     if (layer && layer.hover) layer.hover(found.entry);
   }
 
+  // MAP.298: the name under the pointer (the label engine's), lit and the pointer a hand; null when none.
+  function labelUnder(event) {
+    return host.labelAt ? host.labelAt(event.clientX, event.clientY) : null;
+  }
+
   function hoverAt(event) {
     if (animation || event.pointerType === "touch") return;
+    const label = labelUnder(event);
+    if (host.labelHot) host.labelHot(label ? label.id : null);
+    canvasEl.style.cursor = label ? "pointer" : "";
+    if (label) {
+      hoverOther(null);
+      if (hover && !hover.sticky) setHover(null);
+      showTooltip("", 0, 0);
+      return;
+    }
     const found = picker.pick(event.clientX, event.clientY, pointerLayers);
     hoverOther(found);
     if (found && found.layer !== choiceLayer) {
@@ -2707,6 +2721,13 @@ export function createStageView(host) {
 
   function clickAt(event, type) {
     if (animation) return;
+    // MAP.298: a click on a name selects its item and flies the camera to it.
+    const label = labelUnder(event);
+    if (label && host.labelAct) {
+      showTooltip("", 0, 0);
+      host.labelAct(label);
+      return;
+    }
     // Inside a container, a phenomenon under the click is shown rather
     // than the block picked. Stars never take the click (MAP.101): in a
     // dense sector they would hide it.
@@ -2764,6 +2785,7 @@ export function createStageView(host) {
   // camera to it. On anything else it is two clicks, as ever (a touch screen's second tap on a block acts on it).
   function doubleClickAt(event, type) {
     if (animation) return;
+    if (labelUnder(event)) return;
     const found = picker.pick(event.clientX, event.clientY, pointerLayers);
     // MAP.245: on empty space (nothing picked) it flies half way toward the point under the pointer. A block stays
     // two clicks.
@@ -3444,6 +3466,7 @@ export function createStageView(host) {
         id: "sector:" + (record.id !== undefined && record.id !== null ? record.id : cellKey(block)),
         text: record.name || "Sector " + S.sectorDesignation(block.shell, block.band, block.wedge),
         x: middle[0], y: middle[1], z: middle[2], sizePc: edgePc,
+        ref: { kind: "sector", sector: { shell: block.shell, band: block.band, wedge: block.wedge } },
       });
     });
     return labels;
@@ -3456,7 +3479,7 @@ export function createStageView(host) {
     return sectorStage.entries().filter(function (e) {
       return e.name && e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !sectorStage.hides(e);
     }).map(function (e) {
-      return { id: e.endpoint, text: e.name, x: e.x, y: e.y, z: e.z, luminositySol: e.luminositySol || 0 };
+      return { id: e.endpoint, text: e.name, x: e.x, y: e.y, z: e.z, luminositySol: e.luminositySol || 0, ref: { kind: "system", entry: e } };
     });
   }
 
@@ -3464,11 +3487,20 @@ export function createStageView(host) {
   // the body in parsecs, so its label shows once it is a few pixels across).
   function bodyLabels() {
     return systemStage.entries().filter(function (e) { return e.name && e.r > 0; }).map(function (e) {
-      return { id: e.ref, text: e.name, x: e.x, y: e.y, z: e.z, sizePc: 2 * e.r };
+      return { id: e.ref, text: e.name, x: e.x, y: e.y, z: e.z, sizePc: 2 * e.r, ref: { kind: "body", entry: e } };
     });
   }
 
+  // MAP.298: a click on a body's name selects the body and flies to it.
+  function selectBody(entry) {
+    if (!entry) return;
+    systemStage.select(entry.ref);
+    flyToBody(entry);
+  }
+
   return {
+    flyToEntry: flyToEntry,
+    selectBody: selectBody,
     bodyLabels: bodyLabels,
     sectorLabels: sectorLabels,
     systemLabels: systemLabels,

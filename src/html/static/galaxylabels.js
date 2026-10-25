@@ -23,6 +23,8 @@ export const LABEL_KINDS = [
   { id: "label-sector", kind: "sector", label: "Sector names", title: "Show or hide the names of generated sectors" },
   { id: "label-system", kind: "system", label: "System names", title: "Show or hide the names of the stars of the open sector" },
   { id: "label-body", kind: "body", label: "Body names", title: "Show or hide the names of the planets and moons of an open system" },
+  { id: "label-star", kind: "star", label: "Star names", title: "Show or hide the names of the named stars in view" },
+  { id: "label-object", kind: "object", label: "Object names", title: "Show or hide the names of the other named objects in view: comets, rogue planets, black holes, neutron stars and the rest" },
   { id: "label-nebula", kind: "nebula", label: "Nebula names", title: "Show or hide the names of nebulae and remnants" },
 ];
 
@@ -30,7 +32,7 @@ export const LABEL_KINDS = [
 // camera is inside it, or it fills the view).
 export const MIN_PIXELS = { sector: 36, nebula: 48, body: 6 };
 export const MAX_PIXELS = { sector: 900, nebula: 1400 };
-const TIER = { nebula: 200, body: 150, sector: 100, system: 0 };
+const TIER = { nebula: 200, body: 150, sector: 100, system: 0, star: 0, object: 0 };
 const REFRESH_MS = 120;
 
 export function createGalaxyLabels(options) {
@@ -80,7 +82,7 @@ export function createGalaxyLabels(options) {
     function ranged(kind, item, priority, depth) {
       const pixels = item.pixels !== undefined ? item.pixels : item.sizePc ? pixelsFor(item.sizePc, depth) : undefined;
       found.push({
-        id: item.id, kind: kind, text: item.text, x: item.x, y: item.y, z: item.z, priority: TIER[kind] + priority,
+        id: item.id, kind: kind, text: item.text, x: item.x, y: item.y, z: item.z, priority: TIER[kind] + priority, ref: item.ref,
         pixels: pixels, minPixels: MIN_PIXELS[kind], maxPixels: MAX_PIXELS[kind],
       });
     }
@@ -99,14 +101,19 @@ export function createGalaxyLabels(options) {
     if (layers.isOn("label-sector")) {
       sources.sectors().forEach(function (item) { ranged("sector", item, 0, depthOf(item)); });
     }
-    if (layers.isOn("label-system")) {
-      sources.systems().forEach(function (item) {
+    // The stars of a sector, the stars of the galaxy in view and the other objects (comets, rogue planets, black
+    // holes...) are ranked alike, by apparent brightness, so in a crowd the brightest keeps its name (MAP.299).
+    function brightest(kind, items) {
+      items.forEach(function (item) {
         const depth = Math.max(depthOf(item), 0.01);
         // Apparent brightness on a log scale, 0 to 99 within the tier.
         const priority = Math.max(0, Math.min(99, 50 + 10 * (Math.log10(Math.max(item.luminositySol || 0, 1e-6)) - 2 * Math.log10(depth))));
-        ranged("system", item, priority, depth);
+        ranged(kind, item, priority, depth);
       });
     }
+    if (layers.isOn("label-system")) brightest("system", sources.systems());
+    if (sources.stars && layers.isOn("label-star")) brightest("star", sources.stars());
+    if (sources.objects && layers.isOn("label-object")) brightest("object", sources.objects());
     return found;
   }
 
@@ -130,5 +137,5 @@ export function createGalaxyLabels(options) {
     layer.update(candidates());
   }
 
-  return { update: update, shown: layer.shown, element: container, clear: layer.clear };
+  return { update: update, shown: layer.shown, element: container, clear: layer.clear, at: layer.at, setHot: layer.setHot };
 }
