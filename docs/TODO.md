@@ -14535,27 +14535,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merged (#2159).
   Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
 
-- [ ] **PERF.125 The population pass and the territories pass are separate commands**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. Today `planetgen
-  population` runs the population pass and, by `--territories-only` and
-  `--rescan`, the territories pass (`model.run_pass`,
-  `pass_stage_count`). Done: the population pass and the territories
-  pass are each their own command with their own parameters, registered
-  with the wrapper and runnable alone, with `--territories-only` removed
-  and no shim; the same stored rows as today for the same seed. Owner:
-  Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.120. Related: PERF.107, PERF.114,
-  PERF.120.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
-
 - [ ] **PERF.128 `benchmark` is a step list handed to the wrapper, not a sequence of its own**
   Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
   we can build whatever sequences we want" (the principle of 4:18 PM
