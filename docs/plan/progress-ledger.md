@@ -1436,3 +1436,4 @@ Baseline: PR #1817.
 | GEN.398 | 8.1 | Bugs and flaky tests |
 | GEN.719 | 8.1 | Nebula and young stars |
 | GEN.691 | 8.1 | Habitability system |
+| GEN.725 | 8.1 | Mixture and stored values |
