@@ -34,7 +34,7 @@ Rules:
 | [#3230](https://github.com/dwhagar/planetGen/issues/3230) | open | Dead tuning knobs and uncalled helpers are deleted (unused values G7) | OPS.72, OPS.73, OPS.74, GEN.754 |
 | [#3229](https://github.com/dwhagar/planetGen/issues/3229) | open | Facility constants are registered and a facility's richness reads the host composition (unused values G6) | POP.39, POP.44, POP.45, POP.37, GEN.799 |
 | [#3228](https://github.com/dwhagar/planetGen/issues/3228) | open | Generation timing records are shown or no longer recorded (unused values G5) | PERF.195, PERF.196, PERF.197 |
-| [#3227](https://github.com/dwhagar/planetGen/issues/3227) | open | Search, lists, Nearby and the API filter and sort on every stored physical number (unused values G4) | UX.225, UX.226, UX.227, UX.228, UX.214, UX.150 |
+| [#3227](https://github.com/dwhagar/planetGen/issues/3227) | open | Search, lists, Nearby and the API filter and sort on every stored physical number (unused values G4) | UX.225, UX.226, UX.227, UX.228, UX.214, UX.150, UX.232 |
 | [#3226](https://github.com/dwhagar/planetGen/issues/3226) | open | Giant planet interior outputs feed the field, the heat and the description (unused values G3) | GEN.801, GEN.809, GEN.810, GEN.811, GEN.733, GEN.735, GEN.736 |
 | [#3225](https://github.com/dwhagar/planetGen/issues/3225) | open | Magnetosphere and stellar activity outputs are read by escape, dose and habitability (unused values G2) | GEN.800, GEN.804, GEN.805, GEN.806, GEN.807, GEN.808, GEN.736, GEN.738, GEN.746, GEN.749, GEN.788 |
 | [#3224](https://github.com/dwhagar/planetGen/issues/3224) | open | Species traits and facility ratings use the homeworld and host physics (unused values G1) | POP.38, POP.40, POP.41, POP.42, POP.43, POP.37, POP.17 |

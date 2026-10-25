@@ -1402,6 +1402,25 @@ with `clamp()`.
   Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826, API.35,
   MAP.314, MAP.315.
 
+- [ ] **UX.232 Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug)**
+  Boss, 2:45 AM EDT 2026-10-25, live observation: searching planets for
+  Class M, clicking the planet link in a result row led to a bad link;
+  the star system link in the same row worked. Repro: open the search
+  page, search planets with class M, click the planet name in any row.
+  Do: find the href the search row builds for a planet (object id form,
+  address or slug), compare it with the one the planet page route
+  accepts and with the star link, fix the builder in one place so every
+  list (search, Nearby, object lists, the API's links) builds object
+  links the same way, and look at the other object kinds in the same
+  rows (moons, belts, fields) for the same fault. Done: a test fetches
+  the planet links of the first rows of a class search (planets, moons,
+  belts) and every link answers 200 with the right object; a
+  link-builder test pins one function for all lists. Owner: Aux 11
+  (object pages and lists), Aux 12 if the fault is in the API's link
+  field. Rules: no backward-compat shims; tests are scripts/test.py
+  changed --resume.
+  Prerequisites: none. Related: UX.150, UX.214, UX.225.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
