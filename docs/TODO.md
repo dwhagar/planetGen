@@ -3114,6 +3114,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (clicking, labels, zoom, icons; Aux 10). Owner: Aux 10 (MAP.220's
   marker code is its to extend); MAP.293 (colour-by Habitable) is the
   same area, so it goes first.
+  Revision (2026-10-09): Revision (Boss, 1:19 AM EDT 2026-10-25): the
+  world's mark is now its own habitable-world icon (MAP.320), carried by
+  the star in the star views and by the planet or moon itself at the
+  system level (MAP.321).
   Prerequisites: TEST.368, MAP.305. Related: MAP.220, MAP.293, GEN.643, MAP.298.
 
 - [ ] **MAP.305 Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug)**
@@ -3158,6 +3162,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   code of MAP.220 and the node cut).
   Prerequisites: TEST.368. Related: MAP.303, MAP.304, MAP.220, MAP.299,
   MAP.298.
+  Revision (2026-10-09): Revision (Boss, 1:19 AM EDT 2026-10-25): the
+  rule of one generic mark with no icon per kind is replaced by distinct
+  vector icons per kind (MAP.320) and markers by level (MAP.321); the
+  registry, merging of crowded marks and the click that lists the
+  reasons stay as written here.
 
 - [ ] **MAP.306 The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug)**
   Boss, 7:37 PM EDT 2026-10-24 (message
@@ -3340,6 +3349,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --resume`; no fixed content from the Milky Way or the Solar System.
   Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
   2026-10-24 (fix each): Aux 10 (map nodes and menu), after MAP.306.
+  Revision (2026-10-09): Revision (Boss, 1:19 AM EDT 2026-10-25): the
+  markers use the distinct token set of MAP.320 (habitable world,
+  inhabited world coloured by habitability score, uninhabitable world,
+  gas giant, asteroid field) and the level rules of MAP.321; the life,
+  sentient and civilization filters sit beside them in the same menu.
   Prerequisites: none. Related: MAP.220, MAP.303, MAP.306, MAP.307.
 
 - [ ] **MAP.312 Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter**
@@ -3487,25 +3501,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a marker that is drawn. Budget N = screen area over the label cell, so
   a sparse region labels everything it draws and a dense one trims.
   Slices, each ranked by its own metric and merged without duplicates,
-  empty slices lending their share: inhabited locations by population,
-  ranked per type (planets, moons, stations and so on, so a station does
-  not compete with a planet); uninhabited planets, moons and
-  non-luminous star-like objects by mass per category, and a planet or
-  moon with no population listed is ranked by mass like the other
-  uninhabited bodies (Boss, 1:15 AM EDT 2026-10-25), so the inhabited
-  slice is not empty in 8.1; stars by size, brightness and mass (a third
-  each, a star in two lists counts once and the next in line fills);
-  nebulae and dust clouds by volume; regions by share charted, ties by
-  population, labelled first at the farthest zooms. Default weights
-  inhabited 30, stars 30, uninhabited 25, nebulae 10 percent with unused
-  budget redistributed, constants beside the star-fade ones. Done: unit
-  tests on the dense fixture, a sparse fixture labels every drawn
-  marker, no label for an undrawn one. Owner: Aux 10. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
+  empty slices lending their share: the inhabited slice is worlds with a
+  population ranked by population, per type (planets, moons, stations
+  and so on, so a station does not compete with a planet), plus
+  habitable worlds ranked by habitability score until population exists,
+  so in 8.1 the slice is the habitable worlds and still uses its budget
+  (Boss, 1:19 AM EDT 2026-10-25, design section 0.3); uninhabitable
+  worlds, gas giants and asteroid fields are the uninhabited slice,
+  ranked by mass per category with an equal share per category (rocky or
+  icy world, gas giant, asteroid field), and non-luminous star-like
+  objects with them; stars by size, brightness and mass (a third each, a
+  star in two lists counts once and the next in line fills); nebulae and
+  dust clouds by volume; regions by share charted, ties by population,
+  labelled first at the farthest zooms. Default weights inhabited 30,
+  stars 30, uninhabited 25, nebulae 10 percent with unused budget
+  redistributed, constants beside the star-fade ones. Done: unit tests
+  on the dense fixture, a sparse fixture labels every drawn marker, no
+  label for an undrawn one. Owner: Aux 10. Rules: no backward-compat
+  shims; every number has a unit or scale (GEN.772); tests are
+  scripts/test.py changed --resume.
   Prerequisites: API.35. Related: MAP.316, MAP.314, MAP.293.
 
-- [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank by mass until then (regions chain, step 3d)**
+- [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d)**
   Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
   what the galactic-level map shows so a user can always drill down to
   inhabited space; a region is a 9-block cell with at least one
@@ -3517,13 +3534,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   polities, system ownership; planetgen population) stores no head
   counts: the world population simulation is POP.30 (8.3) and cities
   POP.19 (8.4). Build the slot now: a ranking function that takes
-  population when a body has one and mass when it has none, a population
-  column in the charted-regions list that is hidden while no region has
-  one (rule: absent values hidden), and tests with a fixture that
-  carries populations. Fills when POP.30 stores them. Done: the slot and
-  fixture tests pass, nothing waits on POP.30. Owner: Aux 10. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
+  population when a body has one and the habitability score when it has
+  none (habitable worlds), so the inhabited slice of MAP.317 is the
+  habitable worlds until population exists, a population column in the
+  charted-regions list that is hidden while no region has one (rule:
+  absent values hidden), and tests with a fixture that carries
+  populations. Fills when POP.30 stores them. Done: the slot and fixture
+  tests pass (a populated fixture ranks by population, an unpopulated
+  habitable one by habitability score), nothing waits on POP.30. Owner:
+  Aux 10. Rules: no backward-compat shims; every number has a unit or
+  scale (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: MAP.317, MAP.316. Related: MAP.317, MAP.316, POP.30,
   POP.19.
 
@@ -3551,6 +3571,105 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests are scripts/test.py changed --resume.
   Prerequisites: GEN.827, API.35. Related: GEN.827, MAP.316, MAP.295,
   MAP.296, MAP.152.
+
+- [ ] **MAP.320 Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant and asteroid field**
+  Boss, 1:19 AM EDT 2026-10-25 (relayed by the coordinator): "show them
+  with inhabited tokens for POI that is the habitability color, and
+  let's actually make some different POI icons, habitable planets get a
+  vector svg symbol, uninhabitable worlds get a different symbol in
+  brown or grey, doesn't have to be red. Inhabited worlds get their own
+  icon and are colored by the habitability score. Gas giants have their
+  own symbol, asteroid fields should have a POI symbol too, and by
+  habitable worlds and such I'm saying a star with a world like that in
+  the star views but in the star system level, it would be the planet or
+  moon POI that would be on the map." This replaces the earlier rule of
+  one generic mark with no icon per kind (MAP.303, MAP.305, 7:35 PM EDT
+  2026-10-24). Do: one small SVG symbol set (a sprite, drawn as vectors,
+  readable at map size in both themes and for colour-blind viewers by
+  shape, with an accessible name per kind): a habitable world (PHI-6
+  Blue, Green, and Yellow where the star already counts), an
+  uninhabitable world in brown or grey (not red), an inhabited world
+  with its own symbol coloured by the habitability score and colour (the
+  same palette as the object pages), a gas giant, and an asteroid belt
+  or field. The point-of-interest registry of MAP.305 keeps merging
+  crowded marks into one with a count; the merged mark shows the
+  strongest kind's symbol. The menu rows of MAP.306 carry the same
+  symbols. Done: a browser test per kind finds its symbol, the inhabited
+  one in the habitability colour, the uninhabitable one in brown or grey
+  and never red, in light and dark, and the accessible names exist.
+  Files: one SVG each in static/poi/ (static/poi/*.svg), drawn at a
+  fixed pixel size with the colour set by a CSS variable; the colours
+  come from the one habitability palette the object pages already use
+  (describe/), with new brown and grey tokens added there and a
+  colour-blind-safe check (the habitability colours differ in lightness
+  from brown and grey); a legend that names every token, in the map menu
+  and on the object pages; the existing tokens (black hole, neutron
+  star, quasar, nebula) are unchanged. The best world's token and
+  habitability score ride the existing node worlds payload (MAP.220), no
+  new endpoint (design section 0.3). Owner: Aux 10 (the legend on the
+  object pages with Aux 11). Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: MAP.305. Related: MAP.303, MAP.305, MAP.306, MAP.311,
+  MAP.312, MAP.316.
+
+- [ ] **MAP.321 Point-of-interest markers by level: a star carries its best world marker in the star views, the planet or moon carries its own marker at the system level, and regions show inhabited tokens**
+  Boss, 1:19 AM EDT 2026-10-25 (relayed by the coordinator): "show them
+  with inhabited tokens for POI that is the habitability color, and
+  let's actually make some different POI icons, habitable planets get a
+  vector svg symbol, uninhabitable worlds get a different symbol in
+  brown or grey, doesn't have to be red. Inhabited worlds get their own
+  icon and are colored by the habitability score. Gas giants have their
+  own symbol, asteroid fields should have a POI symbol too, and by
+  habitable worlds and such I'm saying a star with a world like that in
+  the star views but in the star system level, it would be the planet or
+  moon POI that would be on the map." This replaces the earlier rule of
+  one generic mark with no icon per kind (MAP.303, MAP.305, 7:35 PM EDT
+  2026-10-24). Do: (1) galaxy, region and sector scale: the token sits
+  on the star that hosts the world, one marker per star, the best
+  world's token (the world with the highest habitability score; an
+  inhabited world uses the inhabited icon, a habitable one the habitable
+  icon, an uninhabitable one the brown or grey icon, a gas giant its
+  own), a count on hover when the system holds several, and nothing is
+  drawn for planets themselves here; (2) the star-system level (System
+  Map): the planet or moon itself carries its own marker with its own
+  symbol (a belt shows the asteroid-field token), moons carry their own
+  token around their planet, the star does not repeat it, and flying
+  into a system swaps the star-hosted tokens for body tokens under the
+  same hand-off hysteresis (MAP.152) as the other scale changes; (3) the
+  galactic-level region nodes of MAP.316 show inhabited tokens for the
+  inhabited worlds inside, in the habitability colour, so a user can
+  drill to inhabited space; (4) an asteroid belt or field is a reason in
+  the registry (any belt or field now, valuable ones with their resource
+  rows later in MAP.312); (5) the markers follow the label budget
+  (MAP.317): a marker is drawn before it is labelled, and an inhabited
+  token is always a candidate for a label. Done: browser tests on the
+  fixture galaxy (TEST.368) at galaxy, sector and system level find the
+  marker on the right object per rule, none on both the star and its
+  planet, the region tokens in the habitability colour, and a hysteresis
+  test that the swap does not flicker at the scale boundary. Owner: Core
+  2. Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); tests are scripts/test.py changed --resume; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: MAP.320, MAP.316. Related: MAP.320, MAP.305, MAP.311,
+  MAP.312, MAP.316, MAP.317.
+
+- [ ] **MAP.322 Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e)**
+  Boss, 1:20 AM EDT 2026-10-25 (relayed by the coordinator): "inside the
+  lowest level of shared name regions, it would be the most densely
+  filled (total mass) sectors." In the label budget of MAP.317, when a
+  region is drawn at its lowest level (the cell's own sectors), the
+  sectors that are drawn first and offered a label are ranked by total
+  mass of the sector's generated contents (stars, planets, moons, belts,
+  nebulae), densest first, so a crowded region names its heaviest
+  sectors and a sparse one names all. Total mass per sector is the
+  stored mass_sum (DB.108). Done: a fixture region with sectors of
+  different total mass labels the heaviest first and drops the lightest
+  when the budget is short, and a sparse fixture labels all. Owner: Aux
+  10. Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); tests are scripts/test.py changed --resume.
+  Prerequisites: MAP.317, DB.108. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
 
 ## NAV: Navigation and courses
 
@@ -17062,6 +17181,27 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   --resume.
   Prerequisites: GEN.825, GEN.827. Related: GEN.825, GEN.827.
 
+- [ ] **DB.108 Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e)**
+  Design section 0.4 of
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md,
+  Boss 1:20 AM EDT 2026-10-25: inside the lowest-level region the
+  sectors shown are taken densest first by total mass, which needs a
+  stored mass. Add mass_sum (kilograms, the sum of the masses of the
+  sector's generated stars, planets, moons, belts, comets, nebulae and
+  the other stored bodies) to the sector-level block stats row and to
+  region_stats (DB.107), maintained by the same save and delete hook
+  (db/block_stats.py, about 109 cells per recompute), with its unit
+  entry in db/column_units.py in the same PR. One migration plus a
+  backfill command with the skip-and-list rule for sectors that cannot
+  be summed (list them, never guess), epoch row at merge as DB.100 did.
+  Done: a sector's mass_sum equals the sum of its bodies in a test,
+  saving and deleting update it, the region sum equals its sectors, the
+  backfill fills an existing galaxy, order-independence test passes.
+  Owner: Core 3 (with DB.107). Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume.
+  Prerequisites: DB.107. Related: DB.107, MAP.322, MAP.317.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -20738,27 +20878,6 @@ clears each one.
   Prerequisites: none. Related: TEST.344, MAP.295, MAP.297, MAP.298,
   MAP.299, MAP.300, MAP.301.
 
-- [ ] **TEST.370 test_web_pages in_process_transport fails: DatabaseLoginError, there is no planetgen database account on the lane machine (bug)**
-  Found by Bug 1 running scripts/test.py quick on clean main (8:00 PM
-  EDT 2026-10-24 as the lane reported):
-  test_web_pages::in_process_transport fails with a DatabaseLoginError
-  because the 'planetgen' account does not exist on a fresh lane
-  machine; this is the gap left by OPS.62 (the setup script verify step)
-  which creates the schema but not that account. Do: make the test use
-  the test account the other web tests use, or have the setup script
-  (and the lane machine bootstrap in /etc/profile.d/planetgen-test.sh)
-  create the account, so scripts/test.py quick is green on a clean
-  machine; no skip. Done: the test passes on a lane machine set up from
-  the documented script. Owner: Bug 1. Related: OPS.62, TEST.364.
-  Research (2026-10-09, Core 5 full run): Core 5 (8:06 PM EDT 2026-10-24
-  as the lane reported) saw 44 failures in a full run on its lane
-  machine, all but two also red on the base commit: test_web_facilities
-  x18, test_class_pages x6 and others. TEST.350 and TEST.365 were
-  merged, so these are most likely the same lane machine gap (missing
-  planetgen database account). Bug 1: check them on a machine set up as
-  documented before filing anything new.
-  Prerequisites: none. Related: OPS.62, TEST.364.
-
 - [ ] **TEST.380 First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp**
   Boss, 9:21 PM EDT 2026-10-24 (relayed by the coordinator): "When are
   we due to fully do civilizations and territories? We haven't even
@@ -20969,20 +21088,6 @@ clears each one.
   tables is the first suspect. Done: confirmed or cleared with the
   commit named; if real, fixed with a test. Owner: Bug 1.
   Prerequisites: none. Related: TEST.384, GEN.512, GEN.761.
-
-- [ ] **TEST.390 More tests red on a clean copy of main: runner self-tests (on_child), admin queue log route 403, cache warm-up, test_stages, test_web_fresh_after_cli, test_workers killed worker, phenomenon diagram zoom tests, test_web_browser_tables life scores (bug)**
-  Reported by Aux 10 (12:50 AM EDT 2026-10-25) as failing on main and
-  not caused by its work: the runner self-tests (on_child), the admin
-  queue log route returning 403, the cache warm-up test, test_stages,
-  test_web_fresh_after_cli, the killed-worker test in test_workers, the
-  phenomenon diagram zoom tests, and the life scores in
-  test_web_browser_tables. Rerun each alone on a clean main first
-  (several may be gate load or the stale epoch 102 golden fixed by
-  GEN.466); fix every real one at the cause, never skip. Done: the list
-  is green on a clean main or each remaining failure has its own item.
-  Owner Bug 1 (after TEST.384). Rules: no backward-compat shims; tests
-  are scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.384, TEST.383.
 
 ## USR: User accounts
 
