@@ -704,11 +704,20 @@ are stable.
 
 | Rating | Inputs | Score |
 |---|---|---|
-| Health | species Medical index, host habitability (breathable, radiation, gravity against build), orbital or surface | 0.5 Medical/7 + 0.5 habitability |
-| Housing | host habitability, Materials index, kind | 0.5 habitability + 0.3 Materials/7 + 0.2 kind size |
-| Resources | host richness (belt against bare orbit), Energy index, distance to the owner's capital | 0.4 host richness + 0.3 Energy/7 + 0.3 (1 - distance/reach) |
+| Health | species Medical index, host habitability (PHI-4), the host's radiation domain (`phi4_radiation`) and the food rung of its Suitability, orbital or surface | 0.4 Medical/7 + 0.2 habitability + 0.2 radiation + 0.2 food |
+| Housing | host habitability, the host's Suitability (`phi4_suitability`), Materials index, kind | 0.25 habitability + 0.25 Suitability + 0.3 Materials/7 + 0.2 kind size |
+| Resources | host richness (belt against bare orbit), Energy index, distance to the owner's capital; on a living world its Flora and Fauna | 0.4 host richness + 0.3 Energy/7 + 0.3 (1 - distance/reach); on a living world 0.3 host richness + 0.2 biota + 0.25 Energy/7 + 0.25 (1 - distance/reach) |
 | Maintenance | Materials and Energy index, distance to capital, harshness | similar |
 | Crime | Information index, polity government form, distance from capital, unaffiliated penalty | |
+
+POP.37 sources and weights. Habitability is the host's stored `phi4`, radiation its `phi4_radiation`, Suitability its
+`phi4_suitability`. Food is the Suitability food rung (`habitability.food_score`) worked out again from the host's stored
+Microbial, Flora and Fauna scores (`life_scores.food_stage`; microbes under ice or in a deep aquifer count as none), so
+Health agrees with the Suitability sentence ("no food readily available"). Biota is (Flora + Fauna) over 18; it is read
+only where Flora or Fauna is above 0, so a belt, an orbit, a lifeless world and a world with no score keep the first
+Resources weights and a living world's Resources can rate above a lifeless world of the same richness. An orbital host
+reads the orbital habitability constant for habitability, radiation, Suitability and food. A rating that was already set
+(including one generated before POP.37) is never changed; clear a rating to get the new suggestion.
 
 Inputs that exist today: the host (type, body type, gravity, temperature),
 distance (`system_owners.distance_ly`), and after POP.9 the six indices;
