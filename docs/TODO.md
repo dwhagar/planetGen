@@ -3507,19 +3507,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   habitable worlds ranked by habitability score until population exists,
   so in 8.1 the slice is the habitable worlds and still uses its budget
   (Boss, 1:19 AM EDT 2026-10-25, design section 0.3); uninhabitable
-  worlds, gas giants and asteroid fields are the uninhabited slice,
-  ranked by mass per category with an equal share per category (rocky or
-  icy world, gas giant, asteroid field), and non-luminous star-like
-  objects with them; stars by size, brightness and mass (a third each, a
-  star in two lists counts once and the next in line fills); nebulae and
-  dust clouds by volume; regions by share charted, ties by population,
-  labelled first at the farthest zooms. Default weights inhabited 30,
-  stars 30, uninhabited 25, nebulae 10 percent with unused budget
-  redistributed, constants beside the star-fade ones. Done: unit tests
-  on the dense fixture, a sparse fixture labels every drawn marker, no
-  label for an undrawn one. Owner: Aux 10. Rules: no backward-compat
-  shims; every number has a unit or scale (GEN.772); tests are
-  scripts/test.py changed --resume.
+  worlds, gas giants and asteroid belts and fields are the uninhabited
+  slice, ranked by mass per category, where an asteroid belt includes
+  the asteroid fields and those are ranked by the total volume of the
+  region they occupy as a proxy for their mass (Boss, 1:32 AM EDT
+  2026-10-25) with an equal share per category (rocky or icy world, gas
+  giant, asteroid field), and non-luminous star-like objects with them;
+  stars by size, brightness and mass (a third each, a star in two lists
+  counts once and the next in line fills); nebulae and dust clouds by
+  volume; regions by share charted, ties by population, labelled first
+  at the farthest zooms. Default weights inhabited 30, stars 30,
+  uninhabited 25, nebulae 10 percent with unused budget redistributed,
+  constants beside the star-fade ones. Done: unit tests on the dense
+  fixture, a sparse fixture labels every drawn marker, no label for an
+  undrawn one. Owner: Aux 10. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume.
   Prerequisites: API.35. Related: MAP.316, MAP.314, MAP.293.
 
 - [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d)**
@@ -3572,7 +3575,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.827, API.35. Related: GEN.827, MAP.316, MAP.295,
   MAP.296, MAP.152.
 
-- [ ] **MAP.320 Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant and asteroid field**
+- [ ] **MAP.320 Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region**
   Boss, 1:19 AM EDT 2026-10-25 (relayed by the coordinator): "show them
   with inhabited tokens for POI that is the habitability color, and
   let's actually make some different POI icons, habitable planets get a
@@ -3584,33 +3587,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the star views but in the star system level, it would be the planet or
   moon POI that would be on the map." This replaces the earlier rule of
   one generic mark with no icon per kind (MAP.303, MAP.305, 7:35 PM EDT
-  2026-10-24). Do: one small SVG symbol set (a sprite, drawn as vectors,
+  2026-10-24). Boss, 1:31 AM EDT 2026-10-25: "a sector has its own icon
+  too as do regions have their own icon as well", so seven symbols in
+  all. Do: one small SVG symbol set (a sprite, drawn as vectors,
   readable at map size in both themes and for colour-blind viewers by
   shape, with an accessible name per kind): a habitable world (PHI-6
   Blue, Green, and Yellow where the star already counts), an
   uninhabitable world in brown or grey (not red), an inhabited world
   with its own symbol coloured by the habitability score and colour (the
-  same palette as the object pages), a gas giant, and an asteroid belt
-  or field. The point-of-interest registry of MAP.305 keeps merging
-  crowded marks into one with a count; the merged mark shows the
-  strongest kind's symbol. The menu rows of MAP.306 carry the same
-  symbols. Done: a browser test per kind finds its symbol, the inhabited
-  one in the habitability colour, the uninhabitable one in brown or grey
-  and never red, in light and dark, and the accessible names exist.
-  Files: one SVG each in static/poi/ (static/poi/*.svg), drawn at a
-  fixed pixel size with the colour set by a CSS variable; the colours
-  come from the one habitability palette the object pages already use
-  (describe/), with new brown and grey tokens added there and a
-  colour-blind-safe check (the habitability colours differ in lightness
-  from brown and grey); a legend that names every token, in the map menu
-  and on the object pages; the existing tokens (black hole, neutron
-  star, quasar, nebula) are unchanged. The best world's token and
-  habitability score ride the existing node worlds payload (MAP.220), no
-  new endpoint (design section 0.3). Owner: Aux 10 (the legend on the
-  object pages with Aux 11). Rules: no backward-compat shims; every
-  number has a unit or scale (GEN.772); tests are scripts/test.py
-  changed --resume; no fixed content from the Milky Way or the Solar
-  System.
+  same palette as the object pages), a gas giant, an asteroid belt or
+  field (a belt includes the asteroid fields; Boss, 1:32 AM EDT
+  2026-10-25), a sector, and a region (the last two are the icons for
+  those map nodes and their list rows and menu rows, so a region's token
+  in the charted-regions list of MAP.316 and a sector's on the Sector
+  Map read as what they are). The point-of-interest registry of MAP.305
+  keeps merging crowded marks into one with a count; the merged mark
+  shows the strongest kind's symbol. The menu rows of MAP.306 carry the
+  same symbols. Done: a browser test per kind (seven) finds its symbol,
+  the inhabited one in the habitability colour, the uninhabitable one in
+  brown or grey and never red, in light and dark, and the accessible
+  names exist. Files: one SVG each in static/poi/ (static/poi/*.svg),
+  drawn at a fixed pixel size with the colour set by a CSS variable; the
+  colours come from the one habitability palette the object pages
+  already use (describe/), with new brown and grey tokens added there
+  and a colour-blind-safe check (the habitability colours differ in
+  lightness from brown and grey); a legend that names every token, in
+  the map menu and on the object pages; the existing tokens (black hole,
+  neutron star, quasar, nebula) are unchanged. The best world's token
+  and habitability score ride the existing node worlds payload
+  (MAP.220), no new endpoint (design section 0.3). Owner: Aux 10 (the
+  legend on the object pages with Aux 11). Rules: no backward-compat
+  shims; every number has a unit or scale (GEN.772); tests are
+  scripts/test.py changed --resume; no fixed content from the Milky Way
+  or the Solar System.
   Prerequisites: MAP.305. Related: MAP.303, MAP.305, MAP.306, MAP.311,
   MAP.312, MAP.316.
 
@@ -6201,7 +6210,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.738, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -13817,27 +13826,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   icy-moon storage.
   Prerequisites: none. Related: GEN.699, GEN.727, GEN.639.
 
-- [ ] **GEN.738 Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  A3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T9 (exobase
-  ratios), T6. Today: Escape is a Jeans filter whose exobase ratios are
-  fitted to three bodies (AM19), an XUV exponent of 0.25 (AM20), a width
-  and loss thresholds (AM21 to AM23); sub-Neptune envelopes use an
-  energy-limited formula. The registry names 'a thermosphere model' with
-  no number. Real physics: a thermosphere model, hydrodynamic escape,
-  time-integrated XUV loss of atmospheres. Do: build a thermosphere and
-  escape model with a time integral over the star's XUV history and
-  replace AM19 to AM23. Done: escape comes from a model with tests on
-  Mars, Venus, Titan and a sub-Neptune, and the stand-ins are replaced
-  or relabelled. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: none. Related: GEN.511, GEN.483, GEN.675.
-
 - [ ] **GEN.740 Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere)**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   A12; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -21088,6 +21076,19 @@ clears each one.
   tables is the first suspect. Done: confirmed or cleared with the
   commit named; if real, fixed with a test. Owner: Bug 1.
   Prerequisites: none. Related: TEST.384, GEN.512, GEN.761.
+
+- [ ] **TEST.391 Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug)**
+  Reported by the Citations lane (1:30 AM EDT 2026-10-25, GEN.738 gate):
+  test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost
+  fails on a clean origin/main, and
+  test_atmosphere_mixture_escape::test_no_abiotic_oxygen_world_is_drawn_above_95_percent_oxygen
+  fails with a top O2 of 0.498 against the 0.5 bound, also on main. Find
+  the cause of each (a real model change, a stale golden, or a bound
+  that needs its source), fix at the cause, never skip; the 0.5 bound
+  needs the source that sets it or a GEN.725 row. Done: both pass on a
+  clean main. Owner: Bug 1 (after TEST.384). Rules: no backward-compat
+  shims; tests are scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.384, GEN.738.
 
 ## USR: User accounts
 
