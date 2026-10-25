@@ -573,6 +573,13 @@
       "first_release": "8.0.2269",
       "reason": "A cold icy body holds CO2, CO, N2, CH4 and H2S above their clathrate dissociation pressure in the water cages of a drawn ice skin, so its air is thinner, and a cold body with very little surface water melts its ice at a drawn perchlorate eutectic, so its lid is thinner or absent and its brine ocean takes that salt's water activity (GEN.762)",
       "affects": ["fill"]
+    },
+    {
+      "epoch": 97,
+      "first_release": null,
+      "pending": true,
+      "reason": "A planet or moon has an eccentric orbit (Van Eylen 2019 planet eccentricity, regular and captured moon eccentricity, tidal circularisation) and a Rayleigh mutual inclination, so every planet and moon is placed on an ellipse, its light is that of its mean flux with a seasonal swing, and orbit spacing, belts and moon stability use periapsis and apoapsis (GEN.727)",
+      "affects": ["fill"]
     }
   ]
 }
