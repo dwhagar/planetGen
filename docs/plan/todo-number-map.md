@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.212 |
 | MAP | MAP.309 |
 | NAV | NAV.63 |
-| GEN | GEN.773 |
+| GEN | GEN.774 |
 | PERF | PERF.195 |
 | DB | DB.103 |
 | API | API.34 |
@@ -1505,6 +1505,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.770 | Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug) | none | open |
 | GEN.771 | Property sheet: the 40 ratio and 7 index rows state a unit or a scale (shares in percent or ppm, scores as "n of 9", ratios by what they divide) (bug) | none | open |
 | GEN.772 | Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug) | none | open |
+| GEN.773 | A temperature difference is never converted as a temperature: the day and night swing of 9.07 K shows as 9.07 K (or 9.07 C degrees), not -264 C (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
