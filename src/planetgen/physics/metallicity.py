@@ -68,13 +68,27 @@ def mean_fe_h(population, galactic_center_dist_ly):
     return row["offset"] + gradient, row["sigma"]
 
 
+def generic_peaks(population):
+    """The [Fe/H] peaks `((weight, mean, sigma), ...)` of a cluster or satellite star where no component's own
+    distribution is given (a sample drawn without a profile, or a place no component reaches): the generic cluster's or
+    satellite's (`tuning.METALLICITY_CLUSTER_PEAKS`, `METALLICITY_SATELLITE_PEAKS`). Empty for any other population, and
+    for a young open cluster's stars, which follow the disk's [Fe/H] at their age there (`open_cluster_disk_population`)."""
+    if population == "cluster":
+        return tuning.METALLICITY_CLUSTER_PEAKS
+    if population in ("satellite", "satellite_young", "satellite_intermediate"):
+        return tuning.METALLICITY_SATELLITE_PEAKS
+    return ()
+
+
 def sample_fe_h(population, galactic_center_dist_ly, rng=draw, peaks=None):
     """A star's [Fe/H] (dex): normal about the population's mean at this distance, clamped to
     `METALLICITY_RANGE_FE_H`. `population` None means the whole disc (`intermediate`). `peaks`, `((weight, mean,
-    sigma), ...)` as the sector profile holds a place's distribution (GEN.237), replaces the population's own: a cluster
-    or satellite star has no mean at a distance from the centre, only that of the component it belongs to; one peak is
+    sigma), ...)` as the sector profile holds a place's distribution (GEN.237) or a component its own (GEN.662),
+    replaces the population's own: a cluster or satellite star has no mean at a distance from the centre, only that of
+    the component it belongs to (the generic cluster's or satellite's, `generic_peaks`, without one); one peak is
     picked by weight, then the normal about it drawn."""
     low, high = tuning.METALLICITY_RANGE_FE_H
+    peaks = peaks or generic_peaks(population)
     if peaks:
         pick = rng.random() * sum(weight for weight, _mean, _sigma in peaks)
         for weight, mean, sigma in peaks:

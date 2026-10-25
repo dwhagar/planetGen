@@ -446,13 +446,9 @@ def massive_star_fraction(min_mass_sol, population=None, age_laws=None):
 
 def _prior_source(population, rng, fe_h_source, index):
     """The draw of a birth [Fe/H] for the `index`-th star: the place's (`fe_h_source(index)`, `sample_bright_stars`)
-    or, with no place, one for `population` at the Sun's distance. A star of a population in the gate takes its
-    component's [Fe/H] later and the row stores none (GEN.159, GEN.237), so it is drawn at the reference composition
-    its tree reads it back at (`multistar.Placed.tree_fe_h`): a stand-in until the component's value reaches the draw
-    (GEN.662)."""
+    or, with no place, one for `population` at the Sun's distance (a cluster or satellite star, the generic cluster's or
+    satellite's: the component pass gives its own, GEN.662)."""
     if fe_h_source is None:
-        if population in POPULATIONS_IN_THE_GATE:
-            return lambda: 0.0
         return lambda: birth_fe_h(rng, population)
     return lambda: fe_h_source(index)
 

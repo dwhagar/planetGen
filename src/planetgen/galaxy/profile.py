@@ -213,7 +213,7 @@ def _fe_h(name, distance_ly, shape=None, position_pc=None):
         if name in tuning.OPEN_CLUSTER_POPULATIONS:      # a place no cluster reaches: the disk's stars of that age
             name = metallicity.open_cluster_disk_population(name)
         else:
-            return tuning.METALLICITY_CLUSTER_PEAKS if name == "cluster" else tuning.METALLICITY_SATELLITE_PEAKS
+            return metallicity.generic_peaks(name)
     mean, sigma = metallicity.mean_fe_h(name, distance_ly)
     return ((1.0, mean, sigma),)
 
