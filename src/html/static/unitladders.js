@@ -7,13 +7,17 @@ export const TINY_NUMBER = 0.001;
 
 export const LADDERS = {
   "length": {
-    "base": "m", "nonfinite": "km", "zero": null,
+    "base": "m", "nonfinite": "km", "zero": "km",
     "asides": [[94607304725808.0, "ly"], [1495978707.0, "AU"], [0.0, "km"]],
     "companions": [],
     "rungs": [
-      {"symbol": "ft", "factor": 0.3048, "name": "feet", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["customary"]},
+      {"symbol": "in", "factor": 0.0254, "name": "inches", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["customary"]},
+      {"symbol": "ft", "factor": 0.3048, "name": "feet", "start": 0.3048, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["customary"]},
       {"symbol": "mi", "factor": 1609.344, "name": "miles", "start": 1609.344, "singular": null, "whole_from": 1000000.0, "with_aside": false, "offset": 0.0, "systems": ["customary"]},
-      {"symbol": "km", "factor": 1000.0, "name": "kilometers", "start": 0.0, "singular": null, "whole_from": 1000000.0, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric"]},
+      {"symbol": "mm", "factor": 0.001, "name": "millimeters", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric"]},
+      {"symbol": "cm", "factor": 0.01, "name": "centimeters", "start": 0.01, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric"]},
+      {"symbol": "m", "factor": 1.0, "name": "meters", "start": 1.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric"]},
+      {"symbol": "km", "factor": 1000.0, "name": "kilometers", "start": 1000.0, "singular": null, "whole_from": 1000000.0, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric"]},
       {"symbol": "Gm", "factor": 1000000000.0, "name": "gigameters", "start": 1000000000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["metric"]},
       {"symbol": "Tm", "factor": 1000000000000.0, "name": "terameters", "start": 1000000000000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["metric"]},
       {"symbol": "Pm", "factor": 1000000000000000.0, "name": "petameters", "start": 1000000000000000.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["metric"]},
@@ -70,6 +74,24 @@ export const LADDERS = {
       {"symbol": "mK", "factor": 0.001, "name": "millikelvins", "start": 0.001, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric"]},
       {"symbol": "K", "factor": 1.0, "name": "kelvins", "start": 1.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric"]},
       {"symbol": "°F", "factor": 0.5555555555555556, "name": "degrees Fahrenheit", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 255.3722222222222, "systems": ["customary"]},
+    ],
+  },
+  "temperature difference": {
+    "base": "dK", "nonfinite": "K", "zero": "dK",
+    "asides": [],
+    "companions": [{"symbol": "°C", "name": "degrees Celsius", "factor": 1.0, "offset": 0.0, "whole": false, "min_size": null, "max_size": null, "systems": ["auto", "metric", "customary"]}, {"symbol": "°F", "name": "degrees Fahrenheit", "factor": 0.5555555555555556, "offset": 0.0, "whole": false, "min_size": null, "max_size": null, "systems": ["auto"]}, {"symbol": "K", "name": "kelvins", "factor": 1.0, "offset": 0.0, "whole": false, "min_size": null, "max_size": null, "systems": ["customary"]}],
+    "rungs": [
+      {"symbol": "K", "factor": 1.0, "name": "kelvins", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric"]},
+      {"symbol": "°F", "factor": 0.5555555555555556, "name": "degrees Fahrenheit", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["customary"]},
+    ],
+  },
+  "fraction": {
+    "base": "frac", "nonfinite": "%", "zero": "%",
+    "asides": [],
+    "companions": [],
+    "rungs": [
+      {"symbol": "ppm", "factor": 1e-06, "name": "parts per million", "start": 0.0, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
+      {"symbol": "%", "factor": 0.01, "name": "percent", "start": 0.01, "singular": null, "whole_from": null, "with_aside": false, "offset": 0.0, "systems": ["auto", "metric", "customary"]},
     ],
   },
   "pressure": {
@@ -165,4 +187,4 @@ export const LADDERS = {
 };
 
 // The ladder a registry kind (unitregistry.js) is shown on.
-export const LADDER_OF_KIND = {"length": "length", "speed": "speed", "duration": "time", "temperature": "temperature", "pressure": "pressure", "acceleration": "gravity", "mass": "mass", "power": "power", "flux": "flux", "number_density": "number density", "magnetic_field": "magnetic field"};
+export const LADDER_OF_KIND = {"length": "length", "speed": "speed", "duration": "time", "temperature": "temperature", "delta_temperature": "temperature difference", "fraction": "fraction", "pressure": "pressure", "acceleration": "gravity", "mass": "mass", "power": "power", "flux": "flux", "number_density": "number density", "magnetic_field": "magnetic field"};

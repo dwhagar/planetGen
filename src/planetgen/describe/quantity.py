@@ -48,7 +48,7 @@ def quantity_text(quantity):
     if kind == "count":
         return f"{int(value):,}"
     if kind == "ratio":
-        return format_number(value, ".3f")
+        return f"{format_number(value, '.3f')} {quantity['note']}"
     if kind == "angle":
         return f"{format_number(value, '.1f')}°"
     if kind == "dose":

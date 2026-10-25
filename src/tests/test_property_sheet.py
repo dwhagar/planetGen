@@ -8,7 +8,9 @@ comet, so a column a later change adds cannot be forgotten, and `GET /api/object
 import pytest
 
 from planetgen.db import column_units, models
-from planetgen.describe import sheet
+from planetgen.describe import model, sheet
+from planetgen.describe.quantity import inline_text
+from planetgen.physics import unit_registry
 
 NUMERIC = ("INTEGER", "FLOAT", "DOUBLE", "TINYINT", "SMALLINT", "BIGINT", "NUMERIC", "DECIMAL")
 
@@ -62,6 +64,120 @@ def test_a_unit_decides_how_a_number_is_shown():
     star = sheet.PropertySpec("mass_kg", "Mass", "physical", solar=True)
     qty = sheet._value(star, "stars", 1.98841e30)[0]["qty"]
     assert qty["sol"] == pytest.approx(1.0, rel=1e-4)
+
+
+def _length_rows():
+    """Every sheet row that shows a length on the ladder: `(kind, spec, table, unit)`."""
+    rows = []
+    for kind, specs in sorted(sheet.SPECS.items()):
+        table = sheet.TABLES[kind]
+        for spec in specs:
+            if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.RATING, sheet.TIER, "radius"):
+                continue
+            unit = column_units.COLUMNS[(table, spec.stored_column())]
+            if column_units.unit_info(unit).kind == "length" and unit in unit_registry.UNITS:
+                rows.append((kind, spec, table, unit))
+    return rows
+
+
+def test_a_thin_ice_shell_reads_in_meters_not_a_fraction_of_a_kilometer():
+    """GEN.769: Boss saw an ice shell of 0.00109 km; the sheet writes 1.09 m, and 3,500 km stays in km."""
+    spec = next(spec for spec in sheet.SPECS["planet"] if spec.key == "ice_shell_km")
+    assert inline_text(sheet._value(spec, "planets", 0.00109)) == "1.09 m"
+    assert inline_text(sheet._value(spec, "planets", 2.4e-7)) == "0.24 mm"
+    assert inline_text(sheet._value(spec, "planets", 3500.0)) == "3,500 km"
+
+
+@pytest.mark.parametrize("kind, spec, table, unit", _length_rows(), ids=lambda value: getattr(value, "key", None))
+def test_no_length_row_of_the_sheet_shows_a_number_under_one_in_its_unit(kind, spec, table, unit):
+    """GEN.769: whatever size a length column holds, the unit is chosen so the number is at least 1 (the smallest unit,
+    the millimeter, excepted: below it the number is scientific)."""
+    factor = unit_registry.unit(unit).factor
+    for exponent in range(-9, 13):
+        if 10.0 ** exponent * factor >= 1e9:    # from a million km the ladder moves on to the astronomical units
+            break
+        text = inline_text(sheet._value(spec, table, 10.0 ** exponent))
+        number = float(text.split(" ")[0].replace(",", "").split("×")[0])
+        assert number >= 1 or text.endswith(" mm") or text.endswith(" in"), f"{kind}.{spec.key} {10.0 ** exponent} {unit}: {text}"
+
+
+def test_the_day_and_night_swing_is_a_temperature_difference_not_a_temperature():
+    """GEN.773: Boss saw a swing of 9.07 K converted to -264 °C, the 273.15 offset applied to a difference. A difference
+    in kelvin is the same size in °C and 1.8 times it in °F."""
+    for kind, table in (("planet", "planets"), ("moon", "moons")):
+        spec = next(spec for spec in sheet.SPECS[kind] if spec.key == "temp_swing_k")
+        assert column_units.COLUMNS[(table, "temp_swing_k")] == "dK"
+        item = sheet._value(spec, table, 9.07)[0]["qty"]
+        assert item["kind"] == "temperature difference"
+        assert inline_text(sheet._value(spec, table, 9.07)) == "9.07 K (9.07 °C, 16.3 °F)"
+        assert "-264" not in inline_text(sheet._value(spec, table, 9.07))
+    assert "(hottest to coldest" in next(spec for spec in sheet.SPECS["planet"] if spec.key == "temp_swing_k").label
+
+
+def test_every_temperature_column_is_a_place_on_the_scale_unless_it_is_declared_a_difference():
+    """GEN.773: a column whose name says swing, range, delta, spread or variation and whose unit is kelvin is a
+    temperature difference (`dK`), never an absolute temperature."""
+    wrong = [key for key, unit in column_units.COLUMNS.items()
+             if unit == "K" and any(word in key[1] for word in ("swing", "range", "delta", "spread", "variation", "amplitude"))]
+    assert not wrong, f"declare these in dK, not K: {wrong}"
+
+
+@pytest.mark.parametrize("key, stored, text", [
+    ("water_mass_fraction", 0.0004, "400 ppm"), ("water_mass_fraction", 0.0123, "1.23 %"),
+    ("ocean_fraction", 0.71, "71 %"), ("land_fraction", 0.29, "29 %"),
+    ("water_activity", 0.71, "0.71 of 1 (life needs about 0.6 or more)"), ("ocean_ph", 8.1, "8.1 pH (7 is neutral)"),
+])
+def test_the_water_rows_state_their_unit(key, stored, text):
+    """GEN.770: Boss, 9:02 PM EDT 2026-10-24: water activity, surface under ocean, surface above sea level and the water
+    share of the mass had no unit. A share is a percent from 1 percent and parts per million below, the activity says
+    its scale, the pH says where neutral is."""
+    for kind, table in (("planet", "planets"), ("moon", "moons")):
+        spec = next(spec for spec in sheet.SPECS[kind] if spec.key == key)
+        assert inline_text(sheet._value(spec, table, stored)) == text
+
+
+
+
+
+def _numeric_rows():
+    """Every sheet row that shows a number: `(kind, spec, table, unit)`."""
+    rows = []
+    for kind, specs in sorted(sheet.SPECS.items()):
+        table = sheet.TABLES[kind]
+        for spec in specs:
+            if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.RATING, sheet.TIER):
+                continue
+            rows.append((kind, spec, table, column_units.COLUMNS[(table, spec.stored_column())]))
+    return rows
+
+
+def test_no_sheet_row_is_declared_in_a_unit_that_says_nothing():
+    """GEN.771: the audit of 2026-10-24 listed 43 ratio and 7 index rows that printed a bare number. None is left, and
+    `_plain_number` refuses one, so a column a later change adds cannot print bare."""
+    bare = [(kind, spec.key, unit) for kind, spec, _table, unit in _numeric_rows() if unit in sheet.BARE_UNITS]
+    assert not bare, f"declare these in a unit that says what they are, in db/column_units.py: {bare}"
+    with pytest.raises(ValueError, match="bare number"):
+        sheet._plain_number(0.5, "ratio")
+
+
+@pytest.mark.parametrize("kind, spec, table, unit", _numeric_rows(), ids=lambda value: getattr(value, "key", None))
+def test_every_number_of_the_sheet_has_a_unit_a_scale_or_a_noun_beside_it(kind, spec, table, unit):
+    """GEN.771, Boss 9:03 PM EDT 2026-10-24: never a number without units or context."""
+    for stored in (0.0004, 0.5, 3):
+        text = inline_text(sheet._value(spec, table, stored))
+        assert not model.is_bare_number(text), f"{kind}.{spec.key} prints {text!r}, a number alone"
+
+
+@pytest.mark.parametrize("key, stored, text", [
+    ("phi4", 0.82, "0.82 of 1"), ("l_rad", 0.9, "0.9 of 1"), ("life_flora", 3, "3 of 9"),
+    ("tau_haze", 0.35, "0.35 optical depth"), ("cloud_cover", 0.6, "60 %"), ("bond_albedo", 0.3, "30 %"),
+    ("rock_mg_si_ratio", 1.1, "1.1 Mg atoms per Si atom"), ("al26_ratio", 5e-5, "5.00 × 10⁻⁵ ²⁶Al atoms per ²⁷Al atom"),
+    ("dose_helio_mult", 1.8, "1.8× the open-space cosmic-ray dose"), ("greenhouse_factor", 0.55, "0.55 (0 is no greenhouse)"),
+    ("urey_ratio", 0.8, "80 %"), ("metal_mass_fraction", 0.33, "33 %"), ("envelope_z_fraction", 0.003, "3,000 ppm"),
+])
+def test_the_ratio_and_index_rows_read_as_decided(key, stored, text):
+    spec = next(spec for spec in sheet.SPECS["planet"] if spec.key == key)
+    assert inline_text(sheet._value(spec, "planets", stored)) == text
 
 
 def test_an_unknown_kind_has_no_sheet():

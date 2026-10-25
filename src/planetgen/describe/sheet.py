@@ -25,7 +25,7 @@ from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.physics import constants, gases, habitability_world, regional_temperature, unit_registry
 from planetgen.population import facility_ratings
-from planetgen.util.format import format_number
+from planetgen.util.format import format_number, scientific_text
 
 TABLES = {"star": "stars", "planet": "planets", "moon": "moons", "belt": "asteroid_belts", "comet": "comets",
           "nebula": "nebulae", "asteroid_field": "asteroid_fields", "black_hole": "black_holes",
@@ -94,7 +94,7 @@ NOT_STORED = "not stored"
 
 REGISTRY_QUANTITIES = {
     "length": "length", "mass": "mass", "duration": "time", "temperature": "temperature", "pressure": "pressure",
-    "speed": "speed", "power": "power", "acceleration": "gravity", "flux": "flux", "ratio": "ratio",
+    "speed": "speed", "delta_temperature": "temperature difference", "fraction": "fraction", "power": "power", "acceleration": "gravity", "flux": "flux", "ratio": "ratio",
 }
 """dict: A unit registry kind, to the Document quantity kind that shows it with its ladder. Any other kind is written
 as a number and the unit's symbol."""
@@ -191,10 +191,10 @@ _BODY_GROUPS = (
     *_rows("climate", ("bond_albedo", "Bond albedo"), ("greenhouse_factor", "Greenhouse factor"),
            ("surface_temperature_k", "Mean surface temperature"), ("temp_polar_k", "Polar temperature"),
            ("temp_north_k", "Northern temperature"), ("temp_equator_k", "Equatorial temperature"),
-           ("temp_south_k", "Southern temperature"), ("temp_swing_k", "Day and night swing"),
+           ("temp_south_k", "Southern temperature"), ("temp_swing_k", "Day and night swing (hottest to coldest, at the equator)"),
            ("temp_day_side_k", "Day side temperature"), ("temp_terminator_k", "Terminator temperature"),
            ("temp_night_side_k", "Night side temperature"), ("energy_flux_w_m2", "Stellar energy received"),
-           ("flux_variation", "Seasonal variation of that energy")),
+           ("flux_variation", "Seasonal variation of that energy, peak to peak")),
     *_rows("water", ("hydrosphere", "Hydrosphere", TEXT), ("water_mass_fraction", "Water share of the mass"),
            ("ocean_fraction", "Surface under ocean"), ("land_fraction", "Surface above sea level"),
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
@@ -207,7 +207,7 @@ _BODY_GROUPS = (
            ("induced_moment_a_m2", "Induced magnetic moment"), ("magnetopause_rp", "Magnetopause distance")),
     *_rows("radiation", ("surface_dose_msv_yr", "Surface dose"), ("dose_gcr_msv_yr", "Dose from cosmic rays"),
            ("dose_sep_msv_yr", "Dose from stellar particles"), ("dose_ground_msv_yr", "Dose from the ground"),
-           ("dose_helio_mult", "Heliosphere shielding factor"), ("xuv_flux_earth", "X-ray and ultraviolet flux"),
+           ("dose_helio_mult", "Cosmic-ray boost from a squeezed heliosphere"), ("xuv_flux_earth", "X-ray and ultraviolet flux"),
            ("xuv_exposure_index", "X-ray and ultraviolet exposure index"),
            ("flare_irradiation_index", "Flare irradiation index"), ("uv_surface_index", "Surface ultraviolet index"),
            ("shelter_column_g_cm2", "Shelter column")),
@@ -227,12 +227,12 @@ _BODY_GROUPS = (
            ("l_solv", "Solvent suitability"), ("l_chem", "Chemistry suitability"), ("l_ener", "Energy suitability"),
            ("l_rad", "Radiation tolerance")),
     *_rows("radiogenic", ("c_k0_ppm", "Potassium at formation"), ("c_th0_ppm", "Thorium at formation"),
-           ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 ratio"), ("urey_ratio", "Urey ratio"),
+           ("c_u0_ppm", "Uranium at formation"), ("al26_ratio", "Aluminium-26 at formation"), ("urey_ratio", "Share of the interior heat that is radiogenic (Urey ratio)"),
            ("internal_heat_flux_w_m2", "Heat flowing out of the interior"), ("mantle_eta0_pa_s", "Mantle viscosity prefactor"),
            ("mantle_activation_kj_mol", "Mantle viscosity activation energy")),
     *_rows("composition", ("interior_kind", "Kind of interior", TEXT), ("core_mass_earth", "Compact core mass"),
            ("dilute_core_mass_earth", "Dilute core mass"), ("metallization_pressure_gpa", "Pressure where hydrogen turns metallic"),
-           ("helium_depletion", "Helium left in the molecular envelope"), ("has_helium_shell", "Helium-rich shell", FLAG)),
+           ("helium_depletion", "Helium left in the molecular envelope, against its natal share"), ("has_helium_shell", "Helium-rich shell", FLAG)),
     *_rows("composition", ("ring_kind", "Kind of ring system", TEXT), ("ring_origin", "Where the ring came from", TEXT),
            ("ring_inner_km", "Ring inner edge"), ("ring_outer_km", "Ring outer edge"), ("ring_mass_kg", "Ring mass"),
            ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share")),
@@ -551,10 +551,21 @@ _SYMBOLS = {
 """dict: How a unit the ladders do not cover is written after its number (with its own space, or none)."""
 
 
+BARE_UNITS = ("ratio", "unit-vector", "index", "count", "id", "key", "seed", "row-defined", "flag")
+"""tuple: Column units that say nothing about what a number is: a sheet row declared in one of them is a bug (GEN.771),
+so `_plain_number` refuses it."""
+
+
 def _plain_number(value, unit):
-    """A number the ladders do not cover, as text with its unit's symbol."""
-    if unit in ("ratio", "unit-vector", "index", "count", "id", "key", "seed", "row-defined", "flag"):
-        return format_number(value, ".4g")
+    """A number the ladders do not cover, as text with its unit's symbol, or the scale or noun a plain number's unit
+    declares in `column_units.LOCAL_UNITS` (`prefix`, `suffix`; GEN.770)."""
+    local = column_units.LOCAL_UNITS.get(unit)
+    if local is not None and (local.prefix or local.suffix):
+        number = scientific_text(value) if value and abs(value) < 1e-3 else format_number(value, ".4g")
+        return f"{local.prefix}{number}{local.suffix}"
+    if unit in BARE_UNITS:
+        raise ValueError(f"a column of unit {unit!r} would print a bare number; declare it in a unit that says what it is "
+                         f"(a share, a score of n, a scale or a noun) in db/column_units.py")
     if unit in _SYMBOLS:
         symbol = _SYMBOLS[unit]
     else:

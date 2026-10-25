@@ -28,7 +28,10 @@ _STATIC = os.path.join(os.path.dirname(__file__), "..", "html", "static")
 # (meters, expected text): one value in each unit and each rung boundary.
 CASES = [
     (0.0, "0 km"),
-    (500.0, "0.5 km"),
+    (500.0, "500 m"),
+    (0.5, "50 cm"),
+    (1.09, "1.09 m"),
+    (0.0005, "0.5 mm"),
     (12_000.0, "12 km"),
     (9_999e3, "9,999 km"),
     (384_400e3, "384,400 km"),

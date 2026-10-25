@@ -29,7 +29,7 @@ DEFINITIONS = {
     "m": 1.0, "km": 1e3, "Mm": 1e6, "Gm": 1e9, "mm": 1e-3, "um": 1e-6, "nm": 1e-9,
     "au": _AU_M, "ly": _LIGHT_YEAR_M, "pc": _PARSEC_M, "mpc": _PARSEC_M * 1e-3, "cpc": _PARSEC_M * 1e-2,
     "kpc": _PARSEC_M * 1e3, "Mpc": _PARSEC_M * 1e6, "Gpc": _PARSEC_M * 1e9,
-    "ft": 0.3048, "mi": 5280 * 0.3048,
+    "cm": 1e-2, "in": 0.0254, "ft": 0.3048, "mi": 5280 * 0.3048,
     "kg": 1.0, "g": 1e-3, "lb": 0.45359237,
     "s": 1.0, "min": 60.0, "h": 3600.0, "d": 86400.0, "yr": _JULIAN_YEAR_S, "kyr": _JULIAN_YEAR_S * 1e3,
     "Myr": _JULIAN_YEAR_S * 1e6, "Gyr": _JULIAN_YEAR_S * 1e9, "ms": 1e-3, "us": 1e-6, "ns": 1e-9,
@@ -42,6 +42,7 @@ DEFINITIONS = {
     "ld": 299_792_458 * 86_400.0, "g0": 9.80665, "m_s2": 1.0, "ft_s2": 0.3048,
     "T": 1.0, "G": 1e-4, "W_m2": 1.0, "kg_m3": 1.0, "g_cm3": 1e3, "m-3": 1.0, "cm-3": 1e6,
     "m3_s2": 1.0, "km3_s2": 1e9,
+    "frac": 1.0, "pct": 1e-2, "ppm": 1e-6,
     "m2": 1.0, "km2": 1e6, "cm2": 1e-4, "m3": 1.0, "km3": 1e9, "cm3": 1e-6, "L": 1e-3,
 }
 OFFSETS = {"degC": 273.15, "degF": 459.67 * 5 / 9}
@@ -194,7 +195,7 @@ def test_every_relation_names_kinds_that_exist():
 
 
 _LADDER_KINDS = {"gravity": "acceleration", "time": "duration", "number density": "number_density",
-                 "magnetic field": "magnetic_field"}
+                 "magnetic field": "magnetic_field", "temperature difference": "delta_temperature"}
 
 
 @pytest.mark.parametrize("ladder", ladders.LADDERS, ids=lambda ladder: ladder.quantity)
