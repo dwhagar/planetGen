@@ -239,6 +239,7 @@ export function pageLink(href, label, className) {
 // replaces what it shows with one object's, in this order:
 // - title: the heading;
 // - fields: [label, value] rows (an empty value leaves its row out);
+// - more: [label, value] rows behind a collapsed "More" under the fields (MAP.325), for the facts a reader rarely needs;
 // - after: more nodes under the rows (a <details> list, a note);
 // - nav: [{label, href | onClick, primary}] -> the NAV buttons
 //   (navpick.js): "Start Here" and "End Here", or, while a NAV start or
@@ -260,7 +261,7 @@ export function pageLink(href, label, className) {
 // style.css lays it over the map, in the corner farthest from where the reader last pressed (`data-corner`).
 // `data-state` is "rest" (nothing picked, not drawn), "selected" or "closed" (the reader pressed Close).
 // `reveal()` draws what a map wrote into the panel itself (a measurement) as the popup.
-export const MIN_INFO_SCALE = 0.7;
+export const MIN_INFO_SCALE = 0.9;
 export const INFO_SCALE_STEP = 0.05;
 
 export function createInfoPanel(panelEl) {
@@ -406,6 +407,17 @@ export function createInfoPanel(panelEl) {
       const dl = document.createElement("dl");
       spec.fields.forEach(function (field) { addField(dl, field[0], field[1]); });
       panelEl.appendChild(dl);
+    }
+    // MAP.325: the facts a reader rarely needs sit behind a More that starts collapsed.
+    const more = (spec.more || []).filter(function (field) { return field[1] !== null && field[1] !== undefined && field[1] !== ""; });
+    if (more.length) {
+      const fold = el("details", "map-info-more");
+      fold.appendChild(el("summary", null, "More"));
+      const list = document.createElement("dl");
+      more.forEach(function (field) { addField(list, field[0], field[1]); });
+      fold.appendChild(list);
+      fold.addEventListener("toggle", fit);
+      panelEl.appendChild(fold);
     }
     (spec.after || []).forEach(function (node) { panelEl.appendChild(node); });
     actions(spec);
