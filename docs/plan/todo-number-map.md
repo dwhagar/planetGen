@@ -649,7 +649,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.97 | Remove store.detect_schema_version and _VERSION_MARKERS: a database with no version row is refused with a clear message | none | done, PR #2905 |
 | DB.98 | Re-baseline the Alembic migration history at the schema the server is on: delete the 72 old-schema fixtures and the per-revision migration tests, keep one upgrade-from-the-previous-release-to-head test | none | done, PR #2931 |
 | DB.99 | Store the ground colour and the ice fraction on planets and moons | none | open |
-| DB.100 | Store all the life and evolutionary data of a world in the database and build the life paragraph from the stored results | none | open |
+| DB.100 | Store all the life and evolutionary data of a world in the database and build the life paragraph from the stored results | none | done, PR #3184 |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item | none | open |
 | DB.102 | The version key stored with the galaxy seed carries the API version, the database schema and the generator epoch after the release version, with the zero padding shortened to make room | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
@@ -2342,7 +2342,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.122 | The command line, the job log files and the downloadable log use the layer | none | open |
 | UX.123 | The Generate page log, the admin log pages and update.sh output use the layer | none | open |
 | UX.124 | One form-field look and error slot, piloted on the search, nearby and list-filter fields | none | done, PR #2716 |
-| UX.125 | The Generate page and the one-off system page on the field macro | none | done, PR #0 |
+| UX.125 | The Generate page and the one-off system page on the field macro | none | done, PR #3184 |
 | UX.126 | The admin pages and the edit dialogs on the field macro | none | open |
 | UX.127 | The Galaxy Map block menu offers Generate again | none | open |
 | UX.128 | Map side panels and other browser call sites take Quantity | none | done, PR #2801 |

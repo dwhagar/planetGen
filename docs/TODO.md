@@ -15851,48 +15851,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
   Prerequisites: MAP.274.
 
-- [ ] **DB.100 Store all the life and evolutionary data of a world in the database and build the life paragraph from the stored results**
-  Boss, 9:07 AM EDT 2026-10-24 (relayed by the coordinator): "Let's go
-  ahead and store all the life and evolutionary data in the database.
-  Since it's drawn and we want to be canonical, let's go ahead and store
-  the results and build the paragraph from that." Today the generator
-  draws the chemistry, the pace and the timeline once and stores part of
-  it (life.apply_life_data; describe/life_facts.py resolves it and
-  build.py writes the paragraphs). Do: list every life and evolution
-  value that is drawn or derived (chemistry, pace, timeline milestones
-  and ages, the stage reached, visible and non-visible life, the four
-  life scores of GEN.649 and DB.91, the evolutionary path) and store
-  every one as a column or row with its Alembic revision, schema version
-  and db/column_units.py entry in the same PR; the describer and the API
-  read only the stored values and never redraw or recompute them; the
-  rebuild step for older rows regenerates them (testing mode allows a
-  new epoch and schema); the schema document lists them. Done: a round
-  trip test, a test that the life paragraph and the timeline paragraph
-  are the same text from the stored row with no generator call, and the
-  epoch and migration are taken. Owner: none (pool), any lane may
-  take it after PR #2930 merges (Boss, 9:16 AM EDT 2026-10-24: to the pool; the lane that audited it did not build it and retired). Related: GEN.649,
-  DB.91, DB.73, UX.152, DOC.77.
-  Research (2026-10-09, Handoff): Audit of main 0a0a15e (the retired
-  lane, 9:16 AM EDT 2026-10-24, as the lane reported): chemistry, pace
-  (GEN.666), stage, milestone and system ages, flavor_key and the
-  reflection spectrum rows are already stored; describe/life_facts.py
-  reads only those plus tuning key lookups (pace_label, stage_name,
-  stage_text). Wait for lane D's #2930 (GEN.649, GEN.653, DB.91: the
-  four scores and a path for every life body; migration 0149, epoch 74).
-  Scope: (a) five stored milestone-age columns on planets and moons
-  (abiogenesis, photosynthesis, complex cells, multicellularity,
-  technological civilization, in Gyr) with db/column_units.py rows,
-  filled at apply_life_data from the pace, migration 0151 (after the
-  wiki strip's 0150), epoch 81 only if a drawn value changes; (b) the
-  timeline and life text read the stored schedule and keys only, with a
-  test that render uses no tuning pace table and no draw; (c)
-  admin/edits.py via generation/validation.py reapply_life (called at
-  admin/edits.py lines about 98, 140, 387 and 556) keeps a still-viable
-  stored chemistry and pace instead of re-rolling. New-column checklist:
-  schema.sql, models.py, fingerprint, round-trip test, old-schema
-  fixture, docs, changes note.
-  Prerequisites: none. Related: GEN.649, DB.91, DB.73, UX.152, DOC.77.
-
 - [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
   Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
   database. The physics items moved into 8.1 (GEN.727 to GEN.753,

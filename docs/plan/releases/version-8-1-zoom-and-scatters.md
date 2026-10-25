@@ -349,7 +349,6 @@ Boss, 5:38 PM EDT 2026-10-23: the habitability system is finished before 8.1 is 
 | UX.186 | Pages show the X-ray luminosity, the microquasar flag and the spider millisecond pulsar kind of an accreting compact binary |  |  |
 | UX.164 | The wipe line reads "Wiped 75 tables (about 1 row)" (bug) |  | Boss run log; generation-log lane. |
 | MAP.220 | Markers for habitable worlds and chosen classes, optional per kind |  | Split from MAP.132. |
-| DB.100 | Store all the life and evolutionary data of a world in the database and build the life paragraph from the stored results |  |  |
 | GEN.701 | Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields |  |  |
 | GEN.706 | Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug) |  |  |
 | GEN.705 | The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug) |  |  |
