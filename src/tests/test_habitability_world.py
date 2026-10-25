@@ -315,12 +315,16 @@ def test_the_native_life_is_the_latest_milestone_the_timeline_reached():
         assert hw.native_life("Chlorophyll", key, True) == stage, key
 
 
-def test_suitability_follows_the_native_life_and_the_ocean_under_ice_has_no_food_to_reach():
+def test_suitability_follows_the_native_life_and_microbes_in_the_ocean_under_ice_are_no_food_to_reach():
     for stage, expected in (("none", 0.2), ("microbial", 0.5), ("macroscopic", 1.0), ("biosphere", 1.0)):
         scored = hw.compute(_earth(native_life=stage))
         assert scored["phi4_suitability"] == pytest.approx(expected)
-    buried = hw.compute(_earth(hydrosphere="ice-covered ocean", native_life="biosphere"))
+    buried = hw.compute(_earth(hydrosphere="ice-covered ocean", native_life="microbial"))
     assert buried["phi4_suitability"] == pytest.approx(0.2) and buried["tier_suitability"] == 3
+    # Boss, 2026-10-24: flora, fauna and a civilization on a world are food even when its ocean is under ice (GEN.765)
+    farmed = hw.compute(_earth(hydrosphere="ice-covered ocean", native_life="biosphere", life_stage="technological_civilization",
+                               evolutionary_pace="Earth Norm"))
+    assert farmed["life_flora"] > 0 and farmed["life_fauna"] > 0 and farmed["phi4_suitability"] > 0.2
 
 
 def test_flora_is_always_good_food_and_flora_with_fauna_is_better():
@@ -359,7 +363,7 @@ def test_life_is_drawn_after_the_score_and_the_score_is_redone_with_it():
                 continue
             stage = life_scores.food_stage(body.life_microbial, body.life_flora, body.life_fauna)
             stages.add(stage)
-            food = hw.habitability.FOOD_SCORE[stage if body.hydrosphere != "ice-covered ocean" else "none"]
+            food = hw.habitability.FOOD_SCORE["none" if body.hydrosphere == "ice-covered ocean" and stage == "microbial" else stage]
             assert body.phi4_suitability <= food + 1e-9, (body.name, stage)
             assert hw.TIER_INDEX["Red"] == body.tier_suitability or body.phi4_suitability >= 0.4
     assert stages - {"none"}, stages

@@ -763,7 +763,7 @@ someone answers y to the installer's prompt (Flow 5).
 
 ```mermaid
 flowchart TD
-    PopCLI["planetgen population<br/>run_population"] --> Pass["population.run_pass"]
+    PopCLI["planetgen population<br/>run_population"] --> Pass["population.run_population"]
     After["planetgen galaxy<br/>run_population_stage"] --> Pass
     Inst["install.sh / update.sh<br/>offer_population_pass"] -.-> PopCLI
     Pass --> Scan["scan_life_worlds<br/>planets past the watermark,<br/>parse_timeline, has_civilization"]
@@ -783,8 +783,7 @@ polity per spacefaring species and sets its reach from its age.
 `refresh_territories` rebuilds `system_owners` from scratch: each polity
 claims the systems in the sectors its reach touches, a claim's strength is
 reach over distance, and the strongest claim on a system wins (ties go to
-the lower polity id). `--rescan` forgets everything and starts over;
-`--territories-only` runs only the last step.
+the lower polity id). `planetgen population` runs the scan and the polities and `--rescan` forgets everything and starts over; `refresh_territories` is `planetgen territories` (PERF.125).
 
 ## Flow 2: storing and migrating the database
 

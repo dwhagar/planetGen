@@ -577,7 +577,13 @@
     {
       "epoch": 97,
       "first_release": "8.0.2295",
-      "reason": "A rocky planet or moon past its star's runaway greenhouse limit while the star was young and bright loses water (energy-limited escape of the steam, from 30 Myr to the star's age), so the water mass fraction of planets in the zone of cool stars falls, to nothing for most (GEN.639)",
+      "reason": "A body with a life chemistry carries the age its pace reaches each of the five milestones (life_age_*_gyr), and a body the habitability index gives no microbial life no longer keeps the pace an earlier pass drew, so the objects a seed gives hold values they did not before (DB.100)",
+      "affects": ["fill"]
+    },
+    {
+      "epoch": 98,
+      "first_release": "8.0.2308",
+      "reason": "A world with flora, fauna or a civilization has food in its Suitability even when its ocean lies under ice (only microbes under the ice or in a deep aquifer are out of reach), and the life and timeline text of the objects a seed gives is in the present tense (GEN.765, GEN.766)",
       "affects": ["fill"]
     }
   ]

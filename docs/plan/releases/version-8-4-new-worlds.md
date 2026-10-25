@@ -57,3 +57,20 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | MAP.275 | Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons | GEN.670, GEN.419 | Body rendering R6a; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.279 | Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape |  | Body rendering R13; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | DB.99 | Store the ground colour and the ice fraction on planets and moons | MAP.274 | Body rendering R2a; Boss's plan of 10:26 PM EDT 2026-10-23. |
+
+## Phase 2: Settlements and nation-states
+
+Nation-states, the capital and ten largest cities, and the station and space port scatter for every planet with a technological civilization at a sufficient tech level, all fixed until 9.2 (Boss, 9:27 PM EDT 2026-10-24).
+
+### Settlements
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| POP.17 | Which worlds get settlements: the tech gate and the planet inputs (habitable land area, carrying capacity) for a species whose civilization is dated | DB.103, GEN.774, POP.30 | Boss, 9:27 PM EDT 2026-10-24: settlements tree; fixed until 9.2. |
+| POP.18 | Nation-states on a planet: how many, their land shares, names, governments, power and which are dominant | POP.17 |  |
+| POP.19 | Cities: the capital and the ten largest cities of a planet, their populations, names and positions on land | POP.17 |  |
+| POP.20 | Cities belong to nation-states: a probability draw weighted by city size and nation dominance, with the capital in the dominant nation | POP.18, POP.19 |  |
+| POP.21 | Station and space port scatter: orbital stations, space ports and starbases placed for each nation and polity from the tech gate, as stored facilities | POP.20 | Carves the station part out of POP.11. |
+| POP.22 | The settlements stage: its own command, its place in the galaxy run and the rescan rules | POP.21 |  |
+| POP.23 | Pages and API for nations, cities and ports: the planet page sections, nation and city pages, species and polity links | POP.22 |  |
+| TEST.381 | First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp | POP.23, POP.27 |  |

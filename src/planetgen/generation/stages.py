@@ -82,6 +82,7 @@ def galaxy_stages(args):
         Stage("phenomena", "Scatter the phenomena"),
         Stage("backfill", "Scatter the massive stars from the neighborhood"),
         Stage("population", "Run the population pass"),
+        Stage("territories", "Recompute the territories"),
         Stage("settle", "Save the sector paths"),
     ]
 
@@ -149,7 +150,9 @@ SINGLE_STAGE_COMMANDS = {"fill-map-luminosity": Stage("map-luminosity", "Fill th
                          "clean-nebula-field": Stage("nebula-field", "Clean up the nebula field"),
                          "link": Stage("link", "Link the neighbours"),
                          "backfill": Stage("backfill", "Scatter the massive stars from the neighborhood"),
-                         "settle": Stage("settle", "Save the sector paths")}
+                         "settle": Stage("settle", "Save the sector paths"),
+                         "population": Stage("population", "Run the population pass"),
+                         "territories": Stage("territories", "Recompute the territories")}
 """dict: The commands that do one stage and nothing else (PERF.122, PERF.123), by command name."""
 
 

@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2308] - 2026-10-25
+
+**Headline:** A world with flora, fauna or a civilization now has food in its Suitability rating even when its ocean is under ice, and the life and timeline text says what is there, in the present tense.
+
+### Changed
+- **Food follows the life scores (GEN.765).** The Suitability food rung zeroed all life on a world whose hydrosphere is an ice-covered ocean, although the Flora, Fauna and Sentient scores of the same world were above 0 (Enuakyadas IV: 5, 5 and 5, Suitability Red 0.20, "no food readily available"). Only microbes that live under the ice (or in a deep aquifer) are out of reach now; flora and fauna are food wherever the world scores them. The stored Suitability of such a world changes, so the generator epoch is bumped (98).
+- **The life and timeline paragraphs state what is detected (GEN.766).** "Life based on melanin could arise on this planet, and it would evolve at a standard pace" is now "Life based on melanin lives on this planet, evolving at a standard pace"; "On a speculative timeline at that pace, the system is about 13.8 Gyr old. Its latest milestone would be ..." is "The system is about 13.8 Gyr old. Its latest milestone is ..."; the stage text says "the planet has" in place of "boasts". A world whose conditions suit a chemistry but where no milestone has been reached says so: "Conditions on this planet suit life based on X, but none has appeared yet."
+
+generation-output: changed
+
+## [8.0.2307] - 2026-10-25
+
+**Headline:** The population pass and the territories pass are now two commands, `planetgen population` and `planetgen territories`.
+
+### Changed
+- **`planetgen population` stops at the polities (PERF.125).** It scans the life worlds, dates the civilizations and founds the polities; `--territories-only` is gone. After a first run or a `--rescan`, run `planetgen territories` to work out who owns which system. A `galaxy` run does both as consecutive stages, and the installer's population question runs both.
+- **Both passes are work-queue commands** (`run-population`, `run-territories`, one unit each), so they show on the Queue page like any other run.
+
+### Added
+- **`planetgen territories`.** Recomputes which polity owns which system from the polities stored, and nothing else.
+- **Rules for a new command, held by a test (PERF.120).** The command inventory lists the seven rules every command follows, and `test_command_rules.py` checks the structural ones for every registered command.
+
+## [8.0.2306] - 2026-10-25
+
+**Headline:** Pages get an "On this page" contents list, and every page is checked for a clean heading outline.
+
+### Changed
+- Every page with three or more sections shows an "On this page" list after its title, built from its headings; following an entry into a collapsed section opens it (UX.196).
+- The accessibility suite now fails a page with more than one h1, a skipped heading level, or a table with no heading, caption or label (UX.195).
+
 ## [8.0.2305] - 2026-10-25
 
 **Headline:** `planetgen sector` and `planetgen phenomenon` now only generate; the population pass and the sector paths are commands of their own.

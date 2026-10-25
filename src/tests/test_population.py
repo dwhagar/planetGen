@@ -9,6 +9,7 @@ import sys
 
 import pytest
 
+from tests.population_support import populate
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.db import store
@@ -246,7 +247,7 @@ def galaxy(mysql_config):
 def test_pass_names_species_founds_polities_and_draws_territories(mysql_config, galaxy):
     conn = store.get_connection(mysql_config)
     try:
-        counts = population.run_pass(conn)
+        counts = populate(conn)
         assert counts["new_species"] >= 2
         species = conn.execute("SELECT * FROM species ORDER BY id").fetchall()
         names = [row["name"] for row in species]
@@ -261,13 +262,13 @@ def test_pass_names_species_founds_polities_and_draws_territories(mysql_config, 
                 assert row["era"] == population.era_for_age(row["civilization_age_years"])[0]
 
         # A second pass finds nothing new.
-        assert population.run_pass(conn)["new_species"] == 0
+        assert populate(conn)["new_species"] == 0
 
         # Make both capitals' civilizations spacefaring, A much older.
         with conn:
             _set_age(conn, galaxy["a"], 1e6)
             _set_age(conn, galaxy["b"], 4000)
-        counts = population.run_pass(conn)
+        counts = populate(conn)
         polities = {row["capital_system_id"]: row for row in conn.execute("SELECT * FROM polities").fetchall()}
         assert galaxy["a"] in polities and galaxy["b"] in polities
         assert polities[galaxy["a"]]["reach_ly"] == pytest.approx(population.reach_ly(1e6))
@@ -283,7 +284,7 @@ def test_pass_names_species_founds_polities_and_draws_territories(mysql_config, 
         # Back below interstellar: the polity dissolves and its systems free up.
         with conn:
             _set_age(conn, galaxy["b"], 500)
-        population.run_pass(conn)
+        populate(conn)
         assert conn.execute("SELECT COUNT(*) AS n FROM polities WHERE id = ?", (b,)).fetchone()["n"] == 0
         assert conn.execute("SELECT polity_id FROM system_owners WHERE star_system_id = ?",
                             (galaxy["plain"][1],)).fetchone()["polity_id"] == a
@@ -295,7 +296,7 @@ def test_pass_names_species_founds_polities_and_draws_territories(mysql_config, 
         assert conn.execute("SELECT COUNT(*) AS n FROM system_owners").fetchone()["n"] == 0
 
         # --rescan starts over.
-        assert population.run_pass(conn, rescan=True)["new_species"] >= 1
+        assert populate(conn, rescan=True)["new_species"] >= 1
     finally:
         conn.close()
 
@@ -304,7 +305,7 @@ def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, gala
     # Earlier passes named a species on every life world (GEN.80).
     conn = store.get_connection(mysql_config)
     try:
-        population.run_pass(conn)
+        populate(conn)
         # Any stored planet will do, but a planet is one species' homeworld at
         # most (`uq_species_homeworld`): the first one may be a civilized
         # system's, so clear its species before the leftover takes its place.
@@ -317,7 +318,7 @@ def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, gala
                 "VALUES ('Leftover', ?, ?, 'carbon', 'multicellularity', 'average', 'temperate', 'medium', "
                 "NULL, NULL, 0)", (planet["id"], planet["star_system_id"]),
             )
-        population.run_pass(conn)
+        populate(conn)
         assert conn.execute("SELECT COUNT(*) AS n FROM species WHERE name = 'Leftover'").fetchone()["n"] == 0
         assert conn.execute("SELECT COUNT(*) AS n FROM species WHERE civilization_age_years IS NULL"
                             ).fetchone()["n"] == 0
@@ -325,23 +326,65 @@ def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, gala
         conn.close()
 
 
-def test_population_cli(mysql_config, galaxy, monkeypatch):
-    argv = ["planetgen", "population", "--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
-            "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
-            "--mysql-database", mysql_config.database]
-    monkeypatch.setattr(sys, "argv", argv)
+def _with_a_spacefaring_species(mysql_config, galaxy):
+    """The species scanned and one of them old enough to be spacefaring, so the next population pass founds a polity."""
+    conn = store.get_connection(mysql_config)
+    try:
+        population.run_population(conn)
+        with conn:
+            _set_age(conn, galaxy["a"], 1e6)
+            _set_age(conn, galaxy["b"], 4000)
+    finally:
+        conn.close()
+
+
+def _owners(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        return conn.execute("SELECT COUNT(*) AS n FROM system_owners").fetchone()["n"]
+    finally:
+        conn.close()
+
+
+def test_population_cli_founds_polities_and_leaves_the_territories_to_their_own_command(mysql_config, galaxy, monkeypatch):
+    """PERF.125: `planetgen population` stops at the polities; `planetgen territories` draws who owns what."""
+    connection = ["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
+                  "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
+                  "--mysql-database", mysql_config.database]
+    _with_a_spacefaring_species(mysql_config, galaxy)
+    monkeypatch.setattr(sys, "argv", ["planetgen", "population"] + connection)
     generate_cli.main()
     conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM species").fetchone()["n"] >= 2
+        assert conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"] >= 1
     finally:
         conn.close()
+    assert _owners(mysql_config) == 0
+    monkeypatch.setattr(sys, "argv", ["planetgen", "territories"] + connection)
+    generate_cli.main()
+    assert _owners(mysql_config) >= 1
 
-    monkeypatch.setattr(sys, "argv", argv + ["--rescan", "--territories-only"])
-    with pytest.raises(SystemExit):
-        generate_cli.main()
+
+def test_the_two_passes_are_registered_commands_that_run_alone(mysql_config, galaxy):
+    """PERF.125: `run-population` and `run-territories` are one-unit registry commands with JSON arguments."""
+    from planetgen.queue import commands, wrapper
+    params = {"database": wrapper.database_args(mysql_config)}
+    _with_a_spacefaring_species(mysql_config, galaxy)
+    for kind in ("run-population", "run-territories"):
+        assert not commands.spec(kind).inline and commands.spec(kind).whole
+    done = commands.run_alone("run-population", {**params, "rescan": False})
+    assert done["species"] >= 2 and done["polities"] >= 1 and done["lines"] and "owned_systems" not in done
+    assert _owners(mysql_config) == 0
+    owned = commands.run_alone("run-territories", params)
+    assert owned["owned_systems"] >= 1 and _owners(mysql_config) == owned["owned_systems"]
 
 
+def test_a_galaxy_run_asks_for_the_population_pass_and_then_the_territories_pass():
+    from planetgen.generation import stages
+    parser, _commands = generate_cli.build_parser()
+    keys = [stage.key for stage in stages.galaxy_stages(parser.parse_args(["galaxy"]))]
+    assert keys[keys.index("population"):keys.index("population") + 3] == ["population", "territories", "settle"]
 
 
 # ---------------------------------------------------------------------------
@@ -363,14 +406,14 @@ def client(mysql_config):
 def test_api(mysql_config, galaxy, client):
     conn = store.get_connection(mysql_config)
     try:
-        population.run_pass(conn)
+        populate(conn)
         with conn:
             # Both capitals, not just A: B left alone keeps its drawn ages,
             # and two spacefaring species there found two polities with one
             # capital, the second owning no system (TEST.69).
             _set_age(conn, galaxy["a"], 1e6)
             _set_age(conn, galaxy["b"], 4000)
-        population.run_pass(conn)
+        populate(conn)
         homeworld = conn.execute("SELECT homeworld_planet_id FROM species WHERE star_system_id = ? "
                                  "AND spacefaring = 1", (galaxy["a"],)).fetchone()["homeworld_planet_id"]
     finally:
@@ -426,10 +469,10 @@ def test_population_status(mysql_config, client):
 def test_population_status_after_a_pass(mysql_config, galaxy, client):
     conn = store.get_connection(mysql_config)
     try:
-        population.run_pass(conn)
+        populate(conn)
         with conn:
             _set_age(conn, galaxy["a"], 1e6)
-        population.run_pass(conn)
+        populate(conn)
     finally:
         conn.close()
     assert client.get("/api/population").get_json() == {
@@ -441,10 +484,10 @@ def test_population_status_after_a_pass(mysql_config, galaxy, client):
 def test_species_and_polities_sort_filter_and_count(mysql_config, galaxy):
     conn = store.get_connection(mysql_config)
     try:
-        population.run_pass(conn)
+        populate(conn)
         with conn:
             _set_age(conn, galaxy["a"], 1e6)
-        population.run_pass(conn)
+        populate(conn)
 
         names = [row["name"] for row in population.list_species(conn, sort="name")]
         assert names == sorted(names)
@@ -491,15 +534,15 @@ def test_species_and_polities_sort_filter_and_count(mysql_config, galaxy):
 
 
 def test_the_pass_announces_each_step_for_its_bar(mysql_config, galaxy):
-    """UX.83: the pass names its steps (a bar of its own), four, or one for territories only."""
+    """UX.83, PERF.125: the population pass names its three steps and the territories pass its one."""
     conn = store.get_connection(mysql_config)
     try:
         stages = []
-        population.run_pass(conn, on_stage=stages.append)
-        assert len(stages) == population.pass_stage_count() == 4
+        population.run_population(conn, on_stage=stages.append)
+        assert len(stages) == population.POPULATION_STAGES == 3
         only = []
-        population.run_pass(conn, territories_only=True, on_stage=only.append)
-        assert len(only) == population.pass_stage_count(True) == 1
+        population.run_territories(conn, on_stage=only.append)
+        assert len(only) == 1
     finally:
         conn.close()
 
@@ -507,7 +550,7 @@ def test_the_pass_announces_each_step_for_its_bar(mysql_config, galaxy):
 def test_the_pass_draws_tech_levels_once_and_leaves_hand_edits_alone(mysql_config, galaxy):
     conn = store.get_connection(mysql_config)
     try:
-        population.run_pass(conn)
+        populate(conn)
         rows = conn.execute("SELECT * FROM species ORDER BY id").fetchall()
         assert rows
         for row in rows:
@@ -522,7 +565,7 @@ def test_the_pass_draws_tech_levels_once_and_leaves_hand_edits_alone(mysql_confi
         before = {row["id"]: row["tech_level"] for row in rows}
 
         # A second pass draws nothing new and changes nothing.
-        population.run_pass(conn)
+        populate(conn)
         assert {row["id"]: row["tech_level"] for row in conn.execute("SELECT * FROM species").fetchall()} == before
 
         first, second = rows[0]["id"], rows[1]["id"]
@@ -532,7 +575,7 @@ def test_the_pass_draws_tech_levels_once_and_leaves_hand_edits_alone(mysql_confi
                          "WHERE id = ?", (first,))
             conn.execute("UPDATE species SET energy_index = NULL, tech_level = NULL, tech_source = 'admin' "
                          "WHERE id = ?", (second,))
-        population.run_pass(conn)
+        populate(conn)
         filled = conn.execute("SELECT * FROM species WHERE id = ?", (first,)).fetchone()
         assert filled["energy_index"] is not None and filled["tech_source"] == "generated"
         assert float(filled["tech_level"]) == float(before[first])
@@ -552,7 +595,7 @@ def test_the_pass_draws_tech_levels_once_and_leaves_hand_edits_alone(mysql_confi
 def test_species_search_by_tech_level_and_index(mysql_config, galaxy):
     conn = store.get_connection(mysql_config)
     try:
-        population.run_pass(conn)
+        populate(conn)
         with conn:
             ids = [row["id"] for row in conn.execute("SELECT id FROM species ORDER BY id").fetchall()]
             for level, species_id in zip((1.0, 3.0, 5.0), ids):
@@ -579,7 +622,7 @@ def test_species_search_by_tech_level_and_index(mysql_config, galaxy):
 def test_api_species_tech_filters(mysql_config, galaxy, client):
     conn = store.get_connection(mysql_config)
     try:
-        population.run_pass(conn)
+        populate(conn)
         with conn:
             # Every species low first, then one at 6.0, so no species the pass made outranks it (TEST.299: the pass
             # can make one at 6.55, which led the tech-descending list).

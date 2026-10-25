@@ -11,6 +11,7 @@ import pathlib
 
 import pytest
 
+from tests.population_support import populate
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -56,10 +57,10 @@ def _populate(config, system, cfg, plain_first):
                 "SELECT id FROM planets WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
             for number, planet_id in enumerate(planets, start=1):
                 conn.execute("UPDATE planets SET uid = ? WHERE id = ?", (number.to_bytes(12, "big"), planet_id))
-        population.run_pass(conn)
+        populate(conn)
         with conn:
             conn.execute("UPDATE species SET civilization_age_years = 50000")
-        population.run_pass(conn)
+        populate(conn)
         found = {}
         for row in conn.execute(
                 "SELECT s.*, pl.uid AS uid, pol.government, pol.color FROM species s "

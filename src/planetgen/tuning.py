@@ -2489,7 +2489,7 @@ EVOLUTIONARY_TEXT = {
         "primitive vascular plants—have taken root, supporting emerging land-dwelling animals."
     ),
     "technological_civilization": (
-        "The planet boasts a fully mature, highly complex biosphere featuring diverse ecosystems, "
+        "The planet has a fully mature, highly complex biosphere featuring diverse ecosystems, "
         "topped by at least one sapient, tool-using species. Complex flora forms sprawling forests "
         "and varied biomes, while highly evolved fauna occupy vast ecological niches. The sapient "
         "population actively reshapes the world through agriculture, architecture, and industry."

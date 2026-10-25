@@ -10,6 +10,7 @@ import dataclasses
 
 import pytest
 
+from tests.population_support import populate
 from planetgen.cli import species_check
 from planetgen.db import species_fit, store
 from planetgen.physics import gases, habitability, species_limits
@@ -444,7 +445,7 @@ def test_a_generated_galaxys_species_are_all_inside_their_limits(mysql_config, c
     from planetgen.population import model as population
     conn = store.get_connection(mysql_config)
     try:
-        assert population.run_pass(conn)["new_species"] >= 2
+        assert populate(conn)["new_species"] >= 2
         assert species_fit.inconsistencies(conn) == []
         for row in conn.execute("SELECT id, homeworld_planet_id FROM species").fetchall():
             species_fit.check_placement(conn, row["id"], "planet", row["homeworld_planet_id"], native=True)
