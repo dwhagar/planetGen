@@ -1209,6 +1209,39 @@ with `clamp()`.
   pages). Related: UX.200, UX.188.
   Prerequisites: none. Related: UX.200, UX.188.
 
+- [ ] **UX.208 Fill audit of the property sheet: sample bodies of every class, every sheet column filled or not applicable by a rule, no "not stored" for an applicable column**
+  Boss, 8:29 PM EDT 2026-10-24 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi6oJmNKFKoyienFmHsrWDEM was the breadcrumb
+  note; this one is the coordinator's relay of "I want all 'not stored'
+  text to be in the pathway", 8:24 PM EDT): every property a page can
+  show as "not stored", or leave out under "N properties with no value
+  are not listed" (27 on the Enuakyadas IV page), must have a filling
+  item in the generation pathway so the text goes away. TODO's static
+  check (reports/not-stored-audit-2026-10-24.md) found a writer in the
+  generation code for every sheet column, so the empty ones are
+  conditional (class, kind, stage order), which only a run shows. Do:
+  (1) add to describe/sheet.py one registry `APPLIES` of the sheet
+  columns by body kind and class (planet, moon, star, belt, comet and
+  the phenomena; class letters or the class family: rocky, icy, giant,
+  locked, airless, and so on) saying where a column applies and why it
+  does not elsewhere (a sentence per rule); (2) a test and a report
+  script (scripts/sheet_fill_report.py, writes a table to the console
+  and to reports/) that generate sample bodies of every class (at least
+  30 per class, fixed seeds) and, for each sheet column, count filled,
+  empty where it applies, and empty where the registry says it does not;
+  (3) the sheet shows "not applicable" (or leaves the row out, per
+  UX.203) for a column that does not apply and never shows "not stored"
+  for one that does; the test fails for an applicable column that is
+  empty in any sample; (4) deliver the report to TODO, which files one
+  filling item per empty applicable column with an owner and an 8.1 slot
+  and lists them in reports/. Done: the test passes on main with the
+  empty applicable columns excused by filed item numbers (a list in the
+  test, each entry an item id that is open), and the Enuakyadas IV page
+  has no "not stored" row. Owner: Aux 11 (property sheet). Related:
+  UX.188, UX.198, UX.199, UX.203, UX.205, TEST.358, GEN.767, GEN.768.
+  Prerequisites: none. Related: UX.188, UX.198, UX.199, UX.203, UX.205,
+  TEST.358, GEN.767, GEN.768.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
