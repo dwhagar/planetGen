@@ -1565,7 +1565,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.814 | A water-rich world (class O, 10 to 50 wt% water) gets a carbon sink: seafloor weathering and the high-pressure ice that seals the mantle (finding 3) | none | done, PR #3286 |
 | GEN.815 | Sulfur sink: a sulfate and sulfide balance replaces the stand-in SULFUR_SURFACE_KEPT (finding 4) | none | open |
 | GEN.816 | A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5) | none | open |
-| GEN.817 | Rogue and starless bodies: their air goes through the same fixed point (finding 7) | none | open |
+| GEN.817 | Rogue and starless bodies: their air goes through the same fixed point (finding 7) | none | folded into GEN.557 |
 | GEN.818 | Aluminium in the melt model: an Al2O3 activity (with a tier) so a lava draw can make aluminium vapour (GEN.751 follow-up) | none | done, PR #3264 |
 | GEN.819 | Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet | none | open |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample | none | open |
