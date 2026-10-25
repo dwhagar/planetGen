@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2338] - 2026-10-25
+
+**Headline:** One page test no longer fails on a machine whose MySQL has no `planetgen` login.
+
+### Fixed
+- **`test_web_pages.py::test_in_process_transport_skips_http_inside_a_request` (TEST.370)** asked the app for `/databases`, which lists the schemas on the configured server, with the default configuration's `planetgen` login and no password. On a test machine that has only the test login it failed with `DatabaseLoginError` (an `internal server error` from the API). The test now builds its app with the test server's login.
+- Not changed: the runner's check of the test environment (TEST.376) already stops a lane that has no `PLANETGEN_TEST_MYSQL_USER` set, which is how the same gap shows up in other tests.
+TODO items resolved: TEST.370, and TEST.390 (TODO closes them after reading this: each of Aux 10's tests passes on main; the runner self-tests, test_stages, test_web_fresh_after_cli and the browser map and table tests ran 116 passed, and the other four were fixed by #3189, #3280 and #3291). Added: none.
+
 ## [8.0.2337] - 2026-10-25
 
 **Headline:** A queue worker that dies soon after it started is replaced at once instead of after about 90 seconds, and two tests that were red on main are fixed.
