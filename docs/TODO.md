@@ -16056,24 +16056,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed --resume`.
   Prerequisites: none. Related: PERF.125, GEN.411.
 
-- [ ] **PERF.199 The words "rough guess" are removed from every ETA, time left and time estimate display (bug)**
-  Boss, 2026-10-24 11:56 PM EDT: 'rough guess text on ETA progress needs
-  to go'. The wording appears in: generation/stats.py:568 (the estimate
-  text, 'a rough guess, anywhere from X to Y'), web/queue_page.py:118
-  (the Queue page ' (rough guess)' suffix), web/generate_page.py:1269
-  (the Generate page 'a rough guess until a unit is timed'),
-  web/templates/generate_review.html:19 (the review page Time line),
-  web/lib/galaxystatus.py:60 (the galaxy status line), db/check.py:471
-  (check-db output), plus the ROUGH source label in queue/runeta.py. Do:
-  show the estimate without the words (a range with its unit is enough;
-  where the speed is not measured yet say 'not timed yet' once, plainly,
-  not 'rough guess'), keep the internal source flag if code needs it,
-  and update every test that pins the old text. Done: a search of the
-  pages, the API text and the command output finds no 'rough guess' in
-  any user-visible string; tests pin the new text. Owner: Aux 16
-  (performance, owner of the estimates).
-  Prerequisites: none. Related: PERF.184, PERF.178.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -20337,19 +20319,6 @@ clears each one.
   2 (the test belongs to the sector reach work), or Bug Hunt if Core 2
   is busy.
   Prerequisites: none. Related: TEST.313.
-
-- [ ] **TEST.318 test_web_generate_size::test_the_line_is_the_estimate_only_output_for_the_same_values fails on untouched main: refused True vs False (bug)**
-  Found by lane G at 12:43 AM EDT 2026-10-24 (as the lane reported)
-  during the gate of #2856: the test fails on untouched main, the
-  estimate-only output and the real line disagree on whether the plan is
-  refused (True against False), run time 23 s. Fails on main: yes.
-  Likely from the estimate wording change of PERF.178 (#2831) or the
-  Redis memory change of #2836; the Generation-log analysis lane owns
-  that area. Do: find which change made the two outputs disagree, fix
-  the code or the test so the line is the estimate only output for the
-  same values, without loosening what it checks. Done: the test passes
-  on main. Owner: Generation-log analysis lane (PERF.178 owner).
-  Prerequisites: none. Related: PERF.178.
 
 - [ ] **TEST.319 test_datasets_real::test_the_catalogue_reports_nothing_missing fails when the ozone_uv file is not downloaded (bug)**
   Found by the Habitability C (map) lane at 12:47 AM EDT 2026-10-24 (as

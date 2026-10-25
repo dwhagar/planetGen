@@ -541,3 +541,4 @@ Update 11:57 PM EDT 2026-10-24: retired GEN.701 (#3265, Aux 3, as the lane repor
 Filed PERF.199 (Boss bug, 11:56 PM EDT: the words 'rough guess' come out of every ETA and time estimate display), owner Aux 16.
 Update 12:06 AM EDT 10-25: ADM.132 retired (PR #3268, Lane D).
 Update 12:09 AM EDT 2026-10-25: epoch correction from the coordinator: GEN.701 stamped generator epoch 103 (merged), and 4c (GEN.411, GEN.422, Aux 1) shares epoch 103 because the golden tool reuses it; the migration still takes the next number, 0159. The next free epoch 104 applies only to work after 103 stamps with new work. The 11:57 PM entry saying 4c did not take 103 is superseded.
+Update 12:12 AM EDT 2026-10-25: retired PERF.199 (#3271, Aux 16: the words rough guess are gone from every time estimate; untimed estimates show the range with units and say not timed yet) and TEST.318 (passes on current main per Aux 16, 12:10 AM EDT as the lane reported).
