@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2302] - 2026-10-25
+
+**Headline:** The run log download answers a plain 403 to someone who is not signed in as an admin, like the other file downloads, instead of a login redirect.
+
+### Fixed
+- **`/admin/queue/<run_id>/log` redirected to the login page for an admin still on the seeded credentials.** The view is marked `json_only` (a download, not a page), and the access sweep in `test_api_auth_sweep.py` expects those to answer 403; it was red on main. The view now aborts with 403 where `/admin/settings/export` already does.
+TODO items resolved: none (the test was red on main with no item of its own). Added: none.
+
 ## [8.0.2301] - 2026-10-25
 
 **Headline:** An account can have a picture, and it may be a GIF, an animated GIF too, checked under frame and pixel caps and stored as a clean copy.
