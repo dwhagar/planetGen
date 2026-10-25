@@ -15155,7 +15155,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   address; the Generate page offers "this region" (snap to the anchor,
   12 pc). Done: a finished fill of one anchor sphere is charted and
   named; a test pins the snap; no change to what a sector generates, so
-  no epoch. Owner: the same lane as step 1 or the Generate lane. Rules:
+  no epoch. Owner: Core 3. Rules:
   no backward-compat shims; every number has a unit or scale (GEN.772);
   tests are scripts/test.py changed --resume.
   Prerequisites: GEN.825, DB.107. Related: GEN.825, DB.107.
