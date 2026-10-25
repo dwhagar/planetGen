@@ -23,7 +23,7 @@ States: **Decided** (Boss, EDT), **Default taken** (adopted so work proceeds; Bo
 | 3 | Radius reference level 1 bar, scale-height correction for envelope tables | Decided 1:24 AM | Section 4.1 |
 | 4 | Reference abundance set Asplund 2021 proto-solar; spread with Lodders 2009 and 2019 recorded as ratio uncertainty | Decided 1:24 AM | Host abundances come from stored [Fe/H] and the population draw (A 2.2 to 2.8) |
 | 5 | Every category is a gated table of weighted possibilities (GEN.472); fractions inside the drawn row are normalised separately; Dirichlet around the weights where only a range is known | Decided 1:40, 1:43, 1:51 AM | Master 14 |
-| 6 | Solar System shapes enter tables only as flagged stand-ins with a replacing item (GEN.473 to GEN.476) | Decided 1:44 AM | Taxon kernel, rock types, meteorite groups |
+| 6 | Solar System shapes enter tables only as flagged stand-ins with a replacing item (GEN.473 to GEN.476) | Decided 1:43 AM | Taxon kernel, rock types, meteorite groups |
 | 7 | One shared components table (GEN.427); no kind has a list of its own | Decided 1:47 AM | Section 3 |
 | 8 | Verified and partly verified is usable unless contradicted. Conflicts: verified wins; two verified in doubt, newest wins; both in question, most permissive | Decided 3:02 AM (first); 12:39 PM (the other two) | Section 11. Third rule read as widest value or range: assumption |
 | 9 | The one reference solver is part B's two-layer integrator (`structure`, B 3.8), extended with C's water layer and the Lopez and Fortney tables; closed forms of 4.3 are the fast path and tests | Default taken | Partly verified: halves verified separately; the joined solver (GEN.429) must pass C's 175-point grid |

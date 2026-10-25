@@ -7802,7 +7802,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proportions of a drawn possibility use the table weights directly
   where a sourced kernel exists, and a Dirichlet draw around those
   weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
+  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
   Solar System shapes (the asteroid taxon shares and the zone kernel,
   the Earth rock-type library) enter a table only as flagged temporary
   stand-ins, each with its own research item that replaces it with a
@@ -8270,7 +8270,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proportions of a drawn possibility use the table weights directly
   where a sourced kernel exists, and a Dirichlet draw around those
   weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
+  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
   Solar System shapes (the asteroid taxon shares and the zone kernel,
   the Earth rock-type library) enter a table only as flagged temporary
   stand-ins, each with its own research item that replaces it with a
@@ -8873,7 +8873,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proportions of a drawn possibility use the table weights directly
   where a sourced kernel exists, and a Dirichlet draw around those
   weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
+  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
   Solar System shapes (the asteroid taxon shares and the zone kernel,
   the Earth rock-type library) enter a table only as flagged temporary
   stand-ins, each with its own research item that replaces it with a
@@ -8901,7 +8901,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:44 AM EDT, Stand-in only), filed by the TODO thread. R1 in the
+  1:43 AM EDT, Stand-in only), filed by the TODO thread. R1 in the
   lane's words: the replacement research is planetesimal composition as
   a function of formation temperature (the condensation sequence of
   parts C and D), then dynamical mixing by giant-planet migration and
@@ -8954,7 +8954,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proportions of a drawn possibility use the table weights directly
   where a sourced kernel exists, and a Dirichlet draw around those
   weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
+  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
   Solar System shapes (the asteroid taxon shares and the zone kernel,
   the Earth rock-type library) enter a table only as flagged temporary
   stand-ins, each with its own research item that replaces it with a
@@ -8982,7 +8982,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:44 AM EDT, Stand-in only), filed by the TODO thread. R2 in the
+  1:43 AM EDT, Stand-in only), filed by the TODO thread. R2 in the
   lane's words: derive crust and mantle end-members from the body's own
   bulk oxides (the mantle oxides of part B) by melting and
   differentiation, with partial-melt and fractional-crystallisation
@@ -8997,7 +8997,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:44 AM EDT, Stand-in only), filed by the TODO thread. R3: the
+  1:43 AM EDT, Stand-in only), filed by the TODO thread. R3: the
   stand-in is the meteorite-group library (CI, CM, CO and CV, H, L, LL,
   enstatite, iron and the achondrites, with grain densities, porosities
   and chemistry; table T14 of section 14.2, part D 2.2), which the taxon
@@ -9017,7 +9017,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:44 AM EDT, Stand-in only), filed by the TODO thread. R4: the
+  1:43 AM EDT, Stand-in only), filed by the TODO thread. R4: the
   stand-in is the log-uniform Al-26 ratio of 5.25e-6 to 5.25e-4 taken
   from the Solar System's own value and range (table T23, parts A 2.9, D
   2.5 and E 2.8), which the radiogenic module (GEN.459) draws. Research:
@@ -19563,7 +19563,7 @@ clears each one.
   proportions of a drawn possibility use the table weights directly
   where a sourced kernel exists, and a Dirichlet draw around those
   weights, with the concentration taken from the known spread, where
-  only a range is known. (2) 1:44 AM EDT, "Stand-in only": measured
+  only a range is known. (2) 1:43 AM EDT, "Stand-in only": measured
   Solar System shapes (the asteroid taxon shares and the zone kernel,
   the Earth rock-type library) enter a table only as flagged temporary
   stand-ins, each with its own research item that replaces it with a
@@ -19602,11 +19602,11 @@ clears each one.
   Body composition research lane, section 14.4 of
   docs/design/composition/body-composition-research.md (2026-10-17, 1:45 AM EDT as
   the lane reported; replacement research R1 to R5 for Boss's ruling of
-  1:44 AM EDT, Stand-in only), filed by the TODO thread. R5: the Earth,
+  1:43 AM EDT, Stand-in only), filed by the TODO thread. R5: the Earth,
   Mars, Moon, Galilean-moon and Sirius B targets in the parts stay as
   calibration, and measured Solar System shapes must never be a source
   of a generator table (the standing no-fixed-content rule, and Boss's
-  ruling of 1:44 AM EDT). Do: move the calibration rows into the test
+  ruling of 1:43 AM EDT). Do: move the calibration rows into the test
   files with a `calibration_only` flag and assert that no table row of
   the possibility-table loader (GEN.472) is sourced only from a measured
   Solar System body, and that every `stand-in` row names a replacement
