@@ -85,6 +85,44 @@ an upper bound where a carbonate sink is full); the mean-rate steady state gives
 about 14 mbar of SO2, which only recent resupply explains (Fegley and Prinn say so too); the lifetimes are brackets, not rate laws of
 temperature; the share of the sulfur the melt keeps is `surface_pressure.DEGAS_EFFICIENCY`. Five stand-ins, registry rows AM45 to AM49.
 
+## Where the carbon of a world with no land goes (GEN.814)
+
+Silicate weathering (`surface_pressure.carbonate_pco2_bar`) needs land, and an ocean world has none, so its carbon dioxide had no sink: the
+findings of `reports/air-fixed-point-findings-2026-10-24.md` (finding 3) have 31 of 40 water-rich worlds hot (median 1470 K). The model is
+`physics/waterworld_carbon.py`, after Kite and Ford 2018 (ApJ 864, 75) and Krissansen-Totton and Catling 2017 (Nat. Commun. 8, 15423).
+`sink_kind(sealed, land_fraction)` is the dispatch the air solve takes: sealed seafloor, then ocean chemistry; else land, then the
+continental balance; else seafloor weathering.
+
+* **The seal.** An ocean heavy enough that the seafloor pressure `g m` reaches `SEAL_PRESSURE_PA` (1 to 3 GPa) stops the mantle melting enough
+  to exchange carbon with the water, and high-pressure ice (VI and VII) sits on the floor. The system of air, ocean and shallow crust is then
+  closed for carbon `SEAL_TIME_GY` (0.1 Gy) after the last giant impact; the caller gives it the carbon degassed up to then.
+* **A sealed world's air is ocean chemistry** (`ocean_pco2`). The carbon is shared between the air, dissolved dioxide, bicarbonate and
+  carbonate, and calcite, by the carbonate equilibria (`CARBONATE_FITS`, fresh water) and the charge balance of the cations the early ocean
+  leached from `ALTERED_CRUST_KM` (0.1 to 50 km) of basalt (`leached_cations_mol_m2`: sodium 2.8 wt% and calcium 8.5 wt% of the rock). More
+  cations than carbon holds the carbon as carbonate and leaves the air nearly empty (the floor `MIN_PCO2_BAR`); more carbon than cations
+  leaves the rest to the air at tens of bar. `sealed_state` solves the pCO2 and the temperature together (the ocean degasses as it warms,
+  so the coolest crossing of the scan is taken) with the greenhouse of `atmosphere_state` and the saturated vapour.
+* **An unsealed world with no land** has working volcanoes and a seafloor that dissolves and precipitates carbonate (`seafloor_pco2_bar`):
+  the rate is Arrhenius in the pore-water temperature (`SEAFLOOR_ACTIVATION_KJ_MOL`, 40 to 110), a power of the pCO2
+  (`SEAFLOOR_PH_EXPONENT / 1.34`) and of the heat flow, and it is 0.45 of 6.6 Tmol C per year (`SEAFLOOR_SHARE_OF_OUTGASSING`) at the modern
+  state. The temperature does the work: at the modern heat flow a 300 K world balances at about half a bar, a 288 K one needs hundreds of
+  bar, a 310 K one a few millibar.
+
+What the sweep of Kite and Ford's prior shows (tested): at 300 K, carbon 1e-6 to 1e-1 of the ocean's mass and a rock layer of 0.1 to 50 km, a
+sixth of the worlds sit at 0.2 to 20 bar (their "frequent" range), nearly three quarters hold their carbon whole in the ocean (under a
+micro-bar), and 7 percent are above 20 bar. The water-world temperatures of the findings report are not recomputed here: that needs Lane I's solve (4c), and
+the greenhouse module's water-vapour feedback is too strong (finding 1), so the cold end of `sealed_state` sits at the freezing point
+(274 K for 240 W/m2) and not under it. With the real greenhouse a carbon-rich ocean (CO2 a tenth of the water's mass) has no balance below water's
+critical point, as for Kite and Ford, who find the high-carbon end hot.
+
+Limits (stated): the ocean is an ideal solution with fresh-water constants (seawater's first dissociation constant is about three times the
+fresh water's, so a salty ocean holds more bicarbonate at a given pCO2) held to 273 to 373 K; only calcite precipitates (no magnesium or iron
+carbonate, no dolomite, no hydrous carbonates, no clathrate); the cations are one leach of a basalt of a drawn thickness, not a reaction
+network, and sulfate competes for the same calcium (`sulfur_balance`); the surface ocean's temperature is used throughout; the seal is a
+pressure threshold, not a solidus calculation; the seafloor law is one pore-space rate law and not the inverse model of Krissansen-Totton and
+Catling (no Michaelis-Menten variant, no pelagic fraction); the class O inventory brackets (GEN.481) reach a CO2 to H2O mass ratio of 0.2,
+above the 1e-1 top of Kite and Ford's carbon. Eleven stand-ins, registry rows AM52 to AM62.
+
 ## Rocky outgassing
 
 1. **Redox.** `a1` (magma-ocean stage: Sossi 2020) for a body without long-lived geology; for a tectonic body it moves to `a2` (the
