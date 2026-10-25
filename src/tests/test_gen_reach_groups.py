@@ -179,6 +179,46 @@ def test_the_expected_count_of_a_shell_includes_the_part_beyond_the_outline():
     assert len(estimates) == 40 and estimates[SHELL + 17] == estimates[SHELL + 16]
 
 
+def _mc_shell_expected(shell, fractions, count=400_000, seed=5):
+    """The expected stars of a whole shell by Monte Carlo: the shell's volume times the mean of the density the scatter
+    draws from, over points uniform in the shell (the answer the sampler converges to, whatever the arms are doing)."""
+    from planetgen.galaxy import density as galaxy_density
+    rng = np.random.default_rng(seed)
+    inner, outer = spherical.shell_bounds_pc(shell, EDGE_PC)
+    radius = (inner ** 3 + rng.random(count) * (outer ** 3 - inner ** 3)) ** (1.0 / 3.0)
+    cos_colat = rng.random(count) * 2.0 - 1.0
+    sin_colat, lon = np.sqrt(1.0 - cos_colat ** 2), rng.random(count) * 2.0 * math.pi
+    found = galaxy_density.population_densities_array(radius * sin_colat * np.cos(lon), radius * sin_colat * np.sin(lon),
+                                                      radius * cos_colat, SHAPE)
+    wanted = sum(np.maximum(found[population], 0.0) * fractions[population]
+                 for population in brightStars.SCATTERED_POPULATIONS if population not in scatter_limits.POPULATIONS_IN_THE_GATE)
+    return E_VALUE * _shell_volume(shell) * float(wanted.mean())
+
+
+@pytest.mark.parametrize("shell", [3, 6, 10, 20, 30, 45])
+def test_the_expected_stars_beyond_the_outline_match_the_density_whatever_phase_the_arms_are_in(shell):
+    """GEN.398: a group beyond the outline was probed at two longitudes, 180 degrees apart, which on a two-armed spiral
+    are the same phase of the arms: its young stars came out twice, or none, of what the sampler places. The count the
+    plan's log line and bar use follows the density, also where a thin disc falls away across a group."""
+    fractions = brightStars.band_fractions(FLOOR, None, None)
+    found = brightStars.reach_expected_stars(SHAPE, shell, -1, EDGE_PC, E_VALUE, fractions)[0]
+    truth = _mc_shell_expected(shell, fractions)
+    assert truth > 1000.0
+    assert found == pytest.approx(truth, rel=0.06)
+
+
+def test_a_task_logs_the_stars_it_expects_not_the_bands_it_walks():
+    """GEN.398: the unit lines said "about N stars expected" with the task's weight, the stars plus a share for every band
+    walked, so a unit that placed 19 said it expected 133."""
+    shape = run_plan._ScatterShape(
+        tasks={0: [(10, 3, 5.0), (11, 4, 7.0)], 1: [(12, 5, 99.0)], 2: [(-1, -1, 40.0)]},
+        weights={0: 12.5, 1: 120.0, 2: 40.02}, sizes={0: 2, 1: 1, 2: 0}, names={0: "10-11", 1: "12-", 2: "components 1 of 1"},
+        expected={10: 6.0, 11: 8.0, 12: 30.0}, far_key=1, component_parts={2: [["cluster", "x", 0, 1]]}, first_far=12)
+    assert shape.expected_of(0) == 14.0
+    assert shape.expected_of(1) == 30.0
+    assert shape.expected_of(2) == 40.0
+
+
 @pytest.mark.db
 def test_a_plan_scatter_covers_the_reach_and_a_pre_placed_star_is_never_drawn_twice(mysql_config, monkeypatch):
     monkeypatch.setattr(tuning, "SCATTER_COVERS_REACH", True)

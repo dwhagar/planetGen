@@ -561,20 +561,38 @@ def reach_bounds(shape, groups, by_tier, coarse=False):
     return bounds
 
 
+ESTIMATE_COLATITUDE_STEPS = 8
+"""int: Colatitudes a group's expected stars are sampled at, equal in volume (GEN.398)."""
+
+ESTIMATE_RADIUS_STEPS = 2
+"""int: Radii a group's expected stars are sampled at, equal in volume (GEN.398)."""
+
+
 def _expected_in_groups(shape, groups, expected_at_density_1, fractions):
-    """About how many stars `groups` hold: the density at each group's middle times its volume, with the fractions of
-    the tier it is in."""
+    """
+    About how many stars `groups` hold: the mean density of each group, worked out on `ESTIMATE_COLATITUDE_STEPS` by
+    `ESTIMATE_RADIUS_STEPS` places of equal volume (each averaged over `ESTIMATE_AZIMUTH_BINS` longitudes), with the
+    fractions of the tier each place is in, times the group's volume. The density at a group's middle alone, as it was,
+    came out a third of a thin disc's stars, and the two longitudes the bounds are probed at gave twice or none of an
+    arm's (GEN.398).
+    """
     by_tier = fractions if isinstance(fractions, (list, tuple)) else [fractions]
     if not len(groups) or sum(sum(item.values()) for item in by_tier) <= 0.0:
         return 0.0
-    r_mid = (groups.r_in + groups.r_out) / 2.0
-    colat = (groups.colat_near + groups.colat_far) / 2.0
-    means, tiers = scatterLimits.probe_densities(shape, r_mid * np.sin(colat), r_mid * np.cos(colat))
-    if len(by_tier) == 1:
-        tiers = np.zeros(len(groups), dtype=int)
     wanted = np.zeros(len(groups))
-    for tier, here in enumerate(by_tier):
-        wanted += np.where(tiers == tier, sum(means[population] * here[population] for population in SCATTERED_POPULATIONS), 0.0)
+    steps = ESTIMATE_COLATITUDE_STEPS * ESTIMATE_RADIUS_STEPS
+    for step in range(ESTIMATE_COLATITUDE_STEPS):
+        cos_colat = groups.cos_low + (step + 0.5) / ESTIMATE_COLATITUDE_STEPS * (groups.cos_high - groups.cos_low)
+        sin_colat = np.sqrt(np.maximum(1.0 - cos_colat ** 2, 0.0))
+        for ring in range(ESTIMATE_RADIUS_STEPS):
+            radius = (groups.r_in ** 3 + (ring + 0.5) / ESTIMATE_RADIUS_STEPS * (groups.r_out ** 3 - groups.r_in ** 3)) ** (1.0 / 3.0)
+            means, tiers = scatterLimits.probe_densities(shape, radius * sin_colat, radius * cos_colat,
+                                                         scatterLimits.ESTIMATE_AZIMUTH_BINS)
+            if len(by_tier) == 1:
+                tiers = np.zeros(len(groups), dtype=int)
+            for tier, here in enumerate(by_tier):
+                wanted += np.where(tiers == tier, sum(means[population] * here[population]
+                                                      for population in SCATTERED_POPULATIONS), 0.0) / steps
     return float(expected_at_density_1 * np.sum(groups.volume * wanted))
 
 

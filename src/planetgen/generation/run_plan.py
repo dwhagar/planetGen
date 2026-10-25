@@ -874,6 +874,16 @@ class _ScatterShape:
             reach_on=data["reach_on"], e_value=data["e_value"], band_share=data["band_share"],
             component_count=data["component_count"])
 
+    def expected_of(self, key):
+        """The stars task `key` is expected to place: its shells' expected stars (the outline's and the part of each
+        shell beyond it), the far shells' together, or the components' share. The task's `weights` also count the
+        bands it walks, so they are not a count of stars (GEN.398)."""
+        if key == self.far_key:
+            return self.expected[self.first_far]
+        if key in self.component_parts:
+            return self.tasks[key][0][2]
+        return sum(self.expected[shell] for shell, _high, _weight in self.tasks[key])
+
     def log_line(self, label):
         return (f"{label}: about {round(sum(self.expected.values())):,} stars expected in "
                 f"{sum(self.sizes.values()):,} shells, {self.reach_shell:,} shells being the grid's reach"
@@ -1109,7 +1119,7 @@ class _ScatterTally:
         def task_done(result):
             task_counts = result["counts"]
             types = collections.Counter({(name, plural): count for name, plural, count in result["types"]})
-            note = _unit_note(key + 1, len(shape.tasks), shape.weights[key])
+            note = _unit_note(key + 1, len(shape.tasks), shape.expected_of(key))
             if key in shape.component_parts:
                 if sum(types.values()):
                     log.normal(f"{self.label}, {shape.names[key]}{note}: added {sum(types.values()):,} stars: "

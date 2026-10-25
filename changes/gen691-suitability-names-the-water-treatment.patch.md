@@ -1,0 +1,7 @@
+**Headline:** The Suitability line no longer says water is available when the Water row says it is undrinkable.
+
+### Changed
+- **Suitability and the Water row agree (GEN.691, bug).** The Suitability water rung is how reachable the water is and the Water row is whether it can be drunk, but the sentence said "there is water and shelter available" beside a Red Water row reading "undrinkable without heavy treatment". Reachable water that the Water row asks to be treated is now written as reachable with the same treatment: "There is no food readily available, but there is shelter available, and the water is reachable but it is undrinkable without heavy treatment." When food and shelter are fine too it reads "Food and shelter are readily available, and the water is reachable but it needs treatment before drinking." Drinkable water, and every other combination, reads as before.
+
+### Tests
+- A heavily and a mildly treated water body, with and without food, name the treatment; a sweep over pH, life stage and water source finds no sentence that calls water plainly available against a Water row that wants treatment.
