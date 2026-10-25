@@ -3193,3 +3193,120 @@ def test_galaxy_map_window_follows_the_browser_window_when_it_is_resized(page, m
     assert second["view"]["width"] > first["view"]["width"] + 200, (first, second)
     assert second["view"]["height"] > first["view"]["height"] + 100, (first, second)
     assert second["buffer"] == [round(second["canvas"]["width"] * second["dpr"]), round(second["canvas"]["height"] * second["dpr"])]
+
+
+# --- MAP.295: the info popup follows the map's window ---------------------------------
+
+INFO_BOX = """() => {
+    const info = document.querySelector("#galaxymap3d-info");
+    const view = document.querySelector(".galaxymap3d-panel .starmap-viewport").getBoundingClientRect();
+    const r = info.getBoundingClientRect();
+    return {
+        inside: r.left >= view.left - 1 && r.right <= view.right + 1 && r.top >= view.top - 1 && r.bottom <= view.bottom + 1,
+        fits: info.scrollHeight <= info.clientHeight + 1 && info.scrollWidth <= info.clientWidth + 1,
+        scroll: info.hasAttribute("data-scroll"), scale: info.style.getPropertyValue("--info-scale"),
+        width: r.width, height: r.height, view: [view.width, view.height], fontSize: parseFloat(getComputedStyle(info).fontSize),
+    };
+}"""
+
+LONG_CARD = """(rows) => {
+    const panel = document.querySelector("#galaxymap3d-canvas").__mapInfo;
+    panel.show({title: "A system with a very long name that goes on and on and on", fields: Array.from({length: rows},
+        (_, n) => ["Row " + n, "A value with a good deal of text so that it has to wrap onto a second line " + n])});
+}"""
+
+
+@pytest.mark.parametrize("width,height", [(800, 600), (1280, 900), (390, 700), (600, 480)])
+def test_galaxy_map_info_popup_stays_inside_the_map_window_at_every_size(page, map_site, width, height):
+    """MAP.295: the popup never leaves the map's window and holds all it says (smaller text first, then a scroll
+    that the pointer can reach), for a short card and for one far too long for the window."""
+    page.set_viewport_size({"width": width, "height": height})
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(500)
+    page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")
+    short = page.evaluate(INFO_BOX)
+    assert short["inside"] and (short["fits"] or short["scroll"]), short
+    if width >= 800:
+        assert short["fits"], short   # a window this size holds a black hole's card whole
+    page.evaluate(LONG_CARD, 40)
+    long = page.evaluate(INFO_BOX)
+    assert long["inside"], long
+    assert long["fits"] or long["scroll"], long
+    assert long["width"] <= long["view"][0] - 12 and long["height"] <= long["view"][1], long
+
+
+def test_galaxy_map_info_popup_grows_with_the_map_window(page, map_site):
+    """MAP.295: a wider map gives the popup more room (up to a limit) and the text stays a little smaller than a page's."""
+    widths = []
+    for width, height in ((700, 600), (1400, 900)):
+        page.set_viewport_size({"width": width, "height": height})
+        _open_window(page, map_site, 27, 27, 0, 0, g=3)
+        page.wait_for_timeout(500)
+        page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")
+        box = page.evaluate(INFO_BOX)
+        widths.append(box["width"])
+        assert box["fontSize"] <= 14, box
+    assert widths[1] > widths[0] + 20, widths
+
+
+def test_galaxy_map_info_popup_scrolls_with_the_wheel_and_hands_the_rest_to_the_map(page, map_site):
+    """MAP.295: over a popup that has more to show the wheel scrolls the popup; at the end of its scroll (or when it has
+    none) the same turn zooms the map under it, so a popup never takes the zoom away."""
+    page.set_viewport_size({"width": 800, "height": 600})
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(500)
+    page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")
+    page.evaluate(LONG_CARD, 40)
+    assert page.evaluate(INFO_BOX)["scroll"]
+    box = page.locator("#galaxymap3d-info").bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.mouse.wheel(0, 200)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info').scrollTop > 0")
+    page.evaluate("() => { document.querySelector('#galaxymap3d-info').scrollTop = 0; }")
+    camera = "() => JSON.stringify(document.querySelector('#galaxymap3d-canvas').galaxyCamera())"
+    before = page.evaluate(camera)
+    for _ in range(12):
+        page.mouse.wheel(0, -400)
+        page.wait_for_timeout(60)
+    assert page.evaluate(camera) != before, "the wheel at the top of the popup did not reach the map"
+
+
+def _open_habitable_card(page, base, name, width=1280, height=900):
+    """The Galaxy Map's card for one fixture system with a habitable world, opened from the marker's button."""
+    page.set_viewport_size({"width": width, "height": height})
+    _open_window(page, base, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(500)
+    _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    _markers_until(page, lambda found: any(e["kind"] == "marker-habitable" for e in found))
+    page.locator(".starmap-sr-markers button", has_text=name).evaluate("b => b.click()")
+    assert page.locator("#galaxymap3d-info h3").inner_text() == name
+
+
+def test_galaxy_map_system_card_lists_the_nearest_systems_each_a_link(page, map_site):
+    """MAP.296: under its position a system's card names the systems nearest it, nearest first with their distances,
+    each name a link to that system's page; and the card still fits the map's window with the list in it."""
+    _open_habitable_card(page, map_site, "Fixture Eden")
+    near = page.locator("#galaxymap3d-info .map-info-nearest-list li a")
+    near.first.wait_for()
+    names = near.all_inner_texts()
+    assert names[0] == "Fixture Rest" and len(names) <= 3, names
+    assert near.first.get_attribute("href") == "/system/9002"
+    assert "ly" in page.locator("#galaxymap3d-info .map-info-nearest-list li").first.inner_text()
+    assert page.locator("#galaxymap3d-info .map-info-nearest h4").inner_text() == "Nearest systems"
+    order = page.evaluate("""() => { const info = document.querySelector('#galaxymap3d-info');
+        return [...info.querySelectorAll('dt, h4, .map-info-actions')].map((e) => e.tagName === 'DT' ? e.textContent : e.tagName); }""")
+    assert order.index("Position x, y, z") < order.index("H4") < order.index("P"), order
+    box = page.evaluate(INFO_BOX)
+    assert box["inside"] and (box["fits"] or box["scroll"]), box
+
+
+def test_galaxy_map_system_nearest_route_answers_json(page, map_site):
+    """MAP.296: `/galaxy/system/<id>/nearest` is the card's data: the nearest neighbours with a page link each, a 404
+    for a system that is not there."""
+    ok = page.request.get(map_site + "/galaxy/system/9001/nearest")
+    assert ok.status == 200
+    body = ok.json()
+    names = [n["name"] for n in body["nearest"]]
+    assert names[0] == "Fixture Rest" and len(names) <= 3 and body["nearest"][0]["url"] == "/system/9002", names
+    assert page.request.get(map_site + "/galaxy/system/424242/nearest").status == 404

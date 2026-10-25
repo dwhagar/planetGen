@@ -469,8 +469,63 @@ function showPointInfo(point) {
   }, phenomenonActions(point)));
 }
 
+// MAP.296: the nearest systems of a star system, under its position in the card: each name a link to that system's
+// page, nearest first, with its distance. The list is fetched when the card opens (/galaxy/system/{id}/nearest) and
+// the card fits itself again when it arrives.
+function nearestSystemsNode(systemId) {
+  if (!sceneData.systemNearestPath || systemId == null) {
+    return null;
+  }
+  var box = document.createElement("div");
+  box.className = "map-info-nearest";
+  var heading = document.createElement("h4");
+  heading.textContent = "Nearest systems";
+  var note = document.createElement("p");
+  note.className = "hint";
+  note.textContent = "Looking up the nearest systems…";
+  box.append(heading, note);
+  function settle(message, list) {
+    note.textContent = message || "";
+    note.hidden = !message;
+    if (list) {
+      box.appendChild(list);
+    }
+    if (box.isConnected && infoPanel()) {
+      infoPanel().refit();
+    }
+  }
+  fetch(String(sceneData.systemNearestPath).replace("{id}", encodeURIComponent(systemId)), {
+    headers: { Accept: "application/json" }, credentials: "same-origin",
+  }).then(function (response) {
+    return response.ok ? response.json() : Promise.reject(new Error("status " + response.status));
+  }).then(function (body) {
+    var near = body.nearest || [];
+    if (!near.length) {
+      settle("No other system is stored near it.");
+      return;
+    }
+    var list = document.createElement("ol");
+    list.className = "map-info-nearest-list";
+    near.forEach(function (system) {
+      var item = document.createElement("li");
+      var link = document.createElement("a");
+      link.href = system.url;
+      link.textContent = system.name || "Unnamed system";
+      var away = document.createElement("span");
+      away.className = "map-info-nearest-distance";
+      away.textContent = " " + threeFigures(system.distance_ly) + " ly";
+      item.append(link, away);
+      list.appendChild(item);
+    });
+    settle("", list);
+  }).catch(function () {
+    settle("The nearest systems could not be loaded.");
+  });
+  return box;
+}
+
 // A star system with habitable worlds on the map (MAP.220, queryDb.galaxy_habitable_systems_in_box): how many, where,
-// and its page.
+// its nearest systems (MAP.296), and its page.
 function showHabitableSystemInfo(system) {
   var spec = {
     title: system.name || "Star system",
@@ -480,6 +535,10 @@ function showHabitableSystemInfo(system) {
       ["Distance from core", formatDistancePc(Math.hypot(system.x, system.y, system.z))],
     ],
   };
+  var nearest = nearestSystemsNode(system.id);
+  if (nearest) {
+    spec.after = [nearest];
+  }
   if (sceneData.systemUrl) {
     spec.view = { href: String(sceneData.systemUrl).replace("{id}", encodeURIComponent(system.id)), label: "View system →" };
   }
@@ -3326,6 +3385,7 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.onChange(function (id, on) { if (id === "glow") glow.setVisible(on); });
     canvasEl.__mapGlow = glow;    // the browser tests read what is drawn
   }
+  canvasEl.__mapInfo = infoPanel();    // the browser tests put long cards in it (MAP.295)
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
   function chooseMarker(entry) {
     highlightPosition(entry.x, entry.y, entry.z);

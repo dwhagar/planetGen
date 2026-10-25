@@ -501,6 +501,34 @@ def galaxy_nebula_shape(nebula_id):
 galaxy_nebula_shape.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+@bp.route("/galaxy/system/<uid:system_id>/nearest")
+@page_limit("galaxy_tiles")
+def galaxy_system_nearest(system_id):
+    """
+    JSON for the Galaxy Map's star system card (MAP.296): the system's nearest neighbours,
+    `{"nearest": [{"id", "name", "distance_ly", "url"}]}` nearest first, from the same stored neighbours the system
+    page's "Nearest:" line names (`db.query.system_detail`). An unknown system is a 404 and an API failure a 502, both
+    as `{"error": ...}` JSON.
+    """
+    try:
+        detail = apiclient.get_system(db_name(), system_id)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching a system's nearest neighbours: {exc}")
+        return _json_error("The nearest systems could not be loaded. Please try again shortly.", 502)
+    nearest = [
+        {"id": near["id"], "name": near["name"], "distance_ly": near["distance_ly"], "url": page_url("system", system_id=near["id"])}
+        for near in detail.get("nearest_neighbors") or []
+    ]
+    response = jsonify({"nearest": nearest})
+    response.headers["Cache-Control"] = "private, max-age=300"
+    return response
+
+
+galaxy_system_nearest.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 @bp.route("/galaxy/nebula/<uid:nebula_id>/surroundings")
 @page_limit("galaxy_tiles")
 def galaxy_nebula_surroundings(nebula_id):

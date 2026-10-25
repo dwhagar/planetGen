@@ -418,7 +418,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
-                              uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None):
+                              uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
+                              system_nearest_path="/galaxy/system/{id}/nearest"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -479,6 +480,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             (`/galaxy/territories`), fetched when the Territories button
             is pressed. `None` (no polities generated yet) leaves the
             button and its legend out.
+        system_nearest_path (str): The endpoint of a star system's nearest neighbours (`/galaxy/system/{id}/nearest`,
+            `{id}` where the system's id goes), which a system's card lists under its position (MAP.296).
         nebula_shape_path (str): The endpoint of a nebula's mesh (`/galaxy/
             nebula/{id}/shape`, `{id}` where the nebula's id goes), which the
             map draws a nebula from once it is big enough on screen
@@ -539,6 +542,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "locatePath": locate_path,
         "territoryPath": territory_path,
         "nebulaShapePath": nebula_shape_path,
+        "systemNearestPath": system_nearest_path,
         "course": course,
         "made": made,
         "superbubbles": [[b["x"], b["y"], b["z"], b["radius_pc"]] for b in superbubbles or []],
