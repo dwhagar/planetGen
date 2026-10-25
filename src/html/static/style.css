@@ -5201,3 +5201,28 @@ p.hint a {
   margin: 0.4rem 0 0.2rem;
   font-size: 0.95rem;
 }
+
+/* UX.196: the "On this page" contents list (static/pagetoc.js). */
+.page-toc {
+  margin: 0 0 1rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-subtle);
+}
+
+.page-toc-title {
+  margin: 0 0 0.25rem;
+  font-weight: 600;
+}
+
+.page-toc ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  columns: 14rem auto;
+}
+
+.page-toc li ul {
+  columns: 1;
+  font-size: 0.9em;
+}
