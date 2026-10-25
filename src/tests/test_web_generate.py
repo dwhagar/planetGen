@@ -580,7 +580,9 @@ def test_a_refused_galaxy_job_offers_generate_anyway(site, client, no_spawn, mon
 
 def test_generate_anyway_starts_the_job_and_logs_it(site, client, no_spawn, monkeypatch):
     events = []
-    monkeypatch.setattr(generate_page.activity_log, "event", lambda *args, **kwargs: events.append((args, kwargs)))
+    # Only the job events (TEST.375): the in-process API calls of the page are logged by the same function ("call").
+    monkeypatch.setattr(generate_page.activity_log, "event",
+                        lambda *args, **kwargs: events.append((args, kwargs)) if args[1].startswith("job.") else None)
     resp = _post(client, action="galaxy", mode="shell", shell_index="40", estimate_ok="1", generate_anyway="1")
     assert resp.status_code == 303 and len(no_spawn) == 1
     assert "--strict" not in no_spawn[0]["steps"][-1]["argv"]   # the CLI warns and goes ahead
@@ -591,7 +593,8 @@ def test_generate_anyway_starts_the_job_and_logs_it(site, client, no_spawn, monk
 
 def test_a_plain_confirm_is_not_logged_as_an_override(site, client, no_spawn, monkeypatch):
     events = []
-    monkeypatch.setattr(generate_page.activity_log, "event", lambda *args, **kwargs: events.append((args, kwargs)))
+    monkeypatch.setattr(generate_page.activity_log, "event",
+                        lambda *args, **kwargs: events.append((args, kwargs)) if args[1].startswith("job.") else None)
     assert _post(client, action="galaxy", mode="shell", shell_index="40", estimate_ok="1").status_code == 303
     assert [args[1] for args, _kwargs in events] == ["job.start"]
 
