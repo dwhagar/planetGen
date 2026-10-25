@@ -1,7 +1,0 @@
-**Headline:** A world with flora, fauna or a civilization now has food in its Suitability rating even when its ocean is under ice, and the life and timeline text says what is there, in the present tense.
-
-### Changed
-- **Food follows the life scores (GEN.765).** The Suitability food rung zeroed all life on a world whose hydrosphere is an ice-covered ocean, although the Flora, Fauna and Sentient scores of the same world were above 0 (Enuakyadas IV: 5, 5 and 5, Suitability Red 0.20, "no food readily available"). Only microbes that live under the ice (or in a deep aquifer) are out of reach now; flora and fauna are food wherever the world scores them. The stored Suitability of such a world changes, so the generator epoch is bumped (98).
-- **The life and timeline paragraphs state what is detected (GEN.766).** "Life based on melanin could arise on this planet, and it would evolve at a standard pace" is now "Life based on melanin lives on this planet, evolving at a standard pace"; "On a speculative timeline at that pace, the system is about 13.8 Gyr old. Its latest milestone would be ..." is "The system is about 13.8 Gyr old. Its latest milestone is ..."; the stage text says "the planet has" in place of "boasts". A world whose conditions suit a chemistry but where no milestone has been reached says so: "Conditions on this planet suit life based on X, but none has appeared yet."
-
-generation-output: changed
