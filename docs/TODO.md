@@ -1059,6 +1059,27 @@ with `clamp()`.
   browser test pins it. Version 8.1. Owner: Core 5.
   Prerequisites: none. Related: UX.208, GEN.772.
 
+- [ ] **UX.214 Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  The search page and the planet and moon lists show a Habitability
+  symbol column (sortable=False) and filter by nothing about it; Nearby
+  has no habitability or life field at all; the API takes
+  +habitable_world as a request only. Add: filters and sort for the
+  overall PHI-6 colour, each domain, Suitability, Flora, Fauna, Sentient
+  and the food rung, 'has life' and 'has a civilization' filters, on the
+  search page, the lists, Nearby and the API query parameters, with the
+  filter chips that active_filters already shows. Done: a browser test
+  filters and sorts a sample galaxy by each, and the API documents the
+  parameters. Version 8.1. Owner: Aux 11 (pages), with UX.150 which
+  covers the class and PHI-6 colour only. Rules: a unit or scale on
+  every number (GEN.772); tests are `scripts/test.py changed --resume`;
+  no fixed content from the Milky Way or the Solar System.
+  Prerequisites: none. Related: UX.150, UX.100, GEN.653.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -3033,6 +3054,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `scripts/test.py changed --resume`; no fixed content from the Milky
   Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: MAP.309. Related: MAP.295, MAP.296.
+
+- [ ] **MAP.311 Map markers and a menu filter for worlds with life, with sentient life and with a civilization, beside the habitable-world markers**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  MAP.220, MAP.303 and MAP.306 cover habitable worlds (PHI-6 Yellow and
+  above) and kinds; nothing marks a world that has life, a sentient
+  species or a civilization, which Boss's design uses everywhere else.
+  Add three marker kinds and menu filters (life, sentient, civilization
+  with its tech band) on the Galaxy Map, the Sector Map and the System
+  Map, from the stored life scores and the population tables. Done: a
+  browser test turns each filter on in a sample galaxy and sees only
+  those systems. Version 8.1. Owner: Core 2 (map menu). Rules: a unit or
+  scale on every number (GEN.772); tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Prerequisites: none. Related: MAP.220, MAP.303, MAP.306, MAP.307.
 
 ## NAV: Navigation and courses
 
@@ -17460,6 +17499,24 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: ADM.130. Related: ADM.52, ADM.58, ADM.60, ADM.66,
   ADM.81, POP.13.
 
+- [ ] **ADM.132 After an admin edit of a planet or moon, its habitability, Suitability and life scores are recomputed, and a test proves it (check) (bug)**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  admin/edits.py changes a planet's class, orbit, star or parent
+  (re-draws the body, moves its moons) and nothing in the file calls the
+  habitability or life scoring, so a stale PHI-6, Suitability or life
+  stage may stay on the body or its moons until `rescore-habitability`
+  (ADM.129) runs. Check: edit a sample planet and read its scores before
+  and after. If they stay stale, this is a bug: recompute the scores for
+  the edited body and its moons in the same transaction (the same call
+  the generator makes) and add a test. If the edit already rescored
+  through another path, name it in the item and add the test. Version
+  8.1. Owner: Aux 3 (habitability model) or Core 1.
+  Prerequisites: none. Related: ADM.129, GEN.688.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -22488,4 +22545,28 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   --resume`; no fixed content from the Milky Way or the Solar System.
   Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.33, POP.35, MAP.309. Related: POP.33, POP.24.
+
+- [ ] **POP.37 Facility ratings read Suitability, the food rung and the life scores: Health and Housing use only PHI-4 today**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  population/facility_suggest.py rates a facility from the host's phi4
+  only (Health 0.5 medical + 0.5 habitability, Housing 0.5 habitability
+  + 0.3 materials + 0.2 size, Maintenance 0.15 habitability). It never
+  reads Suitability, the food rung (Flora and Fauna) or the Sentient
+  score, so a base on a world with food and shelter rates the same as
+  one with none, and a facility on a world with a sentient species is
+  not rated against it. Decide which ratings take which score (Health
+  from the food rung and radiation tier, Housing from Suitability,
+  Resources from Flora and Fauna for a living world), write the weights
+  and the sources in docs/design/habitability/population-and-politics.md
+  and change the ratings; a changed rating is drawn output and carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch. Version 8.4. Owner: pool, after the settlements design
+  (POP.16). Rules: a unit or scale on every number (GEN.772); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System.
+  Prerequisites: POP.16. Related: POP.16, POP.17, GEN.653.
 
