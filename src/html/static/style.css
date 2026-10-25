@@ -2755,15 +2755,48 @@ code {
    the pointer. */
 .starmap-info[data-overlay] {
   position: absolute;
-  top: 0.75rem;
-  right: 0.75rem;
-  z-index: 10;
-  width: min(18rem, calc(100% - 1.5rem));
-  max-height: calc(100% - 1.5rem);
+  top: 0.5rem;
+  right: 0.5rem;
+  /* Under the Menu's open panel (z-index 5), so a tall popup never covers the Menu's buttons. */
+  z-index: 4;
+  /* MAP.295: the popup follows the map's window: a share of its width (within limits), never taller than it, and its
+     text shrinks (mappick.js sets --info-scale) until what it says fits, so nothing is cut off. */
+  width: min(calc(100% - 1rem), clamp(13rem, 36%, 24rem));
+  max-height: calc(100% - 1rem);
   overflow: auto;
-  padding: 0.6rem 0.8rem;
-  font-size: 0.85rem;
+  padding: calc(0.5rem * var(--info-scale, 1)) calc(0.7rem * var(--info-scale, 1));
+  font-size: calc(0.78rem * var(--info-scale, 1));
+  overflow-wrap: anywhere;
   pointer-events: none;
+}
+
+.starmap-info[data-overlay] h3 {
+  font-size: 1.05em;
+  margin-bottom: 0.4em;
+}
+
+.starmap-info[data-overlay] dl {
+  margin-bottom: 0.6em;
+}
+
+/* MAP.296: the nearest systems under a system's position. */
+.map-info-nearest h4 {
+  margin: 0.5em 0 0.25em;
+  font-size: 1em;
+}
+
+.map-info-nearest-list {
+  margin: 0 0 0.6em;
+  padding-left: 1.3em;
+}
+
+.map-info-nearest-distance {
+  color: var(--text-muted);
+}
+
+/* What does not fit even at the smallest text scrolls, so the pointer has to reach the popup to scroll it. */
+.starmap-info[data-overlay][data-scroll] {
+  pointer-events: auto;
 }
 
 .starmap-info[data-overlay] a,
@@ -2776,19 +2809,19 @@ code {
 
 .starmap-info[data-corner="top-left"] {
   right: auto;
-  left: 0.75rem;
+  left: 0.5rem;
 }
 
 .starmap-info[data-corner="bottom-left"] {
   top: auto;
   right: auto;
-  bottom: 0.75rem;
-  left: 0.75rem;
+  bottom: 0.5rem;
+  left: 0.5rem;
 }
 
 .starmap-info[data-corner="bottom-right"] {
   top: auto;
-  bottom: 0.75rem;
+  bottom: 0.5rem;
 }
 
 .starmap-info[data-state="rest"],

@@ -440,3 +440,40 @@ The prototype (`eq_proto.py`, `sweep.py`) lived in the session's scratch folder 
 ## 16. Which row an item sits under (GEN.702)
 
 An item carries every PHI-6 domain it can come from (`Item.domains`, the likeliest first; `domain` is the first), because the stored levels do not record the cause: an air supply of level 1 or 2 may be for the air, the pressure or the cold; a hardened suit is for the suit's own stress and the radiation; a body level of 4 or more (a pressure suit, an armoured suit) also keeps out the pressure, the temperature and the air, and a sealed suit the air. A category's row lists the items whose domains include it and whose own colour is not Blue (`Item.rows`), the first domain when all of them are Blue. The API's items gain `domains`.
+
+## 17. Hours outside in a day (GEN.768, Boss 2026-10-24)
+
+The property sheet used to label the yearly `outside_hours` "Hours of daylight a person can be outside", which it is not: it is the
+hours of a working year that the listed radiation suit allows before the dose limit, and `None` unless that is a limit. Boss asked
+for the hours of daylight a person can be outside in one local day, with the daylight hours of the planet beside it. The first
+part is built (`physics/outside_hours.py`); the stored columns follow GEN.767's `daylight_hours`.
+
+**The answer is the smallest of five limits and the one that binds is named** (`outside_hours.LIMITS`: daylight, dose, heat,
+cold, air, uv, and vehicle for a body that needs one, which has 0 hours):
+
+| Limit | What it is |
+|---|---|
+| daylight | the daylight hours of the local day (GEN.767; a locked world's terminator belt, or none) |
+| dose | the yearly hours the listed suit allows (`outside_hours`) over the work days of the year (`work_days_per_year`: the local solar days, 24-hour shifts for a locked world); no limit when the yearly hours are `None` |
+| heat, cold | the time before the core temperature leaves 35 to 38.5 C (`exposure_hours`) |
+| air | the gas of the listed Air Supply against a shift (`protection_limits.supply_hours`): a charge lasts a share of the 8-hour shift (mask 1, own gas 0.5, mixed gas 0.75, isolated air 1); ambient air has none |
+| uv | the day's ultraviolet against what the worn garment is rated for: the band edge it stands for (bare 3, sun-cover clothing 30, full-cover suit 300 times Earth's, a sealed suit any), the dose linear in the index, so past the edge the hours are the daylight times edge over index |
+
+**Heat and cold** are a one-node balance of the 70 kg, 1.8 m2 reference body at a light to moderate working rate (150 W): its heat
+capacity (3470 J/(kg K)) against the metabolism, the dry flow through the garment's insulation and the surface film (radiation plus
+convection that goes as the square root of the gas density), the evaporation of sweat (ISO 7933: the vapour-pressure difference
+between the wet skin and the air over the clothing's and the film's vapour resistance, at most 500 W, none in a sealed suit) and the
+garment's cooling or heating power (a cooling vest, a liquid cooling garment, a suit's thermal control, a heated suit;
+`protection_limits.GARMENTS`). The garment for the hot end is the one the ladder lists at the day's hottest temperature and for the
+cold end the one at the coldest (`equipment.body_at`), so a person wears the clothing the ladder lists for the weather they
+are in; an unsealed garment is worn open (30 percent of its insulation) in air colder than the skin. The day's temperatures are the
+world's cold and hot extremes (`habitability.temperature_extremes_c`) widened by half the day-night swing (`temp_swing_k`).
+
+**What it shows.** The ladder's gear is chosen to cope, so heat and cold bind only near the hot and cold ends of a garment's band (a
+liquid-cooled suit at 120 C with a 40 K swing: about 6 h; an insulated suit at -49 C: about 11 h), the air supply binds in a sealed
+suit (4 h on own gas in a vacuum or the deep cold), the dose binds on a world that needs a shelter, and the ultraviolet binds only
+past a garment's rating. Earth has the full daylight.
+
+Every number is a `protection_limits` row or table with a source tier and a tweak level in section 6.8 of
+[gap-filling-plan.md](../research/gap-filling-plan.md) (the rows OH1 to OH10; list in
+[stand-in-values.md](../research/stand-in-values.md)). Nothing is drawn.

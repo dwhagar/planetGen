@@ -197,6 +197,19 @@ def ensure_workers(queue_name, connection=None, url=None, mysql_host=None, count
     return max(0, need)
 
 
+def registered(connection, queue_names):
+    """
+    A worker has registered with RQ (`cli.worker`'s `register_birth`): it is live now, so it stops counting among the
+    ones `ensure_workers` started and is waiting for. Without this the counter held it for the whole of
+    `STARTING_SECONDS` on top of its place among the live ones, and a worker killed in that time was not replaced
+    until the counter ran out (about 90 s). A worker not started by `ensure_workers` leaves no count to take it from.
+    """
+    for name in queue_names:
+        key = STARTING_PREFIX + name
+        if connection.exists(key) and connection.decr(key) <= 0:
+            connection.delete(key)
+
+
 def _start_missing(queue, queue_name, connection, url, mysql_host, count, waiting):
     """The counting and starting of `ensure_workers`, run by the one caller that holds the queue's lock. Returns how many
     workers it started."""

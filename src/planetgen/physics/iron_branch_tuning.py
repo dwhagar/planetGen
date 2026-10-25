@@ -26,7 +26,7 @@ keeps the planets that pass. The planets are not any the generator keeps.
 import math
 
 from planetgen.physics import bulk_draw, bulk_structure, mass_radius_sample, stellar_composition
-from planetgen.util import draw
+from planetgen.util import detmath, draw
 
 FE_H_SIGMA = 0.2
 """float: The spread of the hosts' [Fe/H] (normal about 0); a host sample of FGK stars (the homogeneous samples are 0.1 to 0.3 dex wide); the statistic
@@ -76,7 +76,7 @@ def classify(item):
     cmf = _inferred_cmf(mass, radius, x_fe)
     by_radius = abs(_inferred_cmf(mass, radius * (1.0 + item["radius_error_share"]), x_fe) - cmf)
     by_mass = abs(_inferred_cmf(mass * (1.0 + item["mass_error_share"]), radius, x_fe) - cmf)
-    sigma = max(math.hypot(by_radius, by_mass), 1e-6)
+    sigma = max(detmath.hypot(by_radius, by_mass), 1e-6)
     excess = cmf - item["star_cmf"]
     return dict(item, measured_cmf=cmf, sigma=sigma, outlier=excess > OUTLIER_SIGMAS * sigma, within=abs(excess) < sigma)
 

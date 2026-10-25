@@ -2,6 +2,65 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2341] - 2026-10-25
+
+**Headline:** The Galaxy Map's cards fit the map's window and a system's card lists its nearest systems.
+
+### Changed
+- **The card follows the map's window (MAP.295).** The popup a picked object opens inside the map was a fixed size, so on a smaller map window part of it could run off the edge. It now takes a share of the map's width (more on a wide map, less on a narrow one), is never taller than the window, and its text is a little smaller than before and shrinks a step at a time until everything it says fits. What cannot fit even at the smallest text (a very short window) scrolls inside the card: the wheel over it scrolls the card while it has more to show, then goes on to zoom the map. The card also sits under the map's Menu panel so it never covers the Menu's buttons.
+- **A system's card names its nearest systems (MAP.296).** Under its position a star system's card (the habitable-world markers' card) now lists the systems nearest to it, nearest first with their distances, each name a link to that system's page. They come from the same stored neighbours the system page's "Nearest:" line names.
+
+TODO items resolved: MAP.295, MAP.296. Added: none.
+
+## [8.0.2340] - 2026-10-25
+
+**Headline:** The hours a person can be outside in a day are now worked out from daylight, dose, heat, cold, air and ultraviolet, with the binding limit named; nothing is stored or shown yet.
+
+### Changed
+- **GEN.768, part 1: the model.** `physics/outside_hours.py` gives the hours of one local day a person can be outside in the equipment the survival rules list: the smallest of the daylight, the day's share of the radiation allowance, the time a garment keeps the core temperature in its limits at the day's hottest and coldest, the breathing gas against an 8-hour shift and the ultraviolet against what the worn garment is rated for, and names the limit that binds. Its numbers are named rows of `protection_limits` with source tiers in the stand-in registry (10 new rows, OH1 to OH10). No generated value, page or column changes yet; the stored column follows the daylight hours of GEN.767.
+
+## [8.0.2339] - 2026-10-25
+
+**Headline:** What a small or hot planet loses from its air now comes from a model of its thermosphere and its star's XUV history, instead of a fixed ratio of temperatures and a rule of thumb.
+
+### Changed
+- **Escape model (GEN.738).** The exobase temperature is the mesopause plus a rise that goes with the star's XUV and is cooled by the carbon dioxide of the air, fitted to the upper-atmosphere model of Johnstone et al. 2018. Each species leaves by the Jeans flux through the exobase, at most what the air below can carry up, and the star's XUV decay over the body's age is integrated against the air that is left. The Earth keeps its nitrogen, oxygen, argon and carbon dioxide and loses its hydrogen and helium; Venus keeps all of its air; Mars keeps CO2 and nitrogen; Titan's hydrogen flux is within 15 percent of the measured 9.2e27 per second. The old exobase ratios, XUV exponent and logistic width (registry rows AM19 to AM21) are gone, and the two remaining cutoffs are labelled as numerical.
+- **Envelope mass loss.** The analytic fit of Kubyshkina et al. 2018 for a hydrogen envelope is in `thermosphere.py` and reproduces the nine planets of its Table 2 to a factor of 2.3 or better; it is not wired into the sub-Neptune rows yet. Nothing in the generator draws the mixture yet (it waits on GEN.411 and GEN.422), so no stored value changes today.
+- Tests for the Earth, Venus, Mars, Titan and the nine planets, fifteen stand-in registry rows (GEN.725, AM63 to AM77), a design note (`atmospheric-escape-model.md`) and the licences of the three papers read.
+
+## [8.0.2338] - 2026-10-25
+
+**Headline:** One page test no longer fails on a machine whose MySQL has no `planetgen` login.
+
+### Fixed
+- **`test_web_pages.py::test_in_process_transport_skips_http_inside_a_request` (TEST.370)** asked the app for `/databases`, which lists the schemas on the configured server, with the default configuration's `planetgen` login and no password. On a test machine that has only the test login it failed with `DatabaseLoginError` (an `internal server error` from the API). The test now builds its app with the test server's login.
+- Not changed: the runner's check of the test environment (TEST.376) already stops a lane that has no `PLANETGEN_TEST_MYSQL_USER` set, which is how the same gap shows up in other tests.
+TODO items resolved: TEST.370, and TEST.390 (TODO closes them after reading this: each of Aux 10's tests passes on main; the runner self-tests, test_stages, test_web_fresh_after_cli and the browser map and table tests ran 116 passed, and the other four were fixed by #3189, #3280 and #3291). Added: none.
+
+## [8.0.2337] - 2026-10-25
+
+**Headline:** A queue worker that dies soon after it started is replaced at once instead of after about 90 seconds, and two tests that were red on main are fixed.
+
+### Fixed
+- **A worker killed (or lost to the out-of-memory killer) within 90 seconds of being started was not replaced for the rest of that time (TEST.371).** The count of workers "started and not yet registered" (`planetgen:workers:starting:<queue>`, PERF.181) was only ever cleared by its 90 second expiry, so a worker that had registered was counted twice, once among the live ones and once among the starting ones, and the room left for a replacement stayed taken. A job then waited in the queue with no worker until the count ran out. A worker now takes itself off that count when it registers (`workers.registered`, called from the worker's `register_birth`). `test_workers.py::test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs` waited 90 s for this and passed or failed by a second (it failed alone 1 time in 3); it now takes under 5 s, and a new test holds the count.
+- **`test_cache_warmup.py::test_a_family_command_runs_alone_and_warms_only_its_family` (TEST.377)** expected `run-population` to refuse to be cut into units, but every registered command has an expansion now. It makes an inline command of its own to show the refusal.
+TODO items resolved: TEST.371, TEST.377 (TODO closes them after reading this). Added: none.
+
+## [8.0.2336] - 2026-10-25
+
+**Headline:** A planet with an ocean and no land now has a carbon sink in the model, so its carbon dioxide no longer has to stay in the air.
+
+### Added
+- **The carbon of a water world, as a module (GEN.814).** An ocean deep enough to seal the seafloor (1 to 3 GPa) holds its carbon by ocean chemistry and the cations the early ocean leached from the crust; an unsealed world with no land loses carbon to the seafloor, as Kite and Ford 2018 and Krissansen-Totton and Catling 2017 describe. The generator does not call it yet; it joins the air solve with the surface-air work.
+
+## [8.0.2335] - 2026-10-25
+
+**Headline:** The Galaxy Map has no sector boxes any more: a click selects the star or object under it and shows its details, and a double click flies to it.
+
+### Changed
+- **No sector boxes on the Galaxy Map (MAP.297).** Hovering or clicking the map no longer names, outlines, shades or opens a block of sectors; the blocks remain only as the data the map draws from, as the optional Cell grid, on a sector page's own map, and while a NAV end is chosen. The arrow keys no longer move among blocks.
+- **A star takes the click (MAP.304).** Every drawn star is picked from any distance (the nearest to the pointer, the brightest of those level with it): one click selects it and shows its details in the map's window, a click on nothing puts them away, a double click (or Enter on the selected one) flies the camera to it, a sector and a half away at the nearest. The wheel still zooms where it did. The map's help and hint text say so.
+
 ## [8.0.2334] - 2026-10-25
 
 **Headline:** A moon's makeup now follows from how it formed, so icy captured moons and rocky impact moons differ in density, ice and metal.

@@ -34,7 +34,7 @@ element budget the mixture draw reads.
 import math
 
 from planetgen.physics.mixture_base import bracket
-from planetgen.util import draw
+from planetgen.util import detmath, draw
 
 G = 6.674e-11
 """float: Gravitational constant, SI."""
@@ -137,7 +137,7 @@ def veneer_volatiles(constants):
 def impact_speed_ms(mass_kg, radius_m, orbital_speed_ms):
     """The mean speed at which the leftover planetesimals hit: `sqrt(v_esc^2 + (0.6 v_orbit)^2)`."""
     escape = math.sqrt(2.0 * G * mass_kg / radius_m)
-    return math.hypot(escape, V_INF_OVER_V_ORBIT * orbital_speed_ms)
+    return detmath.hypot(escape, V_INF_OVER_V_ORBIT * orbital_speed_ms)
 
 
 def impactor_escape_share(speed_ms, escape_ms):

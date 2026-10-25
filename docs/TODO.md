@@ -1377,6 +1377,31 @@ with `clamp()`.
   changed --resume`.
   Prerequisites: UX.226. Related: UX.225.
 
+- [ ] **UX.231 Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5)**
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. An object is placed by the block holding its current
+  position, never by its ID. Done: the line on sector, system and body
+  pages, hidden when absent, test pinned. Owner: Aux 11. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826, API.35,
+  MAP.314, MAP.315.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2977,30 +3002,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   icons; Aux 10). Owner: Core 2.
   Prerequisites: none. Related: MAP.295, MAP.288, MAP.298.
 
-- [ ] **MAP.297 Remove the sector boxes from the maps: clicking goes to a location, never to a sector block (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: clicking goes to a sector
-  block, which we need to get rid of; the map should be about locations.
-  Do: remove the drawn and clickable sector box, meaning the hover and
-  selected sector outline (MAP.265), the pick of a sector block on the
-  Galaxy Map, and any block outline a click can land on, so a click on
-  the map picks an item (a star, system, comet, rogue planet, cluster or
-  nebula), the nearest item under the pointer, or nothing. What stays:
-  the sector-block nodes as internal data (the node cut, the unresolved
-  glow, MAP.258 to MAP.262, MAP.266) and the optional grid tool, which
-  stays a tool and not the default display (Boss, 5:51 PM EDT
-  2026-10-23, zoom card 2). Done: a browser test clicks in empty space
-  and on a dense region of the fixture and gets an item or nothing,
-  never a sector box, and no sector outline is drawn on hover or select.
-  Part of one chain filed from that message: TEST.368 (fixture galaxy),
-  MAP.295 and MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking,
-  labels, zoom, icons; Aux 10). Owner: Aux 10 (it owns the node layer);
-  the pick code is in galaxymap3d.js, which Core 2 also edits, so the
-  two lanes message each other before touching it.
-  Prerequisites: TEST.368. Related: MAP.257, MAP.265, MAP.122, MAP.210,
-  MAP.140.
-
 - [ ] **MAP.298 Every visible item that has room for a name gets a name, and the name is clickable to fly to that location (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
@@ -3113,38 +3114,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (clicking, labels, zoom, icons; Aux 10). Owner: Aux 10 (MAP.220's
   marker code is its to extend); MAP.293 (colour-by Habitable) is the
   same area, so it goes first.
+  Revision (2026-10-09): Revision (Boss, 1:19 AM EDT 2026-10-25): the
+  world's mark is now its own habitable-world icon (MAP.320), carried by
+  the star in the star views and by the planet or moon itself at the
+  system level (MAP.321).
   Prerequisites: TEST.368, MAP.305. Related: MAP.220, MAP.293, GEN.643, MAP.298.
-
-- [ ] **MAP.304 Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug)**
-  Boss, 7:33 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiKvKv7nchhgm2mEPPktTDrW, relayed by the
-  coordinator), live observation, so a bug: "also I should be able to
-  click on any object or icon in my map view, double-click to fly to the
-  item / object, selecting brings up the infobox in the map window. Make
-  sure the infobox is never cut off, we can make the fonts a little
-  smaller." Do: every drawn object and every icon on the Galaxy and
-  sector
-  maps (stars, systems, comets, rogue planets, clusters, nebulae, the
-  habitable icons of MAP.303, the facility and vessel icons) takes a
-  single
-  click that selects it and opens its infobox inside the map window, and
-  a
-  double-click that flies the camera to it (MAP.140 and the flight of
-  MAP.226); a click on empty space selects nothing and closes the
-  infobox.
-  The pick is by object ID across scales (MAP.268) and never lands on a
-  sector box (MAP.297). The infobox sizing is MAP.295. Done: a browser
-  test
-  on the fixture galaxy (TEST.368) single-clicks one object of every
-  kind
-  and sees its infobox inside the map window, and double-clicks one and
-  ends the flight at it. Part of the Boss map UX chain: TEST.368,
-  MAP.295
-  to MAP.304. Owner: Aux 10 (click and double-click picking); the
-  infobox
-  is Core 2's MAP.295.
-  Prerequisites: TEST.368. Related: MAP.140, MAP.226, MAP.268, MAP.295,
-  MAP.297, MAP.298, MAP.303.
 
 - [ ] **MAP.305 Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug)**
   Boss, 7:35 PM EDT 2026-10-24 (message
@@ -3188,6 +3162,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   code of MAP.220 and the node cut).
   Prerequisites: TEST.368. Related: MAP.303, MAP.304, MAP.220, MAP.299,
   MAP.298.
+  Revision (2026-10-09): Revision (Boss, 1:19 AM EDT 2026-10-25): the
+  rule of one generic mark with no icon per kind is replaced by distinct
+  vector icons per kind (MAP.320) and markers by level (MAP.321); the
+  registry, merging of crowded marks and the click that lists the
+  reasons stay as written here.
 
 - [ ] **MAP.306 The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug)**
   Boss, 7:37 PM EDT 2026-10-24 (message
@@ -3370,6 +3349,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --resume`; no fixed content from the Milky Way or the Solar System.
   Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
   2026-10-24 (fix each): Aux 10 (map nodes and menu), after MAP.306.
+  Revision (2026-10-09): Revision (Boss, 1:19 AM EDT 2026-10-25): the
+  markers use the distinct token set of MAP.320 (habitable world,
+  inhabited world coloured by habitability score, uninhabitable world,
+  gas giant, asteroid field) and the level rules of MAP.321; the life,
+  sentient and civilization filters sit beside them in the same menu.
   Prerequisites: none. Related: MAP.220, MAP.303, MAP.306, MAP.307.
 
 - [ ] **MAP.312 Resource locations become points of interest: interest reasons for valuable asteroid belts and fields, icy bodies and giants, each with its own row in the map menu filter**
@@ -3426,6 +3410,275 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
   nothing in 8.1.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
+
+- [ ] **MAP.314 Galaxy Map labels the charted regions by zoom: the family word with Reach at 81 and 243, the Region name at 27 and 9, the corner or infobox below that (regions chain, step 3)**
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Label priority bigger block first, one label per node,
+  culling by the sector-name collision rules; the label sits on the
+  centroid of the charted spheres, not the block centre; an unfilled
+  galaxy shows nothing. The suffix words Region and Reach are
+  placeholders for Boss. Done: label tests at each zoom, no label for
+  uncharted space. Owner: Aux 10. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume. The galactic-level map draws the regions themselves
+  (MAP.317), so these labels are what a user reads there.
+  Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826, API.35.
+
+- [ ] **MAP.315 The map infobox shows the region and its parent: "Region: Vang Zarh (in Vang Reach)", each a link that flies the camera to the block (regions chain, step 4)**
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Extends the Core 2 infobox work (MAP.295, MAP.296).
+  Done: lines hidden when the point is in no charted region, links fly
+  the camera, test pinned. Owner: Core 2. Rules: no backward-compat
+  shims; every number has a unit or scale (GEN.772); tests are
+  scripts/test.py changed --resume.
+  Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826, API.35,
+  MAP.314.
+
+- [ ] **MAP.316 Regions are the nodes of the galactic-level map: a soft sphere with its name, coloured by share charted, replacing the sector boxes there, and a sortable charted-regions list (regions chain, step 3a)**
+  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
+  what the galactic-level map shows so a user can always drill down to
+  inhabited space; a region is a 9-block cell with at least one
+  generated sector, drawn as the bounding sphere of its generated
+  sectors (never smaller than the 12 pc fill sphere), ranked by share
+  charted. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2. Regions are nodes of the node cut (the node cache and
+  name on the node payload, API.35); drilling: clicking a region or its
+  label flies in and the region opens its own stars, systems and POI
+  icons and markers as today (they all still apply). Sector boxes are
+  not drawn at galactic scale or when a region is flown to; the grid
+  outline stays the optional tool. Every region above 0 percent charted
+  appears. The charted-regions list sorts by share charted, and by
+  population once it exists (MAP.318), and is the always-available way
+  to reach inhabited space. Done: tests that a region with one generated
+  sector appears, that the list sorts by share, that no sector box is
+  drawn at galactic scale. Owner: Aux 10. Rules: no backward-compat
+  shims; every number has a unit or scale (GEN.772); tests are
+  scripts/test.py changed --resume.
+  Prerequisites: DB.107, GEN.827, API.35. Related: GEN.825, DB.107,
+  GEN.827, API.35, MAP.314.
+
+- [ ] **MAP.317 Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c)**
+  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
+  what the galactic-level map shows so a user can always drill down to
+  inhabited space; a region is a 9-block cell with at least one
+  generated sector, drawn as the bounding sphere of its generated
+  sectors (never smaller than the 12 pc fill sphere), ranked by share
+  charted. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2. Reuse the star-visibility share (starfade.js,
+  zoom-star-visibility.md) and add one rule: a label is only offered for
+  a marker that is drawn. Budget N = screen area over the label cell, so
+  a sparse region labels everything it draws and a dense one trims.
+  Slices, each ranked by its own metric and merged without duplicates,
+  empty slices lending their share: the inhabited slice is worlds with a
+  population ranked by population, per type (planets, moons, stations
+  and so on, so a station does not compete with a planet), plus
+  habitable worlds ranked by habitability score until population exists,
+  so in 8.1 the slice is the habitable worlds and still uses its budget
+  (Boss, 1:19 AM EDT 2026-10-25, design section 0.3); uninhabitable
+  worlds, gas giants and asteroid belts and fields are the uninhabited
+  slice, ranked by mass per category, where an asteroid belt includes
+  the asteroid fields and those are ranked by the total volume of the
+  region they occupy as a proxy for their mass (Boss, 1:32 AM EDT
+  2026-10-25) with an equal share per category (rocky or icy world, gas
+  giant, asteroid field), and non-luminous star-like objects with them;
+  stars by size, brightness and mass (a third each, a star in two lists
+  counts once and the next in line fills); nebulae and dust clouds by
+  volume; regions by share charted, ties by population, labelled first
+  at the farthest zooms. Default weights inhabited 30, stars 30,
+  uninhabited 25, nebulae 10 percent with unused budget redistributed,
+  constants beside the star-fade ones. Done: unit tests on the dense
+  fixture, a sparse fixture labels every drawn marker, no label for an
+  undrawn one. Owner: Aux 10. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume.
+  Prerequisites: API.35. Related: MAP.316, MAP.314, MAP.293.
+
+- [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d)**
+  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
+  what the galactic-level map shows so a user can always drill down to
+  inhabited space; a region is a 9-block cell with at least one
+  generated sector, drawn as the bounding sphere of its generated
+  sectors (never smaller than the 12 pc fill sphere), ranked by share
+  charted. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2. The population pass today (species, civilizations,
+  polities, system ownership; planetgen population) stores no head
+  counts: the world population simulation is POP.30 (8.3) and cities
+  POP.19 (8.4). Build the slot now: a ranking function that takes
+  population when a body has one and the habitability score when it has
+  none (habitable worlds), so the inhabited slice of MAP.317 is the
+  habitable worlds until population exists, a population column in the
+  charted-regions list that is hidden while no region has one (rule:
+  absent values hidden), and tests with a fixture that carries
+  populations. Fills when POP.30 stores them. Done: the slot and fixture
+  tests pass (a populated fixture ranks by population, an unpopulated
+  habitable one by habitability score), nothing waits on POP.30. Owner:
+  Aux 10. Rules: no backward-compat shims; every number has a unit or
+  scale (GEN.772); tests are scripts/test.py changed --resume.
+  Prerequisites: MAP.317, MAP.316. Related: MAP.317, MAP.316, POP.30,
+  POP.19.
+
+- [ ] **MAP.319 flyToFit: flying to a region, star system, planet system of moons or nebula places the camera so the target fills the window, with no sector boxes drawn (regions chain, step 3b)**
+  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
+  what the galactic-level map shows so a user can always drill down to
+  inhabited space; a region is a 9-block cell with at least one
+  generated sector, drawn as the bounding sphere of its generated
+  sectors (never smaller than the 12 pc fill sphere), ranked by share
+  charted. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2. flyToFit(target) puts the camera so the target's bounding
+  sphere fills the view: distance = radius over sin(half the smaller
+  field of view) plus an 8 percent margin, keeps the viewing direction,
+  clamps to the 2 pc minimum view radius, works through the
+  camera-relative-to-eye pairs of the single-space map, and ends under
+  the hand-off hysteresis (MAP.152) with no scale flicker. Bounding
+  spheres: a region (GEN.827), a star system (its outermost stored body
+  apoapsis, plus the Hill-limited extent for a binary), a planet system
+  of moons (outermost moon apoapsis, or the planet's Hill sphere if
+  larger), a nebula (its volume). Done: tests per target kind that the
+  target's sphere fills the view, the minimum clamp, and that no sector
+  box is drawn after the flight. Owner: Core 2. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: GEN.827, API.35. Related: GEN.827, MAP.316, MAP.295,
+  MAP.296, MAP.152.
+
+- [ ] **MAP.320 Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region**
+  Boss, 1:19 AM EDT 2026-10-25 (relayed by the coordinator): "show them
+  with inhabited tokens for POI that is the habitability color, and
+  let's actually make some different POI icons, habitable planets get a
+  vector svg symbol, uninhabitable worlds get a different symbol in
+  brown or grey, doesn't have to be red. Inhabited worlds get their own
+  icon and are colored by the habitability score. Gas giants have their
+  own symbol, asteroid fields should have a POI symbol too, and by
+  habitable worlds and such I'm saying a star with a world like that in
+  the star views but in the star system level, it would be the planet or
+  moon POI that would be on the map." This replaces the earlier rule of
+  one generic mark with no icon per kind (MAP.303, MAP.305, 7:35 PM EDT
+  2026-10-24). Boss, 1:31 AM EDT 2026-10-25: "a sector has its own icon
+  too as do regions have their own icon as well", so seven symbols in
+  all. Do: one small SVG symbol set (a sprite, drawn as vectors,
+  readable at map size in both themes and for colour-blind viewers by
+  shape, with an accessible name per kind): a habitable world (PHI-6
+  Blue, Green, and Yellow where the star already counts), an
+  uninhabitable world in brown or grey (not red), an inhabited world
+  with its own symbol coloured by the habitability score and colour (the
+  same palette as the object pages), a gas giant, an asteroid belt or
+  field (a belt includes the asteroid fields; Boss, 1:32 AM EDT
+  2026-10-25), a sector, and a region (the last two are the icons for
+  those map nodes and their list rows and menu rows, so a region's token
+  in the charted-regions list of MAP.316 and a sector's on the Sector
+  Map read as what they are). The point-of-interest registry of MAP.305
+  keeps merging crowded marks into one with a count; the merged mark
+  shows the strongest kind's symbol. The menu rows of MAP.306 carry the
+  same symbols. Done: a browser test per kind (seven) finds its symbol,
+  the inhabited one in the habitability colour, the uninhabitable one in
+  brown or grey and never red, in light and dark, and the accessible
+  names exist. Files: one SVG each in static/poi/ (static/poi/*.svg),
+  drawn at a fixed pixel size with the colour set by a CSS variable; the
+  colours come from the one habitability palette the object pages
+  already use (describe/), with new brown and grey tokens added there
+  and a colour-blind-safe check (the habitability colours differ in
+  lightness from brown and grey); a legend that names every token, in
+  the map menu and on the object pages; the existing tokens (black hole,
+  neutron star, quasar, nebula) are unchanged. The best world's token
+  and habitability score ride the existing node worlds payload
+  (MAP.220), no new endpoint (design section 0.3). Owner: Aux 10 (the
+  legend on the object pages with Aux 11). Rules: no backward-compat
+  shims; every number has a unit or scale (GEN.772); tests are
+  scripts/test.py changed --resume; no fixed content from the Milky Way
+  or the Solar System.
+  Prerequisites: MAP.305. Related: MAP.303, MAP.305, MAP.306, MAP.311,
+  MAP.312, MAP.316.
+
+- [ ] **MAP.321 Point-of-interest markers by level: a star carries its best world marker in the star views, the planet or moon carries its own marker at the system level, and regions show inhabited tokens**
+  Boss, 1:19 AM EDT 2026-10-25 (relayed by the coordinator): "show them
+  with inhabited tokens for POI that is the habitability color, and
+  let's actually make some different POI icons, habitable planets get a
+  vector svg symbol, uninhabitable worlds get a different symbol in
+  brown or grey, doesn't have to be red. Inhabited worlds get their own
+  icon and are colored by the habitability score. Gas giants have their
+  own symbol, asteroid fields should have a POI symbol too, and by
+  habitable worlds and such I'm saying a star with a world like that in
+  the star views but in the star system level, it would be the planet or
+  moon POI that would be on the map." This replaces the earlier rule of
+  one generic mark with no icon per kind (MAP.303, MAP.305, 7:35 PM EDT
+  2026-10-24). Do: (1) galaxy, region and sector scale: the token sits
+  on the star that hosts the world, one marker per star, the best
+  world's token (the world with the highest habitability score; an
+  inhabited world uses the inhabited icon, a habitable one the habitable
+  icon, an uninhabitable one the brown or grey icon, a gas giant its
+  own), a count on hover when the system holds several, and nothing is
+  drawn for planets themselves here; (2) the star-system level (System
+  Map): the planet or moon itself carries its own marker with its own
+  symbol (a belt shows the asteroid-field token), moons carry their own
+  token around their planet, the star does not repeat it, and flying
+  into a system swaps the star-hosted tokens for body tokens under the
+  same hand-off hysteresis (MAP.152) as the other scale changes; (3) the
+  galactic-level region nodes of MAP.316 show inhabited tokens for the
+  inhabited worlds inside, in the habitability colour, so a user can
+  drill to inhabited space; (4) an asteroid belt or field is a reason in
+  the registry (any belt or field now, valuable ones with their resource
+  rows later in MAP.312); (5) the markers follow the label budget
+  (MAP.317): a marker is drawn before it is labelled, and an inhabited
+  token is always a candidate for a label. Done: browser tests on the
+  fixture galaxy (TEST.368) at galaxy, sector and system level find the
+  marker on the right object per rule, none on both the star and its
+  planet, the region tokens in the habitability colour, and a hysteresis
+  test that the swap does not flicker at the scale boundary. Owner: Core
+  2. Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); tests are scripts/test.py changed --resume; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: MAP.320, MAP.316. Related: MAP.320, MAP.305, MAP.311,
+  MAP.312, MAP.316, MAP.317.
+
+- [ ] **MAP.322 Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e)**
+  Boss, 1:20 AM EDT 2026-10-25 (relayed by the coordinator): "inside the
+  lowest level of shared name regions, it would be the most densely
+  filled (total mass) sectors." In the label budget of MAP.317, when a
+  region is drawn at its lowest level (the cell's own sectors), the
+  sectors that are drawn first and offered a label are ranked by total
+  mass of the sector's generated contents (stars, planets, moons, belts,
+  nebulae), densest first, so a crowded region names its heaviest
+  sectors and a sparse one names all. Total mass per sector is the
+  stored mass_sum (DB.108). Done: a fixture region with sectors of
+  different total mass labels the heaviest first and drops the lightest
+  when the budget is short, and a sparse fixture labels all. Owner: Aux
+  10. Rules: no backward-compat shims; every number has a unit or scale
+  (GEN.772); tests are scripts/test.py changed --resume.
+  Prerequisites: MAP.317, DB.108. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
 
 ## NAV: Navigation and courses
 
@@ -5957,7 +6210,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.738, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.732, GEN.733, GEN.734, GEN.735, GEN.736, GEN.737, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -7573,7 +7826,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   real-gas Z of a mixture are in part 01 sections 10 and 11; the
   species-by-class distributions to draw the partials from are part 05;
   the added species need storage (DB.71).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): the atmosphere recipes are gated rows: each recipe
   (for example a reduced hydrogen-rich, a nitrogen-carbon-dioxide, an
@@ -8045,7 +8298,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Hayne laws, Gundlach and Blum conduction, E12); the radiogenic heat
   of GEN.459 and the hydrosphere of GEN.461 come first; the albedo by
   band is GEN.462.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): the surface and crust composition is drawn from gated
   rows (the mineral, ice and ocean covers a class and temperature can
@@ -8395,7 +8648,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   D read (CO/H2O median 3.3 with range 0.3 to 26 and CO2/H2O median 12
   with range 2 to 30 in Harrington Pinto 2022; 67P CH4 0.34 and NH3 0.67
   percent), but the lower CO bound of 0.15 percent was not found.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): the exosphere and coma recipes are gated rows by body
   kind (airless rocky, comet, icy moon), with the weights from the
@@ -8470,7 +8723,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.441. Related: GEN.412, GEN.418, GEN.441,
   GEN.442, MAP.244, DB.70.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): no table of its own: the ground albedo by band is the
   area-weighted result of the drawn surface rows (GEN.441), each
@@ -8518,7 +8771,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table at [Fe/H] of 0, -0.5, -1 and -2 for the thin disc and the
   high-alpha branch, and determinism. Owner: Core 4 (proposed, with the
   composition chain).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): no table: the solids law reads the star's Z over Z0
   and gives the weight functions of GEN.428 their argument.
@@ -12605,6 +12858,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   water share, temperature and pressure" is not built; it belongs to the
   class cut-over here. GEN.461 itself integrates the water column and
   stores water_base_pressure_pa (migration 0151, epoch 84).
+  Owner (2026-10-09): Owner assigned: Aux 9 (class lane) takes this item
+  now (Boss priority 1:37 AM EDT 2026-10-25: after the galactic
+  navigation plan, planet class from planet conditions comes next, then
+  the physics chains). The class rules GEN.27, GEN.145, GEN.350 to
+  GEN.354 and GEN.356 follow it. It is unblocked once 4c (GEN.411,
+  GEN.422) merges.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -13573,27 +13832,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   icy-moon storage.
   Prerequisites: none. Related: GEN.699, GEN.727, GEN.639.
 
-- [ ] **GEN.738 Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  A3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T9 (exobase
-  ratios), T6. Today: Escape is a Jeans filter whose exobase ratios are
-  fitted to three bodies (AM19), an XUV exponent of 0.25 (AM20), a width
-  and loss thresholds (AM21 to AM23); sub-Neptune envelopes use an
-  energy-limited formula. The registry names 'a thermosphere model' with
-  no number. Real physics: a thermosphere model, hydrodynamic escape,
-  time-integrated XUV loss of atmospheres. Do: build a thermosphere and
-  escape model with a time integral over the star's XUV history and
-  replace AM19 to AM23. Done: escape comes from a model with tests on
-  Mars, Venus, Titan and a sub-Neptune, and the stand-ins are replaced
-  or relabelled. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: none. Related: GEN.511, GEN.483, GEN.675.
-
 - [ ] **GEN.740 Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere)**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   A12; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -14205,6 +14443,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related: GEN.767, GEN.656, GEN.725, UX.199, UX.205.
   Prerequisites: GEN.767. Related: GEN.767, GEN.656, GEN.725, UX.199,
   UX.205.
+  Progress (2026-10-09): Progress (Aux 4, 1:35 AM EDT 2026-10-25): part
+  1 merged as #3297, the model of the hours a person can be outside in
+  one local day (daylight, the day's share of the radiation allowance,
+  the worn garment against the day's heat and cold, breathing gas
+  against an 8-hour shift, ultraviolet against the garment rating, and
+  which limit binds), constants in protection_limits rows OH1 to OH10 in
+  the stand-in registry, design section 17 of
+  survival-equipment-fields.md; nothing stored or shown yet. Part 2
+  (stored outside_hours_day and its binding limit, relabel the yearly
+  outside_hours on the sheet, one migration and epoch) waits for
+  GEN.767's daylight_hours (Aux 5).
 
 - [ ] **GEN.769 Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug)**
   Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "ice shell
@@ -14959,23 +15208,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed --resume`.
   Prerequisites: GEN.411, GEN.422. Related: GEN.423, GEN.703, GEN.752,
   GEN.411.
-
-- [ ] **GEN.814 A water-rich world (class O, 10 to 50 wt% water) gets a carbon sink: seafloor weathering and the high-pressure ice that seals the mantle (finding 3)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 3. Silicate
-  weathering needs land (land fraction below 1e-6 of the reference), so
-  a water world has no carbon sink, its CO2 stays in the air and 31 of
-  40 land hot (median 1470 K). Model seafloor weathering and the
-  high-pressure-ice seal after Kite and Ford 2018 and Krissansen-Totton
-  and Catling 2017 and say what the model does not do. Done: the
-  water-world temperature distribution is within the published range,
-  with the sources cited. Owner: Aux 8 (Lane L, taken 12:26 AM EDT 2026-10-25).
-  Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); stand-ins get GEN.725 registry rows with a tier and tweak
-  level; a changed generated value carries `tests.golden_update --reason
-  ... --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`.
-  Prerequisites: GEN.411, GEN.422. Related: GEN.422, GEN.654.
+  Finding (2026-10-09): Aux 8 finding (1:02 AM EDT 2026-10-25, from
+  GEN.814): the greenhouse module's water-vapour feedback is too strong,
+  so cold sealed water worlds sit at the freezing point. The water-world
+  temperature test of GEN.823 cannot pass until this is fixed.
 
 - [ ] **GEN.815 Sulfur sink: a sulfate and sulfide balance replaces the stand-in SULFUR_SURFACE_KEPT (finding 4)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
@@ -15097,6 +15333,113 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane. Rules: no backward-compat shims; stand-ins get GEN.725 registry
   rows; tests are `scripts/test.py changed --resume`.
   Prerequisites: GEN.738. Related: GEN.738, GEN.722, GEN.725, GEN.800.
+
+- [ ] **GEN.823 Wire the water-world carbon sink (GEN.814, waterworld_carbon) into the air solve and show the water-world temperatures sit inside the published range**
+  GEN.814 merged the module (waterworld_carbon.sink_kind(sealed,
+  land_fraction): sealed uses sealed_state, no land uses
+  seafloor_pco2_bar; registry rows AM52 to AM62) but the generator does
+  not call it. After 4c (GEN.411, GEN.422) route a class O world with no
+  land through it, then test the done criterion GEN.814 could not show:
+  the water-world temperature distribution is within the published range
+  (Kite and Ford 2018, Krissansen-Totton and Catling 2017), which also
+  needs the greenhouse fix GEN.812. Changed generated values carry the
+  next epoch with --affects fill. Owner: Aux 8. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  stand-ins get GEN.725 rows; tests are scripts/test.py changed
+  --resume.
+  Prerequisites: GEN.411, GEN.422, GEN.812. Related: GEN.814, GEN.812,
+  GEN.411, GEN.422.
+
+- [ ] **GEN.824 The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2**
+  Found by GEN.814 (Aux 8, 1:02 AM EDT 2026-10-25): the class O CO2/H2O
+  inventory bracket reaches 0.2, above the 0.1 in Kite and Ford 2018.
+  Either cap it at 0.1 with the source or document why 0.2 holds (a
+  verified source or a registry row with its tier and tweak level).
+  Done: the bracket matches its cited source or carries a GEN.725 row
+  that says why not. Owner: Aux 6 (bulk composition) with Aux 8. Rules:
+  no backward-compat shims; a changed generated value carries the next
+  epoch.
+  Prerequisites: none. Related: GEN.814, GEN.823.
+
+- [ ] **GEN.825 Region names: region_name() for the codec kind region, the anchor and sphere geometry of every 9-block, and a measurement of the squeezed blocks (regions chain, step 1)**
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Build the pure function region_name(block, key): family
+  word from the 81-block, local word from the ordinal among its 27
+  9-blocks, a collision salt against the 26 neighbouring blocks, kind
+  region added to naming_key.KINDS with no CODEC_VERSION bump;
+  REGION_RADIUS_PC (default the standard fill radius); the anchor
+  (centre of the 9-block bounds); minimum framing radius min(12 pc,
+  inscribed radius) for squeezed blocks (every cell with a generated
+  sector is a region, so none is dropped). Measure how many blocks the
+  grid squeezes near the core and poles. Done: golden names, sibling and
+  neighbour uniqueness and determinism tests, no database read, the
+  measurement written into the design draft. Owner: Core 3. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: none.
+
+- [ ] **GEN.826 Random-start and Generate "around a place" fill one anchor sphere, so a normal fill charts a whole region (regions chain, step 1c)**
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Random-start mode picks a random uncharted anchor
+  instead of a random address; the Generate page offers "this region"
+  (snap to the anchor, 12 pc). Done: a finished fill of one anchor
+  sphere is charted and named; a test pins the snap; no change to what a
+  sector generates, so no epoch. Owner: Core 3. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: GEN.825, DB.107. Related: GEN.825, DB.107.
+
+- [ ] **GEN.827 Region extent: the bounding sphere of a cell's generated sectors (never under the 12 pc fill sphere) and the measurement of two far-apart clumps (regions chain, step 1d)**
+  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
+  what the galactic-level map shows so a user can always drill down to
+  inhabited space; a region is a 9-block cell with at least one
+  generated sector, drawn as the bounding sphere of its generated
+  sectors (never smaller than the 12 pc fill sphere), ranked by share
+  charted. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2. Compute the extent (centre and radius in pc) of every
+  region from its generated sectors, minimum the 12 pc fill sphere about
+  the anchor (minimum framing radius min(12 pc, inscribed radius) in a
+  squeezed cell); a chain of sectors across cells makes one thin region
+  per cell, each its own small sphere. Measure how often the generated
+  sectors of one cell form two far-apart clumps so the bounding sphere
+  covers the gap; if it matters, the extent becomes the sphere of the
+  largest face-connected clump (the rest still count toward the share).
+  Done: extent function and tests, the measurement written into the
+  design draft, DB.107 stores the extent. Owner: Core 3. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: GEN.825. Related: GEN.825, DB.107.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -16808,6 +17151,62 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   nothing in 8.1.
   Prerequisites: GEN.798. Related: DB.70, DB.101.
 
+- [ ] **DB.107 Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b)**
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. One row per 9-block cell with any generated sector (no
+  row means no region): region_stats(m=9 key, sector_count, capacity),
+  kept by the same hook as galaxy_block_stats (db/block_stats.py); the
+  count is recomputed for the one sphere a saved or deleted sector falls
+  in (about 109 cells). The charted percent is sector_count over
+  capacity (the sectors the outline can hold), and a region with any
+  sector above 0 percent exists; every sector of the cell counts, the
+  cell of a sector being found by its centre as the ladder does. One
+  migration and its epoch row at merge, as DB.100 did (new numeric
+  columns registered in db/column_units.py). Done: region_of(position)
+  and charted_percent(anchor) read from the table, order-independence
+  test (test_order_independence), one generated sector makes its region
+  exist at its small percent, deleting the last sector removes the
+  region. Owner: Core 3. Rules: no backward-compat shims; every number
+  has a unit or scale (GEN.772); tests are scripts/test.py changed
+  --resume.
+  Prerequisites: GEN.825, GEN.827. Related: GEN.825, GEN.827.
+
+- [ ] **DB.108 Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e)**
+  Design section 0.4 of
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md,
+  Boss 1:20 AM EDT 2026-10-25: inside the lowest-level region the
+  sectors shown are taken densest first by total mass, which needs a
+  stored mass. Add mass_sum (kilograms, the sum of the masses of the
+  sector's generated stars, planets, moons, belts, comets, nebulae and
+  the other stored bodies) to the sector-level block stats row and to
+  region_stats (DB.107), maintained by the same save and delete hook
+  (db/block_stats.py, about 109 cells per recompute), with its unit
+  entry in db/column_units.py in the same PR. One migration plus a
+  backfill command with the skip-and-list rule for sectors that cannot
+  be summed (list them, never guess), epoch row at merge as DB.100 did.
+  Done: a sector's mass_sum equals the sum of its bodies in a test,
+  saving and deleting update it, the region sum equals its sectors, the
+  backfill fills an existing galaxy, order-independence test passes.
+  Owner: Core 3 (with DB.107). Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume.
+  Prerequisites: DB.107. Related: DB.107, MAP.322, MAP.317.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -17280,6 +17679,57 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: GEN.799. Related: API.8, API.30, API.33.
+
+- [ ] **API.35 Region names on the wire: a name on charted nodes and the stage and node endpoints, galaxy-map-wire-format.md (regions chain, step 2)**
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Node payloads gain name and a parent family name for
+  charted regions only; the tile cache key already carries the
+  naming-key stamp. Done: the format doc updated, a test pins the field
+  and its absence for uncharted blocks. Owner: Aux 12. Rules: no
+  backward-compat shims; every number has a unit or scale (GEN.772);
+  tests are scripts/test.py changed --resume.
+  Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826.
+
+- [ ] **API.36 Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6)**
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. region_names(naming_key_hash, m, shell, band, wedge,
+  name) for charted regions only, refilled by update.sh when the key
+  changes, and the Go-to box on the map. Waits for Boss to say search
+  now or later. Owner: Aux 12. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume.
+  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107, GEN.826,
+  API.35, MAP.314, MAP.315, UX.231.
 
 ## ADM: Admin tools
 
@@ -18989,7 +19439,7 @@ clears each one.
   planet, moon and star class, built as a census check on TEST.186's
   harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
   over it, not four builds.
-  Boss's gated possibility-table rule (1:40 AM EDT): the atmosphere
+  Boss's gated possibility-table rule (1:38 AM EDT): the atmosphere
   recipe rows of GEN.411 are covered by the registry sum test TEST.214;
   this sweep checks the consistency of the drawn recipe with the text,
   the temperature, the ozone and the aerosols.
@@ -19036,7 +19486,7 @@ clears each one.
   water fraction (about 6e-3), porosity is zero above the compaction
   pressure, and class D density is below 3000 kg/m3 for a rock fraction
   below 0.9.
-  Boss's gated possibility-table rule (1:40 AM EDT): the bulk recipe
+  Boss's gated possibility-table rule (1:38 AM EDT): the bulk recipe
   rows of GEN.428 are covered by the registry sum test TEST.214; this
   sweep checks the drawn fractions, density, mass and gravity.
 
@@ -19072,7 +19522,7 @@ clears each one.
   invariants of its section 3.5 (X + Y + Z = 1, the targets of its
   section 4) and a distribution test of 1e5 draws against the Bensby and
   Feltzing quantiles and the Thiabaud box shares (A-V1, A-V2).
-  Boss's gated possibility-table rule (1:40 AM EDT): the weights of the
+  Boss's gated possibility-table rule (1:38 AM EDT): the weights of the
   star-composition rows that pass a star's gate add up to 100 percent;
   the check is TEST.214's registry walk and this sweep adds the
   star-specific cases.
@@ -19113,7 +19563,7 @@ clears each one.
   over it, not four builds.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
-  Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
+  Boss (2026-10-17, 1:38 AM EDT, typed in the project chat): "We have to
   add to our composition plans that what I'd like to do is for each
   composition have a list of possibilities with their weighted
   probabilities (for all compositions, each category will have a table
@@ -19180,7 +19630,7 @@ clears each one.
   and "Weights pick the row", as the coordinator reported it): the
   weights pick the row; the proportions inside a drawn row come from the
   row's own sourced kernel, or a Dirichlet draw where only a range
-  exists, so the 1:40 AM and 1:51 AM EDT 2026-10-17 texts agree.
+  exists, so the 1:38 AM and 1:51 AM EDT 2026-10-17 texts agree.
   Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
   lane's clock reads): data tables carry no licence column and no check of
   one; the licence information lives in DATA-LICENSE.md. This
@@ -20397,21 +20847,6 @@ clears each one.
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
 
-- [ ] **TEST.367 Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug)**
-  Reported by Core 1 while merging API.15 (#3136, 6:43 PM EDT 2026-10-24
-  as the lane reported); they fail identically on origin/main on its
-  lane:
-  test_admin_edits.py::test_system_page_regenerates_a_planet and
-  ::test_system_page_changes_a_class, and test_api_auth_sweep.py::
-  test_admin_pages_send_an_admin_on_seeded_credentials_to_account and
-  ::test_admin_pages_send_anonymous_visitors_to_login (302 where 403 is
-  expected for /admin/queue/<run_id>/log). Find whether the tests are
-  stale
-  after the recent page and queue changes or the pages are wrong, fix
-  and
-  record which. Owner: Bug 1.
-  Prerequisites: none. Related: TEST.365, API.15.
-
 - [ ] **TEST.368 A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug)**
   Boss, 7:31 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
@@ -20447,68 +20882,6 @@ clears each one.
   first in the chain; Core 2 uses it for MAP.295 and MAP.296.
   Prerequisites: none. Related: TEST.344, MAP.295, MAP.297, MAP.298,
   MAP.299, MAP.300, MAP.301.
-
-- [ ] **TEST.370 test_web_pages in_process_transport fails: DatabaseLoginError, there is no planetgen database account on the lane machine (bug)**
-  Found by Bug 1 running scripts/test.py quick on clean main (8:00 PM
-  EDT 2026-10-24 as the lane reported):
-  test_web_pages::in_process_transport fails with a DatabaseLoginError
-  because the 'planetgen' account does not exist on a fresh lane
-  machine; this is the gap left by OPS.62 (the setup script verify step)
-  which creates the schema but not that account. Do: make the test use
-  the test account the other web tests use, or have the setup script
-  (and the lane machine bootstrap in /etc/profile.d/planetgen-test.sh)
-  create the account, so scripts/test.py quick is green on a clean
-  machine; no skip. Done: the test passes on a lane machine set up from
-  the documented script. Owner: Bug 1. Related: OPS.62, TEST.364.
-  Research (2026-10-09, Core 5 full run): Core 5 (8:06 PM EDT 2026-10-24
-  as the lane reported) saw 44 failures in a full run on its lane
-  machine, all but two also red on the base commit: test_web_facilities
-  x18, test_class_pages x6 and others. TEST.350 and TEST.365 were
-  merged, so these are most likely the same lane machine gap (missing
-  planetgen database account). Bug 1: check them on a machine set up as
-  documented before filing anything new.
-  Prerequisites: none. Related: OPS.62, TEST.364.
-
-- [ ] **TEST.371 test_workers::a_worker_that_is_killed fails under load and passes alone (bug)**
-  Found by Bug 1 running scripts/test.py quick on clean main (8:00 PM
-  EDT 2026-10-24 as the lane reported):
-  test_workers::a_worker_that_is_killed fails in a full quick run
-  (4-core lane machine, 36 minutes) and passes when run alone. Do: find
-  the timing the test depends on (a fixed sleep or a wait shorter than
-  the load allows) and make it wait for the state it needs, with no skip
-  and no retry decorator. Done: the test passes in three full quick
-  runs. Owner: Bug 1. Related: TEST.344, TEST.364.
-  Prerequisites: none. Related: TEST.344, TEST.364.
-
-- [ ] **TEST.377 test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug)**
-  Found by Core 2 (UX.125, 8:47 PM EDT 2026-10-24 as the lane reported)
-  on clean main. Do: run it on a lane machine set up as documented
-  (TEST.376 preflight, TEST.370), find the root cause (the cache size it
-  fills, a disk or MySQL limit on the lane machine, or a real change in
-  the warmup count) and fix it with no skip; if it passes on a
-  documented machine, drop this item and note the setup it needed. Done:
-  the test passes on a documented machine, or the root cause is fixed.
-  Owner: Bug 1. Related: TEST.375, TEST.370.
-  Prerequisites: none. Related: TEST.375, TEST.370.
-
-- [ ] **TEST.379 Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug)**
-  Found by Lane 4 (Aux 12) running the OPS.29 gate on main (8:59 PM EDT
-  2026-10-24 as the lane reported). Not yet in any item:
-  test_api::description_splits_into_every_body, test_eta_estimator
-  (queue page), test_protection (six describers),
-  test_web_browser_fixture_maps (wheel scroll) and test_web_search (star
-  link). Already covered: test_api_auth_sweep admin pages (fixed in
-  #3189 by Bug 1), test_class_pages nebula, test_interior_heat urey
-  ratio, test_memwatch smoke run and test_save_progress (all TEST.375),
-  test_no_todo_codes_shown (TEST.378; Lane 4 also named a MAP.220 string
-  at db/point_columns.py:177, check that TEST.378 removes every code in
-  a shown string). Do: run each on a lane machine set up as documented
-  (TEST.370, TEST.376 preflight), keep the ones that still fail on main,
-  and fix each with no skip; drop the ones that pass, noting the setup
-  they needed. Done: every listed test passes on a documented machine or
-  has its own item with a root cause. Owner: Bug 1. Related: TEST.375,
-  TEST.378, TEST.370.
-  Prerequisites: none. Related: TEST.375, TEST.378, TEST.370.
 
 - [ ] **TEST.380 First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp**
   Boss, 9:21 PM EDT 2026-10-24 (relayed by the coordinator): "When are
@@ -20612,49 +20985,14 @@ clears each one.
   code is wrong, fix it, and keep the test. Done: the test passes alone
   and in the file, and the cause is written in the PR. Version 8.1.
   Owner: Aux 10 (map nodes and zoom) or Core 2.
+  Finding (2026-10-09): Aux 10 finding (12:50 AM EDT 2026-10-25): the
+  page header now pushes the map canvas below the 600 px test window
+  (canvas top at 403), and four map tests fail identically on
+  origin/main for that reason: wheel_zoom_turns_about_the_centre,
+  one_wheel_scroll_runs, black_hole_markers_have_a_toggle and the
+  sector_reach wheel anchor. Fix by scrolling the canvas into view in
+  the tests. Owner Aux 10 (taking it after MAP.311).
   Prerequisites: none. Related: MAP.293, TEST.375.
-
-- [ ] **TEST.384 Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug)**
-  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
-  relayed 10:25 PM EDT 2026-10-24 as the lane reported. Core 3's gate
-  ran 36 failures that were all red on a clean worktree of the base: the
-  habitable_systems point-column and sheet tests, the mantle column
-  tests, the facilities page tests, the VALUES() use in migration 0148,
-  the test_prevalence binary tests, plus test_disk_history that passes
-  alone. The list is in the PR. Find each cause (test, fixture or code),
-  fix it, and keep the tests; file a separate bug where one has a cause
-  outside this group. Done: the group passes on main from a clean
-  checkout in `scripts/test.py changed`. Version 8.1. Owner: Bug 1.
-  Research (2026-10-09, Lane L report): Added 10:42 PM EDT 2026-10-24
-  (Lane L, GEN.751 gate, as the lane reported): also red on clean main:
-  test_progress_log (2 tests), test_redis_cleanup,
-  test_resume_across_builds (stubs of run_phase lack the new on_child
-  argument), test_job_tree galaxy-run-ends-done (times out at 257 s).
-  Lane D (Aux 3) also saw
-  test_db_column_round_trip::test_every_column_is_written fail once on
-  the disk columns (TEST.387).
-  Research (2026-10-09, Core 5 report): Core 5 (10:59 PM EDT 2026-10-24
-  as the lane reported) also lists red on clean main: test_web_generate
-  override-logging pair, two test_progress_log runner tests,
-  test_work_units batch-fills test. Core 5 fixed test_stages,
-  test_job_tree and test_work_units cases that PERF.125 left red
-  (#3248).
-  Research (2026-10-09, GEN.512 lane report): Also red on main (GEN.512
-  lane, 11:05 PM EDT 2026-10-24 as the lane reported): test_work_units,
-  test_single_system_forcing.
-  Research (2026-10-09, Aux 16 report): Aux 16 (11:20 PM EDT 2026-10-24
-  as the lane reported) also lists red on main: six stage-count tests in
-  test_stages after the tenth stage (territories) was added
-  (test_a_random_start_galaxy_run_has_nine_stages,
-  test_a_galaxy_run_with_an_address_has_one_sector_stage,
-  test_each_stage_is_stored_with_its_time_settings,
-  test_a_total_too_small_for_the_runs_stages_is_ignored and two more),
-  test_web_pages::test_in_process_transport_skips_http_inside_a_request,
-  test_web_search::test_a_star_result_links_to_its_row_on_the_system_page
-  (hangs),
-  test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems (RQ
-  StopRequested after 10 minutes).
-  Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
 
 - [ ] **TEST.386 First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
@@ -20713,6 +21051,46 @@ clears each one.
   tables is the first suspect. Done: confirmed or cleared with the
   commit named; if real, fixed with a test. Owner: Bug 1.
   Prerequisites: none. Related: TEST.384, GEN.512, GEN.761.
+
+- [ ] **TEST.391 Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug)**
+  Reported by the Citations lane (1:30 AM EDT 2026-10-25, GEN.738 gate):
+  test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost
+  fails on a clean origin/main, and
+  test_atmosphere_mixture_escape::test_no_abiotic_oxygen_world_is_drawn_above_95_percent_oxygen
+  fails with a top O2 of 0.498 against the 0.5 bound, also on main. Find
+  the cause of each (a real model change, a stale golden, or a bound
+  that needs its source), fix at the cause, never skip; the 0.5 bound
+  needs the source that sets it or a GEN.725 row. Done: both pass on a
+  clean main. Owner: Bug 1 (after TEST.384). Rules: no backward-compat
+  shims; tests are scripts/test.py changed --resume.
+  Finding (2026-10-09): Confirmed on clean origin/main by a second lane
+  (1:38 AM EDT 2026-10-25):
+  test_runaway_history.py::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost
+  fails because lost_any is False for all 6 seeds, so no M3V Earth-zone
+  planet loses surface water.
+  Prerequisites: none. Related: TEST.384, GEN.738.
+
+- [ ] **TEST.392 test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug)**
+  Found by Bug 1 (1:37 AM EDT 2026-10-25 as the lane reported): the
+  module takes about 66 minutes, the slowest check 755 s, because each
+  check draws 2000 full systems. Do: make the draw cheaper (draw only
+  the stages the check reads, share one drawn sample across the checks
+  of the module, or reduce the draw cost in generation) without cutting
+  the sample or loosening the tolerance. Owner: Aux 16 (performance)
+  with Bug 1 reviewing. Done: the module runs in a fraction of the time
+  with the same sample size and tolerances.
+  Prerequisites: none. Related: TEST.384, PERF.186.
+
+- [ ] **TEST.393 Each gate leaves about 50 orphaned planetgen.cli.worker processes that can fill 16 GB of RAM and get mysqld OOM-killed: tests that start detached workers do not reap them (bug)**
+  Found on lane machines (1:38 AM EDT 2026-10-25, reported by Aux 4's
+  lane thread through the coordinator relay). Do: every test that starts
+  a detached worker reaps it in a fixture finalizer (terminate, wait,
+  kill), and scripts/test.py checks for stray planetgen.cli.worker
+  processes at the start and end of a run and reports them (TEST.376
+  already checks MySQL and Redis on every run). Owner: Bug 1. Done:
+  after a full gate no planetgen.cli.worker process remains, and a test
+  that leaks one fails.
+  Prerequisites: none. Related: TEST.376, PERF.181, TEST.390.
 
 ## USR: User accounts
 
@@ -22116,6 +22494,32 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
   nothing in 8.1.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
+
+- [ ] **DOC.82 Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7)**
+  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
+  9-block cell (about 780 sectors) with at least one generated sector,
+  named from the block path by a new codec kind region (Word Region; the
+  27 Regions of one 81-block share the family word) and drawn as the
+  bounding sphere of its generated sectors, never smaller than the 12 pc
+  standard-fill sphere (about 109 sectors) about the cell's anchor; it
+  exists, and shows on the galactic map, as soon as any sector in the
+  cell is generated (anything above 0 percent), ranked by share charted
+  (generated sectors over the sectors its outline can hold, a standard
+  fill is about 14 percent); ungenerated space gets no region and no
+  sector line may join two unrelated places. Boss, 1:13 AM EDT
+  2026-10-25: the chain is in 8.1, regions are what the galactic-level
+  map shows so a user can always drill down to inhabited space. Design:
+  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
+  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
+  from the gated phoneme codec only, never from Milky Way or Solar
+  System lists. Naming doc section, object-pages doc and
+  galaxy-map-wire-format.md updated; the audit playbook gets the
+  uniqueness check. Done: docs build and link tests pass, the audit
+  check exists. Owner: Core 3. Rules: no backward-compat shims; every
+  number has a unit or scale (GEN.772); tests are scripts/test.py
+  changed --resume.
+  Prerequisites: GEN.825, DB.107, API.35. Related: GEN.825, DB.107,
+  GEN.826, API.35, MAP.314, MAP.315, UX.231, API.36.
 
 ## VIEW: The view from a planet
 
