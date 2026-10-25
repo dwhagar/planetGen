@@ -606,8 +606,7 @@
     },
     {
       "epoch": 102,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2324",
       "reason": "GEN.761 moons ask the hosting gate: small bodies get their moon chance from the satellite-share table",
       "affects": ["fill"]
     }
