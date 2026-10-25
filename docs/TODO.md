@@ -14922,6 +14922,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   confirms the wiring. Known limit stated in the doc: the mean-rate
   steady state leaves a dry world almost no SO2 (Venus holds about 14
   mbar).
+  Owner (2026-10-09): Owner settled (coordinator, 4:01 AM EDT
+  2026-10-25): Aux 1's branch, through the merge lane (thread 'Merge
+  sulfur, ozone and photosphere work', GEN.815/667/673), owns this
+  wiring. Aux 8 (Lane L) dropped its own copy (its gate was at 29
+  percent with four reds); its version is saved at
+  /mnt/project-files/handoffs/gen815-sulfur-wiring-lane-l-2026-10-25.patch
+  for comparison. Aux 8 works GEN.830 code-only, with no generation
+  merge until its turn in the generation-merge lock order.
   Prerequisites: GEN.422. Related: GEN.757, GEN.751, GEN.725.
 
 - [ ] **GEN.816 A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5)**
