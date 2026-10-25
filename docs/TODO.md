@@ -15184,22 +15184,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed --resume`.
   Prerequisites: GEN.411, GEN.422. Related: GEN.411, GEN.422.
 
-- [ ] **GEN.818 Aluminium in the melt model: an Al2O3 activity (with a tier) so a lava draw can make aluminium vapour (GEN.751 follow-up)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 0. GEN.751 put
-  Al in the gas and thermodynamics tables but the melt model has no
-  aluminium activity, so no lava draw makes any. Add an Al2O3 activity
-  stand-in with a tier and tweak level in the GEN.725 registry, from the
-  published silicate-melt activity data. Done: a lava world's vapour
-  lists aluminium in the right proportion, with the source stated.
-  Owner: Aux 8 (Lane L), after the sulfur sink. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  stand-ins get GEN.725 registry rows with a tier and tweak level; a
-  changed generated value carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`.
-  Prerequisites: none. Related: GEN.751, GEN.725.
-
 - [ ] **GEN.819 Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet**
   GEN.739 (#3246) added physics/impact_history.py and
   surface_pressure.impact_inventory (H, C and N atoms per 100 g of
@@ -20904,6 +20888,29 @@ clears each one.
   place. Related fill items GEN.778 to GEN.791 (disk producer). Done:
   the test passes on any seed, 20 runs in a row. Owner: Bug 1.
   Prerequisites: none. Related: GEN.778.
+
+- [ ] **TEST.388 test_reproducible_draws fails on math.hypot in physics/impact_history.py:140 and physics/iron_branch_tuning.py:79 (bug)**
+  Aux 8 (Lane L, 11:54 PM EDT 2026-10-24 as the lane reported, gate of
+  GEN.818 #3264): the guard test test_reproducible_draws fails because
+  math.hypot is used in impact_history.py (GEN.739, #3246, Citations
+  lane) and iron_branch_tuning.py (GEN.512, #3250, Math lane); the
+  reproducible-draw rule allows only the deterministic math helpers
+  (util/detmath). Replace math.hypot with the deterministic helper in
+  both files. Done: the guard passes. Owner: the Citations lane for
+  impact_history.py, the Math lane for iron_branch_tuning.py.
+  Prerequisites: none. Related: TEST.384, GEN.739, GEN.512.
+
+- [ ] **TEST.389 test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug)**
+  Aux 8 (Lane L, 11:54 PM EDT 2026-10-24 as the lane reported): in the
+  gate of GEN.818 (nothing of that change is in generation)
+  test_golden_seed's one-versus-four-workers check reports a
+  sector-structure difference; on clean main alone it timed out at 900
+  s, so it is unconfirmed. Check against epoch 101 (GEN.512, #3250) and
+  epoch 102 (GEN.761, #3258): run it on main and on the commit before
+  #3250. If a worker-count difference is real, the draw order of the new
+  tables is the first suspect. Done: confirmed or cleared with the
+  commit named; if real, fixed with a test. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.384, GEN.512, GEN.761.
 
 ## USR: User accounts
 
