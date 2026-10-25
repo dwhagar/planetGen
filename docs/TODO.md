@@ -14322,6 +14322,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the refill, not a rescatter) are carried in Core 1's design draft,
   /mnt/project-files/design-drafts/bring-a-galaxy-to-the-current-epoch-2026-10-24.md.
   Owner Core 1 as decided above.
+  Research (2026-10-09, Step 1 merged): Step 1 of 4 merged as #3157
+  (Core 1, about 8:10 PM EDT 2026-10-24 as the lane reported): every
+  generator epoch carries an affects list (plan, scatter, fill,
+  population; the 96 old epochs classified from their reasons). Next:
+  step 2, the per-stage epoch record (a migration).
 
 - [ ] **GEN.765 A world with Flora 5, Fauna 5 and Sentient 5 scores Suitability Red with "no food readily available": the food rung ignores the life the scores say is there (bug)**
   Boss, 7:45 PM EDT 2026-10-24 (message
