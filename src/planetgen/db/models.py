@@ -584,24 +584,6 @@ galaxy_block_stats = sa.Table(
 )
 
 
-region_stats = sa.Table(
-    'region_stats',
-    metadata,
-    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
-    sa.Column('sector_count', mysql.INTEGER(unsigned=True), nullable=False),
-    sa.Column('capacity', mysql.INTEGER(unsigned=True), nullable=False),
-    sa.Column('clump_count', mysql.INTEGER(unsigned=True), nullable=False),
-    sa.Column('extent_x_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('extent_y_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('extent_z_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('extent_radius_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('mass_sum_kg', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
-    mysql_engine="InnoDB",
-)
-
-
 galaxy_components = sa.Table(
     'galaxy_components',
     metadata,
@@ -792,22 +774,6 @@ generation_runs = sa.Table(
     sa.Column('outcome', sa.String(16), nullable=True),
     sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Index('idx_generation_runs_started_at', 'started_at'),
-    mysql_engine="InnoDB",
-)
-
-
-system_interests = sa.Table(
-    'system_interests',
-    metadata,
-    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
-    sa.Column('reason', sa.String(24), primary_key=True, nullable=False),
-    sa.Column('n', mysql.SMALLINT(unsigned=True), nullable=False),
-    sa.Column('best_score', mysql.DOUBLE(), nullable=True),
-    sa.Column('galaxy_x_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('galaxy_y_pc', mysql.DOUBLE(), nullable=False),
-    sa.Column('galaxy_z_pc', mysql.DOUBLE(), nullable=False),
-    sa.Index('idx_system_interests_position', 'galaxy_x_pc', 'galaxy_y_pc', 'galaxy_z_pc'),
-    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_interests_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
 
@@ -2090,6 +2056,24 @@ region_density_overrides = sa.Table(
 )
 
 
+region_stats = sa.Table(
+    'region_stats',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('sector_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('capacity', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('clump_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('extent_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_radius_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('mass_sum_kg', mysql.DOUBLE(), server_default=sa.text("'0'"), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 request_comments = sa.Table(
     'request_comments',
     metadata,
@@ -2147,6 +2131,13 @@ rogue_planets = sa.Table(
     sa.Column('ocean_depth_km', mysql.DOUBLE(), nullable=True),
     sa.Column('has_liquid_water', mysql.TINYINT(), nullable=True),
     sa.Column('hp_ice_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('ring_kind', sa.String(8), nullable=True),
+    sa.Column('ring_origin', sa.String(16), nullable=True),
+    sa.Column('ring_inner_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('ring_outer_km', mysql.DOUBLE(), nullable=True),
+    sa.Column('ring_mass_kg', mysql.DOUBLE(), nullable=True),
+    sa.Column('ring_optical_depth', mysql.DOUBLE(), nullable=True),
+    sa.Column('ring_ice_fraction', mysql.DOUBLE(), nullable=True),
     sa.Column('galactic_orbital_period_gy', mysql.DOUBLE(), nullable=False),
     sa.Column('galactic_orbital_phase_deg', mysql.DOUBLE(), nullable=False),
     sa.Column('galactic_min_update_interval_years', mysql.DOUBLE(), nullable=False),
@@ -2229,7 +2220,9 @@ rogue_planets = sa.Table(
     sa.CheckConstraint("(`planet_type` in (_utf8mb4't',_utf8mb4'g'))", name='rogue_planets_chk_1'),
     sa.CheckConstraint('(`has_internal_heat` in (0,1))', name='rogue_planets_chk_2'),
     sa.CheckConstraint('(`has_moons` in (0,1))', name='rogue_planets_chk_3'),
-    sa.CheckConstraint("(`quadrant` in (_utf8mb4'I',_utf8mb4'II',_utf8mb4'III',_utf8mb4'IV',_utf8mb4'V',_utf8mb4'VI',_utf8mb4'VII',_utf8mb4'VIII'))", name='rogue_planets_chk_4'),
+    sa.CheckConstraint("(`ring_kind` in (_utf8mb4'dusty',_utf8mb4'narrow',_utf8mb4'broad'))", name='rogue_planets_chk_4'),
+    sa.CheckConstraint("(`ring_origin` in (_utf8mb4'moon_erosion',_utf8mb4'disrupted_moon',_utf8mb4'captured_body'))", name='rogue_planets_chk_5'),
+    sa.CheckConstraint("(`quadrant` in (_utf8mb4'I',_utf8mb4'II',_utf8mb4'III',_utf8mb4'IV',_utf8mb4'V',_utf8mb4'VI',_utf8mb4'VII',_utf8mb4'VIII'))", name='rogue_planets_chk_6'),
     mysql_engine="InnoDB",
 )
 
@@ -2801,6 +2794,22 @@ system_configs = sa.Table(
     sa.CheckConstraint('(`planets` in (0,1))', name='system_configs_chk_7'),
     sa.CheckConstraint("(`age` in (_utf8mb4'young',_utf8mb4'old'))", name='system_configs_chk_8'),
     sa.CheckConstraint('(`intelligent_life` in (0,1))', name='system_configs_chk_9'),
+    mysql_engine="InnoDB",
+)
+
+
+system_interests = sa.Table(
+    'system_interests',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('reason', sa.String(24), primary_key=True, nullable=False),
+    sa.Column('n', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('best_score', mysql.DOUBLE(), nullable=True),
+    sa.Column('galaxy_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('galaxy_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('galaxy_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Index('idx_system_interests_position', 'galaxy_x_pc', 'galaxy_y_pc', 'galaxy_z_pc'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_interests_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
 

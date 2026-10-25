@@ -42,7 +42,7 @@ Use:
 
 import math
 
-from planetgen.physics import moon_composition, unit_registry as units
+from planetgen.physics import constants as physical_constants, moon_composition, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -54,6 +54,10 @@ ORIGINS = ("moon_erosion", "disrupted_moon", "captured_body")
 BODY_FIELDS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ring_mass_kg", "ring_optical_depth",
                "ring_ice_fraction")
 """tuple: The attributes (and `planets`/`moons` columns, GEN.732) of a ring system; all `None` on a body without one."""
+
+UNITS = {"ring_kind": "text", "ring_origin": "text", "ring_inner_km": "km", "ring_outer_km": "km", "ring_mass_kg": "kg",
+         "ring_optical_depth": "tau", "ring_ice_fraction": "frac"}
+"""dict: Each field of `BODY_FIELDS` and its native unit (GEN.570), as `RoguePlanet.FIELD_UNITS` carries it."""
 
 ROCHE_COEFFICIENT = 2.456
 """float: The fluid Roche limit in planet radii for particles as dense as the planet (Roche 1850; Murray and Dermott 1999). Recalled, T2, L0."""
@@ -205,18 +209,41 @@ def clear(body):
 
 def apply(planet):
     """
-    Draws and stores `planet`'s ring system (`BODY_FIELDS`), replacing any it held; a moon, a belt and a body with no radius or mass
-    have none. Run once the planet's moons and its star's snow line are final.
+    Draws and stores `planet`'s ring system (`BODY_FIELDS`), replacing any it held; a belt and a body with no radius or mass have none.
+    A moon draws like a planet of its own kind around no moons (GEN.836), cold when its parent is beyond the snow line. Run once the
+    planet's moons and its star's snow line are final.
     """
     if planet.body_type == 'a':  # a belt is not a body
         return None
     clear(planet)
-    if planet.is_moon or not planet.radius or not planet.mass:
+    if not planet.radius or not planet.mass:
         return None
     parent = moon_composition.parent_kind(planet.envelope_mass_fraction or 0.0, planet.mass)
-    cold = planet.distance >= planet.star.snow_line_au
-    ring = draw_ring(parent, planet.radius, planet.mass, cold, [_au_to_km(moon.distance) for moon in planet.moons])
+    if planet.is_moon:
+        cold, distances = bool(planet.born_beyond_snow_line), []
+    else:
+        cold, distances = planet.distance >= planet.star.snow_line_au, [_au_to_km(moon.distance) for moon in planet.moons]
+    return _store(planet, draw_ring(parent, planet.radius, planet.mass, cold, distances))
+
+
+def apply_rogue(rogue):
+    """
+    Draws and stores a rogue planet's ring system (GEN.836): the same law as a bound planet with no host and no moon distances. It is
+    cold, and keeps its ice, when its effective temperature is below the snow-line temperature. A brown dwarf is no planet and has none.
+    """
+    clear(rogue)
+    if rogue.planet_class is None:
+        return None
+    if rogue.planet_type == 'g':
+        parent = moon_composition.GIANT
+    else:
+        parent = moon_composition.DWARF_PLANET if rogue.mass_kg < moon_composition.DWARF_PLANET_MAX_MASS_KG else moon_composition.TERRESTRIAL
+    cold = rogue.effective_temperature_k < physical_constants.SNOW_LINE_TEMPERATURE_K
+    return _store(rogue, draw_ring(parent, rogue.radius_km, rogue.mass_kg, cold))
+
+
+def _store(body, ring):
     if ring is not None:
         for name, value in ring.values().items():
-            setattr(planet, name, value)
+            setattr(body, name, value)
     return ring

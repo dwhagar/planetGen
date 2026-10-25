@@ -2,8 +2,8 @@
 
 """
 GEN.732: planetary rings. The Roche limit and the optical depth are checked against the four giants of the Solar System; a draw keeps
-every ring inside the Roche limit of its own material and inside the innermost moon; a giant has a ring; a moon, a belt and a
-reclassified body are handled.
+every ring inside the Roche limit of its own material and inside the innermost moon; a giant has a ring; a belt and a
+reclassified body are handled (moons and rogue planets: tests/test_moon_and_rogue_rings.py).
 """
 
 import math
@@ -118,7 +118,7 @@ def test_generated_giants_have_rings_and_moons_and_belts_have_none():
                 assert getattr(planet, "ring_kind", None) is None
                 continue
             for moon in planet.moons:
-                assert all(getattr(moon, name) is None for name in rings.BODY_FIELDS)
+                assert moon.ring_kind is None or moon.ring_inner_km < moon.ring_outer_km  # GEN.836: a moon may hold one
             if planet.body_type == "g":
                 giants += 1
                 ringed += planet.ring_kind is not None

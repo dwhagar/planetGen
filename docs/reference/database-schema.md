@@ -2221,6 +2221,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v171 (GEN.836): the ring system of a rogue planet
+
+Migration 0171 adds the seven ring columns of v160 (`ring_kind`, `ring_origin`, `ring_inner_km`, `ring_outer_km`, `ring_mass_kg`, `ring_optical_depth`, `ring_ice_fraction`) to `rogue_planets`, after `hp_ice_km`; NULL for a planet with no ring, a brown dwarf, and a row made before v171.
+
 ### v170 (GEN.767): the day and night shares and the hours of daylight
 
 Migration 0170 adds six nullable DOUBLE columns at the end of `planets` and `moons`, derived by `physics/daylight.py` from the stored rotation, orbit, tilt and spin axis and the star's radius: `day_share_equator` (share of the time the star is up at the equator over a year, NULL for a world that turns once an orbit), `day_share_mean` (the same averaged over the surface), `parent_shadow_share` (a moon only: share of its time in its planet's shadow, which the two day shares already lose), `solar_day_hours` and `daylight_hours` (hours from noon to noon, and of daylight in it at the equator; NULL for a world that turns once an orbit) and `polar_circle_deg` (latitude beyond which the star stays up or down for at least a day). A row made before v170 keeps NULL; nothing is backfilled.

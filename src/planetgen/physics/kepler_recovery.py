@@ -50,10 +50,10 @@ DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "kepler_recovery.json")
 MODEL_ID = "kepler-recovery"
 """str: The id of the selection model in `tuning_harness.SELECTION_MODEL_ITEMS`."""
 
-G_SI = 6.674e-11
-M_SUN_KG = 1.989e30
+G_SI = physical_constants.G
+M_SUN_KG = physical_constants.SOLAR_MASS_TO_KG
 R_SUN_M = physical_constants.SOLAR_RADIUS_M
-R_EARTH_M = 6.371e6
+R_EARTH_M = physical_constants.EARTH_RADIUS_KM * 1000.0
 DAY_S = 86400.0
 IMPACT_NODES = 10
 """int: The midpoints of `b` in [0, 1) the quadrature averages over."""

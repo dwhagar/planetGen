@@ -82,10 +82,10 @@ RADIUS_RANGE_EARTH = (1.2, 3.2)
 HISTOGRAM_BINS = 20
 MIN_PLANETS_PER_BIN = 40
 
-G = 6.674e-11
-M_EARTH = 5.972e24
-R_EARTH = 6.371e6
-M_SUN = 1.989e30
+G = physical_constants.G
+M_EARTH = physical_constants.EARTH_MASS_TO_KG
+R_EARTH = physical_constants.EARTH_RADIUS_KM * 1000.0
+M_SUN = physical_constants.SOLAR_MASS_TO_KG
 R_SUN = physical_constants.SOLAR_RADIUS_M
 MAX_RADIUS_RATIO = 0.07
 """float: The largest radius ratio the recovery model covers (kepler_recovery validity); a larger planet is not counted."""
