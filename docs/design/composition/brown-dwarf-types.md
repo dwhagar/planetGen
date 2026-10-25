@@ -21,4 +21,10 @@ The rows now use these edges and the scatter of each boundary (`phi((edge - teff
 - Row g4 is not a type: T8 and T9 are late T, NH3-rich, and the Y0 dwarfs start at 460 K (observed 371 to 510 K). The row stays partly verified; its edge at T8 is a design choice on the map.
 - The map is for field dwarfs. Young low-gravity L dwarfs are up to 300 K cooler than field dwarfs of the same type (Filippazzo 2015), so a gravity term is needed below about 500 Myr; it is not modelled.
 - The mass function (alpha 0.6 +/- 0.1) and the evolution tracks that give a dwarf its temperature are not part of this change; the census of Kirkpatrick Table 15 is not machine readable here (NOT REACHED), so no count-per-bin target exists.
-- The recipes are not yet read by the generator, so this changes no generated value and takes no generator epoch.
+- The recipes were not read by the generator when this was built (GEN.517); the type draw is wired in section 3.
+
+## 3. Wired into the generator (GEN.760)
+
+`brown_dwarf.spectral_type(temperature_k)` draws the type of every brown dwarf through this map: the temperature it reads on the map is the dwarf's own plus a Gaussian offset of the scatter of the piece its mean type is on (134 K among L dwarfs, 79 K among T and Y dwarfs), and the type is the map read backwards (`brown_dwarf_types.number_of_teff`, `drawn_number`) at that temperature. The L/T transition, where the map is nearly flat (18 K per subtype), spreads a type over several subtypes, as the census does; a dwarf that reads as L0 or hotter after the offset is a late-M dwarf, named by the stellar scale.
+
+The draw is on a stream of the temperature alone, so a free brown dwarf's page, which reads the stored effective temperature, gives the type the generator drew, and a brown dwarf member of a multi-star system stores it with the member. The old inversion of the mean relation (`tuning.BROWN_DWARF_SPECTRAL_TYPE_FITS`, `brown_dwarf.type_temperature_k`, `spectral_number`) is gone: the data file is the one table. Source tier: Verified (Kirkpatrick et al. 2021, Table 13); the offset is the paper's scatter (tweak scale L0); the field-dwarf map's missing gravity term for young dwarfs stays a gap (section 2). Generator epoch: the types of brown dwarfs change (GEN.760).
