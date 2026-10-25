@@ -2067,6 +2067,51 @@
         "storage_uri": ""
       }
     },
+    "record_file": {
+      "default": "",
+      "description": "A file every log line of a planetgen command is also written to as a record: one per line, the time in UTC. Empty writes none; the --record-file option does the same for one command.",
+      "title": "Record File",
+      "type": "string",
+      "x-advanced": false,
+      "x-choice-labels": null,
+      "x-control": null,
+      "x-editable": false,
+      "x-env": "PLANETGEN_RECORD_FILE",
+      "x-group": "logging",
+      "x-label": "Record file",
+      "x-min_role": "admin",
+      "x-multiline": false,
+      "x-restart": true,
+      "x-secret": false,
+      "x-slider": null,
+      "x-summary": "A file that gets every log line as a machine-readable record, for a tool to read."
+    },
+    "record_format": {
+      "default": "logfmt",
+      "description": "The form of the record file's lines: logfmt (key=value) or json (one object per line).",
+      "enum": [
+        "logfmt",
+        "json"
+      ],
+      "title": "Record Format",
+      "type": "string",
+      "x-advanced": false,
+      "x-choice-labels": {
+        "json": "JSON lines",
+        "logfmt": "Key and value pairs"
+      },
+      "x-control": null,
+      "x-editable": false,
+      "x-env": "PLANETGEN_RECORD_FORMAT",
+      "x-group": "logging",
+      "x-label": "Record file form",
+      "x-min_role": "admin",
+      "x-multiline": false,
+      "x-restart": true,
+      "x-secret": false,
+      "x-slider": null,
+      "x-summary": "Whether the record file is written as key=value lines or as JSON lines."
+    },
     "redis": {
       "$ref": "#/$defs/Redis",
       "default": {

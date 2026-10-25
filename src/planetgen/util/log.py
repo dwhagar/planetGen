@@ -477,7 +477,7 @@ def add_debug_arguments(parser):
     def add_records(target, default):
         target.add_argument("--record-file", metavar="FILE", default=default,
                             help="Also write every log line to FILE as a record: one per line, the time in UTC "
-                                 "(UX.122; $PLANETGEN_RECORD_FILE does the same).")
+                                 "($PLANETGEN_RECORD_FILE does the same).")
         target.add_argument("--record-json", action="store_true", default=default,
                             help="Write the --record-file records as JSON lines.")
 
