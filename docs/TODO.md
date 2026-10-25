@@ -14619,6 +14619,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   UX.208. Suggested owner: Core 3 or Aux 9 (class lane).
   Prerequisites: none. Related: UX.208, GEN.646, GEN.681.
 
+- [ ] **GEN.792 File the GEN.725 registry rows from the second-hand citations report: first-hand sources, second-hand fallbacks and the final open list**
+  Citations lane (Aux 17) final report, relayed 9:50 PM EDT 2026-10-24
+  as the lane reported: reports/secondhand-citations-2026-10-24.md, Part
+  10 (Boss's uploads that make rows first-hand, and the final open
+  list). Add or update each row in docs/design/stand-in-values.md
+  (GEN.725) from Part 10: the source now first-hand (the papers Boss
+  uploaded), the second-hand fallback where the paper is not accessible,
+  and the tier and tweak level; the rows still open stay labelled with
+  the replacing item. Done: every row of Part 10 is in the registry with
+  its source basis, and the registry test passes. Version 8.1. Owner:
+  Aux 17 (Citations) or the next free pool lane.
+  Prerequisites: none. Related: GEN.725, GEN.711.
+
+- [ ] **GEN.793 Settle two source flags in the registry: CFC-12 forcing coefficient 0.32 (IPCC TAR) against 0.33 (gap plan), and the NH3 1.078 factor against Irwin 2019**
+  Citations lane (Aux 17) final report, relayed 9:50 PM EDT 2026-10-24
+  as the lane reported: reports/secondhand-citations-2026-10-24.md, Part
+  10 (Boss's uploads that make rows first-hand, and the final open
+  list). Myhre et al. 1998 Table 3 is now uploaded, so the CFC-12
+  coefficient can be read first-hand and the wrong one corrected in the
+  gap plan and the registry; the NH3 1.078 factor is checked against
+  Irwin et al. 2019 (arXiv 1812.05383, ExoMol CoYuTe NH3 line list) and
+  kept, corrected or replaced. Done: both flags carry a verified value
+  with the source and page, and any code that used the wrong value is
+  changed (a changed number carries `tests.golden_update --reason ...`).
+  Version 8.1. Owner: Aux 17 (Citations) or the next free pool lane.
+  Prerequisites: none. Related: GEN.725, GEN.715.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
