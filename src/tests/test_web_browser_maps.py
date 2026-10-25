@@ -992,3 +992,116 @@ def test_galaxy_map_menu_filters_sit_side_by_side(page, base_url, size):
     assert page.locator("#galaxymap3d-menu .galaxy-sub > summary").is_visible()
 
 
+
+
+# --- MAP.328: the bodies turn slowly on their axes ---------------------------------
+
+SPIN_SAMPLE = """async (wait) => {
+    const read = () => document.querySelector('#sysmap-spheres-canvas').__spins();
+    const first = read();
+    await new Promise((resolve) => setTimeout(resolve, wait));
+    return {first: first, second: read()};
+}"""
+
+
+def _single_star_system_with_planets(client):
+    """A generated system of one star whose planets store a rotation period: the whole-system scene then draws planets
+    (a system of several stars draws only its stars there)."""
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
+        if len(scene["stars"]) == 1 and sum(1 for p in scene["planets"] if p["look"].get("spinH")) >= 2:
+            return system["id"], scene
+    pytest.fail("no generated system has one star and two planets with a stored rotation period")
+
+
+def _open_spinning_diagram(page, base_url, site_app, reduced="no-preference"):
+    system_id, scene = _single_star_system_with_planets(site_app.test_client())
+    page.emulate_media(reduced_motion=reduced)
+    _open(page, f"{base_url}/system/{system_id}", "#sysmap-root")
+    _show_diagram(page)
+    return system_id, scene
+
+
+def _show_diagram(page):
+    if page.locator("#sysmap-view-diagram").count():
+        page.click("#sysmap-view-diagram")
+    page.wait_for_function("() => { const c = document.querySelector('#sysmap-spheres-canvas');"
+                           " return c && c.__spins && c.__spins().length > 0; }")
+
+
+def test_the_system_map_spheres_turn_at_the_rate_their_stored_period_gives_on_one_shared_law(page, base_url, site_app):
+    """MAP.328: each sphere turns at the rate spin.js gives its stored rotation period, every one by the same elapsed
+    spin time, no faster than one turn in 20 s nor slower than one in 10 minutes, a longer period never faster."""
+    import math
+    _open_spinning_diagram(page, base_url, site_app)
+    got = page.evaluate(SPIN_SAMPLE, 800)
+    before = {s["name"]: s for s in got["first"] if s["spinH"]}
+    after = {s["name"]: s for s in got["second"] if s["spinH"]}
+    assert len(before) >= 2, "planets with a stored period are drawn"
+    elapsed = {name: (after[name]["angle"] - before[name]["angle"]) / before[name]["rate"] for name in before}
+    assert all(0.3 < e < 3.0 for e in elapsed.values()), elapsed
+    assert max(elapsed.values()) - min(elapsed.values()) < 1e-6, f"the bodies turned by different spin times: {elapsed}"
+    for name, one in before.items():
+        assert 2 * math.pi / 600 - 1e-9 <= one["rate"] <= 2 * math.pi / 20 + 1e-9, (name, one["rate"])
+    ordered = sorted(before.values(), key=lambda one: one["spinH"])
+    for shorter, longer in zip(ordered, ordered[1:]):
+        assert shorter["rate"] >= longer["rate"] - 1e-12, (shorter, longer)
+
+
+def test_the_spin_switch_stops_the_bodies_and_the_choice_is_kept(page, base_url, site_app):
+    """MAP.328: the Menu's Spin switch holds every body still (and a reload keeps it so); turning it on again sets them
+    turning."""
+    system_id, _ = _open_spinning_diagram(page, base_url, site_app)
+    moving = page.evaluate(SPIN_SAMPLE, 500)
+    assert any(b["angle"] != a["angle"] for a, b in zip(moving["first"], moving["second"])), "bodies turn by default"
+    page.click("#sysmap-menu > summary")
+    button = page.locator('#sysmap-layers [data-setting="spin"]')
+    assert button.get_attribute("aria-pressed") == "true"
+    button.click()
+    assert button.get_attribute("aria-pressed") == "false"
+    page.wait_for_timeout(200)
+    held = page.evaluate(SPIN_SAMPLE, 500)
+    assert [b["angle"] for b in held["second"]] == [a["angle"] for a in held["first"]], "switched off, nothing turns"
+    assert page.evaluate("() => localStorage.getItem('planetgen.spin')") == "off"
+    assert "spin" not in page.url, "a standing preference, not part of the address"
+    page.reload(wait_until="load")
+    _show_diagram(page)
+    still = page.evaluate(SPIN_SAMPLE, 500)
+    assert [b["angle"] for b in still["second"]] == [a["angle"] for a in still["first"]], "the choice survives a reload"
+    page.click("#sysmap-menu > summary")
+    page.locator('#sysmap-layers [data-setting="spin"]').click()
+    again = page.evaluate(SPIN_SAMPLE, 500)
+    assert any(b["angle"] != a["angle"] for a, b in zip(again["first"], again["second"]))
+
+
+def test_reduced_motion_holds_the_bodies_still(page, base_url, site_app):
+    """MAP.328: with the reader's reduced-motion setting on, no body turns although the Spin switch is on."""
+    _open_spinning_diagram(page, base_url, site_app, reduced="reduce")
+    held = page.evaluate(SPIN_SAMPLE, 600)
+    assert [b["angle"] for b in held["second"]] == [a["angle"] for a in held["first"]]
+    assert page.evaluate("() => localStorage.getItem('planetgen.spin')") is None, "the switch itself was not touched"
+
+
+def test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate(page, base_url, site_app):
+    """MAP.328: in the 3D view a body's mesh turns by the angle spin.js gives for the elapsed spin time, about its stored
+    axis; a body with no stored period stays where it is."""
+    import math
+    system_id, scene = _system_with_moons(site_app.test_client())
+    page.emulate_media(reduced_motion="no-preference")
+    page.goto(f"{base_url}/system/{system_id}?view=3d", wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    got = page.evaluate("""async () => {
+        const view = document.querySelector('#sysview3d-canvas').systemView;
+        const first = view.spins();
+        await new Promise((resolve) => setTimeout(resolve, 900));
+        return {first: first, second: view.spins()};
+    }""")
+    checked = 0
+    for a, b in zip(got["first"], got["second"]):
+        elapsed = b["at"] - a["at"]
+        assert elapsed > 0.2, elapsed
+        dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
+        turned = 2 * math.acos(min(1.0, dot))
+        assert turned == pytest.approx(a["rate"] * elapsed, abs=2e-3), (a["ref"], turned, a["rate"], elapsed)
+        checked += a["rate"] > 0
+    assert checked >= 2, "bodies with a stored period turn"

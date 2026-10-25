@@ -597,6 +597,16 @@ Every number the hours-outside model (`physics/outside_hours.py`, GEN.768) holds
 | OH10 | P | T6 | L0 | design (a work shift of 8 hours; one charge of the breathing gas lasts a share of it: mask 1, own gas 0.5, mixed gas 0.75, isolated air 1) | protection_limits.shift_hours, SUPPLY_SHIFT_SHARE | half to double | Air Supply levels 1 to 4 | test_the_supply_hours_follow_the_shift_and_ambient_air_has_none | per-item supply durations in the equipment items (UX.199) |
 <!-- outside-hours-standins:end -->
 
+### 6.9 Stand-ins of how a rendered body is drawn (MAP.328)
+
+The slow turn of a rendered body on its axis (`static/spin.js`) takes the body's stored rotation period, axis and tilt (all real, from the generator) and runs the period through one view-time law so a turn can be seen. The law is not physics: real periods run from hours to hundreds of days, a hundred times wider than the 20 s to 600 s a screen can show a turn in without strobing or looking stuck, so no straight proportion fits. The law keeps the order of speeds and is the same for every body.
+
+<!-- rendered-body-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SP1 | P | T9 | L4 | spin.js FASTEST_SECONDS_PER_TURN 20, SLOWEST_SECONDS_PER_TURN 600, FASTEST_PERIOD_HOURS 2, SLOWEST_PERIOD_HOURS 1000 (seconds per turn on screen = 20 x 30^t, t the log position of the period from 2 h to 1000 h, clamped) | none (a display choice) | every body drawn as a sphere in the system views and on object pages; the galactic views turn nothing | the spin.test.mjs tests of the cap, the floor and the order of speeds | a reader-set speed, if one is ever asked for | design (Boss, 2:48 AM EDT 2026-10-25: rendered objects turn slowly on their axes; the range is fitted so the fastest still shows a turn and the slowest is not stuck) |
+<!-- rendered-body-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

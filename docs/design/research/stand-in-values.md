@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 163 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 164 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 18 | 6 | 1 | 2 | 0 | 27 |
 | T7 | 10 | 2 | 0 | 1 | 0 | 13 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
-| T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 140 | 11 | 4 | 8 | 0 | 163 |
+| T9 | 0 | 0 | 0 | 0 | 1 | 1 |
+| All | 140 | 11 | 4 | 8 | 1 | 164 |
 
 ## How the labels were given
 
@@ -250,3 +250,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OH8 | P | T6 | L0 | protection_limits.GARMENTS insulation_clo | half to double | Body Protection levels 0 to 5 | test_every_garment_row_is_a_listed_body_name_and_has_a_power_only_where_it_is_active | the equipment items of the sheet (UX.199) | design (insulation of each Body Protection garment, 0.5 to 10 clo: ISO 9920 clothing values for cold-weather, insulated and thermal suits) |
 | OH9 | P | T6 | L0 | protection_limits.GARMENTS cooling_w, heating_w | half to double | Body Protection levels 1 to 5 | test_the_hotter_the_afternoon_the_fewer_the_hours_in_the_same_suit | the equipment items of the sheet (UX.199) | design (cooling 100 to 600 W of a cooling vest, a liquid cooling garment and a suit's thermal control, recalled from NASA's EMU at about 586 W; heating 200 to 300 W of a heated suit) |
 | OH10 | P | T6 | L0 | protection_limits.shift_hours, SUPPLY_SHIFT_SHARE | half to double | Air Supply levels 1 to 4 | test_the_supply_hours_follow_the_shift_and_ambient_air_has_none | per-item supply durations in the equipment items (UX.199) | design (a work shift of 8 hours; one charge of the breathing gas lasts a share of it: mask 1, own gas 0.5, mixed gas 0.75, isolated air 1) |
+
+## 6.9 Stand-ins of how a rendered body is drawn
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SP1 | P | T9 | L4 | spin.js FASTEST_SECONDS_PER_TURN 20, SLOWEST_SECONDS_PER_TURN 600, FASTEST_PERIOD_HOURS 2, SLOWEST_PERIOD_HOURS 1000 (seconds per turn on screen = 20 x 30^t, t the log position of the period from 2 h to 1000 h, clamped) | none (a display choice) | every body drawn as a sphere in the system views and on object pages; the galactic views turn nothing | the spin.test.mjs tests of the cap, the floor and the order of speeds | a reader-set speed, if one is ever asked for | design (Boss, 2:48 AM EDT 2026-10-25: rendered objects turn slowly on their axes; the range is fitted so the fastest still shows a turn and the slowest is not stuck) |
