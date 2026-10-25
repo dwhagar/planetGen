@@ -977,6 +977,17 @@ def auth_totp_disable(cookie_header, current_password, code):
                          json_body={"current_password": current_password, "code": code})[1]
 
 
+def auth_avatar_set(cookie_header, data_base64):
+    """`POST /api/auth/avatar` -- sets the account's picture from base64 text (SEC.36). A picture that can't be used
+    raises `ApiError` (422) with the reason."""
+    return _auth_request("POST", "/auth/avatar", cookie_header=cookie_header, json_body={"data": data_base64})[0]
+
+
+def auth_avatar_remove(cookie_header):
+    """`DELETE /api/auth/avatar` -- the account has no picture (SEC.36)."""
+    return _auth_request("DELETE", "/auth/avatar", cookie_header=cookie_header)[0]
+
+
 def auth_logout(cookie_header):
     """`POST /api/auth/logout`. Returns the `Set-Cookie` headers to relay
     (clears the session cookie) -- a no-op, not an error, if the caller
