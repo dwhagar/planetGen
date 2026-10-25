@@ -561,18 +561,14 @@ class Estimate:
 
     def time_text(self):
         """The time as the summary says it: the figure, and, when the speed was not measured on this server (the
-        default per system, PERF.184), the range it is a guess within."""
-        if self.measured:
-            return format_duration(self.seconds)
-        low, high = self.seconds * UNMEASURED_LOW_FACTOR, self.seconds * UNMEASURED_HIGH_FACTOR
-        return f"{format_duration(self.seconds)} (a rough guess, anywhere from {format_duration(low)} to {format_duration(high)})"
+        default per system, PERF.184), the range it lies within and that it is not timed yet (PERF.199)."""
+        return time_text(self.seconds, self.measured)
 
     def summary(self):
         """One line for a person."""
         text = (f"About {format_bytes(self.bytes)} and {self.time_text()} for {self.sectors:,} "
                 f"sector{'s' if self.sectors != 1 else ''} (~{round(self.systems):,} star systems, "
                 f"~{round(self.stars):,} stars, {self.workers} worker{'s' if self.workers != 1 else ''}"
-                f"{'' if self.measured else ', speed not yet measured on this server'}"
                 f"{f', worked out from {self.sampled:,} sampled sectors' if self.sampled else ''}).")
         if self.disk is not None:
             text += (f" {format_bytes(self.disk.free_bytes)} free of {format_bytes(self.disk.total_bytes)} "
@@ -580,6 +576,15 @@ class Estimate:
         elif self.disk_note:
             text += f" Free space not measured: {self.disk_note}; nothing is refused for space."
         return text
+
+
+def time_text(seconds, measured=True):
+    """A time worked out from the server's recorded speed as one figure, or, from the default speed (PERF.184), as the
+    range it lies within with the words "not timed yet" (PERF.199: never "a guess")."""
+    if measured or seconds is None:
+        return format_duration(seconds)
+    low, high = seconds * UNMEASURED_LOW_FACTOR, seconds * UNMEASURED_HIGH_FACTOR
+    return f"{format_duration(low)} to {format_duration(high)} (not timed yet on this server)"
 
 
 UNMEASURED_LOW_FACTOR = 0.4

@@ -467,10 +467,11 @@ class DeepEstimate:
     def summary(self):
         from planetgen.generation import stats as generation_stats
 
-        basis = ("from the speed this server recorded" if self.measured
-                 else "a rough guess: this server has not recorded the speed yet")
+        if self.measured:
+            return (f"Deep check: {self.systems:,} star systems to validate, about "
+                    f"{generation_stats.format_duration(self.seconds)} (from the speed this server recorded).")
         return (f"Deep check: {self.systems:,} star systems to validate, about "
-                f"{generation_stats.format_duration(self.seconds)} ({basis}).")
+                f"{generation_stats.time_text(self.seconds, False)}.")
 
     def as_dict(self):
         return {"deep_check": True, "systems": self.systems, "seconds": self.seconds, "measured": self.measured,

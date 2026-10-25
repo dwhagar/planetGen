@@ -115,7 +115,7 @@ def _eta_text(eta, live):
         low, high = eta["low"], eta["high"]
     low_text, high_text = _duration(low), _duration(high)
     text = high_text if low_text == high_text else f"{low_text} to {high_text}"
-    return f"{text} (rough guess)" if eta.get("rough") else text
+    return f"{text} (not timed yet)" if eta.get("rough") else text
 
 
 def _actions(run):
