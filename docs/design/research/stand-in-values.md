@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 172 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 174 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 33 | 0 | 3 | 0 | 0 | 36 |
+| T1 | 34 | 0 | 3 | 0 | 0 | 37 |
 | T2 | 39 | 0 | 0 | 0 | 0 | 39 |
-| T3 | 36 | 0 | 0 | 5 | 0 | 41 |
+| T3 | 35 | 0 | 0 | 5 | 0 | 40 |
 | T4 | 6 | 0 | 0 | 0 | 0 | 6 |
 | T5 | 8 | 3 | 0 | 0 | 0 | 11 |
-| T6 | 19 | 5 | 1 | 2 | 0 | 27 |
-| T7 | 9 | 2 | 0 | 1 | 0 | 12 |
+| T6 | 19 | 6 | 1 | 2 | 0 | 28 |
+| T7 | 10 | 2 | 0 | 1 | 0 | 13 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 150 | 10 | 4 | 8 | 0 | 172 |
+| All | 151 | 11 | 4 | 8 | 0 | 174 |
 
 ## How the labels were given
 
@@ -181,7 +181,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM23 | P | T7 | L0 | mixture_escape.LOST_TOTAL | 1e-2 of the gas | the escape filter (GEN.738: a numerical cutoff) | test_atmosphere_mixture_escape::test_a_small_warm_body_loses_the_hydrogen_it_would_outgas | a numerical cutoff stays | numerical cutoff (GEN.738) |
 | AM24 | P | T7 | L0 | mixture_evolved.TITAN_MAX_METHANE | 0.5 of the gas | nitrogen-methane air when the saturation exceeds the pressure | test_atmosphere_mixture_evolved::test_a_titan_like_air_is_nitrogen_with_methane_at_the_saturation_and_a_hydrogen_trace | a methane cycle model | design |
 | AM25 | P | T7 | L0 | mixture_oxygen.INERT_FLOOR | 0.5 percent nitrogen plus argon | any air with oxygen above a few percent | test_atmosphere_mixture_escape::test_a_lifeless_oxygen_world_is_capped_at_95_percent_with_a_nitrogen_argon_floor | the volcanic delivery and noble-gas inventory (GEN.481) | design |
-| AM26 | B | T3 | L0 | mixture_rocky.INVENTORY | weathering_sink 1e-5 to 1e-2, log, on the carbon and sulfur of a body with an ocean and a long-lived geology | rocky bodies with `ocean_present` and `long_lived_geology` | test_atmosphere_recipe_gaps::test_an_ocean_and_a_long_lived_geology_leave_little_carbon_and_sulfur_and_all_the_nitrogen_and_argon | GEN.481 (weathering feedback) | READ from memory, not re-checked (Earth keeps about 1.5e-5 of its near-surface carbon in the air: 0.9e15 kg C in the CO2 against about 6e19 kg C in the carbonates) |
 | AM27 | D | T5 | L1 | surface_pressure.PROCESSING_ENERGY_J_PER_KG | 9.17e6 J per kg of mantle, fixed | rocky bodies with a stored interior (`interior_heat`) | test_surface_pressure::test_venus_degasses_about_what_the_earth_does_and_its_air_asks_for | the melt-production model of Tosi et al. 2017 (equations 15 to 19) | CALIBRATED on the Earth and Venus surface carbon, 1e22 mol each (source tier 5, tweak level 1; Tosi et al. 2017 picture) |
 | AM28 | B | T6 | L1 | surface_pressure.DEGAS_EFFICIENCY_H | 0.05 to 0.5, log | rocky bodies | test_surface_pressure::test_the_inventory_degassed_is_each_element_times_its_share_and_its_efficiency | the water solubility of the melt (Sossi et al. 2022) in a melt-production model | design (source tier 6, tweak level 1; Marty 2012 up to 90 percent of the water in the mantle, Bower et al. 2022 magma-ocean retention) |
 | AM29 | P | T6 | L0 | surface_pressure.DEGAS_EFFICIENCY | C, N, Ar 1; S 0.5 | rocky bodies | test_surface_pressure::test_the_inventory_degassed_is_each_element_times_its_share_and_its_efficiency | sulfur solubility in basalt (a melt model) | design (source tier 6, tweak level 0; sulfide stays in the melt) |
@@ -233,6 +232,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM75 | D | T1 | L0 | thermosphere.HYDRO_BASED_LOW | six constants of the boil-off branch, fixed | 1 to 40 Earth masses, 300 to 2,000 K, hydrogen-dominated | test_thermosphere::test_the_hydro_based_rate_reproduces_the_published_rate_of_each_planet_of_the_papers_table | a hydrodynamic model run for the body | READ (Kubyshkina et al. 2018 Table 1 and Eq. 9 and 10, an analytic fit to 7,000 hydrodynamic models; the nine planets of its Table 2 reproduced); source tier 1, tweak level 0 |
 | AM76 | D | T1 | L0 | thermosphere.HYDRO_BASED_HIGH | six constants of the XUV branch, fixed | as AM63 | test_thermosphere::test_the_hydro_based_rate_reproduces_the_published_rate_of_each_planet_of_the_papers_table | the same | READ (Kubyshkina et al. 2018 Table 1, the XUV-driven branch); source tier 1, tweak level 0 |
 | AM77 | P | T7 | L0 | thermosphere.MAX_EXOBASE_RADII | 10 body radii, fixed | hot, light airs | none: no measurement; a bound that keeps the integral finite | a hydrodynamic outflow model | design (a numerical bound for a hot light air over a small body) |
+| AM78 | B | T7 | L0 | surface_air.LONG_LIVED_FLUX_FRACTION | 0.5 of the Earth twin's heat flow, fixed | rocky bodies with a stored interior | test_surface_air::test_a_body_with_less_than_half_the_earth_heat_flow_has_no_long_lived_geology | a stagnant-lid and mobile-lid transition model (Foley and Smye 2018) | design (the share of the Earth twin's heat flow below which a mantle is taken to have stopped moving) |
+| AM79 | B | T1 | L0 | surface_air.RELATIVE_HUMIDITY | 0.77, fixed | rocky bodies with an ocean or ice | test_surface_air::test_water_over_an_ocean_stands_at_the_relative_humidity_of_its_saturation_pressure | a convective-radiative humidity model | READ (Manabe and Wetherald 1967: fixed relative humidity 0.77, the Earth's mean) |
+| AM80 | B | T6 | L1 | surface_air.SULFUR_SURFACE_KEPT | 1e-5 to 1e-2, log | rocky bodies with an ocean | test_surface_air::test_an_ocean_keeps_only_a_drawn_share_of_the_sulfur | a sulfate and sulfide balance (the sulfur analogue of GEN.726) | design (the bracket of the old weathering sink of the rocky inventory, kept for sulfur alone: the Earth keeps about 1 percent of its degassed sulfur as a gas-exchangeable surface reservoir at most) |
 
 ## 6.8 Stand-ins of the hours outside in a day
 

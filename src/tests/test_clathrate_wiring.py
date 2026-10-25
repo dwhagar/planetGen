@@ -1,4 +1,4 @@
-"""GEN.762: the generator reads the clathrate and brine limits (`physics/clathrate_brine.py`) in the atmosphere and the hydrosphere."""
+"""GEN.762: the generator reads the clathrate and brine limits (`physics/clathrate_brine.py`) in the air (`surface_air`, whose hydrate cages are tested in test_surface_air.py) and the hydrosphere."""
 
 import ast
 import pathlib
@@ -6,14 +6,20 @@ import types
 
 import pytest
 
-from planetgen.physics import atmosphere, clathrate_brine as cb, constants, hydrosphere as hy
+from planetgen.physics import clathrate_brine as cb, constants, hydrosphere as hy
 from planetgen.util import draw
+
+
+def _generate_hydrosphere(body, internal_flux_w_m2):
+    """`generate_hydrosphere` after the surface water is drawn, as `planets.calculate_atmospheric_conditions` does."""
+    return hy.generate_hydrosphere(body, internal_flux_w_m2, hy.draw_surface_water(body) if body.body_type != "g" else 0.0)
+
 
 EARTH = constants.EARTH_MASS_TO_KG
 PHYSICS = pathlib.Path(__file__).resolve().parents[1] / "planetgen" / "physics"
 
 
-@pytest.mark.parametrize("module", ["atmosphere.py", "hydrosphere.py"])
+@pytest.mark.parametrize("module", ["surface_air.py", "hydrosphere.py"])
 def test_the_generator_calls_the_clathrate_module(module):
     """The wiring guard for this module: it is called, not only imported (GEN.754 will make the check general)."""
     tree = ast.parse((PHYSICS / module).read_text(encoding="utf-8"))
@@ -48,28 +54,6 @@ def test_a_thin_skin_holds_less_and_the_guests_share_the_cages():
     assert sum(thin.values()) / (mean_molar_mass * 1.35) == pytest.approx(cages_mol, rel=0.01)
 
 
-def _icy(temperature, water, **extra):
-    fields = dict(body_type="t", planet_class="E", mass=0.02 * EARTH, radius=2500.0, gravity=0.14, atmosphere="a thin mix",
-                  atmospheric_pressure=5e4, surface_temperature=temperature, water_mass_fraction=water, is_moon=True)
-    fields.update(extra)
-    return types.SimpleNamespace(**fields)
-
-
-def test_a_cold_icy_body_keeps_less_of_a_guest_gas_than_the_same_dry_or_warm_body(monkeypatch):
-    monkeypatch.setattr(cb, "HYDRATE_SKIN_RANGE_M", (1e6, 1e6))
-    results = {}
-    for name, temperature, water in (("icy", 110.0, 0.3), ("dry", 110.0, 1e-4), ("warm", 290.0, 0.3)):
-        draw.set_run_seed(762)
-        body = _icy(temperature, water)
-        atmosphere.generate_atmosphere(body)
-        results[name] = body
-    floor_pa = cb.dissociation_pressure_pa("CH4", 110.0)
-    methane = {name: atmosphere.gas_partials_pa(body).get("CH4", 0.0) for name, body in results.items()}
-    assert methane["icy"] <= floor_pa * (1 + 1e-9) < methane["dry"]
-    assert results["icy"].atmospheric_pressure < results["dry"].atmospheric_pressure
-    assert methane["warm"] > floor_pa  # no cages above the ice point
-
-
 def _dry_cold_body(temperature=210.0):
     return types.SimpleNamespace(body_type="t", planet_class="C", mass=0.3 * EARTH, radius=4000.0, water_mass_fraction=1e-5, gravity=0.5,
                                  surface_temperature=temperature, atmospheric_pressure=600.0, is_moon=False, mantle_redox="intermediate",
@@ -81,7 +65,7 @@ def test_a_cold_body_with_little_water_keeps_a_brine_ocean_below_the_ice_point()
     for seed in range(12):
         draw.set_run_seed(seed)
         body = _dry_cold_body()
-        hy.generate_hydrosphere(body, 0.03)
+        _generate_hydrosphere(body, 0.03)
         if body.ocean_depth_km:
             classes.add(body.ocean_class)
             activities.add(body.water_activity)
@@ -100,5 +84,5 @@ def test_a_body_with_more_water_keeps_pure_water_melting():
     draw.set_run_seed(1)
     body = _dry_cold_body(200.0)
     body.water_mass_fraction = 1e-3
-    hy.generate_hydrosphere(body, 0.03)
+    _generate_hydrosphere(body, 0.03)
     assert body.ocean_class in (None, "neutral", "ice-sealed", "acid sulfate", "soda")

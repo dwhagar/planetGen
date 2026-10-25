@@ -140,33 +140,6 @@ PLANET_DENSITY = {
     "g": (0.69, 1.64)   # Gas Giant: Range from Saturn to Neptune
 }
 
-# Atmospheric density ranges for terrestrial and gas giant planets in kg/m³
-ATMOSPHERE_DENSITY = {
-    # Terrestrial: real surface air density spans Mars (~0.02 kg/m^3) to
-    # Earth (~1.225 kg/m^3) here -- NOT Venus, whose real surface air
-    # density (~65 kg/m^3) is roughly 50x this range's own upper bound; the
-    # comment previously named Venus, which was incorrect and made this
-    # range look far more permissive than it actually is (see
-    # docs/analysis/habitability-atmosphere-sanity-review.md for how this
-    # undershoot shows up in generated Class M output).
-    "t": (0.02, 1.2),
-    # Gas Giant: the previous (0.69, 1.33) range was Saturn's and Jupiter's
-    # *bulk/overall* density (the same g/cm^3-scale figures used correctly
-    # in PLANET_DENSITY above) -- the average density of the whole planet
-    # including its dense core, not the density of the gas at the 1-bar
-    # reference "surface" level this table is meant to describe. Derived
-    # here instead from the ideal gas law (rho = P*M/(R*T), P = 1 bar) using
-    # each planet's real 1-bar temperature and mean atmospheric molar mass:
-    # Jupiter ~0.17, Saturn ~0.19, Uranus ~0.42, Neptune ~0.44 kg/m^3.
-    "g": (0.16, 0.45),   # Gas Giant: Range from Jupiter to Neptune at the 1-bar reference level
-}
-
-# Atmospheric molar density ranges for terrestrial and gas giant planets in kg/mol
-ATMOSPHERIC_MOLAR_DENSITY = {
-    "t": (0.02897, 0.04347),  # Terrestrial: Range from Earth to Venus
-    "g": (0.00207, 0.00266),   # Gas Giant: Range from Saturn to Neptune's real mean molar mass (~2.07-2.66 g/mol)
-}
-
 # Giant-planet mass-radius relation (GEN.34), the shape of Chen & Kipping
 # (2017, ApJ 834:17): below about 0.4 Jupiter masses a volatile-rich giant
 # grows as R ~ M^0.52 (their "Neptunian" regime, anchored here on Saturn);
@@ -393,12 +366,6 @@ YERKES_MASS_CONSTRAINTS = {
     "D": (0.5, CHANDRASEKHAR_LIMIT_SOL),
     "W": (10, 90),    # Wolf-Rayet: 0.4 to 0.6 of an initial 25 to 150 solar masses (GEN.243)
 }
-
-CO2_BASE_MOLAR_DENSITY = 0.04345
-"""
-float: The real molar density of CO2 (kg/mol), used as a reference point in
-atmospheric greenhouse-effect calculations.
-"""
 
 # --- Orbital motion (physics.planets.generate_orbital_motion_properties) ---
 # Real solar-system planets sit close to the ecliptic (Mercury, the most

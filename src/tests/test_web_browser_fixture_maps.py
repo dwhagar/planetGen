@@ -858,8 +858,9 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
 @pytest.mark.viewport(1280, 900)
 def test_a_binary_picks_as_one_system_in_an_opened_sector(page, map_site):
     """MAP.136: every dot of an opened sector, a binary's companion too,
-    picks a system by its own name; a star is never picked on its own."""
-    _open_galaxy(page, map_site, OPEN_PRIME)
+    picks a system by its own name; a star is never picked on its own. The names are off: a click on a name flies
+    to its item (MAP.298), and a flight would move the spots this test tries."""
+    _open_galaxy(page, map_site, OPEN_PRIME + "&hide=label-system,label-star,label-object")
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     page.wait_for_timeout(500)
     info = page.locator("#galaxymap3d-info")
@@ -1852,6 +1853,80 @@ def test_a_double_click_on_a_star_flies_to_it(page, dense_site):
     target = after["target"]
     assert max(abs(target[0] - star["x"]), abs(target[1] - star["y"]), abs(target[2] - star["z"])) < 0.05, (target, star)
     assert after["dist"] <= before["dist"] + 1e-6, (before["dist"], after["dist"])
+
+
+@pytest.mark.parametrize("radius_pc", [4.0, 9.0])
+def test_fly_to_fit_puts_the_sphere_in_the_window_with_no_sector_box(page, dense_site, radius_pc):
+    """MAP.319: flyToFit(sphere) puts the camera where the sphere fills the smaller side of the view with 8 percent to
+    spare (or as near as the view's zoom allows), over the sphere's middle, and no block of sectors is drawn once the
+    flight is over."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 40.0)
+    before = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    center = [before["target"][0] + 3.0, before["target"][1] - 2.0, before["target"][2]]
+    page.evaluate("([center, radius]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: center, radius: radius})",
+                  [center, radius_pc])
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=20000)
+    _settle(page)
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    size = page.evaluate("() => { const c = document.querySelector('#galaxymap3d-canvas'); return [c.clientWidth, c.clientHeight]; }")
+    fov = math.radians(page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFov()"))
+    tan = math.tan(fov / 2)
+    half = math.atan(min(tan, tan * size[0] / size[1]))
+    wanted = max(radius_pc, 2.0) / math.sin(half) * 1.08
+    assert max(abs(a - b) for a, b in zip(after["target"], center)) < 0.05, (after["target"], center)
+    assert after["dist"] == pytest.approx(wanted, rel=0.02) or after["dist"] > wanted, (after["dist"], wanted)
+    # The sphere is in the window: its edge, seen from the camera, lies inside half the smaller field.
+    assert math.asin(min(1.0, radius_pc / after["dist"])) <= half + 1e-6, (after["dist"], radius_pc)
+    lines = page.evaluate(LINES)
+    assert lines["chartedLines"] == 0 and lines["hovered"]["lines"] == 0, lines
+
+
+LABELS = "() => document.querySelector('#galaxymap3d-canvas').__mapLabels.shown()"
+
+
+def _label_spot(page, label):
+    """The page point at the middle of a placed name."""
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    return box["x"] + label["left"] + label["width"] / 2, box["y"] + label["top"] + label["height"] / 2
+
+
+def _on_the_canvas(page, spot):
+    """Whether the map's canvas is what the page shows at `spot` (the info panel lies over part of the map)."""
+    return page.evaluate("([x, y]) => { const e = document.elementFromPoint(x, y); return !!e && e.id === 'galaxymap3d-canvas'; }", list(spot))
+
+
+def test_names_stand_on_stars_and_other_objects_and_a_click_on_one_flies_to_its_item(page, dense_site):
+    """MAP.298: the dense region's named stars and its named objects (rogue planets, a neutron star, a black hole)
+    carry their names on the map, and a click on a name selects its item (the panel names it) and flies the camera there."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    page.wait_for_function("""() => {
+        const kinds = new Set(document.querySelector('#galaxymap3d-canvas').__mapLabels.shown().map(l => l.kind));
+        return kinds.has('star') && kinds.has('object');
+    }""", timeout=20000)
+    shown = page.evaluate(LABELS)
+    stars = {s["name"]: s for s in DENSE_STARS if s["name"]}
+    objects = {p["name"]: p for p in DENSE_POINTS}
+    for kind, known in (("star", stars), ("object", objects)):
+        label = next(l for l in shown if l["kind"] == kind and l["text"] in known and _on_the_canvas(page, _label_spot(page, l)))
+        item = known[label["text"]]
+        page.mouse.move(*_label_spot(page, label))
+        page.wait_for_function("(id) => !!document.querySelector('.map-label[data-hot]')", arg=label["id"])
+        page.mouse.click(*_label_spot(page, label))
+        page.wait_for_function("(name) => { const h = document.querySelector('#galaxymap3d-info h3'); return h && h.textContent === name; }",
+                               arg=label["text"])
+        page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=20000)
+        _settle(page)
+        target = page.evaluate(CAMERA)["target"]
+        assert max(abs(target[0] - item["x"]), abs(target[1] - item["y"]), abs(target[2] - item["z"])) < 0.05, (label["text"], target, item)
+        # Back to the start for the next kind.
+        open_dense_region(page, dense_site, 14.0)
+        page.wait_for_function("""() => {
+            const kinds = new Set(document.querySelector('#galaxymap3d-canvas').__mapLabels.shown().map(l => l.kind));
+            return kinds.has('star') && kinds.has('object');
+        }""", timeout=20000)
+        shown = page.evaluate(LABELS)
 
 
 def test_galaxy_map_grid_never_adds_up_to_more_than_the_cap_while_zooming_in(page, map_site):

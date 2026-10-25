@@ -35,6 +35,20 @@ def test_a_node_comes_back_with_its_stars_in_order_and_close_to_what_went_in():
     assert back["generated"][0]["star_type"] == "G"
 
 
+def test_the_names_of_the_stars_that_have_one_ride_in_the_json_and_come_back_on_their_stars():
+    """MAP.298: the columns hold no text, so a node lists its few named stars by id in `names`; stars without a name get
+    none and a node of unnamed stars has no `names` at all."""
+    node = {"stars": [star(5, 1.0, 1.0, 1.0, 1.0, name="Alpha"), star(6, 2.0, 1.0, 1.0, 1.0)],
+            "generated": [star("FE81000A2B-0000005-000", 3.0, 1.0, 1.0, 1.0, name="Beta")]}
+    back = tilepack.unpack_node(tilepack.pack_node(node))
+    assert [s.get("name") for s in back["stars"]] == ["Alpha", None]
+    assert back["generated"][0]["name"] == "Beta"
+    assert back["names"] == {"5": "Alpha", "FE81000A2B-0000005-000": "Beta"}
+    assert "names" not in tilepack.unpack_node(tilepack.pack_node({"stars": [star(1, 1.0, 1.0, 1.0, 1.0)]}))
+    trimmed = tilecache.trim_node({"stars": [star(5, 1.0, 1.0, 1.0, 1.0, name="Alpha", population="old"), star(6, 2.0, 1.0, 1.0, 1.0, name="")]})["stars"]
+    assert trimmed[0]["name"] == "Alpha" and "name" not in trimmed[1]
+
+
 def test_the_tier_of_a_halo_or_satellite_star_rides_with_the_charted_flag():
     """MAP.252: the halo (1) and the satellite galaxies (2) are the first to dim under "Charted only"; the flag byte
     carries them beside `charted` and a star of the disc has no `tier`."""

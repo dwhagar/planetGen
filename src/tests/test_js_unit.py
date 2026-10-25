@@ -139,7 +139,7 @@ def node_pack():
     """MAP.159's packed `/galaxy/nodes` answer (`tilepack.pack_response`) of four
     nodes -- stars with and without a temperature, radius, class and
     system, an id past 32 bits, generated stars with printed IDs, clouds,
-    points, an incomplete node, an empty one and one with mixed ids -- as base64, with the nodes
+    points, named stars (`names`), an incomplete node, an empty one and one with mixed ids -- as base64, with the nodes
     `tilepack.unpack_response` reads from it, for static/tilepack.js to
     match."""
     import base64
@@ -152,11 +152,13 @@ def node_pack():
         "clouds": [{"type": "nebula", "id": 4, "x": 1.0, "y": 2.0, "z": 3.0, "radius_pc": 5.5}],
         "points": [{"type": "black_hole", "id": "0D01F3", "x": -1.5, "y": 0.25, "z": 9.0}],
         "stars": [
-            star(7, 1234.567, -8000.125, 40.0, 1.2e5, temperature_k=21500, radius_sol=14.0, star_type="B", system_id=3),
+            star(7, 1234.567, -8000.125, 40.0, 1.2e5, temperature_k=21500, radius_sol=14.0, star_type="B", system_id=3,
+                 name="Named Giant"),
             star(2 ** 40 + 3, 1230.0, -7999.5, 41.5, 0.0004, star_type="M"),
             star(9, 1240.25, -7990.0, 39.0, 3.0, temperature_k=5778, radius_sol=1.0, star_type="G", tier=2),
         ],
-        "generated": [star("FE81000A2B-0000005-000", 1.0, 2.0, 3.0, 0.85, temperature_k=5200, star_type="K", system_id=12),
+        "generated": [star("FE81000A2B-0000005-000", 1.0, 2.0, 3.0, 0.85, temperature_k=5200, star_type="K", system_id=12,
+                           name="Printed Name"),
                       star("FE81000A2B-0000006-000", 1.5, 2.0, 3.0, 0.5, star_type="M")],
     }
     parts = [("3.1.2.3", tilepack.pack_node(full)),

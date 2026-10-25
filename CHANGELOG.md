@@ -2,6 +2,48 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2348] - 2026-10-25
+
+**Headline:** A brown dwarf's L, T or Y type is now drawn with the scatter of the 20 pc census instead of read from one mean temperature.
+
+### Changed
+
+- **Brown dwarf spectral types from the census map (GEN.760).** The generator draws every brown dwarf's type through the Kirkpatrick et al. 2021 temperature map (`physics/brown_dwarf_types.py`, GEN.517): the type is the map read at the dwarf's temperature plus the census scatter (134 K among L dwarfs, 79 K among T and Y dwarfs), so dwarfs of one temperature no longer all share one type, and the flat L/T transition spreads over several subtypes. The same type shows on a free brown dwarf's page and in a system that holds one. The older inversion of the mean relation (`tuning.BROWN_DWARF_SPECTRAL_TYPE_FITS`) is removed.
+
+generation-output: changed
+
+## [8.0.2347] - 2026-10-25
+
+**Headline:** The Galaxy Map names the stars and other objects it draws, and a click on a name selects that item and flies to it.
+
+### Changed
+- **Names on every visible item (MAP.298).** Beside the sectors, systems, planets and nebulae it already named, the Galaxy Map now writes the name of each named star it draws and of each named object of the other kinds (comets, rogue planets, black holes, neutron stars) where there is room, the brightest first. Two new entries in the Menu's Labels group, "Star names" and "Object names", turn them off.
+- **A name is a link.** The pointer over a name marks it; a click on it selects the item (its details open in the map's window) and flies the camera to it.
+- **Packed nodes carry star names.** The packed node (`TILE_FORMAT` 4) lists the names of its named stars by id, so the cached nodes are rebuilt once.
+
+## [8.0.2346] - 2026-10-25
+
+**Headline:** Flying to a star system, a planet with moons or a nebula frames it to fill the view.
+
+### Changed
+- **Fly-to frames the target (MAP.319).** Flying to a thing now puts the camera where the sphere holding it fills the smaller side of the map window with 8 percent to spare, keeping the direction you were looking: a planet with moons comes to the outermost moon orbit (not just close to the planet), a star system's view opens with every body and orbit line out to the outermost one in the window, a nebula fills the view (never framed smaller than 2 parsecs across its radius), and a star with a system comes as near as its disc allows. The map's own zoom limits still hold. Flying to a named region uses the same framing (`flyToFit`), ready for the regions chain.
+
+TODO items resolved: none (MAP.319 stays open for regions until GEN.827 and API.35 land). Added: none.
+
+## [8.0.2345] - 2026-10-25
+
+**Headline:** A planet's or moon's air, pressure and surface temperature now come from its interior, its sinks and its greenhouse together, not from a range set by its class.
+
+### Changed
+- **The air is solved, not drawn from a class range (GEN.411, GEN.422).** `physics/surface_air.py` repeats, until the pressure and the temperature stop moving: the mixture draw at the body's own temperature and pressure over the gas its interior has degassed (GEN.726), less what the carbonate cycle and an ocean take; the freeze-out of every gas above its saturation pressure, with water standing at a relative humidity of 0.77 over an ocean or ice; the hydrate cages of an icy cold body (GEN.762); the pressure as the weight of what is left; the density and scale height; and the greenhouse and temperature of that air. A giant, a brown dwarf or an envelope is its drawn mixture at the 1 bar level.
+- **What this changes on a map.** Every rocky air, surface temperature, pressure, scale height and density is different, and the class no longer sets any of them: a world in the habitable zone can land on a thin cold air, a temperate one or a hot thick steam-and-carbon-dioxide one, as its interior and its sinks give.
+- **The sulfur an ocean takes** is the solubility of GEN.757 and a drawn share for the sulfate and sulfide the ocean and crust lock up (a stand-in until a sulfur balance replaces it). The water-loss history (GEN.639) now reads the star distance before the air is made, so the surface water a young M dwarf stripped counts.
+
+### Removed
+- **The class density, molar density and greenhouse ranges (GEN.683).** `atm_density_range`, `atm_molar_density_range` and `greenhouse_multiplier_range` of every class in `tuning.py`, `CLASS_MIXES` and the mixing-ratio draw in `physics/atmosphere.py`, `ATMOSPHERE_DENSITY`, `ATMOSPHERIC_MOLAR_DENSITY` and `CO2_BASE_MOLAR_DENSITY` in `physics/constants.py`, and the tests and tuning options that only measured them (`test_climate_tuning.py`, the retention-factor and greenhouse-formula tests, the molar-density and greenhouse options of `climate_tuning_cli.py`). The class albedo ranges stay.
+
+generation-output: changed
+
 ## [8.0.2344] - 2026-10-25
 
 **Headline:** A test run now ends the queue workers it started and did not stop, and says how many it found.

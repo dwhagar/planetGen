@@ -3,15 +3,13 @@ Mantle redox and atmosphere species (GEN.85, `planetgen.physics.atmosphere`).
 """
 
 import math
-import statistics
 import types
 
 import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, constants, gases, saturation
-from planetgen.util import draw
+from planetgen.physics import atmosphere, gases, saturation
 
 from tests.air_support import air
 from tests.fuzz_support import deterministic_entropy
@@ -27,12 +25,7 @@ def _bodies(seeds):
                 yield from planet.moons
 
 
-def test_redox_rises_with_mass():
-    draw.set_run_seed(85)
-    moon = statistics.fmean(atmosphere.draw_mantle_delta_iw(0.0123 * constants.EARTH_MASS_TO_KG) for _ in range(2000))
-    earth = statistics.fmean(atmosphere.draw_mantle_delta_iw(constants.EARTH_MASS_TO_KG) for _ in range(2000))
-    assert moon == pytest.approx(-0.32, abs=0.1)
-    assert earth == pytest.approx(atmosphere.REDOX_EARTH_DELTA_IW, abs=0.1)
+def test_redox_classes():
     assert atmosphere.redox_class(-0.5) == "reduced"
     assert atmosphere.redox_class(1.0) == "intermediate"
     assert atmosphere.redox_class(3.5) == "oxidized"
@@ -57,37 +50,11 @@ def test_the_two_point_condensation_table_is_gone_and_hydrogen_sulphide_has_its_
     assert atmosphere.vapour_pressure_kpa("h2s", 150.0) > 5 * atmosphere.vapour_pressure_kpa("so2", 150.0)
 
 
-def test_class_mixes_sum_to_one():
-    for planet_class, (template, balance) in atmosphere.CLASS_MIXES.items():
-        assert set(template) <= set(atmosphere.SPECIES), planet_class
-        total = sum(template.values())
-        assert total <= 1.0 + 1e-3, planet_class
-        if balance is None:
-            assert total == pytest.approx(1.0, abs=0.01), planet_class
-
-
-def test_a_reduced_mantle_outgasses_reduced_species_under_anoxic_air():
-    draw.set_run_seed(1)
-    oxidized, _, _ = atmosphere.draw_mixing_ratios("A", "oxidized")
-    draw.set_run_seed(1)
-    reduced, _, _ = atmosphere.draw_mixing_ratios("A", "reduced")
-    assert oxidized["h2s"] == 0.0 and reduced["h2s"] > 0.0
-    assert reduced["co"] > oxidized["co"]
-    assert reduced["co2"] < oxidized["co2"]
-    # Oxygenated air (life) keeps its mix whatever the mantle.
-    draw.set_run_seed(2)
-    earth_ox, _, _ = atmosphere.draw_mixing_ratios("M", "oxidized")
-    draw.set_run_seed(2)
-    earth_red, _, _ = atmosphere.draw_mixing_ratios("M", "reduced")
-    assert earth_ox == earth_red
-
-
 def test_describe_names_majors_and_traces():
-    text = atmosphere.describe({"n2": 78.0, "o2": 21.0, "ar": 0.93, "co2": 0.04, "h2o": 0.0,
-                                "co": 0.0, "h2": 0.0, "ch4": 0.0, "h2s": 0.0, "so2": 0.0}, 0.0, None)
+    text = atmosphere.describe({"N2": 78000.0, "O2": 21000.0, "Ar": 930.0, "CO2": 40.0})
     assert text == "a mix of nitrogen and oxygen, with traces of argon and carbon dioxide"
-    assert atmosphere.describe({gas: 0.0 for gas in atmosphere.SPECIES}, 0.0, None) == "None"
-    giant = atmosphere.describe({"h2": 86.0, "ch4": 0.3}, 13.7, "helium")
+    assert atmosphere.describe({}) == "None"
+    giant = atmosphere.describe({"H2": 86.0e3, "He": 13.7e3, "CH4": 0.3e3})
     assert giant.startswith("a mix of hydrogen and helium") and "reducing" not in giant
 
 
@@ -105,16 +72,10 @@ def test_generated_bodies_store_consistent_air():
         count += 1
         total_kpa = body.atmospheric_pressure / 1000.0
         assert sum(partials.values()) <= total_kpa * (1 + 1e-9)
-        # GEN.424: the balance gas is stored too, so the rows add up to the surface pressure.
+        # GEN.424: every gas is stored, so the rows add up to the surface pressure.
         air = atmosphere.gas_partials_pa(body)
         assert sum(air.values()) == pytest.approx(body.atmospheric_pressure, rel=1e-9)
         assert all(gases.has(formula) and value > 0.0 for formula, value in air.items())
-        assert atmosphere.balance_kpa(body) * 1000.0 == pytest.approx(sum(air.values()) - sum(value * 1000.0 for value in partials.values()), abs=1e-6)
-        if body.body_type == "t" and atmosphere.CLASS_MIXES.get(body.planet_class, (None, None))[1] is None:
-            assert sum(partials.values()) == pytest.approx(total_kpa)
-            for gas, value in partials.items():
-                if value > 0.0:
-                    assert value <= atmosphere.vapour_pressure_kpa(gas, body.surface_temperature) * (1 + 1e-9)
     assert count > 0
 
 

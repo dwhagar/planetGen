@@ -122,7 +122,9 @@ def heat_capacity_ratio(partial_pressures_pa, temperature_k):
     """
     cp_over_r = 0.0
     for formula, fraction in mixture.mole_fractions(partial_pressures_pa).items():
-        thermo = species_thermo.species(formula)
+        if fraction == 0.0:
+            continue
+        thermo = species_thermo.gas(formula)
         low, high = thermo.range_k
         cp_over_r += fraction * thermo.cp_over_r(min(max(temperature_k, low), high))
     return cp_over_r / (cp_over_r - 1.0)

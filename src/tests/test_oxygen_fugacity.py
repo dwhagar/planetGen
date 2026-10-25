@@ -99,13 +99,6 @@ def test_delta_iw_and_log_fo2_are_inverses():
     assert fo2.delta_iw(fo2.log_fo2(-1.4, 1700.0, 3.0), 1700.0, 3.0) == pytest.approx(-1.4)
 
 
-def test_the_earth_mantle_value_of_the_generator_sits_between_the_buffers():
-    # REDOX_EARTH_DELTA_IW (3.5) is QFM, which is 3.1 to 3.7 above IW at magma-ocean temperatures.
-    from planetgen.physics import atmosphere
-
-    assert 3.1 <= atmosphere.REDOX_EARTH_DELTA_IW <= 3.7
-
-
 @pytest.mark.parametrize(
     "fraction, expected",
     [(0.014, -1.26), (0.02, -0.64), (0.037, 0.45), (0.05, 1.00), (0.10, 2.28), (0.20, 3.68), (0.44, 5.66)],

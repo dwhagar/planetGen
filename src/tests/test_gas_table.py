@@ -461,15 +461,9 @@ def test_the_families_and_exceptions_are_real():
     assert not set(NOT_GASES) & set(NAMES)
 
 
-def test_every_stored_species_and_class_balance_gas_is_in_the_table():
+def test_every_stored_species_is_in_the_table():
     for key, name in atmosphere.SPECIES_NAMES.items():
         assert gases.stored(key).name == name, key
-    balance = set()
-    for _, extra in atmosphere.CLASS_MIXES.values():
-        if extra:
-            balance.update((extra,) if isinstance(extra, str) else extra)
-    assert balance >= {"helium", "sodium", "ammonia"}
-    assert not [name for name in balance if name not in NAMES], "a balance gas of atmosphere.CLASS_MIXES is not in the table"
     assert set(habitability_world.MOLAR_KG) == set(gases.STORED_PARTIALS)
 
 

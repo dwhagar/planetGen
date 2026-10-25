@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements
-from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin
+from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -173,8 +173,7 @@ def get_planet_mass_ranges():
         # Class-specific density range if declared (e.g. a brown-dwarf-like
         # sub-stellar class, far denser than an ordinary gas giant -- see
         # tuning.PLANET_CLASSES), else the default range shared
-        # by every other class of this body type. Same per-class-override
-        # pattern as atm_molar_density_range.
+        # by every other class of this body type.
         min_density, max_density = data.get("density_range", constants.PLANET_DENSITY[planet_type])  # g/cm^3
 
         # Convert density from g/cm³ to kg/m³ for mass calculation
@@ -506,31 +505,13 @@ def generate_planet_properties(planet, zone_override=None):
         bulk_draw.draw_terrestrial(planet, radius_given, mass_given)
         giant_interior.clear(planet)
 
-    if class_data["atmosphere"] is None:
-        planet.atmosphere = "None"
-        # Clear any atmosphere a previous class left behind --
-        # `reconcile_zone_and_class` regenerates a body in place, so a body
-        # moved from an atmosphered class into an airless one would
-        # otherwise keep (and save) its old class's densities.
-        planet.atm_density = None
-        planet.atm_molar_density = None
-        planet.scale_height = None
-    else:
-        planet.atmosphere = class_data["atmosphere"]
-        # Class-specific atmosphere-density/molar-density ranges if declared
-        # (e.g. Class N's Venus-like dense, CO2-heavy atmosphere), else the
-        # default range shared by every other class of this body type. This
-        # replaces the old Class N hardcoded special case with the same
-        # general per-class-override mechanism Class P's albedo_range uses,
-        # so every class's atmosphere composition can be tuned independently
-        # (see tuning.PLANET_CLASSES and
-        # docs/analysis/habitability-atmosphere-sanity-review.md).
-        default_a_density = constants.ATMOSPHERE_DENSITY[planet.body_type]
-        min_a_density, max_a_density = class_data.get("atm_density_range", default_a_density)
-        planet.atm_density = draw.uniform(min_a_density, max_a_density)
-        default_am_density = constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
-        min_am_density, max_am_density = class_data.get("atm_molar_density_range", default_am_density)
-        planet.atm_molar_density = draw.uniform(min_am_density, max_am_density)
+    # The air is made later, with the temperature it gives (`calculate_atmospheric_conditions`, GEN.411 and GEN.422): a class says only
+    # whether it has one. Clear what a previous class left behind -- `reconcile_zone_and_class` regenerates a body in place, so a body
+    # moved from an atmosphered class into an airless one would otherwise keep (and save) its old class's densities.
+    planet.atmosphere = "None" if class_data["atmosphere"] is None else class_data["atmosphere"]
+    planet.atm_density = None
+    planet.atm_molar_density = None
+    planet.scale_height = None
 
     planet.volume = (4 / 3) * math.pi * planet.radius ** 3
     # GEN.459: the potassium, thorium, uranium and aluminium-26 the interior heat and the ground's dose both read (a stored draw of the
@@ -607,61 +588,23 @@ def calculate_surface_gravity(planet):
     planet.gravity = surface_gravity_g
 
 
-@finite_domain()
-def _atmosphere_retention_factor(gravity_g):
-    """
-    A gravity-based atmosphere-retention scaling factor, normalized to 1.0
-    at Earth gravity (`gravity_g == 1.0`).
-
-    Substituting `scale_height_m` into the old `atmospheric_pressure =
-    atm_density * surface_gravity_ms2 * scale_height_m` line shows gravity
-    cancels out exactly (`atmospheric_pressure = atm_density * R * T /
-    atm_molar_density`), making pressure unphysically independent of a
-    planet's gravity -- higher gravity should let a planet retain more
-    atmosphere and support higher surface pressure. This factor is applied
-    to an *effective* atmospheric density used only in the pressure
-    calculation (see `calculate_atmospheric_conditions`), not to
-    `planet.atm_density` itself, since that value also feeds the gas-giant
-    density blend in `generate_planet_properties` -- modifying it here would
-    create a circular dependency, since gravity is itself derived partly
-    from density for gas giants.
-
-    k=1 (linear scaling) is a starting point, not a value derived from a
-    real atmospheric-retention model; tune here if generated pressure
-    distributions warrant a different curve.
-
-    Args:
-        gravity_g (float): Surface gravity in Earth g's.
-
-    Returns:
-        float: The retention factor (1.0 at gravity_g == 1.0).
-    """
-    return gravity_g ** 1  # k=1 linear scaling as the default/starting point
-
-
 def calculate_atmospheric_conditions(planet, distance_override=None, host_eccentricity=None):
     """
-    Calculates the atmospheric conditions of the planet, including surface
-    temperature and atmospheric pressure.
+    Makes the air of the planet or moon and the surface temperature it gives (GEN.411, GEN.422; `surface_air`).
 
-    This models the planet's atmospheric conditions. It calculates the
-    surface temperature considering the star's output, the planet's distance,
-    and the greenhouse effect of its atmosphere. It also estimates the
-    atmospheric pressure based on the atmospheric mass and planet's gravity.
+    The Bond albedo is drawn from the class range; the heat the interior has carried out (`interior_heat.update_heat`) says how much
+    of the body's volatiles has reached the surface (`surface_pressure`); the water it holds is the reservoir its air's water vapour
+    stands in contact with; and the mixture, the pressure with the freeze-out, the density, the scale height, the greenhouse and the
+    temperature are solved together (`surface_air.solve`). A class with no air, and a body whose air is lost, have the temperature the
+    starlight alone gives.
 
     Args:
-        planet (Planet): The planet to calculate atmospheric conditions for.
-                         Its `surface_temperature`, `atmospheric_pressure`,
-                         and (if it has an atmosphere) `scale_height`
-                         attributes are set in place.
-        distance_override (float, optional): An override for the planet's
-                                             distance, used for special cases
-                                             like moons.
-        host_eccentricity (float, optional): For a moon, its parent planet's
-                                             eccentricity, which the light it
-                                             gets goes by (GEN.727); kept on
-                                             the moon (`Planet.host_eccentricity`)
-                                             and left as it was when not given.
+        planet (Planet): The planet to calculate atmospheric conditions for. Its `surface_temperature`, `atmospheric_pressure`,
+                         `atmosphere`, `atm_density`, `atm_molar_density`, `scale_height`, gases, hydrosphere and aerosols are set
+                         in place.
+        distance_override (float, optional): An override for the planet's distance, used for special cases like moons.
+        host_eccentricity (float, optional): For a moon, its parent planet's eccentricity, which the light it gets goes by (GEN.727);
+                                             kept on the moon (`Planet.host_eccentricity`) and left as it was when not given.
     """
     if host_eccentricity is not None:
         planet.host_eccentricity = host_eccentricity
@@ -682,90 +625,46 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     # space is colder than the background it sits in.
     surface_temperature_no_atmosphere = climate_draws.equilibrium_temperature_k(albedo, solar_output_at_orbit)
 
-    if planet.atmosphere == "None":
-        planet.surface_temperature = surface_temperature_no_atmosphere
-        planet.atmospheric_pressure = 0.0
-        climate_draws.record(planet, albedo, 0.0)  # GEN.412
+    # GEN.699: the heat the interior has carried out (no draws), which the degassing of the air follows; GEN.88: the surface water, drawn
+    # before the air because the ocean is the reservoir the air's water vapour and its carbonate cycle stand in contact with.
+    magnetism.update_exposure(planet, distance)     # GEN.86: the star's XUV and flares at this distance (no draws); the water loss reads it
+    heat = interior_heat.update_heat(planet)
+    giant = planet.body_type == "g"
+    surface_w = None if giant else hydrosphere.draw_surface_water(planet)
+    water_lost = (not giant) and hydrosphere.water_loss_kg(planet) > 0.0
+
+    planet.surface_temperature = surface_temperature_no_atmosphere
+    planet.atmospheric_pressure = 0.0
+    climate_draws.record(planet, albedo, 0.0)       # the mixture subject reads the albedo
+    air = None
+    if planet.atmosphere != "None":
+        setting = surface_air.setting_of(planet, albedo=albedo, starlight_w_m2=solar_output_at_orbit, star_distance_au=distance,
+                                         heat=heat, surface_w=surface_w, water_lost=water_lost)
+        air = surface_air.solve(setting, surface_temperature_no_atmosphere)
+    if air is None or not air.partials_pa:
+        planet.atm_density = planet.atm_molar_density = planet.scale_height = None
+        atmosphere.store_air(planet, {}, None if giant else _mantle_redox(planet, air, distance, water_lost))
     else:
-        scale_height_m = (constants.R * surface_temperature_no_atmosphere) / (
-                    planet.atm_molar_density * planet.gravity * constants.EARTH_GRAVITY)
-        # planet.radius (and everything derived from it below) is in km, so
-        # convert the scale height -- dimensionally meters, per the R*T/(M*g)
-        # formula -- to km to match before it's combined with radius.
-        scale_height = _m_to_km(scale_height_m)
-        planet.scale_height = scale_height
-        # Closed-form barometric formula for an isothermal, hydrostatic
-        # atmosphere: integrating dP/dz = -rho*g from the surface to
-        # infinity gives P_surface = rho_surface * g * H, where H is the
-        # scale height in meters. This replaces a previous shell-integration
-        # loop that summed km^3 shell volumes against a kg/m^3 density
-        # without converting units, undercounting atmospheric_mass by
-        # roughly 9 orders of magnitude and requiring an arbitrary "* 7500"
-        # fudge factor to partially compensate.
-        # Applied to an effective atmospheric density used only for this
-        # pressure calculation (not to planet.atm_density itself -- see
-        # _atmosphere_retention_factor's docstring for why) so higher-gravity
-        # planets retain more atmosphere and support higher surface pressure,
-        # reintroducing the gravity dependence that otherwise cancels out of
-        # this formula algebraically.
-        effective_atm_density = planet.atm_density * _atmosphere_retention_factor(planet.gravity)
-        surface_gravity_ms2 = planet.gravity * constants.EARTH_GRAVITY
-        atmospheric_pressure = effective_atm_density * surface_gravity_ms2 * scale_height_m
+        planet.surface_temperature = air.temperature_k
+        planet.atmospheric_pressure = air.pressure_pa
+        planet.atm_molar_density = air.state.mean_molar_mass_kg_mol
+        planet.atm_density = air.state.density_kg_m3
+        planet.scale_height = _m_to_km(air.state.scale_height_m)
+        climate_draws.record(planet, albedo, air.greenhouse_factor)     # GEN.412: the two numbers the temperature is made of
+        atmosphere.store_air(planet, air.partials_pa, air.mixture.redox_diw)
 
-        # atm_molar_density is the only atmosphere-composition signal in the
-        # data model today (no explicit CO2-fraction field exists), so
-        # base_ratio measures how CO2-like this draw's composition is
-        # (>=1.0 at/above CO2's own molar mass). On its own that ratio can't
-        # calibrate both a thin-but-CO2-heavy atmosphere (e.g. real Mars,
-        # ~43.3 g/mol, negligible greenhouse effect) and a dense CO2-heavy
-        # one (real Venus, ~43.45 g/mol -- almost the same molar mass, ~100x
-        # the greenhouse forcing): composition alone doesn't capture
-        # quantity/potency. greenhouse_multiplier_range is the per-class
-        # knob for that second axis (see tuning.PLANET_CLASSES),
-        # independent of how heavy/light the class's own atmosphere is.
-        # CO2_MAX_GREENHOUSE_FACTOR is now a generous safety ceiling rather
-        # than the value most classes hit -- real Venus's own ratio is
-        # ~101, so it only guards against a badly-configured future class.
-        base_ratio = planet.atm_molar_density / constants.CO2_BASE_MOLAR_DENSITY
-        greenhouse_multiplier_range = class_data.get("greenhouse_multiplier_range", (1.0, 1.0))
-        greenhouse_multiplier = draw.uniform(*greenhouse_multiplier_range)
-        greenhouse_factor = min(tuning.CO2_MAX_GREENHOUSE_FACTOR, base_ratio * greenhouse_multiplier)
-        planet.surface_temperature = climate_draws.surface_temperature_k(albedo, greenhouse_factor, solar_output_at_orbit)
-        planet.atmospheric_pressure = atmospheric_pressure
-        climate_draws.record(planet, albedo, greenhouse_factor)  # GEN.412: the two draws the temperature is made of
-
-        # Class M/P's forced pressure/temperature clamps are disabled.
-        # Several underlying model bugs they may have been compensating for
-        # (the inverted greenhouse factor above, and Class M/P sharing
-        # identical atmosphere sampling with no differentiation between
-        # them) have since been fixed, but that isn't a guarantee every
-        # generated value now lands in a narrow realistic band -- it's a
-        # statistical question the physical-plausibility tooling
-        # (planetgen/generation/plausibility.py) is better suited to monitor than
-        # a hard clamp. Commented out rather than deleted in case it needs
-        # restoring.
-        # if planet.planet_class == "M":
-        #     if planet.atmospheric_pressure < 90000 or planet.atmospheric_pressure > 112000:
-        #         planet.atmospheric_pressure = draw.uniform(90000, 112000)
-        #     if planet.surface_temperature < 283 or planet.surface_temperature > 290:
-        #         planet.surface_temperature = draw.uniform(283, 290)
-        # elif planet.planet_class == "P" and planet.surface_temperature >= 283:
-        #     # If surface_temperature_no_atmosphere is already above 283, we need a different approach
-        #     # to ensure the P class planet remains cold.
-        #     if surface_temperature_no_atmosphere < 283:
-        #         planet.surface_temperature = draw.uniform(surface_temperature_no_atmosphere, 283)
-        #     else:
-        #         planet.surface_temperature = draw.uniform(200, 283) # A reasonable cold range for P class
-
-    # GEN.85: the mantle redox and the ten gases' partial pressures, which
-    # write the atmosphere text and freeze out what the cold side can't hold.
-    atmosphere.generate_atmosphere(planet)
-    # GEN.86: the star's XUV and flares at this distance (no draws).
-    magnetism.update_exposure(planet, distance)
     # GEN.88: water, land, ice and the ocean's chemistry.
-    hydrosphere.generate_hydrosphere(planet, internal_heat_flux_w_m2(planet))
+    hydrosphere.generate_hydrosphere(planet, 0.0 if heat is None else heat.flux_w_m2, surface_w)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
+
+
+def _mantle_redox(planet, air, distance, water_lost):
+    """The mantle redox (log10 above iron-wuestite) of a rocky body whose air is not drawn: the mixture's when it has one, else the
+    recipe's redox rows at the body's own mass and age (`surface_air.mantle_redox_diw`)."""
+    if air is not None and air.mixture.redox_diw is not None:
+        return air.mixture.redox_diw
+    return surface_air.mantle_redox_diw(planet, distance, water_lost)
 
 
 def internal_heat_flux_w_m2(planet):

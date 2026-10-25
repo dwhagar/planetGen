@@ -113,6 +113,7 @@ if (root && diagram && diagramButton && button3d) {
       });
       els.canvas.systemBodies = view.bodies;
       els.canvas.systemFlyTo = view.flyTo;
+      els.canvas.systemView = view; // for the browser tests (MAP.319: the camera distance and the spheres it fits)
       els.scaleNote.textContent = view.note();
       fillList(view.list());
       showRate();
