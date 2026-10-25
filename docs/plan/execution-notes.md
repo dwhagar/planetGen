@@ -464,3 +464,5 @@ Update 8:39 PM EDT 2026-10-24: ADM.129 merged as #3180 (Core 5, as the lane repo
 Update 8:43 PM EDT 2026-10-24: Boss asked that all test runs check for broken containers. Filed TEST.376 (Bug 1, 8.1: scripts/test.py preflight plus a watchdog that restarts a dead MySQL or Redis and resumes; takes over OPS.70) and added the CONTAINER CHECK rule to lanes.md, the status README and the build brief template.
 
 Update 8:47 PM EDT 2026-10-24: UX.125 merged as #3183 (Core 2): the Generate task pages, the one-off system page and the recipe name boxes use the site's one form field. UX.49 and UX.126 remain. Core 2 found test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out red on clean main: filed as TEST.377 (Bug 1). 8.1 is at 1033 of 1442 items finished, 409 open.
+
+Update 8:49 PM EDT 2026-10-24: DB.100 merged as #3113 (Aux 3, as the lane reported 8:48 PM EDT): migration 0156, epoch 97, schema v156. Next free epoch is 98 and next free migration 0157 (GEN.765/766, aquifers GEN.654/DB.92 and GEN.701 renumber at merge). 8.1 is at 1034 of 1442 items finished, 408 open.
