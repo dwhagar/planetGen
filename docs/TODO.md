@@ -493,6 +493,15 @@ with `clamp()`.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
+  Research (2026-10-09, Aux 16 report): First slice merged (#3256, Aux
+  16, 11:20 PM EDT 2026-10-24 as the lane reported): the command line
+  text, the run log file, the job runner stage lines and a new
+  records.log beside a job output.log come from the UX.121 record layer;
+  new options --record-file and --record-json (settings record_file,
+  record_format) write every log line as a record and the job page
+  offers them at /log?form=records. Still open: finish and failure lines
+  on the command line, the commands that print directly (about 154 print
+  calls), the activity log shape decision, per-command tests.
   Prerequisites: none. Related: UX.102.
 
 - [ ] **UX.123 The Generate page log, the admin log pages and update.sh output use the layer**
@@ -20842,6 +20851,18 @@ clears each one.
   Research (2026-10-09, GEN.512 lane report): Also red on main (GEN.512
   lane, 11:05 PM EDT 2026-10-24 as the lane reported): test_work_units,
   test_single_system_forcing.
+  Research (2026-10-09, Aux 16 report): Aux 16 (11:20 PM EDT 2026-10-24
+  as the lane reported) also lists red on main: six stage-count tests in
+  test_stages after the tenth stage (territories) was added
+  (test_a_random_start_galaxy_run_has_nine_stages,
+  test_a_galaxy_run_with_an_address_has_one_sector_stage,
+  test_each_stage_is_stored_with_its_time_settings,
+  test_a_total_too_small_for_the_runs_stages_is_ignored and two more),
+  test_web_pages::test_in_process_transport_skips_http_inside_a_request,
+  test_web_search::test_a_star_result_links_to_its_row_on_the_system_page
+  (hangs),
+  test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems (RQ
+  StopRequested after 10 minutes).
   Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
 
 - [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**
