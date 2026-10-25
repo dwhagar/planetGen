@@ -22,7 +22,7 @@ release is stamped.
 | API | API.34 |
 | ADM | ADM.133 |
 | SEC | SEC.37 |
-| TEST | TEST.383 |
+| TEST | TEST.384 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
@@ -2981,6 +2981,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.380 | First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp | none | open |
 | TEST.381 | First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp | none | open |
 | TEST.382 | First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp | none | open |
+| TEST.383 | test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
