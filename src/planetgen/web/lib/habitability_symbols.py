@@ -213,7 +213,7 @@ def life_text(name, score):
 
 def life_html(name, score, sprite_url, help_url=None, page=None):
     """
-    One life score as markup: its shape and the number 0 to 9 beside it, one `role="img"` whose label is the words
+    One life score as markup: its shape and the number beside it with its scale ("3/9"), one `role="img"` whose label is the words
     ("Flora: 3 of 9"); a 0 is drawn muted (`hab-life-none`). With `help_url` it links into the habitability page; with
     `page` (a body's own page) to that page's Life group.
     `ValueError` for an unknown name or score.
@@ -223,7 +223,7 @@ def life_html(name, score, sprite_url, help_url=None, page=None):
     shape = (f'<span class="hab-life{muted}" role="img" aria-label="{words}" title="{words}">'
              f'<svg class="icon hab-life-shape" aria-hidden="true" focusable="false">'
              f'<use href="{escape(sprite_url)}#{LIFE_SPRITE_IDS[name]}"></use></svg>'
-             f'<span class="hab-life-score" aria-hidden="true">{score}</span></span>')
+             f'<span class="hab-life-score" aria-hidden="true">{score}<span class="hab-life-of">/9</span></span></span>')
     return help_link(shape, page, BODY_LIFE_ANCHOR) if page else help_link(shape, help_url, LIFE_ANCHORS[name])
 
 

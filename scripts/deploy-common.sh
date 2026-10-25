@@ -725,12 +725,12 @@ check_math() {
     fi
 }
 
-# Optionally runs the population pass (`planetgen population`: species,
-# civilizations and territories, docs/design/habitability/population-and-politics.md)
+# Optionally runs the population pass and the territories pass (`planetgen population`: species,
+# civilizations and polities, then `planetgen territories`, docs/design/habitability/population-and-politics.md)
 # over the stored galaxy. Off by default (Boss, 2026-10-01): it runs only
 # when POPULATION=1 (or yes) is set, or when someone answers y to the
 # prompt (y/N, 30 seconds, default N). With no terminal it is skipped.
-# `planetgen population` can always be run by hand later.
+# `planetgen population` and `planetgen territories` can always be run by hand later.
 offer_population_pass() {
     local answer=""
     if [[ "${MATH_CHECK_FAILED:-0}" == 1 ]]; then
@@ -748,6 +748,7 @@ offer_population_pass() {
     if [[ "$answer" =~ ^[Yy]([Ee][Ss])?$ ]]; then
         echo "Running the population pass."
         run_cli generate population
+        run_cli generate territories
     else
         echo "Skipping the population pass (run 'planetgen population' any time, or set POPULATION=1)."
     fi

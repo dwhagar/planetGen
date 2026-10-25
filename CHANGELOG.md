@@ -2,6 +2,91 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2312] - 2026-10-25
+
+**Headline:** A few very young massive stars now start in a small group that is about to break up.
+
+### Changed
+- **Young groups (GEN.327).** One in twenty O and early-B stars younger than 0.3 million years is born in a group of 3 to 5 stars (like the Orion Trapezium) that flies apart within 10,000 to 40,000 years. While it is that young, the star's page lists the group as a "Young group" with the time it has left, and each member has its place and speed. Older stars of the same kind are drawn as what such a group leaves: one star fewer (the lightest is thrown out), the rest in a tighter set of orbits. Because the break-up is so quick, a group you can still see is rare. Massive young stars give different companions than before.
+
+generation-output: changed
+
+## [8.0.2311] - 2026-10-25
+
+**Headline:** The life scores show their scale and the search tag counts say what they count.
+
+### Changed
+- On a planet's or moon's page, in lists, in trees and in search results, the number beside a life shape reads "3/9" instead of a bare 3 (UX.211).
+- A search tag's count reads "24 results" instead of a bare 24 (UX.211).
+
+## [8.0.2310] - 2026-10-25
+
+**Headline:** The four open weight tables of the bulk and moon recipes now carry a researched stand-in, a source tier, a tweak level and a replacing item.
+
+### Changed
+- The stand-in registry rows BC6 (moon ice fraction against distance), BC8 (planet minus star Fe/Mg scatter), BC11 (rogue-planet volatile loss at ejection) and BC18 (core light elements) in `docs/design/research/gap-filling-plan.md` carry the best-guess values, their ranges, the tier and tweak level, and the replacing item (GEN.466 with any exomoon measurement, GEN.775, GEN.776, GEN.777); `stand-in-values.md` is regenerated from them (GEN.734). Documents only: no generated value moves until the owning items use the numbers.
+
+## [8.0.2309] - 2026-10-25
+
+**Headline:** A report now shows which property-sheet columns are never filled for which kind of world.
+
+### Changed
+- `scripts/sheet_fill_report.py` generates sample systems and counts, for every kind, class and sheet column, how often it is filled, empty where it applies and empty where it does not. The rules that say where a column does not apply (giants have no surface, airless worlds have no air column, oceans need a liquid ocean, and so on) are in `describe/sheet.py` (`APPLIES`) with a sentence of reason each (UX.208).
+
+## [8.0.2308] - 2026-10-25
+
+**Headline:** A world with flora, fauna or a civilization now has food in its Suitability rating even when its ocean is under ice, and the life and timeline text says what is there, in the present tense.
+
+### Changed
+- **Food follows the life scores (GEN.765).** The Suitability food rung zeroed all life on a world whose hydrosphere is an ice-covered ocean, although the Flora, Fauna and Sentient scores of the same world were above 0 (Enuakyadas IV: 5, 5 and 5, Suitability Red 0.20, "no food readily available"). Only microbes that live under the ice (or in a deep aquifer) are out of reach now; flora and fauna are food wherever the world scores them. The stored Suitability of such a world changes, so the generator epoch is bumped (98).
+- **The life and timeline paragraphs state what is detected (GEN.766).** "Life based on melanin could arise on this planet, and it would evolve at a standard pace" is now "Life based on melanin lives on this planet, evolving at a standard pace"; "On a speculative timeline at that pace, the system is about 13.8 Gyr old. Its latest milestone would be ..." is "The system is about 13.8 Gyr old. Its latest milestone is ..."; the stage text says "the planet has" in place of "boasts". A world whose conditions suit a chemistry but where no milestone has been reached says so: "Conditions on this planet suit life based on X, but none has appeared yet."
+
+generation-output: changed
+
+## [8.0.2307] - 2026-10-25
+
+**Headline:** The population pass and the territories pass are now two commands, `planetgen population` and `planetgen territories`.
+
+### Changed
+- **`planetgen population` stops at the polities (PERF.125).** It scans the life worlds, dates the civilizations and founds the polities; `--territories-only` is gone. After a first run or a `--rescan`, run `planetgen territories` to work out who owns which system. A `galaxy` run does both as consecutive stages, and the installer's population question runs both.
+- **Both passes are work-queue commands** (`run-population`, `run-territories`, one unit each), so they show on the Queue page like any other run.
+
+### Added
+- **`planetgen territories`.** Recomputes which polity owns which system from the polities stored, and nothing else.
+- **Rules for a new command, held by a test (PERF.120).** The command inventory lists the seven rules every command follows, and `test_command_rules.py` checks the structural ones for every registered command.
+
+## [8.0.2306] - 2026-10-25
+
+**Headline:** Pages get an "On this page" contents list, and every page is checked for a clean heading outline.
+
+### Changed
+- Every page with three or more sections shows an "On this page" list after its title, built from its headings; following an entry into a collapsed section opens it (UX.196).
+- The accessibility suite now fails a page with more than one h1, a skipped heading level, or a table with no heading, caption or label (UX.195).
+
+## [8.0.2305] - 2026-10-25
+
+**Headline:** `planetgen sector` and `planetgen phenomenon` now only generate; the population pass and the sector paths are commands of their own.
+
+### Changed
+- **`sector` no longer takes `--population` (PERF.124).** A `sector` run saves its sectors and stops; the population pass is `planetgen population`, or a stage of a `galaxy` run.
+- **`phenomenon` no longer saves sector paths, and `--no-settle` is gone (PERF.124).** `planetgen phenomenon --sector-id N` saves the phenomenon and nothing else.
+
+### Added
+- **`planetgen settle --sector-id ID...`.** Saves the paths of the named sectors and the sectors around them (the step that follows `phenomenon --sector-id` for a black hole or neutron star); it takes the place of `--since` and the two cannot be combined.
+
+## [8.0.2304] - 2026-10-25
+
+**Headline:** `scripts/test.py` checks MySQL, Redis and the test setup before a run, restarts a server that dies during it and carries on without redoing the tests that passed; `full` is no longer called the merge gate.
+
+### Added
+- **A check before every run (TEST.376).** `scripts/test.py` loads the `PLANETGEN_TEST_*` variables from `/etc/profile.d/planetgen-test.sh` when they are missing, starts MySQL and Redis when they do not answer, purges the MySQL binary logs when under 3 GB of disk is free, and checks `argon2-cffi` and `playwright` 1.56.0. What it cannot repair stops the run with `PREFLIGHT FAILED: ...` and exit 2. `scripts/test.py env` does only the check; `--no-preflight` skips it. Before this a database test with MySQL down was skipped, not failed, and a run without `PLANETGEN_TEST_MYSQL_USER` failed with `DatabaseLoginError` as the wrong account.
+- **A watchdog during every run.** MySQL and Redis are asked every 15 seconds. A server that is gone is restarted, the phase's pytest is stopped and started again without the tests that already passed (the progress log, as `--resume` does), up to 5 times a phase; the closing line says how many restarts there were. A server that cannot be restarted ends the run with `FAIL` and exit 3, and `--resume` continues it.
+
+### Changed
+- **`full` is the end-of-version run, not the merge gate (TEST.372).** The help of `scripts/test.py` and docs/reference/testing.md now say an ordinary merge needs a green `changed` run (finished with `--resume` after an interruption), and that the whole suite is for TEST.261, SEC.33 and GEN.301.
+
+TODO items resolved: TEST.372, TEST.376. Added: none.
+
 ## [8.0.2303] - 2026-10-25
 
 **Headline:** The update reloads the web server more safely: it tests Apache's configuration first, covers gunicorn hosts, and checks the site answers.

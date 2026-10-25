@@ -46,7 +46,8 @@ def test_the_registry_holds_no_kind_nothing_uses():
     # the batch fills pick theirs by variable too (PERF.106), so do the link and settle stages (PERF.107), and the
     # phenomena layer's write time is only recorded (PERF.54)
     used = set(_kinds_used()) | {"sector", "stages", "scatter-mass", "scatter-bright", "phenomena-write",
-                              "map-luminosity", "habitability", "link", "paths"}
+                              "map-luminosity", "habitability", "link", "paths", "population",
+                              "territories"}
     assert set(steps.STEP_KINDS) <= used, f"unused kinds: {sorted(set(steps.STEP_KINDS) - used)}"
 
 

@@ -1519,6 +1519,32 @@ hierarchy only short periods; stripping the others from 46% of those where the p
 share to the catalogue's 60% (measured over 600,000 seeded disc systems; a stand-in until GEN.631's fill measures it
 again)."""
 
+YOUNG_GROUP_AGE_MAX_YR = 3.0e5
+"""float: A massive system (O or early B, a birth mass of `B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is
+never drawn as a young group (the design note's 0.3 Myr, GEN.327). The share that is a group is the `young-group` row of
+`SYSTEM_TYPE_RATES`."""
+
+YOUNG_GROUP_DECAY_AGE_RANGE_YR = (1.0e4, 4.0e4)
+"""tuple: The range a group's `decay_age_yr` is drawn from, log-uniform: trapezia decay in 1e4 to 4e4 years (arXiv 1809.03537,
+1701.03440, 1908.11437; multi-star-systems.md 3.3). A group younger than its decay age is stored as a group, an older one is
+drawn as its remnant."""
+
+YOUNG_GROUP_SIZE_WEIGHTS = {3: 0.3, 4: 0.4, 5: 0.3}
+"""dict: The weight of each member count of a young group. The Orion Trapezium has 4 to 5 members and the catalogued
+trapezium-type multiples run from 3; the weights are a stand-in [P, bracket 3 to 5 members] until a count by size is read."""
+
+YOUNG_GROUP_RADIUS_AU_RANGE = (3.0e3, 3.0e4)
+"""tuple: The radius within which a young group's members are drawn, in AU, log-uniform (a stand-in [P]: the Trapezium's
+core is some 0.03 pc, 6e3 AU; the bracket is a factor of 3 either side of it)."""
+
+YOUNG_GROUP_VELOCITY_DISPERSION_KMS = 2.5
+"""float: The one-dimensional velocity dispersion of a young group's members, km/s (a stand-in [P]: the Orion Trapezium
+cluster is some 2 to 3 km/s, recalled, not read in this repository). Each component of a member's velocity is a draw of it."""
+
+YOUNG_GROUP_REMNANT_MAX_AXIS_AU = 300.0
+"""float: The widest axis of the hierarchy a decayed group leaves, AU (a stand-in [P]): the lightest member is ejected and the
+rest harden, so the remnant is tighter than the field's draw (multi-star-systems.md, `decayed-trapezium-remnant`)."""
+
 MERGER_MASSIVE_MIN_MASS_SOL = 9.0
 """float: The birth mass from which a star counts as massive for the merger-product and mass-gainer shares (the
 early-B and O stars, `B_SUBCLASS_LOWER_MASS_SOL`; de Mink et al. 2014 give the 8% and 20% for O and early-B stars)."""
@@ -2489,7 +2515,7 @@ EVOLUTIONARY_TEXT = {
         "primitive vascular plants—have taken root, supporting emerging land-dwelling animals."
     ),
     "technological_civilization": (
-        "The planet boasts a fully mature, highly complex biosphere featuring diverse ecosystems, "
+        "The planet has a fully mature, highly complex biosphere featuring diverse ecosystems, "
         "topped by at least one sapient, tool-using species. Complex flora forms sprawling forests "
         "and varied biomes, while highly evolved fauna occupy vast ecological niches. The sapient "
         "population actively reshapes the world through agriculture, architecture, and industry."

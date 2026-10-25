@@ -195,15 +195,13 @@ with no regenerate:
    (`_db.sectors_reached_by`), then the systems in them, so the cost is
    the sum of the territories, not polities times all systems.
 
-Flags: `--rescan` (forget every species, and with them every polity and
-territory, and scan every planet again) and `--territories-only` (only
-step 3). The two can't be combined.
+Flag: `--rescan` (forget every species, and with them every polity and
+territory, and scan every planet again). Step 3 is the command `planetgen territories` (PERF.125); run it after the population pass and after a `--rescan`.
 
 Population is optional and off by default (Boss, 2026-10-01): nothing
 runs it unless asked. `planetgen galaxy` and `planetgen sector` run
 the whole pass after they save only with `--population` (this replaced
-7.49.0's `--no-population`); the admin Generate page's jobs don't pass
-it. `install.sh` offers to
+7.49.0's `--no-population`); since PERF.124 `sector` has no such option and only `galaxy` runs the pass, as a stage. `install.sh` offers to
 run it after the database step (`offer_population_pass`), y/N with a 30-second timeout defaulting to
 No and skipped with no terminal; `POPULATION=1` runs it without asking. Nothing in system generation itself
 changes.

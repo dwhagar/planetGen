@@ -1451,3 +1451,23 @@ Baseline: PR #1817.
 | UX.202 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | UX.201 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | UX.200 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.29 | 8.1 | Reproducible galaxies |
+| SEC.36 | 8.1 | The headline closes |
+| OPS.70 | 8.1 | Bugs and flaky tests |
+| TEST.372 | 8.1 | The headline closes |
+| TEST.376 | 8.1 | The headline closes |
+| PERF.124 | 8.1 | Queue, caches and performance |
+| TEST.378 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.209 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.199 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.198 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.196 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.195 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.125 | 8.1 | Queue, caches and performance |
+| GEN.766 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.765 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.734 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.211 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.792 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.793 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.327 | 8.1 | Multi-star and compact systems |

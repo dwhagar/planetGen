@@ -916,92 +916,6 @@ with `clamp()`.
   Prerequisites: none. Related: UX.143, UX.150, UX.158, GEN.415,
   GEN.430, GEN.445.
 
-- [ ] **UX.195 Every page has a proper heading outline: one h1 for the title, then h2 and below for each section and table, with no skipped level (bug)**
-  Boss, 7:41 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9LcRMXpJUGS2PLuWn5phzu, relayed by the
-  coordinator): "info pages, system pages, planet pages, star pages, all
-  pages need to get a TOC build based on headings, all sections and
-  tables should carry headings from 1 (title / main) and descending.
-  Also change the habitability icon links to go to the habitability
-  section of of the planet information page." Do: sweep every page
-  template (the object pages for every kind, the system, planet, star,
-  sector, phenomenon and galaxy pages, the info and help pages, the
-  lists and search) so the title is the one h1, every section and every
-  table has a heading as its caption or title one level below its
-  parent, and no level is skipped; where a template has a styled div
-  that acts as a heading, make it a real heading. Done: a page-walk test
-  over one page of every kind fails on a second h1, a skipped level, or
-  a table without a heading, and passes; the At a glance panel (UX.188
-  to UX.194) is a section with its own heading. This is the base of the
-  table of contents (UX.196). Owner: Aux 11 (it wrote the object pages
-  and the At a glance panels).
-  Prerequisites: none. Related: UX.196, UX.188, UX.173, UX.177.
-
-- [ ] **UX.196 Every page gets an automatic table of contents built from its headings (bug)**
-  Boss, 7:41 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9LcRMXpJUGS2PLuWn5phzu, relayed by the
-  coordinator): "info pages, system pages, planet pages, star pages, all
-  pages need to get a TOC build based on headings, all sections and
-  tables should carry headings from 1 (title / main) and descending.
-  Also change the habitability icon links to go to the habitability
-  section of of the planet information page." Do: one shared component
-  that reads a page's h2 to h4 headings (UX.195 makes them right) and
-  builds a table of contents of links to their anchors, with stable
-  heading ids; shown at the top of the page after the At a glance panel
-  as a compact list, collapsible, and on a phone as a menu; on every
-  object page (system, planet, star, sector, phenomenon, belt, comet,
-  facility, cluster, superbubble, galaxy) and the other info pages, with
-  the current section highlighted as you scroll; works without script
-  (the list is built on the server from the same headings) and is
-  keyboard and screen-reader usable. Done: a browser test opens a planet
-  page, sees its contents list, follows a link to a section and finds
-  the section in view, and the page-walk test checks each entry points
-  at an existing heading id. Owner: Aux 11, after UX.195.
-  Prerequisites: UX.195. Related: UX.195, UX.172, UX.188.
-
-- [ ] **UX.198 The Atmosphere section of the planet property sheet shows 14 empty rows (bug)**
-  Boss, 7:45 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
-  coordinator), live observation from the page of Enuakyadas IV (object
-  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: in the page
-  text the Atmosphere section of the property sheet lists 14 rows with
-  no label and no value, between the Composition and Climate sections
-  (the planet does have an atmosphere: the About block lists nitrogen
-  69.9 percent, oxygen 29 percent, argon and trace gases). Do: find
-  whether the sheet registry rows for the gas-by-gas values (after the
-  4b gas table, migration 0155) are rendering with empty labels for a
-  world, or the section lists gases that have no row; make the section
-  show the atmosphere in plain rows (total pressure, the main gases with
-  their shares, the mean molecular mass, the scale height) and show
-  nothing for a gas with no value. If the cause is the stored gas rows
-  themselves, hand that part to Aux 1. Done: a page test on a planet
-  with an atmosphere finds every row in the Atmosphere section with a
-  label and a value and no empty row. Owner: Aux 11 (property sheet and
-  pages); Aux 1 if the cause is data. Related: UX.187, TEST.358.
-  Prerequisites: none. Related: UX.187, TEST.358, UX.173.
-
-- [ ] **UX.199 Pages show raw or placeholder values: "not stored" rows in At a glance, and a raw key such as Technological_civilization (bug)**
-  Boss, 7:45 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
-  coordinator), live observation from the page of Enuakyadas IV (object
-  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: two display
-  faults in the same paste. (1) "Hours of daylight a person can be
-  outside: not stored" appears in the At a glance table and again in the
-  Rotation section, although the rule (Boss, 10-24, UX.188 to UX.194) is
-  that a value that is none or zero is left out unless its absence
-  matters. Do: leave out a "not stored" row unless the absence matters
-  to a captain, and where it does matter say why in a sentence
-  ("Daylight hours need the planet's rotation and a stored day length").
-  (2) The Life section shows "Life stage: Technological_civilization",
-  the stored key. Do: show the name a person reads ("Technological
-  civilization", the label the text already uses) for every stored key
-  that reaches a page (life stage, evolutionary pace, hydrosphere,
-  dynamical state and the rest), through the sheet registry's label for
-  the value, and add a test that lists every enumerated stored value
-  shown and fails on an underscore or capitalised key. Owner: Aux 11.
-  Related: UX.188, UX.187.
-  Prerequisites: none. Related: UX.188, UX.190, UX.187.
-
 - [ ] **UX.205 Object pages show the day and night time shares, moons with the extra night from their planet**
   Boss, 7:54 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
@@ -1098,29 +1012,234 @@ with `clamp()`.
   UX.188, UX.198, UX.199, UX.203, UX.205, TEST.358, GEN.767, GEN.768.
   Prerequisites: none. Related: UX.188, UX.198, UX.199, UX.203, UX.205,
   TEST.358, GEN.767, GEN.768.
+  Research (2026-10-09, Progress): Fill audit delivered (merged #3205,
+  Aux 11, relayed 9:46 PM EDT 2026-10-24 as the lane reported): the
+  empty applicable columns are filed as GEN.778 (tidal flux), GEN.779
+  (induced moment), GEN.780 (porosity), GEN.781 (hp ice), GEN.782 (ice
+  shell), GEN.783 (shelter column), GEN.784 (giant energy flux), GEN.785
+  (star decay age and lethal event rate), GEN.786 (star state), GEN.787
+  (star disk), GEN.788 (star flare, UV-C, X-ray, lifespan), GEN.789
+  (wide binary rule), GEN.790 (comet rule), GEN.791 (force a class for
+  sampling); outside hours is GEN.768. The lane adds the excuse list and
+  the failing test with these ids.
 
-- [ ] **UX.209 Object pages order: At a glance, then About, then the Properties list, then the other details (bug)**
-  Boss, 8:33 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi11fUYtyP7MHaYzSWdusHa8, relayed by the
-  coordinator), live observation, so a bug: "The properties list of
-  details should come after the 'About' section of the info page and
-  right under at a glance". Today the Enuakyadas IV page runs At a
-  glance, Properties (the long list of groups), then About, so the long
-  list pushes the description far down. TODO's reading (the
-  coordinator's): the order is At a glance, About (the short facts table
-  and the description text), Properties (the grouped list), then the
-  rest (habitability notes, radiation, survival equipment, life text,
-  part-of line). Do: reorder the planet, moon, star, belt, comet and
-  phenomenon pages to that order, with About directly under At a glance;
-  headings stay one outline (UX.195) and the table of contents (UX.196)
-  follows the new order. Done: a page test finds the section order on a
-  planet, a moon and a star page and the contents list in the same
-  order. Owner: Aux 11 (object pages). Related: UX.195, UX.196, UX.204.
-  Research (2026-10-09, Progress): Part of this landed with #3185
-  (UX.203, UX.204, UX.207), whose title says About before Properties:
-  Aux 11 confirms whether the order At a glance, About, Properties list,
-  other details is complete before UX.209 is retired.
-  Prerequisites: none. Related: UX.195, UX.196, UX.204.
+- [ ] **UX.210 Map infoboxes and labels: the orbit infobox eccentricity and every other number on a map says what it is and its unit (scan) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  Spot check: orbitpositions.js:332 prints Eccentricity as a bare
+  0.0167. The galaxy map infoboxes were fine in the sample. Do: scan
+  every map infobox, label, legend, tooltip and scale bar
+  (html/static/*.js, galaxymap3d.js, systemmap.js, sectorscene.js,
+  orbitpositions.js, sector and system map templates) for a number with
+  no unit, noun or label, list each finding in the item, and fix them; a
+  number that is dimensionless says so or gives its range. Done: the
+  scan list is attached to the item and every finding is fixed. Owner:
+  Core 2 (Aux 10 for the galaxy map nodes). Related: UX.199, GEN.771.
+  Prerequisites: none. Related: UX.199.
+
+- [ ] **UX.212 Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug)**
+  Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
+  as the lane reported; Boss rule: never a number without a unit or
+  context. Found by the UX.211 probe of the a11y sample: elements whose
+  whole text is a bare number. Give every admin statistics and queue
+  tile its noun or unit (for example '18 jobs queued'), and every
+  settings value its unit or scale. Done: the probe lists no bare number
+  on the admin pages and a browser test pins it. Version 8.1. Owner: Aux
+  12 (account, API and ops).
+  Prerequisites: none. Related: UX.208, GEN.772.
+
+- [ ] **UX.213 Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug)**
+  Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
+  as the lane reported; Boss rule: never a number without a unit or
+  context. The Generate page's task option values 1/2/4/6 print with no
+  unit or noun. Name what they count (workers, tasks, threads) beside
+  each. Done: the probe lists no bare number on the Generate page and a
+  browser test pins it. Version 8.1. Owner: Core 5.
+  Prerequisites: none. Related: UX.208, GEN.772.
+
+- [ ] **UX.214 Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  The search page and the planet and moon lists show a Habitability
+  symbol column (sortable=False) and filter by nothing about it; Nearby
+  has no habitability or life field at all; the API takes
+  +habitable_world as a request only. Add: filters and sort for the
+  overall PHI-6 colour, each domain, Suitability, Flora, Fauna, Sentient
+  and the food rung, 'has life' and 'has a civilization' filters, on the
+  search page, the lists, Nearby and the API query parameters, with the
+  filter chips that active_filters already shows. Done: a browser test
+  filters and sorts a sample galaxy by each, and the API documents the
+  parameters. Version 8.1. Owner: Aux 11 (pages), with UX.150 which
+  covers the class and PHI-6 colour only. Rules: a unit or scale on
+  every number (GEN.772); tests are `scripts/test.py changed --resume`;
+  no fixed content from the Milky Way or the Solar System.
+  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
+  2026-10-24 (fix each): Aux 11 (Lane 3, pages), API parameters with Aux
+  12.
+  Prerequisites: none. Related: UX.150, UX.100, GEN.653.
+
+- [ ] **UX.215 Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table**
+  Boss, 10:26 PM EDT 2026-10-24 (relayed by the coordinator), planet
+  page redesign: "on page TOC should be a menu on the left side and
+  let's put the location links inside at a glance under a Location table
+  item, change the title from 'Rendered Example' to something more
+  fitting the in-universe nav feel, instead of zone E let's have it just
+  say Ecosphere / Habitable Zone and give the range for that zone in
+  appropriate units.  The same goes for Hot Zone and Cold Zone, the
+  class letter 'M' should be a link to what Class M is.  Atmosphere
+  section on a planet display should be a heading, then just show the
+  atmosphere table, since it shows more than the gas list.  Same for
+  composition.  We should show the planet's actual composition by mass
+  in a table.  Then, instead of 'It is a temperate world' (or other
+  text) the system should procedurally generate a short summary of the
+  planet based on the data.  No details, class, surface conditions,
+  safety equipment needed, PHI-6 summary, sustainability score and life
+  scores in paragraph form.  Radiation and Survival equipment along with
+  the PHI-6 score details should come above the atmosphere composition.
+  So should go: About planet; Table; Summary Paragraph; Life Paragraph
+  (only when it exists); Civ / Political Paragraph (only when it
+  exists); PHI-6 Table / Details; Atmosphere Table (w/ heading);
+  Composition Table (w/ heading). Each of those should be a heading in
+  the TOC menu." This item: the TOC (UX.196) becomes a menu fixed on the
+  left side of the page (a drawer under the narrow-screen breakpoint,
+  reachable by keyboard), with an entry for each section heading in the
+  order of UX.221; the links up the chain (galaxy, sector, system,
+  parent star or planet, containing region, UX.144) move into a Location
+  row of the at-a-glance table, where the top breadcrumb used to carry
+  them. Done: a browser test checks the menu entries match the headings
+  and the Location row holds every link of the chain. Rules: every
+  number has a unit or scale (GEN.772); absent or zero values hidden
+  unless the absence matters; collapsible sections start collapsed;
+  tests are `scripts/test.py changed --resume` with a browser test on a
+  sample planet page. Version 8.1. Owner: Aux 11. Part of the planet
+  page redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.216 Object pages: the "Rendered example" panel gets an in-universe navigation title**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Rename the panel (item.html, the rendered example of UX.171)
+  to a title that fits the navigation console feel (for example "Optical
+  survey" for a body, "Chart view" for a system; Aux 11 picks the words,
+  one per kind, and lists them in the PR). Done: no page says "Rendered
+  example"; a test pins the titles. Rules: every number has a unit or
+  scale (GEN.772); absent or zero values hidden unless the absence
+  matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.217 System and planet pages name the zones: "Ecosphere / Habitable Zone", "Hot Zone", "Cold Zone", each with its range in appropriate units, instead of "Zone E"**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Where a page says a body is in "zone E" (or the zone letters
+  of the star zones), say "Ecosphere / Habitable Zone" for the habitable
+  zone and "Hot Zone" and "Cold Zone" for the inner and outer zones, and
+  give each zone's range from the star: inner and outer edge in AU (with
+  light-minutes beside it for the inner ones, or km for a very close
+  zone; the unit registry picks the unit, GEN.769 rules). Done: a planet
+  page shows "Ecosphere / Habitable Zone, 0.95 to 1.37 AU" (values from
+  the star) in every unit setting; no page prints a bare zone letter.
+  Rules: every number has a unit or scale (GEN.772); absent or zero
+  values hidden unless the absence matters; collapsible sections start
+  collapsed; tests are `scripts/test.py changed --resume` with a browser
+  test on a sample planet page. Version 8.1. Owner: Aux 11. Part of the
+  planet page redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.218 The class letter on pages is a link to the page for that class (Class M and the rest)**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Everywhere a page prints a planet or moon class letter (the
+  at-a-glance table, lists, search, the infobox, the sheet) the letter
+  links to the class page (web/class_pages.py), with the class name
+  beside it where there is room. Done: a browser test follows the link
+  from a class M planet to the Class M page. Rules: every number has a
+  unit or scale (GEN.772); absent or zero values hidden unless the
+  absence matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.219 Planet pages: Atmosphere and Composition are each a heading followed by their table; the composition table is the planet's actual composition by mass**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Atmosphere: a heading, then only the atmosphere table (it
+  holds more than the gas list: pressure, density, scale height,
+  greenhouse and the rest), no separate gas list above it. Composition:
+  a heading, then a table of the planet's actual composition by mass
+  (each component with its mass fraction in percent and its mass in kg
+  or Earth masses, from the stored bulk composition, GEN.642 and DB.70),
+  absent components hidden. Done: both appear as headings in the TOC
+  with tables, for a rocky, an ocean and a gas giant sample, and the
+  composition fractions sum to 100 percent. Rules: every number has a
+  unit or scale (GEN.772); absent or zero values hidden unless the
+  absence matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.220 Planet pages: a short summary paragraph generated from the data replaces "It is a temperate world"; it holds no details, class, surface conditions, safety equipment, PHI-6 summary, sustainability or life scores**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Generate a short summary paragraph (two or three sentences)
+  from the stored data: what kind of world it is (size, mass, surface or
+  giant, what it is made of), its place (orbit, zone, star) and the one
+  or two things that stand out (a thick atmosphere, an ocean, a tidally
+  locked face, rings), in the in-universe voice of the pages. It must
+  not repeat what sits in the tables or sections below: no class,
+  surface conditions, safety equipment, PHI-6 summary, sustainability
+  score or life scores. Procedural: sentences are chosen by rules over
+  the data, not a fixed text per class, and the same planet always gets
+  the same paragraph (a hash of the object id picks among phrasings).
+  Done: 100 sample planets give 100 sensible paragraphs with no repeated
+  block of text for different data, and a test checks the banned content
+  is absent. Rules: every number has a unit or scale (GEN.772); absent
+  or zero values hidden unless the absence matters; collapsible sections
+  start collapsed; tests are `scripts/test.py changed --resume` with a
+  browser test on a sample planet page. Version 8.1. Owner: Aux 11. Part
+  of the planet page redesign: UX.215 to UX.222.
+  Prerequisites: none. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.221 Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Life paragraph: shown only when Flora, Fauna or Sentient is
+  above 0: what lives there in words from the four life scores and the
+  life stage, present tense (GEN.766), with the food situation. Civ /
+  Political paragraph: shown only when a species with a civilization
+  lives there: the species, its tech band, its polity or polities and
+  nations where POP.18 to POP.20 exist, otherwise only what the stored
+  population tables hold. Hidden entirely when absent. Done: a world
+  with no life shows neither paragraph, a living world shows Life, a
+  civilized world shows both, in a browser test. Rules: every number has
+  a unit or scale (GEN.772); absent or zero values hidden unless the
+  absence matters; collapsible sections start collapsed; tests are
+  `scripts/test.py changed --resume` with a browser test on a sample
+  planet page. Version 8.1. Owner: Aux 11. Part of the planet page
+  redesign: UX.215 to UX.222.
+  Prerequisites: UX.220. Related: UX.196, UX.195, UX.188.
+
+- [ ] **UX.222 Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu**
+  Boss, 10:26 PM EDT 2026-10-24, planet page redesign (full message in
+  UX.215). Put the sections in this order: About planet; the at-a-glance
+  Table; the Summary paragraph; the Life paragraph (only when it
+  exists); the Civilization / Political paragraph (only when it exists);
+  the PHI-6 table and details with Radiation and Survival equipment (all
+  above the atmosphere); the Atmosphere table; the Composition table.
+  Each is a heading and an entry in the left TOC menu. Moons use the
+  same order; stars, belts and the other kinds keep their own orders and
+  move only if they carry the same sections. Done: a browser test reads
+  the heading order on a rocky, an ocean, a gas giant, a living and a
+  civilized sample. Rules: every number has a unit or scale (GEN.772);
+  absent or zero values hidden unless the absence matters; collapsible
+  sections start collapsed; tests are `scripts/test.py changed --resume`
+  with a browser test on a sample planet page. Version 8.1. Owner: Aux
+  11. Part of the planet page redesign: UX.215 to UX.222.
+  Prerequisites: UX.215, UX.220, UX.221. Related: UX.196, UX.195,, UX.219.
+  UX.188.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -3025,6 +3144,98 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.287, MAP.253, MAP.254, MAP.244,
   MAP.277, MAP.275, MAP.295.
 
+- [ ] **MAP.309 Star map filter for trade routes: draw the routes (all, or by polity, length or hop count) as paths on the Galaxy Map**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." A Trade routes layer in the Galaxy Map's menu next to the
+  Territories overlay: draws the saved hop chains as lines through the
+  systems they pass, coloured by owner polity and thick by volume, with
+  a legend, a reduced-motion setting, and the same camera-relative
+  buffers as courses (MAP.240); filters by polity, minimum length and
+  hop count; hides the layer when the galaxy has no routes. Reuses the
+  course drawing of NAV.5. Done: a browser test draws a sample galaxy's
+  routes, the filters change what is drawn, and the legend lists the
+  polities. Version 8.5, phase 4. Owner: Core 2. Rules: draws through
+  draw.py (GEN.774 streams); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch; every number has a unit or scale (GEN.772) and a column_units
+  entry; stand-ins get GEN.725 registry rows with tier and tweak labels;
+  a new command follows the PERF.120 rules (one command does one thing);
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.34, NAV.5. Related: NAV.5, NAV.36, MAP.240,
+  MAP.307.
+
+- [ ] **MAP.310 Routes away from a selected object: select a system, spaceport or world on the star map and show only the trade routes leaving it**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." In the information box of a selected object, a Trade routes
+  button (shown when the object is a spaceport, a system with a
+  spaceport, or a world with one) draws only the routes that start or
+  pass through it, outward from it, lists them (destination, length,
+  hops, travel time) and fits the view to them; selecting another object
+  changes the set; Clear returns to the filter. Done: a browser test
+  selects a system with a port and sees only its routes. Version 8.5,
+  phase 4. Owner: Core 2. Rules: draws through draw.py (GEN.774
+  streams); a PR that changes drawn output carries `tests.golden_update
+  --reason ... --affects population` and the next epoch; every number
+  has a unit or scale (GEN.772) and a column_units entry; stand-ins get
+  GEN.725 registry rows with tier and tweak labels; a new command
+  follows the PERF.120 rules (one command does one thing); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: MAP.309. Related: MAP.295, MAP.296.
+
+- [ ] **MAP.311 Map markers and a menu filter for worlds with life, with sentient life and with a civilization, beside the habitable-world markers**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  MAP.220, MAP.303 and MAP.306 cover habitable worlds (PHI-6 Yellow and
+  above) and kinds; nothing marks a world that has life, a sentient
+  species or a civilization, which Boss's design uses everywhere else.
+  Add three marker kinds and menu filters (life, sentient, civilization
+  with its tech band) on the Galaxy Map, the Sector Map and the System
+  Map, from the stored life scores and the population tables. Done: a
+  browser test turns each filter on in a sample galaxy and sees only
+  those systems. Version 8.1. Owner: Core 2 (map menu). Rules: a unit or
+  scale on every number (GEN.772); tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
+  2026-10-24 (fix each): Aux 10 (map nodes and menu), after MAP.306.
+  Prerequisites: none. Related: MAP.220, MAP.303, MAP.306, MAP.307.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3458,6 +3669,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: NAV.54. Related: GEN.364, GEN.281, GEN.303, GEN.285,
   NAV.26, NAV.6.
   Design: [docs/design/galaxy/realistic-galactic-core.md](design/galaxy/realistic-galactic-core.md)
+
+- [ ] **NAV.63 Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." A query, an API and a map tool: from a system or a point,
+  return (1) the nearest spaceport that has routes, and (2) the nearest
+  place on any route's path where one could intercept it: the nearest
+  system on a route's hop chain and the nearest point on a hop segment
+  (point to segment distance in the galaxy frame, the fraction along the
+  hop), with the route, the distance in light-years and the travel time
+  to get there at a chosen speed; uses the cell-key index on the hop
+  systems and a segment index so the query is fast on a large galaxy;
+  the map tool marks the result and draws the route. Done: tests with
+  known routes (a point beside a hop, a point beyond an end, a point
+  near two routes), and a browser test of the tool. Version 8.5, phase
+  4. Owner: Core 2 with the navigation lane. Rules: draws through
+  draw.py (GEN.774 streams); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch; every number has a unit or scale (GEN.772) and a column_units
+  entry; stand-ins get GEN.725 registry rows with tier and tweak labels;
+  a new command follows the PERF.120 rules (one command does one thing);
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.33, MAP.309. Related: NAV.61, NAV.5.
 
 ## GEN: Generation and physics
 
@@ -5031,7 +5281,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   type of multi-star/star-like-object system", built "into our generator
   throughout to match as close as possible to observed and theoretical
   probabilities (observed are best, theoretical are good too)".
-  Prerequisites: GEN.327, GEN.328. Related: GEN.241, GEN.244, GEN.274,
+  Prerequisites: GEN.328. Related: GEN.241, GEN.244, GEN.274,
   UX.114, GEN.268.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
@@ -5740,40 +5990,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Prerequisites: GEN.161. Related: GEN.162.
-
-- [ ] **GEN.327 The group node and the remnant draw: offset and velocity columns, a decay age, and the lightest member ejected**
-  Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). A node of kind group with N
-  members, each with an offset (AU) and a velocity (km/s) at an epoch,
-  and decay_age_yr; internal motion is a straight line, no Kepler
-  elements, and the nightly update does not integrate it
-  (physics/system_tree.py already flies a group's members straight).
-  Default 5% of massive (O and early B) systems younger than 0.3 Myr at
-  scatter time for the few mass-pass stars of that age. A group older
-  than its decay age is never drawn: the generator draws its result, the
-  lightest member ejected as a runaway row (runaway_origin dynamical)
-  and a tighter hierarchical remnant. Stored on scatter rows and built
-  systems (the columns of GEN.129:a); the sector page shows a group with
-  its remaining life. Done: every stored group is younger than its
-  decay_age_yr (audit test 14), a group older than that is replaced by
-  its remnant, and members carry offset and velocity.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): GEN.329 first: it owns the `runaway_origin` column and
-  its values, and this item writes `dynamical` into it. Core 3 may carry
-  the two in one PR; check that the column is in DB.53's remaining
-  slices.
-  Progress (Core 3, GEN.329 merged as #2634, 6:18 AM EDT 2026-10-23 as
-  the lane reported, release 8.0.2007, generator epoch 56, no
-  migration): the runaway origin is stored in stars.flags (the v104
-  column, serialization version 5), which is now always written (0 for
-  none) and sits in NEVER_READ as CHANCE because only a saved runaway
-  reads it; this item is unblocked and writes `dynamical` into the
-  origin as the sweep note above says.
-  Prerequisites: none. Related: GEN.273.
 
 - [ ] **GEN.328 Groups at fill in star-forming cores and OB regions**
   Split from GEN.273 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -13361,36 +13577,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Prerequisites: none. Related: GEN.642, GEN.460.
 
-- [ ] **GEN.734 Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  C8; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T6. Today:
-  The recipes mark four weight tables open: planet minus star Fe/Mg
-  scatter (gap plan BC8), core light elements (BC18), rogue-planet
-  stripping at ejection (BC11) and moon composition against distance
-  (BC6). They are gap plan rows only and have no TODO item. Real
-  physics: data that is not yet public (BC8, BC11, BC18) or composition
-  built from the disc (BC6). Do: find the best available source or model
-  for each, label the stand-in with tier and tweak level in the
-  registry, and give each a replacing plan. Done: the four tables carry
-  a source or a labelled stand-in with a tier, and each has a named
-  replacing item. Each stand-in it touches records its source tier and
-  tweak level in the gap plan registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
-  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): sections 2, 3 and
-  4: planet-minus-star Fe/Mg scatter (core population N(0, 0.10 dex),
-  super-Mercury tail 12 percent), rogue-planet volatile loss
-  (log-uniform 1e-5 to 1e-1, median 1e-3) and core light elements (total
-  0.08 of core mass, Dirichlet split over S, Si, O, H). Each row carries
-  its source tier and tweak level in the report; record both in the
-  registry (GEN.725) in the same PR that uses the value. Nothing changes
-  a generated world until the owning item uses it.
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: none. Related: GEN.725, GEN.711.
-
 - [ ] **GEN.735 Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   H1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -14091,69 +14277,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   population; the 96 old epochs classified from their reasons). Next:
   step 2, the per-stage epoch record (a migration).
 
-- [ ] **GEN.765 A world with Flora 5, Fauna 5 and Sentient 5 scores Suitability Red with "no food readily available": the food rung ignores the life the scores say is there (bug)**
-  Boss, 7:45 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
-  coordinator), live observation from the page of Enuakyadas IV (object
-  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: the planet
-  shows Microbial, Flora, Fauna and Sentient scores of 5 and a
-  technological civilization, yet its Suitability reads "There is no
-  food readily available, and only limited water" (score 0.2, Red).
-  Boss: "there should be food if there is flora and fauna and a sentient
-  species. So we need to figure out why sustainability says there is no
-  food." Cause found by TODO in the code (the owner verifies it by
-  running the planet): physics/habitability_world.py line 325 sets
-  `life_on_surface = hydrosphere != "ice-covered ocean"`, and
-  `food_score` (physics/habitability.py line 537) turns the food stage
-  into "none" when it is false. The planet's hydrosphere is "Ice-covered
-  ocean" with 79 percent of its surface above sea level and a 243 K
-  mean, so the rule treats all life as living only under the ice, while
-  the life scores (life_scores.scores, GEN.649) draw Flora, Fauna and
-  Sentient without that condition and the page text describes forests
-  and farms. The two rules disagree. Do: make one rule. Life lives where
-  the surface allows it, so decide from the stored conditions (land
-  fraction above sea level, the temperature range, the pressure) whether
-  the life is on the surface, under the ice, or both, and use that same
-  answer for the life scores, the food rung, the shelter wording and the
-  page text; a world whose sentient species farms has food. Done: a test
-  builds this planet (an ice-covered ocean with land) and gets
-  Suitability from its food (not Red for lack of food), a test keeps the
-  under-ice-only case (a fully frozen ocean world with no land) at no
-  surface food with Flora and Fauna capped to what lives under the ice,
-  and no stored world has a sentient score above 0 with the food rung at
-  none. Owner: Aux 3 (Lane D, habitability model; it wrote the rungs).
-  Related: GEN.653, GEN.649, GEN.207.
-  Prerequisites: none. Related: GEN.653, GEN.649, GEN.207, GEN.643.
-
-- [ ] **GEN.766 Generated life text states what is detected, in the present tense: no "speculative", "could", "would" or "boasts" (bug)**
-  Boss, 7:45 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiR4aSCMcEvVfKgSbZzWeTna, relayed by the
-  coordinator), live observation from the page of Enuakyadas IV (object
-  0041B00050090D-0000005-007, planetGen 8.0.2276), so a bug: the Life
-  and timeline paragraphs of the planet page say "Life based on melanin
-  could arise on this planet, and it would evolve at a standard pace",
-  "On a speculative timeline at that pace, the system is about 13.8 Gyr
-  old. Its latest milestone would be technological civilization..." and
-  "The planet boasts a fully mature...". Boss: "Whatever we decide, the
-  planet data should match, and stop saying speculative, if it's
-  generated we're going to say that's what is detected on the planet."
-  Do: rewrite the life describer (describe/build.py
-  `_timeline_sentences` and the life sentence, describe/life_facts.py)
-  so a generated world's life is stated as fact in the present tense
-  ("Life based on melanin has arisen here and evolves at a standard
-  pace"; "The system is about 13.8 Gyr old. The latest milestone is
-  technological civilization, reached when the system was 4.5 Gyr
-  old."), with no speculative, could, would or boasts wording; the
-  paragraph must match the stored data and the four scores (GEN.765: if
-  the scores say Fauna 5 the text names fauna and its food), and no
-  milestone sentence when none is reached. The module and design wording
-  that calls the timelines speculative (generation/evolution.py, the
-  docs) is changed to match. Done: a test over generated planets of each
-  life stage finds none of those words in the text, and the text names
-  what the scores hold. Owner: Aux 3 (it owns the life model), with Aux
-  4 (Lane E) for the wording. Related: GEN.765.
-  Prerequisites: none. Related: GEN.765, GEN.207, GEN.649.
-
 - [ ] **GEN.767 Day and night time shares for every object that has a day or night, with the extra night when the parent planet blocks the sun**
   Boss, 7:54 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
@@ -14243,6 +14366,501 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related: GEN.767, GEN.656, GEN.725, UX.199, UX.205.
   Prerequisites: GEN.767. Related: GEN.767, GEN.656, GEN.725, UX.199,
   UX.205.
+
+- [ ] **GEN.769 Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug)**
+  Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "ice shell
+  thickness shows measure in km in some situations where it should show
+  meters or less (i.e. 0.00109 km)". On the property sheet
+  (describe/sheet.py) the ice shell thickness, ocean depth and
+  high-pressure ice thickness columns (ice_shell_km,
+  ice_shell_thickness_km, ocean_depth_km, hp_ice_km) are stored in km
+  and shown as a plain km number when their quantity is not on a length
+  ladder, so a thin shell prints as 0.00109 km. Do: find every length
+  column and Document quantity that skips the length ladder (mm, cm, m,
+  km, then au, ly and so on by magnitude) and put it on one, so a value
+  under 1 km reads in m (under 1 m in cm or mm), a value over 1000 km
+  stays in km, in the sheet, the API description and the map infobox
+  alike; one function picks the unit from the registry (GEN.571), no
+  per-column table. Done: 0.00109 km shows as 1.09 m, 2.4e-7 km as 0.24
+  mm, 3500 km stays 3500 km; a test over every length column of the
+  sheet shows no value below 1 in its unit. Owner: Aux 14. Related:
+  GEN.571, GEN.568, UX.199.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.199.
+
+- [ ] **GEN.770 Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug)**
+  Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "water, and
+  other things are less clear as well we should have some kind of units
+  with water activity, surface under ocean, surface above sea level,
+  water share of the mass, etc." On the property sheet these
+  dimensionless columns (water_mass_fraction, ocean_fraction,
+  land_fraction, water_activity, ocean_pH and the other ratio-unit
+  columns) print a bare number with no unit, so 0.0004 and 0.71 do not
+  say what they are. Do: give each a stated unit by what it is: the
+  shares (water share of the mass, surface under ocean, surface above
+  sea level) as a percent when above 1 percent, in ppm when below
+  (0.0004 as 400 ppm), with the whole-surface pair adding to 100
+  percent; water activity as a pure number between 0 and 1 with its
+  scale in the label ("Water activity (0 to 1, life needs about 0.6 or
+  more)"); pH with its scale; and every other ratio column on the sheet
+  a label that says what it is a ratio of. Register the display unit
+  (percent, ppm, dimensionless) in the unit registry and column_units,
+  not in the sheet. Done: no water-group row shows a bare number; a test
+  lists every ratio-unit column of the sheet and its stated unit. Owner:
+  Aux 14. Related: GEN.571, GEN.568, UX.208.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
+
+- [ ] **GEN.771 Property sheet: the 40 ratio and 7 index rows state a unit or a scale (shares in percent or ppm, scores as "n of 9", ratios by what they divide) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  describe/sheet.py prints every column whose unit is ratio or index as
+  a bare number through _plain_number: share and fraction rows (metal,
+  rock, ice, envelope, helium, heavy-element, iron oxide, alumina),
+  porosity, cloud cover, Bond albedo, optical depths, greenhouse factor,
+  shielding factor, exposure and ultraviolet indexes, the PHI-6 and
+  suitability scores, Urey and aluminium-26 ratios, eccentricity, spin,
+  the Eddington share, and the four life scores and the birth shell,
+  band and wedge indexes. The water rows are GEN.770 and the length
+  scaling is GEN.769. Do: give each column a display unit in the
+  registry (percent, ppm by size, dimensionless with its scale or range
+  in the label, "n of 9" for the life scores, "n of 6" style for the
+  score rows that have a scale) and make _plain_number refuse a ratio or
+  index column that has none, so a new column cannot print bare. Done: a
+  test over every sheet row shows a unit symbol, a scale, or a noun
+  beside every number; the report's list is empty. Owner: Aux 14.
+  Related: GEN.770, GEN.769, GEN.571, UX.208.
+  Prerequisites: none. Related: GEN.770, GEN.769, GEN.571, UX.208.
+
+- [ ] **GEN.772 Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  The rule only holds if a new column cannot print bare. Do: make the
+  one formatter (unit registry) the only way a sheet, a template, the
+  API and a command prints a quantity, refuse a ratio, index or count
+  with no unit, scale or noun, and add a test that renders a sample body
+  of every class, one page of each template, the OpenAPI document and
+  each command's output and fails on a number with no unit, scale or
+  noun beside it. Done: the test is in the changed-tests gate and fails
+  on a deliberately bare column. Owner: Aux 14. Related: GEN.571,
+  GEN.568, GEN.771, UX.208.
+  Prerequisites: none. Related: GEN.571, GEN.568, UX.208.
+
+- [ ] **GEN.773 A temperature difference is never converted as a temperature: the day and night swing of 9.07 K shows as 9.07 K (or 9.07 C degrees), not -264 C (bug)**
+  Boss, 9:13 PM EDT 2026-10-24 (relayed by the coordinator): under
+  climate the page says "Day and night swing" 9.07 K and converts it to
+  -264 C; he reads it as the variation between night and day, plus or
+  minus 9.07 degrees. He is right: temp_swing_k is listed with the
+  absolute regional temperatures (REGIONAL_TEMPERATURES in
+  db/column_units.py, GEN.656), so the sheet applies the kelvin to
+  Celsius or Fahrenheit offset of 273.15 to a difference. Do: add a
+  temperature-difference kind to the unit registry (kelvin difference,
+  Celsius degrees and Fahrenheit degrees with a factor and no offset)
+  and move temp_swing_k to it; sweep every other temperature difference
+  or range column and Document quantity (the swing, any rise, drop,
+  range or greenhouse warming value, and the temperature-based text on
+  the pages and the API) for the same mistake and put each on the
+  difference kind; label the swing so it says what it is ("Day to night
+  swing, 9.07 K either side" or the full range, whichever the generator
+  stores; state which). Done: the swing converts to 9.07 degrees C and
+  16.3 degrees F, never -264 C; a test converts a difference in every
+  temperature unit and checks no offset is applied; the list of columns
+  moved is in the PR. Owner: Units lane. Related: GEN.656, GEN.769,
+  GEN.770, GEN.771, GEN.571.
+  Prerequisites: none. Related: GEN.656, GEN.769, GEN.770, GEN.771,
+  GEN.571.
+  Research (2026-10-09, Progress): Boss, 10:07 PM EDT 2026-10-24 asked
+  for the plus-or-minus form or the full range, and a high and low for
+  every regional temperature: filed as the next two items of this group
+  (the swing label and the regional ranges), same owner.
+
+- [ ] **GEN.774 Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2."
+  Register the draw streams (names, order, the unit of work each is
+  keyed to, the planet uid as the key) in draw.py so no settlement code
+  touches a random source directly, and add the GEN.725 registry rows
+  for every stand-in constant the design names (nation count law,
+  dominance spread, rank-size exponent, largest-city cap, assignment
+  weighting) with their tier and tweak labels. Done: a test lists the
+  streams and the registry rows and fails on a settlement draw outside
+  draw.py; no output changes yet (no epoch). Version 8.2, phase 3.
+  Owner: Draws lane (Aux 13) or Aux 8 for the registry rows. Rules for
+  every item of this tree: draws go through draw.py (one named stream
+  per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.16. Related: GEN.725, GEN.772.
+
+- [ ] **GEN.775 Replace the planet-minus-star Fe/Mg scatter and super-Mercury tail (registry row BC8) with a larger sample of rocky planets with precise masses and stellar Fe/Mg**
+  Find the larger sample (Adibekyan 2021 and its follow-ups): rocky
+  planets with precise masses and host-star Fe/Mg, fit the scatter and
+  the high-iron tail, and replace the N(0, 0.10 dex) stand-in and the 12
+  percent super-Mercury tail. Aux 14 on GEN.734 (relayed 9:46 PM EDT
+  2026-10-24 as the lane reported): the registry row names this item as
+  the replacing item. Kind: data job. Source tier of today's value:
+  stand-in (tier and tweak level in the GEN.725 registry row). Done: the
+  stand-in is replaced by a value from the data, the registry row is
+  updated (tier and tweak level), and a draw change carries
+  `tests.golden_update --reason ... --affects fill`. Owner: pool, after
+  8.1 (8.4).
+  Prerequisites: none. Related: GEN.734, GEN.725, GEN.711.
+
+- [ ] **GEN.776 Replace the rogue-planet volatile loss at ejection (registry row BC11) with a measured atmosphere or free-floating-planet volatile survey**
+  Find any measured rogue-planet atmosphere or free-floating-planet
+  volatile survey and fit the loss at ejection that replaces the
+  log-uniform 1e-5 to 1e-1 stand-in. Aux 14 on GEN.734 (relayed 9:46 PM
+  EDT 2026-10-24 as the lane reported): the registry row names this item
+  as the replacing item. Kind: data job. Source tier of today's value:
+  stand-in (tier and tweak level in the GEN.725 registry row). Done: the
+  stand-in is replaced by a value from the data, the registry row is
+  updated (tier and tweak level), and a draw change carries
+  `tests.golden_update --reason ... --affects fill`. Owner: pool, after
+  8.1 (8.4).
+  Prerequisites: none. Related: GEN.734, GEN.725.
+
+- [ ] **GEN.777 Replace the core light-element split (registry row BC18) with a second body that has seismic or core-density data**
+  Find a second body beyond Earth with seismic or core-density data and
+  fit the core light-element total and the S, Si, O, H split that
+  replace the 0.08 of core mass Dirichlet stand-in. Aux 14 on GEN.734
+  (relayed 9:46 PM EDT 2026-10-24 as the lane reported): the registry
+  row names this item as the replacing item. Kind: data job. Source tier
+  of today's value: stand-in (tier and tweak level in the GEN.725
+  registry row). Done: the stand-in is replaced by a value from the
+  data, the registry row is updated (tier and tweak level), and a draw
+  change carries `tests.golden_update --reason ... --affects fill`.
+  Owner: pool, after 8.1 (8.4).
+  Prerequisites: none. Related: GEN.734, GEN.725.
+
+- [ ] **GEN.778 Fill tidal_flux_w_m2 for planets and moons: tidal heating flux at the surface from eccentricity, spin and the body's interior (never filled in the sample)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for every planet (4493 of 4493) and 4649 of 4958 moons
+  (only 309 of the 413 class D moons filled). The producer is missing or
+  not wired to the sheet. Done: the column is filled for every body the
+  sheet rule says it applies to, or the sheet rule is changed to say why
+  it does not apply (a sentence of reason in describe/sheet.py APPLIES),
+  and the UX.208 test lists no empty applicable pair for it; a drawn or
+  computed value has a source and a GEN.725 registry row with tier and
+  tweak level, a unit (GEN.772) and a column_units entry; a change to
+  generated output carries `tests.golden_update --reason ... --affects
+  <stage>` and the next epoch; tests are `scripts/test.py changed
+  --resume`. Version 8.1, with UX.208. Suggested owner: Aux 5 (heat and
+  dose).
+  Prerequisites: none. Related: UX.208, GEN.725, GEN.684.
+
+- [ ] **GEN.779 Fill induced_moment_a_m2: the induced magnetic dipole moment of conducting oceans and cores in a varying field (never filled; every planet empty)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for all 4493 planets, including giants. Fill it where the
+  body has a conductive layer and a time-varying field, or say in the
+  sheet rule where it does not apply. Done: the column is filled for
+  every body the sheet rule says it applies to, or the sheet rule is
+  changed to say why it does not apply (a sentence of reason in
+  describe/sheet.py APPLIES), and the UX.208 test lists no empty
+  applicable pair for it; a drawn or computed value has a source and a
+  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
+  column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 4 (radiation) with Aux 6.
+  Prerequisites: none. Related: UX.208, GEN.725.
+
+- [ ] **GEN.780 Fill porosity for rocky and icy bodies: the surface and crust porosity from composition and gravity (never filled)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for every planet and moon of classes where it applies
+  (4371 planets, 4545 moons in the sample). Done: the column is filled
+  for every body the sheet rule says it applies to, or the sheet rule is
+  changed to say why it does not apply (a sentence of reason in
+  describe/sheet.py APPLIES), and the UX.208 test lists no empty
+  applicable pair for it; a drawn or computed value has a source and a
+  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
+  column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 6 (bulk composition).
+  Prerequisites: none. Related: UX.208, GEN.725, GEN.642.
+
+- [ ] **GEN.781 Fill hp_ice_km: the thickness of the high-pressure ice layer under an ocean (never filled)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for 3542 planets and 4935 moons in the sample; it applies
+  to a world with a deep water or ice layer. Done: the column is filled
+  for every body the sheet rule says it applies to, or the sheet rule is
+  changed to say why it does not apply (a sentence of reason in
+  describe/sheet.py APPLIES), and the UX.208 test lists no empty
+  applicable pair for it; a drawn or computed value has a source and a
+  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
+  column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 6 (bulk composition).
+  Prerequisites: none. Related: UX.208, GEN.725, GEN.642.
+
+- [ ] **GEN.782 Fill ice_shell_km for every world with a surface ice shell, and state in the sheet rule which worlds have none**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Filled for some bodies of a class and not others: 1600 planets
+  and 1301 moons empty, among them 715 of 2289 class C planets and 776
+  of 4102 class C moons. A condition the registry does not yet state.
+  Done: the column is filled for every body the sheet rule says it
+  applies to, or the sheet rule is changed to say why it does not apply
+  (a sentence of reason in describe/sheet.py APPLIES), and the UX.208
+  test lists no empty applicable pair for it; a drawn or computed value
+  has a source and a GEN.725 registry row with tier and tweak level, a
+  unit (GEN.772) and a column_units entry; a change to generated output
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`. Version 8.1,
+  with UX.208. Suggested owner: Aux 6 (bulk composition) with Units lane
+  for the km and m display (GEN.769).
+  Prerequisites: none. Related: UX.208, GEN.725, GEN.769.
+
+- [ ] **GEN.783 Fill shelter_column_g_cm2: the column mass of rock or ice that shields a shelter from radiation, for every world where it applies**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Filled for some bodies and not others: 556 planets and 272
+  moons empty (all class M, N, O, V; 168 of 274 class A moons). Done:
+  the column is filled for every body the sheet rule says it applies to,
+  or the sheet rule is changed to say why it does not apply (a sentence
+  of reason in describe/sheet.py APPLIES), and the UX.208 test lists no
+  empty applicable pair for it; a drawn or computed value has a source
+  and a GEN.725 registry row with tier and tweak level, a unit (GEN.772)
+  and a column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 4 (radiation) .
+  Prerequisites: none. Related: UX.208, GEN.725, GEN.670.
+
+- [ ] **GEN.784 Fill energy_flux_w_m2 and flux_variation for giant planets: internal and absorbed energy flux and its variation (never filled for classes I, J, T)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for 464 class I, 483 class J and 1 class T planets. Done:
+  the column is filled for every body the sheet rule says it applies to,
+  or the sheet rule is changed to say why it does not apply (a sentence
+  of reason in describe/sheet.py APPLIES), and the UX.208 test lists no
+  empty applicable pair for it; a drawn or computed value has a source
+  and a GEN.725 registry row with tier and tweak level, a unit (GEN.772)
+  and a column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 5 (heat and dose).
+  Prerequisites: none. Related: UX.208, GEN.725.
+
+- [ ] **GEN.785 Fill star decay_age_yr and lethal_event_rate_per_gyr (never filled for any star)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Both columns are empty for all 522 stars in the sample. Define
+  the age at which the star's activity decays and the rate per gigayear
+  of events that would be lethal to a nearby world. Done: the column is
+  filled for every body the sheet rule says it applies to, or the sheet
+  rule is changed to say why it does not apply (a sentence of reason in
+  describe/sheet.py APPLIES), and the UX.208 test lists no empty
+  applicable pair for it; a drawn or computed value has a source and a
+  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
+  column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 2 (stars).
+  Prerequisites: none. Related: UX.208, GEN.725.
+
+- [ ] **GEN.786 Fill star state (never filled for any star): the evolutionary state of each star**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Empty for all 522 stars; the evolutionary state (main sequence,
+  subgiant, giant and so on) is wanted by the sheet and by GEN.741.
+  Done: the column is filled for every body the sheet rule says it
+  applies to, or the sheet rule is changed to say why it does not apply
+  (a sentence of reason in describe/sheet.py APPLIES), and the UX.208
+  test lists no empty applicable pair for it; a drawn or computed value
+  has a source and a GEN.725 registry row with tier and tweak level, a
+  unit (GEN.772) and a column_units entry; a change to generated output
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`. Version 8.1,
+  with UX.208. Suggested owner: Aux 2 (stars).
+  Prerequisites: none. Related: UX.208, GEN.741, GEN.755.
+
+- [ ] **GEN.787 Fill star disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au for the stars that have a disk (never filled except for one G star)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Four columns empty for 521 of 522 stars. Fill them where the
+  star still has a disk and write the sheet rule for the ones that have
+  none. Done: the column is filled for every body the sheet rule says it
+  applies to, or the sheet rule is changed to say why it does not apply
+  (a sentence of reason in describe/sheet.py APPLIES), and the UX.208
+  test lists no empty applicable pair for it; a drawn or computed value
+  has a source and a GEN.725 registry row with tier and tweak level, a
+  unit (GEN.772) and a column_units entry; a change to generated output
+  carries `tests.golden_update --reason ... --affects <stage>` and the
+  next epoch; tests are `scripts/test.py changed --resume`. Version 8.1,
+  with UX.208. Suggested owner: Aux 2 (stars).
+  Prerequisites: none. Related: UX.208, GEN.725.
+
+- [ ] **GEN.788 Fill star flare_alpha, uv_c_share, log_lx_lbol and lifespan_gy for stars of classes A to F and the G and K stars where they are empty**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): 31 stars empty (A 4 of 6, B 6 of 7, F 11 of 20, G 7 of 31, K 2
+  of 80, O 1 of 1). Fill them or state in the sheet rule why a hot star
+  has no flare law. Done: the column is filled for every body the sheet
+  rule says it applies to, or the sheet rule is changed to say why it
+  does not apply (a sentence of reason in describe/sheet.py APPLIES),
+  and the UX.208 test lists no empty applicable pair for it; a drawn or
+  computed value has a source and a GEN.725 registry row with tier and
+  tweak level, a unit (GEN.772) and a column_units entry; a change to
+  generated output carries `tests.golden_update --reason ... --affects
+  <stage>` and the next epoch; tests are `scripts/test.py changed
+  --resume`. Version 8.1, with UX.208. Suggested owner: Aux 2 (stars).
+  Prerequisites: none. Related: UX.208, GEN.725.
+
+- [ ] **GEN.789 Write the sheet rule for wide_binary_a_crit_km: not applicable to a single star, filled for a binary (348 of 522 stars empty)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Probably not applicable to a single star once the rule is
+  written; check that it is filled for every binary star, and that the
+  page hides it for the rest. Done: the column is filled for every body
+  the sheet rule says it applies to, or the sheet rule is changed to say
+  why it does not apply (a sentence of reason in describe/sheet.py
+  APPLIES), and the UX.208 test lists no empty applicable pair for it; a
+  drawn or computed value has a source and a GEN.725 registry row with
+  tier and tweak level, a unit (GEN.772) and a column_units entry; a
+  change to generated output carries `tests.golden_update --reason ...
+  --affects <stage>` and the next epoch; tests are `scripts/test.py
+  changed --resume`. Version 8.1, with UX.208. Suggested owner: Aux 11
+  (pages).
+  Prerequisites: none. Related: UX.208.
+
+- [ ] **GEN.790 Write the sheet rule for the comet columns mean_anomaly_deg, orbital_period_years and period_class (54 of 234 comets empty)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): Probably the parabolic and hyperbolic comets: not applicable by
+  a rule. Confirm it, write the rule with its sentence of reason, and
+  fill any comet that has a bound orbit. Done: the column is filled for
+  every body the sheet rule says it applies to, or the sheet rule is
+  changed to say why it does not apply (a sentence of reason in
+  describe/sheet.py APPLIES), and the UX.208 test lists no empty
+  applicable pair for it; a drawn or computed value has a source and a
+  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
+  column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Aux 11 (pages).
+  Prerequisites: none. Related: UX.208.
+
+- [ ] **GEN.791 Generator switch that forces a planet or moon class so a sample can hold at least 30 of every class (random generation gives under 30 of classes O, P, T, V, E, K, L, N, F, G)**
+  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
+  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
+  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
+  1000): The fill audit needs 30 bodies of every class; random
+  generation gives under 30 planets in ten classes and under 15 moons of
+  classes E to M. Add a test-only or admin option that forces a class
+  through the habitable-request path (GEN.646 territory), without a
+  class letter in generation. Not a change to default generation. Done:
+  the column is filled for every body the sheet rule says it applies to,
+  or the sheet rule is changed to say why it does not apply (a sentence
+  of reason in describe/sheet.py APPLIES), and the UX.208 test lists no
+  empty applicable pair for it; a drawn or computed value has a source
+  and a GEN.725 registry row with tier and tweak level, a unit (GEN.772)
+  and a column_units entry; a change to generated output carries
+  `tests.golden_update --reason ... --affects <stage>` and the next
+  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
+  UX.208. Suggested owner: Core 3 or Aux 9 (class lane).
+  Prerequisites: none. Related: UX.208, GEN.646, GEN.681.
+
+- [ ] **GEN.794 Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra**
+  Citations lane (Aux 17), GEN.793 merged #3211, relayed 9:56 PM EDT
+  2026-10-24 as the lane reported: Irwin 2019 is an absorption line list
+  with no photolysis rate, so it cannot settle the factor; it stays a
+  labelled stand-in (T4, bracket 1.05 to 1.10, quiet rate 1.54e-4 to
+  1.8e-4 per second at 1 au) until the Huebner and Mukherjee 2015 NH3
+  quiet and active line is reachable (Boss cannot access the paper; use
+  a second-hand source or compute it from the Cheng 2006 cross section
+  with measured solar spectra). Done: the factor and the rates carry a
+  source and the registry row (GEN.725) is updated with tier and tweak
+  level; a changed value carries tests.golden_update --reason ....
+  Version 8.4. Owner: pool, after 8.1.
+  Prerequisites: none. Related: GEN.501, GEN.725, GEN.793.
+
+- [ ] **GEN.795 The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug)**
+  Boss, 10:07 PM EDT 2026-10-24 (relayed by the coordinator): "For the
+  variance can we either use the proper +/- symbol or just +/- so that
+  it's clear that it's a range or put the actual temperature range?
+  Also, I'd like to have for each temperature (polar, mean, southern,
+  etc) it to have an actual range, what is the high and low that puts
+  that value right in the middle." The swing row (temp_swing_k, GEN.773
+  puts it on the difference kind) must say it is a variation about a
+  value: print the plus-or-minus sign with the difference (for example
+  'Day to night swing: ±9.07 K', '±9.07 C degrees', '±16.3 F degrees')
+  or, better, print the actual low and high temperatures it implies.
+  State in the label which the generator stores (half range or full
+  range). Same in the API text, the description and the Properties list.
+  Done: the swing never shows without ± or a low-to-high range, in every
+  temperature unit, and a browser test pins it. Version 8.1. Owner:
+  Units lane (Aux 14 or the numbers-without-units lane), with GEN.773.
+  Prerequisites: none. Related: GEN.773, GEN.769, GEN.656.
+
+- [ ] **GEN.796 Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle**
+  Boss, 10:07 PM EDT 2026-10-24 (relayed by the coordinator): "For the
+  variance can we either use the proper +/- symbol or just +/- so that
+  it's clear that it's a range or put the actual temperature range?
+  Also, I'd like to have for each temperature (polar, mean, southern,
+  etc) it to have an actual range, what is the high and low that puts
+  that value right in the middle." For every entry of
+  REGIONAL_TEMPERATURES (db/column_units.py), show the low and the high
+  that put the stated value exactly in the middle (value minus and plus
+  the half range), for example '-10 C, range -25 to +5 C'. The half
+  range comes from the day and night swing (and the seasonal swing where
+  the generator has one), so work out which swing applies to each
+  region; where no swing is stored for a region, say that the range is
+  not stored rather than printing a guess, and file the missing
+  producer. The ranges are computed, not stored twice: one function
+  gives the low and high for a value, a swing and a unit (a difference,
+  never an absolute conversion, GEN.773), and every page, the API and
+  the description use it. Done: every regional temperature on a sample
+  planet shows low and high with the value in the middle, in kelvin,
+  Celsius and Fahrenheit, and a test checks the midpoint and that no
+  offset is applied twice. Version 8.1. Owner: Units lane.
+  Prerequisites: GEN.773. Related: GEN.773, GEN.656, GEN.769.
+
+- [ ] **GEN.797 Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level**
+  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
+  relayed 10:25 PM EDT 2026-10-24 as the lane reported. The stand-ins
+  live in tuning.py with brackets (member count weights for 3 to 5
+  stars, group radius, a 2.5 km/s dispersion, a 300 AU cap for the
+  remnant hierarchy, the 5 percent birth fraction, the 10,000 to 40,000
+  year decay age). Add a registry row for each
+  (docs/design/research/stand-in-values.md through its builder) with its
+  source, tier, tweak level, falsifier and replacing item, from the
+  Orion Trapezium and other young-group literature where it can be read.
+  Done: every constant has a row and `scripts/build_stand_in_values.py
+  --check` passes. Version 8.1. Owner: Core 3 or the Citations lane.
+  Prerequisites: none. Related: GEN.327, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -14499,49 +15117,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.118 chain).
   Prerequisites: none. Related: PERF.118, PERF.121, PERF.122,
   PERF.123, PERF.124, PERF.125, PERF.126, PERF.127, PERF.128.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
-
-- [ ] **PERF.124 `sector` and `phenomenon` only generate: the population pass leaves `sector` and the settle leaves `phenomenon`**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. Today `planetgen sector
-  --population` also runs the population pass and `planetgen phenomenon`
-  settles its sector unless `--no-settle`. Done: each only generates
-  what its name says; the population pass and the settle are the
-  commands of PERF.123 and PERF.125, asked for in the step list when
-  wanted; `--population` and `--no-settle` are gone on these two with no
-  shim; the Generate page and the one-off pages ask for the settle as a
-  step (PERF.119); a test per command. Owner: Core 5 (proposed; the
-  PERF.118 chain).
-  Prerequisites: none. Related: PERF.119, PERF.120,
-  PERF.123, PERF.125.
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
-  coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
-  UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
-  merged (#2159).
-  Design: [docs/design/architecture/command-inventory.md](design/architecture/command-inventory.md)
-
-- [ ] **PERF.125 The population pass and the territories pass are separate commands**
-  Boss, 2026-10-17, 4:19 PM EDT: "redesign ALL the commands like that so
-  we can build whatever sequences we want" (the principle of 4:18 PM
-  EDT: each command does one and only one thing and does it
-  exceptionally well; the order lives only in the wrapper's step list).
-  Inventory: docs/design/architecture/command-inventory.md. Today `planetgen
-  population` runs the population pass and, by `--territories-only` and
-  `--rescan`, the territories pass (`model.run_pass`,
-  `pass_stage_count`). Done: the population pass and the territories
-  pass are each their own command with their own parameters, registered
-  with the wrapper and runnable alone, with `--territories-only` removed
-  and no shim; the same stored rows as today for the same seed. Owner:
-  Core 5 (proposed; the PERF.118 chain).
-  Prerequisites: PERF.120. Related: PERF.107, PERF.114,
-  PERF.120.
   Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the
   coordinator relayed): after PERF.135, in the order its prerequisites give; the UX.102 chain (UX.121,
   UX.122, UX.123, TEST.183) comes after the command follow-ups, not before them, with PERF.118
@@ -14883,7 +15458,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wrapper run over the step list, the same seed gives the same galaxy as
   before at 1 and 4 workers, and the estimate shows the whole list.
   Owner: Core 5 (proposed, after PERF.125).
-  Prerequisites: PERF.124, PERF.125. Related: PERF.123.
+  Prerequisites: PERF.125. Related: PERF.123.
 
 - [ ] **PERF.174 Every work unit's database connection runs the schema check again: skip it when the schema version is current**
   Found by the Performance lane in PERF.156 to PERF.158 (relayed 7:34 PM
@@ -15804,6 +16379,118 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   nobody has started it.
   Prerequisites: none. Related: OPS.64, OPS.10, DB.6, PERF.32.
 
+- [ ] **DB.103 Storage for nation-states and cities: tables, Object IDs, column units and the migration**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." New
+  tables `nations` (id, uid, planet_id, species_id, polity_id nullable,
+  name, government, land_share, population, dominance, is_dominant,
+  color) and `cities` (id, uid, planet_id, nation_id, name, rank,
+  population, is_capital, is_world_capital, latitude and longitude in
+  degrees, elevation) with their Object ID kinds (96-bit uid, one new
+  type code each), foreign keys with the delete rules of the existing
+  population tables, a column_units entry for every numeric column, the
+  Alembic revision (next free migration) with the old-schema fixture,
+  and the read functions. Nothing is drawn yet. Done: the migration
+  round-trips, test_db_column_round_trip and the unit registry tests
+  pass for the new columns, and the tables are in docs/reference.
+  Version 8.2, phase 3. Owner: Aux 12 style (database foundations).
+  Rules for every item of this tree: draws go through draw.py (one named
+  stream per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.16. Related: DB.101, DB.102, POP.9, GEN.568.
+
+- [ ] **DB.104 Storage for a government's territory: homeworld system, growth state and a territory history, ready for 9.2 to make it dynamic**
+  Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
+  need an option to specify how many space-fairing governments there
+  are, and have it generated so we can have those territories dynamic in
+  9.2 as well, and we need to be able to specify how many space-fairing
+  governments there are, these would be governments who control multiple
+  worlds and sectors within the map, the homeworld of said government
+  must be within their territory. Build that out from 9.1 being
+  finalized backwards to no earlier than 8.2." Built backwards: 9.2
+  needs the governments' growth state and a history to extend (DB.104),
+  which needs governments generated to a count (POP.26) with territories
+  of several worlds and sectors around the homeworld (POP.27), which
+  needs the option and its storage (POP.25), which needs the design
+  (POP.16). All of it lands in 8.2, so 8.3 to 9.1 sit on a stable base
+  and nothing in 8.1 changes. A space-faring government here is a polity
+  of the existing population pass. Add to `polities` the columns 9.2
+  will advance: homeworld_system_id (the system of the founding species'
+  homeworld, not null, always inside the territory), reach_ly and the
+  growth law's constants (base reach, growth rate in ly per square root
+  of year, the cap), claim_strength, founded_age_years and
+  territory_epoch; and a `polity_territory_history` table (polity_id,
+  epoch, owned_systems, owned_sectors, reach_ly) whose first row is
+  written when the territory is first drawn, so 9.2 appends instead of
+  rebuilding. Column units for every numeric column, the Alembic
+  revision (next free migration) with the old-schema fixture and the
+  read functions. Nothing changes in the drawn territories. Done:
+  migration round-trips, test_db_column_round_trip passes for the new
+  columns, and the first history row exists for every polity after a
+  population run. Version 8.2, phase 3. Owner: Aux 12 style. Rules:
+  draws through draw.py (GEN.774 streams); a PR that changes drawn
+  output carries `tests.golden_update --reason ... --affects population`
+  and the next epoch; every number has a unit or scale (GEN.772) and a
+  column_units entry; stand-ins get GEN.725 registry rows with tier and
+  tweak labels; tests are `scripts/test.py changed --resume`; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.16, DB.103. Related: DB.101, POP.9, GEN.568.
+
+- [ ] **DB.105 Storage for world population and the global trade route list: tables, Object IDs, column units and the migration**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." New columns on the species or a `world_population` table
+  (planet_id, species_id, population, carrying_capacity, growth_rate,
+  noise_seed, epoch of the state) and new tables `trade_routes` (id,
+  uid, from_port_id, to_port_id, from_system_id, to_system_id,
+  length_ly, hops, travel_time_years, volume, owner_polity_ids, state)
+  and `trade_route_hops` (route_id, seq, system_id, hop_length_ly) with
+  the foreign keys and delete rules of the existing facility tables, an
+  index on the hop systems and a cell-key index for the nearest-route
+  query, the Object ID kind for a route (96-bit uid), a column_units
+  entry for every numeric column, the Alembic revision (next free
+  migration) with the old-schema fixture and the read functions. The
+  list is global: no account column. Nothing is drawn yet. Done: the
+  migration round-trips and test_db_column_round_trip passes for the new
+  columns. Version 8.2, phase 3. Owner: Aux 12 style. Rules: draws
+  through draw.py (GEN.774 streams); a PR that changes drawn output
+  carries `tests.golden_update --reason ... --affects population` and
+  the next epoch; every number has a unit or scale (GEN.772) and a
+  column_units entry; stand-ins get GEN.725 registry rows with tier and
+  tweak labels; a new command follows the PERF.120 rules (one command
+  does one thing); tests are `scripts/test.py changed --resume`; no
+  fixed content from the Milky Way or the Solar System. Part of the
+  trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.29, DB.103. Related: DB.101, POP.21.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -16229,6 +16916,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   database named planetgen_control. Owner: Bug Hunt (proposed by the
   TODO thread).
   Prerequisites: none. Related: DB.85, TEST.290.
+
+- [ ] **API.33 API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug)**
+  Boss, 9:03 PM EDT 2026-10-24 (relayed by the coordinator): "let's have
+  TODO find where we output numbers without units or context, and make
+  TODO items all as bugs, we should never have numbers without units or
+  context." Audit: reports/numbers-without-units-audit-2026-10-24.md.
+  Not scanned yet. Do: scan the API responses and the OpenAPI field
+  descriptions (the unit is in the field name or its description), the
+  in-site help pages and glossary (DOC.15), the CLI --help text and the
+  numbers the commands print (stats, progress, run summaries, ETA lines,
+  log lines a user reads) for a number with no unit or context; list
+  each finding in the item and fix them. Done: every API field that is a
+  quantity names its unit, and a test over the OpenAPI document fails on
+  a quantity field with no unit. Owner: Aux 12 (API), Core 5 (commands),
+  Aux 14 for the test over the field list. Related: GEN.771, DOC.15.
+  Prerequisites: none. Related: GEN.771, DOC.15.
 
 ## ADM: Admin tools
 
@@ -16869,6 +17572,97 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   end).
   Prerequisites: none. Related: GEN.267, UX.125.
 
+- [ ] **ADM.130 Aspects for civilizations: species, nations, cities, ports and stations in the aspect catalogue, with keep marks and locks**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Extend
+  the aspect catalogue (ADM.62, ADM.63) with the settlement objects so
+  the keep-or-regenerate matrix (ADM.69) and the locks (ADM.65) cover
+  them: species traits and tech, nations (name, government, land share,
+  dominance, dominant flag), cities (name, population, position, nation,
+  capital flag), ports and stations (type, owner, place), with the
+  dependencies between them (a city's nation, a nation's capital) and
+  the rule that a regeneration of a planet keeps locked nations and
+  cities. Done: the catalogue lists every settlement field with its
+  dependencies and a test checks each stored column is an aspect.
+  Version 8.6, phase 1-2 of that version. Owner: the Edit everything
+  lane. Rules for every item of this tree: draws go through draw.py (one
+  named stream per draw, order fixed); a PR that changes drawn output
+  carries `tests.golden_update --reason ... --affects population` and
+  takes the next epoch; every number it adds has a unit or scale
+  (GEN.772) and a column_units entry (new numeric columns in
+  db/column_units.py); every stand-in value gets a GEN.725 registry row
+  with its tier and tweak labels; tests are `scripts/test.py changed
+  --resume` only; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: POP.22. Related: ADM.62, ADM.63, ADM.64, ADM.65,, DB.104, POP.26.
+  ADM.69, POP.13.
+  Research (2026-10-09, Progress): Governments (polities) are aspects
+  too: count, homeworld, reach, territory and capital (storage DB.104,
+  generation POP.26).
+
+- [ ] **ADM.131 Editable civilizations: edit a species, rename or split a nation, move a city, transfer a city between nations, set the dominant nation and place or remove a port, as approved plans**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." On the
+  plan engine (ADM.58 to ADM.60) and the approval screen (ADM.66):
+  editors for the species (POP.13 covers its page), nations (rename,
+  change government, change land share, add or remove a nation, set
+  dominance and the dominant flag), cities (rename, resize, move on the
+  planet, transfer to another nation, set the capital) and ports and
+  stations (add, remove, move, change owner). Every edit is a plan with
+  before and after, undoable, and an edited object is marked admin-made
+  and survives a rescan and a reseed. Done: each editor makes a plan,
+  the plan applies and undoes, an edited city survives `settlements` run
+  again, and an end-to-end test over the headline scenario (move a city
+  to a rival nation). Version 8.6, phase 3. Owner: the Edit everything
+  lane. Rules for every item of this tree: draws go through draw.py (one
+  named stream per draw, order fixed); a PR that changes drawn output
+  carries `tests.golden_update --reason ... --affects population` and
+  takes the next epoch; every number it adds has a unit or scale
+  (GEN.772) and a column_units entry (new numeric columns in
+  db/column_units.py); every stand-in value gets a GEN.725 registry row
+  with its tier and tweak labels; tests are `scripts/test.py changed
+  --resume` only; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: ADM.130. Related: ADM.52, ADM.58, ADM.60, ADM.66,
+  ADM.81, POP.13.
+
+- [ ] **ADM.132 After an admin edit of a planet or moon, its habitability, Suitability and life scores are recomputed, and a test proves it (check) (bug)**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  admin/edits.py changes a planet's class, orbit, star or parent
+  (re-draws the body, moves its moons) and nothing in the file calls the
+  habitability or life scoring, so a stale PHI-6, Suitability or life
+  stage may stay on the body or its moons until `rescore-habitability`
+  (ADM.129) runs. Check: edit a sample planet and read its scores before
+  and after. If they stay stale, this is a bug: recompute the scores for
+  the edited body and its moons in the same transaction (the same call
+  the generator makes) and add a test. If the edit already rescored
+  through another path, name it in the item and add the test. Version
+  8.1. Owner: Aux 3 (habitability model) or Core 1.
+  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
+  2026-10-24 (fix each): Aux 3 (habitability model), a check first, then
+  the fix if the scores go stale.
+  Prerequisites: none. Related: ADM.129, GEN.688.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -16926,66 +17720,6 @@ Design: [docs/design/operations/login-brute-force-protection.md](design/operatio
   seed reproducibility counts as High. This holds unless Boss
   specifically authorizes an exception.
   Prerequisites: none. Related: TEST.261.
-
-- [ ] **SEC.36 Avatars may be GIFs, animated GIFs included: a new avatar picture kind with its own format list and decoder limits**
-  Boss, 7:16 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiFrLn1Ci8KEw4bDYQeEqheq, relayed by the
-  coordinator): "I want to allow GIF's and animated GIF's for avatars."
-  SEC.35 (#3141) had just limited every picture upload to PNG, JPEG and
-  ICO
-  (`PICTURE_FORMATS` in web/assets.py); this adds GIF back for avatars
-  only,
-  on purpose. No avatar exists in the code or the item list today (the
-  `KINDS` of web/assets.py are the site pictures), so this item builds
-  the
-  smallest avatar there is and the user accounts of 8.2 (USR.1) reuse
-  it:
-  (1) a new `avatar` kind in the asset checker whose own format list is
-  PNG,
-  JPEG, ICO and GIF, while `PICTURE_FORMATS` and the site pictures keep
-  the
-  SEC.35 rule (a GIF is still refused for a logo or favicon unless Boss
-  says
-  otherwise, and the TIFF/PPM refusal tests stay); (2) an avatar upload
-  for
-  the signed-in admin account, shown beside the name where the page
-  shows
-  who is signed in and on the Users page; the stored file belongs to the
-  account, replacing it removes the old file, and deleting the account
-  removes it. Safety conditions (Boss's coordinator, for the owner):
-  Pillow is asked for the GIF decoder only (`formats=[...]`), checks the
-  header size before decoding, and the check refuses a file over a pixel
-  cap (width times height), a frame cap, a total decoded pixel cap
-  (width
-  times height times frames, so a small many-frame GIF cannot exhaust
-  memory) and the byte cap (MAX_BYTES); set `Image.MAX_IMAGE_PIXELS` and
-  treat Pillow's DecompressionBombWarning as an error. Decode each frame
-  by
-  iterating it with the caps applied, never `.convert` or `.load` the
-  whole
-  sequence first. Keep the animation (all frames, durations and loop
-  count) but strip all metadata (comments, XMP, application extensions
-  other than the loop block, EXIF, ICC profile): re-encode the frames
-  with
-  Pillow and store that output, never the uploaded bytes. Serve the
-  avatar
-  with its own content type, `X-Content-Type-Options: nosniff`, the CSP
-  of
-  the other pictures, and a long-cache name from a hash of the bytes.
-  Done:
-  tests show a normal GIF and an animated GIF are accepted and stay
-  animated, a GIF with too many frames, too many pixels or a bomb header
-  is
-  refused with a plain sentence, the stored file carries no comment or
-  XMP
-  block, a GIF is refused for the site logo, and the docs name the
-  avatar
-  rules. Owner: Bug 1 (it wrote SEC.35 and has the decoder and test
-  files
-  open), after TEST.365 and TEST.366; nobody has started it. Related to
-  the
-  SEC.33 audit, which should see it merged first.
-  Prerequisites: none. Related: SEC.35, SEC.34, SEC.33, USR.1.
 
 ## TEST: The test suite
 
@@ -17534,7 +18268,7 @@ clears each one.
   Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: GEN.275, GEN.327. Related: TEST.162, DOC.50, TEST.160.
+  Prerequisites: GEN.275. Related: TEST.162, DOC.50, TEST.160.
   The type-count, gate, N-tail, interaction and group-decay checks as
   census checks on the harness (2026-10-16 review).
   Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
@@ -19397,29 +20131,6 @@ clears each one.
   runs. Owner: Bug 1. Related: TEST.344, TEST.364.
   Prerequisites: none. Related: TEST.344, TEST.364.
 
-- [ ] **TEST.372 scripts/test.py and docs/reference/testing.md call `full` "the merge gate", which lanes read as a whole-suite gate for every merge (bug)**
-  Boss, 8:10 PM EDT 2026-10-24 (relayed by the coordinator): "remember
-  we have tests that run based on changed code only and we can resume
-  tests, and I want to make sure we're not over-testing." Lanes are
-  running 2 to 5 hour whole-suite gates
-  (reports/lane-testing-audit-2026-10-24.md). Boss's rule (8:07 PM EDT):
-  every merge tests only what changed or would change; the detailed full
-  run is reserved for the end-of-version bug hunt (TEST.261, SEC.33,
-  GEN.301 `full --check`) before the stamp. Do: change the
-  `scripts/test.py` module help ("full ... the merge gate") and
-  docs/reference/testing.md (the "merge gate" wording, the line that
-  asks for a green `full` at the end of a sequence of related items) so
-  that `changed` with `--resume` is the gate for every merge and `full`
-  is for the end-of-version run and the check that proves `changed`; add
-  to the `changed` run's last line a reminder when it was started
-  without `--resume` after an earlier run of the same build left a
-  progress log (it names the command to resume); keep the PR description
-  line that says which run was used. Done: the help text and the testing
-  doc say the same thing as lanes.md's TESTING RULE, and a test over the
-  help text finds no "merge gate" next to `full`. Owner: Bug 1. Related:
-  TEST.208, TEST.261.
-  Prerequisites: none. Related: TEST.208, TEST.261.
-
 - [ ] **TEST.374 scripts/bump_version.py --check-pr fails on main-side change notes with a "### Tests" heading: gen398, gen691, gen719 (bug)**
   Found by Lane L (Aux 8) on clean main (8:12 PM EDT 2026-10-24 as the
   lane reported): the patch notes in changes/ for GEN.398, GEN.691 and
@@ -19452,33 +20163,12 @@ clears each one.
   as the lane reported) saw the same two test_web_generate tests
   (generate_anyway and plain_confirm override logging) fail on clean
   main: one more witness for this item.
+  Research (2026-10-09, Progress): Bug 1 fixed
+  test_api_auth_sweep::test_admin_pages_send_an_admin_on_seeded_credentials_to_account
+  in #3189 (the /admin/queue/<run_id>/log download redirected instead of
+  403); the rest of the list is unchecked. Twelve more failures on main
+  are in TEST.379.
   Prerequisites: none. Related: TEST.370, TEST.365, TEST.366, TEST.353.
-
-- [ ] **TEST.376 scripts/test.py checks MySQL, Redis and the test environment before and during every run, and restarts and resumes after a container kill**
-  Boss, 8:42 PM EDT 2026-10-24 (relayed by the coordinator): "have all
-  tasks running tests check for broken containers". Lane containers
-  restart and kill MySQL and Redis in the middle of a gate (Aux 3's
-  MySQL was OOM-killed today, Bug 1's gate was killed at 6:08 PM EDT as
-  the lane reported); each costs hours. The standing rule is in lanes.md
-  (CONTAINER CHECK) until this lands. Do: scripts/test.py (every mode
-  that runs tests: quick, area, browser, changed, full) (1) runs a
-  preflight before the first test: MySQL and Redis answer, stale lock
-  files in /var/run/mysqld removed, binary logs purged, the
-  PLANETGEN_TEST_* variables from /etc/profile.d/planetgen-test.sh
-  exported, the test MySQL user has GRANT OPTION, argon2-cffi and
-  Playwright present; it repairs what it can and prints what it did; (2)
-  runs a watchdog during the run that checks MySQL and Redis between
-  test files (and on any connection error), and when one is dead
-  restarts it, re-runs the preflight and resumes the run from its
-  progress log instead of starting over or failing the file as a product
-  bug; a service that cannot be restarted stops the run with one plain
-  line naming it. Done: a test that kills MySQL (and one that kills
-  Redis) mid-run ends with the run finished and a note saying what was
-  restarted; the preflight alone is runnable as `scripts/test.py
-  doctor`. Includes the work described in OPS.70 (the lane-start health
-  check and resume), which Bug 1 now owns with this item. Owner: Bug 1.
-  Related: OPS.70, OPS.62, TEST.208.
-  Prerequisites: none. Related: OPS.70, OPS.62, TEST.208.
 
 - [ ] **TEST.377 test_cache_warmup::test_a_big_unit_stops_part_way_when_the_cache_fills_and_counts_the_rest_as_left_out is red on clean main (bug)**
   Found by Core 2 (UX.125, 8:47 PM EDT 2026-10-24 as the lane reported)
@@ -19491,16 +20181,155 @@ clears each one.
   Owner: Bug 1. Related: TEST.375, TEST.370.
   Prerequisites: none. Related: TEST.375, TEST.370.
 
-- [ ] **TEST.378 test_no_todo_codes_shown fails on main: the composition_origin reason in describe/sheet.py names UX.202 in a shown string (bug)**
-  Found by Core 5 (8:51 PM EDT 2026-10-24 as the lane reported) on clean
-  main after #3174. src/planetgen/describe/sheet.py (the _BODY_NOT_SHOWN
-  entry for composition_origin, line 421) carries "(UX.202)" inside a
-  string, and test_no_todo_codes_shown (UX.93) forbids a TODO code in
-  the strings the code shows. Do: cut the code from the string (a
-  comment may keep it); check the other entries added by UX.203 and
-  UX.204 in the same file for the same. Done: test_no_todo_codes_shown
-  passes. Owner: Aux 11. Related: UX.93, UX.202.
-  Prerequisites: none. Related: UX.93, UX.202.
+- [ ] **TEST.379 Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug)**
+  Found by Lane 4 (Aux 12) running the OPS.29 gate on main (8:59 PM EDT
+  2026-10-24 as the lane reported). Not yet in any item:
+  test_api::description_splits_into_every_body, test_eta_estimator
+  (queue page), test_protection (six describers),
+  test_web_browser_fixture_maps (wheel scroll) and test_web_search (star
+  link). Already covered: test_api_auth_sweep admin pages (fixed in
+  #3189 by Bug 1), test_class_pages nebula, test_interior_heat urey
+  ratio, test_memwatch smoke run and test_save_progress (all TEST.375),
+  test_no_todo_codes_shown (TEST.378; Lane 4 also named a MAP.220 string
+  at db/point_columns.py:177, check that TEST.378 removes every code in
+  a shown string). Do: run each on a lane machine set up as documented
+  (TEST.370, TEST.376 preflight), keep the ones that still fail on main,
+  and fix each with no skip; drop the ones that pass, noting the setup
+  they needed. Done: every listed test passes on a documented machine or
+  has its own item with a root cause. Owner: Bug 1. Related: TEST.375,
+  TEST.378, TEST.370.
+  Prerequisites: none. Related: TEST.375, TEST.378, TEST.370.
+
+- [ ] **TEST.380 First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp**
+  Boss, 9:21 PM EDT 2026-10-24 (relayed by the coordinator): "When are
+  we due to fully do civilizations and territories? We haven't even
+  tested it yet." What exists on main: the population pass (species,
+  civilizations, polities; `planetgen population`) and the territories
+  pass (which polity owns which system; `planetgen territories`, split
+  by PERF.125), the tech levels and facility types (POP.7 to POP.10),
+  the Galaxy Map Territories overlay, and the species list and polity
+  pages; unit tests cover the code (test_population*.py,
+  test_web_population.py), but nobody has read the results on a real
+  generated galaxy since the physics, habitability and life changes of
+  the last two weeks (the life text now comes from the stored milestone
+  schedule, DB.100; life scores and habitability changed). Do: on a
+  generated galaxy of at least a few thousand systems with life worlds,
+  run `population` then `territories`; read the Species list, a species
+  page, a polity page, a system's Territory line and the map overlay;
+  check the numbers against
+  docs/design/habitability/population-and-politics.md (the 1 in 1,000
+  civilization chance, ages, tech levels, spacefaring share, polity
+  count, owned systems, nothing owned twice); and file every wrong or
+  unclear result as its own (bug) item. Also note anything the 9.2
+  version needs that is missing. Done: a dated report in reports/
+  listing what was run, what looked right and every finding as an item.
+  Owner: Bug 1 (with the end-of-version bug hunt TEST.261; needs the
+  galaxy Boss's server holds, or a lane machine generation). Related:
+  TEST.261, PERF.125, POP.11, POP.13.
+  Prerequisites: none. Related: TEST.261, PERF.125, POP.11, POP.13.
+
+- [ ] **TEST.381 First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." As
+  TEST.380 does for species and polities: generate a galaxy, run
+  `settlements`, read a planet page, a nation, a city and a port, check
+  the dominance and the city to nation split against the design, and
+  file every wrong or unclear result as its own bug item. Done: a dated
+  report in reports/ and every finding filed. Version 8.4, phase 2.
+  Owner: Bug 1. Rules for every item of this tree: draws go through
+  draw.py (one named stream per draw, order fixed); a PR that changes
+  drawn output carries `tests.golden_update --reason ... --affects
+  population` and takes the next epoch; every number it adds has a unit
+  or scale (GEN.772) and a column_units entry (new numeric columns in
+  db/column_units.py); every stand-in value gets a GEN.725 registry row
+  with its tier and tweak labels; tests are `scripts/test.py changed
+  --resume` only; no fixed content from the Milky Way or the Solar
+  System.
+  Research (2026-10-09, Progress): Also check the governments: the
+  option's count against the result, every homeworld inside its
+  territory and each territory holding several worlds and sectors
+  (POP.27).
+  Prerequisites: POP.23. Related: TEST.380, TEST.261, POP.27.
+
+- [ ] **TEST.382 First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." Generate a galaxy with spaceports, run `world-population` and
+  `trade-routes`, read the pages and the map layer, check the
+  populations against the habitability scores, the routes against the
+  hop limit and the partner rule, the three map tools, and file every
+  wrong or unclear result as its own bug. Done: a dated report in
+  reports/ and every finding filed. Version 8.5, phase 4. Owner: Bug 1.
+  Rules: draws through draw.py (GEN.774 streams); a PR that changes
+  drawn output carries `tests.golden_update --reason ... --affects
+  population` and the next epoch; every number has a unit or scale
+  (GEN.772) and a column_units entry; stand-ins get GEN.725 registry
+  rows with tier and tweak labels; a new command follows the PERF.120
+  rules (one command does one thing); tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.34. Related: TEST.380, TEST.381, POP.33, MAP.310, NAV.63.
+
+- [ ] **TEST.383 test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug)**
+  Aux 4 final full check (219 minutes, 24446 passed, 24 failed), relayed
+  10:20 PM EDT 2026-10-24 as the lane reported; list in
+  reports/lane-e-full-check-2026-10-24.md. This test fails when run
+  alone (not an order dependence), in the wheel zoom anchor on empty
+  space of the sector reach map. Find out whether the test or the zoom
+  code is wrong, fix it, and keep the test. Done: the test passes alone
+  and in the file, and the cause is written in the PR. Version 8.1.
+  Owner: Aux 10 (map nodes and zoom) or Core 2.
+  Prerequisites: none. Related: MAP.293, TEST.375.
+
+- [ ] **TEST.384 Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug)**
+  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
+  relayed 10:25 PM EDT 2026-10-24 as the lane reported. Core 3's gate
+  ran 36 failures that were all red on a clean worktree of the base: the
+  habitable_systems point-column and sheet tests, the mantle column
+  tests, the facilities page tests, the VALUES() use in migration 0148,
+  the test_prevalence binary tests, plus test_disk_history that passes
+  alone. The list is in the PR. Find each cause (test, fixture or code),
+  fix it, and keep the tests; file a separate bug where one has a cause
+  outside this group. Done: the group passes on main from a clean
+  checkout in `scripts/test.py changed`. Version 8.1. Owner: Bug 1.
+  Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
+
+- [ ] **TEST.385 Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug)**
+  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
+  relayed 10:25 PM EDT 2026-10-24 as the lane reported. Core 3's gate
+  had 259 browser test setup errors; the cause named is the API
+  fixture's rate limit of 50 requests per hour (the browser tests create
+  their accounts or tokens through the API). A gate that errors 259
+  tests cannot show what a change broke. Make the fixture exempt from
+  the limit (a test setting, not a production change) or give each test
+  run its own limit window, and keep a test that proves the rate limit
+  still works in production mode. Done: `scripts/test.py changed` runs
+  the browser tests with no setup error from the rate limit. Version
+  8.1. Owner: Bug 1 with Aux 12 (API).
+  Prerequisites: none. Related: USR.22, TEST.383.
 
 ## USR: User accounts
 
@@ -19771,6 +20600,10 @@ clears each one.
   database as decided on 2026-10-10 18:44Z, plus the concurrency cap and
   the two settings from the 2026-10-09 research; Redis through
   Flask-Limiter is not used for this limit.
+  Research (2026-10-09, Progress): SEC.36 (#3189) added account pictures
+  (admin_users.avatar, POST and DELETE /api/auth/avatar, an account page
+  section). The Users page and account deletion that USR.1 builds must
+  show the picture and call adminAuth.forget_avatar_file on deletion.
     Prerequisites: USR.26.
 
 - [ ] **USR.9 `seo.privacy_note` text, "download my data" and "delete my account" on the account page**
@@ -20103,31 +20936,6 @@ clears each one.
 
 OPS.1 shipped with the version scheme in `changes/README.md`.
 
-- [ ] **OPS.29 Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts**
-  Follow-up to OPS.8 (built in PR #808): check it against the research.
-  Skip if Apache is absent or stopped (never start it), `configtest`
-  first, `systemctl reload apache2` (or `httpd`), restart only if the
-  script itself installed mod_wsgi and no Generate job runs, check
-  Apache is up and `/api/health` answers, exit non-zero on failure.
-  Cover the gunicorn units (`planetgen-gunicorn` on Linux, `launchctl
-  kill SIGHUP` on macOS) in the same function, since nginx and Caddy
-  hosts have no Apache. State plainly in the docs that a reload aborts
-  in-flight daemon requests after about 4 s while `touch
-  src/html/wsgi.py` does not. Update `docs/deployment/apache.md` (lines
-  22, 29, 164), the `docs/deployment/server-checklist.md` "reload the app" row and
-  the closing text of `update.sh` and `install.sh`; `update.sh` prints
-  "restart" after `a2enmod` though a graceful reload loads new modules.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: print
-  the manual command and end
-  non-zero on a failed reload).
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this next (12:21 PM
-  EDT 2026-10-24 as the lane asked; nobody had reported starting it).
-  Prerequisites: none.
-  Design: [docs/design/operations/ops-scheduling-and-rotation.md](design/operations/ops-scheduling-and-rotation.md)
-
 - [ ] **OPS.55 Nightly full backup: a backup step in the daily maintenance run that takes every part into one archive, with a schedule setting and a nightly retention setting**
   Boss (2026-10-16, 2:06 PM EDT): "Yes plese." to a nightly full backup
   from the daily maintenance run. Target 8.9 (the backups and repair
@@ -20188,28 +20996,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.70 Gate resumes after a restart, and a lane-start health check runs before every gate**
-  Efficiency scan suggestion 5, applied by Boss ("ALL", 2:21 PM EDT
-  2026-10-24). Container and MySQL restarts killed several gates today
-  (the Redis crash fix lane twice, Lane K and Bug Hunt with stale MySQL
-  lock files, binlogs filling disks), each costing 1 to 3 hours. Do: (1)
-  scripts/test.py records the last finished test file and, after a
-  restart, resumes from it instead of from zero; (2) a lane-start health
-  check runs before every gate: MySQL and Redis up, stale lock files in
-  /var/run/mysqld removed, binary logs purged, the test environment
-  variables from /etc/profile.d/planetgen-test.sh exported
-  (PLANETGEN_TEST_REDIS_URL), the test MySQL user has GRANT OPTION,
-  argon2-cffi and Playwright present; it repairs what it can and prints
-  what it did. Done: killing the container mid-gate, then rerunning,
-  resumes at the last finished file with services healthy. Related
-  OPS.62 (the setup script). Owner: Lane Debug, with Bug Hunt for the
-  gate side.
-  Research (2026-10-09, Owner): Taken over by Bug 1 together with
-  TEST.376 (Boss, 8:42 PM EDT 2026-10-24: all test runs check for broken
-  containers); Lane Debug no longer exists. Build it as part of
-  TEST.376.
-  Prerequisites: none. Related: OPS.62, TEST.334.
 
 - [ ] **OPS.71 Epoch and migration numbers are allocated by a script during the merge rebase, never renumbered by hand**
   Efficiency scan suggestion 6, applied by Boss ("ALL", 2:21 PM EDT
@@ -21193,4 +21979,781 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Moved to phase 2 with the shell as its prerequisite, so it is built on
   the shared table, form and confirmation and is not missed by the audit
   and the conversion (2026-10-16 review).
+
+- [ ] **POP.16 Design: settlements and nation-states on a planet with a technological civilization (the tech gate, nation count and dominance laws, the city size law, the city to nation draw, space ports), with the sources and stand-in tiers**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Write
+  docs/design/habitability/settlements.md and get Boss's answers on the
+  open points. It decides: (1) the tech gate, the lowest tech band at
+  which a species' homeworld gets cities and nations (the Agrarian band
+  of the tech table, TL 0.5 and above, is the proposal; a Primal species
+  gets none) and the tech at which space ports and stations scatter
+  (Atomic, TL 2.5 and above, for orbital stations; Fusion, 3.5 and
+  above, for in-system ports); (2) the number of nation-states on a
+  planet, drawn from the habitable land area, the species' traits and
+  the tech band (a stand-in law, tier and sources named); (3) each
+  nation's dominance, a power score from its land share, its population
+  and the tech spread, with one or more nations flagged dominant; (4)
+  the city size law for the capital and the ten largest cities
+  (rank-size with a tech-limited largest city and the planet's carrying
+  capacity as the cap); (5) the draw that assigns each city to a nation,
+  a probability weighted by city size and nation dominance so that a
+  more powerful nation tends to hold the biggest cities, the capital
+  going to the dominant nation; (6) what is fixed (all of it, until 9.2)
+  and which fields 9.2 will make dynamic; (7) how it composes with the
+  existing species, polities and territories (a polity still owns
+  systems; nations are on one planet) and with editing (8.6). Open
+  points to ask Boss through the coordinator only if the research cannot
+  settle them. Done: the design is in
+  docs/design/habitability/settlements.md with its sources and its
+  stand-in list, and every later item of this tree cites it. Owner: a
+  research thread (Math 1 style) with Aux 11 for the page parts. Version
+  8.2, phase 3 (the foundation). Rules for every item of this tree:
+  draws go through draw.py (one named stream per draw, order fixed); a
+  PR that changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and takes the next epoch; every number it adds
+  has a unit or scale (GEN.772) and a column_units entry (new numeric
+  columns in db/column_units.py); every stand-in value gets a GEN.725
+  registry row with its tier and tweak labels; tests are
+  `scripts/test.py changed --resume` only; no fixed content from the
+  Milky Way or the Solar System.
+  Prerequisites: none. Related: POP.7, POP.8, POP.9, POP.10, GEN.725,
+  GEN.772.
+  Research (2026-10-09, Progress): Also decides the governments rules of
+  POP.25 to POP.27: the separation between homeworlds, the reach floor,
+  the way chance-extra civilizations are held back, and the largest
+  count a galaxy can hold.
+
+- [ ] **POP.17 Which worlds get settlements: the tech gate and the planet inputs (habitable land area, carrying capacity) for a species whose civilization is dated**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." For
+  every species with a dated civilization at or above the design's gate
+  band, compute the inputs the later items read: the planet's habitable
+  land area (from the land fraction, radius and the habitability of the
+  surface), the carrying capacity in people (from the tech band, the
+  land and the food score) and the settlement flags (cities yes or no,
+  ports yes or no). Stored on the species row or a small
+  `settlement_inputs` table (one of the two, named in the design). Done:
+  a species below the gate gets no cities and no nations, a species at
+  the gate gets inputs, the unit tests cover each band edge, and nothing
+  is shown yet. Version 8.4, phase 2. Owner: Core 5 style (the
+  population commands). Rules for every item of this tree: draws go
+  through draw.py (one named stream per draw, order fixed); a PR that
+  changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and takes the next epoch; every number it adds
+  has a unit or scale (GEN.772) and a column_units entry (new numeric
+  columns in db/column_units.py); every stand-in value gets a GEN.725
+  registry row with its tier and tweak labels; tests are
+  `scripts/test.py changed --resume` only; no fixed content from the
+  Milky Way or the Solar System.
+  Research (2026-10-09, Progress): Reads the simulated populations of
+  POP.30 for the carrying capacity and the size of the largest city.
+  Prerequisites: DB.103, GEN.774. Related: POP.9, POP.7, POP.30.
+
+- [ ] **POP.18 Nation-states on a planet: how many, their land shares, names, governments, power and which are dominant**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Draw
+  the nation count for each gated world, split the habitable land among
+  them, name them, give each a government form (the 14 forms of
+  program_constants.GOVERNMENT_FORMS, distinct from the polity forms or
+  the same list, as the design says), compute each nation's dominance
+  (power) and flag the dominant nation or nations. Rows go to `nations`;
+  the species' polity (if spacefaring) links to the dominant nation.
+  Fixed once drawn until 9.2. Done: every gated world has between one
+  and the law's maximum nations, shares sum to the habitable land, at
+  least one nation is dominant, and the draws are reproducible from the
+  planet's uid. Version 8.4, phase 2. Owner: Core 5 style. Rules for
+  every item of this tree: draws go through draw.py (one named stream
+  per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.17. Related: POP.8.
+
+- [ ] **POP.19 Cities: the capital and the ten largest cities of a planet, their populations, names and positions on land**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." For
+  each gated world draw the ten largest cities (fewer when the world's
+  population or tech cannot support ten) with populations from the
+  design's rank-size law capped by carrying capacity, choose the world's
+  capital, name each city, and place each on a land position (latitude,
+  longitude and elevation) from the planet's surface so none sits in an
+  ocean, a pole beyond habitability or on top of another city. Rows go
+  to `cities` with no nation yet. Fixed until 9.2. Done: populations
+  fall in rank order, the capital is flagged, positions are on land and
+  apart by the design's minimum distance, and a test covers a small and
+  a large world. Version 8.4, phase 2. Owner: Core 5 style. Rules for
+  every item of this tree: draws go through draw.py (one named stream
+  per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.17. Related: POP.8.
+
+- [ ] **POP.20 Cities belong to nation-states: a probability draw weighted by city size and nation dominance, with the capital in the dominant nation**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Assign
+  each of the ten largest cities (and the capital) to a nation by a draw
+  whose weight rises with the nation's dominance and the city's size, so
+  a more powerful nation tends to hold the biggest cities; the world
+  capital goes to the dominant nation (the first of them if there are
+  several); every nation with land gets at least its capital where the
+  nation count allows. Writes `cities.nation_id` and the nation's own
+  capital. Fixed until 9.2. Done: over a sample of 1,000 worlds the
+  dominant nation holds more of the top three cities than its land share
+  would give, no city is unassigned, and the draw is reproducible from
+  the planet's uid. Version 8.4, phase 2. Owner: Core 5 style. Rules for
+  every item of this tree: draws go through draw.py (one named stream
+  per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Research (2026-10-09, Progress): The dominant nation of a planet links
+  to its species' government (polity) when the species is space-faring
+  (governments: POP.26).
+  Prerequisites: POP.18, POP.19. Related: POP.8.
+
+- [ ] **POP.21 Station and space port scatter: orbital stations, space ports and starbases placed for each nation and polity from the tech gate, as stored facilities**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Using
+  the existing `facilities` table (kinds station, starbase, outpost,
+  colony; placements orbital and standalone; facility types and ratings
+  of POP.10; affiliation to a polity), place stations and space ports
+  for each gated nation and spacefaring polity inside their territory: a
+  space port in orbit or on the surface at each world capital and at the
+  larger cities, orbital stations around worlds of a polity, starbases
+  at chokepoints of the territory, counts and tech limits from the
+  design (Atomic and above for orbital stations, Fusion and above for
+  in-system ports). The facility gets its nation and city links. Fixed
+  until 9.2. This carves the station part out of POP.11 (which keeps the
+  space vessels); the map shows them once MAP.307 (8.3) has the filters.
+  Done: no station for a species below the gate, every placed facility
+  sits inside its owner's territory, and the draws are reproducible.
+  Version 8.4, phase 2. Owner: Core 5 style. Rules for every item of
+  this tree: draws go through draw.py (one named stream per draw, order
+  fixed); a PR that changes drawn output carries `tests.golden_update
+  --reason ... --affects population` and takes the next epoch; every
+  number it adds has a unit or scale (GEN.772) and a column_units entry
+  (new numeric columns in db/column_units.py); every stand-in value gets
+  a GEN.725 registry row with its tier and tweak labels; tests are
+  `scripts/test.py changed --resume` only; no fixed content from the
+  Milky Way or the Solar System.
+  Prerequisites: POP.20. Related: POP.10, POP.11, MAP.307, USR.29.
+
+- [ ] **POP.22 The settlements stage: its own command, its place in the galaxy run and the rescan rules**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." Wire
+  the gate, nations, cities, assignment and port scatter as one
+  registered command `settlements` (PERF.120: one command does one
+  thing; its inventory entry and test_command_rules pass), a stage of
+  the galaxy run after `territories`, and rescan rules: re-running over
+  an unchanged world draws nothing new, a world whose species or tech
+  changed is redrawn only for the parts that depend on the change, and
+  an edited nation or city (8.6) is never redrawn. Epoch bump with
+  `--affects population`. Done: `planetgen settlements` runs on a
+  generated galaxy, the galaxy run lists it as its own stage, and the
+  rescan tests pass. Version 8.4, phase 2. Owner: Core 5 style. Rules
+  for every item of this tree: draws go through draw.py (one named
+  stream per draw, order fixed); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and takes the
+  next epoch; every number it adds has a unit or scale (GEN.772) and a
+  column_units entry (new numeric columns in db/column_units.py); every
+  stand-in value gets a GEN.725 registry row with its tier and tweak
+  labels; tests are `scripts/test.py changed --resume` only; no fixed
+  content from the Milky Way or the Solar System.
+  Prerequisites: POP.21. Related: PERF.120, PERF.125.
+
+- [ ] **POP.23 Pages and API for nations, cities and ports: the planet page sections, nation and city pages, species and polity links**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2." The
+  planet page gets a Nations section (name, government, share of land,
+  population, dominant marker) and a Largest cities section (rank, name,
+  nation, population, capital marker, position), each nation and city
+  has its own object page and API entry, the species and polity pages
+  link to their nations, and the station and space port rows link to
+  their city. Sections absent when the world has none (absent values
+  hidden, UX rules), collapsed at start, with units on every number
+  (GEN.772). Done: pages and API for a sample world, sections hidden for
+  a world below the gate, and a browser test. Version 8.4, phase 2.
+  Owner: Aux 11. Rules for every item of this tree: draws go through
+  draw.py (one named stream per draw, order fixed); a PR that changes
+  drawn output carries `tests.golden_update --reason ... --affects
+  population` and takes the next epoch; every number it adds has a unit
+  or scale (GEN.772) and a column_units entry (new numeric columns in
+  db/column_units.py); every stand-in value gets a GEN.725 registry row
+  with its tier and tweak labels; tests are `scripts/test.py changed
+  --resume` only; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: POP.22. Related: UX.143, UX.211, API.33.
+
+- [ ] **POP.24 Settlements become dynamic: nations and cities grow, borders and dominance shift and cities change hands over time**
+  Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
+  say somewhere in the 8.x chain I want to add editable civilizations,
+  station / space port scatter, capital city and 10 largest cities on a
+  planet with sentient life with a sufficient tech level, as well as
+  nation-states within a planet and dominant nation-states, all will be
+  fixed until 9.2 comes along when we'll make them dynamic. Largest
+  cities will be said to be in control of different nation states based
+  on probability draw for size with dominance (i.e. how powerful is that
+  nation state it should get the biggest cities). TODO should build this
+  tree out but no items in 8.1, earliest foundation goes in 8.2."
+  Version 9.2 turns the fixed settlements of the 8.x chain dynamic, on
+  the time and update machinery of 8.3: city populations grow and
+  shrink, nations rise and fall in dominance, cities change nation, new
+  cities appear and ports follow their owners, all as slow steps of the
+  orbital-update style nightly run with a journal so an admin edit (8.6)
+  is never undone by the simulation unless the admin allows it. This
+  item holds the version's place; its breakdown (growth law, border
+  drift, trade) follows Boss's answers on 9.2. Done: breakdown filed
+  with items, sources and stand-in tiers. Version 9.2. Owner: not
+  assigned. Rules for every item of this tree: draws go through draw.py
+  (one named stream per draw, order fixed); a PR that changes drawn
+  output carries `tests.golden_update --reason ... --affects population`
+  and takes the next epoch; every number it adds has a unit or scale
+  (GEN.772) and a column_units entry (new numeric columns in
+  db/column_units.py); every stand-in value gets a GEN.725 registry row
+  with its tier and tweak labels; tests are `scripts/test.py changed
+  --resume` only; no fixed content from the Milky Way or the Solar
+  System.
+  Research (2026-10-09, Progress): Builds on the stored growth state and
+  territory history of DB.104 and the governments of POP.26 and POP.27:
+  9.2 advances reach and claims and appends history rows; it never
+  rebuilds a government's start.
+  Prerequisites: ADM.131, TEST.381. Related: POP.8, ADM.81, DB.104, POP.26, POP.27.
+
+- [ ] **POP.25 Option: how many space-faring governments the galaxy has (a number, or natural), on the Generate page, the CLI, the API and the stored plan**
+  Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
+  need an option to specify how many space-fairing governments there
+  are, and have it generated so we can have those territories dynamic in
+  9.2 as well, and we need to be able to specify how many space-fairing
+  governments there are, these would be governments who control multiple
+  worlds and sectors within the map, the homeworld of said government
+  must be within their territory. Build that out from 9.1 being
+  finalized backwards to no earlier than 8.2." Built backwards: 9.2
+  needs the governments' growth state and a history to extend (DB.104),
+  which needs governments generated to a count (POP.26) with territories
+  of several worlds and sectors around the homeworld (POP.27), which
+  needs the option and its storage (POP.25), which needs the design
+  (POP.16). All of it lands in 8.2, so 8.3 to 9.1 sit on a stable base
+  and nothing in 8.1 changes. A space-faring government here is a polity
+  of the existing population pass. Add the setting
+  `spacefaring_governments`: an integer from 0 up, or `natural` (the
+  default: the 1 in 1,000 civilization chance decides, as today). It is
+  a field on the Generate page with a hint line ("how many space-faring
+  governments the galaxy should have; natural lets chance decide"), a
+  flag `--governments N` on `planetgen population` and `planetgen
+  galaxy`, a field in the generate API request and recipe, and it is
+  stored with the galaxy plan so a revise job (GEN.764) and a rescan
+  read it. The estimate on the Generate page and the CLI refuse a count
+  the galaxy cannot hold (more than its life worlds capable of a
+  civilization, with the reason) before any drawing, as the directive
+  check of GEN.180 does. Done: the option is accepted, stored and echoed
+  on the plan and the galaxy page; a refused count says why; `natural`
+  changes nothing. The effect arrives with POP.26 in the same version.
+  Version 8.2, phase 3. Owner: Core 5 style (Generate and commands).
+  Rules: draws through draw.py (GEN.774 streams); a PR that changes
+  drawn output carries `tests.golden_update --reason ... --affects
+  population` and the next epoch; every number has a unit or scale
+  (GEN.772) and a column_units entry; stand-ins get GEN.725 registry
+  rows with tier and tweak labels; tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Prerequisites: POP.16. Related: GEN.180, GEN.764, PERF.125.
+
+- [ ] **POP.26 Generate the requested number of space-faring governments: force civilizations where chance gives too few, hold back extra ones where it gives too many, homeworlds spread apart**
+  Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
+  need an option to specify how many space-fairing governments there
+  are, and have it generated so we can have those territories dynamic in
+  9.2 as well, and we need to be able to specify how many space-fairing
+  governments there are, these would be governments who control multiple
+  worlds and sectors within the map, the homeworld of said government
+  must be within their territory. Build that out from 9.1 being
+  finalized backwards to no earlier than 8.2." Built backwards: 9.2
+  needs the governments' growth state and a history to extend (DB.104),
+  which needs governments generated to a count (POP.26) with territories
+  of several worlds and sectors around the homeworld (POP.27), which
+  needs the option and its storage (POP.25), which needs the design
+  (POP.16). All of it lands in 8.2, so 8.3 to 9.1 sit on a stable base
+  and nothing in 8.1 changes. A space-faring government here is a polity
+  of the existing population pass. When the option is a number N: if the
+  natural count is below N, force civilizations on the N minus natural
+  best-suited life worlds (highest habitability and life score, a
+  civilization age drawn conditioned to the Interstellar era or later)
+  and report `met_forced` as GEN.180 does; if above N, found only N
+  governments (the choice by the oldest civilization with a draw for
+  ties) and keep the others as species that are not space-faring in this
+  galaxy (the design POP.16 picks one: re-draw their age below the
+  Interstellar start, or keep the species and found no polity; it must
+  not delete a species). Homeworlds of the N governments are drawn so
+  they lie apart by at least the design's separation (about twice the
+  base reach, so each has room to hold several worlds and sectors); if
+  the galaxy cannot give N separated homeworlds the run reports the
+  largest it could and why. Each government records its homeworld
+  system. All draws reproducible from the galaxy seed. Done: a galaxy
+  generated with N=5 has exactly 5 polities, each with a distinct
+  separated homeworld, `met_forced` appears when chance would give
+  fewer, and the same seed gives the same five. Version 8.2, phase 3.
+  Owner: Core 5 style. Rules: draws through draw.py (GEN.774 streams); a
+  PR that changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and the next epoch; every number has a unit or
+  scale (GEN.772) and a column_units entry; stand-ins get GEN.725
+  registry rows with tier and tweak labels; tests are `scripts/test.py
+  changed --resume`; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: POP.25, DB.104, GEN.774. Related: GEN.180, POP.17.
+
+- [ ] **POP.27 Territories of several worlds and sectors: every government holds a minimum, its homeworld is always inside, and the check is a test**
+  Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
+  need an option to specify how many space-fairing governments there
+  are, and have it generated so we can have those territories dynamic in
+  9.2 as well, and we need to be able to specify how many space-fairing
+  governments there are, these would be governments who control multiple
+  worlds and sectors within the map, the homeworld of said government
+  must be within their territory. Build that out from 9.1 being
+  finalized backwards to no earlier than 8.2." Built backwards: 9.2
+  needs the governments' growth state and a history to extend (DB.104),
+  which needs governments generated to a count (POP.26) with territories
+  of several worlds and sectors around the homeworld (POP.27), which
+  needs the option and its storage (POP.25), which needs the design
+  (POP.16). All of it lands in 8.2, so 8.3 to 9.1 sit on a stable base
+  and nothing in 8.1 changes. A space-faring government here is a polity
+  of the existing population pass. Change the territories pass so a
+  government's territory is never a lone system: a reach floor (a
+  stand-in with tier and sources) gives every government at least a
+  design minimum of systems across at least two sectors where the galaxy
+  has them within range, and the claims resolution (the weighted Voronoi
+  split of the existing pass) keeps each homeworld system in its own
+  government's territory by construction and as a tested invariant. When
+  two governments' floors overlap the stronger claim wins and the
+  loser's floor is satisfied from its other side or reported. The
+  territory is written with its first history row. Done: for any seed,
+  every polity owns at least the minimum systems and sectors (or has a
+  reported reason), no system has two owners, and every homeworld system
+  belongs to its own polity; a property test runs over 50 seeds. Version
+  8.2, phase 3. Owner: Core 5 style. Rules: draws through draw.py
+  (GEN.774 streams); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch; every number has a unit or scale (GEN.772) and a column_units
+  entry; stand-ins get GEN.725 registry rows with tier and tweak labels;
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System.
+  Prerequisites: POP.26. Related: PERF.125.
+
+- [ ] **POP.28 Show the governments: the option and result on the Generate page and galaxy page, a government page with its worlds, systems and sectors, and the territories overlay legend**
+  Boss, 9:30 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2 we
+  need an option to specify how many space-fairing governments there
+  are, and have it generated so we can have those territories dynamic in
+  9.2 as well, and we need to be able to specify how many space-fairing
+  governments there are, these would be governments who control multiple
+  worlds and sectors within the map, the homeworld of said government
+  must be within their territory. Build that out from 9.1 being
+  finalized backwards to no earlier than 8.2." Built backwards: 9.2
+  needs the governments' growth state and a history to extend (DB.104),
+  which needs governments generated to a count (POP.26) with territories
+  of several worlds and sectors around the homeworld (POP.27), which
+  needs the option and its storage (POP.25), which needs the design
+  (POP.16). All of it lands in 8.2, so 8.3 to 9.1 sit on a stable base
+  and nothing in 8.1 changes. A space-faring government here is a polity
+  of the existing population pass. The galaxy page and the Generate page
+  show the requested count and the result (natural, N met, N
+  met_forced); each government's page lists its homeworld, capital, the
+  number of worlds, systems and sectors it holds and links to them; the
+  Territories overlay legend lists the governments with their colours
+  and sizes (every number with its unit or noun, GEN.772); the API
+  returns the same. Sections hidden when absent, collapsed at start.
+  Done: pages and API for a galaxy with N=5, and a browser test of the
+  legend. Version 8.2, phase 3. Owner: Aux 11 and Core 2 (the overlay
+  legend). Rules: draws through draw.py (GEN.774 streams); a PR that
+  changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and the next epoch; every number has a unit or
+  scale (GEN.772) and a column_units entry; stand-ins get GEN.725
+  registry rows with tier and tweak labels; tests are `scripts/test.py
+  changed --resume`; no fixed content from the Milky Way or the Solar
+  System.
+  Prerequisites: POP.27. Related: UX.143, MAP.132, UX.211.
+
+- [ ] **POP.29 Design: the world population simulation from habitability scores and the trade routes between spaceports (partner selection, hop runs, the global route list, the map filters, the nearest-route query)**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." Write docs/design/habitability/trade-routes.md with its
+  sources and stand-in tiers. It decides: (1) the population simulation:
+  a world's population is a logistic growth toward a carrying capacity
+  set by the habitability scores (Suitability, the food score from Flora
+  and Fauna, the land area), the tech band and the civilization's age,
+  one closed form per world with a seeded noise draw, so a later dynamic
+  version (9.1) can step it in time; (2) which civilizations trade:
+  spaceport owners only (POP.21, tech from the settlements design), the
+  largest by population first; (3) the partner rule (a gravity model:
+  demand rises with the two populations and falls with distance, a cap
+  on routes per port, hubs); (4) the hop run: each route is a hop-by-hop
+  run on the existing navigation graph (galaxy/nav_graph.py,
+  `nav_course` route mode) with a hop length limit from the tech band,
+  and what a route stores (the endpoints, the hop list of systems, the
+  length in light-years, the hop count, the travel time at the owner's
+  tech); (5) the global trade route list: one list for the whole galaxy,
+  readable from every account (not per account), changed only by
+  generation and by admin editing; (6) the map filter, the routes
+  leaving a selected object, and the nearest-route query (nearest
+  spaceport with routes, and the nearest point on any route's path where
+  someone could put themselves in the way: the nearest system on a hop
+  path and the nearest point on a hop segment); (7) what is fixed until
+  9.1 makes it dynamic. Done: the design is in the docs with its sources
+  and its stand-in list, and every later item of the tree cites it.
+  Owner: a research thread with Core 2 for the map parts. Version 8.2,
+  phase 3. Rules: draws through draw.py (GEN.774 streams); a PR that
+  changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and the next epoch; every number has a unit or
+  scale (GEN.772) and a column_units entry; stand-ins get GEN.725
+  registry rows with tier and tweak labels; a new command follows the
+  PERF.120 rules (one command does one thing); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.16. Related: POP.16, POP.21, GEN.725, NAV.5.
+
+- [ ] **POP.30 World population simulation from habitability scores: population, carrying capacity and growth state for every world with a civilization, as its own command and galaxy stage**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." Implement the design's simulation: for every species with a
+  dated civilization, the population of its homeworld and of any other
+  inhabited world is the logistic value at the civilization's age toward
+  the carrying capacity from the stored Suitability and food scores, the
+  land area and the tech band, with the seeded noise draw; store
+  population, carrying capacity and the growth state (so the dynamic
+  version steps from it). It is its own registered command
+  `world-population` and a stage of the galaxy run after `population`
+  and before `territories`, with rescan rules (an unchanged world draws
+  nothing, a changed habitability score recomputes the value only).
+  Epoch bump with `--affects population`. Done: a world with a higher
+  habitability score and a longer-lived civilization holds more people
+  in a sample of 1,000 worlds, populations never exceed capacity, and
+  the same seed gives the same populations. Version 8.3, phase 4. Owner:
+  Core 5 style (population commands) with Aux 3 for the habitability
+  inputs. Rules: draws through draw.py (GEN.774 streams); a PR that
+  changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and the next epoch; every number has a unit or
+  scale (GEN.772) and a column_units entry; stand-ins get GEN.725
+  registry rows with tier and tweak labels; a new command follows the
+  PERF.120 rules (one command does one thing); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: DB.105, POP.29, GEN.774. Related: POP.8, PERF.125,
+  PERF.120.
+
+- [ ] **POP.31 Population on the pages and API: world population, capacity and share of capacity on the planet, species and polity pages**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." Show each inhabited world's population with its unit (people),
+  the carrying capacity and the share of capacity, and a species' and a
+  polity's total population, on the object pages and in the API; hidden
+  when absent, in the Properties list, collapsed sections at start.
+  Done: pages and API for a sample world and species, and a browser
+  test. Version 8.3, phase 4. Owner: Aux 11. Rules: draws through
+  draw.py (GEN.774 streams); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch; every number has a unit or scale (GEN.772) and a column_units
+  entry; stand-ins get GEN.725 registry rows with tier and tweak labels;
+  a new command follows the PERF.120 rules (one command does one thing);
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.30. Related: UX.211, GEN.772.
+
+- [ ] **POP.32 Trade partners: which spaceports trade with which, by the gravity model on population and distance, with a cap per port and hubs**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." From the spaceports of POP.21 and the world populations of
+  POP.30, choose the pairs that get a route: the largest civilizations'
+  ports first, demand rising with the two populations and falling with
+  distance, a maximum number of routes per port, and hub ports that
+  carry more; every spacefaring polity with a port gets at least one
+  route where the galaxy has another polity in reach. Draws via draw.py.
+  Stored as the pair list for the route generator. Done: no route
+  between ports below the tech gate, the pair count obeys the cap, and
+  the same seed gives the same pairs. Version 8.5, phase 4. Owner: Core
+  5 style. Rules: draws through draw.py (GEN.774 streams); a PR that
+  changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and the next epoch; every number has a unit or
+  scale (GEN.772) and a column_units entry; stand-ins get GEN.725
+  registry rows with tier and tweak labels; a new command follows the
+  PERF.120 rules (one command does one thing); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.21, POP.30, DB.105. Related: POP.21, NAV.5.
+
+- [ ] **POP.33 Generate the trade routes: a hop-based run on the navigation graph between each pair of spaceports, saved in the one global route list**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." For each pair chosen by the partner rule, run the existing
+  hop-by-hop pathfinding (`galaxy/nav_graph.build_route_graph` and
+  `shortest_path` through `nav_course` in route mode, k-nearest
+  neighbors graph with island links) from the origin spaceport's system
+  to the destination's, with the hop length limit of the owner's tech
+  band, and save the route (endpoints, hop list, length, hop count,
+  travel time, volume) in `trade_routes` and `trade_route_hops`. A pair
+  with no path inside the hop limit is reported, not saved. Its own
+  registered command `trade-routes` and a galaxy stage after
+  `settlements`. Rescan: unchanged routes are kept, a route whose port
+  is gone is dropped, an admin-edited route is never redrawn. Epoch bump
+  with `--affects population`. Done: every saved route is a connected
+  hop chain within the hop limit from a spaceport to a spaceport, routes
+  are reproducible from the seed, and a test runs 20 seeds. Version 8.5,
+  phase 4. Owner: Core 5 style with the navigation lane. Rules: draws
+  through draw.py (GEN.774 streams); a PR that changes drawn output
+  carries `tests.golden_update --reason ... --affects population` and
+  the next epoch; every number has a unit or scale (GEN.772) and a
+  column_units entry; stand-ins get GEN.725 registry rows with tier and
+  tweak labels; a new command follows the PERF.120 rules (one command
+  does one thing); tests are `scripts/test.py changed --resume`; no
+  fixed content from the Milky Way or the Solar System. Part of the
+  trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.32. Related: NAV.5, NAV.6, PERF.125.
+
+- [ ] **POP.34 The global trade route list: a page and an API every account can read, with filters by polity, route length, hop count and spaceport**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." One list for the galaxy at `/trade-routes` and in the API,
+  readable from every account, paged, sortable and filterable by polity,
+  by length (light-years), by hop count and by a spaceport or system;
+  each route has its own object page with the hop chain, the owners and
+  the travel time (units on every number, GEN.772). Not per account: no
+  account owns a route. Done: pages and API for a sample galaxy, the
+  same list from two accounts, and a browser test. Version 8.5, phase 4.
+  Owner: Aux 11 and Aux 12 (API). Rules: draws through draw.py (GEN.774
+  streams); a PR that changes drawn output carries `tests.golden_update
+  --reason ... --affects population` and the next epoch; every number
+  has a unit or scale (GEN.772) and a column_units entry; stand-ins get
+  GEN.725 registry rows with tier and tweak labels; a new command
+  follows the PERF.120 rules (one command does one thing); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.33. Related: UX.143, API.33.
+
+- [ ] **POP.35 Dynamic world populations: populations step forward with the nightly update from the stored growth state, so cities and capacity follow the habitability scores over time**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "...so that
+  by 9.1 we can make the trade routes dynamic." (Population simulations
+  from habitability scores and trade routes between spaceports, built by
+  8.9.) The 8.3 simulation stores population, carrying capacity and
+  growth state; this item steps the logistic growth each nightly update
+  (the orbital update's schedule, GEN.212) with the stored seed noise,
+  applies habitability changes (a world whose conditions change loses or
+  gains capacity) and records the change. Done: a world's population
+  follows its capacity across 100 simulated nights, and rerunning the
+  same nights gives the same numbers. Version 9.1, phase 4. Owner: Core
+  5 style. Rules: draws through draw.py; a PR that changes drawn output
+  carries `tests.golden_update --reason ... --affects population` and
+  the next epoch; every number has a unit or scale (GEN.772) and a
+  column_units entry; stand-ins get GEN.725 registry rows with tier and
+  tweak labels; tests are `scripts/test.py changed --resume`; no fixed
+  content from the Milky Way or the Solar System. Part of the trade
+  tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.30. Related: POP.24, GEN.212.
+
+- [ ] **POP.36 Dynamic trade routes: routes grow, shift and close as populations, ports and territories change, using the same hop pathfinding**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "...so that
+  by 9.1 we can make the trade routes dynamic." (Population simulations
+  from habitability scores and trade routes between spaceports, built by
+  8.9.) Trade routes become dynamic: each nightly update recomputes the
+  partner demand from the live populations and ports (POP.35), adds
+  routes between newly eligible spaceports, reroutes a route whose hop
+  chain is no longer reachable, closes a route whose port is gone or
+  whose owners are at war once 9.2 lands, and keeps the global list and
+  the map filters current. An admin-edited route is never changed. Done:
+  a test with a new port adds a route and a destroyed port closes one,
+  and the map layer shows the change. Version 9.1, phase 4. Owner: Core
+  5 style with Core 2. Rules: draws through draw.py; a PR that changes
+  drawn output carries `tests.golden_update --reason ... --affects
+  population` and the next epoch; every number has a unit or scale
+  (GEN.772) and a column_units entry; stand-ins get GEN.725 registry
+  rows with tier and tweak labels; tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.33, POP.35, MAP.309. Related: POP.33, POP.24.
+
+- [ ] **POP.37 Facility ratings read Suitability, the food rung and the life scores: Health and Housing use only PHI-4 today**
+  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
+  are there any other places where are habitability / life scores aren't
+  used and should be?" Found by the TODO thread's code audit of
+  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
+  population/facility_suggest.py, admin/edits.py, population/model.py).
+  population/facility_suggest.py rates a facility from the host's phi4
+  only (Health 0.5 medical + 0.5 habitability, Housing 0.5 habitability
+  + 0.3 materials + 0.2 size, Maintenance 0.15 habitability). It never
+  reads Suitability, the food rung (Flora and Fauna) or the Sentient
+  score, so a base on a world with food and shelter rates the same as
+  one with none, and a facility on a world with a sentient species is
+  not rated against it. Decide which ratings take which score (Health
+  from the food rung and radiation tier, Housing from Suitability,
+  Resources from Flora and Fauna for a living world), write the weights
+  and the sources in docs/design/habitability/population-and-politics.md
+  and change the ratings; a changed rating is drawn output and carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch. Version 8.1 (pulled forward from 8.4, Boss, 10:16 PM EDT
+  2026-10-24: "fix each"; the weights do not need the settlements
+  design). Owner: pool (Core 5 style). Rules: a unit or scale on every number (GEN.772); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System.
+  Research (2026-10-09, Progress): Pulled forward into 8.1 by Boss,
+  10:16 PM EDT 2026-10-24; owner pool (Core 5 style), unstarted.
+  Prerequisites: none. Related: POP.16, POP.17, GEN.653.
 

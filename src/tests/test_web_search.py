@@ -96,6 +96,9 @@ def test_empty_search_shows_form_tags_and_hint(client, fake):
     # Tags are plain GET links; the tooltip and names are escaped.
     assert '<a class="tag" href="/search?spectral=G" title="Yellow &lt;dwarf&gt;">' in html
     assert '<option value="Kepler &lt;Reach&gt;">' in html
+    # UX.211: a tag's count says what it counts.
+    counts = re.findall(r'<span class="tag-count">([^<]+)</span>', html)
+    assert counts and all(re.fullmatch(r"\d+ results?", text) for text in counts), counts
     # No POST forms, no db in any search URL.
     assert 'method="post"' not in html
     assert "/search?db=" not in html and "&amp;db=" not in html

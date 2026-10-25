@@ -532,9 +532,12 @@ def water_access_score(world):
 
 
 def food_score(world):
-    """The food rung from the native life; life that lives only in an ocean under ice is
-    out of reach, so it counts as none."""
-    stage = world.life_stage if world.life_on_surface else "none"
+    """The food rung from the native life; microbes that live only in an ocean under ice (or in a deep aquifer) are out of
+    reach, so they count as none. Flora and fauna are food wherever the world scores them: a world with flora, fauna or a
+    civilization has food (Boss, 2026-10-24)."""
+    stage = world.life_stage
+    if not world.life_on_surface and stage == "microbial":
+        stage = "none"
     return FOOD_SCORE[stage]
 
 

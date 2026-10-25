@@ -24,7 +24,8 @@ or as the installed `planetgen` command):
     planetgen clear-scatter         -- empty one kind of scatter, so a scatter can draw it again
     planetgen clean-nebula-field    -- count (or with --apply delete) the stored field clouds the keep rate rejects
     planetgen phenomenon [options]  -- one exotic stellar phenomenon
-    planetgen population [options]  -- species, civilizations and territories
+    planetgen population [options]  -- species, civilizations and polities
+    planetgen territories [options] -- which polity owns which system
     planetgen check-math            -- the math check (update.sh runs it; so does the admin page)
     planetgen versions              -- the version keys each update recorded
     planetgen fingerprint [options] -- a digest of the generated content (GEN.58)
@@ -620,10 +621,6 @@ def add_sector_arguments(parser):
     parser.add_argument('--num-sectors', type=int, default=1,
                         help="Generate this many independent sectors, each with no galactic positioning, "
                              "saving all of them into the same database. Defaults to 1.")
-    parser.add_argument('--population', action='store_true',
-                        help="Also run the population pass (species, civilizations, territories) "
-                             "after the sectors are saved. Off by default; 'planetgen population' "
-                             "runs it any time.")
     parser.add_argument('--yes', action='store_true',
                         help="With --num-sectors > 1: don't ask before generating (the size and time "
                              "question a terminal gets). A run the database disk can't hold is still refused.")
@@ -1219,9 +1216,11 @@ def add_since_arguments(parser):
 
 
 def validate_fill_args(args, parser):
-    """Validates `add_fill_arguments`'s options."""
+    """Validates `add_fill_arguments`'s options (and that `settle` is given --since or --sector-id, not both)."""
     if args.workers is not None and args.workers < 0:
         parser.error("--workers must be 0 (automatic) or more.")
+    if args.command == 'settle' and args.sector_id and args.since is not None:
+        parser.error("--since and --sector-id cannot be combined.")
 
 
 def add_clean_nebula_field_arguments(parser):
@@ -1266,11 +1265,6 @@ def add_phenomenon_arguments(parser):
                               "galaxy position (those types have no placement columns of their own). A "
                               "quasar needs a shell-0 (galactic core) sector and is placed at the galactic "
                               "center; only one per galaxy. Omit to generate it unplaced/unlinked, as before.")
-
-    parser.add_argument('--no-settle', action='store_true',
-                        help="With --sector-id: skip saving the sector paths of that sector and the sectors "
-                             "around it, which a black hole or neutron star can bend ('planetgen orbits' "
-                             "saves them later).")
 
     # Database persistence
     store.add_mysql_connection_args(parser)
@@ -1328,8 +1322,7 @@ def add_fingerprint_arguments(parser):
 
 def add_population_arguments(parser):
     """
-    Adds the `population` subcommand's options: `--rescan`,
-    `--territories-only`, and the MySQL connection and logging args.
+    Adds the `population` subcommand's options: `--rescan`, and the MySQL connection and logging args.
 
     Args:
         parser (argparse.ArgumentParser): The parser to add options to.
@@ -1337,16 +1330,14 @@ def add_population_arguments(parser):
     parser.add_argument('--rescan', action='store_true',
                         help="Forget every species, polity and territory and scan every planet again "
                              "(new names, ages and borders).")
-    parser.add_argument('--territories-only', action='store_true',
-                        help="Only recompute which polity owns which system.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
 
-def validate_population_args(args, parser):
-    """`--rescan` and `--territories-only` contradict each other."""
-    if args.rescan and args.territories_only:
-        parser.error("--rescan and --territories-only cannot be combined.")
+def add_territories_arguments(parser):
+    """Adds the `territories` subcommand's options (PERF.125): the MySQL connection and logging args and nothing else."""
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
 
 
 def build_parser():
@@ -1486,6 +1477,10 @@ def build_parser():
                     "them, so each path sees the final set of neighbours.",
         help="Save the sector paths of the sectors saved since a time.")
     add_since_arguments(settle_parser)
+    settle_parser.add_argument('--sector-id', type=int, nargs='+', default=None, metavar='ID',
+                               help="Instead of --since: save the paths of these sectors and of the sectors around "
+                                    "them, for a sector a black hole or neutron star was added to ('planetgen "
+                                    "phenomenon --sector-id' saves no paths itself).")
 
     phenomenon_parser = subparsers.add_parser(
         'phenomenon',
@@ -1532,8 +1527,14 @@ def build_parser():
     population_parser = subparsers.add_parser(
         'population',
         description="Population and Politics Pass",
-        help="Name species, date civilizations and draw territories from what is stored.")
+        help="Name species, date civilizations and found polities from what is stored.")
     add_population_arguments(population_parser)
+
+    territories_parser = subparsers.add_parser(
+        'territories',
+        description="Territories Pass",
+        help="Work out which polity owns which system from the polities stored.")
+    add_territories_arguments(territories_parser)
 
     benchmark_parser = subparsers.add_parser(
         'benchmark',
@@ -1604,6 +1605,7 @@ def build_parser():
         'settle': settle_parser,
         'phenomenon': phenomenon_parser,
         'population': population_parser,
+        'territories': territories_parser,
         'check-math': check_math_parser,
         'versions': versions_parser,
         'fingerprint': fingerprint_parser,
@@ -1651,8 +1653,6 @@ def process_args():
         validate_fill_args(args, command_parser)
     elif args.command == 'phenomenon':
         validate_phenomenon_args(args, command_parser)
-    elif args.command == 'population':
-        validate_population_args(args, command_parser)
 
     return args
 
@@ -1724,7 +1724,7 @@ READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benc
 (no activity log lines, job tree node or run history)."""
 
 
-BULK_COMMANDS = ("galaxy", "plan", "scatter", "population")
+BULK_COMMANDS = ("galaxy", "plan", "scatter", "population", "territories")
 """tuple: Subcommands that always generate in bulk, so the data check runs
 first (GEN.590); `sector` joins them when it makes more than one sector
 (`is_bulk_run`)."""
@@ -1764,6 +1764,7 @@ _COMMAND_HANDLERS = {
     'settle': run_galaxy.run_settle,
     'phenomenon': run_phenomenon.run_phenomenon,
     'population': run_population.run_population,
+    'territories': run_population.run_territories,
 }
 
 
@@ -1771,7 +1772,7 @@ DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scat
                 "fill-map-luminosity": ("everything",),
                 "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
                 "clean-nebula-field": ("everything",),
-                "population": ("population",)}
+                "population": ("population",), "territories": ("population",)}
 """dict: The kinds of data change (`planetgen.db.dataversion.CHANGES`) a command makes when it is not just
 generation; any other writing command is `generated`."""
 
@@ -1780,8 +1781,6 @@ def _note_data_changed(args, database):
     """Tells the page cache what this run changed (PERF.104), so the pages read it at once instead of at the next
     check of the galaxy's content stamp. A run that stopped part-way changed what it had written."""
     kinds = list(DATA_CHANGES.get(args.command, ("generated",)))
-    if getattr(args, "population", False) and "population" not in kinds:
-        kinds.append("population")
     for kind in kinds:
         dataversion.record(database, kind)
 

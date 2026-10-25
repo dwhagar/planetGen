@@ -4,7 +4,7 @@
 GEN.126: every place that changes the masses in a sector saves the sector
 paths of that sector and its neighbours as its last step: the admin API's
 queued jobs (delete a sector or a phenomenon, regenerate a phenomenon or a
-sector, change a system's star) and `planetgen phenomenon --sector-id`.
+sector, change a system's star) and `planetgen settle --sector-id` (the step after `planetgen phenomenon --sector-id`).
 Each test marks every saved path (duration -1), runs the entry point and
 looks for the marks it should have replaced. Needs MySQL.
 """
@@ -14,6 +14,7 @@ import sys
 import pytest
 
 from planetgen.api import edits as api_edits
+from planetgen.cli import generate as generate_cli
 from planetgen.db import sector_paths, store
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs
@@ -114,13 +115,31 @@ def test_changing_a_systems_star_settles_its_sector_and_the_neighbours(mysql_con
     assert _marked(mysql_config, a_id) == 0 and _marked(mysql_config, b_id) == 0
 
 
-def test_the_phenomenon_command_settles_its_sector_unless_told_not_to(mysql_config, monkeypatch):
+def test_the_phenomenon_command_only_generates_and_the_settle_command_saves_the_paths(mysql_config, monkeypatch):
+    """PERF.124: `phenomenon` saves the phenomenon and nothing else; `settle --sector-id` is the step that follows it."""
     a_id, b_id = _two_sectors(mysql_config, monkeypatch)
-    run_cli("phenomenon", ["--type", "black-hole", "--sector-id", str(a_id), "--no-settle", "--quiet"]
-            + mysql_argv(mysql_config))
-    assert _marked(mysql_config, b_id) == 1
     run_cli("phenomenon", ["--type", "black-hole", "--sector-id", str(a_id), "--quiet"] + mysql_argv(mysql_config))
+    assert _marked(mysql_config, a_id) and _marked(mysql_config, b_id), "the phenomenon command settled nothing"
+    run_cli("settle", ["--sector-id", str(a_id), "--quiet"] + mysql_argv(mysql_config))
     assert _marked(mysql_config, a_id) == 0 and _marked(mysql_config, b_id) == 0
+
+
+def test_the_phenomenon_command_has_no_settle_option_and_settle_names_sectors_or_a_time_not_both(capsys):
+    parser, commands = generate_cli.build_parser()
+    assert "--no-settle" not in commands["phenomenon"].format_help()
+    with pytest.raises(SystemExit):
+        parser.parse_args(["phenomenon", "--type", "black-hole", "--no-settle"])
+    assert parser.parse_args(["settle", "--sector-id", "3", "4"]).sector_id == [3, 4]
+    with pytest.raises(SystemExit):
+        run_cli("settle", ["--sector-id", "3", "--since", "2026-10-25 01:00:00"])
+    assert "cannot be combined" in capsys.readouterr().err
+
+
+def test_settle_refuses_a_sector_that_does_not_exist(mysql_config, monkeypatch, capsys):
+    a_id, _b_id = _two_sectors(mysql_config, monkeypatch)
+    with pytest.raises(SystemExit):
+        run_cli("settle", ["--sector-id", str(a_id), "999999", "--quiet"] + mysql_argv(mysql_config))
+    assert _marked(mysql_config, a_id), "nothing was settled for a request that named an unknown sector"
 
 
 def test_a_sector_generated_on_the_spot_queues_a_settle_job(mysql_config, monkeypatch):

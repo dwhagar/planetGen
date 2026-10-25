@@ -73,7 +73,7 @@ SAMPLE_SECONDS = 0.5
 """float: How often the sampler reads the processes' memory."""
 
 STEP_ORDER = ("plan", "scatter-mass", "scatter-luminosity", "scatter-phenomena", "scatter-nebula-field", "scatter-band",
-              "fill-nebula-blocks", "fill", "population", "rescore-habitability", "fill-map-luminosity", "warm")
+              "fill-nebula-blocks", "fill", "population", "territories", "rescore-habitability", "fill-map-luminosity", "warm")
 """tuple: The steps, in the order they run (each needs the ones before it)."""
 
 STEP_LABELS = {
@@ -86,6 +86,7 @@ STEP_LABELS = {
     "fill-nebula-blocks": "Make the nebula block totals",
     "fill": "Fill sectors (planetgen galaxy --shell)",
     "population": "Run the population pass",
+    "territories": "Recompute the territories",
     "rescore-habitability": "Re-score the habitability",
     "fill-map-luminosity": "Fill the map luminosity",
     "warm": "Warm the caches",
@@ -104,6 +105,7 @@ MADE = {
     "fill-nebula-blocks": ("blocks", "SELECT COUNT(*) FROM nebula_block_stats"),
     "fill": ("systems", "SELECT COUNT(*) FROM star_systems"),
     "population": ("polities", "SELECT COUNT(*) FROM polities"),
+    "territories": ("owned systems", "SELECT COUNT(*) FROM system_owners"),
     "rescore-habitability": ("planets and moons", "SELECT (SELECT COUNT(*) FROM planets) + (SELECT COUNT(*) FROM moons)"),
     "fill-map-luminosity": ("phenomena", "SELECT COUNT(*) FROM phenomenon_scatter"),
     "warm": ("sectors", "SELECT COUNT(*) FROM sectors"),
@@ -115,7 +117,7 @@ NO_DATABASE_ARGS = frozenset({"warm"})
 """frozenset[str]: The steps whose command takes no database options: it reads the database the settings name, which
 the suite sets in the environment."""
 
-ABSOLUTE_COUNT = frozenset({"rescore-habitability", "fill-map-luminosity", "warm", "fill-nebula-blocks"})
+ABSOLUTE_COUNT = frozenset({"rescore-habitability", "fill-map-luminosity", "warm", "fill-nebula-blocks", "territories"})
 """frozenset[str]: The steps whose count is the table's size after them, not the rows they added."""
 
 
@@ -457,6 +459,8 @@ class Pipeline:
             return ["galaxy", "--shell", str(self._fill_shell()), "--limit", str(self.sectors), "--yes"]
         if step == "population":
             return ["population"]
+        if step == "territories":
+            return ["territories"]
         if step == "rescore-habitability":
             return ["rescore-habitability"]
         if step == "fill-map-luminosity":

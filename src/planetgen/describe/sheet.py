@@ -23,7 +23,7 @@ import dataclasses
 from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
-from planetgen.physics import constants, gases, habitability_world, unit_registry
+from planetgen.physics import constants, gases, habitability_world, regional_temperature, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number
 
@@ -421,7 +421,7 @@ _BODY_NOT_SHOWN = {
     **_excuse(("id", "uid", "star_system_id", "star_id", "parent_type", "parent_id", "epoch_unix", "next_update_due",
                "min_update_interval_years", "name", "orbital_index")),
     "body_type": "terrestrial or giant, which the class says",
-    "composition_origin": "how the generator found the composition; bookkeeping, not a fact about the world (UX.202)",
+    "composition_origin": "how the generator found the composition; bookkeeping, not a fact about the world",
     "description": "the page's paragraph text",
     "atmosphere": "described in the paragraph text and the Atmosphere rows",
     "composition": "described in the paragraph text",
@@ -620,6 +620,83 @@ def missing(kind, stored):
             and (stored.get("ocean_fraction") or 0) < NO_OCEAN_FRACTION):
         found.append("water")
     return found
+
+
+GIANT_CLASSES = frozenset("IJT")
+"""frozenset: The planet classes that are giants (ice giant, gas giant, gas dwarf): no surface, a deep envelope."""
+
+AIRLESS_CLASSES = frozenset("CDS")
+"""frozenset: The classes with no air (dead world, small icy body, airless super-Earth): no air column to describe."""
+
+_GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa",
+               "helium_depletion", "has_helium_shell", "envelope_helium_fraction", "envelope_z_fraction")
+_BANDS_AND_ZONES = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k",
+                    "temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
+_SURFACE = (
+    "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
+    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km",
+    "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
+    "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
+    "dose_ground_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2",
+    "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
+    "tier_pressure", "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
+    "life_microbial", "life_flora", "life_fauna", "life_sentient", "l_solv", "l_chem", "l_ener", "l_rad",
+    "c_k0_ppm", "c_th0_ppm", "c_u0_ppm", "al26_ratio", "urey_ratio", "internal_heat_flux_w_m2", "mantle_eta0_pa_s",
+    "mantle_activation_kj_mol", *_BANDS_AND_ZONES,
+    "life_chemical", "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
+    "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
+    "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
+)
+_OCEAN = ("ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "water_base_pressure_pa")
+OCEAN_STATES = ("surface ocean", "ice-covered ocean", "hycean")
+"""tuple: The hydrospheres that hold a liquid ocean, the ones the ocean columns describe."""
+_LIFE_DETAIL = ("life_chemical", "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
+                "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
+                "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
+_BANDS = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k")
+_ZONES = ("temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
+_AIR = ("atm_density", "atm_molar_density", "scale_height_km", "tau_haze", "tau_dust", "tau_cloud", "cloud_cover")
+
+def _locked(row):
+    """Whether a body's stored rotation period is its orbital period (the regional temperatures are then three zones)."""
+    if row is None or row.get("rotation_period_hours") is None or row.get("period_years") is None:
+        return None
+    return regional_temperature.is_locked(row["rotation_period_hours"], row["period_years"])
+
+
+_BODY_RULES = [
+    (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES,
+     "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world"),
+    (_SURFACE, lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
+    (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES,
+     "a dead world, a small icy body and an airless super-Earth have no air column to give a density, scale height or haze"),
+    (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
+     "an ocean's depth, chemistry, pH and water activity exist only where there is a liquid ocean"),
+    (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
+     "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
+    (("magnetopause_rp",), lambda klass, row: row is None or (row.get("magnetic_moment_a_m2") or 0) > 0,
+     "a world with no magnetic field has no magnetopause"),
+    (_BANDS, lambda klass, row: _locked(row) is not True,
+     "a tidally locked world has day, terminator and night zones in place of latitude bands"),
+    (_ZONES, lambda klass, row: _locked(row) is not False,
+     "a world that turns on its own has latitude bands in place of day, terminator and night zones"),
+]
+
+APPLIES = {"planet": _BODY_RULES, "moon": _BODY_RULES}
+"""dict: Where a sheet column does not apply (UX.208), `{kind: [(keys, test, reason)]}`: each rule names the column keys, a
+function `(class) -> bool` that is true for the classes the columns apply to, and the sentence that says why they do not
+apply elsewhere. A column no rule names applies to every class of its kind, so one that is empty there is a gap in the
+generation pathway, not a rule."""
+
+
+def applies(kind, klass, key, row=None):
+    """Whether the column `key` applies to a body of `kind` and class `klass`: true unless a rule of `APPLIES` names it
+    and rejects the class, or (for a rule that reads the body) the stored `row` (a mapping of its columns)."""
+    for keys, test, _reason in APPLIES.get(kind, ()):
+        if key in keys and not test(klass, row):
+            return False
+    return True
 
 
 GAS_TABLES = {"planet": ("planet_gases", "planet_id"), "moon": ("moon_gases", "moon_id")}
