@@ -50,8 +50,8 @@ class RadiationTerms:
         ground_msv_yr (float): The ground's gamma and radon.
         helio_mult (float): The compressed-heliosphere multiplier on the cosmic rays (1 in open space).
         column_g_cm2 (float): The air above the ground, `P / g`, g/cm2 (0 for an airless body).
-        air (tuple): `(name, share)` of the gases of at least `AIR_SHARE_MIN` of the pressure, largest first, names as the
-            stored species names ("nitrogen") and the class's balance gases.
+        air (tuple): `(name, share)` of the gases of at least `AIR_SHARE_MIN` of the pressure, largest first, named as the
+            gas table names them ("nitrogen").
         cutoff_gv (float): The dipole's equatorial cutoff rigidity, GV (0 without a field).
         potassium_ppm, thorium_ppm, uranium_ppm (float or None): The stored radiogenic content, ppm of the bulk silicate at
             formation; `None` for a body saved without it.
@@ -80,15 +80,12 @@ class RadiationTerms:
 
 def air_shares(body):
     """`((name, share), ...)` of the gases in the air of `body` that make up at least `AIR_SHARE_MIN` of its pressure,
-    largest first: the stored species and the balance gases of its class."""
-    pressures = {name: value for name, value in atmosphere.partial_pressures_kpa(body).items() if value > 0.0}
-    balance = atmosphere.balance_kpa(body)
-    names = atmosphere.balance_names(getattr(body, "planet_class", None)) if balance > 0.0 else ()
-    total = sum(pressures.values()) + balance
+    largest first."""
+    pressures = atmosphere.gas_partials_pa(body)
+    total = sum(pressures.values())
     if total <= 0.0:
         return ()
-    shares = [(atmosphere.SPECIES_NAMES[gas], value / total) for gas, value in pressures.items()]
-    shares += [(name, balance / total / len(names)) for name in names]
+    shares = [(atmosphere.gas_name(formula), value / total) for formula, value in pressures.items()]
     return tuple(sorted(((name, share) for name, share in shares if share >= AIR_SHARE_MIN), key=lambda item: -item[1]))
 
 

@@ -131,12 +131,19 @@ def family_of(recipe, subject):
     return "rocky"
 
 
-def draw_mixture(subject):
+def draw_mixture(subject, recipe_subject=None, supply=None):
     """
     The mixture of `subject`'s atmosphere.
 
     Args:
         subject (Subject): The body: its class and the quantities of `required_inputs(subject.body_class)`.
+        recipe_subject (Subject, optional): The subject the recipe tables are drawn for, when it is not `subject`: a caller that solves the
+            mixture again at another temperature and pressure (the fixed point of `surface_air`) keeps the regimes of one step by
+            drawing them for that step's subject, so that a body on the edge of a gate does not change regime between two steps
+            while the stream is consumed exactly as before. `subject` itself when not given.
+        supply (callable, optional): `(inventory) -> {element: share}`, the share of each element of the delivered inventory
+            that the surface holds (`physics/surface_pressure.py`), for the families that outgas (`mixture_rocky.volcanic_gas`);
+            the whole inventory when not given.
 
     Returns:
         MixtureDraw: The mixture. Its `recipe` is the `RecipeDraw` of `CATEGORIES` that decided it (the retention regime `d`, the
@@ -147,13 +154,31 @@ def draw_mixture(subject):
         MixtureError: A quantity a row reads is missing (named), a family has no chemistry yet, or the gas holds more than
             `mixture_base.UNLISTED_LIMIT` of species the gas table lacks.
     """
+    recipe = draw_recipe(subject if recipe_subject is None else recipe_subject)
+    family = family_of(recipe, subject)
+    drawn = {group: row.name for group, row in recipe.groups.items()}
     try:
-        recipe = RECIPES.draw_all(subject, categories=CATEGORIES)
+        result = _draw_family(subject, recipe, family, supply)
+    except NotApplicable:
+        result = MixtureDraw(mole_fractions={}, family="airless", drawn=drawn, redox_diw=None,
+                             temperature_k=float(subject.get("ts_k") or 0.0), pressure_bar=0.0, inventory={})
+    result = mixture_escape.apply(subject, result)
+    return dataclasses.replace(result, recipe=recipe)
+
+
+def draw_recipe(subject):
+    """The recipe draw (`RECIPES.draw_all` over `CATEGORIES`) that decides the family and the regimes of `subject`'s air."""
+    try:
+        return RECIPES.draw_all(subject, categories=CATEGORIES)
     except KeyError as error:
         raise MixtureError(str(error)) from error
-    family = family_of(recipe, subject)
+
+
+def _draw_family(subject, recipe, family, supply):
+    """The family's mixture; `NotApplicable` for a regime the body's temperature or supply does not allow, with the evolved families
+    falling back to the rocky outgassing."""
     if family == "rocky":
-        result = mixture_rocky.outgassed_mixture(subject, recipe)
+        result = mixture_rocky.outgassed_mixture(subject, recipe, supply)
     elif family == "coma":
         result = mixture_coma.coma_mixture(subject, recipe)
     elif family == "airless":
@@ -163,9 +188,9 @@ def draw_mixture(subject):
         result = mixture_lava.vapour_mixture(subject, recipe, temperature_name="ts_k" if "l" in recipe.groups else "tp_k")
     elif family in mixture_evolved.FAMILIES:
         try:
-            result = mixture_evolved.draw(subject, recipe, family)
+            result = mixture_evolved.draw(subject, recipe, family, supply)
         except NotApplicable:
-            result = mixture_rocky.outgassed_mixture(subject, recipe)
+            result = mixture_rocky.outgassed_mixture(subject, recipe, supply)
     elif family == "envelope":
         z = recipe.values.get("e5")
         if z is None:
@@ -174,5 +199,4 @@ def draw_mixture(subject):
                                              log_enrichment=mixture_giant.enrichment_of_mass_fraction(z))
     else:
         result = mixture_giant.giant_mixture(subject, recipe, family=family)
-    result = mixture_escape.apply(subject, result)
-    return dataclasses.replace(result, recipe=recipe)
+    return result

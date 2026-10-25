@@ -18,6 +18,8 @@ A species with less than `LOST_BELOW` of it left is gone; what stays is renormal
 is airless. Both are numerical cutoffs, not physics: the first keeps a trace that renormalising would promote to the main gas out of the
 mixture, the second keeps what is left of a mostly escaped air from being called an air. Pressure is not changed: the total comes from
 the pressure stage, which already carries the loss of the atmosphere (the cosmic shoreline of rows d).
+The gas that leaves is taken out of the moles of the draw (`MixtureDraw.moles`), so the pressure the supply law gives (`surface_air`) is
+the pressure of what stays.
 """
 
 import dataclasses
@@ -68,8 +70,9 @@ def apply(subject, result):
         result (MixtureDraw): The family's mixture.
 
     Returns:
-        MixtureDraw: The mixture renormalised, with the share each species kept in `constants["escape_kept"]` and the exobase temperature
-        now in `constants["exobase_k"]`; an empty mixture (airless) if nothing stays.
+        MixtureDraw: The mixture renormalised, with the share each species kept in `constants["escape_kept"]`, the exobase temperature
+        now in `constants["exobase_k"]` and the `moles` that stay (the moles of each species times the share it kept); an empty mixture
+        (airless) if nothing stays.
     """
     if result.family not in FAMILIES or not result.mole_fractions:
         return result
@@ -86,7 +89,9 @@ def apply(subject, result):
     total = sum(left.values())
     if total < LOST_TOTAL:
         total = 0.0
+    moles = None if result.moles is None else result.moles * total
     constants_out = {**result.constants, "exobase_k": exobase, "escape_kept": {f: round(k, 6) for f, k in kept.items() if k < 0.999999}}
     if total <= 0.0:
         return dataclasses.replace(result, mole_fractions={}, family="airless", constants=constants_out)
-    return dataclasses.replace(result, mole_fractions={formula: value / total for formula, value in left.items()}, constants=constants_out)
+    return dataclasses.replace(result, mole_fractions={formula: value / total for formula, value in left.items()}, constants=constants_out,
+                               moles=moles)

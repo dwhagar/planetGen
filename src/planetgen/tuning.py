@@ -1846,20 +1846,8 @@ PLANET_CLASSES = {
         # reducing mix (water vapor, ammonia, methane).
         "atmosphere": "a thin mix of water vapor, ammonia, and methane",
         "type": "t",
-        # Hottest of the habitable (life-bearing) classes -- youngest,
-        # volcanic, "barely supports life." Dark volcanic rock/minimal ice
-        # keeps albedo low; the greenhouse_multiplier is the highest of the
-        # E/F/G progression, reflecting real methane/ammonia's outsized
-        # per-molecule greenhouse potency versus CO2. Verified via
-        # climate_tuning_cli.py --class E: mean surface_temperature ~399K
-        # over a 400-sample run (up from ~374K before `zone_position_mode`
-        # above started placing E near the zone's hotter inner edge -- still
-        # the top of the E->F->G cooling progression toward M/O/K/L/N
-        # below).
+        # Dark volcanic rock and minimal ice keep the albedo low: the youngest, most volcanic of the habitable classes.
         "albedo_range": (0.10, 0.18),
-        "atm_molar_density_range": (0.0290, 0.0310),
-        "atm_density_range": (0.3, 1.2),
-        "greenhouse_multiplier_range": (4.5, 7.5),
     },
     "F": {
         "description": "a volcanic world with shallow seas",
@@ -1873,14 +1861,8 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.30,
         "atmosphere": "a mix of carbon dioxide, ammonia, and methane",
         "type": "t",
-        # Middle step of the E->F->G cooling progression: cooler than E
-        # (higher albedo, lighter greenhouse_multiplier) but still hotter
-        # than G/M. Verified via climate_tuning_cli.py --class F: mean
-        # surface_temperature ~342K over a 300-sample run.
+        # The middle step of the E->F->G progression: a higher albedo than E.
         "albedo_range": (0.15, 0.22),
-        "atm_molar_density_range": (0.0295, 0.0315),
-        "atm_density_range": (0.3, 1.0),
-        "greenhouse_multiplier_range": (2.5, 4.0),
     },
     "G": {
         "description": "a rocky, barren world",
@@ -1894,15 +1876,8 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.44,
         "atmosphere": "a mix of carbon dioxide, oxygen, and nitrogen",
         "type": "t",
-        # Final step of the E->F->G cooling progression, converging near
-        # M/O's own Earth-like range (the point of the progression --
-        # "moving toward an M, O, K, L, or N"). Verified via
-        # climate_tuning_cli.py --class G: mean surface_temperature ~297K
-        # over a 300-sample run (vs Class M's ~286K, Class O's ~293K).
+        # The final step of the E->F->G progression, converging on M's and O's Earth-like range.
         "albedo_range": (0.20, 0.28),
-        "atm_molar_density_range": (0.0300, 0.0320),
-        "atm_density_range": (0.2, 0.8),
-        "greenhouse_multiplier_range": (1.3, 2.0),
     },
     "H": {
         "description": "a desert world with little liquid water",
@@ -1920,17 +1895,8 @@ PLANET_CLASSES = {
         # liquid water).
         "atmosphere": "a mix of oxygen, nitrogen, argon, and mineral dust",
         "type": "t",
-        # Tuned hot/dry: lower albedo (dark exposed rock, minimal ice/cloud
-        # cover) and a heavier, more CO2-loaded molar density than M/O drive
-        # the heat; lower atm_density than M/O keeps it drier/thinner
-        # (minimal water -> less retained humidity). Verified via
-        # climate_tuning_cli.py --class H: mean surface_temperature ~335K
-        # (vs Class M's ~286K), mean atmospheric_pressure ~38kPa (vs Class
-        # M's ~99kPa) over a 400-sample run.
+        # Hot and dry: dark exposed rock and minimal ice or cloud cover keep the albedo low.
         "albedo_range": (0.18, 0.26),
-        "atm_molar_density_range": (0.0325, 0.0345),
-        "atm_density_range": (0.5, 0.9),
-        "greenhouse_multiplier_range": (2.6, 3.2),
     },
     "I": {
         "description": "an ice giant with a tilted magnetic field",
@@ -1993,28 +1959,9 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.90,
         "atmosphere": "a thin mix of carbon dioxide and nitrogen",
         "type": "t",
-        # Mars analog. Real Mars and Venus have almost identical mean
-        # atmospheric molar mass (~43.3 vs 43.45 g/mol) but differ by ~100x
-        # in greenhouse forcing -- composition (atm_molar_density) alone
-        # can't tell them apart, so K keeps a realistically heavy/CO2-like
-        # molar density (like N/Venus below) but gets a tiny
-        # greenhouse_multiplier instead of N's huge one: same composition,
-        # utterly different quantity/potency. Low atm_density keeps it
-        # genuinely thin (Mars' real ~0.020 kg/m^3). Retuned after
-        # `zone_position_mode` above started actually placing K near the
-        # outer (colder) edge of the zone instead of sharing Class M's
-        # midpoint position -- see docs/TODO.md's now-resolved "Open items"
-        # entry for the history of the old, distance-blind version of this
-        # class (mean surface_temperature ~231K/+9.9%, mean
-        # atmospheric_pressure ~540Pa/-11.6% vs real Mars, "as close as
-        # achievable without a zone change"). Verified via
-        # climate_tuning_cli.py --class K: mean surface_temperature ~214K
-        # (real Mars ~210K, +1.9%), mean atmospheric_pressure ~611Pa (real
-        # Mars ~610Pa, +0.2%) over a 1000-sample run -- the zone change.
+        # Mars analog: a dusty, cold surface. The range is kept from the class's climate tuning; the temperature itself comes from the solved
+        # air (`physics/surface_air.py`).
         "albedo_range": (0.36, 0.44),
-        "atm_molar_density_range": (0.0420, 0.0433),
-        "atm_density_range": (0.022, 0.042),
-        "greenhouse_multiplier_range": (0.02, 0.05),
     },
     "L": {
         "description": "a marginally habitable world",
@@ -2030,18 +1977,8 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.70,
         "atmosphere": "a mix of argon, oxygen, and trace elements",
         "type": "t",
-        # K + "usually has vegetation" -> a modestly thicker, warmer, more
-        # retained atmosphere than K (still CO2/N2-leaning composition, but
-        # a meaningfully larger greenhouse_multiplier and atm_density than
-        # K's near-zero values) -- enough to support vegetation without
-        # approaching M's Earth-like identity. Verified via
-        # climate_tuning_cli.py --class L: mean surface_temperature ~248K
-        # (vs Class K's ~214K), mean atmospheric_pressure ~2.0kPa (vs
-        # Class K's ~611Pa) over a 300-sample run.
+        # Brighter than K (vegetation, more cloud) and darker than M; kept from the class's climate tuning.
         "albedo_range": (0.24, 0.30),
-        "atm_molar_density_range": (0.0400, 0.0430),
-        "atm_density_range": (0.03, 0.08),
-        "greenhouse_multiplier_range": (0.25, 0.45),
     },
     "M": {
         "description": "a temperate terrestrial world",
@@ -2058,21 +1995,8 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.50,
         "atmosphere": "a mix of oxygen, nitrogen, and argon",
         "type": "t",
-        # Tuned to real Earth: albedo ~0.29-0.31 (Earth's own Bond albedo,
-        # ~0.3), atm_molar_density ~0.0288-0.0292 kg/mol (real Earth air,
-        # ~0.02897), atm_density 1.3-1.55 kg/m^3 (near/above Earth's real
-        # ~1.225 -- the corner of the pressure formula that actually reaches
-        # ~1 atm, see docs/analysis/habitability-atmosphere-sanity-review.md),
-        # greenhouse_multiplier 1.65-1.85 (calibrates base_ratio -- the
-        # composition-only greenhouse proxy -- up to Earth's real ~33K
-        # greenhouse effect; see physics.planets.calculate_atmospheric_conditions).
-        # Verified via climate_tuning_cli.py --class M: mean surface_temperature
-        # 286K (-0.6% vs 288K), mean atmospheric_pressure ~98.6kPa (-2.7% vs
-        # 101,325 Pa) over a 400-sample run across the full host-star grid.
+        # Earth's own Bond albedo, about 0.3.
         "albedo_range": (0.29, 0.31),
-        "atm_molar_density_range": (0.0288, 0.0292),
-        "atm_density_range": (1.3, 1.55),
-        "greenhouse_multiplier_range": (1.65, 1.85),
     },
     "N": {
         # "dense, reducing atmosphere" moved onto the atmosphere field
@@ -2090,33 +2014,8 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.05,
         "atmosphere": "a dense, reducing mix of carbon dioxide and sulfides",
         "type": "t",
-        # Venus analog -- tuned to Venus's real surface temperature (737K)
-        # and pressure (~9.2MPa). atm_molar_density near Venus's real
-        # ~0.04345 kg/mol (near-pure CO2); albedo 0.75-0.90 matches Venus's
-        # real highly-reflective cloud deck. Retuned down after
-        # `zone_position_mode` above started actually placing N near the
-        # inner (hotter) edge of the zone instead of sharing Class M's
-        # midpoint position: the old greenhouse_multiplier (370-420) was
-        # far above Venus's own real ratio (~101) specifically to compensate
-        # for the wrong, too-cold midpoint distance (see docs/TODO.md's
-        # now-resolved "Open items" entry for that history); the real
-        # distance now does most of the work, so a much smaller multiplier
-        # reaches the same target. atm_density is still well above Venus's
-        # real ~65 kg/m^3 surface air density: this model's scale-height
-        # formula (calculate_atmospheric_conditions) uses the pre-greenhouse
-        # airless-equilibrium temperature rather than the final,
-        # greenhouse-boosted surface temperature, which understates scale
-        # height (and therefore pressure, P = density * g * H) regardless of
-        # orbital distance -- compensated for here via atm_density rather
-        # than by changing the shared scale-height formula, which affects
-        # every class. Verified via climate_tuning_cli.py --class N: mean
-        # surface_temperature ~737K (+0.0% vs real Venus), mean
-        # atmospheric_pressure ~9.17MPa (-0.3% vs real Venus) over a
-        # 1000-sample run.
+        # Venus analog: its highly reflective cloud deck (Venus' Bond albedo is about 0.77).
         "albedo_range": (0.75, 0.90),
-        "atm_molar_density_range": (0.0433, 0.0435),
-        "atm_density_range": (300, 350),
-        "greenhouse_multiplier_range": (260, 295),
         # No life_chemical (GEN.147): at Venus's 737 K and 9 MPa nothing lives on the
         # surface, and the class is not on HABITABLE_PLANET_CLASSES.
     },
@@ -2132,24 +2031,11 @@ PLANET_CLASSES = {
         "zone_position_mode": 0.42,
         # Text now distinct from Class M's identical-before-this "oxygen,
         # nitrogen, and argon" -- water vapor is a real, tracked constituent
-        # here (and is *lighter* than N2/O2, hence O's atm_molar_density_range
-        # sitting below M's, not above -- see the tuning note below).
+        # here.
         "atmosphere": "a humid mix of oxygen, nitrogen, and water vapor",
         "type": "t",
-        # Tuned warm/wet: a higher albedo than M (more cloud cover over an
-        # ocean-dominated surface -- a real waterworld-climate-literature
-        # finding) is more than offset by a stronger greenhouse_multiplier
-        # (water vapor's real greenhouse contribution), netting *warmer*
-        # than M despite the higher albedo. atm_molar_density is lighter
-        # than M's (water vapor's molar mass, 18g/mol, is below N2/O2's) --
-        # physically correct even though counterintuitive. Verified via
-        # climate_tuning_cli.py --class O: mean surface_temperature ~298K
-        # (vs Class M's ~286K), mean atmospheric_pressure ~83kPa over a
-        # 400-sample run.
+        # Higher than M: more cloud cover over an ocean-dominated surface (the waterworld-climate literature).
         "albedo_range": (0.28, 0.35),
-        "atm_molar_density_range": (0.0270, 0.0285),
-        "atm_density_range": (1.2, 1.5),
-        "greenhouse_multiplier_range": (2.1, 2.4),
     },
     "P": {
         "description": "a cold, glaciated world",
@@ -2172,30 +2058,6 @@ PLANET_CLASSES = {
         # genuine cold bias from the unclamped physics instead of relying on
         # a post-hoc temperature clamp (see physics.planets.calculate_atmospheric_conditions).
         "albedo_range": (0.5, 0.7),
-        # Given the same atm_molar_density_range/atm_density_range/
-        # greenhouse_multiplier_range treatment the M/O/H/K/L/N/E/F/G/V pass
-        # (CHANGELOG.md [5.3.7]) gave the other habitable classes -- P had
-        # already stopped there with just its own albedo_range, per that
-        # pass's note. No single real analog, so this isn't chasing a target
-        # delta the way M/K/N are; instead the composition/quantity/potency
-        # levers are set to make the class's own "cold, glaciated"/"thinning
-        # with age" flavor text physically real rather than incidental.
-        # atm_molar_density stays near Earth's own real ~0.02897 kg/mol
-        # (the class's atmosphere text names oxygen/nitrogen/argon, not a
-        # heavier CO2-like mix the way K/N's do) -- composition isn't what
-        # makes this class cold. atm_density is set thin (between Mars'
-        # ~0.02 and Earth's ~1.2 kg/m^3) for "thinning with age", and
-        # greenhouse_multiplier is set weak (well below M's own 1.65-1.85)
-        # so the cold comes from genuine physics, on top of the high albedo
-        # above, rather than albedo alone. Verified via
-        # climate_tuning_cli.py --class P: mean surface_temperature ~204K
-        # (well below freezing, clearly colder than Class M's ~286K -- see
-        # test_class_p_is_colder_on_average_than_class_m), mean
-        # atmospheric_pressure ~9.5kPa (~0.1 atm, genuinely thin) over a
-        # 400-sample run across the full host-star grid.
-        "atm_molar_density_range": (0.0285, 0.0300),
-        "atm_density_range": (0.05, 0.35),
-        "greenhouse_multiplier_range": (0.3, 0.6),
     },
     "Q": {
         "description": "a world with an eccentric orbit and extreme temperature variations",
@@ -2275,18 +2137,9 @@ PLANET_CLASSES = {
         # hydrogen/helium kept as a minor primordial remnant, not the bulk.
         "atmosphere": "a thick mix of carbon dioxide, oxygen, and trace hydrogen and helium",
         "type": "t",
-        # High gravity (from the larger radius_range above, mean ~1.7g)
-        # retains a genuinely thick, hot atmosphere: heavier molar density
-        # and a stronger greenhouse_multiplier than M/O/H, plus an
-        # atm_density range well above every other terrestrial class except
-        # N. Verified via climate_tuning_cli.py --class V: mean
-        # surface_temperature ~383K, mean atmospheric_pressure ~279kPa
-        # (~2.8 atm) over a 300-sample run -- clearly hot and thick, short
-        # of N/Venus's full extreme.
+        # The life-bearing super-Earth: a rocky albedo, like G's; its high gravity (from the larger radius_range above) is what lets it keep
+        # a thick air, which the solved air (`physics/surface_air.py`) now finds for itself.
         "albedo_range": (0.20, 0.30),
-        "atm_molar_density_range": (0.0380, 0.0420),
-        "atm_density_range": (2.0, 5.0),
-        "greenhouse_multiplier_range": (3.5, 6.0),
     },
 }
 
@@ -2598,22 +2451,6 @@ conditions); a younger one scores in proportion, never less than 1 (DESIGN, GEN.
 MOON_BLACKLIST = ['Q', 'S', 'V']
 """
 list: A list of planet class codes that cannot be generated as moons.
-"""
-
-CO2_MAX_GREENHOUSE_FACTOR = 500
-"""
-int: A generous safety ceiling on greenhouse_factor (physics/planets.py's
-calculate_atmospheric_conditions), not the per-class calibration knob --
-that's PLANET_CLASSES[cls]["greenhouse_multiplier_range"]. Real Venus's own
-airless-equilibrium-to-surface ratio is ~101, still well below N's (the
-Venus analog) own tuned range even after that range was cut roughly in
-half once N's `zone_position_mode` started placing it near the zone's
-real, close-in inner edge instead of sharing Class M's midpoint position
-(see PLANET_CLASSES["N"]'s tuning note) -- the atmospheric-pressure
-scale-height understatement that note describes accounts for the rest of
-the gap. 500 leaves generous headroom above N's own tuned range while
-still guarding against a badly-configured future class producing a
-runaway/non-finite temperature.
 """
 
 FLAVOR_CHANCE_SYSTEM = 0.05 # The chance flavor text will be added to a system.

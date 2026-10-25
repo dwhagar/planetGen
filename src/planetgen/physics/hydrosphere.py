@@ -123,7 +123,8 @@ ICY_MOON_K2_Q = 3e-4
 ICY_MOON_ECCENTRICITY_RANGE = (1e-3, 1e-2)
 SMALL_MOON_MASS_EARTH = 1e-3
 RESONANCE_BOOST_RANGE = (1.0, 50.0)
-ICY_MIN_WATER_FRACTION = atmosphere.ICY_MIN_WATER_FRACTION
+ICY_MIN_WATER_FRACTION = 0.01
+"""float: The water mass fraction from which a body's surface is ice (an icy body holds guest gases in the cages of its ice skin, `surface_air`)."""
 
 
 def water_boiling_k(pressure_pa):
@@ -219,31 +220,56 @@ def _clear(body):
             setattr(body, field, None)
 
 
-def generate_hydrosphere(body, internal_flux_w_m2):
-    """Sets `HYDROSPHERE_FIELDS` on a planet or moon from its class, mass,
-    radius, surface temperature (K), pressure (Pa) and gases. Any ice lid
-    grows to match `internal_flux_w_m2` (plus an icy moon's tides,
-    `moon_tidal_flux_w_m2`), and a world with no liquid at its surface may hold
-    water underground (`aquifers`, GEN.654). Call after its atmosphere."""
-    _clear(body)
-    if body.body_type == "g":
-        return
-    surface_w = _generate_surface(body, internal_flux_w_m2)
-    aquifers.generate(body, surface_w, internal_flux_w_m2)
+def water_loss_kg(body):
+    """The water escape has stripped from a body, kg (GEN.639; `runaway_history.loss_kg`; no draws)."""
+    return runaway_history.loss_kg(getattr(body, "star", None), getattr(body, "_star_distance_au", None), body.mass, body.radius)
 
 
-def _generate_surface(body, internal_flux_w_m2):
-    """The surface part of `generate_hydrosphere`; returns the fraction of the body's mass that is its surface reservoir
-    after the early runaway took its share (GEN.639)."""
+def draw_surface_water(body):
+    """
+    The water mass fraction at the surface of a rocky body: what its mantle leaves of the bulk water (rule 1, a seeded draw of the
+    mantle's buffer), less what escape has stripped (GEN.639), plus the part of the mantle's that volcanism returns. Drawn before the
+    air (`planets.calculate_atmospheric_conditions`): the ocean is the reservoir the air's water vapour stands in contact with, and the
+    carbonate cycle needs it, so the air and the ocean are solved together.
+
+    Raises:
+        ValueError: The body has no water mass fraction (its bulk composition is drawn first).
+    """
     w = body.water_mass_fraction
     if w is None:
         raise ValueError(f"{body.planet_class!r} has no water mass fraction: its bulk composition is drawn first")
     surface_w = surface_water_fraction(w)
-    lost_kg = runaway_history.loss_kg(getattr(body, "star", None), getattr(body, "_star_distance_au", None), body.mass, body.radius)
+    lost_kg = water_loss_kg(body)
     if lost_kg:  # GEN.639: escape strips the air and the oceans, and volcanism later returns part of the mantle's water
         lost = min(surface_w, lost_kg / body.mass)
         mantle = w - surface_w  # volcanism returns part of the mantle's water, never more than was lost
         surface_w = surface_w - lost + min(lost, tuning.MANTLE_OUTGAS_SHARE * mantle)
+    return surface_w
+
+
+def ocean_cover(body, surface_w):
+    """The share of the surface a body's surface water (mass fraction `surface_w`) would cover (rule 1 and 2: `ocean_fraction` of the
+    layer it makes)."""
+    return ocean_fraction(water_layer_depth_km(body.mass, body.radius, surface_w), (body.gravity or 0.0) * constants.EARTH_GRAVITY)
+
+
+def generate_hydrosphere(body, internal_flux_w_m2, surface_w):
+    """Sets `HYDROSPHERE_FIELDS` on a planet or moon from its class, mass,
+    radius, surface temperature (K), pressure (Pa) and gases. Any ice lid
+    grows to match `internal_flux_w_m2` (plus an icy moon's tides,
+    `moon_tidal_flux_w_m2`), and a world with no liquid at its surface may hold
+    water underground (`aquifers`, GEN.654). `surface_w` is the surface water mass
+    fraction (`draw_surface_water`). Call after its atmosphere."""
+    _clear(body)
+    if body.body_type == "g":
+        return
+    _generate_surface(body, internal_flux_w_m2, surface_w)
+    aquifers.generate(body, surface_w, internal_flux_w_m2)
+
+
+def _generate_surface(body, internal_flux_w_m2, surface_w):
+    """The surface part of `generate_hydrosphere`: the ocean, its ice and its chemistry; returns `surface_w`."""
+    w = body.water_mass_fraction
     gravity = (body.gravity or 0.0) * constants.EARTH_GRAVITY
     layer_km = water_layer_depth_km(body.mass, body.radius, surface_w)
     covered = ocean_fraction(layer_km, gravity)

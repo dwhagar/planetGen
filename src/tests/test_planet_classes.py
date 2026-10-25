@@ -193,7 +193,10 @@ def test_the_shadow_sweep_keeps_most_drawn_letters():
     pairs = class_shadow_cli.compare(planets)
     total = sum(pairs.values())
     same = sum(n for (drawn, derived), n in pairs.items() if drawn == derived)
-    assert total > 100 and same / total > 0.9
+    # The old floor of 0.9 measured the class-first air; since GEN.411 the class sets the mass and the bulk composition but not the air,
+    # so about 1 planet in 6 derives another letter (158 of 191 kept). 0.75 is about three standard errors under that; the class
+    # cut-over (GEN.646) tightens it.
+    assert total > 100 and same / total > 0.75
     moons = class_shadow_cli.compare([entry for entry in bodies if entry[0].is_moon])
     assert sum(moons.values()) > 100
     pairs = class_shadow_cli.compare(bodies)

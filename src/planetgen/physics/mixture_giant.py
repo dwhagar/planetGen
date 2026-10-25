@@ -217,7 +217,7 @@ def remove_ammonium_hydrosulfide(budget, temperature_k, pressure_bar, log_enrich
     return left, x
 
 
-def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=60, tolerance=1e-4):
+def cap_ices(budget, temperature_k, pressure_bar, equilibrium_at, *, iterations=1000, tolerance=1e-4):
     """
     Caps every species with a saturation curve at its saturation pressure at `temperature_k`: the excess is taken out of the
     budget and the equilibrium solved again, until no species is over its cap by more than `tolerance` (relative).
