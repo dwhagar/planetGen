@@ -14303,6 +14303,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.770, GEN.771, GEN.571.
   Prerequisites: none. Related: GEN.656, GEN.769, GEN.770, GEN.771,
   GEN.571.
+  Research (2026-10-09, Progress): Boss, 10:07 PM EDT 2026-10-24 asked
+  for the plus-or-minus form or the full range, and a high and low for
+  every regional temperature: filed as the next two items of this group
+  (the swing label and the regional ranges), same owner.
 
 - [ ] **GEN.774 Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
@@ -14621,32 +14625,60 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   UX.208. Suggested owner: Core 3 or Aux 9 (class lane).
   Prerequisites: none. Related: UX.208, GEN.646, GEN.681.
 
-- [ ] **GEN.792 File the GEN.725 registry rows from the second-hand citations report: first-hand sources, second-hand fallbacks and the final open list**
-  Citations lane (Aux 17) final report, relayed 9:50 PM EDT 2026-10-24
-  as the lane reported: reports/secondhand-citations-2026-10-24.md, Part
-  10 (Boss's uploads that make rows first-hand, and the final open
-  list). Add or update each row in docs/design/stand-in-values.md
-  (GEN.725) from Part 10: the source now first-hand (the papers Boss
-  uploaded), the second-hand fallback where the paper is not accessible,
-  and the tier and tweak level; the rows still open stay labelled with
-  the replacing item. Done: every row of Part 10 is in the registry with
-  its source basis, and the registry test passes. Version 8.1. Owner:
-  Aux 17 (Citations) or the next free pool lane.
-  Prerequisites: none. Related: GEN.725, GEN.711.
+- [ ] **GEN.794 Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra**
+  Citations lane (Aux 17), GEN.793 merged #3211, relayed 9:56 PM EDT
+  2026-10-24 as the lane reported: Irwin 2019 is an absorption line list
+  with no photolysis rate, so it cannot settle the factor; it stays a
+  labelled stand-in (T4, bracket 1.05 to 1.10, quiet rate 1.54e-4 to
+  1.8e-4 per second at 1 au) until the Huebner and Mukherjee 2015 NH3
+  quiet and active line is reachable (Boss cannot access the paper; use
+  a second-hand source or compute it from the Cheng 2006 cross section
+  with measured solar spectra). Done: the factor and the rates carry a
+  source and the registry row (GEN.725) is updated with tier and tweak
+  level; a changed value carries tests.golden_update --reason ....
+  Version 8.4. Owner: pool, after 8.1.
+  Prerequisites: none. Related: GEN.501, GEN.725, GEN.793.
 
-- [ ] **GEN.793 Settle two source flags in the registry: CFC-12 forcing coefficient 0.32 (IPCC TAR) against 0.33 (gap plan), and the NH3 1.078 factor against Irwin 2019**
-  Citations lane (Aux 17) final report, relayed 9:50 PM EDT 2026-10-24
-  as the lane reported: reports/secondhand-citations-2026-10-24.md, Part
-  10 (Boss's uploads that make rows first-hand, and the final open
-  list). Myhre et al. 1998 Table 3 is now uploaded, so the CFC-12
-  coefficient can be read first-hand and the wrong one corrected in the
-  gap plan and the registry; the NH3 1.078 factor is checked against
-  Irwin et al. 2019 (arXiv 1812.05383, ExoMol CoYuTe NH3 line list) and
-  kept, corrected or replaced. Done: both flags carry a verified value
-  with the source and page, and any code that used the wrong value is
-  changed (a changed number carries `tests.golden_update --reason ...`).
-  Version 8.1. Owner: Aux 17 (Citations) or the next free pool lane.
-  Prerequisites: none. Related: GEN.725, GEN.715.
+- [ ] **GEN.795 The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug)**
+  Boss, 10:07 PM EDT 2026-10-24 (relayed by the coordinator): "For the
+  variance can we either use the proper +/- symbol or just +/- so that
+  it's clear that it's a range or put the actual temperature range?
+  Also, I'd like to have for each temperature (polar, mean, southern,
+  etc) it to have an actual range, what is the high and low that puts
+  that value right in the middle." The swing row (temp_swing_k, GEN.773
+  puts it on the difference kind) must say it is a variation about a
+  value: print the plus-or-minus sign with the difference (for example
+  'Day to night swing: ±9.07 K', '±9.07 C degrees', '±16.3 F degrees')
+  or, better, print the actual low and high temperatures it implies.
+  State in the label which the generator stores (half range or full
+  range). Same in the API text, the description and the Properties list.
+  Done: the swing never shows without ± or a low-to-high range, in every
+  temperature unit, and a browser test pins it. Version 8.1. Owner:
+  Units lane (Aux 14 or the numbers-without-units lane), with GEN.773.
+  Prerequisites: none. Related: GEN.773, GEN.769, GEN.656.
+
+- [ ] **GEN.796 Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle**
+  Boss, 10:07 PM EDT 2026-10-24 (relayed by the coordinator): "For the
+  variance can we either use the proper +/- symbol or just +/- so that
+  it's clear that it's a range or put the actual temperature range?
+  Also, I'd like to have for each temperature (polar, mean, southern,
+  etc) it to have an actual range, what is the high and low that puts
+  that value right in the middle." For every entry of
+  REGIONAL_TEMPERATURES (db/column_units.py), show the low and the high
+  that put the stated value exactly in the middle (value minus and plus
+  the half range), for example '-10 C, range -25 to +5 C'. The half
+  range comes from the day and night swing (and the seasonal swing where
+  the generator has one), so work out which swing applies to each
+  region; where no swing is stored for a region, say that the range is
+  not stored rather than printing a guess, and file the missing
+  producer. The ranges are computed, not stored twice: one function
+  gives the low and high for a value, a swing and a unit (a difference,
+  never an absolute conversion, GEN.773), and every page, the API and
+  the description use it. Done: every regional temperature on a sample
+  planet shows low and high with the value in the middle, in kelvin,
+  Celsius and Fahrenheit, and a test checks the midpoint and that no
+  offset is applied twice. Version 8.1. Owner: Units lane.
+  Prerequisites: GEN.773. Related: GEN.773, GEN.656, GEN.769.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
