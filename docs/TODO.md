@@ -3572,7 +3572,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.827, API.35. Related: GEN.827, MAP.316, MAP.295,
   MAP.296, MAP.152.
 
-- [ ] **MAP.320 Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant and asteroid field**
+- [ ] **MAP.320 Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region**
   Boss, 1:19 AM EDT 2026-10-25 (relayed by the coordinator): "show them
   with inhabited tokens for POI that is the habitability color, and
   let's actually make some different POI icons, habitable planets get a
@@ -3584,33 +3584,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the star views but in the star system level, it would be the planet or
   moon POI that would be on the map." This replaces the earlier rule of
   one generic mark with no icon per kind (MAP.303, MAP.305, 7:35 PM EDT
-  2026-10-24). Do: one small SVG symbol set (a sprite, drawn as vectors,
+  2026-10-24). Boss, 1:31 AM EDT 2026-10-25: "a sector has its own icon
+  too as do regions have their own icon as well", so seven symbols in
+  all. Do: one small SVG symbol set (a sprite, drawn as vectors,
   readable at map size in both themes and for colour-blind viewers by
   shape, with an accessible name per kind): a habitable world (PHI-6
   Blue, Green, and Yellow where the star already counts), an
   uninhabitable world in brown or grey (not red), an inhabited world
   with its own symbol coloured by the habitability score and colour (the
-  same palette as the object pages), a gas giant, and an asteroid belt
-  or field. The point-of-interest registry of MAP.305 keeps merging
-  crowded marks into one with a count; the merged mark shows the
-  strongest kind's symbol. The menu rows of MAP.306 carry the same
-  symbols. Done: a browser test per kind finds its symbol, the inhabited
-  one in the habitability colour, the uninhabitable one in brown or grey
-  and never red, in light and dark, and the accessible names exist.
-  Files: one SVG each in static/poi/ (static/poi/*.svg), drawn at a
-  fixed pixel size with the colour set by a CSS variable; the colours
-  come from the one habitability palette the object pages already use
-  (describe/), with new brown and grey tokens added there and a
-  colour-blind-safe check (the habitability colours differ in lightness
-  from brown and grey); a legend that names every token, in the map menu
-  and on the object pages; the existing tokens (black hole, neutron
-  star, quasar, nebula) are unchanged. The best world's token and
-  habitability score ride the existing node worlds payload (MAP.220), no
-  new endpoint (design section 0.3). Owner: Aux 10 (the legend on the
-  object pages with Aux 11). Rules: no backward-compat shims; every
-  number has a unit or scale (GEN.772); tests are scripts/test.py
-  changed --resume; no fixed content from the Milky Way or the Solar
-  System.
+  same palette as the object pages), a gas giant, an asteroid belt or
+  field, a sector, and a region (the last two are the icons for those
+  map nodes and their list rows and menu rows, so a region's token in
+  the charted-regions list of MAP.316 and a sector's on the Sector Map
+  read as what they are). The point-of-interest registry of MAP.305
+  keeps merging crowded marks into one with a count; the merged mark
+  shows the strongest kind's symbol. The menu rows of MAP.306 carry the
+  same symbols. Done: a browser test per kind (seven) finds its symbol,
+  the inhabited one in the habitability colour, the uninhabitable one in
+  brown or grey and never red, in light and dark, and the accessible
+  names exist. Files: one SVG each in static/poi/ (static/poi/*.svg),
+  drawn at a fixed pixel size with the colour set by a CSS variable; the
+  colours come from the one habitability palette the object pages
+  already use (describe/), with new brown and grey tokens added there
+  and a colour-blind-safe check (the habitability colours differ in
+  lightness from brown and grey); a legend that names every token, in
+  the map menu and on the object pages; the existing tokens (black hole,
+  neutron star, quasar, nebula) are unchanged. The best world's token
+  and habitability score ride the existing node worlds payload
+  (MAP.220), no new endpoint (design section 0.3). Owner: Aux 10 (the
+  legend on the object pages with Aux 11). Rules: no backward-compat
+  shims; every number has a unit or scale (GEN.772); tests are
+  scripts/test.py changed --resume; no fixed content from the Milky Way
+  or the Solar System.
   Prerequisites: MAP.305. Related: MAP.303, MAP.305, MAP.306, MAP.311,
   MAP.312, MAP.316.
 
