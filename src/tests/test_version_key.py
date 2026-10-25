@@ -30,21 +30,46 @@ SEED = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
 # The key
 # ---------------------------------------------------------------------------
 
+def _key(*args, **kwargs):
+    """A key with the API version, schema and epoch of DB.102's example unless the test says otherwise."""
+    kwargs = {"api": 9, "schema": 155, "epoch": 96, **kwargs}
+    return versionKey.version_key(*args, **kwargs)
+
+
 def test_the_design_example():
-    assert versionKey.version_key("7.127.352", (3, 12, 3), "Linux", "x86_64") == "0007007F000160030C0300"
+    assert _key("7.127.352", (3, 12, 3), "Linux", "x86_64") == "77F01600909B06030C0300"
 
 
 def test_each_part_has_its_own_digits():
-    key = versionKey.version_key("1.2.3", (3, 9, 20), "Windows", "AMD64")
+    key = _key("1.2.3", (3, 9, 20), "Windows", "AMD64", api=5, schema=134, epoch=62)
     assert len(key) == versionKey.KEY_DIGITS
-    assert (key[0:4], key[4:8], key[8:14]) == ("0001", "0002", "000003")
-    assert (key[14:16], key[16:18], key[18:20]) == ("03", "09", "14")
+    assert (key[0], key[1:3], key[3:7]) == ("1", "02", "0003")
+    assert (key[7:9], key[9:12], key[12:15]) == ("05", "086", "03E")
+    assert (key[15], key[16:18], key[18:20]) == ("3", "09", "14")
     assert (key[20], key[21]) == ("1", "0")
 
 
+def test_the_api_version_the_schema_and_the_epoch_are_read_from_their_own_sources():
+    from planetgen.api.version import API_VERSION
+    from planetgen.db import store
+    key = versionKey.version_key()
+    assert (int(key[7:9], 16), int(key[9:12], 16), int(key[12:15], 16)) == (
+        API_VERSION, store.SCHEMA_VERSION, generator_epoch.generator_epoch())
+
+
+@pytest.mark.parametrize("change", [{"api": 10}, {"schema": 156}, {"epoch": 97}])
+def test_a_new_api_version_schema_or_epoch_is_a_new_key(change):
+    assert _key("7.127.352", (3, 12, 3), "Linux", "x86_64") != _key("7.127.352", (3, 12, 3), "Linux", "x86_64", **change)
+
+
+@pytest.mark.parametrize("change", [{"api": 256}, {"schema": 4096}, {"epoch": 4096}, {"api": -1}])
+def test_an_api_version_schema_or_epoch_that_doesnt_fit_is_refused(change):
+    with pytest.raises(ValueError):
+        _key("7.127.352", (3, 12, 3), "Linux", "x86_64", **change)
+
+
 def test_releases_whose_parts_sum_alike_get_different_keys():
-    assert versionKey.version_key("7.127.352", (3, 12, 3), "Linux", "x86_64") != \
-        versionKey.version_key("7.128.351", (3, 12, 3), "Linux", "x86_64")
+    assert _key("7.127.352", (3, 12, 3), "Linux", "x86_64") != _key("7.128.351", (3, 12, 3), "Linux", "x86_64")
 
 
 @pytest.mark.parametrize("system, digit", [("Linux", 0), ("Windows", 1), ("Darwin", 3), ("FreeBSD", 2),
@@ -59,10 +84,10 @@ def test_architecture_digits(machine, digit):
     assert versionKey.arch_digit(machine) == digit
 
 
-@pytest.mark.parametrize("version", ["7.127", "7.127.352.1", "7.x.352", "65536.0.0", "1.0.16777216"])
+@pytest.mark.parametrize("version", ["7.127", "7.127.352.1", "7.x.352", "16.0.0", "1.256.0", "1.0.65536"])
 def test_a_version_that_doesnt_fit_is_refused(version):
     with pytest.raises(ValueError):
-        versionKey.version_key(version, (3, 12, 3), "Linux", "x86_64")
+        _key(version, (3, 12, 3), "Linux", "x86_64")
 
 
 def test_the_running_code_has_a_key():
@@ -70,8 +95,8 @@ def test_the_running_code_has_a_key():
     assert current["planetgen_version"] == __version__
     assert current["version_key"] == versionKey.version_key()
     major, revision, build = (int(part) for part in __version__.split("."))
-    assert current["version_key"][:14] == f"{major:04X}{revision:04X}{build:06X}"
-    assert current["version_key"][14:20] == "".join(f"{part:02X}" for part in sys.version_info[:3])
+    assert current["version_key"][:7] == f"{major:X}{revision:02X}{build:04X}"
+    assert current["version_key"][15:20] == f"{sys.version_info[0]:X}{sys.version_info[1]:02X}{sys.version_info[2]:02X}"
 
 
 # ---------------------------------------------------------------------------
@@ -94,13 +119,13 @@ def test_a_new_galaxy_records_what_made_it_and_a_re_plan_keeps_it(mysql_config, 
                                      fp_spec=fingerprint_encoding.FP_SPEC, battery_digest=battery.overall,
                                      battery_cases=generator_battery.cases_of(battery))
 
-    monkeypatch.setattr(versionKey, "__version__", "99.0.0")
+    monkeypatch.setattr(versionKey, "__version__", "15.0.0")
     _seed_skeleton(mysql_config)  # same seed kept
     assert _maker(mysql_config) == made
     _seed_skeleton(mysql_config, galaxy_seed=SEED)  # same seed given
     assert _maker(mysql_config) == made
     _seed_skeleton(mysql_config, galaxy_seed=b"\x01" * 16)  # a new galaxy
-    assert _maker(mysql_config).planetgen_version == "99.0.0"
+    assert _maker(mysql_config).planetgen_version == "15.0.0"
 
 
 # ---------------------------------------------------------------------------
