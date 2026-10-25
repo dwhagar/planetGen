@@ -7826,7 +7826,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   real-gas Z of a mixture are in part 01 sections 10 and 11; the
   species-by-class distributions to draw the partials from are part 05;
   the added species need storage (DB.71).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): the atmosphere recipes are gated rows: each recipe
   (for example a reduced hydrogen-rich, a nitrogen-carbon-dioxide, an
@@ -8298,7 +8298,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (Hayne laws, Gundlach and Blum conduction, E12); the radiogenic heat
   of GEN.459 and the hydrosphere of GEN.461 come first; the albedo by
   band is GEN.462.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): the surface and crust composition is drawn from gated
   rows (the mineral, ice and ocean covers a class and temperature can
@@ -8648,7 +8648,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   D read (CO/H2O median 3.3 with range 0.3 to 26 and CO2/H2O median 12
   with range 2 to 30 in Harrington Pinto 2022; 67P CH4 0.34 and NH3 0.67
   percent), but the lower CO bound of 0.15 percent was not found.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): the exosphere and coma recipes are gated rows by body
   kind (airless rocky, comet, icy moon), with the weights from the
@@ -8723,7 +8723,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.441. Related: GEN.412, GEN.418, GEN.441,
   GEN.442, MAP.244, DB.70.
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): no table of its own: the ground albedo by band is the
   area-weighted result of the drawn surface rows (GEN.441), each
@@ -8771,7 +8771,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table at [Fe/H] of 0, -0.5, -1 and -2 for the thin disc and the
   high-alpha branch, and determinism. Owner: Core 4 (proposed, with the
   composition chain).
-  Boss's gated possibility-table rule (1:40 AM EDT, section 4b of
+  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
   test TEST.214): no table: the solids law reads the star's Z over Z0
   and gives the weight functions of GEN.428 their argument.
@@ -12858,6 +12858,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   water share, temperature and pressure" is not built; it belongs to the
   class cut-over here. GEN.461 itself integrates the water column and
   stores water_base_pressure_pa (migration 0151, epoch 84).
+  Owner (2026-10-09): Owner assigned: Aux 9 (class lane) takes this item
+  now (Boss priority 1:37 AM EDT 2026-10-25: after the galactic
+  navigation plan, planet class from planet conditions comes next, then
+  the physics chains). The class rules GEN.27, GEN.145, GEN.350 to
+  GEN.354 and GEN.356 follow it. It is unblocked once 4c (GEN.411,
+  GEN.422) merges.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -19433,7 +19439,7 @@ clears each one.
   planet, moon and star class, built as a census check on TEST.186's
   harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
   over it, not four builds.
-  Boss's gated possibility-table rule (1:40 AM EDT): the atmosphere
+  Boss's gated possibility-table rule (1:38 AM EDT): the atmosphere
   recipe rows of GEN.411 are covered by the registry sum test TEST.214;
   this sweep checks the consistency of the drawn recipe with the text,
   the temperature, the ozone and the aerosols.
@@ -19480,7 +19486,7 @@ clears each one.
   water fraction (about 6e-3), porosity is zero above the compaction
   pressure, and class D density is below 3000 kg/m3 for a rock fraction
   below 0.9.
-  Boss's gated possibility-table rule (1:40 AM EDT): the bulk recipe
+  Boss's gated possibility-table rule (1:38 AM EDT): the bulk recipe
   rows of GEN.428 are covered by the registry sum test TEST.214; this
   sweep checks the drawn fractions, density, mass and gravity.
 
@@ -19516,7 +19522,7 @@ clears each one.
   invariants of its section 3.5 (X + Y + Z = 1, the targets of its
   section 4) and a distribution test of 1e5 draws against the Bensby and
   Feltzing quantiles and the Thiabaud box shares (A-V1, A-V2).
-  Boss's gated possibility-table rule (1:40 AM EDT): the weights of the
+  Boss's gated possibility-table rule (1:38 AM EDT): the weights of the
   star-composition rows that pass a star's gate add up to 100 percent;
   the check is TEST.214's registry walk and this sweep adds the
   star-specific cases.
@@ -19557,7 +19563,7 @@ clears each one.
   over it, not four builds.
 
 - [ ] **TEST.214 Every registered possibility table: for every class the gated weights add up to 100 percent, no class has an empty gate, and every row has a source and a licence**
-  Boss (2026-10-17, 1:40 AM EDT, typed in the project chat): "We have to
+  Boss (2026-10-17, 1:38 AM EDT, typed in the project chat): "We have to
   add to our composition plans that what I'd like to do is for each
   composition have a list of possibilities with their weighted
   probabilities (for all compositions, each category will have a table
@@ -19624,7 +19630,7 @@ clears each one.
   and "Weights pick the row", as the coordinator reported it): the
   weights pick the row; the proportions inside a drawn row come from the
   row's own sourced kernel, or a Dirichlet draw where only a range
-  exists, so the 1:40 AM and 1:51 AM EDT 2026-10-17 texts agree.
+  exists, so the 1:38 AM and 1:51 AM EDT 2026-10-17 texts agree.
   Decided (Boss, 4:41 to 4:42 PM EDT 2026-10-22, relayed 4:42 PM EDT as the
   lane's clock reads): data tables carry no licence column and no check of
   one; the licence information lives in DATA-LICENSE.md. This
@@ -20988,48 +20994,6 @@ clears each one.
   the tests. Owner Aux 10 (taking it after MAP.311).
   Prerequisites: none. Related: MAP.293, TEST.375.
 
-- [ ] **TEST.384 Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug)**
-  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
-  relayed 10:25 PM EDT 2026-10-24 as the lane reported. Core 3's gate
-  ran 36 failures that were all red on a clean worktree of the base: the
-  habitable_systems point-column and sheet tests, the mantle column
-  tests, the facilities page tests, the VALUES() use in migration 0148,
-  the test_prevalence binary tests, plus test_disk_history that passes
-  alone. The list is in the PR. Find each cause (test, fixture or code),
-  fix it, and keep the tests; file a separate bug where one has a cause
-  outside this group. Done: the group passes on main from a clean
-  checkout in `scripts/test.py changed`. Version 8.1. Owner: Bug 1.
-  Research (2026-10-09, Lane L report): Added 10:42 PM EDT 2026-10-24
-  (Lane L, GEN.751 gate, as the lane reported): also red on clean main:
-  test_progress_log (2 tests), test_redis_cleanup,
-  test_resume_across_builds (stubs of run_phase lack the new on_child
-  argument), test_job_tree galaxy-run-ends-done (times out at 257 s).
-  Lane D (Aux 3) also saw
-  test_db_column_round_trip::test_every_column_is_written fail once on
-  the disk columns (TEST.387).
-  Research (2026-10-09, Core 5 report): Core 5 (10:59 PM EDT 2026-10-24
-  as the lane reported) also lists red on clean main: test_web_generate
-  override-logging pair, two test_progress_log runner tests,
-  test_work_units batch-fills test. Core 5 fixed test_stages,
-  test_job_tree and test_work_units cases that PERF.125 left red
-  (#3248).
-  Research (2026-10-09, GEN.512 lane report): Also red on main (GEN.512
-  lane, 11:05 PM EDT 2026-10-24 as the lane reported): test_work_units,
-  test_single_system_forcing.
-  Research (2026-10-09, Aux 16 report): Aux 16 (11:20 PM EDT 2026-10-24
-  as the lane reported) also lists red on main: six stage-count tests in
-  test_stages after the tenth stage (territories) was added
-  (test_a_random_start_galaxy_run_has_nine_stages,
-  test_a_galaxy_run_with_an_address_has_one_sector_stage,
-  test_each_stage_is_stored_with_its_time_settings,
-  test_a_total_too_small_for_the_runs_stages_is_ignored and two more),
-  test_web_pages::test_in_process_transport_skips_http_inside_a_request,
-  test_web_search::test_a_star_result_links_to_its_row_on_the_system_page
-  (hangs),
-  test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems (RQ
-  StopRequested after 10 minutes).
-  Prerequisites: none. Related: TEST.365, TEST.375, TEST.383.
-
 - [ ] **TEST.386 First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -21099,7 +21063,34 @@ clears each one.
   needs the source that sets it or a GEN.725 row. Done: both pass on a
   clean main. Owner: Bug 1 (after TEST.384). Rules: no backward-compat
   shims; tests are scripts/test.py changed --resume.
+  Finding (2026-10-09): Confirmed on clean origin/main by a second lane
+  (1:38 AM EDT 2026-10-25):
+  test_runaway_history.py::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost
+  fails because lost_any is False for all 6 seeds, so no M3V Earth-zone
+  planet loses surface water.
   Prerequisites: none. Related: TEST.384, GEN.738.
+
+- [ ] **TEST.392 test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug)**
+  Found by Bug 1 (1:37 AM EDT 2026-10-25 as the lane reported): the
+  module takes about 66 minutes, the slowest check 755 s, because each
+  check draws 2000 full systems. Do: make the draw cheaper (draw only
+  the stages the check reads, share one drawn sample across the checks
+  of the module, or reduce the draw cost in generation) without cutting
+  the sample or loosening the tolerance. Owner: Aux 16 (performance)
+  with Bug 1 reviewing. Done: the module runs in a fraction of the time
+  with the same sample size and tolerances.
+  Prerequisites: none. Related: TEST.384, PERF.186.
+
+- [ ] **TEST.393 Each gate leaves about 50 orphaned planetgen.cli.worker processes that can fill 16 GB of RAM and get mysqld OOM-killed: tests that start detached workers do not reap them (bug)**
+  Found on lane machines (1:38 AM EDT 2026-10-25, reported by Aux 4's
+  lane thread through the coordinator relay). Do: every test that starts
+  a detached worker reaps it in a fixture finalizer (terminate, wait,
+  kill), and scripts/test.py checks for stray planetgen.cli.worker
+  processes at the start and end of a run and reports them (TEST.376
+  already checks MySQL and Redis on every run). Owner: Bug 1. Done:
+  after a full gate no planetgen.cli.worker process remains, and a test
+  that leaks one fails.
+  Prerequisites: none. Related: TEST.376, PERF.181, TEST.390.
 
 ## USR: User accounts
 

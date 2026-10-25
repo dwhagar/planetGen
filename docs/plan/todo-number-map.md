@@ -22,7 +22,7 @@ release is stamped.
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.392 |
+| TEST | TEST.394 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -3070,7 +3070,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.381 | First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp | none | open |
 | TEST.382 | First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp | none | open |
 | TEST.383 | test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug) | none | open |
-| TEST.384 | Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug) | none | open |
+| TEST.384 | Failures red on a clean copy of main: habitable_systems point columns and sheet tests, mantle columns, facilities pages, the VALUES() in migration 0148, test_prevalence binaries (bug) | none | closed, does not reproduce on main (Bug 1, 1:37 AM EDT 2026-10-25) |
 | TEST.385 | Browser tests error at setup on the 50 per hour rate limit of the API fixture: 259 setup errors in one gate (bug) | none | done, PR #3273 |
 | TEST.386 | First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp | none | open |
 | TEST.387 | test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug) | none | open |
@@ -3078,6 +3078,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.389 | test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug) | none | open |
 | TEST.390 | More tests red on a clean copy of main: runner self-tests (on_child), admin queue log route 403, cache warm-up, test_stages, test_web_fresh_after_cli, test_workers killed worker, phenomenon diagram zoom tests, test_web_browser_tables life scores (bug) | none | done, PR #3293 |
 | TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) | none | open |
+| TEST.392 | test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug) | none | open |
+| TEST.393 | Each gate leaves about 50 orphaned planetgen.cli.worker processes that can fill 16 GB of RAM and get mysqld OOM-killed: tests that start detached workers do not reap them (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
