@@ -147,6 +147,9 @@ PICK_WAIT_MS = 3000
 PICK_TRIES = 4
 """int: How many times a star is clicked, where it is drawn then, before the next star is tried."""
 
+WHEEL_TRIES = 80
+"""int: How many wheel ticks at a sector's centre are tried before the sector is taken not to open."""
+
 
 def _steady_spot(page, point, samples=4, in_canvas=True):
     """Where `point` falls on the page (inside the canvas and the window, unless `in_canvas` is false) once it has held the same place for `samples` looks 150 ms apart (rounded to a
@@ -196,7 +199,7 @@ def _picks_a_star(page, points):
 
 
 def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page, base_url, sample_params, site_app):
-    """MAP.209: a click on a charted sector (the flight playing) opens it in place: the document is the same one
+    """MAP.209: the wheel run in on a charted sector (the flight playing) opens it in place: the document is the same one
     (no reload), the address changes once to `?sector=...&open=1` and stays, the panel never goes empty and ends
     describing the opened sector."""
     page = moving_page
@@ -208,21 +211,18 @@ def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page
     page.wait_for_selector(CANVAS, state="attached")
     _settled(page, point)
     page.evaluate("window.__panel.length = 0")
-    # A click on a map that is still easing is ignored, and on a loaded machine the centre has moved on between being
-    # worked out and being clicked (TEST.291, TEST.297): click where it holds still, again if the sector did not open.
-    for _ in range(PICK_TRIES):
+    # The sector blocks take no click since MAP.297: the wheel runs the view in on the sector's centre and the sector
+    # opens where the camera has come up to it (MAP.152). The centre is aimed at again each tick (the view eases).
+    for _ in range(WHEEL_TRIES):
         spot = _steady_spot(page, point, in_canvas=False)
         assert spot, "the sector's centre is not on the map"
         page.mouse.move(spot[0], spot[1])
-        page.wait_for_timeout(200)
-        page.mouse.click(spot[0], spot[1])
-        try:
-            page.wait_for_function("() => location.search.includes('open=1')", timeout=PICK_WAIT_MS * 2)
+        page.mouse.wheel(0, -400)
+        page.wait_for_timeout(120)
+        if "open=1" in page.url:
             break
-        except sync_api.TimeoutError:
-            continue
     else:
-        raise AssertionError(f"{PICK_TRIES} clicks on the sector's centre did not open it: {page.url}")
+        raise AssertionError(f"{WHEEL_TRIES} wheel ticks at the sector's centre did not open it: {page.url}")
     _settled(page, point)
     assert page.evaluate("window.__sameDocument") is True, "the page reloaded while the sector opened"
     assert page.url.endswith(f"?sector={code}&open=1"), page.url
