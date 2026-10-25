@@ -17,7 +17,7 @@ from planetgen.generation import evolution
 
 @dataclass(frozen=True)
 class Timeline:
-    """The speculative timeline of a world: the system's age and the latest milestone reached by it."""
+    """The timeline of a world: the system's age and the latest milestone reached by it."""
     system_age_gyr: float
     stage: str | None
     stage_name: str | None
