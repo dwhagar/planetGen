@@ -14,20 +14,20 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.212 |
-| MAP | MAP.309 |
-| NAV | NAV.63 |
+| MAP | MAP.311 |
+| NAV | NAV.64 |
 | GEN | GEN.775 |
 | PERF | PERF.195 |
-| DB | DB.105 |
+| DB | DB.106 |
 | API | API.34 |
 | ADM | ADM.132 |
 | SEC | SEC.37 |
-| TEST | TEST.382 |
+| TEST | TEST.383 |
 | USR | USR.32 |
 | OPS | OPS.72 |
 | DOC | DOC.81 |
 | VIEW | VIEW.19 |
-| POP | POP.29 |
+| POP | POP.37 |
 
 ## Why this exists
 
@@ -657,6 +657,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.102 | The version key stored with the galaxy seed carries the API version, the database schema and the generator epoch after the release version, with the zero padding shortened to make room | none | open |
 | DB.103 | Storage for nation-states and cities: tables, Object IDs, column units and the migration | none | open |
 | DB.104 | Storage for a government's territory: homeworld system, growth state and a territory history, ready for 9.2 to make it dynamic | none | open |
+| DB.105 | Storage for world population and the global trade route list: tables, Object IDs, column units and the migration | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -1819,6 +1820,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.306 | The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug) | none | open |
 | MAP.307 | Stations and facilities become points of interest: interest reasons for the map mark and its menu filter | none | open |
 | MAP.308 | A planet with moons has its own system map: the lunar orbits, the planet drawn from its rendered look at the moons' scale, and the atmosphere glow in the viewing space (bug) | none | open |
+| MAP.309 | Star map filter for trade routes: draw the routes (all, or by polity, length or hop count) as paths on the Galaxy Map | none | open |
+| MAP.310 | Routes away from a selected object: select a system, spaceport or world on the star map and show only the trade routes leaving it | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1881,6 +1884,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.60 | What is nearby reads by the cell key: one statement for every kind, including objects with no sector and unbuilt scatter rows | none | done, PR #1977 |
 | NAV.61 | Nearest-first by a radius ladder, and a dense-core guard with an early-stop count | none | open |
 | NAV.62 | Gravity of the stars and objects a cell leaves out: work out how a course and the orbital update account for the unresolved mass, derived from the density model | none | open |
+| NAV.63 | Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -2174,6 +2178,14 @@ Parents marked "new parent" had no old number of their own.
 | POP.26 | Generate the requested number of space-faring governments: force civilizations where chance gives too few, hold back extra ones where it gives too many, homeworlds spread apart | none | open |
 | POP.27 | Territories of several worlds and sectors: every government holds a minimum, its homeworld is always inside, and the check is a test | none | open |
 | POP.28 | Show the governments: the option and result on the Generate page and galaxy page, a government page with its worlds, systems and sectors, and the territories overlay legend | none | open |
+| POP.29 | Design: the world population simulation from habitability scores and the trade routes between spaceports (partner selection, hop runs, the global route list, the map filters, the nearest-route query) | none | open |
+| POP.30 | World population simulation from habitability scores: population, carrying capacity and growth state for every world with a civilization, as its own command and galaxy stage | none | open |
+| POP.31 | Population on the pages and API: world population, capacity and share of capacity on the planet, species and polity pages | none | open |
+| POP.32 | Trade partners: which spaceports trade with which, by the gravity model on population and distance, with a cap per port and hubs | none | open |
+| POP.33 | Generate the trade routes: a hop-based run on the navigation graph between each pair of spaceports, saved in the one global route list | none | open |
+| POP.34 | The global trade route list: a page and an API every account can read, with filters by polity, route length, hop count and spaceport | none | open |
+| POP.35 | Dynamic world populations: populations step forward with the nightly update from the stored growth state, so cities and capacity follow the habitability scores over time | none | open |
+| POP.36 | Dynamic trade routes: routes grow, shift and close as populations, ports and territories change, using the same hop pathfinding | none | open |
 | SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | done, PR #220 |
 | SEC.2 | Security audit findings of 2026-09-30 (new parent) | none | done in 7.5.0, PR #112, except SEC.17 to SEC.19 |
 | SEC.3 | Seeded admin/password login claimable | 39 (2026-09-30 19:02Z to 20:27Z) | done in 7.5.0, PR #112 |
@@ -2940,6 +2952,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.379 | Twelve unrelated tests fail on main: description_splits_into_every_body, eta_estimator queue page, protection describers, wheel scroll, web search star link (bug) | none | open |
 | TEST.380 | First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp | none | open |
 | TEST.381 | First live test pass of nations, cities and ports on a generated galaxy, before the 8.4 stamp | none | open |
+| TEST.382 | First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

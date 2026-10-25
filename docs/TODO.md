@@ -2950,6 +2950,78 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.287, MAP.253, MAP.254, MAP.244,
   MAP.277, MAP.275, MAP.295.
 
+- [ ] **MAP.309 Star map filter for trade routes: draw the routes (all, or by polity, length or hop count) as paths on the Galaxy Map**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." A Trade routes layer in the Galaxy Map's menu next to the
+  Territories overlay: draws the saved hop chains as lines through the
+  systems they pass, coloured by owner polity and thick by volume, with
+  a legend, a reduced-motion setting, and the same camera-relative
+  buffers as courses (MAP.240); filters by polity, minimum length and
+  hop count; hides the layer when the galaxy has no routes. Reuses the
+  course drawing of NAV.5. Done: a browser test draws a sample galaxy's
+  routes, the filters change what is drawn, and the legend lists the
+  polities. Version 8.5, phase 4. Owner: Core 2. Rules: draws through
+  draw.py (GEN.774 streams); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch; every number has a unit or scale (GEN.772) and a column_units
+  entry; stand-ins get GEN.725 registry rows with tier and tweak labels;
+  a new command follows the PERF.120 rules (one command does one thing);
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.34, NAV.5. Related: NAV.5, NAV.36, MAP.240,
+  MAP.307.
+
+- [ ] **MAP.310 Routes away from a selected object: select a system, spaceport or world on the star map and show only the trade routes leaving it**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." In the information box of a selected object, a Trade routes
+  button (shown when the object is a spaceport, a system with a
+  spaceport, or a world with one) draws only the routes that start or
+  pass through it, outward from it, lists them (destination, length,
+  hops, travel time) and fits the view to them; selecting another object
+  changes the set; Clear returns to the filter. Done: a browser test
+  selects a system with a port and sees only its routes. Version 8.5,
+  phase 4. Owner: Core 2. Rules: draws through draw.py (GEN.774
+  streams); a PR that changes drawn output carries `tests.golden_update
+  --reason ... --affects population` and the next epoch; every number
+  has a unit or scale (GEN.772) and a column_units entry; stand-ins get
+  GEN.725 registry rows with tier and tweak labels; a new command
+  follows the PERF.120 rules (one command does one thing); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: MAP.309. Related: MAP.295, MAP.296.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3383,6 +3455,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: NAV.54. Related: GEN.364, GEN.281, GEN.303, GEN.285,
   NAV.26, NAV.6.
   Design: [docs/design/galaxy/realistic-galactic-core.md](design/galaxy/realistic-galactic-core.md)
+
+- [ ] **NAV.63 Find the nearest trade route: by spaceport, and by where someone could put themselves in the path of a route**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." A query, an API and a map tool: from a system or a point,
+  return (1) the nearest spaceport that has routes, and (2) the nearest
+  place on any route's path where one could intercept it: the nearest
+  system on a route's hop chain and the nearest point on a hop segment
+  (point to segment distance in the galaxy frame, the fraction along the
+  hop), with the route, the distance in light-years and the travel time
+  to get there at a chosen speed; uses the cell-key index on the hop
+  systems and a segment index so the query is fast on a large galaxy;
+  the map tool marks the result and draws the route. Done: tests with
+  known routes (a point beside a hop, a point beyond an end, a point
+  near two routes), and a browser test of the tool. Version 8.5, phase
+  4. Owner: Core 2 with the navigation lane. Rules: draws through
+  draw.py (GEN.774 streams); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch; every number has a unit or scale (GEN.772) and a column_units
+  entry; stand-ins get GEN.725 registry rows with tier and tweak labels;
+  a new command follows the PERF.120 rules (one command does one thing);
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.33, MAP.309. Related: NAV.61, NAV.5.
 
 ## GEN: Generation and physics
 
@@ -15828,6 +15939,48 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   content from the Milky Way or the Solar System.
   Prerequisites: POP.16, DB.103. Related: DB.101, POP.9, GEN.568.
 
+- [ ] **DB.105 Storage for world population and the global trade route list: tables, Object IDs, column units and the migration**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." New columns on the species or a `world_population` table
+  (planet_id, species_id, population, carrying_capacity, growth_rate,
+  noise_seed, epoch of the state) and new tables `trade_routes` (id,
+  uid, from_port_id, to_port_id, from_system_id, to_system_id,
+  length_ly, hops, travel_time_years, volume, owner_polity_ids, state)
+  and `trade_route_hops` (route_id, seq, system_id, hop_length_ly) with
+  the foreign keys and delete rules of the existing facility tables, an
+  index on the hop systems and a cell-key index for the nearest-route
+  query, the Object ID kind for a route (96-bit uid), a column_units
+  entry for every numeric column, the Alembic revision (next free
+  migration) with the old-schema fixture and the read functions. The
+  list is global: no account column. Nothing is drawn yet. Done: the
+  migration round-trips and test_db_column_round_trip passes for the new
+  columns. Version 8.2, phase 3. Owner: Aux 12 style. Rules: draws
+  through draw.py (GEN.774 streams); a PR that changes drawn output
+  carries `tests.golden_update --reason ... --affects population` and
+  the next epoch; every number has a unit or scale (GEN.772) and a
+  column_units entry; stand-ins get GEN.725 registry rows with tier and
+  tweak labels; a new command follows the PERF.120 rules (one command
+  does one thing); tests are `scripts/test.py changed --resume`; no
+  fixed content from the Milky Way or the Solar System. Part of the
+  trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.29, DB.103. Related: DB.101, POP.21.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -19575,6 +19728,40 @@ clears each one.
   (POP.27).
   Prerequisites: POP.23. Related: TEST.380, TEST.261, POP.27.
 
+- [ ] **TEST.382 First live test pass of the world population and the trade routes on a generated galaxy, before the 8.5 stamp**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." Generate a galaxy with spaceports, run `world-population` and
+  `trade-routes`, read the pages and the map layer, check the
+  populations against the habitability scores, the routes against the
+  hop limit and the partner rule, the three map tools, and file every
+  wrong or unclear result as its own bug. Done: a dated report in
+  reports/ and every finding filed. Version 8.5, phase 4. Owner: Bug 1.
+  Rules: draws through draw.py (GEN.774 streams); a PR that changes
+  drawn output carries `tests.golden_update --reason ... --affects
+  population` and the next epoch; every number has a unit or scale
+  (GEN.772) and a column_units entry; stand-ins get GEN.725 registry
+  rows with tier and tweak labels; a new command follows the PERF.120
+  rules (one command does one thing); tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.34. Related: TEST.380, TEST.381, POP.33, MAP.310, NAV.63.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -21306,7 +21493,9 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   registry row with its tier and tweak labels; tests are
   `scripts/test.py changed --resume` only; no fixed content from the
   Milky Way or the Solar System.
-  Prerequisites: DB.103, GEN.774. Related: POP.9, POP.7.
+  Research (2026-10-09, Progress): Reads the simulated populations of
+  POP.30 for the carrying capacity and the size of the largest city.
+  Prerequisites: DB.103, GEN.774. Related: POP.9, POP.7, POP.30.
 
 - [ ] **POP.18 Nation-states on a planet: how many, their land shares, names, governments, power and which are dominant**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
@@ -21685,4 +21874,290 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   changed --resume`; no fixed content from the Milky Way or the Solar
   System.
   Prerequisites: POP.27. Related: UX.143, MAP.132, UX.211.
+
+- [ ] **POP.29 Design: the world population simulation from habitability scores and the trade routes between spaceports (partner selection, hop runs, the global route list, the map filters, the nearest-route query)**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." Write docs/design/habitability/trade-routes.md with its
+  sources and stand-in tiers. It decides: (1) the population simulation:
+  a world's population is a logistic growth toward a carrying capacity
+  set by the habitability scores (Suitability, the food score from Flora
+  and Fauna, the land area), the tech band and the civilization's age,
+  one closed form per world with a seeded noise draw, so a later dynamic
+  version (9.1) can step it in time; (2) which civilizations trade:
+  spaceport owners only (POP.21, tech from the settlements design), the
+  largest by population first; (3) the partner rule (a gravity model:
+  demand rises with the two populations and falls with distance, a cap
+  on routes per port, hubs); (4) the hop run: each route is a hop-by-hop
+  run on the existing navigation graph (galaxy/nav_graph.py,
+  `nav_course` route mode) with a hop length limit from the tech band,
+  and what a route stores (the endpoints, the hop list of systems, the
+  length in light-years, the hop count, the travel time at the owner's
+  tech); (5) the global trade route list: one list for the whole galaxy,
+  readable from every account (not per account), changed only by
+  generation and by admin editing; (6) the map filter, the routes
+  leaving a selected object, and the nearest-route query (nearest
+  spaceport with routes, and the nearest point on any route's path where
+  someone could put themselves in the way: the nearest system on a hop
+  path and the nearest point on a hop segment); (7) what is fixed until
+  9.1 makes it dynamic. Done: the design is in the docs with its sources
+  and its stand-in list, and every later item of the tree cites it.
+  Owner: a research thread with Core 2 for the map parts. Version 8.2,
+  phase 3. Rules: draws through draw.py (GEN.774 streams); a PR that
+  changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and the next epoch; every number has a unit or
+  scale (GEN.772) and a column_units entry; stand-ins get GEN.725
+  registry rows with tier and tweak labels; a new command follows the
+  PERF.120 rules (one command does one thing); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.16. Related: POP.16, POP.21, GEN.725, NAV.5.
+
+- [ ] **POP.30 World population simulation from habitability scores: population, carrying capacity and growth state for every world with a civilization, as its own command and galaxy stage**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." Implement the design's simulation: for every species with a
+  dated civilization, the population of its homeworld and of any other
+  inhabited world is the logistic value at the civilization's age toward
+  the carrying capacity from the stored Suitability and food scores, the
+  land area and the tech band, with the seeded noise draw; store
+  population, carrying capacity and the growth state (so the dynamic
+  version steps from it). It is its own registered command
+  `world-population` and a stage of the galaxy run after `population`
+  and before `territories`, with rescan rules (an unchanged world draws
+  nothing, a changed habitability score recomputes the value only).
+  Epoch bump with `--affects population`. Done: a world with a higher
+  habitability score and a longer-lived civilization holds more people
+  in a sample of 1,000 worlds, populations never exceed capacity, and
+  the same seed gives the same populations. Version 8.3, phase 4. Owner:
+  Core 5 style (population commands) with Aux 3 for the habitability
+  inputs. Rules: draws through draw.py (GEN.774 streams); a PR that
+  changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and the next epoch; every number has a unit or
+  scale (GEN.772) and a column_units entry; stand-ins get GEN.725
+  registry rows with tier and tweak labels; a new command follows the
+  PERF.120 rules (one command does one thing); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: DB.105, POP.29, GEN.774. Related: POP.8, PERF.125,
+  PERF.120.
+
+- [ ] **POP.31 Population on the pages and API: world population, capacity and share of capacity on the planet, species and polity pages**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." Show each inhabited world's population with its unit (people),
+  the carrying capacity and the share of capacity, and a species' and a
+  polity's total population, on the object pages and in the API; hidden
+  when absent, in the Properties list, collapsed sections at start.
+  Done: pages and API for a sample world and species, and a browser
+  test. Version 8.3, phase 4. Owner: Aux 11. Rules: draws through
+  draw.py (GEN.774 streams); a PR that changes drawn output carries
+  `tests.golden_update --reason ... --affects population` and the next
+  epoch; every number has a unit or scale (GEN.772) and a column_units
+  entry; stand-ins get GEN.725 registry rows with tier and tweak labels;
+  a new command follows the PERF.120 rules (one command does one thing);
+  tests are `scripts/test.py changed --resume`; no fixed content from
+  the Milky Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.30. Related: UX.211, GEN.772.
+
+- [ ] **POP.32 Trade partners: which spaceports trade with which, by the gravity model on population and distance, with a cap per port and hubs**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." From the spaceports of POP.21 and the world populations of
+  POP.30, choose the pairs that get a route: the largest civilizations'
+  ports first, demand rising with the two populations and falling with
+  distance, a maximum number of routes per port, and hub ports that
+  carry more; every spacefaring polity with a port gets at least one
+  route where the galaxy has another polity in reach. Draws via draw.py.
+  Stored as the pair list for the route generator. Done: no route
+  between ports below the tech gate, the pair count obeys the cap, and
+  the same seed gives the same pairs. Version 8.5, phase 4. Owner: Core
+  5 style. Rules: draws through draw.py (GEN.774 streams); a PR that
+  changes drawn output carries `tests.golden_update --reason ...
+  --affects population` and the next epoch; every number has a unit or
+  scale (GEN.772) and a column_units entry; stand-ins get GEN.725
+  registry rows with tier and tweak labels; a new command follows the
+  PERF.120 rules (one command does one thing); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.21, POP.30, DB.105. Related: POP.21, NAV.5.
+
+- [ ] **POP.33 Generate the trade routes: a hop-based run on the navigation graph between each pair of spaceports, saved in the one global route list**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." For each pair chosen by the partner rule, run the existing
+  hop-by-hop pathfinding (`galaxy/nav_graph.build_route_graph` and
+  `shortest_path` through `nav_course` in route mode, k-nearest
+  neighbors graph with island links) from the origin spaceport's system
+  to the destination's, with the hop length limit of the owner's tech
+  band, and save the route (endpoints, hop list, length, hop count,
+  travel time, volume) in `trade_routes` and `trade_route_hops`. A pair
+  with no path inside the hop limit is reported, not saved. Its own
+  registered command `trade-routes` and a galaxy stage after
+  `settlements`. Rescan: unchanged routes are kept, a route whose port
+  is gone is dropped, an admin-edited route is never redrawn. Epoch bump
+  with `--affects population`. Done: every saved route is a connected
+  hop chain within the hop limit from a spaceport to a spaceport, routes
+  are reproducible from the seed, and a test runs 20 seeds. Version 8.5,
+  phase 4. Owner: Core 5 style with the navigation lane. Rules: draws
+  through draw.py (GEN.774 streams); a PR that changes drawn output
+  carries `tests.golden_update --reason ... --affects population` and
+  the next epoch; every number has a unit or scale (GEN.772) and a
+  column_units entry; stand-ins get GEN.725 registry rows with tier and
+  tweak labels; a new command follows the PERF.120 rules (one command
+  does one thing); tests are `scripts/test.py changed --resume`; no
+  fixed content from the Milky Way or the Solar System. Part of the
+  trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.32. Related: NAV.5, NAV.6, PERF.125.
+
+- [ ] **POP.34 The global trade route list: a page and an API every account can read, with filters by polity, route length, hop count and spaceport**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
+  to put in a tree by 8.9 to have the system build trade routes, space
+  lanes between the largest civilizations. That means we're also going
+  to have to have population simulations based on habitability scores so
+  To Do needs to build that into the workflow. Start no lower than 8.2
+  with a target destination of being done by 8.9 so that by 9.1 we can
+  make the trade routes dynamic. The trade routes should use the
+  existing pathfinding navigation systems where they will do hop-based
+  runs. As in you will set up and generate routes between civilizations
+  with a high enough tech level to have spaceports. Between those
+  spaceports those will be saved in a global trade route list, which
+  will be accessible from all user accounts. It will also have to have a
+  filter to see on the star map the paths in question. The filter will
+  also need to be able to have the user select an object in the star map
+  and then view trade routes going away from that object. It will also
+  need to be able to find the nearest trade route either by spaceport
+  or, surely, by where they could put themselves in the path of a trade
+  route." One list for the galaxy at `/trade-routes` and in the API,
+  readable from every account, paged, sortable and filterable by polity,
+  by length (light-years), by hop count and by a spaceport or system;
+  each route has its own object page with the hop chain, the owners and
+  the travel time (units on every number, GEN.772). Not per account: no
+  account owns a route. Done: pages and API for a sample galaxy, the
+  same list from two accounts, and a browser test. Version 8.5, phase 4.
+  Owner: Aux 11 and Aux 12 (API). Rules: draws through draw.py (GEN.774
+  streams); a PR that changes drawn output carries `tests.golden_update
+  --reason ... --affects population` and the next epoch; every number
+  has a unit or scale (GEN.772) and a column_units entry; stand-ins get
+  GEN.725 registry rows with tier and tweak labels; a new command
+  follows the PERF.120 rules (one command does one thing); tests are
+  `scripts/test.py changed --resume`; no fixed content from the Milky
+  Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.33. Related: UX.143, API.33.
+
+- [ ] **POP.35 Dynamic world populations: populations step forward with the nightly update from the stored growth state, so cities and capacity follow the habitability scores over time**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "...so that
+  by 9.1 we can make the trade routes dynamic." (Population simulations
+  from habitability scores and trade routes between spaceports, built by
+  8.9.) The 8.3 simulation stores population, carrying capacity and
+  growth state; this item steps the logistic growth each nightly update
+  (the orbital update's schedule, GEN.212) with the stored seed noise,
+  applies habitability changes (a world whose conditions change loses or
+  gains capacity) and records the change. Done: a world's population
+  follows its capacity across 100 simulated nights, and rerunning the
+  same nights gives the same numbers. Version 9.1, phase 4. Owner: Core
+  5 style. Rules: draws through draw.py; a PR that changes drawn output
+  carries `tests.golden_update --reason ... --affects population` and
+  the next epoch; every number has a unit or scale (GEN.772) and a
+  column_units entry; stand-ins get GEN.725 registry rows with tier and
+  tweak labels; tests are `scripts/test.py changed --resume`; no fixed
+  content from the Milky Way or the Solar System. Part of the trade
+  tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.30. Related: POP.24, GEN.212.
+
+- [ ] **POP.36 Dynamic trade routes: routes grow, shift and close as populations, ports and territories change, using the same hop pathfinding**
+  Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "...so that
+  by 9.1 we can make the trade routes dynamic." (Population simulations
+  from habitability scores and trade routes between spaceports, built by
+  8.9.) Trade routes become dynamic: each nightly update recomputes the
+  partner demand from the live populations and ports (POP.35), adds
+  routes between newly eligible spaceports, reroutes a route whose hop
+  chain is no longer reachable, closes a route whose port is gone or
+  whose owners are at war once 9.2 lands, and keeps the global list and
+  the map filters current. An admin-edited route is never changed. Done:
+  a test with a new port adds a route and a destroyed port closes one,
+  and the map layer shows the change. Version 9.1, phase 4. Owner: Core
+  5 style with Core 2. Rules: draws through draw.py; a PR that changes
+  drawn output carries `tests.golden_update --reason ... --affects
+  population` and the next epoch; every number has a unit or scale
+  (GEN.772) and a column_units entry; stand-ins get GEN.725 registry
+  rows with tier and tweak labels; tests are `scripts/test.py changed
+  --resume`; no fixed content from the Milky Way or the Solar System.
+  Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
+  Prerequisites: POP.33, POP.35, MAP.309. Related: POP.33, POP.24.
 
