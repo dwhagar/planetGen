@@ -95,6 +95,30 @@ def test_a_batch_of_jobs_starts_no_more_workers_than_wanted_and_not_twice(redis_
     assert workers.ensure_workers(_queue_name(), connection) == 0                   # an empty queue starts none
 
 
+def test_a_worker_that_registers_stops_counting_as_starting(redis_server, monkeypatch):
+    """TEST.371: the count of workers started and not yet registered fell only by its 90 s expiry, so a worker killed
+    right after it started was not replaced for about that long."""
+    started = []
+    monkeypatch.setattr(workers.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
+    monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 2)
+    name = _queue_name()
+    connection = redisqueue.connect()
+    queue = redisqueue.queue(name, connection)
+    connection.delete(workers.WANTED_KEY)
+    for n in range(5):
+        queue.enqueue(math.pow, 2, n, job_timeout=600)
+    assert workers.ensure_workers(name, connection) == 2
+    key = workers.STARTING_PREFIX + name
+    assert int(connection.get(key)) == 2
+    workers.registered(connection, [name])
+    assert int(connection.get(key)) == 1
+    assert workers.ensure_workers(name, connection) == 1          # one of the two registered and is not live here: replaced
+    workers.registered(connection, [name])
+    workers.registered(connection, [name])
+    assert connection.get(key) is None                            # never below nothing
+    workers.registered(connection, [_queue_name()])               # a worker nothing was waiting for
+
+
 def test_a_worker_that_is_killed_is_replaced_and_the_queued_job_runs(redis_server, monkeypatch):
     """PERF.95: kill -9 a real worker; the next job (or status poll) starts another, which runs it."""
     monkeypatch.setattr(workers.work, "worker_count", lambda *a, **k: 1)
