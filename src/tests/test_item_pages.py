@@ -192,9 +192,10 @@ def test_an_unknown_body_is_not_found(client):
 def test_the_page_has_a_location_block_from_the_parent_chain(client):
     page = client.get(f"/object/{MOON}").get_data(as_text=True)
     assert 'id="location"' in page
-    for url in ('href="/galaxy"', 'href="/sector/4"', 'href="/system/9"', f'href="/object/{PLANET}"'):
+    for url in ('href="/sector/4"', 'href="/system/9"', f'href="/object/{PLANET}"'):
         assert url in page
-    assert "Not inside any nebula or supernova remnant." in page
+    assert 'href="/galaxy"' not in page.split('id="location"')[1].split("</section>")[0]    # UX.200: no Galaxy link
+    assert "Not inside any nebula" not in page
 
 
 def test_the_tree_route_answers_the_rows_of_a_level_as_json(client):

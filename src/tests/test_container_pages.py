@@ -114,7 +114,7 @@ def test_the_page_of_a_cluster_says_what_it_is_and_links_what_sits_inside_it(wor
     assert page.status_code == 200
     html = page.get_data(as_text=True)
     assert cluster.name in html and "Globular cluster" in html and "What is inside it" in html
-    assert 'id="item-properties"' in html and 'id="location"' in html
+    assert 'id="item-properties"' in html and 'id="location"' not in html    # UX.200: nothing above a cluster but the galaxy
     assert 'href="/system/' in html and "billion years old" in html
 
 

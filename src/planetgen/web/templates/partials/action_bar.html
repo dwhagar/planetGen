@@ -1,37 +1,36 @@
 {#- planetgen/web/templates/partials/action_bar.html -- the one action bar of an
-    object page (UX.63): Navigate, Show on Galaxy Map and Bookmark, in one row
-    in the same order on a system, a phenomenon and a sector. UX.27's layout:
-    where the buttons don't fit, the two navigate buttons fold into one
-    Navigate menu, and on a phone Show on Galaxy Map joins that menu (container
-    queries in style.css pick the layout).
+    object page (UX.63): Nav, Show on Galaxy Map and Bookmark, in one row in the
+    same order on a system, a phenomenon and a sector. UX.201: one Nav button
+    opens a menu of Navigate from here, Navigate to here and Nearby locations.
 
     `action_bar(bookmark, nav_links, pick, galaxy_url, admin, nearby)`: `nav_links` is
     web.system_pages.nav_links (None where the page has no Navigate yet, as a
     sector does until NAV.49); `pick` is the NAV pick in progress, if any;
     `galaxy_url` is where Show on Galaxy Map goes (None leaves it out);
+    `nearby` is the nearby-locations page (None leaves it out);
     `admin` is the Admin menu button (`admin_menu_button`, UX.68), last in the bar. -#}
 {% from "partials/bookmark.html" import bookmark_button %}
 {%- macro action_bar(bookmark, nav_links=none, pick=none, galaxy_url=none, admin=none, nearby=none) -%}
 <div class="page-actions nav-row">
   {%- if pick %}
   <a class="btn btn-small starmap-pick" href="{{ nav_links.pick }}">{{ nav_links.pickLabel }}</a>
-  {%- elif nav_links or galaxy_url %}
-  {%- if nav_links %}
-  <a class="btn btn-small btn-secondary nav-wide" href="{{ nav_links.from }}">Navigate from here</a>
-  <a class="btn btn-small btn-secondary nav-wide" href="{{ nav_links.to }}">Navigate to here</a>
+  {%- else %}
+  {%- if nav_links or nearby %}
   <sl-dropdown class="nav-menu" placement="bottom-start" distance="4">
-    <sl-button slot="trigger" size="small" caret>Navigate</sl-button>
-    <sl-menu aria-label="Navigate">
-      <sl-menu-item data-href="{{ nav_links.from }}">From here</sl-menu-item>
-      <sl-menu-item data-href="{{ nav_links.to }}">To here</sl-menu-item>
-      {%- if galaxy_url %}
-      <sl-menu-item class="nav-menu-galaxy" data-href="{{ galaxy_url }}">Show on Galaxy Map</sl-menu-item>
+    <sl-button slot="trigger" size="small" caret>Nav</sl-button>
+    <sl-menu aria-label="Nav">
+      {%- if nav_links %}
+      <sl-menu-item data-href="{{ nav_links.from }}">Navigate from here</sl-menu-item>
+      <sl-menu-item data-href="{{ nav_links.to }}">Navigate to here</sl-menu-item>
+      {%- endif %}
+      {%- if nearby %}
+      <sl-menu-item data-href="{{ nearby }}">Nearby locations</sl-menu-item>
       {%- endif %}
     </sl-menu>
   </sl-dropdown>
   {%- endif %}
   {%- if galaxy_url %}
-  <a class="btn btn-small btn-secondary{% if nav_links %} nav-galaxy{% endif %}" href="{{ galaxy_url }}">Show on Galaxy Map</a>
+  <a class="btn btn-small btn-secondary" href="{{ galaxy_url }}">Show on Galaxy Map</a>
   {%- endif %}
   {%- endif %}
   {{ bookmark_button(bookmark) }}
@@ -39,7 +38,4 @@
   {{ admin }}
   {%- endif %}
 </div>
-{%- if nearby and not pick %}
-<p class="page-actions"><a class="btn btn-small btn-secondary" href="{{ nearby }}">What's nearby</a></p>
-{%- endif %}
 {%- endmacro -%}
