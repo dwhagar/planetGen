@@ -13121,24 +13121,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   names is left. Owner: Condition-based classes lane.
   Prerequisites: GEN.689.
 
-- [ ] **GEN.701 Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields**
-  Source: reports/habitability-model-gaps-2026-10-23.md item 3 (build
-  plan row 3), relayed by lane D at 1:59 AM EDT 2026-10-24 as the lane
-  reported. rogue_planets has no habitability columns and RoguePlanet
-  never calls habitability_world, although a rogue with a liquid ocean
-  under ice or under a hydrogen envelope is the case Suitability and the
-  life scores were built for. Do: score columns on rogue_planets
-  (entries in db/column_units.py), a World built from the surface regime
-  (pressure, temperature, a hydrogen envelope as H2, ocean depth, the
-  galactic cosmic-ray dose through the column mass, heat flow as the
-  only energy), and the API fields. Wanderers (GEN.557) may replace the
-  rogue body chain, so check GEN.557 and GEN.687 first and build on
-  whichever representation is current. Done: a test that a Hycean-like
-  rogue scores above a bare ice rogue, and the scores show in the API. A
-  new migration and the next free epoch at merge. Owner: lane D; check
-  nobody started it first.
-  Prerequisites: none. Related: GEN.557, GEN.687.
-
 - [ ] **GEN.705 The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug)**
   Found by Core 3 while merging GEN.631 (#2915, epoch 72), as the lane
   reported at 5:30 AM EDT 2026-10-24; report
