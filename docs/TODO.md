@@ -7030,40 +7030,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
 
-- [ ] **GEN.398 The massive-star and bright-star passes place more stars than their log lines expect: 70 and 12 percent over (bug)**
-  Rescatter read-only thread (Boss asked 2026-10-16, 9:35 PM EDT;
-  measured 9:37 to 10:07 PM EDT on a 4-core box, main 8.0.1617, default
-  galaxy, seed 0123456789abcdef0123456789abcdef; note
-  /mnt/project-files/reports/rescatter-worth-it-2026-10-16.md). The
-  massive-star pass logged "about 156,808 stars expected" and placed
-  265,909 (70 percent over; the per-chunk "added N stars" lines sum to
-  265,909); the bright-star pass logged "about 693,089" and placed
-  778,980 (12 percent over). scatter-queue-feasibility.md had the
-  sampler within 1.5 sigma of expected at 8 solar masses. It may be only
-  the coarse WEIGHT_BAND_SAMPLES estimate behind the log line, or the
-  sampler after GEN.333 and GEN.280. Fails on main, every run.
-  Reproducer: `planetgen plan --redo-scatters mass luminosity` on a
-  planned galaxy and compare the two log lines. Done: the cause is named
-  (estimate or sampler); if the sampler is wrong the placed count
-  matches the integral of the density within k Poisson sigma over a
-  small galaxy test, and if only the estimate is coarse the log line
-  uses the better estimate; the test stays.
-  Owner: Core 3 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
-  PM EDT via the coordinator: add the 14 code-contradicts-physics items
-  to the Math lane; assessment
-  reports/physics-grounding-assessment-2026-10-24.md contradiction 7):
-  Owner: Math lane. This replaces any earlier owner line on this item.
-  Taken from Core 3, which has not started it; the Math lane confirms
-  with TODO before starting.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
-  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
-  nobody started it.
-  Prerequisites: none. Related: GEN.322, GEN.333, GEN.280, GEN.321.
-
 - [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
   Boss (2026-10-16, 10:11 PM EDT, in the Core 1 thread): on the GEN.368
   halo mass card he picked "Approximate" for now, and wants an item in
@@ -12944,40 +12910,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   names is left. Owner: Condition-based classes lane.
   Prerequisites: GEN.689.
 
-- [ ] **GEN.691 The Suitability sentence says "no food readily available, but there is water and shelter available" while the Water row is Red and "undrinkable without heavy treatment" (bug)**
-  Found by the Habitability text consistency lane from Boss's pasted
-  class B planet page (his message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiDs1DawrZoMKQtWYK4tvujG, relayed 12:11 AM
-  EDT 2026-10-24 as the lane reported). The Suitability water rung (is
-  water accessible) and the Water row (the chemistry, drinkable or not)
-  are different tests but are worded as if they were one, so the page
-  contradicts itself. Do: reword the Suitability clause
-  (physics/protection.py _suitability_clause) so water access and water
-  quality read consistently with the Water row, e.g. name the treatment
-  needed; add a test that the sentence never says water is available
-  without the Water row's treatment note. Done: the class B page reads
-  consistently and the test passes. Owner: Habitability lane D
-  (habitability model).
-  Research (2026-10-09, Decided): Decided (Boss, 12:39 AM EDT 2026-10-24
-  (his message cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva,
-  relayed by the coordinator)), answer 3, option 1: a Green Water or
-  Suitability row that says a mask is needed is allowed (a Green rating
-  may still need a mask). The wording must not contradict the rows, but
-  the combination Green with a mask is valid. Owner: Habitability text
-  lane / lane D.
-  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
-  PM EDT via the coordinator: add the 14 code-contradicts-physics items
-  to the Math lane; assessment
-  reports/physics-grounding-assessment-2026-10-24.md contradiction 13):
-  Owner: Math lane. This replaces any earlier owner line on this item.
-  Taken from lane D, which has not started it; the Math lane confirms
-  with TODO before starting.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
-  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
-  nobody started it.
-  Prerequisites: none.
-
 - [ ] **GEN.701 Rogue planets get habitability scores: score columns on rogue_planets, a World built from the rogue surface regime, and the API fields**
   Source: reports/habitability-model-gaps-2026-10-23.md item 3 (build
   plan row 3), relayed by lane D at 1:59 AM EDT 2026-10-24 as the lane
@@ -13176,40 +13108,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread; nobody has started it; Lane E reported the finding but is
   not building it).
   Prerequisites: none. Related: GEN.703, GEN.715, GEN.423.
-
-- [ ] **GEN.719 A white dwarf primary makes draw_member_tree ignore n_stars=1, so a binary_system prevalence of -100 still yields a wide double white dwarf (bug)**
-  Found by Lane K (11:32 AM EDT 2026-10-24 as the lane reported) when
-  its PR 2956 shifted the draw stream and
-  test_prevalence::test_no_binaries_at_minus_100 failed (seed 3, system
-  471); the test passes again on the current stream by luck. Root cause:
-  multistar.draw_member_tree ignores n_stars=1 for a compact or white
-  dwarf placed object ("ignored for a compact or white dwarf placed
-  object"), because the companions come from MEMBER_STATE_BY_PLACED, so
-  a binary_system prevalence of -100 (no binaries) still gives a wide
-  double white dwarf. A latent bug in the GEN.631 tree, not in lane K's
-  change. Do: make n_stars=1 (and a prevalence of -100) produce a single
-  object for a placed white dwarf or compact object too, or state in the
-  docs why a placed compact object always has its companion and make the
-  test and the dial say so. Done: a test that forces no binaries and
-  finds no double white dwarf in a few hundred seeded systems, and the
-  epoch is bumped if a drawn value changes (next free at merge). Owner:
-  none (the star scatter lane, Core 3 or Core 1, is the nearest owner).
-  Research (2026-10-09, Lane H confirmation): Update 3:06 PM EDT
-  2026-10-24 (Lane H, relayed as the lane reported):
-  test_prevalence::test_no_binaries_at_minus_100 also fails on clean
-  main e7ff546 (0.002 binaries instead of 0), which is this item. Owner
-  unchanged.
-  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
-  PM EDT via the coordinator: add the 14 code-contradicts-physics items
-  to the Math lane; assessment
-  reports/physics-grounding-assessment-2026-10-24.md contradiction 14):
-  Owner: Math lane. This replaces any earlier owner line on this item.
-  Free; the Math lane confirms with TODO before starting.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
-  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
-  nobody started it.
-  Prerequisites: none. Related: GEN.631, GEN.332.
 
 - [ ] **GEN.720 star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug)**
   Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
@@ -15215,6 +15113,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   well under 1 GB, and record the before and after peak in the item.
   Owner: Aux 16 (Performance).
   Prerequisites: none. Related: PERF.187, PERF.184.
+
+- [ ] **PERF.194 The phenomena stage progress line still says "186M to place": the weight is printed as a number of phenomena instead of work (bug)**
+  Found by Math lane 2 (8:11 PM EDT 2026-10-24 as the lane reported)
+  while fixing GEN.398: the phenomena-stage progress weight wording
+  ("186M to place") remains after GEN.397 and GEN.398. Do: print the
+  weight as the work the stage does (sectors and phenomena groups
+  placed, or the percent of the stage), consistent with the PERF.184
+  time estimate, in `planetgen plan` stage 2 and the Generate page
+  progress. Done: a test over the progress text of the phenomena stage
+  finds no raw count of phenomena as a weight. Owner: Core 5 (PERF.184
+  owner; the estimate and the progress text are one piece). Related:
+  GEN.397, GEN.398, PERF.184.
+  Prerequisites: none. Related: GEN.397, GEN.398, PERF.184.
 
 ## DB: Database and schema
 
@@ -19640,6 +19551,40 @@ clears each one.
   and no retry decorator. Done: the test passes in three full quick
   runs. Owner: Bug 1. Related: TEST.344, TEST.364.
   Prerequisites: none. Related: TEST.344, TEST.364.
+
+- [ ] **TEST.372 scripts/test.py and docs/reference/testing.md call `full` "the merge gate", which lanes read as a whole-suite gate for every merge (bug)**
+  Boss, 8:10 PM EDT 2026-10-24 (relayed by the coordinator): "remember
+  we have tests that run based on changed code only and we can resume
+  tests, and I want to make sure we're not over-testing." Lanes are
+  running 2 to 5 hour whole-suite gates
+  (reports/lane-testing-audit-2026-10-24.md). Boss's rule (8:07 PM EDT):
+  every merge tests only what changed or would change; the detailed full
+  run is reserved for the end-of-version bug hunt (TEST.261, SEC.33,
+  GEN.301 `full --check`) before the stamp. Do: change the
+  `scripts/test.py` module help ("full ... the merge gate") and
+  docs/reference/testing.md (the "merge gate" wording, the line that
+  asks for a green `full` at the end of a sequence of related items) so
+  that `changed` with `--resume` is the gate for every merge and `full`
+  is for the end-of-version run and the check that proves `changed`; add
+  to the `changed` run's last line a reminder when it was started
+  without `--resume` after an earlier run of the same build left a
+  progress log (it names the command to resume); keep the PR description
+  line that says which run was used. Done: the help text and the testing
+  doc say the same thing as lanes.md's TESTING RULE, and a test over the
+  help text finds no "merge gate" next to `full`. Owner: Bug 1. Related:
+  TEST.208, TEST.261.
+  Prerequisites: none. Related: TEST.208, TEST.261.
+
+- [ ] **TEST.373 test_protection::test_there_is_one_describer_of_the_six_categories fails on main: habitability_explain.py exists again after GEN.445 (bug)**
+  Found by Math lane 2 (8:11 PM EDT 2026-10-24 as the lane reported) on
+  main after #3162; not its change. TEST.363 (#3155) made the describer
+  and habitability_explain agree; since then GEN.445 brought a
+  habitability_explain.py back, so the test that expects one describer
+  of the six categories fails. Do: make one module the describer (the
+  test says which) and have the other import it, or change the test to
+  the module layout GEN.445 chose, with no skip. Done: the test passes
+  on main. Owner: Aux 4 (Lane E, GEN.445). Related: TEST.363, GEN.445.
+  Prerequisites: none. Related: TEST.363, GEN.445.
 
 ## USR: User accounts
 
