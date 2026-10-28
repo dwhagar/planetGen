@@ -7647,81 +7647,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane reported): the UV part of this item merged with GEN.445's UV
   slice as #2933 (epoch 74). The dose part (GCR and SEP shielding, the
   second GCR curve) is still open.
-- [ ] **GEN.445 Habitability, toxicity and the UV index read the derived radiation instead of the proxies**
-  Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
-  "atmosphere composition and planet/moon/star/everything composition is
-  going to be the joint headline of v9.0 ... we need to know the
-  compounds, minerals, and such make up both atmospheres and stellar
-  bodies of all sorts, what is there and all the stats needed to include
-  it in our calculations. The idea is that every body will have figures
-  on its composition based on actual science and not made up where we
-  can avoid it. I'm perfectly ok with drawing the density and other
-  figures we draw now and then filling in compositions that fit that
-  designation. That is perfectly fine, or we can pick the most basics
-  and build either way works." Plan note:
-  docs/design/composition/composition-model.md. The radiation rung of the
-  habitability score, the shelter rung, the UV index and the toxicity
-  limits read the band transmission, the surface dose and the greenhouse
-  of GEN.443 and GEN.444, and the ozone of GEN.413, so a change of
-  composition moves them together (`physics/habitability.py` and
-  `habitability_explain.py`). Done: the habitability explanation names
-  the composition terms behind each radiation value, and a test shows
-  that changing a gas or the ground's potassium moves the score as the
-  model says.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation
-  code as the atmosphere items Boss gave it; to be confirmed).
-  Merged research (2026-10-17): the repo's `uv_index` (the blackbody 200
-  to 300 nm fraction against the Sun times the flux ratio times an ozone
-  factor) is not the CIE index; part 02 section 2.6 gives the CIE
-  erythemal formula (S = 1 for 250 to 298 nm, 10^(0.094 (298 - lambda))
-  to 328 nm, 10^(0.015 (140 - lambda)) to 400 nm; UVI = 40 m2/W times
-  the weighted irradiance) and the Setlow DNA spectrum, so the index and
-  the biological doses become derived quantities. Part 02 section 2.7
-  shows the UV index falls as ozone column^-1.08.
-  Boss-supplied research, second note (2026-10-17, 2:11 AM EDT, posted
-  in the project chat; routed by the coordinator to the Atmosphere and
-  Body composition research lanes to verify; summary in section 10 of
-  docs/design/composition/atmosphere-composition.md), recorded by the TODO thread as not a verified input (both lanes have since checked it; sections 3c and 10 of docs/design/composition/atmosphere-composition.md and section 15 of docs/design/composition/body-composition-research.md say what held): the surface dose rates by
-  body (Mars 76 mGy per year and 232 mSv per year under 20 to 22 g/cm2;
-  Europa and Titan rows) and the biological thresholds; compare the
-  neutron share with finding 18.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.444. Related: GEN.443, GEN.413, GEN.208.
-  Moved into 8.1 phase 5 (the radiation chain for habitability) by Boss,
-  5:42 PM EDT 2026-10-23: 'All of it, the entire GEN.445, we're still in
-  testing mode, not production, so do what you have to do to get the job
-  done as best as you can, new epochs, DB versions, API versions, etc'.
-  This overrides the 8.1-only pause for it and any earlier owner line,
-  and allows new generator epochs, database versions and API versions.
-  Owner: Habitability lane E (radiation link, help, tests).
-  Research (2026-10-09, Update): Lane E (6:48 AM EDT 2026-10-24, as the
-  lane reported): UV slice merged as #2933 (generator epoch 74, no
-  migration): uv_surface_index (still x Earth, Earth = 1) is computed
-  from the light that reaches the ground (the star's spectrum through
-  the world's air, ozone, haze and cloud) by physics/body_radiation;
-  airless worlds get the star's unfiltered UV; the survival-gear UV line
-  and habitability read it; the old proxy functions are deleted and a
-  test fails if one returns. Still open: the second GCR curve removed,
-  toxicity reads, habitability_explain.
-  Research (2026-10-09, Update): Lane E merged slice 2 (#2954, generator
-  epoch 78, no migration; 7:36 AM EDT as the lane reported): the
-  Radiation rating counts ground ultraviolet as well as the dose (Blue
-  under 3x Earth's UV, Green to 30x, Yellow to 300x, Red beyond), the
-  Help levels page has the new row, the planet text names the UV when it
-  is the limit, and the duplicate hand-fitted cosmic-ray curve in
-  habitability.py is deleted (one curve, from the radiation model). Item
-  stays open: toxicity reads (wait GEN.411 child table),
-  habitability_explain, GEN.444 slice 2 with H, GEN.703, DOC.77,
-  TEST.300.
-  Research (2026-10-09, Radiation terms in part): Update 3:20 PM EDT
-  2026-10-24 (Lane E, relayed as the lane reported; #3052): the
-  radiation terms in the planet details are merged (a Radiation table
-  naming total dose, whether dose or UV sets the rating, cosmic rays,
-  stellar particles, ground K/Th/U and UV through ozone). Nothing
-  generated changes. Still open: toxicity read through the mixture
-  accessors, which waits on GEN.411 (Lane I). Owner: Lane E.
 - [ ] **GEN.446 The descriptions state the composition of stars, surfaces and small bodies, and the radiation at the surface**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -7747,7 +7672,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.444, GEN.445.
+  Prerequisites: GEN.444.
   Related:
   GEN.430, GEN.415, GEN.420, GEN.208.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
@@ -13248,92 +13173,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   5 (Lane H, GEN.699 heat owner).
   Prerequisites: none. Related: GEN.699, GEN.721, GEN.735.
 
-- [ ] **GEN.764 Bring a galaxy to the current generator epoch without a full regeneration: record the epoch each stored result was made under and redo only what an epoch bump changed**
-  Boss, 7:06 PM EDT 2026-10-24 (as Core 5 relayed it): can an existing
-  galaxy be brought to the current epoch (his example: epoch 94 to 96)
-  without a full regeneration? Today nothing does it: update.sh only
-  records the new epoch in the version history and prints that the
-  generated output changed, and the only redo is the migration y/N
-  prompt
-  that wipes all galaxy data (Core 5's reading of the code; the owner
-  verifies). Do: (1) record the generator epoch each stored result was
-  made
-  under, per sector and per stage of the run (a sector already records
-  `version_key` and `planetgen_version`; DB.102 puts the epoch into the
-  version key, so build on that and add a stage-level record where the
-  key
-  is too coarse; the epoch is never compared at runtime today, gap (E)
-  of
-  GEN.564); (2) give every epoch in src/tests/golden/epochs.json a
-  machine-readable list of the stages and tables it changed (`affects`),
-  so
-  a bump says what it invalidates, and make the epoch bump check refuse
-  an
-  entry without one; (3) a command and a queue run, `planetgen
-  bring-to-epoch` (and an admin button like ADM.129), that compares each
-  sector's recorded epochs against the current ones, takes the union of
-  the
-  `affects` lists in between, and redoes only those stages per sector or
-  per body from the seeds: fill-level changes through the GEN.564
-  refill,
-  scatter-level changes through a rescatter of the affected scatters
-  only,
-  a changed per-body draw through the regenerate-planet path (the IDs
-  stay
-  stable, DB.75); (4) say per sector what it did and what it left;
-  refuse a
-  sector that is already current; resume an interrupted run (PERF.182);
-  (5) keep admin edits across the redo (ADM.61 replay). Where an epoch
-  changed something the lists cannot redo in part, the run says the
-  galaxy
-  needs the full regeneration and why, and does not guess. GEN.229 (wide
-  binaries re-rolled) is the same idea for one case and becomes the
-  first
-  user of the record. Done: a test galaxy generated under an older
-  epoch,
-  whose bump changed one stage, is brought to the rows a fresh
-  generation
-  of the same seed gives, without touching the stages the bump did not
-  list, and the run reports each sector. Crosses generation design and
-  the
-  identity chain: owner Core 1 (it held GEN.564 and owns the regenerate
-  and
-  repair path), after GEN.55 and TEST.77, unless the coordinator names a
-  pool lane; nobody has started it.
-  Prerequisites: DB.75. Related: GEN.564 (folded in), GEN.229, DB.102, PERF.182,
-  ADM.61, ADM.129, DB.17, OPS.56.
-  Research (2026-10-09, Decided 7:32 PM EDT): Decided (Boss, 7:32 PM EDT
-  2026-10-24, cards 1.1, 2.1, 3.1, 4.1 as the coordinator relayed them):
-  (1) a sector with admin edits is skipped and listed in the run's
-  report, not redone (this replaces step 5 above, the edit replay); (2)
-  the run is a command and also a button on the Generate page; (3) an
-  epoch whose change cannot be redone in part (a plan-level epoch) makes
-  the run refuse and say the full regeneration is needed; (4) owner Core
-  1, after TEST.77 and GEN.55, design draft first.
-  Research (2026-10-09, Folded GEN.564 7:34 PM EDT): GEN.564 (the
-  fill-level refill job) is folded into this item (Core 1, 7:32 PM EDT
-  2026-10-24): its Do and Done, the gaps (A) to (E) it found (the
-  phenomena built flags, sector-less uncharted systems, species and
-  facilities that cascade, body IDs when counts change, which closed
-  with DB.75 as a prerequisite, and the epoch never compared at runtime)
-  and the fork-2 decision (fill-level changes take the epoch bump and
-  the refill, not a rescatter) are carried in Core 1's design draft,
-  /mnt/project-files/design-drafts/bring-a-galaxy-to-the-current-epoch-2026-10-24.md.
-  Owner Core 1 as decided above.
-  Research (2026-10-09, Step 1 merged): Step 1 of 4 merged as #3157
-  (Core 1, about 8:10 PM EDT 2026-10-24 as the lane reported): every
-  generator epoch carries an affects list (plan, scatter, fill,
-  population; the 96 old epochs classified from their reasons). Next:
-  step 2, the per-stage epoch record (a migration).
-  Progress (2026-10-09): Steps 2 and 3 merged by Core 1 (#3399, 12:01 PM
-  EDT 2026-10-28 as the lane reported; migration 0164, schema 164, no
-  epoch, no golden rewrite): the scatter_epochs table and
-  species.generator_epoch record the epoch each scatter and species was
-  made under; `planetgen bring-to-epoch [--dry-run]` redoes the sectors
-  an epoch change altered, skips and lists admin-edited sectors, and
-  refuses on a stale plan or scatter. Open: step 4 (the Generate page
-  button and the queue run).
-
 - [ ] **GEN.767 Day and night time shares for every object that has a day or night, with the extra night when the parent planet blocks the sun**
   Boss, 7:54 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
@@ -13434,6 +13273,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (stored outside_hours_day and its binding limit, relabel the yearly
   outside_hours on the sheet, one migration and epoch) waits for
   GEN.767's daylight_hours (Aux 5).
+  Research (2026-10-09): Aux 4 handoff (12:48 PM EDT 2026-10-28): part 1
+  is merged (#3297, physics/outside_hours.py outside_hours_day). Part 2
+  is open and released to the pool: store the outside hours per day and
+  the binding limit (a stored column plus its unit in
+  db/column_units.py), relabel the sheet label (describe/sheet.py about
+  line 177), migration, epoch with --affects fill (own lock turn), tests
+  for Earth, hot desert, cold, high dose, locked world and vacuum.
+  Depends on GEN.767 (Aux 5, daylight_hours).
 
 - [ ] **GEN.769 Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug)**
   Boss, 9:02 PM EDT 2026-10-24 (relayed by the coordinator): "ice shell
@@ -14650,6 +14497,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   spectrum. Rules: draws through draw.py; no backward-compat shims; a
   generation change takes the lock queue.
   Prerequisites: none. Related: DB.96, GEN.725.
+
+- [ ] **GEN.845 Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764)**
+  GEN.764 is done (#3439): `planetgen bring-to-epoch` and the Generate
+  task redo what an epoch bump changed, but a stale scatter is refused
+  with the clear-scatter and scatter instructions, because redrawing
+  needs the original scatter parameters. Store the scatter parameters
+  with the plan (or read them from the audit log), then let the same run
+  redraw the scatter. Optional; owner Core 1 when it runs dry.
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18640,7 +18496,7 @@ clears each one.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.444, GEN.445, GEN.446. Related:
+  Prerequisites: GEN.444, GEN.446. Related:
   TEST.209,
   TEST.210, TEST.211.
   Owner: Core 4 (proposed by the TODO thread, the same planet generation
