@@ -5,6 +5,7 @@
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/pick_banner.html" import pick_banner %}
+{% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
 {#- ADM.34, UX.68: the groups of admin actions are built here, outside the blocks, so the
     action bar (subhead) and the dialogs (content) share them. A body's own Admin menu is on its page (UX.170). -#}
 {%- set here = page_url('system', system_id=system.id) %}
@@ -14,9 +15,8 @@
 {%- set star_actions = [] %}
 {%- if star_editable %}
 {%- set star_fields %}
-    <label>Spectral type <input type="text" name="star_type" required maxlength="8" size="6"
-      pattern="[OBAFGKMobafgkm][0-9](0|[IiVv]+|[Ii][Aa][+]?|[Ii][Aa][Bb]|[Ii][Bb]|[Dd])"
-      placeholder="e.g. K2V" value="{{ star_type }}"></label>
+    {{ ui_input("star_type", "Spectral type", star_type, required=True, maxlength=8,
+      pattern="[OBAFGKMobafgkm][0-9](0|[IiVv]+|[Ii][Aa][+]?|[Ii][Aa][Bb]|[Ii][Bb]|[Dd])", placeholder="e.g. K2V") }}
 {%- endset %}
 {%- set star_actions = [{'key': 'star', 'label': 'Change star', 'title': 'Change the star',
     'note': 'Replaces the ' ~ star_type ~ ' star with a new one. Planets, moons and belts keep their classes; their orbits scale with the new star\'s light, and any left past its farthest stable orbit are removed.',
@@ -31,32 +31,17 @@
     holds what to show (the submitted form, or the facility's own); `owner` is the system's polity. #}
 {%- macro affiliation_and_ratings(values, owner, own_polity, default_to_owner) %}
       {%- set chosen = values.affiliation if values.affiliation is defined else ('polity:' ~ owner.polity_id if (default_to_owner and owner) else '') %}
-      <label class="search-field">Affiliation
-        <select name="affiliation">
-          <option value="">Independent</option>
-          {%- if owner %}
-          <option value="polity:{{ owner.polity_id }}"{% if chosen == 'polity:' ~ owner.polity_id %} selected{% endif %}>{{ owner.polity_name }} (owns this system)</option>
-          {%- endif %}
-          {%- if own_polity and (not owner or own_polity.id != owner.polity_id) %}
-          <option value="polity:{{ own_polity.id }}"{% if chosen == 'polity:' ~ own_polity.id %} selected{% endif %}>{{ own_polity.name }}</option>
-          {%- endif %}
-        </select>
-      </label>
-      <label class="search-field">Or another affiliation (free text)
-        <input type="text" name="affiliation_name" maxlength="255" value="{{ values.affiliation_name or '' }}">
-      </label>
+      {%- set affiliation_options = [{"value": "", "label": "Independent"}] %}
+      {%- if owner %}{% set _ = affiliation_options.append({"value": "polity:" ~ owner.polity_id, "label": owner.polity_name ~ " (owns this system)"}) %}{% endif %}
+      {%- if own_polity and (not owner or own_polity.id != owner.polity_id) %}{% set _ = affiliation_options.append({"value": "polity:" ~ own_polity.id, "label": own_polity.name}) %}{% endif %}
+      {{ ui_select("affiliation", "Affiliation", affiliation_options, chosen) }}
+      {{ ui_input("affiliation_name", "Or another affiliation (free text)", values.affiliation_name or "", maxlength=255) }}
+      {%- set rating_options = [] %}
+      {%- for value, text in facility_ratings %}{% set _ = rating_options.append({"value": value, "label": text}) %}{% endfor %}
       {%- for dimension, label in facility_dimensions.items() %}
-      <label class="search-field">{{ label }}
-        <select name="rating_{{ dimension }}">
-          {%- for value, text in facility_ratings %}
-          <option value="{{ value }}"{% if value == (values['rating_' ~ dimension] or '') %} selected{% endif %}>{{ text }}</option>
-          {%- endfor %}
-        </select>
-      </label>
+      {{ ui_select("rating_" ~ dimension, label, rating_options, values["rating_" ~ dimension] or "") }}
       {%- endfor %}
-      <label class="search-field">Ratings note (optional)
-        <input type="text" name="ratings_note" maxlength="4000" value="{{ values.ratings_note or '' }}">
-      </label>
+      {{ ui_input("ratings_note", "Ratings note (optional)", values.ratings_note or "", maxlength=4000) }}
 {%- endmacro %}
 {%- if admin %}
 {%- set form = facility_form %}
@@ -76,68 +61,46 @@
   <form method="post" action="{{ page_url('system', system_id=system.id) }}#facilities" class="search-form facility-form">
     {{ csrf_field() }}
     <div class="search-fields">
-      <label class="search-field">Name
-        <input type="text" name="name" maxlength="255" value="{{ form.fields.name or '' }}">
-      </label>
-      <label class="search-field">Placement
-        <select name="placement" data-facility-placement>
-          {%- for value, label in facility_placements %}
-          <option value="{{ value }}"{% if value == placement %} selected{% endif %}>{{ label }}</option>
-          {%- endfor %}
-        </select>
-      </label>
-      <label class="search-field">Host
-        <select name="host" data-facility-host>
-          {%- for option in facility_hosts %}
-          <option value="{{ option.value }}" data-placements="{{ option.placements | join(' ') }}"
-            {%- if option.min_km %} data-min-km="{{ option.min_km }}" data-max-km="{{ option.max_km }}" data-mass-kg="{{ option.mass_kg }}"{% endif %}
-            {%- if option.value == form.fields.host %} selected{% endif %}>{{ option.label }}</option>
-          {%- endfor %}
-        </select>
-      </label>
-      <label class="search-field">Kind
-        <select name="kind" data-facility-kind>
-          {%- for value, label in facility_kinds %}
-          <option value="{{ value }}"{% if value == form.fields.kind %} selected{% endif %}>{{ label }}</option>
-          {%- endfor %}
-        </select>
-      </label>
+      {{ ui_input("name", "Name", form.fields.name or "", maxlength=255) }}
+      {%- set placement_options = [] %}
+      {%- for value, label in facility_placements %}{% set _ = placement_options.append({"value": value, "label": label}) %}{% endfor %}
+      {{ ui_select("placement", "Placement", placement_options, placement, **{"data-facility-placement": true}) }}
+      {%- set host_options = [] %}
+      {%- for option in facility_hosts %}
+      {%- set host_attrs = {"data-placements": option.placements | join(" ")} %}
+      {%- if option.min_km %}{% set _ = host_attrs.update({"data-min-km": option.min_km, "data-max-km": option.max_km, "data-mass-kg": option.mass_kg}) %}{% endif %}
+      {%- set _ = host_options.append({"value": option.value, "label": option.label, "attrs": host_attrs}) %}
+      {%- endfor %}
+      {{ ui_select("host", "Host", host_options, form.fields.host or "", **{"data-facility-host": true}) }}
+      {%- set kind_options = [] %}
+      {%- for value, label in facility_kinds %}{% set _ = kind_options.append({"value": value, "label": label}) %}{% endfor %}
+      {{ ui_select("kind", "Kind", kind_options, form.fields.kind or facility_kinds[0][0], **{"data-facility-kind": true}) }}
       {%- if facility_context.types %}
-      <label class="search-field">Type (optional)
-        <select name="type_id" data-facility-type>
-          <option value="">No type</option>
-          {%- for type in facility_context.types %}
-          <option value="{{ type.id }}" data-kind="{{ type.kind }}"{% if form.fields.type_id == type.id|string %} selected{% endif %}>{{ type.name }}</option>
-          {%- endfor %}
-        </select>
-      </label>
+      {%- set type_options = [{"value": "", "label": "No type"}] %}
+      {%- for type in facility_context.types %}{% set _ = type_options.append({"value": type.id, "label": type.name, "attrs": {"data-kind": type.kind}}) %}{% endfor %}
+      {{ ui_select("type_id", "Type (optional)", type_options, form.fields.type_id or "", **{"data-facility-type": true}) }}
       {%- for type in facility_context.types %}
       <fieldset class="search-field facility-type-fields" data-facility-type-fields="{{ type.id }}"{% if form.fields.type_id != type.id|string %} hidden{% endif %}>
         <legend>{{ type.name }} details</legend>
         {%- for field in type.fields %}
-        <label class="search-field">{{ field.label }}{% if field.unit %} ({{ field.unit }}){% endif %}{% if field.required %} (required){% endif %}
-          {%- set current = form.fields.get('field_' ~ field.key) %}
-          {%- if field.datatype == 'choice' %}
-          <select name="field_{{ field.key }}">
-            <option value=""{% if field.default_text %} hidden{% endif %}>Not set</option>
-            {%- for option in field.choices %}
-            <option{% if option == (current if current is not none else field.default_text) %} selected{% endif %}>{{ option }}</option>
-            {%- endfor %}
-          </select>
-          {%- elif field.datatype == 'bool' %}
-          <select name="field_{{ field.key }}">
-            <option value="">Not set</option>
-            <option value="yes"{% if (current or field.default_text) in ('yes', 'true') %} selected{% endif %}>Yes</option>
-            <option value="no"{% if (current or field.default_text) in ('no', 'false') %} selected{% endif %}>No</option>
-          </select>
-          {%- elif field.datatype in ('int', 'decimal') %}
-          <input type="number" name="field_{{ field.key }}" step="{{ '1' if field.datatype == 'int' else 'any' }}"
-            {%- if field.min_value is not none %} min="{{ field.min_value | int if field.datatype == 'int' else field.min_value }}"{% endif %}{% if field.max_value is not none %} max="{{ field.max_value | int if field.datatype == 'int' else field.max_value }}"{% endif %}
-            value="{{ current if current is not none else (field.default_text or '') }}">
-          {%- else %}
-          <input type="text" name="field_{{ field.key }}" maxlength="255" value="{{ current if current is not none else (field.default_text or '') }}">
-          {%- endif %}
-        </label>
+        {%- set current = form.fields.get('field_' ~ field.key) %}
+        {%- set field_label = field.label ~ (" (" ~ field.unit ~ ")" if field.unit else "") ~ (" (required)" if field.required else "") %}
+        {%- if field.datatype == 'choice' %}
+        {%- set choice_options = [{"value": "", "label": "Not set", "attrs": ({"hidden": true} if field.default_text else none)}] %}
+        {%- for option in field.choices %}{% set _ = choice_options.append({"value": option, "label": option}) %}{% endfor %}
+        {{ ui_select("field_" ~ field.key, field_label, choice_options, current if current is not none else (field.default_text or "")) }}
+        {%- elif field.datatype == 'bool' %}
+        {%- set bool_value = current or field.default_text %}
+        {{ ui_select("field_" ~ field.key, field_label, [{"value": "", "label": "Not set"}, {"value": "yes", "label": "Yes"}, {"value": "no", "label": "No"}],
+          "yes" if bool_value in ("yes", "true") else ("no" if bool_value in ("no", "false") else "")) }}
+        {%- elif field.datatype in ('int', 'decimal') %}
+        {{ ui_input("field_" ~ field.key, field_label, current if current is not none else (field.default_text or ""), type="number",
+          step=("1" if field.datatype == 'int' else "any"),
+          min=((field.min_value | int if field.datatype == 'int' else field.min_value) if field.min_value is not none else none),
+          max=((field.max_value | int if field.datatype == 'int' else field.max_value) if field.max_value is not none else none)) }}
+        {%- else %}
+        {{ ui_input("field_" ~ field.key, field_label, current if current is not none else (field.default_text or ""), maxlength=255) }}
+        {%- endif %}
         {%- endfor %}
       </fieldset>
       {%- endfor %}
@@ -149,9 +112,7 @@
           value="{{ form.fields.orbit_step if form.fields.orbit_step is defined else facility_orbit_default }}">
         <output for="facility-orbit-step" data-facility-orbit-readout aria-live="polite"></output>
       </div>
-      <label class="search-field">Description (optional)
-        <input type="text" name="description" maxlength="4000" value="{{ form.fields.description or '' }}">
-      </label>
+      {{ ui_input("description", "Description (optional)", form.fields.description or "", maxlength=4000) }}
     </div>
     <div class="search-actions">
       <button type="submit" class="btn" name="facility_action" value="preview">Preview</button>
