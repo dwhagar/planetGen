@@ -13911,21 +13911,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.411, GEN.422, GEN.726, GEN.814,
   GEN.823.
 
-- [ ] **GEN.831 The Wolf-Rayet class W has no kind in stellar_composition, so a W star has no composition record (bug)**
-  Found by Math 1 (as the lane reported 3:49 AM EDT 2026-10-25) through
-  shifted draws: stellar_composition has no kind for the Wolf-Rayet
-  class W, so a W star gets none or a wrong one. Do: add the W kind with
-  the surface composition a Wolf-Rayet star shows (WN hydrogen-poor and
-  nitrogen-rich, WC carbon-rich, WO oxygen-rich; one row each with the
-  source and its tier in the stand-in registry), draw the subtype
-  through draw.py, and make every reader of stellar_composition accept
-  it. Done: a test generates stars of class W and every one has a
-  composition record that sums to one and matches its subtype; no
-  stand-in is added without its registry row. Owner: Aux 2 (Lane A
-  stars, after GEN.553) or a free lane. Rules: no backward-compat shims;
-  the epoch carries --affects.
-  Prerequisites: none. Related: GEN.553, GEN.243, GEN.725.
-
 - [ ] **GEN.833 Cold icy moons get sparse ice cover because the hydrosphere's toy ocean_fraction feeds the ground draw (bug)**
   Found by Blocker 4 while merging GEN.441 (PR 3335, as the lane
   reported 3:57 AM EDT 2026-10-25): the ground draw reads the
