@@ -180,6 +180,8 @@ def test_reclassifying_into_an_airless_class_clears_the_old_atmosphere(host_star
 
 @pytest.mark.parametrize("planet_class", ["C", "I"])
 def test_surface_temperature_never_drops_below_the_cosmic_background(host_star, planet_class):
+    """A rock with no air round a starless-dim star sits at the background; an ice giant keeps its own heat (GEN.816), so it sits
+    above the background at the temperature that heat radiates, tens of kelvin."""
     cfg = SystemConfig()
     zone = "c"
     distance = plausibility.distance_for_zone(host_star, zone)
@@ -190,7 +192,10 @@ def test_surface_temperature_never_drops_below_the_cosmic_background(host_star, 
     dim_star.luminosity = host_star.luminosity * 1e-12
     planet.star = dim_star
     planets.calculate_atmospheric_conditions(planet)
-    assert planet.surface_temperature == pc.COSMIC_BACKGROUND_TEMPERATURE_K
+    if planet.body_type == "g":
+        assert 30.0 < planet.surface_temperature < 100.0
+    else:
+        assert planet.surface_temperature == pc.COSMIC_BACKGROUND_TEMPERATURE_K
 
 
 def test_reclassifying_a_moved_planet_keeps_its_distance(host_star):
