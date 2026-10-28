@@ -3113,7 +3113,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.404 | golden_update's first run wrote galaxy.json with the sector section made before the epoch bump, so test_golden_seed failed until a second run on the same tree (bug) | none | done, PR #3358 |
 | TEST.405 | The system page tests and the migration 0148 habitable_systems test are red on main (bug) | none | open |
 | TEST.406 | Four tests are red on main: test_surface_air stored-partials sum (1e-9 relative) and test_resume_across_builds, test_progress_log (2), test_redis_cleanup fail with an unexpected keyword on_child (bug) | none | open |
-| TEST.407 | golden_update takes about 55 minutes because its pinned-galaxy test builds the galaxy twice (one worker, then four), so it blocks every generation merge (bug) | none | open |
+| TEST.407 | golden_update takes about 55 minutes because its pinned-galaxy test builds the galaxy twice (one worker, then four), so it blocks every generation merge (bug) | none | done, PR #3371 |
 | TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) | none | open |
 | TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) | none | open |
 | USR.1.1 | USR.2 |
