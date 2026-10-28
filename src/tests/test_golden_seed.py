@@ -6,8 +6,11 @@ TEST.77: a fixed seed makes what the pinned golden files say (`src/tests/golden/
 - Tier A, no database: the battery's digest of each case (OPS.57) against `battery.json`; the Rosetta text against
   `rosetta.txt` (a failure there is read as a diff).
 - Tier B, database: a small galaxy of a fixed 128-bit seed (the plan, four sectors of four systems, the bright-star
-  backfill) at one worker and at four. The two agree whatever the golden says, and the one-worker galaxy's digest of
-  each sector, each section of it and the region equal `galaxy.json`.
+  backfill) made at one worker: its digest of each sector, each section of it and the region equal `galaxy.json`. It is
+  built once per run, and a rewrite of the golden files (`golden_update`) is that one build.
+- Tier B at four workers, the end-of-version run only (`scripts/test.py full` sets `PLANETGEN_VERSION_GATE`): the same
+  galaxy at four workers equals the one-worker galaxy, whatever the golden says. It builds the galaxy a second time,
+  about as long again as the first, so an ordinary merge's gate leaves it to the version gate.
 - Tier C, the hash-seed and locale probe, is `test_reproducible_draws.test_a_sector_does_not_depend_on_hash_seed_or_locale`.
 
 A change of what the generator makes fails these until the golden files are rewritten with
@@ -16,6 +19,7 @@ A change of what the generator makes fails these until the golden files are rewr
 """
 
 import difflib
+import os
 
 import pytest
 
@@ -57,6 +61,14 @@ def test_the_rosetta_text_is_the_pinned_text():
     assert not diff, "\n" + diff[:4000]
 
 
+VERSION_GATE = "PLANETGEN_VERSION_GATE"
+"""str: The environment variable `scripts/test.py full` sets: the end-of-version run, which also builds the golden galaxy
+at four workers."""
+
+_ONE_WORKER = {}
+"""dict: The one-worker galaxy record of this process (built by the first test that needs it, then reused)."""
+
+
 def _galaxy_record(make_database, monkeypatch, workers):
     config = make_database()
     _plan_wide_galaxy(config, galaxy_seed=golden_seed.GALAXY_SEED)
@@ -66,6 +78,12 @@ def _galaxy_record(make_database, monkeypatch, workers):
         return golden_seed.galaxy_record(conn)
     finally:
         conn.close()
+
+
+def _one_worker_record(make_database, monkeypatch):
+    if "record" not in _ONE_WORKER:
+        _ONE_WORKER["record"] = _galaxy_record(make_database, monkeypatch, 1)
+    return _ONE_WORKER["record"]
 
 
 def _sector_differences(expected, actual):
@@ -86,13 +104,21 @@ def _sector_differences(expected, actual):
 
 
 @pytest.mark.db
-def test_the_pinned_galaxy_is_made_at_one_worker_and_at_four(make_database, monkeypatch):
-    one = _galaxy_record(make_database, monkeypatch, 1)
-    four = _galaxy_record(make_database, monkeypatch, 4)
-    assert _sector_differences(one, four) == [], "one worker and four make different sectors"
-    assert one == four
+def test_the_pinned_galaxy_is_the_pinned_one(make_database, monkeypatch):
+    one = _one_worker_record(make_database, monkeypatch)
     expected = _check_or_write(golden_seed.GALAXY_FILE, one)
     if expected is None:
         return
     assert _sector_differences(expected, one) == []
     assert (expected["plan"], expected["region"]) == (one["plan"], one["region"])
+
+
+@pytest.mark.db
+@pytest.mark.skipif(golden_seed.writing() or not os.environ.get(VERSION_GATE),
+                    reason="the end-of-version run only (scripts/test.py full), or set PLANETGEN_VERSION_GATE=1: "
+                           "it builds the pinned galaxy a second time")
+def test_the_pinned_galaxy_is_made_at_one_worker_and_at_four(make_database, monkeypatch):
+    one = _one_worker_record(make_database, monkeypatch)
+    four = _galaxy_record(make_database, monkeypatch, 4)
+    assert _sector_differences(one, four) == [], "one worker and four make different sectors"
+    assert one == four
