@@ -1,6 +1,0 @@
-**Headline:** The Galaxy Map's block totals now follow edits: changing a star, a world or a system in a generated sector, or deleting a system, updates that sector's figures and the blocks above it at once.
-
-### Changed
-- **Block totals after an edit (DB.83).** A sector's stored figures (systems, stars, mean temperature, luminosity and age, summed luminosity, habitable worlds) were stated once, when the sector was generated, so an admin edit of a star or a world, or the deletion of a system, left them and the block totals above them (which the map's far zoom levels and the charted share of the regions read) stale until `fill-block-totals`, which only adds up the same stale figures. `db.edits.save_system_edits` and the system delete now call `store.refresh_edited_sectors`, which states the sector's figures again from its rows and refreshes the chain of blocks (and the region) above it, in the edit's own transaction. A sector that is not a generated grid cell is left alone. Sector generation, a visit, a regenerate and a sector delete already refreshed the blocks and are pinned by tests now. `docs/design/architecture/architecture.md` says what keeps the totals true.
-
-TODO items resolved: DB.83. Added: none.
