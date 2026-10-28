@@ -88,7 +88,9 @@ def _body(mass_earth, density, period_hours, body_type="t", is_moon=False, age=4
     star = types.SimpleNamespace(age=age, mass=constants.SOLAR_MASS_TO_KG, radius=695700.0, luminosity=SUN,
                                  log_lx_lbol=math.log10(magnetism.SOLAR_LX_W / SUN), l_xuv_w=None,
                                  xuv_fluence_j=None, flare_n33_per_yr=None)
-    return types.SimpleNamespace(mass=mass_earth * constants.EARTH_MASS_TO_KG, density=density,
+    mass = mass_earth * constants.EARTH_MASS_TO_KG
+    radius_km = (3.0 * mass / (4.0 * math.pi * density * 1000.0)) ** (1.0 / 3.0) / 1000.0
+    return types.SimpleNamespace(mass=mass, density=density, radius=radius_km,
                                  rotation_period_hours=period_hours, body_type=body_type, is_moon=is_moon,
                                  star=star)
 
@@ -217,6 +219,29 @@ def test_earths_magnetopause_is_ten_radii():
     share = magnetism.dipole_share(24.0)
     assert magnetism.magnetopause_rp(body, 1.0) == pytest.approx(9.75 * share ** (1 / 3), rel=0.02)
     assert magnetism.dipole_share(10.0) > 0.95 and magnetism.dipole_share(24.0 * 30) < 0.2
+
+
+def test_the_stored_magnetopause_is_in_radii_of_the_body_itself():
+    """GEN.843: the column's unit is planet radii (`column_units` R_planet), so a distance in metres divided by the body's own radius:
+    Earth, Mars and Jupiter hold the same field and wind to a standoff that falls as the radius grows, and it agrees with the metres
+    the belts work from."""
+    from planetgen.physics import radiation_belts
+    cases = (("Earth", 1.0, 5.51, constants.EARTH_RADIUS_KM, magnetism.EARTH_MOMENT_A_M2),
+             ("Mars", 0.107, 3.93, 3389.5, magnetism.EARTH_MOMENT_A_M2),
+             ("Jupiter", 317.8, 1.33, 69911.0, 1.55e27))
+    stored = {}
+    for name, mass_earth, density, radius_km, moment in cases:
+        body = _body(mass_earth, density, 24.0)
+        body.radius = radius_km
+        body.magnetic_moment_a_m2 = moment
+        stored[name] = magnetism.magnetopause_rp(body, 1.0)
+        metres = radiation_belts.standoff_m(moment * magnetism.body_dipole_share(body),
+                                            magnetism.wind_pressure_pa(body.star, 1.0))
+        assert stored[name] == pytest.approx(metres / (radius_km * 1000.0), rel=1e-9), name
+    share = magnetism.dipole_share(24.0)
+    assert stored["Earth"] == pytest.approx(9.75 * share ** (1 / 3), rel=0.02)
+    assert stored["Jupiter"] * 69911.0 > stored["Earth"] * constants.EARTH_RADIUS_KM     # a Jupiter-strong field reaches farther in metres
+    assert stored["Mars"] > stored["Earth"]                                                                # a smaller body has more radii in the same distance
 
 
 def test_generated_bodies_store_their_field_and_exposure():
