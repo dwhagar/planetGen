@@ -207,11 +207,13 @@ function infoPanel() {
 // the panel returns to when a pick is cleared; MAP.113).
 var restingHint = (infoPanel() && infoPanel().element && infoPanel().element.textContent.trim()) || "";
 
-// MAP.315: the charted region a point lies in, set once the map has its nodes: regionLookup(x, y, z) resolves to
-// {name, parent, block, parentBlock} (the 9-block and its 81-block family, with their names) or null, and
-// regionOpener(block) flies the camera to a block.
 // The largest block whose info names a region: a bigger one spans many regions.
 var REGION_BLOCK_MAX = 9;
+
+// MAP.315: the charted region a point lies in, set once the map has its nodes: regionLookup(x, y, z) resolves to
+// {name, parent, block, extent, parentBlock} (the 9-block with its extent {centre, radius} in pc, and its 81-block family,
+// with their names) or null, and regionOpener.region(region) frames the region's extent (a block's window when the node
+// has none) and regionOpener.block(block) flies the camera to a block.
 var regionLookup = null;
 var regionOpener = null;
 
@@ -229,17 +231,18 @@ function regionNode(position) {
     if (!region || !region.name) {
       return;
     }
-    function opener(label, block) {
+    function opener(label, fly) {
       var button = document.createElement("button");
       button.type = "button";
       button.className = "map-info-region-link";
       button.textContent = label;
-      button.addEventListener("click", function () { regionOpener(block); });
+      button.addEventListener("click", fly);
       return button;
     }
-    line.append("Region: ", opener(region.name, region.block));
+    // The region is framed by its extent, the sphere of its charted sectors (MAP.319); its family by its 81-block.
+    line.append("Region: ", opener(region.name, function () { regionOpener.region(region); }));
     if (region.parent) {
-      line.append(" (in ", opener(region.parent, region.parentBlock), ")");
+      line.append(" (in ", opener(region.parent, function () { regionOpener.block(region.parentBlock); }), ")");
     }
     line.hidden = false;
     if (line.isConnected && infoPanel()) {
@@ -2610,7 +2613,10 @@ function initGalaxyMap3d(canvasEl, data) {
       if (!node || !node.name) {
         return null;
       }
-      return { name: node.name, parent: node.parent || null, block: block, parentBlock: cellAt(81, x, y, z, edgePc) };
+      return {
+        name: node.name, parent: node.parent || null, block: block, extent: node.extent || null,
+        parentBlock: cellAt(81, x, y, z, edgePc),
+      };
     });
   }
 
@@ -3496,7 +3502,13 @@ function initGalaxyMap3d(canvasEl, data) {
     canvasEl.__mapGlow = glow;    // the browser tests read what is drawn
   }
   regionLookup = regionAt;
-  regionOpener = function (block) { stageView.openBlock(block); };
+  regionOpener = {
+    region: function (region) {
+      if (region.extent) stageView.openRegion(region.block, { center: region.extent.centre, radius: region.extent.radius });
+      else stageView.openBlock(region.block);
+    },
+    block: function (block) { stageView.openBlock(block); },
+  };
   canvasEl.__mapInfo = infoPanel();    // the browser tests put long cards in it (MAP.295)
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
   function chooseMarker(entry) {

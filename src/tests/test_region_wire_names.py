@@ -93,6 +93,32 @@ def test_without_a_naming_key_nothing_is_named(galaxy):
     assert "name" not in node and "parent" not in node
 
 
+def test_the_node_of_a_charted_region_carries_its_extent_with_or_without_a_key(galaxy):
+    """MAP.319: the bounding sphere the map frames the region with rides on the node, named or not."""
+    assert naming_key.active_key() is None
+    for cell in _cells(galaxy):
+        conn = store.get_connection(galaxy)
+        try:
+            region = region_stats.region_row(conn, cell)
+        finally:
+            conn.close()
+        node = _node(galaxy, cell)
+        assert node["extent"] == {"centre": list(region["extent_centre_pc"]), "radius": region["extent_radius_pc"]}
+        assert node["extent"]["radius"] >= named_regions.framing_radius_pc(cell, EDGE)
+        assert "name" not in node
+
+
+def test_no_other_node_carries_an_extent(galaxy, keyed):
+    cell = _cells(galaxy)[0]
+    for level in (1, 3, 27, 81, 243):
+        block = drill.drill_chain_of(*(cell.shell, cell.band, cell.wedge))[drill.DRILL_LEVELS.index(level)]
+        assert "extent" not in _node(galaxy, block), level
+    charted = set(_cells(galaxy))
+    sibling = next(child for _shell, group in drill.drill_children(drill.drill_parent(cell))
+                   for child in group if child not in charted and child.m == named_regions.REGION_LEVEL)
+    assert "extent" not in _node(galaxy, sibling)
+
+
 def test_the_stage_names_each_charted_nine_block_it_lists_and_a_nine_block_names_itself(galaxy, keyed):
     cell = _cells(galaxy)[0]
     conn = store.get_connection(galaxy)
@@ -115,5 +141,7 @@ def test_the_packed_node_keeps_the_name_and_the_family(galaxy, keyed):
     node = _node(galaxy, cell)
     unpacked = tilepack.unpack_node(tilecache._node_bytes(node))
     assert unpacked["name"] == node["name"] and unpacked["parent"] == node["parent"]
+    assert unpacked["extent"]["centre"] == pytest.approx(node["extent"]["centre"], abs=1e-3)
+    assert unpacked["extent"]["radius"] == pytest.approx(node["extent"]["radius"], abs=1e-3)
     plain = tilepack.unpack_node(tilecache._node_bytes({"aggregate": {}, "stars": [], "generated": []}))
-    assert "name" not in plain and "parent" not in plain
+    assert "name" not in plain and "parent" not in plain and "extent" not in plain

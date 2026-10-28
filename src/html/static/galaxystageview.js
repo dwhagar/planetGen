@@ -1387,6 +1387,22 @@ export function createStageView(host) {
     return true;
   }
 
+  // MAP.319: flies to a region: its 9-block's window, with the camera where the region's bounding sphere
+  // (`target` = {center: [x, y, z] pc, radius pc}) fills the view, keeping the viewing direction. Leaves a sector
+  // opened in place. False while the camera is moving or when the block holds nothing to show.
+  function openRegion(block, target) {
+    if (!view || animation || !P.isBlock(block) || !target || !target.center) return false;
+    const next = S.windowStage(block, P.DEFAULT_WINDOW);
+    if (resolve(next).problem) return false;
+    const want = {
+      target: target.center.slice(), quat: view.quat.toArray(),
+      dist: FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: FIT.MIN_VIEW_RADIUS_PC }),
+    };
+    pendingCamera = want;
+    go(next, { camera: want });
+    return true;
+  }
+
   function renderTravel() {
     if (!els.controls) return;
     els.controls.querySelectorAll("[data-step]").forEach(function (button) {
@@ -3582,6 +3598,7 @@ export function createStageView(host) {
     up: up,
     stepToNeighbour: stepToNeighbour,
     openBlock: openBlock,
+    openRegion: openRegion,
     canStep: function (direction) { return !!stepTarget(direction); },
     travel: travel,
     travelToCurrent: travelToCurrent,

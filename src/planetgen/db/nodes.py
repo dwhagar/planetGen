@@ -254,8 +254,11 @@ def galaxy_nodes(conn, node_keys):
             node["placed"] = piece("placed", lambda: [
                 sector for sector in query.galaxy_sectors_in_box(conn, lo, hi, limit=NODE_PLACED_MAX * POOL)
                 if inside((sector["shell_index"], sector["band_index"], sector["wedge_index"]))][:NODE_PLACED_MAX], [])
-        if block.m == region_stats.LEVEL and region_stats.region_row(conn, block) is not None:
-            node.update(region_stats.labels(block, naming_key.active_key(), edge_pc) or {})   # API.35: charted regions only
+        if block.m == region_stats.LEVEL:
+            region = region_stats.region_row(conn, block)
+            if region is not None:   # API.35, MAP.319: charted regions only
+                node.update(region_stats.labels(block, naming_key.active_key(), edge_pc) or {})
+                node["extent"] = region_stats.extent_of(region)
         if incomplete:
             node["incomplete"] = incomplete
         nodes[format_drill_key(block)] = node

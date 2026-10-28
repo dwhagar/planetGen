@@ -319,7 +319,9 @@ def sector_detail(sector_id=SECTOR_ID):
 
 
 REGION_NAMES = {"name": "Fixture Beez Region", "parent": "Fixture Reach"}
-"""What the node of a charted 9-block carries (API.35)."""
+"""What the node of a charted 9-block carries (API.35), and with it `extent` (MAP.319), a sphere of `REGION_RADIUS_PC` pc about
+its first generated sector."""
+REGION_RADIUS_PC = 12.0
 
 UNCHARTED_CELL = (1, 0, 0)
 """A cell of the core no sector was generated in, where the fixture's scatters left a bright star, a black
@@ -489,8 +491,10 @@ class FixtureApi:
             nodes[key] = {"aggregate": {"generated": 0, "stats": None, "lights": lights}, "placed": [],
                           "clouds": clouds, "stars": stars, "generated": None, "points": points, "worlds": worlds}
             # API.35: a 9-block holding a generated sector is a charted region, named with its family.
-            if block.m == 9 and any(address_in_block(sector[1:4], block, self._memo) for sector in SECTORS):
+            charted = [sector for sector in SECTORS if block.m == 9 and address_in_block(sector[1:4], block, self._memo)]
+            if charted:
                 nodes[key].update(REGION_NAMES)
+                nodes[key]["extent"] = {"centre": list(_sector_center_pc(*charted[0][1:4])), "radius": REGION_RADIUS_PC}
         return {"nodes": nodes, "edge_pc": EDGE_PC, "has_shape": True}
 
     def get_galaxy_stage(self, db, at=None):

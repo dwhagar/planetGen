@@ -838,14 +838,25 @@ def test_galaxy_map_infobox_names_the_region_and_flies_to_it(page, map_site):
     line = info.locator(".map-info-region")
     line.wait_for(state="visible", timeout=20000)
     assert line.inner_text() == "Region: Fixture Beez Region (in Fixture Reach)"
-    # The family first: its 81-block, then the region's own 9-block from the same card.
+    # The family first: its 81-block, then the region itself from the same card, framed by its extent (MAP.319).
     info.locator(".map-info-region-link", has_text="Fixture Reach").click()
     _settle(page)
     assert _window_size(page) == 81, _query(page)
     _open_galaxy(page, map_site, OPEN_PRIME)
     info.locator(".map-info-region-link", has_text="Fixture Beez Region").click()
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
-    assert _window_size(page) == 9, _query(page)
+    from planetgen.galaxy.spherical import sector_position_pc
+    from tests.map_site_support import REGION_RADIUS_PC
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    centre = sector_position_pc(*SECTORS[0][1:4], 4.0)
+    assert max(abs(a - b) for a, b in zip(after["target"], centre)) < 0.05, (after["target"], centre)
+    size = page.evaluate("() => { const c = document.querySelector('#galaxymap3d-canvas'); return [c.clientWidth, c.clientHeight]; }")
+    tan = math.tan(math.radians(page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFov()")) / 2)
+    half = math.atan(min(tan, tan * size[0] / size[1]))
+    assert math.asin(min(1.0, REGION_RADIUS_PC / after["dist"])) <= half + 1e-6, (after["dist"], REGION_RADIUS_PC)
+    assert after["dist"] == pytest.approx(REGION_RADIUS_PC / math.sin(half) * 1.08, rel=0.05) or after["dist"] > REGION_RADIUS_PC / math.sin(half)
+    assert page.evaluate(LINES)["chartedLines"] == 0, "no sector box is drawn once the flight to the region is over"
     # Where nothing is charted the block has no name on the wire and the card has no line.
     _open_galaxy(page, map_site, f"?sector={FAR_CODE}&open=1")
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")

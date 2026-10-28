@@ -5496,7 +5496,7 @@ def galaxy_node_keys(shell, band, wedge):
     return [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)]
 
 
-TILE_FORMAT = 5
+TILE_FORMAT = 6
 """int: The version of what the Galaxy Map's stored nodes and drill-down stages hold and how they are packed
 (`web/lib/tilecache.trim_node`, `tilepack`, `db.nodes.galaxy_nodes`, `galaxy_stage`). A change that alters those bytes for
 the same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored files are rebuilt once;

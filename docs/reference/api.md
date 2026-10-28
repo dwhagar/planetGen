@@ -444,7 +444,7 @@ connectivity to that specific schema rather than the default one.
   inside it. `placed` is only on a level-3 block and a sector. The nebula cover is not in a node (it changes without a
   sector changing; read `/api/galaxy/nebula-cover`). The node of a charted region (a 9-block that holds at least one generated
   sector, `region_stats`) also has `name` ("Fardoo Beez Region") and `parent` (the name of its 81-block family, "Fardoo Reach"), from the
-  gated phoneme codec under the naming key in force (API.35); no other node has them, and none has them while no key is in force. `400` for a malformed key or too many keys.
+  gated phoneme codec under the naming key in force (API.35); no other node has them, and none has them while no key is in force. The same node has `extent` (MAP.319), `{"centre": [x, y, z], "radius"}` in parsecs: the bounding sphere of the region's largest face-connected clump of generated sectors, at least the 12 pc framing sphere, which the map flies to; it needs no key. `400` for a malformed key or too many keys.
 - `GET /api/galaxy/nebula-cover?at=<block key>[&g=<n>]` — the share of each cell of a Galaxy Map stage (`at` alone,
   or none for the galaxy) or data window (`at` the middle cell and `g` the cells across) that lies inside a nebula
   (`queryDb.galaxy_nebula_cover`, MAP.174), for the cells that hold a generated sector and the ones that do not: the
