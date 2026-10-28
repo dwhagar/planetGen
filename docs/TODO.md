@@ -16871,6 +16871,18 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   open: the property sheet, API field descriptions and the OpenAPI test
   (Aux 12, Aux 14), admin pages other than the Queue page (Aux 12), the
   stats and settings pages.
+  Progress (2026-10-09): API part merged by Aux 12 (#3418, 11:39 AM EDT
+  2026-10-28 as the lane reported): every number an API request body
+  takes names its unit in its name or in a 'Unit:' description, a test
+  over the pydantic body schemas fails on a number with no unit (there
+  is no OpenAPI document in the repo), and api.md has a 'Units of the
+  numbers' section; response fields come from DB columns whose suffix
+  test_column_units already enforces. Aux 14's test over the field list
+  is covered by that test. Still open: the property sheet (Aux 11),
+  admin pages other than the Queue page and the stats and settings pages
+  (Aux 12 after UX.211), the help pages and glossary (DOC.15), and the
+  numbers other commands print beyond Core 5's #3248 (a free lane or
+  Core 5).
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
