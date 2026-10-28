@@ -817,6 +817,42 @@ def test_galaxy_map_opens_a_sector_in_place(page, map_site):
     assert any(_bright_spots(page, GALAXY_CANVAS)), "the reloaded sector draws its stars"
 
 
+FAR_CODE = provisional_sector_designation(40, 0, 0)
+"""A cell far outside every generated sector's 9-block."""
+
+
+def _window_size(page):
+    win = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]
+    return win["centre"]["m"] if win else None
+
+
+@pytest.mark.names_hidden
+def test_galaxy_map_infobox_names_the_region_and_flies_to_it(page, map_site):
+    """MAP.315: a pick inside a charted region says "Region: <name> (in <family>)", each name a button that flies the
+    camera to that block (the region's 9-block, then its 81-block family), and a pick in no charted region has no such
+    line."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    info = page.locator("#galaxymap3d-info")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    assert info.locator("h3").inner_text() == "Fixture Prime"
+    line = info.locator(".map-info-region")
+    line.wait_for(state="visible", timeout=20000)
+    assert line.inner_text() == "Region: Fixture Beez Region (in Fixture Reach)"
+    # The family first: its 81-block, then the region's own 9-block from the same card.
+    info.locator(".map-info-region-link", has_text="Fixture Reach").click()
+    _settle(page)
+    assert _window_size(page) == 81, _query(page)
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    info.locator(".map-info-region-link", has_text="Fixture Beez Region").click()
+    _settle(page)
+    assert _window_size(page) == 9, _query(page)
+    # Where nothing is charted the block has no name on the wire and the card has no line.
+    _open_galaxy(page, map_site, f"?sector={FAR_CODE}&open=1")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_timeout(1500)
+    assert not info.locator(".map-info-region").is_visible()
+
+
 OPEN_UNCHARTED = f"?sector={UNCHARTED_CODE}&open=1"
 """The fixture's ungenerated shell 1, band 0, wedge 0, where the scatters left objects, opened in place."""
 

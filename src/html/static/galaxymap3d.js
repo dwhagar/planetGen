@@ -53,7 +53,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const {
-  cellCoordinates, cellVertices, drillBandCount, drillBlockBounds, drillParent, drillWedgeCount, isFullTurn,
+  cellAt, cellCoordinates, cellVertices, drillBandCount, drillBlockBounds, drillParent, drillWedgeCount, isFullTurn,
   sectorAddressAt, sectorDesignation,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
@@ -207,6 +207,59 @@ function infoPanel() {
 // the panel returns to when a pick is cleared; MAP.113).
 var restingHint = (infoPanel() && infoPanel().element && infoPanel().element.textContent.trim()) || "";
 
+// MAP.315: the charted region a point lies in, set once the map has its nodes: regionLookup(x, y, z) resolves to
+// {name, parent, block, parentBlock} (the 9-block and its 81-block family, with their names) or null, and
+// regionOpener(block) flies the camera to a block.
+// The largest block whose info names a region: a bigger one spans many regions.
+var REGION_BLOCK_MAX = 9;
+var regionLookup = null;
+var regionOpener = null;
+
+// A line "Region: <name> (in <parent>)" for the point (x, y, z) pc, each name a button that flies to its block. It
+// stays hidden until the region is known, and for a point in no charted region (a 9-block with no generated sector has
+// no name on the wire).
+function regionNode(position) {
+  if (!regionLookup || !position) {
+    return null;
+  }
+  var line = document.createElement("p");
+  line.className = "map-info-region";
+  line.hidden = true;
+  regionLookup(position[0], position[1], position[2]).then(function (region) {
+    if (!region || !region.name) {
+      return;
+    }
+    function opener(label, block) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "map-info-region-link";
+      button.textContent = label;
+      button.addEventListener("click", function () { regionOpener(block); });
+      return button;
+    }
+    line.append("Region: ", opener(region.name, region.block));
+    if (region.parent) {
+      line.append(" (in ", opener(region.parent, region.parentBlock), ")");
+    }
+    line.hidden = false;
+    if (line.isConnected && infoPanel()) {
+      infoPanel().refit();
+    }
+  }, function () {
+    // A region that could not be looked up is a line left out.
+  });
+  return line;
+}
+
+// `spec` with the region line (MAP.315) under its rows, for the point `position` ([x, y, z] pc).
+function withRegion(spec, position) {
+  var line = regionNode(position);
+  if (line) {
+    spec.after = [line].concat(spec.after || []);
+  }
+  return spec;
+}
+
 function showInfo(spec) {
   var panel = infoPanel();
   if (panel) {
@@ -228,7 +281,7 @@ function sectorBookmark(entry) {
 
 function showPlacedInfo(entry) {
   var relativeDensity = placedRelativeDensity(entry, sceneData.referenceDensityPerLy3);
-  showInfo({
+  showInfo(withRegion({
     title: entry.name || "Unnamed sector",
     fields: [
       ["Systems", entry.system_count != null ? entry.system_count : 0],
@@ -240,7 +293,7 @@ function showPlacedInfo(entry) {
     bookmark: sectorBookmark(entry),
     view: sceneData.sectorUrl && entry.id != null ? { href: sectorUrl(entry.id), label: "View sector →" } : null,
     links: entry.id != null ? navPick.nearbyLinks("sector:" + entry.id) : [],
-  });
+  }, entry.position));
 }
 
 // A share as a percentage, never rounding a nonzero one down to 0%.
@@ -319,12 +372,12 @@ function showCellInfo(cell) {
   var generate = !(cell.filled > 0) && sceneData.generate
     ? generateButtons(sceneData.generate, a.shell, a.band, a.wedge, sceneData.edgeLy)
     : null;
-  showInfo({
+  showInfo(withRegion({
     title: cell.uncharted ? "Uncharted sector" : "Sector cell",
     fields: fields, more: more, after: isFullTurn(b) ? [] : [corners], generate: generate,
     // NAV.45: the cell's middle, so a sector nothing is generated in can still be asked about.
     links: navPick.nearbyLinks(cellCoordinates(b).cartesian),
-  });
+  }, cellCoordinates(b).cartesian));
 }
 
 // A drill-down block's info (galaxystageview.js): its sectors, how many are
@@ -349,12 +402,12 @@ function showBlockInfo(info, edgePc) {
   }
   fields = fields.concat(placeFields(b));
   more = more.concat(placeMoreFields(b));
-  showInfo({
+  showInfo(withRegion({
     title: "Block " + block.shell + "·" + block.band + "·" + block.wedge + " (" + block.m + " sectors a side)",
     fields: fields,
     more: more,
     buttons: info.enter ? [{ label: "Fly into this block →", onClick: info.enter }] : [],
-  });
+  }, block.m <= REGION_BLOCK_MAX ? cellCoordinates(b).cartesian : null));
 }
 
 // A hint paragraph in the info panel: replacing what's there, or (keep)
@@ -423,7 +476,7 @@ function phenomenonActions(item) {
 }
 
 function showCloudInfo(cloud) {
-  showInfo(Object.assign({
+  showInfo(withRegion(Object.assign({
     title: cloud.name || cloudTypeLabel(cloud),
     fields: [
       ["Type", cloudTypeLabel(cloud)],
@@ -432,7 +485,7 @@ function showCloudInfo(cloud) {
       ["Distance from core", formatDistancePc(Math.hypot(cloud.x, cloud.y, cloud.z))],
     ],
     more: [["Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
-  }, phenomenonActions(cloud)));
+  }, phenomenonActions(cloud)), [cloud.x, cloud.y, cloud.z]));
 }
 
 // A star's color from its surface temperature: Tanner Helland's fit to
@@ -463,7 +516,7 @@ function pointTypeLabel(point) {
 // A black hole, neutron star or quasar on the map (MAP.80,
 // queryDb.galaxy_point_phenomena_in_box): what it is, and its page.
 function showPointInfo(point) {
-  showInfo(Object.assign({
+  showInfo(withRegion(Object.assign({
     title: point.name || POINT_TYPE_LABELS[point.type] || "Phenomenon",
     fields: [
       ["Type", pointTypeLabel(point)],
@@ -472,7 +525,7 @@ function showPointInfo(point) {
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
     ]),
     more: [["Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
-  }, phenomenonActions(point)));
+  }, phenomenonActions(point)), [point.x, point.y, point.z]));
 }
 
 // MAP.296: the nearest systems of a star system, under its position in the card: each name a link to that system's
@@ -548,7 +601,7 @@ function showHabitableSystemInfo(system) {
   if (sceneData.systemUrl) {
     spec.view = { href: String(sceneData.systemUrl).replace("{id}", encodeURIComponent(system.id)), label: "View system →" };
   }
-  showInfo(spec);
+  showInfo(withRegion(spec, [system.x, system.y, system.z]));
 }
 
 // MAP.243: a star beyond the galaxy's outline (the halo, a satellite galaxy), where no block or sector of the
@@ -568,7 +621,7 @@ function showStarInfo(star) {
   if (star.system_id != null && sceneData.systemUrl) {
     spec.view = { href: String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id)), label: "View system →" };
   }
-  showInfo(spec);
+  showInfo(withRegion(spec, [star.x, star.y, star.z]));
 }
 
 function showHaloStarInfo(star) {
@@ -2518,6 +2571,49 @@ function initGalaxyMap3d(canvasEl, data) {
   }
   var fetchFailures = 0;
 
+  // MAP.315: the node of one block, from memory, the stored nodes or the server (one key, like the prefetch), for the
+  // region an infobox names: the opening view and the view's cut rarely hold a 9-block while the camera is deep in it.
+  function nodeOf(key) {
+    var held = getNode(key);
+    if (held !== undefined) {
+      return Promise.resolve(held);
+    }
+    return loadStoredNodes([key]).then(function () {
+      var stored = getNode(key);
+      if (stored !== undefined) {
+        return stored;
+      }
+      var params = new URLSearchParams({ keys: key });
+      if (currentStamp) {
+        params.set("stamp", currentStamp);
+      }
+      return fetch(data.fetchPath + "?" + params.toString()).then(function (response) {
+        if (!response.ok) {
+          throw new Error(data.fetchPath + " returned " + response.status);
+        }
+        return response.arrayBuffer();
+      }).then(function (body) {
+        var unpacked = unpackResponse(body);
+        if (absorb(Object.assign({ nodes: unpacked.nodes }, unpacked.header), unpacked.packed)) {
+          scheduleFetch(false);
+        }
+        return getNode(key);
+      });
+    });
+  }
+
+  // The charted region holding the point (x, y, z) pc: its 9-block with the name and the family the node carries, and
+  // the 81-block of that family; null when the block has no name (nothing generated in it, API.35).
+  function regionAt(x, y, z) {
+    var block = cellAt(9, x, y, z, edgePc);
+    return nodeOf(block.m + "." + block.shell + "." + block.band + "." + block.wedge).then(function (node) {
+      if (!node || !node.name) {
+        return null;
+      }
+      return { name: node.name, parent: node.parent || null, block: block, parentBlock: cellAt(81, x, y, z, edgePc) };
+    });
+  }
+
   // PERF.76: a node whose slowest piece timed out arrives marked `incomplete`
   // (the map shows what it has). Its pieces are fetched again after a growing
   // pause (5 s, 10 s ... 30 s), up to INCOMPLETE_ROUNDS times, while the
@@ -3399,6 +3495,8 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.onChange(function (id, on) { if (id === "glow") glow.setVisible(on); });
     canvasEl.__mapGlow = glow;    // the browser tests read what is drawn
   }
+  regionLookup = regionAt;
+  regionOpener = function (block) { stageView.openBlock(block); };
   canvasEl.__mapInfo = infoPanel();    // the browser tests put long cards in it (MAP.295)
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
   function chooseMarker(entry) {
