@@ -684,8 +684,7 @@
     },
     {
       "epoch": 115,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2435",
       "reason": "GEN.830/GEN.837: ocean-world carbon sinks wired into the air solve and a cap on the hydrogen volcanoes bring up",
       "affects": ["fill"]
     }
