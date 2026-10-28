@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2445] - 2026-10-28
+
+**Headline:** A planet's link in a search result row now opens the planet.
+
+### Changed
+- In the search page, a planet, moon, star or asteroid belt link in a result row opened a "not found" page while the system link beside it worked; every result row now builds the link from the object's own ID, the same way the Nearby page does (UX.232).
+
 ## [8.0.2444] - 2026-10-28
 
 **Headline:** The search page and API filter and sort planets and moons by habitability colour, domains, life and food.
