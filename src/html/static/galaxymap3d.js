@@ -67,7 +67,7 @@ const {
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
 const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
-const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
+const { starLight } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const { drawnSignature, nodeRevision } = await import(`./nodeview.js${VERSION_QUERY}`);
 const {
@@ -1644,19 +1644,12 @@ function initGalaxyMap3d(canvasEl, data) {
   // (static/starpoint.js), only its brightness telling stars apart; from
   // about a sector away (NEAR_SECTOR_PC, the same constant the sector scene
   // uses) it grows smoothly into a core sized by the star's radius
-  // (STAR_CORE_PX, a red dwarf one pixel, a supergiant four or five) in a
-  // soft halo whose width and strength grow with luminosity (STAR_MIN_PX to
-  // STAR_MAX_PX), the core dimmer for a fainter star, all in the star's blackbody color;
-  // the faint end is drawn brighter by the Sector Map's own curve (MAP.87,
-  // static/starlight.js). Halos blend normally rather than adding up, so a crowded arm zoomed
+  // (a little over one pixel to two and a half) in a soft halo of nearly the same size
+  // for every star, its strength growing with luminosity (MAP.241: "glow brighter but not be bigger"), the core dimmer
+  // for a fainter star, all in the star's blackbody color; the faint end is drawn brighter (MAP.87). One look for
+  // both maps: static/starlight.js's `starLight`. Halos blend normally rather than adding up, so a crowded arm zoomed
   // out glows in its stars' colors instead of burning to white; stars are
   // drawn over the blocks, never hidden by them.
-  var STAR_MIN_PX = 6;
-  var STAR_MAX_PX = 30;
-  var STAR_CORE_PX = [1.1, 4.5];
-  var STAR_LOG_RADIUS = [-1, 3];
-  var STAR_GLOW = [0.2, 0.6];
-  var STAR_CORE_ALPHA = [0.75, 1];
   var STAR_LOG_LUMINOSITY = [-4, 6];
   // A click within this many pixels of a black hole, neutron star or
   // quasar's center picks it (stars themselves are never picked, MAP.101).
@@ -1928,8 +1921,6 @@ function initGalaxyMap3d(canvasEl, data) {
     var luminosity = star.phenomenon ? phenomenonLuminositySol(star.map_luminosity_sol, brightestSolSeen) : star.luminosity_sol;
     var t = logShare(luminosity, STAR_LOG_LUMINOSITY);
     a.starKeep[i] = unchartedKeep(star, star.phenomenon ? massRampShare(star.mass_solar) : t);
-    // Without a stored radius, guess one from the luminosity.
-    var r = logShare(star.radius_sol != null ? star.radius_sol : Math.pow(luminosity, 0.35), STAR_LOG_RADIUS);
     a.starAbsMag[i] = absoluteMagnitude(luminosity);
     a.starTierMag[i] = tierMagnitudePenalty(star.tier);
     var x = splitPair(star.x);
@@ -1946,18 +1937,15 @@ function initGalaxyMap3d(canvasEl, data) {
     a.starColor[3 * i] = color[0];
     a.starColor[3 * i + 1] = color[1];
     a.starColor[3 * i + 2] = color[2];
-    var core = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], r);
-    a.starCore[i] = core;
-    // MAP.87: the faint end drawn brighter (static/starlight.js).
-    var halo = boostLight({
-      sizePx: THREE.MathUtils.lerp(STAR_MIN_PX, STAR_MAX_PX, t * t),
-      glow: THREE.MathUtils.lerp(STAR_GLOW[0], STAR_GLOW[1], t),
-    }, starLightBoost(luminosity));
-    a.starSize[i] = Math.max(halo.sizePx, 2 * core + 2);
-    a.starGlow[3 * i] = halo.glow;
+    // MAP.241: the star's own look, one for both maps (static/starlight.js): a size in a narrow band, the luminosity in the
+    // glow, the radius in the core; MAP.87's boost of the faint end is in it.
+    var light = starLight(luminosity, star.radius_sol);
+    a.starCore[i] = light.corePx;
+    a.starSize[i] = light.sizePx;
+    a.starGlow[3 * i] = light.glow;
     a.starGlow[3 * i + 1] = pointHaloGlow(t);
     a.starGlow[3 * i + 2] = pointHaloPx(t);
-    a.starBright[i] = THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
+    a.starBright[i] = light.bright;
     a.starPointBright[i] = pointBrightness(t);
     a.starClipped[i] = drawnByTheGalaxy(star.x, star.y, star.z) ? 0 : 1;
     a.starNode[i] = 0;
@@ -2217,6 +2205,19 @@ function initGalaxyMap3d(canvasEl, data) {
   canvasEl.galaxyStarFill = function () {
     return { syncs: starSync.syncs, written: starSync.written, moved: starSync.moved, last: starSync.last,
       capacity: starCapacity, count: starList.length };
+  };
+
+  // For tests (MAP.241): the look each drawn star was given (the halo's width and strength, the core's width and opacity, the
+  // blackbody colour), with the star's own luminosity and temperature.
+  canvasEl.galaxyStarLooks = function () {
+    var a = starArrays;
+    return starList.map(function (star, i) {
+      return {
+        id: star.id, luminosity: star.luminosity_sol, temperature: star.temperature_k, phenomenon: !!star.phenomenon,
+        sizePx: a.starSize[i], corePx: a.starCore[i], glow: a.starGlow[3 * i], bright: a.starBright[i],
+        color: [a.starColor[3 * i], a.starColor[3 * i + 1], a.starColor[3 * i + 2]],
+      };
+    });
   };
 
   canvasEl.galaxyStarFrame = function () {

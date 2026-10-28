@@ -1922,6 +1922,28 @@ def test_a_double_click_on_a_star_flies_to_it(page, dense_site):
     assert after["dist"] <= before["dist"] + 1e-6, (before["dist"], after["dist"])
 
 
+def test_stars_glow_brighter_they_do_not_grow_bigger_and_their_colour_follows_their_temperature(page, dense_site):
+    """MAP.241: two stars of very different luminosity are drawn the same size, within a narrow band, but the bright one
+    glows harder (and its core is as opaque or more), a larger star has a slightly larger core that stays small, and a
+    hotter star is bluer than a cooler one."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    looks = [look for look in page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarLooks()")
+             if not look["phenomenon"] and look["luminosity"] and look["temperature"]]
+    assert len(looks) > 100, len(looks)
+    dim = min(looks, key=lambda look: look["luminosity"])
+    bright = max(looks, key=lambda look: look["luminosity"])
+    assert bright["luminosity"] > 1000 * dim["luminosity"], (dim["luminosity"], bright["luminosity"])
+    assert abs(bright["sizePx"] - dim["sizePx"]) < 3, (dim["sizePx"], bright["sizePx"])
+    assert bright["glow"] > 2 * dim["glow"], (dim["glow"], bright["glow"])
+    assert bright["bright"] >= dim["bright"]
+    assert all(7 <= look["sizePx"] <= 13 and look["corePx"] <= 2.5 for look in looks), "every star stays small"
+    hot = max(looks, key=lambda look: look["temperature"])
+    cool = min(looks, key=lambda look: look["temperature"])
+    assert hot["temperature"] > cool["temperature"] + 1000
+    assert hot["color"][2] - hot["color"][0] > cool["color"][2] - cool["color"][0], (hot["color"], cool["color"])
+
+
 @pytest.mark.parametrize("radius_pc", [4.0, 9.0])
 def test_fly_to_fit_puts_the_sphere_in_the_window_with_no_sector_box(page, dense_site, radius_pc):
     """MAP.319: flyToFit(sphere) puts the camera where the sphere fills the smaller side of the view with 8 percent to

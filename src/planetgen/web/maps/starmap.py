@@ -710,14 +710,16 @@ _LIGHT_LOG_LUMINOSITY = (-4.0, 6.0)
 """log10(L / L_sun) mapped onto 0..1 for the halo's size and strength."""
 _LIGHT_LOG_RADIUS = (-1.0, 3.0)
 """log10(R / R_sun) mapped onto 0..1 for the core's size."""
-_LIGHT_CORE_PX = (1.1, 4.5)
-"""The core's diameter in pixels, from a red dwarf to a supergiant."""
-_LIGHT_SIZE_PX = (6.0, 30.0)
-"""The halo's full diameter in pixels, from the faintest star to the most
-luminous (grown by the square of the luminosity share, as on the Galaxy
-Map, so only a really bright star gets a big halo)."""
-_LIGHT_GLOW = (0.2, 0.6)
+_LIGHT_CORE_PX = (1.6, 2.4)
+"""The core's diameter in pixels, from a red dwarf to a supergiant (MAP.241: a narrow band, a star is small)."""
+_LIGHT_SIZE_PX = (8.5, 11.0)
+"""The halo's full diameter in pixels, from the faintest star to the most luminous, grown by the luminosity share. MAP.241,
+Boss: a star glows brighter, it is not bigger, so this is a narrow band and `_LIGHT_GLOW` carries the luminosity."""
+_LIGHT_GLOW = (0.1, 0.9)
 """The halo's strength at its middle, faint star to bright star."""
+_LIGHT_GLOW_POWER = 2.5
+"""The glow grows as the luminosity share to this power: slowly for faint stars (MAP.87's boost already draws them brighter)
+and steeply for bright ones, which keeps the halo's light rising with luminosity everywhere."""
 _LIGHT_BRIGHT = (0.75, 1.0)
 """The core's opacity and how far it whitens, faint star to bright star."""
 
@@ -800,7 +802,7 @@ def _star_light(luminosity_w, radius_km, temperature_k):
     lum_share = _log_share(luminosity_solar, _LIGHT_LOG_LUMINOSITY)
     core_px = _lerp(_LIGHT_CORE_PX, _log_share(radius_solar, _LIGHT_LOG_RADIUS))
     size_px, glow = _boost_light(
-        _lerp(_LIGHT_SIZE_PX, lum_share * lum_share), _lerp(_LIGHT_GLOW, lum_share),
+        _lerp(_LIGHT_SIZE_PX, lum_share), _lerp(_LIGHT_GLOW, lum_share ** _LIGHT_GLOW_POWER),
         star_light_boost(luminosity_solar),
     )
     return {
