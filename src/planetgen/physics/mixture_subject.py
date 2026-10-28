@@ -139,7 +139,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         quantities["teq_k"] = teq
         quantities["tday_k"] = teq * DAYSIDE_OVER_EQUILIBRIUM
         quantities["tp_k"] = teq * DAYSIDE_OVER_EQUILIBRIUM
-    effective = giant_draw.effective_temperature_k(flux, mass_earth)
+    effective = giant_draw.effective_temperature_k(flux, giant_draw.own_flux_w_m2(body))
     quantities["teff_k"] = effective
     quantities["t_layer_k"] = giant_draw.ONE_BAR_OVER_EFFECTIVE * effective
     return quantities

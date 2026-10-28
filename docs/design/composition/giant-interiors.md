@@ -188,7 +188,7 @@ the anchored relation of GEN.34), then the interior (`draw_interior`) whose whol
 
 Stand-ins, each named in `giant_draw`: the envelope metallicity range, the I and T heavy-element shares, the water share of the
 heavy elements beyond the snow line and the ammonia and methane proportions to it, the single Bond albedo (Li et al. 2018's 0.503),
-the internal temperature (`100 K * (M / M_Jupiter)^0.5`) and the one-bar over effective temperature (1.33, from Jupiter's 166 K over
+the own heat flux (the cooling law through Jupiter and Neptune of `rogue_surface.giant_internal_flux_w_m2`, `giant_draw.own_flux_w_m2`, GEN.816: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age; it has no helium-rain share until GEN.810, so a Saturn-like giant comes out near 115 K against 134 K) and the one-bar over effective temperature (1.33, from Jupiter's 166 K over
 125 K). The radius is set before the planet's final orbit is validated, so a planet moved afterwards keeps the starlight it was drawn
 with. A giant moon (the host's distance is not carried) takes the anchored relation and a 130 K one-bar temperature. The interior
 is stored (DB.89, `giant_interior.body_values`); the old stand-in envelope and core shares (`bulk_draw.draw_giant`) are removed.
