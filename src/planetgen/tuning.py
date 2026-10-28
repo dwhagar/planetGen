@@ -4529,6 +4529,12 @@ SLOW_PAGE_FAILED_SECONDS = 30
 """int: How long a failed or cancelled job is shown to the visitors who ask for the same request, before the next
 one queues a new job. A planetGen default."""
 
+SLOW_PAGE_DELIVER_SECONDS = 300
+"""int: How long a finished page job keeps its answer for the visitors waiting on it when the page cache would not take
+it (data changed while it was built, or Redis had no room), so the page that asked is answered instead of queuing the
+same job again (UX.234). It is served only while the page cache has no copy, and only to a page that waited for the job.
+A planetGen default."""
+
 SLOW_PAGE_ESTIMATE_SECONDS = 60
 """int: How long a web process keeps the table row estimates before it asks the API again. A planetGen default."""
 

@@ -292,6 +292,10 @@ def _body_of(path, target, db, queueing=True):
     cache_stats["hits" if body is not None else "misses"] += 1
     if body is None:
         if queueing and slowpages.pending_allowed():
+            if db is not None:
+                body = slowpages.delivered(db, target)    # a job built it and the cache would not take it (UX.234)
+                if body is not None:
+                    return body
             pending = slowpages.pending_for(db, path, target)
             if pending is not None:
                 raise pending
@@ -299,9 +303,11 @@ def _body_of(path, target, db, queueing=True):
         started = time.perf_counter()
         body = _send("GET", target).body
         seconds = time.perf_counter() - started
-        cache.put(db, target, body, token)
+        stored = cache.put(db, target, body, token)
         if db is not None:
             slowpages.record_duration(db, target, seconds)
+            if not queueing and not stored:
+                slowpages.deliver(db, target, body)
     return body
 
 

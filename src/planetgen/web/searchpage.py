@@ -30,7 +30,7 @@ from urllib.parse import urlencode
 from flask import g, request, url_for
 
 from planetgen.physics import equipment
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, slowpages
 from planetgen.web.lib.datatable import Column, Result, Table
 from planetgen.web.lib.fmt import format_number
 from planetgen.web.lib.habitability_cells import equipment_cell, habitability_cell
@@ -412,11 +412,23 @@ def fetch(state):
     under its own statement time limit and a panel that times out (a 504) is `TIMED_OUT` while the others show.
     Any other API failure raises as before.
 
+    A request that is slow is built by a page job (PERF.105) and raises `slowpages.Pending`. Every request is still
+    asked for before the first of them is raised, so all their jobs run side by side and the visitor waits for the
+    slowest, not for each in turn (UX.234: answers waited for one at a time went stale before the last was built).
+
     Returns:
         dict: `get_search`'s answer, its `results` holding every panel.
+
+    Raises:
+        slowpages.Pending: At least one request is being built; the first one.
     """
-    data = apiclient.get_search(db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
-                                offsets=api_offsets(state), panels=[])
+    waiting = []
+    try:
+        data = apiclient.get_search(db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
+                                    offsets=api_offsets(state), panels=[])
+    except slowpages.Pending as pending:
+        data = None
+        waiting.append(pending)
     results = {}
     for panel in PANEL_NAMES:
         try:
@@ -424,10 +436,14 @@ def fetch(state):
                 db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
                 offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel])
             results[panel] = answer["results"].get(panel)
+        except slowpages.Pending as pending:
+            waiting.append(pending)
         except apiclient.ApiError as exc:
             if exc.status_code != 504:
                 raise
             results[panel] = TIMED_OUT
+    if waiting:
+        raise waiting[0]
     data["results"] = results
     return data
 
