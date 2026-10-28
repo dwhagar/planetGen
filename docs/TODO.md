@@ -1468,6 +1468,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its edge), drawn faint as context (MAP.141), and a step goes to the
   nearest system in the direction of the arrow; the System Map has no
   grid to step through. Build (1) and (2) first; (3) can be a later PR.
+  Progress (2026-10-09): MAP.327 merged (Aux 10, #3422, 11:48 AM EDT
+  2026-10-28 as the lane reported): the Sector Map part of (1) and part
+  of (2) are built: stars outside the opened sector at 30% with no glow,
+  names or phenomena, a locked wireframe round the sector cell, and a
+  labelled arrow icon on each wall that faces a neighbour that flies to
+  it via stageView.openSector. Left for this item: keyboard and
+  arrow-button stepping at the same level, block and slab levels, and
+  the System Map part.
   Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
@@ -3203,7 +3211,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: DB.108. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
 
-- [ ] **MAP.327 Sector view dims everything outside the sector's bounds and puts a clearly labelled move icon at the centre of each visible wall facing an adjacent sector**
+- [ ] **MAP.327 Galactic view draws a locked wireframe round the current region with no dimming (the sector part, dimming and wall icons, is done in #3422)**
   Boss, 2:38 AM EDT 2026-10-25: the star field outside the sector makes
   the sector view hard to read, so dim everything outside the sector
   bounds, and have clear labelled icons to move to the adjacent sectors,
@@ -3241,6 +3249,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxyprisms.neighbourBlock and the step function from MAP.121 part
   one (#3391) for the sector-level neighbour steps; do not write a
   second neighbour helper.
+  Progress (2026-10-09): Done by Aux 10 (#3422, 11:48 AM EDT 2026-10-28
+  as the lane reported): the sector part (outside dimmed, locked
+  wireframe round the sector, labelled wall icons that fly to the
+  neighbour). Open: the region wireframe in galactic view with no
+  dimming, which waits on MAP.316 (Aux 10 builds it there).
 
 - [ ] **MAP.328 Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views)**
   Boss, 2:48 AM EDT 2026-10-25: 'rendered objects should slowly rotate
@@ -20439,6 +20452,10 @@ clears each one.
   DB.108/GEN.826, or Core 2 for the ones in the Galaxy Map click paths.
   Rules: never skip or loosen a test to get green; keep the property
   each test checks.
+  Progress (2026-10-09): Aux 10 (MAP.327, #3422, 11:48 AM EDT 2026-10-28
+  as the lane reported) fixed four sector-click tests that its wall
+  icons affected; recheck which of the seven still fail on current main
+  before starting.
   Prerequisites: none. Related: MAP.209, MAP.210, TEST.414.
 
 - [ ] **TEST.419 test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug)**
@@ -20455,6 +20472,19 @@ clears each one.
   filled details panel). A new report of Boss seeing the flash or an
   empty panel is filed as its own bug.
   Prerequisites: none. Related: MAP.209, MAP.210.
+
+- [ ] **TEST.420 Runner self-tests and the limit-slider follow-again browser test are red on main (bug)**
+  Found by Aux 10 (as the lane reported 11:48 AM EDT 2026-10-28) while
+  merging MAP.327 (#3422): the runner self-tests (the tests of
+  scripts/test.py itself) and the limit-slider follow-again browser test
+  fail the same on main without that change. The habitability end-to-end
+  marker test is already TEST.414. Do: run each alone on main, find the
+  change that broke it, fix the code or the test so it still checks its
+  property, and name the exact test ids in this item as you find them
+  (the lane's PR gave no ids). Done: both pass on main in a combined
+  run. Owner: Bug 1 after DB.108/GEN.826, or Aux 10 for the slider test.
+  Rules: never skip or loosen a test to get green.
+  Prerequisites: none. Related: TEST.414, TEST.418.
 
 ## USR: User accounts
 
