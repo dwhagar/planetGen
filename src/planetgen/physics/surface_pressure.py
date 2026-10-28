@@ -43,9 +43,10 @@ Earth, 1e22 mol or 4.6e20 kg of CO2, is. An Earth twin of the interior model is 
 THETA_EARTH = -math.log(1.0 - EARTH_DEGASSED_SHARE)
 """float: `Theta` of the Earth twin."""
 
-PROCESSING_ENERGY_J_PER_KG = 9.17e6
+PROCESSING_ENERGY_J_PER_KG = 7.81e6
 """float: Heat released per kilogram of mantle for one e-folding of the undegassed share: the Earth twin of the interior model (mid rheology,
-4.568 Gy) releases 4.09e6 J per kilogram of its mantle, which is `THETA_EARTH` of this (calibrated, tier 5, tweak level 1)."""
+4.568 Gy) releases 3.49e6 J per kilogram of its mantle, which is `THETA_EARTH` of this (calibrated, tier 5, tweak level 1; it was 9.17e6 against 4.09e6
+before the mantle's ceiling became its liquidus, GEN.735, which lowers the heat the young Earth twin released)."""
 
 DEGAS_EFFICIENCY = {"C": 1.0, "N": 1.0, "Ar": 1.0, "S": 0.5}
 """dict: The share of an element the melt cannot hold dissolved. CO2 and N2 are far less soluble than water in basalt (Tosi et al.
