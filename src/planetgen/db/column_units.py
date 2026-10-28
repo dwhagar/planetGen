@@ -253,6 +253,11 @@ TABLES = {
         "Lsun*pc": ("star_lpx", "star_lpy", "star_lpz", "point_lpx", "point_lpy", "point_lpz"),
         "Lsun*K": ("star_lt",),
     },
+    "region_stats": {
+        "index": ("shell_index", "band_index", "wedge_index"),
+        "count": ("sector_count", "capacity", "clump_count"),
+        "pc": ("extent_x_pc", "extent_y_pc", "extent_z_pc", "extent_radius_pc"),
+    },
     "galaxy_components": {
         "id": ("id", "parent_component_id"),
         "pc": ("center_x_pc", "center_y_pc", "center_z_pc", "half_mass_radius_pc", "tidal_radius_pc"),

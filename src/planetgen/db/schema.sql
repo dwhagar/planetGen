@@ -1847,6 +1847,28 @@ CREATE TABLE IF NOT EXISTS galaxy_block_lights (
     PRIMARY KEY (m, shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- region_stats (v161, DB.107): one row per named region of the Galaxy Map (`galaxy/named_regions.py`): a 9-block, `(shell_index,
+-- band_index, wedge_index)` (the level, 9, is implied), that holds at least one generated sector. `sector_count` is how many of
+-- its sectors are generated and `capacity` how many its outline holds (the share charted is `sector_count / capacity`),
+-- `clump_count` how many face-connected clumps those sectors make, and `extent_x_pc`, `extent_y_pc`, `extent_z_pc` and
+-- `extent_radius_pc` the bounding sphere of the largest clump (never smaller than the region's framing sphere), galaxy
+-- frame, parsecs: what the map frames and draws the region with. A cell with no generated sector has no row, and the
+-- region does not exist. Written by `db/region_stats.py`, which `db/block_stats.py` calls whenever it puts right the
+-- blocks above a sector (a save, a deletion, a rebuild); no foreign key, as the cell is not a row of its own.
+CREATE TABLE IF NOT EXISTS region_stats (
+    shell_index       INT NOT NULL,
+    band_index        INT NOT NULL,
+    wedge_index       INT NOT NULL,
+    sector_count      INT UNSIGNED NOT NULL,
+    capacity          INT UNSIGNED NOT NULL,
+    clump_count       INT UNSIGNED NOT NULL,
+    extent_x_pc       DOUBLE NOT NULL,
+    extent_y_pc       DOUBLE NOT NULL,
+    extent_z_pc       DOUBLE NOT NULL,
+    extent_radius_pc  DOUBLE NOT NULL,
+    PRIMARY KEY (shell_index, band_index, wedge_index)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Singleton row (same pattern as galaxy_shape above) tracking when
 -- planetgen.cli.orbits last advanced every planet's/moon's orbital_phase_deg in
 -- this database, so the next run knows how much real time has actually

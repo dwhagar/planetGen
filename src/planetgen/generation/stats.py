@@ -80,7 +80,7 @@ GALAXY_WIDE_TABLES = frozenset({
     "schema_migrations", "sector_stats",
     # PERF.178: the scatter's other tables (the log's 24 million black holes made a 33 GB estimate for 105 sectors)
     "phenomenon_scatter", "phenomenon_scatter_classes", "scatter_members", "scatter_nodes",
-    "galaxy_block_stats", "galaxy_block_lights", "galaxy_components", "galaxy_containers",
+    "galaxy_block_stats", "galaxy_block_lights", "region_stats", "galaxy_components", "galaxy_containers",
 })
 """frozenset: Tables a plan or the bright-star scatter fills for the
 whole galaxy at once, left out of the size per system."""

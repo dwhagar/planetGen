@@ -1,0 +1,4 @@
+**Headline:** The map now keeps a record of each named region: how much of it is generated and the sphere that frames it.
+
+### Changed
+- **Stored regions (DB.107).** A new table, `region_stats`, holds one row for every region (a 9-block of the map's block grid) that has at least one generated sector: how many sectors are generated, how many the region could hold (so the share charted, about 14 percent for a standard fill), how many separate clumps they make, and the centre and radius of the sphere that frames the largest clump. It is kept up to date whenever a sector is saved or deleted, in any order, by the same code that keeps the block totals, and `planetgen fill-block-totals` makes it again. Nothing shows it yet. Migration 0161 fills it for the sectors a database already holds. No generated value changes.
