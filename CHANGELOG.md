@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2449] - 2026-10-28
+
+**Headline:** The update's final health check no longer calls a good site broken when Apache answers the bare address 127.0.0.1 with another virtual host's 403.
+
+### Fixed
+- **update.sh reported a 403 and a failed update on a working site (OPS.77).** The reload check asked `http://127.0.0.1/api/health`. On a server where Apache gives that bare address to a different virtual host (here one that refuses `/api/health` with its own 403 while the site's own name redirects and answers), the check failed for 20 seconds and ended the update, leaving the site closed. When the bare address does not answer, the check now also asks the site's own address from `base_url` in config.json (`.../api/health`), pointed at this machine and following the redirect to https, and passes on a 2xx answer, saying that the bare address was not the site. If neither answers, the warning names both addresses and their answers. A site whose `base_url` is localhost is checked as before.
+TODO items resolved: OPS.77 (TODO closes it after reading this). Added: none.
+
 ## [8.0.2448] - 2026-10-28
 
 **Headline:** A free-floating planet's shielding depth and radiation score now declare their true units, and a Wolf-Rayet star can carry bodies whose air is drawn.
