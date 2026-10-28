@@ -3068,7 +3068,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   when the budget is short, and a sparse fixture labels all. Owner: Aux
   10. Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: DB.108. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
+  Prerequisites: none. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
 
 - [ ] **MAP.328 Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views)**
   Boss, 2:48 AM EDT 2026-10-25: 'rendered objects should slowly rotate
@@ -15890,28 +15890,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
   nothing in 8.1.
   Prerequisites: GEN.798. Related: DB.70, DB.101.
-
-- [ ] **DB.108 Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e)**
-  Design section 0.4 of
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md,
-  Boss 1:20 AM EDT 2026-10-25: inside the lowest-level region the
-  sectors shown are taken densest first by total mass, which needs a
-  stored mass. Add mass_sum (kilograms, the sum of the masses of the
-  sector's generated stars, planets, moons, belts, comets, nebulae and
-  the other stored bodies) to the sector-level block stats row and to
-  region_stats (DB.107), maintained by the same save and delete hook
-  (db/block_stats.py, about 109 cells per recompute), with its unit
-  entry in db/column_units.py in the same PR. One migration plus a
-  backfill command with the skip-and-list rule for sectors that cannot
-  be summed (list them, never guess), epoch row at merge as DB.100 did.
-  Done: a sector's mass_sum equals the sum of its bodies in a test,
-  saving and deleting update it, the region sum equals its sectors, the
-  backfill fills an existing galaxy, order-independence test passes.
-  Owner: Bug 1 (Boss, 1:45 AM EDT 2026-10-25: Bug 1 takes it when DB.107
-  lands, after its current item), moved from Core 3 (DB.107 stays with
-  Core 3). Rules: no backward-compat shims; every number has a unit or
-  scale (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: DB.107. Related: DB.107, MAP.322, MAP.317.
 
 - [ ] **DB.109 Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute**
   Core 1's suggestion at the end of DB.46 to DB.48 (#3451, #3456,

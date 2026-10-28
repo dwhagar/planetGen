@@ -1588,3 +1588,4 @@ Baseline: PR #1817.
 | DB.47 | 8.1 | Reproducible galaxies |
 | DB.48 | 8.1 | Reproducible galaxies |
 | DB.9 | 8.1 | Reproducible galaxies |
+| DB.108 | 8.1 | Fly-through map |
