@@ -12,6 +12,8 @@ loads fails). The exceptions below each say why.
 
 import pytest
 
+from planetgen import tuning
+from planetgen.physics import rings
 from planetgen.db import store
 from tests.column_read_support import columns_read, tracking_reads
 from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
@@ -79,6 +81,8 @@ NULL_IN_THIS_GALAXY = {
        ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "water_activity", "tidal_flux_w_m2")},
     # A moon with a gas envelope (a class I, J or T moon) is rare: the envelope split is stored for every body that has one.
     **{("moons", column): CHANCE for column in ("envelope_helium_fraction", "envelope_z_fraction")},
+    # Only a world with no liquid at its surface can hold an aquifer, and whether any of this small galaxy's does is chance.
+    **{(table, column): CHANCE for table in ("planets", "moons") for column in ("aquifer_depth_km", "aquifer_thickness_km")},
     # Only an icy moon with a frozen surface has a tide; a planet has none.
     ("planets", "tidal_flux_w_m2"): "a planet has no tide",
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
@@ -88,13 +92,15 @@ NULL_IN_THIS_GALAXY = {
     # A life-bearing moon (rare) and its paragraphs and spectrum.
     **{("moons", column): CHANCE for column in
        ("atm_density", "atm_molar_density", "scale_height_km", "life_chemical",
-        "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr")},
+        "life_stage", "evolutionary_pace", "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS)},
     **{("moon_reflection_spectrum", column): CHANCE for column in
        ("id", "moon_id", "spectrum_type", "position", "value")},
     # A giant moon (rare) and its interior (DB.89).
     **{("moons", column): CHANCE for column in (
         "interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa", "helium_depletion",
         "has_helium_shell")},
+    # A moon has no ring (GEN.732).
+    **{("moons", column): CHANCE for column in rings.BODY_FIELDS},
     **{("moon_interior_layers", column): CHANCE for column in (
         "id", "moon_id", "layer_index", "kind", "state", "top_pressure_gpa", "bottom_pressure_gpa", "mass_earth",
         "top_radius_fraction", "bottom_radius_fraction", "hydrogen", "helium", "iron", "rock", "water_liquid", "ice_x",

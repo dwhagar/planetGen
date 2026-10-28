@@ -15,7 +15,7 @@ from planetgen import tuning
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, elements, radiation, radiogenic, rogue_surface
+from planetgen.physics import constants, elements, radiation, radiogenic, rogue_surface, surface_composition
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -85,7 +85,8 @@ def test_aluminium_26_heats_a_young_body_and_nothing_older_than_a_few_million_ye
 def test_the_surface_gamma_dose_reaches_the_calibration_values():
     primitive = _content(*radiogenic.BULK_SILICATE_EARTH)
     assert radiogenic.gamma_ngy_per_hour(primitive, EARTH_AGE_GY) == pytest.approx(0.67, rel=0.05)
-    felsic = radiogenic.surface_content(primitive, 1.0)
+    felsic_ppm = surface_composition.RESERVOIRS["felsic"]
+    felsic = radiogenic.surface_content(primitive, (felsic_ppm["k_ppm"], felsic_ppm["th_ppm"], felsic_ppm["u_ppm"]))
     assert radiogenic.gamma_ngy_per_hour(felsic, EARTH_AGE_GY) == pytest.approx(71.5, rel=0.05)
     # the UNSCEAR soil means, 33, 45 and 420 Bq/kg, give 60 nGy/h; the activities come from the specific activities of GEN.438
     soil = _content(420.0 / 314.0 * 1e4, 45.0 / 4.04, 33.0 / 12.35)
@@ -96,7 +97,9 @@ def test_the_surface_gamma_dose_reaches_the_calibration_values():
     twice = radiogenic.Content(2 * soil.k0_ppm, 2 * soil.th0_ppm, 2 * soil.u0_ppm, 0.0)
     assert radiogenic.gamma_ngy_per_hour(twice, 3.0) == pytest.approx(2 * radiogenic.gamma_ngy_per_hour(soil, 3.0), rel=1e-12)
     # ultramafic below basaltic below felsic
-    doses = [radiogenic.gamma_ngy_per_hour(radiogenic.surface_content(primitive, f), EARTH_AGE_GY) for f in (0.0, 0.5, 1.0)]
+    reservoirs = [surface_composition.RESERVOIRS[name] for name in ("ultramafic", "basaltic", "felsic")]
+    doses = [radiogenic.gamma_ngy_per_hour(radiogenic.surface_content(primitive, (r["k_ppm"], r["th_ppm"], r["u_ppm"])), EARTH_AGE_GY)
+             for r in reservoirs]
     assert doses == sorted(doses)
 
 

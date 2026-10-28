@@ -29,7 +29,7 @@ Rheology of a rocky body, in two states:
   (`HEAT_PIPE_TEMPERATURE_K`) and the partly molten body flexes far more, `MOLTEN_K2_OVER_Q` (Io's: about 1e14 W at its 0.0041
   eccentricity, Peale et al. 1979, Moore 2003). No solid-state model gets there, because the heat leaves by volcanism, not conduction,
   which a one-box conduction model does not hold: this state and its two numbers are stand-ins (see `docs/design/research/gap-filling-plan.md`
-  section 6.9).
+  section 6.12).
 """
 
 import math

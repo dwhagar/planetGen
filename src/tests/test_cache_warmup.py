@@ -198,8 +198,10 @@ def test_a_family_command_runs_alone_and_warms_only_its_family(galaxy, monkeypat
     monkeypatch.setattr(warmup, "build_app", lambda config=None: real(galaxy.config))
     result = commands.run_alone("warm-search", {"database": galaxy.config.database, "cap": None})
     assert result["family"] == "search" and result["line"].startswith("search: 1 pages warmed")
+    # Every registered command is cut into units now, so the refusal is shown with an inline one made for the test.
+    monkeypatch.setitem(commands.REGISTRY, "inline-demo", commands.CommandSpec("inline-demo", "Not cut into units"))
     with pytest.raises(ValueError, match="cannot be cut"):
-        commands.expand_function("run-population")
+        commands.expand_function("inline-demo")
 
 
 def test_every_cache_family_is_its_own_registered_command_with_one_unit():

@@ -12,6 +12,9 @@ says `immutable`) and two uploads of the same picture are one file.
 Files live in `web.assets_dir`, else `assets` in the state folder, and are served at `/site-assets/<name>`
 (`seo_pages.py`).
 
+An account's picture (`prepare_avatar`, SEC.36) is the one place a GIF, animated or not, is accepted. It has its own
+format list and its own caps, and what is stored is a fresh encoding made here, never the uploaded bytes.
+
 `KINDS` says what each upload kind accepts. An SVG is parsed (no DOCTYPE or entities, no scripts, event handlers or
 external references) and is served with `Content-Security-Policy: default-src 'none'; sandbox`, so even one that
 slipped through can run nothing.
@@ -35,7 +38,7 @@ MAX_BYTES = 1024 * 1024
 BUILT_IN_OG = {"path": "/static/og-default.png", "mime": "image/png", "width": 1200, "height": 630}
 """dict: The picture a link preview shows when none was uploaded (`src/html/static/og-default.png`)."""
 
-MIME = {"png": "image/png", "ico": "image/x-icon", "jpg": "image/jpeg", "svg": "image/svg+xml"}
+MIME = {"png": "image/png", "ico": "image/x-icon", "jpg": "image/jpeg", "svg": "image/svg+xml", "gif": "image/gif"}
 
 KINDS = {
     "favicon_svg": {"setting": ("icons", "favicon_svg"), "title": "Icon (SVG)", "formats": ("svg",),
@@ -52,7 +55,7 @@ KINDS = {
 }
 """dict: Each upload kind: the setting that names the file, what it accepts."""
 
-_NAME = re.compile(r"^[0-9a-f]{16}\.(png|ico|jpg|svg)$")
+_NAME = re.compile(r"^[0-9a-f]{16}\.(png|ico|jpg|svg|gif)$")
 _lock = threading.Lock()
 _info_cache = {}
 
@@ -187,6 +190,148 @@ def store(kind, data):
             except backup_core.BackupError as exc:
                 raise AssetError(str(exc)) from exc
     return name
+
+
+# ---------------------------------------------------------------------
+# An account's picture (SEC.36)
+# ---------------------------------------------------------------------
+
+AVATAR_FORMATS = {"PNG": "png", "JPEG": "jpg", "ICO": "ico", "GIF": "gif"}
+"""dict: The formats an account picture may be uploaded as (Pillow's name -> the kind). Pillow is only asked to try
+these. An ICO is stored as a PNG; a PNG or GIF that is animated stays animated."""
+
+AVATAR_MAX_PIXELS = 1024 * 1024
+"""int: The most width times height one frame of an account picture may have (1024 by 1024)."""
+
+AVATAR_MAX_FRAMES = 100
+"""int: The most frames an animated account picture may have."""
+
+AVATAR_MAX_TOTAL_PIXELS = 16_000_000
+"""int: The most width times height times frames decoded for one upload (about 64 MB held as RGBA)."""
+
+PILLOW_MAX_PIXELS = 25_000_000
+"""int: What Pillow's own decompression-bomb limit is set to for this process (its default is 89 million)."""
+
+
+def _pillow():
+    """Pillow's `Image`, with the process-wide bomb limit lowered to `PILLOW_MAX_PIXELS` (never raised)."""
+    from PIL import Image
+    if Image.MAX_IMAGE_PIXELS is None or Image.MAX_IMAGE_PIXELS > PILLOW_MAX_PIXELS:
+        Image.MAX_IMAGE_PIXELS = PILLOW_MAX_PIXELS
+    return Image
+
+
+def _avatar_frames(image, kind):
+    """`(frames, durations, loop)` read from an opened picture, frame by frame: the caps are tested before each frame
+    is decoded, so a picture over them is refused having decoded at most the frames that fit. Every frame is a copy
+    with no `info` (comments, XMP, ICC profile, EXIF and application extensions stay behind)."""
+    from PIL import ImageOps
+    _pillow()
+    width, height = image.size
+    if width < 1 or height < 1 or width * height > AVATAR_MAX_PIXELS:
+        raise AssetError(f"The picture is {width} by {height}; a picture may have at most {AVATAR_MAX_PIXELS:,} pixels "
+                         f"(1024 by 1024).")
+    mode = "RGB" if kind == "jpg" else "RGBA"
+    frames, durations, total = [], [], 0
+    loop = None
+    for index in range(AVATAR_MAX_FRAMES + 1):
+        try:
+            image.seek(index)
+        except EOFError:
+            break
+        if index >= AVATAR_MAX_FRAMES:
+            raise AssetError(f"The picture has more than {AVATAR_MAX_FRAMES} frames; the most allowed is {AVATAR_MAX_FRAMES}.")
+        frame_width, frame_height = image.size
+        total += frame_width * frame_height
+        if total > AVATAR_MAX_TOTAL_PIXELS:
+            raise AssetError(f"The picture is too large to unpack: {width} by {height} with {index + 1} or more frames "
+                             f"is over {AVATAR_MAX_TOTAL_PIXELS:,} pixels in all.")
+        if index == 0:
+            loop = image.info.get("loop")
+        durations.append(int(image.info.get("duration") or 0))
+        source = ImageOps.exif_transpose(image) if kind == "jpg" else image   # the turn is kept, the EXIF is not
+        frame = source.convert(mode)
+        frame.info = {}
+        frames.append(frame)
+    if not frames:
+        raise AssetError("That file is not a readable picture.")
+    return frames, durations, loop
+
+
+def prepare_avatar(data):
+    """
+    Checks an account picture and makes the file to store.
+
+    The picture must be a PNG, JPEG, ICO or GIF of at most `MAX_BYTES`, `AVATAR_MAX_PIXELS` per frame,
+    `AVATAR_MAX_FRAMES` frames and `AVATAR_MAX_TOTAL_PIXELS` pixels over all the frames. The size comes from the header
+    before anything is decoded, Pillow is told which formats to try, a decompression-bomb warning is an error, and the
+    frames are read one by one under the caps. A GIF or PNG with several frames keeps them, their durations and its loop
+    count; nothing else the upload carried (comments, XMP, ICC profiles, EXIF, application extensions) is kept, because
+    the stored bytes are Pillow's new encoding of the pixels, not the uploaded ones.
+
+    Returns:
+        tuple: `(extension, bytes, width, height, frames)` -- `extension` is `png`, `jpg` or `gif`.
+
+    Raises:
+        AssetError: What is wrong, in a sentence.
+    """
+    import warnings
+    from PIL import UnidentifiedImageError
+    Image = _pillow()
+    if not data:
+        raise AssetError("The file is empty.")
+    if len(data) > MAX_BYTES:
+        raise AssetError(f"The file is {len(data) // 1024:,} KB; the most allowed is {MAX_BYTES // 1024:,} KB.")
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", Image.DecompressionBombWarning)
+            with Image.open(io.BytesIO(data), formats=list(AVATAR_FORMATS)) as image:
+                kind = AVATAR_FORMATS[image.format]
+                frames, durations, loop = _avatar_frames(image, kind)
+                if kind == "ico":
+                    kind = "png"
+            width, height = frames[0].size
+            out = io.BytesIO()
+            options = {}
+            if len(frames) > 1 and kind in ("gif", "png"):
+                options = {"save_all": True, "append_images": frames[1:], "duration": durations, "disposal": 2}
+                if loop is not None:
+                    options["loop"] = loop
+            elif kind == "jpg":
+                options = {"quality": 90}
+            frames[0].save(out, {"png": "PNG", "jpg": "JPEG", "gif": "GIF"}[kind], **options)
+    except AssetError:
+        raise
+    except (Image.DecompressionBombWarning, Image.DecompressionBombError) as exc:
+        raise AssetError("The picture is far larger than a picture may be (a decompression bomb).") from exc
+    except (UnidentifiedImageError, OSError, ValueError, SyntaxError) as exc:
+        raise AssetError("That file is not a readable picture (use a PNG, JPEG, ICO or GIF).") from exc
+    stored = out.getvalue()
+    if len(stored) > MAX_BYTES:
+        raise AssetError(f"The picture is {len(stored) // 1024:,} KB once cleaned; the most allowed is {MAX_BYTES // 1024:,} KB.")
+    return kind, stored, width, height, len(frames)
+
+
+def store_avatar(data):
+    """
+    Checks an account picture (`prepare_avatar`) and writes the cleaned file under its content name.
+
+    Returns:
+        dict: `{"name", "width", "height", "frames", "mime"}`.
+
+    Raises:
+        AssetError: The picture is not usable, or the folder can't be written.
+    """
+    extension, stored, width, height, frames = prepare_avatar(data)
+    name = f"{hashlib.sha256(stored).hexdigest()[:16]}.{extension}"
+    path = path_of(name)
+    with _lock:
+        if not os.path.exists(path):
+            try:
+                backup_core.atomic_write(path, stored, mode=0o644)
+            except backup_core.BackupError as exc:
+                raise AssetError(str(exc)) from exc
+    return {"name": name, "width": width, "height": height, "frames": frames, "mime": MIME[extension]}
 
 
 def read(name):

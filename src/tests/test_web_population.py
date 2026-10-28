@@ -15,6 +15,7 @@ import re
 import markupsafe
 import pytest
 
+from tests.population_support import populate
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
@@ -300,10 +301,10 @@ def test_real_population(mysql_config, galaxy, real_client):  # noqa: F811
 
     conn = store.get_connection(mysql_config)
     try:
-        model.run_pass(conn)
+        populate(conn)
         with conn:
             _set_age(conn, galaxy["a"], 1e6)
-        model.run_pass(conn)
+        populate(conn)
         homeworld = conn.execute("SELECT homeworld_planet_id FROM species WHERE star_system_id = ?",
                                  (galaxy["a"],)).fetchone()["homeworld_planet_id"]
         name = conn.execute("SELECT name FROM species WHERE homeworld_planet_id = ?", (homeworld,)).fetchone()["name"]

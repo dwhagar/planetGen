@@ -45,7 +45,7 @@ The foundations sit in 8.4 because the classes are reworked there (GEN.90). VIEW
 | 4 | "Atmosphere colour" replaces "sky colour" and the planet colour | Decided, same |
 | 5 | Absolute colour, no adaptation; giants included | Decided, card of the evening of 2026-10-16 (minute not recorded) |
 | 6 | One gas and compound table with every compound the descriptions mention | Decided, 11:24 to 11:25 PM EDT |
-| 7 | Nothing fixed per class, no presets; Solar System rows live in tests only (TEST.215) | Decided, standing rule; 1:44 AM EDT on stand-ins |
+| 7 | Nothing fixed per class, no presets; Solar System rows live in tests only (TEST.215) | Decided, standing rule; 1:43 AM EDT on stand-ins |
 | 8 | Value-changing chain stays in 8.4, outside the 8.1 stamp | Decided, 12:13 AM EDT, 2026-10-17 |
 | 9 | Radius reference level 1 bar | Decided, 1:24 AM EDT |
 | 10 | Gated possibility tables, stand-in marker, one shared component table | Decided, 1:40 to 1:51 AM EDT |
@@ -157,7 +157,7 @@ This is exact (14.2). The pressure route is not: the freeze-out lowers the press
 
 ## 9. Ozone (GEN.413)
 
-**Built (GEN.413, first slice):** `physics/ozone.py` has the median, the host mix, the F-star scaling, the structure spread, the abiotic branch and the mean partial pressure; `ozone_column_du` is stored on planets and moons (migration 0135) and `radiation.uv_index` and `ozone_loss_flag` read it (the `ozone_ratio` square-root proxy is gone). The oxygen comes from `p_o2_kpa` until lane I's mixture accessor (GEN.411) lands. The Chappuis band is a table of cell means in `physics/data/ozone_chappuis.json`, read by `physics/atmosphere_colour.py` (section 12, GEN.418). Not built yet: the ozone as a stored gas of the mixture, and the GEN.189 loss events reducing the column (the flag is kept).
+**Built (GEN.413, first slice):** `physics/ozone.py` has the median, the host mix, the F-star scaling, the structure spread, the abiotic branch and the mean partial pressure; `ozone_column_du` is stored on planets and moons (migration 0135) and `radiation.uv_index` and `ozone_loss_flag` read it (the `ozone_ratio` square-root proxy is gone). The oxygen comes from `p_o2_kpa` until lane I's mixture accessor (GEN.411) lands. The Chappuis band is a table of cell means in `physics/data/ozone_chappuis.json`, read by `physics/atmosphere_colour.py` (section 12, GEN.418). Not built yet: the ozone as a stored gas of the mixture, and the GEN.189 loss events reducing the column (the flag is kept). **Built (GEN.668):** `radiation.apply_air_loss(body, retained_fraction)` scales the stored column by the share of the air a loss event keeps and works the UV index out again; nothing in generation calls it yet.
 
 **Model.** Stored in Dobson units (1 DU = 2.687e16 cm^-2). With x = log10 of the O2 mixing ratio at 1 bar and Earth gravity (the fit's variable), the median is the Kozakis 2022 polynomial N = a x^5 + b x^4 + c x^3 + d x^2 + e x + f (sources check 4.2, Table 3, read; valid 0.01 to 150 percent of the present O2 level, clamped outside). Evaluated here, the Sun host gives 183, 192, 210, 199, 108 DU at 150, 100, 25, 10, 1 percent (the paper's 5.64e18 cm^-2 = 210 DU maximum at 25 percent is reproduced); G0V 263 and 169 DU at 100 and 1 percent; K2V 160 and 63; K5V 179 and 38; M5V 162 and 17. Hot hosts peak at lower O2, cooler hosts rise to the highest. For other pressures and gravities the O2 column p_O2 / g replaces the mixing ratio in x (stand-in until the Chapman layer depth, part 04 3.3, replaces it).
 

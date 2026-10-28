@@ -32,6 +32,7 @@ def reset_caches(cache_folder, monkeypatch):
     """Points the cache folder at `cache_folder` and forgets everything the readers and the hashing remembered."""
     monkeypatch.setenv(fetch.CACHE_DIR_ENV, str(cache_folder))
     fetch._VERIFIED.clear()
+    isochrones.forget()
     for loader in (isochrones._load, white_dwarf_models._load, neutron_star_matter._load_compositions,
                    neutron_star_matter._load_eos, ozone_uv._load):
         loader.cache_clear()

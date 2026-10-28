@@ -194,7 +194,7 @@ Errors against my reference: rms 1.2 %, maximum 3.6 % (M 0.3 to 16 Mearth, CMF 0
 
 **Irradiated water worlds.** Turbet et al. 2020 (arXiv:1911.08878) show that a water-rich rocky planet more irradiated than the runaway-greenhouse limit (about 1.1 times Earth's insolation for a Sun-like star) holds its water as a thick steam atmosphere, which inflates the radius so that a given water mass fraction gives a much lower bulk density; they give an empirical steam-atmosphere thickness as a function of core gravity and radius, water mass fraction and irradiation (coefficient tables, not copied here). Example in the abstract: TRAPPIST-1 b, c, d can hold at most 2, 0.3 and 0.08 % water (READ abstract). Consequently the cold fit above is for planets *below* the runaway limit; above it the thickness law is needed. Also from the abstract of Luque and Palle (READ): rocky planets close to their stars may hold supercritical water that raises the radius. Both are inputs to a later flag, not implemented here.
 
-**Ocean-world structure** (`ocean_table.py`, COMPUTED from the integrated reference, CMF 0.325, 300 K isotherm, surface 1 bar):
+**Ocean-world structure** (`ocean_table.py`, COMPUTED from the integrated reference, CMF 0.325, 300 K isotherm, surface 1 bar; the two x = 0.2 rows were recomputed on 2026-10-25 from `physics/water_layer.py` at the table's own radii (DOC.79), the earlier 1635 km / 26.0 GPa and 2519 km / 114 GPa did not follow from those radii, and `tests/test_water_layer.py` now reads this table and holds every row to the code):
 
 | M (Mearth) | x_w | R (Rearth) | water layer thickness (km) | pressure at base (GPa) | surface g (m/s2) | `g x M / (4 pi R^2)` estimate (GPa) |
 |---|---|---|---|---|---|---|
@@ -202,13 +202,13 @@ Errors against my reference: rms 1.2 %, maximum 3.6 % (M 0.3 to 16 Mearth, CMF 0
 | 1 | 1e-3 | 0.9907 | 11.7 | 0.119 | 9.98 | 0.119 |
 | 1 | 1e-2 | 1.0004 | 102 | 1.18 | 9.79 | 1.14 |
 | 1 | 0.1 | 1.0583 | 746 | 11.1 | 8.75 | 9.1 |
-| 1 | 0.2 | 1.1281 | 1635 | 26.0 | 7.70 | 17.7 |
+| 1 | 0.2 | 1.1281 | 1294 | 19.2 | 7.70 | 14.2 |
 | 1 | 0.5 | 1.2301 | 3005 | 45.4 | 6.48 | 25.0 |
 | 5 | 1e-4 | 1.5406 | 2.4 | 0.051 | 20.64 | 0.051 |
 | 5 | 1e-3 | 1.5428 | 22.8 | 0.51 | 20.58 | 0.505 |
 | 5 | 1e-2 | 1.5571 | 173 | 5.03 | 20.21 | 4.87 |
 | 5 | 0.1 | 1.6419 | 1189 | 48.4 | 18.17 | 39.4 |
-| 5 | 0.2 | 1.7463 | 2519 | 114 | 16.07 | 76.9 |
+| 5 | 0.2 | 1.7463 | 2024 | 84.7 | 16.07 | 61.7 |
 | 5 | 0.5 | 1.8942 | 4623 | 205 | 13.65 | 111 |
 
 The naive layer depth in `hydrosphere.water_layer_depth_km` (incompressible, 1000 kg/m3, planet radius fixed) is right to 2 % for `x_w <= 0.01` (104 km vs 102 for 1 Mearth) and **too deep by 40 % at x_w = 0.1** (1047 km vs 746 for 1 Mearth). `P_base ~ g x M / (4 pi R^2)` holds to 3 % for `x_w <= 0.01`, 20 % low at 0.1. For Earth gravity a liquid column deeper than about 70 km (about 6e-3 of an Earth mass, 26 Earth oceans) reaches the ice VI liquidus (715 to 755 MPa at 280 K): above `x_w` of order 6e-3 the ocean is sealed from the rock by high-pressure ice (the module's `hp_ice_km` rule), and the water layer thickness at `x_w = 0.1` already holds ice VII/X, which is solid water at 300 K (the integration uses 300 K, so deep layers are really hotter and may be fluid or superionic; Seager's note that temperature changes the density by under about 4 %, and radius by 1.2 % per 3.5 % in density, bounds this at the few-percent level for radius).

@@ -217,7 +217,13 @@ def known():
         formulas = {row["formula"] for row in json.load(handle)["gases"]}
     with open(os.path.join(data, "materials.json"), encoding="utf-8") as handle:
         formulas |= {row["formula"] for row in json.load(handle)["materials"] if row.get("formula")}
-    return frozenset(f for f in formulas if parse(f) != [("text", f)])
+    return frozenset(f for f in formulas if parse(f) != [("text", f)] and f not in SPECTRAL_TYPES)
+
+
+SPECTRAL_TYPES = frozenset({"K2"})
+"""frozenset: Gas formulas that are also the spectral type of a star (the potassium dimer K2 of the lava vapour, GEN.751, and the K2 star): a
+text that names a star ("a K2 star") must not have it written as a gas, so `split` does not mark them. `html` and `text` still write them out
+where a caller names the formula (the `formula` filter). The other spectral types with a digit (`B2`, `A0`, `F5`, `G2`, `M3`) are no gas."""
 
 
 @functools.cache

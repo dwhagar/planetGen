@@ -31,5 +31,11 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | MAP.284 | Night-side thermal glow on hot worlds, with no city lights until 9.2 | MAP.280 | Body rendering R15; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.283 | Comet colour from the coma species | GEN.488 | Body rendering R9b; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.282 | Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry | GEN.670, MAP.280 | Body rendering R14; Boss's plan of 10:26 PM EDT 2026-10-23. |
-| MAP.281 | Giant chemistry bands once the band strengths exist | GEN.422, MAP.275 | Body rendering R6b; Boss's plan of 10:26 PM EDT 2026-10-23. |
+| MAP.281 | Giant chemistry bands once the band strengths exist | MAP.275 | Body rendering R6b; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.280 | Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface | DB.96 | Body rendering R4b; Boss's plan of 10:26 PM EDT 2026-10-23. |
+
+### Resource layer
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| MAP.313 | Galaxy Map resource richness layer: a heat map of the resource score by sector, by resource kind, with the richest sectors listed | MAP.312, DB.106 | Boss, 10:29 PM EDT 2026-10-24: resource locations (valuable belts and fields as points of interest), foundations 8.2 to 9.0. |

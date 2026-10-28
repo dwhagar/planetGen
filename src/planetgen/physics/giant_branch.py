@@ -171,7 +171,7 @@ class Branch:
         return min(max(self._luminosity_at(self.start_myr + progress * self.duration_myr), self.base), self.tip)
 
 
-@functools.lru_cache(maxsize=1024)
+@functools.lru_cache(maxsize=1 << 17)
 def branch(mass_sol, fe_h=0.0):
     """The `Branch` of this mass and [Fe/H] (cached: the sampler asks for one mass again and again)."""
     return Branch(mass_sol, fe_h)

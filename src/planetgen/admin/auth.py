@@ -748,6 +748,32 @@ def change_credentials(conn, admin_user_id, current_password, new_username, new_
     conn.commit()
 
 
+def set_avatar(conn, admin_user_id, name):
+    """
+    Sets (`name`) or clears (`None`) the picture of an account (SEC.36) and returns the name it had before. The file
+    itself is `planetgen.web.assets`'s; `forget_avatar_file` removes the old one when nothing names it any more.
+    """
+    row = conn.execute("SELECT avatar FROM admin_users WHERE id = ?", (admin_user_id,)).fetchone()
+    previous = row["avatar"] if row else None
+    conn.execute("UPDATE admin_users SET avatar = ? WHERE id = ?", (name, admin_user_id))
+    conn.commit()
+    return previous
+
+
+def forget_avatar_file(conn, name):
+    """Removes the stored picture `name` unless an account or a site setting still names it. Call it after an account
+    changes or loses its picture, and after an account is deleted (the content name is shared by identical uploads)."""
+    from planetgen.web import assets
+    if not name or conn.execute("SELECT 1 AS used FROM admin_users WHERE avatar = ? LIMIT 1", (name,)).fetchone():
+        return
+    if assets.users_of(name):
+        return
+    try:
+        assets.remove(name)
+    except assets.AssetError:
+        pass   # a file left behind costs a few KB; the change itself was saved
+
+
 DEVICE_TTL_DAYS = 90
 """int: How long a trusted-device cookie (SEC.22) lasts. Fixed at
 creation, like a session; each successful login from that browser issues

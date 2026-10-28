@@ -18,7 +18,7 @@ export function totalText(total) {
 
 export function init() {
   return Array.from(document.querySelectorAll("[data-star-mix]")).map((box) => {
-    const inputs = Array.from(box.querySelectorAll("input"));
+    const inputs = Array.from(box.querySelectorAll("sl-input, input"));
     const out = box.querySelector("[data-star-mix-total]");
     const update = () => {
       const total = inputs.reduce((sum, input) => sum + (input.value === "" ? NaN : Number(input.value)), 0);
@@ -31,4 +31,8 @@ export function init() {
   });
 }
 
+// Imported with this module's own `?v=` query, as systemmap.js explains.
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { fieldsReady } = await import(`./fieldsready.js${VERSION_QUERY}`);
+await fieldsReady();
 init();

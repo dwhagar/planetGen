@@ -82,6 +82,12 @@ def test_a_pulsar_is_a_pulsar():
     assert ms.host_type_of(NeutronStar()) == "PSR"
 
 
+def test_a_black_hole_takes_the_bare_remnant_row():
+    class BlackHole:
+        type = "Stellar-Mass Black Hole"
+    assert ms.host_type_of(BlackHole()) == "PSR"
+
+
 def test_a_star_with_no_type_is_refused():
     with pytest.raises(MixtureError):
         ms.host_type_of(_sun(type=None))

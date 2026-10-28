@@ -17,8 +17,8 @@ docs/design/operations/performance-eta-queue-and-caching.md):
    has passed, held at a tenth of it while the stage runs over; source `"earlier runs"`.
 3. no history either: the **time per cost unit so far in this run** applied to the cost left; source
    `"this run so far"`.
-4. nothing to go on, as on a server that has never run the stage (PERF.184): a **rough guess** from the host's
-   workers and the stage's units (`roughtime`), source `"rough guess"`, with a wide range; it is replaced by 3 as soon
+4. nothing to go on, as on a server that has never run the stage (PERF.184): an estimate from the host's
+   workers and the stage's units (`roughtime`), source `"not timed yet"`, with a wide range; it is replaced by 3 as soon
    as a unit finishes, and by 1 and 2 on later runs (`stagetimes` keeps what each kind of stage took).
 
 A stage that has not started contributes by 2 (or its cost at the recorded rate, or at the run's rate so far).
@@ -34,7 +34,7 @@ OVERRUN_FRACTION = 0.1
 
 EARLIER_RUNS = "earlier runs"
 THIS_RUN = "this run so far"
-ROUGH = "rough guess"
+ROUGH = "not timed yet"
 
 
 @dataclass

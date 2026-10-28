@@ -466,13 +466,13 @@ def test_phenomenon_detail(app, client, fake):
 
 def test_phenomenon_page_lists_every_stored_property(client, fake):
     """UX.175: under the data table, a phenomenon's page holds the property sheet by group, a value that is not stored
-    shown as such."""
+    left out (UX.199)."""
     html = client.get("/phenomenon/nebula/4").get_data(as_text=True)
     assert ("get_object_sheet", DB, "nebula:4") in fake.calls
     assert 'id="item-properties"' in html and "All stored properties" in html
     assert '<details class="sheet-group" id="sheet-physical">' in html
     assert '<th scope="row">Radius</th>' in html
-    assert re.search(r'<th scope="row">Mass</th><td class="sheet-missing">not stored</td>', html)
+    assert '<th scope="row">Mass</th>' not in html and "sheet-missing" not in html
 
 
 def test_phenomenon_page_has_its_paragraph_and_the_links_to_its_neighbours(client, fake):

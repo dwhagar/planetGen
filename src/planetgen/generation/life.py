@@ -124,7 +124,10 @@ def life_ceiling(planet):
 def stage_ceiling(planet):
     """The most advanced milestone the habitability index allows on `planet` (`evolution.MILESTONE_KEYS`), or `None` for
     no limit: photosynthesis (microbial life) when the complex-life score is under `HABITABILITY_LIFE_SCORE_MIN`
-    (`life_ceiling`); nothing else caps it, since the class letter no longer does (GEN.92)."""
+    (`life_ceiling`), and abiogenesis when the only liquid water is an aquifer (`habitability_world.groundwater`); nothing else caps it,
+    since the class letter no longer does (GEN.92)."""
+    if habitability_world.groundwater(habitability_world.values_from_body(planet)) != "none":
+        return "abiogenesis"  # liquid water only underground (GEN.654): chemotrophs, no light and no flora
     return "photosynthesis" if life_ceiling(planet) == "microbial" else None
 
 
@@ -134,11 +137,11 @@ def _set_description(planet):
     planet.description = tuning.PLANET_CLASSES[planet.planet_class]["description"]
 
 
-def apply_life_data(planet, _again=True):
+def apply_life_data(planet, _again=True, keep_stored=False):
     """
     Determines and assigns a planet's (or moon's) life chemistry,
-    evolutionary pace (drawn once, for every sentence about it), and — for habitable, non-moon worlds — its
-    evolutionary timeline narrative.
+    evolutionary pace (drawn once, for every sentence about it), the milestone schedule of that pace
+    (`evolution.SCHEDULE_FIELDS`), and the evolutionary timeline narrative.
 
     Called once per planet/moon by `StarSystem.__init__`, after all planets
     and moons in the system have been generated and the star's age has been
@@ -148,8 +151,11 @@ def apply_life_data(planet, _again=True):
         planet (Planet): The planet or moon to apply life data to. Its
                          `life_chemical`, `reflection_spectrum_visible`,
                          `reflection_spectrum_non_visible`, `evolutionary_pace`,
-                         and (if applicable) `life_stage` and
+                         the schedule and (if applicable) `life_stage` and
                          the two ages are set in place.
+        keep_stored (bool): Keep the chemistry and the pace the body already has when the climate still allows them
+                            (`validation.reapply_life` after an edit), so a world is not given other life by a change it
+                            does not care about (DB.100). Only a chemistry or a pace that no longer fits is drawn again.
     """
     spectral_class = get_star_spectral_class(planet.star) if planet.star.type else None
 
@@ -158,9 +164,8 @@ def apply_life_data(planet, _again=True):
     ceiling = life_ceiling(planet)
     _set_description(planet)
     if ceiling == "none":
-        planet.life_chemical = None
-        planet.reflection_spectrum_visible = None
-        planet.reflection_spectrum_non_visible = None
+        _set_chemistry(planet, None)
+        _set_pace(planet, None)
         _set_evolutionary_state(planet, None)
         habitability_world.rescore(planet)  # GEN.217: the score of a lifeless world is still redone once everything is final
         log.debug("Life chemistry: none, the habitability index gives microbial life 0")
@@ -169,29 +174,33 @@ def apply_life_data(planet, _again=True):
     # Get the dictionary of viable chemicals and their weights
     viable_chems = get_viable_life_chemicals(planet, spectral_class)
 
-    if viable_chems:
+    if keep_stored and planet.life_chemical in viable_chems:
+        log.debug(f"Life chemistry: kept {planet.life_chemical}, still viable for spectral class {spectral_class!r}")
+        _set_chemistry(planet, planet.life_chemical)
+    elif viable_chems:
         # random.choices returns a list, so we grab the first [0] element
-        planet.life_chemical = draw.choices(
+        _set_chemistry(planet, draw.choices(
             population=list(viable_chems.keys()),
             weights=list(viable_chems.values()),
             k=1
-        )[0]
+        )[0])
         log.choice("Life chemistry", planet.life_chemical,
                    f"weighted draw among {len(viable_chems)} viable chemicals for spectral class "
                    f"{spectral_class!r}: {viable_chems}")
-        life_chem_data = tuning.LIFE_CHEMICALS.get(planet.life_chemical, {})
-        planet.reflection_spectrum_visible = life_chem_data.get("reflection_spectrum_visible")
-        planet.reflection_spectrum_non_visible = life_chem_data.get("reflection_spectrum_non_visible")
     else:
-        planet.life_chemical = None
-        planet.reflection_spectrum_visible = None
-        planet.reflection_spectrum_non_visible = None
+        _set_chemistry(planet, None)
         log.debug(f"Life chemistry: none viable for spectral class {spectral_class!r}")
 
     # The pace is drawn once, from what the star and the chemistry allow; the life sentence, the timeline and the
     # stored column all read this one value.
-    planet.evolutionary_pace = (evolution.draw_scale(planet.star, get_chemical_scales(planet.life_chemical))
-                                if planet.life_chemical else None)
+    if not planet.life_chemical:
+        _set_pace(planet, None)
+    else:
+        chemical_scales = get_chemical_scales(planet.life_chemical)
+        if keep_stored and planet.evolutionary_pace in evolution.candidate_scales(planet.star, chemical_scales)[0]:
+            _set_pace(planet, planet.evolutionary_pace)
+        else:
+            _set_pace(planet, evolution.draw_scale(planet.star, chemical_scales))
 
     # Generate evolutionary timeline data for every planet and moon, in any zone, that has a life chemistry (Boss,
     # 2026-10-23: a moon always gets a path when its class and conditions allow one, as a planet does; the class
@@ -207,7 +216,22 @@ def apply_life_data(planet, _again=True):
     if _again and _CEILING_RANK[life_ceiling(planet)] > _CEILING_RANK[ceiling]:
         # The air, water or heat moved since the first score and the index now allows less than the life just drawn
         # assumed: draw it again against the final score, which the rescore leaves as it is.
-        apply_life_data(planet, _again=False)
+        apply_life_data(planet, _again=False, keep_stored=keep_stored)
+
+
+def _set_chemistry(planet, chemical):
+    """Stores a life chemistry and the reflection spectra it gives (`None`: no life chemistry)."""
+    planet.life_chemical = chemical
+    data = tuning.LIFE_CHEMICALS.get(chemical, {}) if chemical else {}
+    planet.reflection_spectrum_visible = data.get("reflection_spectrum_visible")
+    planet.reflection_spectrum_non_visible = data.get("reflection_spectrum_non_visible")
+
+
+def _set_pace(planet, pace):
+    """Stores a pace and its milestone schedule (`evolution.schedule`; `None`: no pace, so no schedule)."""
+    planet.evolutionary_pace = pace
+    for field, age in zip(evolution.SCHEDULE_FIELDS, evolution.schedule(pace) if pace else (None,) * len(evolution.SCHEDULE_FIELDS)):
+        setattr(planet, field, age)
 
 
 def _set_evolutionary_state(planet, state):

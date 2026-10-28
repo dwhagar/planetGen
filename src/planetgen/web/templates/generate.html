@@ -1,6 +1,7 @@
 {#- planetgen/web/templates/generate.html -- /admin/generate, the Start screen (ADM.108): one card per task, and the
     signed-in admin's saved recipes (ADM.125). -#}
 {% extends "generate_base.html" %}
+{% from "partials/ui_fields.html" import ui_input with context %}
 {% block generate_body %}
 <section aria-labelledby="tasks-heading">
   <h2 id="tasks-heading">What do you want to do?</h2>
@@ -38,8 +39,7 @@
       <span class="hint">{{ recipe.task }}</span>
       <form method="post" action="{{ url_for('web.generate_recipe_rename', recipe_id=recipe.id) }}" class="table-form">
         {{ csrf_field() }}
-        <label for="recipe-rename-{{ recipe.id }}">New name for {{ recipe.name }}</label>
-        <input type="text" id="recipe-rename-{{ recipe.id }}" name="recipe_name" maxlength="80" required value="{{ recipe.name }}">
+        {{ ui_input("recipe_name", "New name for " ~ recipe.name, recipe.name, required=True, maxlength=80, id="recipe-rename-" ~ recipe.id) }}
         <button type="submit" class="btn">Rename</button>
       </form>
       <form method="post" action="{{ url_for('web.generate_recipe_delete', recipe_id=recipe.id) }}" class="table-form">

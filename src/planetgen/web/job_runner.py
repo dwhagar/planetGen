@@ -48,7 +48,7 @@ import sys
 import tempfile
 import time
 
-from planetgen.util import memwatch, stagemark
+from planetgen.util import logrecord, memwatch
 
 LOCK_NAME = "active"
 """str: The jobs directory's lock file, holding the running job's id."""
@@ -228,6 +228,13 @@ def _run_line(job):
 JOB_ENV = "PLANETGEN_JOB_ID"
 """str: The variable naming the job a step belongs to, so a run it starts records the job (PERF.99;
 `planetgen.queue.wrapper.JOB_ENV`)."""
+
+RECORDS_FILE = "records.log"
+"""str: The file in a job's folder that holds the job's log as records, one per line (UX.122): the runner's stage marks
+and every line its steps log (`log.set_record_file`), the same lines `output.log` holds as the page shows them."""
+
+RECORD_FILE_ENV = "PLANETGEN_RECORD_FILE"
+"""str: Set to the job's records file for every step, so the step's command writes its log lines there too."""
 
 STAGE_OFFSET_ENV = "PLANETGEN_STAGE_OFFSET"
 STAGE_TOTAL_ENV = "PLANETGEN_STAGE_TOTAL"
@@ -435,7 +442,15 @@ def run(job_dir):
     state["step_estimates"], state["stage_estimates"] = tree.step_estimates(steps)
     _write_json(state_path, state)
     try:
-        with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
+        records_path = os.path.join(job_dir, RECORDS_FILE)
+        env[RECORD_FILE_ENV] = records_path          # every step's command also writes its lines here, as records (UX.122)
+        with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log, \
+                open(records_path, "ab", buffering=0) as records:
+            def mark(record, blank_before=False):
+                """A stage mark: the plain divider in the output the page shows, the record in the records file."""
+                log.write((("\n" if blank_before else "") + logrecord.plain_line(record) + "\n").encode("utf-8"))
+                records.write((logrecord.file_line(record) + "\n").encode("utf-8"))
+
             log.write((_run_line(job) + "\n").encode("utf-8"))
             counts = _step_stage_counts(steps)
             total = sum(counts)
@@ -451,7 +466,8 @@ def run(job_dir):
                     pass
                 first = sum(counts[:index - 1]) + 1
                 count = counts[index - 1]
-                log.write(f"\n{stagemark.section(first, total, count, step['label'])}\n".encode("utf-8"))
+                mark(logrecord.stage_record(logrecord.STAGE_START, "job", first, total, step["label"], count=count),
+                     blank_before=True)
                 env[STAGE_OFFSET_ENV] = str(first - 1)
                 env[STAGE_TOTAL_ENV] = str(total)
                 step_node = tree.open_step(step["label"])
@@ -484,7 +500,14 @@ def run(job_dir):
                 tree.close(step_node, "cancelled" if current["cancelled"] or code == CANCELLED_EXIT_CODE
                            else ("done" if code == 0 else "failed"))
                 step_node = None
-                log.write((stagemark.finished(first, count, code, time.time() - started) + "\n").encode("utf-8"))
+                took = time.time() - started
+                if code == 0:
+                    mark(logrecord.stage_record(logrecord.STAGE_FINISH, "job", first, total, seconds=took, count=count))
+                else:
+                    mark(logrecord.stage_record(
+                        logrecord.STAGE_FAILED, "job", first, total, seconds=took, count=count,
+                        reason="cancelled" if current["cancelled"] or code == CANCELLED_EXIT_CODE
+                        else f"exited with status {code}"))
                 state["exit_code"] = code
                 if code == CANCELLED_EXIT_CODE and not current["cancelled"]:
                     # Cancelled from the admin queue page (ADM.10).

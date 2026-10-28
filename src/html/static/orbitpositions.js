@@ -332,6 +332,11 @@ export function cometOrbitFields(orbit) {
     fields.push(["Orbit", "Unbound: passes the star once and does not return"]);
   }
   fields.push(["Perihelion", formatDistanceKm(k.perihelion_distance_km)]);
-  fields.push(["Eccentricity", k.eccentricity.toFixed(orbit.type === "elliptical" ? 3 : 4)]);
+  fields.push(["Eccentricity", formatEccentricity(k.eccentricity, orbit.type)]);
   return fields;
+}
+
+// An eccentricity has no unit, so it says what the number is and where it sits on its scale (UX.210).
+export function formatEccentricity(eccentricity, type) {
+  return eccentricity.toFixed(type === "elliptical" ? 3 : 4) + " (a ratio: 0 is a circle, 1 is a parabola)";
 }

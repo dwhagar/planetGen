@@ -86,10 +86,25 @@
   </table></div>
 </section>
 {%- endif %}
+<section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
+  <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>
+  {%- if absences %}<p class="absences">{{ absences|join(" ") }}</p>{% endif %}
+  {%- if species %}<p>Dominant species: <a href="{{ species.url }}">{{ species.name }}</a></p>{% endif %}
+  {%- if facilities %}<h3>Facilities</h3>{{ facilities }}{% endif %}
+  {% if facts %}<div class="prose">{{ facts }}</div>{% elif not (species or facilities or absences) %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
+  {%- if system_url %}
+  <p>Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
+  {%- if moon_system_url %}
+  <p>See its moons and their orbits on the <a href="{{ moon_system_url }}">moon system map</a>.</p>
+  {%- endif %}
+  {%- elif owner_url %}
+  <p><a href="{{ owner_url }}">Open the free planet {{ owner_name }}</a>.</p>
+  {%- endif %}
+</section>
 <section class="panel" id="item-properties" aria-labelledby="item-properties-heading">
   <div class="panel-header"><h2 id="item-properties-heading">Properties</h2></div>
   {%- for group in sheet %}
-  <details class="sheet-group" id="{{ group.key if group.key in ('habitability', 'life') else 'sheet-' ~ group.key }}" open>
+  <details class="sheet-group" id="{{ group.key if group.key in ('habitability', 'life') else 'sheet-' ~ group.key }}">
     <summary><h3>{{ group.label }}</h3></summary>
     <div class="table-scroll" tabindex="0"><table class="doc-facts sheet-table">
       <tbody>
@@ -104,17 +119,6 @@
   </details>
   {%- endfor %}
   {%- if hidden_rows %}<p class="sheet-hidden">{{ hidden_rows }} propert{{ "y" if hidden_rows == 1 else "ies" }} with no value {{ "is" if hidden_rows == 1 else "are" }} not listed.</p>{% endif %}
-</section>
-<section class="panel" id="item-facts" aria-labelledby="item-facts-heading">
-  <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>
-  {%- if species %}<p>Dominant species: <a href="{{ species.url }}">{{ species.name }}</a></p>{% endif %}
-  {%- if facilities %}<h3>Facilities</h3>{{ facilities }}{% endif %}
-  {% if facts %}<div class="prose">{{ facts }}</div>{% elif not (species or facilities) %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
-  {%- if system_url %}
-  <p>Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
-  {%- elif owner_url %}
-  <p><a href="{{ owner_url }}">Open the free planet {{ owner_name }}</a>.</p>
-  {%- endif %}
 </section>
 {%- if tree %}
 <section class="panel" id="item-members" aria-labelledby="item-members-heading">

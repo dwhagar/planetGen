@@ -87,7 +87,7 @@ const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`)
 const { unpackResponse, unpackNode } = await import(`./tilepack.js${VERSION_QUERY}`);
 const {
   STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
-  approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, RAMP,
+  approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, magnitudeShare, RAMP,
 } = await import(`./starmagnitude.js${VERSION_QUERY}`);
 const {
   cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
@@ -233,9 +233,9 @@ function showPlacedInfo(entry) {
       ["Systems", entry.system_count != null ? entry.system_count : 0],
       ["Density", relativeDensity != null ? relativeDensity.toFixed(2) + "× local average" : null],
       ["Distance from core", entry.galactic_radius_pc != null ? Math.round(entry.galactic_radius_pc) + " pc" : null],
-      ["Address", entry.shell_index != null ? formatAddress(entry.shell_index, entry.band_index, entry.wedge_index) : null],
       ["Designation", entry.designation],
     ],
+    more: [["Address", entry.shell_index != null ? formatAddress(entry.shell_index, entry.band_index, entry.wedge_index) : null]],
     bookmark: sectorBookmark(entry),
     view: sceneData.sectorUrl && entry.id != null ? { href: sectorUrl(entry.id), label: "View sector →" } : null,
     links: entry.id != null ? navPick.nearbyLinks("sector:" + entry.id) : [],
@@ -260,11 +260,14 @@ function longitudeDeg(rad) {
 // The fields every cell's panel gives for its place: where its middle is, how far from the core, and the
 // ranges its edges span (radii, latitudes north of the plane, longitudes).
 function placeFields(b) {
-  var coords = cellCoordinates(b);
-  var c = coords.cartesian;
+  return [["Distance from core", formatDistancePc(cellCoordinates(b).spherical[0])]];
+}
+
+// The rest of a cell's place, behind the card's More (MAP.325): the middle, the depth and the edges' ranges.
+function placeMoreFields(b) {
+  var c = cellCoordinates(b).cartesian;
   var fields = [];
   fields.push(["Center x, y, z", c.map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]);
-  fields.push(["Distance from core", formatDistancePc(coords.spherical[0])]);
   fields.push(["Shell depth", formatDistancePc(b.r1 - b.r0)]);
   fields.push(["Latitude", (90 - (b.c1 * 180) / Math.PI).toFixed(2) + "° to " + (90 - (b.c0 * 180) / Math.PI).toFixed(2) + "°"]);
   fields.push(["Longitude", isFullTurn(b) ? "all the way round"
@@ -280,7 +283,6 @@ function showCellInfo(cell) {
   var b = cell.bounds;
   var a = cell.address;
   var fields = [];
-  fields.push(["Address", formatAddress(a.shell, a.band, a.wedge)]);
   fields.push(["Designation", sectorDesignation(a.shell, a.band, a.wedge)]);
   if (cell.filled != null) {
     fields.push(["Charted", cell.filled > 0 ? "Yes" : "Not yet"]);
@@ -295,6 +297,7 @@ function showCellInfo(cell) {
     fields.push(["Predicted density", cell.density.toFixed(2) + "× local average"]);
   }
   fields = fields.concat(placeFields(b));
+  var more = [["Address", formatAddress(a.shell, a.band, a.wedge)]].concat(placeMoreFields(b));
 
   var corners = document.createElement("details");
   var summary = document.createElement("summary");
@@ -317,24 +320,25 @@ function showCellInfo(cell) {
     : null;
   showInfo({
     title: cell.uncharted ? "Uncharted sector" : "Sector cell",
-    fields: fields, after: isFullTurn(b) ? [] : [corners], generate: generate,
+    fields: fields, more: more, after: isFullTurn(b) ? [] : [corners], generate: generate,
     // NAV.45: the cell's middle, so a sector nothing is generated in can still be asked about.
     links: navPick.nearbyLinks(cellCoordinates(b).cartesian),
   });
 }
 
-// A drill-down block's info (galaxystageview.js): the shells it spans, its
-// row of the shell and its wedge in that row, how many sectors it can hold
-// and how many are generated, where it is, and (`enter`) a button that
-// flies into it. `info.hint` goes under it.
+// A drill-down block's info (galaxystageview.js): its sectors, how many are
+// charted and its distance from the core up front; its shells, row, wedge
+// and where it is under More; and (`enter`) a button that flies into it.
 function showBlockInfo(info, edgePc) {
   var block = info.block;
   var b = drillBlockBounds(block, edgePc);
   var first = block.shell * block.m;
-  var fields = [["Shells", first + "–" + (first + block.m - 1)]];
+  var fields = [];
+  // MAP.325: the card says how big it is, how much is charted and how far it is; where it sits in the shells is behind More.
+  var more = [["Shells", first + "–" + (first + block.m - 1)]];
   var rows = drillBandCount(block.m, block.shell);
-  fields.push(["Row", block.band + " of " + rows + " in its shell (north +)"]);
-  fields.push(["Wedge", block.wedge + " of " + drillWedgeCount(block.m, block.shell, block.band) + " in its row"]);
+  more.push(["Row", block.band + " of " + rows + " in its shell (north +)"]);
+  more.push(["Wedge", block.wedge + " of " + drillWedgeCount(block.m, block.shell, block.band) + " in its row"]);
   if (info.total != null) {
     fields.push(["Sectors", formatNumber(info.total)]);
   }
@@ -343,11 +347,12 @@ function showBlockInfo(info, edgePc) {
       + (info.generated > 0 && info.total > 0 ? " (" + formatShare(info.generated / info.total) + ")" : "")]);
   }
   fields = fields.concat(placeFields(b));
+  more = more.concat(placeMoreFields(b));
   showInfo({
     title: "Block " + block.shell + "·" + block.band + "·" + block.wedge + " (" + block.m + " sectors a side)",
     fields: fields,
+    more: more,
     buttons: info.enter ? [{ label: "Fly into this block →", onClick: info.enter }] : [],
-    hint: info.hint,
   });
 }
 
@@ -423,9 +428,9 @@ function showCloudInfo(cloud) {
       ["Type", cloudTypeLabel(cloud)],
       ["Class", cloud.class],
       ["Radius", formatDistancePc(cloud.radius_pc)],
-      ["Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(cloud.x, cloud.y, cloud.z))],
     ],
+    more: [["Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   }, phenomenonActions(cloud)));
 }
 
@@ -463,23 +468,82 @@ function showPointInfo(point) {
       ["Type", pointTypeLabel(point)],
       ["Luminosity", formatLuminositySol(point.luminosity_sol)],
     ].concat(point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
-      ["Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
     ]),
+    more: [["Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   }, phenomenonActions(point)));
 }
 
+// MAP.296: the nearest systems of a star system, under its position in the card: each name a link to that system's
+// page, nearest first, with its distance. The list is fetched when the card opens (/galaxy/system/{id}/nearest) and
+// the card fits itself again when it arrives.
+function nearestSystemsNode(systemId) {
+  if (!sceneData.systemNearestPath || systemId == null) {
+    return null;
+  }
+  var box = document.createElement("div");
+  box.className = "map-info-nearest";
+  var heading = document.createElement("h4");
+  heading.textContent = "Nearest systems";
+  var note = document.createElement("p");
+  note.className = "hint";
+  note.textContent = "Looking up the nearest systems…";
+  box.append(heading, note);
+  function settle(message, list) {
+    note.textContent = message || "";
+    note.hidden = !message;
+    if (list) {
+      box.appendChild(list);
+    }
+    if (box.isConnected && infoPanel()) {
+      infoPanel().refit();
+    }
+  }
+  fetch(String(sceneData.systemNearestPath).replace("{id}", encodeURIComponent(systemId)), {
+    headers: { Accept: "application/json" }, credentials: "same-origin",
+  }).then(function (response) {
+    return response.ok ? response.json() : Promise.reject(new Error("status " + response.status));
+  }).then(function (body) {
+    var near = body.nearest || [];
+    if (!near.length) {
+      settle("No other system is stored near it.");
+      return;
+    }
+    var list = document.createElement("ol");
+    list.className = "map-info-nearest-list";
+    near.forEach(function (system) {
+      var item = document.createElement("li");
+      var link = document.createElement("a");
+      link.href = system.url;
+      link.textContent = system.name || "Unnamed system";
+      var away = document.createElement("span");
+      away.className = "map-info-nearest-distance";
+      away.textContent = " " + threeFigures(system.distance_ly) + " ly";
+      item.append(link, away);
+      list.appendChild(item);
+    });
+    settle("", list);
+  }).catch(function () {
+    settle("The nearest systems could not be loaded.");
+  });
+  return box;
+}
+
 // A star system with habitable worlds on the map (MAP.220, queryDb.galaxy_habitable_systems_in_box): how many, where,
-// and its page.
+// its nearest systems (MAP.296), and its page.
 function showHabitableSystemInfo(system) {
   var spec = {
     title: system.name || "Star system",
     fields: [
       ["Habitable worlds", String(system.worlds)],
-      ["Position x, y, z", [system.x, system.y, system.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(system.x, system.y, system.z))],
     ],
+    more: [["Position x, y, z", [system.x, system.y, system.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   };
+  var nearest = nearestSystemsNode(system.id);
+  if (nearest) {
+    spec.after = [nearest];
+  }
   if (sceneData.systemUrl) {
     spec.view = { href: String(sceneData.systemUrl).replace("{id}", encodeURIComponent(system.id)), label: "View system →" };
   }
@@ -488,6 +552,24 @@ function showHabitableSystemInfo(system) {
 
 // MAP.243: a star beyond the galaxy's outline (the halo, a satellite galaxy), where no block or sector of the
 // whole-galaxy view holds it: what is known of it and where it is.
+// A star of the map (MAP.304): what the node lists of it, and its system's page when it has one.
+function showStarInfo(star) {
+  var spec = {
+    title: star.name || "Star",
+    fields: [
+      ["Luminosity", formatLuminositySol(star.luminosity_sol)],
+      ["Temperature", star.temperature_k != null ? formatNumber(star.temperature_k) + " K" : null],
+      ["Class", star.star_type || null],
+      ["Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z))],
+    ],
+    more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
+  };
+  if (star.system_id != null && sceneData.systemUrl) {
+    spec.view = { href: String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id)), label: "View system →" };
+  }
+  showInfo(spec);
+}
+
 function showHaloStarInfo(star) {
   showInfo({
     title: "Star beyond the galaxy's outline",
@@ -495,9 +577,9 @@ function showHaloStarInfo(star) {
       ["Luminosity", formatLuminositySol(star.luminosity_sol)],
       ["Temperature", star.temperature_k != null ? formatNumber(star.temperature_k) + " K" : null],
       ["Class", star.star_type || null],
-      ["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z))],
     ],
+    more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   });
 }
 
@@ -3190,6 +3272,14 @@ function initGalaxyMap3d(canvasEl, data) {
     showPlacedInfo: showPlacedInfo,
     showCellInfo: showCellInfo,
     showHint: function (text) { showHint(text, false); },
+    // MAP.298: the names over the map are clicked through here, not as elements of their own.
+    labelAt: function (clientX, clientY) {
+      if (!galaxyLabels) return null;
+      var box = canvasEl.getBoundingClientRect();
+      return galaxyLabels.at(clientX - box.left, clientY - box.top);
+    },
+    labelHot: function (id) { if (galaxyLabels) galaxyLabels.setHot(id); },
+    labelAct: function (label) { actOnLabel(label); },
     picker: picker,
     clearSelection: function () { selectionRing.hide(); },
     restingHint: restingHint,
@@ -3308,6 +3398,7 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.onChange(function (id, on) { if (id === "glow") glow.setVisible(on); });
     canvasEl.__mapGlow = glow;    // the browser tests read what is drawn
   }
+  canvasEl.__mapInfo = infoPanel();    // the browser tests put long cards in it (MAP.295)
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
   function chooseMarker(entry) {
     highlightPosition(entry.x, entry.y, entry.z);
@@ -3328,7 +3419,10 @@ function initGalaxyMap3d(canvasEl, data) {
     stageView.layers.refresh();
     galaxyLabels = createGalaxyLabels({
       THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),
-      sources: { sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: stageView.bodyLabels, nebulae: cloudLabels },
+      sources: {
+        sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: stageView.bodyLabels, nebulae: cloudLabels,
+        stars: starNames, objects: objectNames,
+      },
     });
     canvasEl.__mapLabels = galaxyLabels;    // the browser tests read what is placed
   }
@@ -3344,6 +3438,7 @@ function initGalaxyMap3d(canvasEl, data) {
       found.push({
         id: "cloud:" + cloudKey(cloud), text: cloud.name || cloudTypeLabel(cloud),
         x: sprite.position.x, y: sprite.position.y, z: sprite.position.z, pixels: 2 * cloudPixels(cloud, distance),
+        ref: { kind: "nebula", cloud: cloud },
       });
     });
     return found;
@@ -3433,6 +3528,131 @@ function initGalaxyMap3d(canvasEl, data) {
     select: function (point) {
       highlightPosition(point.x, point.y, point.z);
       showPointInfo(point);
+    },
+  });
+
+  // MAP.304: a star of the map takes a click (selected, its panel shown) and a double click (the camera flies to it) from
+  // any distance: the nearest drawn star under the pointer, the brightest of those level with it. A star is pickable
+  // while it is drawn, that is, its node's share and its apparent brightness both leave it visible, as the shader works
+  // them out (starmagnitude.js's twin). The list is worked out once per view and star set, not per pointer event.
+  var STAR_PICK_PX = 8;
+  var STAR_PICK_MIN_SHARE = 0.25;
+  var pickableCache = { signature: "", list: [] };
+
+  function pickableStars() {
+    var n = starList.length;
+    var p = camera.position;
+    var uniforms = starMaterial.uniforms;
+    var container = stageView.inContainer();
+    var signature = [starSetVersion, n, container, p.x, p.y, p.z, uniforms.magLimit.value, uniforms.magOn.value].join(",");
+    if (signature === pickableCache.signature) return pickableCache.list;
+    updateStarShares();
+    var absolute = starPoints.geometry.getAttribute("starAbsMag");
+    var tierMag = starPoints.geometry.getAttribute("starTierMag");
+    var clipped = starPoints.geometry.getAttribute("starClipped");
+    var list = [];
+    var objects = [];
+    if (absolute && tierMag) {
+      for (var i = 0; i < n; i++) {
+        var star = starList[i];
+        if (!(starShares[i] >= STAR_PICK_MIN_SHARE) || (clipped && clipped.array[i] > 0.5)) continue;
+        // The other objects that are named (MAP.298): kept for the labels, picked by their own layer.
+        if (star.phenomenon) {
+          if (star.name && drawnByTheGalaxy(star.x, star.y, star.z)) objects.push(star);
+          continue;
+        }
+        if (!container && stageView.outsideOutline(star)) continue;  // the halo layer below names those
+        if (uniforms.magOn.value > 0.5) {
+          var dx = star.x - p.x;
+          var dy = star.y - p.y;
+          var dz = star.z - p.z;
+          var appMag = apparentMagnitude(absolute.array[i], Math.sqrt(dx * dx + dy * dy + dz * dz)) + tierMag.array[i];
+          if (magnitudeShare(appMag, uniforms.magLimit.value) < STAR_PICK_MIN_SHARE) continue;
+        }
+        if (!drawnByTheGalaxy(star.x, star.y, star.z)) continue;
+        list.push(star);
+      }
+    }
+    // The brightest last, so among stars level on the screen the brightest wins (the layer's lastWins).
+    list.sort(function (a, b) { return a.luminosity_sol - b.luminosity_sol; });
+    pickableCache = { signature: signature, list: list, objects: objects };
+    return list;
+  }
+
+  // MAP.298: what the label engine may name besides the open sector's systems: the named stars the map draws and the
+  // named objects of the other kinds, the brightest few hundred of each (the engine keeps the ones with room).
+  var NAMED_LIMIT = 400;
+  function starNames() {
+    var found = [];
+    var list = pickableStars();
+    for (var i = list.length - 1; i >= 0 && found.length < NAMED_LIMIT; i--) {
+      var star = list[i];
+      if (star.name) {
+        found.push({ id: "star:" + star.id, text: star.name, x: star.x, y: star.y, z: star.z,
+          luminositySol: star.luminosity_sol || 0, ref: { kind: "star", star: star } });
+      }
+    }
+    return found;
+  }
+  function objectNames() {
+    pickableStars();
+    return pickableCache.objects.slice(0, NAMED_LIMIT).map(function (point) {
+      return { id: "object:" + point.type + ":" + point.id, text: point.name, x: point.x, y: point.y, z: point.z,
+        luminositySol: point.map_luminosity_sol || point.luminosity_sol || 0, ref: { kind: "object", point: point } };
+    });
+  }
+
+  // A click on a name (MAP.298): the item is selected as a click on it would and the camera flies to it.
+  function actOnLabel(label) {
+    var ref = label.ref;
+    if (!ref) return;
+    if (ref.kind === "star") {
+      highlightPosition(ref.star.x, ref.star.y, ref.star.z);
+      showStarInfo(ref.star);
+      stageView.flyToEntry(ref.star);
+    } else if (ref.kind === "object") {
+      highlightPosition(ref.point.x, ref.point.y, ref.point.z);
+      showPointInfo(ref.point);
+      stageView.flyToEntry(ref.point);
+    } else if (ref.kind === "system") {
+      stageView.selectEntry(ref.entry);
+      stageView.flyToEntry(ref.entry);
+    } else if (ref.kind === "body") {
+      stageView.selectBody(ref.entry);
+    } else if (ref.kind === "nebula") {
+      highlightPosition(ref.cloud.x, ref.cloud.y, ref.cloud.z);
+      showCloudInfo(ref.cloud);
+      stageView.flyToEntry({ x: ref.cloud.x, y: ref.cloud.y, z: ref.cloud.z, r: ref.cloud.radius_pc });
+    } else if (ref.kind === "sector") {
+      stageView.locate(ref.sector);
+    }
+  }
+
+  // For tests (MAP.304): the stars a click can pick now, brightest first, with where each is on the screen (CSS pixels
+  // from the canvas's top left; `visible` false off the screen).
+  canvasEl.galaxyPickableStars = function () {
+    var width = canvasEl.clientWidth;
+    var height = canvasEl.clientHeight;
+    var point = new THREE.Vector3();
+    return pickableStars().slice().reverse().map(function (star) {
+      point.set(star.x, star.y, star.z).project(camera);
+      var x = (point.x + 1) / 2 * width;
+      var y = (1 - point.y) / 2 * height;
+      return { id: star.id, name: star.name || null, luminosity: star.luminosity_sol, x: x, y: y,
+        visible: point.z > -1 && point.z < 1 && x >= 0 && x <= width && y >= 0 && y <= height };
+    });
+  };
+
+  picker.addLayer({
+    name: "stars",
+    points: pickableStars,
+    reach: function () { return STAR_PICK_PX; },
+    lastWins: true,
+    tooltip: function (star) { return (star.name ? star.name + ", " : "") + "star" + (star.star_type && star.star_type !== "fixture" ? " " + star.star_type : ""); },
+    hover: phenomenonHover,
+    select: function (star) {
+      highlightPosition(star.x, star.y, star.z);
+      showStarInfo(star);
     },
   });
 

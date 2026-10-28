@@ -80,7 +80,7 @@ if (root && diagram && diagramButton && button3d) {
   function showRate() {
     els.play.textContent = clock.playing() ? "Pause" : "Play";
     els.play.setAttribute("aria-pressed", clock.playing() ? "true" : "false");
-    els.rate.textContent = clock.playing() ? clock.rate().label : "Paused";
+    els.rate.textContent = clock.playing() ? "Time: " + clock.rate().label : "Paused";
   }
 
   function fillList(list) {
@@ -113,6 +113,7 @@ if (root && diagram && diagramButton && button3d) {
       });
       els.canvas.systemBodies = view.bodies;
       els.canvas.systemFlyTo = view.flyTo;
+      els.canvas.systemView = view; // for the browser tests (MAP.319: the camera distance and the spheres it fits)
       els.scaleNote.textContent = view.note();
       fillList(view.list());
       showRate();
@@ -183,7 +184,8 @@ if (root && diagram && diagramButton && button3d) {
 
   const params = new URLSearchParams(window.location.search);
   // 3D is the default; a visitor who last chose the diagram gets the diagram.
-  if (params.get("view") === "3d" || params.get("object") || remembered() !== "diagram") {
+  // MAP.308: a link to a moon system map (`?scene=planet-<id>`) opens the diagram that holds it.
+  if (!params.get("scene") && (params.get("view") === "3d" || params.get("object") || remembered() !== "diagram")) {
     choose3d(params.get("object"));
   }
 }

@@ -16,7 +16,7 @@ What it replaces: on main the pressure is a class density range times `gravity^1
 
 ### 2.1 The element inventory (read)
 
-`mixture_rocky.rocky_inventory` already gives the delivered budget of the outgassing stage: H, C, N, S and radiogenic Ar, in atoms per 100 g of the mantle that holds them. Water and carbon dioxide are Ortenzi et al. 2020 Table 1 (water 0.05 to 0.5 weight percent with CO2/H2O 0.2, the dry class CO2 0.6 weight percent, the water-rich class 10 to 50 weight percent); nitrogen and sulfur per carbon atom are brackets that contain the bulk silicate Earth and the CI chondrites; argon is made by the rock's potassium. These are kept as they are (tier 1 and 2 as the gap plan registry rows AM13 and AM14 say). What was missing is the mass they refer to and the share that has come out.
+`mixture_rocky.rocky_inventory` already gives the delivered budget of the outgassing stage: H, C, N, S and radiogenic Ar, in atoms per 100 g of the mantle that holds them. Water and carbon dioxide are Ortenzi et al. 2020 Table 1 (water 0.05 to 0.5 weight percent with CO2/H2O 0.2, the dry class CO2 0.018 to 0.1 weight percent (Ortenzi's stored 0.018 to the wet High case; his delivered 0.6 is 16 times the bulk silicate Earth's carbon and is not used, GEN.813), the water-rich class 10 to 50 weight percent); nitrogen and sulfur per carbon atom are brackets that contain the bulk silicate Earth and the CI chondrites; argon is made by the rock's potassium. These are kept as they are (tier 1 and 2 as the gap plan registry rows AM13 and AM14 say). What was missing is the mass they refer to and the share that has come out.
 
 **The mass is the mantle's**, `M_mantle = M * rock_mass_fraction` (the silicate share of `bulk_composition`; the core and the ice do not hold the delivered volatiles). The inventory's per-100-g basis was a scale-free device for the mixture, and the Ortenzi values are mantle contents, so the code reads them per 100 g of mantle.
 
@@ -97,3 +97,32 @@ The draws go through `util/draw.py` after the existing mixture draws, in the ord
 - Seafloor weathering, organic carbon burial, the biological weathering factor `f_bio` (taken as 1) and carbonate metamorphism of a stagnant lid (Foley and Smye 2018): the cycle is one box, the stable root.
 - A tectonic or stagnant-lid switch on the outgassing: the heat flow `q` carries the regime only through its value, because the regime is drawn after the hydrosphere. This is the largest simplification.
 - Giant and ice-world envelopes, Titan-like and frost air: their pressures come from their own families.
+
+## 6. In the generator (GEN.411, GEN.422)
+
+Built 2026-10-24 (lane I, Blocker I): `physics/surface_air.py` solves the order of section 2.4 for every rocky planet and moon and every giant, and `physics/planets.calculate_atmospheric_conditions` stores the result (`atmosphere.store_air`). The class density ranges `atm_density_range` and `atm_molar_density_range`, the greenhouse multiplier ranges, `CLASS_MIXES` and the old mixing-ratio draw are gone (GEN.683); no body is given an air by its class.
+
+**One body, one fixed point.** Draws first (design constants of the law: the efficiencies, the cycle's three, the hydrate skin; the seed of the replay), then repeated steps at a temperature and a pressure:
+
+1. The recipe subject of the body at (`Ts`, `P`, ocean, geology) (`mixture_subject.subject_of_body`, GEN.756) and the mixture draw over the inventory times the degassed share, less the carbonate sink at that temperature (`surface_pressure.carbonate_pco2_bar`). The draw replays from one seed at every step, so only the temperature and pressure move it. The regimes of the recipe depend on them, so the draw is kept from step 8 on (`FREEZE_AFTER`); a regime on the edge of its gate cannot flip the solution back and forth.
+2. The moles of the mixture (`MixtureDraw.moles`, per 100 g of mantle, times the mantle mass) and the light-gas escape (`mixture_escape`) give the column.
+3. The freeze-out (`freeze_out`): a gas above its saturation pressure condenses until it stands on the curve, and water over an ocean or ice stands at the relative humidity 0.77 (Manabe and Wetherald 1967, the Earth's mean) while the water lasts; the quadratic of each gas is solved exactly, the mean molar mass changes with each, and the result is repeated until none moves. An ocean dissolves the sulfur gases by Henry's law (`mixture_sinks.sulfur_remaining_fraction`, GEN.757). The retention row `d6` caps the total. An icy cold body then holds the guest gases above their dissociation pressure in the cages of its ice skin (GEN.762, `clathrate_brine.hydrate_hold_pa`).
+4. The pressure is the sum of what is left (`P = g M / (4 pi R^2)`, `surface_pressure.pressure_pa`); the density, mean molar mass and scale height follow (`atmosphere_state.air_state`).
+5. The greenhouse and the temperature of that air (`atmosphere_state.greenhouse_warming`).
+
+The step is damped in ln P and in T and halves its damping when it overshoots; a creep toward the solution (the water vapour and the temperature feeding each other) is taken by a secant step of at most `MAX_GAIN` times the damped one. It stops when ln P moves by less than `TOLERANCE_LN_P` (1e-3, the noise of the greenhouse solver) and T by less than 0.1 K, or after `MAX_STEPS`; `Air.converged` says which. A world whose ocean freezes and thaws more than `MAX_OCEAN_FLIPS` times has no state that is both (the ocean weathers the CO2 away and freezes, the ice leaves the CO2 to build up and thaws): it is solved as one that keeps its ocean, with the weathering law taking itself away where it is cold.
+
+**Giants, brown dwarfs, envelopes.** There is no surface: the reference level is the 1 bar level, the mixture there does not depend on the surface temperature, and the greenhouse temperature there is of the absorbed starlight alone (no internal heat; the temperature of a giant at 1 bar is a known gap). One step is the solution.
+
+**Where the old values went.** The pressure of a class-A to V rocky world is now the supply of its interior less its sinks; a class whose retention row says "none kept" (d1) is airless; the stored density is the mean molar mass over the air's own state, not a class range.
+
+**Registry rows this adds** (GEN.725 rule, in `research/gap-filling-plan.md`):
+
+| name | value | source | tier | tweak |
+|---|---|---|---|---|
+| `RELATIVE_HUMIDITY` | 0.77 | Manabe and Wetherald 1967 | 1 verified | 0 |
+| `LONG_LIVED_FLUX_FRACTION` | 0.5 | share of the Earth twin's heat flow that keeps a mantle geologically alive | 7 educated guess from inferred physics | 0 |
+
+| `MAX_OCEAN_FLIPS`, `MAX_GAIN`, `MAX_STEPS`, tolerances | | numerical | not stand-ins | |
+
+Removed stand-ins: the weathering sink bracket of the rocky inventory (now the carbonate balance and Henry's law), the class density ranges, the greenhouse multiplier ranges.

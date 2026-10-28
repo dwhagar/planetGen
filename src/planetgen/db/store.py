@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, bulk_composition, giant_interior, orbit_elements
+from planetgen.physics import aerosols, bulk_composition, giant_interior, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -102,6 +102,7 @@ from planetgen.names.uniqueness import (
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.planet import Planet
 from planetgen.physics.position import MAX_UPDATE_INTERVAL_S, THRESHOLDS_M, update_interval_s
+from planetgen.physics import rogue_habitability
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, interstellar_comet_designation
 from planetgen.galaxy.sector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
@@ -241,7 +242,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 19
+CONTROL_SCHEMA_VERSION = 20
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -252,7 +253,7 @@ PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
 of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
-version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31). New tables need nothing more than
+version key (PERF.32), v17 `generate_recipes` and `generate_recipe_fields` (ADM.125), v18 the epoch, battery digest, environment and last-seen columns of `version_key_history` (OPS.58), v19 `admin_sessions.password_confirmed_at` (USR.31), v20 `admin_users.avatar` (SEC.36). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -291,6 +292,7 @@ _CONTROL_COLUMNS = {
         ("role", "VARCHAR(16) NOT NULL DEFAULT 'admin'"),
         ("status", "VARCHAR(16) NOT NULL DEFAULT 'active'"),
         ("owner_flag", "TINYINT AS (CASE WHEN role = 'owner' THEN 1 END) VIRTUAL"),
+        ("avatar", "VARCHAR(40) NULL"),
     ],
 }
 """dict: Columns added to existing control tables after they were first
@@ -2920,6 +2922,7 @@ BODY_FIELDS = (
     object_rows.attr("life_chemical"),
     object_rows.attr("life_stage"), object_rows.attr("evolutionary_pace"),
     object_rows.attr("life_milestone_age_gyr"), object_rows.attr("life_system_age_gyr"),
+    *(object_rows.attr(field) for field in tuning.LIFE_SCHEDULE_FIELDS),
     object_rows.attr("flavor_key"), object_rows.attr("flavor_text_count"),
     object_rows.attr("orbital_inclination_deg"), object_rows.attr("orbital_ascending_node_deg"), object_rows.attr("eccentricity"),
     *(object_rows.scaled(column, f"position_{axis}", _AU_KM) for axis, column in zip("xyz", _POSITION_COLUMNS)),
@@ -2934,9 +2937,11 @@ BODY_FIELDS = (
     object_rows.each(radiogenic.BODY_FIELDS),
     object_rows.each((*interior_heat.BODY_FIELDS, *interior_heat.OUTPUT_FIELDS)),
     object_rows.each(bulk_composition.COLUMN_FIELDS),
+    object_rows.each(surface_composition.COLUMN_FIELDS),
     object_rows.computed("carbon_rock", lambda body, context: _tristate(body.carbon_rock),
                          lambda row: {"carbon_rock": _tristate_from_db(row["carbon_rock"])}),
     object_rows.each(tuple(name for name in giant_interior.BODY_FIELDS if name != "has_helium_shell")),
+    object_rows.each(rings.BODY_FIELDS),
     object_rows.computed("has_helium_shell", lambda body, context: _tristate(body.has_helium_shell),
                          lambda row: {"has_helium_shell": _tristate_from_db(row["has_helium_shell"])}),
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
@@ -3637,6 +3642,7 @@ ROGUE_PLANET_FIELDS = (
     object_rows.computed("has_internal_heat", lambda planet, context: int(planet.has_internal_heat)),
     object_rows.computed("has_moons", lambda planet, context: int(planet.has_moons)),
     object_rows.computed(tuple(ROGUE_SURFACE_FIELDS), lambda planet, context: _rogue_surface_values(planet)),
+    object_rows.each(rogue_habitability.ROGUE_FIELDS),
     _FREE_VECTOR_FIELD, _GALACTIC_ORBIT_FIELD, _PLACEMENT_FIELD,
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
 )

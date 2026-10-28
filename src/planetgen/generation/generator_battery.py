@@ -78,7 +78,7 @@ POPULATION_STARS = 10
 KNOWN_UNIT_SEED = (bytes(range(16)), "sector", (3, 1, 0))
 """tuple: `(galaxy seed, kind, address)` of the known-answer case."""
 
-CASES = ("sector-a", "sector-b", "phenomenon", "nebula-shape", "bright-star-scatter", "population-stream", "unit-seed")
+CASES = ("sector-a", "sector-b", "phenomenon", "brown-dwarf", "nebula-shape", "bright-star-scatter", "population-stream", "unit-seed")
 """tuple: The cases, in the order the overall digest takes them."""
 
 
@@ -168,6 +168,17 @@ def _phenomenon_case():
         return tree(generate_phenomenon("rogue-planet", SystemConfig(), False, name="Battery Rogue"))
 
 
+def _brown_dwarf_case():
+    """One brown dwarf under a unit seed of its own: its record and the spectral type it is drawn (GEN.760)."""
+    from planetgen.galaxy import seed as galaxySeed
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.rogue import RoguePlanet
+
+    with galaxySeed.seeded(GALAXY_SEED, "brown-dwarf", PHENOMENON_ADDRESS):
+        dwarf = RoguePlanet(SystemConfig(), name="Battery Dwarf", mass_bin="brown-dwarf")
+        return {"record": tree(dwarf), "spectral_type": dwarf.spectral_type}
+
+
 def _nebula_case():
     """A nebula shape, its dictionary and which of `NEBULA_POINTS` points it contains."""
     from planetgen.galaxy import nebula_shape
@@ -221,6 +232,7 @@ _BUILDERS = {
     "sector-a": lambda: _sector_case(SECTOR_ADDRESSES[0]),
     "sector-b": lambda: _sector_case(SECTOR_ADDRESSES[1]),
     "phenomenon": _phenomenon_case,
+    "brown-dwarf": _brown_dwarf_case,
     "nebula-shape": _nebula_case,
     "bright-star-scatter": _scatter_case,
     "population-stream": _population_case,

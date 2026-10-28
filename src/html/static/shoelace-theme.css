@@ -111,6 +111,42 @@ sl-checkbox[data-invalid] {
   flex: 0 1 auto;
 }
 
+/* UX.125, ADM.14: on the Generate pages (main has `aligned-fields`) a field is a subgrid of three rows (label, box,
+   hint) shared with its neighbours on the same line, as the plain `.search-field` is (style.css), so the boxes sit
+   level however long or wrapped a label is. The Shoelace element and its form-control part step out of the way
+   (`display: contents`) so its label, box and help text are the subgrid's rows. A tick box takes a line of its own. */
+.aligned-fields .search-fields > .ui-field:not(.ui-field-check) {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
+  row-gap: 0.3rem;
+  align-content: start;
+  margin-bottom: 0.75rem;
+  min-width: 0;
+}
+
+.aligned-fields .search-fields > .ui-field:not(.ui-field-check) > sl-input,
+.aligned-fields .search-fields > .ui-field:not(.ui-field-check) > sl-select {
+  display: contents;
+}
+
+.aligned-fields .search-fields > .ui-field:not(.ui-field-check) > sl-input::part(form-control),
+.aligned-fields .search-fields > .ui-field:not(.ui-field-check) > sl-select::part(form-control) {
+  display: contents;
+}
+
+.aligned-fields .search-fields > .ui-field:not(.ui-field-check) > :is(sl-input, sl-select)::part(form-control-label),
+.aligned-fields .search-fields > .ui-field:not(.ui-field-check) > :is(sl-input, sl-select)::part(form-control-input),
+.aligned-fields .search-fields > .ui-field:not(.ui-field-check) > :is(sl-input, sl-select)::part(form-control-help-text),
+.aligned-fields .search-fields > .ui-field:not(.ui-field-check) > :is(sl-input, sl-select)::part(base),
+.aligned-fields .search-fields > .ui-field:not(.ui-field-check) > sl-input::part(input) {
+  min-width: 0;
+}
+
+.aligned-fields .search-fields > .ui-field-check {
+  grid-column: 1 / -1;
+}
+
 /* A dialog's form is in the page until the element is defined. */
 sl-dialog:not(:defined) {
   display: none;

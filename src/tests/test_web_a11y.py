@@ -53,7 +53,7 @@ from planetgen.util import draw
 from planetgen.web.app import create_app  # noqa: E402
 from planetgen.api.authz import SESSION_COOKIE_NAME  # noqa: E402
 from planetgen.api.config import Config  # noqa: E402
-from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
+from planetgen.api.limiter import API_LIMIT_OFF, PAGE_LIMITS_OFF  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.admin import auth
 from planetgen.db.store import MySQLConfig  # noqa: E402
@@ -306,6 +306,7 @@ def site_app(site_db):
         # One browser loads every page, and the Galaxy Map's tiles, from
         # one address: the per-IP page limits aren't under test here.
         RATELIMIT_PAGES = PAGE_LIMITS_OFF
+        RATELIMIT_DEFAULT = API_LIMIT_OFF   # fixtures and pages call the API from one address (TEST.385)
 
     # TEST.232, TEST.246: these tests check every page's layout and accessibility, not the slow-page answer (PERF.105).
     # On a loaded run the first build of /search or /phenomena can take over `tuning.SLOW_PAGE_SECONDS`; the cost rule
@@ -525,6 +526,39 @@ def _axe_blocking(page, axe_source, context=None):
     return problems
 
 
+HEADING_AUDIT_JS = """() => {
+    const shown = el => el.checkVisibility ? el.checkVisibility() : el.getClientRects().length > 0;
+    const label = el => el.tagName.toLowerCase() + (el.id ? "#" + el.id : "") +
+                        (el.className && typeof el.className === "string" ? "." + el.className.trim().split(/\\s+/).join(".") : "");
+    const heads = [...document.querySelectorAll("h1,h2,h3,h4,h5,h6")].filter(h => shown(h) && !h.closest("sl-dialog, dialog, [hidden]"));
+    const out = [];
+    const h1s = heads.filter(h => h.tagName === "H1");
+    if (h1s.length !== 1) out.push("expected one h1, found " + h1s.length);
+    let previous = 0;
+    for (const h of heads) {
+        const level = Number(h.tagName[1]);
+        if (previous === 0 && level !== 1) out.push("the first heading is " + label(h) + ", not an h1");
+        else if (level > previous + 1) out.push(label(h) + " (h" + level + ") skips a level after h" + previous);
+        previous = level;
+    }
+    for (const table of document.querySelectorAll("table")) {
+        if (!shown(table) || table.closest("sl-dialog, dialog, [hidden]")) continue;
+        if (table.querySelector(":scope > caption") || table.getAttribute("aria-label") || table.getAttribute("aria-labelledby")) continue;
+        const holder = table.closest("section, details, article, form, aside");
+        const before = h => table.compareDocumentPosition(h) & Node.DOCUMENT_POSITION_PRECEDING;
+        const owner = holder && heads.some(h => holder.contains(h) && before(h));
+        if (!owner) out.push(label(table) + " has no heading, caption or label");
+    }
+    return out;
+}"""
+
+
+def _heading_outline(page):
+    """UX.195: one h1, no skipped level in document order, and every visible table under a heading of its section or
+    carrying a caption or label."""
+    return [f"heading outline: {problem}" for problem in page.evaluate(HEADING_AUDIT_JS)]
+
+
 def _overflow(page):
     widths = page.evaluate(
         "({doc: document.documentElement.scrollWidth, body: document.body.scrollWidth,"
@@ -555,6 +589,20 @@ def _overflow(page):
     return []
 
 
+def _wait_for_components(page):
+    """Waits until every Shoelace element on the page is defined and has rendered once.
+
+    An `sl-option` is given its `option` role at once, but the `listbox` it needs as a parent is rendered inside its
+    `sl-select`'s shadow root; axe run before that reported "aria-required-parent" (/admin/generate/system at phone/light
+    in the TEST.385 run, though not at the other three viewport and scheme cases)."""
+    page.evaluate("""async () => {
+        const tags = new Set([...document.querySelectorAll("*")].map(e => e.localName).filter(n => n.startsWith("sl-")));
+        await Promise.all([...tags].map(tag => customElements.whenDefined(tag)));
+        await Promise.all([...document.querySelectorAll("*")].filter(e => e.localName.startsWith("sl-") && e.updateComplete)
+                          .map(e => e.updateComplete));
+    }""")
+
+
 @pytest.mark.parametrize("scheme", SCHEMES)
 @pytest.mark.parametrize("viewport", sorted(VIEWPORTS))
 @pytest.mark.parametrize("endpoint", PAGE_ENDPOINTS)
@@ -583,6 +631,7 @@ def test_page_is_accessible_and_fits(browser, axe_source, base_url, page_targets
         response = page.goto(base_url + path, wait_until="load")
         assert response.status == 200, f"{path} answered {response.status}"
         page.wait_for_timeout(100)
+        _wait_for_components(page)
 
         if SCREENSHOT_DIR:
             os.makedirs(SCREENSHOT_DIR, exist_ok=True)
@@ -591,6 +640,7 @@ def test_page_is_accessible_and_fits(browser, axe_source, base_url, page_targets
 
         problems += _overflow(page)
         problems += _axe_blocking(page, axe_source)
+        problems += _heading_outline(page)
 
         # Skip link: the first Tab stop, visible once focused, pointing at <main id="main">.
         page.keyboard.press("Tab")

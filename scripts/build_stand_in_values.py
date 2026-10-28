@@ -51,11 +51,17 @@ SECTIONS = (
     ("6.6", "6.6 Fills of the shared download step", ("fill_id", "kind", "tier", "tweak", "stand-in", "replaced_by", "sources")),
     ("6.7", "6.7 Stand-ins of the atmosphere mixture draw",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.8", "6.8 Stand-ins of the orbit elements",
+    ("6.8", "6.8 Stand-ins of the hours outside in a day",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.9", "6.9 Stand-ins of how a rendered body is drawn",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.10", "6.10 Stand-ins of the radius valley",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.11", "6.11 Stand-ins of the orbit elements",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
-    ("6.9", "6.9 Stand-ins of the tidal heating",
+    ("6.12", "6.12 Stand-ins of the tidal heating",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
-    ("6.10", "6.10 Stand-ins of the spin and its despinning",
+    ("6.13", "6.13 Stand-ins of the spin and its despinning",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
 )
 """tuple: Each registry table: the plan's section number, its title here, the columns that go in the list."""
@@ -188,7 +194,7 @@ def render(plan_text):
         " much of the physics is derived and how much inferred; a placeholder (P) with no source is T4 or, when physics argues its"
         " size, T6 or T7. Rows whose parts differ list each part.",
         "- **Tweak** is L0 unless the value was moved after the fact. The L3 rows (hand-tuned against a sweep) are the mantle redox"
-        " laws AT.a1 and a2, the atmosphere draws AT.b4 and b5, BC6 and AM19 (the exobase ratios); the L2 row is AM10 (the alkali"
+        " laws AT.a1 and a2, the atmosphere draw AT.b5, BC6 and AM19 (the exobase ratios); the L2 row is AM10 (the alkali"
         " activity, tuned to Kite et al. 2016); L1 rows are nudged inside the source's error bar. No row is L4: a row at L4 needs the"
         " item that justified it.",
         "- The recipe rows of the atmosphere draw (`atmosphere_recipes_data.py`) are not rows here one by one. Those that carry a"

@@ -62,6 +62,7 @@ const NF = await import(`./nearfield.js${VERSION_QUERY}`);
 const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 const SR = await import(`./sectorreach.js${VERSION_QUERY}`);
 const SYS = await import(`./systemreach.js${VERSION_QUERY}`);
+const FIT = await import(`./flytofit.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
@@ -1417,6 +1418,23 @@ export function createStageView(host) {
     },
   });
 
+  // MAP.297: the blocks are not picked by the pointer on the Galaxy Map (the map is about locations, not sector boxes):
+  // a hover, click or double click goes to the stars, objects and markers, or to nothing. They are still the layer the
+  // wheel's crossing from one window to the next reads (blockUnderWheel). A sector page's map (pinned) keeps its
+  // neighbouring sectors pickable: a click there opens that sector's page. Choosing a NAV end (needGenerated) is
+  // the one thing on the Galaxy Map that is still a choice among blocks.
+  function blocksPickable() {
+    return !!pinned || needGenerated;
+  }
+  function pointerLayers(layer) {
+    return blocksPickable() || layer !== choiceLayer;
+  }
+  // What the wheel's anchoring and crossings look at: not the map's own stars (MAP.304), which take the pointer's
+  // click and hover only, so a zoom aims where it did.
+  function notMapStars(layer) {
+    return layer.name !== "stars";
+  }
+
   // Whether choice `index` can be picked: not while choosing a NAV end
   // and it holds nothing generated.
   function pickable(index) {
@@ -1513,7 +1531,7 @@ export function createStageView(host) {
   }
 
   function setHover(next) {
-    hover = next;
+    hover = blocksPickable() ? next : null;
     applyHover();
   }
 
@@ -1543,6 +1561,11 @@ export function createStageView(host) {
       });
     });
     if (!animation) setDisplayFade(display, 1);
+    // MAP.297: no sector box is outlined or shaded on the Galaxy Map, hovered, selected or entered.
+    if (!blocksPickable()) {
+      clearOutline();
+      return;
+    }
     // MAP.201: the sector selected (one that is not opened, as an
     // unfilled one cannot be) stays outlined until something else is
     // selected, whether or not the pointer is on it.
@@ -1661,6 +1684,9 @@ export function createStageView(host) {
 
   function baseHint(r) {
     if (!r || !r.kind) return "";
+    if (!blocksPickable()) {
+      return "Click a star or an object for its details, double-click to fly to it, or scroll to zoom toward it.";
+    }
     if (isSectorView(r)) {
       return "Click a sector to open it; a sector that isn't charted yet shows where it is"
         + (host.canGenerate ? " and how to chart it." : ".");
@@ -2269,7 +2295,7 @@ export function createStageView(host) {
     ray.setFromCamera(new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1), camera);
     const origin = ray.ray.origin;
     const direction = ray.ray.direction;
-    const found = picker.pick(clientX, clientY);
+    const found = picker.pick(clientX, clientY, notMapStars);
     const forward = new THREE.Vector3(view.target[0], view.target[1], view.target[2]).sub(origin).normalize();
     const onPlane = MC.pointOnFocusPlane(origin.toArray(), direction.toArray(), view.target, forward.toArray());
     // A pointer on the cross zooms about the cross (MAP.199), whatever the column behind it holds.
@@ -2305,8 +2331,8 @@ export function createStageView(host) {
   // MAP.292: while the next window's data is on its way (`arriving`, the camera kept where it is) the wheel is not held
   // to the end of the range it carried the view to: the view goes on coming closer meanwhile, so a scroll is not stopped
   // for as long as the data takes, and the next window takes the camera over where it has got to.
-  function wheelPolicy() {
-    const policy = zoomPolicyFor(resolved);
+  function wheelPolicy(at) {
+    const policy = zoomPolicyFor(resolved, at);
     return arriving && MC.canZoom(policy) ? MC.zoomPolicy(policy.kind, policy.nearest * ARRIVING_OVERSHOOT, policy.farthest) : policy;
   }
 
@@ -2351,7 +2377,10 @@ export function createStageView(host) {
     }
     const asked = limitedStep(anchor, factor);
     const before = view.dist;
-    view.zoom = MC.clampDistance(wheelPolicy(), view.zoom * asked, 1);
+    // MAP.326: how near the camera may come is judged from the point being zoomed toward (a star under the pointer),
+    // not from the view's middle, which can be a sector's width from that star: judged from the middle the wheel
+    // stopped short of the star and never reached its system.
+    view.zoom = MC.clampDistance(wheelPolicy(anchor), view.zoom * asked, 1);
     reframe();
     const taken = before > 0 ? view.dist / before : 1;
     view.target = MC.targetAboutAnchor(view.target, anchor, taken);
@@ -2413,7 +2442,9 @@ export function createStageView(host) {
   // True when this tick moved across.
   function zoomAcross(deltaPx, event) {
     if (animation || pinned || arriving) return false;
-    const policy = zoomPolicyFor(resolved);
+    // MAP.326: in an opened sector the range and the star to go in to are those of the point under the pointer.
+    const under = event && entered && !enteredSystem && isFree(resolved) && view.fit ? anchorUnder(event.clientX, event.clientY) : null;
+    const policy = zoomPolicyFor(resolved, under);
     if (deltaPx > 0 && view.zoom >= policy.farthest * 0.999 && (enteredSystem || entered || !isWholeGalaxy(resolved))) {
       up({ keepCamera: true });
       return true;
@@ -2427,7 +2458,7 @@ export function createStageView(host) {
       if (!host.fetchSystemScene) return false;
       const picked = sectorStage.selectedEntry();
       const star = picked && picked.endpoint && picked.endpoint.indexOf("system:") === 0 && picked.href
-        ? picked : nearestStar(view.target, view.dist * NEAREST_STAR_REACH);
+        ? picked : (under && nearestStar(under, view.dist * NEAREST_STAR_REACH)) || nearestStar(view.target, view.dist * NEAREST_STAR_REACH);
       if (!star) return false;
       enterSystem(star, { push: true, fly: false });
       return true;
@@ -2474,7 +2505,7 @@ export function createStageView(host) {
     const onMap = event && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
     const x = onMap ? event.clientX : rect.left + rect.width / 2;
     const y = onMap ? event.clientY : rect.top + rect.height / 2;
-    const front = picker.pick(x, y);
+    const front = picker.pick(x, y, notMapStars);
     const halo = !stage.win && front && front.layer !== choiceLayer ? front : null;
     const point = halo ? [halo.entry.x, halo.entry.y, halo.entry.z] : found ? null : anchorUnder(x, y);
     if (!point) return null;
@@ -2556,15 +2587,20 @@ export function createStageView(host) {
     centreOn(goal);
   }
 
-  // MAP.146: how far from `entry` the camera comes to look at it: a star with a system, to where its system's disc is
-  // whole (the nearest zoom allows); a cloud or body of a radius, to where it fills most of the view; anything else
-  // keeps the distance the view has.
+  // MAP.146, MAP.319: how far from `entry` the camera comes to look at it: a star with a system or a cloud or body of
+  // a radius, to where its bounding sphere fills the view (flytofit.js; the zoom the view allows clamps it, so a
+  // system comes no nearer than its disc whole); anything else keeps the distance the view has.
+  function aspectNow() {
+    return (canvasEl.clientWidth || 800) / (canvasEl.clientHeight || 600);
+  }
+
   function distanceToLookAt(entry) {
-    const heightPx = canvasEl.clientHeight || 600;
     if (entry.href && entry.endpoint && entry.endpoint.indexOf("system:") === 0) {
-      return SYS.distanceForPixels(SYS.FULL_PX * 1.5, systemRadii.get(entry.href) || SYS.NOMINAL_RADIUS_PC, heightPx, camera.fov);
+      return FIT.fitDistance(systemRadii.get(entry.href) || SYS.NOMINAL_RADIUS_PC, camera.fov, aspectNow());
     }
-    if (entry.r > 0) return entry.r / (0.6 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2));
+    if (entry.r > 0) return FIT.fitDistance(entry.r, camera.fov, aspectNow(), { minRadius: FIT.MIN_VIEW_RADIUS_PC });
+    // MAP.304: a star or point of the map comes to a sector and a half away, no farther than the view is now.
+    if (entry.luminosity_sol != null) return Math.min(view.dist, 1.5 * edgePc);
     return view.dist;
   }
 
@@ -2584,6 +2620,13 @@ export function createStageView(host) {
       view = Object.assign({}, kept, { target: point.slice(), dist: to.dist, quat: to.quat.clone(), zoom: zoom });
       applyView();
     });
+  }
+
+  // MAP.319: flies the camera to look at a bounding sphere, `target` = {center: [x, y, z] pc, radius pc}, from where it
+  // fills the view (the region, system, moon system or nebula it bounds), keeping the viewing direction.
+  function flyToFit(target) {
+    if (!target || !target.center) return;
+    flyToPoint(target.center, FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: FIT.MIN_VIEW_RADIUS_PC }));
   }
 
   // Flies the camera to an object of the sector scene (a star, a phenomenon): a double click on it, its Go to
@@ -2608,6 +2651,10 @@ export function createStageView(host) {
 
   // For the browser tests: the stage on screen.
   canvasEl.galaxyStage = function () { return stage; };
+
+  // For the browser tests: flies to a bounding sphere (MAP.319).
+  canvasEl.galaxyFlyToFit = function (target) { flyToFit(target); };
+  canvasEl.galaxyFov = function () { return camera.fov; };
 
   // For the browser tests: whether the camera is on its way to a stage, waiting for the stage's data or flying
   // (the trail follows the camera, MAP.227, so it is read once the camera has landed).
@@ -2644,9 +2691,23 @@ export function createStageView(host) {
     if (layer && layer.hover) layer.hover(found.entry);
   }
 
+  // MAP.298: the name under the pointer (the label engine's), lit and the pointer a hand; null when none.
+  function labelUnder(event) {
+    return host.labelAt ? host.labelAt(event.clientX, event.clientY) : null;
+  }
+
   function hoverAt(event) {
     if (animation || event.pointerType === "touch") return;
-    const found = picker.pick(event.clientX, event.clientY);
+    const label = labelUnder(event);
+    if (host.labelHot) host.labelHot(label ? label.id : null);
+    canvasEl.style.cursor = label ? "pointer" : "";
+    if (label) {
+      hoverOther(null);
+      if (hover && !hover.sticky) setHover(null);
+      showTooltip("", 0, 0);
+      return;
+    }
+    const found = picker.pick(event.clientX, event.clientY, pointerLayers);
     hoverOther(found);
     if (found && found.layer !== choiceLayer) {
       if (hover && !hover.sticky) setHover(null);
@@ -2665,10 +2726,17 @@ export function createStageView(host) {
 
   function clickAt(event, type) {
     if (animation) return;
+    // MAP.298: a click on a name selects its item and flies the camera to it.
+    const label = labelUnder(event);
+    if (label && host.labelAct) {
+      showTooltip("", 0, 0);
+      host.labelAct(label);
+      return;
+    }
     // Inside a container, a phenomenon under the click is shown rather
     // than the block picked. Stars never take the click (MAP.101): in a
     // dense sector they would hide it.
-    const found = picker.pick(event.clientX, event.clientY);
+    const found = picker.pick(event.clientX, event.clientY, pointerLayers);
     if (found && found.layer !== choiceLayer) {
       showTooltip("", 0, 0);
       // Picking an object takes the light off a choice the arrow keys left lit, so Enter then goes to the object.
@@ -2678,7 +2746,11 @@ export function createStageView(host) {
     }
     if (host.clearSelection) host.clearSelection();
     const index = found ? found.entry : -1;
-    if (index < 0) return;
+    if (index < 0) {
+      // MAP.304: a click on nothing selects nothing and puts the panel away.
+      if (!blocksPickable() && !sectorStage.deselect()) host.showHint(hintFor(resolved));
+      return;
+    }
     if (type === "touch" && touchPending !== index) {
       // First tap highlights, a second on the same thing acts.
       touchPending = index;
@@ -2718,7 +2790,8 @@ export function createStageView(host) {
   // camera to it. On anything else it is two clicks, as ever (a touch screen's second tap on a block acts on it).
   function doubleClickAt(event, type) {
     if (animation) return;
-    const found = picker.pick(event.clientX, event.clientY);
+    if (labelUnder(event)) return;
+    const found = picker.pick(event.clientX, event.clientY, pointerLayers);
     // MAP.245: on empty space (nothing picked) it flies half way toward the point under the pointer. A block stays
     // two clicks.
     if (!found && flyHalfWayTo(event)) return;
@@ -2816,6 +2889,11 @@ export function createStageView(host) {
       return;
     }
     if (animation) return;
+    // MAP.297: there are no choices to move among on the Galaxy Map: Enter flies to the selected object.
+    if (!blocksPickable()) {
+      if (key === "Enter") flyToEntry(sectorStage.selectedEntry());
+      return;
+    }
     // MAP.146: with nothing lit among the choices, Enter flies to the selected object of the scene.
     if (key === "Enter" && !(hover && hover.option != null && display && display.options.length)) {
       flyToEntry(sectorStage.selectedEntry());
@@ -3393,6 +3471,7 @@ export function createStageView(host) {
         id: "sector:" + (record.id !== undefined && record.id !== null ? record.id : cellKey(block)),
         text: record.name || "Sector " + S.sectorDesignation(block.shell, block.band, block.wedge),
         x: middle[0], y: middle[1], z: middle[2], sizePc: edgePc,
+        ref: { kind: "sector", sector: { shell: block.shell, band: block.band, wedge: block.wedge } },
       });
     });
     return labels;
@@ -3405,7 +3484,7 @@ export function createStageView(host) {
     return sectorStage.entries().filter(function (e) {
       return e.name && e.href && e.endpoint && e.endpoint.indexOf("system:") === 0 && !sectorStage.hides(e);
     }).map(function (e) {
-      return { id: e.endpoint, text: e.name, x: e.x, y: e.y, z: e.z, luminositySol: e.luminositySol || 0 };
+      return { id: e.endpoint, text: e.name, x: e.x, y: e.y, z: e.z, luminositySol: e.luminositySol || 0, ref: { kind: "system", entry: e } };
     });
   }
 
@@ -3413,11 +3492,20 @@ export function createStageView(host) {
   // the body in parsecs, so its label shows once it is a few pixels across).
   function bodyLabels() {
     return systemStage.entries().filter(function (e) { return e.name && e.r > 0; }).map(function (e) {
-      return { id: e.ref, text: e.name, x: e.x, y: e.y, z: e.z, sizePc: 2 * e.r };
+      return { id: e.ref, text: e.name, x: e.x, y: e.y, z: e.z, sizePc: 2 * e.r, ref: { kind: "body", entry: e } };
     });
   }
 
+  // MAP.298: a click on a body's name selects the body and flies to it.
+  function selectBody(entry) {
+    if (!entry) return;
+    systemStage.select(entry.ref);
+    flyToBody(entry);
+  }
+
   return {
+    flyToEntry: flyToEntry,
+    selectBody: selectBody,
     bodyLabels: bodyLabels,
     sectorLabels: sectorLabels,
     systemLabels: systemLabels,
@@ -3444,6 +3532,8 @@ export function createStageView(host) {
     colorBy: function () { return colorBy; },
     setNeedGenerated: setNeedGenerated,
     stage: function () { return stage; },
+    // MAP.319: flies to a bounding sphere, {center: [x, y, z] pc, radius pc}, so it fills the view.
+    flyToFit: flyToFit,
     // The opened sector's entries (MAP.68): "Show on map" buttons select
     // one by key.
     // The world point under a screen point (MAP.150); read by the tests.

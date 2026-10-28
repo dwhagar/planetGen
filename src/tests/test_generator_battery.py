@@ -1,6 +1,6 @@
 # tests/test_generator_battery.py
 
-"""OPS.57: `generator_battery_digest()` is a database-free digest over seven canned cases that is stable from run to
+"""OPS.57: `generator_battery_digest()` is a database-free digest over eight canned cases that is stable from run to
 run and from hash seed to hash seed, and changing one canned draw changes the digest of exactly one case."""
 
 import hashlib
@@ -22,9 +22,9 @@ def baseline():
     return battery.generator_battery_digest()
 
 
-def test_the_battery_has_the_seven_cases_in_order(baseline):
+def test_the_battery_has_the_eight_cases_in_order(baseline):
     assert tuple(baseline.cases) == battery.CASES
-    assert len(battery.CASES) == 7
+    assert len(battery.CASES) == 8
     assert all(len(digest) == 64 for digest in [baseline.overall] + [c.full for c in baseline.cases.values()])
 
 

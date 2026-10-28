@@ -21,5 +21,5 @@
   A hot Jupiter locks in about a hundred thousand years; the Moon, in tens of millions. This replaces the flat 8 to 48 hour day of rocky
   planets, so typical planetary days are now much shorter than the Solar System's (24 hours): the source simulates the last giant
   impacts only.
-- **Stand-ins recorded.** Rows TH1 to TH9 and SP1 to SP10 in the stand-in registry (GEN.725).
+- **Stand-ins recorded.** Rows TH1 to TH10 and SP1 to SP10 in the stand-in registry (GEN.725).
 generation-output: changed

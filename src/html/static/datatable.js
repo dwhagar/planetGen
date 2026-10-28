@@ -93,6 +93,7 @@ function lifeCluster(life, iconUrl, helpUrl) {
     use.setAttribute("href", `${iconUrl}#life-${entry.name}`);
     svg.append(use);
     const score = el("span", "hab-life-score", String(entry.score));
+    score.append(el("span", "hab-life-of", "/9"));    // the scale: a bare 3 says nothing
     score.setAttribute("aria-hidden", "true");
     node.append(svg, score);
     cluster.append(helpLink(helpUrl, entry.anchor, node));

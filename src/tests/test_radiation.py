@@ -15,7 +15,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
-from planetgen.physics import activity, atmosphere, constants, proton_range, radiation as rad, radiogenic
+from planetgen.physics import activity, atmosphere, constants, proton_range, radiation as rad, radiogenic, surface_composition
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -119,9 +119,11 @@ def test_the_ground_dose_reads_the_same_concentrations_as_the_heat():
     k, th, u = radiogenic.BULK_SILICATE_EARTH
     one = radiogenic.Content(k * 1.0, th * radiogenic.formation_mix("Th")[1], u * radiogenic.formation_mix("U")[1], 0.0)
     two = radiogenic.Content(one.k0_ppm, 2 * one.th0_ppm, 2 * one.u0_ppm, 0.0)
-    base = rad.gamma_dose_msv_yr(radiogenic.surface_content(one, 0.0), 4.568)
-    doubled = rad.gamma_dose_msv_yr(radiogenic.surface_content(two, 0.0), 4.568)
-    k_part = rad.gamma_dose_msv_yr(radiogenic.surface_content(radiogenic.Content(one.k0_ppm, 0.0, 0.0, 0.0), 0.0), 4.568)
+    basalt = surface_composition.RESERVOIRS["basaltic"]
+    rock = (basalt["k_ppm"], basalt["th_ppm"], basalt["u_ppm"])
+    base = rad.gamma_dose_msv_yr(radiogenic.surface_content(one, rock), 4.568)
+    doubled = rad.gamma_dose_msv_yr(radiogenic.surface_content(two, rock), 4.568)
+    k_part = rad.gamma_dose_msv_yr(radiogenic.surface_content(radiogenic.Content(one.k0_ppm, 0.0, 0.0, 0.0), rock), 4.568)
     assert doubled - k_part == pytest.approx(2 * (base - k_part), rel=1e-9)
     assert radiogenic.heat_w_per_kg(two, 4.568) > radiogenic.heat_w_per_kg(one, 4.568)
 
@@ -243,6 +245,56 @@ def test_a_star_nearer_the_centre_flags_ozone_loss_on_a_world_with_air():
     for body in _bodies(system):
         if body.body_type == "t" and (body.ozone_column_du or 0.0) > 0.0:
             assert body.ozone_loss_flag
+
+
+def _rocky_world_with_air():
+    for seed in range(60):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        body = next((b for b in _bodies(system) if b.body_type == "t" and (b.atmospheric_pressure or 0.0) > 0.0), None)
+        if body is not None:
+            return body
+    raise AssertionError("no seed gave a rocky world with air")
+
+
+def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviolet_rises(monkeypatch):
+    """GEN.668: a loss event scales the stored ozone column by the share of the air kept, and the UV index follows."""
+    body = _rocky_world_with_air()
+    monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
+    with deterministic_entropy(1):
+        rad.generate_dose(body)
+    before, uv_before = body.ozone_column_du, body.uv_surface_index
+    assert before == pytest.approx(300.0)
+    rad.apply_air_loss(body, 0.5)
+    assert body.ozone_column_du == pytest.approx(150.0)
+    assert body.uv_surface_index > uv_before
+
+
+def test_an_air_loss_that_keeps_all_of_the_air_changes_nothing_and_one_that_keeps_none_leaves_no_ozone(monkeypatch):
+    body = _rocky_world_with_air()
+    monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
+    with deterministic_entropy(1):
+        rad.generate_dose(body)
+    uv = body.uv_surface_index
+    rad.apply_air_loss(body, 1.0)
+    assert body.ozone_column_du == pytest.approx(300.0) and body.uv_surface_index == pytest.approx(uv)
+    rad.apply_air_loss(body, 0.0)
+    assert body.ozone_column_du == 0.0 and body.uv_surface_index > uv
+
+
+def test_the_ozone_after_an_air_loss_is_held_between_none_and_all_of_it():
+    from planetgen.physics import ozone
+    assert ozone.column_after_air_loss(300.0, 0.5) == 150.0
+    assert ozone.column_after_air_loss(300.0, 1.7) == 300.0
+    assert ozone.column_after_air_loss(300.0, -0.2) == 0.0
+    assert ozone.column_after_air_loss(-4.0, 0.5) == 0.0
+
+
+def test_a_body_with_no_ozone_column_is_left_as_it_is_by_an_air_loss():
+    body = types.SimpleNamespace(ozone_column_du=None, uv_surface_index=None)
+    rad.apply_air_loss(body, 0.5)
+    assert body.ozone_column_du is None and body.uv_surface_index is None
 
 
 def _system_with_rocky_worlds():

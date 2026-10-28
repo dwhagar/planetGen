@@ -5,6 +5,8 @@ UX.143: every kind of item a reference can name has a page, from one registry, a
 comet gets the item page at `/object/<ref>`.
 """
 
+import re
+
 import pytest
 
 from planetgen.describe import model
@@ -125,11 +127,11 @@ def test_a_planet_has_a_page_with_its_sheet_text_places_and_tree(client):
     page = response.get_data(as_text=True)
     assert "<title>" in page and "Kepler b" in page
     assert "A rocky world." in page                      # the description's paragraph
-    assert 'id="item-properties"' in page and "Ocean depth" in page and "sheet-missing" in page   # the sheet, a gap shown
+    assert 'id="item-properties"' in page and "Mass" in page and "Ocean depth" not in page   # the sheet; a value never stored is not listed (UX.199)
     assert 'href="/sector/4"' in page and 'href="/system/9"' in page          # the places it is in
     assert f'href="/object/{STAR}"' in page               # the star it orbits is on the chain
     assert 'data-tree-root' in page and f"/object/{MOON}" in page            # the bodies that belong to it, each a page
-    assert page.index('id="location"') < page.index('id="item-properties"') < page.index('id="item-facts"') \
+    assert page.index('id="location"') < page.index('id="item-facts"') < page.index('id="item-properties"') \
         < page.index('id="item-members"')
     assert "#planet-" not in page, "no more anchors on the system's page"
 
@@ -174,7 +176,7 @@ def test_a_facility_has_a_page_with_its_host_its_record_and_no_tree(client):
     assert "New Hope" in page and "Object ID FE81000A2B-0000005-009" in page
     assert f'href="/object/{PLANET}"' in page and "Built on" in page          # the planet it stands on
     assert "A first colony." in page and "affiliated with Velarix Concord" in page and "Crime" in page
-    assert 'id="item-properties"' in page and "Ocean depth" in page            # the sheet, from the fake
+    assert 'id="item-properties"' in page and "Mass" in page            # the sheet, from the fake
     assert "item-members" not in page and "Navigate" not in page
     assert 'href="/system/9"' in page
 
@@ -286,3 +288,69 @@ def test_the_symbols_on_a_planets_page_go_to_its_own_habitability_group_and_that
     """UX.197: the icons link to this page's Habitability section, whose help link goes on to the levels page."""
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert f'href="/object/{PLANET}#habitability"' in page
+
+
+def test_a_barren_airless_dry_world_says_so_in_sentences_and_leaves_the_sections_out():
+    """UX.203: no life, no atmosphere and no water become sentences and a "None", not tables of zeros."""
+    from planetgen.describe import sheet as registry
+    from planetgen.web.item_pages import sheet_context
+
+    barren = {"life_microbial": 0, "life_flora": 0, "life_fauna": 0, "life_sentient": 0, "atmospheric_pressure_pa": 0,
+              "hydrosphere": "dry", "water_mass_fraction": 0, "ocean_fraction": 0}
+    assert registry.missing("planet", barren) == ["life", "atmosphere", "water"]
+    assert registry.missing("star", barren) == []
+    # a trace of air, of water or of life, and a value that is not stored, never count as none
+    assert registry.missing("moon", {**barren, "atmospheric_pressure_pa": 5.0}) == ["life", "water"]
+    assert registry.missing("moon", {**barren, "water_mass_fraction": 1e-3}) == ["life", "atmosphere"]
+    assert registry.missing("moon", {**barren, "hydrosphere": "vapour"}) == ["life", "atmosphere"]
+    assert registry.missing("moon", {**barren, "life_fauna": 1}) == ["atmosphere", "water"]
+    assert registry.missing("planet", {**barren, "life_fauna": None, "atmospheric_pressure_pa": None,
+                                        "hydrosphere": None}) == []
+
+    def row(key):
+        return {"key": key, "label": key, "value": ["0"], "text": "0", "stored": True, "absent": True, "show_absent": True}
+    groups = [{"key": key, "label": key.title(), "rows": [row(key + "_row")]} for key in ("atmosphere", "climate", "water", "life")]
+    context = sheet_context({"kind": "planet", "groups": groups, "missing": ["life", "atmosphere", "water"]})
+    assert [group["key"] for group in context["sheet"]] == ["atmosphere", "climate"]
+    assert [r["html"] for r in context["sheet"][0]["rows"]] == ["None"]
+    assert context["absences"] == [registry.MISSING_SENTENCES[key] for key in ("life", "atmosphere", "water")]
+    assert [group["key"] for group in sheet_context({"kind": "planet", "groups": groups})["sheet"]] == [
+        "atmosphere", "climate", "water", "life"]
+
+
+def test_the_breadcrumb_calls_the_system_link_system_and_the_star_link_by_the_stars_name(client):
+    """The system link of the trail reads "System" and the star's its own name, so a shared name is not shown twice."""
+    page = client.get(f"/object/{MOON}").get_data(as_text=True)
+    trail = re.search(r'<nav[^>]*aria-label="Breadcrumb".*?</nav>', page, re.S)
+    assert trail, "no breadcrumb trail"
+    assert re.search(r'<a [^>]*href="/system/9"[^>]*>System</a>', trail.group(0))
+
+
+def test_the_properties_follow_the_about_block_right_after_at_a_glance(client):
+    """Boss, 10-24: header and render, At a glance, About, then the property list."""
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    order = [page.index(f'id="{section}"') for section in ("item-glance", "item-facts", "item-properties")]
+    assert order == sorted(order)
+
+
+def test_a_stored_key_reads_as_words_on_the_sheet():
+    """A text value such as the life stage technological_civilization shows no underscore."""
+    from planetgen.describe import sheet as registry
+
+    spec = next(spec for spec in registry.SPECS["planet"] if spec.key == "life_stage")
+    assert registry._value(spec, "planets", "technological_civilization") == ["Technological civilization"]
+
+
+def test_every_row_the_atmosphere_section_lists_has_a_label_and_a_value():
+    """UX.198: gases the air does not hold (partial pressure 0) are not listed, and the rest are never blank."""
+    from planetgen.web.item_pages import sheet_context
+
+    def row(key, label, value, absent):
+        return {"key": key, "label": label, "value": [value], "text": value, "stored": True, "absent": absent,
+                "show_absent": False}
+    gases = [row("p_n2", "Nitrogen partial pressure", "78 kPa", False)] + [
+        row(f"p_gas{i}", f"Gas {i} partial pressure", "0 Pa", True) for i in range(14)]
+    context = sheet_context({"kind": "planet", "groups": [{"key": "atmosphere", "label": "Atmosphere", "rows": gases}]})
+    listed = context["sheet"][0]["rows"]
+    assert [r["label"] for r in listed] == ["Nitrogen partial pressure"]
+    assert all(r["label"] and str(r["html"]) for r in listed) and context["hidden_rows"] == 14

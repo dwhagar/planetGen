@@ -831,6 +831,134 @@
    "fill_id": "GEN.509",
    "falsifier": "a mean simulated valley radius at 10 d more than 2 sigma from 1.84 over 24 surveys of 4000 planets",
    "role": "target"
+  },
+  {
+   "id": "e1-valley-flux-slope",
+   "row": "atmosphere-e:e1",
+   "statistic": "mean over simulated Kepler surveys of alpha in log10 R_valley = c + alpha log10 F + beta log10 M*, the valley radius against insolation F at a given stellar mass, cells of 0.5 to 1.4 solar masses by 1 to 1000 times a reference insolation (the flux at 1 AU from a 1 solar-mass star)",
+   "kind": "mean",
+   "value": 0.069,
+   "sigma": 0.021,
+   "source": "Berger et al. 2023 (arXiv:2302.00009, abstract READ for GEN.722): alpha = 0.069 +0.019 -0.023 (sigma taken as the mean of the two sides); core-powered mass loss predicts 0.08 and photoevaporation 0.12 in the same paper",
+   "label": "READ",
+   "validity": {
+    "period_d": [
+     2.0,
+     100.0
+    ],
+    "host_mass_solar": [
+     0.5,
+     1.4
+    ]
+   },
+   "fill_id": "GEN.722",
+   "falsifier": "a mean simulated alpha more than 2 sigma from 0.069 over 12 surveys of 12000 planets (physics/radius_valley.py mass_slopes_of)",
+   "role": "target"
+  },
+  {
+   "id": "e1-valley-mass-slope",
+   "row": "atmosphere-e:e1",
+   "statistic": "mean over simulated Kepler surveys of beta in log10 R_valley = c + alpha log10 F + beta log10 M*, the valley radius against stellar mass at a given insolation",
+   "kind": "mean",
+   "value": -0.046,
+   "sigma": 0.12,
+   "source": "Berger et al. 2023 (arXiv:2302.00009, abstract READ for GEN.722): beta = -0.046 +0.125 -0.117 (sigma the mean of the two sides). The paper's predictions, core-powered mass loss 0.00 and photoevaporation -0.17, both lie inside 1.1 sigma, so the survey cannot choose the mechanism",
+   "label": "READ",
+   "validity": {
+    "period_d": [
+     2.0,
+     100.0
+    ],
+    "host_mass_solar": [
+     0.5,
+     1.4
+    ]
+   },
+   "fill_id": "GEN.722",
+   "falsifier": "a mean simulated beta more than 2 sigma from -0.046 over 12 surveys of 12000 planets (physics/radius_valley.py mass_slopes_of)",
+   "role": "target"
+  },
+  {
+   "kind": "proportion",
+   "sigma": 0,
+   "label": "READ",
+   "validity": {
+    "radius_earth": [
+     1.0,
+     1.8
+    ],
+    "host_mass_solar": [
+     0.8,
+     1.2
+    ],
+    "mass_earth": [
+     1.0,
+     10.0
+    ]
+   },
+   "selection_model": "mass-radius-sample",
+   "role": "target",
+   "subject": {
+    "body_class": "M",
+    "quantities": {
+     "radius_earth": 1.5,
+     "host_mass_solar": 1.0,
+     "mass_earth": 3.0
+    }
+   },
+   "fill_id": "GEN.512",
+   "id": "t5-outlier-share",
+   "row": "bulk-iron-branch:iron-enriched",
+   "field": "outlier",
+   "statistic": "share of the 21 planets of a homogeneous sample (20 hosts) whose inferred core mass fraction is more than 2 sigma above the star-matched value",
+   "value": 0.047619047619047616,
+   "counts": [
+    1,
+    21
+   ],
+   "source": "Plotnykov, Valencia, Ross, Reggiani and Schlaufman 2026 (arXiv:2511.17717 v2; READ in tunable-gaps-sources/group2-delivery-retention.md section 2.5): 21 planets, 20 stars, super-Mercuries fall from four to one (Kepler-107 c); mass-radius scatter alone reproduces the outliers about 15 percent of the time. Exact binomial 95 percent interval 0.001 to 0.238. Schulze 2021: 1 of 11; Adibekyan 2021 (heterogeneous): 5 of 22, the upper end",
+   "falsifier": "a simulated outlier share more than 2 sigma from 1 of 21 over 3000 seeds through the mass-radius cut (physics/iron_branch_tuning.py)"
+  },
+  {
+   "kind": "proportion",
+   "sigma": 0,
+   "label": "READ",
+   "validity": {
+    "radius_earth": [
+     1.0,
+     1.8
+    ],
+    "host_mass_solar": [
+     0.8,
+     1.2
+    ],
+    "mass_earth": [
+     1.0,
+     10.0
+    ]
+   },
+   "selection_model": "mass-radius-sample",
+   "role": "target",
+   "subject": {
+    "body_class": "M",
+    "quantities": {
+     "radius_earth": 1.5,
+     "host_mass_solar": 1.0,
+     "mass_earth": 3.0
+    }
+   },
+   "fill_id": "GEN.512",
+   "id": "t5-within-share",
+   "row": "bulk-iron-branch:star-matched",
+   "field": "within",
+   "statistic": "share of 20 planets (1 to 1.8 R_E, homogeneous stellar data) whose inferred core mass fraction is within 1 sigma of the host's",
+   "value": 0.75,
+   "counts": [
+    15,
+    20
+   ],
+   "source": "Brinkman et al. 2024 (arXiv:2409.08361; READ in tunable-gaps-sources/group2-delivery-retention.md section 2.5): 75 percent of the planets within 1 sigma of the host, no distinct super-Mercury population; OLS slope 1.3 +- 1.0, orthogonal-distance slope 5.6 +- 1.6",
+   "falsifier": "a simulated within-1-sigma share more than 2 sigma from 15 of 20 over 3000 seeds through the mass-radius cut (physics/iron_branch_tuning.py)"
   }
  ]
 }

@@ -28,7 +28,7 @@ import math
 from collections import namedtuple
 
 from planetgen.generation import life as planetLife
-from planetgen.physics import constants, orbit_elements, planets as planetPhysics
+from planetgen.physics import constants, orbit_elements, planets as planetPhysics, rings
 from planetgen import tuning
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
 from planetgen.physics import unit_registry as units
@@ -298,6 +298,7 @@ def reconcile_moved_planet(planet, keep_class=False):
         # A new class brings a new radius and mass, and so a new range
         # of stable moon orbits.
         planetPhysics.drop_unstable_moons(planet)
+        rings.apply(planet)  # GEN.732: a new class, a new ring
 
     any_moon_reclassified = False
     for moon in planet.moons:
@@ -861,7 +862,7 @@ def stabilize_star_system(system, pinned=(), allow_removal=False):
 
 
 def reapply_life(body):
-    """A body's life chemistry, evolution speed and (for a habitable
-    planet) evolutionary timeline, re-rolled after its class or climate
-    changed (`planetLife.apply_life_data`)."""
-    planetLife.apply_life_data(body)
+    """A body's life chemistry, evolutionary pace and timeline, worked out again after its class or climate
+    changed (`planetLife.apply_life_data`). The chemistry and the pace it had stay when the new climate still allows them
+    (DB.100); only one that no longer fits is drawn again."""
+    planetLife.apply_life_data(body, keep_stored=True)

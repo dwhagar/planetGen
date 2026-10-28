@@ -59,3 +59,16 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional | MAP.168 | Later; only if PERF.72 says it is cheap. |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | MAP.168 |  |
 | MAP.167 | Gravity map: a heat map of the gravitational field inside a sector (the seminal feature of 9.0) | GEN.199, MAP.168, MAP.169, UX.94, API.24 | Seminal feature of 9.0 (Boss 2026-10-10). Parent. |
+
+## Phase 4: Living population and trade
+
+Populations and trade routes become dynamic (Boss, 9:38 PM EDT 2026-10-24).
+
+Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stamped until SEC.33 (the full security code audit) and TEST.261 (the full bug hunt audit) each have a dated report for it and no finding they mark blocking is open. Both are standing items: they stay open and are re-run for every major or minor version change (required whenever the major or minor version changes (8.1, 8.2 and on to 9.0 and 10.0), never for build numbers).
+
+### Dynamic population and trade
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| POP.35 | Dynamic world populations: populations step forward with the nightly update from the stored growth state | POP.30 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |
+| POP.36 | Dynamic trade routes: routes grow, shift and close as populations, ports and territories change, using the same hop pathfinding | POP.33, POP.35, MAP.309 | Boss, 9:38 PM EDT 2026-10-24: trade routes and world populations, done by 8.9, dynamic in 9.1. |

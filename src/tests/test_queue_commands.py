@@ -70,14 +70,15 @@ def test_the_star_scatters_are_the_stages_the_wrapper_queues_first_in_the_order_
     assert [step.kind for step in wrapper.queued(wrapper.steps_for(args.command, args))] == ["scatter-band"]
 
 
-def test_only_a_registered_command_with_units_can_be_queued_and_every_command_has_a_summary():
+def test_only_a_registered_command_with_units_can_be_queued_and_every_command_has_a_summary(monkeypatch):
     for kind, command in commands.REGISTRY.items():
         assert command.kind == kind and command.summary
         assert (command.unit is None) == (command.expand is None), "a command has both its unit and its cut, or neither"
     with pytest.raises(ValueError):
         commands.build_steps("phenomenon", _args(["galaxy"]))
+    monkeypatch.setitem(commands.REGISTRY, "an-inline-command", commands.CommandSpec("an-inline-command", "Runs here"))
     with pytest.raises(ValueError, match="cannot be cut"):
-        commands.expand_function("run-population")
+        commands.expand_function("an-inline-command")
 
 
 def test_the_step_the_wrapper_adds_when_the_stored_scatter_is_incomplete_comes_before_the_luminosity_pass():
@@ -123,8 +124,9 @@ def _units(count):
 
 def test_the_unit_that_completes_a_stage_queues_the_next_in_the_order_of_the_list(monkeypatch, conn):
     _register(monkeypatch, first=_units(3), second=_units(2), third=_units(1))
+    monkeypatch.setitem(commands.REGISTRY, "an-inline-command", commands.CommandSpec("an-inline-command", "Runs here"))
     plans, results = [], {}
-    listing = [commands.Step("inline", "run-population", "An inline step"),
+    listing = [commands.Step("inline", "an-inline-command", "An inline step"),
                commands.Step("a", "first", "First"), commands.Step("b", "second", "Second"),
                commands.Step("c", "third", "Third")]
     run_id = wrapper.run("Three stages", listing[1:], lambda index, plan: plans.append((index, plan["kind"], plan["units"])),
@@ -202,12 +204,13 @@ def _alone(args, report):
 def test_a_unit_runs_alone_and_the_command_line_lists_and_runs_commands(monkeypatch, tmp_path):
     from planetgen.util import log
     monkeypatch.setitem(commands.REGISTRY, "alone", commands.CommandSpec("alone", "Runs alone", unit=(__name__, "_alone")))
+    monkeypatch.setitem(commands.REGISTRY, "an-inline-command", commands.CommandSpec("an-inline-command", "Runs here"))
     lines = []
     monkeypatch.setattr(log, "normal", lines.append)
     assert commands.run_alone("alone", {"n": 4}) == {"squared": 16}
     generate_cli.run_commands(_args(["commands"]))
     assert any(line.startswith("scatter-mass") and "units" in line for line in lines)
-    assert any(line.startswith("run-population") and "inline" in line for line in lines)
+    assert any(line.startswith("an-inline-command") and "inline" in line for line in lines)
     assert len(lines) == len(commands.REGISTRY), "one line per command"
     path = tmp_path / "unit.json"
     path.write_text(json.dumps({"n": 5}))

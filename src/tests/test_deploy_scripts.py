@@ -607,47 +607,79 @@ def test_an_unknown_apache_identity_is_an_error_not_a_silent_exit(name):
     assert 'read -r APACHE_USER APACHE_GROUP < <(detect_apache_group) || [[ -z "${APACHE_GROUP:-}" ]]' in code
 
 
-# --- reload_apache_if_running (OPS.8) ----------------------------------------
+# --- reload_web_if_running (OPS.8, OPS.29) -----------------------------------
 
-def _run_reload(tmp_path, active, restart, fail=False):
-    """Runs the helper with a fake `systemctl` that logs its calls."""
+def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=True, health=True):
+    """Runs the helper with fake `systemctl`, `apache2ctl` and `curl` that log their calls; returns
+    `(process, calls)`. `fail` names the systemctl verbs that fail."""
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     log = tmp_path / "calls"
-    fake = bin_dir / "systemctl"
-    fake.write_text(
-        "#!/bin/bash\n"
-        f'echo "$@" >> {log}\n'
-        'if [[ "$1" == is-active ]]; then exit %d; fi\n'
-        'exit %d\n' % (0 if active else 3, 1 if fail else 0))
-    fake.chmod(0o755)
-    script = f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; reload_apache_if_running'
-    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}")
+
+    def fake(name, body):
+        path = bin_dir / name
+        path.write_text("#!/bin/bash\n" + f'echo "{name} $@" >> {log}\n' + body)
+        path.chmod(0o755)
+
+    fake("systemctl", 'if [[ "$1" == is-active ]]; then case " %s " in *" $3 "*) exit 0;; esac; exit 3; fi\n'
+         'case " %s " in *" $1 "*) exit 1;; esac\nexit 0\n' % (" ".join(active), " ".join(fail)))
+    fake("apache2ctl", "exit %d\n" % (0 if configtest else 1))
+    fake("curl", 'echo -n %d\n' % (200 if health else 503))
+    script = (f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; '
+              'reload_web_if_running')
+    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1")
     proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
     calls = log.read_text().splitlines() if log.exists() else []
     return proc, calls
 
 
-def test_the_update_reloads_a_running_apache(tmp_path):
-    proc, calls = _run_reload(tmp_path, active=True, restart=0)
+def test_the_update_reloads_a_running_apache_after_its_config_test_and_checks_the_site_answers(tmp_path):
+    proc, calls = _run_reload(tmp_path)
     assert proc.returncode == 0 and "reloaded Apache" in proc.stdout
-    assert calls == ["is-active --quiet apache2", "reload apache2"]
+    assert [c for c in calls if not c.startswith("curl")] == [
+        "systemctl is-active --quiet apache2", "apache2ctl configtest", "systemctl reload apache2",
+        "systemctl is-active --quiet planetgen-gunicorn"]
+    assert any(c.startswith("curl") and "/api/health" in c for c in calls)
 
 
-def test_the_update_restarts_apache_after_enabling_a_module(tmp_path):
-    proc, calls = _run_reload(tmp_path, active=True, restart=1)
+def test_the_update_restarts_apache_only_when_mod_wsgi_was_just_installed(tmp_path):
+    proc, calls = _run_reload(tmp_path, restart=1)
     assert proc.returncode == 0 and "restarted Apache" in proc.stdout
-    assert calls[-1] == "restart apache2"
+    assert "systemctl restart apache2" in calls and "systemctl reload apache2" not in calls
 
 
-def test_the_update_leaves_a_stopped_apache_alone(tmp_path):
-    proc, calls = _run_reload(tmp_path, active=False, restart=0)
-    assert proc.returncode == 1 and calls == ["is-active --quiet apache2"]
+def test_the_update_leaves_a_stopped_apache_alone_and_says_nothing_ran(tmp_path):
+    proc, calls = _run_reload(tmp_path, active=())
+    assert proc.returncode == 2
+    assert not any(c.startswith(("apache2ctl", "systemctl reload", "systemctl restart", "curl")) for c in calls)
 
 
-def test_a_failed_reload_falls_back_to_printing_the_command(tmp_path):
-    proc, _calls = _run_reload(tmp_path, active=True, restart=0, fail=True)
+def test_a_failed_config_test_leaves_the_running_apache_alone(tmp_path):
+    proc, calls = _run_reload(tmp_path, configtest=False)
+    assert proc.returncode == 1 and "configuration test failed" in proc.stderr
+    assert "systemctl reload apache2" not in calls
+
+
+def test_a_failed_reload_is_a_failure_for_the_caller(tmp_path):
+    proc, _calls = _run_reload(tmp_path, fail=("reload",))
     assert proc.returncode == 1 and "failed" in proc.stderr
+
+
+def test_a_gunicorn_host_with_no_apache_reloads_the_unit(tmp_path):
+    proc, calls = _run_reload(tmp_path, active=("planetgen-gunicorn",))
+    assert proc.returncode == 0 and "reloaded gunicorn" in proc.stdout
+    assert "systemctl reload planetgen-gunicorn" in calls and "apache2ctl configtest" not in calls
+    assert any(c.startswith("curl") and ":8000/api/health" in c for c in calls)
+
+
+def test_a_reload_that_the_site_does_not_answer_after_is_a_failure(tmp_path):
+    proc, _calls = _run_reload(tmp_path, health=False)
+    assert proc.returncode == 1 and "does not answer" in proc.stderr
+
+
+def test_the_update_ends_non_zero_and_prints_the_commands_when_the_reload_failed():
+    update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
+    assert "reload_web_if_running || reload_status=$?" in update and "print_reload_commands >&2\n        exit 1" in update
 
 
 # --- scripts only reach for files that exist --------------------------------

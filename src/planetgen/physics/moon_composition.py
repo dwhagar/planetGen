@@ -327,3 +327,14 @@ def density_kg_m3(makeup, mass_kg):
     radius_km = compaction.compacted_radius_km(mass_kg, rock)
     return mass_kg / (4.0 / 3.0 * math.pi * (radius_km * 1e3) ** 3)
 
+
+
+def mass_from_radius_kg(makeup, radius_km):
+    """
+    The mass of a moon of this makeup and radius below `compaction.TAPER_END_KG`: the tapered brittle law on its rock fraction (metal
+    counted with the rock) gives the density at that radius. Heavier: `compaction.OutOfRange`, and the structure solver of GEN.429
+    decides.
+    """
+    low, high = compaction.ROCK_FRACTION_RANGE
+    rock = min(max(makeup.rock + makeup.metal, low), high)
+    return compaction.compacted_density_kg_m3(radius_km, rock) * 4.0 / 3.0 * math.pi * (radius_km * 1e3) ** 3

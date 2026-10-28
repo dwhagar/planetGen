@@ -1434,6 +1434,11 @@
 -- v152 (GEN.700): `planets` and `moons` keep the tide heat flow (NULL for a planet, which has none) (`tidal_flux_w_m2`) of an icy moon under a frozen surface, which the chemical energy of its ocean's life counts. A row saved before has NULL.
 -- v153 (GEN.699): `planets` and `moons` also keep the two draws of the mantle's rheology (`mantle_eta0_pa_s`, `mantle_activation_kj_mol`) and the heat that comes out, `internal_heat_flux_w_m2`
 --   (radiogenic plus primordial, `physics/interior_heat.py`). `urey_ratio` is now an output of that thermal history, not a draw. NULL for a gas giant and a row made before v153.
+-- v156 (DB.100): `planets` and `moons` keep the world's whole milestone schedule, the age its pace reaches each of the five milestones (`life_age_abiogenesis_gyr` to `life_age_technological_civilization_gyr`, Gy; NULL with no life chemistry),
+--   so the life paragraph and the timeline paragraph are written from the row alone. A row saved before gets the ages of its stored pace.
+-- v157 (GEN.654, DB.92): `planets` and `moons` keep the aquifer a world with no liquid at its surface holds underground, `aquifer_depth_km` (to the top of the water-bearing layer) and `aquifer_thickness_km` (NULL for a world with none, a gas giant and a row made before v157).
+-- v160 (GEN.732): `planets` and `moons` keep the ring system of a body (`ring_kind` dusty, narrow or broad; `ring_origin`; `ring_inner_km` and `ring_outer_km`; `ring_mass_kg`;
+--   `ring_optical_depth`, a mean; `ring_ice_fraction`). NULL for a body with no ring, a moon, and a row made before v160, which gets its rings when the galaxy is regenerated.
 --
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
@@ -1471,6 +1476,7 @@
 -- v155 (DB.71, GEN.424): the air moves out of `planets` and `moons` into the child tables `planet_gases` and `moon_gases` (one row per gas above zero: `gas`, its formula in the gas table, and `partial_pa`,
 --   its partial pressure in Pa); the ten `p_<gas>_kpa` columns are gone. A class's balance gas (helium, sodium, ammonia) is a row like the others, so the pressure is the sum of the rows. The migration
 --   copies each row's ten partial pressures (kPa times 1000) into the child tables.
+-- v159 (GEN.441): `planets` and `moons` gain the surface composition: `ground_type` and `ground_grain` and the areal share of each ground type (`ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, ..., twelve shares that add up to 1), NULL for a giant and for a row saved before v152. The minerals, ices and ocean the shares stand for are rows of the materials table (`physics/surface_composition.py`).
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2206,6 +2212,11 @@ CREATE TABLE IF NOT EXISTS planets (
     evolutionary_pace         VARCHAR(16),      -- v110: the pace life evolves at (fast, normal, slow), drawn once, set with any life chemistry (v143)
     life_milestone_age_gyr    DOUBLE,           -- v110: the age of that milestone, Gy
     life_system_age_gyr       DOUBLE,           -- v110: the age of the system the timeline was written at, Gy
+    life_age_abiogenesis_gyr  DOUBLE,           -- v156 (DB.100): the age the pace reaches abiogenesis, Gy
+    life_age_photosynthesis_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches photosynthesis, Gy
+    life_age_complex_cells_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches complex cells, Gy
+    life_age_multicellularity_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches multicellularity, Gy
+    life_age_technological_civilization_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches technological civilization, Gy
     flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time. rotation_period_hours is a
@@ -2213,7 +2224,7 @@ CREATE TABLE IF NOT EXISTS planets (
     -- GEN.289): the body is its state vector below.
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
-    eccentricity                DOUBLE NOT NULL DEFAULT 0,   -- v156 (GEN.727): of the orbit the body was generated on (distance_km is its semi-major axis)
+    eccentricity                DOUBLE NOT NULL DEFAULT 0,   -- v159 (GEN.727): of the orbit the body was generated on (distance_km is its semi-major axis)
     -- Position/speed (v11, see header comment) -- Cartesian position
     -- relative to this planet's orbital anchor (the star, or the
     -- BinaryStarProxy's combined center for a binary system), made from
@@ -2356,8 +2367,24 @@ CREATE TABLE IF NOT EXISTS planets (
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
     carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
+    ground_type                   VARCHAR(16),  -- v159 (GEN.441): the ground type with the largest areal share (ocean, ice or a rock type)
+    ground_grain                  VARCHAR(8),  -- v159: slab, crushed or powder
+    ground_ocean_fraction         DOUBLE,  -- v159: the areal share of the surface that is ocean (the twelve shares add up to 1)
+    ground_ice_fraction           DOUBLE,  -- v159: the areal share of the surface that is ice
+    ground_ultramafic_fraction    DOUBLE,  -- v159: the areal share of the surface that is ultramafic
+    ground_anorthositic_fraction  DOUBLE,  -- v159: the areal share of the surface that is anorthositic
+    ground_basaltic_fraction      DOUBLE,  -- v159: the areal share of the surface that is basaltic
+    ground_felsic_fraction        DOUBLE,  -- v159: the areal share of the surface that is felsic
+    ground_clay_fraction          DOUBLE,  -- v159: the areal share of the surface that is clay
+    ground_oxidised_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidised
+    ground_metal_fraction         DOUBLE,  -- v159: the areal share of the surface that is metal
+    ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
+    ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
+    ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
     water_base_pressure_pa      DOUBLE NULL,  -- v151 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2 (NULL for a planet)
+    aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
+    aquifer_thickness_km        DOUBLE NULL,  -- v156: the thickness of that layer, km
     mantle_eta0_pa_s            DOUBLE NULL,  -- v153 (GEN.699): the viscosity prefactor of the mantle, eta = eta0 exp(Ea / R T), Pa s
     mantle_activation_kj_mol    DOUBLE NULL,  -- v153: its viscosity activation energy Ea, kJ/mol
     internal_heat_flux_w_m2     DOUBLE NULL,  -- v153: the heat flowing out of the interior, radiogenic plus primordial, over the body's surface
@@ -2367,6 +2394,13 @@ CREATE TABLE IF NOT EXISTS planets (
     metallization_pressure_gpa  DOUBLE,  -- v154: the drawn molecular-to-metallic pressure, GPa
     helium_depletion            DOUBLE,  -- v154: the molecular envelope's helium share against the natal share, 1 with no helium rain
     has_helium_shell            BOOLEAN,  -- v154: a helium-rich shell above the metallic envelope
+    ring_kind                   VARCHAR(8) CHECK (ring_kind IN ('dusty', 'narrow', 'broad')),  -- v160 (GEN.732): the kind of the ring system, NULL with none
+    ring_origin                 VARCHAR(16) CHECK (ring_origin IN ('moon_erosion', 'disrupted_moon', 'captured_body')),  -- v160: where its material came from
+    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's centre
+    ring_outer_km               DOUBLE,  -- v160: its outer edge, km (inside the Roche limit of its own material and the innermost moon)
+    ring_mass_kg                DOUBLE,  -- v160: its mass, kg
+    ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
+    ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2488,6 +2522,11 @@ CREATE TABLE IF NOT EXISTS moons (
     evolutionary_pace         VARCHAR(16),      -- v110: the pace life evolves at (fast, normal, slow), drawn once, set with any life chemistry (v143)
     life_milestone_age_gyr    DOUBLE,           -- v110: the age of that milestone, Gy
     life_system_age_gyr       DOUBLE,           -- v110: the age of the system the timeline was written at, Gy
+    life_age_abiogenesis_gyr  DOUBLE,           -- v156 (DB.100): the age the pace reaches abiogenesis, Gy
+    life_age_photosynthesis_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches photosynthesis, Gy
+    life_age_complex_cells_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches complex cells, Gy
+    life_age_multicellularity_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches multicellularity, Gy
+    life_age_technological_civilization_gyr DOUBLE,           -- v156 (DB.100): the age the pace reaches technological civilization, Gy
     flavor_key                VARCHAR(32),      -- v110: which flavour line (replaces flavor_text)
     -- Orbital motion (v9, see header comment) -- inclination/ascending
     -- node are fixed at generation time. rotation_period_hours is a
@@ -2495,7 +2534,7 @@ CREATE TABLE IF NOT EXISTS moons (
     -- GEN.289): the body is its state vector below.
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
-    eccentricity                DOUBLE NOT NULL DEFAULT 0,   -- v156 (GEN.727): of the orbit the body was generated on (distance_km is its semi-major axis)
+    eccentricity                DOUBLE NOT NULL DEFAULT 0,   -- v159 (GEN.727): of the orbit the body was generated on (distance_km is its semi-major axis)
     -- Position/speed (v11, see header comment) -- Cartesian position
     -- relative to this moon's orbital anchor, its parent planet; made
     -- from distance_km and the orbital-motion columns above the same way
@@ -2629,8 +2668,24 @@ CREATE TABLE IF NOT EXISTS moons (
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
     carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
+    ground_type                   VARCHAR(16),  -- v159 (GEN.441): the ground type with the largest areal share (ocean, ice or a rock type)
+    ground_grain                  VARCHAR(8),  -- v159: slab, crushed or powder
+    ground_ocean_fraction         DOUBLE,  -- v159: the areal share of the surface that is ocean (the twelve shares add up to 1)
+    ground_ice_fraction           DOUBLE,  -- v159: the areal share of the surface that is ice
+    ground_ultramafic_fraction    DOUBLE,  -- v159: the areal share of the surface that is ultramafic
+    ground_anorthositic_fraction  DOUBLE,  -- v159: the areal share of the surface that is anorthositic
+    ground_basaltic_fraction      DOUBLE,  -- v159: the areal share of the surface that is basaltic
+    ground_felsic_fraction        DOUBLE,  -- v159: the areal share of the surface that is felsic
+    ground_clay_fraction          DOUBLE,  -- v159: the areal share of the surface that is clay
+    ground_oxidised_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidised
+    ground_metal_fraction         DOUBLE,  -- v159: the areal share of the surface that is metal
+    ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
+    ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
+    ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
     water_base_pressure_pa      DOUBLE NULL,  -- v147 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2
+    aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
+    aquifer_thickness_km        DOUBLE NULL,  -- v156: the thickness of that layer, km
     mantle_eta0_pa_s            DOUBLE NULL,  -- v153 (GEN.699): the viscosity prefactor of the mantle, eta = eta0 exp(Ea / R T), Pa s
     mantle_activation_kj_mol    DOUBLE NULL,  -- v153: its viscosity activation energy Ea, kJ/mol
     internal_heat_flux_w_m2     DOUBLE NULL,  -- v153: the heat flowing out of the interior, radiogenic plus primordial, over the body's surface
@@ -2640,6 +2695,13 @@ CREATE TABLE IF NOT EXISTS moons (
     metallization_pressure_gpa  DOUBLE,  -- v154: the drawn molecular-to-metallic pressure, GPa
     helium_depletion            DOUBLE,  -- v154: the molecular envelope's helium share against the natal share, 1 with no helium rain
     has_helium_shell            BOOLEAN,  -- v154: a helium-rich shell above the metallic envelope
+    ring_kind                   VARCHAR(8) CHECK (ring_kind IN ('dusty', 'narrow', 'broad')),  -- v160 (GEN.732): the kind of the ring system, NULL with none
+    ring_origin                 VARCHAR(16) CHECK (ring_origin IN ('moon_erosion', 'disrupted_moon', 'captured_body')),  -- v160: where its material came from
+    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's centre
+    ring_outer_km               DOUBLE,  -- v160: its outer edge, km (inside the Roche limit of its own material and the innermost moon)
+    ring_mass_kg                DOUBLE,  -- v160: its mass, kg
+    ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
+    ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet
@@ -3422,6 +3484,43 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'free',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    phi4                        DOUBLE NULL,  -- v158 (GEN.701): the habitability score of the surface a visitor would find (rogue_habitability.py)
+    phi4_pressure               DOUBLE NULL,  -- v153
+    phi4_temperature            DOUBLE NULL,  -- v153
+    phi4_air                    DOUBLE NULL,  -- v153
+    phi4_water                  DOUBLE NULL,  -- v153
+    phi4_radiation              DOUBLE NULL,  -- v153
+    phi4_suitability            DOUBLE NULL,  -- v153
+    tier_pressure               TINYINT NULL,  -- v153
+    tier_temperature            TINYINT NULL,  -- v153
+    tier_air                    TINYINT NULL,  -- v153
+    tier_water                  TINYINT NULL,  -- v153
+    tier_radiation              TINYINT NULL,  -- v153
+    tier_suitability            TINYINT NULL,  -- v153
+    life_microbial              TINYINT UNSIGNED NULL,  -- v153
+    life_flora                  TINYINT UNSIGNED NULL,  -- v153
+    life_fauna                  TINYINT UNSIGNED NULL,  -- v153
+    life_sentient               TINYINT UNSIGNED NULL,  -- v153
+    l_solv                      DOUBLE NULL,  -- v153
+    l_chem                      DOUBLE NULL,  -- v153
+    l_ener                      DOUBLE NULL,  -- v153
+    l_rad                       DOUBLE NULL,  -- v153
+    eq_body                     TINYINT NULL,  -- v153
+    eq_body_kind                TINYINT NULL,  -- v153
+    eq_body_rec                 TINYINT NULL,  -- v153
+    eq_body_rec_kind            TINYINT NULL,  -- v153
+    eq_rad_suit                 TINYINT NULL,  -- v153
+    eq_rad_suit_rec             TINYINT NULL,  -- v153
+    eq_mobility                 TINYINT NULL,  -- v153
+    eq_dust                     TINYINT NULL,  -- v153
+    eq_gas_filter               TINYINT NULL,  -- v153
+    eq_co2_scrub                TINYINT NULL,  -- v153
+    eq_supply                   TINYINT NULL,  -- v153
+    eq_supply_rec               TINYINT NULL,  -- v153
+    eq_shelter                  TINYINT NULL,  -- v153
+    eq_shelter_rec              TINYINT NULL,  -- v153
+    shelter_column_g_cm2        DOUBLE NULL,  -- v153
+    energy_flux_w_m2            DOUBLE NULL,  -- v153
 
     UNIQUE KEY uq_rogue_planets_uid (uid),
     KEY idx_rogue_planets_parent (parent_type, parent_id),

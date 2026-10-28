@@ -23,7 +23,8 @@ planetgen link --since TIME     # link the sectors saved since TIME to their nei
 planetgen backfill --since TIME # the bright-star backfill out from the sectors saved since TIME
 planetgen settle --since TIME   # save the paths of the sectors saved since TIME and of those around them
 planetgen phenomenon [options]  # one exotic stellar phenomenon
-planetgen population [options]  # species, civilizations and territories
+planetgen population [options]  # species, civilizations and polities
+planetgen territories [options] # which polity owns which system
 planetgen check-math [-v]       # the math check (update.sh runs it)
 planetgen fingerprint [options] # a digest of the generated content, to compare two builds
 planetgen check-db [options]    # look for damage in the database (writes nothing)
@@ -76,6 +77,7 @@ Most `system` options use a `+name`/`-name` tri-state syntax (these forcing opti
 *   `--max-planet-flavor`: Sets the maximum flavor text total for planets to 99.
 *   `--debug [file]`: **Debug mode** for this run. Writes every decision the run makes, however small, to stdout, one line each, with an ISO timestamp (`2026-10-23T17:29:42.729-0400 DEBUG worker.py[2142] planetgen.trace star.py:688 ... | message`, always in this one format): every random draw (the call, its arguments, the result, the source line that asked for it and the probability or threshold it was compared against), every narrated choice and why, every stage and unit of the run and every worker it starts, every SQL statement with its timing, cache hits and misses. The lines of the queue workers that do the run's work reach this stdout too, as they are written (they are relayed through Redis to the command that started the run, so a worker's own stdout, which goes nowhere, does not matter). If `file` is given, the same lines are also written to `file`. Available on every subcommand, and on every other command in this document (`python3 -m planetgen.cli.*`, the worker included); the Generate page has a Debug box for a job. A run whose result goes to stdout (`--output -`) writes the debug lines to stderr instead. The detached helpers a run starts (the background `planetgen warm`, an auto-started worker's own start and exit) have no stdout, so they write the debug log file only. The output is large (about 265 KB of text per system) and takes a quarter to two thirds longer; `--debug-areas` cuts it down. For the same output on every command without the flag, and in the debug log file, set `"debug": true` in `config.json` (see [`docs/reference/config.md`](config.md)).
 *   `--debug-areas <areas>`: Limits `--debug` (and debug mode in `config.json`) to some kinds of output. Areas: `decision` (narrated choices and timings), `draw` (random draws), `sql`, `queue` (runs, stages, units, workers), `cache`, `web` (requests, API calls, authorization), `lib` (other libraries' logging), `branch` (every conditional jump in our own code: the source line, where it went and the values it refers to; about 750,000 lines and 15 times the run time for one system, so **off unless named**: `--debug-areas branch`, or `all,branch` for everything). Comma separated; a leading `-` leaves one out (`-draw`). Normal output, warnings and errors always show. Not given, every area but `branch` is written. Also `"debug_areas"` in `config.json` and `PLANETGEN_DEBUG_AREAS`.
+*   `--record-file <file>` / `--record-json`: Also writes every log line of the run to `<file>` as a record (UX.122, `docs/design/operations/logging-standard.md`): one per line, `ts=2026-10-24T18:40:00.123Z level=info component=generate msg="..."` and any `key=value` fields, the time always in UTC; `--record-json` writes JSON lines instead. A web job sets `PLANETGEN_RECORD_FILE` (and `PLANETGEN_RECORD_FORMAT=json` for JSON lines) for each of its steps, which does the same.
 *   `--quiet` / `--silent`: Suppresses all output except errors. Available on every subcommand. Combined with `--debug`, a filename is required (there would otherwise be nowhere for debug output to go).
 *   `--disregard-missing-data`: Generates even though a downloaded data file is missing (GEN.599; see [datasets](#datasets)). Available on every subcommand; one that reads no downloaded data ignores it.
 
@@ -138,9 +140,9 @@ Sector-specific options:
 *   `--name <name>`, `-n <name>`: Hard-sets the sector's own name, overriding the default random two-word name (e.g. `"Voranthis Kelmoor"`) generated the same phoneme-salad way as star names.
 *   `--density <x>`: Scales the number of systems by a multiplier on the real local stellar density (1.0 is a realistic sector this size, 2.0 twice as dense). The count is drawn from a Poisson distribution, so it still varies from sector to sector. Cannot be combined with `--num-systems`.
 *   `--min-habitable <int>`: Guarantees at least this many systems in the sector have a habitable world, chosen randomly among them — without forcing *every* system to have one. Extra systems can still turn out habitable by chance on top of this minimum. Cannot exceed `--num-systems`.
-*   `--directive <minimum>`, `--directive-attempts <n>`: Redraws each sector until it holds at least this much: `systems>=N`, `habitable>=N` or `type:X>=N` (X is one of O B A F G K M wd bh ns). Repeat `--directive` for more than one minimum. After `--directive-attempts` draws (200 by default) the closest sector is kept and the run reports which minimum it missed.
+*   `--directive <minimum>`, `--directive-attempts <n>`: Redraws each sector until it holds at least this much: `systems>=N`, `habitable>=N` or `type:X>=N` (X is one of O B A F G K M wd bh ns). Repeat `--directive` for more than one minimum. After `--directive-attempts` draws (K, `tuning.DIRECTIVE_ATTEMPTS`, 200 by default) a `habitable>=N` minimum still missed is met by a forced fill (GEN.180): the sector is built once more with `--min-habitable N`, a habitable world forced into N systems (the sector then has N systems at least), and the run says `met_forced`; any other minimum the closest draw misses is reported as `unmet` with the closest sector kept. A minimum no sector can reach (a sector of 3 systems asked for 9, or a `habitable` count the compound-Poisson table puts below one in a billion and that the forced fill cannot reach) is refused before any drawing, with the reason, as a usage error; a `galaxy` or `sectors` run is judged against its densest possible sector.
 *   `--star-mix <single> <close> <wide>`: The share of systems, in percent, with one star, a close binary and a wide pair; the three must total 100. It replaces `--prevalence` for `binary_system` and `wide_binary`, which it cannot be combined with.
-*   `--num-sectors <int>`, `--yes`, `--estimate-only`, `--workers <int>`, `--population`, `--strict`: A run of more than one sector works as a `galaxy` run does (see [Size and time estimates](#size-and-time-estimates) and [Parallel generation](#parallel-generation)); `--strict` turns the warnings the console would otherwise go ahead after into errors that stop the run with nothing generated.
+*   `--num-sectors <int>`, `--yes`, `--estimate-only`, `--workers <int>`, `--strict`: A run of more than one sector works as a `galaxy` run does (see [Size and time estimates](#size-and-time-estimates) and [Parallel generation](#parallel-generation)); `--strict` turns the warnings the console would otherwise go ahead after into errors that stop the run with nothing generated.
 *   `--prevalence <feature>=<percent>`: Makes a feature more or less common across every system the run generates, as a percentage of its normal chance: `--prevalence comets=+50` gives 1.5 times as many systems with comets, `--prevalence binary_system=-100` none at all. Repeat it for more features (also on `galaxy`). The features are the forcing options' names: `habitable_world`, `asteroid_belt`, `comets`, `large_star`, `moons` (each planet's chance of moons), `max_planets` (the chance a star gets the most orbits it can hold), `intelligent_life` (the population pass's chance of a civilization), `binary_system`, `wide_binary`, `planets` and `multi_star` (the chance of five or more stars: `--prevalence multi_star=+100` doubles it, `-100` allows none; GEN.267). Each system stores the setting with its config. `--max-stars <int>` sets the cap on the star count for every system (see `system`); `--stars` is for a single system only and is refused here.
 *   `--mysql-host <host>`, `--mysql-port <port>`, `--mysql-user <user>`, `--mysql-password <password>`, `--mysql-database <database>`: Where the generated sector is saved. Each defaults to the matching `$PLANETGEN_MYSQL_*` environment variable, or a built-in default (`127.0.0.1:3306`, user/database `planetgen`) -- see [`database-schema.md`](database-schema.md).
 
@@ -275,7 +277,7 @@ The web Generate page and the API check the same bounds
 (`src/planetgen/generation/limits.py`).
 
 A `galaxy` run does every stage (PERF.123), with no option to leave one out: the sectors, the link to their
-neighbours, the galaxy-wide scatters, the backfill, the population pass and the paths. After the sectors it scatters
+neighbours, the galaxy-wide scatters, the backfill, the population pass, the territories pass and the paths. After the sectors it scatters
 the bright stars galaxy-wide, as `planetgen scatter --mass` and `scatter --luminosity` do, and then the phenomena, as
 `scatter --phenomena` does, leaving out every sector already generated, so the scatter never draws stars for sectors
 the run filled; `--bright-star-min-luminosity` (9000 solar luminosities by default), `--phenomenon-min-mass` and
@@ -284,7 +286,7 @@ generated, the bright stars around the run's edge are backfilled: four steps out
 face apart, no diagonals) get every star born from 1 solar mass up in the nearest step, 2 in the next, then 5, then 8,
 and a sector already generated never gets any. Last it saves the path every star system, rogue planet and comet takes
 through its sector, for the sectors it created and the ones around them. Whoever wants fewer stages runs the commands
-in turn: `planetgen sectors`, then `link`, `scatter`, `backfill`, `population` and `settle`, as the Generate page does.
+in turn: `planetgen sectors`, then `link`, `scatter`, `backfill`, `population`, `territories` and `settle`, as the Generate page does.
 
 ### Parallel generation
 
@@ -607,7 +609,7 @@ sector — for nebula/asteroid-field/black-hole/neutron-star, it also
 computes a real galaxy-frame position near that sector, instead of
 leaving it unplaced; other types are linked only (no placement columns of
 their own) — see `database-schema.md`'s "v18"/"v21" notes.
-`--name <name>` forces the phenomenon's name. `--no-settle` (with `--sector-id`) skips saving the sector paths of that sector and the sectors around it, which a black hole or neutron star can bend (`planetgen orbits` saves them later). `--debug`/`--quiet`/`--silent`, and the
+`--name <name>` forces the phenomenon's name. `phenomenon` only generates and saves the phenomenon (PERF.124). A black hole or neutron star can bend the paths of the bodies around it, so after `--sector-id` run `planetgen settle --sector-id ID`, which saves the paths of that sector and the sectors around it (`settle` takes `--sector-id` in place of `--since`; the two cannot be combined). `--debug`/`--quiet`/`--silent`, and the
 `--mysql-*` connection options all work the same way they do on
 `planetgen system`.
 
@@ -616,17 +618,16 @@ their own) — see `database-schema.md`'s "v18"/"v21" notes.
 `planetgen population` is an optional pass over what is already
 stored: it names the dominant species of every world with complex life,
 gives technological civilizations an age and an era (Industrial through
-Elder), founds one polity per spacefaring species, and works out which
-systems each polity owns (reach up to 100 ly from its capital). It is
-off by default and never runs on its own.
+Elder) and founds one polity per spacefaring species. Which systems each polity owns (reach up to 100 ly from its
+capital) is the `territories` pass, its own command (PERF.125). Neither runs on its own except as stages of a `galaxy` run.
 
 ```bash
 planetgen population                     # scan what isn't scanned yet
 planetgen population --rescan            # forget everything and start over (new names, ages and borders)
-planetgen population --territories-only  # only recompute who owns which system
+planetgen territories                    # work out who owns which system, from the polities stored (run after population)
 ```
 
-`planetgen sector` runs it after saving when given `--population`, and `planetgen galaxy` always runs it as one of its stages. The install scripts offer it (y/N,
+`planetgen sector` does not run it (PERF.124: `sector` only generates; the `--population` option is gone), and `planetgen galaxy` runs it, and then the territories pass, as stages. `--rescan` forgets the polities and with them the territories, so run `planetgen territories` after it. Each pass is a one-unit command of the work queue (`run-population`, `run-territories`). The install scripts offer it (y/N,
 default N after 30 seconds; `POPULATION=1` or `-Population` runs it
 without asking). The website hides species, polities and the Galaxy
 Map's Territories overlay until it has made something to show
@@ -700,7 +701,7 @@ planetgen benchmark --sectors 20 --workers 1,2,4 --profile --output bench.json
 
 ### The performance suite
 
-`planetgen benchmark --suite` (PERF.146) times every part of a galaxy run on its own, at a size you pick, in scratch databases of its own, and writes the result as JSON for the next run to compare with. Where `planetgen benchmark` times one small fill, the suite runs these steps one after another, each as the real command in a child process (so a worker's cost is in it): `plan`, `scatter-mass`, `scatter-luminosity`, `scatter-phenomena`, `scatter-nebula-field`, `scatter-band`, `fill-nebula-blocks`, `fill` (one `planetgen galaxy --shell` run, with the time of each stage it records), `population`, `rescore-habitability`, `fill-map-luminosity` (after emptying the column it fills) and `warm`.
+`planetgen benchmark --suite` (PERF.146) times every part of a galaxy run on its own, at a size you pick, in scratch databases of its own, and writes the result as JSON for the next run to compare with. Where `planetgen benchmark` times one small fill, the suite runs these steps one after another, each as the real command in a child process (so a worker's cost is in it): `plan`, `scatter-mass`, `scatter-luminosity`, `scatter-phenomena`, `scatter-nebula-field`, `scatter-band`, `fill-nebula-blocks`, `fill` (one `planetgen galaxy --shell` run, with the time of each stage it records), `population`, `territories`, `rescore-habitability`, `fill-map-luminosity` (after emptying the column it fills) and `warm`.
 
 ```bash
 planetgen benchmark --suite --size small --workers 3 --output small.json

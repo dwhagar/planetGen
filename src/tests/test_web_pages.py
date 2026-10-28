@@ -461,7 +461,14 @@ def test_page_url_resolves_moved_and_legacy_pages(app):
 
 # --- In-process transport ---------------------------------------------------------------
 
-def test_in_process_transport_skips_http_inside_a_request(app, monkeypatch):
+def test_in_process_transport_skips_http_inside_a_request(mysql_config, monkeypatch):
+    # `/databases` lists the schemas on the configured server, so the app logs in with the test server's login
+    # (TEST.370), not the `planetgen` login of the default config, which a test machine may not have.
+    class ServerConfig(_FakeConfig):
+        MYSQL_CONFIG = mysql_config
+    app = create_app(ServerConfig)
+    app.testing = True
+
     def no_http(*args, **kwargs):
         raise AssertionError("HTTP transport used inside a Flask request")
     monkeypatch.setattr(apiclient, "_http_transport", no_http)

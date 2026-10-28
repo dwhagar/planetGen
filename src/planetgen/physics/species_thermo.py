@@ -42,7 +42,7 @@ from planetgen.physics.elements import DataError
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "nasa_glenn_species.json")
 """str: The data file."""
 
-FORMULA_OF_NAME = {"C2H2,acetylene": "C2H2", "COS": "OCS"}
+FORMULA_OF_NAME = {"C2H2,acetylene": "C2H2", "COS": "OCS", "AL": "Al", "ALO": "AlO", "AL2O": "Al2O", "ALO2": "AlO2", "AL2O2": "Al2O2"}
 """dict: The names in the NASA database that the gas table (`physics/gases.py`) writes differently."""
 
 MOLAR_MASS_TOLERANCE_G_MOL = 0.01
@@ -183,6 +183,15 @@ CONDENSED = tuple(name for name, row in SPECIES.items() if row.condensed)
 def species(name):
     """The `Species` called `name`; `KeyError` for a name the file does not hold."""
     return SPECIES[name]
+
+
+BY_FORMULA = {row.formula: row for row in SPECIES.values() if not row.condensed}
+"""dict: Every gas by its formula as the gas table writes it (`"OCS"` for the database's `"COS"`)."""
+
+
+def gas(formula):
+    """The gas whose formula (as the gas table writes it) is `formula`; `KeyError` for a gas the file does not hold."""
+    return BY_FORMULA[formula]
 
 
 def g_over_rt(name, temperature_k):

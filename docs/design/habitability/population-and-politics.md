@@ -195,15 +195,13 @@ with no regenerate:
    (`_db.sectors_reached_by`), then the systems in them, so the cost is
    the sum of the territories, not polities times all systems.
 
-Flags: `--rescan` (forget every species, and with them every polity and
-territory, and scan every planet again) and `--territories-only` (only
-step 3). The two can't be combined.
+Flag: `--rescan` (forget every species, and with them every polity and
+territory, and scan every planet again). Step 3 is the command `planetgen territories` (PERF.125); run it after the population pass and after a `--rescan`.
 
 Population is optional and off by default (Boss, 2026-10-01): nothing
 runs it unless asked. `planetgen galaxy` and `planetgen sector` run
 the whole pass after they save only with `--population` (this replaced
-7.49.0's `--no-population`); the admin Generate page's jobs don't pass
-it. `install.sh` offers to
+7.49.0's `--no-population`); since PERF.124 `sector` has no such option and only `galaxy` runs the pass, as a stage. `install.sh` offers to
 run it after the database step (`offer_population_pass`), y/N with a 30-second timeout defaulting to
 No and skipped with no terminal; `POPULATION=1` runs it without asking. Nothing in system generation itself
 changes.
@@ -706,11 +704,20 @@ are stable.
 
 | Rating | Inputs | Score |
 |---|---|---|
-| Health | species Medical index, host habitability (breathable, radiation, gravity against build), orbital or surface | 0.5 Medical/7 + 0.5 habitability |
-| Housing | host habitability, Materials index, kind | 0.5 habitability + 0.3 Materials/7 + 0.2 kind size |
-| Resources | host richness (belt against bare orbit), Energy index, distance to the owner's capital | 0.4 host richness + 0.3 Energy/7 + 0.3 (1 - distance/reach) |
+| Health | species Medical index, host habitability (PHI-4), the host's radiation domain (`phi4_radiation`) and the food rung of its Suitability, orbital or surface | 0.4 Medical/7 + 0.2 habitability + 0.2 radiation + 0.2 food |
+| Housing | host habitability, the host's Suitability (`phi4_suitability`), Materials index, kind | 0.25 habitability + 0.25 Suitability + 0.3 Materials/7 + 0.2 kind size |
+| Resources | host richness (belt against bare orbit), Energy index, distance to the owner's capital; on a living world its Flora and Fauna | 0.4 host richness + 0.3 Energy/7 + 0.3 (1 - distance/reach); on a living world 0.3 host richness + 0.2 biota + 0.25 Energy/7 + 0.25 (1 - distance/reach) |
 | Maintenance | Materials and Energy index, distance to capital, harshness | similar |
 | Crime | Information index, polity government form, distance from capital, unaffiliated penalty | |
+
+POP.37 sources and weights. Habitability is the host's stored `phi4`, radiation its `phi4_radiation`, Suitability its
+`phi4_suitability`. Food is the Suitability food rung (`habitability.food_score`) worked out again from the host's stored
+Microbial, Flora and Fauna scores (`life_scores.food_stage`; microbes under ice or in a deep aquifer count as none), so
+Health agrees with the Suitability sentence ("no food readily available"). Biota is (Flora + Fauna) over 18; it is read
+only where Flora or Fauna is above 0, so a belt, an orbit, a lifeless world and a world with no score keep the first
+Resources weights and a living world's Resources can rate above a lifeless world of the same richness. An orbital host
+reads the orbital habitability constant for habitability, radiation, Suitability and food. A rating that was already set
+(including one generated before POP.37) is never changed; clear a rating to get the new suggestion.
 
 Inputs that exist today: the host (type, body type, gravity, temperature),
 distance (`system_owners.distance_ly`), and after POP.9 the six indices;

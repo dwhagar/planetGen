@@ -29,8 +29,8 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    p_cut, 0.2 GV)` (1 without a field).
 4. **Ground (`dose_ground_msv_yr`).** The gamma dose in air at 1 m over the surface rock and the radon of its uranium, from the
    body's own stored potassium, thorium and uranium (`radiogenic`, GEN.459), at its star's age: the same concentrations its interior
-   heat reads, so there is no independent dose draw (`a_rad` is gone). The surface rock is a basaltic crust with a drawn felsic share
-   (`radiogenic.SURFACE_RESERVOIRS`, a stand-in for the ground type of GEN.441); the dose is the open-air, full-time effective dose
+   heat reads, so there is no independent dose draw (`a_rad` is gone). The surface rock is the area-weighted rock of the body's stored
+   ground (`surface_composition.land_rock_ppm`, GEN.441); the dose is the open-air, full-time effective dose
    of a reference person (radiation-model.md R12). Radon has no pressure gate (R16): its flux is drawn between 1 and
    `sqrt(P0 / P)` times the 1-bar value.
 5. **UV (`uv_surface_index`).** The Setlow DNA-damage dose at the ground as a multiple of Earth's (Earth is 1 by definition, GEN.87), from
@@ -40,7 +40,10 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    ratio to the Sun, no ozone exponent.
 6. **Ozone loss (`ozone_loss_flag`).** True when there is ozone and either
    the system's lethal galactic events exceed one per 100 Myr or particle
-   events deliver 100 mSv/yr at the ozone layer (X = 10 g/cm2).
+   events deliver 100 mSv/yr at the ozone layer (X = 10 g/cm2). A loss
+   event that removes air (stripping, impact, escape) scales the stored
+   column by the share of the air kept and the UV index follows
+   (`apply_air_loss`, GEN.668); the flag keeps its meaning.
 7. **Galactic hazard (`lethal_event_rate_per_gyr`, on the star).** A
    supernova within 8 pc, 1.5 per Gyr at 8 kpc from the centre, times
    `exp((8 kpc - R) / 1.45 kpc)` (250x at the centre), plus gamma-ray bursts
@@ -53,7 +56,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, body_radiation, constants, magnetism, ozone, proton_range, radiogenic
+from planetgen.physics import atmosphere, body_radiation, constants, magnetism, ozone, proton_range, radiogenic, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -307,12 +310,12 @@ def radon_dose_msv_yr(rock, age_gy, scale_height_km, diffusion_factor=1.0):
     return concentration * HOURS_PER_YEAR * RADON_EQUILIBRIUM_OUTDOORS * RADON_SV_PER_BQ_H_M3 * 1e3
 
 
-def ground_dose_msv_yr(content, age_gy, felsic_fraction, gas_g_cm3=0.0, scale_height_km=None, diffusion_factor=1.0):
+def ground_dose_msv_yr(content, age_gy, rock_ppm, gas_g_cm3=0.0, scale_height_km=None, diffusion_factor=1.0):
     """
     Rule 4: the gamma and the radon dose of a body's surface rock, mSv/yr: the bulk silicate `content` raised to the surface rock
-    (`radiogenic.surface_content`, `felsic_fraction`). Pass no `scale_height_km` for a body with no air (no radon).
+    `rock_ppm`, `(K, Th, U)` ppm today (`radiogenic.surface_content`). Pass no `scale_height_km` for a body with no air (no radon).
     """
-    rock = radiogenic.surface_content(content, felsic_fraction)
+    rock = radiogenic.surface_content(content, rock_ppm)
     return (gamma_dose_msv_yr(rock, age_gy, gas_g_cm3)
             + radon_dose_msv_yr(rock, age_gy, scale_height_km, diffusion_factor))
 
@@ -330,21 +333,18 @@ def _clear(body):
 
 
 def _ground_dose(body, pressure_pa):
-    """The body's ground dose from its stored content (`radiogenic.content_of`), mSv/yr; a body with none (built without it) has no
-    ground dose. Draws, in this order: whether the lid is mobile, the felsic share, the radon diffusion factor."""
-    mobile = draw.random()
-    felsic_unit = draw.random()
+    """The body's ground dose from its stored content (`radiogenic.content_of`) and the rock of its stored ground
+    (`surface_composition.land_rock_ppm`, GEN.441), mSv/yr; a body with no content (built without it) has no ground dose. Draws the
+    radon diffusion factor."""
     diffusion_unit = draw.random()
     content = radiogenic.content_of(body)
     if content is None:
         return 0.0
-    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
-    felsic = (tuning.RADIOGENIC_FELSIC_FRACTION_MAX * felsic_unit
-              if mobile < magnetism.mobile_lid_chance(body, mass_earth) else 0.0)
     has_air = pressure_pa > 0.0 and (getattr(body, "land_fraction", None) or 0.0) > 0.0
     gas = gas_density_g_cm3(pressure_pa, getattr(body, "atm_molar_density", None), getattr(body, "surface_temperature", None))
     age = getattr(body.star, "age", None) or EARTH_AGE_GY
-    return ground_dose_msv_yr(content, age, felsic, gas, getattr(body, "scale_height", None) if has_air else None,
+    return ground_dose_msv_yr(content, age, surface_composition.land_rock_ppm(body), gas,
+                              getattr(body, "scale_height", None) if has_air else None,
                               radon_diffusion_factor(pressure_pa, diffusion_unit))
 
 
@@ -379,6 +379,20 @@ def generate_dose(body):
     ozone_sep = sep_dose_msv_yr(free, OZONE_LAYER_G_CM2, cutoff)
     body.ozone_loss_flag = bool(body.ozone_column_du > 0.0 and (
         (hazard is not None and hazard > LETHAL_EVENT_LIMIT_PER_GYR) or ozone_sep >= OZONE_SEP_MSV_YR))
+
+
+def apply_air_loss(body, retained_fraction):
+    """
+    Takes a loss event that kept `retained_fraction` of a rocky body's air into its stored ozone and ultraviolet (GEN.668): the
+    ozone column scales by the share kept (`ozone.column_after_air_loss`) and the UV index is worked out again from it. The
+    caller applies the loss to the air itself (its pressure and gases) first; the UV index reads the air as it stands.
+    A body with no stored ozone column (a giant, or a row saved before it) is left as it is.
+    """
+    column = getattr(body, "ozone_column_du", None)
+    if column is None:
+        return
+    body.ozone_column_du = ozone.column_after_air_loss(column, retained_fraction)
+    body.uv_surface_index = body_radiation.dna_dose_index(body)
 
 
 def column_g_cm2(pressure_pa, gravity_g):

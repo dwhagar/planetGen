@@ -131,6 +131,15 @@ export function unpackNode(bytes) {
     at = read.end;
   }
   if (at !== bytes.length) throw new Error("a packed node has bytes left over");
+  // The stars that have a name carry it in the JSON, by id (the columns hold no text, MAP.298).
+  if (node.names) {
+    for (const section of ["stars", "generated"]) {
+      for (const star of node[section]) {
+        const name = node.names[String(star.id)];
+        if (name) star.name = name;
+      }
+    }
+  }
   return node;
 }
 

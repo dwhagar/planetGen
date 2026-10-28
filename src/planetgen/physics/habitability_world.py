@@ -51,7 +51,8 @@ A gas giant has no surface and no score (every field `None`).
 
 import math
 
-from planetgen.physics import aerosols, atmosphere, constants, equipment, habitability, life_scores, magnetism, radiation, regional_temperature
+from planetgen import tuning
+from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, habitability, life_scores, magnetism, radiation, regional_temperature
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -110,7 +111,8 @@ CHEMICAL_SHARE = 0.01
 """float: The share of starlight, and of the body's heat flow, that life can use."""
 
 PHOSPHATE_UMOL_L = {"high": 1000.0, "limited": 2.3, "starved": 0.01, None: 0.0}
-"""dict: An ocean's `phosphorus` class as phosphate, umol/L."""
+"""dict: An ocean's `phosphorus` class as phosphate, umol/L. The water of an aquifer, which has no ocean class, is `limited`
+(rock weathering supplies it; DESIGN stand-in, GEN.654)."""
 NON_AQUEOUS_PHOSPHATE_UMOL_L = 2.3
 
 CHLORIDE_BRINE_CHAOTROPICITY = 200.0
@@ -154,6 +156,8 @@ def values_from_body(body):
         "water_activity": getattr(body, "water_activity", None),
         "phosphorus": getattr(body, "phosphorus", None),
         "water_mass_fraction": getattr(body, "water_mass_fraction", None),
+        "aquifer_depth_km": getattr(body, "aquifer_depth_km", None),
+        "aquifer_thickness_km": getattr(body, "aquifer_thickness_km", None),
         "surface_dose_msv_yr": getattr(body, "surface_dose_msv_yr", None),
         "dose_ground_msv_yr": getattr(body, "dose_ground_msv_yr", None),
         "dose_gcr_msv_yr": getattr(body, "dose_gcr_msv_yr", None),
@@ -219,9 +223,17 @@ def relative_humidity(values):
     return min(max(share, 0.05), 0.99)
 
 
+def groundwater(values):
+    """`"none"`, `"reachable"` or `"deep"`: the liquid water a world with none at its surface holds underground (GEN.654,
+    `physics/aquifers.py`), reachable when the top of its water-bearing layer is within `tuning.AQUIFER_REACH_KM`."""
+    if not (values.get("aquifer_thickness_km") or 0.0) or values.get("hydrosphere") not in aquifers.SURFACE_STATES:
+        return "none"
+    return "reachable" if (values.get("aquifer_depth_km") or 0.0) <= tuning.AQUIFER_REACH_KM else "deep"
+
+
 def solvent(values):
     """"water", "hydrocarbon" or `None`: the stable liquid life would use."""
-    if values.get("hydrosphere") in ("surface ocean", "hycean", "ice-covered ocean"):
+    if values.get("hydrosphere") in ("surface ocean", "hycean", "ice-covered ocean") or groundwater(values) != "none":
         return "water"
     temperature = values["surface_temperature_k"]
     methane = atmosphere.partial_kpa(values, "ch4")
@@ -238,6 +250,8 @@ def water_source(values):
         return "liquid"
     if state in ("ice", "ice-covered ocean"):
         return "ice"
+    if groundwater(values) == "reachable":
+        return "aquifer"
     if state == "vapour":
         return "vapour"
     if (values.get("water_mass_fraction") or 0.0) >= HYDRATED_MIN_WATER_FRACTION:
@@ -277,7 +291,7 @@ def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2):
     docstring). `luminosity_w` and `distance_au` describe the star (either
     `None`: no light)."""
     chemical = CHEMICAL_SHARE * (internal_flux_w_m2 or 0.0)
-    if values.get("hydrosphere") == "ice-covered ocean" or not luminosity_w or not distance_au:
+    if values.get("hydrosphere") == "ice-covered ocean" or groundwater(values) != "none" or not luminosity_w or not distance_au:
         return chemical
     light = LIGHT_SHARE * luminosity_w / (4.0 * math.pi * _au_to_m(distance_au) ** 2)
     return max(light, chemical)
@@ -289,8 +303,9 @@ def world_from(values, lethal_host=None):
     pressure_kpa = (values.get("atmospheric_pressure_pa") or 0.0) / 1000.0
     medium = solvent(values)
     under_ice = values.get("hydrosphere") == "ice-covered ocean"
+    underground = groundwater(values)
     surface_dose = (values.get("surface_dose_msv_yr") or 0.0) / 1000.0
-    habitat_dose = (values.get("dose_ground_msv_yr") or 0.0) / 1000.0 if under_ice else surface_dose
+    habitat_dose = (values.get("dose_ground_msv_yr") or 0.0) / 1000.0 if under_ice or underground != "none" else surface_dose
     if lethal_host:
         surface_dose = max(surface_dose, LETHAL_DOSE_SV_YR)
         habitat_dose = max(habitat_dose, LETHAL_HABITAT_DOSE_GY_YR * habitability.SV_PER_GY)
@@ -314,14 +329,15 @@ def world_from(values, lethal_host=None):
         chaotropicity_kj_kg=CHLORIDE_BRINE_CHAOTROPICITY * (1.0 - activity) if aqueous and brine else 0.0,
         ph=values.get("ocean_ph") if aqueous else None,
         inventories=inventories(values),
-        phosphate_umol_l=(PHOSPHATE_UMOL_L.get(values.get("phosphorus"), 0.0) if aqueous
-                          else NON_AQUEOUS_PHOSPHATE_UMOL_L if medium else 0.0),
+        phosphate_umol_l=(PHOSPHATE_UMOL_L.get(values.get("phosphorus") or ("limited" if underground != "none" else None), 0.0)
+                          if aqueous else NON_AQUEOUS_PHOSPHATE_UMOL_L if medium else 0.0),
         energy_flux_w_m2=values.get("energy_flux_w_m2") or 0.0,
         surface_dose_sv_yr=surface_dose,
         habitat_dose_sv_yr=habitat_dose,
         water_source=water_source(values),
+        groundwater=underground,
         life_stage=values.get("native_life") or "none",
-        life_on_surface=values.get("hydrosphere") != "ice-covered ocean",
+        life_on_surface=values.get("hydrosphere") != "ice-covered ocean" and underground != "deep",
         dose_gcr_sv_yr=parts[0], dose_sep_sv_yr=parts[1], dose_ground_sv_yr=parts[2],
         cutoff_gv=cutoff_gv(values), uv_index=values.get("uv_surface_index") or 0.0,
         dust_mg_m3=aerosols.dust_loading_mg_m3(values.get("tau_dust"), values.get("scale_height_km")),

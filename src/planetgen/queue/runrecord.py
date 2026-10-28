@@ -51,6 +51,7 @@ import time
 from dataclasses import asdict, dataclass
 
 from planetgen.util import log as debug_log
+from planetgen.util import logrecord
 
 PREFIX = "planetgen"
 """str: Every key starts with this."""
@@ -404,8 +405,9 @@ def begin_stage(conn, run_id, index, now=None):
     pipe.hset(stage_key(run_id, index), mapping={"started": now, "last": now})
     pipe.hset(run_key(run_id), mapping={"current": index, "updated": now})
     pipe.execute()
-    label = _s(json.loads(conn.hget(run_key(run_id), "stages"))[index]["label"])
-    log(conn, run_id, f"stage started: {label}", kind="stage.start", now=now, stage=index)
+    declared = json.loads(conn.hget(run_key(run_id), "stages"))
+    log(conn, run_id, logrecord.stage_start(index + 1, len(declared), _s(declared[index]["label"])),
+        kind=logrecord.STAGE_START, now=now, stage=index, stages=len(declared))
 
 
 def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None):
@@ -427,7 +429,11 @@ def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None):
     if counted:
         log(conn, run_id, f"unit {unit} done", kind="unit.done", now=now, stage=index, unit=unit)
     if advance:
-        log(conn, run_id, f"stage done: {stage['label']}", kind="stage.done", now=now, stage=index)
+        started = conn.hget(stage_key(run_id, index), "started")
+        seconds_taken = max(now - float(_s(started)), 0.0) if started else 0.0
+        declared = json.loads(conn.hget(run_key(run_id), "stages"))
+        log(conn, run_id, logrecord.stage_finish(index + 1, len(declared), seconds_taken),
+            kind=logrecord.STAGE_FINISH, now=now, stage=index, stages=len(declared), seconds=round(seconds_taken, 1))
         _record_stage_time(conn, run_id, index, stage["key"])
     return UnitDone(bool(counted), bool(advance), int(done))
 
@@ -531,6 +537,43 @@ def read_events(conn, run_id, after="0", count=500):
     return [(_s(entry_id), {_s(k): _s(v) for k, v in fields.items()}) for entry_id, fields in rows]
 
 
+def event_record(fields):
+    """
+    The logging layer's record (`logrecord.Record`) of an event `read_events` gave (UX.122): its time, its level as the
+    severity, the component `run`, its message, and the fields `event` (its kind), `stage` (the stage's number from 1),
+    `stages` (how many the run has), `unit` and `seconds` where it has them.
+    """
+    level = fields.get("level", "info")
+    named = {"event": fields.get("kind", "log")}
+    if "stage" in fields:
+        named["stage"] = int(fields["stage"]) + 1
+    for name in ("stages", "unit"):
+        if name in fields:
+            named[name] = int(fields[name])
+    if "seconds" in fields:
+        named["seconds"] = float(fields["seconds"])
+    return logrecord.Record.at(float(fields.get("t", 0)), level if level in logrecord.SYSLOG_CODES else "info", "run",
+                               fields.get("message", ""), **named)
+
+
+def log_records(conn, run_id):
+    """Every event of the run, oldest first, as records (`event_record`)."""
+    records, after = [], "0"
+    while True:
+        rows = read_events(conn, run_id, after)
+        if not rows:
+            return records
+        for entry_id, fields in rows:
+            records.append(event_record(fields))
+            after = entry_id
+
+
+def log_text(conn, run_id):
+    """The run's log as text: one file line (`logrecord.file_line`) to an event. What `write_log_file` writes and the
+    admin run log shows, so the file and the page are the same lines."""
+    return "".join(logrecord.file_line(record) + "\n" for record in log_records(conn, run_id))
+
+
 def write_log_file(conn, run_id, directory, keep=20):
     """
     Writes the run's events to `<directory>/<run id>.log` (the live log, kept at the run's end), then removes
@@ -539,16 +582,8 @@ def write_log_file(conn, run_id, directory, keep=20):
     import os
     os.makedirs(directory, exist_ok=True)
     path = os.path.join(directory, f"{run_id}.log")
-    after = "0"
     with open(path, "w", encoding="utf-8") as handle:
-        while True:
-            rows = read_events(conn, run_id, after)
-            if not rows:
-                break
-            for entry_id, fields in rows:
-                stamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(float(fields.get("t", 0))))
-                handle.write(f"{stamp} {fields.get('level', 'info').upper():<5} {fields.get('message', '')}\n")
-                after = entry_id
+        handle.write(log_text(conn, run_id))
     logs = sorted(name for name in os.listdir(directory) if name.endswith(".log"))
     for name in logs[:-keep] if keep else logs:
         os.remove(os.path.join(directory, name))
@@ -639,4 +674,4 @@ def recent_runs(conn, limit=20):
 
 __all__ = ["CHECK", "GENERATION", "KINDS", "MAINTENANCE", "Busy", "Stage", "UnitDone", "active_run", "begin_stage", "finish_run", "is_cancelling", "is_stale",
            "EventHandler", "job_runs", "log", "new_run_id", "read_events", "read_plan", "read_run", "read_steps", "recent_runs", "request_cancel",
-           "set_stage_plan", "start_run", "unit_done", "write_log_file"]
+           "set_stage_plan", "start_run", "unit_done", "write_log_file", "log_text", "log_records", "event_record"]

@@ -574,7 +574,7 @@ for every stored rogue, seeded by its name, and resets
 `has_internal_heat` to the computed answer.
 
 **Population and politics (v44).** Filled by `planetgen population`
-(or `--population` on a `sector` run, or a `galaxy` run, or the optional question
+(or a `galaxy` run, or the optional question
 the install and update scripts ask) from what is already stored; see
 docs/design/habitability/population-and-politics.md. `species` holds one dominant
 species per life world (a planet whose evolutionary milestone is
@@ -1448,6 +1448,8 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `core_mass_earth`, `dilute_core_mass_earth` | DOUBLE | nullable | Added in v154. The compact core's (an ice giant's rock core's) mass and the dilute core's mass, in Earth masses; 0 with none. |
 | `metallization_pressure_gpa`, `helium_depletion` | DOUBLE | nullable | Added in v154. The drawn pressure where hydrogen turns metallic, in GPa, and the molecular envelope's helium share against the natal share (1 with no helium rain). |
 | `has_helium_shell` | BOOLEAN | nullable | Added in v154. Whether a helium-rich shell sits above the metallic envelope. Read with the layers through `planetgen.physics.giant_interior.interior_of`. |
+| `ground_type`, `ground_grain` | VARCHAR(16), VARCHAR(8) | nullable | Added in v159 (GEN.441). The ground type with the largest areal share (`ocean`, `ice` or a rock type: `ultramafic`, `anorthositic`, `basaltic`, `felsic`, `clay`, `oxidised`, `metal`, `carbon`, `evaporite`, `sulfur`) and the grain state (`slab`, `crushed`, `powder`). NULL for a giant and on a row saved before v152. |
+| `ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, `ground_anorthositic_fraction`, `ground_basaltic_fraction`, `ground_felsic_fraction`, `ground_clay_fraction`, `ground_oxidised_fraction`, `ground_metal_fraction`, `ground_carbon_fraction`, `ground_evaporite_fraction`, `ground_sulfur_fraction` | DOUBLE | nullable | Added in v152. The areal share of the surface that is each ground type; the twelve add up to 1. The minerals, ices and ocean they stand for are rows of the materials table ([surface-composition.md](../design/composition/surface-composition.md)). |
 
 | `bond_albedo`, `greenhouse_factor` | DOUBLE | nullable | Added in v142 (GEN.412). The two draws the surface temperature is made of: the Bond albedo A and the greenhouse quantity G, with T_e = ((1 - A) S / (4 sigma))^(1/4) and T_s = T_e (1 + G)^(1/4) (S the starlight at the orbit; a moon's is its planet's; never below 2.725 K). G is 0 for a body with no air. |
 | `albedo_basis` | TINYINT UNSIGNED | nullable | Added in v142 (GEN.412). Where the two came from: 0 recorded at generation, 1 the exact inverse of a row saved without them (from its stored scale height), 2 a seeded draw from the class range where the inverse had no solution. NULL for a row with no temperature or no starlight to work from. |
@@ -1677,6 +1679,13 @@ from any star.
 | `surface_temperature_k`, `surface_pressure_pa` | DOUBLE | nullable | Added in v48: at the ground, or a giant's at 1 bar. |
 | `ice_shell_thickness_km`, `ocean_depth_km`, `has_liquid_water` | DOUBLE, DOUBLE, BOOLEAN | nullable | Added in v48: its ice lid and buried (or envelope-warmed) ocean; NULL when there is none. |
 | `hp_ice_km` | DOUBLE | nullable | Added in v74 (GEN.88): high-pressure ice under the deepest liquid the liquidus allows; NULL when there is none. |
+| `phi4`, `phi4_pressure`, `phi4_temperature`, `phi4_air`, `phi4_water`, `phi4_radiation`, `phi4_suitability` | DOUBLE | nullable | Added in v153 (GEN.701). The PHI-6 score of the rogue planet's surface and its six domains, as on `planets`. NULL for a gas giant or brown dwarf. |
+| `tier_pressure`, `tier_temperature`, `tier_air`, `tier_water`, `tier_radiation`, `tier_suitability` | TINYINT | nullable | Added in v153. Each domain's colour (0 Blue to 3 Red). |
+| `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | Added in v153. The four life scores. A rogue planet has no life draw, so a scored one holds 0 in each. |
+| `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v153. The four likelihoods behind microbial life, as on `planets`. |
+| `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`, `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter`, `eq_shelter_rec` | TINYINT | nullable | Added in v153. The survival equipment levels a visitor needs, as on `planets`. |
+| `shelter_column_g_cm2` | DOUBLE | nullable | Added in v153. The shelter column, as on `planets` (NULL when no shelter applies). |
+| `energy_flux_w_m2` | DOUBLE | nullable | Added in v153. The chemical power life could use: 1% of `internal_heat_flux_w_m2` (no starlight). |
 | `galactic_orbital_period_gy`, `_phase_deg`, `_min_update_interval_years` | DOUBLE | NOT NULL | Added in v17. Always populated (a rogue planet is always standalone). Its speed column was dropped in v103 (GEN.336): the speed is the length of `velocity_x/y/z_kms` (a star and a close pair read their system's). |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable, NULL together | Added in v28: this rogue planet's own galaxy-frame center, the same shape `nebulae` uses. NULL together: never placed in the galaxy. |
 | `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
@@ -2203,6 +2212,22 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v160 (GEN.732): the ring system of a planet
+
+Migration 0160 adds `ring_kind` (`dusty`, `narrow` or `broad`), `ring_origin` (`moon_erosion`, `disrupted_moon` or `captured_body`), `ring_inner_km`, `ring_outer_km`, `ring_mass_kg`, `ring_optical_depth` (a mean over the area the ring covers) and `ring_ice_fraction` (DOUBLE, nullable) to `planets` and `moons`, after `has_helium_shell`. One summed ring system per body (`planetgen.physics.rings`, `docs/design/composition/planetary-rings.md`); NULL for a body with no ring, for every moon, and for a row made before v157, which gets its rings when the galaxy is regenerated.
+
+### v158 (GEN.701): the habitability score of a rogue planet
+
+Migration 0158 adds 37 score columns (`phi4` and its six domains, the six tiers, the four life scores, `l_solv`, `l_chem`, `l_ener`, `l_rad`, the fourteen `eq_*` levels with `shelter_column_g_cm2`, and `energy_flux_w_m2`) to `rogue_planets`, at the end of the table (no regional temperatures or hours outside: a rogue planet has no star), and fills them for every terrestrial row from the surface it already holds, by `physics/rogue_habitability.py`, in pages of ids (a row with `phi4` set is done). Nothing is drawn. A gas giant or brown dwarf keeps NULL.
+
+### v157 (GEN.654, DB.92): the aquifer of a world
+
+Migration 0157 adds `aquifer_depth_km` and `aquifer_thickness_km` (DOUBLE, nullable) to `planets` and `moons`: the depth to the top of the liquid-water layer in the pores of the crust of a world whose surface has no liquid (hydrosphere `dry`, `ice` or `vapour`), and its thickness, km ([activity-magnetism-radiation-hydrosphere.md](../design/habitability/activity-magnetism-radiation-hydrosphere.md) section 5.6). NULL for a world with none, a gas giant and a row saved earlier: the surface reservoir the layer is filled from was a draw that is not stored, so an older row is not worked out again and its stored scores stay as they were. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index); a column already there is left alone. The version is detected from `planets.aquifer_depth_km`.
+
+### v156 (DB.100): the milestone schedule of a world's pace
+
+Migration 0156 adds `life_age_abiogenesis_gyr`, `life_age_photosynthesis_gyr`, `life_age_complex_cells_gyr`, `life_age_multicellularity_gyr` and `life_age_technological_civilization_gyr` (DOUBLE, Gyr, nullable) to `planets` and `moons`, after `life_system_age_gyr`. They are the age at which the world's `evolutionary_pace` reaches each of the five milestones (`tuning.LIFE_MILESTONES`), written with the pace by `life.apply_life_data` for every body that has a life chemistry (NULL without one). With `life_chemical`, `evolutionary_pace`, `life_stage`, `life_milestone_age_gyr` and `life_system_age_gyr` they are all the life and evolution data the life paragraph and the timeline paragraph need: `describe/life_facts.py` reads the row alone (the words of a pace are `tuning.EVOLUTIONARY_PACE_LABELS`, the text of a stage is a lookup by its key) and no draw or pace table is read when a page is written, so tuning the table later moves no saved world. A row saved before gets the ages of its stored pace (`evolution.schedule`); a row with no pace keeps NULL. The four life scores (v150) and the survival kit are stored as before. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index), rows filled in pages of ids (a row with `life_age_abiogenesis_gyr` set is done). The version is detected from `planets.life_age_abiogenesis_gyr`.
+
 ### v155 (DB.71, GEN.424): the air moves to `planet_gases` and `moon_gases`
 
 The ten `p_<gas>_kpa` columns of `planets` and `moons` are gone; each gas above zero is a row of `planet_gases` or `moon_gases` (formula, Pa), the balance gas included. The migration copies the ten partial pressures (kPa times 1000); a row made before this change has no balance-gas row until the galaxy is regenerated (generator epoch 89).
@@ -2218,6 +2243,10 @@ Migration 0153 adds `mantle_eta0_pa_s`, `mantle_activation_kj_mol` and `internal
 ### v152 (GEN.700): the tide heat flow of an icy moon
 
 Migration 0152 adds `tidal_flux_w_m2` (DOUBLE, nullable) to `planets` and `moons`, at the end of each table (a planet has no tide and keeps NULL). The generator drew the tide before and discarded it after thickening or thinning the ice lid; it is now kept and added to the heat flow the chemical energy of the ocean's life reads (`energy_flux_w_m2`, [habitability-index.md](../design/habitability/habitability-index.md) section 8). The forced eccentricity behind a tide is not stored, so a moon saved earlier keeps NULL and its stored energy flux; only a moon generated now has it. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index); a column already there is left alone. The version is detected from `planets.tidal_flux_w_m2`.
+### v159 (GEN.441): the surface composition of every planet and moon
+
+Migration 0160 adds to `planets` and `moons`: `ground_type` (VARCHAR(16)), `ground_grain` (VARCHAR(8)) and twelve DOUBLE columns, `ground_<type>_fraction` for `ocean`, `ice`, `ultramafic`, `anorthositic`, `basaltic`, `felsic`, `clay`, `oxidised`, `metal`, `carbon`, `evaporite` and `sulfur`, all nullable, each at the end of the table. Nothing is backfilled: a ground needs the draws of the generator epoch, so a row made before the revision keeps NULL and the regenerated galaxy replaces it. A stopped run can be started again (a column already there is skipped).
+
 ### v151 (GEN.461): the pressure under the water layer
 
 Migration 0151 adds `water_base_pressure_pa` (DOUBLE, nullable) at the end of `planets` and `moons`: the pressure at the bottom of the water over the covered area, Pa. A row made before v151 has NULL there and keeps its water-equivalent `ocean_depth_km`, `ice_shell_km` and `hp_ice_km`; from v151 those are the real, compressed kilometres (746 km, not 1047 km, for a tenth of an Earth mass of water on an Earth mass). The generator epoch marks the old rows. Nothing is backfilled.

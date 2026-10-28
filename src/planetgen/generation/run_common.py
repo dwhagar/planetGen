@@ -25,6 +25,7 @@ from planetgen.db import store
 from planetgen.generation import stats as generationStats
 from planetgen import tuning as program_constants
 from planetgen.util import log
+from planetgen.util.format import counted
 from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 
 
@@ -98,7 +99,7 @@ class _ReportingProgress(Progress):
         rate = task.fields.get("rate")
         remaining = None if task.total is None else task.total - task.completed
         return {"description": task.description.strip(), "completed": task.completed, "total": task.total,
-                "eta_s": rate.eta(remaining) if rate is not None else None}
+                "eta_s": rate.eta(remaining) if rate is not None else None, "unit": task.fields.get("unit")}
 
     def _rate(self, task_id):
         task = self._tasks.get(task_id)
@@ -117,7 +118,7 @@ class _ReportingProgress(Progress):
         progress_file.report(task.completed, task.total, task.description, force=force,
                             rate=rate.rate if rate is not None else None,
                             eta_s=rate.eta(remaining) if rate is not None else None, detail=self._detail(),
-                            percent=bool(task.fields.get("percent")))
+                            percent=bool(task.fields.get("percent")), unit=task.fields.get("unit"))
 
     def update(self, task_id, **kwargs):
         before = self._completed(task_id)
@@ -174,7 +175,11 @@ class _CountColumn(MofNCompleteColumn):
         if task.fields.get("percent"):
             share = min(task.completed / task.total, 1.0) if task.total else 0.0
             return Text(f"{100 * share:.0f}%", style="progress.download")
-        return super().render(task)
+        count = super().render(task)
+        unit = task.fields.get("unit")
+        if not unit or task.total is None:
+            return count
+        return Text.assemble(count, f" {counted(unit, task.total)}")
 
 
 def _generation_progress(disable=False):

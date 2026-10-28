@@ -40,7 +40,7 @@ from planetgen import tuning
 from planetgen.db import store as _db
 from planetgen.db.store import MySQLConfig
 
-from tests import areas, browser_waits, dbpool, failure_capture, inline_queue, private_redis, publicids
+from tests import areas, browser_waits, dbpool, failure_capture, inline_queue, private_redis, publicids, stray_workers
 
 # Every program a test starts (the generate CLI, a worker, a stand-in script) imports `planetgen` from this
 # checkout, not from whichever checkout the editable install points at (TEST.143, TEST.145): from a git
@@ -536,12 +536,15 @@ def _datasets_are_real(request):
 
 @pytest.fixture(scope="session", autouse=True)
 def _worker_redis_database():
-    """The worker's own Redis database (see the top of this file) is empty when its tests start and when they end."""
+    """The worker's own Redis database (see the top of this file) is empty when its tests start and when they end, and no
+    queue worker process is left running on it (TEST.393)."""
     url = os.environ.get("PLANETGEN_REDIS_URL")
     if url:
+        stray_workers.reap_database(url)    # TEST.393: a worker an earlier, stopped session left on this database
         private_redis.flush(url)
     yield
     if url:
+        stray_workers.reap_database(url)    # and the ones this session started and did not stop
         private_redis.flush(url)
 
 

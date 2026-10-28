@@ -252,6 +252,25 @@ def _carbon_oxides(period_class, interstellar):
     raise PopulationError(f"no CO and CO2 inside the observed bounds in {MAX_ATTEMPTS} draws for {period_class}")
 
 
+def median_volatiles(period_class):
+    """
+    The volatiles at the medians of the population, with no draw: percent of H2O by species, CO and CO2 from the median total and the
+    median CO share of the class, the others at their geometric means. A stand-in for a body that needs the proportions of its
+    non-water ices and has no draw of its own to spend.
+
+    Raises:
+        ValueError: An unknown class.
+    """
+    if period_class not in PERIOD_CLASSES:
+        raise ValueError(f"period class {period_class!r} is none of {', '.join(PERIOD_CLASSES)}")
+    total = TOTAL_CARBON_OXIDE["median_percent"]
+    share = CO_FRACTION["median"][period_class]
+    percent = {"CO": total * share, "CO2": total * (1.0 - share)}
+    for name, species in SPECIES.items():
+        percent[name] = species.geo_mean_percent
+    return percent
+
+
 def draw_volatiles(period_class, interstellar=False):
     """
     The volatiles of one comet.

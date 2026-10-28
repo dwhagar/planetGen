@@ -24,6 +24,7 @@ the stored levels alone (`items`, `required_names`, `recommended_names`, `code`,
 """
 
 from collections import namedtuple
+from dataclasses import replace
 
 from planetgen.physics import constants, habitability, radiation, regional_temperature
 from planetgen.physics.protection_limits import RADIATION_STEPS, TOXIC, limit
@@ -182,6 +183,16 @@ def _body(world, limits, cold, hot, density, scale):
     elif world.uv_index > limit("uv_cover_index"):
         required.append((1, "uv"))
     return required, recommended
+
+
+def body_at(world, temperature_c, limits=habitability.HUMAN):
+    """`(level, kind)` of the Body Protection the ladder lists for `world` at one surface temperature, `temperature_c` (the cold
+    and hot ends of a day outside, GEN.768): the world's own pressure, air, gravity and ultraviolet, a steady temperature."""
+    probe = replace(world, temperature_c=temperature_c, flux_variation=0.0)
+    density = best_mix_density_g_l(probe.pressure_kpa, temperature_c)
+    scale = limits.pressure[2] / limit("mask_min_kpa")
+    required, _ = _body(probe, limits, temperature_c, temperature_c, density, scale)
+    return _top(required)
 
 
 def _gravity_g(world):

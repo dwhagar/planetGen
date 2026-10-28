@@ -44,6 +44,7 @@ const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERS
 const { infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createLayerRegistry } = await import(`./maplayers.js${VERSION_QUERY}`);
 const { placeBoxes } = await import(`./maplabels.js${VERSION_QUERY}`);
+const Spin = await import(`./spin.js${VERSION_QUERY}`);
 
 function classField(el) {
   var cls = el.dataset.class;
@@ -321,6 +322,7 @@ function initSphereField(canvasEl) {
       return;
     }
     paintQueue.runOne();
+    var spinSeconds = Spin.tick(performance.now());
     renderer.setScissorTest(false);
     renderer.setViewport(0, 0, w, h);
     renderer.clear();
@@ -332,8 +334,9 @@ function initSphereField(canvasEl) {
       if (!rect || rect.side <= 0) {
         continue;
       }
-      marker.rotation += 0.006;
-      bodyGroup.rotation.y = marker.rotation;
+      // MAP.328: the body turns about its own axis at the rate its stored rotation period gives (spin.js), the
+      // flat picture's axis leaned by its axial tilt; the glow and ring stay put, the lighting is the scene's.
+      Spin.turn(THREE, sphere, marker.look, spinSeconds, marker.axis);
       configureBody(marker);
 
       // `setViewport`/`setScissor` both take the rect's bottom-left
@@ -354,11 +357,22 @@ function initSphereField(canvasEl) {
     renderFrame();
   })();
 
-  return { setMarkers: setMarkers };
+  // For the browser tests: how far each current marker's body has turned and at what rate (radians, radians a second).
+  function spins() {
+    return markers.map(function (marker) {
+      return { name: marker.circle.parentNode.dataset.name, angle: Spin.angleAt(marker.look, Spin.seconds()),
+        rate: Spin.rateOf(marker.look), spinH: marker.look.spinH, axis: marker.axis, at: Spin.seconds() };
+    });
+  }
+
+  return { setMarkers: setMarkers, spins: spins };
 }
 
 var spheresCanvas = document.getElementById("sysmap-spheres-canvas");
 var sphereField = spheresCanvas ? initSphereField(spheresCanvas) : null;
+if (sphereField) {
+  spheresCanvas.__spins = sphereField.spins; // for the browser tests
+}
 
 // Builds `sphereField`'s marker list from whichever scene `<svg>` is now
 // visible -- every `.sysmap-body` (star/planet/moon; `.sysmap-belt` isn't
@@ -400,7 +414,7 @@ function gatherSphereMarkers(sceneEl) {
       color: look.color,
       hasAtmosphere: !!look.atm,
       glowColor: look.glow || "#bcdfff",
-      rotation: Math.random() * Math.PI * 2, // dephased so a scene's spheres don't all spin in lockstep
+      axis: Spin.pictureAxisOf(look),
     };
     if (isGasGiant) {
       marker.bandTexture = makeBandTexture(THREE, marker.color);
@@ -762,10 +776,12 @@ var SVG_NS = "http://www.w3.org/2000/svg";
 
 function sceneScale(sceneEl) {
   var lo = parseFloat(sceneEl.dataset.lokm), hi = parseFloat(sceneEl.dataset.hikm);
+  // MAP.308: a moon system is on one linear scale (`data-pxperkm`), so a straight line in km is a straight line.
+  var perKm = parseFloat(sceneEl.dataset.pxperkm);
   return {
-    lo: lo, hi: hi, c: parseFloat(sceneEl.dataset.cpx),
+    lo: lo, hi: hi, c: parseFloat(sceneEl.dataset.cpx), perKm: perKm,
     min: parseFloat(sceneEl.dataset.minpx), spread: parseFloat(sceneEl.dataset.spreadpx),
-    ok: isFinite(lo) && isFinite(hi) && lo > 0,
+    ok: (isFinite(lo) && isFinite(hi) && lo > 0) || (isFinite(perKm) && perKm > 0),
   };
 }
 
@@ -773,6 +789,9 @@ function kmToPx(scale, x, y) {
   var d = Math.hypot(x, y);
   if (d <= 0) {
     return { x: scale.c, y: scale.c };
+  }
+  if (scale.perKm > 0) {
+    return { x: scale.c + x * scale.perKm, y: scale.c - y * scale.perKm };
   }
   var r;
   if (scale.hi <= scale.lo) {
@@ -961,6 +980,15 @@ function initSystemMap(root) {
     return noun + self.dataset.name;
   }
 
+  // MAP.308: the scene on screen is in the URL (`?scene=planet-<id>`), so a moon system map has a link.
+  function rememberScene(sceneId) {
+    var params = new URLSearchParams(window.location.search);
+    if (sceneId === "system") params.delete("scene");
+    else params.set("scene", sceneId);
+    var query = params.toString().replace(/%2C/gi, ",");
+    window.history.replaceState(window.history.state, "", window.location.pathname + (query ? "?" + query : "") + window.location.hash);
+  }
+
   function showScene(sceneId) {
     var active = null;
     scenes.forEach(function (scene) {
@@ -1002,7 +1030,25 @@ function initSystemMap(root) {
         current.textContent = label;
         crumb.appendChild(current);
       }
+      // MAP.308: a moon system comes at an enlarged body size and at true size; this switches between them.
+      if (active.dataset.scaleTwin) {
+        var trueNow = active.dataset.scaleTrue === "true";
+        var twinBtn = document.createElement("button");
+        twinBtn.type = "button";
+        twinBtn.className = "starmap-btn sysmap-scale-btn";
+        twinBtn.textContent = trueNow ? "Enlarge bodies" : "True scale";
+        twinBtn.setAttribute("aria-pressed", trueNow ? "true" : "false");
+        twinBtn.addEventListener("click", function () {
+          showScene(active.dataset.scaleTwin);
+        });
+        crumb.appendChild(twinBtn);
+        var note = document.createElement("span");
+        note.className = "sysmap-scale-note hint";
+        note.textContent = active.dataset.scaleNote || "";
+        crumb.appendChild(note);
+      }
     }
+    rememberScene(sceneId);
 
     clearMeasureSelection();
     layoutLabels(active);
@@ -1122,7 +1168,9 @@ function initSystemMap(root) {
     }
   });
 
-  showScene("system");
+  // `?scene=planet-<id>` (a moon system map's link, MAP.308) opens that scene when the page has it.
+  var wanted = new URLSearchParams(window.location.search).get("scene");
+  showScene(wanted && scenes.some(function (scene) { return scene.dataset.scene === wanted; }) ? wanted : "system");
   // The handlers are on: a page that tests the map waits for this rather
   // than for a fixed time (TEST.104).
   root.setAttribute("data-ready", "true");
@@ -1167,6 +1215,20 @@ function initLayers(root) {
     draw: function (_scene, on) {
       var view = document.getElementById("sysview3d");
       [root, view].forEach(function (el) { if (el) el.classList.toggle("sysmap-hide-labels", !on); });
+    },
+  });
+  // MAP.328: the bodies of the diagram and of the 3D view turn slowly on their axes; this switch stops them. It is a
+  // standing preference (spin.js keeps it), not part of the address.
+  layers.register({
+    id: "spin",
+    label: "Spin",
+    group: "View",
+    title: "Let the bodies turn slowly on their axes, or hold them still",
+    modes: ["system"],
+    defaultOn: Spin.switchedOn(),
+    data: { setting: "spin" },
+    draw: function (_scene, on) {
+      Spin.setSwitch(on);
     },
   });
   layers.readUrl(window.location.search);

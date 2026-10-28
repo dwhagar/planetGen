@@ -4,6 +4,7 @@
     posted to the recipes route, which keeps the same fields. -#}
 {% extends "generate_base.html" %}
 {% from "partials/generate_fields.html" import debug_box, disregard_data with context %}
+{% from "partials/ui_fields.html" import ui_input with context %}
 {% block generate_body %}
 <p class="generate-crumb"><a href="{{ url_for('web.generate') }}">&larr; All tasks</a></p>
 <section class="panel generate-review" id="review" aria-labelledby="review-heading">
@@ -15,14 +16,14 @@
   {%- if estimate.deep_check %}
   <dl class="estimate-facts">
     <dt>Star systems</dt><dd>{{ num(estimate.systems) }} to load and validate, besides the table checks</dd>
-    <dt>Time</dt><dd>About {{ estimate.time_text }}{% if not estimate.measured %} (this server's speed isn't measured yet, so this is a rough guess){% endif %}</dd>
+    <dt>Time</dt><dd>About {{ estimate.time_text }}</dd>
   </dl>
   <p class="hint">The check changes nothing. It runs as a job you can watch and cancel.</p>
   {%- else %}
   <dl class="estimate-facts">
     <dt>Sectors</dt><dd>{{ num(estimate.sectors) }} (about {{ num(estimate.systems) }} star systems, {{ num(estimate.stars) }} stars)</dd>
     <dt>Database growth</dt><dd>About {{ estimate.size_text }} (10% margin included)</dd>
-    <dt>Time</dt><dd>About {{ estimate.time_text }} with {{ estimate.workers }} worker{{ "" if estimate.workers == 1 else "s" }}{% if not estimate.measured %} (this server's speed isn't measured yet, so this is a rough default){% endif %}</dd>
+    <dt>Time</dt><dd>About {{ estimate.time_text }} with {{ estimate.workers }} worker{{ "" if estimate.workers == 1 else "s" }}</dd>
     <dt>Database disk</dt><dd>{{ estimate.disk_text or estimate.disk_note_text or "Not measured, so nothing is refused for space." }}</dd>
   </dl>
   {%- endif %}
@@ -82,8 +83,7 @@
     {%- if review.recipe_error %}
     <p class="error" role="alert" id="recipe-error">{{ review.recipe_error }}</p>
     {%- endif %}
-    <label for="recipe-name">Recipe name</label>
-    <input type="text" id="recipe-name" name="recipe_name" maxlength="80" required value="{{ review.recipe_name }}"{% if review.recipe_error %} aria-describedby="recipe-error" aria-invalid="true"{% endif %}>
+    {{ ui_input("recipe_name", "Recipe name", review.recipe_name, required=True, maxlength=80, id="recipe-name", **({"aria-describedby": "recipe-error", "aria-invalid": "true"} if review.recipe_error else {})) }}
     <button type="submit" class="btn">Save as recipe</button>
   </form>
   {%- endif %}

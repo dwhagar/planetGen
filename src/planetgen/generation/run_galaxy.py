@@ -1219,6 +1219,9 @@ def run_settle(args):
     `planetgen settle --since TIME` (PERF.123, GEN.126): saves the path of every body in the sectors saved since `TIME` and
     in the sectors around them (`settle-sector-paths`), so each path sees the final set of neighbours. Nothing else.
     """
+    if args.sector_id:
+        _settle_named(args)
+        return
     _resolve_since(args)
     stages.begin(stages.for_command("settle", args), args, "settle")
     created = _sectors_made_since(args)
@@ -1231,6 +1234,30 @@ def run_settle(args):
     stages.note(sectors=len(created))
     log.normal("Saving the sector paths...")
     saved = _settle_on_queue(args, args.since)
+    log.normal(f"Saved {saved:,} sector paths.")
+    stages.finish()
+
+
+def _settle_named(args):
+    """`planetgen settle --sector-id ID...`: the settle stage over the sectors named (and the sectors around them), for a
+    sector a `phenomenon --sector-id` run or an edit changed, which no `--since` time finds (PERF.124)."""
+    ids = sorted(set(args.sector_id))
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        known = {row["id"] for row in conn.execute(
+            f"SELECT id FROM sectors WHERE id IN ({', '.join('?' * len(ids))})", ids).fetchall()}
+        started_at = store.database_now(conn)
+    finally:
+        conn.close()
+    unknown = [sector_id for sector_id in ids if sector_id not in known]
+    if unknown:
+        log.error(f"Error: --sector-id: no such sector: {', '.join(str(sector_id) for sector_id in unknown)}")
+        raise SystemExit(1)
+    stages.begin(stages.for_command("settle", args), args, "settle")
+    stages.enter("settle")
+    stages.note(sectors=len(ids))
+    log.normal("Saving the sector paths...")
+    saved = _settle_on_queue(args, started_at, extra={"sector_ids": ids})
     log.normal(f"Saved {saved:,} sector paths.")
     stages.finish()
 
@@ -2770,6 +2797,7 @@ def run_galaxy(args):
     run_plan.scatter_phenomena(args)        # the last pass of GEN.185: the other phenomena, after the stars
     backfill_after_run(args, edge_pc, started_at)
     run_population.run_population_stage(args)
+    run_population.run_territories_stage(args)
     settle_after_run(args, started_at)
     nebula_blocks_after_run(args)
     block_totals_after_run(args, started_at)

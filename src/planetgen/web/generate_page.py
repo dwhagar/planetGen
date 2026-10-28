@@ -73,7 +73,7 @@ from planetgen.galaxy import dials, mass_chain, objectref
 from planetgen.galaxy.spherical import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
-from planetgen.util.format import format_number
+from planetgen.util.format import counted, format_number
 from planetgen.generation.limits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_NEIGHBORHOODS, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_SHELL,
 )
@@ -1261,12 +1261,12 @@ def _stage_estimate_list(job, units):
 def remaining_label(remaining, running=True, rough=False):
     """What the page says about the time left (PERF.33): "about 3 m 05 s to 4 m 00 s left" as a range around the
     estimate, "estimating the time left" while a running job has none yet, never dashes; `""` once it finished. A
-    `rough` figure (a guess from the hardware, PERF.184) has a wide range and says so."""
+    `rough` figure (an estimate from the hardware, PERF.184) has a wide range and says it is not timed yet (PERF.199)."""
     if remaining is None:
         return "estimating the time left" if running else ""
     if rough:
         low, high = roughtime.rough_range(remaining)
-        return f"roughly {format_elapsed(low)} to {format_elapsed(high)} left (a rough guess until a unit is timed)"
+        return f"roughly {format_elapsed(low)} to {format_elapsed(high)} left (not timed yet)"
     low, high = progress_rate.eta_range(remaining)
     low_text, high_text = format_elapsed(low), format_elapsed(high)
     if low_text == high_text:
@@ -1286,6 +1286,9 @@ def _progress_text(progress):
     text = f"{description}: {format_number(completed)}"
     if total:
         text += f" of {format_number(total)}"
+    unit = progress.get("unit")
+    if unit and not description.lower().endswith(counted(unit, 2)):
+        text += f" {counted(unit, total or completed)}"
     return text
 
 
@@ -1502,7 +1505,7 @@ def estimate_for(kind, steps, database, env):
 def _estimate_view(estimate):
     """`run_estimate`'s dict plus the text the page shows."""
     view = dict(estimate)
-    view["time_text"] = stats.format_duration(estimate.get("seconds"))
+    view["time_text"] = stats.time_text(estimate.get("seconds"), estimate.get("measured", True))
     if estimate.get("deep_check"):      # DB.21: a time and a count of systems, no size or disk
         return view
     view["size_text"] = stats.format_bytes(estimate.get("bytes"))
@@ -1687,15 +1690,18 @@ generate_job_stream.json_only = True  # not a page: tests/test_web_a11y.py skips
 
 @bp.route("/admin/generate/jobs/<job_id>/log")
 def generate_job_log(job_id):
-    """A job's full output as a plain-text download."""
+    """A job's full output as a plain-text download; `?form=records` gives the same job as records instead (UX.122): one
+    log line per line with its time in UTC, severity and component (`jobs.RECORDS_NAME`)."""
     _admin_or_403()
     root = jobs.jobs_dir()
     if jobs.get_job(job_id, root) is None:
         abort(404, description="No such job.")
-    path = os.path.join(jobs._job_dir(root, job_id), "output.log")
+    records = request.args.get("form") == "records"
+    path = os.path.join(jobs._job_dir(root, job_id), jobs.RECORDS_NAME if records else "output.log")
     if not os.path.isfile(path):
         abort(404, description="This job has no output yet.")
-    return _no_store(send_file(path, mimetype="text/plain", as_attachment=True, download_name=f"job-{job_id}.log"))
+    name = f"job-{job_id}.records.log" if records else f"job-{job_id}.log"
+    return _no_store(send_file(path, mimetype="text/plain", as_attachment=True, download_name=name))
 
 
 generate_job_log.json_only = True  # not a page: tests/test_web_a11y.py skips it

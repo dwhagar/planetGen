@@ -135,6 +135,7 @@ def _fill_args(mysql_config):
 
     parser = argparse.ArgumentParser(prefix_chars='-+')
     generate_cli.add_fill_arguments(parser)
+    parser.set_defaults(command='rescore-habitability')   # the sub-command parser's own default (validate_fill_args reads it)
     args = parser.parse_args(["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
                               "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
                               "--mysql-database", mysql_config.database, "--workers", "1"])
