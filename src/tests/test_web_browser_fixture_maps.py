@@ -332,6 +332,20 @@ def _open_menu(page):
         page.locator("#galaxymap3d-menu > summary").click()
 
 
+POI_LAYERS = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
+POI_DEFAULT_ON = ("marker-inhabited", "marker-habitable", "marker-gas-giant")
+"""The Menu's point-of-interest layers, and the ones that are on until the visitor says otherwise (MAP.303)."""
+
+
+def _poi_layers(page, *on):
+    """Opens the Menu and sets the point-of-interest layers so that exactly `on` are on."""
+    _open_menu(page)
+    for layer in POI_LAYERS:
+        button = page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]')
+        if (button.get_attribute("aria-pressed") == "true") != (layer in on):
+            button.click()
+
+
 def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, map_site):
     """MAP.79: a toggle per kind of object in the Menu; a hidden kind is gone
     from the map, can't be hovered or picked, and its choice is in the URL."""
@@ -2202,6 +2216,8 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     its phenomenon page."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     page.wait_for_timeout(1000)
+    _poi_layers(page)    # a crowd's mark of the points of interest would take the click meant for the pulsar
+    page.locator("#galaxymap3d-menu > summary").click()
     # One step in, so the glow of the bright stars around them (every star of
     # a node comes in together, MAP.152) leaves the dark blue neutron star clear.
     # The wheel zooms toward what is under the pointer (MAP.225): Shift-click the
@@ -2271,8 +2287,7 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     page.wait_for_timeout(1000)
     holes = {p["name"]: p for p in POINT_FIELD if p["type"] == "black_hole"}
     drawn = page.evaluate(MARKERS)
-    assert {e["name"] for e in drawn} >= set(holes), drawn
-    assert {e["kind"] for e in drawn} == {"marker-black-hole"}
+    assert {e["name"] for e in drawn if e["kind"] == "marker-black-hole"} >= set(holes), drawn
     legend = page.locator("#galaxymap3d-layer-legend")
     assert "Black holes" in legend.inner_text()
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]')
@@ -2303,14 +2318,15 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     _open_menu(page)
     button.click()
     assert "hide=marker-black-hole" in page.url
-    assert _markers_until(page, lambda found: not found) == []
+    assert [e for e in _markers_until(page, lambda found: not any(e["kind"] == "marker-black-hole" for e in found))
+            if e["kind"] == "marker-black-hole"] == []
     assert "Black holes" not in legend.inner_text()
     # A reload keeps it off; on again brings them back.
     page.reload()
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     _settle(page)
     page.wait_for_timeout(800)
-    assert page.evaluate(MARKERS) == []
+    assert [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-black-hole"] == []
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-black-hole"]').click()
     assert {e["name"] for e in _markers_until(page, lambda found: bool(found))} >= set(holes)
@@ -2409,14 +2425,11 @@ def test_the_charted_regions_are_soft_spheres_at_galactic_scale_colored_by_share
 
 def test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card(page, map_site):
     """MAP.321 c: at galactic scale a region whose list entry has inhabited worlds carries the inhabited symbol at its middle
-    (once the Menu's Inhabited worlds is on), in the colour of its best world's tier; picking it shows the region's card with
+    (the Menu's Inhabited worlds layer, on by default), in the colour of its best world's tier; picking it shows the region's card with
     the inhabited line, and a region without any has no token."""
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
     page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
-    assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]], "the layer is off until asked for"
-    _open_menu(page)
-    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
     found = _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
     tokens = [e for e in found if e["regionKey"]]
     assert [(e["kind"], e["regionKey"]) for e in tokens] == [("marker-inhabited", "9.0.0.0")], found
@@ -2434,8 +2447,13 @@ def test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_tha
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     info = page.locator("#galaxymap3d-info").inner_text()
     assert "3 inhabited worlds in 2 systems, best Blue" in info, info
-    # Switching the regions layer off takes the token with its sphere.
+    # Switching the Inhabited worlds layer off takes the token, and the regions layer off takes it with its sphere.
     _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
+    _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
+    assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
+    _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
     page.locator('#galaxymap3d-kinds button[data-layer="regions"]').click()
     _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
     assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
@@ -2524,6 +2542,9 @@ def test_a_click_on_a_region_shows_its_card_and_a_double_click_flies_to_it(page,
     page.set_viewport_size(VIEWPORT)
     _open_galaxy(page, map_site)
     page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
+    _poi_layers(page)    # the inhabited token of the other region lies over this one's middle
+    _open_menu(page)
+    page.locator("#galaxymap3d-menu > summary").click()
     box = page.locator(GALAXY_CANVAS).bounding_box()
     spot = next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.1.0.0" and s["visible"])
     where = (box["x"] + spot["x"], box["y"] + spot["y"])
@@ -2548,19 +2569,29 @@ def test_galaxy_map_opens_with_the_glow_off_when_the_address_says_so(page, map_s
     assert page.evaluate(GLOW)["visible"] is False
 
 
-def test_galaxy_map_habitable_world_markers_are_opt_in_and_name_the_system(page, map_site):
-    """MAP.220: systems with a habitable world get a marker of their own kind, off until the Menu turns it on (and
-    `show=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds."""
+def test_galaxy_map_habitable_world_markers_are_on_by_default_and_name_the_system(page, map_site):
+    """MAP.220, MAP.303: systems with a habitable world get a marker of their own kind, on until the Menu turns it off (and
+    `hide=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds; the
+    inhabited, habitable and gas giant layers begin on and the uninhabitable and asteroid field ones off."""
     _open_star_field(page, map_site)
     page.wait_for_timeout(1000)
-    assert {e["kind"] for e in page.evaluate(MARKERS)} == {"marker-black-hole"}
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-habitable" for e in entries))
+    assert {e["kind"] for e in found} == {"marker-black-hole", *POI_DEFAULT_ON}, found
+    assert "show=" not in page.url and "hide=marker" not in page.url
     systems = {s["name"]: s for s in WORLD_FIELD}
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]')
     _open_menu(page)
-    assert button.count() == 1 and button.get_attribute("aria-pressed") == "false"
+    assert button.count() == 1
+    for layer in POI_LAYERS:
+        pressed = page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').get_attribute("aria-pressed")
+        assert pressed == ("true" if layer in POI_DEFAULT_ON else "false"), layer
     button.click()
     page.wait_for_timeout(400)
-    assert "show=marker-habitable" in page.url
+    assert "hide=marker-habitable" in page.url
+    _markers_until(page, lambda entries: not any(e["kind"] == "marker-habitable" for e in entries))
+    assert not [e for e in page.evaluate(MARKERS) if e["kind"] == "marker-habitable"]
+    _poi_layers(page, "marker-habitable")
+    assert "marker-habitable" not in page.url and "hide=marker-inhabited,marker-gas-giant" in page.url, page.url
     drawn = {e["name"] for e in _markers_until(page, lambda found: any(e["kind"] == "marker-habitable" for e in found))
              if e["kind"] == "marker-habitable"}
     assert drawn == set(systems), drawn
@@ -2581,7 +2612,7 @@ def test_galaxy_map_habitable_world_markers_are_opt_in_and_name_the_system(page,
 
 
 def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_lists_them_in_its_infobox(page, map_site):
-    """MAP.305: a gas giant is a reason for a mark of its own, off until the Menu turns it on; a system with a gas giant and a
+    """MAP.305: a gas giant is a reason for a mark of its own, which the Menu can turn on alone; a system with a gas giant and a
     habitable world is drawn once however many reasons are on, a system with neither has no mark, and the infobox of a mark lists
     every reason its system has."""
     _open_star_field(page, map_site)
@@ -2589,11 +2620,8 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
     giants = {s["name"] for s in GIANT_FIELD}
     worlds = {s["name"] for s in WORLD_FIELD}
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-gas-giant"]')
-    _open_menu(page)
-    assert button.count() == 1 and button.get_attribute("aria-pressed") == "false"
-    button.click()
-    page.wait_for_timeout(400)
-    assert "show=marker-gas-giant" in page.url
+    _poi_layers(page, "marker-gas-giant")
+    assert button.count() == 1 and button.get_attribute("aria-pressed") == "true"
     found = _markers_until(page, lambda entries: any(e["kind"] == "marker-gas-giant" for e in entries))
     assert {e["name"] for e in found if e["kind"] == "marker-gas-giant"} == giants
     assert not [e for e in found if e["kind"] == "marker-habitable"]
@@ -2615,17 +2643,39 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
     assert "2 habitable worlds, best Green" in info and "1 gas giant" in info, info
 
 
+def test_the_default_map_marks_a_green_and_a_yellow_world_with_the_reason_listed_and_a_red_one_not(page, map_site):
+    """MAP.303 acceptance: with no Menu choice made, the map marks the star of a Green world and of a Yellow one (the Yellow one's
+    system is also inhabited, so its mark is the inhabited symbol), each card lists the habitable reason with its best tier, and the
+    system whose only world is Red (below the Yellow floor) has no mark."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    found = _markers_until(page, lambda entries: {"Fixture Eden", "Fixture Rest"} <= {e["name"] for e in entries})
+    marks = {e["name"]: e["kind"] for e in found if e["name"]}
+    assert marks["Fixture Eden"] == "marker-habitable" and marks["Fixture Rest"] == "marker-inhabited", marks
+    assert "Fixture Rock" not in marks, "a system with only a Red world has no mark"
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    for name, wanted in (("Fixture Eden", "2 habitable worlds, best Green"), ("Fixture Rest", "1 habitable world, best Yellow")):
+        mark = next(e for e in found if e["name"] == name)
+        spot = _screen_of(page, (mark["x"], mark["y"], mark["z"]))
+        assert spot
+        page.mouse.move(*spot)
+        page.mouse.move(spot[0] + 1, spot[1])
+        page.mouse.click(*spot)
+        assert page.locator("#galaxymap3d-info h3").inner_text() == name
+        assert wanted in page.locator("#galaxymap3d-info").inner_text()
+
+
 def test_galaxy_map_marks_each_system_with_its_best_worlds_symbol(page, map_site):
     """MAP.321: with every world reason on a system has one mark, the symbol of its best world (an inhabited world before a habitable world before a barren
-    one before a gas giant before a belt), and each reason has a button of its own, off until asked for."""
+    one before a gas giant before a belt), and each reason has a button of its own (the barren and belt ones off until asked for)."""
     _open_star_field(page, map_site)
     page.wait_for_timeout(1000)
     ids = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
     _open_menu(page)
     for layer in ids:
         button = page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]')
-        assert button.count() == 1 and button.get_attribute("aria-pressed") == "false", layer
-        button.click()
+        assert button.count() == 1 and button.get_attribute("aria-pressed") == ("true" if layer in POI_DEFAULT_ON else "false"), layer
+    _poi_layers(page, *ids)
     found = _markers_until(page, lambda entries: {e["kind"] for e in entries} >= set(ids))
     marks = {e["name"]: e["kind"] for e in found if e["kind"] in ids}
     assert sorted(e["name"] for e in found if e["kind"] in ids) == sorted(marks), "no system is marked twice"
@@ -2648,9 +2698,9 @@ def test_a_name_is_only_offered_for_a_habitable_world_marker_that_is_drawn_and_a
     _open_star_field(page, map_site)
     page.wait_for_timeout(1000)
     systems = {"Fixture Eden"}
+    _poi_layers(page)
     page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
     button = page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]')
-    _open_menu(page)
     button.click()
     _markers_until(page, lambda found: any(e["kind"] == "marker-habitable" for e in found))
     page.wait_for_function(f"([names]) => {{ const got = new Set(({LABELS})().filter((l) => l.kind === 'world').map((l) => l.text)); return names.every((n) => got.has(n)); }}",
@@ -2674,9 +2724,7 @@ def test_crowded_marks_merge_into_one_with_a_count_whose_card_lists_every_system
     page.wait_for_timeout(1000)
     ids = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
     systems = {"Fixture Eden", "Fixture Rest", "Fixture Rock", "Fixture Jove", "Fixture Belt"}
-    _open_menu(page)
-    for layer in ids:
-        page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').click()
+    _poi_layers(page, *ids)
 
     def marks(found):
         return [e for e in found if e["kind"] in ids]
@@ -2717,7 +2765,7 @@ def test_an_inhabited_world_marker_is_offered_a_name_for_as_long_as_it_is_drawn(
     _open_star_field(page, map_site)
     page.wait_for_timeout(1000)
     worlds = f"() => ({LABELS})().filter((l) => l.kind === 'world').map((l) => l.text).sort()"
-    _open_menu(page)
+    _poi_layers(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
     _markers_until(page, lambda found: any(e["kind"] == "marker-inhabited" for e in found))
     page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Rest')", timeout=20000)
@@ -3225,10 +3273,7 @@ def test_the_bodies_of_an_open_system_carry_their_own_symbols_by_the_same_layers
     _open_system_in_place(page, map_site)
     ids = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__bodyMarkersOn()") is True
-    assert not [e for e in page.evaluate(MARKERS) if e["kind"] in ids], "every layer is off until asked for"
-    _open_menu(page)
-    for layer in ids:
-        page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').click()
+    _poi_layers(page, *ids)
     found = _markers_until(page, lambda entries: {e["kind"] for e in entries} >= {"marker-inhabited", "marker-gas-giant",
                                                                                   "marker-uninhabitable", "marker-asteroid-field"})
     kinds = sorted(e["kind"] for e in found if e["kind"] in ids)
@@ -4019,8 +4064,7 @@ def _open_habitable_card(page, base, name, width=1280, height=900):
     page.set_viewport_size({"width": width, "height": height})
     _open_star_field(page, base)
     page.wait_for_timeout(500)
-    _open_menu(page)
-    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    _poi_layers(page, "marker-habitable")
     _markers_until(page, lambda found: any(e["kind"] == "marker-habitable" for e in found))
     page.locator(".starmap-sr-markers button", has_text=name).evaluate("b => b.click()")
     assert page.locator("#galaxymap3d-info h3").inner_text() == name

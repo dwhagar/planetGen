@@ -100,9 +100,9 @@ const SYSTEMS_OF_INTEREST = [
   { id: 7, name: "Jove", x: 4, y: 0, z: 0, reasons: { "gas-giant": { n: 3 } } },
 ];
 
-test("the habitable world kind lists a node's systems that have the reason, most worlds first, and is off until asked for", () => {
+test("the habitable world kind lists a node's systems that have the reason, most worlds first, and is on until turned off (MAP.303)", () => {
   const kind = M.HABITABLE_KIND;
-  assert.equal(kind.defaultOn, false);
+  assert.equal(kind.defaultOn, true);
   const node = { interests: SYSTEMS_OF_INTEREST };
   const items = kind.source(node);
   assert.deepEqual(items.map((i) => i.key), ["5", "6"]);
@@ -140,7 +140,7 @@ test("a system with two reasons is drawn once, by the first reason that is on, a
 test("the reasons are in the order of the best world's symbol and a barren world or a belt is a reason of its own (MAP.321)", () => {
   assert.deepEqual(M.INTEREST_KINDS.map((k) => k.interest), ["inhabited", "habitable", "uninhabitable", "gas-giant", "asteroid-field"]);
   assert.deepEqual(M.INTEREST_KINDS.map((k) => k.icon), ["inhabited-world", "habitable-world", "uninhabitable-world", "gas-giant", "asteroid-field"]);
-  assert.ok(M.INTEREST_KINDS.every((k) => k.defaultOn === false));
+  assert.deepEqual(M.INTEREST_KINDS.filter((k) => k.defaultOn).map((k) => k.interest), ["inhabited", "habitable", "gas-giant"]);
   const systems = [
     { id: 1, name: "Rock", x: 0, y: 0, z: 0, reasons: { uninhabitable: { n: 2, score: 0.1, tier: "Red" } } },
     { id: 2, name: "Belt", x: 1, y: 0, z: 0, reasons: { "asteroid-field": { n: 1 } } },
