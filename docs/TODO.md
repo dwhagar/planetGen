@@ -15266,7 +15266,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.47, DB.48.
+  Prerequisites: DB.48.
   Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
 
 - [ ] **DB.17 Repair by regenerating a damaged sector from its seed when parity cannot rebuild it**
@@ -15291,7 +15291,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.47, GEN.179.
+  Prerequisites: GEN.179.
   Design: [docs/design/operations/db-check-and-parity-repair.md](design/operations/db-check-and-parity-repair.md)
 
 - [ ] **DB.29 update.sh and every database migration refuse to start while jobs are active, unless --yes is passed or the user confirms cancelling them**
@@ -15413,24 +15413,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   damage a healthy sector.
   Prerequisites: DB.41, DB.9, DB.17. Related: DB.9, DB.17, ADM.91.
 
-- [ ] **DB.47 planetgen repair-db: rebuild damaged sectors from the parity file**
-  Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). `generate.py repair-db` (the
-  `planetgen` command) uses DB.8's check to find damaged sectors,
-  applies the decision table, rebuilds each sector from its group's
-  parity (reading the other members), re-runs the check and lists
-  anything it could not repair (for DB.17's seed fallback). After a
-  repair the columns the orbit update rewrites come back as generated
-  and the next update carries on (decided, 2026-10-10). Why: the
-  user-facing half of DB.9. Done: a test damages stored rows in a copy
-  of a small galaxy, repairs them and gets a passing check; a sector
-  whose record is stale or whose group lost more than m members is
-  listed, not guessed.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: DB.9.
-
 - [ ] **DB.48 repair-db: rebuild the table when a clustered-index page is unreadable**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). When a page of the `sectors`
@@ -15447,7 +15429,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.47. Related: DB.9.
+  Prerequisites: none. Related: DB.9, DB.47.
 
 - [ ] **DB.57 The update records what it moved: a replace-each-run table of previous and new positions**
   Split from MAP.192 (2026-10-16, Boss 1:07 PM EDT: look at each item
