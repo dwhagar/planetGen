@@ -211,6 +211,7 @@ _kind("speed", _SPEED, "m_s", Bounds(low=0.0, high=float(constants.SPEED_OF_LIGH
 _kind("acceleration", _ACCELERATION, "m_s2")
 _kind("temperature", dimension(temperature=1), "K", NON_NEGATIVE)
 _kind("delta_temperature", dimension(temperature=1), "dK")
+_kind("fraction", dimension(), "frac", NON_NEGATIVE)
 _kind("angle", dimension(angle=1), "rad")
 _kind("angular_rate", dimension(time=-1, angle=1), "rad_s")
 _kind("angular_momentum", dimension(length=2, mass=1, time=-1), "kg_m2_s")
@@ -240,6 +241,8 @@ def _lengths():
             ("au", "AU", "astronomical units", constants.AU_M),
             ("ly", "ly", "light-years", constants.LIGHTYEAR_M),
             ("ld", "ld", "light-days", constants.SPEED_OF_LIGHT_M_S * _DAY_S),
+            ("cm", "cm", "centimeters", 1e-2),
+            ("in", "in", "inches", constants.INCH_M),
             ("ft", "ft", "feet", constants.FOOT_M),
             ("mi", "mi", "miles", constants.MILE_M),
             ("Rsun", "R☉", "solar radii", constants.SOLAR_RADIUS_M),
@@ -378,8 +381,17 @@ def _fields():
           parts=(("km", 3), ("s", -2)))
 
 
+def _fractions():
+    """A share of a whole (GEN.770): the base is the plain fraction 0 to 1; the page writes it as a percent from 1 percent
+    and as parts per million below."""
+    _unit("frac", "fraction", "(fraction)", "fractions of the whole", 1.0)
+    _unit("pct", "fraction", "%", "percent", 1e-2)
+    _unit("ppm", "fraction", "ppm", "parts per million", 1e-6)
+
+
 _lengths()
 _masses()
+_fractions()
 _times()
 _kinematics()
 _thermal()

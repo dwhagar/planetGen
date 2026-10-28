@@ -54,7 +54,7 @@ def _gas_facts(obj):
         fact("species", "Dominant Gas", model.chem_text(obj.dominant_species)),
         fact("density", "Density", _density(obj.density_cm3)),
         fact("temperature", "Temperature", build._kelvin(obj.temperature_k, companions=False)),
-        fact("extinction", "Extinction", qty("ratio", obj.extinction_av), " magnitudes"),
+        fact("extinction", "Extinction", qty("ratio", obj.extinction_av, note="magnitudes")),
     ]
 
 
@@ -85,7 +85,7 @@ def _quasar(quasar):
         fact("mass", "Black Hole Mass", build._mass_solar(quasar.black_hole_mass_solar)),
         fact("event_horizon", "Event Horizon Radius", horizon),
         fact("luminosity", "Luminosity", build._luminosity(quasar.luminosity_w)),
-        fact("eddington", "Share of the Eddington Limit", qty("ratio", quasar.eddington_ratio)),
+        fact("eddington", "Share of the Eddington Limit", qty("fraction", quasar.eddington_ratio, "frac")),
         fact("accretion", "Gas Swallowed", build._mass_solar(quasar.accretion_rate_solar_per_year), " a year"),
         fact("broad_line", "Broad-Line Region", build._held("ld", quasar.broad_line_region_light_days), " out"),
         fact("age", "Active For", _years(quasar.active_age_years)),

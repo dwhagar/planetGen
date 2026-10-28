@@ -178,7 +178,7 @@ def test_nearest_systems_html_escapes_every_name(location, neighbors):
 @given(distance=st.one_of(st.none(), any_float))
 def test_format_distance_ly_never_raises(distance):
     out = fmt.format_distance_ly(distance)
-    units = (" km", " AU", " ly", " ly)", " AU)", " km)")
+    units = (" km", " m", " cm", " mm", " AU", " ly", " ly)", " AU)", " km)", " m)")
     # No value (None, NaN, an infinity, or one that overflows on the way to
     # km) is a dash, never "nan km"/"inf km" (TEST.53).
     assert out == "&ndash;" if distance is None else (out == "&ndash;" or out.endswith(units))
@@ -367,7 +367,7 @@ def test_star_formatters_never_raise_on_finite_values(value):
 @given(value=nonzero_finite, is_moon=st.booleans())
 def test_format_body_distance_never_raises_on_finite_values(value, is_moon):
     out = tabledisplay.format_body_distance(value, is_moon)
-    assert out.endswith((" km", " AU", " ly", " ly)", " AU)", " km)"))
+    assert out.endswith((" km", " m", " cm", " mm", " AU", " ly", " ly)", " AU)", " km)", " m)"))
 
 
 @given(years=st.floats(min_value=0, max_value=1e9))
