@@ -11921,27 +11921,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.681 (class cut-over); see the note on GEN.681. Owner stays the
   class lane.
 
-- [ ] **GEN.715 Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703**
-  Lane E (9:58 AM EDT 2026-10-24, as the lane reported): GEN.703 builds
-  physics/infrared_opacity.py (Planck-weighted band saturation per gas
-  from the gas table's band centres, the water continuum,
-  collision-induced pairs) with band strengths labelled stand-ins
-  because the repository holds no line lists. Do: choose the source (for
-  example HITRAN or ExoMol line lists reduced to k-tables, or published
-  k-distribution tables), download it at setup under the standing rules
-  (static downloads at setup, raw datasets never in the repository,
-  licence information only in DATA-LICENSE.md, which Boss manages),
-  build the tables, and replace the stand-in band strengths, labelling
-  anything still unsourced in the gap plan registry. Done: the
-  greenhouse opacity reads sourced tables, the stand-ins are gone or
-  labelled, and the epoch is taken. Owner: none (pool).
-  Decided (Boss, 4:01 PM EDT 2026-10-24, decision card, option 1):
-  download the public line lists (HITRAN, ExoMol) at setup and reduce
-  them to small k-tables; raw data never in the repository; licence
-  information only in DATA-LICENSE.md, which Boss manages. Free for the
-  Math lane to take now. Owner: Math lane (proposed by the TODO thread).
-  Prerequisites: none. Related: GEN.703, GEN.423.
-
 - [ ] **GEN.716 add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug)**
   Found by Bug Hunt (10:41 AM EDT 2026-10-24 as the lane reported, while
   fixing TEST.338). After GEN.631 a system built around a scattered star
@@ -11964,44 +11943,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   question. Owner: not assigned (Bug Hunt found it; the star scatter
   lane, Core 3 or Core 1, is the nearest owner).
   Prerequisites: none. Related: GEN.530, GEN.631, TEST.338.
-
-- [ ] **GEN.717 The greenhouse opacity has no water-vapour vertical profile, so the 15 micron CO2 band is not masked by water and a CO2 doubling warms 0.3 to 0.6 K instead of about 1.1 K**
-  Filed from lane E's GEN.703 report (10:12 AM EDT 2026-10-24 as the
-  lane reported, #2992). The spectral greenhouse opacity
-  (physics/infrared_opacity.py) treats the gases as well mixed, so water
-  vapour masks the 15 micron CO2 band too much. Do: a water vapour
-  vertical profile (humidity falling with height), so the band is
-  exposed as in the real atmosphere. Done: a CO2 doubling on an
-  Earth-like mixture warms about 1.1 K (within 25 percent), Earth, Venus
-  and Mars checks still pass, and the design note
-  docs/design/composition/infrared-opacity.md says so. Not wired into
-  generation yet, so no epoch until GEN.411 calls it. Owner: none
-  (pool); lane E proposed.
-  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
-  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
-  the new Math lane (physics route 'derivable now',
-  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
-  TODO thread; nobody has started it).
-  Prerequisites: none. Related: GEN.703, GEN.715, GEN.423, GEN.411.
-
-- [ ] **GEN.718 Cold haze worlds like Titan come out about twice too warm in the spectral greenhouse opacity**
-  Filed from lane E's GEN.703 report (10:12 AM EDT 2026-10-24 as the
-  lane reported, #2992). The spectral greenhouse model gives Titan-like
-  cold haze worlds (thick N2 and CH4 atmospheres with organic haze)
-  about twice their measured warming. Do: find which term is too strong
-  (the collision-induced N2 and CH4 pairs or the haze opacity) and fix
-  it against the Titan measurement. Done: a Titan-like mixture comes out
-  within 25 percent of the measured greenhouse warming and the Earth,
-  Venus and Mars checks still pass. Stand-in band strengths are part of
-  the cause; real tables are GEN.715. Owner: none (pool); lane E
-  proposed.
-  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
-  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
-  the new Math lane (physics route 'derivable now',
-  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
-  TODO thread; nobody has started it; Lane E reported the finding but is
-  not building it).
-  Prerequisites: none. Related: GEN.703, GEN.715, GEN.423.
 
 - [ ] **GEN.720 star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug)**
   Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
@@ -13697,6 +13638,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch with --affects fill and a lock turn. Owner: none yet (Aux 8
   retired); in the released pool for a fresh lane.
   Prerequisites: none. Related: GEN.837, GEN.830, GEN.812.
+
+- [ ] **GEN.850 Wire radiative_convective.warming into generation behind a lookup table of the model answers, and delete the infrared_opacity.py plateau code**
+  Left by Math 1 after GEN.715/GEN.717/GEN.718 (#3507, 5:55 PM EDT
+  2026-10-28 as the lane reported), which are built and merged but not
+  wired, so they changed no generated value: the radiative-convective
+  model takes 1 to 30 s a call and surface_air calls greenhouse_warming
+  several times per planet, so generation cannot call it directly. Build
+  a lookup table of the model answers (stand-ins AD10, AD11 and 6.6b are
+  in the registry, tier T1, tweak L0), call it from the greenhouse step,
+  and delete the plateau code in infrared_opacity.py at the wiring. It
+  changes generated output, so it takes an epoch with --affects fill and
+  a lock turn. Owner: none yet (Math 1 retired); released pool for a
+  fresh lane.
+  Prerequisites: none. Related: GEN.715, GEN.717, GEN.718.
+
+- [ ] **GEN.851 Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today)**
+  Left by Math 1 after GEN.715/GEN.717/GEN.718 (#3507, 5:55 PM EDT
+  2026-10-28 as the lane reported): aerosols.tau_haze exists but the
+  haze share and pressure are inputs the caller supplies, nothing in
+  generation supplies them. Derive them from the stored air and the haze
+  source, wire the result into the greenhouse step together with the
+  lookup table of the previous item, and record the stand-in tier and
+  tweak level. It changes generated output, so it takes an epoch with
+  --affects fill and a lock turn; do it in the same turn as the
+  lookup-table wiring. Owner: none yet; released pool.
+  Prerequisites: none. Related: GEN.715, GEN.717, GEN.718, GEN.850.
+
+- [ ] **GEN.852 Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others)**
+  Left by Math 1 after GEN.715/GEN.717/GEN.718 (#3507, 5:55 PM EDT
+  2026-10-28 as the lane reported): (1) Venus cloud and line-wing
+  treatment, the IR3 far wing is a labelled stand-in; (2) more gas
+  absorption tables; (3) tropopause quantisation in the
+  radiative-convective model; (4) OCS and other species have no data in
+  the _cp_over_r path. Source each from published data (verified wins,
+  widest range when two are in question), record stand-in tier and tweak
+  level. Owner: none yet; released pool, low priority after the two
+  wiring items.
+  Prerequisites: none. Related: GEN.715, GEN.717, GEN.718, GEN.850,
+  GEN.851.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19224,6 +19204,14 @@ clears each one.
   DB.70 lock turn PR, since it already edits db/column_units.py; if it
   retires first, Bug 1.
   Prerequisites: none. Related: TEST.402, TEST.425.
+
+- [ ] **TEST.428 test_benchmark_suite (real run) and the test_work_units batch fills are red on main (bug)**
+  Found by Math 1 at 5:55 PM EDT 2026-10-28 as the lane reported:
+  tests/test_benchmark_suite real run and the batch fill tests in
+  tests/test_work_units fail identically on main and are not from its
+  change. Find the breaking commit for each and fix the code or the
+  fixture, never loosen or skip a test. Owner: Bug 1, after TEST.425.
+  Prerequisites: none. Related: TEST.425, TEST.426.
 
 ## USR: User accounts
 
