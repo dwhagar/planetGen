@@ -22,6 +22,7 @@
 - **8.1:** GEN.409 this design; GEN.410 gas table; GEN.472 gated table loader; GEN.470, GEN.497 saturation curves; GEN.496 photolysis lifetimes.
 - **8.4 phase 2:** GEN.411 molar density from partials; GEN.452 condensation curves; GEN.422 no recalculation redraw; GEN.423 density, scale height, greenhouse follow the mixture; GEN.424 named balance gas; GEN.454 giant mixtures; GEN.455 exospheres; DB.67, DB.71.
 - **8.4 phase 3:** GEN.413 ozone; GEN.414 haze, dust, cloud; GEN.456 lava-world vapour; GEN.462 ground albedo by band.
+- **GEN.462 wiring (ground under the air):** `body_colour.ground_albedo` hands the area-weighted band reflectance of the stored surface mix (GEN.441, `surface_composition.band_albedo`) to the colour model in place of the 0.15 stand-in; the open ocean, the metal and a body with no stored mix keep the stand-in for their share. The Bond albedo for the temperature and the space weathering of an airless surface are GEN.684.
 - **8.4 phase 4:** DB.68; GEN.415 text from the mixture; TEST.209 sweep; DOC.63.
 - **9.0:** phase 1 GEN.416 star colour, GEN.417 Rayleigh depth, GEN.418 solid-world colour, GEN.419 giant colour; phase 3 GEN.420, MAP.244, DOC.64; phase 4 GEN.421 headline.
 

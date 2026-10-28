@@ -425,6 +425,8 @@ minerals have no spectra of their own). A grain state of slab or crushed swaps t
 metal have no measured visible spectrum in the sources read, so they are not covered (`band_albedo` reports the covered share)."""
 
 BANDS = ("alb_040_050", "alb_050_060", "alb_060_070")
+BAND_CENTRES_NM = (450.0, 550.0, 650.0)
+"""tuple: The middle of each of `BANDS`, nm."""
 
 
 def band_albedo(composition):
