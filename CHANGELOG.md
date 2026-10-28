@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2429] - 2026-10-28
+
+**Headline:** The Galaxy Map now shows inhabited, habitable and gas giant worlds without asking.
+
+### Changed
+- **Points of interest begin on (MAP.303).** The Menu's Inhabited worlds, Habitable worlds (Yellow or better) and Gas giants layers are on until switched off, so the symbols of those worlds, the crowd marks and the inhabited tokens on the regions show on a fresh map; Uninhabitable worlds and Asteroid fields stay off until asked for. A choice is kept in the address: `hide=` lists the default layers switched off and `show=` the others switched on.
+
 ## [8.0.2428] - 2026-10-28
 
 **Headline:** On the Galaxy Map, symbols of interest that lie too close to tell apart are drawn as one with a count.
