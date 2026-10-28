@@ -99,6 +99,7 @@ from planetgen.db import stats as dbStats
 from planetgen.db import scatter_systems, store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits, stored_trees
 from planetgen import tuning
+from planetgen.admin import maintenance
 from planetgen.population import facility_ratings, facility_suggest, facility_types
 from planetgen.galaxy import objectref as object_ref, scatter_limits, superbubble_field, version_check
 from planetgen.galaxy.profile import sector_profile
@@ -440,6 +441,11 @@ def health():
         "schema_current": schema_version == store.SCHEMA_VERSION,
         "generator_version": generator_epoch.generator_epoch(),
     }
+    state = maintenance.read()
+    if state["enabled"]:
+        # Open to anyone while the site is closed (`maintenance_gate.OPEN_PATHS`): the update's own reload check
+        # asks while its maintenance mode is still on (OPS.75).
+        body["maintenance"] = {"enabled": True, "cause": state["cause"], "reason": state["reason"]}
     if schema_version is not None and schema_version > store.SCHEMA_VERSION:
         body["detail"] = (
             f"Database schema is at v{schema_version}, newer than this code's v{store.SCHEMA_VERSION} -- "

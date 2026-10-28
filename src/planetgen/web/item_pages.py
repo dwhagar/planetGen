@@ -502,6 +502,14 @@ def _container_page(db, kind, printed_id, found):
     )
 
 
+def _moon_system_url(system_id, kind, printed_id, row):
+    """MAP.308: the System Map's moon system map of a planet that has moons (the system page opens the diagram that holds
+    a `?scene=`); a planet without moons, and anything but a planet, has none."""
+    if kind != "planet" or row is None or not row.get("moons"):
+        return None
+    return page_url("system", system_id=system_id, scene=f"planet-{row['id']}")
+
+
 def render_item(kind, printed_id):
     """The page of one star, planet, moon, belt, comet, facility, globular cluster or superbubble; a missing one is a 404."""
     ref = f"{kind}:{printed_id}"
@@ -561,6 +569,7 @@ def render_item(kind, printed_id):
         following=following,
         system_url=page_url("system", system_id=system_id),
         system_name=esc(system["name"]),
+        moon_system_url=_moon_system_url(system_id, kind, printed_id, row),
         bookmark=bookmark(kind, nav_ref, name, item_url(ref)),
         nav_links={"from": nav_url(origin=nav_ref), "to": nav_url(destination=nav_ref)},
         nearby_url=nearby_url(nav_ref),

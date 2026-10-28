@@ -80,6 +80,7 @@ from planetgen.physics.constants import AU_TO_KM
 from planetgen.web.lib.fmt import (
     esc, format_distance_km, format_gravity_g_short, format_pressure_pa, format_speed_kms, format_temperature_k)
 from planetgen.web.maps.bodylook import look_json, look_note, planet_look, star_look
+from planetgen.web.maps.moonorbits import moon_orbit
 from planetgen.web.maps.starmap import star_color, _SUN_RADIUS_KM
 from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_body_radius, format_period, format_luminosity, format_mass, format_star_radius,
@@ -957,7 +958,7 @@ def _facilities_svg(facilities, hosts, scale):
             (a belt's ring radius). `centered` marks the host the scene is
             built around (a star, or a moon scene's planet): its orbital
             facilities go on the scene's own log scale.
-        scale (tuple): The scene's `(lo_km, hi_km)`.
+        scale (tuple or float): The scene's `(lo_km, hi_km)`, or its pixels a kilometre when it is on one linear scale.
 
     Returns:
         tuple[str, str, list]: `(orbit lines, markers, boxes)`, `boxes`
@@ -974,7 +975,9 @@ def _facilities_svg(facilities, hosts, scale):
         elif facility["placement"] != "orbital":
             radius_px = r_px
         elif centered:
-            radius_px = max(_radial_px(facility["orbit_distance_km"], *scale), r_px + _FACILITY_HOST_GAP_PX)
+            on_scale = (facility["orbit_distance_km"] or 0.0) * scale if isinstance(scale, (int, float)) \
+                else _radial_px(facility["orbit_distance_km"], *scale)
+            radius_px = max(on_scale, r_px + _FACILITY_HOST_GAP_PX)
             orbits.append(_facility_orbit_svg(cx, cy, radius_px))
             boxes.append(_circle_box(cx, cy, radius_px))
         else:
@@ -1022,7 +1025,8 @@ def _binary_star_positions_km(system, stars):
     }
 
 
-def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, scale=None, bounds=_DEFAULT_BOUNDS):
+def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, scale=None, bounds=_DEFAULT_BOUNDS,
+                    linear_px_per_km=None, extra_attrs=""):
     """
     Wraps a scene's own orbit-line markup and body-marker markup as TWO
     sibling `<svg data-scene="...">` elements sharing the same
@@ -1070,6 +1074,10 @@ def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, sc
             same log scale the markers were placed with.
         bounds (tuple, optional): The scene's `(lo, hi)` drawn area
             (`_fit_bounds`), which becomes both `<svg>`s' viewBox.
+        linear_px_per_km (float, optional): For a scene on one linear scale (a moon system, MAP.308): the pixels a
+            kilometre is, written as `data-pxperkm` in place of the log scale's `data-lokm`/`data-hikm`.
+        extra_attrs (str, optional): Further attributes (already escaped, with a leading space) for the body-marker
+            layer.
 
     Returns:
         str: Two concatenated sibling `<svg>` elements.
@@ -1078,6 +1086,9 @@ def _scene_svg_pair(scene_id, aria_label, hidden, orbits_inner, bodies_inner, sc
     if scale is not None:
         scale_attrs = (f' data-lokm="{scale[0]:.6g}" data-hikm="{scale[1]:.6g}" data-cpx="{_CENTER_PX:.1f}"'
                        f' data-minpx="{_MIN_RADIUS_PX:.1f}" data-spreadpx="{_RADIUS_SPREAD_PX:.1f}"')
+    if linear_px_per_km is not None:
+        scale_attrs = f' data-pxperkm="{linear_px_per_km:.6g}" data-cpx="{_CENTER_PX:.1f}"'
+    scale_attrs += extra_attrs
     hidden_class = " sysmap-hidden" if hidden else ""
     lo, size = round(bounds[0], 1), round(bounds[1] - bounds[0], 1)
     view_box = f'viewBox="{lo:g} {lo:g} {size:g} {size:g}"'
@@ -1582,47 +1593,89 @@ def _render_system_scene(system, stars, planets, belts, facilities=None, members
     )] + member_scenes
 
 
-def _render_moon_scene(planet, facilities=None):
-    moons = planet.get("moons") or []
-    for moon in moons:
-        moon["_is_moon"] = True
-        moon["_parent_name"] = planet["name"]
+# MAP.308: a planet's moon system is drawn at one linear scale, each moon on the ellipse its stored state gives
+# (`moonorbits.moon_orbit`) about the planet, so the planet's radius, the moons' radii and their orbits are all in
+# the same kilometres. The outermost apoapsis lands `_MOON_SCENE_REACH_PX` from the middle.
+# Bodies are small against their orbits (Earth's radius is a sixtieth of the Moon's distance), so the scene comes in
+# two sizes of body: the default enlarges the planet and every moon by one factor (the planet to
+# `_ENLARGED_PLANET_PX`, never more than `_ENLARGED_CLEARANCE` of the way to the nearest moon's closest approach, never
+# smaller than true) and says so, and the "True scale" twin draws them at their true radii (at least
+# `_TRUE_PLANET_MIN_PX` and `_TRUE_MOON_MIN_PX`, so they can be found and clicked).
+_MOON_SCENE_REACH_PX = _CENTER_PX - 70.0
+_ENLARGED_PLANET_PX = (14.0, 40.0)
+_ENLARGED_CLEARANCE = 0.4
+_ENLARGED_MOON_MIN_PX = 3.0
+_TRUE_PLANET_MIN_PX = 2.0
+_TRUE_MOON_MIN_PX = 1.5
+_SAME_SIZE_ENLARGE = 1.05    # below this the enlarged and the true scenes would look alike, so only one is made
 
-    local_r_list = [
-        math.hypot(moon.get("position_x_km") or 0.0, moon.get("position_y_km") or 0.0) or moon.get("distance_km") or 0.0
-        for moon in moons
-    ]
-    lo, hi = _radial_scale_bounds(local_r_list)
+
+def _moon_scene_scale(planet, moons, orbits, true_scale):
+    """
+    The size of everything in a moon system scene.
+
+    Returns:
+        dict: `px_per_km` (the linear scale of every distance), `enlarge` (the factor the bodies are drawn bigger
+        than true, 1.0 at true scale), `planet_px` and `moon_px` (a list, one per moon).
+    """
+    far_km = max([o["apoapsis_km"] for o in orbits] + [1.0])
+    px_per_km = _MOON_SCENE_REACH_PX / far_km
+    planet_true = (planet.get("radius_km") or 0.0) * px_per_km
+    enlarge = 1.0
+    if not true_scale and planet_true > 0.0:
+        near_px = min([o["periapsis_km"] * px_per_km for o in orbits if o["periapsis_km"] > 0] or [_MOON_SCENE_REACH_PX])
+        wanted = min(max(planet_true, _ENLARGED_PLANET_PX[0]), _ENLARGED_PLANET_PX[1], _ENLARGED_CLEARANCE * near_px)
+        enlarge = max(1.0, wanted / planet_true)
+    planet_min = _TRUE_PLANET_MIN_PX if true_scale else 3.0
+    moon_min = _TRUE_MOON_MIN_PX if true_scale else _ENLARGED_MOON_MIN_PX
+    return {
+        "px_per_km": px_per_km, "enlarge": enlarge,
+        "planet_px": max(planet_true * enlarge, planet_min),
+        "moon_px": [max((moon.get("radius_km") or 0.0) * px_per_km * enlarge, moon_min) for moon in moons],
+    }
+
+
+def _orbit_path_px(orbit, px_per_km):
+    """The `<path>` of one moon's orbit about the middle, closed, in pixels (+y up in km is up the page)."""
+    points = [(_CENTER_PX + x * px_per_km, _CENTER_PX - y * px_per_km) for x, y in orbit["points"]]
+    if not points:
+        return "", None
+    d = "M" + " L".join(f"{x:.1f} {y:.1f}" for x, y in points) + " Z"
+    xs, ys = [p[0] for p in points], [p[1] for p in points]
+    return f'<path class="sysmap-orbit" d="{d}"></path>', (min(xs), min(ys), max(xs), max(ys))
+
+
+def _moon_scene_svg(planet, moons, orbits, facilities, true_scale, twin=True):
+    """One moon system scene (`planet-<id>`, or `planet-<id>-true` at true scale) for a planet with moons; `twin` says the
+    other size is drawn too, which the scene names so the page can offer the switch."""
+    scale = _moon_scene_scale(planet, moons, orbits, true_scale)
+    px_per_km = scale["px_per_km"]
+    scene_id = f'planet-{planet["id"]}-true' if true_scale else f'planet-{planet["id"]}'
+    twin_id = f'planet-{planet["id"]}' if true_scale else f'planet-{planet["id"]}-true'
 
     orbit_paths = []
-    orbit_radii = []
-    # The drilled-into planet itself acts as a fixed obstacle here (same
-    # `fixed` treatment `_render_system_scene` gives its own star(s)) --
-    # `_CENTER_PLANET_R` (36px) is large enough to otherwise swallow a
-    # close-orbiting first moon outright once real angle/distance placement
-    # puts it nearby.
-    markers = [{"type": "center", "cx": _CENTER_PX, "cy": _CENTER_PX, "r": _CENTER_PLANET_R, "fixed": True}]
-    for moon in moons:
+    boxes = [_body_box(_CENTER_PX, _CENTER_PX, scale["planet_px"], planet["body_type"], is_self=True)]
+    for orbit in orbits:
+        path, box = _orbit_path_px(orbit, px_per_km)
+        orbit_paths.append(path)
+        if box:
+            boxes.append(box)
+    markers = []
+    for moon, r_px in zip(moons, scale["moon_px"]):
         lx, ly = moon.get("position_x_km") or 0.0, moon.get("position_y_km") or 0.0
-        r_px = _radial_px(math.hypot(lx, ly), lo, hi)
-        orbit_radii.append(r_px)
-        cx, cy = _polar_to_px(_CENTER_PX, _CENTER_PX, r_px, lx, ly)
-        orbit_paths.append(f'<circle class="sysmap-orbit" cx="{_CENTER_PX:.1f}" cy="{_CENTER_PX:.1f}" r="{r_px:.1f}"></circle>')
-        markers.append({"type": "moon", "cx": cx, "cy": cy, "r": _moon_radius_px(moon["radius_km"]), "row": moon})
-
-    _relax_markers(markers, _MARKER_GAP_PX)
-    markers = [m for m in markers if m["type"] == "moon"]
-    facility_hosts = {("planet", planet["id"]): (_CENTER_PX, _CENTER_PX, _CENTER_PLANET_R, True)}
-    boxes = [_body_box(_CENTER_PX, _CENTER_PX, _CENTER_PLANET_R, planet["body_type"], is_self=True)]
-    boxes.extend(_circle_box(_CENTER_PX, _CENTER_PX, r_px) for r_px in orbit_radii)
+        if not lx and not ly:
+            lx = moon.get("distance_km") or 0.0    # MAP.57: a position lost is drawn due east at the orbit's distance
+        cx, cy = _CENTER_PX + lx * px_per_km, _CENTER_PX - ly * px_per_km
+        markers.append({"type": "moon", "cx": cx, "cy": cy, "r": r_px, "row": moon})
+        boxes.append(_body_box(cx, cy, r_px, moon["body_type"]))
+    facility_hosts = {("planet", planet["id"]): (_CENTER_PX, _CENTER_PX, scale["planet_px"], True)}
     for marker in markers:
         facility_hosts[("moon", marker["row"]["id"])] = (marker["cx"], marker["cy"], marker["r"], False)
-        boxes.append(_body_box(marker["cx"], marker["cy"], marker["r"], marker["row"]["body_type"]))
-    facility_orbits, facility_markers, facility_boxes = _facilities_svg(facilities, facility_hosts, (lo, hi))
+    facility_orbits, facility_markers, facility_boxes = _facilities_svg(facilities, facility_hosts, px_per_km)
     bounds = _fit_bounds(boxes + facility_boxes)
 
     center_svg = _body_marker_svg(
-        _CENTER_PX, _CENTER_PX, _CENTER_PLANET_R, planet["planet_class"], planet["body_type"], planet["name"],
+        _CENTER_PX, _CENTER_PX, scale["planet_px"], planet["planet_class"], planet["body_type"], planet["name"],
         # The drilled-into planet is this scene's origin: its moons'
         # xkm/ykm are relative to it, so a measurement needs (0, 0) here,
         # not its position around the star.
@@ -1646,6 +1699,12 @@ def _render_moon_scene(planet, facilities=None):
             bounds=bounds,
         ))
 
+    if true_scale:
+        note = "Everything at its true size and distance."
+    elif scale["enlarge"] > 1.05:
+        note = f"Orbits to scale; the planet and moons are drawn {scale['enlarge']:.0f} times their true size."
+    else:
+        note = "Everything at its true size and distance."
     # A moon scene starts hidden -- `static/systemmap.js` reveals it on
     # demand. This is a CSS class (`.sysmap-hidden`, toggled by
     # `classList`), not the HTML `hidden` attribute/`.hidden` IDL property:
@@ -1656,11 +1715,28 @@ def _render_moon_scene(planet, facilities=None):
     # what `.hidden` itself reported) -- leaving both this attribute and
     # any `[hidden]` CSS rule permanently out of sync with it.
     return _scene_svg_pair(
-        f'planet-{planet["id"]}', f'Moons of {planet["name"]}', True,
+        scene_id, f'Moons of {planet["name"]}', True,
         "".join(orbit_paths) + facility_orbits,
         f'{center_svg}{"".join(body_svgs)}{facility_markers}',
-        scale=(lo, hi), bounds=bounds,
+        linear_px_per_km=px_per_km, bounds=bounds,
+        extra_attrs=((f' data-scale-twin="{esc(twin_id)}"' if twin else "")
+                     + f' data-scale-true="{"true" if true_scale else "enlarged"}"'
+                     f' data-scale-note="{esc(note)}" data-enlarge="{scale["enlarge"]:.3f}"'),
     )
+
+
+def _render_moon_scene(planet, facilities=None):
+    """The moon system scenes of `planet`: at an enlarged body size (`planet-<id>`, the default) and at true size
+    (`planet-<id>-true`), both with the same orbits at one linear scale (MAP.308); a planet already large against its
+    moons' orbits has the one scene, at true size."""
+    moons = planet.get("moons") or []
+    for moon in moons:
+        moon["_is_moon"] = True
+        moon["_parent_name"] = planet["name"]
+    orbits = [moon_orbit(planet, moon) for moon in moons]
+    if _moon_scene_scale(planet, moons, orbits, False)["enlarge"] <= _SAME_SIZE_ENLARGE:
+        return _moon_scene_svg(planet, moons, orbits, facilities, False, twin=False)   # already at true size: one scene
+    return _moon_scene_svg(planet, moons, orbits, facilities, False) + _moon_scene_svg(planet, moons, orbits, facilities, True)
 
 
 # MAP.57: a NaN or infinite number from the database never reaches the

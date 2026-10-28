@@ -2465,6 +2465,37 @@ code {
 .map-layer-legend[hidden] {
   display: none;
 }
+/* MAP.323: the legend lines and the scale are one stack in the map's lower left, the legend above the scale, so neither
+   is ever over the other (the stack narrows to keep clear of the zoom controls on the right). */
+.map-corner-stack {
+  position: absolute;
+  left: 0.75rem;
+  bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  max-width: calc(100% - 1.5rem);
+  pointer-events: none;
+}
+
+.starmap-viewport:has(> .starmap-navpad) > .map-corner-stack {
+  max-width: calc(100% - 10rem);
+}
+
+.map-corner-stack > .map-layer-legend,
+.map-corner-stack > .starmap-scale {
+  position: static;
+  max-width: 100%;
+  margin: 0;
+}
+
+.map-corner-stack > .map-layer-legend {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+}
+
 /* On the Galaxy and Sector Maps the legend lines sit over the map's lower left. */
 .starmap-viewport > .map-layer-legend {
   position: absolute;
@@ -2628,7 +2659,7 @@ code {
 /* MAP.60: the Galaxy Map's one scale line wraps on a phone instead of
    running off the map. */
 #galaxymap3d-scale {
-  max-width: calc(100% - 1.5rem);
+  max-width: 100%;
 }
 
 #galaxymap3d-scale .starmap-scale-label {
@@ -2765,7 +2796,10 @@ code {
   max-height: calc(100% - 1rem);
   overflow: auto;
   padding: calc(0.5rem * var(--info-scale, 1)) calc(0.7rem * var(--info-scale, 1));
-  font-size: calc(0.78rem * var(--info-scale, 1));
+  /* MAP.325: a reading size (about 15 px); the text shrinks (mappick.js, --info-scale) only to 90 percent of it before
+     the card scrolls, and the card says less (what is rarely needed is behind More) rather than less legibly. */
+  font-size: calc(0.95rem * var(--info-scale, 1));
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
   overflow-wrap: anywhere;
   pointer-events: none;
 }
@@ -2822,6 +2856,29 @@ code {
 .starmap-info[data-corner="bottom-right"] {
   top: auto;
   bottom: 0.5rem;
+}
+
+/* MAP.325: a card on the right keeps clear of the zoom slider and the direction star in the map's lower right corner, and
+   one on the left of the legend and scale stack (MAP.323). */
+:is(.galaxy-map-main, .starmap-viewport):has(.starmap-navpad) > .starmap-info[data-overlay] {
+  max-height: calc(100% - 10.5rem);
+}
+
+:is(.galaxy-map-main, .starmap-viewport):has(.starmap-navpad) > .starmap-info[data-corner="bottom-right"] {
+  bottom: 9.5rem;
+}
+
+.starmap-info .map-info-more {
+  margin: 0 0 0.6rem;
+}
+
+.starmap-info .map-info-more > summary {
+  cursor: pointer;
+  color: var(--link);
+}
+
+.starmap-info .map-info-more > dl {
+  margin-top: 0.4rem;
 }
 
 .starmap-info[data-state="rest"],
@@ -5034,6 +5091,12 @@ p.hint a {
   opacity: 0;
   transition: opacity 0.2s ease;
 }
+/* A name under the pointer reads as a link (MAP.298): a click on it selects its item and flies there. */
+.map-labels .map-label[data-hot] {
+  text-decoration: underline;
+  color: #fff;
+}
+.map-labels[data-light] .map-label[data-hot] { color: #000; }
 .map-labels[data-light] .map-label {
   color: #10131f;
   text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 8px rgba(255, 255, 255, 0.9);

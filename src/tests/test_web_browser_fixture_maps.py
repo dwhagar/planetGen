@@ -858,8 +858,9 @@ def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_mar
 @pytest.mark.viewport(1280, 900)
 def test_a_binary_picks_as_one_system_in_an_opened_sector(page, map_site):
     """MAP.136: every dot of an opened sector, a binary's companion too,
-    picks a system by its own name; a star is never picked on its own."""
-    _open_galaxy(page, map_site, OPEN_PRIME)
+    picks a system by its own name; a star is never picked on its own. The names are off: a click on a name flies
+    to its item (MAP.298), and a flight would move the spots this test tries."""
+    _open_galaxy(page, map_site, OPEN_PRIME + "&hide=label-system,label-star,label-object")
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     page.wait_for_timeout(500)
     info = page.locator("#galaxymap3d-info")
@@ -1854,6 +1855,80 @@ def test_a_double_click_on_a_star_flies_to_it(page, dense_site):
     assert after["dist"] <= before["dist"] + 1e-6, (before["dist"], after["dist"])
 
 
+@pytest.mark.parametrize("radius_pc", [4.0, 9.0])
+def test_fly_to_fit_puts_the_sphere_in_the_window_with_no_sector_box(page, dense_site, radius_pc):
+    """MAP.319: flyToFit(sphere) puts the camera where the sphere fills the smaller side of the view with 8 percent to
+    spare (or as near as the view's zoom allows), over the sphere's middle, and no block of sectors is drawn once the
+    flight is over."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 40.0)
+    before = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    center = [before["target"][0] + 3.0, before["target"][1] - 2.0, before["target"][2]]
+    page.evaluate("([center, radius]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: center, radius: radius})",
+                  [center, radius_pc])
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=20000)
+    _settle(page)
+    after = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+    size = page.evaluate("() => { const c = document.querySelector('#galaxymap3d-canvas'); return [c.clientWidth, c.clientHeight]; }")
+    fov = math.radians(page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFov()"))
+    tan = math.tan(fov / 2)
+    half = math.atan(min(tan, tan * size[0] / size[1]))
+    wanted = max(radius_pc, 2.0) / math.sin(half) * 1.08
+    assert max(abs(a - b) for a, b in zip(after["target"], center)) < 0.05, (after["target"], center)
+    assert after["dist"] == pytest.approx(wanted, rel=0.02) or after["dist"] > wanted, (after["dist"], wanted)
+    # The sphere is in the window: its edge, seen from the camera, lies inside half the smaller field.
+    assert math.asin(min(1.0, radius_pc / after["dist"])) <= half + 1e-6, (after["dist"], radius_pc)
+    lines = page.evaluate(LINES)
+    assert lines["chartedLines"] == 0 and lines["hovered"]["lines"] == 0, lines
+
+
+LABELS = "() => document.querySelector('#galaxymap3d-canvas').__mapLabels.shown()"
+
+
+def _label_spot(page, label):
+    """The page point at the middle of a placed name."""
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    return box["x"] + label["left"] + label["width"] / 2, box["y"] + label["top"] + label["height"] / 2
+
+
+def _on_the_canvas(page, spot):
+    """Whether the map's canvas is what the page shows at `spot` (the info panel lies over part of the map)."""
+    return page.evaluate("([x, y]) => { const e = document.elementFromPoint(x, y); return !!e && e.id === 'galaxymap3d-canvas'; }", list(spot))
+
+
+def test_names_stand_on_stars_and_other_objects_and_a_click_on_one_flies_to_its_item(page, dense_site):
+    """MAP.298: the dense region's named stars and its named objects (rogue planets, a neutron star, a black hole)
+    carry their names on the map, and a click on a name selects its item (the panel names it) and flies the camera there."""
+    page.set_viewport_size(VIEWPORT)
+    open_dense_region(page, dense_site, 14.0)
+    page.wait_for_function("""() => {
+        const kinds = new Set(document.querySelector('#galaxymap3d-canvas').__mapLabels.shown().map(l => l.kind));
+        return kinds.has('star') && kinds.has('object');
+    }""", timeout=20000)
+    shown = page.evaluate(LABELS)
+    stars = {s["name"]: s for s in DENSE_STARS if s["name"]}
+    objects = {p["name"]: p for p in DENSE_POINTS}
+    for kind, known in (("star", stars), ("object", objects)):
+        label = next(l for l in shown if l["kind"] == kind and l["text"] in known and _on_the_canvas(page, _label_spot(page, l)))
+        item = known[label["text"]]
+        page.mouse.move(*_label_spot(page, label))
+        page.wait_for_function("(id) => !!document.querySelector('.map-label[data-hot]')", arg=label["id"])
+        page.mouse.click(*_label_spot(page, label))
+        page.wait_for_function("(name) => { const h = document.querySelector('#galaxymap3d-info h3'); return h && h.textContent === name; }",
+                               arg=label["text"])
+        page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=20000)
+        _settle(page)
+        target = page.evaluate(CAMERA)["target"]
+        assert max(abs(target[0] - item["x"]), abs(target[1] - item["y"]), abs(target[2] - item["z"])) < 0.05, (label["text"], target, item)
+        # Back to the start for the next kind.
+        open_dense_region(page, dense_site, 14.0)
+        page.wait_for_function("""() => {
+            const kinds = new Set(document.querySelector('#galaxymap3d-canvas').__mapLabels.shown().map(l => l.kind));
+            return kinds.has('star') && kinds.has('object');
+        }""", timeout=20000)
+        shown = page.evaluate(LABELS)
+
+
 def test_galaxy_map_grid_never_adds_up_to_more_than_the_cap_while_zooming_in(page, map_site):
     """MAP.188: the blocks' faces and lines are drawn at a share that keeps the cells along any
     ray from adding up to more than the cap (50%), at every stage and at the deepest zoom."""
@@ -2151,6 +2226,27 @@ def test_galaxy_map_glow_shows_the_unlisted_light_and_the_menu_switches_it(page,
     button.click()
     assert "hide=glow" not in page.url
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.isVisible() === true")
+
+
+def test_the_glow_fades_out_as_the_stars_resolve_and_never_adds_up(page, dense_site):
+    """MAP.324: from the whole galaxy the unresolved light is a soft glow, but looking into a crowd of stars it is gone
+    (it flooded the map white and hid the stars), and glows that overlap take the stronger, never the sum."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, dense_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapGlow; return g && g.drawn() > 0; }",
+                           timeout=20000)
+    far = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.strongest()")
+    assert 0.05 < far <= 0.4 + 1e-9, far
+    # Blending: the maximum of the premultiplied glows (THREE.MaxEquation is 104), not the sum.
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.mesh.material.blendEquation") == 104
+    for dist in (14.0, 3.0):
+        open_dense_region(page, dense_site, dist)
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.count() > 0", timeout=20000)
+        _settle(page)
+        try:
+            page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapGlow.strongest() < 0.01", timeout=20000)
+        except Exception:
+            raise AssertionError((dist, page.evaluate("() => [document.querySelector('#galaxymap3d-canvas').__mapGlow.strongest(), document.querySelector('#galaxymap3d-canvas').galaxyCamera().dist]")))
 
 
 def test_galaxy_map_opens_with_the_glow_off_when_the_address_says_so(page, map_site):
@@ -3226,7 +3322,7 @@ def test_galaxy_map_info_popup_stays_inside_the_map_window_at_every_size(page, m
     page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")
     short = page.evaluate(INFO_BOX)
     assert short["inside"] and (short["fits"] or short["scroll"]), short
-    if width >= 800:
+    if width >= 1280:
         assert short["fits"], short   # a window this size holds a black hole's card whole
     page.evaluate(LONG_CARD, 40)
     long = page.evaluate(INFO_BOX)
@@ -3236,7 +3332,7 @@ def test_galaxy_map_info_popup_stays_inside_the_map_window_at_every_size(page, m
 
 
 def test_galaxy_map_info_popup_grows_with_the_map_window(page, map_site):
-    """MAP.295: a wider map gives the popup more room (up to a limit) and the text stays a little smaller than a page's."""
+    """MAP.295: a wider map gives the popup more room (up to a limit) and the text stays at a reading size (MAP.325: 13 to 16 px)."""
     widths = []
     for width, height in ((700, 600), (1400, 900)):
         page.set_viewport_size({"width": width, "height": height})
@@ -3245,7 +3341,7 @@ def test_galaxy_map_info_popup_grows_with_the_map_window(page, map_site):
         page.locator(".starmap-sr-markers button", has_text="Fixture Maw").evaluate("b => b.click()")
         box = page.evaluate(INFO_BOX)
         widths.append(box["width"])
-        assert box["fontSize"] <= 14, box
+        assert 13 <= box["fontSize"] <= 16, box
     assert widths[1] > widths[0] + 20, widths
 
 
@@ -3299,6 +3395,70 @@ def test_galaxy_map_system_card_lists_the_nearest_systems_each_a_link(page, map_
     assert order.index("Position x, y, z") < order.index("H4") < order.index("P"), order
     box = page.evaluate(INFO_BOX)
     assert box["inside"] and (box["fits"] or box["scroll"]), box
+
+
+CARD_CLEARANCE = """() => {
+    const box = (e) => { const r = e.getBoundingClientRect(); return {l: r.left, t: r.top, r: r.right, b: r.bottom}; };
+    const info = document.querySelector("#galaxymap3d-info");
+    const pad = document.querySelector("#galaxymap3d-navpad");
+    const a = box(info), b = box(pad);
+    const alpha = (getComputedStyle(info).backgroundColor.match(/[\\d.]+/g) || []).map(Number)[3];
+    return {
+        overlap: a.l < b.r && b.l < a.r && a.t < b.b && b.t < a.b,
+        font: parseFloat(getComputedStyle(info).fontSize), alpha: alpha === undefined ? 1 : alpha,
+        more: document.querySelectorAll("#galaxymap3d-info details.map-info-more").length,
+        open: document.querySelectorAll("#galaxymap3d-info details.map-info-more[open]").length,
+    };
+}"""
+
+
+@pytest.mark.parametrize("width,height", [(1280, 900), (800, 600), (390, 700)])
+def test_galaxy_map_card_is_reading_size_translucent_and_clear_of_the_zoom_controls(page, map_site, width, height):
+    """MAP.325: a card is set at a reading size, its background a darker see-through panel, its rarely needed facts
+    under a More that starts collapsed, and it never lies over the zoom controls in the corner."""
+    _open_habitable_card(page, map_site, "Fixture Eden", width, height)
+    seen = page.evaluate(CARD_CLEARANCE)
+    assert not seen["overlap"], seen
+    assert 13 <= seen["font"] <= 16, seen
+    assert 0.8 <= seen["alpha"] < 1.0, seen
+    assert seen["more"] == 1 and seen["open"] == 0, seen
+    assert page.locator("#galaxymap3d-info details.map-info-more summary").inner_text() == "More"
+    page.evaluate(LONG_CARD, 40)
+    assert not page.evaluate(CARD_CLEARANCE)["overlap"], "a long card stays clear of the controls too"
+
+
+STACK_BOXES = """() => {
+    const box = (e) => { const r = e.getBoundingClientRect(); return {l: r.left, t: r.top, r: r.right, b: r.bottom}; };
+    const legend = document.querySelector("#galaxymap3d-layer-legend");
+    const scale = document.querySelector("#galaxymap3d-scale");
+    const pad = document.querySelector("#galaxymap3d-navpad");
+    const view = document.querySelector(".galaxymap3d-panel .starmap-viewport").getBoundingClientRect();
+    const a = box(legend), s = box(scale), p = box(pad);
+    const hit = (x, y) => x.l < y.r && y.l < x.r && x.t < y.b && y.t < x.b;
+    return {legendOverScale: hit(a, s), legendAboveScale: a.b <= s.t + 1, scaleOverPad: hit(s, p), legendOverPad: hit(a, p),
+            inside: a.l >= view.left - 1 && s.b <= view.bottom + 1 && s.r <= view.right + 1};
+}"""
+
+
+@pytest.mark.parametrize("width,height", [(1280, 900), (700, 600), (390, 700)])
+def test_galaxy_map_legend_sits_above_the_scale_and_covers_neither_it_nor_the_controls(page, map_site, width, height):
+    """MAP.323: the layer legend and the scale line are one stack in the lower left, the legend above the scale, at
+    any window size and with several legend lines."""
+    page.set_viewport_size({"width": width, "height": height})
+    _open_sector(page, map_site)
+    page.evaluate("""() => {
+        const layers = document.getElementById("galaxymap3d-canvas").__mapLayers;
+        ["one", "two", "three"].forEach((id) => layers.register({id: "legend-" + id, label: "Layer " + id,
+            modes: ["galaxy", "sector"], group: "Show on the map", urlKey: "hide", urlKeyOn: "show",
+            legend: {text: "marks the layer called " + id + " on the map", swatch: "#f90"}}));
+        layers.refresh();
+    }""")
+    page.wait_for_timeout(300)
+    assert page.locator("#galaxymap3d-layer-legend").is_visible()
+    seen = page.evaluate(STACK_BOXES)
+    assert seen["legendAboveScale"] and not seen["legendOverScale"], seen
+    assert not seen["scaleOverPad"] and not seen["legendOverPad"], seen
+    assert seen["inside"], seen
 
 
 def test_galaxy_map_system_nearest_route_answers_json(page, map_site):

@@ -94,6 +94,9 @@
   {% if facts %}<div class="prose">{{ facts }}</div>{% elif not (species or facilities or absences) %}<p><em>Nothing more is stored about this {{ kind_label|lower }}.</em></p>{% endif %}
   {%- if system_url %}
   <p>Part of the <a href="{{ system_url }}">{{ system_name }} system</a>.</p>
+  {%- if moon_system_url %}
+  <p>See its moons and their orbits on the <a href="{{ moon_system_url }}">moon system map</a>.</p>
+  {%- endif %}
   {%- elif owner_url %}
   <p><a href="{{ owner_url }}">Open the free planet {{ owner_name }}</a>.</p>
   {%- endif %}

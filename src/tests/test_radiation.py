@@ -15,7 +15,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
-from planetgen.physics import activity, atmosphere, constants, proton_range, radiation as rad, radiogenic
+from planetgen.physics import activity, atmosphere, constants, proton_range, radiation as rad, radiogenic, surface_composition
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -119,9 +119,11 @@ def test_the_ground_dose_reads_the_same_concentrations_as_the_heat():
     k, th, u = radiogenic.BULK_SILICATE_EARTH
     one = radiogenic.Content(k * 1.0, th * radiogenic.formation_mix("Th")[1], u * radiogenic.formation_mix("U")[1], 0.0)
     two = radiogenic.Content(one.k0_ppm, 2 * one.th0_ppm, 2 * one.u0_ppm, 0.0)
-    base = rad.gamma_dose_msv_yr(radiogenic.surface_content(one, 0.0), 4.568)
-    doubled = rad.gamma_dose_msv_yr(radiogenic.surface_content(two, 0.0), 4.568)
-    k_part = rad.gamma_dose_msv_yr(radiogenic.surface_content(radiogenic.Content(one.k0_ppm, 0.0, 0.0, 0.0), 0.0), 4.568)
+    basalt = surface_composition.RESERVOIRS["basaltic"]
+    rock = (basalt["k_ppm"], basalt["th_ppm"], basalt["u_ppm"])
+    base = rad.gamma_dose_msv_yr(radiogenic.surface_content(one, rock), 4.568)
+    doubled = rad.gamma_dose_msv_yr(radiogenic.surface_content(two, rock), 4.568)
+    k_part = rad.gamma_dose_msv_yr(radiogenic.surface_content(radiogenic.Content(one.k0_ppm, 0.0, 0.0, 0.0), rock), 4.568)
     assert doubled - k_part == pytest.approx(2 * (base - k_part), rel=1e-9)
     assert radiogenic.heat_w_per_kg(two, 4.568) > radiogenic.heat_w_per_kg(one, 4.568)
 

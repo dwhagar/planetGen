@@ -453,12 +453,12 @@ def test_system_map_draws_facilities_at_their_hosts():
     markers = re.findall(r'<g class="sysmap-facility[^"]*"[^>]*data-kind="facility"[^>]*>', html)
     # The moon's in Terra's moon scene, the rest in the system scene, and
     # Terra's own colony in both (around Terra, and on the moon scene's
-    # center).
-    assert len(markers) == 6
+    # center). The moon scene is drawn at two body sizes (MAP.308), so its two facilities are there twice.
+    assert len(markers) == 8
     assert 'data-name="High &lt;Yard&gt;"' in html
     moon_scene = "".join(re.findall(r'<svg[^>]*data-scene="planet-10"[^>]*>.*?</svg>', html, re.S))
     assert 'data-name="Tidewatch"' in moon_scene and 'data-name="New Hope"' in moon_scene
-    assert html.count('class="sysmap-facility-orbit"') == 3
+    assert html.count('class="sysmap-facility-orbit"') == 4
     assert "sysmap-legend-facility" in html
 
     plain = render_system_map_panel(system, system["stars"], system["planets"], system["belts"])

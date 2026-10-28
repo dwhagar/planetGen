@@ -149,13 +149,17 @@ def pack_node(node):
     Args:
         node (dict): `stars` and `generated` (lists of star dicts with
             `id`, `x`, `y`, `z`, `luminosity_sol` and optionally
-            `temperature_k`, `radius_sol`, `star_type`, `system_id`, `tier`) and the
-            JSON sections `clouds`, `points`, `worlds` and `incomplete`.
+            `temperature_k`, `radius_sol`, `star_type`, `system_id`, `tier`, `name`) and the
+            JSON sections `clouds`, `points`, `worlds` and `incomplete`; the names of the stars that have one ride in the
+            JSON as `names` ({id: name}).
 
     Returns:
         bytes: The packed node.
     """
     meta = {name: node[name] for name in _META_SECTIONS if node.get(name) is not None}
+    names = {str(star["id"]): star["name"] for section in _STAR_SECTIONS for star in node.get(section) or [] if star.get("name")}
+    if names:
+        meta["names"] = names   # the few stars that have a name, by id (MAP.298): the columns carry no text
     meta_bytes = json.dumps(meta, separators=(",", ":")).encode("utf-8")
     out = [MAGIC, struct.pack("<I", len(meta_bytes)), meta_bytes]
     for section in _STAR_SECTIONS:
@@ -297,6 +301,11 @@ def unpack_node(packed):
         node = dict(meta)
         for section in _STAR_SECTIONS:
             node[section], offset = _unpack_stars(packed, offset)
+        names = node.get("names") or {}
+        for section in _STAR_SECTIONS:
+            for star in node[section]:
+                if str(star["id"]) in names:
+                    star["name"] = names[str(star["id"])]
     except (struct.error, ValueError) as exc:
         raise TilePackError(f"a packed node is damaged: {exc}")
     if offset != len(packed):

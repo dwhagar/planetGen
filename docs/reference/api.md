@@ -81,7 +81,7 @@ connectivity to that specific schema rather than the default one.
   Returns `{"status": "ok", "schema_version": <n>, "schema_current":
   <bool>, "generator_version": <n>}` (`generator_version` is the one counter
   of the generator rules, OPS.28's generator epoch, bumped only when output
-  changes for the same seed; an added field, not a breaking change) (plus a `detail` naming the fix when the schema is behind the
+  changes for the same seed; an added field, not a breaking change) (plus `maintenance`: `{"enabled": true, "cause", "reason"}` while the site is closed, since `/api/health` stays open to everyone then so that `update.sh` can check its reload before it opens the site again, OPS.75; plus a `detail` naming the fix when the schema is behind the
   code's `SCHEMA_VERSION` or was never initialized; still a `200`), or
   `{"status": "error", "detail": "database unavailable"}` with a `503` if
   the database can't be reached (the real

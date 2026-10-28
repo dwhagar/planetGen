@@ -57,6 +57,14 @@ test("a star keeps its place in the list and an id past 32 bits stays exact", ()
   assert.equal("tier" in nodes["3.1.2.3"].stars[0], false);
 });
 
+test("the names of named stars come back on their stars, by id (MAP.298)", () => {
+  const { nodes } = P.unpackResponse(bytes());
+  assert.equal(nodes["3.1.2.3"].stars[0].name, "Named Giant");
+  assert.equal(nodes["3.1.2.3"].generated[0].name, "Printed Name");
+  assert.equal("name" in nodes["3.1.2.3"].stars[1], false);
+  assert.equal("names" in nodes["3.1.2.4"], false);
+});
+
 test("printed object IDs and mixed ids come back as they went in", () => {
   const { nodes } = P.unpackResponse(bytes());
   assert.deepEqual(nodes["3.1.2.3"].generated.map((star) => star.id), ["FE81000A2B-0000005-000", "FE81000A2B-0000006-000"]);

@@ -25,6 +25,12 @@ The heat-flow floor 1e-4 to 1e-3 W/m2, the overturn scale 0.2 of FeO, the modifi
 
 `band_albedo` gives the lab reflectance by band area-weighted over the ground types that have a measured spectrum (not a Bond albedo; the final albedo is GEN.462). `crust_reservoir` gives K, Th and U for ultramafic, basaltic and felsic ground from the reservoir models of part E table 2.8b, for the radiogenic heat of GEN.459 to replace its basalt and felsic stand-ins.
 
-## Still to do (waits on GEN.428/429, GEN.459, GEN.461)
+## Stored (second slice, GEN.441)
 
-Call it from `generate_planet_properties` after the hydrosphere; store `ground_type`, `ground_grain` and the areal mix (columns and migration, riding the chain's epoch); the child table of component shares; the API and describer; the invariants of E 3.6 against stored values.
+`generate_surface(body)` runs right after the hydrosphere and sets `ground_type`, `ground_grain` and `ground_<type>_fraction` (twelve areal shares that add up to 1; schema 159). A giant's fields are `None`. The non-water ices' proportions are a stand-in (the median comet volatiles, `comet_population.median_volatiles`) until the species are stored with the bulk composition; the tidal heat flow is not yet an input, so the sulfur modifier waits on it.
+
+The ground dose reads the stored ground: `land_rock_ppm(body)` is the area-weighted K, Th and U of the land (`RESERVOIR_OF`: clay and iron-oxidised ground follow basalt, being altered basalt; land with no reservoir takes basalt's), and `radiation._ground_dose` raises the bulk silicate's content to it. `radiogenic.SURFACE_RESERVOIRS` and `tuning.RADIOGENIC_FELSIC_FRACTION_MAX` are gone.
+
+## Still to do
+
+Ground albedo with weathering (GEN.462's follow-up reads `band_albedo`), the child table of component shares for the describer (GEN.430), the API and the describer lines, tidal heating as an input, and the invariants of E 3.6 against the stored mass balance.

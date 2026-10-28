@@ -106,7 +106,8 @@ test("a comet's orbit is described as bound with its period, or unbound and not 
   assert.equal(closed.Perihelion, "2 AU");
   const open = Object.fromEntries(P.cometOrbitFields({ type: "parabolic", kepler: { ...kepler, eccentricity: 0.9987, period_years: null } }));
   assert.match(open.Orbit, /^Unbound.*does not return/);
-  assert.equal(open.Eccentricity, "0.9987");
+  assert.equal(open.Eccentricity, "0.9987 (a ratio: 0 is a circle, 1 is a parabola)");
+  assert.equal(closed.Eccentricity, "0.500 (a ratio: 0 is a circle, 1 is a parabola)");
 });
 
 test("a parabolic comet is gone once its pass is over, an elliptical one never is (GEN.182)", () => {

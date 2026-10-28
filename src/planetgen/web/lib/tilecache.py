@@ -103,7 +103,7 @@ MAX_NODES_PER_REQUEST = 128
 _STAMP_RE = re.compile(r"^[0-9a-f]{16}$")
 _ROUND_DIGITS = 4
 
-_STAR_KEYS = ("id", "x", "y", "z", "luminosity_sol", "temperature_k", "radius_sol", "star_type", "system_id")
+_STAR_KEYS = ("id", "x", "y", "z", "luminosity_sol", "temperature_k", "radius_sol", "star_type", "system_id", "name")
 """tuple: The only fields of a node's star the page's script reads (MAP.157;
 `nodeStars`, `setStars` and `starShown` in `static/galaxymap3d.js`)."""
 
@@ -448,7 +448,8 @@ def _trim_star(star):
     """One star of a node as the page reads it (MAP.157): the fields in
     `_STAR_KEYS`, `star_type` as its class letter, positions to 3
     decimals, luminosity to 4 and radius to 3 significant digits and
-    temperature to 10 K. No `system_id` when there is none, no `tier` for a star of the disc, the bulge and the rest."""
+    temperature to 10 K. No `system_id` when there is none, no `tier` for a star of the disc, the bulge and the rest, no `name`
+    for a star that has none."""
     trimmed = {
         "id": star["id"],
         "x": round(star["x"], 3), "y": round(star["y"], 3), "z": round(star["z"], 3),
@@ -467,6 +468,8 @@ def _trim_star(star):
         trimmed["system_id"] = star["system_id"]
     if star.get("tier"):
         trimmed["tier"] = star["tier"]  # 1 the halo, 2 a satellite galaxy: the first to dim (MAP.252)
+    if star.get("name"):
+        trimmed["name"] = str(star["name"])  # the map writes it beside the star (MAP.298); `tilepack` keeps it in the node's `names`
     return trimmed
 
 

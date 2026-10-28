@@ -169,3 +169,35 @@ def test_phenomenon_view_carries_the_painters_data():
     assert params["diskColor"] is None
     params, _ = pr._params("neutron_star", {"id": 6, "surface_temperature_k": 1e6, "spin_period_ms": 33})
     assert params["surface"].startswith("#")
+
+
+# --- MAP.328: the spin a body is drawn turning with ---------------------------------
+
+def test_the_look_carries_the_stored_spin_for_the_page_to_turn_the_body_by():
+    look = bl.planet_look(_planet(rotation_period_hours=23.9345, spin_axis_x=0.0, spin_axis_y=3.0, spin_axis_z=4.0,
+                                  axial_tilt_deg=23.4392))
+    assert look["spinH"] == 23.93
+    assert look["axis"] == [0.0, 0.6, 0.8], "a unit vector"
+    assert look["tiltDeg"] == 23.44
+
+
+def test_a_retrograde_body_keeps_its_axis_against_the_normal_and_its_tilt_past_ninety():
+    look = bl.planet_look(_planet(rotation_period_hours=5832.0, spin_axis_x=0.0, spin_axis_y=0.0, spin_axis_z=-1.0,
+                                  axial_tilt_deg=177.36))
+    assert look["axis"] == [0.0, 0.0, -1.0] and look["tiltDeg"] > 90
+
+
+def test_a_body_with_no_stored_spin_is_left_without_one_not_given_a_made_up_period():
+    for row in (_planet(), _planet(rotation_period_hours=None), _planet(rotation_period_hours=0.0),
+                _planet(rotation_period_hours=float("nan"), spin_axis_x=None, spin_axis_y=None, spin_axis_z=None)):
+        look = bl.planet_look(row)
+        assert not {"spinH", "axis", "tiltDeg"} & set(look), look
+
+
+def test_a_star_look_carries_its_spin_too():
+    star = {"id": 3, "star_type": "G2V", "temperature_k": 5772.0, "luminosity_w": 3.828e26, "radius_km": 695_700.0,
+            "rotation_period_hours": 609.0, "spin_axis_x": 0.0, "spin_axis_y": 0.0, "spin_axis_z": 1.0,
+            "axial_tilt_deg": 7.25}
+    look = bl.star_look(star)
+    assert look["spinH"] == 609.0 and look["axis"] == [0.0, 0.0, 1.0] and look["tiltDeg"] == 7.25
+    assert "spinH" not in bl.star_look(dict(star, rotation_period_hours=None))

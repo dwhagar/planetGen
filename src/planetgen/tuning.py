@@ -3151,9 +3151,6 @@ GCR_SOLAR_MODULATION_RANGE = (0.5, 1.64)
 Mars dose equivalent runs from 0.35 to 1.15 mSv/day around a mean of 0.7 (Guo 2015, Hassler 2014; a total spread of
 3.3). The same field at another star differs in the same way, so the draw stands for the host's modulation level."""
 
-RADIOGENIC_FELSIC_FRACTION_MAX = 0.5
-"""float: The most of a plate-tectonic body's surface that is felsic crust, drawn uniformly from 0 (part E 3.2 item 5: `f_felsic` is
-uniform on 0 to 0.5 when the lid is mobile, 0 otherwise). A stand-in until GEN.441 gives the ground type."""
 
 RADIOGENIC_OFFSET_SIGMA_DEX = 0.22
 """float: The scatter of a host-less body's thorium and uranium against the solar scale, dex: chosen so the 1 to 99 percent range of the
@@ -3256,16 +3253,6 @@ alpha = 0.6 +- 0.1 from the 20 pc census of 525 L, T and Y dwarfs). It is drawn 
 `ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER`; the generator's own stellar mass function is not continued below
 `IMF_BREAKS_SOL[0]`, since continuing it would give 0.7 brown dwarfs per star against the census's 0.2 (the
 free-floating rate `PHENOMENON_DENSITY_PC3["brown-dwarf"]`)."""
-
-BROWN_DWARF_SPECTRAL_TYPE_FITS = (
-    (0.0, 8.75, (2237.5, -144.96, 4.0301), 134.0),
-    (8.75, 14.75, (1437.9, -18.309, 0.0), 79.0),
-    (14.75, 22.0, (5141.3, -368.65, 6.7301), 79.0),
-)
-"""tuple: Kirkpatrick et al. 2021 Table 13 (read): `Teff` (K) as a polynomial in the spectral subclass number
-(0 = L0, 10 = T0, 20 = Y0), per range of that number: `(low, high, coefficients c0 + c1 x + c2 x^2, rms K)` (T0 to T6 is a straight line, so its c2 is 0). The
-scatter is the fit's, the measurement's, and is not drawn. Y0 falls at 461 K, inside the 371 to 510 K the paper
-measured."""
 
 ROGUE_GIANT_PHOTOSPHERE_PRESSURE_BAR = 0.3
 """float: Where a Jupiter-gravity giant's photosphere (optical depth 2/3)

@@ -1437,6 +1437,8 @@
 -- v156 (DB.100): `planets` and `moons` keep the world's whole milestone schedule, the age its pace reaches each of the five milestones (`life_age_abiogenesis_gyr` to `life_age_technological_civilization_gyr`, Gy; NULL with no life chemistry),
 --   so the life paragraph and the timeline paragraph are written from the row alone. A row saved before gets the ages of its stored pace.
 -- v157 (GEN.654, DB.92): `planets` and `moons` keep the aquifer a world with no liquid at its surface holds underground, `aquifer_depth_km` (to the top of the water-bearing layer) and `aquifer_thickness_km` (NULL for a world with none, a gas giant and a row made before v157).
+-- v160 (GEN.732): `planets` and `moons` keep the ring system of a body (`ring_kind` dusty, narrow or broad; `ring_origin`; `ring_inner_km` and `ring_outer_km`; `ring_mass_kg`;
+--   `ring_optical_depth`, a mean; `ring_ice_fraction`). NULL for a body with no ring, a moon, and a row made before v160, which gets its rings when the galaxy is regenerated.
 --
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
@@ -1474,6 +1476,7 @@
 -- v155 (DB.71, GEN.424): the air moves out of `planets` and `moons` into the child tables `planet_gases` and `moon_gases` (one row per gas above zero: `gas`, its formula in the gas table, and `partial_pa`,
 --   its partial pressure in Pa); the ten `p_<gas>_kpa` columns are gone. A class's balance gas (helium, sodium, ammonia) is a row like the others, so the pressure is the sum of the rows. The migration
 --   copies each row's ten partial pressures (kPa times 1000) into the child tables.
+-- v159 (GEN.441): `planets` and `moons` gain the surface composition: `ground_type` and `ground_grain` and the areal share of each ground type (`ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, ..., twelve shares that add up to 1), NULL for a giant and for a row saved before v152. The minerals, ices and ocean the shares stand for are rows of the materials table (`physics/surface_composition.py`).
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2363,6 +2366,20 @@ CREATE TABLE IF NOT EXISTS planets (
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
     carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
+    ground_type                   VARCHAR(16),  -- v159 (GEN.441): the ground type with the largest areal share (ocean, ice or a rock type)
+    ground_grain                  VARCHAR(8),  -- v159: slab, crushed or powder
+    ground_ocean_fraction         DOUBLE,  -- v159: the areal share of the surface that is ocean (the twelve shares add up to 1)
+    ground_ice_fraction           DOUBLE,  -- v159: the areal share of the surface that is ice
+    ground_ultramafic_fraction    DOUBLE,  -- v159: the areal share of the surface that is ultramafic
+    ground_anorthositic_fraction  DOUBLE,  -- v159: the areal share of the surface that is anorthositic
+    ground_basaltic_fraction      DOUBLE,  -- v159: the areal share of the surface that is basaltic
+    ground_felsic_fraction        DOUBLE,  -- v159: the areal share of the surface that is felsic
+    ground_clay_fraction          DOUBLE,  -- v159: the areal share of the surface that is clay
+    ground_oxidised_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidised
+    ground_metal_fraction         DOUBLE,  -- v159: the areal share of the surface that is metal
+    ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
+    ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
+    ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
     water_base_pressure_pa      DOUBLE NULL,  -- v151 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2 (NULL for a planet)
     aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
@@ -2376,6 +2393,13 @@ CREATE TABLE IF NOT EXISTS planets (
     metallization_pressure_gpa  DOUBLE,  -- v154: the drawn molecular-to-metallic pressure, GPa
     helium_depletion            DOUBLE,  -- v154: the molecular envelope's helium share against the natal share, 1 with no helium rain
     has_helium_shell            BOOLEAN,  -- v154: a helium-rich shell above the metallic envelope
+    ring_kind                   VARCHAR(8) CHECK (ring_kind IN ('dusty', 'narrow', 'broad')),  -- v160 (GEN.732): the kind of the ring system, NULL with none
+    ring_origin                 VARCHAR(16) CHECK (ring_origin IN ('moon_erosion', 'disrupted_moon', 'captured_body')),  -- v160: where its material came from
+    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's centre
+    ring_outer_km               DOUBLE,  -- v160: its outer edge, km (inside the Roche limit of its own material and the innermost moon)
+    ring_mass_kg                DOUBLE,  -- v160: its mass, kg
+    ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
+    ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2642,6 +2666,20 @@ CREATE TABLE IF NOT EXISTS moons (
     porosity                    DOUBLE,  -- v144: the void share of a small body's volume
     carbon_rock                 BOOLEAN,  -- v144: the rock is silicon carbide and graphite, not silicate
     composition_origin          VARCHAR(8) CHECK (composition_origin IN ('drawn', 'inverse')),  -- v144: drawn (composition first) or inverse (worked back from a mass and a radius)
+    ground_type                   VARCHAR(16),  -- v159 (GEN.441): the ground type with the largest areal share (ocean, ice or a rock type)
+    ground_grain                  VARCHAR(8),  -- v159: slab, crushed or powder
+    ground_ocean_fraction         DOUBLE,  -- v159: the areal share of the surface that is ocean (the twelve shares add up to 1)
+    ground_ice_fraction           DOUBLE,  -- v159: the areal share of the surface that is ice
+    ground_ultramafic_fraction    DOUBLE,  -- v159: the areal share of the surface that is ultramafic
+    ground_anorthositic_fraction  DOUBLE,  -- v159: the areal share of the surface that is anorthositic
+    ground_basaltic_fraction      DOUBLE,  -- v159: the areal share of the surface that is basaltic
+    ground_felsic_fraction        DOUBLE,  -- v159: the areal share of the surface that is felsic
+    ground_clay_fraction          DOUBLE,  -- v159: the areal share of the surface that is clay
+    ground_oxidised_fraction      DOUBLE,  -- v159: the areal share of the surface that is oxidised
+    ground_metal_fraction         DOUBLE,  -- v159: the areal share of the surface that is metal
+    ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
+    ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
+    ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
     water_base_pressure_pa      DOUBLE NULL,  -- v147 (GEN.461): the pressure at the bottom of the water layer, Pa
     tidal_flux_w_m2             DOUBLE NULL,  -- v152 (GEN.700): the eccentricity-tide heat flow of an icy moon under ice, W/m2
     aquifer_depth_km            DOUBLE NULL,  -- v157 (GEN.654, DB.92): the depth to the top of the water-bearing layer underground, km (NULL: none)
@@ -2655,6 +2693,13 @@ CREATE TABLE IF NOT EXISTS moons (
     metallization_pressure_gpa  DOUBLE,  -- v154: the drawn molecular-to-metallic pressure, GPa
     helium_depletion            DOUBLE,  -- v154: the molecular envelope's helium share against the natal share, 1 with no helium rain
     has_helium_shell            BOOLEAN,  -- v154: a helium-rich shell above the metallic envelope
+    ring_kind                   VARCHAR(8) CHECK (ring_kind IN ('dusty', 'narrow', 'broad')),  -- v160 (GEN.732): the kind of the ring system, NULL with none
+    ring_origin                 VARCHAR(16) CHECK (ring_origin IN ('moon_erosion', 'disrupted_moon', 'captured_body')),  -- v160: where its material came from
+    ring_inner_km               DOUBLE,  -- v160: the inner edge of the ring system, km from the body's centre
+    ring_outer_km               DOUBLE,  -- v160: its outer edge, km (inside the Roche limit of its own material and the innermost moon)
+    ring_mass_kg                DOUBLE,  -- v160: its mass, kg
+    ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
+    ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

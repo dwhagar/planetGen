@@ -23,7 +23,7 @@ A rogue planet has no star, so its score is `habitability_world.compute` read fr
 A gas giant or brown dwarf has no surface and scores nothing (every field `None`).
 """
 
-from planetgen.physics import atmosphere, constants, gases, habitability_world, hydrosphere, radiation, radiogenic, regional_temperature, rogue_surface
+from planetgen.physics import atmosphere, constants, gases, habitability_world, hydrosphere, radiation, radiogenic, regional_temperature, rogue_surface, surface_composition
 
 ROGUE_FIELDS = (*(name for name in habitability_world.SCORE_FIELDS
                   if name not in (*regional_temperature.FIELDS, "outside_hours")), "energy_flux_w_m2")
@@ -77,7 +77,9 @@ def values(planet):
     gravity_g = rogue_surface.surface_gravity_m_s2(planet.mass_kg, planet.radius_km) / constants.EARTH_GRAVITY
     pressure_pa = planet.surface_pressure_pa or 0.0
     column = radiation.column_g_cm2(pressure_pa, gravity_g)
-    ground = radiation.ground_dose_msv_yr(NEUTRAL_CONTENT, planet.age_gy or radiation.EARTH_AGE_GY, 0.0)
+    basalt = surface_composition.RESERVOIRS["basaltic"]
+    rock = (basalt["k_ppm"], basalt["th_ppm"], basalt["u_ppm"])
+    ground = radiation.ground_dose_msv_yr(NEUTRAL_CONTENT, planet.age_gy or radiation.EARTH_AGE_GY, rock)
     out = {
         "planet_class": planet.planet_class, "body_type": planet.planet_type,
         "atmospheric_pressure_pa": pressure_pa, "surface_temperature_k": planet.surface_temperature_k,

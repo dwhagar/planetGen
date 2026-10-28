@@ -630,9 +630,26 @@
     },
     {
       "epoch": 106,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2345",
       "reason": "A rocky or icy planet's or moon's air is the fixed point of its mixture, the pressure its interior has degassed less the carbonate and sulfur sinks, the freeze-out of what its temperature condenses, the hydrate cages of its ice, the greenhouse and the temperature (GEN.411, GEN.422), so every air, surface temperature, pressure, scale height and density changes and a class no longer sets the pressure; a giant's air is its drawn mixture at the 1 bar level",
+      "affects": ["fill"]
+    },
+    {
+      "epoch": 107,
+      "first_release": "8.0.2348",
+      "reason": "A brown dwarf's L, T or Y spectral type is drawn through the census temperature map with its scatter (134 K among L dwarfs, 79 K among T and Y dwarfs) instead of read from the mean relation, so the type of a brown dwarf changes wherever one is made; the golden battery gains a brown dwarf case (GEN.760)",
+      "affects": ["fill"]
+    },
+    {
+      "epoch": 108,
+      "first_release": "8.0.2355",
+      "reason": "The ground of every rocky body is drawn from its bulk fractions, temperature, air and water and stored, the ground dose reads it, and the draws after the hydrosphere move (GEN.441)",
+      "affects": ["fill"]
+    },
+    {
+      "epoch": 109,
+      "first_release": "8.0.2359",
+      "reason": "Every planet may hold a ring system: a giant always has one (dusty, narrow or broad), a terrestrial or dwarf planet rarely, drawn after its moons from the Roche limit, the innermost moon and the snow line, stored as ring_kind, ring_origin, ring_inner_km, ring_outer_km, ring_mass_kg, ring_optical_depth and ring_ice_fraction (GEN.732)",
       "affects": ["fill"]
     }
   ]

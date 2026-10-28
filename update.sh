@@ -176,7 +176,8 @@ echo "== 1/9: Pulling the latest changes =="
 
 # Mode changes are not local edits: set-permissions.sh makes scripts and
 # *.py files executable, which git (with core.fileMode on) would list.
-dirty="$(git -c core.fileMode=false status --porcelain)"
+# The state/ folder (the maintenance switch, the update lock) is the update's own, never a local edit (OPS.76).
+dirty="$(git -c core.fileMode=false status --porcelain -- . ':(exclude)state')"
 if [[ -n "$dirty" ]]; then
     echo "warning: uncommitted local changes in $SCRIPT_DIR -- these will be overwritten:" >&2
     echo "$dirty" >&2
@@ -289,6 +290,7 @@ echo "  planetgen population && planetgen territories"
 if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
     echo "Done. Nothing new was pulled."
 else
+    UPDATE_STEP="reloading what serves the site and checking that it answers /api/health"
     reload_status=0
     reload_web_if_running || reload_status=$?
     if (( reload_status == 0 )); then

@@ -36,6 +36,7 @@ import statistics
 from dataclasses import dataclass
 
 from planetgen.generation import tuning_harness
+from planetgen.physics import constants as physical_constants
 from planetgen.physics import elements
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
@@ -51,7 +52,7 @@ TSM_SCALE = ((1.5, 0.190), (2.75, 1.26), (4.0, 1.28), (float("inf"), 1.15))
 
 ESM_PREFACTOR = 4.29e6
 DAYSIDE_OVER_EQUILIBRIUM = 1.10
-RADIUS_RATIO = 6371.0 / 695700.0
+RADIUS_RATIO = 6371.0 / (physical_constants.SOLAR_RADIUS_M / 1000)
 """float: Earth radii per solar radius."""
 
 _PHI_INV = statistics.NormalDist().inv_cdf

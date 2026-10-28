@@ -31,7 +31,7 @@ from planetgen.generation import (
     life as planetLife, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import constants, habitability, insolation, magnetism, mass_loss, metallicity, pre_main_sequence, wolf_rayet
+from planetgen.physics import constants, habitability, insolation, magnetism, mass_loss, metallicity, pre_main_sequence, rings, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -534,6 +534,10 @@ class StarSystem:
                 obj.born_beyond_snow_line = obj.distance >= obj.star.snow_line_au
                 for moon in obj.moons:
                     moon.born_beyond_snow_line = obj.born_beyond_snow_line
+
+        with log.timed_phase("ring pass"):
+            for obj in self.all_planets:
+                rings.apply(obj)  # GEN.732: after the moons and the snow line are final
 
         with log.timed_phase("life data pass"):
             insolation.refresh_system(self)  # GEN.148: the light each planet sums over the stars, from their final orbits
