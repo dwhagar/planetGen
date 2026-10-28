@@ -270,7 +270,9 @@ connectivity to that specific schema rather than the default one.
   `moon:40`, `belt:5`, `comet:8`), `radius_km`, `look` (a star, planet or moon) or `color` (a comet), `position_km`
   relative to what it orbits, and an `orbit` (`around`, `distance_km`,
   `period_years`, `inclination_deg`, `ascending_node_deg`, `phase_deg`; a
-  comet's holds its Kepler elements under `kepler`).
+  comet's holds its Kepler elements under `kepler`). A planet or moon also carries `habitable`, `inhabited`,
+  `body_type` (`t` terrestrial, `g` gas giant), `phi4` (its overall habitability score, `null` unscored) and `tier`
+  (that score's colour, `Blue` to `Red`, or `null`), which the Galaxy Map draws its symbol from (MAP.321).
 - `GET /api/near?from=<ref>&distance=<pc>` (or `point=x,y,z` in galaxy-frame
   parsecs) — everything generated within `distance` parsecs (at most 50) of
   a place (NAV.43, `planetgen.db.near.objects_within`): systems, stars,

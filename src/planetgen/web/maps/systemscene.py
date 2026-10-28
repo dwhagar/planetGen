@@ -43,7 +43,7 @@ import math
 from datetime import datetime, timezone
 
 from planetgen.db import orbit_trees, query
-from planetgen.physics import body_state, constants, state_vectors
+from planetgen.physics import body_state, constants, habitability, state_vectors
 from planetgen.web.maps.bodylook import comet_nucleus_color, planet_look, star_look
 from planetgen.web.maps.systemmap import finite_row, put_star_temperatures
 from planetgen.physics import unit_registry as units
@@ -161,6 +161,9 @@ def _planet(planet, around, kind="planet", parent=None):
         "look": planet_look(finite_row(planet), kind), "orbit": _orbit(planet, around),
         "position_km": _xyz(planet),
         "habitable": bool(planet.get("habitable")), "inhabited": bool(planet.get("inhabited")),
+        # The symbol a body carries on the Galaxy Map (MAP.321): terrestrial or gas giant, its overall habitability and the colour of it.
+        "body_type": planet.get("body_type"), "phi4": planet.get("phi4"),
+        "tier": habitability.tier(planet["phi4"]) if planet.get("phi4") is not None else None,
     }
     if parent is not None:
         item["parent"] = parent

@@ -105,11 +105,16 @@ export function createSystemStage(host) {
     state.world = state.built.entries.map(function (e) {
       return { ref: e.ref, key: e.ref, name: e.name, kind: e.kind, body: e.body, local: e, x: 0, y: 0, z: 0, r: 0 };
     });
+    // MAP.321: a belt is not a pickable body, but its symbol on the Galaxy Map needs to know where it is.
+    state.beltWorld = state.built.beltAnchors.map(function (a) {
+      return { ref: a.ref, key: a.ref, name: a.name, kind: a.kind, body: a.body, local: a, x: 0, y: 0, z: 0, r: 0 };
+    });
+    state.markerList = state.world.concat(state.beltWorld);
     syncWorld(state);
   }
 
   function syncWorld(state) {
-    state.world.forEach(function (w) {
+    state.markerList.forEach(function (w) {
       w.x = state.center[0] + state.unitPc * w.local.x;
       w.y = state.center[1] + state.unitPc * w.local.y;
       w.z = state.center[2] + state.unitPc * w.local.z;
@@ -346,12 +351,16 @@ export function createSystemStage(host) {
     fade: function () { return open ? open.fade : 0; },
     // The real radius (pc) of the system that is up, once its scene is known.
     radiusPc: function () { return open ? open.radiusPc : null; },
+    // MAP.321: where the open system sits in the map's world (parsecs), or null.
+    centre: function () { return live() ? open.center.slice() : null; },
     systemId: function () { return live() ? open.id : null; },
     name: function () { return live() ? open.name : null; },
     mode: function () { return open ? open.mode : MODE_COMPRESSED; },
     // The open system's body with this ref ("planet:12"), or null.
     entry: function (ref) { return live() ? open.world.find(function (w) { return w.ref === ref; }) || null : null; },
     entries: function () { return live() ? open.world : []; },
+    // MAP.321: the bodies that carry a symbol on the Galaxy Map: the pickable ones and the belts, kept where they are.
+    markerBodies: function () { return live() ? open.markerList : []; },
     select: function (ref) {
       const entry = live() && open.world.find(function (w) { return w.ref === ref; });
       if (entry) open.layer.select(entry);

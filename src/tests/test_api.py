@@ -1070,7 +1070,7 @@ def test_galaxy_nodes_carry_no_comets_rogue_planets_or_asteroid_fields(client, m
     key = format_drill_key(drill_chain_of(*address)[0])
     node = client.get(f"/api/galaxy/nodes?keys={key}").get_json()["nodes"][key]
     assert set(node) <= {"aggregate", "placed", "planned", "sector_count", "clouds", "stars", "generated", "points",
-                         "worlds", "incomplete"}
+                         "interests", "incomplete"}
     assert {p["type"] for p in node["points"]} <= {"black_hole", "neutron_star", "quasar"}
 
 

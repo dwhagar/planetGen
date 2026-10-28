@@ -3612,9 +3612,20 @@ export function createStageView(host) {
     flyToBody(entry);
   }
 
+  // MAP.321: the open system for the body symbols: {id, centre, radiusPc, entries (the bodies, kept up to date as they move)},
+  // or null when none is open in place.
+  function systemMarkerSource() {
+    if (!enteredSystem || !systemStage.isOpen()) return null;
+    return { id: systemStage.systemId(), centre: systemStage.centre(), radiusPc: systemStage.radiusPc(), entries: systemStage.markerBodies() };
+  }
+
+  function selectBodyRef(ref) { systemStage.select(ref); }
+
   return {
     flyToEntry: flyToEntry,
     selectBody: selectBody,
+    selectBodyRef: selectBodyRef,
+    systemMarkerSource: systemMarkerSource,
     bodyLabels: bodyLabels,
     sectorLabels: sectorLabels,
     systemLabels: systemLabels,

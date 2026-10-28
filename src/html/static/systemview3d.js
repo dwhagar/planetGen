@@ -102,6 +102,7 @@ export function buildSystemScene(scene, layout, options) {
   const byRef = {};
   const objects = {};
   const hangers = {}; // parent ref -> orbit lines and belts that follow it
+  const beltAnchors = []; // a belt's symbol point (MAP.321): {ref, kind, name, body, x, y, z}, kept in step by update
   const lights = [];
   const trails = {}; // ref -> its orbit line
   // The painted surfaces (MAP.287): the System Map's painters (solidpaint.js, starpaint.js) one texture per body and tier,
@@ -225,6 +226,11 @@ export function buildSystemScene(scene, layout, options) {
     }));
     points.userData.ref = belt.ref;
     hang(belt.around, points);
+    // MAP.321: where the belt's symbol sits, on the belt's ring half way across it, riding what the belt goes round.
+    beltAnchors.push({
+      ref: belt.ref, kind: "belt", name: belt.name || "Asteroid belt", body: belt, hung: points,
+      local: layout.place(belt.around, [(belt.inner_km + belt.outer_km) / 2, 0, 0]), x: 0, y: 0, z: 0, radius: 0,
+    });
   });
 
   if (scene.system.heliopause_au) {
@@ -269,6 +275,11 @@ export function buildSystemScene(scene, layout, options) {
       const p = parent === "barycenter" ? [0, 0, 0] : placed[parent];
       hangers[parent].forEach((object) => object.position.set(p[0], p[1], p[2]));
     }
+    beltAnchors.forEach((anchor) => {
+      anchor.x = anchor.hung.position.x + anchor.local[0];
+      anchor.y = anchor.hung.position.y + anchor.local[1];
+      anchor.z = anchor.hung.position.z + anchor.local[2];
+    });
     return placed;
   }
 
@@ -378,7 +389,7 @@ export function buildSystemScene(scene, layout, options) {
     return far;
   }
 
-  return { group: group, entries: entries, byRef: byRef, objects: objects, update: update, highlight: highlight, paintTick: paintTick, spin: spin,
+  return { group: group, entries: entries, beltAnchors: beltAnchors, byRef: byRef, objects: objects, update: update, highlight: highlight, paintTick: paintTick, spin: spin,
     moonSystemReach: moonSystemReach, systemReach: systemReach,
     // The look-record texture a body shows now (null: still its flat colour), for tests.
     textureKey: (ref) => objects[ref].userData.textureKey || null,

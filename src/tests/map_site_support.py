@@ -464,11 +464,14 @@ def system_scene_payload(system_id):
     for index, planet in enumerate(scene["planets"], start=1):
         planet.update(id=index, kind="planet", name=f"{name} {'I' * index}", planet_class="F" if index == 1 else "J",
                       radius_km=6371.0 if index == 1 else 69911.0, mass_kg=6e24, color=colors[n],
-                      habitable=False, inhabited=False)
+                      # MAP.321: the first planet is an inhabited Green world, the second a gas giant
+                      habitable=index == 1, inhabited=index == 1, body_type="t" if index == 1 else "g",
+                      phi4=0.82 if index == 1 else None, tier="Green" if index == 1 else None)
         n += 1
         for moon_index, moon in enumerate(planet["moons"], start=1):
             moon.update(id=moon_index, kind="moon", name=f"{planet['name']} {'abc'[moon_index - 1]}", planet_class="D",
-                        radius_km=1737.0, mass_kg=7e22, color=colors[n], habitable=False, inhabited=False)
+                        radius_km=1737.0, mass_kg=7e22, color=colors[n], habitable=False, inhabited=False,
+                        body_type="t", phi4=0.1, tier="Red")
             n += 1
     for index, comet in enumerate(scene["comets"], start=1):
         comet.update(id=index, kind="comet", name=f"{name} Comet {index}", radius_km=5.0, color="#b9d6e8", is_active=True)
