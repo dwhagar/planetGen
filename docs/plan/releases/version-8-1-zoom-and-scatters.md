@@ -183,7 +183,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.329 | System Map stepping reaches systems across a sector's edge |  | Core 2 follow-up |
 | UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) |  |  |
 | API.36 | Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6) |  |  |
-| MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | TEST.368 |  |
 | MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | TEST.368 |  |
 | MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | TEST.368 |  |
 | MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | TEST.368 |  |
@@ -637,6 +636,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) |  |  |
 | GEN.848 | Store a day and night swing for every temperature the sheet shows (only the equator has one) (bug) |  |  |
 | UX.233 | The Map symbols key on the object pages |  | Core 4 hand-off |
+| UX.234 | Searching for all M class planets with the search button says it is preparing the results, loops and never shows data (bug) |  |  |
 | GEN.843 | The stored magnetopause_rp is in Earth radii but is labelled planet radii: wrong for Jupiter and every non-Earth-sized world (bug) |  | found by Math 2 |
 | GEN.842 | Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left |  | Math 2 follow-up |
 | GEN.729 | Planet spacing from the observed period-ratio and size-uniformity statistics, with stability checked |  |  |

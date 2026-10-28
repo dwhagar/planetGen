@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.234 |
+| UX | UX.235 |
 | MAP | MAP.331 |
 | NAV | NAV.65 |
 | GEN | GEN.849 |
@@ -1900,7 +1900,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.300 | Zoom reaches far enough in to single out one item in even a dense cluster (bug) | none | open |
 | MAP.301 | Scroll zoom heads for the most populated layer in front of the zoom direction so it does not fly past it (bug) | none | open |
 | MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | none | open |
-| MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | none | open |
+| MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | none | done, PR #3496 |
 | MAP.304 | Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug) | none | done, PR #3284 |
 | MAP.305 | Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug) | none | done, PR #3494 |
 | MAP.306 | The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug) | none | open |
@@ -2614,6 +2614,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) | none | open |
 | UX.232 | Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug) | none | open |
 | UX.233 | The Map symbols key on the object pages | none | open |
+| UX.234 | Searching for all M class planets with the search button says it is preparing the results, loops and never shows data (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
