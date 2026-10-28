@@ -64,7 +64,8 @@ def export_sector(conn, sector_id):
     return dump(tables), storage_checksum.checksum_of(tables)
 
 
-def _decode_value(raw):
+def decode_value(raw):
+    """One value back from `storage_checksum.encode_value`'s bytes (a tag letter, then the value exactly)."""
     tag, body = raw[:1], raw[1:]
     if tag == b"N":
         return None
@@ -128,6 +129,6 @@ def parse(data):
         columns = [cursor.name() for _ in range(cursor.number("<H"))]
         rows = []
         for _ in range(cursor.number("<I")):
-            rows.append({column: _decode_value(cursor.take(cursor.number("<I"))) for column in columns})
+            rows.append({column: decode_value(cursor.take(cursor.number("<I"))) for column in columns})
         tables.append((table, columns, rows))
     return tables

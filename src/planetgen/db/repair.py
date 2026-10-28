@@ -175,6 +175,16 @@ def _values_of(row, columns):
     return tuple(storage_checksum.encode_value(row[column]) for column in columns)
 
 
+def _insert_row(conn, table, covered, key, row, sector_id, cache):
+    """Inserts one exported row: any row already holding its key is deleted first (it was filed elsewhere or is a stray copy),
+    and the columns the export leaves out take `_filler`'s values."""
+    fill = _filler(conn, table, covered, sector_id, cache)
+    conn.execute(f"DELETE FROM `{table}` WHERE " + " AND ".join(f"`{c}` = ?" for c in key), tuple(row[c] for c in key))
+    names = list(covered) + [name for name, _value in fill]
+    conn.execute(f"INSERT INTO `{table}` ({', '.join(f'`{n}`' for n in names)}) VALUES ({', '.join('?' * len(names))})",
+                 tuple(row[c] for c in covered) + tuple(value for _name, value in fill))
+
+
 def apply_export(conn, sector_id, tables, expected):
     """
     Makes the rows of a sector the rows of an export (`sector_export.parse`), in one transaction, and checks the result hashes to
@@ -187,7 +197,17 @@ def apply_export(conn, sector_id, tables, expected):
     cache = {}
     done = {"updated": 0, "inserted": 0, "deleted": 0}
     try:
-        conn.execute("SELECT id FROM sectors WHERE id = ? FOR UPDATE", (sector_id,)).fetchall()
+        locked = conn.execute("SELECT id FROM sectors WHERE id = ? FOR UPDATE", (sector_id,)).fetchall()
+        if not locked:          # the sector's own row is gone (a lost page of `sectors`): put it back first, so the rest can be read by its id
+            conn.execute("SET foreign_key_checks = 0")
+            try:
+                for table, covered, rows in tables:
+                    if table == "sectors":
+                        for row in rows:
+                            _insert_row(conn, table, covered, storage_checksum.reader(conn).columns(table)[1], row, sector_id, cache)
+                            done["inserted"] += 1
+            finally:
+                conn.execute("SET foreign_key_checks = 1")
         current = {table: rows for table, _columns, rows in storage_checksum.sector_rows(conn, sector_id)}
         conn.execute("SET foreign_key_checks = 0")
         try:
@@ -199,13 +219,7 @@ def apply_export(conn, sector_id, tables, expected):
                 for ident, row in want.items():
                     held = have.get(ident)
                     if held is None:
-                        fill = _filler(conn, table, covered, sector_id, cache)
-                        conn.execute(f"DELETE FROM `{table}` WHERE " + " AND ".join(f"`{c}` = ?" for c in key),
-                                     tuple(row[c] for c in key))
-                        names = list(covered) + [name for name, _value in fill]
-                        conn.execute(f"INSERT INTO `{table}` ({', '.join(f'`{n}`' for n in names)})"
-                                     f" VALUES ({', '.join('?' * len(names))})",
-                                     tuple(row[c] for c in covered) + tuple(value for _name, value in fill))
+                        _insert_row(conn, table, covered, key, row, sector_id, cache)
                         done["inserted"] += 1
                     elif body and _values_of(held, body) != _values_of(row, body):
                         conn.execute(f"UPDATE `{table}` SET " + ", ".join(f"`{c}` = ?" for c in body)
