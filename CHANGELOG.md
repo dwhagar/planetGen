@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2428] - 2026-10-28
+
+**Headline:** On the Galaxy Map, symbols of interest that lie too close to tell apart are drawn as one with a count.
+
+### Added
+- **Crowded marks merge (MAP.305).** Star-level points of interest (inhabited, habitable, uninhabitable, gas giant, asteroid field) closer than 22 pixels on the screen are drawn as one larger mark that takes the best reason's symbol and shows how many it stands for. Hovering says "N points of interest"; a click opens a card listing every system in the crowd with its reasons (each a button that shows that system and flies to it) and a Zoom in on them button. Zooming in spreads the marks and the crowd splits. A black hole, the symbols on a system's own planets and moons, and a region's inhabited token never merge.
+
 ## [8.0.2427] - 2026-10-28
 
 **Headline:** A normal fill now charts one whole named region: a random start begins at the middle of a region nothing is generated in yet, and "this region" fills the region around any place.
