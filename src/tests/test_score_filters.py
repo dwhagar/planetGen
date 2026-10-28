@@ -12,7 +12,7 @@ from planetgen.db import query, store
 from planetgen.physics import habitability, score_filters
 from planetgen.physics.habitability_world import DOMAINS, TIER_NAMES
 
-from tests.habitability_site import habitable_galaxy  # noqa: F401 -- fixture
+from tests.scored_site import scored_galaxy  # noqa: F401 -- fixture
 
 LIFE = ("microbial", "flora", "fauna", "sentient")
 
@@ -51,25 +51,25 @@ def _expected(row, facet, value):
 
 
 @pytest.mark.parametrize("table,panel,prefix", (("planets", "planets", ""), ("moons", "moons", "moon_")))
-def test_every_filter_returns_the_bodies_the_stored_scores_pick(habitable_galaxy, table, panel, prefix):
-    bodies = _bodies(habitable_galaxy.config, table)
+def test_every_filter_returns_the_bodies_the_stored_scores_pick(scored_galaxy, table, panel, prefix):
+    bodies = _bodies(scored_galaxy.config, table)
     assert len(bodies) > 3
     for facet, (_title, ticks) in score_filters.FACETS.items():
         for value, _label, _sql in ticks:
             want = {row["name"] for row in bodies if _expected(row, facet, value)}
-            got = {row["name"] for row in _found(habitable_galaxy.config, panel, prefix + facet, value)}
+            got = {row["name"] for row in _found(scored_galaxy.config, panel, prefix + facet, value)}
             assert got == want, (facet, value, got ^ want)
 
 
-def test_a_stray_value_matches_nothing(habitable_galaxy):
-    assert _found(habitable_galaxy.config, "planets", "habitability", "purple") == []
+def test_a_stray_value_matches_nothing(scored_galaxy):
+    assert _found(scored_galaxy.config, "planets", "habitability", "purple") == []
 
 
 @pytest.mark.parametrize("key,column", sorted(score_filters.SORT_COLUMNS.items()))
-def test_a_sort_puts_the_worst_first_and_with_a_minus_the_best_first(habitable_galaxy, key, column):
-    scores = lambda rows: [next(b[column] for b in _bodies(habitable_galaxy.config, "planets") if b["name"] == row["name"])
+def test_a_sort_puts_the_worst_first_and_with_a_minus_the_best_first(scored_galaxy, key, column):
+    scores = lambda rows: [next(b[column] for b in _bodies(scored_galaxy.config, "planets") if b["name"] == row["name"])
                            for row in rows]
-    conn = query.open_readonly(habitable_galaxy.config)
+    conn = query.open_readonly(scored_galaxy.config)
     try:
         tags = {name: set() for name in query.SEARCH_TAG_FACETS}
         tags["living"] = {"alive", "lifeless"}          # every scored body, so each sort has something to order
@@ -85,8 +85,8 @@ def test_a_sort_puts_the_worst_first_and_with_a_minus_the_best_first(habitable_g
         assert worst_scores == sorted(worst_scores, reverse=True) and best_scores == sorted(best_scores)
 
 
-def test_the_search_answers_the_options_each_filter_offers(habitable_galaxy):
-    conn = query.open_readonly(habitable_galaxy.config)
+def test_the_search_answers_the_options_each_filter_offers(scored_galaxy):
+    conn = query.open_readonly(scored_galaxy.config)
     try:
         facets = query.search(conn, {}, {name: set() for name in query.SEARCH_TAG_FACETS})["facets"]
     finally:
@@ -98,8 +98,8 @@ def test_the_search_answers_the_options_each_filter_offers(habitable_galaxy):
     assert facets["habitability"], "the sample galaxy has no scored planet"
 
 
-def test_the_chips_are_named_in_words(habitable_galaxy):
-    conn = query.open_readonly(habitable_galaxy.config)
+def test_the_chips_are_named_in_words(scored_galaxy):
+    conn = query.open_readonly(scored_galaxy.config)
     try:
         answer = query.search(conn, {}, {name: set() for name in query.SEARCH_TAG_FACETS})
     finally:

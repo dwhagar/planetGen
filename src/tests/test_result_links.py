@@ -13,15 +13,15 @@ import pytest
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
-from tests.habitability_site import habitable_galaxy  # noqa: F401 -- fixture
+from tests.scored_site import scored_galaxy  # noqa: F401 -- fixture
 
 
 @pytest.fixture
-def real_client(habitable_galaxy):
+def real_client(scored_galaxy):
     class RealConfig(Config):
-        MYSQL_CONFIG = habitable_galaxy.config
-        WRITE_MYSQL_CONFIG = habitable_galaxy.config
-        CONTROL_MYSQL_CONFIG = habitable_galaxy.config
+        MYSQL_CONFIG = scored_galaxy.config
+        WRITE_MYSQL_CONFIG = scored_galaxy.config
+        CONTROL_MYSQL_CONFIG = scored_galaxy.config
         SESSION_COOKIE_SECURE = False
         SECRET_KEY = "test-secret"
 
@@ -50,9 +50,9 @@ def test_the_object_links_of_search_rows_answer_200_with_the_object(real_client,
             assert panel[:-1] in href
 
 
-def test_the_class_search_rows_link_the_planet_the_system_and_the_sector(real_client, habitable_galaxy):
+def test_the_class_search_rows_link_the_planet_the_system_and_the_sector(real_client, scored_galaxy):
     from planetgen.db import query
-    conn = query.open_readonly(habitable_galaxy.config)
+    conn = query.open_readonly(scored_galaxy.config)
     try:
         klass = conn.execute("SELECT planet_class AS c FROM planets WHERE planet_class IS NOT NULL LIMIT 1").fetchone()["c"]
     finally:
