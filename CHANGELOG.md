@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2447] - 2026-10-28
+
+**Headline:** Moons and rogue planets can have rings too.
+
+### Changed
+- **A moon may hold a ring system (GEN.836).** One moon in a hundred draws a ring by the same Roche-limit law as a planet, cold when its
+  parent is beyond the snow line. It shows on the moon's property sheet like a planet's.
+- **A rogue planet draws a ring system with no host star (GEN.836).** A rogue giant always has one, other rogue planets one in a hundred;
+  it keeps its ice when its effective temperature is below 170 K. Edges, mass, optical depth and ice share are on its property sheet.
+  Brown dwarfs have none. Schema v171 adds the columns to `rogue_planets`.
+
+generation-output: changed
+
 ## [8.0.2446] - 2026-10-28
 
 **Headline:** The impact history, the thermosphere and the planet-survey modules take G, the Sun's mass and Earth's mass and radius from the shared constants.
