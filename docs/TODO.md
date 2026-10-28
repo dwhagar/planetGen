@@ -12057,6 +12057,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the physics chains). The class rules GEN.27, GEN.145, GEN.350 to
   GEN.354 and GEN.356 follow it. It is unblocked once 4c (GEN.411,
   GEN.422) merges.
+  Progress (2026-10-09): Aux 9 (12:33 PM EDT 2026-10-28 as the lane
+  reported): CLASS_MIXES is already gone from the code, so GEN.479
+  closes with this cut-over. After the cut-over a body's class comes
+  from classify(body), and body_type 'g' still marks a giant (MAP.305's
+  gas-giant reason reads through that). Behaviour change to record in
+  the PR: a request no draw can meet (a white dwarf ecosphere) reports
+  unmet instead of redrawing.
 
 - [ ] **GEN.647 The class is assigned after the body is complete: classify(body) from the stored atmosphere, temperature, terrestrial composition and gas composition, for planets and moons**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -14516,6 +14523,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lock turn (one epoch, one golden run). Aux 17 keeps the b2/b3 row
   re-fit after GEN.822. Stand-ins and tweaks go in the registry with
   level and reason.
+  Evidence (2026-10-09): Aux 9 (12:33 PM EDT 2026-10-28 as the lane
+  reported): with no class gating, about 80 percent of planets get a
+  thick air on the class cut-over branch, so the hydrogen cap and
+  steam-share cut of Aux 8 (GEN.830 + this item's solver side) matter
+  for the cut-over result. Order of the two lock turns: whichever gate
+  is clean first merges, the other follows at once.
   Prerequisites: none. Related: GEN.813, GEN.815, GEN.812.
 
 - [ ] **GEN.838 A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling**
