@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2381] - 2026-10-28
+
+**Headline:** The Galaxy Map's info card says which named region a pick lies in, and its names fly you there.
+
+### Added
+- **A "Region" line on the Galaxy Map's info card (MAP.315).** Picking a sector, a sector cell, a block of 9 sectors or fewer, a star, a system with habitable worlds, a black hole, neutron star or quasar, or a nebula adds "Region: Fardoo Beez Region (in Fardoo Reach)" under its figures. The region is the 9-sector block the point lies in and the family is the 81-sector block that holds it; each name is a button that flies the camera to that block. A point in a block with nothing generated in it has no name on the wire (API.35), so the line stays out of the card. The name is looked up from the block's node the first time a card needs it (the nodes the view already holds, then the stored ones, then one request), and the card fits itself again when it arrives. `tests/test_web_browser_fixture_maps.py::test_galaxy_map_infobox_names_the_region_and_flies_to_it` pins the line, both flights and the absent case.
+
 ## [8.0.2380] - 2026-10-28
 
 **Headline:** The tide of a body's real orbit heats it and wears down its spin: Io-like moons melt and radiate, Mercury-like worlds are caught in a resonance, hot Jupiters lock, and the Moon-like ones stay cold.
