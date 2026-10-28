@@ -165,6 +165,28 @@ def swing_k(mean_k, pressure_pa, gravity_ms2, rotation_period_hours):
     return SUBSTELLAR_RATIO * mean_k / math.sqrt(1.0 + (omega * time_constant) ** 2)
 
 
+TEMPERATURE_FIELDS = ("surface_temperature_k", "temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k",
+                      "temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
+"""tuple: The stored temperatures of a planet or moon that are places on the scale (the swing is a difference)."""
+
+RANGE_FIELDS = ("temp_equator_k",)
+"""tuple: The stored temperatures the stored swing is a day and night range of (GEN.796). The swing is the peak to peak of
+the equator (`swing_k`); no other region has a swing of its own yet, so the others say that no range is stored."""
+
+
+def daily_range(value_k, swing_k):
+    """
+    `(low, high)` kelvin: the coldest and hottest hour of a place whose stored temperature is `value_k` and whose day and
+    night swing, peak to peak, is `swing_k`, the value exactly in the middle (GEN.795, GEN.796). The swing is a
+    difference, so half of it is added to and taken from the temperature; it is never converted as a temperature.
+    `None` when either is missing or the swing is 0.
+    """
+    if value_k is None or not swing_k:
+        return None
+    half = swing_k / 2.0
+    return value_k - half, value_k + half
+
+
 def compute(values):
     """
     The `FIELDS` of a rocky body from its column-named `values` (`habitability_world.values_from_body`, or a row):
