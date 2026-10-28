@@ -1339,6 +1339,21 @@ with `clamp()`.
   8.1.
   Prerequisites: none. Related: MAP.320, MAP.305.
 
+- [ ] **UX.234 Searching for all M class planets with the search button says it is preparing the results, loops and never shows data (bug)**
+  Boss, 5:18 PM EDT 2026-10-28 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAi9Rp8H5ZEotUm7aMwtf58f1,
+  relayed by the coordinator), live observation, so a bug, serious:
+  "when I try to search for all m class planets via the search button,
+  it says it is preparing it, and loops over and over again never
+  providing data." Find why the search never returns (the prepare step
+  restarts itself, a job never finishes, or the result is empty and
+  treated as not ready) and make it return the planets, or a clear
+  message when there are none. Add a test that runs the same search on
+  the fixture galaxy and gets rows. Owner: Bug 1 (first in its queue,
+  ahead of TEST.424); it may involve the search-filters merge lane work
+  UX.214/UX.232.
+  Prerequisites: none. Related: UX.214, UX.232.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2654,41 +2669,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.296 (infobox, Core 2), MAP.297 to MAP.303 (clicking, labels, zoom,
   icons; Aux 10). Owner: Aux 10.
   Prerequisites: TEST.368. Related: MAP.298, MAP.207, MAP.301.
-
-- [ ] **MAP.303 Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: stars that have habitable
-  worlds (Yellow and above) should also be labeled with icons on the
-  map. Today MAP.220 has an opt-in habitable-worlds marker for Blue or
-  Green worlds only (side table habitable_systems, the Menu toggle,
-  #2943). Do: make a world rated Yellow or better on the overall
-  habitability score one interest reason of the generic point-of-interest
-  mark (MAP.305; Boss, 7:35 PM EDT: no separate icon per kind, one mark
-  that a click explains), so such a system gets the mark and its infobox
-  names the world, on by default with its toggle kept; this does not change the habitable rule
-  (GEN.643 stays Blue or Green; the icon uses the overall score
-  threshold Yellow). If the stored count in habitable_systems covers
-  only Blue and Green, add the Yellow count there with a migration (a
-  column in db/column_units.py in the same PR, the next migration number
-  from TODO). Done: a browser test on the fixture finds the mark on a
-  Yellow world's star and on a Green one, with the reason listed, and
-  none on a Red one. Part of one chain filed from that message: TEST.368 (fixture
-  galaxy), MAP.295 and MAP.296 (infobox, Core 2), MAP.297 to MAP.303
-  (clicking, labels, zoom, icons; Aux 10). Owner: Aux 10 (MAP.220's
-  marker code is its to extend); MAP.293 (colour-by Habitable) is the
-  same area, so it goes first.
-  Revision (2026-10-09): Revision (Boss, 1:19 AM EDT 2026-10-25): the
-  world's mark is now its own habitable-world icon (MAP.320), carried by
-  the star in the star views and by the planet or moon itself at the
-  system level (MAP.321).
-  Research (2026-10-09): Progress (Core 2, 4:59 PM EDT 2026-10-28 as the
-  lane reported): the crowded-mark merge (MAP.305 step 2, #3494) is
-  merged. Left here: the interest layers default on, with the acceptance
-  browser test on the fixture galaxy. Core 2 chose Inhabited, Habitable
-  and Gas giant on at the start, Uninhabitable and Asteroid field off;
-  Boss may change that.
-  Prerequisites: TEST.368. Related: MAP.220, MAP.293, GEN.643, MAP.298.
 
 - [ ] **MAP.306 The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug)**
   Boss, 7:37 PM EDT 2026-10-24 (message
