@@ -22,7 +22,7 @@ release is stamped.
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.421 |
+| TEST | TEST.422 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -3136,6 +3136,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.418 | Seven map browser tests are red on clean main (bug) | none | open |
 | TEST.419 | test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug) | none | done, PR #3428 |
 | TEST.420 | Runner self-tests and the limit-slider follow-again browser test are red on main (bug) | none | open |
+| TEST.421 | test_migration_habitable_worlds: the filled-sector test finds no system with a Blue or Green world in 120 seeds, its _fill_one_sector helper no longer draws one (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
