@@ -155,6 +155,12 @@ class _Reader:
         return rows
 
 
+def reader(conn):
+    """A `_Reader` for `conn`: `columns(table)` gives a table's covered columns and the columns that order (and identify) its rows,
+    which the sector repair (DB.47) writes by."""
+    return _Reader(conn)
+
+
 def _ids(rows):
     return [row["id"] for row in rows if "id" in row.keys()]
 
