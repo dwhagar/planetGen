@@ -2458,6 +2458,69 @@ def test_the_opened_sector_is_framed_and_dimmed_around_with_a_labelled_icon_on_e
     assert page.evaluate(SECTOR_FRAME_LINES) != before or not page.evaluate(SECTOR_VIEW)["opened"]
 
 
+def _sector_in_address(page):
+    return parse_qs(urlparse(page.url).query).get("sector", [None])[0]
+
+
+CENTRE_NOW = """() => { const c = document.querySelector("#galaxymap3d-canvas").galaxyStage().win.centre;
+    return [c.m, c.shell, c.band, c.wedge].join("."); }"""
+
+
+def _sector_centre(page):
+    """The sector the view is on, `m.shell.band.wedge` (m is 1), as the window it sits in names it."""
+    return page.evaluate(CENTRE_NOW)
+
+
+def _wait_off(page, was):
+    page.wait_for_function(f"([was]) => ({CENTRE_NOW})() !== was", arg=[was], timeout=20000)
+    _settle(page)
+    return _sector_centre(page)
+
+
+def test_the_step_buttons_and_keys_go_from_an_opened_sector_to_the_sector_beside_it_and_back(page, map_site):
+    """MAP.121: with a sector opened in place the Menu's step buttons and the keys take the view to the sector across
+    the wall in that direction (the step the Galaxy Map's windows use and MAP.327's wall icons call), in one camera move
+    with the address naming it; a button is off where the wall faces nothing, and a sideways step back lands where it
+    left."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    _settle(page)
+    start = _sector_centre(page)
+    assert start.startswith("1."), start
+    assert _sector_in_address(page) == PRIME_CODE
+
+    def enabled():
+        return page.eval_on_selector_all(
+            "#galaxymap3d-controls [data-action=step]",
+            "els => Object.fromEntries(els.map(e => [e.dataset.step, !e.disabled]))")
+
+    ways = enabled()
+    assert set(ways) == {"north", "south", "east", "west", "in", "out"}
+    assert ways["out"] and any(ways.values()), ways
+
+    # Out, with the Menu's button: the sector across the outer wall, the address naming it.
+    page.click("#galaxymap3d-menu > summary")
+    page.click('#galaxymap3d-controls [data-step="out"]')
+    outer = _wait_off(page, start)
+    assert outer.split(".")[1] == str(int(start.split(".")[1]) + 1), (start, outer)
+    assert _sector_in_address(page) not in (None, PRIME_CODE)
+
+    # In again, with the key: the sector across the inner wall (not always the one it came from: the rings differ in how
+    # many sectors they hold, so a step out and back need not land on the same cell).
+    page.locator(GALAXY_CANVAS).focus()
+    page.keyboard.press("[")
+    here = _wait_off(page, outer)
+    assert here.split(".")[1] == start.split(".")[1], (start, outer, here)
+
+    # Sideways with the arrow keys: a step east then west lands on the same sector.
+    if enabled()["east"]:
+        page.keyboard.press("Alt+Shift+ArrowRight")
+        east = _wait_off(page, here)
+        assert east.split(".")[1] == here.split(".")[1], (here, east)
+        page.keyboard.press("Alt+Shift+ArrowLeft")
+        assert _wait_off(page, east) == here
+
+
 def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
     """MAP.65: a black hole, neutron star or quasar shows a tooltip with its
     name under the pointer, and its panel offers Start Here, End Here
