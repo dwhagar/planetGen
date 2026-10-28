@@ -1584,3 +1584,4 @@ Baseline: PR #1817.
 | PERF.174 | 8.1 | The headline closes |
 | PERF.193 | 8.1 | The headline closes |
 | DB.46 | 8.1 | Reproducible galaxies |
+| MAP.330 | 8.1 | Fly-through map |

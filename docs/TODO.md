@@ -3150,17 +3150,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxyprisms.neighbourBlock.
   Prerequisites: none. Related: MAP.121, MAP.141.
 
-- [ ] **MAP.330 Star glow halos grow huge when stars are blurred and cover most of the screen: fade the glow out strongly with halo size and cut it to zero long before that (bug)**
-  Boss, 12:40 PM EDT 2026-10-28: increase the fade on blurred stars,
-  because right now the halos are huge and take most of the screen. They
-  are faint but visible; he wants them fully invisible long before they
-  get that large. Fix: fade the glow with halo size (zoom) on a steeper
-  curve and clamp it to zero at a size cap well below the screen, in the
-  star glow layer (MAP.266/MAP.269). Aux 10 touches the glow layer on
-  MAP.316, so Core 2 checks with them before editing. Owner: Core 2,
-  after MAP.305/MAP.303 PR1.
-  Prerequisites: none.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
