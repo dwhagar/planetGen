@@ -14017,8 +14017,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generated output, so it takes an epoch and a lock turn. Also check
   that the climate sentence (physics/protection.py regional_sentence),
   which now states the equator low and high, agrees with the GEN.656
-  regional-temperature text. Owner: Aux 5 (Lane H: heat, GEN.656
-  regional temperatures), queued after its current lock turn.
+  regional-temperature text. Owner: none yet (Aux 5 retires after its
+  lock turn; it is in the released pool for a fresh lane).
   Prerequisites: none. Related: GEN.656, GEN.767, GEN.795, GEN.796.
 
 ## PERF: Speed, caching, bulk generation and parallel work
