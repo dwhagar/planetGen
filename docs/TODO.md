@@ -18972,17 +18972,6 @@ clears each one.
   planet loses surface water.
   Prerequisites: none. Related: TEST.384, GEN.738.
 
-- [ ] **TEST.392 test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug)**
-  Found by Bug 1 (1:37 AM EDT 2026-10-25 as the lane reported): the
-  module takes about 66 minutes, the slowest check 755 s, because each
-  check draws 2000 full systems. Do: make the draw cheaper (draw only
-  the stages the check reads, share one drawn sample across the checks
-  of the module, or reduce the draw cost in generation) without cutting
-  the sample or loosening the tolerance. Owner: Aux 16 (performance)
-  with Bug 1 reviewing. Done: the module runs in a fraction of the time
-  with the same sample size and tolerances.
-  Prerequisites: none. Related: TEST.384, PERF.186.
-
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
   From Aux 16's planet class distribution check (2:09 AM EDT 2026-10-25;
   report
