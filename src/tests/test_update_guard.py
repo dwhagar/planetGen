@@ -246,8 +246,8 @@ def test_update_sh_takes_the_guard_before_its_first_change_and_requires_it_by_st
     assert text.index("trap finish_update_guard EXIT") < first < text.index("git fetch origin")
     assert text.index("export PLANETGEN_UPDATE_PID=$$") < first
     # taken again after the pull (a checkout that did not have it) and required once the venv exists
-    assert text.index("git reset --hard") < text.index("\nensure_update_guard\n", first + 1) < text.index("== 2/9")
-    assert text.index("use_site_python\nensure_update_guard required") < text.index("== 3/9")
+    assert text.index("git reset --hard") < text.index("\nensure_update_guard\n", first + 1) < text.index("log_stage 2 9")
+    assert text.index("use_site_python\nensure_update_guard required") < text.index("log_stage 3 9")
     assert text.index("ensure_update_guard required") < text.index("\nmigrate_or_reset_db\n")
     assert "--cancel-running" in text
 
@@ -255,7 +255,7 @@ def test_update_sh_takes_the_guard_before_its_first_change_and_requires_it_by_st
 def test_update_sh_names_every_step_for_the_failure_message():
     text = update_sh()
     for step in range(1, 10):
-        assert re.search(rf'^UPDATE_STEP="step {step}/9, [^"]+"\n(?:.*\n)?echo "== {step}/9', text, re.M), step
+        assert re.search(rf'^UPDATE_STEP="step {step}/9, [^"]+"\n(?:.*\n)?log_stage {step} 9', text, re.M), step
 
 
 def test_update_sh_never_edits_the_redis_config_or_the_apache_site():

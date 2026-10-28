@@ -20,7 +20,7 @@ from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table, time_text
 from planetgen.queue import progress_rate, runrecord, warmphases
 from planetgen.admin import activity_log
-from planetgen.util import log
+from planetgen.util import log, logrecord
 from planetgen.util.format import counted
 
 from . import bp, jobs, tables
@@ -333,7 +333,9 @@ def admin_queue():
 
 
 def _event_view(event):
-    return {"time": _iso(event["t"]), "level": event["level"], "message": event["message"]}
+    """The event as the logging layer's display line (`logrecord.display_line`, UX.123): the run's download holds the same
+    record as a file line, so the page and the file show one event the same way."""
+    return {"line": logrecord.display_line(runrecord.event_record(event))}
 
 
 def _stage_rows(run):
