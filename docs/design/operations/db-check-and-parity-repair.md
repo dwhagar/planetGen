@@ -4,7 +4,7 @@ How a galaxy database is checked for damage (DB.8), how a damaged sector is rebu
 
 Informs: DB.8, DB.9, DB.10, DB.11 (Alembic parts of DB.7 and NAV.10), DB.13, DB.15
 
-Status: partly built (2026-10-15). Built: the database check, `planetgen check-db` (DB.8, #893, `db/check.py`), Alembic (DB.11, #751) and the migration progress bar (DB.15, #924). Open: parity repair (DB.9). Dropped: DB.10 (Boss, 2026-10-09 20:42Z). Daily checks "planned by OPS.16" are still planned (OPS.16 is open). Decisions marked "Boss" are his; everything else is a recommendation
+Status: partly built (2026-10-15). Built: the database check, `planetgen check-db` (DB.8, #893, `db/check.py`), Alembic (DB.11, #751) and the migration progress bar (DB.15, #924). Parity repair is built in two parts (DB.46 the parity file, DB.47 `repair-db`); open: the table rebuild (DB.48). Dropped: DB.10 (Boss, 2026-10-09 20:42Z). Daily checks "planned by OPS.16" are still planned (OPS.16 is open). Decisions marked "Boss" are his; everything else is a recommendation
 
 **Python floor (2026-10-15).** The project now requires Python 3.12 or later and numba (OPS.42, #1291); the CI matrix is 3.12 and 3.13, and astropy was dropped as a runtime dependency (GEN.211, #1310; it stays in the `test` extra to check the constants table). The 3.9 to 3.11 figures below were measured on the old floor and are kept as history. The `pyeclib` exclusion ("fails the macOS and Python 3.9 requirement") rests on a floor that no longer exists; the in-tree codec stays chosen, but the reason should be re-checked against 3.12.
 
@@ -226,7 +226,21 @@ The parity file is `planetgen/db/parity_file.py` (the log of records), `planetge
 - **Delta or recompute.** A sector joining a group has no before-image and reads no other sector. A member that changes is updated by delta only when the caller brings a before-image whose checksum is the one in the record; the hooks do not (the database has already overwritten it), so an edit or a deletion makes the group's parity again from the current rows of its members (`G - 1` reads), refusing to do it over a member whose rows fail their stored checksum (that is damage: `MemberUnreadable`, the sector stays marked). A member whose sector is gone is dropped from the group by the same recompute.
 - **Groups** follow 5.6: size class `ceil(log(size / 2000) / log 1.25)`, no member of the group within `W` ids (`W = 256`, `members / 100` for a small galaxy, found through a per-class index of ids in buckets of 256), the fullest qualifying open group first, a new group otherwise; a freed slot is taken by the next sector that qualifies. A group's parity block is cut to its longest member.
 - **The decision table** of 5.6 is `parity.classify` and `parity.member_state`; a sector that is merely marked is `NOT_PROTECTED` or `RECORD_STALE`, never damage.
-- **Not built here:** the rebuild (DB.47: `planetgen repair-db`), the table rebuild (DB.48), and a before-image on the edit paths, which would turn the recompute of an edit into a delta.
+- **Not built here:** the table rebuild (DB.48), and a before-image on the edit paths, which would turn the recompute of an edit into a delta. The rebuild is DB.47, 5.11.
+- **A sealed sector that fails its checksum is never taken into the parity** (`protect_sector` returns `unprotectable`): the sweep that fills the file would otherwise have recorded the damage as the truth.
+
+### 5.11 Built (DB.47)
+
+`planetgen repair-db` is `planetgen/db/repair.py` (`repair`, `find_damaged`, `apply_export`). It follows the decision table of 5.6 over the sectors that `check_sector` calls damaged (flag clear, rows no longer hashing to the sealed checksum):
+
+- **Rows agree with the record, the stored checksum does not:** the column is the damaged part and is sealed again (two independent copies agree on the rows).
+- **Record holds the stored checksum, rows differ:** the group's other members are read and each must hash to what the record holds for it; every block that does not (damaged, changed since the record was made, gone, or another target) is an erasure, and up to `m` erasures of one group are decoded together (`RS.decode`, the parity blocks added to the surviving data blocks). The rebuilt block is parsed (`sector_export.parse`) and hashed (`checksum_of`) against the stored checksum before anything is written.
+- **Record holds another checksum, the sector is in no group, more than `m` blocks are lost, or the group's record fails its CRC:** reported with the reason and left alone (the way out is the seed regeneration or a backup, DB.9's fallback).
+- **A table the server refuses to read:** reported as unreadable; DB.48's case.
+
+Writing is by primary key in one transaction, under the sector's row lock and with `foreign_key_checks` off for the writes only: a row that differs gets its covered columns updated, a row the export has that the database lacks (or has filed elsewhere) is deleted by key and inserted, and a row the sector has that the export does not is deleted. The checksum is taken again before the commit and the transaction is rolled back if it is not the stored one. The columns the orbit update rewrites (5.2) are never written to an existing row, so a repair does not undo the daily run; an inserted row takes them at the column default, zero where there is none, and its `sector_id` is the sector's. That is option (a) of 5.2: a repaired row carries no history of its orbit.
+
+A record that fails its CRC (not the file's last, which a scan treats as a torn write) or a file damaged behind its last record is made again from the database: `compact` drops the unreadable records and `refresh` protects the sectors the file no longer holds, each only if it still hashes to its checksum. `--dry-run` goes as far as the verified rebuilt block and writes nothing.
 
 ## 6. The check (DB.8)
 

@@ -51,7 +51,7 @@ from planetgen.cli import benchmark
 from planetgen.cli import checkdb as checkdb_cli, queue as queue_cli, warm as warm_cli
 
 from planetgen.queue import commands as queueCommands, work as workQueue
-from planetgen.db import fingerprint, parity, store
+from planetgen.db import check as dbCheck, fingerprint, parity, repair as dbRepair, store
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
@@ -1401,6 +1401,46 @@ def run_refresh_parity(args):
         sys.exit(1)
 
 
+def add_repair_db_arguments(parser):
+    """
+    Adds the `repair-db` subcommand's options: `--shell` and `--sector` (as `check-db`), `--dry-run`, and the MySQL
+    connection and logging args.
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    parser.add_argument("--shell", type=int, action="append", metavar="SHELL",
+                        help="Look only at this shell's sectors (repeatable).")
+    parser.add_argument("--sector", type=int, nargs=3, action="append", metavar=("SHELL", "BAND", "WEDGE"),
+                        help="Look only at the sector at this address (repeatable).")
+    parser.add_argument('--dry-run', action='store_true',
+                        help="Say which damaged sectors the parity file could rebuild and write nothing.")
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
+def run_repair_db(args):
+    """`planetgen repair-db` (DB.47): rebuilds the sectors that no longer hash to their stored checksum from the parity file
+    (`planetgen.db.repair`), and makes the parity file again from the database if it is the damaged part. Exits 1 when a damaged
+    sector is left (or, with `--dry-run`, when there is any damage) and 2 when there is no parity file."""
+    config = store.mysql_config_from_args(args)
+    scope = dbCheck.Scope(tuple(args.shell or ()), tuple(tuple(a) for a in args.sector or ()))
+    conn = store.get_connection(config)
+    try:
+        try:
+            report = dbRepair.repair(conn, scope, dry_run=args.dry_run)
+        except FileNotFoundError as exc:
+            log.error(str(exc))
+            sys.exit(2)
+    finally:
+        conn.close()
+    verb = "would be repaired" if args.dry_run else "repaired"
+    log.normal(f"Repair: {report.count(dbRepair.REPAIRED) + report.count(dbRepair.RESEALED) + report.count(dbRepair.WOULD_REPAIR):,}"
+               f" sector(s) {verb}, {report.count(dbRepair.UNREPAIRABLE) + report.count(dbRepair.UNREADABLE):,} left damaged.")
+    if not report.clean:
+        sys.exit(1)
+
+
 def build_parser():
     """
     Builds the top-level parser and every subcommand's own subparser.
@@ -1616,6 +1656,16 @@ def build_parser():
         help="Make the sector parity file current.")
     add_refresh_parity_arguments(refresh_parity_parser)
 
+    repair_db_parser = subparsers.add_parser(
+        'repair-db',
+        description="Rebuilds the sectors whose rows no longer hash to their stored checksum from the parity file "
+                    "(settings: parity; built by refresh-parity). A sector the parity cannot mend (its group has more "
+                    "damage than parity blocks, or the record is behind the database too) is listed, with the reason. "
+                    "The columns the orbit update rewrites are left as they are on every row that still exists. A parity "
+                    "file that is itself damaged is made again from the database.",
+        help="Rebuild damaged sectors from the parity file.")
+    add_repair_db_arguments(repair_db_parser)
+
     benchmark_parser = subparsers.add_parser(
         'benchmark',
         description="Times a small galaxy from the plan to the finished fill in scratch databases and prints "
@@ -1688,6 +1738,7 @@ def build_parser():
         'territories': territories_parser,
         'bring-to-epoch': bring_to_epoch_parser,
         'refresh-parity': refresh_parity_parser,
+        'repair-db': repair_db_parser,
         'check-math': check_math_parser,
         'versions': versions_parser,
         'fingerprint': fingerprint_parser,
@@ -1850,6 +1901,7 @@ _COMMAND_HANDLERS = {
     'territories': run_population.run_territories,
     'bring-to-epoch': run_bring_to_epoch,
     'refresh-parity': run_refresh_parity,
+    'repair-db': run_repair_db,
 }
 
 
@@ -1858,7 +1910,7 @@ DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scat
                 "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
                 "clean-nebula-field": ("everything",),
                 "population": ("population",), "territories": ("population",),
-                "bring-to-epoch": ("generated", "population"), "refresh-parity": ()}
+                "bring-to-epoch": ("generated", "population"), "refresh-parity": (), "repair-db": ()}
 """dict: The kinds of data change (`planetgen.db.dataversion.CHANGES`) a command makes when it is not just
 generation; any other writing command is `generated`."""
 

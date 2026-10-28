@@ -411,17 +411,23 @@ def protect_sector(conn, sector_id, parity_store=None, before=None):
 
     Returns:
         str: `"protected"`, `"current"` (the record already holds these rows; only the flag is cleared), `"released"` (the
-        sector is gone and was taken out of its group), or `"unprotectable"` (a member of the group is damaged or its record
-        is unreadable: nothing was changed, the sector stays marked).
+        sector is gone and was taken out of its group), or `"unprotectable"` (the sector itself no longer hashes to the checksum
+        sealed for it, a member of its group is damaged, or the group's record is unreadable: nothing was changed, and the
+        sector stays as it was for `repair-db`).
     """
     parity_store = parity_store or store()
-    row = conn.execute("SELECT id FROM sectors WHERE id = ? FOR UPDATE", (sector_id,)).fetchone()
+    row = conn.execute("SELECT id, parity_dirty AS d, storage_checksum AS c FROM sectors WHERE id = ? FOR UPDATE",
+                       (sector_id,)).fetchone()
     try:
         if row is None:
             result = _release(conn, sector_id, parity_store)
             conn.commit()
             return result
         data, checksum = sector_export.export_sector(conn, sector_id)
+        if not row["d"] and row["c"] is not None and bytes(row["c"]) != checksum:
+            conn.rollback()                 # sealed and unchanged since, yet different: damage, which parity must not absorb
+            log.error(f"Parity: sector {sector_id} no longer hashes to its stored checksum; left as it is for repair-db")
+            return UNPROTECTABLE
         with parity_store.file.locked():
             held = parity_store.member(sector_id)
             if held is not None and held[2].checksum == checksum and held[2].length == len(data):
