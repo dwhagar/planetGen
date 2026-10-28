@@ -15264,7 +15264,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.46, DB.47, DB.48.
+  Prerequisites: DB.47, DB.48.
   Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
 
 - [ ] **DB.17 Repair by regenerating a damaged sector from its seed when parity cannot rebuild it**
@@ -15365,7 +15365,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   records its size and the sector count it covers. Done: the part
   registered with ADM.87, the lock-held copy under a concurrent save,
   and the size and coverage in the manifest (the restore is DB.41).
-  Prerequisites: DB.46. Related: ADM.85, DB.8, DB.17.
+  Prerequisites: none. Related: ADM.85, DB.8, DB.17.
 
 - [ ] **DB.41 Parity data restore: put a backed-up parity file back and check it against the database**
   Boss (2:00 PM EDT): "we also have to build a way to use that data so
@@ -15411,30 +15411,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   damage a healthy sector.
   Prerequisites: DB.41, DB.9, DB.17. Related: DB.9, DB.17, ADM.91.
 
-- [ ] **DB.46 The parity file: groups, records, a delta update on every save and the stale-record rule**
-  Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). A parity file kept outside the
-  database (path in `config.json`) with G = 32 members and m = 2 parity
-  blocks per group (both in `config.json`), groups formed at save time
-  from sectors of one export-size class that are far apart in sector id
-  (the W = 256 rule, shrinking for small galaxies); an append-only log
-  of self-describing records (magic, format version, group id, `seq`,
-  per-member address, length and checksum, parity bytes, CRC32C), an
-  in-memory index rebuilt by a header scan, compaction as a function.
-  Each save updates the group's parity from the member's before-image
-  inside the saving transaction (`P_j' = P_j xor c_ji x (old xor new)`),
-  after checking the before-image against its old checksum, then clears
-  `parity_dirty`. The stale-record decision table of design 5.6 is code.
-  Why: this is the part that makes repair possible and it must cost
-  milliseconds per save. Done: the file, the update on save, and tests:
-  save, edit and delete keep parity equal to a fresh encode; a torn tail
-  loses nothing; a stale record is recomputed, not treated as damage;
-  overhead is about 7 percent on a 1,000-sector fixture.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: DB.9, DB.45.
-
 - [ ] **DB.47 planetgen repair-db: rebuild damaged sectors from the parity file**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). `generate.py repair-db` (the
@@ -15451,7 +15427,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.46. Related: DB.9.
+  Prerequisites: none. Related: DB.9.
 
 - [ ] **DB.48 repair-db: rebuild the table when a clustered-index page is unreadable**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -20144,6 +20120,17 @@ clears each one.
   (test_gen_compact_orbit_laws may be fixed by GEN.832, #3433). Fix
   each, or file the generator cause. Owner: Bug 1. Not caused by any
   lock holder; say so in the PR instead of fixing it there.
+  Prerequisites: none.
+
+- [ ] **TEST.423 test_admin_edits::test_recommended_class_change_saves_and_validates fails on clean main: the stand-in body has no eccentricity since migration 0163 (bug)**
+  Found by Core 1 in its DB.46 gate (about 1:50 PM EDT 2026-10-28 as the
+  lane reported), also red on clean main. Since migration 0163
+  (GEN.727/737/731, eccentricity column, #3380) the test's stand-in
+  planet body carries no eccentricity, so the admin edit validation
+  rejects it. Fix: give the stand-in body an eccentricity (and any other
+  column 0163 added) in the test fixture. Owner: Bug 1. Related:
+  TEST.402 (test_db_column_round_trip::test_every_column_is_written,
+  flake under load, same gate).
   Prerequisites: none.
 
 ## USR: User accounts
