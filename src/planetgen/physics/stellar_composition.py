@@ -51,11 +51,12 @@ Chandrasekhar table and no layers, a neutron star the Chamel and Haensel 2008 ou
 """
 
 import math
+import re
 from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.datasets import fetch, isochrones, neutron_star_matter, white_dwarf_models
-from planetgen.physics import constants, elements, main_sequence
+from planetgen.physics import constants, elements, main_sequence, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
 
@@ -222,6 +223,8 @@ def kind_of(yerkes_class, mass_sol=None, phase=None, z=None):
         return ASYMPTOTIC_GIANT if phase == "asymptotic-giant" else RED_GIANT
     if yerkes_class in SUPERGIANT_CLASSES:
         return SUPERGIANT
+    if yerkes_class == wolf_rayet.CLASS:
+        return WOLF_RAYET
     if yerkes_class in ("VII", "D"):
         return WHITE_DWARF
     raise StarMakeupError(f"no kind for the Yerkes class {yerkes_class!r}")
@@ -235,15 +238,38 @@ def carbon_star_minimum_mass_sol(z):
     return m_low + share * (m_high - m_low)
 
 
-def wolf_rayet_surface(subtype, u):
-    """The surface mass fractions of a Wolf-Rayet star of `subtype` ("WN-early", "WN-late", "WN/WC", "WC"): every range of the
-    subtype's row taken at the position `u` (0 to 1) inside it. The remainder is helium (and oxygen in a WO star), the split open."""
-    try:
-        row = tuning.STELLAR_WOLF_RAYET[subtype]
-    except KeyError:
-        raise StarMakeupError(f"no Wolf-Rayet subtype {subtype!r}; expected one of {sorted(tuning.STELLAR_WOLF_RAYET)}") from None
+def wolf_rayet_row(subtype, teff_k=None):
+    """
+    The row of `tuning.STELLAR_WOLF_RAYET` a Wolf-Rayet star takes: a row's own name ("WN-early", "WN-late", "WN/WC", "WC", "WO"),
+    or the generator's subtype with its subclass number ("WN6", "WC4", "WO2", as the spectral text writes it), or the subtype
+    alone ("WN", "WC", "WO") with the star's effective temperature, from which the subclass follows (`wolf_rayet.subclass`). A WN
+    star is early up to `tuning.WR_WN_EARLY_MAX_SUBCLASS` and late above it.
+
+    Raises:
+        StarMakeupError: The name is none of these, or a WN subtype has neither a subclass number nor a temperature.
+    """
+    if subtype in tuning.STELLAR_WOLF_RAYET:
+        return subtype
+    match = re.fullmatch(r"(WN|WC|WO)(\d+)?", str(subtype))
+    if match is None:
+        raise StarMakeupError(f"no Wolf-Rayet subtype {subtype!r}; expected one of {sorted(tuning.STELLAR_WOLF_RAYET)}, "
+                              "or WN, WC or WO with its subclass number")
+    name, number = match.group(1), match.group(2)
+    if name != "WN":
+        return name
+    if number is None:
+        if teff_k is None:
+            raise StarMakeupError("a WN star needs its subclass number or its effective temperature to be early or late")
+        number = wolf_rayet.subclass(name, teff_k)
+    return "WN-early" if int(number) <= tuning.WR_WN_EARLY_MAX_SUBCLASS else "WN-late"
+
+
+def wolf_rayet_surface(subtype, u, teff_k=None):
+    """The surface mass fractions of a Wolf-Rayet star of `subtype` (`wolf_rayet_row`): every range of the subtype's row taken at the
+    position `u` (0 to 1) inside it. The remainder is helium (and some oxygen in a WN or WC star, the split open); a WO star's oxygen is its own range."""
+    row = tuning.STELLAR_WOLF_RAYET[wolf_rayet_row(subtype, teff_k)]
     fractions = {name: (value[0] + u * (value[1] - value[0]) if isinstance(value, tuple) else value) for name, value in row.items()}
-    fractions["He and O"] = 1.0 - sum(fractions.values())
+    fractions["He" if "O" in fractions else "He and O"] = 1.0 - sum(fractions.values())
     return fractions
 
 
@@ -262,7 +288,7 @@ def _neutron_star_crust(draws):
             "radius_band_km": tuning.STELLAR_NS_RADIUS_BAND_KM}
 
 
-def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, teff_k=None):
+def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin=0.0, teff_k=None):
     """
     The composition of a star or remnant.
 
@@ -272,9 +298,9 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, te
         age_gy (float): The star's age, Gy.
         mass_sol (float): Its present mass, solar masses (a white dwarf's final mass, a giant's near-initial one).
         key (str): `abundance_key(...)`: the draws are `key_draws(key)`.
-        wolf_rayet (str or None): The subtype, for a Wolf-Rayet star.
+        wolf_rayet_subtype (str or None): The subtype, for a Wolf-Rayet star (`wolf_rayet_row`: the spectral text's "WN6", or "WN" with `teff_k`).
         spin (float): A black hole's dimensionless spin.
-        teff_k (float or None): A white dwarf's effective temperature, K (its stored one).
+        teff_k (float or None): A white dwarf's effective temperature, K (its stored one); a Wolf-Rayet star's, when its subtype has no subclass number.
 
     Raises:
         StarMakeupError: An unknown kind, or a kind that needs a [Fe/H], a subtype or a temperature and has none.
@@ -320,9 +346,9 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet=None, spin=0.0, te
                 open_items = ("the track does not cover this mass or age (0.1 solar masses and up, 0.1 Myr to about 20 Gy)",)
         detail["main_sequence"] = None if point is None else dict(zip(("log_luminosity_sol", "log_teff_k", "log_radius_sol"), point))
     elif kind == WOLF_RAYET:
-        if wolf_rayet is None:
+        if wolf_rayet_subtype is None:
             raise StarMakeupError("a Wolf-Rayet star needs its subtype")
-        detail["surface_fractions"] = wolf_rayet_surface(wolf_rayet, draws.u_wolf_rayet)
+        detail["surface_fractions"] = wolf_rayet_surface(wolf_rayet_subtype, draws.u_wolf_rayet, teff_k)
         open_items = ("the helium and oxygen split",)
     elif kind == BROWN_DWARF:
         mass_jupiter = mass_sol / sa.JUPITER_MASS_SOL
