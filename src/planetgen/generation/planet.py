@@ -234,7 +234,7 @@ class Planet(PlanetaryObject):
         *aerosols.BODY_FIELDS,
         *body_colour.BODY_FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
-        "born_beyond_snow_line",
+        "born_beyond_snow_line", "host_eccentricity",
     ]
     """
     Every attribute set by `__init__` (directly, or by the `planetPhysics`
