@@ -29,15 +29,15 @@ and the mixture there is drawn from the layer temperature of the body, not from 
 solution. The vapour over a melt or an ice sets its own pressure.
 
 What it does not do: the magma-ocean epoch, impacts, non-thermal escape of the heavy gases (the retention rows stand in), the seafloor
-weathering of an ocean world, a tectonic switch of the heat loss, the internal heat of a giant (its temperature at the reference
-level is the greenhouse of the absorbed starlight alone).
+weathering of an ocean world, a tectonic switch of the heat loss, the helium-rain share of a giant's own heat (GEN.810: its temperature at the reference
+level radiates the absorbed starlight and the cooling-law heat of `giant_draw.own_flux_w_m2`, GEN.816).
 """
 
 import math
 from dataclasses import dataclass, field
 
 from planetgen.physics import (
-    atmosphere, atmosphere_state, clathrate_brine, constants, gas_equilibrium, gases, greenhouse, hydrosphere, interior_heat, mixture_draw, mixture_rocky,
+    atmosphere, atmosphere_state, clathrate_brine, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, interior_heat, mixture_draw, mixture_rocky,
     mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, waterworld_carbon,
 )
 from planetgen import tuning
@@ -156,6 +156,8 @@ class Setting:
         water_kg (float): The water at the surface (ocean, ice, the part of the mantle's that the surface holds), the reservoir the water
             vapour of the air stands in contact with.
         absorbed_flux_w_m2 (float): The starlight the surface absorbs, averaged over the sphere (`greenhouse.absorbed_flux_w_m2`).
+        internal_flux_w_m2 (float): A giant's own heat flux at its reference level (`giant_draw.own_flux_w_m2`, GEN.816), radiated with the
+            absorbed starlight; 0 for a body with a surface, whose heat flow is too small to warm the air.
         age_gy (float): The body's age (its star's, else the reference age of a starless body), Gy: the span the degassed sulfur arrived over.
         released_at_seal_j (float): The heat the interior had carried out by `waterworld_carbon.SEAL_TIME_GY` (or the body's age, if younger):
             what has degassed into the closed system of a world whose ocean seals the seafloor.
@@ -182,14 +184,20 @@ class Setting:
     age_gy: float = tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     bulk_water_fraction: float = 0.0
     giant: bool = False
+    internal_flux_w_m2: float = 0.0
 
     @property
     def area_m2(self):
         return 4.0 * math.pi * self.radius_m ** 2
 
     @property
+    def radiated_flux_w_m2(self):
+        """What the body radiates in balance: the starlight it absorbs and its own heat flux."""
+        return self.absorbed_flux_w_m2 + self.internal_flux_w_m2
+
+    @property
     def effective_temperature_k(self):
-        return greenhouse.effective_temperature_k(self.absorbed_flux_w_m2)
+        return greenhouse.effective_temperature_k(self.radiated_flux_w_m2)
 
 
 @dataclass(frozen=True)
@@ -588,7 +596,7 @@ def solve(setting, start_temperature_k):
         if new_pressure <= 0.0:
             return _airless(setting, mixture, step, design, ocean)
 
-        warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, setting.absorbed_flux_w_m2)
+        warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, setting.radiated_flux_w_m2)
         new_temperature = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k), MAX_SURFACE_TEMPERATURE_K)
         change_p = abs(math.log(new_pressure) - ln_pressure)
         change_t = abs(new_temperature - temperature)
@@ -664,4 +672,5 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         released_at_seal_j=interior_heat.released_by(body, min(age_gy, waterworld_carbon.SEAL_TIME_GY)),
         mantle_water_kg=0.0 if giant else max(0.0, (body.water_mass_fraction or 0.0) * body.mass - surface_w * body.mass),
         subject_of=subject_of, age_gy=age_gy,
-        bulk_water_fraction=0.0 if giant else (body.water_mass_fraction or 0.0), giant=giant)
+        bulk_water_fraction=0.0 if giant else (body.water_mass_fraction or 0.0), giant=giant,
+        internal_flux_w_m2=giant_draw.own_flux_w_m2(body) if giant else 0.0)

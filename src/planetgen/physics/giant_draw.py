@@ -26,7 +26,8 @@ The one-bar temperature that decides helium rain is the effective temperature (s
 import math
 
 from planetgen import tuning
-from planetgen.physics import bulk_composition, bulk_draw, climate_draws, composition_text, constants, giant_interior, giant_radius
+from planetgen.physics import (bulk_composition, bulk_draw, climate_draws, composition_text, constants, giant_interior, giant_radius,
+                               rogue_surface)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -63,10 +64,6 @@ BOND_ALBEDO = 0.503
 """float: Jupiter's Bond albedo (Li et al. 2018, Nature Communications 9:3709, the newer of two measurements; Hanel et al. 1981 had
 0.343), taken for every giant's effective temperature."""
 
-INTERNAL_TEMPERATURE_K = 100.0
-"""float: The temperature of Jupiter's own heat (Li et al. 2018: 100 K), scaled by `(M / Jupiter)^0.5` in `effective_temperature_k`,
-a stand-in until the cooling tracks of the radius tables give the heat of a body of this mass and age."""
-
 ONE_BAR_OVER_EFFECTIVE = 1.33
 """float: The temperature at one bar over the effective temperature (Jupiter: 166 K over 125 K; Saturn: 134 K over 98.8 K, which
 is 1.36), a stand-in."""
@@ -86,11 +83,20 @@ def starlight_w_m2(planet):
     return climate_draws.starlight_w_m2(planet.star.luminosity, planet.distance * constants.AU_TO_KM)
 
 
-def effective_temperature_k(flux_w_m2, mass_earth):
-    """The temperature a giant radiates at: its starlight (`BOND_ALBEDO`) and its own heat added in the fourth power."""
-    own_k = INTERNAL_TEMPERATURE_K * (mass_earth / giant_interior.EARTH_MASS_JUPITER) ** 0.5
+def own_flux_w_m2(planet):
+    """A giant's own heat flux at its 1 bar level, W/m2, at its star's age: the cooling law through Jupiter and Neptune of
+    `rogue_surface.giant_internal_flux_w_m2` (L ~ M^1.65 below a Jupiter mass, t^-1.3 in age; GEN.816). It stands in for the heat a
+    body of this mass and age has left until the cooling tracks of the radius tables give it, and it has no helium-rain share yet
+    (GEN.810), which is why a Saturn-like giant comes out cooler than Saturn."""
+    age_gy = getattr(getattr(planet, "star", None), "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
+    return rogue_surface.giant_internal_flux_w_m2(planet.mass, planet.radius, age_gy)
+
+
+def effective_temperature_k(flux_w_m2, own_w_m2):
+    """The temperature a giant radiates at, K: the starlight it absorbs (`BOND_ALBEDO`) and its own heat flux `own_w_m2` added as
+    fluxes."""
     starlight_k = climate_draws.equilibrium_temperature_k(BOND_ALBEDO, flux_w_m2)
-    return (starlight_k ** 4 + own_k ** 4) ** 0.25
+    return (starlight_k ** 4 + own_w_m2 / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25
 
 
 def regime_of(mass_earth):
@@ -150,7 +156,7 @@ def draw_giant(planet, radius_given, fallback_radius_km):
 
     part = bulk_draw.dry_partition(ratios, *REFERENCE_FRACTIONS, False)
     temperature_k = (MOON_ONE_BAR_K if flux_w_m2 is None
-                     else ONE_BAR_OVER_EFFECTIVE * effective_temperature_k(flux_w_m2, mass_earth))
+                     else ONE_BAR_OVER_EFFECTIVE * effective_temperature_k(flux_w_m2, own_flux_w_m2(planet)))
     subject = giant_interior.GiantSubject(
         mass_earth=mass_earth, radius_km=planet.radius, heavy_mass_earth=heavy_earth, envelope_z=envelope_z,
         helium_share=ratios.y_envelope, temperature_1bar_k=temperature_k, iron_share_of_refractory=part.metal,
