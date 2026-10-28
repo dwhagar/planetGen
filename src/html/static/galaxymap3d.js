@@ -87,6 +87,8 @@ const { nodeCut, parseNodeKey, settledExpanded, weightCalculator } = await impor
 const { SlotStore, relativeOffset, runsOf, splitPair } = await import(`./starbuffer.js${VERSION_QUERY}`);
 const { blobsOf } = await import(`./galaxyglow.js${VERSION_QUERY}`);
 const { createGlowLayer } = await import(`./galaxyglowlayer.js${VERSION_QUERY}`);
+const { regionBlobs, regionLook, chartedText } = await import(`./galaxyregions.js${VERSION_QUERY}`);
+const { createRegionList } = await import(`./galaxyregionlist.js${VERSION_QUERY}`);
 const { unpackResponse, unpackNode } = await import(`./tilepack.js${VERSION_QUERY}`);
 const {
   STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude, tierMagnitudePenalty,
@@ -481,6 +483,27 @@ function phenomenonActions(item) {
   return spec;
 }
 
+// MAP.316: a charted region picked on the map: how much of it is charted, its family, and a button that flies to it.
+function showRegionInfo(blob) {
+  showInfo({
+    title: blob.name || "Charted region",
+    fields: [
+      ["Charted", chartedText(blob.share)],
+      ["Sectors generated", blob.sectorCount + " of " + blob.capacity],
+      ["Family", blob.parent],
+      ["Distance from core", formatDistancePc(Math.hypot(blob.x, blob.y, blob.z))],
+    ],
+    more: [["Radius", formatDistancePc(blob.radiusPc)], ["Region cell", blob.key]],
+    buttons: [{ label: "Fly to region", onClick: function () { openRegionBlob(blob); } }],
+  });
+}
+
+// Flies to a charted region of the regions layer: its window, the camera framing its extent (MAP.319).
+function openRegionBlob(blob) {
+  if (!regionOpener) return;
+  regionOpener.region({ block: blob.block, extent: { centre: [blob.x, blob.y, blob.z], radius: blob.radiusPc } });
+}
+
 function showCloudInfo(cloud) {
   showInfo(withRegion(Object.assign({
     title: cloud.name || cloudTypeLabel(cloud),
@@ -835,10 +858,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // neighbouring sector carries an icon that flies there. With none opened the map is as it was.
   var SECTOR_OUTSIDE_SHARE = 0.3;
   var sectorFrame = null;
+  var regionFrame = null;
+  var framedRegion = "";
+  var framedAt = "";
   var glowLayerOn = true;
   function applySectorView() {
     starMaterial.uniforms.outsideDim.value = hiddenCell ? SECTOR_OUTSIDE_SHARE : 1;
     if (glow) glow.setVisible(glowLayerOn && !hiddenCell);
+    if (regionLayer) regionLayer.setVisible(regionsOn && !hiddenCell);
     if (sectorFrame) sectorFrame.set(hiddenCell);
   }
 
@@ -1468,6 +1495,9 @@ function initGalaxyMap3d(canvasEl, data) {
     if (hadStamp && stageView) {
       stageView.invalidate();
     }
+    if (hadStamp) {
+      loadRegions();
+    }
     if (stale) {
       stale.forEach(function (key) {
         nodeMemory.delete(key);
@@ -1835,6 +1865,38 @@ function initGalaxyMap3d(canvasEl, data) {
   scene.add(starPoints);
   // MAP.266: the unresolved glow, under the stars (the Sector Map has none: its sector is all resolved).
   var glow = data.pinned ? null : createGlowLayer(scene, camera, canvasEl, { light: isLightBackground() });
+  // MAP.316: the charted regions, soft spheres at their extents coloured by share charted, drawn by a layer of their own
+  // (under the glow's) that fades each as its stars resolve; the list in the Menu and the names come from the same blobs.
+  var regionLayer = data.pinned || !data.regionsPath ? null : createGlowLayer(scene, camera, canvasEl, { light: isLightBackground(), look: regionLook, renderOrder: 3 });
+  var regionBlobList = [];
+  var regionsVersion = 0;
+  var regionsOn = true;
+  var regionList = null;
+  var regionByKey = new Map();
+  // A click lands on a region's sphere within this share of its radius on the screen (at least this many pixels), and only
+  // while it is drawn at least this strongly: the soft rim is not the region.
+  var REGION_PICK_SHARE = 0.7;
+  var REGION_PICK_MIN_PX = 9;
+  var REGION_PICK_MIN_ALPHA = 0.05;
+  var regionSpot = new THREE.Vector3();
+  function setRegions(list) {
+    regionBlobList = list;
+    regionByKey = new Map(list.map(function (blob) { return [blob.key, blob]; }));
+    regionsVersion += 1;
+    regionLayer.setBlobs(list, [0, 0, 0]);
+    if (regionList) regionList.set(list);
+  }
+  function loadRegions() {
+    if (!regionLayer) return;
+    fetch(data.regionsPath).then(function (response) {
+      if (!response.ok) throw new Error(data.regionsPath + " returned " + response.status);
+      return response.json();
+    }).then(function (payload) {
+      setRegions(regionBlobs(payload.regions));
+    }).catch(function () {
+      // The regions are an aid to finding known space; the map is whole without them, and the next change of the galaxy asks again.
+    });
+  }
   // MAP.267: the stars are one buffer filled node by node. Each drawn node's stars are a chunk at the end of the
   // buffer (`starSlots`, starbuffer.js); a node that leaves is cut out by moving the tail into its place, so the
   // buffer stays dense from 0 to `starList.length` and a node landing is a write at the end, not a rebuild. Positions
@@ -3545,6 +3607,15 @@ function initGalaxyMap3d(canvasEl, data) {
       return { outsideDim: starMaterial.uniforms.outsideDim.value, glowVisible: glow ? glow.isVisible() : null, opened: !!hiddenCell };
     };
     sectorFrame.set(hiddenCell);
+    // MAP.327: in the galactic view the same locked wireframe round the charted region the view is in (the 9-block holding the
+    // point the camera looks at), with no dimming and no wall icons; it is the sector's frame that takes over once a sector is opened.
+    if (regionLayer) {
+      regionFrame = createSectorFrame({
+        THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl, parent: viewport, accent: accentColor, edgePc: edgePc,
+        neighbour: function () { return null; }, label: function () { return ""; }, cellPoints: cellEdgePoints, onMove: function () {},
+      });
+      canvasEl.__mapRegionFrame = regionFrame;    // the browser tests read it
+    }
   }
   // MAP.266: the glow is a layer of the Menu like the markers, on until the visitor says otherwise.
   if (glow) {
@@ -3565,6 +3636,76 @@ function initGalaxyMap3d(canvasEl, data) {
       }
     });
     canvasEl.__mapGlow = glow;    // the browser tests read what is drawn
+  }
+  // MAP.316: the charted regions are a layer of the Menu too, on unless the visitor hides them.
+  if (regionLayer) {
+    stageView.layers.register({
+      id: "regions", label: "Charted regions", modes: ["galaxy"], group: "Show on the map", data: { regions: "charted" },
+      defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+      title: "Show or hide the soft spheres that mark the regions with generated sectors, colored by how much is charted",
+      legend: null,
+    });
+    stageView.readLayersFromLocation();
+    stageView.layers.refresh();
+    regionsOn = stageView.layers.isOn("regions");
+    regionLayer.setVisible(regionsOn && !hiddenCell);
+    stageView.layers.onChange(function (id, on) {
+      if (id === "regions") {
+        regionsOn = on;
+        regionLayer.setVisible(regionsOn && !hiddenCell);
+      }
+    });
+    var regionListRoot = document.getElementById("galaxymap3d-regions");
+    if (regionListRoot) regionList = createRegionList(regionListRoot, openRegionBlob);
+    canvasEl.__mapRegions = regionLayer;    // the browser tests read what is drawn
+    canvasEl.__mapRegionList = regionList;
+    // For tests (MAP.316): each region as drawn, where its middle is on the screen (CSS pixels from the canvas's top left),
+    // its radius there and how strongly it shows.
+    canvasEl.galaxyRegionSpots = function () {
+      var width = canvasEl.clientWidth;
+      var height = canvasEl.clientHeight;
+      var focal = focalPixels();
+      var here = camera.position.toArray();
+      var point = new THREE.Vector3();
+      return regionBlobList.map(function (blob) {
+        var look = regionLook(blob, here, focal);
+        point.set(blob.x, blob.y, blob.z).project(camera);
+        var x = (point.x + 1) / 2 * width;
+        var y = (1 - point.y) / 2 * height;
+        return { key: blob.key, name: blob.name, share: blob.share, color: blob.color, alpha: look.alpha, radiusPx: look.radiusPx, x: x, y: y,
+          visible: point.z > -1 && point.z < 1 && x >= 0 && x <= width && y >= 0 && y <= height };
+      });
+    };
+    // A click on a region's sphere shows its card, a double click flies to it; any star, marker or object under the
+    // pointer comes first (the layer is added last).
+    picker.addLayer({
+      name: "regions",
+      priority: 100,
+      pick: function (ctx) {
+        if (!regionsOn || hiddenCell) return null;
+        var focal = focalPixels();
+        var here = camera.position.toArray();
+        var best = null;
+        regionBlobList.forEach(function (blob) {
+          var look = regionLook(blob, here, focal);
+          if (!(look.alpha > REGION_PICK_MIN_ALPHA)) return;
+          regionSpot.set(blob.x, blob.y, blob.z).project(camera);
+          if (!(regionSpot.z > -1 && regionSpot.z < 1)) return;
+          var x = ctx.rect.left + (regionSpot.x + 1) / 2 * ctx.rect.width;
+          var y = ctx.rect.top + (1 - regionSpot.y) / 2 * ctx.rect.height;
+          var reach = Math.max(REGION_PICK_MIN_PX, look.radiusPx * REGION_PICK_SHARE);
+          var near = Math.hypot(ctx.clientX - x, ctx.clientY - y) / reach;
+          if (near <= 1 && (!best || near < best.near)) best = { near: near, blob: blob, distance: look.distance };
+        });
+        return best ? { entry: best.blob, distance: best.distance } : null;
+      },
+      tooltip: function (blob) { return (blob.name || "Charted region") + ", " + chartedText(blob.share); },
+      select: function (blob) {
+        highlightPosition(blob.x, blob.y, blob.z);
+        showRegionInfo(blob);
+      },
+    });
+    loadRegions();
   }
   regionLookup = regionAt;
   regionOpener = {
@@ -3630,6 +3771,23 @@ function initGalaxyMap3d(canvasEl, data) {
       });
     });
     return found;
+  }
+  // MAP.327: the wireframe round the charted region the view is in; worked out when the point the camera looks at, the regions or
+  // the opened sector change, not every frame.
+  function updateRegionFrame() {
+    if (!regionFrame) return;
+    var at = [target.x, target.y, target.z, regionsVersion, regionsOn, !!hiddenCell].join(",");
+    if (at === framedAt) return;
+    framedAt = at;
+    var key = "";
+    if (regionsOn && !hiddenCell && regionBlobList.length) {
+      var cell = cellAt(9, target.x, target.y, target.z, edgePc);
+      var cellKey = cell.m + "." + cell.shell + "." + cell.band + "." + cell.wedge;
+      if (regionByKey.has(cellKey)) key = cellKey;
+    }
+    if (key === framedRegion) return;
+    framedRegion = key;
+    regionFrame.set(key ? drillBlockBounds(regionByKey.get(key).block, edgePc) : null);
   }
   var markerFrustum = new THREE.Frustum();
   var markerMatrix = new THREE.Matrix4();
@@ -4101,6 +4259,10 @@ function initGalaxyMap3d(canvasEl, data) {
     starMaterial.uniforms.now.value = starClock();
     updateStarEye();
     updateStarShares();
+    if (regionLayer) {
+      regionLayer.update(null, focalPixels(), regionsVersion);
+      updateRegionFrame();
+    }
     if (glow) {
       glow.update(drawnSettled ? function () {
         return weightCalculator(camera.position.toArray(), NODE_EDGE_PC, focalPixels(), drawnSettled);

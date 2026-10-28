@@ -380,6 +380,19 @@ STEP_BUTTONS = [
 ]
 """list: MAP.121, the Menu's step buttons: (direction, label, title). Each moves the map to the neighbouring cell of the window's own level; none is enabled where there is nothing to step to."""
 
+REGIONS_LIST = """    <details class="galaxy-sub" id="galaxymap3d-regions" hidden>
+      <summary>Charted regions <span class="galaxy-regions-count" data-regions-count></span></summary>
+      <label class="galaxy-regions-sort">Sort by
+        <select data-regions-sort>
+          <option value="share">Share charted</option>
+          <option value="name">Name</option>
+        </select>
+      </label>
+      <ol class="galaxy-regions-list" data-regions-list></ol>
+    </details>
+"""
+"""MAP.316: the Menu's charted-regions list, each region a button that flies to it; shown once the map holds some."""
+
 ZOOM_BUTTONS = """  <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
 """
@@ -434,7 +447,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape", uncharted_scene_url=None,
                               uncharted_phenomenon_url=None, superbubbles=None, nearby_url=None,
-                              system_nearest_path="/galaxy/system/{id}/nearest"):
+                              system_nearest_path="/galaxy/system/{id}/nearest", regions_path=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -497,6 +510,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             button and its legend out.
         system_nearest_path (str): The endpoint of a star system's nearest neighbours (`/galaxy/system/{id}/nearest`,
             `{id}` where the system's id goes), which a system's card lists under its position (MAP.296).
+        regions_path (str or None): The charted regions' endpoint (`/galaxy/regions`, MAP.316), which the map draws its
+            galactic-scale region nodes and its charted-regions list from. `None` (a sector page's map) leaves both out.
         nebula_shape_path (str): The endpoint of a nebula's mesh (`/galaxy/
             nebula/{id}/shape`, `{id}` where the nebula's id goes), which the
             map draws a nebula from once it is big enough on screen
@@ -557,6 +572,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "locatePath": locate_path,
         "territoryPath": territory_path,
         "nebulaShapePath": nebula_shape_path,
+        "regionsPath": regions_path,
         "systemNearestPath": system_nearest_path,
         "course": course,
         "made": made,
@@ -680,6 +696,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             '<span class="galaxy-legend-title"></span>'
             '<span class="galaxy-legend-bar"></span>'
             '<span class="galaxy-legend-low"></span><span class="galaxy-legend-high"></span></div>\n')
+    regions_block = ""
+    if regions_path:
+        regions_block = REGIONS_LIST
     territory_button = territory_box = ""
     if territory_path:
         territory_button = (
@@ -757,7 +776,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
       <summary>Show on the map</summary>
       <div class="galaxy-kinds" id="galaxymap3d-kinds" role="group" aria-label="Show on the map" hidden></div>
     </details>
-{step_group}    <div class="galaxy-menu-actions">
+{regions_block}{step_group}    <div class="galaxy-menu-actions">
     <button type="button" class="starmap-btn" data-action="center-on" data-icon="center-on"
             title="Move the center the view turns and zooms about to what is selected, or the middle of the view (C)">Center on selection</button>
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"

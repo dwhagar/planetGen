@@ -2804,6 +2804,41 @@ code {
   font-weight: 600;
 }
 
+/* MAP.316: the Menu's list of charted regions, a button a line, the longest list scrolling in the Menu. */
+.galaxy-regions-sort {
+  display: block;
+  padding: 0.35rem 0 0.2rem;
+  font-size: 0.85rem;
+}
+
+.galaxy-regions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.galaxy-region-button {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  font-size: 0.85rem;
+  background: none;
+  border: none;
+  border-radius: 6px;
+  padding: 0.3rem 0.45rem;
+  color: var(--accent);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.galaxy-region-button:hover,
+.galaxy-region-button:focus-visible {
+  background: var(--bg-subtle);
+}
+
 .galaxy-menu-actions {
   display: flex;
   flex-wrap: wrap;

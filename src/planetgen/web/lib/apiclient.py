@@ -662,6 +662,13 @@ def get_galaxy_nebula_cover(db, at=None, g=None):
     return _request("/galaxy/nebula-cover", {"db": db, "at": at, "g": g})
 
 
+def get_galaxy_charted_regions(db):
+    """Returns `GET /api/galaxy/charted-regions`' payload (`regions`, each charted region with its node key, extent, share
+    charted and name, by share charted; `edge_pc` -- see `db.region_stats.charted_regions`)."""
+    _require_db(db)
+    return _request("/galaxy/charted-regions", {"db": db})
+
+
 def get_territories(db):
     """Returns `GET /api/territories`' payload (`points`: owned systems
     with galaxy-frame parsec positions and their polity's color;
