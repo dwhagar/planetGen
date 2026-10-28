@@ -221,3 +221,60 @@ test("a legend swatch can be a CSS class", () => {
   const swatch = container.querySelector(".map-layer-legend-swatch");
   assert.ok(swatch.classList.contains("sysmap-legend-facility"));
 });
+
+function poiRegistry() {
+  installDom("http://localhost/galaxy");
+  const reg = L.createLayerRegistry("galaxy");
+  reg.bulkGroup("Points of interest");
+  reg.register({ id: "poi-a", label: "Alpha", group: "Points of interest", forward: true, urlKey: "hide", urlKeyOn: "show" });
+  reg.register({ id: "poi-b", label: "Beta", group: "Points of interest", forward: true, defaultOn: false, urlKey: "hide", urlKeyOn: "show" });
+  reg.register({ id: "plain", label: "Plain", group: "Points of interest" });
+  return reg;
+}
+
+test("a forward-capable layer has three states, and pulling it forward shows it (MAP.306)", () => {
+  const reg = poiRegistry();
+  assert.deepEqual(["poi-a", "poi-b"].map((id) => reg.stateOf(id)), ["shown", "hidden"]);
+  reg.setPulled("poi-b", true);
+  assert.deepEqual([reg.isOn("poi-b"), reg.isPulled("poi-b"), reg.stateOf("poi-b")], [true, true, "forward"]);
+  reg.setOn("poi-b", false);
+  assert.equal(reg.stateOf("poi-b"), "hidden");
+  reg.setOn("poi-b", true);
+  assert.equal(reg.stateOf("poi-b"), "shown", "hiding let it go from the front");
+  assert.equal(reg.setPulled("plain", true), false, "a layer that cannot be pulled forward stays as it is");
+});
+
+test("the layers pulled forward ride the address as front, and read back", () => {
+  const reg = poiRegistry();
+  reg.setPulled("poi-a", true);
+  const params = reg.writeUrl(new URLSearchParams());
+  assert.equal(params.get("front"), "poi-a");
+  const other = poiRegistry();
+  const seen = [];
+  other.onChange((id) => seen.push(id));
+  other.readUrl(params);
+  assert.equal(other.stateOf("poi-a"), "forward");
+  assert.ok(seen.includes("poi-a"));
+  other.readUrl(new URLSearchParams());
+  assert.equal(other.stateOf("poi-a"), "shown");
+  assert.equal(other.writeUrl(new URLSearchParams()).get("front"), null);
+});
+
+test("the Menu gives a forward layer a second button and the group one row that sets every layer at once", () => {
+  const reg = poiRegistry();
+  const container = h("div", {});
+  reg.renderMenu(container);
+  assert.deepEqual(container.querySelectorAll("button").filter((b) => b.dataset.forward).map((b) => b.dataset.forward), ["poi-a", "poi-b"]);
+  const front = container.querySelector('button[data-forward="poi-a"]');
+  assert.equal(front.getAttribute("aria-pressed"), "false");
+  front.click();
+  assert.equal(reg.stateOf("poi-a"), "forward");
+  assert.equal(container.querySelector('button[data-forward="poi-a"]').getAttribute("aria-pressed"), "true");
+  assert.equal(container.querySelector('button[data-forward="poi-b"]').disabled, true, "a hidden layer cannot be pulled forward by its row");
+  container.querySelector('button[data-bulk="forward"]').click();
+  assert.deepEqual(["poi-a", "poi-b"].map((id) => reg.stateOf(id)), ["forward", "forward"]);
+  container.querySelector('button[data-bulk="hidden"]').click();
+  assert.deepEqual(["poi-a", "poi-b", "plain"].map((id) => reg.isOn(id)), [false, false, false]);
+  container.querySelector('button[data-bulk="shown"]').click();
+  assert.deepEqual(["poi-a", "poi-b", "plain"].map((id) => reg.stateOf(id)), ["shown", "shown", "shown"]);
+});
