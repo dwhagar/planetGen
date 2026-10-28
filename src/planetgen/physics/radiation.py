@@ -56,7 +56,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_radiation, constants, magnetism, mixture, ozone, proton_range, radiogenic, surface_composition
+from planetgen.physics import body_colour, body_radiation, constants, magnetism, mixture, ozone, proton_range, radiogenic, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -393,6 +393,7 @@ def apply_air_loss(body, retained_fraction):
         return
     body.ozone_column_du = ozone.column_after_air_loss(column, retained_fraction)
     body.uv_surface_index = body_radiation.dna_dose_index(body)
+    body_colour.generate(body)
 
 
 def column_g_cm2(pressure_pa, gravity_g):

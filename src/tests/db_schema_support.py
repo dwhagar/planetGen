@@ -73,6 +73,12 @@ def drop_rings(conn):
         conn.execute(f"ALTER TABLE {table} DROP CHECK {table}_chk_10, DROP CHECK {table}_chk_11, {columns}, ALGORITHM=COPY")
 
 
+def drop_atmosphere_colour(conn):
+    """Makes the database older than v162: the `atmosphere_colour` column (DB.96) gone."""
+    for table in ("planets", "moons"):
+        conn.execute(f"ALTER TABLE {table} DROP COLUMN atmosphere_colour, ALGORITHM=COPY")
+
+
 def old_schema_versions():
     """Every version with a checked-in schema, oldest first."""
     versions = []

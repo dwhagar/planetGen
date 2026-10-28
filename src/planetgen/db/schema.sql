@@ -1439,6 +1439,8 @@
 -- v157 (GEN.654, DB.92): `planets` and `moons` keep the aquifer a world with no liquid at its surface holds underground, `aquifer_depth_km` (to the top of the water-bearing layer) and `aquifer_thickness_km` (NULL for a world with none, a gas giant and a row made before v157).
 -- v160 (GEN.732): `planets` and `moons` keep the ring system of a body (`ring_kind` dusty, narrow or broad; `ring_origin`; `ring_inner_km` and `ring_outer_km`; `ring_mass_kg`;
 --   `ring_optical_depth`, a mean; `ring_ice_fraction`). NULL for a body with no ring, a moon, and a row made before v160, which gets its rings when the galaxy is regenerated.
+-- v162 (DB.96): `planets` and `moons` keep the colour of the body's air as one integer (`atmosphere_colour`, sRGB as red*65536 + green*256 + blue; NULL for a body with no air, no star
+--   temperature or no mixture, and a row made before v162, which gets it when the galaxy is regenerated). The cloud cover it was worked out with is `cloud_cover` (v138).
 --
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
@@ -2422,6 +2424,7 @@ CREATE TABLE IF NOT EXISTS planets (
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
+    atmosphere_colour           INT UNSIGNED,  -- v162 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2722,6 +2725,7 @@ CREATE TABLE IF NOT EXISTS moons (
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
+    atmosphere_colour           INT UNSIGNED,  -- v161 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet

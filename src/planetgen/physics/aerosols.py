@@ -395,6 +395,32 @@ def layers(aerosols, centres_nm):
     return mixed, cloud
 
 
+def colour_layers(aerosols, centres_nm):
+    """
+    The haze, dust and cloud of a body as `atmosphere_colour.Aerosol`s for the atmosphere colour (GEN.418), on the wavelengths `centres_nm`.
+
+    Returns:
+        tuple: `(haze, dust, cloud)`, each `None` where its depth is 0 (the cloud also where it covers none of the sky).
+    """
+    from planetgen.physics import atmosphere_colour as colour_model
+
+    centres = np.asarray(centres_nm, dtype=float)
+    haze = dust = cloud = None
+    if aerosols.tau_haze > 0.0:
+        absorption = aerosols.tau_haze * (1.0 - HAZE_OMEGA_550) * _haze_absorption_shape(centres)
+        extinction = aerosols.tau_haze * (550.0 / centres) ** _haze_exponent(aerosols.aerosol_draw)
+        omega = np.clip(1.0 - absorption / extinction, 0.0, 1.0)
+        haze = colour_model.Aerosol(aerosols.tau_haze, tuple(zip(centres.tolist(), omega.tolist())), HAZE_G,
+                                    _haze_exponent(aerosols.aerosol_draw))
+    if aerosols.tau_dust > 0.0:
+        omega = _dust_omega(centres, aerosols.aerosol_draw)
+        g = DUST_G[0] + DUST_G[1] * (2.0 * aerosols.aerosol_draw - 1.0)
+        dust = colour_model.Aerosol(aerosols.tau_dust, tuple(zip(centres.tolist(), omega.tolist())), g)
+    if aerosols.tau_cloud > 0.0 and aerosols.cloud_cover > 0.0:
+        cloud = colour_model.Aerosol(aerosols.tau_cloud, CLOUD_OMEGA, CLOUD_G)
+    return haze, dust, cloud
+
+
 BODY_FIELDS = ("tau_haze", "tau_dust", "tau_cloud", "cloud_cover", "aerosol_draw")
 """tuple: What `generate_aerosols` sets on a planet or moon, as stored in `planets` and `moons` (DB.68)."""
 
