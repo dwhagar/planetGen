@@ -12545,6 +12545,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
   to go forward without correcting the physics"); it is a prerequisite
   of the headline GEN.301.
+  Research (2026-10-09): Re-homed to Core 1 (coordinator, 7:13 PM EDT
+  2026-10-28) as the timeline that GEN.855 (biogenic oxygen) reads.
   Prerequisites: none. Related: GEN.649, GEN.740.
 
 - [ ] **GEN.752 Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo**
@@ -13671,6 +13673,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   filter is stale, fix the filter. Never loosen or skip the tests.
   Owner: Bug 1, first in its queue after UX.234 follow-ups; tell me
   which it is.
+  Research (2026-10-09): Cause found (Bug 1, 7:12 PM EDT as the lane
+  reported): 4c leaves no free oxygen in the air and nothing makes
+  biogenic oxygen; fixed by GEN.855 (Core 1). Retires with GEN.855.
   Prerequisites: none. Related: POP.30, TEST.425.
 
 - [ ] **GEN.854 Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug)**
@@ -13690,7 +13695,46 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tweak level. Owner: Aux 9 diagnoses first (it owns the class chain,
   GEN.646); if the fix is outside the class rules, it hands the finding
   to Bug 1 or Core 3 before retiring.
+  Research (2026-10-09): Cause found (Bug 1, 7:12 PM EDT as the lane
+  reported): same as GEN.853, class M worlds have no free oxygen after
+  4c; fixed by GEN.855 (Core 1), not an Aux 9 class-rule problem. Owner
+  moves from Aux 9 to Core 1. Retires with GEN.855.
   Prerequisites: none. Related: GEN.646, GEN.791, GEN.830, GEN.721.
+
+- [ ] **GEN.855 Biogenic oxygen: photosynthesis releases free oxygen into the air as the life timeline passes it, so habitable worlds can reach multicellular life (bug)**
+  Boss, 6:59 PM EDT 2026-10-28: most class M planets are not habitable
+  and most need a hardened pressure suit; the population tests also find
+  no technological civilization (GEN.853, GEN.854). Cause found by Bug 1
+  at about 7:12 PM EDT as the lane reported: since 4c (GEN.411/422,
+  #3311, epoch 106) the solved air of every habitable-host world has
+  zero free oxygen, and the code has no biogenic oxygen step at all (no
+  photosynthesis-to-O2 accumulation anywhere in planetgen).
+  habitability.t_metazoa needs O2 between 8 and 50 kPa, so phi_cpx = 0,
+  life_ceiling = microbial, and nothing reaches multicellularity or a
+  civilization. Evidence on the same 20 seeds of a G2V HABITABLE_WORLD
+  fill, class M planets: before 4c (86f5e3993^) O2 14 to 28 kPa, phi_cpx
+  about 0.45 to 0.57, ceiling none in 19, 2 reached a technological
+  civilization; after 4c (86f5e3993) O2 0.0 kPa on all 8 shown, phi_cpx
+  0.0, ceiling microbial in 15 and none in 6, 0 civilizations, fauna 0
+  on all 21. Same on current main (13 microbial, 7 none of 20). Probe
+  scripts: /tmp/probe_m.py and /tmp/probe_m3.py on the Bug 1 lane
+  machine. Do: build a biogenic oxygen step tied to the GEN.750 life
+  timeline (Boss ruled the timeline is modelled from physics, not copied
+  from Earth): oxygen is released by photosynthesis as the timeline
+  passes oxygenic photosynthesis, accumulates against the sinks (crust
+  and ocean oxidation, volcanic reductants, escape), and the air of a
+  world whose life has passed it carries the resulting O2. Each stand-in
+  records its source tier and tweak level in the registry (GEN.725);
+  Boss accepts pragmatic physics tweaks if they are stated and
+  justified. It changes generated output, so it takes an epoch and a
+  lock turn (second in the queue after Aux 17, because it is
+  Boss-visible). Done: on the same 20-seed G2V fill, habitable class M
+  worlds have O2 in the metazoan window where the timeline says life has
+  passed photosynthesis, and the population tests find technological
+  civilizations again; GEN.853 and GEN.854 retire with it. Owner: Core 1
+  (with GEN.750).
+  Prerequisites: none. Related: GEN.750, GEN.853, GEN.854, GEN.646,
+  GEN.411, GEN.422, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
