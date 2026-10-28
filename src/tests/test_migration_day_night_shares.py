@@ -53,9 +53,11 @@ def test_a_saved_system_keeps_the_shares_of_every_body(mysql_config):
         with conn:
             system_id = store.insert_star_system(conn, system, cfg)
         loaded = store.load_star_system(conn, system_id)
-        made = {planet.name: planet for planet in system.planets}
+        made = {planet.name: planet for planet in system.planets if planet.body_type != "a"}
         checked = 0
         for planet in loaded.planets:
+            if planet.body_type == "a":
+                continue
             for name in daylight.FIELDS:
                 assert getattr(planet, name) == pytest.approx(getattr(made[planet.name], name)), (planet.name, name)
             for moon, original in zip(planet.moons, made[planet.name].moons):

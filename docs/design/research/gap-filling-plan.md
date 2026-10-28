@@ -744,6 +744,21 @@ Every number the young non-hierarchical group (GEN.327, GEN.328: `multistar.draw
 | MS7 | P | T4 | L0 | design: the remnant is the group's hierarchy hardened after the lightest member is ejected; the 300 AU cap is a guess with no source | tuning.YOUNG_GROUP_REMNANT_MAX_AXIS_AU | 300 AU, fixed | the hierarchy a decayed group leaves | test_gen_young_groups::test_a_group_older_than_its_decay_age_is_never_drawn_but_its_remnant_is | an N-body result for the remnant axes of a decayed trapezium (the decay papers of MS3 report them) |
 <!-- multistar-standins:end -->
 
+### 6.16 Stand-ins of the interior heat and the r-process uranium (GEN.721, GEN.735, GEN.759)
+
+Rows for the stand-ins of the mobile-lid heat law, the mantle ceiling and the thorium to uranium ratio of a body's rock (`physics/interior_heat.py`, `physics/rprocess_enrichment.py`). Tiers and tweaks are the lane's reading (Aux 5), for the owner to confirm.
+
+<!-- interior-heat-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| IH1 | P | T6 | L0 | interior_heat.MOBILE_HEAT_FLOW_EXPONENT 1/3 (the mobile lid's Nusselt exponent beta) | 0.12 to 0.33 (O'Neill's runs 0.26 evolving mobile lid, 0.12 stagnant; Moresi and Solomatov 0.224 to 0.293 for a yielding lid) | rocky bodies with a mobile lid | a calibrated mobile-lid law that gives a different exponent at the same Rayleigh number | a mobile-lid law read from Korenaga or Driscoll and Bercovici | READ (Gurnis 1989 as quoted in O'Neill 2020, arXiv:2006.05654 section 1; boundary-layer theory gives 1/3) |
+| IH2 | P | T4 | L0 | interior_heat.MOBILE_CRITICAL_RAYLEIGH 450 (the stagnant lid's value reused) | none | rocky bodies with a mobile lid | a published critical Rayleigh number for a mobile lid | the same calibrated law as IH1 | design (no mobile-lid value read; Thiriet et al. 2019 gives 450 for the stagnant lid) |
+| IH3 | P | T6 | L0 | interior_heat.mantle_ceiling_k: the liquidus at the mid-mantle pressure of the dry body, `310.317 (p + 29.102)^0.5337` K with p in GPa | none | rocky bodies; a magma ocean in the first million years is held at the ceiling | a measured melt fraction of a young mantle well below or above the liquidus at mid-depth | a depth-integrated mantle temperature | READ (Manske et al. 2025, arXiv:2506.18718 Table 1 for the liquidus; the choice of mid-mantle pressure is the lane's) |
+| IH4 | P | T5 | L0 | interior_heat._flux_w_m2: zero heat flux when `Ea / R T` exceeds 600 (a mantle too cold to convect warms on its radiogenic heat until it does) | none | cold small bodies far from their star | a conductive heat loss that matters at that size | a conduction term added to the flux | design (a viscosity of 1e260 times the prefactor is a rigid body; the conduction through it is below the radiogenic heat by orders of magnitude) |
+| RP1 | P | T4 | L0 | rprocess_enrichment.TAU_MIN_GY 0.03 and the 1/tau delay-time law of the r-process sources (the slope 1 and the 30 Myr floor are RECALLED) | slope 0.8 to 1.2, floor 10 to 100 Myr | the Th/U factor of a disc star | a delay-time law measured from the neutron star merger rate (Hotokezaka 2018, Simonetti 2019 read in full) | the measured law | RECALLED (Hotokezaka 2018 and Simonetti 2019 as remembered; not opened) |
+| RP2 | P | T2 | L0 | rprocess_enrichment.PRODUCTION_RATIO_RANGE 1.667 to 2.0 (the Th/U production ratio of the r-process, drawn uniform) | the range itself | the uranium of every rocky body | a production ratio outside the range from a nucleosynthesis model | a drawn ratio from a model | Frebel 2007 (second hand; the paper not opened) |
+<!-- interior-heat-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation

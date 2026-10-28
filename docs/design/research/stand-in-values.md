@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 220 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 226 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 36 | 0 | 3 | 0 | 0 | 39 |
-| T2 | 47 | 0 | 0 | 0 | 0 | 47 |
+| T2 | 48 | 0 | 0 | 0 | 0 | 48 |
 | T3 | 45 | 3 | 2 | 6 | 0 | 56 |
-| T4 | 11 | 0 | 0 | 2 | 0 | 13 |
-| T5 | 9 | 3 | 1 | 0 | 0 | 13 |
-| T6 | 25 | 6 | 1 | 4 | 0 | 36 |
+| T4 | 13 | 0 | 0 | 2 | 0 | 15 |
+| T5 | 10 | 3 | 1 | 0 | 0 | 14 |
+| T6 | 27 | 6 | 1 | 4 | 0 | 38 |
 | T7 | 11 | 2 | 0 | 1 | 0 | 14 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 0 | 0 | 0 | 0 | 1 | 1 |
-| All | 184 | 14 | 7 | 13 | 2 | 220 |
+| All | 190 | 14 | 7 | 13 | 2 | 226 |
 
 ## How the labels were given
 
@@ -342,3 +342,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RB6 | P | T6 | L3 | radiation_belts.EARTH_OUTER_PEAK_GY_YR, EARTH_INNER_PEAK_GY_YR, INTENSITY_EXPONENT | 2000 to 6000 Gy; 0.5 to 1.2 | a dipole body in a quiet wind | AP-9 and AE-9, Divine-Garrett and the Juno and Galileo dose measurements | the intensity of each belt at its peak is Earth's 3000 Gy per year behind 100 mil of aluminium (about 300 krad; recalled from the orders of AP-8 and AE-8 in the shielded orbit literature) times the dipole moment to the 0.8, which puts Jupiter's belt some 2700 times Earth's, inside the 1e2 to 1e5 the Galileo and Juno dose records span; the exponent was fitted to that range, not derived |
 | RB7 | T | T6 | L3 | radiation_belts.OUTER_RISE_EXPONENT, INNER_RISE_EXPONENT, FALL_EXPONENT, EDGE_EXPONENT | 2 to 6 | the main belts of a dipole | tabulated flux maps in `B` and `L` | the profile of a belt rises as the fourth power (electrons) or the second (protons) of the distance past the inner edge, falls as the sixth power of `L` past the peak and is cut to nothing at the outer edge; shapes chosen so Earth has a slot (a tenth of the peak at L 2.5) and Io to Europa is about a factor 10 (Galileo: 6.7; recalled) |
 | RB8 | T | T6 | L0 | radiation_belts.belts_for | none | every body with a field | a coupled field, plasma and belt model | approximations: a dipole aligned with the spin; dose behind one aluminium thickness only; no solar-cycle, storm or longitude dependence; moons, rings and plasma tori are not in it |
+
+## 6.16 Stand-ins of the interior heat and the r-process uranium
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| IH1 | P | T6 | L0 | interior_heat.MOBILE_HEAT_FLOW_EXPONENT 1/3 (the mobile lid's Nusselt exponent beta) | 0.12 to 0.33 (O'Neill's runs 0.26 evolving mobile lid, 0.12 stagnant; Moresi and Solomatov 0.224 to 0.293 for a yielding lid) | rocky bodies with a mobile lid | a calibrated mobile-lid law that gives a different exponent at the same Rayleigh number | a mobile-lid law read from Korenaga or Driscoll and Bercovici | READ (Gurnis 1989 as quoted in O'Neill 2020, arXiv:2006.05654 section 1; boundary-layer theory gives 1/3) |
+| IH2 | P | T4 | L0 | interior_heat.MOBILE_CRITICAL_RAYLEIGH 450 (the stagnant lid's value reused) | none | rocky bodies with a mobile lid | a published critical Rayleigh number for a mobile lid | the same calibrated law as IH1 | design (no mobile-lid value read; Thiriet et al. 2019 gives 450 for the stagnant lid) |
+| IH3 | P | T6 | L0 | interior_heat.mantle_ceiling_k: the liquidus at the mid-mantle pressure of the dry body, `310.317 (p + 29.102)^0.5337` K with p in GPa | none | rocky bodies; a magma ocean in the first million years is held at the ceiling | a measured melt fraction of a young mantle well below or above the liquidus at mid-depth | a depth-integrated mantle temperature | READ (Manske et al. 2025, arXiv:2506.18718 Table 1 for the liquidus; the choice of mid-mantle pressure is the lane's) |
+| IH4 | P | T5 | L0 | interior_heat._flux_w_m2: zero heat flux when `Ea / R T` exceeds 600 (a mantle too cold to convect warms on its radiogenic heat until it does) | none | cold small bodies far from their star | a conductive heat loss that matters at that size | a conduction term added to the flux | design (a viscosity of 1e260 times the prefactor is a rigid body; the conduction through it is below the radiogenic heat by orders of magnitude) |
+| RP1 | P | T4 | L0 | rprocess_enrichment.TAU_MIN_GY 0.03 and the 1/tau delay-time law of the r-process sources (the slope 1 and the 30 Myr floor are RECALLED) | slope 0.8 to 1.2, floor 10 to 100 Myr | the Th/U factor of a disc star | a delay-time law measured from the neutron star merger rate (Hotokezaka 2018, Simonetti 2019 read in full) | the measured law | RECALLED (Hotokezaka 2018 and Simonetti 2019 as remembered; not opened) |
+| RP2 | P | T2 | L0 | rprocess_enrichment.PRODUCTION_RATIO_RANGE 1.667 to 2.0 (the Th/U production ratio of the r-process, drawn uniform) | the range itself | the uranium of every rocky body | a production ratio outside the range from a nucleosynthesis model | a drawn ratio from a model | Frebel 2007 (second hand; the paper not opened) |
