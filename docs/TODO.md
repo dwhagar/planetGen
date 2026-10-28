@@ -19320,6 +19320,17 @@ clears each one.
   (Class census tests lane, Boss 7:24 PM EDT 2026-10-28: the whole chain, high priority).
   Prerequisites: none. Related: TEST.210, TEST.315, TEST.209, TEST.214,
   TEST.301, TEST.395, GEN.855, GEN.725.
+  Research (2026-10-09): Scope widened by Boss, 7:27 PM EDT 2026-10-28:
+  Bug 2 builds a full prevalence test suite for everything we generate
+  (stars, planets and moons by class, belts, comets, binaries, rogues,
+  remnants, life and civilizations, and the rest), not only the class
+  census. Targets come from the researched norms (stars have robust
+  published prevalence data) and, where planet classes have none, from
+  the prevalence before the class cut-over (the pre-cut figures are the
+  reference; state which each range is). Bug 2 reports the parts as it
+  plans them and TODO files each as an item under TEST.430. High
+  priority. Related existing coverage: TEST.204 (family plausibility),
+  TEST.239 (rates per kind), TEST.395 (distribution bands), TEST.212.
 
 ## USR: User accounts
 
