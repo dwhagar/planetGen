@@ -193,7 +193,13 @@ def regional_sentence(world, regions):
                 f"{_celsius(celsius['temp_polar_k'])}.")
     swing = regions.get("temp_swing_k")
     if swing and swing >= 5.0:
-        text += f" Day and night differ by about {three_figures_or_tiny(swing)} K."
+        text += (f" Day and night differ by about {three_figures_or_tiny(swing)} K from the coldest hour to the hottest "
+                 f"(\u00b1{three_figures_or_tiny(swing / 2.0)} K)")
+        span = regional_temperature.daily_range(regions.get("temp_equator_k"), swing)
+        if span:
+            text += (f", so the equator runs from {_celsius(span[0] - 273.15)} to {_celsius(span[1] - 273.15)} "
+                     f"over a day")
+        text += "."
     mean_rank = _TEMPERATURE_RANK.get(temperature_need(world)[0], 0)
     worst = None
     for field, place in _PLACES:

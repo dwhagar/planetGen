@@ -130,3 +130,18 @@ def test_a_body_with_no_regions_has_no_sentence_and_no_summary():
     assert rt.summary(rt.compute(MOON)) == {"day_side": pytest.approx(rt.compute(MOON)["temp_day_side_k"]),
                                             "terminator": pytest.approx(rt.compute(MOON)["temp_terminator_k"]),
                                             "night_side": rt.NIGHT_FLOOR_K}
+
+
+def test_the_daily_range_has_the_stored_value_exactly_in_the_middle():
+    """GEN.795, GEN.796: the low and high are the value minus and plus half the peak-to-peak swing, in kelvin."""
+    low, high = rt.daily_range(300.0, 9.07)
+    assert (low, high) == pytest.approx((295.465, 304.535)) and (low + high) / 2.0 == pytest.approx(300.0)
+    assert rt.daily_range(None, 9.0) is None and rt.daily_range(300.0, None) is None and rt.daily_range(300.0, 0.0) is None
+
+
+def test_the_sentence_gives_the_swing_as_plus_or_minus_and_the_equators_low_and_high():
+    from planetgen.physics import protection
+    regions = {"temp_polar_k": 250.0, "temp_equator_k": 300.0, "temp_swing_k": 20.0}
+    text = protection.regional_sentence(_world(15.0), regions)
+    assert "from the coldest hour to the hottest (±10 K)" in text
+    assert "so the equator runs from 16.9 C to 36.9 C over a day." in text

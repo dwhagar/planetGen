@@ -180,6 +180,19 @@ def test_the_ratio_and_index_rows_read_as_decided(key, stored, text):
     assert inline_text(sheet._value(spec, "planets", stored)) == text
 
 
+def test_the_swing_reads_as_a_range_and_each_temperature_says_whether_it_has_one():
+    """GEN.795, GEN.796: the swing is plus or minus half with the whole in all; the equator, which the swing belongs to,
+    shows its coldest and hottest hour with the stored value in the middle; every other place says no range is stored."""
+    row = {"temp_swing_k": 9.0, "temp_equator_k": 300.0, "temp_polar_k": 250.0, "surface_temperature_k": 288.0}
+    by_key = {spec.key: spec for spec in sheet.SPECS["planet"]}
+    text = {key: inline_text(sheet._range_value(by_key[key], "planets", row[key], row)) for key in row}
+    assert text["temp_swing_k"] == "\u00b14.5 K, 9 K in all from the coldest hour to the hottest"
+    assert text["temp_equator_k"].endswith(", from 296 K to 305 K over a day")
+    for key in ("temp_polar_k", "surface_temperature_k"):
+        assert text[key].endswith(f"({sheet.NO_RANGE})")
+    assert inline_text(sheet._range_value(by_key["temp_equator_k"], "planets", None, row)) == sheet.NOT_STORED
+
+
 def test_an_unknown_kind_has_no_sheet():
     with pytest.raises(ValueError):
         sheet.specs_for("system")

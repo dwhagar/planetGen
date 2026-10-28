@@ -574,6 +574,37 @@ def _plain_number(value, unit):
     return f"{format_number(value, '.4g')}{symbol}"
 
 
+NO_RANGE = "no day and night range stored for this place"
+"""str: What a temperature row says when the body holds no swing for that place (GEN.796)."""
+
+
+def _plus_minus(swing):
+    """The swing as a clear range: the half of it either side, and the whole of it from the coldest hour to the hottest
+    (GEN.795). A difference in kelvin, so it is written as one and never converted as a temperature."""
+    return ["\u00b1", model.qty("temperature difference", swing / 2.0, "dK", companions=False), ", ",
+            model.qty("temperature difference", swing, "dK", companions=False),
+            " in all from the coldest hour to the hottest"]
+
+
+def _range_value(spec, table, stored, row):
+    """`_value`, with the day and night range of a temperature row (GEN.795, GEN.796): the swing as plus or minus, and
+    for a place the swing belongs to the coldest and the hottest temperature with the stored one exactly between them;
+    for the other places, that no range is stored. `row` holds the stored columns of the body."""
+    value = _value(spec, table, stored)
+    if stored is None or table not in ("planets", "moons"):
+        return value
+    column = spec.stored_column()
+    if column == "temp_swing_k":
+        return _plus_minus(stored)
+    if column not in regional_temperature.TEMPERATURE_FIELDS:
+        return value
+    span = regional_temperature.daily_range(stored, row["temp_swing_k"]) if column in regional_temperature.RANGE_FIELDS else None
+    if span is None:
+        return value + [f" ({NO_RANGE})"]
+    return value + [", from ", model.qty("temperature", span[0], "K", companions=False), " to ",
+                    model.qty("temperature", span[1], "K", companions=False), " over a day"]
+
+
 def _solar_ratio(kind, si):
     """A star's ratio to the Sun for its mass or luminosity."""
     return si / (constants.SOLAR_MASS_TO_KG if kind == "mass" else constants.SOLAR_LUMINOSITY)
@@ -770,7 +801,7 @@ def sheet(conn, kind, object_id):
     by_group = {key: [] for key in GROUPS}
     for spec in specs:
         stored = row[spec.stored_column()]
-        value = _value(spec, table, stored)
+        value = _range_value(spec, table, stored, row)
         absent = stored is None or stored == 0 or stored == ""
         by_group[spec.group].append({"key": spec.key, "label": spec.label, "value": value,
                                      "text": inline_text(value), "stored": stored is not None, "absent": absent,
