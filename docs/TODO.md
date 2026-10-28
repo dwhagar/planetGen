@@ -15017,6 +15017,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 6 (bulk composition); the coordinator asked for this item. Changes
   generated output, so it needs the generation lock, an epoch with
   --affects fill.
+  Research (2026-10-09, Aux 9 report 2026-10-28): More evidence from Aux
+  9 (as the lane reported 9:09 AM EDT 2026-10-28, main 945fcad8): G2V
+  star, 1.0 solar luminosity, habitable zone 0.96 to 1.69 AU, a class M
+  planet forced at 1.32 AU (less starlight than Earth gets): 12 draws of
+  12 come out vapour at 693 to 1382 K and 104 to 22,000 bar, water mass
+  fraction 1e-4 to 4e-4 each, albedo 0.29 to 0.31. Likely cause: the
+  delivered-volatile budget (recipes b2/b3, 0.05 to 0.5 weight percent
+  water) is far above the body own water mass fraction, so the steam
+  never condenses and the air solver takes the boiling branch. Today
+  these hide behind the class letter M; once classes are derived
+  (GEN.646) they show as class N, about 30 to 75 percent of ecosphere
+  rocky planets in Aux 9 sweeps with tens of thousands of bar. Same
+  family as GEN.830 (Aux 8, air solver). Aux 9 does not fix the solver;
+  the owner of this item should decide with Aux 8 whether the fix is the
+  delivered budget (cap at the body water fraction, surface and mantle
+  sinks) or the solver branch.
   Prerequisites: none. Related: GEN.813, GEN.815, GEN.812.
 
 - [ ] **GEN.838 A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling**
