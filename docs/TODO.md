@@ -890,7 +890,7 @@ with `clamp()`.
   relabel the yearly dose-limited `outside_hours` row "Hours a person
   can work outside per year (dose limit)"; the "not stored" row then
   disappears (UX.199).
-  Prerequisites: GEN.767, GEN.768. Related: UX.199, UX.203.
+  Prerequisites: GEN.768. Related: UX.199, UX.203.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
@@ -1339,24 +1339,27 @@ with `clamp()`.
   8.1.
   Prerequisites: none. Related: MAP.320, MAP.305.
 
-- [ ] **UX.235 Pages that already have a table of contents also show the automatic contents bar, so the contents appear twice (bug)**
-  Boss, 5:50 PM EDT 2026-10-28 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiAZS2XcoeyhoDWtHXn4XNqq, relayed by the
-  coordinator), live observation, so a bug: "we have some areas where
-  the TOC bar is redundant (i.e. the TOC was already present), we want
-  to remove that." The automatic table of contents built from headings
-  (UX.196, #3196) is added to every page, including pages that already
-  carry their own contents list (for example documentation pages and any
-  page whose template builds a contents list). Do: list every page that
-  shows two contents (walk the templates and the page shell, and check
-  the object, docs, admin and help pages in the browser), then have the
-  automatic bar skip a page that already has one, by a flag the page
-  sets or by detecting an existing contents element, not by a per-page
-  hide list; keep the automatic bar on pages that have none. Add a
-  browser test that finds exactly one contents on a page that already
-  had its own and one on a page that did not. Owner: Core 2 (interface),
-  with Aux 11 for the object pages until it retires.
-  Prerequisites: none. Related: UX.196, UX.233.
+- [ ] **UX.236 User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest)**
+  Boss, 6:19 PM EDT 2026-10-28 (relayed by the coordinator): the zoom
+  redesign codes both options and a user preference chooses, default
+  option 1. Plan and build the setting itself: a preferences page
+  (reached from the account area and the site menu), storage per browser
+  now with the same keys moving into the account when accounts land
+  (USR.7, 8.2), a read helper the map calls, and an API route to read
+  and write the keys for signed-in users later. First key
+  map.regionLanding with values frame (default) and densest; a missing
+  key reads as the default. The page lists each preference with its
+  plain-words description and its default, and a Reset to defaults
+  button. The map work (MAP.336) only reads the key and does not wait
+  for this screen. Done: a browser test sets the key on the page and
+  sees the Galaxy Map land accordingly. Owner: Core 5 (not the map
+  lane).
+  Research (2026-10-09): Second key (Boss 6:22 PM EDT 2026-10-28):
+  map.blackHoleDensity, the cap on black hole marks per screen area,
+  default one per 120 by 120 px (MAP.339); a missing key reads as the
+  default. List it on the same screen with its plain-words description
+  and a Reset.
+  Prerequisites: none. Related: MAP.336, USR.7.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2465,6 +2468,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clickable; chain filed: TEST.368, MAP.295 to MAP.303 (see MAP.297 for
   the removal of the sector boxes, which only drops the clickable block,
   not the optional grid tool).
+  Research (2026-10-09): Closes with the zoom redesign Z0 to Z5 (MAP.333
+  to MAP.338, Boss answers 6:19 PM EDT 2026-10-28, owner Core 2);
+  re-read MAP.299 to MAP.302, MAP.311, MAP.318 and MAP.322 against them.
 - [ ] **MAP.266 S4: the unresolved glow: a soft light drawn from the node aggregates, switchable in the layers menu**
   Zoom design (reports in
   /mnt/project-files/design-drafts/single-space-map-zoom-2026-10-23.md,
@@ -2963,7 +2969,149 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   region line reachable on a small window and on a phone, and add a
   browser test with a short window that finds the last button inside the
   card bounds. Owner: Core 2, with the wireframe legend item MAP.331.
+  Research (2026-10-09): Also seen in a second screenshot (6:22 PM EDT
+  2026-10-28): the card clips its region line at small viewport heights
+  and shows a scrollbar; the same fix covers it.
   Prerequisites: none. Related: MAP.331, MAP.315, MAP.325.
+
+- [ ] **MAP.333 Zoom redesign Z0: fly-tos are no longer clamped to the zone and do not snap back after a region flight; the slider shows absolute log distance over one global range and works in flights; plus, minus, slider and pinch cross levels like the wheel; the wheel never dead-ends (bug)**
+  Quick client-side fixes first (size S to M). Boss answered the
+  research cards at 6:19 PM EDT 2026-10-28 (1.1 quick fixes then the
+  full rebuild, 2.1 one verb Go to, 3.1 vertical log ruler with named
+  stops, 4.1 a region lands framed on the charted part, 5.1 moon in view
+  first). Design:
+  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
+  (section 6 plan, section 9 decisions). Owner: Core 2. Done: a browser
+  test flies to a region, a sector and a system and finds the camera
+  where the flight put it with no snap back, drags the slider through
+  every level, and wheels at the ends without a dead end.
+  Prerequisites: none. Related: MAP.257, MAP.299, MAP.311.
+
+- [ ] **MAP.334 Zoom redesign Z1: one global zoom policy, with pace and clearance taken from the distance to the nearest thing; zoom floor 1e-10 pc (1e-12 pc after Z5)**
+  Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
+  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
+  vertical log ruler with named stops, 4.1 a region lands framed on the
+  charted part, 5.1 moon in view first). Design:
+  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
+  (section 6 plan, section 9 decisions). Owner: Core 2. Replace the
+  per-stage zoom limits with one policy that sets pace and near
+  clearance from the camera distance to the nearest drawn thing. Done: a
+  browser test zooms from the galaxy to the floor with a steady pace and
+  no clipping.
+  Prerequisites: MAP.333. Related: MAP.257.
+
+- [ ] **MAP.335 Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source**
+  Size L. Boss answered the research cards at 6:19 PM EDT 2026-10-28
+  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
+  vertical log ruler with named stops, 4.1 a region lands framed on the
+  charted part, 5.1 moon in view first). Design:
+  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
+  (section 6 plan, section 9 decisions). Owner: Core 2. The scene
+  follows the camera instead of a stage, fed by one new read that
+  returns the generated sectors near a point. It takes an API addition
+  (next API number from TODO) and no migration. Done: a browser test
+  flies from the galaxy to a planet with no stage switch and every scene
+  comes from the camera position.
+  Prerequisites: MAP.334. Related: MAP.257, MAP.318, MAP.322.
+
+- [ ] **MAP.336 Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level**
+  Size M; may start with Z0. Boss answered the research cards at 6:19 PM
+  EDT 2026-10-28 (1.1 quick fixes then the full rebuild, 2.1 one verb Go
+  to, 3.1 vertical log ruler with named stops, 4.1 a region lands framed
+  on the charted part, 5.1 moon in view first). Design:
+  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
+  (section 6 plan, section 9 decisions). Owner: Core 2. One goTo(target)
+  function behind every fly (instant under reduced motion); the word
+  zoom is used only for the wheel, buttons and slider. The find-a-place
+  box takes names, coordinates, designations, object IDs, regions and
+  recents. A vertical log ruler shows named clickable stops and a
+  readout. Region landing reads one user preference key
+  map.regionLanding (frame = the charted part, about 31 to 38 pc, the
+  default; densest = the MAP.322 ranking, falling back to frame); a
+  missing key reads as frame; the map codes both and the preferences
+  screen is UX.236. Done: browser tests for the box, the ruler, the
+  crumbs and both landing modes.
+  Prerequisites: MAP.333. Related: MAP.257, UX.236, API.36.
+
+- [ ] **MAP.337 Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests**
+  Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
+  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
+  vertical log ruler with named stops, 4.1 a region lands framed on the
+  charted part, 5.1 moon in view first). Design:
+  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
+  (section 6 plan, section 9 decisions). Owner: Core 2. Remove the stage
+  machinery and the stage URLs once the camera-driven scenes (Z2) and
+  goTo (Z3) carry everything; no compatibility shim. Done: no stage code
+  or URL remains, and the rewritten browser tests pass.
+  Prerequisites: MAP.335, MAP.336. Related: MAP.257.
+
+- [ ] **MAP.338 Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers**
+  Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
+  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
+  vertical log ruler with named stops, 4.1 a region lands framed on the
+  charted part, 5.1 moon in view first). Design:
+  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
+  (section 6 plan, section 9 decisions). Owner: Core 2. Zooming into a
+  planet or moon works in its own frame (camera = frame plus offset),
+  the near and far planes follow the distance, and the zoom floor drops
+  to 1e-12 pc. A moon comes into view first (Boss 5.1). Done: a browser
+  test zooms from a system to a moon and to the surface scale without
+  precision loss.
+  Prerequisites: MAP.335. Related: MAP.257, MAP.240.
+
+- [ ] **MAP.339 Black holes: 237 of 240 drawn at a 10 pc zoom are far from the view; show them by a near-field rule (bug)**
+  Found by the research thread (report
+  /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
+  section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
+  one mark per 120 by 120 px, as a user preference; rare heavy holes
+  2.2, no landmark exemption). Boss live observation, so a bug. Owner:
+  Core 2. Do, in galaxymarkers.js and refreshMarkers: show a black hole
+  within 3 view distances of the view centre; beyond that only if its
+  mass is at least Mmin times (r/3d) squared; rank by mass over distance
+  squared from the view centre; cap the count by screen area at the
+  preference density (default one mark per 120 by 120 px, key
+  map.blackHoleDensity, a missing key reads as the default); no landmark
+  exemption. The preferences screen is UX.236. Done: a browser test at a
+  10 pc zoom finds only the near and the heavy-enough holes, and the
+  density key changes the cap.
+  Prerequisites: none. Related: MAP.305, MAP.327, UX.236.
+
+- [ ] **MAP.340 Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug)**
+  Found by the research thread (report
+  /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
+  section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
+  one mark per 120 by 120 px, as a user preference; rare heavy holes
+  2.2, no landmark exemption). Boss live observation, so a bug. Owner:
+  Core 2. Extend the MAP.305 crowd merge (mergeMarks) to the black hole
+  kind: holes within the merge distance draw as one mark with a count
+  badge; a click lists them with a Zoom in on them button. Done: a
+  browser test finds one merged black hole mark with its list in a crowd
+  and the split on zoom in.
+  Prerequisites: none. Related: MAP.305, MAP.339.
+
+- [ ] **MAP.341 Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug)**
+  Found by the research thread (report
+  /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
+  section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
+  one mark per 120 by 120 px, as a user preference; rare heavy holes
+  2.2, no landmark exemption). Boss live observation, so a bug. Owner:
+  Core 2. Black hole and other markers keep full brightness when a
+  sector is opened while the stars outside it dim (MAP.327). Dim every
+  marker outside the opened sector the same way. Done: a browser test
+  opens a sector and finds the outside markers dimmed.
+  Prerequisites: none. Related: MAP.327.
+
+- [ ] **MAP.342 Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority)**
+  Found by the research thread (report
+  /mnt/project-files/reports/black-hole-near-field-2026-10-28.md,
+  section 6; Boss answered 6:22 PM EDT 2026-10-28: density default 1.2,
+  one mark per 120 by 120 px, as a user preference; rare heavy holes
+  2.2, no landmark exemption). Boss live observation, so a bug. Owner:
+  Core 2. Optional: the node payload for big nodes (over 27 sectors)
+  stops listing every stellar black hole, so the client does not receive
+  holes the near-field rule will drop anyway. Do it only after MAP.339
+  shows it saves real bytes. Owner: Core 2 when dry.
+  Prerequisites: MAP.339. Related: MAP.339, MAP.340.
 
 ## NAV: Navigation and courses
 
@@ -5500,7 +5648,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.728, GEN.729, GEN.730, GEN.733, GEN.735, GEN.736, GEN.740, GEN.741, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.728, GEN.729, GEN.730, GEN.733, GEN.736, GEN.740, GEN.741, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -11974,25 +12122,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread; nobody has started it).
   Prerequisites: none. Related: GEN.699, GEN.461.
 
-- [ ] **GEN.721 A tectonic-mode switch (mobile lid or stagnant lid) for the planetary heat model**
-  Idea from lane H (12:19 PM EDT 2026-10-24 as the lane reported,
-  GEN.461 #2993). The heat model of GEN.699 and its neighbours assumes a
-  stagnant lid only, which is a labelled stand-in. Do: add a
-  tectonic-mode switch (mobile lid, stagnant lid, and the episodic case
-  if the research supports it) chosen from mass, water, temperature and
-  age, so the cooling history and the heat flux depend on it. Done: the
-  switch is drawn or derived from stored conditions, the heat model
-  reads it, a test shows an Earth-like world in mobile-lid mode cooling
-  faster than the same world in stagnant-lid mode, and the design note
-  names the sources. Needs a research pass first (settle the sources
-  before building). Owner: none (pool); lane H is the nearest owner
-  after GEN.699.
-  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
-  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
-  the new Math lane (physics route 'derivable now',
-  reports/physics-gaps-2026-10-24.md). Owner: Lane H (started 4:14 PM EDT 2026-10-24, as the coordinator relayed; the Math lane skips it).
-  Prerequisites: none. Related: GEN.699, GEN.461.
-
 - [ ] **GEN.722 Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins**
   Split from GEN.509 by Lane Draws (merged #3025 at about 2:14 PM EDT
   2026-10-24 as the lane reported): GEN.509 tuned rows e1 and e2 to
@@ -12156,32 +12285,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to go forward without correcting the physics"); it is a prerequisite
   of the headline GEN.301.
   Prerequisites: none. Related: GEN.642, GEN.460.
-
-- [ ] **GEN.735 Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  H1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T5. Today:
-  The GEN.699 interior heat model is a one-box stagnant-lid model:
-  mantle and core share one temperature, surface held at 273 K, a 3500 K
-  ceiling, viscosity and activation energy drawn from the paper's range.
-  GEN.721 adds only the mobile-lid switch. Real physics: mobile-lid
-  cooling, a separate core, a pressure-dependent liquidus, coupling to
-  climate. Do: extend the model with a separate core and a regime from
-  the thermal history, and couple the surface temperature to the climate
-  model. Done: heat flow and regime follow from mass, water and age,
-  with an Earth and Venus test. Each stand-in it touches records its
-  source tier and tweak level in the gap plan registry (GEN.725). Owner:
-  pool (first free lane; 8.1 core lanes do not take it before 8.1
-  closes).
-  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
-  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
-  the new Math lane (physics route 'derivable now',
-  reports/physics-gaps-2026-10-24.md). Owner: Lane H (started 4:14 PM EDT 2026-10-24, as the coordinator relayed; the Math lane skips it).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: none. Related: GEN.699, GEN.721.
 
 - [ ] **GEN.736 Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
@@ -12548,89 +12651,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Prerequisites: GEN.652. Related: GEN.741, GEN.553.
 
-- [ ] **GEN.759 Wire the r-process Th/U enrichment (rprocess_enrichment, GEN.663) into the radiogenic heat module**
-  rprocess_enrichment.py draws the thorium and uranium birth abundance
-  from a chemical-evolution epoch (GEN.663, merged) but nothing imports
-  it; radiogenic.py still uses its own thorium and uranium values. Make
-  radiogenic.py read the enrichment, planets and moons both. Found by
-  the physics fix plan thread (reports/physics-fix-plan-2026-10-24.md
-  section 16: built, merged and never imported by the generator). No
-  shim: the generator calls the module, the old path is deleted, and a
-  test fails if the module has no caller (the wiring guard GEN.754).
-  Takes a generator epoch in merge order (next free is 95). Each
-  stand-in it touches records its source tier and tweak level in the
-  registry (GEN.725). Requested by Boss through the coordinator, 5:34 PM
-  EDT 2026-10-24: wire it as fast as possible. Owner: Lane H after
-  GEN.735 (heat owner); nobody has started it.
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Aux 5 takes it after GEN.767 (heat and
-  dose lane).
-  Prerequisites: none. Related: GEN.663, GEN.699, GEN.735, GEN.754.
-
-- [ ] **GEN.763 The Urey ratio can exceed 1 for small cold-start bodies (a 0.0004 Earth-mass moon gives 3.02) and the docs table covers only Earth-size bodies (bug)**
-  Found by Bug Hunt while fixing TEST.353 (#3103, 5:45 PM EDT 2026-10-24
-  as the lane reported): for seed 5, a moon of 0.0004 Earth masses,
-  interior_heat gives a Urey ratio of 3.02, above 1. The test cap of 1.5
-  was dropped because a tiny cold moon can legitimately do this, but the
-  design table (docs/design on the interior heat model) only covers
-  Earth-size bodies. Check the physics: whether a Urey ratio above 1 is
-  right for a body whose heat is mostly radiogenic with no initial heat
-  (a small body that has already cooled to a steady state), extend the
-  docs table to small and large bodies with a source for the range, and
-  add a test with the range's bounds instead of the removed cap. Each
-  stand-in records its source tier and tweak level (GEN.725). Owner: Aux
-  5 (Lane H, GEN.699 heat owner).
-  Prerequisites: none. Related: GEN.699, GEN.721, GEN.735.
-
-- [ ] **GEN.767 Day and night time shares for every object that has a day or night, with the extra night when the parent planet blocks the sun**
-  Boss, 7:54 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi8V9JS1wgNXS7DiYdfqotv3, relayed by the
-  coordinator), Boss: "I want day/night time shares for each object that
-  has a day or night including moons that accounts for any extra night
-  from the sun being blocked by their planet." TODO checked the code:
-  the day and night temperature swing exists (GEN.656) and the eclipse
-  of a binary star pair (GEN.270), but there is no stored fraction of
-  time in daylight and no eclipse of a moon by its planet;
-  `outside_hours` is the dose-limited hours of a working year outside
-  (physics/equipment.py), not daylight. Do: derive, from the rotation
-  period, the orbital period, the axial tilt, the star's angular size
-  and the lock state, the share of the day the star is above the horizon
-  (at the equator and as a planet mean, polar day and night where the
-  tilt gives them, 100 percent or 0 percent on the two sides of a
-  tidally locked world with libration noted); for a moon add the share
-  of its orbit spent in its parent's shadow (the eclipse fraction from
-  the parent radius, the moon's orbital distance and inclination and the
-  star's size) and the extra night this adds, both for a moon locked to
-  its planet and for a free one; store the shares as columns
-  (db/column_units.py in the same PR, one migration, one epoch), numbers
-  from a named function in one module, no stand-in value. Done: tests
-  with a hand-computed Earth (about 50 percent at the equator, longer
-  polar day and night by tilt), a locked planet (day side 100, night
-  side 0), Io-like and Moon-like moons with their eclipse fractions, and
-  a moon whose planet never blocks the sun (inclined orbit) at zero
-  extra night. Owner: Aux 5 (Lane H: heat, surface dose, GEN.656
-  regional temperatures). Related: GEN.656, GEN.270, GEN.444.
-  Research (2026-10-09, Daylight hours): Boss, 8:22 PM EDT 2026-10-24
-  (message cmsg_01RuNTFUNB92A8cm5CbojQAiGGDyBByq5momrqKfYqJRdr, relayed
-  by the coordinator): "make sure we have an item to fill in the hours
-  of daylight a person can be outside, and a value for how many hours of
-  daylight the planet has." TODO checked the code: the stored
-  `outside_hours` (physics/equipment.py `_outside_hours`) is the hours
-  outside in a working year that the listed radiation suit allows before
-  the dose limit, `None` unless a limit; the property sheet
-  (describe/sheet.py line 177) labels it "Hours of daylight a person can
-  be outside", which it is not, so it shows "not stored" nearly
-  everywhere. No value for the hours of daylight of the planet exists.
-  Add to this item: store the length of the daylight part of one day in
-  hours (`daylight_hours`: the solar day length from the rotation and
-  orbit times the daylight share, at the equator, with the planet mean
-  and polar day or night noted; a locked world has no day, only the day
-  side, terminator and night side), as a column with its unit in
-  db/column_units.py, so the planet page can say how many hours of
-  daylight the planet has. Done adds: tests with Earth (about 12 h at
-  the equator), a fast spinner and a locked world.
-  Prerequisites: none. Related: GEN.656, GEN.270, GEN.444, UX.205.
-
 - [ ] **GEN.768 Hours a person can be outside in a day: daylight hours limited by heat, cold, pressure, air supply and radiation dose, computed and stored per planet and moon**
   Boss, 8:22 PM EDT 2026-10-24 (message
   cmsg_01RuNTFUNB92A8cm5CbojQAiGGDyBByq5momrqKfYqJRdr, relayed by the
@@ -12669,7 +12689,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch with `--affects fill`. Owner: Aux 4 (Lane E: radiation,
   protection limits, the equipment rules), after GEN.767 (Aux 5).
   Related: GEN.767, GEN.656, GEN.725, UX.199, UX.205.
-  Prerequisites: GEN.767. Related: GEN.767, GEN.656, GEN.725, UX.199,
+  Prerequisites: none. Related: GEN.767, GEN.656, GEN.725, UX.199,
   UX.205.
   Progress (2026-10-09): Progress (Aux 4, 1:35 AM EDT 2026-10-25): part
   1 merged as #3297, the model of the hours a person can be outside in
@@ -13524,7 +13544,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets without a core split, stand-ins registered in
   docs/design/stand-in-values.md. Owner: Aux 5 after its stack. Changes
   stored values, so it needs a lock turn (epoch, --affects fill).
-  Prerequisites: GEN.735. Related: GEN.735, GEN.763.
+  Prerequisites: none. Related: GEN.735, GEN.763.
 
 - [ ] **GEN.839 The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug)**
   Found by Aux 5 (as the lane reported 7:28 AM EDT 2026-10-28) while
@@ -13541,7 +13561,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   final-age heat. Owner: Aux 5 after GEN.763; changes generated output
   so it needs an epoch (--affects fill) and a lock turn, ideally the
   same one as the rest of Aux 5's stack if it is not yet merged.
-  Prerequisites: GEN.763. Related: GEN.763, GEN.735.
+  Prerequisites: none. Related: GEN.763, GEN.735.
 
 - [ ] **GEN.840 The atmosphere recipe tables still gate each mixture row on class letters: change the gate to kind plus conditions and drop the letter from the mixture subject (the recipe-gate half of GEN.683)**
   Found by Aux 9 (as the lane reported 7:36 AM EDT 2026-10-28) reading

@@ -1625,3 +1625,9 @@ Baseline: PR #1817.
 | GEN.718 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.717 | 8.1 | Radiation chain for habitability (GEN.445) |
 | MAP.322 | 8.1 | Fly-through map |
+| UX.235 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.721 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.735 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.767 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.763 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.759 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
