@@ -7281,42 +7281,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the star abundance regression BC2 (plan 4.7, Brewer 2016
   whole-catalogue fit; the builder applies the quality cut).
 
-- [ ] **GEN.415 Every compound the planet descriptions mention comes from the gas table, and the atmosphere text is written from the stored mixture**
-  Boss (2026-10-16, 11:24 PM EDT, the atmosphere colour chain; base:
-  docs/design/composition/sky-colour-analysis.md): "By the end I want all of the
-  values to be consistent across the board." Rewrite the atmosphere
-  wording of the description layer (`describe/build.py`
-  `_atmosphere_composition` and the class text labels) so every gas or
-  compound it names is read from the stored mixture and the table of
-  GEN.410, with the ozone, haze, dust and cloud of the other items; a
-  text never names a gas the planet does not hold. Done: a test
-  generates planets of every class and checks that each compound named
-  in the text is in the stored mixture above a stated threshold, and
-  that the text, the composition table and the molar density agree.
-  Owner: Core 4 (proposed; Boss tapped Core 4, 11:41 PM EDT; behind its queue, after the designs and tables of 8.1).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.411. Related: GEN.208,
-  GEN.218,
-  TEST.209.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): GEN.221 (Foundations Wording) writes the short wording of
-  the planet and moon paragraph first; this item and GEN.430 only change
-  which table the named materials come from, and are best done as one
-  describer change by Core 4.
-  Section 14.6 of the Body composition research lane's note
-  (docs/design/composition/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
-  the lane reported), on Boss's shared-vocabulary point of 1:47 AM EDT,
-  filed by the TODO thread: the atmosphere and crust text read the
-  stored mixture through the one text writer of GEN.430.
-  Research (2026-10-09, Owner): Owner reconciled: Lane L (in its queue
-  behind Lane I PR 4). The 'returned to the pool' line above is
-  superseded. (TODO, 2026-10-24 5:27 PM EDT, from the physics fix plan
-  thread's reconcile ask.)
-  Owner (2026-10-09): Owner now Core 4 (TODO, 12:31 PM EDT 2026-10-28,
-  Aux 8 confirmed it never started it).
-
 - [ ] **GEN.421 Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it**
   Boss (2026-10-16, 11:25 PM EDT): "We just found our seminal feature
   for 9.0 folks, everything else gets bumped, this is the 9.0 feature."
@@ -18107,7 +18071,7 @@ clears each one.
   mixture. Runs in the `changed` gate for the files involved. Done: it
   passes on a generated galaxy and fails when any one rule is broken (a
   test that breaks each rule in turn).
-  Prerequisites: GEN.415, DB.67,
+  Prerequisites: DB.67,
   DB.68, GEN.422, GEN.423, GEN.424. Related: GEN.415, DB.68.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
   2026-10-17): one shared fixture: a generated galaxy holding every
