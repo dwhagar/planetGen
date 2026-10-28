@@ -13652,33 +13652,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch.
   Prerequisites: none. Related: GEN.814, GEN.823.
 
-- [ ] **GEN.826 Random-start and Generate "around a place" fill one anchor sphere, so a normal fill charts a whole region (regions chain, step 1c)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
-  9-block cell (about 780 sectors) with at least one generated sector,
-  named from the block path by a new codec kind region (Word Region; the
-  27 Regions of one 81-block share the family word) and drawn as the
-  bounding sphere of its generated sectors, never smaller than the 12 pc
-  standard-fill sphere (about 109 sectors) about the cell's anchor; it
-  exists, and shows on the galactic map, as soon as any sector in the
-  cell is generated (anything above 0 percent), ranked by share charted
-  (generated sectors over the sectors its outline can hold, a standard
-  fill is about 14 percent); ungenerated space gets no region and no
-  sector line may join two unrelated places. Boss, 1:13 AM EDT
-  2026-10-25: the chain is in 8.1, regions are what the galactic-level
-  map shows so a user can always drill down to inhabited space. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
-  from the gated phoneme codec only, never from Milky Way or Solar
-  System lists. Random-start mode picks a random uncharted anchor
-  instead of a random address; the Generate page offers "this region"
-  (snap to the anchor, 12 pc). Done: a finished fill of one anchor
-  sphere is charted and named; a test pins the snap; no change to what a
-  sector generates, so no epoch. Owner: Bug 1 (Boss, 1:45 AM EDT
-  2026-10-25: Bug 1 takes it when DB.107 lands, after its current item),
-  moved from Core 3. Rules: no backward-compat shims; every number has a
-  unit or scale (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: DB.107. Related: GEN.825, DB.107.
-
 - [ ] **GEN.828 Giant planet occurrence falls with host mass and rises with metallicity, and hot Jupiters are rare: giants per M dwarf are about 0.48 today against 0.03 to 0.06 observed, hot Jupiters 0.117 per M dwarf and 0.026 per FGK star against under 0.002 and 0.005 to 0.01**
   Found by Aux 16 (report
   /mnt/project-files/reports/planet-class-distribution-check-2026-10-25.md,
