@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2421] - 2026-10-28
+
+**Headline:** A Wolf-Rayet star now has a composition record, its subtype choosing which surface mix it takes.
+
+### Changed
+- **Wolf-Rayet stars have a composition (GEN.831).** The star class W had no kind in the stellar composition, so asking for the makeup of a Wolf-Rayet star failed. It now has one: a WN star of subclass 2 to 5 is early (no hydrogen), 6 to 9 late (5 to 25 percent hydrogen), a WC star is 20 to 55 percent carbon, and a WO star, the last and hottest stage, carries carbon 30 to 55 and oxygen 10 to 40 percent by mass. The WO figures are a labelled stand-in (the source names the stage without fractions). No world changes and nothing is regenerated.
+
 ## [8.0.2420] - 2026-10-28
 
 **Headline:** Every number on a planet's page now says what it is: a thin ice shell reads "1.09 m", the water share "400 ppm", life scores "3 of 9", and a day and night swing of 9.07 K is no longer shown as -264 °C.
