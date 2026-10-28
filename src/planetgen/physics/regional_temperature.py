@@ -27,6 +27,8 @@ the model will gain.
 
 import math
 
+import numpy as np
+
 from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
 
@@ -86,39 +88,35 @@ _SEASON_STEPS = 72
 
 
 def _daily_insolation(latitude, declination):
-    """The day's mean insolation at `latitude` for the Sun at `declination`, in units of the solar constant (radians)."""
-    x = -math.tan(latitude) * math.tan(declination)
-    if x >= 1.0:
-        return 0.0
-    hour = math.pi if x <= -1.0 else math.acos(x)
-    return (hour * math.sin(latitude) * math.sin(declination)
-            + math.cos(latitude) * math.cos(declination) * math.sin(hour)) / math.pi
+    """The day's mean insolation at `latitude` (array, radians) for the Sun at `declination` (array), in units of the
+    solar constant: 0 in the polar night, the whole day's arc in the polar day."""
+    x = -np.tan(latitude) * np.tan(declination)
+    hour = np.arccos(np.clip(x, -1.0, 1.0))                  # pi for x <= -1 (the sun never sets), 0 for x >= 1
+    return (hour * np.sin(latitude) * np.sin(declination)
+            + np.cos(latitude) * np.cos(declination) * np.sin(hour)) / math.pi
 
 
 def _annual_insolation(latitude, tilt):
-    """The year's mean at `latitude` on a circular orbit with axial tilt `tilt` (radians), units of the solar constant."""
-    total = 0.0
-    for step in range(_SEASON_STEPS):
-        longitude = (step + 0.5) / _SEASON_STEPS * 2.0 * math.pi
-        total += _daily_insolation(latitude, math.asin(math.sin(tilt) * math.sin(longitude)))
-    return total / _SEASON_STEPS
+    """The year's mean at `latitude` (array, radians) on a circular orbit with axial tilt `tilt` (radians), units of the
+    solar constant: the mean of the day's over `_SEASON_STEPS` points of the year."""
+    longitude = (np.arange(_SEASON_STEPS) + 0.5) / _SEASON_STEPS * 2.0 * math.pi
+    declination = np.arcsin(math.sin(tilt) * np.sin(longitude))
+    return _daily_insolation(np.asarray(latitude)[:, None], declination[None, :]).mean(axis=1)
 
 
 def band_insolation(tilt_deg):
     """
     `{band: annual-mean insolation over the planet's mean}` for the four bands of `BANDS` (area-weighted over the
     band's latitudes, so a sphere averages 1). The south pole's cap and the north pole's are the same by symmetry of
-    the circular orbit, so the Polar band is the north cap.
+    the circular orbit, so the Polar band is the north cap. Worked out for every band's latitudes at once (TEST.392:
+    this was a Python loop of 24 by 72 steps a band and most of the time of drawing a planet).
     """
     tilt = math.radians(min(max(tilt_deg or 0.0, 0.0), 180.0))
     out = {}
     for name, low, high in BANDS:
-        weight = total = 0.0
-        for step in range(_LATITUDE_STEPS):
-            latitude = math.radians(low + (step + 0.5) / _LATITUDE_STEPS * (high - low))
-            weight += math.cos(latitude)
-            total += math.cos(latitude) * _annual_insolation(abs(latitude), tilt)
-        out[name] = 4.0 * total / weight
+        latitude = np.radians(low + (np.arange(_LATITUDE_STEPS) + 0.5) / _LATITUDE_STEPS * (high - low))
+        weight = np.cos(latitude)
+        out[name] = float(4.0 * np.sum(weight * _annual_insolation(np.abs(latitude), tilt)) / np.sum(weight))
     return out
 
 

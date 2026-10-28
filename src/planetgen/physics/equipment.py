@@ -294,6 +294,7 @@ class _Shield:
         self.cutoff = world.cutoff_gv
         self.gcr_base = radiation.gcr_dose_msv_yr(self.column, self.cutoff)
         self.sep_base = radiation.sep_dose_msv_yr(1.0, self.column, self.cutoff)
+        self._attenuated_at = {}
 
     def dose(self, layers):
         """The dose, Sv/yr, with body shares and g/cm2 of shielding `layers`."""
@@ -303,12 +304,20 @@ class _Shield:
         return total + self.ground
 
     def _attenuated(self, grams):
+        """The cosmic-ray and storm dose behind `grams` g/cm2 of shielding; the plans ask the same few depths again and again
+        (every suit step and shelter for each limit), so each is worked out once (TEST.392)."""
+        found = self._attenuated_at.get(grams)
+        if found is not None:
+            return found
         if grams <= 0:
-            return self.gcr + self.sep
-        column = self.column + grams
-        gcr = self.gcr * radiation.gcr_dose_msv_yr(column, self.cutoff) / self.gcr_base if self.gcr_base > 0 else 0.0
-        sep = self.sep * radiation.sep_dose_msv_yr(1.0, column, self.cutoff) / self.sep_base if self.sep_base > 0 else 0.0
-        return gcr + sep
+            found = self.gcr + self.sep
+        else:
+            column = self.column + grams
+            gcr = self.gcr * radiation.gcr_dose_msv_yr(column, self.cutoff) / self.gcr_base if self.gcr_base > 0 else 0.0
+            sep = self.sep * radiation.sep_dose_msv_yr(1.0, column, self.cutoff) / self.sep_base if self.sep_base > 0 else 0.0
+            found = gcr + sep
+        self._attenuated_at[grams] = found
+        return found
 
     def column_for(self, limit_sv):
         """The g/cm2 of shielding all round that brings the dose to `limit_sv`, or `None` when the ground's own dose
