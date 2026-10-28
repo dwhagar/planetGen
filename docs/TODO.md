@@ -13388,6 +13388,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generator epoch carries an affects list (plan, scatter, fill,
   population; the 96 old epochs classified from their reasons). Next:
   step 2, the per-stage epoch record (a migration).
+  Progress (2026-10-09): Steps 2 and 3 merged by Core 1 (#3399, 12:01 PM
+  EDT 2026-10-28 as the lane reported; migration 0164, schema 164, no
+  epoch, no golden rewrite): the scatter_epochs table and
+  species.generator_epoch record the epoch each scatter and species was
+  made under; `planetgen bring-to-epoch [--dry-run]` redoes the sectors
+  an epoch change altered, skips and lists admin-edited sectors, and
+  refuses on a stale plan or scatter. Open: step 4 (the Generate page
+  button and the queue run).
 
 - [ ] **GEN.767 Day and night time shares for every object that has a day or night, with the extra night when the parent planet blocks the sun**
   Boss, 7:54 PM EDT 2026-10-24 (message
