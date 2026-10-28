@@ -15033,6 +15033,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the owner of this item should decide with Aux 8 whether the fix is the
   delivered budget (cap at the body water fraction, surface and mantle
   sinks) or the solver branch.
+  Research (2026-10-09, Aux 8 report 2026-10-28): Split proposed by Aux
+  8 (as the lane reported 9:12 AM EDT 2026-10-28; recorded unless Aux 17
+  objects): measured on a G2V class M, zone e, 8 seeds: the delivered
+  water of recipes b2/b3 is 0.1 to 0.2 percent of the planet mass but
+  the body own water is 0.01 to 0.03 percent, 3 to 50 times too little
+  to supply it; the four b2/b3 draws with the most water are 55 to 870
+  bar of steam at 620 to 843 K; b1 draws are fine. Aux 8 takes the
+  SOLVER side: cap the hydrogen the air draw may take by the water the
+  body has to give (surface_air._shares), riding with GEN.830 in one
+  lock turn (one epoch, one golden run). Aux 17 keeps the b2/b3 row
+  re-fit after GEN.822. Stand-ins and tweaks go in the registry with
+  level and reason.
   Prerequisites: none. Related: GEN.813, GEN.815, GEN.812.
 
 - [ ] **GEN.838 A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling**
