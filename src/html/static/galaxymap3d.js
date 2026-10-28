@@ -3672,7 +3672,12 @@ function initGalaxyMap3d(canvasEl, data) {
       id: "regions", label: "Charted regions", modes: ["galaxy"], group: "Show on the map", data: { regions: "charted" },
       defaultOn: true, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
       title: "Show or hide the soft spheres that mark the regions with generated sectors, colored by how much is charted",
-      legend: null,
+      // MAP.331: while the wireframe cube of the region the view is in is drawn, the legend says what it outlines.
+      legend: function () {
+        if (!framedRegion || !regionByKey.has(framedRegion)) return null;
+        var blob = regionByKey.get(framedRegion);
+        return { text: "Outline: " + (blob.name || "a charted region") + " (" + blob.block.m + " sectors a side)", swatchClass: "map-frame-swatch" };
+      },
     });
     stageView.readLayersFromLocation();
     stageView.layers.refresh();
@@ -3875,6 +3880,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (key === framedRegion) return;
     framedRegion = key;
     regionFrame.set(key ? drillBlockBounds(regionByKey.get(key).block, edgePc) : null);
+    stageView.layers.refresh();    // the legend names the outline while it is drawn (MAP.331)
   }
   var markerFrustum = new THREE.Frustum();
   var markerMatrix = new THREE.Matrix4();

@@ -2567,6 +2567,12 @@ code {
   border: 2px solid var(--bg-subtle);
   box-shadow: 0 0 0 1px var(--text-muted);
 }
+/* MAP.331: the outline of the charted region the view is in, as a small wireframe square in the accent colour. */
+.map-layer-legend-swatch.map-frame-swatch {
+  border: 2px solid var(--accent);
+  background: none;
+  border-radius: 0;
+}
 .map-layer-legend-swatch.sysmap-legend-facility {
   width: 0.5rem;
   height: 0.5rem;
