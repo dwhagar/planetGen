@@ -320,11 +320,6 @@ TABLES = {
         "id": ("id",),
         "index": ("generator_epoch",),
     },
-    "habitable_systems": {
-        "id": ("star_system_id",),
-        "count": ("habitable_worlds",),
-        "pc": ("galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc"),
-    },
     "id_blocks": {
         "id": ("next_id",),
     },
@@ -898,6 +893,12 @@ TABLES = {
             "prevalence_moons", "prevalence_max_planets", "prevalence_intelligent_life", "prevalence_binary_system",
             "prevalence_wide_binary", "prevalence_planets", "prevalence_multi_star",
         ),
+    },
+    "system_interests": {
+        "id": ("star_system_id",),
+        "count": ("n",),
+        "index": ("best_score",),
+        "pc": ("galaxy_x_pc", "galaxy_y_pc", "galaxy_z_pc"),
     },
     "system_name_registry": {
         "id": ("id", "first_star_system_id", "first_object_id"),

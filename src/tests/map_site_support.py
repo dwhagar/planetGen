@@ -177,12 +177,40 @@ GLOW_EXTRA_SOL = 2.0e6
 
 
 WORLD_FIELD = [
-    {"id": 9001, "name": "Fixture Eden", "worlds": 2,
+    {"id": 9001, "name": "Fixture Eden", "worlds": 2, "score": 0.82,
      "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
-    {"id": 9002, "name": "Fixture Rest", "worlds": 1,
+    {"id": 9002, "name": "Fixture Rest", "worlds": 1, "score": 0.55,
      "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
 ]
-"""The Galaxy Map's fixture systems with a habitable world (a tile's `worlds`, MAP.220), among the fixture stars."""
+"""The Galaxy Map's fixture systems with a habitable world (the `habitable` reason of a node's `interests`, MAP.220, MAP.303), among
+the fixture stars: `worlds` of them, the best rated `score` (Fixture Eden Green, Fixture Rest Yellow)."""
+
+GIANT_FIELD = [
+    {"id": 9003, "name": "Fixture Jove", "giants": 3,
+     "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
+    {"id": 9001, "name": "Fixture Eden", "giants": 1,
+     "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+]
+"""The Galaxy Map's fixture systems with a gas giant (the `gas-giant` reason, MAP.305): Fixture Jove only, and Fixture Eden, which
+also holds the habitable worlds, so a system with two reasons is among them."""
+
+
+def interests_of(worlds, giants):
+    """A node's `interests` for fixture `worlds` (`WORLD_FIELD` shape) and `giants` (`GIANT_FIELD` shape), as the server lists them:
+    one entry per system with a `reasons` dict."""
+    from planetgen.physics import habitability
+
+    systems = {}
+    for world in worlds:
+        entry = systems.setdefault(world["id"], {"id": world["id"], "name": world["name"], "x": world["x"], "y": world["y"],
+                                                 "z": world["z"], "reasons": {}})
+        score = world.get("score", 0.8)
+        entry["reasons"]["habitable"] = {"n": world["worlds"], "score": score, "tier": habitability.tier(score)}
+    for giant in giants:
+        entry = systems.setdefault(giant["id"], {"id": giant["id"], "name": giant["name"], "x": giant["x"], "y": giant["y"],
+                                                 "z": giant["z"], "reasons": {}})
+        entry["reasons"]["gas-giant"] = {"n": giant["giants"]}
+    return list(systems.values())
 
 
 HALO_CENTER_PC = (4000.0, 1500.0, 9500.0)
@@ -588,6 +616,8 @@ class FixtureApi:
             points = [point for point in self.points if address_in_block(self._address(point), block, self._memo)]
             worlds = [system for system in self.worlds
                       if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
+            giants = [system for system in GIANT_FIELD
+                      if address_in_block(self._address(system), block, self._memo)] if block.m <= 81 else []
             # Like the real node: every cloud whose sphere reaches into the block's box.
             clouds = []
             for cloud in NEBULAE:
@@ -602,7 +632,8 @@ class FixtureApi:
                 lights["star_centre"] = [sum(star["luminosity_sol"] * star[axis] for star in lit) / weight for axis in "xyz"]
                 lights["star_temperature_k"] = 5200
             nodes[key] = {"aggregate": {"generated": 0, "stats": None, "lights": lights}, "placed": [],
-                          "clouds": clouds, "stars": stars, "generated": None, "points": points, "worlds": worlds}
+                          "clouds": clouds, "stars": stars, "generated": None, "points": points,
+                          "interests": interests_of(worlds, giants)}
             # API.35: a 9-block holding a generated sector is a charted region, named with its family.
             regions = charted_regions()
             if block.m == 9 and tuple(block)[1:] in regions:

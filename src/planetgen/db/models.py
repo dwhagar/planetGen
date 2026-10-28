@@ -794,16 +794,18 @@ generation_runs = sa.Table(
 )
 
 
-habitable_systems = sa.Table(
-    'habitable_systems',
+system_interests = sa.Table(
+    'system_interests',
     metadata,
     sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
-    sa.Column('habitable_worlds', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('reason', sa.String(24), primary_key=True, nullable=False),
+    sa.Column('n', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('best_score', mysql.DOUBLE(), nullable=True),
     sa.Column('galaxy_x_pc', mysql.DOUBLE(), nullable=False),
     sa.Column('galaxy_y_pc', mysql.DOUBLE(), nullable=False),
     sa.Column('galaxy_z_pc', mysql.DOUBLE(), nullable=False),
-    sa.Index('idx_habitable_systems_position', 'galaxy_x_pc', 'galaxy_y_pc', 'galaxy_z_pc'),
-    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_habitable_systems_system', ondelete='CASCADE'),
+    sa.Index('idx_system_interests_position', 'galaxy_x_pc', 'galaxy_y_pc', 'galaxy_z_pc'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_system_interests_system', ondelete='CASCADE'),
     mysql_engine="InnoDB",
 )
 

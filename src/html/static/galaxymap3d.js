@@ -64,7 +64,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, HABITABLE_KIND, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, selectMarkers,
+  BLACK_HOLE_KIND, HABITABLE_KIND, INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
 const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VERSION_QUERY}`);
@@ -612,15 +612,14 @@ function nearestSystemsNode(systemId) {
   return box;
 }
 
-// A star system with habitable worlds on the map (MAP.220, queryDb.galaxy_habitable_systems_in_box): how many, where,
+// A star system worth a mark on the map (MAP.220, MAP.305: a habitable world, a gas giant): every reason it has, where it is,
 // its nearest systems (MAP.296), and its page.
-function showHabitableSystemInfo(system) {
+function showInterestSystemInfo(system) {
   var spec = {
     title: system.name || "Star system",
-    fields: [
-      ["Habitable worlds", String(system.worlds)],
+    fields: interestLines(system).map(function (line) { return [line.label, line.text]; }).concat([
       ["Distance from core", formatDistancePc(Math.hypot(system.x, system.y, system.z))],
-    ],
+    ]),
     more: [["Position x, y, z", [system.x, system.y, system.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   };
   var nearest = nearestSystemsNode(system.id);
@@ -3567,7 +3566,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var markersDirty = true;
   if (!data.pinned) {
     markerKinds.register(BLACK_HOLE_KIND);
-    markerKinds.register(HABITABLE_KIND);
+    INTEREST_KINDS.forEach(function (kind) { markerKinds.register(kind); });
     markerLayer = createMarkerLayer(scene, camera, canvasEl, isLightBackground() ? "#ffffff" : "#0b0d14", {
       listIn: viewport, onChoose: function (entry) { chooseMarker(entry); },
     });
@@ -3732,7 +3731,7 @@ function initGalaxyMap3d(canvasEl, data) {
   function chooseMarker(entry) {
     highlightPosition(entry.x, entry.y, entry.z);
     if (entry.item.type) showPointInfo(entry.item);
-    else showHabitableSystemInfo(entry.item);
+    else showInterestSystemInfo(entry.item);
   }
   // MAP.268: the names (galaxylabels.js, through the label engine maplabels.js): sectors, the open sector's systems and
   // nebulae, a layer each in the Menu's Labels group.
@@ -3971,7 +3970,7 @@ function initGalaxyMap3d(canvasEl, data) {
     if (!markerLayer) return [];
     return markerLayer.entries().filter(function (entry) { return entry.kind.id === HABITABLE_KIND.id && entry.item.name; }).map(function (entry) {
       return { id: "world:" + entry.item.id, text: entry.item.name, x: entry.item.x, y: entry.item.y, z: entry.item.z, ref: { kind: "marker", entry: entry },
-        slice: { domain: "inhabited", category: "planet", habitability: entry.item.worlds || 0, population: entry.item.population || 0 } };
+        slice: { domain: "inhabited", category: "planet", habitability: entry.item.n || 0, population: entry.item.population || 0 } };
     });
   }
 

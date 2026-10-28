@@ -30,6 +30,7 @@ DIGESTS = {
     5: "357d5259c09ea2060f7b9d665b6e64ef",   # API.35: the same bytes for this node; the format goes up so the stored nodes get their names
     6: "357d5259c09ea2060f7b9d665b6e64ef",   # MAP.319: the same bytes for this node; the format goes up so the stored nodes get their extents
     7: "357d5259c09ea2060f7b9d665b6e64ef",   # MAP.314: the same bytes for this node; the format goes up so the stored nodes get their region lists
+    8: "357d5259c09ea2060f7b9d665b6e64ef",   # MAP.305: the same bytes for this node; the format goes up so the stored nodes get `interests` for `worlds`
 }
 """dict: `TILE_FORMAT` to the SHA-256 (first 32 hex) of `NODE`'s stored bytes under it."""
 
