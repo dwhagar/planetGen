@@ -20280,6 +20280,18 @@ clears each one.
   one is Bug 1's.
   Prerequisites: none. Related: TEST.414, TEST.418.
 
+- [ ] **TEST.421 test_migration_habitable_worlds: the filled-sector test finds no system with a Blue or Green world in 120 seeds, its _fill_one_sector helper no longer draws one (bug)**
+  Found by Core 2 at 12:51 PM EDT 2026-10-28 on a clean main (d5866d06):
+  src/tests/test_migration_habitable_worlds.py::test_a_filled_sector_counts_its_habitable_worlds_and_the_blocks_above_it_add_them_up
+  fails with 'no system with a Blue or Green world in 120 seeds'. The
+  helper _fill_one_sector (G2V, HABITABLE_WORLD) no longer draws a Blue
+  or Green world, probably since the GEN.727/737 or DB.96 changes. Fix:
+  set the habitability scores in the test itself, as Core 2 did in
+  test_system_interests.py, instead of relying on the draw. Owner: Bug
+  1. Not caused by any lock holder; say so in a PR instead of fixing it
+  there.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
