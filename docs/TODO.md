@@ -2956,6 +2956,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxyprisms.neighbourBlock.
   Prerequisites: none. Related: MAP.121, MAP.141.
 
+- [ ] **MAP.331 The purple wireframe cube on the Galaxy Map has no legend entry or label, so nothing says it outlines the charted region (bug)**
+  Found by Core 2 from Boss's screenshots at 5:50 PM EDT 2026-10-28 (as
+  the lane reported), live observation, so a bug: the purple wireframe
+  cube is the charted-region frame of MAP.327 (the 9-sector block the
+  camera looks at, drawn only where it holds a generated sector) and
+  nothing on screen says what it is. Add a legend entry for it and a
+  small name or label on the frame itself, so he can tell what it
+  outlines. Region names are by design not drawn at sector scale (only
+  at the far and mid zooms with a naming key); the card region line is
+  where they show at that scale, no change needed. Owner: Core 2 (quick,
+  after MAP.322 and UX.235).
+  Prerequisites: none. Related: MAP.327, MAP.322, UX.235.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
