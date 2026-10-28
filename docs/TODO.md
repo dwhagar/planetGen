@@ -14413,6 +14413,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   turn with no further map work. Owner: Core 3 (stars), after GEN.328.
   Prerequisites: none.
 
+- [ ] **GEN.847 radiation.ground_dose_msv_yr passes a float rock_ppm to radiogenic.surface_content, which fails with "float object is not iterable" and turns 17 tests red on main (bug)**
+  Found by Aux 8 at 2:35 PM EDT 2026-10-28 as the lane reported, in its
+  GEN.830/837 gate, red on main (rebased 03c905c6e): GEN.441's
+  ground-dose change leaves radiation.ground_dose_msv_yr
+  (physics/radiation.py line 313, called with
+  surface_composition.land_rock_ppm(body) at line 346) handing
+  radiogenic.surface_content a float where it expects the per-isotope
+  concentrations to iterate. 17 tests fail: test_habitability_explain
+  (10, this is the cause of TEST.416), test_habitability_world (1),
+  test_habitable_system_markers (6). Fix the call (or the function) so
+  the dose reads the stored concentrations, add a test with a real body,
+  and close TEST.416 with it. Owner: Bug 1 (top priority, it is a real
+  generator bug on main, not a test problem). Related: GEN.441,
+  TEST.416, GEN.444.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15215,72 +15231,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
 
-- [ ] **DB.9 Repair a damaged galaxy database from a parity file**
-  Boss (same message): "then Phase 1 inject a DB repair using parity
-  data stored in a file." Done:
-  - Every sector gets a content checksum, the canonical hash of GEN.58's
-    fingerprint.
-  - A parity file kept outside the database (path in `config.json`)
-    holds Reed-Solomon parity over groups of sector exports, so any one
-    damaged sector per group can be rebuilt; the group size sets the
-    overhead. It is updated whenever sectors are saved or edited, and
-    carries its own checksum so damage to it is caught too.
-  - `generate.py repair-db` uses DB.8's check to find damaged sectors
-    and rebuilds each from the parity file. Where parity can't, and the
-    galaxy's seed and version key match the running code (OPS.14), it
-    regenerates the sector from its seed and replays its edits from the
-    edit log. It re-runs the check and lists anything it could not
-    repair.
-  - A test damages rows in a copy of a small galaxy, repairs them, and
-    gets a passing check.
-  Research (2026-10-09, db-check-and-parity-repair.md): (1) replace "the
-  canonical hash of GEN.58's fingerprint" with a separate storage
-  checksum: SHA-256 over a lossless, id-preserving dump of the stored
-  rows, read back after the write. (2) The checksum and the parity
-  export omit the columns the daily orbit update rewrites (phases,
-  positions, velocities, reflex offsets, binary positions, comet
-  anomalies, and a placed object's `sector_id`; the list is in the
-  design doc section 5.2). (3) Groups are built from sectors of similar
-  export size, far apart in sector id, for an overhead of about 7
-  percent. (4) The codec is an in-tree stdlib GF(256) Reed-Solomon
-  module (`planetgen/util/rscodec.py`), no new dependency; default G =
-  32, m = 2, both in `config.json`. (5) Add the delta update, the record
-  format (per-record CRC, per-member checksums) and the stale-record
-  decision table. (6) Repair rebuilds the table when a clustered-index
-  page is unreadable (dump survivors with `innodb_force_recovery=1`,
-  recreate, reload with FK checks off, insert rebuilt sectors with their
-  ids). (7) The regenerate-from-seed fallback is split off as the new
-  fallback item; this item needs DB.8 only. (8) The test flips bytes in
-  an `.ibd` page of a copy while the server is stopped, not `UPDATE`s
-  rows. (9) A `dirty` flag on the sector row, set by every writer of
-  exported columns (`store.py` direct UPDATEs, `api/edits.py`,
-  `db/edits.py`) and cleared after the parity update; listing those
-  writers is part of the item. Before DB.19's mass cut `phenomenon_scatter`
-  would be 1.17e9 rows and about 161 GB (the earlier 1.6e8 rows and 21 GB
-  was an unverified estimate); after the cut it is about 2.7e5 rows.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; defaults taken):
-  after a repair
-  the orbit-updated columns come back as generated and the next orbit
-  update carries on (a small daily snapshot of ids, phases and sector
-  only if exact positions matter); G = 32, m = 2; repairing a bad
-  clustered-index page may mean restarting the database server with
-  `innodb_force_recovery=1`.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: DB.43, DB.44, DB.45, DB.46, DB.47, DB.48. The
-  largest item of the slice: a stdlib codec, a schema change, a checksum
-  that every writer of exported columns must respect, a parity file kept
-  current on every save, a repair command, and a table rebuild for an
-  unreadable clustered-index page (nine research points in its text).
-  Prerequisite GEN.57 dropped (2026-10-16 review): only the
-  regenerate-from-seed fallback, DB.17, needs it; the parity half needs
-  DB.8 only.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.48.
-  Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
-
 - [ ] **DB.17 Repair by regenerating a damaged sector from its seed when parity cannot rebuild it**
   The second half of DB.9: when the parity file cannot rebuild a sector,
   regenerate it from the galaxy seed, the sector's stored directives and
@@ -15423,25 +15373,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   repaired from the archive, a group that lost too many members listed
   and handed to DB.17, and a stale archive recompute that does not
   damage a healthy sector.
-  Prerequisites: DB.41, DB.9, DB.17. Related: DB.9, DB.17, ADM.91.
-
-- [ ] **DB.48 repair-db: rebuild the table when a clustered-index page is unreadable**
-  Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). When a page of the `sectors`
-  clustered index cannot be read, rebuild the table: restart the
-  database server with `innodb_force_recovery=1` (the command says so
-  first and asks), dump the surviving rows, recreate the table, reload
-  with foreign-key checks off, and insert the rebuilt sectors with their
-  ids (design section 4). Why: single-sector rebuild in place does not
-  work for a bad index page, and it is the one repair that needs a
-  server restart, so it is a separate decision for the admin. Done: a
-  test flips bytes in an `.ibd` page of a copy while the server is
-  stopped, runs the repair and gets a passing check with every sector
-  present.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: DB.9, DB.47.
+  Prerequisites: DB.41, DB.17. Related: DB.9, DB.17, ADM.91.
 
 - [ ] **DB.57 The update records what it moved: a replace-each-run table of previous and new positions**
   Split from MAP.192 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -15970,6 +15902,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Core 3). Rules: no backward-compat shims; every number has a unit or
   scale (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: DB.107. Related: DB.107, MAP.322, MAP.317.
+
+- [ ] **DB.109 Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute**
+  Core 1's suggestion at the end of DB.46 to DB.48 (#3451, #3456,
+  #3460): (1) planetgen refresh-parity runs after a generation run
+  finishes when parity.enabled is on, so the file is never stale after a
+  fill; (2) the edit paths (admin and the property sheet edits) keep a
+  before-image of the sector so the parity updates by a delta instead of
+  recomputing the whole group. Both are optional and off the critical
+  path; the parity file is off by default. Owner: Core 1 when it runs
+  dry.
+  Prerequisites: none.
 
 ## API: The JSON API
 
@@ -16696,7 +16639,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Done: replay after both rebuild paths, a test that a sector with edits
   rebuilds to the same stored rows, and the list of rows that cannot
   replay.
-  Prerequisites: ADM.60, DB.17, DB.9. Related: DB.9, DB.17,
+  Prerequisites: ADM.60, DB.17. Related: DB.9, DB.17,
   GEN.57, GEN.59.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
@@ -20027,6 +19970,11 @@ clears each one.
   are right), with no skipped test. Done: test_habitability_explain
   passes. Owner: Bug 1 after DB.108/GEN.826, or Aux 11. Rules: never
   skip or loosen a test to get green.
+  Research (2026-10-09): Root cause found (Aux 8, 2:35 PM EDT 2026-10-28
+  as the lane reported): radiation.ground_dose_msv_yr hands
+  radiogenic.surface_content a float (GEN.847). Fix GEN.847 and this
+  item and two more files (test_habitability_world,
+  test_habitable_system_markers) go green.
   Prerequisites: none. Related: TEST.413, GEN.441.
 
 - [ ] **TEST.417 Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)**
