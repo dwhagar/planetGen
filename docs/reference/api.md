@@ -472,7 +472,7 @@ connectivity to that specific schema rather than the default one.
   `[{"shell", "band", "wedge", "generated", "stats"}]` for each child block
   one size down that holds a generated sector (`stats`:
   `{"systems", "expected_systems", "stars", "mean_age_gy",
-  "luminosity_sol"}`), and, when the children are sectors (`child_m` 1),
+  "luminosity_sol", "mass_kg"}`; `mass_kg` is the total mass of the generated contents, from `sector_stats.total_mass_kg`, which the Galaxy Map ranks sector names by, MAP.322), and, when the children are sectors (`child_m` 1),
   `sectors` lists each generated one: `{"shell", "band", "wedge", "id",
   "name", "system_count", "stats"}` (otherwise `null`). When the children are 9-blocks (`child_m` 9) each child also has `name` and
   `parent` (the region and its family, as on the node, API.35), and the stage of a charted 9-block has them itself. Above the sector the

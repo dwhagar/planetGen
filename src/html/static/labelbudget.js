@@ -25,7 +25,8 @@
 //   nebula       nebulae and dust clouds by `volume` (cubic parsecs);
 //   region       regions by `shareCharted` (0 to 1), ties by `population`.
 //
-// An item with `first: true` (a region at the farthest zoom) goes before everything else.
+// An item with `first: true` (a region at the farthest zoom, a sector) goes before everything else; among them a sector goes by the
+// total mass of its generated contents, heaviest first (`massKg`, MAP.322).
 
 // Percent of the budget each domain gets while it has things to name; they need not add to 100 (they are shares of
 // their sum), and what a domain cannot use goes to the others in proportion.
@@ -145,7 +146,14 @@ export function chooseLabels(items, options) {
   const weights = (options && options.weights) || SLICE_WEIGHTS;
   const budget = options && options.budget !== undefined ? options.budget : Infinity;
   const drawn = items.filter(function (item) { return item.drawn !== false && weights[item.domain] > 0 && DOMAINS[item.domain]; });
-  const chosen = drawn.filter(function (item) { return item.first; });
+  // The items that go first keep their order, except that those with a `massKg` (a sector's total mass, kilograms, MAP.322) go heaviest
+  // first, after any that have none: a crowded region names its heaviest sectors and a short budget drops the lightest.
+  const chosen = drawn.filter(function (item) { return item.first; }).map(function (item, n) { return { item: item, n: n }; })
+    .sort(function (a, b) {
+      const ka = a.item.massKg === undefined ? Infinity : num(a.item.massKg);
+      const kb = b.item.massKg === undefined ? Infinity : num(b.item.massKg);
+      return ka !== kb ? (kb > ka ? 1 : -1) : a.n - b.n;
+    }).map(function (entry) { return entry.item; });
   const rest = drawn.filter(function (item) { return !item.first; });
   const lists = Object.keys(DOMAINS).map(function (domain) {
     return { domain: domain, weight: weights[domain] || 0, items: DOMAINS[domain](rest.filter(function (item) { return item.domain === domain; })), taken: 0 };

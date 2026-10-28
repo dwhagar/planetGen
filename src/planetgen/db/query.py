@@ -5370,9 +5370,10 @@ def _stage_stats(sums):
     its generated sectors hold, the `expected_systems` the density model
     gave them, `mean_age_gy` (the stars' mean age, each sector's mean
     weighted by its star count; `None` without stars),
-    `luminosity_sol` (the sum of their luminosity) and `habitable_worlds`
-    (MAP.143: the Blue or Green planets and moons they hold)."""
-    _n, systems, expected, stars, age_sum, luminosity, habitable, _mass = sums
+    `luminosity_sol` (the sum of their luminosity), `habitable_worlds`
+    (MAP.143: the Blue or Green planets and moons they hold) and `mass_kg` (MAP.322: the total mass of what they hold, in
+    kilograms, 0 for a sector with no figure), which the map ranks a region's sector names by."""
+    _n, systems, expected, stars, age_sum, luminosity, habitable, mass = sums
     return {
         "systems": int(systems),
         "expected_systems": round(expected, 3),
@@ -5380,6 +5381,7 @@ def _stage_stats(sums):
         "mean_age_gy": round(age_sum / stars, 4) if stars else None,
         "luminosity_sol": luminosity,
         "habitable_worlds": int(habitable),
+        "mass_kg": float(mass or 0.0),
     }
 
 

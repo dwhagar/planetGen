@@ -2284,9 +2284,8 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
     """MAP.219: the marker layer draws a glyph over each black hole in view, with a Menu toggle that rides in the
     address, a legend line while on, and a click on the glyph shows the black hole's card."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
-    page.wait_for_timeout(1000)
     holes = {p["name"]: p for p in POINT_FIELD if p["type"] == "black_hole"}
-    drawn = page.evaluate(MARKERS)
+    drawn = _markers_until(page, lambda found: {e["name"] for e in found if e["kind"] == "marker-black-hole"} >= set(holes))
     assert {e["name"] for e in drawn if e["kind"] == "marker-black-hole"} >= set(holes), drawn
     legend = page.locator("#galaxymap3d-layer-legend")
     assert "Black holes" in legend.inner_text()
@@ -4227,3 +4226,14 @@ def test_galaxy_map_system_nearest_route_answers_json(page, map_site):
     assert page.request.get(map_site + "/galaxy/system/424242/nearest").status == 404
 
 
+def test_galaxy_map_names_the_heaviest_sectors_first_by_their_total_mass(page, map_site):
+    """MAP.322: the sectors offered a name are ranked by the total mass of what they hold (the stored `mass_sum`), the heaviest first, so
+    a crowded region names its heaviest sectors and a sparse one names them all. The fixture's three sectors in this window hold
+    1.2e32, 3e31 and 0 kg; the label engine places them in that order."""
+    _open_window(page, map_site, 1, 9, 1, 4, g=3)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapSectorNames().length === 3")
+    offered = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapSectorNames().map(l => [l.text, l.slice.massKg])")
+    assert dict(offered) == {"Fixture Second": 1.2e32, "Fixture High": 3e31, "Fixture Shell Nine": 0}, offered
+    page.wait_for_function(f"() => ({LABELS})().filter((label) => label.kind === 'sector').length === 3")
+    placed = [label["text"] for label in page.evaluate(LABELS) if label["kind"] == "sector"]
+    assert placed == ["Fixture Second", "Fixture High", "Fixture Shell Nine"], placed

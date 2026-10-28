@@ -121,3 +121,22 @@ test("inside a type an inhabited world with no score yet still goes before a hab
   const chosen = B.chooseLabels([world(2, "planet", 1.9, 0), first], { budget: 100 });
   assert.deepEqual(chosen.map((c) => c.id), ["w1", "w2"]);
 });
+
+const sector = (id, massKg) => ({ id: "sec" + id, domain: "region", first: true, massKg });
+
+test("sectors are named heaviest first by their total mass, and a short budget drops the lightest (MAP.322)", () => {
+  const items = [sector(1, 3e30), sector(2, 9e32), sector(3, 0), sector(4, 5e31)];
+  assert.deepEqual(B.chooseLabels(items, { budget: 100 }).map((c) => c.id), ["sec2", "sec4", "sec1", "sec3"]);
+  assert.deepEqual(B.chooseLabels(items, { budget: 2 }).map((c) => c.id), ["sec2", "sec4"]);
+});
+
+test("things that go first with no mass stay ahead of the sectors in their own order, and equal masses keep the list's order", () => {
+  const farRegion = { id: "r1", domain: "region", first: true, shareCharted: 0.1 };
+  const items = [sector(1, 2e30), farRegion, sector(2, 2e30), { id: "r2", domain: "region", first: true }];
+  assert.deepEqual(B.chooseLabels(items, { budget: 100 }).map((c) => c.id), ["r1", "r2", "sec1", "sec2"]);
+});
+
+test("a sparse view names every sector whatever its mass", () => {
+  const items = [sector(1, 1e30), sector(2, 2e30), sector(3, 3e30)];
+  assert.equal(B.chooseLabels(items, { budget: 50 }).length, 3);
+});
