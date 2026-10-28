@@ -1540,3 +1540,4 @@ Baseline: PR #1817.
 | GEN.825 | 8.1 | Fly-through map |
 | GEN.827 | 8.1 | Fly-through map |
 | GEN.430 | 8.1 | Bulk composition |
+| DB.107 | 8.1 | Fly-through map |
