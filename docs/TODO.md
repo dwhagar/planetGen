@@ -3580,6 +3580,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   6.9 and the generated stand-in list. Still open: stars in the sector
   view (Aux 10) and the object details pages (Aux 11), both on the
   shared function.
+  Progress (2026-10-09): Part done by Core 2 (#3408, 10:41 AM EDT
+  2026-10-28 as the lane reported; object pages were Aux 11's in the
+  text above, Core 2 took them): the rendered example on every star,
+  planet and moon page turns slowly on its axis, same law as the System
+  Map (retrograde backwards, light fixed, no stored period means the
+  body stays still), with a Spin button and reduced motion honoured.
+  Open: stars in the Sector Map view (Aux 10); belts and comets have no
+  picture to turn (no look record); the black-hole, neutron-star and
+  nebula views are separate renderers.
 
 ## NAV: Navigation and courses
 
