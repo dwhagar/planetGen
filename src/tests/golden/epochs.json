@@ -654,8 +654,7 @@
     },
     {
       "epoch": 110,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2366",
       "reason": "The sulfur in the air of a rocky or icy world is what the sulfate and sulfide sinks of its crust leave (rain-out over an ocean, sulfation of the rock on a dry surface), not a drawn share (GEN.815), so the sulfur gases of many airs, and the pressure and temperature that follow, change",
       "affects": ["fill"]
     }
