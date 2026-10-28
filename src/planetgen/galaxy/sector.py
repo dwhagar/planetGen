@@ -201,6 +201,7 @@ from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from planetgen.generation import cloud as cloudContext
 from planetgen.generation.system import StarSystem
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
@@ -847,6 +848,10 @@ class SpaceSector:
         # `nebulaField.clouds_reaching`): `(Nebula, center_pc)` pairs, each
         # stored once by whichever sector it reaches is saved first.
         self.field_nebulae = []
+        self.cloud_containers = []
+        """list: The containers (`galaxy.containment`) of `field_nebulae`, found before the sector places a system
+        (`generation.cloud.begin`, GEN.357); `add_system` gives each system the cloud holding its position. Empty for a
+        sector with no cloud field."""
         self.cloud_field = None
         """tuple or None: The `(galaxy_seed, shape, center_pc, reach_pc)` the clouds came from; with it the store works
         out each cloud's object ID from the seed alone (GEN.176)."""
@@ -1022,6 +1027,8 @@ class SpaceSector:
                                   sector_center_ly=self.center_galactic_ly, sector_edge_pc=self.sector_edge_pc,
                                   epoch_unix=self.epoch_unix)
         self.entries.append(entry)
+        if self.cloud_containers:
+            cloudContext.apply_in_sector(self, star_system, position)
         log.debug(f"Sector {self.name!r}: placed system {_system_name(star_system)!r} at "
                   f"{_fmt_position(position)} (system {len(self.entries)} in this sector)")
         return entry

@@ -27,6 +27,7 @@ import pytest
 from planetgen.util import detmath
 
 from planetgen.db import store
+from planetgen.galaxy import containment
 from planetgen import tuning
 from planetgen.physics import body_state, constants as pc
 from planetgen.generation.comet import Comet
@@ -1175,12 +1176,12 @@ def test_an_ionized_nebula_stores_its_age_photon_rate_and_hosts(mysql_config):
 def test_innermost_container_picks_the_smallest_cloud_holding_the_point():
     big = {"column": "inside_nebula_id", "id": 1, "center": (0.0, 0.0, 0.0), "radius_pc": 10.0}
     small = {"column": "inside_remnant_id", "id": 2, "center": (1.0, 0.0, 0.0), "radius_pc": 2.0}
-    assert store.innermost_container((1.5, 0.0, 0.0), [big, small]) is small
-    assert store.innermost_container((5.0, 0.0, 0.0), [big, small]) is big
-    assert store.innermost_container((20.0, 0.0, 0.0), [big, small]) is None
+    assert containment.innermost_container((1.5, 0.0, 0.0), [big, small]) is small
+    assert containment.innermost_container((5.0, 0.0, 0.0), [big, small]) is big
+    assert containment.innermost_container((20.0, 0.0, 0.0), [big, small]) is None
     # A nebula only nests in a larger cloud, and never in itself.
-    assert store.innermost_container((1.0, 0.0, 0.0), [big, small], own_radius_pc=3.0) is big
-    assert store.innermost_container((0.0, 0.0, 0.0), [big], own_radius_pc=0.0,
+    assert containment.innermost_container((1.0, 0.0, 0.0), [big, small], own_radius_pc=3.0) is big
+    assert containment.innermost_container((0.0, 0.0, 0.0), [big], own_radius_pc=0.0,
                                    own=("inside_nebula_id", 1)) is None
 
 
@@ -1192,9 +1193,9 @@ def test_a_nebula_holds_only_the_points_inside_its_shape():
 
     nebula = {"column": "inside_nebula_id", "id": 1, "center": (0.0, 0.0, 0.0), "radius_pc": 10.0,
               "shape": lambda: Slab()}
-    assert store.innermost_container((5.0, 0.0, 0.5), [nebula]) is nebula
-    assert store.innermost_container((5.0, 0.0, 5.0), [nebula]) is None
-    assert store.innermost_container((11.0, 0.0, 0.0), [nebula]) is None
+    assert containment.innermost_container((5.0, 0.0, 0.5), [nebula]) is nebula
+    assert containment.innermost_container((5.0, 0.0, 5.0), [nebula]) is None
+    assert containment.innermost_container((11.0, 0.0, 0.0), [nebula]) is None
 
 
 def _point_inside(shape):

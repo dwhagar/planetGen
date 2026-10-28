@@ -606,7 +606,7 @@ def _overview_sentences(system):
     if compressed is not None and compressed < star.heliosphere_radius * HELIOSPHERE_COMPRESSION_NOTED:
         sentences.append(inline(
             "The star's stellar wind creates a bubble, known as the heliosphere, which would extend out to approximately ",
-            _au(star.heliosphere_radius), f" in open space, but the gas of {cloud['name']} around the system presses it in "
+            _au(star.heliosphere_radius), f" in open space, but the gas of {cloud['name'] or 'the cloud'} around the system presses it in "
             "to approximately ", _au(compressed), "."))
     elif wind:
         sentences.append(inline("The star's stellar wind creates a bubble, known as the heliosphere, which extends out "
