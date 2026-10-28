@@ -138,8 +138,8 @@ test("a system with two reasons is drawn once, by the first reason that is on, a
 });
 
 test("the reasons are in the order of the best world's symbol and a barren world or a belt is a reason of its own (MAP.321)", () => {
-  assert.deepEqual(M.INTEREST_KINDS.map((k) => k.interest), ["habitable", "uninhabitable", "gas-giant", "asteroid-field"]);
-  assert.deepEqual(M.INTEREST_KINDS.map((k) => k.icon), ["habitable-world", "uninhabitable-world", "gas-giant", "asteroid-field"]);
+  assert.deepEqual(M.INTEREST_KINDS.map((k) => k.interest), ["inhabited", "habitable", "uninhabitable", "gas-giant", "asteroid-field"]);
+  assert.deepEqual(M.INTEREST_KINDS.map((k) => k.icon), ["inhabited-world", "habitable-world", "uninhabitable-world", "gas-giant", "asteroid-field"]);
   assert.ok(M.INTEREST_KINDS.every((k) => k.defaultOn === false));
   const systems = [
     { id: 1, name: "Rock", x: 0, y: 0, z: 0, reasons: { uninhabitable: { n: 2, score: 0.1, tier: "Red" } } },
@@ -154,6 +154,10 @@ test("the reasons are in the order of the best world's symbol and a barren world
     ["Belt", "marker-asteroid-field"], ["Mixed", "marker-uninhabitable"], ["Rock", "marker-uninhabitable"]]);
   const onlyBelts = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-asteroid-field", nodes });
   assert.deepEqual(onlyBelts.map((c) => c.item.name).sort(), ["Belt", "Mixed"]);
+  const settled = { id: 4, name: "Home", x: 3, y: 0, z: 0, reasons: { habitable: { n: 2, score: 0.8, tier: "Green" }, inhabited: { n: 1, score: 0.8, tier: "Green" } } };
+  assert.deepEqual(M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes: [{ key: "9.0.0.0", node: { interests: [settled] } }] })
+    .map((c) => c.kind.id), ["marker-inhabited"], "an inhabited world's symbol comes before a habitable one's");
+  assert.equal(M.interestLines(settled).map((l) => l.text).join("; "), "1 inhabited world, best Green; 2 habitable worlds, best Green");
   assert.equal(M.interestLines(systems[2]).map((l) => l.text).join("; "), "1 uninhabitable world; 1 gas giant; 1 asteroid belt");
 });
 

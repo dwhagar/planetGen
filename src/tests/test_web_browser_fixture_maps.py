@@ -2573,11 +2573,11 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
 
 
 def test_galaxy_map_marks_each_system_with_its_best_worlds_symbol(page, map_site):
-    """MAP.321: with every world reason on a system has one mark, the symbol of its best world (a habitable world before a barren
+    """MAP.321: with every world reason on a system has one mark, the symbol of its best world (an inhabited world before a habitable world before a barren
     one before a gas giant before a belt), and each reason has a button of its own, off until asked for."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     page.wait_for_timeout(1000)
-    ids = ("marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
+    ids = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
     _open_menu(page)
     for layer in ids:
         button = page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]')
@@ -2587,14 +2587,14 @@ def test_galaxy_map_marks_each_system_with_its_best_worlds_symbol(page, map_site
     marks = {e["name"]: e["kind"] for e in found if e["kind"] in ids}
     assert sorted(e["name"] for e in found if e["kind"] in ids) == sorted(marks), "no system is marked twice"
     assert marks == {
-        "Fixture Eden": "marker-habitable", "Fixture Rest": "marker-habitable", "Fixture Rock": "marker-uninhabitable",
+        "Fixture Eden": "marker-habitable", "Fixture Rest": "marker-inhabited", "Fixture Rock": "marker-uninhabitable",
         "Fixture Jove": "marker-gas-giant", "Fixture Belt": "marker-asteroid-field"}, marks
-    # Turn the habitable reason off: Eden's best remaining world is its barren one, Rest has no other reason and is unmarked.
+    # Turn the habitable reason off: Eden's best remaining world is its barren one, Rest keeps its inhabited one.
     page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
     found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-habitable" for e in entries))
     marks = {e["name"]: e["kind"] for e in found if e["kind"] in ids}
     assert marks == {
-        "Fixture Eden": "marker-uninhabitable", "Fixture Rock": "marker-uninhabitable",
+        "Fixture Eden": "marker-uninhabitable", "Fixture Rest": "marker-inhabited", "Fixture Rock": "marker-uninhabitable",
         "Fixture Jove": "marker-gas-giant", "Fixture Belt": "marker-asteroid-field"}, marks
 
 

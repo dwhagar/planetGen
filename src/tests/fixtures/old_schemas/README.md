@@ -49,3 +49,4 @@ Commit each file came from:
 - v163: 9475d1ab (GEN.727 orbit eccentricity, before GEN.764 scatter and species epochs)
 - v164: 57b3b362 (GEN.764 scatter and species epochs, before MAP.305 system interests)
 - v165: a03f5260 (MAP.305 system interests, before MAP.321 uninhabitable worlds and asteroid fields)
+- v166: c0e55d8b (MAP.321 uninhabitable worlds and asteroid fields, before the inhabited reason)

@@ -239,6 +239,47 @@ def test_a_scored_barren_world_is_an_uninhabitable_one_and_a_belt_is_an_asteroid
         conn.close()
 
 
+def test_a_world_with_a_technological_civilization_or_a_colony_is_inhabited(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        first = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1", (system_id,)).fetchone()["id"]
+        conn.execute("UPDATE planets SET life_stage = NULL WHERE star_system_id = ?", (system_id,))
+        conn.execute("UPDATE moons SET life_stage = NULL WHERE star_system_id = ?", (system_id,))
+        conn.execute("DELETE FROM facilities WHERE star_system_id = ?", (system_id,))
+        store.recount_habitable_worlds(conn, [system_id])
+        assert interests.INHABITED not in _rows(conn, system_id)
+        # a civilization counts only on a class that can carry life
+        conn.execute("UPDATE planets SET life_stage = 'technological_civilization', planet_class = 'A', body_type = 't', phi4 = 0.82 WHERE id = ?",
+                     (first,))
+        store.recount_habitable_worlds(conn, [system_id])
+        assert interests.INHABITED not in _rows(conn, system_id)
+        conn.execute("UPDATE planets SET planet_class = 'M' WHERE id = ?", (first,))
+        store.recount_habitable_worlds(conn, [system_id])
+        row = _rows(conn, system_id)[interests.INHABITED]
+        assert row["n"] == 1 and row["best_score"] == pytest.approx(0.82)
+        lo, hi = _box(POSITION_PC)
+        found = query.galaxy_system_interests_in_box(conn, lo, hi)
+        assert found[0]["reasons"][interests.INHABITED] == {"n": 1, "score": pytest.approx(0.82), "tier": "Green"}
+        # and a colony makes any terrestrial world inhabited, kept right when it is added and removed
+        conn.execute("UPDATE planets SET life_stage = NULL WHERE id = ?", (first,))
+        store.recount_habitable_worlds(conn, [system_id])
+        assert interests.INHABITED not in _rows(conn, system_id)
+        conn.execute("INSERT INTO facilities (name, kind, placement, host_type, star_system_id, planet_id, uid, mass_kg)"
+                     " VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                     ("Landing", "colony", "terrestrial", "planet", system_id, first, b"\x00" * 12, 0.0))
+        facility_id = conn.execute("SELECT id FROM facilities WHERE star_system_id = ?", (system_id,)).fetchone()["id"]
+        assert interests.INHABITED not in _rows(conn, system_id)    # a direct insert is not a hook
+        store.recount_habitable_worlds(conn, [system_id])
+        assert _rows(conn, system_id)[interests.INHABITED]["n"] == 1
+        assert store.delete_facility(conn, facility_id)
+        assert interests.INHABITED not in _rows(conn, system_id)    # the hook of a removal
+    finally:
+        conn.rollback()
+        conn.close()
+
+
 def test_a_v164_galaxy_gets_its_rows_from_the_planets_moons_and_belts_it_holds(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
@@ -291,6 +332,38 @@ def test_a_v165_galaxy_gets_the_two_new_reasons_from_what_it_holds(mysql_config)
         conn.execute("UPDATE alembic_version SET version_num = '0165'")
         conn.execute("DELETE FROM schema_migrations")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (165)")
+        conn.commit()
+    finally:
+        conn.close()
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        assert got == want
+    finally:
+        conn.close()
+
+
+def test_a_v166_galaxy_gets_the_inhabited_reason_from_what_it_holds(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        first = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1", (system_id,)).fetchone()["id"]
+        conn.execute("UPDATE planets SET life_stage = 'technological_civilization', planet_class = 'M', body_type = 't', phi4 = 0.82 WHERE id = ?",
+                     (first,))
+        store.recount_habitable_worlds(conn, [system_id])
+        conn.commit()
+        want = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        assert interests.INHABITED in want
+    finally:
+        conn.close()
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        conn.execute("DELETE FROM system_interests WHERE reason = 'inhabited'")
+        conn.execute("UPDATE alembic_version SET version_num = '0166'")
+        conn.execute("DELETE FROM schema_migrations")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (166)")
         conn.commit()
     finally:
         conn.close()

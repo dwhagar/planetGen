@@ -198,10 +198,12 @@ also holds the habitable worlds, so a system with two reasons is among them."""
 BARREN_FIELD = [
     {"id": 9004, "name": "Fixture Rock", "reason": "uninhabitable", "n": 2, "x": STAR_FIELD_CENTER_PC[0] - 2.0, "y": 5.0, "z": -1.0},
     {"id": 9001, "name": "Fixture Eden", "reason": "uninhabitable", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 6.0, "y": -6.0, "z": 2.0},
+    {"id": 9002, "name": "Fixture Rest", "reason": "inhabited", "n": 1, "score": 0.55, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
     {"id": 9005, "name": "Fixture Belt", "reason": "asteroid-field", "n": 1, "x": STAR_FIELD_CENTER_PC[0] + 3.0, "y": -3.0, "z": 4.0},
 ]
 """The fixture systems with the other reasons (MAP.321): Fixture Rock holds barren worlds only, Fixture Eden a barren one besides its
-habitable ones and its gas giant (so three reasons name it, the habitable one first), Fixture Belt a belt."""
+habitable ones and its gas giant (so three reasons name it, the habitable one first), Fixture Rest an inhabited world (the inhabited
+one names it before the habitable one does), Fixture Belt a belt."""
 
 
 def interests_of(worlds, giants, barren=()):
@@ -225,6 +227,8 @@ def interests_of(worlds, giants, barren=()):
         entry["reasons"][other["reason"]] = {"n": other["n"]}
         if other["reason"] == "uninhabitable":
             entry["reasons"][other["reason"]].update(score=0.1, tier="Red")
+        if other["reason"] == "inhabited":
+            entry["reasons"][other["reason"]].update(score=other["score"], tier=habitability.tier(other["score"]))
     return list(systems.values())
 
 

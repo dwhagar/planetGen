@@ -91,11 +91,20 @@ export const BLACK_HOLE_KIND = {
 //   icon       the symbol the system's mark takes when this is its first reason (poiicons.js);
 //   defaultOn  shown until the visitor says otherwise;
 //   describe   `function (reason) -> string`: the infobox line for a system's `{n, score, tier}` of it.
-// The reasons are in the order the map prefers them (MAP.321: the best world's symbol, a habitable one before a barren one before a
+// The reasons are in the order the map prefers them (MAP.321: the best world's symbol, an inhabited one before a habitable one before a barren one before a
 // gas giant before a belt): a system with several is drawn once, with the first of them that is on (selectMarkers), and its infobox
 // lists them all. A reason is added here (and in the server's registry) and the Menu, the
 // legend, the budget and the infobox take it up with no other change.
 export const INTEREST_REASONS = [
+  {
+    id: "inhabited",
+    label: "Inhabited worlds",
+    icon: "inhabited-world",
+    defaultOn: false,
+    describe: function (reason) {
+      return reason.n + (reason.n === 1 ? " inhabited world" : " inhabited worlds") + (reason.tier == null ? "" : ", best " + TIER_NAMES[reason.tier]);
+    },
+  },
   {
     id: "habitable",
     label: "Habitable worlds",
