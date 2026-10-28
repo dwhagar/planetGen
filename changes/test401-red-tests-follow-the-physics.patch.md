@@ -1,0 +1,4 @@
+**Headline:** Two atmosphere tests that were red on main now check what the water-delivery law and the escape model deliberately do.
+
+### Changed
+- **Two tests follow the physics that moved (TEST.401).** The delivered-water test looked for the thin water class b2 at the Earth's snow ratio, where the population law of GEN.802 no longer draws it (it draws b1, b3 and b4 there, and b2 inside the snow line), so it now sweeps at a snow ratio of 0.3 where b1 to b3 all appear. The abiotic-oxygen test summed the gases of every draw to one, but the thermosphere escape of GEN.738 strips the air of an M-dwarf Earth in about one draw of 300 (seed 34), so an airless draw must have no gases and at most 15 of the 300 may be airless. Both moves are deliberate changes of the physics, not regressions; no generated value changes.
