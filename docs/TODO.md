@@ -3350,43 +3350,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scripts/test.py changed --resume.
   Prerequisites: API.35. Related: GEN.825, DB.107,
   GEN.827, API.35, MAP.314.
-
-- [ ] **MAP.317 Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c)**
-  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
-  what the galactic-level map shows so a user can always drill down to
-  inhabited space; a region is a 9-block cell with at least one
-  generated sector, drawn as the bounding sphere of its generated
-  sectors (never smaller than the 12 pc fill sphere), ranked by share
-  charted. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2. Reuse the star-visibility share (starfade.js,
-  zoom-star-visibility.md) and add one rule: a label is only offered for
-  a marker that is drawn. Budget N = screen area over the label cell, so
-  a sparse region labels everything it draws and a dense one trims.
-  Slices, each ranked by its own metric and merged without duplicates,
-  empty slices lending their share: the inhabited slice is worlds with a
-  population ranked by population, per type (planets, moons, stations
-  and so on, so a station does not compete with a planet), plus
-  habitable worlds ranked by habitability score until population exists,
-  so in 8.1 the slice is the habitable worlds and still uses its budget
-  (Boss, 1:19 AM EDT 2026-10-25, design section 0.3); uninhabitable
-  worlds, gas giants and asteroid belts and fields are the uninhabited
-  slice, ranked by mass per category, where an asteroid belt includes
-  the asteroid fields and those are ranked by the total volume of the
-  region they occupy as a proxy for their mass (Boss, 1:32 AM EDT
-  2026-10-25) with an equal share per category (rocky or icy world, gas
-  giant, asteroid field), and non-luminous star-like objects with them;
-  stars by size, brightness and mass (a third each, a star in two lists
-  counts once and the next in line fills); nebulae and dust clouds by
-  volume; regions by share charted, ties by population, labelled first
-  at the farthest zooms. Default weights inhabited 30, stars 30,
-  uninhabited 25, nebulae 10 percent with unused budget redistributed,
-  constants beside the star-fade ones. Done: unit tests on the dense
-  fixture, a sparse fixture labels every drawn marker, no label for an
-  undrawn one. Owner: Aux 10. Rules: no backward-compat shims; every
-  number has a unit or scale (GEN.772); tests are scripts/test.py
-  changed --resume.
-  Prerequisites: API.35. Related: MAP.316, MAP.314, MAP.293.
+  Research (2026-10-09, Aux 10 report 2026-10-28): MAP.317 merged
+  (#3395, Aux 10): labelbudget.js (shares inhabited 30, star 30,
+  uninhabited 25, nebula 10, region 5, empty slices lend), only drawn
+  things offered, World names switch. The region slice and the MAP.322
+  ordering hook are in place (domain region with
+  shareCharted/population, item.first for the farthest zoom); this item
+  feeds that slice.
 
 - [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d)**
   Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
@@ -3410,7 +3380,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   habitable one by habitability score), nothing waits on POP.30. Owner:
   Aux 10. Rules: no backward-compat shims; every number has a unit or
   scale (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: MAP.317, MAP.316. Related: MAP.317, MAP.316, POP.30,
+  Prerequisites: MAP.316. Related: MAP.317, MAP.316, POP.30,
   POP.19.
 
 - [ ] **MAP.319 flyToFit: flying to a region, star system, planet system of moons or nebula places the camera so the target fills the window, with no sector boxes drawn (regions chain, step 3b)**
@@ -3551,7 +3521,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   when the budget is short, and a sparse fixture labels all. Owner: Aux
   10. Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: MAP.317, DB.108. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
+  Prerequisites: DB.108. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
 
 - [ ] **MAP.327 Sector view dims everything outside the sector's bounds and puts a clearly labelled move icon at the centre of each visible wall facing an adjacent sector**
   Boss, 2:38 AM EDT 2026-10-25: the star field outside the sector makes
@@ -20854,6 +20824,19 @@ clears each one.
   DB.108/GEN.826, or Aux 11 (object pages). Rules: never skip or
   quarantine a test; scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.412.
+
+- [ ] **TEST.414 test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug)**
+  Found by Aux 10 (as the lane reported 9:56 AM EDT 2026-10-28) while
+  merging MAP.317 (#3395); not that change's. Do: run the file alone on
+  clean main, find what the database fixture waits on (a generation of a
+  whole sector fixture, MySQL or Redis not up, a worker not started, the
+  env variables PLANETGEN_MYSQL_USER/PASSWORD/HOST missing after a
+  restart), and fix the fixture so it builds a small galaxy in seconds
+  or fails fast with the reason. Done: the 8 tests pass and a stuck
+  fixture fails within its timeout. Owner: Bug 1 after DB.108/GEN.826,
+  or a free lane. Rules: never skip or quarantine a test;
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.409, TEST.412.
 
 ## USR: User accounts
 
