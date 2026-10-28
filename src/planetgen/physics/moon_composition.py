@@ -185,6 +185,20 @@ class DiskSystem:
         return cls(data["parent_mass_kg"], data["lifetime_myr"], data["alpha_over_f"], data["f_inf"], data["moon_masses_kg"])
 
 
+DISK_FIELDS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
+"""tuple: The columns of a giant planet that keep its circumplanetary disk (DB.70), as stored in `planets` (NULL for a body with no disk)."""
+BODY_FIELDS = ("moon_origin", *DISK_FIELDS)
+"""tuple: What the moon composition stores in `planets` and `moons` (DB.70): a moon's origin and its giant parent's disk."""
+
+
+def store_disk(planet, system):
+    """Sets `DISK_FIELDS` on the giant `planet` from its `DiskSystem` (the moons' share of the disk's ice line, lifetime and ramp)."""
+    planet.moon_disk_lifetime_myr = system.lifetime_myr
+    planet.moon_disk_alpha_over_f = system.alpha_over_f
+    planet.moon_disk_f_inf = system.f_inf
+    planet.moon_disk_ice_line_km = system.ice_line_km
+
+
 def draw_disk_system(parent_mass_kg):
     """
     The disk system of a giant of this mass. The draws, in order: the lifetime, alpha/f (both log-uniform), the number of large moons,
