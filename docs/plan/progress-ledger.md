@@ -1589,3 +1589,6 @@ Baseline: PR #1817.
 | DB.48 | 8.1 | Reproducible galaxies |
 | DB.9 | 8.1 | Reproducible galaxies |
 | DB.108 | 8.1 | Fly-through map |
+| TEST.416 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.421 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.847 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
