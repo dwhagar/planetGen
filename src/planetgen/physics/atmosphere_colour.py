@@ -283,7 +283,8 @@ def _case(tau_rayleigh, tau_absorption, tau_ozone, above, aerosols, ground_albed
         reference = float(np.interp(_REFERENCE_NM, WAVELENGTHS_NM, ratio))
         usable = (ratio > 0.0) & (reference > 0.0)
         correction = np.where(usable, (np.where(usable, ratio, 1.0) / (reference if reference > 0.0 else 1.0)) ** (1.0 - weight), 1.0)
-    return diffuse, diffuse * correction, full.beam_transmission, weight
+    _arriving, leaving = two_stream.ground_flux(full, ground_albedo)
+    return diffuse, diffuse * correction, full.beam_transmission, weight, np.maximum(leaving, 0.0)
 
 
 def _colour_of(column, star, ozone_du, ground_albedo, mu0, haze, dust, cloud, cloud_cover):
@@ -307,7 +308,8 @@ def _colour_of(column, star, ozone_du, ground_albedo, mu0, haze, dust, cloud, cl
     tau_550 = float(np.interp(_REFERENCE_NM, WAVELENGTHS_NM, tau_rayleigh + tau_absorption + sum(
         (layer.optics(WAVELENGTHS_NM)[0] for layer in always), np.zeros_like(WAVELENGTHS_NM))))
     tau_rayleigh_550 = float(np.interp(_REFERENCE_NM, WAVELENGTHS_NM, tau_rayleigh))
-    sky = photometry.colour_from_xyz(_xyz(star * hue))
+    reflected = sum((share * case[4] for share, case in cases), np.zeros_like(WAVELENGTHS_NM))
+    sky = _sky_colour(star, hue, reflected)
     star_luminance = _luminance(star)
     sun_luminance = _luminance(star * beam)
     sun = None
@@ -317,6 +319,21 @@ def _colour_of(column, star, ozone_du, ground_albedo, mu0, haze, dust, cloud, cl
         except ValueError:
             sun = None
     return sky, _luminance(star * diffuse) / star_luminance, sun, sun_luminance / star_luminance, tau_550, tau_rayleigh_550, regime
+
+
+def _sky_colour(star, hue, reflected):
+    """
+    The colour of the sky: the star's light scattered down to the ground. Air so thick or so absorbing that no visible light
+    reaches the ground (a dense steam world under a hot star, GEN.844) has no sky to see, so the colour is that of the light the
+    air sends back out, the hue the body shows from space; air that returns none either is black, on the star's chromaticity.
+    """
+    for spectrum in (star * hue, star * reflected):
+        try:
+            return photometry.colour_from_xyz(_xyz(spectrum))
+        except ValueError:
+            continue
+    x, y = photometry.chromaticity(_xyz(star))
+    return photometry.Colour(x, y, (0.0, 0.0, 0.0), (0, 0, 0), "#000000")
 
 
 def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ground_albedo=0.0, mu0=DEFAULT_MU0,
