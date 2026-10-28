@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 202 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 209 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 34 | 0 | 3 | 0 | 0 | 37 |
-| T2 | 46 | 0 | 0 | 0 | 0 | 46 |
-| T3 | 41 | 1 | 2 | 6 | 0 | 50 |
-| T4 | 6 | 0 | 0 | 2 | 0 | 8 |
+| T2 | 47 | 0 | 0 | 0 | 0 | 47 |
+| T3 | 44 | 1 | 2 | 6 | 0 | 53 |
+| T4 | 9 | 0 | 0 | 2 | 0 | 11 |
 | T5 | 9 | 3 | 1 | 0 | 0 | 13 |
 | T6 | 23 | 6 | 1 | 2 | 0 | 32 |
 | T7 | 11 | 2 | 0 | 1 | 0 | 14 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 0 | 0 | 0 | 0 | 1 | 1 |
-| All | 170 | 12 | 7 | 11 | 2 | 202 |
+| All | 177 | 12 | 7 | 11 | 2 | 209 |
 
 ## How the labels were given
 
@@ -269,7 +269,19 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RV3 | P | T4 | L3 | radius_valley.ENVELOPE_SIGMA 0.6 (log-normal width of the starting envelope fraction, in ln units) | 0.4 to 0.8 | the survey of hosts 0.5 to 1.4 solar masses | as RV2 | a published width of the starting envelopes | design (no published width read; the same sweep as RV2) |
 | RV4 | D | T5 | L0 | radius_valley.mass_slopes_of: the stellar-mass slope beta read off the surveyed valley (0.00 +- 0.02 from the loss as written) | none | hosts of 0.5 to 1.4 solar masses | a stellar-mass dependent XUV energy added to the loss (a real photoevaporation) | a survey that wires it in | COMPUTED (survey of 12000 planets over 18 cells of flux and host mass; core-powered theory predicts beta 0.00, photoevaporation -0.17, Berger et al. 2023) |
 
-## 6.11 Stand-ins of the orbit elements
+## 6.11 Stand-ins of the young-group draw
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| MS1 | P | T4 | L0 | system_types.SYSTEM_TYPE_RATES | 0.05, fixed (the `young-group` row) | O and early-B systems younger than 0.3 Myr | test_gen_young_groups::test_the_group_share_is_the_registry_default | a count of trapezia against O and early-B stars of an association (a catalogue read first-hand) | design note 13.1: 412 catalogued trapezium-type multiples, about 10 percent true after projection, 3 to 5 per OB association (second-hand, not opened); the 5 percent of massive systems is inferred from them [I], with no range given |
+| MS2 | P | T4 | L0 | tuning.YOUNG_GROUP_AGE_MAX_YR | 3.0e5 yr, fixed | the age under which a massive star may be in a group | test_gen_young_groups::test_only_a_young_massive_star_can_be_in_a_group_and_the_others_draw_nothing | the ages of trapezium members read from a young cluster census | design: the 0.3 Myr limit is the design note's default for how long a massive star can still be in a group; no source |
+| MS3 | B | T2 | L0 | tuning.YOUNG_GROUP_DECAY_AGE_RANGE_YR | 1.0e4 to 4.0e4 yr, log | groups of 3 to 5 stars of a few thousand to thirty thousand AU | test_gen_young_groups::test_no_drawn_group_is_past_its_decay_age_at_any_age | the decay times of the three papers, read, as a distribution rather than a range | 2ND-HAND (design note 3.3 cites arXiv 1809.03537, 1701.03440 and 1908.11437: bound lifetime 1e4 to 4e4 yr, 41 of 100 left after two crossing times; not opened here) |
+| MS4 | B | T3 | L0 | tuning.YOUNG_GROUP_SIZE_WEIGHTS | 3 stars 0.3, 4 stars 0.4, 5 stars 0.3 | 3 to 5 members | test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest | a count of members by group size from a trapezium catalogue | RECALLED (the Orion Trapezium has 4 to 5 members; trapezium-type multiples start at 3), design note 13.1; the weights inside the bracket are a placeholder |
+| MS5 | B | T3 | L0 | tuning.YOUNG_GROUP_RADIUS_AU_RANGE | 3.0e3 to 3.0e4 AU, log | a group of O and early-B stars | none: no measurement here; the draw's own tests keep the centre of mass at rest, they do not test the size | the measured separations of the Trapezium and of the catalogued trapezia | RECALLED (the Trapezium's core is some 0.03 pc, 6e3 AU, not read in the repository); the bracket is a factor of 3 either side |
+| MS6 | B | T3 | L0 | tuning.YOUNG_GROUP_VELOCITY_DISPERSION_KMS | 2.5 km/s, one dimension, fixed | a young group while it holds | test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest | the measured dispersion of the Trapezium (proper-motion work), read | RECALLED (the Orion Trapezium cluster is some 2 to 3 km/s, not read in the repository) |
+| MS7 | P | T4 | L0 | tuning.YOUNG_GROUP_REMNANT_MAX_AXIS_AU | 300 AU, fixed | the hierarchy a decayed group leaves | test_gen_young_groups::test_a_group_older_than_its_decay_age_is_never_drawn_but_its_remnant_is | an N-body result for the remnant axes of a decayed trapezium (the decay papers of MS3 report them) | design: the remnant is the group's hierarchy hardened after the lightest member is ejected; the 300 AU cap is a guess with no source |
+
+## 6.12 Stand-ins of the orbit elements
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -282,10 +294,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OE7 | P | T3 | L0 | orbit_elements.REGULAR_MOON_ECCENTRICITY_RANGE | 0.001 to 0.01, log | moons of disk, impact, ring or binary origin | a forced eccentricity from the resonances and neighbours of the moon system | the forced eccentricities of the regular satellites of the giants run from 0.001 to 0.03 and the Moon 0.055; the range is the one the tide of GEN.700 already drew from |
 | OE8 | T | T5 | L0 | orbit_elements.draw_moon_eccentricity | the Hill cut of `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION` | captured moons | capture and evolution of an irregular moon | the thermal distribution of eccentricities, f(e) = 2 e, of a body captured on a wide orbit (Jeans 1919, recalled), cut at the stable part of the parent's Hill sphere |
 | OE9 | P | T3 | L0 | orbit_elements.GIANT_TIDAL_Q, GIANT_TIDAL_LOVE_NUMBER_K2 | 1e5 and 0.3, fixed | the tide of a gas giant | a Q and k2 from the body's temperature and frequency | Jupiter: k2 about 0.38 and Q from 3.5e4 to about 1e6 from the Galilean moons' orbits (recalled; GEN.731 gives every body its own) |
-| OE10 | T | T5 | L0 | orbit_elements.circularisation_time_yr | the rows of 6.12 | every planet and captured moon (a regular moon's forced eccentricity is kept) | a Q and k2 from the body's temperature and frequency | the circularisation time of a synchronously rotating body, tau = (2/21)(Q/k2)(m/M)(a/R)^5/n (Goldreich and Soter 1966), with the body's own Q and k2 (`tidal_heating.response`, GEN.731: rows TH2, TH3, TH4 and the giant's) |
+| OE10 | T | T5 | L0 | orbit_elements.circularisation_time_yr | the rows of 6.13 | every planet and captured moon (a regular moon's forced eccentricity is kept) | a Q and k2 from the body's temperature and frequency | the circularisation time of a synchronously rotating body, tau = (2/21)(Q/k2)(m/M)(a/R)^5/n (Goldreich and Soter 1966), with the body's own Q and k2 (`tidal_heating.response`, GEN.731: rows TH2, TH3, TH4 and the giant's) |
 | OE11 | T | T6 | L0 | insolation.companion_swing | in phase, fixed | planets of a binary | a time series of the sum | the swing of the planet's own orbit and the companion's are taken in phase, the largest the pair can give; their periods differ and the extremes meet only now and then |
 
-## 6.12 Stand-ins of the tidal heating
+## 6.13 Stand-ins of the tidal heating
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -300,7 +312,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TH9 | T | T6 | L1 | interior_heat.heat | the two conditions | rocky bodies | a heat-pipe loss law in the box | a body is melt-limited when its solid-state tide is at least its own heat and warms the mantle to the heat-pipe temperature; the real transition is gradual and is bistable in a Maxwell box, so the state is chosen, not integrated |
 | TH10 | P | T3 | L0 | tidal_heating.GIANT_K2, GIANT_TIDAL_Q | 0.1 to 0.5 and 1e4 to 1e6 | gas giants | a Love number and Q from the interior model | a gas giant's Love number 0.3 and quality factor 1e5 (Jupiter k2 0.49 and Q 3e4 to 1e6, Saturn 0.39 and 1.8e4 from the motions of their moons; recalled) |
 
-## 6.13 Stand-ins of the spin and its despinning
+## 6.14 Stand-ins of the spin and its despinning
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|

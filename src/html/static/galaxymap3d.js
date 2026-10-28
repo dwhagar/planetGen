@@ -151,6 +151,7 @@ export function mapControlHandlers(ctx) {
     "up": function () { ctx.stageView.up(); },
     "reset": function () { ctx.stageView.home(); },
     "reset-view": function () { ctx.stageView.resetView(); },
+    "step": function (button) { ctx.stageView.stepToNeighbour(button.dataset.step); },
     "map-help": function (button) {
       var dialog = document.getElementById("galaxymap3d-help");
       var menu = button && button.closest("details");

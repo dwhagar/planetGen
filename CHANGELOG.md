@@ -2,6 +2,62 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2375] - 2026-10-28
+
+**Headline:** Every planet and moon with air now stores the colour of that air, ready for the maps to paint with.
+
+### Changed
+- **The atmosphere colour is data (DB.96, schema v162).** `planets` and `moons` keep `atmosphere_colour`, the colour of the body's air as one sRGB integer, worked out from its air, its star, its ozone and its stored haze, dust and cloud (`physics/body_colour.py`; a gas or ice giant takes the colour of its air at the reference level). A body with no air stores nothing. The cloud cover it used is the `cloud_cover` the body already kept. The ground under the sky is still the labelled stand-in reflectance. Old galaxies keep an empty column until they are regenerated.
+
+generation-output: changed
+
+## [8.0.2374] - 2026-10-28
+
+**Headline:** The Galaxy Map can step to the region beside the one you are viewing, at the same level, without zooming out and back in.
+
+### Changed
+- **Step to a neighbouring region (MAP.121, first part).** When the map shows a window of blocks (not the whole galaxy and not an opened sector), the Menu has six step buttons, North, South, West, East, Toward core and Away from core, and the keys do the same: Alt, Shift and an arrow for north, south, west and east, and [ and ] for toward and away from the core. A step moves the window to the block of the same size beside the current centre in one camera move; the address carries the camera and the trail follows the new centre. A button is off where there is nothing to step to (past a pole, nearer than the core, or where nothing of the galaxy lies), and the help dialog explains them. The sector-level steps arrive with the Sector view's labelled wall icons (MAP.327), and the dimmed neighbours and the System Map's neighbours remain open on MAP.121.
+
+TODO items resolved: none (MAP.121 stays open). Added: none.
+
+## [8.0.2373] - 2026-10-28
+
+**Headline:** The admin pages and the system page's edit dialogs now use the same form fields as the rest of the site.
+
+### Changed
+- **Admin forms on the one form field (UX.126).** The admin hub (maintenance message, new API key with its scopes), the naming key on the stats page, the queue's worker count, the Facility types page (types and their fields), the system page's Place a facility form with its type fields, affiliation and ratings, and the Change star and "also delete facilities" boxes in the edit dialogs are now the site's labelled text boxes, number boxes, drop-downs and tick boxes (Shoelace elements with a plain twin for when scripts are off), in light and dark and at phone width. The Place a facility form keeps filtering hosts by placement and types by kind. Left as they were: the file pickers, the range slider, the multi-line options box, the hidden and submit fields, and the Settings page (ADM.103).
+
+TODO items resolved: UX.126. Added: none.
+
+## [8.0.2372] - 2026-10-28
+
+**Headline:** The map browser tests that failed on main (TEST.394, TEST.383) now fit the map as it is: a window that holds the header and the canvas, names kept off the spot a test points at, and the open Menu closed before a click on the map.
+
+### Fixed
+- **Browser tests of the fixture maps and the sector reach failed on main (TEST.394, TEST.383).** The page header grew, so the canvas sat partly below the 600 px window; the window is now 1000 by 800. Since MAP.298 a click or hover on a name label picks the label's item before the star or marker under it, so the tests that point at a star or a marker and are not about names carry the new `names_hidden` marker (registered in `pytest.ini`) and open their maps with `hide=label-system,label-star,label-object`; the sector-reach tests do the same in their address. The black hole test and the kinds test close the Menu before they click, and the dense-region test picks a spot to click on nothing where `elementFromPoint` is the canvas, as the open Menu and the selection's panel cover part of the map. The wheel anchor test measures the focus plane from the field of view instead of a fixed bound, so a wide canvas does not move it. The three fixture sites (`map_site`, `halo_site`, `dense_site`) patched the same API client functions for the whole module, so the site made last answered every later test's pages (a dense region's worlds in a plain test, a halo in a nebula test, which made the module depend on test order); each test now routes the client to its own site and puts it back (`map_site_support._Served.routed`), and the sites run for the whole session. No assertion was loosened.
+TODO items resolved: TEST.394, TEST.383 (TODO closes them after reading this). Added: none.
+
+## [8.0.2371] - 2026-10-28
+
+**Headline:** The numbers behind young star groups now each say where they came from and how far they were bent.
+
+### Changed
+- **Young-group stand-ins registered (GEN.797).** The share of massive young stars born in a group, the age limit, the decay times, the member counts, the group size, the speed spread and the cap on the remnant's size are now rows of the stand-in list, each with its source tier, tweak level, the test that would catch a wrong value and the result that would replace it. No generated value changes.
+
+## [8.0.2370] - 2026-10-28
+
+**Headline:** The map now keeps a record of each named region: how much of it is generated and the sphere that frames it.
+
+### Changed
+- **Stored regions (DB.107).** A new table, `region_stats`, holds one row for every region (a 9-block of the map's block grid) that has at least one generated sector: how many sectors are generated, how many the region could hold (so the share charted, about 14 percent for a standard fill), how many separate clumps they make, and the centre and radius of the sphere that frames the largest clump. It is kept up to date whenever a sector is saved or deleted, in any order, by the same code that keeps the block totals, and `planetgen fill-block-totals` makes it again. Nothing shows it yet. Migration 0161 fills it for the sectors a database already holds. No generated value changes.
+
+## [8.0.2369] - 2026-10-28
+
+**Headline:** Two atmosphere tests that were red on main now check what the water-delivery law and the escape model deliberately do.
+
+### Changed
+- **Two tests follow the physics that moved (TEST.401).** The delivered-water test looked for the thin water class b2 at the Earth's snow ratio, where the population law of GEN.802 no longer draws it (it draws b1, b3 and b4 there, and b2 inside the snow line), so it now sweeps at a snow ratio of 0.3 where b1 to b3 all appear. The abiotic-oxygen test summed the gases of every draw to one, but the thermosphere escape of GEN.738 strips the air of an M-dwarf Earth in about one draw of 300 (seed 34), so an airless draw must have no gases and at most 15 of the 300 may be airless. Both moves are deliberate changes of the physics, not regressions; no generated value changes.
+
 ## [8.0.2368] - 2026-10-28
 
 **Headline:** What a planet or moon is made of is now written from the composition it was actually drawn with, and a giant's page lists its layers.

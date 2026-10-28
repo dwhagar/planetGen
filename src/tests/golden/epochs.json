@@ -666,9 +666,8 @@
     },
     {
       "epoch": 112,
-      "first_release": null,
-      "pending": true,
-      "reason": "Planets and moons travel on real ellipses with seasons from the changing distance (GEN.727); the orbit's tide heats a body, with Io melt-limited and the random resonance boost gone (GEN.737); a planet's day is its birth spin from the giant impacts worn down by the tide, with locks and spin-orbit resonances (GEN.731)",
+      "first_release": "8.0.2375",
+      "reason": "Every planet and moon with air stores the colour of that air as one sRGB integer, worked out from its air, its star, its ozone and its haze, dust and cloud (DB.96)",
       "affects": ["fill"]
     }
   ]

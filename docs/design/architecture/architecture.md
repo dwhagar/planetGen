@@ -938,6 +938,9 @@ sector. The pieces:
   below, not a cube of space; its glow comes from the stored
   `galaxy_block_lights` table (`db/block_lights.py`, MAP.259) and its read is
   `db/nodes.py` (MAP.260).
+- **Named regions.** A region is a 9-block of the ladder that holds a generated sector (`galaxy/named_regions.py`: name, anchor,
+  framing sphere, extent); `region_stats` (`db/region_stats.py`, DB.107) stores its sector count, capacity (so the share
+  charted) and extent, kept by the same hooks as `galaxy_block_stats`.
 - **The block ladder.** The drill-down's stages (`/galaxy/stage`) and data
   windows (`/galaxy/window`, MAP.151) are blocks of 243, 81, 27, 9 and 3
   shells (`galaxy/drill.py`, `galaxy/window.py`, `docs/design/galaxy/spherical-block-ladder.md`).

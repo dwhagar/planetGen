@@ -583,6 +583,23 @@ galaxy_block_stats = sa.Table(
 )
 
 
+region_stats = sa.Table(
+    'region_stats',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('sector_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('capacity', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('clump_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Column('extent_x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('extent_radius_pc', mysql.DOUBLE(), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 galaxy_components = sa.Table(
     'galaxy_components',
     metadata,
@@ -1140,6 +1157,7 @@ moons = sa.Table(
     sa.Column('ring_mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('ring_optical_depth', mysql.DOUBLE(), nullable=True),
     sa.Column('ring_ice_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('atmosphere_colour', mysql.INTEGER(unsigned=True), nullable=True),
     sa.Index('ft_moons_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_moons_body_type', 'body_type'),
     sa.Index('idx_moons_life_chemical', 'life_chemical'),
@@ -1930,6 +1948,7 @@ planets = sa.Table(
     sa.Column('ring_mass_kg', mysql.DOUBLE(), nullable=True),
     sa.Column('ring_optical_depth', mysql.DOUBLE(), nullable=True),
     sa.Column('ring_ice_fraction', mysql.DOUBLE(), nullable=True),
+    sa.Column('atmosphere_colour', mysql.INTEGER(unsigned=True), nullable=True),
     sa.Index('ft_planets_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_planets_body_type', 'body_type'),
     sa.Index('idx_planets_life_chemical', 'life_chemical'),

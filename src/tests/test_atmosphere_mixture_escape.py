@@ -117,10 +117,15 @@ def test_a_living_world_is_capped_at_35_percent_and_keeps_the_ratios_of_the_othe
 
 def test_no_abiotic_oxygen_world_is_drawn_above_95_percent_oxygen():
     from tests.test_atmosphere_mixture_evolved import ABIOTIC, BASE
-    top = 0.0
+    top, airless = 0.0, 0
     for seed in range(300):
         with draw.bound(seed):
             result = md.draw_mixture(Subject("Z", {**BASE, **ABIOTIC}))
+        if result.family == "airless":    # TEST.401: the thermosphere escape of GEN.738 strips this M-dwarf Earth in rare draws (seed 34)
+            airless += 1
+            assert not result.mole_fractions
+            continue
         top = max(top, result.mole_fractions.get("O2", 0.0))
         assert sum(result.mole_fractions.values()) == pytest.approx(1.0)
+    assert airless <= 15
     assert 0.5 < top <= 0.95 + 1e-12

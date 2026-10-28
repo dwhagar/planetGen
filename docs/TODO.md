@@ -246,45 +246,6 @@ use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
 
-- [ ] **UX.49 Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site**
-  UX.40 (done, PRs #528, #533, #539, #544) moved the buttons, menus and
-  dialogs onto Shoelace and lined up the Generate page's text boxes with
-  plain CSS; the form fields themselves are still native `<input>`,
-  `<select>` and checkbox elements. Done: every text box, number box,
-  drop-down and checkbox in the templates (Generate and one-off system
-  pages, the edit dialogs, the search and filter fields, sign-in and
-  account forms, admin pages) is an `sl-input`, `sl-select` or
-  `sl-checkbox` from the vendored set, submitting and validating
-  exactly as before (labels, required fields, keyboard use, values
-  posted by name), both themes and phone widths look right, and a
-  browser test fills and submits one form of each kind. Not a bug.
-  Research (2026-10-09, map-ui-and-frontend-libraries.md): re-scope to
-  "form fields use one console-token look; sl-input / sl-select /
-  sl-checkbox only where a component feature helps; hidden, submit,
-  password and one-time-code fields stay native". Done criteria:
-  `--sl-input-border-color` set from the new `--line` token (3:1),
-  server validation errors shown on the right field (ADM.21 errors), a
-  no-JS check that each form still posts. Decided (Boss, 2026-10-10
-  18:44Z, defaults approved; default): Shoelace for select, checkbox,
-  switch and the Generate and
-  admin forms; native for sign-in, account, 2FA code, hidden and submit
-  fields.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: UX.125, UX.126 (UX.124 done, #2716). About 170 form controls
-  in 19 templates (generate.html 27, admin_facility_types.html 26,
-  system.html 22, account.html 15, generate_system.html 12 and others),
-  both themes and phone width, plus three cross-cutting pieces (a common
-  look from one token, server validation errors on the right field, a
-  no-JS posting check).
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  UX.125 and UX.126 moved out of this item (Boss, 2026-10-21, 6:01 PM EDT: the admin pages and the Generate suite are redesigned in their own thread; the Generate page conversion rides ADM.99 and the admin pages ADM.56 and ADM.93), so this item converts the public pages and closes with UX.124.
-  Research (2026-10-09, 10-24 lane 4): Stays with Core 2 (12:20 PM EDT 2026-10-24: Lane 4 looked at it and left it; UX.49 closes with UX.125 and UX.126).
-  Prerequisites: none.
-  Design: [docs/design/architecture/library-migration.md](design/architecture/library-migration.md)
-
 - [ ] **UX.43 A visual design built like a pilot's starmap and navigation console**
   Boss (2026-10-07 11:47Z): "All design elements should be built from
   the ground up to look like, as much as possible, a starmap and
@@ -517,35 +478,6 @@ with `clamp()`.
   relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
   PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
   Prerequisites: none. Related: UX.102.
-
-- [ ] **UX.126 The admin pages and the edit dialogs on the field macro**
-  Split from UX.49 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Convert `admin.html`,
-  `admin_facility_types.html`, `admin_stats.html`, `admin_queue*.html`,
-  the system and sector edit dialogs (`system.html`, `sector.html`) to
-  the macro; the sign-in, account, 2FA code, hidden and submit fields
-  stay native (decided). Done: converted; admin browser tests pass; a
-  form of each kind is submitted in a test.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner: the admin redesign thread (Boss, 2026-10-21, 6:01 PM EDT;
-  thread 'Admin pages redesign (2026-10-21)'). This replaces any earlier
-  owner line on this item (it was Core 2's, free; Core 2 confirmed 6:02
-  PM EDT as the lane reported; the admin page conversion now rides
-  ADM.56 and ADM.93).
-  Decided (Boss, 2026-10-21, 6:05 to 6:09 PM EDT, 13 decision cards as
-  the admin redesign thread reported; report
-  docs/design/interface/admin-control-suite.md): the whole suite is built in 8.1
-  phase 1 (this item moved there from 8.2 phase 1), Settings first, then
-  the shell, job strip and palette, then Generate; every admin page goes
-  onto the one shell once. The settings page is covered by ADM.103 (S3);
-  the other admin pages move with ADM.93.
-  Owner: Core 2 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Research (2026-10-09, 10-24 lane 4): Stays with Core 2 (12:20 PM EDT 2026-10-24: Lane 4 looked at it and left it; UX.49 closes with UX.125 and UX.126).
-  Prerequisites: none. Related: UX.49.
 
 - [ ] **UX.127 The Galaxy Map block menu offers Generate again**
   Split from GEN.231 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -1500,6 +1432,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   keeps the block and system levels, the slabs above and below, and the
   arrow keys. Core 2 and Aux 10 agree who draws the dimmed neighbours
   first.
+  Research (2026-10-09, Core 2 report 2026-10-28): First part merged (PR
+  #3391, Core 2, as the lane reported 9:24 AM EDT 2026-10-28): on the
+  Galaxy Map, in a window of blocks, the Menu has six step buttons
+  (North, South, West, East, Toward core, Away from core) and keys
+  (Alt+Shift+arrows, [ and ]) that move the camera to the neighbouring
+  region at the same level in one move; a button is off where nothing
+  exists to step to. Helper for others: galaxyprisms.neighbourBlock.
+  Still open here: the sector-level steps and dimming (Aux 10 MAP.327
+  calls the same step function), dimmed neighbouring blocks, and the
+  System Map neighbours.
   Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
@@ -3406,7 +3348,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn at galactic scale. Owner: Aux 10. Rules: no backward-compat
   shims; every number has a unit or scale (GEN.772); tests are
   scripts/test.py changed --resume.
-  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107,
+  Prerequisites: API.35. Related: GEN.825, DB.107,
   GEN.827, API.35, MAP.314.
 
 - [ ] **MAP.317 Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c)**
@@ -3645,6 +3587,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finds the sector wireframe in sector view, the region wireframe in
   galactic view (and no dimming there), and checks its world position
   does not change when the mouse moves.
+  Research (2026-10-09, TODO 2026-10-28): Use
+  galaxyprisms.neighbourBlock and the step function from MAP.121 part
+  one (#3391) for the sector-level neighbour steps; do not write a
+  second neighbour helper.
 
 - [ ] **MAP.328 Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views)**
   Boss, 2:48 AM EDT 2026-10-25: 'rendered objects should slowly rotate
@@ -14483,20 +14429,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offset is applied twice. Version 8.1. Owner: Units lane.
   Prerequisites: GEN.773. Related: GEN.773, GEN.656, GEN.769.
 
-- [ ] **GEN.797 Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level**
-  Core 3, GEN.327 merged #3216 (epoch 99, --affects scatter,fill),
-  relayed 10:25 PM EDT 2026-10-24 as the lane reported. The stand-ins
-  live in tuning.py with brackets (member count weights for 3 to 5
-  stars, group radius, a 2.5 km/s dispersion, a 300 AU cap for the
-  remnant hierarchy, the 5 percent birth fraction, the 10,000 to 40,000
-  year decay age). Add a registry row for each
-  (docs/design/research/stand-in-values.md through its builder) with its
-  source, tier, tweak level, falsifier and replacing item, from the
-  Orion Trapezium and other young-group literature where it can be read.
-  Done: every constant has a row and `scripts/build_stand_in_values.py
-  --check` passes. Version 8.1. Owner: Core 3 or the Citations lane.
-  Prerequisites: none. Related: GEN.327, GEN.725.
-
 - [ ] **GEN.798 Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers)**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -15099,6 +15031,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 6 (bulk composition); the coordinator asked for this item. Changes
   generated output, so it needs the generation lock, an epoch with
   --affects fill.
+  Research (2026-10-09, Aux 9 report 2026-10-28): More evidence from Aux
+  9 (as the lane reported 9:09 AM EDT 2026-10-28, main 945fcad8): G2V
+  star, 1.0 solar luminosity, habitable zone 0.96 to 1.69 AU, a class M
+  planet forced at 1.32 AU (less starlight than Earth gets): 12 draws of
+  12 come out vapour at 693 to 1382 K and 104 to 22,000 bar, water mass
+  fraction 1e-4 to 4e-4 each, albedo 0.29 to 0.31. Likely cause: the
+  delivered-volatile budget (recipes b2/b3, 0.05 to 0.5 weight percent
+  water) is far above the body own water mass fraction, so the steam
+  never condenses and the air solver takes the boiling branch. Today
+  these hide behind the class letter M; once classes are derived
+  (GEN.646) they show as class N, about 30 to 75 percent of ecosphere
+  rocky planets in Aux 9 sweeps with tens of thousands of bar. Same
+  family as GEN.830 (Aux 8, air solver). Aux 9 does not fix the solver;
+  the owner of this item should decide with Aux 8 whether the fix is the
+  delivered budget (cap at the body water fraction, surface and mantle
+  sinks) or the solver branch.
+  Research (2026-10-09, Aux 8 report 2026-10-28): Split proposed by Aux
+  8 (as the lane reported 9:12 AM EDT 2026-10-28; recorded unless Aux 17
+  objects): measured on a G2V class M, zone e, 8 seeds: the delivered
+  water of recipes b2/b3 is 0.1 to 0.2 percent of the planet mass but
+  the body own water is 0.01 to 0.03 percent, 3 to 50 times too little
+  to supply it; the four b2/b3 draws with the most water are 55 to 870
+  bar of steam at 620 to 843 K; b1 draws are fine. Aux 8 takes the
+  SOLVER side: cap the hydrogen the air draw may take by the water the
+  body has to give (surface_air._shares), riding with GEN.830 in one
+  lock turn (one epoch, one golden run). Aux 17 keeps the b2/b3 row
+  re-fit after GEN.822. Stand-ins and tweaks go in the registry with
+  level and reason.
   Prerequisites: none. Related: GEN.813, GEN.815, GEN.812.
 
 - [ ] **GEN.838 A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling**
@@ -16643,21 +16603,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
 
-- [ ] **DB.96 Store the atmosphere colour and the cloud cover on planets and moons**
-  The RGB integer from GEN.418 and GEN.419 and the cloud cover; one
-  migration, one generator epoch, and the column_units.py entries;
-  MAP.244 then reads it. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner): Owner (TODO, 2026-10-24 5:36 PM EDT,
-  wiring request from Boss via the coordinator): Lane 4 (database lane)
-  takes it when its current item merges; the migration and epoch number
-  is taken in merge order at merge (next migration 0155 is queued behind
-  Lane I 4b, DB.100 and GEN.701). Confirm with TODO that nobody started
-  it.
-  Prerequisites: GEN.418, GEN.419.
-
 - [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
   One migration, one generator epoch and the column_units.py entries.
   Design draft
@@ -16821,50 +16766,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   MAP.312, UX.223, TEST.386, NAV.64, ADM.133, DOC.81, API.34, MAP.313;
   nothing in 8.1.
   Prerequisites: GEN.798. Related: DB.70, DB.101.
-
-- [ ] **DB.107 Region stats: the region_stats table, its save and delete hook and the charted percent (regions chain, step 1b)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
-  9-block cell (about 780 sectors) with at least one generated sector,
-  named from the block path by a new codec kind region (Word Region; the
-  27 Regions of one 81-block share the family word) and drawn as the
-  bounding sphere of its generated sectors, never smaller than the 12 pc
-  standard-fill sphere (about 109 sectors) about the cell's anchor; it
-  exists, and shows on the galactic map, as soon as any sector in the
-  cell is generated (anything above 0 percent), ranked by share charted
-  (generated sectors over the sectors its outline can hold, a standard
-  fill is about 14 percent); ungenerated space gets no region and no
-  sector line may join two unrelated places. Boss, 1:13 AM EDT
-  2026-10-25: the chain is in 8.1, regions are what the galactic-level
-  map shows so a user can always drill down to inhabited space. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
-  from the gated phoneme codec only, never from Milky Way or Solar
-  System lists. One row per 9-block cell with any generated sector (no
-  row means no region): region_stats(m=9 key, sector_count, capacity),
-  kept by the same hook as galaxy_block_stats (db/block_stats.py); the
-  count is recomputed for the one sphere a saved or deleted sector falls
-  in (about 109 cells). The charted percent is sector_count over
-  capacity (the sectors the outline can hold), and a region with any
-  sector above 0 percent exists; every sector of the cell counts, the
-  cell of a sector being found by its centre as the ladder does. One
-  migration and its epoch row at merge, as DB.100 did (new numeric
-  columns registered in db/column_units.py). Done: region_of(position)
-  and charted_percent(anchor) read from the table, order-independence
-  test (test_order_independence), one generated sector makes its region
-  exist at its small percent, deleting the last sector removes the
-  region. Owner: Core 3. Rules: no backward-compat shims; every number
-  has a unit or scale (GEN.772); tests are scripts/test.py changed
-  --resume.
-  Research (2026-10-09, Core 3 report 2026-10-28): GEN.825 and GEN.827
-  merged (#3375, Core 3, 7:54 AM EDT 10-28 as the lane reported): region
-  names (kind region), anchors, framing spheres and extents live in
-  galaxy/named_regions.py. Design corrections: an 81-block holds about
-  729 9-blocks (not 27); REGION_RADIUS_PC lives in named_regions, not
-  tuning; the local ordinal is 3 hex digits. This item takes migration
-  0161 and schema 161 (0160 is GEN.732); it rewrites no golden file so
-  it is exempt from the lock; any lane holding 0161 renumbers at its
-  merge.
-  Prerequisites: GEN.827. Related: GEN.825, GEN.827.
 
 - [ ] **DB.108 Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e)**
   Design section 0.4 of
@@ -17409,7 +17310,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   now or later. Owner: Aux 12. Rules: no backward-compat shims; every
   number has a unit or scale (GEN.772); tests are scripts/test.py
   changed --resume.
-  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107, GEN.826,
+  Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826,
   API.35, MAP.314, MAP.315, UX.231.
 
 ## ADM: Admin tools
@@ -20660,35 +20561,6 @@ clears each one.
   Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: POP.34. Related: TEST.380, TEST.381, POP.33, MAP.310, NAV.63.
 
-- [ ] **TEST.383 test_web_browser_sector_reach::test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold fails alone on main (bug)**
-  Aux 4 final full check (219 minutes, 24446 passed, 24 failed), relayed
-  10:20 PM EDT 2026-10-24 as the lane reported; list in
-  reports/lane-e-full-check-2026-10-24.md. This test fails when run
-  alone (not an order dependence), in the wheel zoom anchor on empty
-  space of the sector reach map. Find out whether the test or the zoom
-  code is wrong, fix it, and keep the test. Done: the test passes alone
-  and in the file, and the cause is written in the PR. Version 8.1.
-  Owner: Aux 10 (map nodes and zoom) or Core 2.
-  Finding (2026-10-09): Aux 10 finding (12:50 AM EDT 2026-10-25): the
-  page header now pushes the map canvas below the 600 px test window
-  (canvas top at 403), and four map tests fail identically on
-  origin/main for that reason: wheel_zoom_turns_about_the_centre,
-  one_wheel_scroll_runs, black_hole_markers_have_a_toggle and the
-  sector_reach wheel anchor. Fix by scrolling the canvas into view in
-  the tests. Owner Aux 10 (taking it after MAP.311).
-  Finding (2026-10-09): Core 2, as the lane reported 3:19 AM EDT
-  2026-10-25:
-  test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it is
-  red on clean main (the view drifts off the line of sight by about
-  0.004 pc); same family as the wheel anchor test Bug 1 is fixing
-  (window shape), Bug 1 checks both in the run.
-  Finding (2026-10-09): Core 2, as the lane reported 4:43 AM EDT
-  2026-10-25, red on clean main after #3345:
-  test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the_threshold
-  (sector_reach); this is the test Bug 1 is fixing here, MAP.326 changed
-  the wheel path further so Bug 1 re-checks it against main.
-  Prerequisites: none. Related: MAP.293, TEST.375.
-
 - [ ] **TEST.386 First live test pass of the resource locations on a generated galaxy, before the 8.4 stamp**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -20776,49 +20648,6 @@ clears each one.
   with the same sample size and tolerances.
   Prerequisites: none. Related: TEST.384, PERF.186.
 
-- [ ] **TEST.394 Six fixture-map browser tests are red on clean main (sector-click flow), and test_web_browser_fixture_maps.py is order-sensitive in one process because dense_site leaks extra worlds into the shared fixture (bug)**
-  Found by Core 2 (1:39 AM EDT 2026-10-25 as the lane reported):
-  test_sector_page_map_keeps_to_its_sector,
-  test_galaxy_map_a_sector_is_selected_from_the_galaxy_view,
-  test_galaxy_map_the_picked_sector_stays_picked_across_a_wheel_crossing,
-  test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view,
-  test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it
-  and test_a_selection_is_shown_once_and_over_the_map, all in the
-  sector-click flow, plus dense_site leaking extra worlds into the
-  shared fixture so the module result depends on test order. Do:
-  root-cause each (the sector-click flow changed with MAP.297, which
-  merged), rewrite the tests to the new flow where the flow is intended,
-  fix the dense_site fixture to isolate its worlds. Never skip a test to
-  get green. Owner: Bug 1 with Aux 10 (the map owner) for the intended
-  flow. Done: the module is green in any order on clean main.
-  Finding (2026-10-09): Core 2 (2:07 AM EDT 2026-10-25) adds two more
-  red tests on clean main from the dense_site fixture:
-  test_a_double_click_on_a_star_flies_to_it and
-  test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box.
-  Finding (2026-10-09): Bug 1, as the lane reported 3:10 AM EDT
-  2026-10-25: the 11 red fixture-map tests have two test-side causes:
-  the default 800x600 test window cuts the map off below the taller
-  header, and since MAP.298 a click or hover on a name takes the click
-  instead of the star or marker under it. Fix in progress: default test
-  window 1000x800, maps opened with the names hidden except in the tests
-  of the names (marked labels). TEST.383 (wheel anchor test, bound
-  assumed a square-ish window) handed from Aux 10 to Bug 1, which now
-  computes the focus-plane distance of the corner.
-  Finding (2026-10-09): Core 2, as the lane reported 3:19 AM EDT
-  2026-10-25, red on clean main after #3331 (not its change):
-  test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked
-  (tooltip empty on hover of Fixture Maw), likely the same
-  name-takes-the-click cause as the 11 fixture-map tests Bug 1 is
-  fixing, so Bug 1 checks it in that run; and
-  test_sector_map_click_on_the_selected_nebula_clears_it flaked once (no
-  spot named Fixture Veil) and passed on re-run (a second failure is
-  real).
-  Finding (2026-10-09): Core 2, as the lane reported 4:43 AM EDT
-  2026-10-25: four double-click flies tests in the sector_reach file
-  failed once under load and pass alone; Bug 1 checks them in the same
-  fixture-map run (window size, names hidden).
-  Prerequisites: none. Related: MAP.297, TEST.390.
-
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
   From Aux 16's planet class distribution check (2:09 AM EDT 2026-10-25;
   report
@@ -20882,21 +20711,6 @@ clears each one.
   backward-compat shims; never skip or quarantine the test;
   scripts/test.py changed --resume.
   Prerequisites: none. Related: GEN.441, TEST.261.
-
-- [ ] **TEST.401 test_atmosphere_mixture_escape (abiotic oxygen) and test_atmosphere_mixture_rocky (delivered-water class) are red on main (bug)**
-  Found by the 4c lane (about 4:17 AM EDT): two atmosphere tests were
-  red on main before 4c merged and stay red: the abiotic oxygen case in
-  test_atmosphere_mixture_escape and the delivered-water class case in
-  test_atmosphere_mixture_rocky. Do: run both on clean main, say whether
-  the physics changed on purpose (then the test expectation moves, with
-  the reason, as a recorded stand-in tweak if the value is a tuned one)
-  or a regression (then fix the code); do not loosen a test without
-  writing why. Done: both pass on main. Owner: Aux 8 (Lane L atmosphere,
-  the owner of the mixture code) after GEN.830, or a free lane; tell
-  TODO if another lane's change broke them. Rules: no backward-compat
-  shims; never skip or quarantine the test; scripts/test.py changed
-  --resume.
-  Prerequisites: none. Related: GEN.411, GEN.422, GEN.668.
 
 - [ ] **TEST.402 test_db_column_round_trip fails once under load: the stars' disk columns read back NULL (bug)**
   Found by the 4c lane (about 4:17 AM EDT): test_db_column_round_trip
@@ -20983,6 +20797,63 @@ clears each one.
   lane. Rules: never skip or quarantine a test; scripts/test.py changed
   --resume.
   Prerequisites: none. Related: TEST.406.
+
+- [ ] **TEST.410 test_planet_physics_fixes::test_class_p_is_colder_than_class_m times out at 900 s: it generates 600 planets at about 5 s each since 4c, 14 of 16 seconds in the air solve (bug)**
+  Found by Aux 8 (as the lane reported 8:34 AM EDT 2026-10-28) while
+  retiring TEST.401. Not a hang: N_SAMPLE 300 for two classes generates
+  600 planets at about 5 s each since 4c. Profile of 3 planets: 14 s of
+  16 in the air solve, 4.5 s of that in thermosphere.kept_shares (83
+  calls, 75,600 diffusion_limited_flux calls). Do: (1) cut the sample to
+  what the comparison needs (the class P versus class M temperature gap
+  is large; a few dozen planets per class give the same verdict, state
+  the margin), (2) with GEN.841 (the exobase loop), make
+  thermosphere.kept_shares cheaper (cache or vectorise
+  diffusion_limited_flux over species) without changing a value; a
+  change in values must be stated as a stand-in tweak. Done: the test
+  passes in under 3 minutes and the air solve per planet is measurably
+  faster. Owner: Aux 8 together with GEN.841; if values move it needs a
+  lock turn. Rules: never skip or quarantine a test; scripts/test.py
+  changed --resume.
+  Prerequisites: none. Related: GEN.841, TEST.401.
+
+- [ ] **TEST.411 Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug)**
+  Found by Bug 1 (as the lane reported 8:36 AM EDT 2026-10-28) while
+  merging TEST.394 and TEST.383 (#3385): in a full-file run 132 of 136
+  passed; the dense click was fixed since, and the indexeddb revisit
+  test and two sector_reach double-click flight tests fail only after a
+  long run on a loaded 4-core box. Do: find what the loaded run changes
+  (animation timing, a flight that has not finished when the second
+  click lands, an indexeddb transaction not closed), replace fixed waits
+  with waits on the real condition (the flight end event, the db open
+  state), never raise a timeout to hide it. Done: the three tests pass
+  in a full-file run and under -n 4. Owner: Bug 1 or a free lane after
+  TEST.405/406/398/402. Rules: never skip or quarantine a test;
+  scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.394, TEST.383.
+
+- [ ] **TEST.412 src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug)**
+  Found by Core 2 (as the lane reported 9:05 AM EDT 2026-10-28) while
+  merging UX.126 (#3387); not touched by that change. Do: run the file
+  alone on clean main, find what blocks on the nearby page (a request
+  that never returns, a wait with no timeout, a missing fixture star, a
+  worker that is not running), fix the code or the fixture, and make the
+  test fail in seconds instead of hanging. Done: the file passes and a
+  stuck page request fails the test within its timeout. Owner: Bug 1
+  after DB.108/GEN.826 and TEST.405/406/398/402, or a free lane. Rules:
+  never skip or quarantine a test; scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.411, UX.126.
+
+- [ ] **TEST.413 test_property_sheet fails on main: the GEN.441 ground_*_fraction columns are not on the property sheet (bug)**
+  Found by Aux 12 (as the lane reported 9:49 AM EDT 2026-10-28) while
+  merging DB.96 (#3393); red on main before that change. Do: add the
+  GEN.441 ground fraction columns to the property sheet
+  (describe/sheet.py) with their units and display rule, or, if they are
+  deliberately hidden, record that in the test's exclusion list with the
+  reason; pick by the rule that absent or zero values are hidden unless
+  absence matters. Done: test_property_sheet passes. Owner: Bug 1 after
+  DB.108/GEN.826, or Aux 11 (object pages). Rules: never skip or
+  quarantine a test; scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.412.
 
 ## USR: User accounts
 
@@ -22377,7 +22248,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   check exists. Owner: Core 3. Rules: no backward-compat shims; every
   number has a unit or scale (GEN.772); tests are scripts/test.py
   changed --resume.
-  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107,
+  Prerequisites: API.35. Related: GEN.825, DB.107,
   GEN.826, API.35, MAP.314, MAP.315, UX.231, API.36.
 
 ## VIEW: The view from a planet

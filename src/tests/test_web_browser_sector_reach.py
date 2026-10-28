@@ -208,7 +208,8 @@ def test_a_systems_disc_fades_in_as_the_camera_comes_up_to_its_star(page, base_u
     system's disc is whole: its scene is fetched once, fades in by the disc's size, is not "opened" (no system in the
     address), and one more tick opens it from that scene."""
     scene = _Scene(page, base_url, site_app, sample_params)
-    page.goto(f"{base_url}/galaxy?sector={scene.code}&open=1", wait_until="load")
+    # No names over the stars: a click on a name flies to the thing it names (MAP.298), not to the star under it.
+    page.goto(f"{base_url}/galaxy?sector={scene.code}&open=1&hide=label-system,label-star,label-object", wait_until="load")
     page.wait_for_selector(CANVAS, state="attached")
     _ready(page)
     star, point = _star_point(page, base_url, scene)
@@ -357,14 +358,22 @@ def test_the_wheel_anchor_on_empty_space_is_where_the_column_of_stars_passes_the
     page.goto(f"{base_url}/galaxy?sector={scene.code}&open=1", wait_until="load")
     page.wait_for_selector(CANVAS, state="attached")
     _ready(page)
+    # The header is tall, so the map can start below the fold of the test window: bring it all into view (TEST.383).
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     rect = page.evaluate("() => { const r = document.querySelector('#galaxymap3d-canvas').getBoundingClientRect(); return [r.left, r.top, r.width, r.height]; }")
     camera = _camera(page)
     for corner in ((rect[0] + 6, rect[1] + 6), (rect[0] + rect[2] - 6, rect[1] + rect[3] - 6)):
         anchor = _anchor_under(page, corner)
         assert anchor, f"no point under {corner}"
         away = math.dist(camera["eye"], anchor)
-        # The focus plane is at least `dist` from the eye along any ray of the view (at most about 1.2 times it).
-        assert 0.2 * camera["dist"] <= away <= 0.35 * camera["dist"], (away, camera["dist"])
+        # The focus plane is `dist` from the eye along the axis of the view and farther along a ray to a corner of it:
+        # `dist` over the cosine of the ray's angle to the axis, which depends on the window's shape (TEST.383).
+        tan_v = math.tan(math.radians(page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyFov()")) / 2)
+        x_ndc = (corner[0] - rect[0]) / rect[2] * 2 - 1
+        y_ndc = (corner[1] - rect[1]) / rect[3] * 2 - 1
+        tan_off = math.hypot(x_ndc * tan_v * rect[2] / rect[3], y_ndc * tan_v)
+        focus = camera["dist"] * math.sqrt(1 + tan_off ** 2)
+        assert away == pytest.approx(0.25 * focus, rel=0.05), (away, focus, camera["dist"])
 
 
 def _fly_setup(page, base_url, site_app, sample_params):

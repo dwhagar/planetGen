@@ -23,7 +23,7 @@ come from `sectors` and `sector_stats` and only change when a sector is saved or
   the migration, and a run on an empty table).
 """
 
-from planetgen.db import query
+from planetgen.db import query, region_stats
 from planetgen.galaxy.drill import DRILL_LEVELS, drill_chain_of
 
 LEVELS = DRILL_LEVELS[:-1]
@@ -75,7 +75,9 @@ def refresh_chain(conn, address):
     """Recomputes the blocks above one sector, `(shell, band, wedge)`; nothing for a sector off the grid."""
     if address is None or any(value is None for value in address):
         return 0
-    return refresh_blocks(conn, chain_blocks(tuple(int(value) for value in address)))
+    written = refresh_blocks(conn, chain_blocks(tuple(int(value) for value in address)))
+    region_stats.refresh_chain(conn, tuple(int(value) for value in address))    # DB.107: the region follows its sectors
+    return written
 
 
 def refresh_sectors(conn, addresses, on_progress=None):
@@ -90,6 +92,7 @@ def refresh_sectors(conn, addresses, on_progress=None):
         written += refresh_blocks(conn, [block])
         if on_progress is not None:
             on_progress(done, len(blocks))
+    region_stats.refresh_sectors(conn, [tuple(address) for address in addresses])
     return written
 
 
@@ -137,5 +140,6 @@ def rebuild(conn, on_progress=None):
     rows = cell_rows(cells)
     for start in range(0, len(rows), 1000):
         conn.executemany(INSERT, rows[start:start + 1000])
+    region_stats.rebuild(conn)    # DB.107: the regions are the 9-blocks just stored
     return len(rows)
 

@@ -1540,3 +1540,11 @@ Baseline: PR #1817.
 | GEN.825 | 8.1 | Fly-through map |
 | GEN.827 | 8.1 | Fly-through map |
 | GEN.430 | 8.1 | Bulk composition |
+| DB.107 | 8.1 | Fly-through map |
+| TEST.401 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.797 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.394 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.383 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.126 | 8.1 | Admin control suite |
+| UX.49 | 8.1 | Admin control suite |
+| DB.96 | 9.0 | The headline |

@@ -44,7 +44,7 @@ eccentricity's chaotic variation) 55 percent, a range the bracket of `RESONANCE_
 resonances); the atmospheric tide that slows Venus to 243 days, the core-mantle coupling, and the lunar tide that slowed the Earth are not in
 it (a body's moons are generated after it, and the spin of a planet comes from its star's tide alone); a locked body is taken at exactly
 one turn per orbit, not the pseudo-synchronous rate `1 + 6 e^2` of a constant-time-lag tide; the obliquity is kept as drawn until the spin has
-fallen to its final state, and is zero after. These are stand-ins and approximations stated in the gap-filling plan (section 6.12).
+fallen to its final state, and is zero after. These are stand-ins and approximations stated in the gap-filling plan (section 6.14).
 """
 
 import math
