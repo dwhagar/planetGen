@@ -634,6 +634,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.425 | test_wolf_rayet and test_field_units[RoguePlanet] are red on main (unit g/cm2 unknown) (bug) |  |  |
 | GEN.848 | Store a day and night swing for every temperature the sheet shows (only the equator has one) (bug) |  |  |
 | UX.233 | The Map symbols key on the object pages |  | Core 4 hand-off |
+| OPS.77 | update.sh ends with the site closed because its final /api/health check gets a 403 (a reemergence of OPS.75) (bug) |  |  |
 | MAP.342 | Server stops listing the stellar black holes in nodes over 27 sectors (optional, low priority) | MAP.339 |  |
 | MAP.341 | Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug) |  |  |
 | MAP.340 | Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug) |  |  |

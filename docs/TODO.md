@@ -19991,6 +19991,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   epoch; tests are `scripts/test.py changed --resume`.
   Prerequisites: none. Related: OPS.72.
 
+- [ ] **OPS.77 update.sh ends with the site closed because its final /api/health check gets a 403 (a reemergence of OPS.75) (bug)**
+  Boss, 6:51 PM EDT 2026-10-28 (relayed by the coordinator), live
+  observation, so a bug, top priority: when an update finishes, the
+  final check of /api/health gets a 403, so update.sh believes the site
+  is broken. The earlier version of this was OPS.75 (#3363), a wrong
+  failure reason after the Apache reload. First get the real facts from
+  update.sh and the Apache logs: which URL and header the check sends,
+  which rule answers 403 (an access rule, the API key or role guard from
+  USR.26 / SEC work, a rate limit or a firewall rule on the local
+  address), and why only at the end of an update. Fix the cause (the
+  health route must answer without credentials from the machine itself,
+  or the check must send what the route needs), keep the check honest,
+  and add a test that runs the same check against the web app with the
+  route guards on. Owner: Bug 1, top of its queue.
+  Prerequisites: none. Related: OPS.75, OPS.29.
+
 ## DOC: Documentation
 
 - [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
