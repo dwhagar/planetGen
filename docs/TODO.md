@@ -14460,30 +14460,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   column goes in db/column_units.py.
   Prerequisites: none. Related: GEN.749, GEN.568.
 
-- [ ] **GEN.844 A random planet's colour crashes generation: 'the spectrum has no light between 380 and 780 nm' (bug)**
-  Found by Core 2 (as the lane reported 12:07 PM EDT 2026-10-28) in one
-  of 20 repeat runs of test_web_browser_sector_open.py: generating the
-  sample sector died with ValueError 'the spectrum has no light between
-  380 and 780 nm' raised in photometry.spectrum_to_xyz, called from
-  atmosphere_colour._colour_of, body_colour.generate,
-  planets.generate_spin, validation.reconcile_moved_planet, in
-  space_orbits while building a pre-placed system. A planet whose
-  spectrum has no visible light (a very cold or very faint star, or a
-  fully absorbing air) has no colour, and the colour code raises instead
-  of returning a defined fallback, so one planet stops the whole sector.
-  Do: reproduce with the failing seed (find it by looping the sample
-  sector build), decide the defined answer for a body that receives no
-  visible light (a stored black or the unlit colour of the look record,
-  never a made-up hue; record it as a stand-in with tier and tweak level
-  if it is a tweak), return it instead of raising, and keep the check
-  that a lit body with a flat zero spectrum is a bug elsewhere. Done: a
-  unit test for spectrum_to_xyz and the colour of a planet with no
-  visible light, and 200 sample-sector builds over random seeds finish.
-  Owner: Aux 12 (DB.96, stored atmosphere colour) with Aux 8 for the air
-  spectrum. Rules: draws through draw.py; no backward-compat shims; a
-  generation change takes the lock queue.
-  Prerequisites: none. Related: DB.96, GEN.725.
-
 - [ ] **GEN.845 Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764)**
   GEN.764 is done (#3439): `planetgen bring-to-epoch` and the Generate
   task redo what an epoch bump changed, but a stale scatter is refused
