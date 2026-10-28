@@ -9,7 +9,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import atmosphere, clathrate_brine, constants, gases, saturation, surface_air as sa, surface_pressure
+from planetgen.physics import atmosphere, clathrate_brine, constants, gases, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -139,20 +139,37 @@ def test_an_ocean_dissolves_sulfur_dioxide_and_leaves_the_nitrogen():
     assert left["SO2"] + dissolved["SO2"] == pytest.approx(moles["SO2"])
 
 
-def test_an_ocean_keeps_only_a_drawn_share_of_the_sulfur():
+def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():
     setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=1.0e30, heat_flux_w_m2=0.0614, ocean_cover=0.7,
                          water_kg=1.4e21, absorbed_flux_w_m2=240.0, subject_of=None)
     draw.set_run_seed(26)
     design = {}
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = surface_pressure.draw_cycle(design)
+    lifetimes = sulfur_balance.draw_lifetimes(design)
     inventory = {"C": 0.0, "S": 1.0e-3, "N": 1.0e-4}
-    wet = sa._shares(setting, efficiencies, cycle, 3.0e-4, True, True, 288.0)(inventory)
-    dry = sa._shares(setting, efficiencies, cycle, 3.0e-4, False, False, 288.0)(inventory)
-    assert wet["S"] == pytest.approx(3.0e-4 * dry["S"])
-    assert wet["N"] == dry["N"]  # nitrogen has no sink here
-    low, high, _ = sa.SULFUR_SURFACE_KEPT
-    assert (low, high) == (1e-5, 1e-2)
+    age_s = 4.5 * sa.GY_S
+    wet = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), True, True, 288.0)(inventory)
+    dry = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), False, False, 288.0)(inventory)
+    base = surface_pressure.degassed_share(setting.released_j, setting.mantle_kg) * efficiencies["S"]
+    assert 0.0 < wet["S"] < base                        # the sinks take most of it
+    assert wet["S"] == pytest.approx(base * lifetimes.wet_s / age_s, rel=1e-6)   # the steady-state burden of a day or so
+    assert dry["S"] > wet["S"]                          # sulfation of the rock is slower than rain-out
+    assert wet["N"] == dry["N"]                         # nitrogen has no sink here
+
+
+def test_a_crust_too_small_for_the_sulfur_leaves_the_excess_in_the_air():
+    setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=1.0e24, heat_flux_w_m2=0.0614, ocean_cover=0.7,
+                         water_kg=1.4e21, absorbed_flux_w_m2=240.0, subject_of=None)
+    draw.set_run_seed(27)
+    design = {}
+    efficiencies = surface_pressure.draw_efficiencies(design)
+    cycle = surface_pressure.draw_cycle(design)
+    lifetimes = sulfur_balance.draw_lifetimes(design)
+    inventory = {"C": 0.0, "S": 1.0, "N": 0.0}         # an inventory far larger than the crust this heat built
+    shares = sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0)(inventory)
+    base = surface_pressure.degassed_share(setting.released_j, setting.mantle_kg) * efficiencies["S"]
+    assert shares["S"] > 0.5 * base
 
 
 def _generated(seeds):

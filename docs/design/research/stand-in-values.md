@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 172 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 171 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 35 | 0 | 1 | 5 | 0 | 41 |
 | T4 | 5 | 0 | 0 | 2 | 0 | 7 |
 | T5 | 7 | 3 | 1 | 0 | 0 | 11 |
-| T6 | 19 | 6 | 1 | 2 | 0 | 28 |
+| T6 | 19 | 5 | 1 | 2 | 0 | 27 |
 | T7 | 10 | 2 | 0 | 1 | 0 | 13 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
 | T9 | 0 | 0 | 0 | 0 | 1 | 1 |
-| All | 144 | 11 | 6 | 10 | 1 | 172 |
+| All | 144 | 10 | 6 | 10 | 1 | 171 |
 
 ## How the labels were given
 
@@ -238,7 +238,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM77 | P | T7 | L0 | thermosphere.MAX_EXOBASE_RADII | 10 body radii, fixed | hot, light airs | none: no measurement; a bound that keeps the integral finite | a hydrodynamic outflow model | design (a numerical bound for a hot light air over a small body) |
 | AM78 | B | T7 | L0 | surface_air.LONG_LIVED_FLUX_FRACTION | 0.5 of the Earth twin's heat flow, fixed | rocky bodies with a stored interior | test_surface_air::test_a_body_with_less_than_half_the_earth_heat_flow_has_no_long_lived_geology | a stagnant-lid and mobile-lid transition model (Foley and Smye 2018) | design (the share of the Earth twin's heat flow below which a mantle is taken to have stopped moving) |
 | AM79 | B | T1 | L0 | surface_air.RELATIVE_HUMIDITY | 0.77, fixed | rocky bodies with an ocean or ice | test_surface_air::test_water_over_an_ocean_stands_at_the_relative_humidity_of_its_saturation_pressure | a convective-radiative humidity model | READ (Manabe and Wetherald 1967: fixed relative humidity 0.77, the Earth's mean) |
-| AM80 | B | T6 | L1 | surface_air.SULFUR_SURFACE_KEPT | 1e-5 to 1e-2, log | rocky bodies with an ocean | test_surface_air::test_an_ocean_keeps_only_a_drawn_share_of_the_sulfur | a sulfate and sulfide balance (the sulfur analogue of GEN.726) | design (the bracket of the old weathering sink of the rocky inventory, kept for sulfur alone: the Earth keeps about 1 percent of its degassed sulfur as a gas-exchangeable surface reservoir at most) |
 
 ## 6.8 Stand-ins of the hours outside in a day
 
