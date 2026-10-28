@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 209 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 217 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 34 | 0 | 3 | 0 | 0 | 37 |
 | T2 | 47 | 0 | 0 | 0 | 0 | 47 |
-| T3 | 44 | 1 | 2 | 6 | 0 | 53 |
-| T4 | 9 | 0 | 0 | 2 | 0 | 11 |
+| T3 | 45 | 3 | 2 | 6 | 0 | 56 |
+| T4 | 11 | 0 | 0 | 2 | 0 | 13 |
 | T5 | 9 | 3 | 1 | 0 | 0 | 13 |
-| T6 | 23 | 6 | 1 | 2 | 0 | 32 |
+| T6 | 24 | 6 | 1 | 4 | 0 | 35 |
 | T7 | 11 | 2 | 0 | 1 | 0 | 14 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 0 | 0 | 0 | 0 | 1 | 1 |
-| All | 177 | 12 | 7 | 11 | 2 | 209 |
+| All | 181 | 14 | 7 | 13 | 2 | 217 |
 
 ## How the labels were given
 
@@ -326,3 +326,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SP8 | P | T2 | L0 | tidal_spin.RESONANCES | the window edges | a rocky planet brought down from a fast spin | the same windows for a layered planet | READ through a summary of Makarov 2012 (ApJ 752:73, arXiv:1110.2658): with a frequency-dependent rheology capture is certain in 0.34 < e < 0.49 for 2:1, 0.2 < e < 0.41 for 3:2 and e < 0.29 for 1:1; the first window met coming down takes the spin |
 | SP9 | P | T3 | L0 | tidal_spin.RESONANCE_CAPTURE_PROBABILITY | 0.07 to 1 | Mercury-like captures | a draw once one model is chosen | capture probability inside a window is 1 (Makarov 2012: 40 of 40); Goldreich and Peale 1966 give 0.07 at Mercury's eccentricity with a constant-torque tide and Correia and Laskar 2004 give 0.55 with the eccentricity's chaotic history; the sources split, the bracket is kept |
 | SP10 | T | T6 | L0 | planets.generate_spin | none | every planet and moon | a coupled spin, obliquity and eccentricity history | approximations of the spin state: a locked body turns exactly once an orbit (not 1 + 6 e^2 of a constant-time-lag tide); the eccentricity is the stored one, not the larger past one; the obliquity stays as drawn until the spin has come all the way down, then is zero; no atmospheric tide, core-mantle coupling or the tide of the body's own moons |
+
+## 6.15 Stand-ins of the trapped radiation belts
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|
+| RB1 | T | T3 | L0 | radiation_belts.WIND_EDGE_FRACTION | 0.6 to 0.9 | a body with a dipole in a stellar wind | a drift-shell model of where the magnetopause shadows the belts | the outer edge of a wind-limited body is 0.75 of the magnetopause standoff, which puts Earth's at 7.3 (the outer belt ends at about 40 000 km; recalled); the standoff is the Chapman-Ferraro scaling of `magnetism.magnetopause_rp` |
+| RB2 | T | T4 | L0 | radiation_belts.ROTATION_EDGE_FACTOR | 7 to 12 | a fast rotator with a strong field | a centrifugal-balance model of the plasma sheet | the outer edge of a spin-limited body is 9 times the synchronous distance, beyond which the plasma no longer turns with the body: Jupiter's synchronous distance is 2.24 radii and its belts reach about 20 (recalled; Saturn would be 16) |
+| RB3 | P | T3 | L1 | radiation_belts.WIND_PEAK_FRACTION, ROTATION_PEAK_FRACTION | 0.5 to 0.7 and 0.2 to 0.35 | the two limits | AE-9 and Divine-Garrett peak positions as functions of the field | the electron belt peaks at 0.62 of the outer edge for a wind-limited body (Earth's peak at 4 to 5 against 7.3) and at 0.25 of it for a spin-limited one (Jupiter's peak inside Io's orbit, 5.9, against 20); recalled, two bodies fit |
+| RB4 | P | T3 | L1 | radiation_belts.INNER_PEAK_FRACTION | 0.3 to 0.45 | a body with air or a surface to make the albedo neutrons | a cosmic-ray albedo neutron decay (CRAND) source model | the inner proton belt peaks at 0.35 of the electron peak (Earth's at 1.5 to 2 against 4.5); recalled, one body fits |
+| RB5 | D | T4 | L0 | radiation_belts.ATMOSPHERE_EDGE_SCALE_HEIGHTS | 35 to 60 | a body with air | a bounce-loss lifetime against the density profile | the inner edge of a body with air is 45 scale heights above the surface, where the air stops a bouncing particle (Earth's belts begin near 400 km, 1.06 radii); the scale height is `R T / (M g)` at the surface temperature |
+| RB6 | P | T6 | L3 | radiation_belts.EARTH_OUTER_PEAK_GY_YR, EARTH_INNER_PEAK_GY_YR, INTENSITY_EXPONENT | 2000 to 6000 Gy; 0.5 to 1.2 | a dipole body in a quiet wind | AP-9 and AE-9, Divine-Garrett and the Juno and Galileo dose measurements | the intensity of each belt at its peak is Earth's 3000 Gy per year behind 100 mil of aluminium (about 300 krad; recalled from the orders of AP-8 and AE-8 in the shielded orbit literature) times the dipole moment to the 0.8, which puts Jupiter's belt some 2700 times Earth's, inside the 1e2 to 1e5 the Galileo and Juno dose records span; the exponent was fitted to that range, not derived |
+| RB7 | T | T6 | L3 | radiation_belts.OUTER_RISE_EXPONENT, INNER_RISE_EXPONENT, FALL_EXPONENT, EDGE_EXPONENT | 2 to 6 | the main belts of a dipole | tabulated flux maps in `B` and `L` | the profile of a belt rises as the fourth power (electrons) or the second (protons) of the distance past the inner edge, falls as the sixth power of `L` past the peak and is cut to nothing at the outer edge; shapes chosen so Earth has a slot (a tenth of the peak at L 2.5) and Io to Europa is about a factor 10 (Galileo: 6.7; recalled) |
+| RB8 | T | T6 | L0 | radiation_belts.belts_for | none | every body with a field | a coupled field, plasma and belt model | approximations: a dipole aligned with the spin; dose behind one aluminium thickness only; no solar-cycle, storm or longitude dependence; moons, rings and plasma tori are not in it |
