@@ -13283,47 +13283,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Version 8.4. Owner: pool, after 8.1.
   Prerequisites: none. Related: GEN.501, GEN.725, GEN.793.
 
-- [ ] **GEN.795 The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug)**
-  Boss, 10:07 PM EDT 2026-10-24 (relayed by the coordinator): "For the
-  variance can we either use the proper +/- symbol or just +/- so that
-  it's clear that it's a range or put the actual temperature range?
-  Also, I'd like to have for each temperature (polar, mean, southern,
-  etc) it to have an actual range, what is the high and low that puts
-  that value right in the middle." The swing row (temp_swing_k, GEN.773
-  puts it on the difference kind) must say it is a variation about a
-  value: print the plus-or-minus sign with the difference (for example
-  'Day to night swing: ±9.07 K', '±9.07 C degrees', '±16.3 F degrees')
-  or, better, print the actual low and high temperatures it implies.
-  State in the label which the generator stores (half range or full
-  range). Same in the API text, the description and the Properties list.
-  Done: the swing never shows without ± or a low-to-high range, in every
-  temperature unit, and a browser test pins it. Version 8.1. Owner:
-  Units lane (Aux 14 or the numbers-without-units lane), with GEN.773.
-  Prerequisites: none. Related: GEN.773, GEN.769, GEN.656.
-
-- [ ] **GEN.796 Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle**
-  Boss, 10:07 PM EDT 2026-10-24 (relayed by the coordinator): "For the
-  variance can we either use the proper +/- symbol or just +/- so that
-  it's clear that it's a range or put the actual temperature range?
-  Also, I'd like to have for each temperature (polar, mean, southern,
-  etc) it to have an actual range, what is the high and low that puts
-  that value right in the middle." For every entry of
-  REGIONAL_TEMPERATURES (db/column_units.py), show the low and the high
-  that put the stated value exactly in the middle (value minus and plus
-  the half range), for example '-10 C, range -25 to +5 C'. The half
-  range comes from the day and night swing (and the seasonal swing where
-  the generator has one), so work out which swing applies to each
-  region; where no swing is stored for a region, say that the range is
-  not stored rather than printing a guess, and file the missing
-  producer. The ranges are computed, not stored twice: one function
-  gives the low and high for a value, a swing and a unit (a difference,
-  never an absolute conversion, GEN.773), and every page, the API and
-  the description use it. Done: every regional temperature on a sample
-  planet shows low and high with the value in the middle, in kelvin,
-  Celsius and Fahrenheit, and a test checks the midpoint and that no
-  offset is applied twice. Version 8.1. Owner: Units lane.
-  Prerequisites: none. Related: GEN.656, GEN.769, GEN.773.
-
 - [ ] **GEN.798 Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers)**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -14042,6 +14001,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   takes an epoch with --affects fill and a lock turn. Once stored, stars
   turn with no further map work. Owner: Core 3 (stars), after GEN.328.
   Prerequisites: none.
+
+- [ ] **GEN.848 Store a day and night swing for every temperature the sheet shows (only the equator has one) (bug)**
+  Found by the Units lane with GEN.795/GEN.796 (#3487, 4:13 PM EDT
+  2026-10-28 as the lane reported): only the equator has a stored swing
+  (temp_swing_k, peak to peak). Polar (temp_polar_k), north
+  (temp_north_k), south (temp_south_k), mean (surface_temperature_k) and
+  the locked-world day side, terminator and night side (temp_day_side_k,
+  temp_terminator_k, temp_night_side_k) have none, so their sheet rows
+  read "no day and night range stored for this place". Add a producer
+  for each swing from physics (stand-in tier and tweak level in the
+  registry where it is a fit), store it with its unit in
+  db/column_units.py, add the column to RANGE_FIELDS in
+  physics/regional_temperature.py and pass its swing. It changes
+  generated output, so it takes an epoch and a lock turn. Also check
+  that the climate sentence (physics/protection.py regional_sentence),
+  which now states the equator low and high, agrees with the GEN.656
+  regional-temperature text. Owner: Aux 5 (Lane H: heat, GEN.656
+  regional temperatures), queued after its current lock turn.
+  Prerequisites: none. Related: GEN.656, GEN.767, GEN.795, GEN.796.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19564,17 +19542,6 @@ clears each one.
   (test_gen_compact_orbit_laws may be fixed by GEN.832, #3433). Fix
   each, or file the generator cause. Owner: Bug 1. Not caused by any
   lock holder; say so in the PR instead of fixing it there.
-  Prerequisites: none.
-
-- [ ] **TEST.423 test_admin_edits::test_recommended_class_change_saves_and_validates fails on clean main: the stand-in body has no eccentricity since migration 0163 (bug)**
-  Found by Core 1 in its DB.46 gate (about 1:50 PM EDT 2026-10-28 as the
-  lane reported), also red on clean main. Since migration 0163
-  (GEN.727/737/731, eccentricity column, #3380) the test's stand-in
-  planet body carries no eccentricity, so the admin edit validation
-  rejects it. Fix: give the stand-in body an eccentricity (and any other
-  column 0163 added) in the test fixture. Owner: Bug 1. Related:
-  TEST.402 (test_db_column_round_trip::test_every_column_is_written,
-  flake under load, same gate).
   Prerequisites: none.
 
 - [ ] **TEST.424 test_property_sheet::test_every_column_is_on_the_sheet_or_says_why_it_is_not[moon|planet] fails on main: the new ground_* columns have no sheet row or NOT_SHOWN excuse (bug)**
