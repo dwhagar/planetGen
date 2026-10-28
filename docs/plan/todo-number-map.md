@@ -1385,7 +1385,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.634 | The plan outline takes a whole shell in by its highest band, so the candidate sector count is 3.5 billion where about 1.0 billion expect a system (interval outline) | none | open |
 | GEN.635 | The cluster system has no radial profile yet, and the dwarf end of the globular cluster count uses no occupation draw (the Carlsten fits are not built in GEN.403) | none | open |
 | GEN.636 | StarSystem._orbit_ceiling_au no longer equals validation.orbit_ceiling_au after the planet survival limit, so test_system_methods_still_delegate fails on main (bug) | none | done, PR #2653 |
-| GEN.637 | Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638) | none | open |
+| GEN.637 | Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638) | none | done, sweep report gen637-all-auto-sweep-2026-10-28.md, no code |
 | GEN.638 | Planets and belts can sit past the survival ceiling because the age is raised after they are placed, so test_wide_binary_system_generates_and_stays_within_bounds[G2V] fails in about 0.4 percent of draws (bug) | none | done, PR #2695 |
 | GEN.639 | The planet-mass habitable zone limits and the pre-main-sequence runaway history left open by GEN.146 (design note 4.1) | none | done, PR #3020 |
 | GEN.640 | GEN.316 part (c): delete BinaryStarProxy, WideBinaryPair and the writers of the binary_* columns, once circumbinary and S-type planets come from the tree | none | open |
