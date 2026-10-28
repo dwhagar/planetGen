@@ -4017,7 +4017,7 @@ def test_galaxy_map_info_popup_scrolls_with_the_wheel_and_hands_the_rest_to_the_
 def _open_habitable_card(page, base, name, width=1280, height=900):
     """The Galaxy Map's card for one fixture system with a habitable world, opened from the marker's button."""
     page.set_viewport_size({"width": width, "height": height})
-    _open_window(page, base, 27, 27, 0, 0, g=3)
+    _open_star_field(page, base)
     page.wait_for_timeout(500)
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
