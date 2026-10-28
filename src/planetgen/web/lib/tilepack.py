@@ -12,7 +12,7 @@ One node (all numbers little-endian)::
     "PGT1"                        4 bytes, the format
     meta_length                   u32
     meta                          UTF-8 JSON: the sections that are not stars
-                                  (`clouds`, `points`, `worlds`, `incomplete`), or `{}`
+                                  (`clouds`, `points`, `worlds`, `incomplete`, and the `name` and `parent` of a charted region, API.35), or `{}`
     then `stars`, then `generated`, each:
     count                         u32
     if count > 0:
@@ -63,7 +63,7 @@ TEMPERATURE_LOG_RANGE = (2.0, 6.0)
 RADIUS_LOG_RANGE = (-3.0, 4.0)
 
 # The sections that stay JSON.
-_META_SECTIONS = ("clouds", "points", "worlds", "incomplete", "aggregate", "placed")
+_META_SECTIONS = ("clouds", "points", "worlds", "incomplete", "aggregate", "placed", "name", "parent")
 _STAR_SECTIONS = ("stars", "generated")
 _U16 = 65535
 _U8 = 255

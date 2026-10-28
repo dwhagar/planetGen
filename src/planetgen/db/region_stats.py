@@ -152,6 +152,18 @@ def region_row(conn, cell):
     return None if row is None else _region(row)
 
 
+def labels(cell, key, edge_pc):
+    """
+    The names a charted region carries on the wire (API.35): `name` ("Fardoo Beez Region") and `parent`, the name of its 81-block
+    family ("Fardoo Reach"), under the naming key `key`; `None` when there is no key in force. Names come from the gated phoneme
+    codec only. The caller has checked that the region is charted (`region_row`), which is what makes it exist.
+    """
+    if key is None:
+        return None
+    family = named_regions.family_of(cell)
+    return {"name": named_regions.region_name(cell, key, edge_pc), "parent": named_regions.family_name(family, key, edge_pc)}
+
+
 def region_of(conn, position_pc, edge_pc=None):
     """The region that holds the point `position_pc` (galaxy frame, parsecs): the stored region of the 9-block of the
     sector that contains it, or `None` when that cell holds no generated sector."""
