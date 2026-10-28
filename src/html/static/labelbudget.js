@@ -12,7 +12,9 @@
 //
 //   inhabited    worlds with a population, ranked by population and kept per type (`category`: planet, moon, station...,
 //                so a station does not compete with a planet); the habitable worlds with none ranked by habitability
-//                score, which is all of the slice until population is stored (MAP.318);
+//                score, which is all of the slice until population is stored (MAP.318). A world that is inhabited
+//                (`inhabited: true`, whatever its population is yet) is named before one that is not, and a type with an
+//                inhabited world in it is served first (MAP.321);
 //   uninhabited  uninhabitable worlds, gas giants, asteroid belts (fields included) and the non-luminous star-like
 //                objects, an equal share per `category`, each ranked by `mass` (solar masses; a belt by `volume`, the
 //                volume of space it occupies in cubic parsecs, standing in for its mass; a body whose mass the map
@@ -97,13 +99,17 @@ function groupBy(items, key) {
 }
 
 const num = function (value) { return value > 0 ? value : 0; };
+const isInhabited = function (item) { return item.inhabited === true; };
 
 // Each domain's own order: the thing named first first.
 const DOMAINS = {
   inhabited: function (items) {
     // Per type, an equal share; within a type those with a population by population, then by habitability.
-    const lists = groupBy(items, function (item) { return item.category || ""; }).map(function (group) {
+    const groups = groupBy(items, function (item) { return item.category || ""; });
+    groups.sort(function (a, b) { return (b.some(isInhabited) ? 1 : 0) - (a.some(isInhabited) ? 1 : 0); });
+    const lists = groups.map(function (group) {
       return ranked(group, [
+        function (item) { return isInhabited(item) ? 1 : 0; },
         function (item) { return num(item.population) > 0 ? 1 : 0; },
         function (item) { return num(item.population); },
         function (item) { return num(item.habitability); },

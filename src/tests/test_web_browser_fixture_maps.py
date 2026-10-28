@@ -2657,6 +2657,24 @@ def test_a_name_is_only_offered_for_a_habitable_world_marker_that_is_drawn_and_a
     page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
 
 
+def test_an_inhabited_world_marker_is_named_before_a_habitable_one_that_lies_close(page, map_site):
+    """MAP.321 d: an inhabited token is always a candidate for a name and goes before a habitable world's: with both layers on, the
+    fixture's two close worlds (Rest inhabited, Eden habitable) are drawn and Rest keeps the room, where with only the habitable layer on
+    Eden did; with the inhabited layer off again Eden has it back, and no name is offered for a token that is not drawn."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(1000)
+    worlds = f"() => ({LABELS})().filter((l) => l.kind === 'world').map((l) => l.text).sort()"
+    _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
+    _markers_until(page, lambda found: {e["kind"] for e in found} >= {"marker-habitable", "marker-inhabited"})
+    page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Rest')", timeout=20000)
+    assert "Fixture Eden" not in page.evaluate(worlds), page.evaluate(worlds)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
+    page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Eden')", timeout=20000)
+    assert "Fixture Rest" not in page.evaluate(worlds)
+
+
 SECTOR_FRAME = "() => { const f = document.querySelector('#galaxymap3d-canvas').__mapSectorFrame; return f && f.state(); }"
 SECTOR_VIEW = "() => document.querySelector('#galaxymap3d-canvas').galaxySectorView()"
 SECTOR_FRAME_LINES = "() => document.querySelector('#galaxymap3d-canvas').__mapSectorFrame.positions()"
@@ -3164,6 +3182,10 @@ def test_the_bodies_of_an_open_system_carry_their_own_symbols_by_the_same_layers
     assert "marker-habitable" not in kinds, "the Green world is inhabited, so it carries the inhabited symbol alone"
     inhabited = next(e for e in found if e["kind"] == "marker-inhabited")
     assert inhabited["name"].endswith(" I"), inhabited
+    # MAP.321 d: the inhabited body's name is offered in the inhabited slice of the label budget, the rest stay in the uninhabited one
+    slices = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').__mapBodyNames().map((l) => [l.text, l.slice.domain, !!l.slice.inhabited])")
+    assert [s for s in slices if s[1] == "inhabited"] == [[inhabited["name"], "inhabited", True]], slices
+    assert any(s[1] == "uninhabited" for s in slices), slices
     # the symbol rides its body: where the marker is is where the body is
     refs = _galaxy_system(page)["refs"]
     assert "planet:1" in refs

@@ -64,7 +64,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, HABITABLE_KIND, INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, selectMarkers,
+  BLACK_HOLE_KIND, INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
 const { bodyMarkers, createHandoff } = await import(`./bodymarkers.js${VERSION_QUERY}`);
@@ -3773,11 +3773,12 @@ function initGalaxyMap3d(canvasEl, data) {
     galaxyLabels = createGalaxyLabels({
       THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),
       sources: {
-        sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: stageView.bodyLabels, nebulae: cloudLabels,
+        sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: bodyNames, nebulae: cloudLabels,
         stars: starNames, objects: objectNames, worlds: worldNames, regions: regionNames,
       },
     });
     canvasEl.__mapLabels = galaxyLabels;    // the browser tests read what is placed
+    canvasEl.__mapBodyNames = bodyNames;    // ... and the slice each body's name is offered in (MAP.321)
   }
   // MAP.314: the names of the charted regions the nodes of the view offer, by the size of the nodes (regionlabels.js): none
   // in a view with no charted region, and none while the nodes are not in. Only the nodes the view is drawn with are asked,
@@ -4025,14 +4026,36 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
-  // The habitable-world markers the map draws, offered as names of the inhabited slice (MAP.317): a name is only offered
-  // for a marker that is drawn. The node lists a system's habitable worlds as a count, which ranks them until the stored
-  // habitability score and population do (MAP.318).
+  // The world markers the map draws, offered as names of the inhabited slice (MAP.317, MAP.321): a name is only offered for a
+  // marker that is drawn, and an inhabited world (a star's inhabited token) is always a candidate, named before a habitable one.
+  // The node lists a system's worlds as a count and the best score, which rank them until the stored population does (MAP.318).
+  var NAMED_WORLD_REASONS = { inhabited: "inhabited world", habitable: "habitable world" };
   function worldNames() {
     if (!markerLayer) return [];
-    return markerLayer.entries().filter(function (entry) { return entry.kind.id === HABITABLE_KIND.id && entry.item.name; }).map(function (entry) {
+    return markerLayer.entries().filter(function (entry) {
+      return NAMED_WORLD_REASONS[entry.kind.interest] && entry.item.name && !entry.item.bodyRef && !entry.item.regionKey;
+    }).map(function (entry) {
       return { id: "world:" + entry.item.id, text: entry.item.name, x: entry.item.x, y: entry.item.y, z: entry.item.z, ref: { kind: "marker", entry: entry },
-        slice: { domain: "inhabited", category: "planet", habitability: entry.item.n || 0, population: entry.item.population || 0 } };
+        slice: { domain: "inhabited", category: NAMED_WORLD_REASONS[entry.kind.interest], inhabited: entry.kind.interest === "inhabited",
+          habitability: entry.item.score || 0, population: entry.item.population || 0 } };
+    });
+  }
+  // The bodies of the open system, named as the stage offers them, except that a planet or moon whose inhabited or habitable symbol is
+  // drawn takes its place in the inhabited slice with the worlds (MAP.321), by its habitability score.
+  function bodyNames() {
+    var labels = stageView.bodyLabels();
+    if (!markerLayer) return labels;
+    var worlds = new Map();
+    markerLayer.entries().forEach(function (entry) {
+      if (entry.item.bodyRef && NAMED_WORLD_REASONS[entry.kind.interest]) worlds.set(entry.item.bodyRef, entry);
+    });
+    if (!worlds.size) return labels;
+    return labels.map(function (label) {
+      var entry = worlds.get(label.id);
+      if (!entry) return label;
+      var body = label.ref.entry.body || {};
+      return Object.assign({}, label, { slice: { domain: "inhabited", category: label.ref.entry.kind, inhabited: entry.kind.interest === "inhabited",
+        habitability: body.phi4 || 0, population: 0 } });
     });
   }
 
