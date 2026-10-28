@@ -26,7 +26,7 @@ import math
 from planetgen import tuning
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import aerosols, atmosphere, body_colour, bulk_composition, climate_draws, constants, giant_interior, habitability_world, hydrosphere, interior_heat, magnetism, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
+from planetgen.physics import aerosols, atmosphere, body_colour, bulk_composition, climate_draws, constants, daylight, giant_interior, habitability_world, hydrosphere, interior_heat, magnetism, planets as planetPhysics, radiation, radiogenic, rings, surface_composition
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen.util import draw
 from planetgen.generation.planetary_object import PlanetaryObject
@@ -212,6 +212,8 @@ class Planet(PlanetaryObject):
         *radiogenic.BODY_FIELDS,
         *interior_heat.BODY_FIELDS,
         *interior_heat.OUTPUT_FIELDS,
+        *interior_heat.REGIME_FIELDS,
+        *daylight.FIELDS,
         *bulk_composition.NEW_FIELDS,
         *giant_interior.BODY_FIELDS,
         giant_interior.LAYERS_ATTRIBUTE,
@@ -382,7 +384,7 @@ class Planet(PlanetaryObject):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
-        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS:
+        for field in atmosphere.ATMOSPHERE_FIELDS + magnetism.BODY_FIELDS + hydrosphere.HYDROSPHERE_FIELDS + radiogenic.BODY_FIELDS + interior_heat.BODY_FIELDS + interior_heat.OUTPUT_FIELDS + interior_heat.REGIME_FIELDS + daylight.FIELDS + bulk_composition.NEW_FIELDS + rings.BODY_FIELDS + surface_composition.COLUMN_FIELDS + giant_interior.BODY_FIELDS + (giant_interior.LAYERS_ATTRIBUTE,) + radiation.BODY_FIELDS + habitability_world.BODY_FIELDS + aerosols.BODY_FIELDS + body_colour.BODY_FIELDS:
             setattr(self, field, None)
         setattr(self, atmosphere.GAS_FIELD, {})
 
@@ -412,6 +414,10 @@ class Planet(PlanetaryObject):
                     self.system_config.MOONS is True
                     or self._draw_moons()):
                 planetPhysics.generate_moons(self)
+            # GEN.767: the day and night shares, the moons' with their parent's shadow (no draws)
+            daylight.generate(self)
+            for moon in self.moons:
+                daylight.generate(moon, self)
 
     @property
     def giant_kind(self):

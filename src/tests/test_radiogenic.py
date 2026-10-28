@@ -198,7 +198,8 @@ def test_every_generated_body_stores_one_set_of_concentrations_that_its_heat_and
             rock = radiogenic.rock_of(body)
             from planetgen.physics import tidal_heating
             forcing = None if tidal_heating.is_icy(body) else tidal_heating.forcing_of(body)  # GEN.737: the tide of the stored orbit
-            found = interior_heat.heat_flow(content, interior_heat.interior_of(body), body.mass, body.radius, body.star.age, rock, forcing)
+            found = interior_heat.heat_flow(content, interior_heat.interior_of(body), body.mass, body.radius, body.star.age, rock, forcing,
+                                            interior_heat.lid_of(body), interior_heat.surface_of(body))
             assert planet_physics.internal_heat_flux_w_m2(body) == pytest.approx(found.own_flux_w_m2)
             assert body.internal_heat_flux_w_m2 == pytest.approx(found.own_flux_w_m2) and body.urey_ratio == pytest.approx(found.urey_ratio)
             # the heat of the interior is the radiogenic heat of the stored concentrations and the cooling of the rest

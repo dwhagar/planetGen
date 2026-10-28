@@ -3211,10 +3211,6 @@ whose host star has no stored composition (a rogue planet)."""
 RADIOGENIC_OFFSET_LIMIT_DEX = 0.5
 """float: The truncation of that offset, dex, host-less or from the host star (radiation-model.md R15)."""
 
-RADIOGENIC_URANIUM_EXTRA_SIGMA_DEX = 0.05
-"""float: The scatter of uranium beyond thorium's, dex: a placeholder for the Th/U scatter (Dauphas 2005 via Wang 2020, partly
-verified; radiation-model.md R15)."""
-
 RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
 """tuple: The potassium depletion against uranium as the CI chondrites have it (K/U 67407), drawn log-uniformly. The Earth's 0.177 lies
 inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies (Nimmo et al. 2020), not a measured
@@ -3232,11 +3228,16 @@ enstatite's (Zhang et al. 2017). Their uncertainty on the rheology of other plan
 INTERIOR_ACTIVATION_RANGE_KJ_MOL = (200.0, 300.0)
 """tuple: The viscosity activation energy `Ea`, kJ/mol, drawn uniformly: Guimond et al. 2022 (wet enstatite 200, dry olivine 300)."""
 
-INTERIOR_INITIAL_TEMPERATURE_CAP_K = 3500.0
-"""float: The hottest a mantle is, K: fully molten, a magma ocean radiates away what is above its liquidus within some million years,
-so the assembly energy (`interior_heat.binding_energy_j`) and the 26Al of the first Myr never push it higher. A STAND-IN picked within
-the literature (the liquidus of a deep magma ocean is about 3500 K, the solidus at depth about 2000); a rheology as stiff as the
-slowest cooler of Guimond et al. 2022 stays near it for a gigayear. GEN.699 labels it in the gap plan registry."""
+INTERIOR_LIQUIDUS_COEFFICIENT_K_GPA = 310.317
+"""float: `a_l` of the mantle's liquidus `T_l(p) = a_l (p + p_l)^c_l`, K per GPa^c_l: chondritic material, Manske, Ruedas, Plesa et al. 2025
+(arXiv:2506.18718, Table 1 and Eq. 7, a Simon and Glatzel form fitted to experiments; READ). 1,874 K at the surface and 4,717 K at the
+Earth's core-mantle boundary (135 GPa)."""
+
+INTERIOR_LIQUIDUS_OFFSET_GPA = 29.102
+"""float: `p_l` of the liquidus, GPa (the same table)."""
+
+INTERIOR_LIQUIDUS_EXPONENT = 0.5337
+"""float: `c_l` of the liquidus (the same table)."""
 
 ROGUE_TIDAL_FLUX_RANGE_W_M2 = (1e-4, 1e-2)
 """tuple: Tidal heating, W/m^2, drawn log-uniformly for a rocky rogue

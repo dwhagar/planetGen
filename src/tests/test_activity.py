@@ -118,6 +118,7 @@ def test_earth_mercury_and_jupiter_get_their_fields():
     for _ in range(300):
         body = _body(1.0, 5.51, 24.0)
         body.hydrosphere = "surface ocean"
+        body.lid_regime = "mobile" if draw.random() < magnetism.mobile_lid_chance(body, 1.0) else "stagnant"  # GEN.721: the stored regime
         magnetism.generate_field(body)
         earths.append(body)
     alive = [body.magnetic_moment_a_m2 for body in earths if body.magnetic_moment_a_m2]
@@ -131,6 +132,7 @@ def test_earth_mercury_and_jupiter_get_their_fields():
     assert jupiter.dipole_class == "strong" and jupiter.magnetic_moment_a_m2 > 1e26
     locked = _body(1.0, 5.51, 24.0 * 11)
     locked.hydrosphere = "surface ocean"
+    locked.lid_regime = "mobile"
     magnetism.generate_field(locked)
     while not locked.magnetic_moment_a_m2:
         magnetism.generate_field(locked)
@@ -158,6 +160,7 @@ def test_a_stagnant_lid_shortens_the_dynamo_and_a_mobile_lid_keeps_it():
         for _ in range(400):
             body = _body(mass, 5.51, 24.0)
             body.hydrosphere = hydrosphere
+            body.lid_regime = "mobile" if draw.random() < magnetism.mobile_lid_chance(body, mass) else "stagnant"  # GEN.721: the stored regime
             magnetism.generate_field(body)
             count += bool(body.magnetic_moment_a_m2)
         return count
@@ -167,6 +170,7 @@ def test_a_stagnant_lid_shortens_the_dynamo_and_a_mobile_lid_keeps_it():
     # A watery planet that is 4.5 Gyr old has a lid that decides its field; a young one has a field either way.
     young = _body(1.0, 5.51, 24.0, age=0.3)
     young.hydrosphere = "dry"
+    young.lid_regime = "stagnant"
     magnetism.generate_field(young)
     assert young.magnetic_moment_a_m2 > 0
 

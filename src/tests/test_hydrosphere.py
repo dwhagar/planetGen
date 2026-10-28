@@ -127,7 +127,7 @@ def test_ocean_worlds_are_mostly_ice_sealed():
 
 def test_generated_bodies_store_a_consistent_hydrosphere():
     seen = set()
-    for seed in range(15):
+    for seed in range(40):
         with deterministic_entropy(seed):
             system = StarSystem(system_config=SystemConfig())
         for planet in system.planets:

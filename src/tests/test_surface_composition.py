@@ -19,7 +19,7 @@ def earth(**overrides):
     values = dict(planet_class="M", surface_temperature_k=288.0, pressure_pa=101325.0, o2_partial_pa=21000.0,
                   water_mass_fraction=2.3e-4, rock_mass_fraction=0.67, metal_mass_fraction=0.33, rock_feo_fraction=0.08,
                   hydrosphere="surface ocean", ocean_fraction=0.71, internal_heat_flux_w_m2=0.09, age_gy=4.5,
-                  mobile_lid_chance=0.5)
+                  mobile_lid=True)
     values.update(overrides)
     return sc.SurfaceInputs(**values)
 
@@ -96,23 +96,23 @@ def test_water_ice_vacuum_and_air_limits():
 
 
 def test_modifiers_follow_the_air_and_the_water():
-    dry = sc.draw_surface(earth(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid_chance=0.0))
+    dry = sc.draw_surface(earth(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False))
     assert not {"felsic", "clay", "oxidised", "evaporite", "sulfur"} & set(dry.mix)
     for seed in range(30):
         draw.set_run_seed(seed)
-        wet = sc.draw_surface(earth(mobile_lid_chance=1.0))
+        wet = sc.draw_surface(earth(mobile_lid=True))
         assert {"felsic", "clay", "oxidised", "evaporite"} <= set(wet.mix)
 
 
 def test_tidal_sulfur():
     result = sc.draw_surface(earth(planet_class="D", hydrosphere="dry", ocean_fraction=0.0, tidal_heat_flux_w_m2=2.0,
-                                   internal_heat_flux_w_m2=0.01, o2_partial_pa=0.0, mobile_lid_chance=0.0,
+                                   internal_heat_flux_w_m2=0.01, o2_partial_pa=0.0, mobile_lid=False,
                                    surface_temperature_k=110.0, pressure_pa=0.0))
     assert "sulfur" in result.mix
 
 
 def test_dominant_ground_rules():
-    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid_chance=0.0)
+    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False)
     seen = {}
     for seed in range(60):
         draw.set_run_seed(seed)
@@ -126,7 +126,7 @@ def test_dominant_ground_rules():
 
 
 def test_overturn_follows_feo():
-    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid_chance=0.0, internal_heat_flux_w_m2=0.0)
+    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False, internal_heat_flux_w_m2=0.0)
     ultramafic = {}
     for feo in (0.0, 0.2):
         count = 0
@@ -152,7 +152,7 @@ def test_determinism():
 
 
 def test_albedo_is_between_the_ground_types():
-    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid_chance=0.0, internal_heat_flux_w_m2=1.0)
+    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False, internal_heat_flux_w_m2=1.0)
     result = sc.draw_surface(earth(**base))
     bands, covered = sc.band_albedo(result)
     assert 0.0 < covered <= 1.0

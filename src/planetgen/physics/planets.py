@@ -655,6 +655,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
 
     # GEN.88: water, land, ice and the ocean's chemistry.
     hydrosphere.generate_hydrosphere(planet, 0.0 if heat is None else heat.flux_w_m2, surface_w)
+    # GEN.721: stagnant or mobile lid, which the magnetic field, the heat and the ground below all read (the hydrosphere above
+    # read the heat of a stagnant lid, the regime not being drawn yet; it needs the hydrosphere). The heat is made again with it.
+    interior_heat.generate_lid(planet)
+    interior_heat.update_heat(planet)
     # GEN.441: the minerals, ices and ocean on the ground, from the bulk fractions, the temperature, the air and the water.
     surface_composition.generate_surface(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).

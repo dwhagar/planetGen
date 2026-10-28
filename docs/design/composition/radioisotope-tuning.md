@@ -25,3 +25,8 @@ The row drew Th/U uniformly from 3.8 to 4.5, the Solar System value at 4.5 Gyr, 
 
 - The recipes are not yet read by the generator, so this changes no generated value and takes no generator epoch.
 - The 5.2e-5 level of aluminium-26 itself is a Solar System value and is not tuned to.
+
+## 5. Wired into the body's rock (GEN.759)
+
+`physics/radiogenic.py` reads `physics/rprocess_enrichment.py`. A body's thorium still follows its host's Th/Mg (the Eu relation of GEN.439); its uranium is no longer the bulk silicate Earth's with a 0.05 dex scatter (a placeholder) but what the r-process leaves: the thorium over `th_u_ratio_now(PR, F)`, where `PR` is the one production ratio the body draws (1.667 to 2.0, Frebel 2007; it takes the place of the old uranium draw, so the stream does not move) and `F` is the enrichment of the host's birth gas in the disc of its galaxy (the host's age and the disc's star formation history; `SystemConfig.GALAXY_SHAPE`, set by the sector, or the default shape for stand-alone work). A body with no host star takes the typical star of the galaxy (the median of the disc's star formation). A younger host has the larger `F` (more of the earlier thorium-rich ejecta has survived), so its rock is thorium-richer. The ratio today is 3.2 to 3.9 for the typical star, bracketing the bulk silicate Earth's 3.83 (a test point). The delay law stays the RECALLED stand-in of section 2. Potassium is still a multiple of the uranium, so it moves with it.
+

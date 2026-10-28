@@ -31,7 +31,7 @@ from planetgen.generation import (
     cloud as cloudContext, life as planetLife, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import constants, habitability, insolation, magnetism, mass_loss, metallicity, pre_main_sequence, rings, wolf_rayet
+from planetgen.physics import constants, habitability, insolation, interior_heat, magnetism, mass_loss, metallicity, pre_main_sequence, rings, wolf_rayet
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -541,9 +541,11 @@ class StarSystem:
             for obj in self.all_planets:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
+                interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
                 planetLife.apply_life_data(obj)
                 planetLife.decide_flavor_text(obj)
                 for moon in obj.moons:
+                    interior_heat.update_heat(moon)
                     magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
                     planetLife.apply_life_data(moon)
                     planetLife.decide_flavor_text(moon)

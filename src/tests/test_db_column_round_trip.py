@@ -147,6 +147,7 @@ NULL_IN_THIS_GALAXY = {
     **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},
     ("species", "generator_epoch"): "no species in this galaxy (GEN.764)",
+    ("planets", "parent_shadow_share"): "only a moon is in its planet's shadow (GEN.767)",
 }
 """`(table, column)` allowed to be NULL in every row of the seeded galaxy,
 with why: each is set only by something this small galaxy doesn't

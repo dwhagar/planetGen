@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, body_colour, bulk_composition, giant_interior, orbit_elements, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, bulk_composition, daylight, giant_interior, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -3013,9 +3013,10 @@ BODY_FIELDS = (
     object_rows.each(magnetism.BODY_FIELDS),
     object_rows.each(hydrosphere.HYDROSPHERE_FIELDS),
     object_rows.each(radiogenic.BODY_FIELDS),
-    object_rows.each((*interior_heat.BODY_FIELDS, *interior_heat.OUTPUT_FIELDS)),
+    object_rows.each((*interior_heat.BODY_FIELDS, *interior_heat.OUTPUT_FIELDS, *interior_heat.REGIME_FIELDS)),
     object_rows.each(bulk_composition.COLUMN_FIELDS),
     object_rows.each(surface_composition.COLUMN_FIELDS),
+    object_rows.each(daylight.FIELDS),
     object_rows.computed("carbon_rock", lambda body, context: _tristate(body.carbon_rock),
                          lambda row: {"carbon_rock": _tristate_from_db(row["carbon_rock"])}),
     object_rows.each(tuple(name for name in giant_interior.BODY_FIELDS if name != "has_helium_shell")),

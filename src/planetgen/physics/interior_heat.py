@@ -30,23 +30,32 @@ Jacobsen 2017 as Guimond et al. use them).
 Two things are drawn, the rest follows (`draw_interior`): the viscosity prefactor `eta0` and activation energy `Ea` (the paper's own
 uncertainty on the mantle's rheology, uniform over its ranges). The heat the body is born with is computed, not drawn: it starts at
 `Ts + E / C` (`E` the gravitational binding energy of the differentiated body, `binding_energy_j`: two uniform shells, the accretion
-of the whole and the sinking of the iron; `C` the heat capacity above) and never above the `tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K` of
-a magma ocean, which radiates away what is above it (so does the 26Al of the first million years). A planet starts at the cap, a
+of the whole and the sinking of the iron; `C` the heat capacity above) and never above the liquidus at the middle of the mantle
+(`mantle_ceiling_k`, Manske et al. 2025: a magma ocean radiates away what is above its liquidus, as does the 26Al of the first million
+years). The surface is the body's own surface temperature once its climate is known (`update_heat`), 273 K otherwise. A planet starts at the ceiling, a
 planetesimal cold (its `E / C` is a kelvin), a moon-sized body in between. The model is nearly memoryless (the paper primes it for 5
 Gy and finds the paths parallel), so the start matters for a young body and fades for an old one: a younger body gives more heat.
 
-What it is not: a mobile-lid (plate tectonic) Earth loses heat more freely than this stagnant lid does, so an Earth twin comes out
-at 27 to 37 TW and a Urey ratio of 0.57 to 0.76 over the paper's rheologies, where the Earth's measured values are 42 to 47 TW and
-0.47 to 0.52 (Nimmo et al. 2020); the heat is inside the geoneutrino range, 38.2 +13.6 -12.7 TW (Agostini et al. 2019). A tectonic-mode switch of the heat loss waits on the
-regime, which is drawn after the hydrosphere. The surface is held at 273 K as the paper does (it is a mild effect for the
-boundary layer); the lid is thin against the mantle and is not followed, so its radiogenic heat counts with the mantle's.
+The lid (GEN.721). Above is a **stagnant lid**: one rigid plate, the convection under it working with the drop `dT` across the
+boundary layer above. A **mobile lid** (plate tectonics, `lid_regime`, drawn once after the hydrosphere: `generate_lid`) carries the whole
+drop from the mantle to the surface, `dT = Tm - Ts`, through plates that move, with the same `Ra` and a mobile `beta` of 1/3 (boundary-layer
+theory, Gurnis 1989 as read in O'Neill 2020; the exponent and the critical Rayleigh number are stand-ins, see `MOBILE_HEAT_FLOW_EXPONENT`).
+At the same mantle temperature a mobile lid loses about ten times the heat of a stagnant one, so it cools to a lower temperature (an Earth
+twin: about 1,430 K against 1,950 K for the stagnant lid at 4.568 Gy, with the Earth's potential temperature near 1,600 K) and gives more
+heat in the first few hundred million years at the middle of the paper's rheologies and less afterwards, when the heat it was born with is spent. Over the paper's rheologies an Earth twin
+gives 25 to 32 TW and a Urey ratio of 0.66 to 0.83 with a mobile lid and 27 to 36 TW and 0.59 to 0.76 with a stagnant one, where the
+Earth's measured values are 42 to 47 TW and 0.47 to 0.52 (Nimmo et al. 2020): this one box holds the radiogenic heat (about 21 TW) and
+the cooling of one temperature and does not reach the measured total with either lid (the heat inside the geoneutrino range, 38.2 +13.6
+-12.7 TW, Agostini et al. 2019). The paper holds the surface at 273 K (a mild effect for its boundary layer); here a body's own surface temperature is used when known. The lid is thin
+against the mantle and is not followed, so its radiogenic heat counts with the mantle's. A body whose regime has not been drawn yet (the
+hydrosphere is made before it, and reads the heat of a stagnant lid) and a row from before GEN.721 are stagnant.
 """
 
 import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, bulk_structure, constants, radiogenic, tidal_heating
+from planetgen.physics import atmosphere, bulk_structure, constants, magnetism, radiogenic, tidal_heating
 from planetgen.util import draw
 
 BODY_FIELDS = ("mantle_eta0_pa_s", "mantle_activation_kj_mol")
@@ -55,6 +64,12 @@ BODY_FIELDS = ("mantle_eta0_pa_s", "mantle_activation_kj_mol")
 OUTPUT_FIELDS = ("urey_ratio", "internal_heat_flux_w_m2", "tidal_flux_w_m2")
 """tuple: What a body stores of the heat that comes out of them (`generate_interior`): the Urey ratio, the heat flow of its own (radiogenic and
 primordial) and its tide's (GEN.737; the habitability energy term counts both)."""
+
+REGIME_FIELDS = ("lid_regime",)
+"""tuple: What a body stores of its tectonic regime (`generate_lid`, GEN.721): `"mobile"` or `"stagnant"`, `None` for a body with no interior."""
+
+STAGNANT, MOBILE = "stagnant", magnetism.LID_MOBILE
+"""str: The two lids. A stagnant lid is one rigid plate; a mobile lid is plate tectonics."""
 
 GAS_CONSTANT = 8.314462618
 """float: J/(mol K)."""
@@ -79,8 +94,19 @@ VISCOSITY_SCALE_COEFFICIENT = 2.44
 """float: `a_rh`, the same table: the boundary layer's temperature drop in viscous temperature scales."""
 HEAT_FLOW_EXPONENT = 1.0 / 3.0
 """float: `beta`, the same table (Solomatov 1995)."""
+MOBILE_HEAT_FLOW_EXPONENT = 1.0 / 3.0
+"""float: `beta` of a mobile lid: boundary-layer theory, and what Gurnis 1989 found for systems whose lid is viscous with weak zones to
+let plates move (read in O'Neill 2020, arXiv:2006.05654 section 1; Moresi and Solomatov 1998 find 0.224 to 0.293 for a yielding lid, and
+O'Neill's own runs 0.26). STAND-IN in the gap registry: the paper-range 1/3 is used and the mobile `Ra_crit` below is the stagnant one."""
+MOBILE_CRITICAL_RAYLEIGH = CRITICAL_RAYLEIGH
+"""float: STAND-IN: the mobile lid's critical Rayleigh number (not read from a source for this model; the stagnant lid's)."""
 SURFACE_TEMPERATURE_K = 273.0
 """float: The surface the boundary layer is measured against, the same table."""
+
+MAX_VISCOSITY_EXPONENT = 600.0
+"""float: `Ea / R T` beyond which the mantle does not convect (a viscosity of 1e260 times the prefactor): a body with a cold surface, a
+small one far from its star, starts at that temperature and warms with its radiogenic heat until convection starts; the conduction that
+carries heat out of a mantle that does not convect is not modelled."""
 
 TIDE_NEGLIGIBLE_SHARE = 1.0e-3
 """float: A tide under this share of the body's own heat is added to the output without running the box again (it moves the mantle's
@@ -195,17 +221,37 @@ def dry_radius_km(mass_kg, radius_km, rock):
     return radius_km * dry ** (1.0 / 3.0)
 
 
-def _flux_w_m2(temperature_k, interior, gravity, thickness_m):
-    """`qu`, W/m2, at the mantle temperature."""
+def liquidus_k(pressure_gpa):
+    """The mantle's liquidus at `pressure_gpa`, K: `a_l (p + p_l)^c_l` (Manske et al. 2025, `tuning.INTERIOR_LIQUIDUS_*`)."""
+    return tuning.INTERIOR_LIQUIDUS_COEFFICIENT_K_GPA * (pressure_gpa + tuning.INTERIOR_LIQUIDUS_OFFSET_GPA) ** tuning.INTERIOR_LIQUIDUS_EXPONENT
+
+
+def mantle_ceiling_k(gravity, thickness_m):
+    """The hottest the one-box mantle is, K: the liquidus at the pressure in the middle of the mantle (`MANTLE_DENSITY g d / 2`). 3,100 K for the
+    Earth, 1,900 K for a body the size of the Moon."""
+    return liquidus_k(MANTLE_DENSITY * gravity * thickness_m / 2.0e9)
+
+
+def _flux_w_m2(temperature_k, interior, gravity, thickness_m, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
+    """`qu`, W/m2, at the mantle temperature. A stagnant lid loses heat across the boundary layer's viscous temperature scale `dT = a_rh R
+    Tm^2 / Ea` (the lid is cold and rigid, the convection under it only has that drop to work with); a mobile lid's plates carry the
+    whole drop from the mantle to the surface, `dT = Tm - Ts`, with the viscosity of the mantle at `Tm` and a mobile `beta`."""
     activation = interior.activation_kj_mol * 1000.0
-    viscosity = interior.eta0_pa_s * math.exp(activation / (GAS_CONSTANT * temperature_k))
-    drop = VISCOSITY_SCALE_COEFFICIENT * GAS_CONSTANT * temperature_k ** 2 / activation
+    exponent_of_viscosity = activation / (GAS_CONSTANT * temperature_k)
+    if exponent_of_viscosity > MAX_VISCOSITY_EXPONENT:
+        return 0.0
+    viscosity = interior.eta0_pa_s * math.exp(exponent_of_viscosity)
+    if lid == MOBILE:
+        drop, critical, exponent = temperature_k - surface_k, MOBILE_CRITICAL_RAYLEIGH, MOBILE_HEAT_FLOW_EXPONENT
+    else:
+        drop, critical, exponent = (VISCOSITY_SCALE_COEFFICIENT * GAS_CONSTANT * temperature_k ** 2 / activation,
+                                    CRITICAL_RAYLEIGH, HEAT_FLOW_EXPONENT)
     rayleigh = MANTLE_EXPANSIVITY * MANTLE_DENSITY * gravity * drop * thickness_m ** 3 / (MANTLE_DIFFUSIVITY * viscosity)
-    layer = thickness_m * (CRITICAL_RAYLEIGH / rayleigh) ** HEAT_FLOW_EXPONENT
+    layer = thickness_m * (critical / rayleigh) ** exponent
     return MANTLE_CONDUCTIVITY * drop / layer
 
 
-def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None):
+def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
     """
     The interior's heat at `age_gy`: the one-box model above integrated from the formation of the body.
 
@@ -218,6 +264,8 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None):
         forcing (tidal_heating.Forcing, optional): The orbit that flexes it (GEN.737). A solid body's tide is a second heat source of the
             box, constant over its age. If that tide is at least the body's own heat and warms the mantle to `tidal_heating.HEAT_PIPE_TEMPERATURE_K`,
             the body is melt-limited: the mantle holds that temperature and the partly molten body is flexed `MOLTEN_K2_OVER_Q` (Io).
+        lid (str): `STAGNANT` or `MOBILE`, the regime that sets the heat flux law (GEN.721).
+        surface_k (float): The surface temperature the mantle's drop is measured against (a mobile lid) and the body starts from (GEN.735).
 
     Returns:
         Heat: Zero heat for a body with no silicate or no core-and-mantle to convect.
@@ -241,23 +289,23 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None):
 
     energy_j = binding_energy_j(dry_kg, dry_m, metal_kg, core_m)
     activation = interior.activation_kj_mol * 1000.0
-    cap_k = tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K
+    cap_k = mantle_ceiling_k(gravity, thickness_m)
 
     def conduction_w(kelvin):
-        return _flux_w_m2(kelvin, interior, gravity, thickness_m) * area_dry_m2
+        return _flux_w_m2(kelvin, interior, gravity, thickness_m, lid, surface_k) * area_dry_m2
 
     def cool(source_w):
         """The temperature and released heat at `age_gy` with `source_w` of constant heat added to the radiogenic."""
-        temperature = min(SURFACE_TEMPERATURE_K + energy_j / capacity, cap_k)
+        temperature = min(surface_k + energy_j / capacity, cap_k)
 
         def rate(t_gy, kelvin):
             # a strong tide moves the temperature past the cap within one step, and a stage beyond the range of the viscosity law makes no sense
-            kelvin = min(max(kelvin, SURFACE_TEMPERATURE_K), cap_k)
+            kelvin = min(max(kelvin, surface_k), cap_k)
             return GY_S * (radiogenic_w(t_gy) + source_w - conduction_w(kelvin)) / capacity
 
         t, step, released_j = 0.0, FIRST_STEP_GY, 0.0
         while t < age_gy:
-            flux = _flux_w_m2(temperature, interior, gravity, thickness_m)
+            flux = _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)
             # the cooling rate's own time scale: the flux changes by Ea / (R T^2) per kelvin (an overestimate by about three)
             stiffness = GY_S * flux * area_dry_m2 / capacity * activation / (GAS_CONSTANT * temperature ** 2)
             h = min(step, age_gy - t, 1.0 / stiffness if stiffness > 0.0 else step)
@@ -266,7 +314,7 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None):
             k3 = rate(t + 0.5 * h, temperature + 0.5 * h * k2)
             k4 = rate(t + h, temperature + h * k3)
             temperature = min(temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0, cap_k)
-            released_j += 0.5 * (flux + _flux_w_m2(temperature, interior, gravity, thickness_m)) * area_dry_m2 * h * GY_S
+            released_j += 0.5 * (flux + _flux_w_m2(temperature, interior, gravity, thickness_m, lid, surface_k)) * area_dry_m2 * h * GY_S
             t += h
             step = min(step * STEP_GROWTH, STEP_LIMIT_GY)
         return temperature, released_j
@@ -298,9 +346,9 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None):
     return Heat(total_w, now_w, total_w - now_w - molten_w, pipe_k, total_w / area_m2, released_j, molten_w)
 
 
-def heat_flow(content, interior, mass_kg, radius_km, age_gy, rock, forcing=None):
+def heat_flow(content, interior, mass_kg, radius_km, age_gy, rock, forcing=None, lid=STAGNANT, surface_k=SURFACE_TEMPERATURE_K):
     """`heat` for a body's stored `radiogenic.Content`: the decay terms of its concentrations and aluminium."""
-    return heat(radiogenic.heat_terms(content, rock.aluminium), interior, mass_kg, radius_km, age_gy, rock, forcing)
+    return heat(radiogenic.heat_terms(content, rock.aluminium), interior, mass_kg, radius_km, age_gy, rock, forcing, lid, surface_k)
 
 
 def generate_interior(body):
@@ -309,7 +357,7 @@ def generate_interior(body):
     its rock (`radiogenic.generate_content` first). A body with no content (a gas giant) has every field `None`, outputs included.
     """
     if radiogenic.content_of(body) is None:
-        for name in (*BODY_FIELDS, *OUTPUT_FIELDS):
+        for name in (*BODY_FIELDS, *OUTPUT_FIELDS, *REGIME_FIELDS):
             setattr(body, name, None)
         return
     interior = draw_interior()
@@ -324,7 +372,34 @@ def released_by(body, age_gy):
     content, interior = radiogenic.content_of(body), interior_of(body)
     if content is None or interior is None:
         return 0.0
-    return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body)).released_j
+    return heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), None, lid_of(body), surface_of(body)).released_j
+
+
+def lid_of(body):
+    """The lid a body stores (`STAGNANT` or `MOBILE`); `STAGNANT` for one that has none yet (its regime is drawn after its hydrosphere,
+    so the heat the hydrosphere reads is a stagnant lid's) or a row from before GEN.721."""
+    return MOBILE if getattr(body, "lid_regime", None) == MOBILE else STAGNANT
+
+
+def surface_of(body):
+    """The surface temperature a body's interior is measured against, K: its own once its climate is known, else `SURFACE_TEMPERATURE_K`."""
+    surface_k = getattr(body, "surface_temperature", None)
+    return surface_k if surface_k and surface_k > 0.0 else SURFACE_TEMPERATURE_K
+
+
+def generate_lid(body):
+    """
+    Sets `lid_regime` on a rocky planet or moon: one draw, `MOBILE` when it falls under `magnetism.mobile_lid_chance` (a liquid surface
+    ocean to lubricate the plates, and a mass between 0.5 and 5 Earth masses at 0.6, heavier at 0.3: the literature is unsettled), else
+    `STAGNANT`. Call after the hydrosphere. A body with no stored content (a gas giant) has `None` and draws nothing. The magnetic field
+    and the ground dose read the stored regime, so the three agree (they each drew their own coin before GEN.721).
+    """
+    if radiogenic.content_of(body) is None:
+        body.lid_regime = None
+        return
+    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    mobile = draw.random() < magnetism.mobile_lid_chance(body, mass_earth)
+    body.lid_regime = MOBILE if mobile else STAGNANT
 
 
 def update_heat(body):
@@ -343,7 +418,8 @@ def update_heat(body):
     age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     forcing = tidal_heating.forcing_of(body)
     icy = tidal_heating.is_icy(body)
-    found = heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), None if icy else forcing)
+    found = heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), None if icy else forcing,
+                      lid_of(body), surface_of(body))
     body.urey_ratio, body.internal_heat_flux_w_m2 = found.urey_ratio, found.own_flux_w_m2
     if icy:
         body.tidal_flux_w_m2 = tidal_heating.icy_flux_w_m2(forcing, body.radius) if forcing else None

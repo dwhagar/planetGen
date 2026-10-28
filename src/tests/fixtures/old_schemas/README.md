@@ -51,3 +51,5 @@ Commit each file came from:
 - v165: a03f5260 (MAP.305 system interests, before MAP.321 uninhabitable worlds and asteroid fields)
 - v166: c0e55d8b (MAP.321 uninhabitable worlds and asteroid fields, before the inhabited reason)
 - v167: 766381158 (MAP.321 inhabited worlds, before DB.108 sector mass)
+- v168: 8c67694d5 (DB.108 sector mass, before GEN.721 lid regime)
+- v169: GEN.721 lid regime as built in this change (the v168 schema plus `lid_regime`, before GEN.767 day and night shares)
