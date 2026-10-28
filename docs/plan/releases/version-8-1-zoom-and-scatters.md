@@ -177,7 +177,6 @@ The fly-through Galaxy Map (MAP.146) and the nebula data its tiles carry.
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts |  | GEN.372 audit; Boss card. |
 | MAP.311 | Map markers and a menu filter for worlds with life, with sentient life and with a civilization, beside the habitable-world markers |  |  |
 | DB.109 | Optional parity follow-ups: refresh the parity file after a generation run, and keep a before-image on the edit paths so an edit is a parity delta, not a group recompute |  |  |
-| MAP.322 | Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e) |  |  |
 | MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) |  |  |
 | MAP.329 | System Map stepping reaches systems across a sector's edge |  | Core 2 follow-up |
 | UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) |  |  |
