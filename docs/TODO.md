@@ -14413,32 +14413,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   turn with no further map work. Owner: Core 3 (stars), after GEN.328.
   Prerequisites: none.
 
-- [ ] **GEN.847 radiation.ground_dose_msv_yr passes a float rock_ppm to radiogenic.surface_content, which fails with "float object is not iterable" and turns 17 tests red on main (bug)**
-  Found by Aux 8 at 2:35 PM EDT 2026-10-28 as the lane reported, in its
-  GEN.830/837 gate, red on main (rebased 03c905c6e): GEN.441's
-  ground-dose change leaves radiation.ground_dose_msv_yr
-  (physics/radiation.py line 313, called with
-  surface_composition.land_rock_ppm(body) at line 346) handing
-  radiogenic.surface_content a float where it expects the per-isotope
-  concentrations to iterate. 17 tests fail: test_habitability_explain
-  (10, this is the cause of TEST.416), test_habitability_world (1),
-  test_habitable_system_markers (6). Fix the call (or the function) so
-  the dose reads the stored concentrations, add a test with a real body,
-  and close TEST.416 with it. Owner: Bug 1 (top priority, it is a real
-  generator bug on main, not a test problem). Related: GEN.441,
-  TEST.416, GEN.444.
-  Research (2026-10-09): Bug 1 read-only look (2026-10-28, 2:55 PM EDT
-  as the lane reported): the production callers (radiation._ground_dose
-  and rogue_habitability) pass a (K, Th, U) tuple from land_rock_ppm, so
-  the generator is fine; the float comes from
-  tests/test_habitability_explain.py, which still passes FELSIC = 0.3
-  (the pre-GEN.441 fraction) to ground_dose_msv_yr and surface_content.
-  So this is a test fixture fix (TEST.416); no generated value changes,
-  no golden. Bug 1 does it after DB.108, with a test that runs a real
-  generated body through the ground dose, and says so if that finds
-  anything else.
-  Prerequisites: none.
-
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19950,21 +19924,6 @@ clears each one.
   scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.409, TEST.412.
 
-- [ ] **TEST.416 test_habitability_explain fails ten tests on main: the tests still call the surface_content API as it was before GEN.441 (bug)**
-  Found by Math 2 (as the lane reported 10:18 AM EDT 2026-10-28) while
-  merging GEN.727/737/731 (#3380); red on main before that change, not
-  caused by it. Do: update the ten failing test_habitability_explain
-  tests to the GEN.441 surface_content API (or fix the API if the tests
-  are right), with no skipped test. Done: test_habitability_explain
-  passes. Owner: Bug 1 after DB.108/GEN.826, or Aux 11. Rules: never
-  skip or loosen a test to get green.
-  Research (2026-10-09): Root cause found (Aux 8, 2:35 PM EDT 2026-10-28
-  as the lane reported): radiation.ground_dose_msv_yr hands
-  radiogenic.surface_content a float (GEN.847). Fix GEN.847 and this
-  item and two more files (test_habitability_world,
-  test_habitable_system_markers) go green.
-  Prerequisites: none. Related: TEST.413, GEN.441.
-
 - [ ] **TEST.417 Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)**
   Found by Aux 8 (as the lane reported 10:31 AM EDT 2026-10-28) while
   merging GEN.841 and TEST.410 (#3405). The exobase loop is not the
@@ -20034,18 +19993,6 @@ clears each one.
   then by the checkbox's own control span; 120 s timeout). The slider
   one is Bug 1's.
   Prerequisites: none. Related: TEST.414, TEST.418.
-
-- [ ] **TEST.421 test_migration_habitable_worlds: the filled-sector test finds no system with a Blue or Green world in 120 seeds, its _fill_one_sector helper no longer draws one (bug)**
-  Found by Core 2 at 12:51 PM EDT 2026-10-28 on a clean main (d5866d06):
-  src/tests/test_migration_habitable_worlds.py::test_a_filled_sector_counts_its_habitable_worlds_and_the_blocks_above_it_add_them_up
-  fails with 'no system with a Blue or Green world in 120 seeds'. The
-  helper _fill_one_sector (G2V, HABITABLE_WORLD) no longer draws a Blue
-  or Green world, probably since the GEN.727/737 or DB.96 changes. Fix:
-  set the habitability scores in the test itself, as Core 2 did in
-  test_system_interests.py, instead of relying on the draw. Owner: Bug
-  1. Not caused by any lock holder; say so in a PR instead of fixing it
-  there.
-  Prerequisites: none.
 
 - [ ] **TEST.422 test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug)**
   Found by Aux 16 at 1:27 PM EDT 2026-10-28 as the lane reported,
