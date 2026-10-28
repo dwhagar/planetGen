@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.234 |
 | MAP | MAP.329 |
 | NAV | NAV.65 |
-| GEN | GEN.844 |
+| GEN | GEN.845 |
 | PERF | PERF.201 |
 | DB | DB.109 |
 | API | API.37 |
@@ -1592,6 +1592,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.841 | thermosphere.exobase can loop for over 20 minutes in the planet atmosphere draw: a planet whose exobase never closes steps through a huge range (bug) | none | done, PR #3405 |
 | GEN.842 | Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left | none | open |
 | GEN.843 | The stored magnetopause_rp is in Earth radii but is labelled planet radii: wrong for Jupiter and every non-Earth-sized world (bug) | none | open |
+| GEN.844 | A random planet's colour crashes generation: 'the spectrum has no light between 380 and 780 nm' (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3130,7 +3131,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.416 | test_habitability_explain fails ten tests on main: the tests still call the surface_content API as it was before GEN.441 (bug) | none | open |
 | TEST.417 | Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug) | none | open |
 | TEST.418 | Seven map browser tests are red on clean main (bug) | none | open |
-| TEST.419 | test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug) | none | open |
+| TEST.419 | test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug) | none | done, PR #3428 |
 | TEST.420 | Runner self-tests and the limit-slider follow-again browser test are red on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
