@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.235 |
+| UX | UX.236 |
 | MAP | MAP.331 |
 | NAV | NAV.65 |
 | GEN | GEN.849 |
@@ -2615,6 +2615,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.232 | Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug) | none | open |
 | UX.233 | The Map symbols key on the object pages | none | open |
 | UX.234 | Searching for all M class planets with the search button says it is preparing the results, loops and never shows data (bug) | none | done, PR #3498 |
+| UX.235 | Pages that already have a table of contents also show the automatic contents bar, so the contents appear twice (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
