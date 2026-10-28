@@ -1384,6 +1384,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   action when waypoints exist.
   Decided (Boss, 2026-10-16, 3:00 PM EDT, decision card): this item goes
   after the MAP.146 subitems and before the label items. Owner: Core 2.
+  Research (2026-10-09): Rescoped 7:40 PM EDT 2026-10-28 on Lane J (Aux
+  6) findings from main: stars are already selectable at every zoom with
+  no mode (MAP.304 nearest drawn star within 8 px, MAP.298 names), other
+  objects have their own pickers, and the sector-block pick that a
+  Galaxy or Star switch would separate is being removed by Boss's 10-24
+  order (MAP.299). So the Galaxy/Star radiogroup and select=stars are
+  dropped. What remains: (a) a Bookmark action on a star's panel, (b) 22
+  px reach on touch with a short disambiguation list when several stars
+  lie within reach. NAV.49 then only needs the Waypoint button on the
+  same panel. Boss may overrule and ask for the literal radiogroup; the
+  owner builds that if he does. Owner: Aux 6 (lock-free pool).
 
 - [ ] **MAP.132 Overlay markers for black holes, nebulae and habitable worlds**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
@@ -3316,6 +3327,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stay until cleared." Done: waypoints set from Star select mode are
   marked with an icon at every map level, two or more plot a course, and
   the course stays drawn on every map until cleared.
+  Research (2026-10-09): MAP.122 was rescoped (7:40 PM EDT 2026-10-28):
+  it now delivers the Bookmark action and the touch reach on the star
+  panel; this item only adds the Waypoint button on that panel.
   Prerequisites: MAP.122.
   Design: [docs/design/orbits/course-routing.md](design/orbits/course-routing.md)
 
@@ -18956,6 +18970,9 @@ clears each one.
   EDT 2026-10-28, high priority) takes this with TEST.430 where it
   overlaps the class census; confirm any other lane's claim with TODO
   first.
+  Research (2026-10-09): Part E of the prevalence suite (TEST.430 plan,
+  Bug 2): kept as its own item, built after TEST.430 and TEST.431;
+  supersedes the earlier "folded into TEST.430, retire with it" note.
 
 - [ ] **TEST.398 The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug)**
   Math 1 finding (3:49 AM EDT 2026-10-25): stale planetgen.cli.worker
@@ -19267,6 +19284,83 @@ clears each one.
   plans them and TODO files each as an item under TEST.430. High
   priority. Related existing coverage: TEST.204 (family plausibility),
   TEST.239 (rates per kind), TEST.395 (distribution bands), TEST.212.
+  Research (2026-10-09): Plan in parts (Bug 2, 7:41 PM EDT 2026-10-28):
+  A = this item (planet and moon class and colour census, folds in
+  TEST.315), B = TEST.431 (system census), C = TEST.432 (star census), D
+  = TEST.433 (phenomena census), E = TEST.395 (planet occurrence against
+  observation, kept as its own part), F = TEST.209, TEST.210, TEST.214,
+  TEST.301. Build order A, B, E, C, D, F.
+
+- [ ] **TEST.431 System census: full systems per star type with planets, moons, belts and comets per system, the zero-planet share, binary share, habitable-world share, and life stage and civilization shares (prevalence suite part B)**
+  Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
+  2026-10-28). Plan:
+  /mnt/project-files/reports/bug2/prevalence-suite-plan-2026-10-28.md.
+  Shared design: one harness, src/tests/audit/prevalence.py, seeded from
+  each cell's name so a run repeats; one stored expectations file per
+  part (src/tests/data/prevalence_*.json) whose every range has min,
+  max, a kind (observed rate, norm researched, or stand-in with its tier
+  and tweak level per GEN.725), a source or "measured at commit X, N
+  draws", and an optional known-anomaly item number; a test fails on a
+  flag with no known anomaly, known anomalies print in the report and
+  never hide; one latest-run report per part; selected by
+  scripts/test.py changed whenever generation code changes; a baseline
+  builder re-measures a commit and rewrites the ranges. Owner: Bug 2,
+  build order A (TEST.430), B (this), E (TEST.395), C, D, F
+  (TEST.209/210/214/301). Do: full seeded systems per star type;
+  per-system counts and shares as listed; ranges from researched norms
+  where they exist, otherwise the prevalence before the class cut-over
+  (reference: before 4c, commit 86f5e3993^) marked as stand-ins. The
+  GEN.52 feature-knob tests in test_prevalence.py stay. Done: the part
+  runs from one command, a seeded run repeats, and a deliberately broken
+  input trips each flag.
+  Prerequisites: none. Related: TEST.430, TEST.395, GEN.855, GEN.725.
+
+- [ ] **TEST.432 Star census: star type mix, white dwarfs, subgiants, giants, pre-main-sequence stars, brown dwarfs and multiplicity by type against RECONS and Kroupa (prevalence suite part C)**
+  Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
+  2026-10-28). Plan:
+  /mnt/project-files/reports/bug2/prevalence-suite-plan-2026-10-28.md.
+  Shared design: one harness, src/tests/audit/prevalence.py, seeded from
+  each cell's name so a run repeats; one stored expectations file per
+  part (src/tests/data/prevalence_*.json) whose every range has min,
+  max, a kind (observed rate, norm researched, or stand-in with its tier
+  and tweak level per GEN.725), a source or "measured at commit X, N
+  draws", and an optional known-anomaly item number; a test fails on a
+  flag with no known anomaly, known anomalies print in the report and
+  never hide; one latest-run report per part; selected by
+  scripts/test.py changed whenever generation code changes; a baseline
+  builder re-measures a commit and rewrites the ranges. Owner: Bug 2,
+  build order A (TEST.430), B (this), E (TEST.395), C, D, F
+  (TEST.209/210/214/301). Do: a galaxy-placed seeded draw; the type mix
+  (M, K, G, F, A, B, O), white dwarfs, subgiants, giants,
+  pre-main-sequence stars and brown dwarfs, and multiplicity by type,
+  against the RECONS 10 pc census and the Kroupa initial mass function
+  norms (stars have robust published prevalence data, Boss 7:27 PM EDT);
+  reuse the existing star population tests. Done: the part runs from one
+  command, a seeded run repeats, and a deliberately broken input trips
+  each flag.
+  Prerequisites: none. Related: TEST.430, TEST.204, TEST.239, TEST.211.
+
+- [ ] **TEST.433 Phenomena census: black holes, neutron stars, magnetars, pulsars, Wolf-Rayet stars, planetary nebulae, supernova remnants, nebula classes, asteroid fields, clusters, rogue planets and interstellar comets against researched densities (prevalence suite part D)**
+  Part of the full prevalence suite (TEST.430, Boss 7:27 PM EDT
+  2026-10-28). Plan:
+  /mnt/project-files/reports/bug2/prevalence-suite-plan-2026-10-28.md.
+  Shared design: one harness, src/tests/audit/prevalence.py, seeded from
+  each cell's name so a run repeats; one stored expectations file per
+  part (src/tests/data/prevalence_*.json) whose every range has min,
+  max, a kind (observed rate, norm researched, or stand-in with its tier
+  and tweak level per GEN.725), a source or "measured at commit X, N
+  draws", and an optional known-anomaly item number; a test fails on a
+  flag with no known anomaly, known anomalies print in the report and
+  never hide; one latest-run report per part; selected by
+  scripts/test.py changed whenever generation code changes; a baseline
+  builder re-measures a commit and rewrites the ranges. Owner: Bug 2,
+  build order A (TEST.430), B (this), E (TEST.395), C, D, F
+  (TEST.209/210/214/301). Do: per star or per volume on a seeded galaxy
+  region, against researched densities (cite each); reuse the existing
+  nebula, black hole, neutron star and cluster tests. Done: the part
+  runs from one command, a seeded run repeats, and a deliberately broken
+  input trips each flag.
+  Prerequisites: none. Related: TEST.430, TEST.239, TEST.204.
 
 ## USR: User accounts
 
@@ -20187,7 +20281,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   know about. Done: the sweep is run again on main, anything new is
   fixed in the same pass, README's headline feature list and the release
   headline are checked, and the result is recorded here.
-  Prerequisites: DOC.20, DOC.48, DOC.50, DOC.51.
+  Prerequisites: DOC.20, DOC.50, DOC.51.
   Related: DOC.4.
   Runs last: re-run the sweep when the other 8.1 DOC items are done
   (2026-10-16 review).
@@ -20238,28 +20332,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisite: PERF.86.
-
-- [ ] **DOC.48 Docs: the reach, the halo, the profile rules and the Wolf-Rayet and nebula-contents rules in the design notes**
-  Step 14 of the whole-sphere train.
-  `docs/design/galaxy/galaxy-disk-density.md` says the stellar halo is not
-  modelled beyond the floor, `docs/design/galaxy/galaxy-coordinate-system.md`
-  section 4 describes only the outline,
-  `docs/design/galaxy/globular-clusters.md` needs its status,
-  `docs/design/systems/interstellar-object-rates.md` needs the populations and
-  the kind factors, and `docs/design/systems/anomalies.md` points its Wolf-Rayet
-  row at the design note. Done: all five describe the halo term, the
-  reach versus the outline, the profile, the components, the kind
-  factors, the nebula contents, the Wolf-Rayet state and class X, and
-  the 96-bit layout as built. Owner: Quality, after the code.
-  Built-on note (Core 1, 2026-10-16, 3:17 AM EDT, GEN.235 merged as
-  #1784): section 5.9 of docs/design/galaxy/intergalactic-and-halo-contents.md
-  now has a "Built" paragraph and docs/reference/cli.md is updated; this item
-  carries the rest.
-  Owner: Core 3 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none.
-  Design: [docs/design/galaxy/intergalactic-and-halo-contents.md](design/galaxy/intergalactic-and-halo-contents.md)
 
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
   Step 10 (design note 11 item 10). `database-schema.md` (the two new
