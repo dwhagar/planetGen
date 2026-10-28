@@ -1,6 +1,0 @@
-**Headline:** The map now has its own symbols for points of interest: habitable, uninhabitable and inhabited worlds, gas giants, asteroid fields, sectors and regions, each its own shape, with a key.
-
-### Changed
-- **Seven point-of-interest symbols (MAP.320).** A habitable world, an uninhabitable world, an inhabited world, a gas giant, an asteroid field, a sector and a region each get their own vector symbol, told apart by shape and not only by colour, each with an accessible name. The habitable and inhabited worlds take the colour of their overall habitability score (Blue, Green, Yellow, Red); an uninhabitable world is brown, never red, and an asteroid field grey; both stand off every habitability colour in lightness and read against the page in the light and the dark theme.
-- **The Galaxy Map's habitable-world marker uses its symbol** instead of the old circle-in-triangle mark, and its legend line shows the symbol. The black hole marker is unchanged.
-- **A key to the symbols** sits under the Galaxy Map and on the habitability page (Map symbols), naming every symbol and what it marks. The other symbols are drawn once the maps carry the data that says which system or world gets which one (the point-of-interest registry, MAP.305).
