@@ -1624,3 +1624,4 @@ Baseline: PR #1817.
 | GEN.715 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.718 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.717 | 8.1 | Radiation chain for habitability (GEN.445) |
+| MAP.322 | 8.1 | Fly-through map |

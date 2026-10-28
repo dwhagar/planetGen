@@ -2848,22 +2848,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing in 8.1.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
 
-- [ ] **MAP.322 Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e)**
-  Boss, 1:20 AM EDT 2026-10-25 (relayed by the coordinator): "inside the
-  lowest level of shared name regions, it would be the most densely
-  filled (total mass) sectors." In the label budget of MAP.317, when a
-  region is drawn at its lowest level (the cell's own sectors), the
-  sectors that are drawn first and offered a label are ranked by total
-  mass of the sector's generated contents (stars, planets, moons, belts,
-  nebulae), densest first, so a crowded region names its heaviest
-  sectors and a sparse one names all. Total mass per sector is the
-  stored mass_sum (DB.108). Done: a fixture region with sectors of
-  different total mass labels the heaviest first and drops the lightest
-  when the budget is short, and a sparse fixture labels all. Owner: Aux
-  10. Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: none. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
-
 - [ ] **MAP.328 Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views)**
   Boss, 2:48 AM EDT 2026-10-25: 'rendered objects should slowly rotate
   on their axis in all views, all stars should do the same in all views
