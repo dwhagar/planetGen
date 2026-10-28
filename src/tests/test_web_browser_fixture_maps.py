@@ -2498,6 +2498,10 @@ def test_the_galactic_view_frames_the_region_it_is_in_with_a_fixed_wireframe_and
     page.wait_for_function("() => { const f = document.querySelector('#galaxymap3d-canvas').__mapRegionFrame; return f && f.state().framed; }", timeout=20000)
     first = page.evaluate(REGION_FRAME)
     assert len(first["positions"]) > 0
+    # MAP.331: the legend says what the outline is while it is drawn.
+    page.wait_for_function("() => document.getElementById('galaxymap3d-layer-legend').textContent.includes('Outline:')", timeout=20000)
+    assert "(9 sectors a side)" in page.locator("#galaxymap3d-layer-legend").text_content()
+    assert page.locator("#galaxymap3d-layer-legend .map-frame-swatch").count() == 1
     assert page.evaluate(SECTOR_VIEW)["outsideDim"] == 1, "nothing is dimmed in the galactic view"
     page.mouse.move(300, 420)
     page.mouse.move(520, 480)
@@ -2511,6 +2515,7 @@ def test_the_galactic_view_frames_the_region_it_is_in_with_a_fixed_wireframe_and
     _open_galaxy(page, map_site, OPEN_PRIME)
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapRegionFrame.state().framed === false", timeout=20000)
+    assert "Outline:" not in page.locator("#galaxymap3d-layer-legend").text_content(), "no region outline, so no legend line for it"
     assert page.evaluate(SECTOR_FRAME)["framed"]
 
 
