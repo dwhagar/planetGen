@@ -12748,16 +12748,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registry until then. Owner: the Composition-first stars lane, after GEN.651.
   Prerequisites: none. Related: GEN.553, GEN.652.
 
-- [ ] **GEN.667 Ozone reads the oxygen partial pressure through the mixture accessor once the child table lands**
-  Follow-up from Habitability lane F (relayed 2026-10-23, 9:25 PM EDT;
-  GEN.413 merged as #2761): the ozone column is computed from an oxygen
-  pressure the lane derives itself. Done: the ozone kernel takes O2 from
-  mixture.partial_pressures_pa (lane I's accessor) once the atmosphere
-  child table is stored, the local p_o2_kpa derivation is deleted, and a
-  test shows the two agree on the reference worlds before the swap.
-  Owner: lane I's PR 4 successor or the lane that finishes GEN.411.
-  Prerequisites: GEN.411. Related: GEN.413, GEN.411.
-
 - [ ] **GEN.669 Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows**
   Finding of Core 4 (10:20 PM EDT 2026-10-23 as the lane reported), left
   open on purpose. (1) GEN.450 (merged as #2776, epoch 64): the radial
@@ -12797,19 +12787,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
   2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
   (#3130); first in its rendering chain; nobody has started it.
-
-- [ ] **GEN.673 Every giant stores its photosphere pressure (about 0.1 bar on the day side) before draw_mixture, which the hot-Jupiter rows gate on**
-  Found by lane L (atmosphere mixture), report
-  reports/lane-l-findings-2026-10-24.md, relayed 11:32 PM EDT 2026-10-23
-  (as the lane reported). The recipes (GEN.478, GEN.518) now gate
-  hot-Jupiter rows on photosphere_bar, tday_k, zone and host_type. Do:
-  the generator stores photosphere_bar for every giant before
-  draw_mixture runs (lane I's PR 4 replaces CLASS_MIXES and is the
-  natural place), with the column in db/column_units.py in the same PR.
-  Done: draw_mixture reads a stored photosphere_bar for every giant and
-  a test shows a hot Jupiter takes the hot rows. Owner: lane I (with PR
-  4, GEN.411).
-  Prerequisites: GEN.411.
 
 - [ ] **GEN.681 The kind of a planet or moon comes from formation (mass against the snow line and the host) and replaces the class draw**
   Step C6 of the condition-based classes build (design draft
@@ -14828,40 +14805,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.814): the greenhouse module's water-vapour feedback is too strong,
   so cold sealed water worlds sit at the freezing point. The water-world
   temperature test of GEN.823 cannot pass until this is fixed.
-
-- [ ] **GEN.815 Sulfur sink: a sulfate and sulfide balance replaces the stand-in SULFUR_SURFACE_KEPT (finding 4)**
-  Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
-  reports/air-fixed-point-findings-2026-10-24.md finding 4. Lane L's
-  solubility (GEN.757) is the physical Henry's-law solubility only.
-  Before the stand-in SULFUR_SURFACE_KEPT (1e-5 to 1e-2 of degassed
-  sulfur stays in the air with an ocean, the old weathering sink's
-  bracket) a wet world held 300 bar of S2. Replace it with a sulfate and
-  sulfide balance (redox dependent) and remove the stand-in from the
-  registry. Done: the sulfur in the air of wet and dry worlds comes from
-  the balance; the registry row is gone. Owner: Aux 8 (Lane L). Rules:
-  no backward-compat shims; every number has a unit or scale (GEN.772);
-  stand-ins get GEN.725 registry rows with a tier and tweak level; a
-  changed generated value carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`.
-  Research (2026-10-09, Aux 8 report): Module merged (#3252, 11:08 PM
-  EDT 2026-10-24 as the lane reported): physics/sulfur_balance.py splits
-  the degassed sulfur between the air, a calcium sulfate sink and an
-  iron sulfide sink by redox, limited by crust, with rain-out and
-  sulfation lifetimes; stand-in rows AM45 to AM49. Stays open until 4c
-  (GEN.411, GEN.422) calls it and drops SULFUR_SURFACE_KEPT; Aux 8
-  confirms the wiring. Known limit stated in the doc: the mean-rate
-  steady state leaves a dry world almost no SO2 (Venus holds about 14
-  mbar).
-  Owner (2026-10-09): Owner settled (coordinator, 4:01 AM EDT
-  2026-10-25): Aux 1's branch, through the merge lane (thread 'Merge
-  sulfur, ozone and photosphere work', GEN.815/667/673), owns this
-  wiring. Aux 8 (Lane L) dropped its own copy (its gate was at 29
-  percent with four reds); its version is saved at
-  /mnt/project-files/handoffs/gen815-sulfur-wiring-lane-l-2026-10-25.patch
-  for comparison. Aux 8 works GEN.830 code-only, with no generation
-  merge until its turn in the generation-merge lock order.
-  Prerequisites: GEN.422. Related: GEN.757, GEN.751, GEN.725.
 
 - [ ] **GEN.816 A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
