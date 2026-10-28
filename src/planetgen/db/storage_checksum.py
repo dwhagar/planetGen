@@ -108,6 +108,10 @@ def _encode(value):
     raise TypeError(f"the storage checksum has no encoding for a {type(value).__name__}")
 
 
+encode_value = _encode
+"""callable: `_encode` for the sector export (`sector_export`), whose stream is read back by value."""
+
+
 def _feed(digest, parts):
     """Adds each part of a record, with its length, so no two records can run together into the same bytes."""
     for part in parts:
@@ -189,22 +193,30 @@ def sector_rows(conn, sector_id):
     return [(table, reader.columns(table)[0], found.get(table, [])) for table in CONTENT_TABLES]
 
 
-def checksum(conn, sector_id):
-    """The storage checksum of a sector, 32 bytes, from the rows as they are stored now."""
+def checksum_of(tables):
+    """The storage checksum, 32 bytes, of `tables`, `sector_rows`'s list (or the same read back from an export,
+    `sector_export.parse`): the rows themselves, so a sector rebuilt from its export can be checked against the checksum
+    stored for it."""
     digest = hashlib.sha256()
-    for table, covered, rows in sector_rows(conn, sector_id):
+    for table, covered, rows in tables:
         _feed(digest, [b"table", table.encode("ascii"), str(len(rows)).encode("ascii")])
         for row in rows:
             _feed(digest, [_encode(row[column]) for column in covered])
     return digest.digest()
 
 
-def seal(conn, sector_id):
+def checksum(conn, sector_id):
+    """The storage checksum of a sector, 32 bytes, from the rows as they are stored now."""
+    return checksum_of(sector_rows(conn, sector_id))
+
+
+def seal(conn, sector_id, value=None):
     """
     Stores the checksum of a sector, worked out from the rows as they read back, and clears its `parity_dirty` flag (the parity
     record has been made from the same rows). Returns the checksum. Call it in the transaction that wrote the rows, after the write.
+    `value` is the checksum of rows the caller has just read (the parity writer's export), so they are not read twice.
     """
-    value = checksum(conn, sector_id)
+    value = checksum(conn, sector_id) if value is None else value
     conn.execute("UPDATE sectors SET storage_checksum = ?, parity_dirty = 0, modified_at = modified_at WHERE id = ?",
                  (value, sector_id))
     return value
@@ -238,6 +250,9 @@ MARK_SYSTEM_SQL = ("UPDATE sectors SET parity_dirty = 1, modified_at = modified_
 
 
 def _mark(conn, where, params):
+    touch = getattr(conn, "parity_touch", None)
+    if touch is not None:
+        touch(where, tuple(params))
     conn.execute(f"UPDATE sectors SET parity_dirty = 1, modified_at = modified_at WHERE parity_dirty = 0 AND ({where})", tuple(params))
 
 

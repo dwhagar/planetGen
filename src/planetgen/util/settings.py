@@ -373,6 +373,29 @@ class Jobs(_Section):
                               "app's own.")
 
 
+class Parity(_Section):
+    enabled: bool = opt(False, "Keep a parity file beside the database that can rebuild a damaged sector (DB.46): every saved "
+                        "or edited sector updates the parity of its group, which costs a few milliseconds a save and about "
+                        "7 percent of the sectors' size in disk space. Off, saves write no parity and `planetgen "
+                        "refresh-parity` builds it later.", env="PLANETGEN_PARITY", restart=True, group="housekeeping",
+                        label="Sector repair file",
+                        summary="Keep a parity file that can rebuild a damaged sector; saves get a little slower.")
+    dir: str = opt("", "Where the parity file is kept; empty means /var/lib/planetGen/parity. Keep it off the disk the "
+                   "database is on if you can: a parity file on the same failing disk protects nothing.",
+                   env="PLANETGEN_PARITY_DIR", editable=False, group="paths",
+                   label="Repair file folder",
+                   summary="Where the sector repair file is kept; empty uses /var/lib/planetGen/parity.")
+    group_size: int = opt(32, "Sectors in one parity group (G). Any `parity_blocks` damaged sectors of a group are rebuilt "
+                          "from the rest, which are read to do it: a bigger group costs less disk and more reading. A "
+                          "change applies to the groups made afterwards.", unit="sectors", restart=True, group="housekeeping",
+                          ge=1, le=248, advanced=True, label="Sectors per repair group",
+                          summary="How many sectors share one set of parity blocks.")
+    parity_blocks: int = opt(2, "Parity blocks per group (m): how many damaged sectors of one group can be rebuilt. A "
+                             "change applies to the groups made afterwards.", unit="blocks", restart=True,
+                             group="housekeeping", ge=1, le=8, advanced=True, label="Repair blocks per group",
+                             summary="How many damaged sectors of one group the repair file can rebuild.")
+
+
 class Queue(_Section):
     interactive_workers: int = opt(
         1, "How many workers are kept for short jobs: edits, estimates and slow page answers. They "
@@ -830,6 +853,7 @@ class Settings(_Section):
     tile_cache: TileCache = TileCache()
     page_cache: PageCache = PageCache()
     jobs: Jobs = Jobs()
+    parity: Parity = Parity()
 
     _loose = field_validator("debug", "admin_cookie_insecure", mode="before")(_loose_bool)
 
