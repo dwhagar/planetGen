@@ -16603,21 +16603,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
 
-- [ ] **DB.96 Store the atmosphere colour and the cloud cover on planets and moons**
-  The RGB integer from GEN.418 and GEN.419 and the cloud cover; one
-  migration, one generator epoch, and the column_units.py entries;
-  MAP.244 then reads it. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner): Owner (TODO, 2026-10-24 5:36 PM EDT,
-  wiring request from Boss via the coordinator): Lane 4 (database lane)
-  takes it when its current item merges; the migration and epoch number
-  is taken in merge order at merge (next migration 0155 is queued behind
-  Lane I 4b, DB.100 and GEN.701). Confirm with TODO that nobody started
-  it.
-  Prerequisites: GEN.418, GEN.419.
-
 - [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
   One migration, one generator epoch and the column_units.py entries.
   Design draft
@@ -20857,6 +20842,18 @@ clears each one.
   after DB.108/GEN.826 and TEST.405/406/398/402, or a free lane. Rules:
   never skip or quarantine a test; scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.411, UX.126.
+
+- [ ] **TEST.413 test_property_sheet fails on main: the GEN.441 ground_*_fraction columns are not on the property sheet (bug)**
+  Found by Aux 12 (as the lane reported 9:49 AM EDT 2026-10-28) while
+  merging DB.96 (#3393); red on main before that change. Do: add the
+  GEN.441 ground fraction columns to the property sheet
+  (describe/sheet.py) with their units and display rule, or, if they are
+  deliberately hidden, record that in the test's exclusion list with the
+  reason; pick by the rule that absent or zero values are hidden unless
+  absence matters. Done: test_property_sheet passes. Owner: Bug 1 after
+  DB.108/GEN.826, or Aux 11 (object pages). Rules: never skip or
+  quarantine a test; scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.412.
 
 ## USR: User accounts
 

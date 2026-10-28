@@ -1547,3 +1547,4 @@ Baseline: PR #1817.
 | TEST.383 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | UX.126 | 8.1 | Admin control suite |
 | UX.49 | 8.1 | Admin control suite |
+| DB.96 | 9.0 | The headline |
