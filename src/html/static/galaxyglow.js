@@ -13,7 +13,7 @@
 //
 // The look is a tone curve over the blob's apparent magnitude, judged GLOW_MAG magnitudes deeper than a point of light
 // because the eye reads a glow by its surface brightness (design 2.4), ending at GLOW_ALPHA_MAX so the glow never
-// outshines a star, and fading as its block grows past a few hundred pixels (the stars are resolved by then, MAP.324). No DOM and no three.js here: tests/js/galaxyglow.test.mjs holds it to this description.
+// outshines a star, and fading as its block grows past a few tens of pixels and gone by about a hundred and thirty (the stars are resolved by then, MAP.324, MAP.330). No DOM and no three.js here: tests/js/galaxyglow.test.mjs holds it to this description.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { geometry } = await import(`./galaxynodecut.js${VERSION_QUERY}`);
@@ -27,13 +27,15 @@ export const GLOW_RAMP_MAG = 6;
 // The strongest a glow is drawn: soft, under a star's own core. Glows are drawn with a maximum blend, not an additive
 // one, so overlapping glows never add up past this (MAP.324).
 export const GLOW_ALPHA_MAX = 0.4;
-// The glow fades as the stars it stands for resolve (MAP.324): a blob whose block is, on the screen, this many pixels in
-// radius (the first number) begins to fade and is gone at the second, the point at which the camera is among the block's
-// own stars and a haze over them only hides them. Radii in CSS pixels, before GLOW_RADIUS_PX caps what is drawn.
-export const GLOW_RESOLVE_PX = [100, 420];
+// The glow fades as the stars it stands for resolve (MAP.324, MAP.330): a blob whose block is, on the screen, this many pixels in
+// radius (the first number) begins to fade and is gone at the second, well before it covers much of the screen (at 130 px
+// radius it is 260 px across), because a faint halo that large still hides the stars it stands for. The fade is the square of
+// the eased fall, so it is under a hundredth of its strength by four fifths of the way. Radii in CSS pixels, before
+// GLOW_RADIUS_PX caps what is drawn.
+export const GLOW_RESOLVE_PX = [30, 130];
 // A blob's radius in pixels is its block's own radius on screen, kept between these (a blob under a pixel is a point
-// the stars already are; one over the cap would wash the canvas).
-export const GLOW_RADIUS_PX = [3, 220];
+// the stars already are; one over the cap would wash the canvas, and the glow is gone by GLOW_RESOLVE_PX's end anyway).
+export const GLOW_RADIUS_PX = [3, 130];
 // The temperature of light with no stored temperature (a generated sector's), Kelvin.
 export const GLOW_DEFAULT_TEMPERATURE_K = 5200;
 
@@ -112,7 +114,8 @@ export function glowLook(blob, camera, focalPx) {
   const distance = Math.max(Math.sqrt(dx * dx + dy * dy + dz * dz), 1e-6);
   const magnitude = apparentMagnitude(absoluteMagnitude(blob.luminosity), distance) - GLOW_MAG;
   const blockPx = (blob.radiusPc * focalPx) / distance;
-  const unresolved = 1 - ease((blockPx - GLOW_RESOLVE_PX[0]) / (GLOW_RESOLVE_PX[1] - GLOW_RESOLVE_PX[0]));
+  const resolved = ease((blockPx - GLOW_RESOLVE_PX[0]) / (GLOW_RESOLVE_PX[1] - GLOW_RESOLVE_PX[0]));
+  const unresolved = (1 - resolved) * (1 - resolved);
   const alpha = GLOW_ALPHA_MAX * ease((GLOW_LIMIT_MAG - magnitude) / GLOW_RAMP_MAG) * unresolved;
   const radiusPx = Math.min(GLOW_RADIUS_PX[1], Math.max(GLOW_RADIUS_PX[0], blockPx));
   return { alpha, radiusPx, distance };
