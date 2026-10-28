@@ -92,7 +92,7 @@ Target 8.9 (moved from 9.0; Boss, 2:00 PM EDT): the control database and parity 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive | DB.46 | Boss 1:59 PM EDT; Core 1 owns DB.9. |
+| DB.40 | Parity data backup part: the parity file of the DB repair copied into the backup archive |  | Boss 1:59 PM EDT; Core 1 owns DB.9. |
 | DB.41 | Parity data restore: put a backed-up parity file back and check it against the database | DB.40, DB.8 | Boss 2:00 PM EDT; Core 1. |
 
 ## Phase 5: Repair from backups, the repair page and proof

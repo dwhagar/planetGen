@@ -22,7 +22,7 @@ release is stamped.
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.423 |
+| TEST | TEST.424 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -604,7 +604,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py | none | done, PR #2423 |
 | DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | done, PR #2420 |
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | done, PR #3414 |
-| DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | open |
+| DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | done, PR #3451 |
 | DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | none | open |
 | DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | none | open |
 | DB.49 | Migration only: the leaf digest column and the shell-band tree table | none | done, PR #2521 |
@@ -3139,6 +3139,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.420 | Runner self-tests and the limit-slider follow-again browser test are red on main (bug) | none | open |
 | TEST.421 | test_migration_habitable_worlds: the filled-sector test finds no system with a Blue or Green world in 120 seeds, its _fill_one_sector helper no longer draws one (bug) | none | open |
 | TEST.422 | test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug) | none | open |
+| TEST.423 | test_admin_edits::test_recommended_class_change_saves_and_validates fails on clean main: the stand-in body has no eccentricity since migration 0163 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
