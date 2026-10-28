@@ -1442,6 +1442,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Still open here: the sector-level steps and dimming (Aux 10 MAP.327
   calls the same step function), dimmed neighbouring blocks, and the
   System Map neighbours.
+  Scope (2026-10-09): Scope settled by TODO for Core 2 (10:36 AM EDT
+  2026-10-28, provisional, Boss may correct): (1) dimming is Boss's
+  Sector Map request: the sectors around the one in view are drawn
+  dimmed with their stars and systems but no comets or rogue planets,
+  and MAP.327's dimming outside the sector bounds is the first half of
+  it; the Galaxy Map already draws its cells around the centre, so it
+  needs stepping only, not new dimming. (2) Stepping: arrow buttons and
+  keys move the camera to the neighbouring sector, block or slab at the
+  same level (MAP.200's nav pad is the base). (3) System Map: a
+  neighbour is the nearest systems in 3D (within the sector and across
+  its edge), drawn faint as context (MAP.141), and a step goes to the
+  nearest system in the direction of the arrow; the System Map has no
+  grid to step through. Build (1) and (2) first; (3) can be a later PR.
   Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
@@ -3332,6 +3345,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ordering hook are in place (domain region with
   shareCharted/population, item.first for the farthest zoom); this item
   feeds that slice.
+  Handoff (2026-10-09): Core 2 (MAP.319, #3406, 10:31 AM EDT 2026-10-28
+  as the lane reported): a charted region's node carries its bounding
+  sphere (extent in parsecs, TILE_FORMAT 6) and the region name on the
+  info card already flies to the whole region. The double click on a
+  drawn region node is left for this item: call
+  stageView.openRegion(block, {center, radius}) with the node's centre
+  and extent.
 
 - [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d)**
   Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
@@ -3357,40 +3377,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scale (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: MAP.316. Related: MAP.317, MAP.316, POP.30,
   POP.19.
-
-- [ ] **MAP.319 flyToFit: flying to a region, star system, planet system of moons or nebula places the camera so the target fills the window, with no sector boxes drawn (regions chain, step 3b)**
-  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
-  what the galactic-level map shows so a user can always drill down to
-  inhabited space; a region is a 9-block cell with at least one
-  generated sector, drawn as the bounding sphere of its generated
-  sectors (never smaller than the 12 pc fill sphere), ranked by share
-  charted. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2. flyToFit(target) puts the camera so the target's bounding
-  sphere fills the view: distance = radius over sin(half the smaller
-  field of view) plus an 8 percent margin, keeps the viewing direction,
-  clamps to the 2 pc minimum view radius, works through the
-  camera-relative-to-eye pairs of the single-space map, and ends under
-  the hand-off hysteresis (MAP.152) with no scale flicker. Bounding
-  spheres: a region (GEN.827), a star system (its outermost stored body
-  apoapsis, plus the Hill-limited extent for a binary), a planet system
-  of moons (outermost moon apoapsis, or the planet's Hill sphere if
-  larger), a nebula (its volume). Done: tests per target kind that the
-  target's sphere fills the view, the minimum clamp, and that no sector
-  box is drawn after the flight. Owner: Core 2. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
-  Prerequisites: API.35. Related: GEN.827, MAP.316, MAP.295,
-  MAP.296, MAP.152.
-  Progress (2026-10-09): Part merged as #3312 (Core 2, 2:07 AM EDT
-  2026-10-25 as the lane reported): static/flytofit.js (fitDistance,
-  reachFrom) and the galaxy stage flyToFit({center, radius}) frame a
-  bounding sphere to fill the smaller side of the map window with 8
-  percent to spare (nebula or region never under 2 pc); a planet with
-  moons frames to its outermost moon orbit, a star system's 3D view
-  opens with every orbit in the window, the Galaxy Map fly-to of a
-  system or nebula uses it. Still open: the region node's double click
-  wired to flyToFit, which waits on GEN.827 (extent) and API.35.
 
 - [ ] **MAP.320 Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region**
   Boss, 1:19 AM EDT 2026-10-25 (relayed by the coordinator): "show them
@@ -14957,31 +14943,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation lock second merges main in.
   Prerequisites: none. Related: GEN.683, GEN.646, GEN.689, GEN.822.
 
-- [ ] **GEN.841 thermosphere.exobase can loop for over 20 minutes in the planet atmosphere draw: a planet whose exobase never closes steps through a huge range (bug)**
-  Found by Math 1 (as the lane reported 8:10 AM EDT 2026-10-28) on main
-  0e7a20df:
-  test_bright_star_scatter.py::test_a_single_sector_run_leaves_the_backfill_to_the_end_of_the_run
-  and
-  test_atmosphere_mixture_rocky.py::test_the_inventory_follows_the_delivered_water_class
-  run past 20 minutes (the first 23 minutes CPU-bound, then pytest's
-  timeout) inside thermosphere.exobase (the while True loop, step 0.25
-  of the smaller of scale height and Bates length, until the exobase or
-  MAX_EXOBASE_RADII), called from mixture_escape.apply >
-  thermosphere.kept_shares in the planet atmosphere draw. Likely the
-  same hang as TEST.408 (the fill-stages pulsar test) and part of
-  TEST.401. Do: find the planet inputs where the exobase never closes
-  (zero or tiny scale height or Bates length, a very hot or very light
-  atmosphere), bound the loop (a step that grows with radius, a closed
-  form, or an early exit with the stated escape regime), keep results
-  identical for planets that do close, and add a regression test with
-  the failing input. Done: both tests and TEST.408 pass in minutes; a
-  stuck loop can never run unbounded. This is a physics fix to a loop
-  bound, so any change in generated values must be stated as a stand-in
-  tweak with its level and reason. Owner: Aux 8 (atmosphere, escape) or
-  Aux 6; changes generated output only if the loop bound moves results,
-  then it needs a lock turn.
-  Prerequisites: none. Related: TEST.408, TEST.401, TEST.409.
-
 - [ ] **GEN.842 Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left**
   Reported by Math 2 (as the lane reported 10:18 AM EDT 2026-10-28,
   #3380, epoch 113). Left as known approximations: (1) giant_draw.py and
@@ -20637,24 +20598,6 @@ clears each one.
   --resume.
   Prerequisites: none. Related: TEST.406.
 
-- [ ] **TEST.410 test_planet_physics_fixes::test_class_p_is_colder_than_class_m times out at 900 s: it generates 600 planets at about 5 s each since 4c, 14 of 16 seconds in the air solve (bug)**
-  Found by Aux 8 (as the lane reported 8:34 AM EDT 2026-10-28) while
-  retiring TEST.401. Not a hang: N_SAMPLE 300 for two classes generates
-  600 planets at about 5 s each since 4c. Profile of 3 planets: 14 s of
-  16 in the air solve, 4.5 s of that in thermosphere.kept_shares (83
-  calls, 75,600 diffusion_limited_flux calls). Do: (1) cut the sample to
-  what the comparison needs (the class P versus class M temperature gap
-  is large; a few dozen planets per class give the same verdict, state
-  the margin), (2) with GEN.841 (the exobase loop), make
-  thermosphere.kept_shares cheaper (cache or vectorise
-  diffusion_limited_flux over species) without changing a value; a
-  change in values must be stated as a stand-in tweak. Done: the test
-  passes in under 3 minutes and the air solve per planet is measurably
-  faster. Owner: Aux 8 together with GEN.841; if values move it needs a
-  lock turn. Rules: never skip or quarantine a test; scripts/test.py
-  changed --resume.
-  Prerequisites: none. Related: GEN.841, TEST.401.
-
 - [ ] **TEST.411 Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug)**
   Found by Bug 1 (as the lane reported 8:36 AM EDT 2026-10-28) while
   merging TEST.394 and TEST.383 (#3385): in a full-file run 132 of 136
@@ -20726,6 +20669,23 @@ clears each one.
   passes. Owner: Bug 1 after DB.108/GEN.826, or Aux 11. Rules: never
   skip or loosen a test to get green.
   Prerequisites: none. Related: TEST.413, GEN.441.
+
+- [ ] **TEST.417 Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug)**
+  Found by Aux 8 (as the lane reported 10:31 AM EDT 2026-10-28) while
+  merging GEN.841 and TEST.410 (#3405). The exobase loop is not the
+  cause (only a NaN input made it run unbounded, now an error); the long
+  runs are plain generation cost: each rocky planet is an atmosphere
+  solve of about 2 to 5 s, and test_bright_star_scatter backfill passes
+  alone but needs 44 minutes; the rocky mixture inventory test and the
+  pulsar test of TEST.408 (hangs 20+ minutes) are the same kind. Do:
+  find every test that builds a whole sector or system set and takes
+  over 5 minutes (measure with --durations), shrink the sample (as
+  TEST.410 did, 40 planets a class) or build it once in a session
+  fixture, and keep the assertion. Done: no single test in
+  scripts/test.py changed runs longer than 5 minutes on a lane machine.
+  Owner: Bug 1 after DB.108/GEN.826. Rules: never skip or loosen a test
+  to get green; keep the property each test checks. Related: TEST.408.
+  Prerequisites: none. Related: TEST.408, TEST.410.
 
 ## USR: User accounts
 
