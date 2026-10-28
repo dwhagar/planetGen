@@ -289,8 +289,11 @@ needs nothing moved, before keeping the last one."""
 
 class _StandIn:
     """A planet-shaped stand-in for spacing arithmetic: `distance` (AU),
-    `mass` (kg), `star`, `hill_radius` (km) and `min_orbit_distance` (AU)."""
+    `mass` (kg), `star`, `hill_radius` (km), `min_orbit_distance` (AU) and
+    `eccentricity` (0: the spacing rules read the orbit's shape, and a
+    stand-in's is a circle)."""
     body_type = 't'
+    eccentricity = 0.0
 
     def __init__(self, distance, mass, star, hill_radius_au):
         self.distance = distance
