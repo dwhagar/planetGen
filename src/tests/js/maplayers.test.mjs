@@ -98,8 +98,8 @@ test("reading a URL puts layers it does not name back to their defaults and anno
 test("the legend lists the layers that are on and have one, with their swatch", () => {
   const reg = registry();
   assert.deepEqual(reg.legend(), [
-    { id: "star", text: "Stars are points of light", swatch: null, swatchClass: null },
-    { id: "course", text: "The plotted course", swatch: "#f90", swatchClass: null },
+    { id: "star", text: "Stars are points of light", swatch: null, swatchClass: null, icon: null, token: null },
+    { id: "course", text: "The plotted course", swatch: "#f90", swatchClass: null, icon: null, token: null },
   ]);
   reg.setOn("star", false);
   assert.deepEqual(reg.legend().map((line) => line.id), ["course"]);
@@ -172,6 +172,23 @@ test("the legend block shows a line per entry, follows the layers and hides when
   assert.equal(container.querySelectorAll(".map-layer-legend-line").length, 1);
   reg.setOn("swatchy", false);
   assert.equal(container.hidden, true);
+});
+
+test("a legend line can be a point-of-interest symbol in its token's colour (MAP.320)", () => {
+  const reg = L.createLayerRegistry("galaxy");
+  reg.register({ id: "marker-habitable", label: "Habitable worlds",
+    legend: { text: "Habitable worlds", icon: "habitable-world", token: "--tier-green" } });
+  assert.deepEqual(reg.legend(), [{ id: "marker-habitable", text: "Habitable worlds", swatch: null, swatchClass: null,
+    icon: "habitable-world", token: "--tier-green" }]);
+  const container = h("div", {});
+  reg.renderLegend(container);
+  const symbol = container.querySelector(".poi-icon");
+  assert.ok(symbol, "the line draws the symbol");
+  assert.equal(symbol.dataset.poi, "habitable-world");
+  assert.equal(symbol.style.color, "var(--tier-green)");
+  assert.equal(symbol.getAttribute("aria-hidden"), "true");
+  assert.match(symbol.querySelector("use").getAttribute("href"), /poi\/habitable-world\.svg.*#poi$/);
+  assert.equal(container.querySelector(".map-layer-legend-swatch"), null);
 });
 
 test("a layer can be left out of the menu while it has nothing to show, and its title can change", () => {

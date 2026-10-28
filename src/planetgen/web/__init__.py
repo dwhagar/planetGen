@@ -44,7 +44,7 @@ from planetgen.admin import maintenance  # noqa: E402
 from planetgen.queue import stopall  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
-from planetgen.web.lib import habitability_symbols  # noqa: E402
+from planetgen.web.lib import habitability_symbols, poi_icons  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib import pagetags  # noqa: E402
 from planetgen.web.lib.slowpages import take_notice as slow_notice  # noqa: E402
@@ -135,6 +135,16 @@ def icon(name):
                   f'<use href="{escape(static_url("icons.svg"))}#{name}"></use></svg>')
 
 
+def poi_icon(icon_id, tier=None):
+    """One point-of-interest symbol (MAP.320) as markup, `icon_id` one of `poi_icons.ICONS`; `tier` (0 Blue to 3 Red)
+    colours the habitable and the inhabited world.
+
+    Raises:
+        ValueError: `icon_id` or `tier` is not one the symbols have.
+    """
+    return Markup(poi_icons.symbol_html(icon_id, static_url, tier))
+
+
 def _habitability_help_url(link):
     """The habitability page's URL for a symbol that links there (UX.181), `None` for one that does not (`link`
     false: the page's own legend)."""
@@ -209,6 +219,8 @@ def _template_globals():
         "static_url": static_url,
         "module_graph": module_graph,
         "icon": icon,
+        "poi_icon": poi_icon,
+        "poi_icons": poi_icons.ICONS,
         "habitability_symbol": habitability_symbol,
         "habitability_symbol_row": habitability_symbol_row,
         "habitability_life": habitability_life,

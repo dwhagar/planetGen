@@ -18,8 +18,9 @@
 //   defaultOn        shown until the visitor says otherwise (default true);
 //   urlKey           the URL parameter that lists the layers of this key turned OFF ("hide"); layers that
 //                    begin off need urlKeyOn, the parameter that lists the ones turned ON ("show");
-//   legend           null, a string, `{text, swatch, swatchClass}`, or `function (on) -> the same | null`
-//                    (`swatch` is a CSS color, `swatchClass` a CSS class that draws the mark);
+//   legend           null, a string, `{text, swatch, swatchClass}` or `{text, icon, token}`, or `function (on) -> the
+//                    same | null` (`swatch` is a CSS color, `swatchClass` a CSS class that draws the mark; `icon` is a
+//                    point-of-interest symbol of poiicons.js and `token` the CSS custom property that colours it, MAP.320);
 //   pickerLayer      null, or the picker layer's declaration (mappick.js `addLayer`'s argument), added to a
 //                    map's picker while the layer is on;
 //   fadedWithSectors true when the blocker fade (MAP.149, nearfield.js) hides the layer with the sectors; a
@@ -34,11 +35,15 @@
 
 export const MODES = ["galaxy", "sector", "system"];
 
+const VERSION_QUERY = new URL(import.meta.url).search;
+const SVG_NS = "http://www.w3.org/2000/svg";
+
 function entryOf(legend, on) {
   const value = typeof legend === "function" ? legend(on) : legend;
   if (!value) return null;
-  if (typeof value === "string") return { text: value, swatch: null, swatchClass: null };
-  return { text: value.text, swatch: value.swatch || null, swatchClass: value.swatchClass || null };
+  if (typeof value === "string") return { text: value, swatch: null, swatchClass: null, icon: null, token: null };
+  return { text: value.text, swatch: value.swatch || null, swatchClass: value.swatchClass || null,
+    icon: value.icon || null, token: value.token || null };
 }
 
 function listOf(value) {
@@ -179,7 +184,10 @@ export function createLayerRegistry(mode, options) {
     forMode().forEach(function (layer) {
       if (!isOn(layer.id)) return;
       const entry = entryOf(layer.legend, true);
-      if (entry) lines.push({ id: layer.id, text: entry.text, swatch: entry.swatch, swatchClass: entry.swatchClass });
+      if (entry) {
+        lines.push({ id: layer.id, text: entry.text, swatch: entry.swatch, swatchClass: entry.swatchClass,
+          icon: entry.icon, token: entry.token });
+      }
     });
     return lines;
   }
@@ -268,7 +276,19 @@ export function createLayerRegistry(mode, options) {
         const row = doc.createElement("span");
         row.className = "map-layer-legend-line";
         row.dataset.layer = line.id;
-        if (line.swatch || line.swatchClass) {
+        if (line.icon) {
+          // MAP.320: the kind's own symbol (static/poi/<icon>.svg) in its token's colour; the words beside it name it.
+          const symbol = doc.createElementNS(SVG_NS, "svg");
+          symbol.setAttribute("class", "poi-icon map-layer-legend-icon poi-" + line.icon);
+          symbol.setAttribute("aria-hidden", "true");
+          symbol.setAttribute("focusable", "false");
+          symbol.dataset.poi = line.icon;
+          if (line.token) symbol.style.color = "var(" + line.token + ")";
+          const use = doc.createElementNS(SVG_NS, "use");
+          use.setAttribute("href", new URL("poi/" + line.icon + ".svg" + VERSION_QUERY + "#poi", import.meta.url).href);
+          symbol.appendChild(use);
+          row.appendChild(symbol);
+        } else if (line.swatch || line.swatchClass) {
           const swatch = doc.createElement("span");
           swatch.className = "map-layer-legend-swatch" + (line.swatchClass ? " " + line.swatchClass : "");
           swatch.setAttribute("aria-hidden", "true");

@@ -8,7 +8,8 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
-const { GLYPHS, MARKER_PX } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
+const { GLYPHS, MARKER_PX, tokenOfItem } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
+const { shapesOf } = await import(`./poiicons.js${VERSION_QUERY}`);
 
 const TEXTURE_PX = 64;
 
@@ -20,6 +21,51 @@ function makeGlyphTexture(glyph, color, outline) {
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;
   return texture;
+}
+
+// A point-of-interest symbol's shapes (MAP.320), read once from its file under static/poi/ (`shapesOf`): a promise.
+const shapeFiles = new Map();
+function shapesOfIcon(id) {
+  if (!shapeFiles.has(id)) {
+    const url = new URL(`poi/${id}.svg${VERSION_QUERY}`, import.meta.url);
+    shapeFiles.set(id, fetch(url).then(function (response) {
+      if (!response.ok) throw new Error("no icon file " + url.pathname);
+      return response.text();
+    }).then(function (text) {
+      const shapes = shapesOf(text);
+      shapes.paths = shapes.paths.map(function (path) { return { path: new Path2D(path.d), evenodd: path.evenodd }; });
+      return shapes;
+    }));
+  }
+  return shapeFiles.get(id);
+}
+
+// The texture of a symbol in `color` with the dark or light edge `outline` (the paint order of the pages' symbols, edge
+// under the fill). It is blank until the file has been read; the map draws every frame, so it shows from the next one.
+function makeIconTexture(icon, color, outline) {
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = TEXTURE_PX;
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  shapesOfIcon(icon).then(function (shapes) {
+    const ctx = canvas.getContext("2d");
+    ctx.scale(TEXTURE_PX / shapes.size, TEXTURE_PX / shapes.size);
+    ctx.lineJoin = "round";
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = outline;
+    ctx.fillStyle = color;
+    shapes.paths.forEach(function (shape) {
+      ctx.stroke(shape.path);
+      ctx.fill(shape.path, shape.evenodd ? "evenodd" : "nonzero");
+    });
+    texture.needsUpdate = true;
+  }).catch(function (error) { console.error(error); });
+  return texture;
+}
+
+// The color a CSS custom property of the page has now (style.css's tokens; they differ by theme).
+function tokenColor(token) {
+  return getComputedStyle(document.documentElement).getPropertyValue(token).trim() || "#888888";
 }
 
 // A marker layer in `scene`, for `camera` on `canvasEl`. `outline` is the glyph's outline color (CSS). `options`:
@@ -41,7 +87,13 @@ export function createMarkerLayer(scene, camera, canvasEl, outline, options) {
   const sprites = [];
   let drawn = [];
 
-  function textureOf(kind) {
+  function textureOf(kind, item) {
+    if (kind.icon) {
+      const color = tokenColor(tokenOfItem(kind, item));
+      const iconKey = kind.icon + "|" + color + "|" + outline;
+      if (!textures.has(iconKey)) textures.set(iconKey, makeIconTexture(kind.icon, color, outline));
+      return textures.get(iconKey);
+    }
     const key = kind.glyph + "|" + kind.color + "|" + outline;
     if (!textures.has(key)) textures.set(key, makeGlyphTexture(kind.glyph, kind.color, outline));
     return textures.get(key);
@@ -66,7 +118,7 @@ export function createMarkerLayer(scene, camera, canvasEl, outline, options) {
     });
     drawn.forEach(function (entry, index) {
       const sprite = spriteAt(index);
-      sprite.material.map = textureOf(entry.kind);
+      sprite.material.map = textureOf(entry.kind, entry.item);
       sprite.material.needsUpdate = true;
       sprite.position.set(entry.x, entry.y, entry.z);
       sprite.visible = true;

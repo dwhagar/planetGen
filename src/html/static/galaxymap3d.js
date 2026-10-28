@@ -3476,7 +3476,7 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     markerKinds.kinds().forEach(function (kind) {
       stageView.layers.register({
-        id: kind.id, label: kind.label, modes: ["galaxy"], group: "Markers", data: { marker: kind.glyph },
+        id: kind.id, label: kind.label, modes: ["galaxy"], group: "Markers", data: { marker: kind.glyph || kind.icon },
         defaultOn: kind.defaultOn, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
         title: "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),
       });
