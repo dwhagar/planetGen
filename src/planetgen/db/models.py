@@ -2216,6 +2216,20 @@ rogue_planets = sa.Table(
 )
 
 
+scatter_epochs = sa.Table(
+    'scatter_epochs',
+    metadata,
+    sa.Column('kind', sa.String(16), primary_key=True, nullable=False),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('run_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('recorded_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Index('fk_scatter_epochs_run', 'run_id'),
+    sa.CheckConstraint("(`kind` in (_utf8mb4'mass',_utf8mb4'luminosity',_utf8mb4'band',_utf8mb4'phenomena',_utf8mb4'nebula-field'))", name='chk_scatter_epochs_kind'),
+    sa.ForeignKeyConstraint(['run_id'], ['generation_runs.id'], name='fk_scatter_epochs_run', ondelete='SET NULL'),
+    mysql_engine="InnoDB",
+)
+
+
 scatter_members = sa.Table(
     'scatter_members',
     metadata,
@@ -2446,6 +2460,7 @@ species = sa.Table(
     sa.Column('defense_index', mysql.TINYINT(unsigned=True), nullable=True),
     sa.Column('tech_level', mysql.DECIMAL(), nullable=True),
     sa.Column('tech_source', sa.String(16), nullable=True),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
     sa.Column('created_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP'), nullable=False),
     sa.Index('idx_species_spacefaring', 'spacefaring'),
     sa.Index('idx_species_system', 'star_system_id'),

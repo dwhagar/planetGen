@@ -571,6 +571,8 @@ def scatter_bright_stars(args, passes=("mass", "luminosity")):
             for population, count in light.items():
                 counts[population] += count
         store.record_bright_star_scatter(conn, min_luminosity_sol, seed, mass_limit)
+        store.record_scatter_epoch(conn, [p for p in ("mass", "luminosity") if p in passes],
+                                   getattr(args, "generation_run_id", None))
         conn.commit()
     finally:
         conn.close()
@@ -1446,6 +1448,7 @@ def add_bright_star_band(args):
             log.normal(f"Topped up {len(topped):,} backfilled sectors with {stars:,} bright stars.")
         # The first scatter's seed stays: it names the galaxy's scatter.
         store.record_bright_star_scatter(conn, target, first_seed)
+        store.record_scatter_epoch(conn, "band", getattr(args, "generation_run_id", None))
         conn.commit()
     finally:
         conn.close()
@@ -2009,6 +2012,7 @@ def build_nebula_field(args, conn, skeleton, extents, progress):
 
         wrapper.run("Nebula field", [step], on_plan, on_result, workers_count=workers, who=getattr(args, "who", None),
                     database=mysql_config.database, argv=getattr(args, "argv", None), seed=None, listing=[step])
+    store.record_scatter_epoch(conn, "nebula-field", getattr(args, "generation_run_id", None))
     linked = store.link_nebula_field_stored(conn)
     log.normal(f"Nebula field: {written[0]:,} clouds of classes M and N"
                + (f", {linked:,} already stored." if linked else "."))
@@ -2554,6 +2558,7 @@ def scatter_phenomena(args):
         if special_counts:
             log.normal("Special phenomena: " + ", ".join(f"{count:,} {kind}" for kind, count in sorted(special_counts.items())) + ".")
         store.record_phenomenon_scatter(conn, seed, min_mass_solar)
+        store.record_scatter_epoch(conn, "phenomena", getattr(args, "generation_run_id", None))
         store.record_phenomenon_scatter_classes(
             conn, {phenomenon_scatter.split_label(label): count for label, count in counts.items()})
         conn.commit()
@@ -2741,6 +2746,8 @@ def clear_scatter_unit(params, report):
     conn = store.get_connection(_mysql_config_of(params))
     try:
         if not store.scatter_stored(conn, part):
+            store.forget_scatter_epoch(conn, ("luminosity", "band") if part == "luminosity" else part)   # drawn, and empty
+            conn.commit()
             return {"part": part, "lines": [f"The {name} scatter has nothing stored."]}
         if part == "mass" and store.scatter_stored(conn, "luminosity"):
             raise RuntimeError("The bright stars are split from the massive stars at the mass limit -- run "

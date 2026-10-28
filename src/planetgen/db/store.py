@@ -5981,6 +5981,7 @@ def clear_bright_stars(conn):
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
     conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
                  " bright_star_mass_limit_sol = NULL")
+    forget_scatter_epoch(conn, ("mass", "luminosity", "band"))
     conn.commit()
 
 
@@ -6067,6 +6068,7 @@ def clear_bright_star_pass(conn, part, limits):
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
     conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
     conn.execute(f"UPDATE galaxy_shape SET {forget}")
+    forget_scatter_epoch(conn, ("mass",) if part == "mass" else ("luminosity", "band"))
     conn.commit()
 
 
@@ -6091,6 +6093,40 @@ def scatter_stored(conn, part):
     if part == "nebula-field":
         return conn.execute("SELECT 1 FROM nebula_field LIMIT 1").fetchone() is not None
     raise ValueError(f"part must be 'mass', 'luminosity', 'phenomena' or 'nebula-field', not {part!r}")
+
+
+SCATTER_KINDS = ("mass", "luminosity", "band", "phenomena", "nebula-field")
+"""tuple: The kinds of scatter that have a row in `scatter_epochs` (GEN.764)."""
+
+
+def record_scatter_epoch(conn, kinds, run_id=None):
+    """
+    Records that the scatter of each of `kinds` (`SCATTER_KINDS`) was drawn under the running generator epoch, by the
+    run `run_id` (None when it is not known), replacing what an earlier draw of the kind recorded. Not committed.
+    """
+    kinds = (kinds,) if isinstance(kinds, str) else tuple(kinds)
+    epoch = generatorEpoch.generator_epoch()
+    for kind in kinds:
+        if kind not in SCATTER_KINDS:
+            raise ValueError(f"kind must be one of {', '.join(SCATTER_KINDS)}, not {kind!r}")
+        conn.execute(
+            "INSERT INTO scatter_epochs (kind, generator_epoch, run_id) VALUES (?, ?, ?)"
+            " ON DUPLICATE KEY UPDATE generator_epoch = ?, run_id = ?, recorded_at = CURRENT_TIMESTAMP(3)",
+            (kind, epoch, run_id, epoch, run_id))
+
+
+def forget_scatter_epoch(conn, kinds):
+    """Removes the record of each of `kinds` (a clear of that scatter). Not committed."""
+    kinds = (kinds,) if isinstance(kinds, str) else tuple(kinds)
+    if kinds:
+        conn.execute(f"DELETE FROM scatter_epochs WHERE kind IN ({', '.join('?' * len(kinds))})", kinds)
+
+
+def scatter_epochs(conn):
+    """`{kind: generator epoch or None}` of the scatters recorded, in the order of `SCATTER_KINDS`."""
+    found = {row["kind"]: row["generator_epoch"] for row in conn.execute(
+        "SELECT kind, generator_epoch FROM scatter_epochs").fetchall()}
+    return {kind: found[kind] for kind in SCATTER_KINDS if kind in found}
 
 
 def record_bright_star_scatter(conn, min_luminosity_sol, seed, mass_limit_sol=None):
@@ -6191,6 +6227,7 @@ def clear_phenomenon_scatter(conn):
     scatter_systems.delete_all_member_trees(conn, "phenomenon_scatter")
     conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
     conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
+    forget_scatter_epoch(conn, "phenomena")
     conn.commit()
 
 
@@ -6202,6 +6239,7 @@ NEBULA_FIELD_COLUMNS = ("cell_i", "cell_j", "cell_k", "n", "nebula_class", "radi
 def clear_nebula_field(conn):
     """Empties `nebula_field` (DB.24): a plan or a redo of the phenomena draws it again from the seed."""
     conn.execute("TRUNCATE TABLE nebula_field")
+    forget_scatter_epoch(conn, "nebula-field")
     conn.commit()
 
 

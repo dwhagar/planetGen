@@ -1974,6 +1974,10 @@ replays. Writing them never stops a run.
 
 The command line is in `generation_run_arguments` (v63, DB.13), which replaced a JSON text column of `generation_runs`: `run_id` (FK -> `generation_runs.id`, `ON DELETE CASCADE`), `position` (the argument's place, from 0) and `value` (VARCHAR(1024)), primary key `(run_id, position)`. It leaves out the `--mysql-*` and `--debug` options (`generate._run_argv`).
 
+### `scatter_epochs`
+
+Added in v161 (GEN.764). The generator epoch each kind of scatter was drawn under. A scatter is galaxy-wide and its rows carry no epoch of their own, so the draw that finishes a kind writes one row here and a clear of that kind deletes it. `kind` (VARCHAR(16), primary key; CHECK `mass`, `luminosity`, `band`, `phenomena` or `nebula-field`), `generator_epoch` (SMALLINT UNSIGNED, nullable: unknown), `run_id` (FK -> `generation_runs.id`, `ON DELETE SET NULL`, nullable) and `recorded_at` (TIMESTAMP(3)). The sectors (v121), the plan (v131) and the species (v156) carry their own epoch, so every stage of a galaxy says what made it; `store.scatter_epochs(conn)` reads this table. The migration gave a galaxy made earlier the plan's epoch for each kind that has rows. Not read by the fingerprint.
+
 ### `species` / `polities` / `system_owners` / `population_state`
 
 Added in v44, filled only by the population pass
@@ -1981,6 +1985,7 @@ Added in v44, filled only by the population pass
 above and `docs/design/habitability/population-and-politics.md`.
 
 **`species`**: one dominant species per life world.
+`generator_epoch` (v161, GEN.764) is the epoch the population pass made it under.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
@@ -2211,6 +2216,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v164 (GEN.764): the epoch of each scatter and each species
+
+Migration 0164 creates `scatter_epochs` (above) and adds `species.generator_epoch` (SMALLINT UNSIGNED, nullable): the epoch the population pass made the species under. A species made before v164 gets the epoch of the sector its homeworld's system is in.
 
 ### v162 (DB.96): the atmosphere colour of a planet or moon
 

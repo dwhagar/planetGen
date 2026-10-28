@@ -793,8 +793,12 @@ TABLES = {
         "flag": ("spacefaring",),
         "index": (
             "energy_index", "materials_index", "information_index", "medical_index", "propulsion_index",
-            "defense_index", "tech_level",
+            "defense_index", "tech_level", "generator_epoch",
         ),
+    },
+    "scatter_epochs": {
+        "id": ("run_id",),
+        "index": ("generator_epoch",),
     },
     "species_limit_values": {
         "id": ("species_id",),
