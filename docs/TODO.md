@@ -2952,53 +2952,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing in 8.1.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
 
-- [ ] **MAP.316 Regions are the nodes of the galactic-level map: a soft sphere with its name, coloured by share charted, replacing the sector boxes there, and a sortable charted-regions list (regions chain, step 3a)**
-  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
-  what the galactic-level map shows so a user can always drill down to
-  inhabited space; a region is a 9-block cell with at least one
-  generated sector, drawn as the bounding sphere of its generated
-  sectors (never smaller than the 12 pc fill sphere), ranked by share
-  charted. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2. Regions are nodes of the node cut (the node cache and
-  name on the node payload, API.35); drilling: clicking a region or its
-  label flies in and the region opens its own stars, systems and POI
-  icons and markers as today (they all still apply). Sector boxes are
-  not drawn at galactic scale or when a region is flown to; the grid
-  outline stays the optional tool. Every region above 0 percent charted
-  appears. The charted-regions list sorts by share charted, and by
-  population once it exists (MAP.318), and is the always-available way
-  to reach inhabited space. Done: tests that a region with one generated
-  sector appears, that the list sorts by share, that no sector box is
-  drawn at galactic scale. Owner: Aux 10. Rules: no backward-compat
-  shims; every number has a unit or scale (GEN.772); tests are
-  scripts/test.py changed --resume.
-  Prerequisites: API.35. Related: GEN.825, DB.107,
-  GEN.827, API.35, MAP.314.
-  Research (2026-10-09, Aux 10 report 2026-10-28): MAP.317 merged
-  (#3395, Aux 10): labelbudget.js (shares inhabited 30, star 30,
-  uninhabited 25, nebula 10, region 5, empty slices lend), only drawn
-  things offered, World names switch. The region slice and the MAP.322
-  ordering hook are in place (domain region with
-  shareCharted/population, item.first for the farthest zoom); this item
-  feeds that slice.
-  Handoff (2026-10-09): Core 2 (MAP.319, #3406, 10:31 AM EDT 2026-10-28
-  as the lane reported): a charted region's node carries its bounding
-  sphere (extent in parsecs, TILE_FORMAT 6) and the region name on the
-  info card already flies to the whole region. The double click on a
-  drawn region node is left for this item: call
-  stageView.openRegion(block, {center, radius}) with the node's centre
-  and extent.
-  Folded (2026-10-09): MAP.237 folded in (TODO, 11:12 AM EDT 2026-10-28,
-  with Core 2's report that MAP.297 removed the block outlines and
-  shading it described): Boss's need (2026-10-16, 7:24 PM EDT, 'we need
-  some kind of way to see where they are') is met by drawing the charted
-  regions as soft sphere nodes at the galactic level. Done adds: with
-  Charted only on (if the toggle still exists after MAP.297; if it was
-  removed, the regions are always drawn) charted space is visibly
-  different from the rest at the whole-galaxy stage, with a browser test
-  that compares the drawn colours with the toggle on and off.
-
 - [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d)**
   Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
   what the galactic-level map shows so a user can always drill down to
@@ -3021,7 +2974,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   habitable one by habitability score), nothing waits on POP.30. Owner:
   Aux 10. Rules: no backward-compat shims; every number has a unit or
   scale (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: MAP.316. Related: MAP.317, MAP.316, POP.30,
+  Prerequisites: none. Related: MAP.317, MAP.316, POP.30,
   POP.19.
 
 - [ ] **MAP.321 Point-of-interest markers by level: a star carries its best world marker in the star views, the planet or moon carries its own marker at the system level, and regions show inhabited tokens**
@@ -3062,7 +3015,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2. Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); tests are scripts/test.py changed --resume; no fixed
   content from the Milky Way or the Solar System.
-  Prerequisites: MAP.316. Related: MAP.320, MAP.305, MAP.311,
+  Prerequisites: none. Related: MAP.320, MAP.305, MAP.311,
   MAP.312, MAP.316, MAP.317.
   Handoff (2026-10-09): Unblocked on MAP.320 (Core 4, #3415, 11:19 AM
   EDT 2026-10-28 as the lane reported): the symbols to use are in
@@ -3091,50 +3044,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10. Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); tests are scripts/test.py changed --resume.
   Prerequisites: DB.108. Related: MAP.317, MAP.316, DB.107, DB.108, GEN.827.
-
-- [ ] **MAP.327 Galactic view draws a locked wireframe round the current region with no dimming (the sector part, dimming and wall icons, is done in #3422)**
-  Boss, 2:38 AM EDT 2026-10-25: the star field outside the sector makes
-  the sector view hard to read, so dim everything outside the sector
-  bounds, and have clear labelled icons to move to the adjacent sectors,
-  placed at the centre of the visible wall facing each neighbour. Do: in
-  the sector view draw stars and objects outside the sector box at a low
-  fixed opacity (no glow, no labels, no comets or rogue planets, as
-  MAP.121 already says), keep the sector's own contents at full
-  strength, and put one icon on the centre of each wall of the box that
-  faces a neighbouring sector (north, south, east, west, up, down: only
-  walls in view, never on the galaxy's absolute boundary, MAP.141), each
-  labelled with the neighbour's address, a click flies the camera to
-  that neighbour's frame (one camera move, the URL carries the camera,
-  MAP.228), and the icons stay readable at any zoom (screen-sized, drawn
-  over the glow). This is the sector-level slice of MAP.121
-  (neighbouring regions on every map), which stays open for the block
-  and system levels. Done: a browser test checks the outside is dimmer
-  than the inside by a fixed ratio, that each in-view wall has one
-  labelled icon at its centre, and that a click arrives at the
-  neighbour. Owner: Aux 10 (Boss said Aux 10 via the coordinator) with
-  Core 2, who owns MAP.121 and the arrow keys, told so the two do not
-  build twice. Rules: no backward-compat shims; tests are
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: MAP.121, MAP.141, MAP.228, MAP.324,
-  MAP.325, MAP.297.
-  Added (2026-10-09): Boss, 2:41 AM EDT 2026-10-25: also a locked
-  wireframe border around the current sector once in sector view; in
-  galactic view put the same wireframe border around the current
-  region's boundaries too, with no dimming. It is a fixed visual marker
-  for the boundaries (a reference for the space): it does not follow the
-  cursor, it stays put as the camera moves. Done adds: a browser test
-  finds the sector wireframe in sector view, the region wireframe in
-  galactic view (and no dimming there), and checks its world position
-  does not change when the mouse moves.
-  Research (2026-10-09, TODO 2026-10-28): Use
-  galaxyprisms.neighbourBlock and the step function from MAP.121 part
-  one (#3391) for the sector-level neighbour steps; do not write a
-  second neighbour helper.
-  Progress (2026-10-09): Done by Aux 10 (#3422, 11:48 AM EDT 2026-10-28
-  as the lane reported): the sector part (outside dimmed, locked
-  wireframe round the sector, labelled wall icons that fly to the
-  neighbour). Open: the region wireframe in galactic view with no
-  dimming, which waits on MAP.316 (Aux 10 builds it there).
 
 - [ ] **MAP.328 Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views)**
   Boss, 2:48 AM EDT 2026-10-25: 'rendered objects should slowly rotate
