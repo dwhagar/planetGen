@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2434] - 2026-10-28
+
+**Headline:** The Galaxy Map's Menu has a Points of interest group where each kind can be shown, pulled forward or hidden.
+
+### Added
+- **Points of interest group (MAP.306).** The Menu groups the inhabited, habitable, uninhabitable, gas giant and asteroid field layers under Points of interest. Each row has its on/off button and a Forward button: a kind pulled forward is drawn over the other marks, keeps its place when the map has to choose which marks to draw, and has its names offered first when names are cut. A crowd of marks takes the strongest state of its members. A row of All shown, All forward and All hidden sets every kind at once. The choice rides the address (`front=` lists the kinds pulled forward, with the usual `hide=` and `show=`) and is remembered in the browser for the next map that is opened without a choice in its address.
+
 ## [8.0.2433] - 2026-10-28
 
 **Headline:** The property sheet test knows the stored ground-type mix is not a row on the page yet, so it passes again.
