@@ -1593,3 +1593,5 @@ Baseline: PR #1817.
 | TEST.421 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.847 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.415 | 8.1 | Consistency |
+| GEN.423 | 8.1 | Radiation chain for habitability (GEN.445) |
+| DB.67 | 8.1 | Mixture and stored values |
