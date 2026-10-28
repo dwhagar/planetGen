@@ -964,17 +964,6 @@ with `clamp()`.
   sampling); outside hours is GEN.768. The lane adds the excuse list and
   the failing test with these ids.
 
-- [ ] **UX.212 Admin pages show bare numbers: the statistics and queue tiles (stat-value 0, 18) and the admin settings values carry no unit or noun (bug)**
-  Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
-  as the lane reported; Boss rule: never a number without a unit or
-  context. Found by the UX.211 probe of the a11y sample: elements whose
-  whole text is a bare number. Give every admin statistics and queue
-  tile its noun or unit (for example '18 jobs queued'), and every
-  settings value its unit or scale. Done: the probe lists no bare number
-  on the admin pages and a browser test pins it. Version 8.1. Owner: Aux
-  12 (account, API and ops).
-  Prerequisites: none. Related: UX.208, GEN.772.
-
 - [ ] **UX.213 Generate page task option values show as bare numbers (1, 2, 4, 6): name what they count (bug)**
   Lane 3 (Aux 11), UX.211 merged #3209, relayed 9:52 PM EDT 2026-10-24
   as the lane reported; Boss rule: never a number without a unit or
@@ -1473,9 +1462,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of (2) are built: stars outside the opened sector at 30% with no glow,
   names or phenomena, a locked wireframe round the sector cell, and a
   labelled arrow icon on each wall that faces a neighbour that flies to
-  it via stageView.openSector. Left for this item: keyboard and
-  arrow-button stepping at the same level, block and slab levels, and
-  the System Map part.
+  it via stageView.openSector. The six step buttons and keys for a
+  window of blocks were already built in #3391, and the sector wall
+  icons are the sector-level step. Left for this item: dimming of the
+  neighbouring blocks at the block level and the System Map part.
   Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
@@ -16804,6 +16794,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (Aux 12 after UX.211), the help pages and glossary (DOC.15), and the
   numbers other commands print beyond Core 5's #3248 (a free lane or
   Core 5).
+  Progress (2026-10-09): Aux 12 (UX.212, #3423, 11:52 AM EDT 2026-10-28
+  as the lane reported): the stats and settings pages are done: stats
+  tiles read '12 sectors', '3,456 systems'; queue tiles read '4
+  workers'; nine numeric settings with no unit now carry one; tests pin
+  it; other admin pages have no bare-number tiles. Still open: the
+  property sheet (Aux 11), the help pages and glossary (DOC.15), and the
+  numbers other commands print beyond Core 5's #3248 (a free lane or
+  Core 5).
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
@@ -20484,6 +20482,17 @@ clears each one.
   (the lane's PR gave no ids). Done: both pass on main in a combined
   run. Owner: Bug 1 after DB.108/GEN.826, or Aux 10 for the slider test.
   Rules: never skip or loosen a test to get green.
+  Test ids (2026-10-09): Test ids from Aux 10 (11:52 AM EDT 2026-10-28
+  as the lane reported; all fail alone on a clean origin/main worktree):
+  src/tests/test_progress_log.py::test_the_runner_starts_a_log_for_the_build_and_hands_its_path_to_pytest
+  and ::test_main_resumes_with_a_skip_list_and_says_so_on_its_last_line;
+  src/tests/test_redis_cleanup.py::test_the_runner_prints_what_it_cleared_before_the_first_phase;
+  src/tests/test_resume_across_builds.py::test_main_says_how_many_tests_were_reused_and_from_which_run
+  (the on_child keyword failures of TEST.406);
+  src/tests/test_web_browser_limit_sliders.py::test_ticking_follow_again_returns_the_core_to_the_galaxy_wide_limits
+  (the click on the Follow checkbox is intercepted by the site header,
+  then by the checkbox's own control span; 120 s timeout). The slider
+  one is Bug 1's.
   Prerequisites: none. Related: TEST.414, TEST.418.
 
 ## USR: User accounts
