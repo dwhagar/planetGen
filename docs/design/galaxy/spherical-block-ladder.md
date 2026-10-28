@@ -92,3 +92,7 @@ The single-space map (`docs/design/single-space-map-zoom-2026-10-23.md`) draws t
 ## 10. Filling a block (GEN.310, 2026-10-24)
 
 `planetgen sectors --block m.shell.band.wedge` (and `galaxy`) generates the sectors of one block of a stage level (243 to 3) that the stored outline holds: `drill.block_addresses` lists the block's sectors shell by shell outward, the plan keeps those `bounds.qualifies` accepts, and the rest is the shell and span path (`_address_plan` gives an `AddressPlan`, the cut `expand_generate_sectors` chunks it, `--limit` and `--yes` and the size estimate apply). The order is inner shells first; within a shell it is the ladder's own child order. A block the outline does not reach is a note, not an error. The same plan backs `run_galaxy.generate_block` and `POST /api/galaxy/blocks/<key>/generate` (a queued job with the bright-star backfill and settle after it, an estimate with `estimate_only`); a block of more than 2 million sectors is refused on the web (413) and filled from the command line with `--limit`. Taken as "nearest first": nearest the galactic centre, which is the shell order; nearest the block's own centre would be another order and is not built.
+
+## 11. Regions are the 9-blocks that hold a sector (GEN.825, DB.107, 2026-10-28)
+
+A 9-block with at least one generated sector is a named region with an anchor, a framing sphere, an extent and a stored share charted; see `named-regions.md`. The 81-block above it is the region's family (an 81-block holds about 729 9-blocks, not 27).
