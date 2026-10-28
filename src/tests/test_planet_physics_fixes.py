@@ -28,6 +28,10 @@ from planetgen.generation.star import Star
 
 N_SAMPLE = 300
 
+# TEST.410: a rocky body is a solve of its air, about 2 s on a 4-core machine (5 s on a loaded one) since GEN.411, so the sample that compares
+# two classes' temperatures is 40 a class; measured over 60 each the medians were 312 K (M) and 245 K (P), and 300 K and 238 K over the first 40.
+CLIMATE_SAMPLE = 40
+
 
 @pytest.fixture(scope="module")
 def host_star():
@@ -133,8 +137,8 @@ def test_class_p_has_own_albedo_range_distinct_from_default():
 def test_class_p_is_colder_than_class_m():
     """Medians, not means: since GEN.411 a world on the edge of its liquid range can land on a hot, steam-thick branch of the fixed point
     (the air is bistable there), and a few of those at 900 K say nothing about the typical body of the class."""
-    m_records = plausibility.generate_sample("M", "e", N_SAMPLE, include_moons=False)
-    p_records = plausibility.generate_sample("P", "e", N_SAMPLE, include_moons=False)
+    m_records = plausibility.generate_sample("M", "e", CLIMATE_SAMPLE, include_moons=False)
+    p_records = plausibility.generate_sample("P", "e", CLIMATE_SAMPLE, include_moons=False)
 
     m_median_temp = statistics.median(r["surface_temperature"] for r in m_records)
     p_median_temp = statistics.median(r["surface_temperature"] for r in p_records)
