@@ -137,6 +137,26 @@ test("a system with two reasons is drawn once, by the first reason that is on, a
   assert.deepEqual(giantsOnly.map((c) => c.item.name).sort(), ["Eden", "Jove"]);
 });
 
+test("the reasons are in the order of the best world's symbol and a barren world or a belt is a reason of its own (MAP.321)", () => {
+  assert.deepEqual(M.INTEREST_KINDS.map((k) => k.interest), ["habitable", "uninhabitable", "gas-giant", "asteroid-field"]);
+  assert.deepEqual(M.INTEREST_KINDS.map((k) => k.icon), ["habitable-world", "uninhabitable-world", "gas-giant", "asteroid-field"]);
+  assert.ok(M.INTEREST_KINDS.every((k) => k.defaultOn === false));
+  const systems = [
+    { id: 1, name: "Rock", x: 0, y: 0, z: 0, reasons: { uninhabitable: { n: 2, score: 0.1, tier: "Red" } } },
+    { id: 2, name: "Belt", x: 1, y: 0, z: 0, reasons: { "asteroid-field": { n: 1 } } },
+    { id: 3, name: "Mixed", x: 2, y: 0, z: 0, reasons: { "asteroid-field": { n: 1 }, "gas-giant": { n: 1 }, uninhabitable: { n: 1, score: 0.2, tier: "Red" } } },
+  ];
+  const registry = M.createMarkerKinds();
+  M.INTEREST_KINDS.forEach((kind) => registry.register(kind));
+  const nodes = [{ key: "9.0.0.0", node: { interests: systems } }];
+  const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes });
+  assert.deepEqual(chosen.map((c) => [c.item.name, c.kind.id]).sort(), [
+    ["Belt", "marker-asteroid-field"], ["Mixed", "marker-uninhabitable"], ["Rock", "marker-uninhabitable"]]);
+  const onlyBelts = M.selectMarkers({ kinds: registry.kinds(), isOn: (id) => id === "marker-asteroid-field", nodes });
+  assert.deepEqual(onlyBelts.map((c) => c.item.name).sort(), ["Belt", "Mixed"]);
+  assert.equal(M.interestLines(systems[2]).map((l) => l.text).join("; "), "1 uninhabitable world; 1 gas giant; 1 asteroid belt");
+});
+
 test("the infobox lines of a system name every reason it has, in the registry's order", () => {
   assert.deepEqual(M.interestLines(SYSTEMS_OF_INTEREST[0]).map((l) => [l.id, l.text]), [
     ["habitable", "2 habitable worlds, best Green"], ["gas-giant", "1 gas giant"]]);

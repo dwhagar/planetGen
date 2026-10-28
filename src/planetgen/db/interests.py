@@ -1,6 +1,6 @@
 """
 The reasons a star system is worth a mark on the Galaxy Map (MAP.305, MAP.303): a registry of small SQL tests over a system's
-planets and moons, and the rows they leave in `system_interests`.
+planets, moons and belts, and the rows they leave in `system_interests`.
 
 A reason is an entry of `REASONS`: an id (what the table, the wire format and the map's Menu call it), a test on `planets` (as `p`) and one
 on `moons` (as `m`) that picks the bodies the reason counts, and optionally the column whose largest value over those bodies is kept as
@@ -11,24 +11,39 @@ the reason's score. A system has a row for each reason it has at least one body 
 from planetgen.physics import habitability
 
 HABITABLE = "habitable"
+UNINHABITABLE = "uninhabitable"
 GAS_GIANT = "gas-giant"
+ASTEROID_FIELD = "asteroid-field"
 
 HABITABLE_MIN_SCORE = habitability.YELLOW_FLOOR
 """float: The lowest overall PHI-6 score of a world the map marks (Boss, 7:31 PM EDT 2026-10-24: "Yellow and above"). The habitable rule
-itself stays Blue or Green (`habitability.is_habitable`, GEN.643); this is the map's reason, one tier wider."""
+itself stays Blue or Green (`habitability.is_habitable`, GEN.643); this is the map's reason, one tier wider. A scored terrestrial world
+below it is an `UNINHABITABLE` one."""
 
-# id -> {"planets": SQL test on `p`, "moons": SQL test on `m` or None, "score": column or None, "params": values for the tests}
-# The reason's source, in one place each: a reason that reads a stored class instead (GEN.646) changes its entry here.
+BODY_TABLES = {"planets": ("planets", "p"), "moons": ("moons", "m"), "belts": ("asteroid_belts", "b")}
+"""dict: The tables a reason's tests read, by the key a test is given under in `REASONS`: (table, alias)."""
+
+# id -> {"planets"/"moons"/"belts": SQL test on `p`/`m`/`b` or None, "score": column of planets and moons or None, "params": values for
+# the tests' `?`}. The reason's source, in one place each: a reason that reads a stored class instead (GEN.646) changes its entry here.
 REASONS = {
     HABITABLE: {
         "planets": "p.phi4 >= ?", "moons": "m.phi4 >= ?", "score": "phi4", "params": (HABITABLE_MIN_SCORE,),
+    },
+    UNINHABITABLE: {
+        # A scored terrestrial planet or moon under the habitable floor (MAP.321: the brown symbol).
+        "planets": "p.body_type = 't' AND p.phi4 < ?", "moons": "m.phi4 < ?", "score": "phi4", "params": (HABITABLE_MIN_SCORE,),
     },
     GAS_GIANT: {
         # A planet whose class is a gas giant's (`body_type` 'g'); a moon is never one.
         "planets": "p.body_type = 'g'", "moons": None, "score": None, "params": (),
     },
+    ASTEROID_FIELD: {
+        # Any belt (MAP.321 rule 4; valuable ones with their resource rows later, MAP.312).
+        "belts": "1 = 1", "score": None, "params": (),
+    },
 }
-"""dict: The interest reasons, in the order the map prefers them (the first a system has names its mark)."""
+"""dict: The interest reasons, in the order the map prefers them (the first a system has names its mark, MAP.321: the best world's
+symbol, a habitable one before a barren one before a gas giant before a belt)."""
 
 
 def reason_ids():
@@ -36,15 +51,25 @@ def reason_ids():
     return tuple(REASONS)
 
 
-def _count_sql(reason):
-    """The SQL that counts a system's bodies for `reason` (a value for each `?` in `REASONS[reason]['params']`, planets then moons)."""
+def _sources(reason):
+    """`[(key, test)]` of the tables a reason reads: its tests that are not None."""
     spec = REASONS[reason]
-    parts = [f"(SELECT COUNT(*) FROM planets p WHERE p.star_system_id = ss.id AND {spec['planets']})"]
-    params = list(spec["params"]) if spec["planets"].count("?") else []
-    if spec["moons"]:
-        parts.append(f"(SELECT COUNT(*) FROM moons m WHERE m.star_system_id = ss.id AND {spec['moons']})")
-        params += list(spec["params"]) if spec["moons"].count("?") else []
-    return " + ".join(parts), params
+    return [(key, spec[key]) for key in BODY_TABLES if spec.get(key)]
+
+
+def _params_of(reason):
+    """The values for the `?` of a reason's tests, in the order `_count_sql` and `_score_sql` put the tests."""
+    spec = REASONS[reason]
+    return [value for _key, test in _sources(reason) for value in spec["params"] if test.count("?")]
+
+
+def _count_sql(reason):
+    """The SQL that counts a system's bodies for `reason` (a value for each `?` in `REASONS[reason]['params']`, tables in `BODY_TABLES` order)."""
+    parts = []
+    for key, test in _sources(reason):
+        table, alias = BODY_TABLES[key]
+        parts.append(f"(SELECT COUNT(*) FROM {table} {alias} WHERE {alias}.star_system_id = ss.id AND {test})")
+    return " + ".join(parts), _params_of(reason)
 
 
 def _score_sql(reason):
@@ -52,12 +77,11 @@ def _score_sql(reason):
     spec = REASONS[reason]
     if not spec["score"]:
         return "NULL", []
-    parts = [f"(SELECT MAX(p.{spec['score']}) FROM planets p WHERE p.star_system_id = ss.id AND {spec['planets']})"]
-    params = list(spec["params"]) if spec["planets"].count("?") else []
-    if spec["moons"]:
-        parts.append(f"(SELECT MAX(m.{spec['score']}) FROM moons m WHERE m.star_system_id = ss.id AND {spec['moons']})")
-        params += list(spec["params"]) if spec["moons"].count("?") else []
-    return "GREATEST(COALESCE(" + ", -1), COALESCE(".join(parts) + ", -1))", params
+    parts = []
+    for key, test in _sources(reason):
+        table, alias = BODY_TABLES[key]
+        parts.append(f"(SELECT MAX({alias}.{spec['score']}) FROM {table} {alias} WHERE {alias}.star_system_id = ss.id AND {test})")
+    return "GREATEST(COALESCE(" + ", -1), COALESCE(".join(parts) + ", -1))", _params_of(reason)
 
 
 def record(conn, where, params):

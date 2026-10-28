@@ -204,7 +204,42 @@ def test_a_gas_giant_is_a_reason_of_its_own(mysql_config):
         conn.close()
 
 
-def test_a_v164_galaxy_gets_its_rows_from_the_planets_and_moons_it_holds(mysql_config):
+def test_a_scored_barren_world_is_an_uninhabitable_one_and_a_belt_is_an_asteroid_field(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        conn.execute("UPDATE planets SET body_type = 't', phi4 = ? WHERE star_system_id = ?", (0.1, system_id))
+        conn.execute("UPDATE moons SET phi4 = NULL WHERE star_system_id = ?", (system_id,))
+        planets = conn.execute("SELECT COUNT(*) AS n FROM planets WHERE star_system_id = ?", (system_id,)).fetchone()["n"]
+        conn.execute("DELETE FROM asteroid_belts WHERE star_system_id = ?", (system_id,))
+        store.recount_habitable_worlds(conn, [system_id])
+        rows = _rows(conn, system_id)
+        assert interests.HABITABLE not in rows and interests.ASTEROID_FIELD not in rows
+        assert rows[interests.UNINHABITABLE]["n"] == planets and rows[interests.UNINHABITABLE]["best_score"] == pytest.approx(0.1)
+        # a gas giant is never an uninhabitable world, and a body with no score is not one either
+        conn.execute("UPDATE planets SET body_type = 'g' WHERE star_system_id = ? ORDER BY id LIMIT 1", (system_id,))
+        conn.execute("UPDATE planets SET phi4 = NULL WHERE star_system_id = ? ORDER BY id DESC LIMIT 1", (system_id,))
+        store.recount_habitable_worlds(conn, [system_id])
+        left = conn.execute("SELECT COUNT(*) AS n FROM planets WHERE star_system_id = ? AND body_type = 't' AND phi4 IS NOT NULL",
+                            (system_id,)).fetchone()["n"]
+        assert _rows(conn, system_id).get(interests.UNINHABITABLE, {"n": 0})["n"] == left
+        conn.execute("INSERT INTO asteroid_belts (star_system_id, orbital_index, distance_km, lower_limit_km, upper_limit_km, density,"
+                     " composition_summary) VALUES (?, 3, 4.0e8, 3.0e8, 5.0e8, 'typical', 'iron')", (system_id,))
+        conn.execute("INSERT INTO asteroid_belts (star_system_id, orbital_index, distance_km, lower_limit_km, upper_limit_km, density,"
+                     " composition_summary) VALUES (?, 5, 8.0e8, 7.0e8, 9.0e8, 'sparse', 'ice')", (system_id,))
+        store.recount_habitable_worlds(conn, [system_id])
+        row = _rows(conn, system_id)[interests.ASTEROID_FIELD]
+        assert row["n"] == 2 and row["best_score"] is None
+        lo, hi = _box(POSITION_PC)
+        found = query.galaxy_system_interests_in_box(conn, lo, hi)
+        assert found[0]["reasons"][interests.ASTEROID_FIELD] == {"n": 2}
+    finally:
+        conn.rollback()
+        conn.close()
+
+
+def test_a_v164_galaxy_gets_its_rows_from_the_planets_moons_and_belts_it_holds(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         sector_id, _expected = _fill_one_sector(conn)
@@ -232,5 +267,37 @@ def test_a_v164_galaxy_gets_its_rows_from_the_planets_and_moons_it_holds(mysql_c
         got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
         assert got == want
         assert conn.execute("SHOW TABLES LIKE 'habitable_systems'").fetchone() is None
+    finally:
+        conn.close()
+
+
+def test_a_v165_galaxy_gets_the_two_new_reasons_from_what_it_holds(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        sector_id, _expected = _fill_one_sector(conn)
+        system_id = _place(conn, sector_id)
+        conn.execute("UPDATE planets SET body_type = 't', phi4 = ? WHERE star_system_id = ?", (0.1, system_id))
+        conn.execute("INSERT INTO asteroid_belts (star_system_id, orbital_index, distance_km, lower_limit_km, upper_limit_km, density,"
+                     " composition_summary) VALUES (?, 3, 4.0e8, 3.0e8, 5.0e8, 'typical', 'iron')", (system_id,))
+        store.recount_habitable_worlds(conn, [system_id])
+        conn.commit()
+        want = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        assert interests.UNINHABITABLE in want and interests.ASTEROID_FIELD in want
+    finally:
+        conn.close()
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        conn.execute("DELETE FROM system_interests WHERE reason IN ('uninhabitable', 'asteroid-field')")
+        conn.execute("UPDATE alembic_version SET version_num = '0165'")
+        conn.execute("DELETE FROM schema_migrations")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (165)")
+        conn.commit()
+    finally:
+        conn.close()
+    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        got = {reason: (row["n"], row["best_score"]) for reason, row in _rows(conn, system_id).items()}
+        assert got == want
     finally:
         conn.close()

@@ -1483,6 +1483,8 @@
 --   scatter is cleared; `species` gains `generator_epoch`, the epoch the population pass made it under. A sector has its own epoch (v121) and the plan its own (v131), so every stage's results say what made them.
 -- v165 (MAP.305, MAP.303): `system_interests` replaces `habitable_systems`: one row for each reason a star system is worth a mark on the Galaxy Map (a planet or moon rated
 --   Yellow or better overall, a gas giant), with how many bodies give it, the largest score among them and the system's position.
+-- v166 (MAP.321): `system_interests` also takes the reasons `uninhabitable` (a scored terrestrial planet or moon under the Yellow floor) and `asteroid-field` (a system with a belt); no
+--   column changes, the migration fills the two reasons from the planets, moons and belts already stored.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -4222,8 +4224,8 @@ CREATE TABLE IF NOT EXISTS sector_system_counts (
 
 -- ---------------------------------------------------------------------
 -- system_interests (v165, MAP.305, MAP.303): one row for each reason a star system is worth a mark on the Galaxy Map
--- (`planetgen.db.interests.REASONS`: a planet or moon rated Yellow or better overall on the PHI-6 score, a gas giant, and
--- more as they are added), with how many bodies give it (`n`), the largest score among them (`best_score`, NULL for a reason
+-- (`planetgen.db.interests.REASONS`: a planet or moon rated Yellow or better overall on the PHI-6 score, a scored barren one, a gas giant, a
+-- belt, and more as they are added), with how many bodies give it (`n`), the largest score among them (`best_score`, NULL for a reason
 -- with no score) and where the system is, so the map's marker layer finds the systems in a box (`query.galaxy_system_interests_in_box`)
 -- without reading every planet. Derived data: `interests.record` rebuilds a system's rows when its sector is filled and whenever its
 -- scores are worked out again; the position is the system's `galaxy_*_pc`, which never changes. It replaces `habitable_systems` (v148).
