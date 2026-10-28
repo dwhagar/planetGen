@@ -68,6 +68,7 @@ const {
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
 const { createGalaxyLabels, LABEL_KINDS } = await import(`./galaxylabels.js${VERSION_QUERY}`);
+const { regionLabels } = await import(`./regionlabels.js${VERSION_QUERY}`);
 const { formatNumber, threeFigures } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { starLight } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
@@ -3596,10 +3597,21 @@ function initGalaxyMap3d(canvasEl, data) {
       THREE: THREE, camera: camera, canvasEl: canvasEl, parent: viewport, layers: stageView.layers, light: isLightBackground(),
       sources: {
         sectors: stageView.sectorLabels, systems: stageView.systemLabels, bodies: stageView.bodyLabels, nebulae: cloudLabels,
-        stars: starNames, objects: objectNames, worlds: worldNames,
+        stars: starNames, objects: objectNames, worlds: worldNames, regions: regionNames,
       },
     });
     canvasEl.__mapLabels = galaxyLabels;    // the browser tests read what is placed
+  }
+  // MAP.314: the names of the charted regions the nodes of the view offer, by the size of the nodes (regionlabels.js): none
+  // in a view with no charted region, and none while the nodes are not in. Only the nodes the view is drawn with are asked,
+  // not a block that has handed over to its children, so a family is named once, at the size the view shows it.
+  function regionNames() {
+    var need = neededNodes();
+    var settled = settledExpanded(need, function (key) { return getNode(key) !== undefined; });
+    var drawn = need.keys.filter(function (key) { return !settled.has(key); });
+    return regionLabels(drawn.map(function (key) { return { key: key, node: getNode(key) }; })).filter(function (label) {
+      return drawnByTheGalaxy(label.x, label.y, label.z);
+    });
   }
   // The nebulae and remnants in view that are large enough on screen to read: their name, else their type.
   function cloudLabels() {
@@ -3819,8 +3831,18 @@ function initGalaxyMap3d(canvasEl, data) {
       stageView.flyToEntry({ x: ref.cloud.x, y: ref.cloud.y, z: ref.cloud.z, r: ref.cloud.radius_pc });
     } else if (ref.kind === "sector") {
       stageView.locate(ref.sector);
+    } else if (ref.kind === "region") {
+      // MAP.314: a charted region is framed by its sphere, a family or a region listed without one by its block.
+      var block = parseNodeKey(ref.key);
+      if (ref.extent) regionOpener.region({ block: block, extent: ref.extent });
+      else regionOpener.block(block);
     }
   }
+
+  // For tests (MAP.314): the keys of the nodes the view is cut into, and whether each is in yet.
+  canvasEl.galaxyNodeKeys = function () {
+    return neededNodes().keys.map(function (key) { return { key: key, loaded: !!getNode(key) }; });
+  };
 
   // For tests (MAP.304): the stars a click can pick now, brightest first, with where each is on the screen (CSS pixels
   // from the canvas's top left; `visible` false off the screen).

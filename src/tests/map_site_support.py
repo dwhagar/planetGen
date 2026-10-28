@@ -318,10 +318,32 @@ def sector_detail(sector_id=SECTOR_ID):
     }
 
 
-REGION_NAMES = {"name": "Fixture Beez Region", "parent": "Fixture Reach"}
-"""What the node of a charted 9-block carries (API.35), and with it `extent` (MAP.319), a sphere of `REGION_RADIUS_PC` pc about
-its first generated sector."""
+REGION_NAMES = {(0, 0, 0): "Fixture Beez Region", (1, 0, 0): "Fixture Zarh Region"}
+"""The name of each charted 9-block of the fixture (API.35), by its `(shell, band, wedge)`: the two the fixture's four sectors
+fall in, both of the one 81-block family `REGION_FAMILY`."""
+REGION_FAMILY = "Fixture Reach"
 REGION_RADIUS_PC = 12.0
+"""What the node of a charted 9-block carries beside its name (`extent`, MAP.319): a sphere of `REGION_RADIUS_PC` pc about its
+first generated sector."""
+REGION_OUTLINE_SECTORS = 780
+"""How many sectors the outline of a 9-block holds, about (the share charted, `charted`, MAP.314)."""
+
+
+def charted_regions():
+    """The fixture's charted regions, `{(shell, band, wedge): {"key", "name", "parent", "centre", "radius", "sectors", "percent"}}`
+    in the shape the node list of MAP.314 has (`region_stats.node_regions`): one per 9-block that holds a fixture sector."""
+    from planetgen.db import region_stats
+    from planetgen.galaxy.drill import format_drill_key
+
+    found = {}
+    for sector in SECTORS:
+        cell = region_stats.region_cell(sector[1:4])
+        entry = found.setdefault(tuple(cell)[1:], {
+            "key": format_drill_key(cell), "name": REGION_NAMES[tuple(cell)[1:]], "parent": REGION_FAMILY,
+            "centre": list(_sector_center_pc(*sector[1:4])), "radius": REGION_RADIUS_PC, "sectors": 0, "percent": 0.0})
+        entry["sectors"] += 1
+        entry["percent"] = round(100.0 * entry["sectors"] / REGION_OUTLINE_SECTORS, 3)
+    return found
 
 UNCHARTED_CELL = (1, 0, 0)
 """A cell of the core no sector was generated in, where the fixture's scatters left a bright star, a black
@@ -566,10 +588,24 @@ class FixtureApi:
             nodes[key] = {"aggregate": {"generated": 0, "stats": None, "lights": lights}, "placed": [],
                           "clouds": clouds, "stars": stars, "generated": None, "points": points, "worlds": worlds}
             # API.35: a 9-block holding a generated sector is a charted region, named with its family.
-            charted = [sector for sector in SECTORS if block.m == 9 and address_in_block(sector[1:4], block, self._memo)]
-            if charted:
-                nodes[key].update(REGION_NAMES)
-                nodes[key]["extent"] = {"centre": list(_sector_center_pc(*charted[0][1:4])), "radius": REGION_RADIUS_PC}
+            regions = charted_regions()
+            if block.m == 9 and tuple(block)[1:] in regions:
+                region = regions[tuple(block)[1:]]
+                nodes[key].update(name=region["name"], parent=region["parent"])
+                nodes[key]["extent"] = {"centre": region["centre"], "radius": region["radius"]}
+                nodes[key]["charted"] = {"sectors": region["sectors"], "percent": region["percent"]}
+            elif block.m in (27, 81, 243):
+                # MAP.314: the charted regions inside a node of these sizes, most sectors first.
+                from planetgen.galaxy.drill import drill_parent, parse_node_key
+                inside = []
+                for region in regions.values():
+                    ancestor = parse_node_key(region["key"])
+                    while ancestor.m < block.m:
+                        ancestor = drill_parent(ancestor)
+                    if ancestor == block:
+                        inside.append(region)
+                if inside:
+                    nodes[key]["regions"] = sorted(inside, key=lambda r: (-r["sectors"], r["key"]))
         return {"nodes": nodes, "edge_pc": EDGE_PC, "has_shape": True}
 
     def get_galaxy_stage(self, db, at=None):

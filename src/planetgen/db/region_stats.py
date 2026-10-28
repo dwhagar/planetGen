@@ -37,6 +37,11 @@ INSERT = f"INSERT INTO region_stats ({', '.join(COLUMNS)}) VALUES ({', '.join('?
 CHUNK = 300
 """int: Cells read per statement."""
 
+LABEL_LEVELS = (27, 81, 243)
+"""tuple: The block sizes whose node lists the charted regions inside it (`node_regions`, MAP.314): the levels the Galaxy
+Map names regions at from a distance, a family at 81 and 243 and the regions themselves at 27 (a region's own node, 9, carries
+its name). Above 243 a node would list too many regions to read, and below 9 the region is the infobox's line (MAP.315)."""
+
 
 def region_cell(address):
     """The region (9-block) that holds the sector `(shell, band, wedge)`."""
@@ -158,6 +163,12 @@ def extent_of(region):
     return {"centre": list(region["extent_centre_pc"]), "radius": region["extent_radius_pc"]}
 
 
+def charted_of(region):
+    """How much of a charted region is generated, as the region's own node carries it (MAP.314): `sectors` and `percent`, the
+    share of its outline's sectors in percent, which the map ranks its names by."""
+    return {"sectors": region["sector_count"], "percent": round(region["charted_percent"], 3)}
+
+
 def labels(cell, key, edge_pc):
     """
     The names a charted region carries on the wire (API.35): `name` ("Fardoo Beez Region") and `parent`, the name of its 81-block
@@ -199,3 +210,38 @@ def regions(conn, cells=None):
             ).fetchall()
     found = [_region(row) for row in rows]
     return sorted(found, key=lambda region: (-region["charted_percent"], tuple(region["block"])))
+
+
+def cells_in(block):
+    """The region cells (9-blocks) a block of a level above 9 holds, in the ladder's order: at most 27 for an 81-block."""
+    if block.m < LEVEL:
+        raise ValueError(f"a block of {block.m} sectors does not hold whole regions")
+    if block.m == LEVEL:
+        return [block]
+    cells = []
+    for _shell, children in drill.drill_children(block):
+        for child in children:
+            cells.extend(cells_in(child))
+    return cells
+
+
+def node_regions(conn, block, key, edge_pc):
+    """
+    The charted regions a node of `LABEL_LEVELS` lists on the wire (MAP.314), for the map to name them from a distance: a
+    list of `{"key", "name", "parent", "centre", "radius", "sectors", "percent"}` (the region's 9-block key, its name and its
+    family's, its bounding sphere as the middle `[x, y, z]` and the `radius`, in parsecs, its generated sectors and its share
+    charted, in percent),
+    most sectors first, ties by the cell. `None` for a block of another size, a block that holds no charted region, and while
+    no naming key is in force (a region has no name then, as on its own node).
+    """
+    if block.m not in LABEL_LEVELS or key is None:
+        return None
+    found = regions(conn, cells_in(block))
+    if not found:
+        return None
+    listed = []
+    for region in sorted(found, key=lambda region: (-region["sector_count"], tuple(region["block"]))):
+        names = labels(region["block"], key, edge_pc)
+        listed.append({"key": drill.format_drill_key(region["block"]), "name": names["name"], "parent": names["parent"],
+                       "centre": list(region["extent_centre_pc"]), "radius": region["extent_radius_pc"], **charted_of(region)})
+    return listed
