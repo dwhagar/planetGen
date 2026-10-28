@@ -15,7 +15,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
-from planetgen.physics import activity, atmosphere, constants, proton_range, radiation as rad, radiogenic, surface_composition
+from planetgen.physics import activity, atmosphere, constants, proton_range, radiation as rad, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -126,13 +126,31 @@ def test_the_modulation_scales_the_dose():
 
 
 def test_proxima_bs_thin_air_breaks_the_flare_shield():
+    """GEN.747: the measured events give the Sun 265 mSv/yr in free space; Proxima's flares scale it by the square root of their rate and the
+    inverse square of the distance. A tenth of a bar lets 11 Sv a year through (Atri 2017: 5 to 10 Sv from one hard event at 700 g/cm2 or less),
+    and a bar of air stops all but a few mSv."""
     free = rad.free_sep_msv_yr(2100.0 * 0.0485 ** 2, 0.0485)
     column = rad.column_g_cm2(10132.5, 1.07)
     assert rad.gcr_dose_msv_yr(column) == pytest.approx(540, rel=0.1)
-    assert rad.sep_dose_msv_yr(free, column, 0.0) == pytest.approx(2300, rel=0.5)
+    assert rad.sep_dose_msv_yr(free, column, 0.0) == pytest.approx(1.06e4, rel=0.1)
+    assert rad.sep_dose_msv_yr(free, column, 0.0) > 5000.0
     dense = rad.column_g_cm2(101325.0, 1.07)
-    assert rad.sep_dose_msv_yr(free, dense, 0.0) < 10.0
-    assert rad.sep_dose_msv_yr(free, dense, 2.2) < rad.sep_dose_msv_yr(free, dense, 0.0)
+    assert rad.sep_dose_msv_yr(free, dense, 0.0) < 20.0
+    assert rad.sep_dose_msv_yr(free, dense, 2.2) <= rad.sep_dose_msv_yr(free, dense, 0.0)
+    assert rad.sep_dose_msv_yr(free, dense, 20.0) < rad.sep_dose_msv_yr(free, dense, 0.0)
+
+
+def test_the_suns_free_space_particle_dose_is_the_measured_events_and_scales_with_the_flares_and_distance():
+    assert rad.free_sep_msv_yr(rad.N33_SUN_PER_YR, 1.0) == solar_particles.FREE_MSV_YR
+    assert rad.free_sep_msv_yr(4 * rad.N33_SUN_PER_YR, 1.0) == pytest.approx(2 * solar_particles.FREE_MSV_YR)
+    assert rad.free_sep_msv_yr(rad.N33_SUN_PER_YR, 2.0) == pytest.approx(solar_particles.FREE_MSV_YR / 4.0)
+    assert rad.free_sep_msv_yr(None, 1.0) == 0.0 and rad.free_sep_msv_yr(0.0, 1.0) == 0.0 and rad.free_sep_msv_yr(1.0, None) == 0.0
+    # Earth's air and field leave the particles of the events nothing: the earth is spared all but 1e-4 mSv/yr
+    earth = rad.sep_dose_msv_yr(solar_particles.FREE_MSV_YR, rad.column_g_cm2(101325.0, 1.0), rad.EARTH_CUTOFF_GV)
+    assert earth < 1e-3
+    # Mars's 22.6 g/cm2 stops the protons below 172 MeV; with no field about a fifteenth of the dose reaches the ground
+    mars = rad.sep_dose_msv_yr(solar_particles.FREE_MSV_YR, 22.6, 0.0)
+    assert mars == pytest.approx(solar_particles.FREE_MSV_YR * 0.072, rel=0.15)
 
 
 def test_the_stellar_particle_cutoff_is_the_pstar_proton_energy():
