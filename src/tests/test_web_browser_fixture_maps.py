@@ -37,10 +37,15 @@ PRIME_CODE = provisional_sector_designation(1, 0, 1)
 UNCHARTED_CODE = provisional_sector_designation(*UNCHARTED_CELL)
 """The designation of the fixture's uncharted cell."""
 
-VIEWPORT = {"width": 800, "height": 600}
+VIEWPORT = {"width": 1000, "height": 800}
 """dict: The default window. Reading a software-WebGL canvas back costs time in proportion to its pixels (2.5 s
 at 1280x900, 1.1 s at 800x600, TEST.139), and most of these tests take several screenshots; a test that needs
-a wide or tall window says so with `@pytest.mark.viewport(width, height)`."""
+a wide or tall window says so with `@pytest.mark.viewport(width, height)`. It is 1000 wide and 800 high because the
+page's header takes the top 230 px or more and a map in a 600 px window ran off its bottom (TEST.394)."""
+HIDE_NAMES = "label-system,label-star,label-object"
+"""str: The address's hide list that takes the names off the map. A name takes the click or the hover that lands on it
+(MAP.298: the map picks a name before the star under it), so a test that points at a star or a marker and is not about
+the names is marked `names_hidden` and opens its maps with them hidden (`_open`); `_raw_query` leaves that token out."""
 GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
 SECTOR_CANVAS = "#galaxymap3d-canvas"
 GALAXY_CANVAS = "#galaxymap3d-canvas"
@@ -72,6 +77,7 @@ def page(gl_browser, request):
     context = gl_browser.new_context(viewport=viewport, device_scale_factor=1, reduced_motion="reduce",
                                      color_scheme="dark")
     page = context.new_page()
+    page.names_hidden = request.node.get_closest_marker("names_hidden") is not None
     errors = []
     page.on("pageerror", lambda exc: errors.append(str(exc)))
     try:
@@ -85,6 +91,8 @@ DOUBLE_CLICK_GAP_MS = 400
 
 
 def _open(page, url, ready):
+    if getattr(page, "names_hidden", False) and "hide=" not in url:
+        url += ("&" if "?" in url else "?") + "hide=" + HIDE_NAMES
     response = page.goto(url, wait_until="load")
     assert response.status == 200, f"{url} answered {response.status}"
     page.wait_for_selector(ready, state="attached")
@@ -191,6 +199,7 @@ def test_sector_map_click_picks_a_star(page, map_site):
     assert _selection_displays(page) == []
 
 
+@pytest.mark.names_hidden
 def test_sector_map_hover_names_what_is_under_the_pointer(page, map_site):
     """MAP.65: the Sector Map shows a tooltip for what is under the pointer
     (it had none before the shared picking layer), and a picked system's
@@ -340,6 +349,7 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     stars.click()
     assert stars.get_attribute("aria-pressed") == "false"
     assert "hide=star" in page.url
+    page.locator("#galaxymap3d-menu > summary").click()   # the open Menu covers the spot of the star
     page.mouse.click(_x, _y)
     assert _info_title(page) != name, "a hidden star can't be picked"
     assert _shot(page, SECTOR_CANVAS) != before, "hiding the stars changes the map"
@@ -435,7 +445,8 @@ def _crumbs(page):
 
 def _raw_query(page):
     """The address's query without the camera it carries once the view is still (MAP.228)."""
-    return "&".join(part for part in urlparse(page.url).query.split("&") if part and not part.startswith("cam="))
+    return "&".join(part for part in urlparse(page.url).query.split("&")
+                    if part and not part.startswith("cam=") and part != "hide=" + HIDE_NAMES)
 
 
 def _stage(page):
@@ -762,6 +773,7 @@ OPEN_PRIME = f"?sector={PRIME_CODE}&open=1"
 """The fixture's Fixture Prime (shell 1, band 0, wedge 1) opened in place."""
 
 
+@pytest.mark.names_hidden
 def test_galaxy_map_opens_a_sector_in_place(page, map_site):
     """MAP.66: a generated sector opens in the Galaxy Map itself, drawn by
     the Sector Map's scene: a star can be hovered and picked there (its
@@ -884,6 +896,7 @@ def _camera(page):
     return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
 
 
+@pytest.mark.names_hidden
 def test_c_recenters_the_view_on_the_selection_and_the_mouse_turns_about_it(page, map_site):
     """MAP.138: C (or Menu's Center on selection) moves the center the view
     turns and zooms about to the selected star, keeping the angle and zoom;
@@ -1804,6 +1817,7 @@ def _panel_state(page):
     return page.evaluate("() => document.querySelector('#galaxymap3d-info').dataset.state")
 
 
+@pytest.mark.names_hidden
 def test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box(page, dense_site):
     """MAP.297, MAP.304: on the dense fixture region a click on a drawn star selects it (its panel shows in the map
     window), a click on nothing selects nothing and puts the panel away, and no sector box is outlined or shaded,
@@ -1825,10 +1839,16 @@ def test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box(page,
     assert lines["hovered"]["lines"] == 0 and lines["hovered"]["shade"] == 0, lines
 
     # Nothing under the pointer: nothing is selected and the panel goes.
-    gap = next((x, y) for x in range(40, 700, 53) for y in range(60, 520, 47)
-               if all(abs(x - o["x"]) + abs(y - o["y"]) > 40 for o in stars))
     box = page.locator(GALAXY_CANVAS).bounding_box()
-    page.mouse.click(box["x"] + gap[0], box["y"] + gap[1])
+    gaps = [(x, y) for x in range(40, 700, 53) for y in range(60, 520, 47)
+            if all(abs(x - o["x"]) + abs(y - o["y"]) > 40 for o in stars)]
+    # A spot the map itself is under: its panels (the selection's, the Menu) cover part of it.
+    bare = page.evaluate("""(spots) => spots.filter(([x, y]) => {
+        const found = document.elementFromPoint(x, y);
+        return found && found.id === 'galaxymap3d-canvas';
+    })""", [[box["x"] + x, box["y"] + y] for x, y in gaps])
+    assert bare, "no spot of the map is free of its panels"
+    page.mouse.click(*bare[0])
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info').dataset.state !== 'selected'")
     lines = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyLines()")
     assert lines["hovered"]["lines"] == 0, lines
@@ -2176,7 +2196,8 @@ def test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_pi
         close.click()
     # A click on the glyph names the black hole.
     maw = holes["Fixture Maw"]
-    page.locator("#galaxymap3d-menu > summary").click()
+    if page.evaluate("document.querySelector('#galaxymap3d-menu').open"):   # the Menu's panel would cover the glyph (TEST.394)
+        page.locator("#galaxymap3d-menu > summary").click()
     page.wait_for_timeout(600)
     page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
     spot = _screen_of(page, (maw["x"], maw["y"], maw["z"]))
@@ -2490,6 +2511,7 @@ def test_sector_map_escape_clears_the_selection(page, map_site):
     assert page.url.split("?")[0].endswith(f"/sector/{SECTOR_ID}"), page.url
 
 
+@pytest.mark.names_hidden
 def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
     """MAP.113: a nebula can be unselected by clicking it again, which is all
     there is to click when it covers the sector."""
@@ -3154,6 +3176,7 @@ def _hover_spot(page, point):
     pytest.fail(f"nothing under the pointer at {point}")
 
 
+@pytest.mark.names_hidden
 def test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view(page, halo_site):
     """MAP.243: beyond the galaxy's outline no block is under the pointer; a phenomenon there is picked on the screen
     like one inside a window, its details shown."""
@@ -3167,6 +3190,7 @@ def test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view(page, halo_
     page.wait_for_function("() => { const h = document.querySelector('#galaxymap3d-info h3'); return h && h.textContent.includes('Fixture Outlier'); }")
 
 
+@pytest.mark.names_hidden
 def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(page, halo_site):
     """MAP.243: a star of a loose group beyond the outline is picked (its position and brightness shown), and the
     wheel run toward it hands off to a window round the cell that holds it, where there was no block to open before.
@@ -3202,6 +3226,7 @@ def test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it(pa
     assert math.dist(camera["target"], point) < 2500.0, (camera["target"], point)
 
 
+@pytest.mark.names_hidden
 @pytest.mark.viewport(1280, 900)
 def test_a_selection_is_shown_once_and_over_the_map(page, map_site):
     """MAP.256: an opened sector (selected on opening) and a system picked in it each show their information in one
