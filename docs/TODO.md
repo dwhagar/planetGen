@@ -2969,6 +2969,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after MAP.322 and UX.235).
   Prerequisites: none. Related: MAP.327, MAP.322, UX.235.
 
+- [ ] **MAP.332 The Galaxy Map info card (Block 10 1 63 and similar) is cut off at the bottom, so its region line and buttons are hidden below the More row (bug)**
+  Boss, screenshots at 6:03 PM EDT 2026-10-28 (relayed by the
+  coordinator), live observation, so a bug: the info card on the Galaxy
+  Map is clipped at the bottom, the region line (MAP.315) and the card
+  buttons (Zoom in, show and fly) fall below the More row and cannot be
+  reached. Do: let the card size to its content up to the map window
+  height and scroll inside itself past that, keep the buttons and the
+  region line reachable on a small window and on a phone, and add a
+  browser test with a short window that finds the last button inside the
+  card bounds. Owner: Core 2, with the wireframe legend item MAP.331.
+  Prerequisites: none. Related: MAP.331, MAP.315, MAP.325.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
