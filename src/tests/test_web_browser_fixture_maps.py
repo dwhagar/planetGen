@@ -2240,7 +2240,7 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
 
 MARKERS = """() => {
     const layer = document.getElementById("galaxymap3d-canvas").__mapMarkers;
-    return layer ? layer.entries().map((e) => ({kind: e.kind.id, name: e.item.name, x: e.x, y: e.y, z: e.z})) : null;
+    return layer ? layer.entries().map((e) => ({kind: e.kind.id, name: e.item.name, regionKey: e.item.regionKey || null, x: e.x, y: e.y, z: e.z})) : null;
 }"""
 
 
@@ -2396,6 +2396,40 @@ def test_the_charted_regions_are_soft_spheres_at_galactic_scale_colored_by_share
     button.click()
     assert "hide=regions" not in page.url
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').__mapRegions.isVisible() === true")
+
+
+def test_a_charted_region_with_an_inhabited_world_carries_an_inhabited_token_that_opens_its_card(page, map_site):
+    """MAP.321 c: at galactic scale a region whose list entry has inhabited worlds carries the inhabited symbol at its middle
+    (once the Menu's Inhabited worlds is on), in the colour of its best world's tier; picking it shows the region's card with
+    the inhabited line, and a region without any has no token."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => { const g = document.querySelector('#galaxymap3d-canvas').__mapRegions; return g && g.drawn() > 0; }", timeout=20000)
+    assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]], "the layer is off until asked for"
+    _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
+    found = _markers_until(page, lambda entries: any(e["regionKey"] for e in entries))
+    tokens = [e for e in found if e["regionKey"]]
+    assert [(e["kind"], e["regionKey"]) for e in tokens] == [("marker-inhabited", "9.0.0.0")], found
+    assert tokens[0]["name"] == "Fixture Beez Region", tokens
+    spot = next(s for s in page.evaluate(REGION_SPOTS) if s["key"] == "9.0.0.0")
+    assert spot["visible"]
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    where = (box["x"] + spot["x"], box["y"] + spot["y"])
+    assert _on_the_canvas(page, where)
+    page.mouse.move(where[0] + 1, where[1])
+    page.mouse.move(*where)
+    page.wait_for_timeout(300)
+    assert "Fixture Beez Region, 3 inhabited worlds in 2 systems, best Blue" in page.locator("#galaxymap3d-tooltip").inner_text()
+    page.mouse.click(*where)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert "3 inhabited worlds in 2 systems, best Blue" in info, info
+    # Switching the regions layer off takes the token with its sphere.
+    _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="regions"]').click()
+    _markers_until(page, lambda entries: not any(e["regionKey"] for e in entries))
+    assert not [e for e in page.evaluate(MARKERS) if e["regionKey"]]
 
 
 def test_the_regions_give_way_to_the_stars_as_the_camera_comes_in(page, map_site):

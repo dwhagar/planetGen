@@ -8,7 +8,7 @@ import pytest
 
 from planetgen.api.config import Config
 from planetgen.db import region_stats, store
-from planetgen.galaxy import drill, named_regions
+from planetgen.galaxy import drill, named_regions, spherical
 from planetgen.names import naming_key
 from planetgen.web.app import create_app
 from tests.test_region_stats import _addresses
@@ -64,3 +64,34 @@ def test_without_a_naming_key_the_regions_are_listed_unnamed(galaxy, client):
     listed = client.get("/api/galaxy/charted-regions").get_json()["regions"]
     assert listed and all("name" not in entry and "parent" not in entry for entry in listed)
     assert all(entry["radius"] > 0 for entry in listed)
+
+
+def _inhabit(config, rows):
+    """Puts an `inhabited` interest row `(system id, n, score, address)` at the middle of each sector (no star system behind it)."""
+    conn = store.get_connection(config)
+    try:
+        with conn:
+            conn.execute("SET SESSION FOREIGN_KEY_CHECKS = 0")
+            for system_id, n, score, address in rows:
+                x, y, z = spherical.sector_position_pc(*address, EDGE)
+                conn.execute("INSERT INTO system_interests (star_system_id, reason, n, best_score, galaxy_x_pc, galaxy_y_pc,"
+                             " galaxy_z_pc) VALUES (?, ?, ?, ?, ?, ?, ?)", (system_id, "inhabited", n, score, x, y, z))
+            conn.execute("SET SESSION FOREIGN_KEY_CHECKS = 1")
+    finally:
+        conn.close()
+
+
+def test_a_region_with_inhabited_worlds_says_how_many_and_how_good_the_best_is(galaxy, client, keyed):
+    addresses = _addresses()
+    _inhabit(galaxy, [(9001, 2, 0.8, addresses[0]), (9002, 1, 1.2, addresses[1]), (9003, 1, None, addresses[-1])])
+    listed = {entry["key"]: entry for entry in client.get("/api/galaxy/charted-regions").get_json()["regions"]}
+    first = listed[drill.format_drill_key(region_stats.region_cell(addresses[0]))]
+    assert first["inhabited"] == {"systems": 2, "worlds": 3, "score": 1.2, "tier": "Blue"}
+    far = listed[drill.format_drill_key(region_stats.region_cell(addresses[-1]))]
+    assert far["inhabited"] == {"systems": 1, "worlds": 1}
+    assert [entry for entry in listed.values() if "inhabited" in entry] == [first, far]
+
+
+def test_a_region_with_no_inhabited_world_has_no_inhabited_entry(galaxy, client, keyed):
+    listed = client.get("/api/galaxy/charted-regions").get_json()["regions"]
+    assert listed and all("inhabited" not in entry for entry in listed)

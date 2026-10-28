@@ -8,6 +8,9 @@
 // fades (REGION_RESOLVE_PX), handing the picture to the stars, as the unresolved glow does (MAP.324). No DOM and no three.js here:
 // tests/js/galaxyregions.test.mjs holds it to this description.
 
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { TIER_NAMES } = await import(`./poiicons.js${VERSION_QUERY}`);
+
 // The strongest a region is drawn (alpha) at a share charted of 0 and of 1: a lone sector is a faint cool sphere, a filled
 // region a warm one, none outshining a star's own core (the glow layer draws with a maximum blend, so overlaps never add).
 export const REGION_ALPHA = [0.2, 0.5];
@@ -46,8 +49,19 @@ export function shareColor(share) {
   return COLOR_STOPS[COLOR_STOPS.length - 1][1].slice();
 }
 
+// A region's inhabited token (MAP.321 c) shows while its sphere is drawn at least this strongly (regionLook's alpha), the same floor a
+// click on the sphere needs: a sphere that has faded into its own stars hands the token to the systems' own marks.
+export const REGION_TOKEN_MIN_ALPHA = 0.05;
+
+function inhabitedOf(found) {
+  if (!found || !(found.systems > 0)) return null;
+  const tier = found.tier ? TIER_NAMES.indexOf(found.tier) : -1;
+  return { systems: found.systems, worlds: found.worlds, tier: tier >= 0 ? tier : null };
+}
+
 // The blobs of the regions the API listed (`regions`: the `charted-regions` payload's list), in their order:
-// `{ key, block, x, y, z, radiusPc, share, color, name, parent, sectorCount, capacity }`. A region with no extent is left out.
+// `{ key, block, x, y, z, radiusPc, share, color, name, parent, sectorCount, capacity, inhabited }`, `inhabited` being `null` or
+// `{ systems, worlds, tier }` (the tier an index, 0 Blue to 3 Red, or `null` unscored). A region with no extent is left out.
 export function regionBlobs(regions) {
   const found = [];
   (regions || []).forEach((region) => {
@@ -57,7 +71,7 @@ export function regionBlobs(regions) {
       block: { m: region.m, shell: region.shell, band: region.band, wedge: region.wedge },
       x: region.centre[0], y: region.centre[1], z: region.centre[2], radiusPc: region.radius,
       share: region.share, color: shareColor(region.share), name: region.name || null, parent: region.parent || null,
-      sectorCount: region.sector_count, capacity: region.capacity,
+      sectorCount: region.sector_count, capacity: region.capacity, inhabited: inhabitedOf(region.inhabited),
     });
   });
   return found;
@@ -104,4 +118,44 @@ export function chartedText(share) {
   const percent = 100 * (share || 0);
   if (percent > 0 && percent < 1) return "under 1 percent charted";
   return Math.round(percent) + " percent charted";
+}
+
+// The inhabited tokens of the regions (MAP.321 c): one marker item `{kind, item}` for each region of `blobs` that has an inhabited
+// world and whose sphere is drawn (`look(blob)`, a region's `regionLook` from the camera, at least REGION_TOKEN_MIN_ALPHA), for the
+// marker layer to draw at the region's middle in the colour of its best world's tier. `kind` is the inhabited marker kind
+// (galaxymarkers.js), `inView(blob)` whether the middle is in front of the camera and `covered(blob)` whether a system's own mark
+// already stands for the region (a system of the region is drawn from its node), which keeps the two levels from doubling.
+export function regionMarkers(kind, blobs, look, inView, covered) {
+  const found = [];
+  (blobs || []).forEach((blob) => {
+    if (!blob.inhabited || !(look(blob).alpha >= REGION_TOKEN_MIN_ALPHA) || !inView(blob) || covered(blob)) return;
+    const item = {
+      key: "region:" + blob.key, id: "region:" + blob.key, name: blob.name, x: blob.x, y: blob.y, z: blob.z,
+      n: blob.inhabited.worlds, systems: blob.inhabited.systems, interest: "inhabited", regionKey: blob.key,
+    };
+    if (blob.inhabited.tier !== null) item.tier = blob.inhabited.tier;
+    found.push({ kind: regionKind(kind), item });
+  });
+  return found;
+}
+
+// The text of a region's inhabited worlds, "3 inhabited worlds in 2 systems, best Blue": the token's hover and the region card's line.
+export function inhabitedText(inhabited) {
+  if (!inhabited) return "";
+  const worlds = inhabited.worlds + (inhabited.worlds === 1 ? " inhabited world" : " inhabited worlds");
+  const systems = inhabited.systems + (inhabited.systems === 1 ? " system" : " systems");
+  return worlds + " in " + systems + (inhabited.tier == null ? "" : ", best " + TIER_NAMES[inhabited.tier]);
+}
+
+// The kind of a region's token: the inhabited kind with the hover text of a region ("Fardoo Beez Region, 3 inhabited worlds ...").
+const regionKinds = new Map();
+function regionKind(kind) {
+  if (!regionKinds.has(kind.id)) {
+    regionKinds.set(kind.id, Object.assign({}, kind, {
+      describe: function (item) {
+        return (item.name || "Charted region") + ", " + inhabitedText({ worlds: item.n, systems: item.systems, tier: item.tier == null ? null : item.tier });
+      },
+    }));
+  }
+  return regionKinds.get(kind.id);
 }
