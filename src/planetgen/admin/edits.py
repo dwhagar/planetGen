@@ -385,7 +385,7 @@ def _apply_class(body, owner, planet_class):
     primary_mass = owner.mass if body.is_moon else body.star.mass
     body.period = planetPhysics.calculate_orbital_period_years(body.distance, primary_mass)
     planetPhysics.calculate_surface_gravity(body)
-    planetPhysics.calculate_atmospheric_conditions(body, parent_distance)
+    planetPhysics.calculate_atmospheric_conditions(body, parent_distance, owner.eccentricity if body.is_moon else None)
     planetPhysics.generate_orbital_motion_properties(body, primary_mass)
     body.primary_mass_kg = primary_mass
     planetPhysics.update_hill_sphere(body)

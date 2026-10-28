@@ -39,10 +39,11 @@ A star, planet or moon carries `look` (MAP.287), the same body look record the S
 """
 
 import dataclasses
+import math
 from datetime import datetime, timezone
 
 from planetgen.db import orbit_trees, query
-from planetgen.physics import constants
+from planetgen.physics import body_state, constants, state_vectors
 from planetgen.web.maps.bodylook import comet_nucleus_color, planet_look, star_look
 from planetgen.web.maps.systemmap import finite_row, put_star_temperatures
 from planetgen.physics import unit_registry as units
@@ -59,13 +60,25 @@ def _orbit(row, around):
     """A planet's or moon's orbit from its `planets`/`moons` row (GEN.289): the elements the row keeps (the orbit's
     semi-major axis, period and plane) and the state vector that is the body, in km and km/s relative to what it goes
     round, with the epoch (Unix seconds, or None before the first orbit update) the state is true at. A client moves the
-    state with `kepler.universal_step` (`physics/body_state.py`, `static/orbitpositions.js`)."""
+    state with `kepler.universal_step` (`physics/body_state.py`, `static/orbitpositions.js`).
+
+    The path the browser draws is the ellipse of the state (GEN.727): `eccentricity` and `arg_periapsis_deg` are read off the state
+    (`state_vectors.elements_from_state`), so a pull that changed the orbit changes the drawn path with it; a circle has 0 and 0."""
+    position, velocity = _xyz(row), _xyz(row, "velocity_", "_kms")
+    eccentricity = arg_periapsis_deg = 0.0
+    try:
+        elements = state_vectors.elements_from_state(position, velocity, body_state.mu_km3_s2(row["distance_km"], row["period_years"]))
+        if elements["kind"] == "elliptical":
+            eccentricity, arg_periapsis_deg = elements["eccentricity"], math.degrees(elements["arg_periapsis"])
+    except ValueError:
+        pass   # a body with no motion yet has no ellipse to draw: its orbit is the circle of its distance
     return {
         "around": around,
         "distance_km": row["distance_km"], "period_years": row["period_years"],
         "inclination_deg": row["orbital_inclination_deg"],
         "ascending_node_deg": row["orbital_ascending_node_deg"],
-        "position_km": _xyz(row), "velocity_kms": _xyz(row, "velocity_", "_kms"),
+        "eccentricity": eccentricity, "arg_periapsis_deg": arg_periapsis_deg,
+        "position_km": position, "velocity_kms": velocity,
         "epoch_unix": row.get("epoch_unix"),
     }
 

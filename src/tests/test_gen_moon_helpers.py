@@ -48,7 +48,7 @@ def bare_planet(radius=10000.0, scale_height=None, hill_radius=1e6, moons=(), ma
 
 
 def moon_at(distance_km, radius=100.0, mass=1e18):
-    return SimpleNamespace(distance=distance_km / constants.AU_TO_KM, radius=radius, mass=mass)
+    return SimpleNamespace(distance=distance_km / constants.AU_TO_KM, radius=radius, mass=mass, eccentricity=0.0)
 
 
 # --- moon_orbit_bounds_km -------------------------------------------------

@@ -58,7 +58,7 @@ export function cubeAround(center, half) {
 // heliopause, in km (at least MIN_EXTENT_KM).
 export function realExtentKm(scene) {
   let far = MIN_EXTENT_KM;
-  scene.planets.forEach(function (p) { far = Math.max(far, p.orbit.distance_km * 1.3); });
+  scene.planets.forEach(function (p) { far = Math.max(far, p.orbit.distance_km * (1 + (p.orbit.eccentricity || 0)) * 1.3); });
   scene.belts.forEach(function (b) { far = Math.max(far, b.outer_km * 1.1); });
   scene.stars.forEach(function (s) { if (s.orbit) far = Math.max(far, s.orbit.distance_km * 1.5); });
   return far;

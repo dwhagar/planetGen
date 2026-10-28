@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 178 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 209 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 31 | 0 | 3 | 0 | 0 | 34 |
-| T2 | 38 | 0 | 0 | 0 | 0 | 38 |
-| T3 | 38 | 0 | 1 | 5 | 0 | 44 |
-| T4 | 8 | 0 | 0 | 2 | 0 | 10 |
-| T5 | 7 | 3 | 1 | 0 | 0 | 11 |
-| T6 | 19 | 5 | 1 | 2 | 0 | 27 |
-| T7 | 10 | 2 | 0 | 1 | 0 | 13 |
-| T8 | 0 | 0 | 0 | 0 | 0 | 0 |
+| T1 | 34 | 0 | 3 | 0 | 0 | 37 |
+| T2 | 47 | 0 | 0 | 0 | 0 | 47 |
+| T3 | 44 | 1 | 2 | 6 | 0 | 53 |
+| T4 | 9 | 0 | 0 | 2 | 0 | 11 |
+| T5 | 9 | 3 | 1 | 0 | 0 | 13 |
+| T6 | 23 | 6 | 1 | 2 | 0 | 32 |
+| T7 | 11 | 2 | 0 | 1 | 0 | 14 |
+| T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 0 | 0 | 0 | 0 | 1 | 1 |
-| All | 151 | 10 | 6 | 10 | 1 | 178 |
+| All | 177 | 12 | 7 | 11 | 2 | 209 |
 
 ## How the labels were given
 
@@ -280,3 +280,49 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | MS5 | B | T3 | L0 | tuning.YOUNG_GROUP_RADIUS_AU_RANGE | 3.0e3 to 3.0e4 AU, log | a group of O and early-B stars | none: no measurement here; the draw's own tests keep the centre of mass at rest, they do not test the size | the measured separations of the Trapezium and of the catalogued trapezia | RECALLED (the Trapezium's core is some 0.03 pc, 6e3 AU, not read in the repository); the bracket is a factor of 3 either side |
 | MS6 | B | T3 | L0 | tuning.YOUNG_GROUP_VELOCITY_DISPERSION_KMS | 2.5 km/s, one dimension, fixed | a young group while it holds | test_gen_young_groups::test_a_group_is_one_node_of_flying_members_around_a_barycentre_at_rest | the measured dispersion of the Trapezium (proper-motion work), read | RECALLED (the Orion Trapezium cluster is some 2 to 3 km/s, not read in the repository) |
 | MS7 | P | T4 | L0 | tuning.YOUNG_GROUP_REMNANT_MAX_AXIS_AU | 300 AU, fixed | the hierarchy a decayed group leaves | test_gen_young_groups::test_a_group_older_than_its_decay_age_is_never_drawn_but_its_remnant_is | an N-body result for the remnant axes of a decayed trapezium (the decay papers of MS3 report them) | design: the remnant is the group's hierarchy hardened after the lightest member is ejected; the 300 AU cap is a guess with no source |
+
+## 6.12 Stand-ins of the orbit elements
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|
+| OE1 | B | T1 | L0 | orbit_elements.MULTI_SIGMA | 0.083, fixed | planets of systems with two or more planets | a law fitted to planets of every period and size | READ (Van Eylen et al. 2019 abstract: multi-planet systems consistent with a half-Gaussian of 0.083, +0.015 -0.020) |
+| OE2 | B | T1 | L0 | orbit_elements.SINGLE_MODERATE_FRACTION | 0.76, fixed | a system with one planet | the same | READ (the same abstract: 0.76, +0.21 -0.12, of single transiting systems have a moderate eccentricity) |
+| OE3 | B | T1 | L0 | orbit_elements.SINGLE_RAYLEIGH_MODE | 0.26, fixed | the moderate share of single planets | the same | READ (the same abstract: a Rayleigh law that peaks at 0.26, +0.04 -0.06) |
+| OE4 | T | T2 | L0 | orbit_elements.draw_planet_eccentricity | the three above | every planet | radial-velocity and direct-imaging eccentricities by period and mass | the laws of OE1 to OE3 used outside the planets they were fitted to (Kepler's, mostly under 100 days) and with the planets the generator counts, not the ones a transit survey finds |
+| OE5 | P | T4 | L0 | orbit_elements.MAX_ECCENTRICITY | 0.9, fixed | every planet and moon | none needed | design (the laws put almost nothing beyond it; the periapsis cut comes first for a close orbit) |
+| OE6 | B | T2 | L0 | orbit_elements.MUTUAL_INCLINATION_SIGMA_DEG | 1.6 degrees, fixed | planets | a law of the plane scatter of giants and of systems beyond the Kepler range | Fabrycky et al. 2014: Rayleigh mutual inclination of 1.0 to 2.2 degrees (read in an earlier session, not again for this item); a planet's own angle to the plane is that over the square root of two |
+| OE7 | P | T3 | L0 | orbit_elements.REGULAR_MOON_ECCENTRICITY_RANGE | 0.001 to 0.01, log | moons of disk, impact, ring or binary origin | a forced eccentricity from the resonances and neighbours of the moon system | the forced eccentricities of the regular satellites of the giants run from 0.001 to 0.03 and the Moon 0.055; the range is the one the tide of GEN.700 already drew from |
+| OE8 | T | T5 | L0 | orbit_elements.draw_moon_eccentricity | the Hill cut of `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION` | captured moons | capture and evolution of an irregular moon | the thermal distribution of eccentricities, f(e) = 2 e, of a body captured on a wide orbit (Jeans 1919, recalled), cut at the stable part of the parent's Hill sphere |
+| OE9 | P | T3 | L0 | orbit_elements.GIANT_TIDAL_Q, GIANT_TIDAL_LOVE_NUMBER_K2 | 1e5 and 0.3, fixed | the tide of a gas giant | a Q and k2 from the body's temperature and frequency | Jupiter: k2 about 0.38 and Q from 3.5e4 to about 1e6 from the Galilean moons' orbits (recalled; GEN.731 gives every body its own) |
+| OE10 | T | T5 | L0 | orbit_elements.circularisation_time_yr | the rows of 6.13 | every planet and captured moon (a regular moon's forced eccentricity is kept) | a Q and k2 from the body's temperature and frequency | the circularisation time of a synchronously rotating body, tau = (2/21)(Q/k2)(m/M)(a/R)^5/n (Goldreich and Soter 1966), with the body's own Q and k2 (`tidal_heating.response`, GEN.731: rows TH2, TH3, TH4 and the giant's) |
+| OE11 | T | T6 | L0 | insolation.companion_swing | in phase, fixed | planets of a binary | a time series of the sum | the swing of the planet's own orbit and the companion's are taken in phase, the largest the pair can give; their periods differ and the extremes meet only now and then |
+
+## 6.13 Stand-ins of the tidal heating
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|
+| TH1 | P | T2 | L0 | tidal_heating.ROCK_RIGIDITY_PA | 7e10, fixed | the solid mantle of a rocky body | a rigidity from the body's composition and temperature | the shear modulus of the mantle in PREM runs from 65 to 80 GPa (recalled) |
+| TH2 | T | T2 | L0 | tidal_heating.rigid_k2 | rigidity only | a rocky body without a large liquid core | a layered Love number | the Love number of a homogeneous, incompressible elastic sphere, k2 = (3/2) / (1 + 19 mu / (2 rho g R)) (Love 1911, recalled); it gives the Moon 0.021 against the observed 0.0242 |
+| TH3 | P | T3 | L0 | tidal_heating.ROCK_TIDAL_Q | 100, fixed | solid rock | a Q from the body's temperature and frequency | Q of 100 for solid rock (Goldreich and Soter 1966, recalled), the same value that circularises the orbit (OE10); the Moon's own is 38 |
+| TH4 | P | T3 | L2 | tidal_heating.ICY_K2_OVER_Q | 3e-4, fixed | an icy body (a water mass fraction of 0.01 or more) | k2/Q from the shell thickness and the ocean beneath it | tuned to the published figure: Europa radiates 1.4e11 W of tide at e = 0.0094 with k2/Q = 3e-4 (Peale et al. 1979 applied to the ice by Ojakangas and Stevenson 1989, recalled) |
+| TH5 | P | T8 | L4 | tidal_heating.MOLTEN_K2_OVER_Q | 0.015, fixed | a melt-limited rocky body | the Maxwell rheology of the partly molten mantle in the box | fitted to the one body that shows it: Io radiates 0.9 to 1.5e14 W (Veeder et al. 2004, recalled) with k2 = 1.5 and Q = 100 |
+| TH6 | P | T2 | L0 | tidal_heating.SOLIDUS_K, LIQUIDUS_K | 1700 and 2200, fixed | the one-box mantle temperature | a pressure-dependent melting curve | the peridotite solidus runs from 1394 K at the surface to 1750 K at 3 GPa (Hirschmann 2000, recalled); the liquidus lies 400 to 500 K above |
+| TH7 | P | T3 | L3 | tidal_heating.HEAT_PIPE_MELT_FRACTION | 0.3, fixed | a rocky body whose tide warms its mantle | a resurfacing-rate model | tuned against Io: melt begins to segregate at a melt fraction of 0.2 to 0.4 (the rheological transition, Arzi 1978, recalled; Moore 2003 puts Io's mantle near 0.2 to 0.3) |
+| TH8 | T | T6 | L0 | interior_heat.heat | constant, fixed | every body with a stored eccentricity | the eccentricity history | the tide is taken constant over the age at the stored eccentricity, though a planet that has circularised had more of it in the past |
+| TH9 | T | T6 | L1 | interior_heat.heat | the two conditions | rocky bodies | a heat-pipe loss law in the box | a body is melt-limited when its solid-state tide is at least its own heat and warms the mantle to the heat-pipe temperature; the real transition is gradual and is bistable in a Maxwell box, so the state is chosen, not integrated |
+| TH10 | P | T3 | L0 | tidal_heating.GIANT_K2, GIANT_TIDAL_Q | 0.1 to 0.5 and 1e4 to 1e6 | gas giants | a Love number and Q from the interior model | a gas giant's Love number 0.3 and quality factor 1e5 (Jupiter k2 0.49 and Q 3e4 to 1e6, Saturn 0.39 and 1.8e4 from the motions of their moons; recalled) |
+
+## 6.14 Stand-ins of the spin and its despinning
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|
+| SP1 | P | T2 | L0 | spin.ACCRETION_SPIN_SIGMA_PER_HOUR, ACCRETION_CRITICAL_PER_HOUR | 1.26 to 1.49 (their three components); 2.15 for their perfect-accretion model | a rocky planet of 0.1 to 1.2 Earth masses built by giant impacts | a spin law that includes the later impacts and the planetesimal stage | READ through a summary of Kokubo and Genda 2010 (ApJ 714:L21, arXiv:1003.4384): each component of a planet's birth spin is Gaussian, 1.32, 1.26 and 1.49 rad/h with their realistic accretion model, rms 2.35 rad/h, 0.71 of the breakup rate at their 3000 kg/m3; paper not opened in full |
+| SP2 | T | T2 | L0 | spin.accretion_spin | isotropic, fixed | a rocky planet | a measured obliquity distribution | the same paper: the obliquity is isotropic, n(e) = sin(e)/2, which comes from components of one width; it replaces the impact-tilt law with gamma 3, which was planetGen's choice |
+| SP3 | T | T7 | L0 | spin.accretion_spin | scale by breakup, fixed | a rocky planet of any density | the paper's mass and density scan | the paper finds the mean spin independent of mass at one density; a planet of another density is scaled by its own breakup rate sqrt(G M / R^3), which is assumed, not read |
+| SP4 | P | T6 | L0 | spin.BREAKUP_FRACTION | 0.7 to 1 | a rocky planet | a source on the spin of a planet at the end of accretion | a birth spin is held at 0.85 of the breakup rate, the cap the hot stars use (planetGen's choice); about 14 percent of the Gaussian vectors lie above it |
+| SP5 | P | T3 | L1 | constants.ROTATION_PERIOD_RANGE_HOURS | 8 to 48 and 8 to 20 | moons; gas giants | a circumplanetary-disk spin law for moons; a giant spin-up law | a moon's birth spin is log-uniform over 8 to 48 hours (the range this generator has used for rocky bodies since GEN.104, whose source was the impact papers), a gas giant's uniform over 8 to 20 hours (Jupiter 9.9, Saturn 10.7, Neptune 16.1, Uranus 17.2 h, recalled); the tide then moves both |
+| SP6 | P | T2 | L0 | tidal_spin.ROCKY_MOMENT_FACTOR, GIANT_MOMENT_FACTOR | 0.25 to 0.4 | rocky bodies; gas giants | a factor from the body's core fraction | the moment-of-inertia factor I / (m R^2): Earth 0.331, Venus 0.33, Mars 0.365, Mercury 0.346, the Moon 0.393 (rock, 0.33); Jupiter 0.254, Saturn 0.22 (giants, 0.25); recalled |
+| SP7 | T | T3 | L0 | tidal_spin.despin_rate_rad_s2 | none | a body spun down to the orbital rate | a frequency-dependent rheology (Efroimsky's) | the despinning torque is the constant-Q one of Gladman et al. 1996 (Icarus 122:166, recalled), independent of how fast the body turns; a real mantle's response depends on the frequency, which only the resonance windows (SP8) carry |
+| SP8 | P | T2 | L0 | tidal_spin.RESONANCES | the window edges | a rocky planet brought down from a fast spin | the same windows for a layered planet | READ through a summary of Makarov 2012 (ApJ 752:73, arXiv:1110.2658): with a frequency-dependent rheology capture is certain in 0.34 < e < 0.49 for 2:1, 0.2 < e < 0.41 for 3:2 and e < 0.29 for 1:1; the first window met coming down takes the spin |
+| SP9 | P | T3 | L0 | tidal_spin.RESONANCE_CAPTURE_PROBABILITY | 0.07 to 1 | Mercury-like captures | a draw once one model is chosen | capture probability inside a window is 1 (Makarov 2012: 40 of 40); Goldreich and Peale 1966 give 0.07 at Mercury's eccentricity with a constant-torque tide and Correia and Laskar 2004 give 0.55 with the eccentricity's chaotic history; the sources split, the bracket is kept |
+| SP10 | T | T6 | L0 | planets.generate_spin | none | every planet and moon | a coupled spin, obliquity and eccentricity history | approximations of the spin state: a locked body turns exactly once an orbit (not 1 + 6 e^2 of a constant-time-lag tide); the eccentricity is the stored one, not the larger past one; the obliquity stays as drawn until the spin has come all the way down, then is zero; no atmospheric tide, core-mantle coupling or the tide of the body's own moons |

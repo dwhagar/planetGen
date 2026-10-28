@@ -2248,6 +2248,7 @@ CREATE TABLE IF NOT EXISTS planets (
     -- GEN.289): the body is its state vector below.
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
+    eccentricity                DOUBLE NOT NULL DEFAULT 0,   -- v159 (GEN.727): of the orbit the body was generated on (distance_km is its semi-major axis)
     -- Position/speed (v11, see header comment) -- Cartesian position
     -- relative to this planet's orbital anchor (the star, or the
     -- BinaryStarProxy's combined center for a binary system), made from
@@ -2558,6 +2559,7 @@ CREATE TABLE IF NOT EXISTS moons (
     -- GEN.289): the body is its state vector below.
     orbital_inclination_deg     DOUBLE NOT NULL,
     orbital_ascending_node_deg  DOUBLE NOT NULL,
+    eccentricity                DOUBLE NOT NULL DEFAULT 0,   -- v159 (GEN.727): of the orbit the body was generated on (distance_km is its semi-major axis)
     -- Position/speed (v11, see header comment) -- Cartesian position
     -- relative to this moon's orbital anchor, its parent planet; made
     -- from distance_km and the orbital-motion columns above the same way

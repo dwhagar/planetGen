@@ -57,17 +57,14 @@ from planetgen import tuning
 from planetgen.physics import aquifers, atmosphere, clathrate_brine, constants, gases, runaway_history, saturation, water_layer
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
-from planetgen.physics import unit_registry as units
-
-_au_to_m = units.converter("au", "m")
 
 HYDROSPHERE_FIELDS = (
     "water_mass_fraction", "hydrosphere", "ocean_fraction", "land_fraction",
     "ocean_depth_km", "ice_shell_km", "hp_ice_km", "water_base_pressure_pa",
-    "ocean_class", "ocean_ph", "water_activity", "phosphorus", "tidal_flux_w_m2", *aquifers.AQUIFER_FIELDS,
+    "ocean_class", "ocean_ph", "water_activity", "phosphorus", *aquifers.AQUIFER_FIELDS,
 )
 """tuple: What `generate_hydrosphere` sets on a planet or moon, as stored in
-`planets` and `moons` (`tidal_flux_w_m2` is set on an icy moon under ice only, the aquifer layer on a world with no liquid at its surface)."""
+`planets` and `moons` (the aquifer layer on a world with no liquid at its surface)."""
 
 HYDROSPHERE_STATES = ("dry", "vapour", "ice", "ice-covered ocean", "surface ocean", "hycean")
 OCEAN_CLASSES = ("ice-sealed", "chloride brine", "acid sulfate", "soda", "neutral")
@@ -119,10 +116,6 @@ OCEAN_CHEMISTRY = {
 """dict: Each class's `(pH range, water activity range)`, drawn uniformly
 (section 5.4; neutral's water activity is 20 to 50 g/kg of salt)."""
 
-ICY_MOON_K2_Q = 3e-4
-ICY_MOON_ECCENTRICITY_RANGE = (1e-3, 1e-2)
-SMALL_MOON_MASS_EARTH = 1e-3
-RESONANCE_BOOST_RANGE = (1.0, 50.0)
 ICY_MIN_WATER_FRACTION = 0.01
 """float: The water mass fraction from which a body's surface is ice (an icy body holds guest gases in the cages of its ice skin, `surface_air`)."""
 
@@ -181,14 +174,6 @@ def ocean_fraction(layer_km, gravity_m_s2):
         return 0.0
     relief_km = EARTH_RELIEF_KM * constants.EARTH_GRAVITY / gravity_m_s2
     return min(1.0, math.sqrt(2 * layer_km / relief_km))
-
-
-def tidal_heating_w(k2_over_q, primary_mass_kg, radius_km, semi_major_axis_m, eccentricity):
-    """Peale's eccentricity tide, `E = (21/2) (k2/Q) G M_p^2 n R^5 e^2 /
-    a^6` (Europa 1.4e11 W at k2/Q 3e-4)."""
-    n = math.sqrt(constants.G * primary_mass_kg / semi_major_axis_m ** 3)
-    return (10.5 * k2_over_q * constants.G * primary_mass_kg ** 2 * n * (radius_km * 1000.0) ** 5
-            * eccentricity ** 2 / semi_major_axis_m ** 6)
 
 
 def surface_water_fraction(water_mass_fraction, rng=draw):
@@ -256,8 +241,8 @@ def ocean_cover(body, surface_w):
 def generate_hydrosphere(body, internal_flux_w_m2, surface_w):
     """Sets `HYDROSPHERE_FIELDS` on a planet or moon from its class, mass,
     radius, surface temperature (K), pressure (Pa) and gases. Any ice lid
-    grows to match `internal_flux_w_m2` (plus an icy moon's tides,
-    `moon_tidal_flux_w_m2`), and a world with no liquid at its surface may hold
+    grows to match `internal_flux_w_m2` (plus the body's tide, `tidal_flux_w_m2`, set with the heat model by
+    `interior_heat.update_heat`, GEN.737), and a world with no liquid at its surface may hold
     water underground (`aquifers`, GEN.654). `surface_w` is the surface water mass
     fraction (`draw_surface_water`). Call after its atmosphere."""
     _clear(body)
@@ -297,9 +282,7 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
         h2 = atmosphere.partial_kpa(body, "h2")
         state = "hycean" if h2 > HYCEAN_MIN_H2_SHARE * pressure / 1000.0 else "surface ocean"
     else:
-        tide = moon_tidal_flux_w_m2(body, getattr(body, "primary_mass_kg", None), w)
-        body.tidal_flux_w_m2 = tide or None  # GEN.700: kept, the heat the life of an ice-covered ocean can use
-        flux = internal_flux_w_m2 + tide
+        flux = internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0)  # GEN.737: the tide stored with the heat model (GEN.700: the heat an ice-covered ocean's life can use)
         melting_k = WATER_MELTING_K
         if surface_w < BRINE_MAX_WATER_FRACTION:
             salt, melting_k = clathrate_brine.draw_brine()  # GEN.762: little water, so the salts are concentrated and the ice melts at their eutectic
@@ -327,17 +310,3 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
         body.water_activity = clathrate_brine.water_activity(salt)  # GEN.762: the drawn salt's own figure
     body.phosphorus = "high" if kind == "soda" else "starved" if kind == "ice-sealed" else "limited"
     return surface_w
-
-
-def moon_tidal_flux_w_m2(moon, primary_mass_kg, water_mass_fraction):
-    """An icy moon's eccentricity-tide flux, W/m2 (k2/Q 3e-4, a forced
-    eccentricity log-uniform 0.001 to 0.01, small moons boosted 1 to 50x
-    by resonance as Enceladus needs); 0 for a rocky moon."""
-    if not moon.is_moon or not primary_mass_kg or water_mass_fraction < ICY_MIN_WATER_FRACTION:
-        return 0.0
-    eccentricity = log_uniform(*ICY_MOON_ECCENTRICITY_RANGE)
-    power = tidal_heating_w(ICY_MOON_K2_Q, primary_mass_kg, moon.radius, _au_to_m(moon.distance),
-                            eccentricity)
-    if moon.mass / constants.EARTH_MASS_TO_KG < SMALL_MOON_MASS_EARTH:
-        power *= log_uniform(*RESONANCE_BOOST_RANGE)
-    return power / (4 * math.pi * (moon.radius * 1000.0) ** 2)

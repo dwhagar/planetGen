@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, body_colour, bulk_composition, giant_interior, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, bulk_composition, giant_interior, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -2924,7 +2924,7 @@ BODY_FIELDS = (
     object_rows.attr("life_milestone_age_gyr"), object_rows.attr("life_system_age_gyr"),
     *(object_rows.attr(field) for field in tuning.LIFE_SCHEDULE_FIELDS),
     object_rows.attr("flavor_key"), object_rows.attr("flavor_text_count"),
-    object_rows.attr("orbital_inclination_deg"), object_rows.attr("orbital_ascending_node_deg"),
+    object_rows.attr("orbital_inclination_deg"), object_rows.attr("orbital_ascending_node_deg"), object_rows.attr("eccentricity"),
     *(object_rows.scaled(column, f"position_{axis}", _AU_KM) for axis, column in zip("xyz", _POSITION_COLUMNS)),
     object_rows.attr("orbital_speed_kms"),
     *(object_rows.attr(column, f"velocity_{axis}_kms") for axis, column in zip("xyz", _VELOCITY_COLUMNS)),
@@ -4741,7 +4741,8 @@ def refresh_habitability(conn, system_id):
     its stored conditions: `flux_variation` and the `habitability_world.SCORE_FIELDS` (the index, the six domains
     with their tiers and the equipment tier). It is how a body saved before a change to the rules
     (GEN.148's flux swing, GEN.207's six domains, GEN.215's airless Air) gets the numbers a new one would, without
-    regenerating it. A system of one star has no swing (0); a system of two is loaded and its swing worked out as
+    regenerating it. A system of one star has the swing of the planet's own orbit (`orbit_elements.flux_swing`, 0 for
+    a circle); a system of two is loaded and its swing worked out as
     generation does (`insolation.refresh_system`). A planet of a pulsar, neutron star or black hole is rated against
     its host (`compact_host_of_star`). A gas giant, and a body saved before v76 (no `energy_flux_w_m2`), are left alone.
 
@@ -4762,6 +4763,13 @@ def refresh_habitability(conn, system_id):
             swings[("planets", planet.db_id)] = planet.flux_variation
             for moon in planet.moons:
                 swings[("moons", moon.db_id)] = moon.flux_variation
+    else:
+        # a lone star: the swing of the planet's own orbit (GEN.727), which a moon shares with its planet
+        planet_swings = {}
+        for row in conn.execute("SELECT id, eccentricity FROM planets WHERE star_system_id = ?", (system_id,)).fetchall():
+            planet_swings[row["id"]] = swings[("planets", row["id"])] = orbit_elements.flux_swing(row["eccentricity"])
+        for row in conn.execute("SELECT id, planet_id FROM moons WHERE star_system_id = ?", (system_id,)).fetchall():
+            swings[("moons", row["id"])] = planet_swings.get(row["planet_id"], 0.0)
     columns = habitability_world.SCORE_FIELDS + ("flux_variation",)
     updated = 0
     for table in ("planets", "moons"):
@@ -9246,10 +9254,9 @@ ROGUE_SURFACE_COLUMNS = (
 `ROGUE_SURFACE_FIELDS` order."""
 
 
-CIRCULAR_VELOCITY_SQL = f"(distance_km * 2 * PI() / (period_years * {_SECONDS_PER_YEAR!r}))"
-"""str: SQL for the speed, km/s, of a planet or moon on its circular orbit
-(`2 pi r / T`); the velocity columns are this times the position's
-derivative with the phase (`orbits.circular_orbital_velocity_au_per_year`)."""
+STATE_SPEED_SQL = "SQRT(velocity_x_kms * velocity_x_kms + velocity_y_kms * velocity_y_kms + velocity_z_kms * velocity_z_kms)"
+"""str: SQL for the speed, km/s, of a planet or moon in its stored state (GEN.727: on an ellipse it changes along the
+orbit, fastest at periapsis, so the next update is due when it has moved its threshold at the speed it has)."""
 
 
 def touch_star_system(conn, star_system_id):
@@ -9800,7 +9807,7 @@ def advance_orbital_phases(conn, clock, on_progress=None, budget=None):
     """
     counts = {}
     for table, scale in (("planets", "system"), ("moons", "planetary")):
-        interval = _update_interval_sql(CIRCULAR_VELOCITY_SQL, scale)
+        interval = _update_interval_sql(STATE_SPEED_SQL, scale)
         _schedule_updates(conn, clock, table, interval, "period_years > 0")
         counts[table] = _advance_body_states(conn, clock, table, scale, budget)
         if budget is not None and budget.limit(table) is not None:

@@ -8,7 +8,7 @@ Regression tests for the orbital-motion feature (docs/TODO.md's
 the primary-mass-aware `period` formula (Kepler's third law using the
 actual body a planet/moon orbits, not always the star), and
 `planetPhysics.generate_orbital_motion_properties`/
-`_tidal_locking_timescale_seconds` (real tidal-despinning physics decides
+`tidal_spin.locking_time_s` (real tidal-despinning physics decides
 whether a moon is tidally locked, not a flat probability -- see [5.11.1]).
 Also covers the later position/speed follow-up: `Planet.position_x/y/z`/
 `orbital_speed_kms`, derived from the orbital elements above via
@@ -35,7 +35,8 @@ import pytest
 
 from planetgen.physics import constants as pc
 from planetgen.generation.config import SystemConfig
-from planetgen.physics.planets import _tidal_locking_timescale_seconds, generate_orbital_motion_properties
+from planetgen.physics import spin, tidal_spin
+from planetgen.physics.planets import generate_orbital_motion_properties
 from planetgen.generation.system import StarSystem
 
 N_SYSTEMS = 20
@@ -104,20 +105,42 @@ def _is_tidally_locked(moon):
     return moon.rotation_period_hours == pytest.approx(expected, rel=1e-9)
 
 
-def test_rotation_period_within_body_type_range_or_tidally_locked(bodies):
+def _orbital_hours(body):
+    return body.period * pc.SECONDS_PER_YEAR / 3600
+
+
+def test_rotation_period_is_a_birth_spin_worn_down_by_the_tide_or_a_locked_or_resonant_state(bodies):
+    """
+    GEN.731: a body is born spinning (a rocky planet from the impacts that built it, up to 85 percent of its breakup rate; a moon or giant from
+    its body-type range) and the tide only moves the spin toward the orbit's rate, so a free spin lies between the two; a locked one is the
+    orbital period and a resonant one a half-integer number of turns per orbit.
+    """
     planets, moons = bodies
     for planet in planets:
-        min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS[planet.body_type]
-        assert _is_tidally_locked(planet) or (min_h <= planet.rotation_period_hours <= max_h)
+        state, turns = spin.spin_state(planet.rotation_period_hours, planet.period)
+        if state != "free":
+            continue
+        if planet.body_type == "t":
+            fastest = 2.0 * math.pi / (spin.BREAKUP_FRACTION * spin.critical_spin_rad_s(planet.mass, planet.radius)) / 3600.0
+            assert planet.rotation_period_hours >= fastest * (1 - 1e-9)
+        else:
+            low, _ = pc.ROTATION_PERIOD_RANGE_HOURS[planet.body_type]
+            assert planet.rotation_period_hours >= min(low, _orbital_hours(planet)) * (1 - 1e-9)
 
     for moon in moons:
+        if spin.spin_state(moon.rotation_period_hours, moon.period)[0] != "free":
+            continue
         min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS[moon.body_type]
-        assert _is_tidally_locked(moon) or (min_h <= moon.rotation_period_hours <= max_h)
+        assert min(min_h, _orbital_hours(moon)) * (1 - 1e-9) <= moon.rotation_period_hours <= max(max_h, _orbital_hours(moon)) * (1 + 1e-9)
+
+
+def _spin_rate(period_hours):
+    return 2.0 * math.pi / (period_hours * 3600.0)
 
 
 def test_moon_tidal_lock_is_not_universal(bodies):
     """
-    Real tidal physics (`_tidal_locking_timescale_seconds`) decides
+    Real tidal physics (`tidal_spin.locking_time_s`) decides
     locking, not a flat probability -- across many independently
     generated moons (spanning a wide range of mass/radius/distance/
     primary-mass/system-age combinations), that should produce both
@@ -137,22 +160,22 @@ def test_tidal_locking_timescale_matches_real_earth_moon_order_of_magnitude():
     bounded -- this formula is an order-of-magnitude estimate (fixed
     Q/k2), not a precision calculation.
     """
-    moon = types.SimpleNamespace(distance=384400 / pc.AU_TO_KM, mass=7.342e22, radius=1737.4)
+    moon = types.SimpleNamespace(distance=384400 / pc.AU_TO_KM, mass=7.342e22, radius=1737.4, body_type="t")
     earth_mass_kg = 5.972e24
-    t_lock_years = _tidal_locking_timescale_seconds(moon, earth_mass_kg, initial_rotation_period_hours=10.0) / pc.SECONDS_PER_YEAR
+    t_lock_years = tidal_spin.locking_time_s(moon, earth_mass_kg, moon.distance * pc.AU_TO_M, _spin_rate(10.0)) / pc.SECONDS_PER_YEAR
     assert 1e6 < t_lock_years < 5e8
 
 
 def test_tidal_locking_timescale_increases_with_distance_and_decreases_with_primary_mass():
-    close = types.SimpleNamespace(distance=0.001, mass=1e22, radius=1500)
-    far = types.SimpleNamespace(distance=0.01, mass=1e22, radius=1500)
-    t_close = _tidal_locking_timescale_seconds(close, 6e24, 10.0)
-    t_far = _tidal_locking_timescale_seconds(far, 6e24, 10.0)
+    close = types.SimpleNamespace(distance=0.001, mass=1e22, radius=1500, body_type="t")
+    far = types.SimpleNamespace(distance=0.01, mass=1e22, radius=1500, body_type="t")
+    t_close = tidal_spin.locking_time_s(close, 6e24, close.distance * pc.AU_TO_M, _spin_rate(10.0))
+    t_far = tidal_spin.locking_time_s(far, 6e24, far.distance * pc.AU_TO_M, _spin_rate(10.0))
     assert t_far > t_close
 
-    moon = types.SimpleNamespace(distance=0.01, mass=1e22, radius=1500)
-    t_light_primary = _tidal_locking_timescale_seconds(moon, 1e23, 10.0)
-    t_heavy_primary = _tidal_locking_timescale_seconds(moon, 1e26, 10.0)
+    moon = types.SimpleNamespace(distance=0.01, mass=1e22, radius=1500, body_type="t")
+    t_light_primary = tidal_spin.locking_time_s(moon, 1e23, moon.distance * pc.AU_TO_M, _spin_rate(10.0))
+    t_heavy_primary = tidal_spin.locking_time_s(moon, 1e26, moon.distance * pc.AU_TO_M, _spin_rate(10.0))
     assert t_heavy_primary < t_light_primary
 
 
@@ -167,7 +190,7 @@ def test_generate_orbital_motion_properties_locks_a_close_moon_around_an_old_sys
     star = types.SimpleNamespace(age=5.0)
     moon = types.SimpleNamespace(
         is_moon=True, body_type="t", distance=0.0005, mass=5e20, radius=800,
-        period=0.001, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
+        period=0.001, eccentricity=0.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
     )
     generate_orbital_motion_properties(moon, primary_mass_kg=6e24)
     expected_locked_hours = moon.period * pc.SECONDS_PER_YEAR / 3600
@@ -184,7 +207,7 @@ def test_generate_orbital_motion_properties_does_not_lock_a_far_moon_around_a_yo
     star = types.SimpleNamespace(age=1.0)
     moon = types.SimpleNamespace(
         is_moon=True, body_type="t", distance=0.05, mass=5e22, radius=2000,
-        period=5.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
+        period=5.0, eccentricity=0.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
     )
     generate_orbital_motion_properties(moon, primary_mass_kg=6e23)
     min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS["t"]
@@ -199,7 +222,7 @@ def test_a_close_in_planet_locks_to_its_star():
     star = types.SimpleNamespace(age=100.0)
     planet = types.SimpleNamespace(
         is_moon=False, body_type="t", distance=0.0005, mass=5e20, radius=800,
-        period=0.001, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
+        period=0.001, eccentricity=0.0, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
     )
     generate_orbital_motion_properties(planet, primary_mass_kg=6e30)
     assert planet.rotation_period_hours == pytest.approx(planet.period * pc.SECONDS_PER_YEAR / 3600)
@@ -310,27 +333,49 @@ def test_circular_orbital_speed_kms_matches_manual_formula():
     assert speed == pytest.approx(expected, rel=1e-9)
 
 
-def test_generated_bodies_have_position_on_the_distance_sphere_and_matching_speed(bodies):
+def _orbit_range(body):
+    """The closest and farthest a body goes from what it orbits: `a (1 - e)` and `a (1 + e)` (GEN.727)."""
+    return body.distance * (1.0 - body.eccentricity), body.distance * (1.0 + body.eccentricity)
+
+
+def test_generated_bodies_have_position_between_periapsis_and_apoapsis_and_vis_viva_speed(bodies):
     planets, moons = bodies
     for body in planets + moons:
         radius = math.sqrt(body.position_x ** 2 + body.position_y ** 2 + body.position_z ** 2)
-        assert radius == pytest.approx(body.distance, rel=1e-9)
+        low, high = _orbit_range(body)
+        assert low * (1 - 1e-9) <= radius <= high * (1 + 1e-9)
 
-        expected_speed = circular_orbital_speed_kms(body.distance, body.period)
-        assert body.orbital_speed_kms == pytest.approx(expected_speed, rel=1e-9)
+        # vis-viva: v^2 = mu (2 / r - 1 / a), mu from Kepler's third law (the pull the period was made with)
+        mu_au3_yr2 = (2 * math.pi / body.period) ** 2 * body.distance ** 3
+        expected_speed = math.sqrt(mu_au3_yr2 * (2 / radius - 1 / body.distance)) * pc.AU_TO_KM / pc.SECONDS_PER_YEAR
+        assert body.orbital_speed_kms == pytest.approx(expected_speed, rel=1e-6)
+
+
+def test_a_circular_body_has_the_circular_speed_and_sits_on_its_distance():
+    from planetgen.generation.planet import Planet
+    from planetgen.physics.planets import update_orbital_position
+
+    body = types.SimpleNamespace(
+        distance=1.3, period=1.3 ** 1.5, eccentricity=0.0, orbital_inclination_deg=12.0, orbital_ascending_node_deg=40.0,
+        set_position_au=lambda *xyz: setattr(body, "xyz", xyz), set_velocity_kms=lambda *xyz: None)
+    update_orbital_position(body, 77.0)
+    assert math.sqrt(sum(c * c for c in body.xyz)) == pytest.approx(1.3, rel=1e-12)
+    assert body.orbital_speed_kms == pytest.approx(circular_orbital_speed_kms(1.3, 1.3 ** 1.5), rel=1e-9)
+    assert Planet.eccentricity == 0.0
 
 
 def test_moon_position_is_relative_to_its_planet_not_the_star(bodies):
     """
     A moon's `distance`/orbital elements (and so its derived position) are
     relative to its parent planet, not the star -- a moon's `position_x/y/z`
-    magnitude should match its own (planet-relative) `distance`.
+    magnitude should lie between its own (planet-relative) periapsis and apoapsis.
     """
     planets, moons = bodies
     for planet in planets:
         for moon in planet.moons:
             moon_radius = math.sqrt(moon.position_x ** 2 + moon.position_y ** 2 + moon.position_z ** 2)
-            assert moon_radius == pytest.approx(moon.distance, rel=1e-9)
+            low, high = _orbit_range(moon)
+            assert low * (1 - 1e-9) <= moon_radius <= high * (1 + 1e-9)
 
 
 # ---------------------------------------------------------------------------

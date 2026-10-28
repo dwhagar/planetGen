@@ -22,10 +22,13 @@ section 6):
 5. Black holes draw a* from Beta(1.4, 3.6) (first-generation collapse).
 
 Tilts: stars, gas giants and untidied moons Rayleigh(15 deg) from their
-reference normal; rocky planets the impact-modified
-`p(e) ~ sin e (1 + gamma cos^2 e)`; small bodies the YORP pair near 10 or
-170 deg. The axis is the reference normal tilted by the obliquity at a
-random precession angle.
+reference normal; rocky planets isotropic, `p(e) = sin(e) / 2` (the giant impacts that
+build them, `accretion_spin`); small bodies the YORP pair near 10 or 170 deg. The axis
+is the reference normal tilted by the obliquity at a random precession angle.
+
+A planet's or moon's spin as generated is its birth spin worn down by the tide of what it
+orbits (`tidal_spin`, `planets.generate_spin`, GEN.731), so it ends free, locked to its
+orbit, or in a spin-orbit resonance (`spin_state`).
 
 The reference normal is the body's orbit normal (a planet round its star,
 a moon round its planet, a comet round its star), in the same frame as
@@ -47,11 +50,14 @@ of anything on its own galactic orbit."""
 STELLAR_TILT_SIGMA_DEG = 15.0
 """float: Rayleigh sigma of a star's, gas giant's or free moon's obliquity."""
 
-IMPACT_TILT_GAMMA = 3.0
-"""float: gamma in the rocky-planet tilt `sin e (1 + gamma cos^2 e)`. The
-document leaves it open; 3 makes a near-upright or near-flipped axis four
-times as likely per solid angle as one on its side (planetGen's choice;
-gamma = 0 is isotropic)."""
+ACCRETION_SPIN_SIGMA_PER_HOUR = (1.32 + 1.26 + 1.49) / 3.0
+"""float: The dispersion of each component of a rocky planet's birth spin vector, rad/h (Kokubo and Genda 2010, ApJ 714:L21, the 'realistic'
+accretion model: 1.32, 1.26 and 1.49 for x, y and z, each component Gaussian and the average independent of the planet's mass; rms 2.35
+rad/h, a period of 2.7 hours). Source tier T2 (read through a summary of the paper), tweak level L0."""
+
+ACCRETION_CRITICAL_PER_HOUR = 3.3
+"""float: The critical (breakup) spin of the paper's planets, `sqrt(G M / R^3)`, rad/h (3.3 at their density of 3000 kg/m3): what the
+dispersion above is a share of (0.41), so a planet of another density spins in proportion to its own breakup rate."""
 
 YORP_TILT_DEG = (10.0, 170.0)
 YORP_TILT_SIGMA_DEG = 8.0
@@ -76,7 +82,8 @@ c + 0.05 (about 6200 K) spins like a hot star instead."""
 HOT_STAR_SPEED_KMS = 180.0
 HOT_STAR_SPEED_SIGMA = 0.45
 BREAKUP_FRACTION = 0.85
-"""Hot stars: `ln v ~ N(ln 180 km/s, 0.45)`, at most 85% of breakup."""
+"""Hot stars: `ln v ~ N(ln 180 km/s, 0.45)`, at most 85% of breakup. A rocky planet's birth spin is held at the same share
+(`accretion_spin`; about 14 percent of the Gaussian vectors lie above it; planetGen's choice)."""
 
 GIANT_SPEED_RANGE_KMS = (1.0, 10.0)
 """tuple: A giant's equatorial speed, log-uniform (the RGB row of the
@@ -149,22 +156,6 @@ def rayleigh_tilt_deg(sigma_deg=STELLAR_TILT_SIGMA_DEG):
     tilt = sigma_deg * math.sqrt(-2.0 * math.log(1.0 - u))
     tilt %= 360.0
     return 360.0 - tilt if tilt > 180.0 else tilt
-
-
-def impact_tilt_deg(gamma=IMPACT_TILT_GAMMA):
-    """An obliquity from `p(e) ~ sin e (1 + gamma cos^2 e)` on [0, 180]:
-    in `x = cos e` that is `1 + gamma x^2` on [-1, 1], sampled by inverting
-    its CDF `(x + 1) + gamma (x^3 + 1) / 3` (monotone, so bisection)."""
-    total = 2.0 + 2.0 * gamma / 3.0
-    target = draw.random() * total
-    low, high = -1.0, 1.0
-    for _ in range(60):
-        mid = 0.5 * (low + high)
-        if (mid + 1.0) + gamma * (mid ** 3 + 1.0) / 3.0 < target:
-            low = mid
-        else:
-            high = mid
-    return math.degrees(math.acos(max(-1.0, min(1.0, 0.5 * (low + high)))))
 
 
 def yorp_tilt_deg():
@@ -248,6 +239,26 @@ def planet_day_hours(body_type):
     return draw.uniform(low, high)
 
 
+def critical_spin_rad_s(mass_kg, radius_km):
+    """The breakup spin of a body, `sqrt(G M / R^3)`, rad/s."""
+    return math.sqrt(constants.G * mass_kg / (radius_km * 1000.0) ** 3)
+
+
+def accretion_spin(mass_kg, radius_km):
+    """
+    A rocky planet's birth spin from the giant impacts that built it (GEN.731, Kokubo and Genda 2010): a vector whose three components are
+    Gaussian, each with `ACCRETION_SPIN_SIGMA_PER_HOUR` at the paper's density, scaled to the breakup rate of this body and held under
+    `BREAKUP_FRACTION` of it. Returns `(rate, tilt_deg)`: the spin rate, rad/s, and its angle from the vector's own z axis (taken as the
+    orbit normal), which for components of one width is isotropic, `p(e) = sin(e) / 2`, as the paper finds.
+    """
+    critical = critical_spin_rad_s(mass_kg, radius_km)
+    sigma = ACCRETION_SPIN_SIGMA_PER_HOUR / ACCRETION_CRITICAL_PER_HOUR * critical
+    x, y, z = (draw.gauss(0.0, sigma) for _ in range(3))
+    rate = math.sqrt(x * x + y * y + z * z)
+    tilt = math.degrees(math.acos(max(-1.0, min(1.0, z / rate)))) if rate > 0.0 else 0.0
+    return min(rate, BREAKUP_FRACTION * critical), tilt
+
+
 def small_body_period_hours():
     """A comet's or asteroid's period, hours, never under the spin barrier."""
     return max(SPIN_BARRIER_HOURS, math.exp(draw.gauss(SMALL_BODY_PERIOD_MU, SMALL_BODY_PERIOD_SIGMA)))
@@ -267,6 +278,32 @@ def black_hole_horizon_period_s(mass_kg, spin):
     omega = spin * constants.SPEED_OF_LIGHT_M_S ** 3 / (
         2.0 * constants.G * mass_kg * (1.0 + math.sqrt(1.0 - spin * spin)))
     return 2.0 * math.pi / omega
+
+
+SPIN_RESONANCE_MAX_TURNS = 3.0
+"""float: The most turns per orbit that count as a resonance (the tide stops a spin at 1, 1.5 or 2; a fast spin of hundreds of turns is
+never one, however near a half-integer it falls)."""
+
+SPIN_LOCK_TOLERANCE = 1.0e-3
+"""float: How near a body's turns per orbit must be to a whole or half number to count as locked or resonant (the one tolerance of
+`regional_temperature.LOCK_TOLERANCE`)."""
+
+
+def spin_state(rotation_period_hours, period_years):
+    """
+    How a body's spin stands to its orbit, from the two periods it stores: `("locked", 1.0)` for one turn per orbit, `("resonant", p / 2)` for
+    `p / 2` turns per orbit (Mercury: 1.5), `("free", turns per orbit)` for any other spin, and `(None, None)` where either period is missing.
+    """
+    if not rotation_period_hours or not period_years:
+        return None, None
+    turns = period_years * constants.SECONDS_PER_YEAR / 3600.0 / rotation_period_hours
+    nearest = round(turns * 2.0) / 2.0
+    if 0.5 <= nearest <= SPIN_RESONANCE_MAX_TURNS and abs(turns - nearest) <= SPIN_LOCK_TOLERANCE * nearest:
+        if nearest == 1.0:
+            return "locked", 1.0
+        if nearest > 1.0:
+            return "resonant", nearest
+    return "free", turns
 
 
 SPIN_UNITS = {"spin_axis_x": "unit-vector", "spin_axis_y": "unit-vector", "spin_axis_z": "unit-vector",

@@ -46,14 +46,15 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import bulk_structure, constants, radiogenic
+from planetgen.physics import atmosphere, bulk_structure, constants, radiogenic, tidal_heating
 from planetgen.util import draw
 
 BODY_FIELDS = ("mantle_eta0_pa_s", "mantle_activation_kj_mol")
 """tuple: What a body stores of its interior's draws, in `planets` and `moons`."""
 
-OUTPUT_FIELDS = ("urey_ratio", "internal_heat_flux_w_m2")
-"""tuple: What a body stores of the heat that comes out of them (`generate_interior`): the Urey ratio and the heat flow."""
+OUTPUT_FIELDS = ("urey_ratio", "internal_heat_flux_w_m2", "tidal_flux_w_m2")
+"""tuple: What a body stores of the heat that comes out of them (`generate_interior`): the Urey ratio, the heat flow of its own (radiogenic and
+primordial) and its tide's (GEN.737; the habitability energy term counts both)."""
 
 GAS_CONSTANT = 8.314462618
 """float: J/(mol K)."""
@@ -81,6 +82,9 @@ HEAT_FLOW_EXPONENT = 1.0 / 3.0
 SURFACE_TEMPERATURE_K = 273.0
 """float: The surface the boundary layer is measured against, the same table."""
 
+TIDE_NEGLIGIBLE_SHARE = 1.0e-3
+"""float: A tide under this share of the body's own heat is added to the output without running the box again (it moves the mantle's
+temperature by under a part in a thousand of the heat)."""
 STEP_LIMIT_GY = 0.05
 """float: The longest time step, Gy."""
 FIRST_STEP_GY = 1.0e-4
@@ -120,6 +124,7 @@ class Heat:
         flux_w_m2 (float): `total_w` over the body's surface.
         released_j (float): The heat the interior has carried out since the body formed: the heat flow integrated over its age
             (the melt the mantle has made, and so the gas it has given off, follows it: `degassing`).
+        tidal_w (float): Of `total_w`, the tide's (GEN.737, `tidal_heating`): 0 for a body on a circle or with none stored.
     """
 
     total_w: float
@@ -128,11 +133,22 @@ class Heat:
     mantle_temperature_k: float
     flux_w_m2: float
     released_j: float
+    tidal_w: float = 0.0
+
+    @property
+    def own_w(self):
+        """The heat flowing out that is not the tide's: the radiogenic and the primordial."""
+        return max(self.total_w - self.tidal_w, 0.0)
+
+    @property
+    def own_flux_w_m2(self):
+        """`own_w` over the body's surface."""
+        return self.flux_w_m2 * self.own_w / self.total_w if self.total_w > 0.0 else 0.0
 
     @property
     def urey_ratio(self):
-        """The radiogenic share of the heat flowing out (an output, 0 for a body with no heat)."""
-        return self.radiogenic_w / self.total_w if self.total_w > 0.0 else 0.0
+        """The radiogenic share of the heat flowing out that is not the tide's (an output, 0 for a body with no heat)."""
+        return self.radiogenic_w / self.own_w if self.own_w > 0.0 else 0.0
 
 
 def draw_interior(rng=draw):
@@ -189,7 +205,7 @@ def _flux_w_m2(temperature_k, interior, gravity, thickness_m):
     return MANTLE_CONDUCTIVITY * drop / layer
 
 
-def heat(terms, interior, mass_kg, radius_km, age_gy, rock):
+def heat(terms, interior, mass_kg, radius_km, age_gy, rock, forcing=None):
     """
     The interior's heat at `age_gy`: the one-box model above integrated from the formation of the body.
 
@@ -199,6 +215,9 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock):
         mass_kg, radius_km (float): The body's.
         age_gy (float): Its age.
         rock (radiogenic.Rock): What it is made of.
+        forcing (tidal_heating.Forcing, optional): The orbit that flexes it (GEN.737). A solid body's tide is a second heat source of the
+            box, constant over its age. If that tide is at least the body's own heat and warms the mantle to `tidal_heating.HEAT_PIPE_TEMPERATURE_K`,
+            the body is melt-limited: the mantle holds that temperature and the partly molten body is flexed `MOLTEN_K2_OVER_Q` (Io).
 
     Returns:
         Heat: Zero heat for a body with no silicate or no core-and-mantle to convect.
@@ -221,36 +240,67 @@ def heat(terms, interior, mass_kg, radius_km, age_gy, rock):
         return silicate_kg * math.fsum(a * math.exp(-rate * t_gy) for a, rate in terms)
 
     energy_j = binding_energy_j(dry_kg, dry_m, metal_kg, core_m)
-    temperature = min(SURFACE_TEMPERATURE_K + energy_j / capacity, tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K)
     activation = interior.activation_kj_mol * 1000.0
+    cap_k = tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K
 
-    def rate(t_gy, kelvin):
-        return GY_S * (radiogenic_w(t_gy) - _flux_w_m2(kelvin, interior, gravity, thickness_m) * area_dry_m2) / capacity
+    def conduction_w(kelvin):
+        return _flux_w_m2(kelvin, interior, gravity, thickness_m) * area_dry_m2
 
-    t, step, released_j = 0.0, FIRST_STEP_GY, 0.0
-    while t < age_gy:
-        flux = _flux_w_m2(temperature, interior, gravity, thickness_m)
-        # the cooling rate's own time scale: the flux changes by Ea / (R T^2) per kelvin (an overestimate by about three)
-        stiffness = GY_S * flux * area_dry_m2 / capacity * activation / (GAS_CONSTANT * temperature ** 2)
-        h = min(step, age_gy - t, 1.0 / stiffness if stiffness > 0.0 else step)
-        k1 = rate(t, temperature)
-        k2 = rate(t + 0.5 * h, temperature + 0.5 * h * k1)
-        k3 = rate(t + 0.5 * h, temperature + 0.5 * h * k2)
-        k4 = rate(t + h, temperature + h * k3)
-        temperature = min(temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0, tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K)
-        released_j += 0.5 * (flux + _flux_w_m2(temperature, interior, gravity, thickness_m)) * area_dry_m2 * h * GY_S
-        t += h
-        step = min(step * STEP_GROWTH, STEP_LIMIT_GY)
+    def cool(source_w):
+        """The temperature and released heat at `age_gy` with `source_w` of constant heat added to the radiogenic."""
+        temperature = min(SURFACE_TEMPERATURE_K + energy_j / capacity, cap_k)
+
+        def rate(t_gy, kelvin):
+            # a strong tide moves the temperature past the cap within one step, and a stage beyond the range of the viscosity law makes no sense
+            kelvin = min(max(kelvin, SURFACE_TEMPERATURE_K), cap_k)
+            return GY_S * (radiogenic_w(t_gy) + source_w - conduction_w(kelvin)) / capacity
+
+        t, step, released_j = 0.0, FIRST_STEP_GY, 0.0
+        while t < age_gy:
+            flux = _flux_w_m2(temperature, interior, gravity, thickness_m)
+            # the cooling rate's own time scale: the flux changes by Ea / (R T^2) per kelvin (an overestimate by about three)
+            stiffness = GY_S * flux * area_dry_m2 / capacity * activation / (GAS_CONSTANT * temperature ** 2)
+            h = min(step, age_gy - t, 1.0 / stiffness if stiffness > 0.0 else step)
+            k1 = rate(t, temperature)
+            k2 = rate(t + 0.5 * h, temperature + 0.5 * h * k1)
+            k3 = rate(t + 0.5 * h, temperature + 0.5 * h * k2)
+            k4 = rate(t + h, temperature + h * k3)
+            temperature = min(temperature + h * (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0, cap_k)
+            released_j += 0.5 * (flux + _flux_w_m2(temperature, interior, gravity, thickness_m)) * area_dry_m2 * h * GY_S
+            t += h
+            step = min(step * STEP_GROWTH, STEP_LIMIT_GY)
+        return temperature, released_j
+
     now_w = radiogenic_w(age_gy)
-    total_w = _flux_w_m2(temperature, interior, gravity, thickness_m) * area_dry_m2
-    if temperature >= tuning.INTERIOR_INITIAL_TEMPERATURE_CAP_K:
-        total_w = max(total_w, now_w)
-    return Heat(total_w, now_w, total_w - now_w, temperature, total_w / area_m2, released_j)
+
+    def result(temperature, released_j, tidal_w, unrun_tidal_w=0.0):
+        """The `Heat` at `temperature`; `unrun_tidal_w` is a tide the box did not run with, flowing out beside the conduction."""
+        total_w = conduction_w(temperature) + unrun_tidal_w
+        if temperature >= cap_k:
+            total_w = max(total_w, now_w + tidal_w)
+        return Heat(total_w, now_w, total_w - now_w - tidal_w, temperature, total_w / area_m2, released_j, tidal_w)
+
+    temperature, released_j = cool(0.0)
+    if forcing is None:
+        return result(temperature, released_j, 0.0)
+    own_w = conduction_w(temperature)
+    solid_w = tidal_heating.solid_power_w(forcing, dry_kg, dry_m)
+    if solid_w <= TIDE_NEGLIGIBLE_SHARE * max(own_w, now_w):
+        return result(temperature, released_j, solid_w, unrun_tidal_w=solid_w)
+    warm, warm_released_j = cool(solid_w)
+    if solid_w < own_w or warm < tidal_heating.HEAT_PIPE_TEMPERATURE_K:
+        return result(warm, warm_released_j, solid_w)
+    # melt-limited: the mantle holds the heat-pipe temperature, the melt carries out the tide's heat and the rest
+    molten_w = tidal_heating.molten_power_w(forcing, dry_m)
+    pipe_k = tidal_heating.HEAT_PIPE_TEMPERATURE_K
+    total_w = max(now_w + molten_w, conduction_w(pipe_k))
+    released_j = max(warm_released_j, total_w * age_gy * GY_S)
+    return Heat(total_w, now_w, total_w - now_w - molten_w, pipe_k, total_w / area_m2, released_j, molten_w)
 
 
-def heat_flow(content, interior, mass_kg, radius_km, age_gy, rock):
+def heat_flow(content, interior, mass_kg, radius_km, age_gy, rock, forcing=None):
     """`heat` for a body's stored `radiogenic.Content`: the decay terms of its concentrations and aluminium."""
-    return heat(radiogenic.heat_terms(content, rock.aluminium), interior, mass_kg, radius_km, age_gy, rock)
+    return heat(radiogenic.heat_terms(content, rock.aluminium), interior, mass_kg, radius_km, age_gy, rock, forcing)
 
 
 def generate_interior(body):
@@ -268,9 +318,11 @@ def generate_interior(body):
 
 def update_heat(body):
     """
-    Runs the thermal history of a rocky body to its star's age now and sets `OUTPUT_FIELDS` (the Urey ratio and the heat flow);
-    no draws, so it can be repeated when the star's age is adjusted for its planets. Returns the `Heat`, or `None` (fields `None`)
-    for a body with no stored content or interior (a gas giant, or a row from before GEN.699).
+    Runs the thermal history of a rocky body to its star's age now and sets `OUTPUT_FIELDS` (the Urey ratio, the heat flow of its own and the
+    tide's, GEN.737); no draws, so it can be repeated when the star's age is adjusted for its planets. The tide is that of the orbit stored
+    with the body (`tidal_heating.forcing_of`): a rocky body's goes through the box (`heat`, which may melt it), an icy body's (a water mass
+    fraction of `hydrosphere.ICY_MIN_WATER_FRACTION` or more) heats its ice shell and is `tidal_heating.icy_flux_w_m2`. Returns the `Heat`, or `None`
+    (fields `None`) for a body with no stored content or interior (a gas giant, or a row from before GEN.699).
     """
     content, interior = radiogenic.content_of(body), interior_of(body)
     if content is None or interior is None:
@@ -278,6 +330,12 @@ def update_heat(body):
             setattr(body, name, None)
         return None
     age_gy = getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
-    found = heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body))
-    body.urey_ratio, body.internal_heat_flux_w_m2 = found.urey_ratio, found.flux_w_m2
+    forcing = tidal_heating.forcing_of(body)
+    icy = tidal_heating.is_icy(body)
+    found = heat_flow(content, interior, body.mass, body.radius, age_gy, radiogenic.rock_of(body), None if icy else forcing)
+    body.urey_ratio, body.internal_heat_flux_w_m2 = found.urey_ratio, found.own_flux_w_m2
+    if icy:
+        body.tidal_flux_w_m2 = tidal_heating.icy_flux_w_m2(forcing, body.radius) if forcing else None
+    else:
+        body.tidal_flux_w_m2 = found.tidal_w / (4.0 * math.pi * (body.radius * 1000.0) ** 2) if found.tidal_w > 0.0 else None
     return found

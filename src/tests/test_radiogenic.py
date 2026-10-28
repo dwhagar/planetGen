@@ -196,13 +196,15 @@ def test_every_generated_body_stores_one_set_of_concentrations_that_its_heat_and
             from planetgen.physics import interior_heat
             from planetgen.physics import planets as planet_physics
             rock = radiogenic.rock_of(body)
-            found = interior_heat.heat_flow(content, interior_heat.interior_of(body), body.mass, body.radius, body.star.age, rock)
-            assert planet_physics.internal_heat_flux_w_m2(body) == pytest.approx(found.flux_w_m2)
-            assert body.internal_heat_flux_w_m2 == pytest.approx(found.flux_w_m2) and body.urey_ratio == pytest.approx(found.urey_ratio)
+            from planetgen.physics import tidal_heating
+            forcing = None if tidal_heating.is_icy(body) else tidal_heating.forcing_of(body)  # GEN.737: the tide of the stored orbit
+            found = interior_heat.heat_flow(content, interior_heat.interior_of(body), body.mass, body.radius, body.star.age, rock, forcing)
+            assert planet_physics.internal_heat_flux_w_m2(body) == pytest.approx(found.own_flux_w_m2)
+            assert body.internal_heat_flux_w_m2 == pytest.approx(found.own_flux_w_m2) and body.urey_ratio == pytest.approx(found.urey_ratio)
             # the heat of the interior is the radiogenic heat of the stored concentrations and the cooling of the rest
             silicate_kg = body.mass * rock.silicate
             assert found.radiogenic_w == pytest.approx(radiogenic.heat_w(content, silicate_kg, body.star.age, rock.aluminium))
-            assert found.total_w == pytest.approx(found.radiogenic_w + found.primordial_w)
+            assert found.total_w == pytest.approx(found.radiogenic_w + found.primordial_w + found.tidal_w)
             assert body.dose_ground_msv_yr > 0
     assert seen > 8
 

@@ -16,7 +16,7 @@ star. Luminosities may be in any one unit and distances in AU.
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, orbit_elements
 
 
 def mean_inverse_square(semi_major_axis_au, eccentricity):
@@ -24,13 +24,17 @@ def mean_inverse_square(semi_major_axis_au, eccentricity):
     return 1.0 / (semi_major_axis_au ** 2 * math.sqrt(1.0 - eccentricity ** 2))
 
 
-def companion_swing(host_luminosity, distance_au, companion_luminosity, periapsis_au, apoapsis_au):
+def companion_swing(host_luminosity, distance_au, companion_luminosity, periapsis_au, apoapsis_au, planet_eccentricity=0.0):
     """
     The peak-to-peak swing, as a fraction of the mean total, of the light a planet of one star of a wide
     pair gets over the companion's orbit: the host's `L / d^2` is steady, the companion's
     runs from `L_c / apoapsis^2` to `L_c / periapsis^2`. The peak to peak over the mean can pass 1 when the host is
     the dim one of the pair (a white dwarf or a brown dwarf by a bright star), so, as for a circumbinary planet
     (`circumbinary_swing`), the fraction is capped at 1, the largest swing `flux_variation` holds (GEN.597).
+
+    The planet's own orbit swings the host's light too (`planet_eccentricity`, GEN.727): `L / (d (1 - e))^2` at its periapsis to
+    `L / (d (1 + e))^2` at its apoapsis. The two swings are taken in phase, so the peak-to-peak is the largest the pair of orbits can
+    give (an upper bound: the orbits' periods differ and their extremes meet only now and then).
 
     Args:
         host_luminosity: The planet's star.
@@ -42,9 +46,10 @@ def companion_swing(host_luminosity, distance_au, companion_luminosity, periapsi
         return 0.0
     semi_major = (periapsis_au + apoapsis_au) / 2.0
     eccentricity = (apoapsis_au - periapsis_au) / (apoapsis_au + periapsis_au)
-    host = host_luminosity / distance_au ** 2
+    host = host_luminosity / distance_au ** 2 * orbit_elements.mean_flux_factor(planet_eccentricity)
     mean_total = host + companion_luminosity * mean_inverse_square(semi_major, eccentricity)
-    swing = companion_luminosity * (1.0 / periapsis_au ** 2 - 1.0 / apoapsis_au ** 2)
+    swing = (companion_luminosity * (1.0 / periapsis_au ** 2 - 1.0 / apoapsis_au ** 2)
+             + host_luminosity / distance_au ** 2 * (1.0 / (1.0 - planet_eccentricity) ** 2 - 1.0 / (1.0 + planet_eccentricity) ** 2))
     return min(swing / mean_total, 1.0) if mean_total > 0.0 else 0.0
 
 
@@ -81,7 +86,7 @@ def refresh_system(system):
             _set(planet, None if getattr(planet, "body_type", None) == "a" else companion_swing(
                 member.luminosity, planet.distance, other,
                 node.separation_km / constants.AU_TO_KM * (1.0 - node.eccentricity),
-                node.separation_km / constants.AU_TO_KM * (1.0 + node.eccentricity)))
+                node.separation_km / constants.AU_TO_KM * (1.0 + node.eccentricity), planet.eccentricity))
 
 
 def _set(planet, value):
@@ -100,9 +105,12 @@ def _variation(system, binary, planet, host, other):
     if binary == "close":
         proxy = system.star
         first, second = proxy.stars
-        return circumbinary_swing(first.luminosity, second.luminosity, first.mass, second.mass,
-                                  proxy.binary_separation_au, planet.distance)
+        # the pair's turn and the planet's own orbit, in phase (an upper bound)
+        return min(circumbinary_swing(first.luminosity, second.luminosity, first.mass, second.mass,
+                                      proxy.binary_separation_au, planet.distance)
+                   + orbit_elements.flux_swing(planet.eccentricity), 1.0)
     if binary == "wide" and other is not None and system.wide_binary is not None:
         pair = system.wide_binary
-        return companion_swing(host.luminosity, planet.distance, other.luminosity, pair.periapsis_au, pair.apoapsis_au)
-    return 0.0
+        return companion_swing(host.luminosity, planet.distance, other.luminosity, pair.periapsis_au, pair.apoapsis_au,
+                               planet.eccentricity)
+    return orbit_elements.flux_swing(planet.eccentricity)
