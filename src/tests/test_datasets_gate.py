@@ -58,7 +58,7 @@ def test_nothing_is_missing_once_the_fixtures_are_downloaded(downloaded):
 
 def test_the_catalogue_names_each_missing_dataset_with_its_reason():
     missing = catalogue.missing()
-    assert [located.dataset.fill for located in missing] == ["SC1", "SC2", "SC3", "AD9"]
+    assert [located.dataset.fill for located in missing] == ["SC1", "SC2", "SC3", "AD9", "AD10", "AD11"]
     assert all(located.missing and located.reason for located in missing)
 
 

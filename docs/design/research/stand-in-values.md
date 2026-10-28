@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 218 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 220 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 34 | 0 | 3 | 0 | 0 | 37 |
+| T1 | 36 | 0 | 3 | 0 | 0 | 39 |
 | T2 | 47 | 0 | 0 | 0 | 0 | 47 |
 | T3 | 45 | 3 | 2 | 6 | 0 | 56 |
 | T4 | 11 | 0 | 0 | 2 | 0 | 13 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 11 | 2 | 0 | 1 | 0 | 14 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 0 | 0 | 0 | 0 | 1 | 1 |
-| All | 182 | 14 | 7 | 13 | 2 | 218 |
+| All | 184 | 14 | 7 | 13 | 2 | 220 |
 
 ## How the labels were given
 
@@ -159,6 +159,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SC2 | D | T1 | L0 | the D13 radius law and a fixed layer split | the sequence download (`white_dwarf_models.py`) | Bédard et al. 2020 |
 | SC3 | D | T1 | L0 | the nickel-to-krypton crust table and the D13 radius floor | the equation-of-state and crust download (`neutron_star_matter.py`) | Malik et al. 2024; Servais and Chamel 2026 |
 | AD9 | D | T1 | L0 | the 35 band means of the gas table for ozone (20 nm bins; the UV index they give is off by a large factor in the UV-B) | the ozone download (`ozone_uv.py`, read by `physics/uv_cross_sections.py`, GEN.443) | Keller-Rudek et al. 2013 (ESSD 5, 365); Daumont et al. 1992; Malicet et al. 1995; Brion et al. 1998 |
+| AD10 | D | T1 | L0 | the plateau-and-wing band stand-ins of `infrared_opacity` for the three gases (GEN.703) | the table download (`ir_ktables.py`, read by `physics/infrared_opacity.py`, GEN.715) | Chubb et al. 2021 (A&A 646, A21); Polyansky et al. 2018; Yurchenko et al. 2020; Yurchenko et al. 2014 |
+| AD11 | D | T1 | L0 | the collision-induced pairs of GEN.703 (one table value per pair) | the CIA download (`hitran_cia.py`, read by `physics/infrared_opacity.py`, GEN.715) | Karman et al. 2019 (Icarus 328, 160) |
 
 ## 6.7 Stand-ins of the atmosphere mixture draw
 

@@ -1,19 +1,21 @@
 # tests/datasets_support.py
 
-"""Fixtures for the four downloaded datasets of GEN.548 and GEN.443, built offline: a small MIST archive, a white-dwarf sequence
-archive, an equation-of-state and outer-crust set and an ozone cross-section archive, each served to the real download step by a fake opener (the sha256 of
+"""Fixtures for the downloaded datasets of GEN.548, GEN.443 and GEN.715, built offline: a small MIST archive, a white-dwarf sequence
+archive, an equation-of-state and outer-crust set, an ozone cross-section archive and the infrared tables of `ir_datasets_support`, each served to the real download step by a fake opener (the sha256 of
 the fixture bytes replaces the catalogue's), so no test reaches the network and no downloaded data is committed. Shared by
 `test_datasets_readers.py` (the readers), `test_datasets_gate.py` (the refusal) and `test_stellar_composition.py` (GEN.590)."""
 
 import dataclasses
 import hashlib
 import io
+import os
 import tarfile
 import zipfile
 
 import numpy as np
 
-from planetgen.datasets import catalogue, fetch, isochrones, neutron_star_matter, ozone_uv, white_dwarf_models
+from planetgen.datasets import catalogue, fetch, hitran_cia, ir_ktables, isochrones, neutron_star_matter, ozone_uv, white_dwarf_models
+from tests import ir_datasets_support
 
 
 class _Response(io.BytesIO):
@@ -34,7 +36,7 @@ def reset_caches(cache_folder, monkeypatch):
     fetch._VERIFIED.clear()
     isochrones.forget()
     for loader in (isochrones._load, white_dwarf_models._load, neutron_star_matter._load_compositions,
-                   neutron_star_matter._load_eos, ozone_uv._load):
+                   neutron_star_matter._load_eos, ozone_uv._load, ir_ktables.load, hitran_cia.load):
         loader.cache_clear()
 
 
@@ -192,8 +194,8 @@ def install_neutron_stars(monkeypatch):
 
 
 def install_all(monkeypatch):
-    """All four datasets, on the fixtures, in the cache folder `reset_caches` set; the catalogue lists the fixtures' copies."""
+    """All the datasets, on the fixtures, in the cache folder `reset_caches` set; the catalogue lists the fixtures' copies."""
     installed = [install_isochrones(monkeypatch), install_white_dwarfs(monkeypatch), install_neutron_stars(monkeypatch),
-                 install_ozone(monkeypatch)]
+                 install_ozone(monkeypatch), *ir_datasets_support.install(monkeypatch, os.environ[fetch.CACHE_DIR_ENV])]
     monkeypatch.setattr(catalogue, "ALL", tuple(installed))
     return installed
