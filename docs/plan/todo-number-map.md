@@ -1178,7 +1178,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.427 | One table of the bulk materials with their equation-of-state constants and the source of each | none | done, PR #2580 |
 | GEN.428 | Planets and moons draw their bulk composition fractions instead of carrying a fixed text | none | done, PR #2751 |
 | GEN.429 | Bulk density, mass, radius and gravity are derived from the composition fractions with the mass-radius relation | none | done, PR #2751 |
-| GEN.430 | The planet and moon descriptions state the composition from the stored fractions | none | open |
+| GEN.430 | The planet and moon descriptions state the composition from the stored fractions | none | done, PR #3378 |
 | GEN.431 | Research: what is in the atmospheres of every kind of world, and the numbers each compound needs | none | done, PR #1970 |
 | GEN.432 | Research: what rocky, icy and giant bodies and their small relatives are made of, and the numbers each material needs | none | done, PR #1972 |
 | GEN.433 | Research: what stars and stellar remnants are made of, and the numbers each needs | none | done, PR #1972 |
