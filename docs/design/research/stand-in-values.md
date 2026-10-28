@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 316 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 328 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 38 | 0 | 3 | 0 | 0 | 41 |
-| T2 | 56 | 0 | 0 | 1 | 0 | 57 |
-| T3 | 48 | 3 | 2 | 10 | 0 | 63 |
+| T1 | 39 | 0 | 3 | 0 | 0 | 42 |
+| T2 | 59 | 0 | 0 | 1 | 0 | 60 |
+| T3 | 51 | 4 | 2 | 10 | 0 | 67 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
 | T5 | 14 | 5 | 1 | 0 | 0 | 20 |
-| T6 | 28 | 7 | 2 | 11 | 0 | 48 |
-| T7 | 16 | 3 | 0 | 7 | 0 | 26 |
+| T6 | 28 | 8 | 3 | 11 | 0 | 50 |
+| T7 | 17 | 3 | 0 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
-| T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 216 | 18 | 10 | 55 | 17 | 316 |
+| T9 | 1 | 0 | 2 | 25 | 16 | 44 |
+| All | 224 | 20 | 11 | 56 | 17 | 328 |
 
 ## How the labels were given
 
@@ -473,3 +473,20 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CC8 | P | T5 | L0 | surface_air.VACUUM_PRESSURE_PA 1 (below it the fixed point has no air to equilibrate: the body keeps an exosphere and is airless) | 0.1 to 10 | rocky bodies | test_surface_air::test_a_pressure_that_falls_to_a_vacuum_is_airless | an exosphere model | READ-level fact (the Moon and Mercury hold 1e-10 Pa and under); the edge is the solver's |
 | CC9 | P | T4 | L0 | tuning.GIVEN_MASS_KG_BOUNDS (1e12, 2.47e28) and GIVEN_RADIUS_KM_BOUNDS (0.5, 200000) (the mass and radius a caller may give; outside them the request is an error) | none | given inputs only | test_gen_moon_helpers::test_a_radius_or_mass_that_cannot_be_a_planet_raises | none | design (the lightest body the bulk draw builds to 13 Jupiter masses and the largest inflated giant) |
 | CC10 | P | T9 | L3 | tuning.HABITABLE_REQUEST_FREE_ATTEMPTS 8 and HABITABLE_REQUEST_MASS_EARTH (0.5, 2.0) (a request for a habitable world draws freely, then draws Earth-like masses) | free attempts 4 to 16; masses 0.3 to 3 | the request only | test_gen_builder_internals::test_a_habitable_request_turns_to_earth_like_masses_after_its_free_draws; a request met in under 80 percent of systems around a K or A star | the PHI-6 steering of habitable requests (a follow-up of GEN.688) | design (needed output: a free draw in the ecosphere of an M5 dwarf gave a life class in none of 30, an Earth-like mass in 20 of 30) |
+
+## 6.23 Stand-ins of the cosmic-ray and particle doses and the ozone spread
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|
+| CR1 | P | T3 | L0 | radiation.GCR_MOON_MSV_YR | 400 to 600 | a body with no air, outside a field | a shower run (AD5) at zero column | the Moon's dose with no air is 500 mSv/yr (recalled; the dose behind the lunar-surface instruments, solar-cycle range 128 to 420 at Mars) |
+| CR2 | D | T1 | L0 | radiation.GCR_MARS_G_CM2, GCR_MARS_MSV_YR | 128 to 420 over the solar cycle | the thin-air curve at 22.6 g/cm2 | a shower run at 22.6 g/cm2 | Mars at 22.6 g/cm2 (Guo 2018, 840 Pa over 3.71 m/s2) takes 232 mSv/yr of cosmic rays only (Hassler 2014 Table 3; verified) |
+| CR3 | D | T2 | L0 | radiation.GCR_MARS_LOG_SLOPE_PER_G_CM2 | none | around 20 g/cm2 | the same shower run | the logarithmic slope of the dose at Mars is -0.19 over 6.8 g/cm2 (Guo 2018, arXiv 1712.06987, the columns 18.9 to 25.7 g/cm2) |
+| CR4 | T | T6 | L2 | radiation.GCR_PEAK_G_CM2, `_fit_thin_air_curve` | the three fitted values | 0 to 100 g/cm2 | CORSIKA or Geant4 columns from 0 to 100 g/cm2 | between the anchors and the shower peak the dose is the primaries thinned by nuclear collisions (a length of 28.3 g/cm2, which the fit gives and which matches the collision length of the CNO nuclei) plus a Gaisser-Hillas-style build-up (exponent 5.95, length 17.1 g/cm2), fitted to the Moon, Mars (dose and slope) and the first row of the Atri table (553 mSv/yr at 100 g/cm2, which is itself a lower bound of the peak) |
+| SE1 | D | T2 | L0 | solar_particles.EVENTS | none | the Sun at 1 AU | later fits of events 2015 to the present | 47 Band-function fits of the solar events of 1997-11 to 2015-10 (Vainio 2017 Tables A.1 and A.2 from Tylka and Dietrich 2009: 21 ground-level events with 4 storm-shock rows, 26 smaller), summed to a yearly mean spectrum at 1 AU |
+| SE2 | D | T3 | L0 | solar_particles.RECORD_YEARS, NOAA_YEARS, NOAA_CUMULATIVE_COUNTS | 12 to 24 years | the Sun | a longer record of fluence per event | the record is 18 years, 1.6 solar cycles of one star; its mean is taken as the star's mean; the NOAA 255-event list of 42 years is the check (events of 100 pfu or more: 2.4 a year in the list, 2.6 in the set) |
+| SE3 | T | T3 | L0 | solar_particles.BFO_DEPTH_G_CM2, PROTON_WEIGHT | 5 g/cm2 +- 2 | a human-scale dose | a transport run through the shield | the dose is taken at the blood-forming organs (5 g/cm2 of water, protons of 78 MeV or more, a radiation weight of 2 and the PSTAR stopping power); primaries only, no cascade |
+| SE4 | P | T9 | L3 | solar_particles.TAIL_SLOPE | 1.5 to 2.3 | the rate of the largest events only | a longer proxy record of the largest events (nitrates, cosmogenic isotopes) | above 10 000 pfu the number of events falls with a cumulative slope of 1.9, which gives one event of the Carrington class (1.2e5 pfu) in 500 years (McCracken 2001, recalled); fitted to that count, not to a measurement of the tail |
+| SE5 | P | T7 | L0 | radiation.N33_SUN_PER_YR, free_sep_msv_yr | square root 0.5 to 1 | a star with a stored flare rate | a flare-fluence law of the star's own energy distribution | another star's particle dose is the Sun's scaled by the square root of its rate of 1e33 erg flares over the Sun's and by the inverse square of the distance (a design default pending GEN.493) |
+| OZ1 | D | T2 | L0 | datasets.ozone_uv.CHAPPUIS_TEMPERATURES_K, physics/data/ozone_chappuis.json | none | 410 to 760 nm, 220 to 298 K | tables to colder and warmer layers | the temperature ratio of the Chappuis band to the 298 K table is read from the Burkholder and Talukdar 1994 files (220 to 298 K, Mainz atlas); a body uses the ratio at the temperature of its ozone layer |
+| OZ2 | P | T6 | L1 | atmospheric_radiation.SKIN_TEMPERATURE_FACTOR, DEFAULT_BOND_ALBEDO, DEFAULT_OZONE_TEMPERATURE_K | 200 to 270 K | a body with ozone | a temperature profile from the radiative model | the ozone layer sits at the skin temperature, 2 to the power of -1/4 of the equilibrium temperature (213.6 K for Earth, whose stratosphere is 217 to 270 K); the Bond albedo is 0.3 where a body has none |
+| OZ3 | B | T3 | L1 | ozone.STRUCTURE_KNOTS | the six ends | a body with ozone | model runs for each host at each oxygen level | the ozone column spreads between the lowest and highest ratio the published models give to the fit at that oxygen level: 1.45 to 1.70 at 100 percent, 0.85 to 1.34 at 10 percent, 0.85 to 1.71 at 1 percent and below (Cooke 2022, Grenfell 2007, Segura 2003 and 2005, second-hand through the sources check); linear in log PAL between; the Sun host's ratios are applied to every host |
