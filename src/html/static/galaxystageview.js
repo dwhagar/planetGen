@@ -1376,6 +1376,17 @@ export function createStageView(host) {
     return true;
   }
 
+  // MAP.315: flies the camera to a block (the region an infobox names), as a click on its crumb does: its window,
+  // at the width the window is now (or the default). False while the camera is moving or when the block holds
+  // nothing to show.
+  function openBlock(block) {
+    if (!view || animation || !P.isBlock(block)) return false;
+    const next = S.windowStage(block, stage.win ? stage.win.g : P.DEFAULT_WINDOW);
+    if (resolve(next).problem) return false;
+    go(next);
+    return true;
+  }
+
   function renderTravel() {
     if (!els.controls) return;
     els.controls.querySelectorAll("[data-step]").forEach(function (button) {
@@ -1672,6 +1683,7 @@ export function createStageView(host) {
       shell_index: block.shell, band_index: block.band, wedge_index: block.wedge,
       designation: S.sectorDesignation(block.shell, block.band, block.wedge),
       galactic_radius_pc: Math.hypot(middle[0], middle[1], middle[2]),
+      position: middle,
     };
   }
 
@@ -3569,6 +3581,7 @@ export function createStageView(host) {
     home: home,
     up: up,
     stepToNeighbour: stepToNeighbour,
+    openBlock: openBlock,
     canStep: function (direction) { return !!stepTarget(direction); },
     travel: travel,
     travelToCurrent: travelToCurrent,

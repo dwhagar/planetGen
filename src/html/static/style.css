@@ -2828,6 +2828,21 @@ code {
   color: var(--text-muted);
 }
 
+/* MAP.315: the region a pick lies in, each name a button that looks like a link. */
+.map-info-region {
+  margin: 0 0 0.6em;
+}
+
+.map-info-region-link {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--link, inherit);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* What does not fit even at the smallest text scrolls, so the pointer has to reach the popup to scroll it. */
 .starmap-info[data-overlay][data-scroll] {
   pointer-events: auto;
