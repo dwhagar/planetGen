@@ -35,7 +35,7 @@ PHASE_TAGS = {"h": "heos_constants", "e": "NIST EOS table", "n": "NIST WebBook m
 CP_TAGS = {"J": "JANAF 1998", "N": "NASA-7", "S": "Shomate", "f": "NIST fluid at 1e-4 MPa",
            "x": "NASA-7 extrapolated below 200 K (unreliable)", "C": "computed 5R/2", "P": "Poling polynomial"}
 
-# Names of the species (typed in; part 01 gives formulas only), spelled as the code spells them (`atmosphere.SPECIES_NAMES`: American, "water vapor"). The key is the formula as part 01 writes it.
+# Names of the species (typed in; part 01 gives formulas only), spelled as the code spells them (the gas table's names are the one source of every gas name in the text, GEN.415: American, "water vapor"). The key is the formula as part 01 writes it.
 NAMES = {
     "H2": "hydrogen", "HD": "hydrogen deuteride", "He": "helium", "3He": "helium-3", "Ne": "neon", "Ar": "argon",
     "Kr": "krypton", "Xe": "xenon", "Rn": "radon", "N2": "nitrogen", "O2": "oxygen", "O3": "ozone", "H2O": "water vapor",

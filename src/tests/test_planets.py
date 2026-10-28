@@ -79,7 +79,7 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, cls, zone):
         assert value > 0, f"{cls}-{zone}: {attr}={value} should be positive"
 
     class_data = prog_c.PLANET_CLASSES[cls]
-    if class_data["atmosphere"] is None:
+    if not class_data["air"]:
         assert planet.atmosphere == "None"
         assert planet.atmospheric_pressure == 0.0
         assert planet.atm_density is None

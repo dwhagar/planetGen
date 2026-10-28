@@ -139,7 +139,7 @@ Phase function p = 3 / (4 (1 + 2g)) [(1 + 3g) + (1 - g) cos^2 theta], g = rho / 
 
 ## 7. Mixture, pressure and molar density agree (tests in TEST.209)
 
-(i) Partial pressures sum to the stored pressure to 1e-9 relative. (ii) The molar mass is the sum of x_i M_i. (iii) No partial exceeds the saturation curve at the surface temperature unless the body names a liquid or solid reservoir. (iv) The text names only table gases above the GEN.415 thresholds. (v) T_s is the formula of the stored A and G. (vi) The Rayleigh depth reads the column P / (m g) with the mixture's mean molar mass (master finding 5), never the drawn one.
+(i) Partial pressures sum to the stored pressure to 1e-9 relative. (ii) The molar mass is the sum of x_i M_i. (iii) No partial exceeds the saturation curve at the surface temperature unless the body names a liquid or solid reservoir. (iv) The text names only table gases above the GEN.415 thresholds (`atmosphere.describe`: the four largest gases from 1 percent of the air, then the two largest traces from 0.01 percent, each under the gas table's name; a class carries no gas phrase, `tuning.PLANET_CLASSES[...]["air"]` says only whether it has air, and `atmosphere.PENDING` stands in until the air is solved; tested for every class and zone in `test_atmosphere_text_consistency.py`). (v) T_s is the formula of the stored A and G. (vi) The Rayleigh depth reads the column P / (m g) with the mixture's mean molar mass (master finding 5), never the drawn one.
 
 ## 8. Albedo and greenhouse: the inverse for old rows
 

@@ -508,7 +508,7 @@ def generate_planet_properties(planet, zone_override=None):
     # The air is made later, with the temperature it gives (`calculate_atmospheric_conditions`, GEN.411 and GEN.422): a class says only
     # whether it has one. Clear what a previous class left behind -- `reconcile_zone_and_class` regenerates a body in place, so a body
     # moved from an atmosphered class into an airless one would otherwise keep (and save) its old class's densities.
-    planet.atmosphere = "None" if class_data["atmosphere"] is None else class_data["atmosphere"]
+    planet.atmosphere = atmosphere.PENDING if class_data["air"] else "None"
     planet.atm_density = None
     planet.atm_molar_density = None
     planet.scale_height = None
