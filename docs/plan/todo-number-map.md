@@ -1805,7 +1805,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.211 | Hypervelocity stars show no accessible information: show their type, and a button to the phenomenon or the star system (bug) | none | done, PR #1787 |
 | MAP.212 | A region selection tool on the Galaxy Map and the Sector Map, for admin actions | none | open |
 | MAP.213 | Scene, maps and the JavaScript twin for trees: per-node zoom, log-radial overview and positions_at in JavaScript | none | open |
-| MAP.214 | Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space | none | open |
+| MAP.214 | Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space | none | done, PR #3284 |
 | MAP.215 | Nebulae tint the stars seen through them, with soft translucent boundaries | none | open |
 | MAP.216 | Admin page of the objects that moved in the last update, with the movement vector and a map ghost of the old position | none | open |
 | MAP.217 | Map layer interface: one registry the Galaxy stage view, the Sector Map and the System Map share for a toggled layer (menu entry, modes, URL key, legend, picker layer, fade rule) | none | done, PR #2006 |
@@ -1828,11 +1828,11 @@ Parents marked "new parent" had no old number of their own.
 | MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws | none | open |
 | MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | none | open |
 | MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map | none | open |
-| MAP.237 | The Galaxy Map's "Charted only" view is invisible again, and charted regions are shown by colour and opacity, not outlined blocks (bug) | none | open |
+| MAP.237 | The Galaxy Map's "Charted only" view is invisible again, and charted regions are shown by colour and opacity, not outlined blocks (bug) | none | done, PR #FOLDED |
 | MAP.238 | Charted regions shown by colour and opacity, not outlined blocks: drop the outlines everywhere charted space is marked | none | merged into MAP.237 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | MAP.239 | Raise the Galaxy Map tile root to the 262 kpc reach: `TILE_ROOT` in `galaxy/viewport.py` and `galaxymap3d.js` | none | done, PR #2152 |
 | MAP.240 | Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts | none | open |
-| MAP.241 | Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug) | none | open |
+| MAP.241 | Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug) | none | done, PR #3412 |
 | MAP.242 | The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body | none | open |
 | MAP.243 | The Galaxy Map cannot select or enter anything in the halo: the halo's scatter objects are not pickable at galaxy scale and a zoom toward one stops without opening a view (bug) | none | done, PR #2199 |
 | MAP.244 | The maps and pages use the atmosphere colour where they showed the planet colour | none | done, PR #2805 |

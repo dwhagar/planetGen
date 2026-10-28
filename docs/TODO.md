@@ -1965,7 +1965,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stay as options; nebulae tint the colour of the stars seen through
   them and have soft translucent boundaries (MAP.142). Owner:
   Foundations lane 2, after the nebula map work (MAP.176; MAP.155 merged in #1253).
-  Prerequisites: MAP.214, MAP.215. Related: MAP.131, MAP.142, MAP.176,
+  Prerequisites: MAP.215. Related: MAP.131, MAP.142, MAP.176,
   MAP.146.
   Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
   chunks and shared work): this item is now the umbrella and is done
@@ -2194,20 +2194,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   owner line).
   Prerequisites: none. Related: GEN.129.
 
-- [ ] **MAP.214 Galaxy Map default view: no density, age or luminosity shading, only stars and markers for known space**
-  Split from MAP.191 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). Boss (GitHub issue #1233): going
-  to the infinite zoom model the default view needs only the stars and
-  the markers for where known space is. The default Galaxy Map shows
-  stars and markers with no density, age or luminosity fill; the Color
-  by density and age views stay as options. Done: the default view has
-  no shading fill, Color by density and age still work and are off by
-  default, and a browser test checks the default.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: none. Related: MAP.191.
-
 - [ ] **MAP.215 Nebulae tint the stars seen through them, with soft translucent boundaries**
   Split from MAP.191 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). In the default Galaxy Map view
@@ -2417,41 +2403,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   overlay is on.
   Prerequisites: MAP.240. Related: MAP.234, MAP.235, GEN.254.
 
-- [ ] **MAP.237 The Galaxy Map's "Charted only" view is invisible again, and charted regions are shown by colour and opacity, not outlined blocks (bug)**
-  Boss (2026-10-16, 7:24 PM EDT, timeline): "the 'charted only' has gone
-  back to being invisible from the galactic map, so we need some kind of
-  way to see where they are." MAP.111 made "Charted only" dim blocks
-  with nothing generated, dim stars outside charted sectors and outline
-  each charted block ("Charted only" in the Menu; `setChartedOnly` in
-  `static/galaxymap3d.js` sets the `chartedOnly` star uniform and calls
-  `stageView.setChartedOnly`), and MAP.112 let empty blocks be hovered
-  with it on. It was visible then and is not now, so something since
-  then broke it or hid it (the infinite-zoom and tile work changed the
-  stages). Reproduce on a database with a charted region, find the root
-  cause, and fix it; do not add a second way to see charted space (the
-  look itself is MAP.237). Done: with Charted only on, charted space is
-  visibly different from the rest at every stage (whole galaxy, a window
-  of blocks, a single sector window), with a browser test that compares
-  a screenshot (or the drawn colours) with the toggle on and off at each
-  stage and fails if they are the same.
-  Owner: Core 2 (the Galaxy Map; proposed, Core 2 reads the plan).
-  Prerequisites: none. Related: MAP.111, MAP.112, MAP.190, UX.48.
-  Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
-  2026-10-17): MAP.238 folded in. After the toggle shows something at
-  all, charted blocks and regions are restyled: highlighted by a fill
-  colour and opacity that rise with the filled share (the amber of
-  generated blocks already grows more solid with it), with no outline
-  drawn around charted blocks or regions on the Galaxy Map or the Sector
-  Map (Boss, 2026-10-16, 7:24 PM EDT: "I also don't like the outlined
-  blocks for it, they are really ugly"); "Charted only" (the Menu)
-  raises the highlight and dims the rest; the hover outline on a choice
-  stays (it marks what the pointer is on, not charted space); the region
-  highlight of UX.48 uses the same fill. Both themes, every stage, and a
-  browser test that no outline mesh is built for charted blocks and that
-  the fill differs between a charted and an empty block. This replaces
-  the sentence above that the look is a separate item. MAP.214 (the
-  default view) points here for the charted look.
-
 - [ ] **MAP.240 Browser buffers hold camera-relative coordinates: territory dots, superbubbles, made rings, block prisms, stage views, system view dots and belts**
   From the GEN.372 precision audit (Core 1,
   docs/design/architecture/numeric-precision-audit.md section 5, 2026-10-16, 7:39 PM
@@ -2477,42 +2428,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   system view). Not built: the glow's density-model fallback (design
   section 3); TODO files it only if Boss wants it.
   Prerequisites: none. Related: GEN.372, MAP.236, MAP.234, MAP.146.
-
-- [ ] **MAP.241 Stars on the star maps should glow brighter, not grow bigger: size stays small, glow and colour carry luminosity and temperature (bug)**
-  Boss (2026-10-16, 7:43 PM EDT, timeline): "Bug, stars on the starmap
-  should glow brighter but not be bigger if that makes any sense so they
-  are more obviously stars with glows and colors relative to the star's
-  properties." Which map: the message says the star map; the default is
-  both the Galaxy Map and the Sector Map (both draw stars the same way),
-  and the Galaxy Map comes first. What exists: Boss's earlier rule
-  (MAP.51/MAP.208, in the header of `static/galaxymap3d.js`) is "very
-  small with a big glow", sizes by the star's radius, brightness by
-  luminosity and colour by temperature. Today each star is a point
-  `POINT_PX` across far away and, from about a sector away, grows into a
-  core sized by the star's radius (`STAR_CORE_PX` 1.1 to 4.5 px) inside
-  a halo whose width and strength both grow with luminosity
-  (`STAR_MIN_PX` 6 to `STAR_MAX_PX` 30 px), so a luminous star becomes a
-  bigger disc, not a brighter point; the Sector Map has its own curve
-  (MAP.87, `static/starlight.js`). Done: a star's on-screen footprint
-  stays small and close to the same for every star (the size no longer
-  grows with luminosity or radius beyond a narrow band); luminosity
-  raises the glow's intensity (a brighter, hotter-looking core and halo
-  that stays tight), colour follows the blackbody temperature with
-  enough saturation to read, and a dim star reads dim and a bright star
-  reads bright at the same size; the halo-blend rule stays (crowded arms
-  glow in their colours, not white); one shared star look for both maps
-  (`static/starpoint.js` or `starlight.js`, not two curves); both
-  themes; a browser test that two stars of very different luminosity
-  have the same sprite size within a stated tolerance but different peak
-  glow, and that colour follows temperature. The star key entry of
-  MAP.234 says what size, glow and colour mean. Overlap checked: MAP.208
-  (built the grow-into-a-core rule that this changes), MAP.87 (the
-  Sector Map curve), MAP.164 and MAP.165 (colour and size, built),
-  MAP.148 (visibility law, unchanged), MAP.217 (layer registry, no
-  change), and the density/age coloring design, which is for blocks, not
-  stars. Owner: Core 2 (proposed).
-  Prerequisites: none. Related: MAP.208, MAP.87, MAP.164, MAP.165,
-  MAP.234, MAP.148.
 
 - [ ] **MAP.242 The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -3352,6 +3267,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn region node is left for this item: call
   stageView.openRegion(block, {center, radius}) with the node's centre
   and extent.
+  Folded (2026-10-09): MAP.237 folded in (TODO, 11:12 AM EDT 2026-10-28,
+  with Core 2's report that MAP.297 removed the block outlines and
+  shading it described): Boss's need (2026-10-16, 7:24 PM EDT, 'we need
+  some kind of way to see where they are') is met by drawing the charted
+  regions as soft sphere nodes at the galactic level. Done adds: with
+  Charted only on (if the toggle still exists after MAP.297; if it was
+  removed, the regions are always drawn) charted space is visibly
+  different from the rest at the whole-galaxy stage, with a browser test
+  that compares the drawn colours with the toggle on and off.
 
 - [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d)**
   Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
