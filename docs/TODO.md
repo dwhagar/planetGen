@@ -1466,6 +1466,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   window of blocks were already built in #3391, and the sector wall
   icons are the sector-level step. Left for this item: dimming of the
   neighbouring blocks at the block level and the System Map part.
+  Progress (2026-10-09): Core 2 (#3427, 12:07 PM EDT 2026-10-28 as the
+  lane reported): the six step buttons and keys now also work inside an
+  opened sector (they open the sector across the wall in that direction
+  in one camera move, using stageView.openSector and
+  galaxyprisms.neighbourBlock; a button stays off where the wall faces
+  nothing), and the Galaxy Map needs no new dimming. Left: the System
+  Map neighbours only (provisional rule in the scope note).
   Prerequisites: none.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
@@ -14696,6 +14703,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   column goes in db/column_units.py.
   Prerequisites: none. Related: GEN.749, GEN.568.
 
+- [ ] **GEN.844 A random planet's colour crashes generation: 'the spectrum has no light between 380 and 780 nm' (bug)**
+  Found by Core 2 (as the lane reported 12:07 PM EDT 2026-10-28) in one
+  of 20 repeat runs of test_web_browser_sector_open.py: generating the
+  sample sector died with ValueError 'the spectrum has no light between
+  380 and 780 nm' raised in photometry.spectrum_to_xyz, called from
+  atmosphere_colour._colour_of, body_colour.generate,
+  planets.generate_spin, validation.reconcile_moved_planet, in
+  space_orbits while building a pre-placed system. A planet whose
+  spectrum has no visible light (a very cold or very faint star, or a
+  fully absorbing air) has no colour, and the colour code raises instead
+  of returning a defined fallback, so one planet stops the whole sector.
+  Do: reproduce with the failing seed (find it by looping the sample
+  sector build), decide the defined answer for a body that receives no
+  visible light (a stored black or the unlit colour of the look record,
+  never a made-up hue; record it as a stand-in with tier and tweak level
+  if it is a tweak), return it instead of raising, and keep the check
+  that a lit body with a flat zero spectrum is a bug elsewhere. Done: a
+  unit test for spectrum_to_xyz and the colour of a planet with no
+  visible light, and 200 sample-sector builds over random seeds finish.
+  Owner: Aux 12 (DB.96, stored atmosphere colour) with Aux 8 for the air
+  spectrum. Rules: draws through draw.py; no backward-compat shims; a
+  generation change takes the lock queue.
+  Prerequisites: none. Related: DB.96, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -20463,21 +20494,6 @@ clears each one.
   icons affected; recheck which of the seven still fail on current main
   before starting.
   Prerequisites: none. Related: MAP.209, MAP.210, TEST.414.
-
-- [ ] **TEST.419 test_opening_a_sector_is_one_continuous_view_with_a_filled_panel failed once in a full file run and passed on the next two (bug)**
-  Found by Core 2 (as the lane reported 11:27 AM EDT 2026-10-28) while
-  checking MAP.209 and MAP.210 on main after #3412: on the first full
-  run of test_web_browser_sector_open.py this test failed once, with no
-  code change it passed alone and in the full file on the next two runs;
-  the failure message was not captured. Do: run the file in a loop (20
-  times, capture the message and a screenshot on failure), find the race
-  (the camera flight, the scene reload or the panel fill), and fix the
-  code or the wait in the test so it checks the same property without a
-  fixed sleep. Done: 20 consecutive runs pass. Owner: Core 2. Rules:
-  never skip or loosen the test; keep the property (one continuous view,
-  filled details panel). A new report of Boss seeing the flash or an
-  empty panel is filed as its own bug.
-  Prerequisites: none. Related: MAP.209, MAP.210.
 
 - [ ] **TEST.420 Runner self-tests and the limit-slider follow-again browser test are red on main (bug)**
   Found by Aux 10 (as the lane reported 11:48 AM EDT 2026-10-28) while
