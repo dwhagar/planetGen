@@ -16,6 +16,8 @@ to draw it before it opens it into its children:
   (`query.galaxy_bright_stars_in_box`, `galaxy_generated_stars_in_box`, `galaxy_point_phenomena_in_box`,
   `galaxy_scattered_points_in_box`, `galaxy_clouds_in_box`: one key for every block, so a child lists every object
   of its parent that lies inside it, MAP.154), with the unlisted rest summed in the aggregate's lights;
+* `nebula_regions` (MAP.173): the child blocks of the block that hold nebulae, largest volume first, from the stored
+  aggregates (`db.nebula_blocks`); the individual nebulae are `clouds`;
 * `placed`: the generated sectors of a level-3 block or of a sector, for the cell under the pointer and the charted
   tint.
 
@@ -30,12 +32,12 @@ node cache keys each node by key and stamp.
 
 import math
 
-from planetgen.db import block_lights, query, region_stats
+from planetgen.db import block_lights, nebula_blocks, query, region_stats
 from planetgen.galaxy import spherical
 from planetgen.names import naming_key
 from planetgen.galaxy.nodecut import block_box
 from planetgen.galaxy.drill import (
-    DRILL_STEP, DrillBlock, drill_parent, format_drill_key, parse_node_key)
+    DRILL_STEP, DrillBlock, drill_children, drill_parent, format_drill_key, parse_node_key)
 from planetgen.physics.units import ly_to_pc
 
 NODE_STARS = 96
@@ -49,6 +51,10 @@ NODE_POINTS = 60
 
 NODE_CLOUDS = 120
 """int: Most nebulae and supernova remnants a block node lists."""
+
+NODE_NEBULA_REGIONS = 600
+"""int: Most nebula regions a block node lists (MAP.173), largest volume first. A block's regions are its children that hold a
+nebula's centre (27 at most for a block of the ladder), so the budget only bites where the ladder is made finer."""
 
 NODE_SECTOR_STARS = 300
 """int: Most pre-placed stars a sector node lists."""
@@ -181,6 +187,35 @@ def _outer_shell(conn):
     return max(int(shell) for shell in found) if found else 0
 
 
+def node_nebula_regions(conn, block, limit=NODE_NEBULA_REGIONS):
+    """
+    The nebula regions of a block node (MAP.173): the children of `block` that hold the centre of at least one nebula, each
+    a fixed-grid group, so a parent's groups are exactly the union of its children's (the nesting of the star lists, MAP.154)
+    and the map needs no clustering. A list of `{"key", "count", "volume_pc3", "centre", "radius_pc", "shares", "class"}`: the
+    child's node key, its nebulae, their summed volume (pc3), the volume-weighted centre `[x, y, z]` and the radius that
+    reaches the outer edge of its members (pc), the share of that volume in each family (the families that hold any), and the
+    class with the most volume. Largest volume first, ties by the key, at most `limit`. Read from `nebula_block_stats`
+    (`db.nebula_blocks`), so the list comes from the seed's field and the stored nebulae and needs no sector. Empty for a block whose
+    children are not stored there (a level-3 block's are sectors: it lists its single nebulae in `clouds`, and so does every node).
+    """
+    if block.m // DRILL_STEP not in nebula_blocks.LEVELS:
+        return []
+    children = [child for _shell, group in drill_children(block) for child in group]
+    found = nebula_blocks.read(conn, block.m // DRILL_STEP, [(c.shell, c.band, c.wedge) for c in children])
+    listed = []
+    for child in children:
+        row = found.get((child.shell, child.band, child.wedge))
+        if row is None or not row["count"] or row["centroid"] is None:
+            continue
+        listed.append({
+            "key": format_drill_key(child), "count": int(row["count"]), "volume_pc3": float(row["volume_pc3"]),
+            "centre": [float(v) for v in row["centroid"]], "radius_pc": float(row["bound_radius_pc"]),
+            "shares": {family: share for family, share in row["shares"].items() if share > 0},
+            "class": row["dominant_class"]})
+    listed.sort(key=lambda region: (-region["volume_pc3"], region["key"]))
+    return listed[:limit]
+
+
 def galaxy_nodes(conn, node_keys):
     """
     The contents of each requested node: the interactive Galaxy Map's data source once its cut is made of nodes
@@ -192,7 +227,8 @@ def galaxy_nodes(conn, node_keys):
         node_keys (list[str]): `m.shell.band.wedge` keys (`drill.parse_node_key`), at most `MAX_NODES_PER_REQUEST`.
 
     Returns:
-        dict: `nodes` (`{key: {"aggregate", "stars", "generated", "points", "clouds", "interests", "placed"}}`, `placed` only for
+        dict: `nodes` (`{key: {"aggregate", "stars", "generated", "points", "clouds", "interests", "nebula_regions", "placed"}}`, `nebula_regions` only for a block with nebulae in it and a
+            finer level, `placed` only for
             a level-3 block and a sector; `incomplete` names the pieces a statement limit cut, as a node's does),
             `edge_pc` and `has_shape`.
 
@@ -266,6 +302,9 @@ def galaxy_nodes(conn, node_keys):
             conn, lo, hi, max_clouds=NODE_CLOUDS, margins=margins), [])
         node = {"aggregate": aggregate, "stars": stars, "generated": generated, "points": points, "clouds": clouds,
                 "interests": interest_systems}
+        grouped = piece("nebula_regions", lambda: node_nebula_regions(conn, block), [])
+        if grouped:
+            node["nebula_regions"] = grouped    # MAP.173: the groups of the nebulae inside, beside the single `clouds`
         if block.m in PLACED_LEVELS:
             node["placed"] = piece("placed", lambda: [
                 sector for sector in query.galaxy_sectors_in_box(conn, lo, hi, limit=NODE_PLACED_MAX * POOL)

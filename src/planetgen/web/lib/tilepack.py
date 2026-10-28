@@ -63,7 +63,7 @@ TEMPERATURE_LOG_RANGE = (2.0, 6.0)
 RADIUS_LOG_RANGE = (-3.0, 4.0)
 
 # The sections that stay JSON.
-_META_SECTIONS = ("clouds", "points", "interests", "incomplete", "aggregate", "placed", "name", "parent", "extent", "charted", "regions")
+_META_SECTIONS = ("clouds", "points", "interests", "incomplete", "aggregate", "placed", "name", "parent", "extent", "charted", "regions", "nebula_regions")
 _STAR_SECTIONS = ("stars", "generated")
 _U16 = 65535
 _U8 = 255

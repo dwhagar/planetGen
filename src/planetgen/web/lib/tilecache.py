@@ -107,7 +107,7 @@ _STAR_KEYS = ("id", "x", "y", "z", "luminosity_sol", "temperature_k", "radius_so
 """tuple: The only fields of a node's star the page's script reads (MAP.157;
 `nodeStars`, `setStars` and `starShown` in `static/galaxymap3d.js`)."""
 
-_KEEP_SECTIONS = ("aggregate", "clouds", "stars", "generated", "points", "interests", "placed", "incomplete", "name", "parent", "extent", "charted", "regions")
+_KEEP_SECTIONS = ("aggregate", "clouds", "stars", "generated", "points", "interests", "placed", "incomplete", "name", "parent", "extent", "charted", "regions", "nebula_regions")
 """tuple: The sections of a node the page reads. `incomplete` (PERF.76) names the pieces the database was too busy
 to give; such a node is served but never stored."""
 
