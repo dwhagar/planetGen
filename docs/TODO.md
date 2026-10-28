@@ -13334,6 +13334,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.814): the greenhouse module's water-vapour feedback is too strong,
   so cold sealed water worlds sit at the freezing point. The water-world
   temperature test of GEN.823 cannot pass until this is fixed.
+  Research (2026-10-09): Also (Aux 8, 5:51 PM EDT 2026-10-28 as the lane
+  reported): GEN.823 is wired (#3504) but its temperature test needs
+  GEN.812 to land first; add that test with GEN.812.
 
 - [ ] **GEN.816 A giant's temperature at 1 bar includes its internal heat, not only the greenhouse of the absorbed starlight (finding 5)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
@@ -13413,22 +13416,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane. Rules: no backward-compat shims; stand-ins get GEN.725 registry
   rows; tests are `scripts/test.py changed --resume`.
   Prerequisites: GEN.738. Related: GEN.738, GEN.722, GEN.725, GEN.800.
-
-- [ ] **GEN.823 Wire the water-world carbon sink (GEN.814, waterworld_carbon) into the air solve and show the water-world temperatures sit inside the published range**
-  GEN.814 merged the module (waterworld_carbon.sink_kind(sealed,
-  land_fraction): sealed uses sealed_state, no land uses
-  seafloor_pco2_bar; registry rows AM52 to AM62) but the generator does
-  not call it. After 4c (GEN.411, GEN.422) route a class O world with no
-  land through it, then test the done criterion GEN.814 could not show:
-  the water-world temperature distribution is within the published range
-  (Kite and Ford 2018, Krissansen-Totton and Catling 2017), which also
-  needs the greenhouse fix GEN.812. Changed generated values carry the
-  next epoch with --affects fill. Owner: Aux 8. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  stand-ins get GEN.725 rows; tests are scripts/test.py changed
-  --resume.
-  Prerequisites: GEN.812. Related: GEN.814, GEN.812,
-  GEN.411, GEN.422.
 
 - [ ] **GEN.824 The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2**
   Found by GEN.814 (Aux 8, 1:02 AM EDT 2026-10-25): the class O CO2/H2O
@@ -13510,28 +13497,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   0.06); planets of 1 to 20 Earth masses inside 0.45 AU 0.52 to 0.88
   around Sun-like stars and 0.24 to 1.30 around M dwarfs.
 
-- [ ] **GEN.830 A class O (ocean) planet in zone e reaches a surface pressure of 9.05e9 Pa (about 90,000 bar) with the solved air: unphysical for an air above a liquid ocean (bug)**
-  Found by the 4c lane (Blocker I, relayed by the coordinator 2:36 AM
-  EDT 2026-10-25): in test_planets a class O planet in zone e reaches
-  9.05e9 Pa; before 4c the sweep ceiling was 5e7 Pa. PR #3321 (merged)
-  raised the test ceiling to 1e10 Pa so the test is not red, which hides
-  the question. Do: find which term of the air fixed point (GEN.411,
-  GEN.422) drives it, the supply law (GEN.726), the sinks (the ocean
-  carbon sink GEN.814, the high-pressure ice seal), freeze-out or the
-  greenhouse feedback for massive water worlds; the air above a liquid
-  ocean cannot hold tens of thousands of bar of volatiles that the ocean
-  dissolves or the ice shell seals, so cap it by the physics
-  (solubility, the sink, the seal) and not by a clamp. Done: massive
-  water worlds keep a surface pressure inside the range the physics
-  allows, a test with a physical bound replaces the raised ceiling, and
-  the reason is recorded in the stand-in registry if a value is tuned.
-  Owner: Aux 8 (with GEN.823 and GEN.814). Changes stored values: a new
-  generator epoch with --affects fill if the pressure changes. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
-  Prerequisites: none. Related: GEN.411, GEN.422, GEN.726, GEN.814,
-  GEN.823.
-
 - [ ] **GEN.833 Cold icy moons get sparse ice cover because the hydrosphere's toy ocean_fraction feeds the ground draw (bug)**
   Found by Blocker 4 while merging GEN.441 (PR 3335, as the lane
   reported 3:57 AM EDT 2026-10-25): the ground draw reads the
@@ -13593,68 +13558,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Aux 14 or a free lane. Rules: no backward-compat shims; the
   generation-merge lock applies.
   Prerequisites: none. Related: GEN.732, MAP.275, GEN.557.
-
-- [ ] **GEN.837 Forced class M and class P planets in the habitable zone carry far too much steam: about a third of 300 draws sit above 400 K because the wet volatile inventories give hundreds of bar (bug)**
-  Found by Aux 4 (as the lane reported 5:35 AM EDT 2026-10-25), on a
-  base that already holds GEN.813 (#3254). Forced class M planets (G2V
-  host, middle of the habitable zone, seed 1, 300 draws): 110 above 400
-  K, 90 below 273 K, median 325.6 K; the same sweep on main without
-  GEN.812 gives 107 above 400 K, median 328 K. In a 120-draw look at the
-  hot ones, 44 were above 400 K and 40 of those were water-dominated,
-  with a median surface pressure of 554 bar (examples: 122 bar of 60
-  percent steam, 14 percent CO2 and 15 percent H2S at 645 K; 660 bar of
-  83 percent steam at 844 K; 30,000 bar at 1,423 K). The planets have
-  Earth-like masses (4.6 to 7.4e24 kg) at about 1.3 AU, so the water,
-  sulfur and carbon inventories give many Earth oceans of steam (the
-  Earth ocean is 270 bar); the greenhouse module only turns that into
-  heat. Class P shows the same (95 to 100 of 300 above 400 K). Do: trace
-  the inventory totals for the wet classes (delivered water, outgassed
-  H2O, CO2 and H2S brackets from GEN.813 and GEN.815), decide what share
-  of the inventory stays in the surface and mantle reservoirs rather
-  than the atmosphere (a ceiling on the atmospheric fraction, or a
-  surface ocean sink), and cut the hot tail so a class M planet in the
-  habitable zone is mostly 250 to 330 K, with any tuning recorded in the
-  stand-in registry (GEN.725) with its tweak level and reason. Done: the
-  same 300-draw sweep has no more than a few percent above 400 K and the
-  Earth twin keeps its 270 bar ocean. Owner: Aux 17 (wrote GEN.813) or
-  Aux 6 (bulk composition); the coordinator asked for this item. Changes
-  generated output, so it needs the generation lock, an epoch with
-  --affects fill.
-  Research (2026-10-09, Aux 9 report 2026-10-28): More evidence from Aux
-  9 (as the lane reported 9:09 AM EDT 2026-10-28, main 945fcad8): G2V
-  star, 1.0 solar luminosity, habitable zone 0.96 to 1.69 AU, a class M
-  planet forced at 1.32 AU (less starlight than Earth gets): 12 draws of
-  12 come out vapour at 693 to 1382 K and 104 to 22,000 bar, water mass
-  fraction 1e-4 to 4e-4 each, albedo 0.29 to 0.31. Likely cause: the
-  delivered-volatile budget (recipes b2/b3, 0.05 to 0.5 weight percent
-  water) is far above the body own water mass fraction, so the steam
-  never condenses and the air solver takes the boiling branch. Today
-  these hide behind the class letter M; once classes are derived
-  (GEN.646) they show as class N, about 30 to 75 percent of ecosphere
-  rocky planets in Aux 9 sweeps with tens of thousands of bar. Same
-  family as GEN.830 (Aux 8, air solver). Aux 9 does not fix the solver;
-  the owner of this item should decide with Aux 8 whether the fix is the
-  delivered budget (cap at the body water fraction, surface and mantle
-  sinks) or the solver branch.
-  Research (2026-10-09, Aux 8 report 2026-10-28): Split proposed by Aux
-  8 (as the lane reported 9:12 AM EDT 2026-10-28; recorded unless Aux 17
-  objects): measured on a G2V class M, zone e, 8 seeds: the delivered
-  water of recipes b2/b3 is 0.1 to 0.2 percent of the planet mass but
-  the body own water is 0.01 to 0.03 percent, 3 to 50 times too little
-  to supply it; the four b2/b3 draws with the most water are 55 to 870
-  bar of steam at 620 to 843 K; b1 draws are fine. Aux 8 takes the
-  SOLVER side: cap the hydrogen the air draw may take by the water the
-  body has to give (surface_air._shares), riding with GEN.830 in one
-  lock turn (one epoch, one golden run). Aux 17 keeps the b2/b3 row
-  re-fit after GEN.822. Stand-ins and tweaks go in the registry with
-  level and reason.
-  Evidence (2026-10-09): Aux 9 (12:33 PM EDT 2026-10-28 as the lane
-  reported): with no class gating, about 80 percent of planets get a
-  thick air on the class cut-over branch, so the hydrogen cap and
-  steam-share cut of Aux 8 (GEN.830 + this item's solver side) matter
-  for the cut-over result. Order of the two lock turns: whichever gate
-  is clean first merges, the other follows at once.
-  Prerequisites: none. Related: GEN.813, GEN.815, GEN.812.
 
 - [ ] **GEN.838 A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling**
   Split from GEN.735 by Aux 5 (as the lane reported 7:28 AM EDT
@@ -13782,6 +13685,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   regional-temperature text. Owner: none yet (Aux 5 retires after its
   lock turn; it is in the released pool for a fresh lane).
   Prerequisites: none. Related: GEN.656, GEN.767, GEN.795, GEN.796.
+
+- [ ] **GEN.849 Re-fit the delivered-water rows b2/b3 against the bodies bulk water (the rows deliver 0.1 to 0.2 percent of mass against 0.01 to 0.03 percent of body water)**
+  Found by Aux 8 with GEN.837 (#3504, epoch 115, 5:51 PM EDT 2026-10-28
+  as the lane reported): its measurement shows the b2 and b3 delivery
+  rows put 0.1 to 0.2 percent of the planet mass in as water while the
+  bodies they come from hold 0.01 to 0.03 percent of their mass as
+  water, a factor of about ten. Re-fit the rows so the delivered water
+  matches the stored bulk water of the delivering bodies, record the
+  change in the stand-in registry with tier and tweak level, and take an
+  epoch with --affects fill and a lock turn. Owner: none yet (Aux 8
+  retired); in the released pool for a fresh lane.
+  Prerequisites: none. Related: GEN.837, GEN.830, GEN.812.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19061,25 +18976,6 @@ clears each one.
   current run's own workers are not touched. Owner: Bug 1 (owns
   TEST.376). Rules: no backward-compat shims.
   Prerequisites: none. Related: TEST.376, PERF.181.
-
-- [ ] **TEST.399 test_golden_seed::test_the_pinned_galaxy_is_made_at_one_worker_and_at_four is red on main: the pinned galaxy differs between one worker and four (bug)**
-  Found by the 4c lane (as the lane reported 7:25 AM on its clock, about
-  4:17 AM EDT) on origin/main 081337a9f (epoch 108): the test that the
-  pinned galaxy is identical at one worker and at four fails, and it
-  blocks the gate of every generation merge. Do: run it on clean main,
-  diff the one-worker and four-worker output to find the first stage and
-  field that differ (a draw consumed in a different order, a
-  worker-count-dependent seed, or shared state), and name the commit
-  that introduced it (GEN.441, GEN.760, GEN.652 and GEN.701 are the
-  recent generation changes). If it is a real determinism break, the fix
-  goes in the generator and the item is a generation bug (new epoch with
-  --affects); if only the test or fixture moved, fix that. Done: the
-  test passes on main and the generation merges' gates are green again.
-  Owner: Bug 1, first in its queue ahead of everything else, or the
-  owner of the breaking change once identified. Rules: no
-  backward-compat shims; never skip or quarantine the test;
-  scripts/test.py changed --resume.
-  Prerequisites: none. Related: GEN.441, TEST.261.
 
 - [ ] **TEST.402 test_db_column_round_trip fails once under load: the stars' disk columns read back NULL (bug)**
   Found by the 4c lane (about 4:17 AM EDT): test_db_column_round_trip
