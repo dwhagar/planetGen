@@ -442,7 +442,9 @@ connectivity to that specific schema rather than the default one.
   light and mean temperature of the pre-placed objects nothing was built from, `galaxy_block_lights`). The lists are
   the brightest objects inside the block, nested down the ladder: a block lists every object of its parent that lies
   inside it. `placed` is only on a level-3 block and a sector. The nebula cover is not in a node (it changes without a
-  sector changing; read `/api/galaxy/nebula-cover`). `400` for a malformed key or too many keys.
+  sector changing; read `/api/galaxy/nebula-cover`). The node of a charted region (a 9-block that holds at least one generated
+  sector, `region_stats`) also has `name` ("Fardoo Beez Region") and `parent` (the name of its 81-block family, "Fardoo Reach"), from the
+  gated phoneme codec under the naming key in force (API.35); no other node has them, and none has them while no key is in force. `400` for a malformed key or too many keys.
 - `GET /api/galaxy/nebula-cover?at=<block key>[&g=<n>]` — the share of each cell of a Galaxy Map stage (`at` alone,
   or none for the galaxy) or data window (`at` the middle cell and `g` the cells across) that lies inside a nebula
   (`queryDb.galaxy_nebula_cover`, MAP.174), for the cells that hold a generated sector and the ones that do not: the
@@ -465,7 +467,8 @@ connectivity to that specific schema rather than the default one.
   `{"systems", "expected_systems", "stars", "mean_age_gy",
   "luminosity_sol"}`), and, when the children are sectors (`child_m` 1),
   `sectors` lists each generated one: `{"shell", "band", "wedge", "id",
-  "name", "system_count", "stats"}` (otherwise `null`). Above the sector the
+  "name", "system_count", "stats"}` (otherwise `null`). When the children are 9-blocks (`child_m` 9) each child also has `name` and
+  `parent` (the region and its family, as on the node, API.35), and the stage of a charted 9-block has them itself. Above the sector the
   figures are read from `galaxy_block_stats`. A window is a ball: `g` (3, 5, 7,
   9 or 11) cells of the key's size across, every block whose center lies within
   `g * m / 2` sector edges of the center block's center. It answers `{"at",

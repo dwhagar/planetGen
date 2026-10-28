@@ -5108,7 +5108,25 @@ def galaxy_stage(conn, at=None):
     counts = {}
     for r in _block_rows(conn, child_m, [(c.shell, c.band, c.wedge) for c in children]):
         _add_stage_sums(counts, DrillBlock(child_m, int(r["shell_index"]), int(r["band_index"]), int(r["wedge_index"])), r)
-    return {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None, "edge_pc": edge_pc}
+    stage = {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None, "edge_pc": edge_pc}
+    return _with_region_names(conn, stage, block, edge_pc)
+
+
+def _with_region_names(conn, stage, block, edge_pc):
+    """`stage` with the region names of the wire (API.35): `name` and `parent` on each child that is a charted 9-block (a child
+    is listed only when it holds a generated sector), and on the stage itself when `block` is a charted 9-block. Nothing is added
+    without a naming key in force."""
+    from planetgen.db import region_stats
+
+    key = naming_key.active_key()
+    if key is None:
+        return stage
+    if stage["child_m"] == region_stats.LEVEL:
+        for child in stage["children"]:
+            child.update(region_stats.labels(DrillBlock(region_stats.LEVEL, child["shell"], child["band"], child["wedge"]), key, edge_pc))
+    if block.m == region_stats.LEVEL and region_stats.region_row(conn, block) is not None:
+        stage.update(region_stats.labels(block, key, edge_pc))
+    return stage
 
 
 def _sectors_where(sectors):
@@ -5478,13 +5496,14 @@ def galaxy_node_keys(shell, band, wedge):
     return [format_drill_key(b) for b in drill_chain_of(shell, band, wedge)]
 
 
-TILE_FORMAT = 4
+TILE_FORMAT = 5
 """int: The version of what the Galaxy Map's stored nodes and drill-down stages hold and how they are packed
 (`web/lib/tilecache.trim_node`, `tilepack`, `db.nodes.galaxy_nodes`, `galaxy_stage`). A change that alters those bytes for
 the same rows goes up by one (`tests/test_tile_format.py` fails until it does), and the stored files are rebuilt once;
 a release that does not alter them leaves every stored node valid (PERF.133). 2: the block ladder's levels above 243
 (MAP.258) moved the rows and wedges of every level, so a stored stage names other blocks. 3: nodes replace the cube tiles
-(MAP.262), whose files are dropped with the generation."""
+(MAP.262), whose files are dropped with the generation. 5: a node of a charted region carries its `name` and `parent`
+(API.35), and so does the stage of a 9-block and each charted 9-block child of a stage."""
 
 GALAXY_CHANGES_MAX_SECTORS = 1000
 """int: Most changed sectors `galaxy_changes` lists nodes for. More than

@@ -30,8 +30,9 @@ node cache keys each node by key and stamp.
 
 import math
 
-from planetgen.db import block_lights, query
+from planetgen.db import block_lights, query, region_stats
 from planetgen.galaxy import spherical
+from planetgen.names import naming_key
 from planetgen.galaxy.nodecut import block_box
 from planetgen.galaxy.drill import (
     DRILL_STEP, DrillBlock, drill_parent, format_drill_key, parse_node_key)
@@ -253,6 +254,8 @@ def galaxy_nodes(conn, node_keys):
             node["placed"] = piece("placed", lambda: [
                 sector for sector in query.galaxy_sectors_in_box(conn, lo, hi, limit=NODE_PLACED_MAX * POOL)
                 if inside((sector["shell_index"], sector["band_index"], sector["wedge_index"]))][:NODE_PLACED_MAX], [])
+        if block.m == region_stats.LEVEL and region_stats.region_row(conn, block) is not None:
+            node.update(region_stats.labels(block, naming_key.active_key(), edge_pc) or {})   # API.35: charted regions only
         if incomplete:
             node["incomplete"] = incomplete
         nodes[format_drill_key(block)] = node

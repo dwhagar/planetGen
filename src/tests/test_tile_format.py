@@ -27,6 +27,7 @@ NODE = {
 DIGESTS = {
     3: "365804129a9ae78d5135a26d121616ed",
     4: "357d5259c09ea2060f7b9d665b6e64ef",
+    5: "357d5259c09ea2060f7b9d665b6e64ef",   # API.35: the same bytes for this node; the format goes up so the stored nodes get their names
 }
 """dict: `TILE_FORMAT` to the SHA-256 (first 32 hex) of `NODE`'s stored bytes under it."""
 
