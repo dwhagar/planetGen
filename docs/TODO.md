@@ -2965,31 +2965,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing in 8.1.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
 
-- [ ] **MAP.318 Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d)**
-  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
-  what the galactic-level map shows so a user can always drill down to
-  inhabited space; a region is a 9-block cell with at least one
-  generated sector, drawn as the bounding sphere of its generated
-  sectors (never smaller than the 12 pc fill sphere), ranked by share
-  charted. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2. The population pass today (species, civilizations,
-  polities, system ownership; planetgen population) stores no head
-  counts: the world population simulation is POP.30 (8.3) and cities
-  POP.19 (8.4). Build the slot now: a ranking function that takes
-  population when a body has one and the habitability score when it has
-  none (habitable worlds), so the inhabited slice of MAP.317 is the
-  habitable worlds until population exists, a population column in the
-  charted-regions list that is hidden while no region has one (rule:
-  absent values hidden), and tests with a fixture that carries
-  populations. Fills when POP.30 stores them. Done: the slot and fixture
-  tests pass (a populated fixture ranks by population, an unpopulated
-  habitable one by habitability score), nothing waits on POP.30. Owner:
-  Aux 10. Rules: no backward-compat shims; every number has a unit or
-  scale (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: none. Related: MAP.317, MAP.316, POP.30,
-  POP.19.
-
 - [ ] **MAP.322 Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e)**
   Boss, 1:20 AM EDT 2026-10-25 (relayed by the coordinator): "inside the
   lowest level of shared name regions, it would be the most densely
@@ -21907,6 +21882,15 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   Way or the Solar System. Part of the trade tree: POP.29 to POP.36, DB.105, MAP.309, MAP.310, NAV.63, TEST.382.
   Prerequisites: DB.105, POP.29, GEN.774. Related: POP.8, PERF.125,
   PERF.120.
+  Research (2026-10-09): Note from MAP.318 (#3483, Core 1, about 4:02 PM
+  EDT as the lane reported): db/population_slot.py ranks worlds with
+  people by head count first and the rest by habitability score
+  (rank_key, rank, population_of), and region_totals is empty until
+  POP.30 stores head counts; the charted-regions API gives a region
+  'population' only when it has a count, and the population sort column
+  in galaxyregionlist.js stays hidden until a region has the field. When
+  POP.30 stores head counts, feed them to population_slot and the client
+  column shows with no further map work.
 
 - [ ] **POP.31 Population on the pages and API: world population, capacity and share of capacity on the planet, species and polity pages**
   Boss, 9:38 PM EDT 2026-10-24 (relayed by the coordinator): "I want you
