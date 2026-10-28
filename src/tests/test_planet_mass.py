@@ -37,7 +37,11 @@ def test_the_core_is_the_isolation_mass_times_the_assembly_factor_at_zero_scatte
 
 
 def test_solids_grow_outward_and_jump_at_the_snow_line():
-    inner, just_inside, just_outside, far = (median_earth(masses(d)) for d in (0.3, 2.6, 2.8, 20.0))
+    def assembled(distance):
+        stream = draw.Stream(1)
+        return statistics.median(planet_mass.assembled_core_kg(distance, SUN_KG, SNOW_LINE_AU, 1.0, stream)
+                                 for _ in range(400)) / EARTH_KG
+    inner, just_inside, just_outside, far = (assembled(d) for d in (0.3, 2.6, 2.8, 20.0))
     assert inner < just_inside < just_outside < far
     assert just_outside > 3.0 * just_inside   # the ice boost of the snow line
 
@@ -53,7 +57,7 @@ def test_no_runaway_inside_the_snow_line():
 
 
 def test_runaway_giants_are_heavy_and_beyond_the_line_only():
-    draws = masses(15.0, count=800)
+    draws = masses(4.0, count=800)
     giants = [d for d in draws if d.runaway]
     assert giants
     assert all(d.mass_kg >= tuning.GIANT_RUNAWAY_MIN_MASS_EARTH * EARTH_KG for d in giants)
@@ -62,8 +66,8 @@ def test_runaway_giants_are_heavy_and_beyond_the_line_only():
 
 
 def test_metal_poor_stars_make_fewer_giants():
-    rich = sum(d.runaway for d in masses(15.0, count=800, fe_h=0.2))
-    poor = sum(d.runaway for d in masses(15.0, count=800, fe_h=-1.0))
+    rich = sum(d.runaway for d in masses(4.0, count=800, fe_h=0.2))
+    poor = sum(d.runaway for d in masses(4.0, count=800, fe_h=-1.0))
     assert poor < rich
 
 
@@ -81,3 +85,37 @@ def test_the_runaway_mass_function_favours_lighter_giants():
     assert min(values) >= low
     assert max(values) <= 13.0 * constants.JUPITER_MASS_TO_KG * (1 + 1e-9)
     assert sum(v < 3 * low for v in values) > sum(v > 30 * low for v in values)
+
+
+def test_a_core_that_finds_no_gas_stops_at_an_ice_giants_mass():
+    draws = masses(4.0, count=800)
+    capped = [d for d in draws if not d.runaway and d.core_kg > 10 * EARTH_KG]
+    assert capped
+    assert max(d.core_kg for d in capped) <= tuning.GIANT_NO_GAS_CORE_MAX_EARTH * EARTH_KG * (1 + 1e-9)
+
+
+def test_giants_become_rarer_beyond_the_cut_distance():
+    near = sum(d.runaway for d in masses(4.0, count=1500, seed=5))
+    far = sum(d.runaway for d in masses(40.0, count=1500, seed=5))
+    assert far < near / 5
+
+
+def test_a_sun_like_star_has_about_a_tenth_of_a_giant_between_a_third_and_ten_au():
+    """The tuning target (tier L3): Fulton et al. 2021 give 0.10 to 0.15 giants per Sun-like star in 0.3 to 10 AU."""
+    stream = draw.Stream(21)
+    slots = [0.3 * 1.5 ** index for index in range(12) if 0.3 * 1.5 ** index <= 10.0]
+    giants = 0
+    for _ in range(400):
+        for a in slots:
+            found = planet_mass.planet_mass(a, SUN_KG, SNOW_LINE_AU, 0.0, 1.0, stream)
+            giants += found.runaway and found.mass_kg >= 100 * EARTH_KG
+    assert 0.03 < giants / 400 < 0.4
+
+
+def test_the_inner_disc_is_steeper_than_the_nebula_inside_one_au(monkeypatch):
+    monkeypatch.setattr(tuning, "PLANET_ASSEMBLY_SCATTER_DEX", 0.0)
+    got = planet_mass.assembled_core_kg(0.1, SUN_KG, SNOW_LINE_AU, 1.0, draw.Stream(3))
+    scale = formation.disk_surface_density_scale(SUN_KG, 1.0) * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
+    plain = formation.isolation_mass_kg(0.1, formation.mmsn_surface_density_gcm2(0.1, SNOW_LINE_AU, scale), SUN_KG)
+    plain /= tuning.GIANT_IMPACT_SURVIVAL_FRACTION
+    assert got == pytest.approx(plain * (0.1 ** -tuning.PLANET_INNER_DISC_STEEPENING) ** 1.5)
