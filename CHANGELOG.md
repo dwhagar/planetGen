@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2444] - 2026-10-28
+
+**Headline:** The search page and API filter and sort planets and moons by habitability colour, domains, life and food.
+
+### Changed
+- The search page and `/api/search` filter planets and moons by the overall PHI-6 colour, each domain's colour (Suitability among them), how much microbial, plant, animal or sentient life they have, and plainly whether they have life, food or a civilization; each filter shows as a removable chip (UX.214).
+- The planet and moon result tables sort by habitability, Suitability, microbes, flora, fauna and sentient life, worst first or best first, and show each score (UX.214).
+- The planet and moon lists link to that search page (UX.214).
+
 ## [8.0.2443] - 2026-10-28
 
 **Headline:** Every planet and moon now knows how much of its time the star is up, how long its day is and how many hours of daylight it has, and a moon loses the time it spends in its planet's shadow.
