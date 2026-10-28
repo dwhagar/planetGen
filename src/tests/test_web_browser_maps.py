@@ -1105,3 +1105,68 @@ def test_the_3d_system_view_turns_each_body_about_its_stored_axis_at_its_rate(pa
         assert turned == pytest.approx(a["rate"] * elapsed, abs=2e-3), (a["ref"], turned, a["rate"], elapsed)
         checked += a["rate"] > 0
     assert checked >= 2, "bodies with a stored period turn"
+
+
+@pytest.mark.viewport(1280, 900)
+def test_galaxy_map_steps_to_the_neighbouring_region_at_its_own_level(page, base_url):
+    """MAP.121: the Menu's step buttons and the keys move the window to the cell beside it at the same level, in one
+    camera move (the address carries it, the trail follows the new centre), and back the other way, without going
+    up a level."""
+    _open_galaxy(page, base_url)
+    size = _descend(page)
+    stage = lambda: page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStage()")["win"]  # noqa: E731
+    centre = lambda: {k: stage()["centre"][k] for k in ("m", "shell", "band", "wedge")}  # noqa: E731
+    start = centre()
+    assert start["m"] == size
+
+    def enabled():
+        return page.eval_on_selector_all(
+            "#galaxymap3d-controls [data-action=step]",
+            "els => Object.fromEntries(els.map(e => [e.dataset.step, !e.disabled]))")
+
+    ways = enabled()
+    assert set(ways) == {"north", "south", "east", "west", "in", "out"}
+    # The core's own cell has nothing nearer the core, and some way out.
+    assert not ways["in"] and ways["out"], ways
+
+    # Out, with the Menu's button: the window moves to the next shell at the same size, and the address and the
+    # trail follow it (no Up: the window is not a level higher or lower).
+    crumbs, before = len(_crumbs(page)), _state(page)
+    page.click("#galaxymap3d-menu > summary")
+    page.click('#galaxymap3d-controls [data-step="out"]')
+    _wait_settled(page, before)
+    moved = centre()
+    assert moved["m"] == size and moved["shell"] == start["shell"] + 1, (start, moved)
+    assert _query(page) != before[0] and "cam=" in page.url
+    assert abs(len(_crumbs(page)) - crumbs) <= 1, "the trail is the position's, not a level deeper"
+
+    # In again, with the key: back to where it started (the core's cell is the only one a step in from shell 1 reaches).
+    before = _state(page)
+    page.locator("#galaxymap3d-canvas").focus()
+    page.keyboard.press("[")
+    _wait_settled(page, before)
+    assert centre() == start
+
+    # A step the geometry does not allow does nothing: nothing is nearer the core than the core.
+    before = _state(page)
+    page.keyboard.press("[")
+    page.wait_for_timeout(300)
+    assert _state(page) == before and centre() == start
+
+    # Sideways: from the shell outside the core, round the ring: a step east then west lands on the same cell.
+    page.keyboard.press("]")
+    _wait_settled(page)
+    ring = centre()
+    sideways = enabled()
+    if sideways["east"]:
+        before = _state(page)
+        page.keyboard.press("Alt+Shift+ArrowRight")
+        _wait_settled(page, before)
+        east = centre()
+        assert east["m"] == size and east["shell"] == ring["shell"] and east != ring, (ring, east)
+        before = _state(page)
+        page.keyboard.press("Alt+Shift+ArrowLeft")
+        _wait_settled(page, before)
+        assert centre() == ring
+    else:
+        assert ways["out"]
