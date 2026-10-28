@@ -21081,26 +21081,6 @@ clears each one.
   a test; scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.405.
 
-- [ ] **TEST.407 golden_update takes about 55 minutes because its pinned-galaxy test builds the galaxy twice (one worker, then four), so it blocks every generation merge (bug)**
-  Coordinator (5:52 AM EDT 2026-10-25): Aux 6's golden run failed at
-  5:51 AM EDT on its 55-minute timeout; the pinned-galaxy test builds
-  the galaxy twice, one worker then four, about 30 plus 25 minutes on a
-  lane machine, and golden regeneration is now the main bottleneck for
-  every generation merge in the lock. Do: let golden_update write the
-  files and verify them with a faster check (one worker only, or a
-  smaller pinned galaxy that still covers every stage), and run the
-  one-versus-four-worker comparison only in the end-of-version gate
-  (TEST.261, SEC.33, GEN.301 full --check), or make the pinned galaxy
-  cheaper; keep the golden files byte-identical for the same seed. Done:
-  golden_update on a lane machine finishes in well under 20 minutes and
-  the full one-vs-four comparison still runs in the end-of-version gate.
-  Boss ruling applies: test only what changed, never rerun what passed.
-  Owner: Bug 1, TOP PRIORITY ahead of its other test items. Not a
-  generation change itself (no epoch), so it is exempt from the lock,
-  but it touches tests.golden_update: merge it as soon as it is green
-  and tell TODO so holders pull main.
-  Prerequisites: none. Related: TEST.399, TEST.404.
-
 - [ ] **TEST.408 test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug)**
   Found by Core 4 (as the lane reported 7:25 AM EDT 2026-10-28, report
   reports/core4-gen357-report-2026-10-28.md) on clean main c0a6fdef7 or
