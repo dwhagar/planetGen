@@ -1150,10 +1150,16 @@ STELLAR_WOLF_RAYET = {
     "WN-early": {"H": 0.0, "N": 0.01, "C": 0.0005},
     "WN-late": {"H": (0.05, 0.25), "N": 0.01},
     "WN/WC": {"C": 0.05, "N": 0.01},
-    "WC": {"C": (0.20, 0.55)}}
+    "WC": {"C": (0.20, 0.55)},
+    "WO": {"C": (0.30, 0.55), "O": (0.10, 0.40)}}
 """dict: Surface mass fractions by Wolf-Rayet subtype; a pair is a range. WC carbon is the refined 20 to 55 percent (C/He 0.1 to
-0.5 by number), inside the wider 10 to 60 percent of the literature; the rest of each star is helium (and oxygen in WO), the
-split open."""
+0.5 by number), inside the wider 10 to 60 percent of the literature; the rest of each star is helium (and some oxygen in WN and WC,
+the split open). WO is a stand-in (registry row BC24): Crowther 2007 names the oxygen-rich stage without mass fractions, so the carbon and
+oxygen ranges are argued from helium burning (carbon first made, then turned to oxygen by alpha capture; carbon still the larger,
+oxygen well above WC's, the rest helium) and the draw takes both at one position, so the two never sum past 0.95 [I]."""
+WR_WN_EARLY_MAX_SUBCLASS = 5
+"""int: A WN star of this subclass number or lower is an early one (WNE, WN2 to WN5, hydrogen-free); a higher number is a late one
+(WNL, WN6 to WN9, with the hydrogen the late row gives). The usual convention [R]."""
 # White dwarfs: core type by mass (Althaus et al. 2010, arXiv:1007.2659), atmosphere type shares (Xu, Rogers and Blouin 2024,
 # arXiv:2404.15425).
 STELLAR_WD_HELIUM_CORE_MAX_SOL = 0.45
