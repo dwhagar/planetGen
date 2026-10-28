@@ -660,8 +660,7 @@
     },
     {
       "epoch": 111,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2368",
       "reason": "A planet's or moon's composition text is now written from its stored bulk fractions by fixed thresholds in place of the class's fixed string (GEN.430), so the text of every body is new",
       "affects": ["fill"]
     }
