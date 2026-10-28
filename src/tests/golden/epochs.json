@@ -666,8 +666,7 @@
     },
     {
       "epoch": 112,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2375",
       "reason": "Every planet and moon with air stores the colour of that air as one sRGB integer, worked out from its air, its star, its ozone and its haze, dust and cloud (DB.96)",
       "affects": ["fill"]
     }
