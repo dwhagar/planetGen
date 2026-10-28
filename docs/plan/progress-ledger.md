@@ -1550,3 +1550,4 @@ Baseline: PR #1817.
 | DB.96 | 9.0 | The headline |
 | MAP.317 | 8.1 | Fly-through map |
 | API.35 | 8.1 | Fly-through map |
+| DOC.82 | 8.1 | Fly-through map |
