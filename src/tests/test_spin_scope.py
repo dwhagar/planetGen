@@ -6,7 +6,7 @@ from pathlib import Path
 STATIC = Path(__file__).resolve().parents[1] / "html" / "static"
 
 GALACTIC = ("galaxymap3d.js", "galaxystageview.js", "galaxyglow.js", "galaxyglowlayer.js", "galaxyblocks.js",
-            "galaxymarkerlayer.js", "galaxymarkers.js", "galaxysector.js", "galaxysystem.js")
+            "galaxymarkerlayer.js", "galaxymarkers.js", "galaxysector.js")
 
 
 def test_no_galactic_view_imports_the_turning_function():
@@ -16,7 +16,8 @@ def test_no_galactic_view_imports_the_turning_function():
 
 
 def test_the_system_views_use_the_one_turning_function_not_a_rate_of_their_own():
-    for name in ("systemmap.js", "systemview3d.js"):
+    # galaxysystem.js is the system opened in the sector of the Galaxy Map: it draws its stars and bodies as spheres.
+    for name in ("systemmap.js", "systemview3d.js", "galaxysystem.js"):
         text = (STATIC / name).read_text()
         assert "spin.js" in text, name
     assert "marker.rotation" not in (STATIC / "systemmap.js").read_text(), "the old rate for every body is gone"

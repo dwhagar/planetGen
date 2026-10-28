@@ -730,7 +730,7 @@ export function createStageView(host) {
     if (!enteredSystem) return null;
     return {
       id: enteredSystem.id, name: enteredSystem.name, mode: systemStage.mode(), refs: systemStage.entries().map(function (e) { return e.ref; }),
-      flying: !!animation, following: followBody, trailOpacity: systemStage.trailOpacity, trailRadius: systemStage.trailRadius, distance: view ? view.dist : null, selected: systemStage.selected(),
+      spins: systemStage.spins, flying: !!animation, following: followBody, trailOpacity: systemStage.trailOpacity, trailRadius: systemStage.trailRadius, distance: view ? view.dist : null, selected: systemStage.selected(),
       // Where a body is on screen, in client pixels (null: behind the camera).
       screen: function (ref) {
         const entry = systemStage.entry(ref);
@@ -3669,6 +3669,8 @@ export function createStageView(host) {
     setKindHidden: setKindHidden,
     // MAP.217: the layer registry (the Menu draws its buttons from it).
     layers: layers,
+    // MAP.328: the Spin switch's standing preference, for the Menu's Spin layer (the galaxy map itself turns nothing).
+    spinSwitch: systemStage.spinSwitch,
     readLayersFromLocation: readLayersFromLocation,
     kindMarked: sectorStage.kindMarked,
     setKindMarked: setKindMarked,

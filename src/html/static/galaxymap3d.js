@@ -3637,6 +3637,18 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     canvasEl.__mapGlow = glow;    // the browser tests read what is drawn
   }
+  // MAP.328: the stars and bodies of a system opened in the sector turn slowly; this switch (a standing preference, as the System
+  // Map's) holds them still. The galactic views turn nothing, so it matters only inside a system.
+  stageView.layers.register({
+    id: "spin", label: "Spin", modes: ["galaxy"], group: "Show on the map", data: { setting: "spin" },
+    defaultOn: stageView.spinSwitch.on(), fadedWithSectors: false,
+    title: "Let the stars and bodies of an opened system turn slowly on their axes, or hold them still",
+    legend: null,
+  });
+  stageView.layers.refresh();
+  stageView.layers.onChange(function (id, on) {
+    if (id === "spin") stageView.spinSwitch.set(on);
+  });
   // MAP.316: the charted regions are a layer of the Menu too, on unless the visitor hides them.
   if (regionLayer) {
     stageView.layers.register({
