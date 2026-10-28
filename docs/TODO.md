@@ -1339,6 +1339,25 @@ with `clamp()`.
   8.1.
   Prerequisites: none. Related: MAP.320, MAP.305.
 
+- [ ] **UX.235 Pages that already have a table of contents also show the automatic contents bar, so the contents appear twice (bug)**
+  Boss, 5:50 PM EDT 2026-10-28 (message
+  cmsg_01RuNTFUNB92A8cm5CbojQAiAZS2XcoeyhoDWtHXn4XNqq, relayed by the
+  coordinator), live observation, so a bug: "we have some areas where
+  the TOC bar is redundant (i.e. the TOC was already present), we want
+  to remove that." The automatic table of contents built from headings
+  (UX.196, #3196) is added to every page, including pages that already
+  carry their own contents list (for example documentation pages and any
+  page whose template builds a contents list). Do: list every page that
+  shows two contents (walk the templates and the page shell, and check
+  the object, docs, admin and help pages in the browser), then have the
+  automatic bar skip a page that already has one, by a flag the page
+  sets or by detecting an existing contents element, not by a per-page
+  hide list; keep the automatic bar on pages that have none. Add a
+  browser test that finds exactly one contents on a page that already
+  had its own and one on a page that did not. Owner: Core 2 (interface),
+  with Aux 11 for the object pages until it retires.
+  Prerequisites: none. Related: UX.196, UX.233.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
