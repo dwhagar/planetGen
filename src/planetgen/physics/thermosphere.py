@@ -32,6 +32,7 @@ and night difference of a slowly rotating body (the temperature here is the days
 magnetic shielding (GEN.804 wires the stored field), and the cooling by gases other than CO2.
 """
 
+import functools
 import math
 
 from planetgen import tuning
@@ -79,6 +80,11 @@ COLLISION_CROSS_SECTION_M2 = 2e-19
 
 MAX_EXOBASE_RADII = 10.0
 """float: The exobase is held inside this many body radii (a numerical bound for a hot air over a small body)."""
+
+MAX_EXOBASE_STEPS = 200_000
+"""int: The most steps the exobase search takes (GEN.841). A profile that reaches `MAX_EXOBASE_RADII` takes up to about 15,000 steps over
+the whole range of bodies swept (radius 1e6 to 7e7 m, gravity 0.5 to 300 m/s2, 2 to 80 amu, mesopause 5 to 400 K, exobase to 5000 K), so
+this bound never acts on a real air; it stops a search that cannot end, and the exobase is then taken at the height reached."""
 
 KINETIC_DIAMETER_PM = {
     "H2": 289.0, "He": 260.0, "Ne": 275.0, "H2O": 265.0, "CH4": 380.0, "CO": 376.0, "N2": 364.0, "O2": 346.0, "Ar": 340.0, "CO2": 330.0,
@@ -138,10 +144,15 @@ def exobase_temperature_k(xuv_flux_earth, mesopause_k, co2_fraction):
     return mesopause_k + EXOBASE_RISE_K * flux ** XUV_EXPONENT / cooling
 
 
+@functools.lru_cache(maxsize=None)
+def _molar_mass_kg_mol(formula):
+    return gases.gas(formula).molar_mass
+
+
 def mean_mass_kg(fractions):
     """The mean molecular mass of a mixture (mole fractions, any normalisation), kg."""
     total = sum(fractions.values())
-    return sum(f * gases.gas(formula).molar_mass for formula, f in fractions.items()) / total / _AVOGADRO
+    return sum(f * _molar_mass_kg_mol(formula) for formula, f in fractions.items()) / total / _AVOGADRO
 
 
 def exobase(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k):
@@ -153,19 +164,28 @@ def exobase(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k):
     Returns:
         tuple: `(radius of the exobase, m; number density there, m-3; scale height there, m)`.
     """
+    if not all(math.isfinite(value) and value > 0.0 for value in (radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k)):
+        raise ValueError(f"exobase needs finite positive inputs, got radius {radius_m}, gravity {gravity_ms2}, mean mass {mean_mass}, "
+                         f"temperature {temperature_k}, mesopause {mesopause_k}")
     length = BATES_LENGTH_SCALE_HEIGHTS * _K * mesopause_k / (mean_mass * gravity_ms2)
     log_density = math.log(MESOPAUSE_PRESSURE_PA / (_K * mesopause_k))
     limit = (MAX_EXOBASE_RADII - 1.0) * radius_m
     height = 0.0
-    while True:
-        temperature = temperature_k - (temperature_k - mesopause_k) * math.exp(-height / length)
+    rise = temperature_k - mesopause_k
+    for _ in range(MAX_EXOBASE_STEPS):
+        decay = math.exp(-height / length)
+        temperature = temperature_k - rise * decay
         scale = _K * temperature / (mean_mass * gravity_ms2 * (radius_m / (radius_m + height)) ** 2)
         if math.exp(log_density) * COLLISION_CROSS_SECTION_M2 * scale <= 1.0 or height >= limit:
-            return radius_m + height, 1.0 / (COLLISION_CROSS_SECTION_M2 * scale), scale
+            break
         step = 0.25 * min(scale, length)
-        gradient = (temperature_k - mesopause_k) * math.exp(-height / length) / length / temperature
+        gradient = rise * decay / length / temperature
         log_density -= (1.0 / scale + gradient) * step
         height += step
+    # past the step bound the air is taken to reach the limit, as for a profile that never closes inside MAX_EXOBASE_RADII
+    temperature = temperature_k - (temperature_k - mesopause_k) * math.exp(-height / length)
+    scale = _K * temperature / (mean_mass * gravity_ms2 * (radius_m / (radius_m + height)) ** 2)
+    return radius_m + height, 1.0 / (COLLISION_CROSS_SECTION_M2 * scale), scale
 
 
 def jeans_parameter(mass_kg, temperature_k, gm_m3_s2, radius_m):
@@ -184,23 +204,27 @@ def _diameter_m(formula):
     return KINETIC_DIAMETER_PM.get(formula, DEFAULT_KINETIC_DIAMETER_PM) * 1e-12
 
 
+@functools.lru_cache(maxsize=4096)
 def binary_diffusion_parameter(formula_a, formula_b, temperature_k):
-    """`b = n D` of two gases, m-1 s-1: the first approximation of Chapman and Enskog for hard spheres, `3 / (8 sigma^2) sqrt(k T / (2 pi mu))`."""
-    mass_a = gases.gas(formula_a).molar_mass / _AVOGADRO
-    mass_b = gases.gas(formula_b).molar_mass / _AVOGADRO
+    """`b = n D` of two gases, m-1 s-1: the first approximation of Chapman and Enskog for hard spheres, `3 / (8 sigma^2) sqrt(k T / (2 pi mu))`.
+    Cached: the same pairs come back at the same mesopause temperature on every step of a loss history."""
+    mass_a = _molar_mass_kg_mol(formula_a) / _AVOGADRO
+    mass_b = _molar_mass_kg_mol(formula_b) / _AVOGADRO
     reduced = mass_a * mass_b / (mass_a + mass_b)
     sigma = 0.5 * (_diameter_m(formula_a) + _diameter_m(formula_b))
     return 3.0 / (8.0 * sigma ** 2) * math.sqrt(_K * temperature_k / (2.0 * math.pi * reduced))
 
 
-def diffusion_limited_flux(formula, fractions, gravity_ms2, temperature_k):
+def diffusion_limited_flux(formula, fractions, gravity_ms2, temperature_k, mean=None):
     """
     The most of a species lighter than the air that the air can carry up, m-2 s-1 (Hunten 1973): `b f g (m_air - m) / (k T)` with the
     binary diffusion parameter `b` of the species in the rest of the air (Blanc's law). `math.inf` for a species that is not lighter.
+    `mean` is `mean_mass_kg(fractions)` when the caller has it already (it asks for every species of one air).
     """
     total = sum(fractions.values())
-    mean = mean_mass_kg(fractions)
-    mass = gases.gas(formula).molar_mass / _AVOGADRO
+    if mean is None:
+        mean = mean_mass_kg(fractions)
+    mass = _molar_mass_kg_mol(formula) / _AVOGADRO
     if mass >= mean:
         return math.inf
     share = fractions.get(formula, 0.0) / total
@@ -295,7 +319,7 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
         r_exo, density, _ = exobase(radius_m, gravity, mean_now, temperature, meso)
         area_ratio = (r_exo / radius_m) ** 2
         rate = {formula: min(jeans_flux(share * density, masses[formula], temperature, gm, r_exo) * area_ratio,
-                             diffusion_limited_flux(formula, now, gravity, meso)) for formula, share in now.items()}
+                             diffusion_limited_flux(formula, now, gravity, meso, mean_now)) for formula, share in now.items()}
         budget = energy_limited_mass_loss_kg_s(min(flux, XUV_FLUX_MAX_EARTH) * constants.EARTH_XUV_FLUX_W_M2, r_exo, mass_kg)
         demanded = 4.0 * math.pi * radius_m ** 2 * sum(rate[f] * masses[f] for f in rate)
         scale = min(1.0, budget / demanded) if demanded > 0.0 else 1.0
