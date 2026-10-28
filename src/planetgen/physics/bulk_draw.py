@@ -37,8 +37,8 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, constants, elements, hydrosphere,
-                               moon_composition, stellar_abundances, stellar_composition)
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, constants, elements,
+                               hydrosphere, moon_composition, stellar_abundances, stellar_composition)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -412,6 +412,7 @@ def _settle(body, bulk, mass_given):
 def _store(body, bulk):
     for attribute, value in bulk.to_attributes().items():
         setattr(body, attribute, value)
+    body.composition = composition_text.text(body)  # GEN.430: the text states the stored fractions
     volume_m3 = 4.0 / 3.0 * math.pi * (body.radius * 1000.0) ** 3
     body.density = body.mass / volume_m3 / 1000.0
 

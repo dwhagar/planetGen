@@ -16,6 +16,7 @@ from planetgen.db import edits as editStore, store
 from planetgen.admin import auth as adminAuth, edits as adminEdits
 from planetgen.generation import validation
 from planetgen import tuning
+from planetgen.physics import composition_text
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
@@ -499,7 +500,7 @@ def test_class_change_regenerates_surface_conditions_keeping_orbit_mass_and_name
     assert planet.name == name
     assert planet.mass == pytest.approx(mass, rel=1e-9)
     assert planet.distance == pytest.approx(distance, rel=1e-6)
-    assert planet.composition == data["composition"]
+    assert planet.composition == composition_text.text(planet)  # GEN.430
     # GEN.85, GEN.411: the new class's air is solved from the body (the class no longer says whether it has
     # one), and the text is written from it: no text exactly when no pressure.
     assert (planet.atmosphere == "None") == (planet.atmospheric_pressure == 0.0)

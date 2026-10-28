@@ -79,7 +79,7 @@ def test_the_discs_planets_are_airless_carbon_rich_and_lowest_tier(recycled):
     for planet in planets:
         assert planet.planet_class == tuning.PULSAR_DISC_CLASS
         assert planet.atmosphere == "None" and planet.atmospheric_pressure == 0.0
-        assert "anthracite" in planet.composition
+        assert "silicon carbide and graphite" in planet.composition  # GEN.430: the text states the stored fractions
         assert planet.moons == []
         assert planet.tier_radiation == 3  # the lowest tier, whatever the world
 

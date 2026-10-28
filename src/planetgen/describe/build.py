@@ -34,6 +34,7 @@ from planetgen.physics import (
     atmosphere_colour,
     equipment,
     gases,
+    giant_interior,
     habitability,
     habitability_explain,
     pre_main_sequence,
@@ -490,6 +491,9 @@ def _planet_section(planet):
     blocks.append(prose("description", *summary))
     if planet.body_type == "g":
         blocks.append(prose("depth", *_gas_giant_depth_sentences(planet)))
+        interior = giant_interior.interior_of(planet)
+        if interior is not None:
+            blocks.append(prose("interior", *giant_interior.describe_interior(interior)))
     else:
         blocks.append(_atmosphere_composition(planet))
     blocks.append(model.composition("Composition", summary=planet.composition.lower()))
