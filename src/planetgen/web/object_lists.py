@@ -113,4 +113,5 @@ def object_list(kind):
     return render_page("object_list.html", title=heading, section="lists",
                        breadcrumbs=[crumb("Lists", "lists"), crumb(heading)],
                        description=f"Every {KIND_LABELS[kind][0]} in this charted galaxy.", table=rendered,
-                       total=rendered["total"], noun=KIND_LABELS[kind])
+                       total=rendered["total"], noun=KIND_LABELS[kind],
+                       filter_url=page_url("search", type=kind, **{f"{kind}s_sort": "phi4", f"{kind}s_order": "desc"}) if kind in HABITABILITY_KINDS else None)

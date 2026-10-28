@@ -43,15 +43,15 @@ class SearchFake(FakeData):
         self.search_calls = []
         self.results = None
 
-    def get_search(self, db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
+    def get_search(self, db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
         self.search_calls.append({"db": db, "texts": dict(texts), "tags": {k: set(v) for k, v in tags.items()},
                                   "sizes": dict(sizes or {}), "limit": limit, "offsets": dict(offsets or {}),
-                                  "panels": panels})
+                                  "panels": panels, "sorts": dict(sorts or {})})
         results = self.results or {
             "sectors": _result([{"id": 5, "name": "Kepler <Reach>", "edge_mpc": 3.07}]) if texts.get("sector_q") else None,
             "systems": _result([{"id": 7, "name": "Kepler-42", "sector_id": None, "is_binary": 0,
                                  "star_summary": "M5V"}]) if texts.get("system_q") else None,
-            "stars": _result([{"id": 3, "name": "Kepler-42 A", "role": "primary", "star_type": "M5V", "radius_km": 118000.4,
+            "stars": _result([{"id": 3, "ref": "star:FE81000A2B-0000005-001", "name": "Kepler-42 A", "role": "primary", "star_type": "M5V", "radius_km": 118000.4,
                                "star_system_id": 7, "system_name": "Kepler-42", "sector_id": 5}])
             if texts.get("star_q") or tags.get("spectral") else None,
             "planets": None, "moons": None, "belts": None,
@@ -199,10 +199,10 @@ def test_a_panel_that_times_out_says_so_and_the_others_show(client, fake, monkey
     """UX.97: each panel runs under its own limit; one that hits it is a note, not the busy page."""
     answer = fake.get_search
 
-    def one_slow(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
+    def one_slow(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
         if panels == ["systems"]:
             raise apiclient.ApiError("QUERY_TIMEOUT", status_code=504)
-        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels)
+        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts)
 
     monkeypatch.setattr(apiclient, "get_search", one_slow)
     resp = client.get("/search?q=Kepler")
@@ -212,10 +212,10 @@ def test_a_panel_that_times_out_says_so_and_the_others_show(client, fake, monkey
     assert 'href="/search?q=Kepler"' in _panel(html, "systems")
     assert "Kepler &lt;Reach&gt;" in _panel(html, "sectors")
 
-    def broken(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
+    def broken(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
         if panels == ["systems"]:
             raise apiclient.ApiError("down", status_code=500)
-        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels)
+        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts)
 
     monkeypatch.setattr(apiclient, "get_search", broken)
     assert client.get("/search?q=Kepler").status_code == 502
@@ -353,11 +353,11 @@ def test_groups_with_no_matches_are_left_out(client, fake):
 def test_a_star_result_links_to_its_own_page(client, fake):
     """NAV.8: a body result opens the body's own page (UX.173 and UX.176 retired the row on the system page)."""
     html = client.get("/search?star_q=Kepler").get_data(as_text=True)
-    assert 'href="/object/star:3"' in html and "#star-3" not in html
+    assert 'href="/object/star:FE81000A2B-0000005-001"' in html and "#star-3" not in html
 
 
 def _body_row(id_, name, **extra):
-    return {"id": id_, "name": name, "planet_class": "M", "body_type": "t", "life_chemical": None, "radius_km": 6371.0,
+    return {"id": id_, "ref": f"planet:FE81000A2B-0000005-{id_:03d}", "name": name, "planet_class": "M", "body_type": "t", "life_chemical": None, "radius_km": 6371.0,
             "star_system_id": 7, "system_name": "Kepler-42", "sector_id": 5, "equipment": None, "phi4": None,
             **{f"tier_{d}": None for d in ("pressure", "temperature", "air", "water", "radiation", "suitability")}, **extra}
 
@@ -370,8 +370,41 @@ def test_planet_results_show_habitability_symbols_not_notes(client, fake):
                     **{p: None for p in ("sectors", "systems", "stars", "moons", "belts", "phenomena")}}
     html = client.get("/search?planet_q=Sc").get_data(as_text=True)
     panel = _panel(html, "planets")
-    assert "<th scope=\"col\" data-col=\"habitability\">Habitability</th>" in panel
+    assert "data-col=\"phi4\"" in panel and ">Habitability" in panel
     for label in ("Overall habitability: Green", "Pressure: Blue", "Air chemistry: Yellow", "Radiation: Red"):
         assert f'aria-label="{label}"' in panel, label
     assert panel.count("hab-symbol ") == 7
     assert "<em>—</em>" in panel[panel.index("Unscored"):]
+
+
+_SCORED = {"tier_pressure": 0, "tier_temperature": 1, "tier_air": 2, "tier_water": 0, "tier_radiation": 1, "tier_suitability": 1,
+           "life_microbial": 2, "life_flora": 0, "life_fauna": 0, "life_sentient": 0}
+
+
+def test_score_filters_show_as_chips_and_pass_to_the_api(client, fake):
+    """UX.214: a score filter in the URL is a removable chip named in words and goes to the API as its facet."""
+    fake.results = {"planets": _result([_body_row(11, "Scored", phi4=0.8, **_SCORED)]),
+                    **{p: None for p in ("sectors", "systems", "stars", "moons", "belts", "phenomena")}}
+    html = client.get("/search?habitability=green&domain=suitability:blue&life_level=flora:5&living=civilization"
+                      "&moon_living=alive").get_data(as_text=True)
+    sent = fake.search_calls[-1]["tags"]
+    assert sent["habitability"] == {"green"} and sent["domain"] == {"suitability:blue"}
+    assert sent["life_level"] == {"flora:5"} and sent["living"] == {"civilization"} and sent["moon_living"] == {"alive"}
+    assert html.count('<span class="filter-chip">') == 5      # the labels come from the API's facet_labels
+    assert "2 of 9" in _panel(html, "planets") and "Green" in _panel(html, "planets")
+
+
+def test_a_score_column_sorts_and_the_sort_goes_to_the_api(client, fake):
+    """UX.214: the Habitability, Suitability and life columns of the planet table sort; best first is the descending order."""
+    fake.results = {"planets": _result([_body_row(11, "Scored", phi4=0.8, **_SCORED)]),
+                    **{p: None for p in ("sectors", "systems", "stars", "moons", "belts", "phenomena")}}
+    html = client.get("/search?planet_q=Sc").get_data(as_text=True)
+    panel = _panel(html, "planets")
+    for key in ("phi4", "suitability", "microbial", "flora", "fauna", "sentient"):
+        assert f'data-col="{key}"' in panel and "aria-sort" in panel
+    client.get("/search?planet_q=Sc&planets_sort=flora")
+    assert fake.search_calls[-1]["sorts"] == {"planet": "flora"}
+    client.get("/search?planet_q=Sc&planets_sort=phi4&planets_order=desc")
+    assert fake.search_calls[-1]["sorts"] == {"planet": "-phi4"}
+    client.get("/search?planet_q=Sc&planets_sort=nonsense")
+    assert fake.search_calls[-1]["sorts"] == {}

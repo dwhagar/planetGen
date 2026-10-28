@@ -66,6 +66,9 @@ def nearby_url(place=None, distance=None, **params):
 def _row_url(row):
     """The page of one result."""
     kind = row["kind"]
+    if row.get("ref"):        # UX.232: every list opens an object by the reference the API gave it, one builder
+        from .item_pages import item_url        # imported here: item_pages reaches this module through the nav page
+        return item_url(row["ref"])
     if kind in near_search.object_ref.PHENOMENON_KINDS:
         return page_url("phenomenon", phenomenon_type=kind, phenomenon_id=row["id"])
     if row["system_id"] is not None:

@@ -1669,6 +1669,14 @@ def search():
     `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/
     `moon_`) for a size range, in km -- either bound may be omitted.
 
+    UX.214: the score filters, each repeatable and named for a planet (`habitability`, `domain`, `life_level`, `living`)
+    or with `moon_` in front for a moon -- `habitability=blue|green|yellow|red` (the PHI-6 colour), `domain=<domain>:<colour>`
+    (`suitability:green`, `water:red`; the domains are pressure, temperature, air, water, radiation and suitability),
+    `life_level=<microbial|flora|fauna|sentient>:<1|5>` (that life score 1 or more, or 5 or more, of 9) and
+    `living=alive|lifeless|food|civilization`. `planet_sort`/`moon_sort` order that panel by `phi4`, `suitability`, a domain
+    name, `microbial`, `flora`, `fauna` or `sentient`: worst first, or `-` in front for best first (an unscored body
+    comes last either way).
+
     Each result panel is paged independently: `limit` is the rows per
     panel (default `SEARCH_RESULT_LIMIT`, clamped to `MAX_PAGE_LIMIT`,
     validated like every other `limit`), and `sectors_offset`/
@@ -1704,7 +1712,8 @@ def search():
     only = None
     if args.get("panels"):
         only = {panel for panel in args["panels"].split(",") if panel in SEARCH_RESULT_PANELS}  # "none": no panel
-    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only))
+    sorts = {entity: args.get(f"{entity}_sort") for entity in ("planet", "moon") if args.get(f"{entity}_sort")}
+    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only, sorts=sorts))
 
 
 # ---------------------------------------------------------------------
