@@ -1902,7 +1902,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.302 | At sector-level zoom every kind of item appears: comets, rogue planets and the rest, not only stars (bug) | none | open |
 | MAP.303 | Stars with a habitable world (Yellow and above) are labelled with an icon on the map (bug) | none | open |
 | MAP.304 | Any object or icon on the map can be clicked: a single click selects it and shows its infobox in the map window, a double-click flies to it (bug) | none | done, PR #3284 |
-| MAP.305 | Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug) | none | open |
+| MAP.305 | Systems of possible interest carry one generic point-of-interest mark; a click lists what the points of interest are, and in dense areas one mark stands for many (bug) | none | done, PR #3494 |
 | MAP.306 | The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug) | none | open |
 | MAP.307 | Stations and facilities become points of interest: interest reasons for the map mark and its menu filter | none | open |
 | MAP.308 | A planet with moons has its own system map: the lunar orbits, the planet drawn from its rendered look at the moons' scale, and the atmosphere glow in the viewing space (bug) | none | done, PR #3327 |
