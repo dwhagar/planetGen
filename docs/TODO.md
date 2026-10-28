@@ -6155,7 +6155,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.727, GEN.728, GEN.729, GEN.730, GEN.731, GEN.733, GEN.735, GEN.736, GEN.737, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.728, GEN.729, GEN.730, GEN.733, GEN.735, GEN.736, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -13047,39 +13047,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registering.
   Prerequisites: none. Related: GEN.272, GEN.675.
 
-- [ ] **GEN.727 Eccentricity and inclination for planets and moons, with the seasons, eccentric insolation and tidal heating that follow**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  F3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: n/a (left
-  out). Today: Every planet and moon orbit is circular and inclination
-  is uniform up to a maximum (the code says 'this generator only ever
-  models circular orbits'); there are no seasons, no eccentric-orbit
-  tidal heating, and the stability and insolation rules assume circles.
-  Real physics: eccentricity and inclination distributions by
-  multiplicity and age (Kepler and radial velocity statistics), with
-  seasons, eccentric insolation and tidal heating following from them.
-  Do: draw eccentricity and inclination from a sourced law, store them,
-  and make insolation, the stability rule and the latitude bands read
-  them; GEN.582 only labels the fields as origin data. Done: orbits
-  carry eccentricity, the stability check uses it, and a test compares
-  the generated distribution with a published one. Each stand-in it
-  touches records its source tier and tweak level in the gap plan
-  registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24: Owner: Math
-  lane, as the pair of GEN.737 (Boss, 5:16 PM EDT, via the coordinator:
-  the 14 physics items go to the Math lane; tidal heating needs this
-  eccentricity). This replaces any earlier owner line on this item.
-  Free; the Math lane confirms with TODO before starting.
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
-  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
-  nobody started it.
-  Prerequisites: none. Related: GEN.582, GEN.656, GEN.699.
-
 - [ ] **GEN.728 Planet count from the observed multiplicity and occurrence distributions by star mass and metallicity**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   F1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -13160,31 +13127,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to go forward without correcting the physics"); it is a prerequisite
   of the headline GEN.301.
   Prerequisites: none. Related: GEN.105, GEN.650, GEN.510.
-
-- [ ] **GEN.731 Planet spin: day length from accretion angular momentum, tidal despinning with per-body Q and k2, and spin-orbit resonances**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  F8; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T6 (day),
-  T3 (Q, k2). Today: Planet day length is log-uniform over 8 to 48 hours
-  (rocky) or uniform 8 to 20 (giants); tilt for rocky planets follows a
-  single impact-tilt formula; tidal locking uses one fixed Q and k2 for
-  every body. Real physics: spin from accretion angular momentum, tidal
-  despinning with per-body Q and k2, spin-orbit resonances (Mercury
-  3:2), atmospheric tides. Do: draw initial spin from a sourced law,
-  evolve it by tides with Q and k2 from the interior (reading the
-  GEN.699 heat model), and store the resonance state. Done: day length
-  and lock state follow from the orbit, the age and the interior, with
-  tests on Mercury, Venus, Earth and a hot Jupiter. Each stand-in it
-  touches records its source tier and tweak level in the gap plan
-  registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): proposed owner Math lane 2, after its first
-  five items; takes it only if nobody has started it.
-  Prerequisites: none. Related: GEN.699, GEN.727, GEN.737.
 
 - [ ] **GEN.733 Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
@@ -13280,47 +13222,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to go forward without correcting the physics"); it is a prerequisite
   of the headline GEN.301.
   Prerequisites: none. Related: GEN.699, GEN.444, GEN.731.
-
-- [ ] **GEN.737 Tidal heating from the orbit's real eccentricity for rocky bodies and planets, with the random 1 to 50 boost removed**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  H4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T9
-  (resonance boost), T6 (eccentricity). Today: Tidal heating of an icy
-  moon uses a forced eccentricity drawn log-uniform 0.001 to 0.01, a
-  random 1 to 50 times resonance boost for small moons and one fixed
-  k2/Q, and the result is thrown away after thickening the ice shell;
-  rocky moons and planets get none; habitability's energy term ignores
-  it. Lane D flagged it on 10-23. Real physics: tidal heating from the
-  orbit (eccentricity, resonances, rheology), stored and counted. Do:
-  compute the heating from the eccentricity (GEN.727) and a rheology,
-  store it, and add it to the interior heat model and the habitability
-  energy term. Done: tidal heating is stored and counted for rocky and
-  icy bodies, with tests on Io, Europa, Enceladus and the Moon. Each
-  stand-in it touches records its source tier and tweak level in the gap
-  plan registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes
-  do not take it before 8.1 closes).
-  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
-  PM EDT via the coordinator: add the 14 code-contradicts-physics items
-  to the Math lane; assessment
-  reports/physics-grounding-assessment-2026-10-24.md contradiction 9):
-  Owner: Math lane. This replaces any earlier owner line on this item.
-  Free (8.4). It needs the eccentricity of GEN.727, so take GEN.727 with
-  it; the Math lane confirms with TODO before starting.
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): Math lane 2 takes this item (Math lane 1
-  keeps GEN.720, 717, 718, 742, 365, 464, 715). Each lane confirms
-  nobody started it.
-  Research (2026-10-09, Trimmed): Trimmed (physics fix plan thread,
-  2026-10-24; GEN.700 already stores and counts the icy-moon tide and
-  the GEN.699 heat is read by habitability_world): do only the real
-  eccentricity (GEN.727), tidal heating for rocky bodies and planets,
-  and removal of the random 1 to 50 resonance boost; do not redo the
-  icy-moon storage.
-  Prerequisites: none. Related: GEN.699, GEN.727, GEN.639.
 
 - [ ] **GEN.740 Life and the air: a coupling between the life stage and the gases (oxygen from a biosphere)**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
@@ -15105,6 +15006,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 6; changes generated output only if the loop bound moves results,
   then it needs a lock turn.
   Prerequisites: none. Related: TEST.408, TEST.401, TEST.409.
+
+- [ ] **GEN.842 Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left**
+  Reported by Math 2 (as the lane reported 10:18 AM EDT 2026-10-28,
+  #3380, epoch 113). Left as known approximations: (1) giant_draw.py and
+  mixture_subject.py still use the semi-major axis for flux, not the
+  mean-flux of the real ellipse; (2) no moon-on-planet tide, no
+  atmospheric tide, no Q(T) (Q does not vary with temperature); (3)
+  rogue planets keep the old day law; (4) birth days are 2 to 3 hours
+  for rocky planets because the source model (Kokubo and Genda) covers
+  only the last giant impacts; later impacts, a big moon's tide and
+  thick air are not modelled, so planets far from the star keep very
+  short days (stand-in rows SP1 to SP10 carry the tiers). Do: close (1)
+  and (3) as code, and decide (2) and (4) with Boss by option card
+  before building. Done: flux uses the mean flux everywhere, rogue
+  planets use the spin law, and the open ones are decided. Owner: Math 2
+  after GEN.746 to GEN.749. Rules: any new stand-in adds its registry
+  row with tier and tweak level.
+  Prerequisites: none. Related: GEN.727, GEN.731, GEN.737, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20822,6 +20741,16 @@ clears each one.
   after DB.108/GEN.826, or a free lane. Rules: never skip or quarantine
   a test; scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.414.
+
+- [ ] **TEST.416 test_habitability_explain fails ten tests on main: the tests still call the surface_content API as it was before GEN.441 (bug)**
+  Found by Math 2 (as the lane reported 10:18 AM EDT 2026-10-28) while
+  merging GEN.727/737/731 (#3380); red on main before that change, not
+  caused by it. Do: update the ten failing test_habitability_explain
+  tests to the GEN.441 surface_content API (or fix the API if the tests
+  are right), with no skipped test. Done: test_habitability_explain
+  passes. Owner: Bug 1 after DB.108/GEN.826, or Aux 11. Rules: never
+  skip or loosen a test to get green.
+  Prerequisites: none. Related: TEST.413, GEN.441.
 
 ## USR: User accounts
 
