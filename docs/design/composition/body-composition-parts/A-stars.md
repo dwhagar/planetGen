@@ -252,7 +252,7 @@ Reading. (0) Against BF16 the thin-branch model medians are 8% low in Fe/Si, 5% 
 | WN late type | X_H ~ 15 +- 10% | | same | READ |
 | WN/C transition | X_C ~ 5%, X_N ~ 1% | | same | READ |
 | WC | C/He = 0.04-0.7 by number (10-60% C by mass); refined 0.1-0.5 (20-55%) | | same | READ |
-| WO | rare, oxygen-rich, the most advanced He-burning stage; strong O v-vi lines; mass fractions not extracted | | same, sect. 2.1 | READ |
+| WO | rare, oxygen-rich, the most advanced He-burning stage; strong O v-vi lines; mass fractions not extracted, so the code's carbon 30-55% and oxygen 10-40% are a stand-in (BC24) | | same, sect. 2.1 | READ |
 | WR progenitor and WR masses | typical masses 10-25 Msun, up to 80 for H-rich WN; progenitors above ~25 (H-free WN), ~40 (WC), ~75 Msun (H-rich WN) | | same abstract | READ |
 | Population III | initial mass 10-1000 Msun in a sample of 100 first stars | Msun | Hirano et al. 2014 [1308.4456] abstract | READ |
 | Pop III composition | pure BBN: X = 1 - Y_P = 0.7533, Y = 0.2467, Z = 0 | | Planck eq. 72a | COMPUTED |

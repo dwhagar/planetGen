@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 217 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 218 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 45 | 3 | 2 | 6 | 0 | 56 |
 | T4 | 11 | 0 | 0 | 2 | 0 | 13 |
 | T5 | 9 | 3 | 1 | 0 | 0 | 13 |
-| T6 | 24 | 6 | 1 | 4 | 0 | 35 |
+| T6 | 25 | 6 | 1 | 4 | 0 | 36 |
 | T7 | 11 | 2 | 0 | 1 | 0 | 14 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 0 | 0 | 0 | 0 | 1 | 1 |
-| All | 181 | 14 | 7 | 13 | 2 | 217 |
+| All | 182 | 14 | 7 | 13 | 2 | 218 |
 
 ## How the labels were given
 
@@ -107,6 +107,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BC21 | T | T5 (limit), T6 (fractions) | L2 | The fluid Roche limit 2.456 R (rho_planet / rho_ring)^(1/3) with the ring's mixture density (ice 917, rock 2500 kg/m3, volume additive); the outer edge is U(0.75, 1.1) of it (Saturn 1.05, Jupiter 0.93, Neptune 0.88, Uranus 0.76: the range just holds the four), held inside 0.95 of the innermost moon; the inner edge U(1.1, 1.7) planet radii (Saturn's D ring 1.11, Uranus's 6 ring 1.64, Neptune's Galle ring 1.7) and below the outer one. | a ring beyond its Roche limit by more than 10 percent, or inside 1.1 radii | a larger ring sample replaces |
 | BC22 | T | T3 (masses), T6 (ranges) | L0 | Log-uniform mass per kind: dusty 1e7 to 1e11 kg (Jupiter's dust 1e7 to 1e9), narrow 1e13 to 1e17 kg (Uranus about 1e16), broad 1e18 to 1e21 kg (Saturn 1.5e19, Iess et al. 2019, recalled), capped at 1e-4 of the planet's mass. The mean optical depth is an output, 3 M / (4 rho r A f), for particles of radius 1 m (10 micrometres for dust) covering a share f of the annulus (1e-3 to 1e-2 for narrow rings). | a measured ring mass outside its kind's range | any measured exoring replaces |
 | BC23 | T | T3 | L0 | A broad ring beyond the snow line is 90 to 99 percent water ice (Saturn, Cuzzi et al. 2018, recalled), a narrow ring 0 to 30 percent (Uranus's and Neptune's are dark, no ice seen); dust and any ring inside the snow line are rock (0). | an icy ring is seen inside the snow line, or a dark ring around a cold giant is ice-rich | spectra of exorings replace |
+| BC24 | T | T6 | L0 | A WO star's surface is carbon 30 to 55 percent and oxygen 10 to 40 percent by mass, the rest helium: helium burning makes carbon and alpha capture turns it to oxygen, so the stage that shows oxygen lines still holds more carbon than oxygen, with oxygen well above WC's trace and carbon at or above WC's range (WC carbon 20 to 55 percent, `tuning.STELLAR_WOLF_RAYET`). Both ranges are taken at the one draw position, so carbon plus oxygen never passes 95 percent. | a measured WO star has more oxygen than carbon, or a surface helium share under 5 percent | surface mass fractions of the star's composition record (`stellar_composition.wolf_rayet_surface`) |
 
 ## 5.3 Atmosphere
 
