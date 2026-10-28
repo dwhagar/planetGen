@@ -13329,21 +13329,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --reason ... --affects <stage>` and the next epoch.
   Prerequisites: GEN.422. Related: GEN.813, GEN.725.
 
-- [ ] **GEN.822 Wire hydro_based_mass_loss_g_s (GEN.738) into the sub-Neptune envelope rows (radius_valley, runaway_history): escape loss changes the stored radii**
-  GEN.738 (Citations lane, PR #3260, 11:44 PM EDT 2026-10-24 as the lane
-  reported) adds the thermosphere model, Jeans and diffusion-limited
-  escape, the XUV history integral and a hydro-based envelope rate, with
-  registry rows AM51 to AM65; nothing calls it yet. Wire
-  hydro_based_mass_loss_g_s into the sub-Neptune envelope rows
-  (radius_valley, runaway_history) so the envelope a small planet keeps
-  follows the escape model. This changes stored radii and takes a
-  generator epoch with --affects fill. Done: the radius valley position
-  and the share of stripped cores come out of the model, within the
-  published range (GEN.722), registry rows listed. Owner: the Citations
-  lane. Rules: no backward-compat shims; stand-ins get GEN.725 registry
-  rows; tests are `scripts/test.py changed --resume`.
-  Prerequisites: GEN.738. Related: GEN.738, GEN.722, GEN.725, GEN.800.
-
 - [ ] **GEN.824 The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2**
   Found by GEN.814 (Aux 8, 1:02 AM EDT 2026-10-25): the class O CO2/H2O
   inventory bracket reaches 0.2, above the 0.1 in Kite and Ford 2018.
@@ -13725,6 +13710,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (with GEN.750).
   Prerequisites: none. Related: GEN.750, GEN.853, GEN.854, GEN.646,
   GEN.411, GEN.422, GEN.725.
+
+- [ ] **GEN.856 interior_heat._flux_w_m2 raises ZeroDivisionError and fails the albedo and tidal migration tests on clean main (bug)**
+  Reported by Aux 17 at its lock-turn gate for GEN.822 (about 7:56 PM
+  EDT 2026-10-28 as the lane reported): on clean main the albedo and
+  tidal migration tests fail with a ZeroDivisionError in
+  interior_heat._flux_w_m2. Find the input that gives a zero divisor (a
+  zero or missing radius, mass or area for some body kind), decide
+  whether the right answer is a guarded zero, a skipped row or a stored
+  NULL (never a silent fake value), and fix it with a test on the
+  failing input. If the fix changes any stored value it takes an epoch
+  and a lock turn; if it only stops a crash on a row that was never
+  filled, it does not. The eight reds Aux 17 saw on clean main also
+  include field units RoguePlanet, fuzz api auth, a test_runner hang and
+  a batch work-units test; Bug 1 has those on its red-test list. Owner:
+  Bug 1.
+  Prerequisites: none. Related: GEN.778, GEN.784, GEN.835, TEST.405.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

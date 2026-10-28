@@ -1641,3 +1641,4 @@ Baseline: PR #1817.
 | TEST.368 | 8.1 | Fly-through map |
 | MAP.331 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | DOC.48 | 8.1 | Docs |
+| GEN.822 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

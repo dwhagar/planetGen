@@ -620,6 +620,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.422 | test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug) |  |  |
 | GEN.845 | Redraw a stale scatter inside the bring-to-epoch run instead of refusing it (follow-up to GEN.764) |  |  |
 | GEN.846 | Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still) |  |  |
+| GEN.856 | interior_heat._flux_w_m2 raises ZeroDivisionError and fails the albedo and tidal migration tests on clean main (bug) |  |  |
 | TEST.433 | Phenomena census: black holes, neutron stars, magnetars, pulsars, Wolf-Rayet stars, planetary nebulae, supernova remnants, nebula classes, asteroid fields, clusters, rogue planets and interstellar comets against researched densities (prevalence suite part D) |  |  |
 | TEST.432 | Star census: star type mix, white dwarfs, subgiants, giants, pre-main-sequence stars, brown dwarfs and multiplicity by type against RECONS and Kroupa (prevalence suite part C) |  |  |
 | TEST.431 | System census: full systems per star type with planets, moons, belts and comets per system, the zero-planet share, binary share, habitable-world share, and life stage and civilization shares (prevalence suite part B) |  |  |
@@ -659,7 +660,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.750 | Evolutionary timeline: a model of the time to each life stage from conditions (Boss ruled: model it from physics) |  |  |
 | GEN.752 | Climate feedback on the surface temperature fixed point: ice-albedo, water vapour and cloud albedo | GEN.462 |  |
 | GEN.753 | Validation sweep for each physics area: compare generated populations with published statistics | GEN.503, GEN.504 |  |
-| GEN.822 | Wire hydro_based_mass_loss_g_s (GEN.738) into the sub-Neptune envelope rows (radius_valley, runaway_history): escape loss changes the stored radii |  |  |
 | GEN.821 | Ice-moon nitrogen inventory: ammonia ice as the nitrogen source for Titan-like moons, so the titan family derives its air instead of taking its pressure |  |  |
 | GEN.820 | Residuals of the bulk iron branch table (GEN.512): the coreless branch, a slope other than 1, the 0.05 dex scatter stand-in and a larger tuning sample |  |  |
 | GEN.819 | Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet |  |  |
