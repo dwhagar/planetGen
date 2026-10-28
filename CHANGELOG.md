@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2452] - 2026-10-28
+
+**Headline:** The Galaxy Map's legend now says what the purple wireframe cube outlines.
+
+### Fixed
+- **Legend line for the region outline (MAP.331).** While the wireframe round the charted region the view is in is drawn, the legend lists a line with a small outline square: "Outline: <region name> (9 sectors a side)", or "a charted region" where the region has no name yet. It goes when the outline does (a sector opened, the Charted regions layer off, a view outside any region).
+
 ## [8.0.2451] - 2026-10-28
 
 **Headline:** The Galaxy Map's info card no longer cuts off its region line and buttons in a short window.
