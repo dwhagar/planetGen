@@ -8,8 +8,10 @@ the reason's score. A system has a row for each reason it has at least one body 
 `static/galaxymarkers.js`'s `INTEREST_REASONS`); the table, the writers, the query and the node need no change.
 """
 
+from planetgen import tuning
 from planetgen.physics import habitability
 
+INHABITED = "inhabited"
 HABITABLE = "habitable"
 UNINHABITABLE = "uninhabitable"
 GAS_GIANT = "gas-giant"
@@ -25,7 +27,20 @@ BODY_TABLES = {"planets": ("planets", "p"), "moons": ("moons", "m"), "belts": ("
 
 # id -> {"planets"/"moons"/"belts": SQL test on `p`/`m`/`b` or None, "score": column of planets and moons or None, "params": values for
 # the tests' `?`}. The reason's source, in one place each: a reason that reads a stored class instead (GEN.646) changes its entry here.
+_CLASSES = ", ".join(f"'{letter}'" for letter in tuning.HABITABLE_PLANET_CLASSES)
+
+
+def _inhabited_test(alias, host_column):
+    """The test of a world that is inhabited the way the system page decides it (`query._with_life_fields`): its timeline reached a
+    technological civilization (a habitable class only), or a colony stands on it (a terrestrial colony facility)."""
+    return (f"(({alias}.life_stage = 'technological_civilization' AND {alias}.planet_class IN ({_CLASSES}))"
+            f" OR EXISTS (SELECT 1 FROM facilities f WHERE f.{host_column} = {alias}.id AND f.kind = 'colony' AND f.placement = 'terrestrial'))")
+
+
 REASONS = {
+    INHABITED: {
+        "planets": _inhabited_test("p", "planet_id"), "moons": _inhabited_test("m", "moon_id"), "score": "phi4", "params": (),
+    },
     HABITABLE: {
         "planets": "p.phi4 >= ?", "moons": "m.phi4 >= ?", "score": "phi4", "params": (HABITABLE_MIN_SCORE,),
     },
@@ -43,7 +58,7 @@ REASONS = {
     },
 }
 """dict: The interest reasons, in the order the map prefers them (the first a system has names its mark, MAP.321: the best world's
-symbol, a habitable one before a barren one before a gas giant before a belt)."""
+symbol, an inhabited one before a habitable one before a barren one before a gas giant before a belt)."""
 
 
 def reason_ids():

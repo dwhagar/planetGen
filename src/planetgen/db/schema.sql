@@ -1485,6 +1485,8 @@
 --   Yellow or better overall, a gas giant), with how many bodies give it, the largest score among them and the system's position.
 -- v166 (MAP.321): `system_interests` also takes the reasons `uninhabitable` (a scored terrestrial planet or moon under the Yellow floor) and `asteroid-field` (a system with a belt); no
 --   column changes, the migration fills the two reasons from the planets, moons and belts already stored.
+-- v167 (MAP.321): `system_interests` also takes the reason `inhabited` (a world whose timeline reached a technological civilization, or with a terrestrial colony on it); no column
+--   changes, the migration fills it from the planets, moons and colonies already stored.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes

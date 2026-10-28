@@ -5501,6 +5501,7 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
         facility_attrs.write(conn, cur.lastrowid, plan)
     if columns.get("star_system_id") is not None:
         touch_star_system(conn, columns["star_system_id"])
+        record_system_interests(conn, "ss.id = ?", (columns["star_system_id"],))    # a colony makes its world inhabited (MAP.321)
     return cur.lastrowid
 
 
@@ -5526,6 +5527,7 @@ def update_facility(conn, facility_id, name=None, description=None, attrs=None):
     facility_attrs.write(conn, facility_id, plan)
     if row["star_system_id"] is not None:
         touch_star_system(conn, row["star_system_id"])
+        record_system_interests(conn, "ss.id = ?", (row["star_system_id"],))
     return True
 
 
@@ -5538,6 +5540,7 @@ def delete_facility(conn, facility_id):
     conn.execute("DELETE FROM facilities WHERE id = ?", (facility_id,))
     if row["star_system_id"] is not None:
         touch_star_system(conn, row["star_system_id"])
+        record_system_interests(conn, "ss.id = ?", (row["star_system_id"],))
     return True
 
 
