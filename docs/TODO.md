@@ -13672,6 +13672,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.715, GEN.717, GEN.718, GEN.850,
   GEN.851.
 
+- [ ] **GEN.853 No generated system reaches a technological civilization any more: tests/test_population.py cannot build one after 200 tries (bug)**
+  Found by Aux 9 on a clean checkout of main at e1953de0 (6:49 PM EDT
+  2026-10-28 as the lane reported): all 11 tests in
+  tests/test_population.py error at setup with "could not generate a
+  system with a civilization" after 200 tries (about 6 minutes per
+  test), so either no habitable G2V system reaches a technological
+  civilization in generation any more (a real regression after the air
+  and life changes, which would mean a galaxy with no civilizations) or
+  the _civilized_system filter in the test is stale. First settle which:
+  generate a fixture galaxy and count technological civilizations, then
+  compare with the pre-air-change count. If generation is wrong, fix it
+  (it changes generated output: epoch and lock turn); if only the test
+  filter is stale, fix the filter. Never loosen or skip the tests.
+  Owner: Bug 1, first in its queue after UX.234 follow-ups; tell me
+  which it is.
+  Prerequisites: none. Related: POP.30, TEST.425.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
