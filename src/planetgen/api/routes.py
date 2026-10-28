@@ -1196,7 +1196,8 @@ def galaxy_charted_regions_route():
     """
     `{"regions": [...], "edge_pc"}` -- every charted region (a 9-block holding a generated sector, `region_stats`), by share
     charted, each with its node key, the centre and radius of its extent in parsecs, its sector count and capacity, its
-    `share` (0 to 1) and, with a naming key in force, its `name` and `parent` -- see `db.region_stats.charted_regions`.
+    `share` (0 to 1) and, with a naming key in force, its `name` and `parent`, and its `population` once head counts are stored
+    (absent before, MAP.318) -- see `db.region_stats.charted_regions`.
     Read by the Galaxy Map (MAP.316) for the regions it draws at galactic scale and its charted-regions list.
     """
     conn = get_db()
