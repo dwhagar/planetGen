@@ -432,7 +432,7 @@ def birth_fe_h(rng=draw, population=None, fe_h_peaks=None, galactic_center_dist_
     takes the generic cluster's or satellite's (`metallicity.generic_peaks`), never the halo's.
     """
     distance = scales.default_galactocentric_ly() if galactic_center_dist_ly is None else galactic_center_dist_ly
-    return metallicity.sample_fe_h(population, distance, rng, peaks=fe_h_peaks)
+    return metallicity.sample_fe_h(population, distance, rng, peaks=fe_h_peaks or metallicity.generic_peaks(population))
 
 
 def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, population=None, fe_h_peaks=None,

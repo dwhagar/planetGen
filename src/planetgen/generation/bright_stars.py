@@ -52,7 +52,7 @@ import math
 
 import numpy as np
 
-from planetgen.physics import constants
+from planetgen.physics import constants, metallicity
 from planetgen.physics.stellar_evolution import birth_fe_h
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
@@ -74,7 +74,7 @@ from planetgen.galaxy.spherical import (
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import object_first, place_terms, stored_trees
 from planetgen.generation.star_population import (
-    bright_band_fraction, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
+    bright_band_fraction, fe_h_support, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
     sample_mass_band_stars,
 )
 from planetgen.physics.units import pc_to_ly
@@ -250,7 +250,12 @@ def spot_fe_h(population, spots, rng, fe_h_peaks=None):
     (GEN.651), or, for a population in the gate, from its component's own distribution `fe_h_peaks`
     (`component_field.fe_h_peaks_of`, GEN.662)."""
     if population in POPULATIONS_IN_THE_GATE:
-        return lambda index: birth_fe_h(rng, population, fe_h_peaks)
+        def component_source(index):
+            return birth_fe_h(rng, population, fe_h_peaks)
+        peaks = fe_h_peaks or metallicity.generic_peaks(population)
+        if peaks:
+            component_source.bins = fe_h_support(peaks)
+        return component_source
 
     def source(index):
         distance_ly = pc_to_ly(math.sqrt(sum((value / MPC_PER_PC) ** 2 for value in spots[index][-1])))

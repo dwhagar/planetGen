@@ -64,7 +64,7 @@ import math
 
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
-from planetgen.physics import constants, imf, wolf_rayet
+from planetgen.physics import constants, imf, metallicity, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
     agb_bright_chance, birth_fe_h, evolve_star, giant_bright_chance,
@@ -449,8 +449,16 @@ def _prior_source(population, rng, fe_h_source, index):
     or, with no place, one for `population` at the Sun's distance (a cluster or satellite star, the generic cluster's or
     satellite's: the component pass gives its own, GEN.662)."""
     if fe_h_source is None:
-        return lambda: birth_fe_h(rng, population)
-    return lambda: fe_h_source(index)
+        def generic():
+            return birth_fe_h(rng, population)
+        peaks = metallicity.generic_peaks(population)
+        if peaks:
+            generic.bins = fe_h_support(peaks)
+        return generic
+    placed = lambda: fe_h_source(index)
+    if getattr(fe_h_source, "bins", None):
+        placed.bins = fe_h_source.bins
+    return placed
 
 
 def _table_total(table):
@@ -464,6 +472,15 @@ FE_H_REDRAWS = 100 * tuning.STAR_MODEL_MAX_REDRAWS
 table total, rare in the luminosity window it asks for)."""
 
 
+def fe_h_support(peaks):
+    """The [Fe/H] bins a draw from `peaks` (`((weight, mean, sigma), ...)`) can land in, to four sigma: what a source of a
+    component's compositions is stamped with (`source.bins`), so `_draw_fe_h` keeps its stars against the best bin of
+    their own support, not the best of any composition (GEN.662)."""
+    low, high = tuning.METALLICITY_RANGE_FE_H
+    reach = [(max(low, mean - 4.0 * sigma), min(high, mean + 4.0 * sigma)) for _weight, mean, sigma in peaks]
+    return frozenset(fe_h_bin(value) for a, b in reach for value in (a, b, *(a + (b - a) * k / 16.0 for k in range(1, 16))))
+
+
 def _draw_fe_h(source, totals, rng):
     """
     The birth [Fe/H] for a try at a star the tables condition on (it is bright, or in a mass band): `source()` draws one
@@ -472,9 +489,11 @@ def _draw_fe_h(source, totals, rng):
     measure over its cell's bound, so a composition is kept as often as its stars are there: the composition a place's
     bright stars have is its prior times each composition's bright share, not the prior (a metal-poor halo has no 2500
     Lsun giants in a 3 to 10 Gy window, and its metal-rich tail makes all of them). A try that fails draws a new
-    composition with the next.
+    composition with the next. A source of one component's compositions (`source.bins`, GEN.662) is held against the
+    best bin it can emit, which changes how often a try is kept and not which compositions the stars have.
     """
-    best = max(totals.values())
+    bins = getattr(source, "bins", None)
+    best = max(totals.get(fe_bin, 0.0) for fe_bin in bins) if bins else max(totals.values())
     if best <= 0:
         raise ValueError("no composition makes a star of this kind in this population window")
     for _ in range(FE_H_REDRAWS):

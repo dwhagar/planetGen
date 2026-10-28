@@ -57,3 +57,13 @@ def test_the_stars_of_two_components_follow_their_own_values():
     rich = [evolution.birth_fe_h(draw.Stream(f"r{k}"), "cluster", component_field.fe_h_peaks_of(_component("cluster", -0.5)))
             for k in range(200)]
     assert statistics.mean(rich) - statistics.mean(poor) == pytest.approx(1.5, abs=0.1)
+
+
+def test_a_components_stars_are_kept_against_the_best_composition_they_can_have():
+    """A cluster far from the best bin of the tables still gets its stars: the source is stamped with its support."""
+    peaks = component_field.fe_h_peaks_of(_component("cluster", -2.1))
+    source = bright_stars.spot_fe_h("cluster", [((0, 0, 0),)], draw.Stream("support"), peaks)
+    assert source.bins and star_population.fe_h_bin(-2.1) in source.bins
+    assert star_population.fe_h_bin(0.0) not in source.bins
+    stars = star_population.sample_bright_stars(5, 500.0, "cluster", draw.Stream("far"), fe_h_source=source)
+    assert len(stars) == 5 and all(star["metallicity_fe_h"] < -1.0 for star in stars)

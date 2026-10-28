@@ -85,10 +85,9 @@ def sample_fe_h(population, galactic_center_dist_ly, rng=draw, peaks=None):
     `METALLICITY_RANGE_FE_H`. `population` None means the whole disc (`intermediate`). `peaks`, `((weight, mean,
     sigma), ...)` as the sector profile holds a place's distribution (GEN.237) or a component its own (GEN.662),
     replaces the population's own: a cluster or satellite star has no mean at a distance from the centre, only that of
-    the component it belongs to (the generic cluster's or satellite's, `generic_peaks`, without one); one peak is
+    the component it belongs to (`generic_peaks` where none is given; `birth_fe_h` applies them); one peak is
     picked by weight, then the normal about it drawn."""
     low, high = tuning.METALLICITY_RANGE_FE_H
-    peaks = peaks or generic_peaks(population)
     if peaks:
         pick = rng.random() * sum(weight for weight, _mean, _sigma in peaks)
         for weight, mean, sigma in peaks:
