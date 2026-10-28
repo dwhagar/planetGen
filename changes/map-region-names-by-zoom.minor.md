@@ -1,0 +1,5 @@
+**Headline:** The Galaxy Map now names the charted regions as you zoom: the family far out, each region closer in.
+
+### Changed
+- **Region names on the Galaxy Map (MAP.314).** Far out, where the map is cut into big blocks, each charted family is named once with its Reach ("Fardoo Reach"), at the middle of the regions charted in it rather than the middle of the block; closer in, each charted region is named ("Fardoo Beez Region"); closer still, in the small blocks, no region is named and the info card of a pick says which region it is in. Space nothing has been charted in has no name, and the names are the same ones the info card shows. A click on a name flies the camera to its block, and a new "Region names" switch in the Menu's Labels group takes them away (the address keeps it).
+- **The map's data carries what the names need.** A 27-, 81- or 243-block node lists the charted regions inside it (name, family, centre, size, sectors charted), and a region's node says how much of it is charted; the tile format is now 7.

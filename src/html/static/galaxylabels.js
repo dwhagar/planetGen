@@ -12,7 +12,7 @@
 // large the thing is (`sizePc`, its width in parsecs, turned into `pixels` from the camera) or what its pixels
 // are already (`pixels`).
 //
-// The kinds are ranked so the big things win the room: a nebula over a body over a sector over a system, and a system by
+// The kinds are ranked so the big things win the room: a region over a nebula over a body over a sector over a system, and a system by
 // its apparent brightness (luminosity over distance squared). No DOM at import; three.js comes in as a parameter.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
@@ -21,6 +21,7 @@ const { createLabelLayer, inRange } = await import(`./maplabels.js${VERSION_QUER
 const { chooseLabels, labelBudget } = await import(`./labelbudget.js${VERSION_QUERY}`);
 
 export const LABEL_KINDS = [
+  { id: "label-region", kind: "region", label: "Region names", title: "Show or hide the names of charted regions and the families of regions" },
   { id: "label-sector", kind: "sector", label: "Sector names", title: "Show or hide the names of generated sectors" },
   { id: "label-system", kind: "system", label: "System names", title: "Show or hide the names of the stars of the open sector" },
   { id: "label-body", kind: "body", label: "Body names", title: "Show or hide the names of the planets and moons of an open system" },
@@ -37,7 +38,7 @@ export const MAX_PIXELS = { sector: 900, nebula: 1400 };
 // The share of the label budget (labelbudget.js, MAP.317) a kind of name draws on when its source does not say: a source
 // may give an item its own `slice` ({domain, category, and the domain's numbers}). A sector stands for its region and
 // is named first (the coarse structure), the rest take their place by share.
-const DOMAIN = { nebula: "nebula", body: "uninhabited", sector: "region", system: "star", star: "star", object: "uninhabited", world: "inhabited" };
+const DOMAIN = { region: "region", nebula: "nebula", body: "uninhabited", sector: "region", system: "star", star: "star", object: "uninhabited", world: "inhabited" };
 // Priority of a name chosen by the budget: the chosen first-ranked takes FIRST_PRIORITY and each next one a step less.
 const FIRST_PRIORITY = 10000;
 const REFRESH_MS = 120;
@@ -118,6 +119,7 @@ export function createGalaxyLabels(options) {
       if (kind === "sector") return { shareCharted: 0 };
       return {};
     }
+    if (sources.regions && layers.isOn("label-region")) offer("region", sources.regions());
     if (layers.isOn("label-nebula")) offer("nebula", sources.nebulae());
     if (layers.isOn("label-body")) offer("body", sources.bodies());
     if (layers.isOn("label-sector")) offer("sector", sources.sectors());

@@ -259,6 +259,11 @@ def galaxy_nodes(conn, node_keys):
             if region is not None:   # API.35, MAP.319: charted regions only
                 node.update(region_stats.labels(block, naming_key.active_key(), edge_pc) or {})
                 node["extent"] = region_stats.extent_of(region)
+                node["charted"] = region_stats.charted_of(region)
+        elif block.m in region_stats.LABEL_LEVELS:
+            listed = region_stats.node_regions(conn, block, naming_key.active_key(), edge_pc)
+            if listed:   # MAP.314: the charted regions inside, for the map to name from a distance
+                node["regions"] = listed
         if incomplete:
             node["incomplete"] = incomplete
         nodes[format_drill_key(block)] = node
