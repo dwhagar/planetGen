@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2405] - 2026-10-28
+
+**Headline:** `planetgen benchmark --suite --keep` now leaves the scratch databases after a run that succeeded.
+
+### Changed
+- **The benchmark suite honours `--keep` on a successful run (PERF.175, bug).** The flag was accepted, but the suite dropped its scratch databases whenever every step finished, so `--keep` only ever did what a failed run already did. It now keeps them on success too and says which two to drop when done; a run without `--keep` still drops them, and a run with a step that failed or stopped still keeps them for `--resume`.
+
+TODO items resolved: PERF.175. Added: none.
+
 ## [8.0.2404] - 2026-10-28
 
 **Headline:** A work unit no longer runs the whole database schema again when it connects.
