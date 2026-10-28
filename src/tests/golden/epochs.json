@@ -690,8 +690,7 @@
     },
     {
       "epoch": 116,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2439",
       "reason": "A rocky body keeps one tectonic regime (mobile or stagnant lid) that sets its heat flux law, dynamo lifetime and ground dose, its mantle is held at the liquidus of its own rock and measured against its own surface temperature, its thorium to uranium ratio follows the r-process enrichment of its host, the day and night time shares and the hours of daylight are stored, and the stored heat flow and Urey ratio are rerun at the star's final age (GEN.721, GEN.735, GEN.759, GEN.767, GEN.763)",
       "affects": ["fill"]
     }
