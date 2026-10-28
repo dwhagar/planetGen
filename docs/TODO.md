@@ -17232,31 +17232,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: GEN.799. Related: API.8, API.30, API.33.
 
-- [ ] **API.35 Region names on the wire: a name on charted nodes and the stage and node endpoints, galaxy-map-wire-format.md (regions chain, step 2)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
-  9-block cell (about 780 sectors) with at least one generated sector,
-  named from the block path by a new codec kind region (Word Region; the
-  27 Regions of one 81-block share the family word) and drawn as the
-  bounding sphere of its generated sectors, never smaller than the 12 pc
-  standard-fill sphere (about 109 sectors) about the cell's anchor; it
-  exists, and shows on the galactic map, as soon as any sector in the
-  cell is generated (anything above 0 percent), ranked by share charted
-  (generated sectors over the sectors its outline can hold, a standard
-  fill is about 14 percent); ungenerated space gets no region and no
-  sector line may join two unrelated places. Boss, 1:13 AM EDT
-  2026-10-25: the chain is in 8.1, regions are what the galactic-level
-  map shows so a user can always drill down to inhabited space. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
-  from the gated phoneme codec only, never from Milky Way or Solar
-  System lists. Node payloads gain name and a parent family name for
-  charted regions only; the tile cache key already carries the
-  naming-key stamp. Done: the format doc updated, a test pins the field
-  and its absence for uncharted blocks. Owner: Aux 12. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
-  Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826.
-
 - [ ] **API.36 Optional: a region_names search table and a "Go to" box, refilled when the naming key changes (regions chain, step 6)**
   Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
   9-block cell (about 780 sectors) with at least one generated sector,
@@ -20838,6 +20813,16 @@ clears each one.
   scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.409, TEST.412.
 
+- [ ] **TEST.415 test_cache_warmup::test_a_big_unit_stops_part_way fails on unmodified main (bug)**
+  Found by Aux 12 (as the lane reported 9:56 AM EDT 2026-10-28) while
+  merging API.35 (#3396); not that change's. Do: run it on clean main,
+  find what moved (TILE_FORMAT, region_stats hooks, a unit-size
+  constant, the 8.2 tile cache), fix the code or the expectation with
+  the reason in the PR. Done: the test passes on main. Owner: Bug 1
+  after DB.108/GEN.826, or a free lane. Rules: never skip or quarantine
+  a test; scripts/test.py changed --resume.
+  Prerequisites: none. Related: TEST.414.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -22233,6 +22218,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   changed --resume.
   Prerequisites: API.35. Related: GEN.825, DB.107,
   GEN.826, API.35, MAP.314, MAP.315, UX.231, API.36.
+  Research (2026-10-09, Aux 12 report 2026-10-28): API.35 merged (#3396,
+  Aux 12, 9:56 AM EDT as the lane reported): a charted region node
+  (9-block with a region_stats row) carries name and parent (family,
+  Word Reach); the stage lists children the same way (child_m 9) and a
+  9-block stage names it; only charted regions, only with a naming key;
+  TILE_FORMAT 4 to 5 rebuilds stored nodes once. Unblocked: write the
+  docs and the audit check now.
 
 ## VIEW: The view from a planet
 
