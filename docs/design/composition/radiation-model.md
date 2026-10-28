@@ -36,7 +36,7 @@ Open (seeded bracket stated):
 - **R15 Ground abundances.** K, U, Th from GEN.459: Th from the star (offset sigma 0.22 dex, truncated plus or minus 0.5, or a catalogue value), U = Th times 0.571 (atoms; Dauphas 2005 via Wang 2020, partly verified) with an extra N(0, 0.05) dex placeholder, K by a depletion d_K log-uniform 0.03 to 1 on the CI K/U of 67407 (placeholder tied to the large K differences of Solar System bodies). The `a_rad` draw goes.
 - **R16 Radon.** J = C_Ra f rho_b sqrt(lambda D_e), box concentration C = J tau / h with h of 1 km scaled by the scale height (design inference). D_e against pressure is not reached: seeded factor 1 to P0/P on D_e, so J between 1 and sqrt(P0/P) times the 1-bar value. The 1 kPa gate has no source and goes.
 - **R17 Stellar UV.** The blackbody 200 to 300 nm proxy overpredicts the Sun by 3.9 times in UV-C, 1.6 in UV-B, 1.27 in UV-A (section 12). No source for UV against T_eff and activity was read; seeded UV-C share between 0.1 and 1 of the blackbody value (the Sun's measured ratio 0.26 is a target, not a preset).
-- **R18 Ionising band and belts.** No surface dose from XUV or X-rays; the output is the deposition column for escape (part 04). W(air) is 33.97 eV (ICRU 90). Outer-shell cross sections for Ar, Kr, Xe, HCN, H2CO, HCl, HF, CH3Cl, SiO, TiO, VO are open. Trapped belts: AP9/AE9 exist for Earth only; other bodies not reached; no belt dose is stored and the omission is flagged.
+- **R18 Ionising band and belts.** No surface dose from XUV or X-rays; the output is the deposition column for escape (part 04). W(air) is 33.97 eV (ICRU 90). Outer-shell cross sections for Ar, Kr, Xe, HCN, H2CO, HCl, HF, CH3Cl, SiO, TiO, VO are open. Trapped belts: AP9/AE9 exist for Earth only. **Built (GEN.749):** `physics/radiation_belts.py` gives the belts of any dipole from its moment, the wind-set magnetopause and the spin (a wind-limited outer edge at 0.75 of the standoff, a spin-limited one at 9 synchronous distances, an inner proton and an outer electron belt) and the dose rate behind 100 mil of aluminium at an orbit, scaled from Earth's by the moment to the 0.8 and checked on Earth and Jupiter; stand-ins are in the gap-filling plan 6.15 (RB1 to RB8). No belt dose is stored on the body; it is asked for an orbit.
 
 ## 2. The bands
 
@@ -378,7 +378,7 @@ Rules (Boss, 12:39 PM EDT): V = verified wins; N = newest wins between two verif
 7. **R14 SEP**: replace the 20 mSv/yr constant by an event dose with the Band spectrum; the annual rate stays open. Approve; do not store an annual SEP dose until the flare-frequency law is sourced for non-solar stars.
 8. **R16 radon**: drop the 1 kPa gate and use the D_e bracket. Approve.
 9. **R17 stellar UV**: seeded UV-C share 0.1 to 1 of blackbody. Approve as an open bracket and ask for a UV-against-T_eff source.
-10. **R18 belts**: omit trapped-belt dose and flag it. Approve.
+10. **R18 belts**: omit trapped-belt dose and flag it. Approve. (Superseded by GEN.749: a belt model for any dipole, asked per orbit, not stored.)
 11. **R15 K depletion** (log-uniform 0.03 to 1) and the U/Th placeholder dex. Approve as placeholders, replaced by GEN.459 sourcing.
 12. **R19 ordering**: GEN.453 first, then GEN.443 and GEN.444 together with the epoch bump. Approve.
 13. **Conflict rule M**: Decided by Boss at 1:12 PM EDT: 'most permission take wins' means the widest range of the two sources (section 15 lists the six rows it decided or shaped). Nothing to approve.
