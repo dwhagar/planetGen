@@ -1,68 +1,36 @@
 {% extends "base.html" %}
 {#- POP.10: the admin Facility types page (web/facility_type_pages.py). Every form is a plain POST with a
     `type_action`; the API holds the rules and its refusals come back as the flashed error. -#}
+{% from "partials/ui_fields.html" import ui_input, ui_select, ui_checkbox with context %}
 {%- macro type_fields(type) %}
-      <label class="search-field">Name
-        <input type="text" name="name" maxlength="255" required value="{{ type.name if type else '' }}">
-      </label>
-      <label class="search-field">Kind
-        <select name="kind">
-          {%- for kind in kinds %}
-          <option value="{{ kind }}"{% if type and type.kind == kind %} selected{% endif %}>{{ kind }}</option>
-          {%- endfor %}
-        </select>
-      </label>
-      <label class="search-field">Icon
-        <select name="icon">
-          <option value="">No icon</option>
-          {%- for icon in icons %}
-          <option value="{{ icon }}"{% if type and type.icon == icon %} selected{% endif %}>{{ icon }}</option>
-          {%- endfor %}
-        </select>
-      </label>
-      <label class="search-field">Sort order
-        <input type="number" name="sort_order" step="1" value="{{ type.sort_order if type else 0 }}">
-      </label>
-      <label class="search-field">Description (optional)
-        <input type="text" name="description" maxlength="4000" value="{{ (type.description if type else '') or '' }}">
-      </label>
-      <label class="search-field generate-check"><span><input type="checkbox" name="active" value="1"{% if not type or type.active %} checked{% endif %}> In use (offered when placing a facility)</span></label>
+      {{ ui_input("name", "Name", type.name if type else "", required=True, maxlength=255) }}
+      {%- set kind_options = [] %}
+      {%- for kind in kinds %}{% set _ = kind_options.append({"value": kind, "label": kind}) %}{% endfor %}
+      {{ ui_select("kind", "Kind", kind_options, type.kind if type else kinds[0]) }}
+      {%- set icon_options = [{"value": "", "label": "No icon"}] %}
+      {%- for icon in icons %}{% set _ = icon_options.append({"value": icon, "label": icon}) %}{% endfor %}
+      {{ ui_select("icon", "Icon", icon_options, type.icon if type and type.icon else "") }}
+      {{ ui_input("sort_order", "Sort order", type.sort_order if type else 0, type="number", step=1) }}
+      {{ ui_input("description", "Description (optional)", (type.description if type else "") or "", maxlength=4000) }}
+      {{ ui_checkbox("active", "In use (offered when placing a facility)", checked=(not type or type.active)) }}
 {%- endmacro %}
 {%- macro field_fields(field) %}
       {%- if not field %}
-      <label class="search-field">Key (lowercase letters, digits and underscores; never changes)
-        <input type="text" name="key" maxlength="32" required pattern="[a-z][a-z0-9_]{0,31}">
-      </label>
+      {{ ui_input("key", "Key (lowercase letters, digits and underscores; never changes)", "", required=True, maxlength=32, pattern="[a-z][a-z0-9_]{0,31}") }}
       {%- endif %}
-      <label class="search-field">Label
-        <input type="text" name="label" maxlength="255" required value="{{ field.label if field else '' }}">
-      </label>
-      <label class="search-field">Kind of value
-        <select name="datatype">
-          {%- for value, text in datatypes %}
-          <option value="{{ value }}"{% if field and field.datatype == value %} selected{% endif %}>{{ text }}</option>
-          {%- endfor %}
-        </select>
-      </label>
-      <label class="search-field">Unit (numbers only)
-        <input type="text" name="unit" maxlength="32" value="{{ (field.unit if field else '') or '' }}">
-      </label>
-      <label class="search-field">Lowest value (numbers only)
-        <input type="number" name="min_value" step="any" value="{{ field.min_value if field and field.min_value is not none else '' }}">
-      </label>
-      <label class="search-field">Highest value (numbers only)
-        <input type="number" name="max_value" step="any" value="{{ field.max_value if field and field.max_value is not none else '' }}">
-      </label>
+      {{ ui_input("label", "Label", field.label if field else "", required=True, maxlength=255) }}
+      {%- set datatype_options = [] %}
+      {%- for value, text in datatypes %}{% set _ = datatype_options.append({"value": value, "label": text}) %}{% endfor %}
+      {{ ui_select("datatype", "Kind of value", datatype_options, field.datatype if field else datatypes[0][0]) }}
+      {{ ui_input("unit", "Unit (numbers only)", (field.unit if field else "") or "", maxlength=32) }}
+      {{ ui_input("min_value", "Lowest value (numbers only)", field.min_value if field and field.min_value is not none else "", type="number", step="any") }}
+      {{ ui_input("max_value", "Highest value (numbers only)", field.max_value if field and field.max_value is not none else "", type="number", step="any") }}
       <label class="search-field">Options, one a line (a list only)
         <textarea name="choices" rows="3">{{ (field.choices | join('\n')) if field and field.choices else '' }}</textarea>
       </label>
-      <label class="search-field">Starting value (optional)
-        <input type="text" name="default_text" maxlength="255" value="{{ (field.default_text if field else '') or '' }}">
-      </label>
-      <label class="search-field">Sort order
-        <input type="number" name="sort_order" step="1" value="{{ field.sort_order if field else 0 }}">
-      </label>
-      <label class="search-field generate-check"><span><input type="checkbox" name="required" value="1"{% if field and field.required %} checked{% endif %}> Required</span></label>
+      {{ ui_input("default_text", "Starting value (optional)", (field.default_text if field else "") or "", maxlength=255) }}
+      {{ ui_input("sort_order", "Sort order", field.sort_order if field else 0, type="number", step=1) }}
+      {{ ui_checkbox("required", "Required", checked=(field and field.required)) }}
 {%- endmacro %}
 {% block content %}
 {%- if message %}

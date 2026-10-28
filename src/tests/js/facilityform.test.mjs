@@ -14,15 +14,15 @@ const EARTH = { min: 6471, max: 924000, mass: 5.972e24 };
 
 function form(placement, step) {
   const el = h("form", { class: "search-form facility-form" }, [
-    h("select", { name: "placement", "data-facility-placement": "" }, [
-      h("option", { value: "surface", selected: placement === "surface" }, "On the surface"),
-      h("option", { value: "orbital", selected: placement === "orbital" }, "In orbit"),
-      h("option", { value: "belt", selected: placement === "belt" }, "In a belt"),
+    h("sl-select", { name: "placement", value: placement, "data-facility-placement": "" }, [
+      h("sl-option", { value: "surface" }, "On the surface"),
+      h("sl-option", { value: "orbital" }, "In orbit"),
+      h("sl-option", { value: "belt" }, "In a belt"),
     ]),
-    h("select", { name: "host", "data-facility-host": "" }, [
-      h("option", { value: "planet:1", "data-placements": "surface orbital", "data-min-km": EARTH.min, "data-max-km": EARTH.max, "data-mass-kg": EARTH.mass }, "Earth"),
-      h("option", { value: "star:1", "data-placements": "orbital", "data-min-km": "700000", "data-max-km": "1e10", "data-mass-kg": "1.989e30" }, "Sun"),
-      h("option", { value: "belt:1", "data-placements": "belt" }, "Main belt"),
+    h("sl-select", { name: "host", value: "planet:1", "data-facility-host": "" }, [
+      h("sl-option", { value: "planet:1", "data-placements": "surface orbital", "data-min-km": EARTH.min, "data-max-km": EARTH.max, "data-mass-kg": EARTH.mass }, "Earth"),
+      h("sl-option", { value: "star:1", "data-placements": "orbital", "data-min-km": "700000", "data-max-km": "1e10", "data-mass-kg": "1.989e30" }, "Sun"),
+      h("sl-option", { value: "belt:1", "data-placements": "belt" }, "Main belt"),
     ]),
     h("div", { class: "facility-orbit", "data-facility-orbit": "", hidden: placement !== "orbital" }, [
       h("input", { type: "range", min: "0", max: String(STEPS), step: "1", value: String(step == null ? 50 : step) }),
@@ -57,7 +57,11 @@ async function load(placement, step) {
 }
 
 function change(el, type) {
-  el.dispatchEvent(new FakeEvent(type || "change"));
+  el.dispatchEvent(new FakeEvent(type || "sl-change"));
+}
+
+function optionsOf(select) {
+  return select.querySelectorAll("sl-option");
 }
 
 function expectedReadout(km, massKg) {
@@ -66,13 +70,13 @@ function expectedReadout(km, massKg) {
 }
 
 function shown(host) {
-  return host.options.filter((o) => !o.hidden).map((o) => o.value);
+  return optionsOf(host).filter((o) => !o.hidden).map((o) => o.value);
 }
 
 test("each placement shows only the hosts that allow it", async () => {
   const f = await load("surface");
   assert.deepEqual(shown(f.host), ["planet:1"]);
-  assert.equal(f.host.options[1].disabled, true, "a hidden host can't be sent either");
+  assert.equal(optionsOf(f.host)[1].disabled, true, "a hidden host can't be sent either");
   f.placement.value = "orbital";
   change(f.placement);
   assert.deepEqual(shown(f.host), ["planet:1", "star:1"]);
@@ -142,5 +146,5 @@ test("a form missing a part is left alone", async () => {
   const el = form("orbital", 0);
   el.querySelector("[data-facility-orbit-readout]").remove();
   await importPage("facilityform.js");
-  assert.equal(el.querySelector("[data-facility-host]").options[2].hidden, false);
+  assert.equal(optionsOf(el.querySelector("[data-facility-host]"))[2].hidden, false);
 });

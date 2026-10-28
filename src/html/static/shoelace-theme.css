@@ -103,6 +103,12 @@ sl-checkbox[data-invalid] {
   white-space: nowrap;
 }
 
+/* An option a script has taken out of a list (the facility form's hosts and types, UX.126): sl-option sets its own
+   display, which would otherwise win over the hidden attribute. */
+sl-option[hidden] {
+  display: none;
+}
+
 .ui-field {
   flex: 1 1 12rem;
 }

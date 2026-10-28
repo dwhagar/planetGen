@@ -15,12 +15,32 @@
 //   as `facilities.orbit_for` works it out.
 // - The Type list holds only the types of the chosen Kind (`data-kind`), and
 //   choosing a type shows that type's fields (`data-facility-type-fields`).
+//
+// The three lists are Shoelace `sl-select`s (UX.126, templates/partials/ui_fields.html), so the script waits for them
+// to be defined, listens to `sl-change`, and reads their `sl-option`s (a hidden option is taken out of the list by
+// style.css, a disabled one cannot be picked).
 
 // This module's own `?v=`, so the sibling loads at the same version.
 const VERSION_QUERY = new URL(import.meta.url).search;
+const { fieldsReady } = await import(`./fieldsready.js${VERSION_QUERY}`);
 const { formatDistanceKm, formatDistanceKmSpoken, formatDurationSeconds, formatSpeedKms } = await import(`./unitladder.js${VERSION_QUERY}`);
 
+await fieldsReady();
+
 const G = 6.6743e-11; // m^3 kg^-1 s^-2
+
+function optionsOf(select) {
+  return Array.from(select.querySelectorAll("sl-option"));
+}
+
+function chosenOption(select) {
+  return optionsOf(select).find((option) => option.value === select.value) || null;
+}
+
+function offer(option, fits) {
+  option.hidden = !fits;
+  option.disabled = !fits;
+}
 
 function distanceFromStep(step, steps, lowestKm, highestKm) {
   const fraction = Math.min(Math.max(step, 0), steps) / steps;
@@ -40,18 +60,17 @@ function setUpTypes(form) {
     }
   };
   const filterTypes = () => {
-    for (const option of type.options) {
-      const fits = !option.dataset.kind || option.dataset.kind === kind.value;
-      option.hidden = !fits;
-      option.disabled = !fits;
+    for (const option of optionsOf(type)) {
+      offer(option, !option.dataset.kind || option.dataset.kind === kind.value);
     }
-    if (type.selectedOptions[0] && type.selectedOptions[0].disabled) {
+    const chosen = chosenOption(type);
+    if (chosen && chosen.disabled) {
       type.value = "";
     }
     show();
   };
-  kind.addEventListener("change", filterTypes);
-  type.addEventListener("change", show);
+  kind.addEventListener("sl-change", filterTypes);
+  type.addEventListener("sl-change", show);
   filterTypes();
 }
 
@@ -67,7 +86,7 @@ function setUp(form) {
   }
 
   const showReadout = () => {
-    const option = host.selectedOptions[0];
+    const option = chosenOption(host);
     if (!option || !option.dataset.minKm) {
       readout.textContent = "";
       return;
@@ -85,24 +104,23 @@ function setUp(form) {
   const filterHosts = () => {
     const chosen = placement.value;
     let firstShown = null;
-    for (const option of host.options) {
+    for (const option of optionsOf(host)) {
       const fits = (option.dataset.placements || "").split(" ").includes(chosen);
-      option.hidden = !fits;
-      option.disabled = !fits;
+      offer(option, fits);
       if (fits && firstShown === null) {
         firstShown = option;
       }
     }
-    const selected = host.selectedOptions[0];
+    const selected = chosenOption(host);
     if ((!selected || selected.disabled) && firstShown) {
-      firstShown.selected = true;
+      host.value = firstShown.value;
     }
     orbit.hidden = chosen !== "orbital";
     showReadout();
   };
 
-  placement.addEventListener("change", filterHosts);
-  host.addEventListener("change", showReadout);
+  placement.addEventListener("sl-change", filterHosts);
+  host.addEventListener("sl-change", showReadout);
   slider.addEventListener("input", showReadout);
   filterHosts();
 }
