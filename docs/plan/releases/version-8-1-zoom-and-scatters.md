@@ -706,7 +706,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.779 | Fill induced_moment_a_m2: the induced magnetic dipole moment of conducting oceans and cores in a varying field (never filled; every planet empty) |  |  |
 | GEN.778 | Fill tidal_flux_w_m2 for planets and moons: tidal heating flux at the surface from eccentricity, spin and the body's interior (never filled in the sample) |  |  |
 | GEN.835 | The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule |  |  |
-| GEN.836 | Moon ring hooks and rogue planets use the ring fields: has_ring for moon origin in moon_composition, and rogue planets draw rings |  |  |
 | TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) |  |  |
 | TEST.392 | test_prevalence.py takes 66 minutes: it draws 2000 full systems per check and each check runs 4 to 12 minutes, the longest single block of any changed gate (bug) |  |  |
 | UX.205 | Object pages show the day and night time shares, moons with the extra night from their planet | GEN.768 |  |
