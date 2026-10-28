@@ -66,6 +66,7 @@
   <div class="panel-header"><h2 id="item-example-heading">Rendered example</h2></div>
   <figure class="body-view" hidden>
     <canvas class="body-view-canvas" width="320" height="320" role="img" aria-label="{{ title }}, drawn from its stored properties" data-look='{{ example.look }}'></canvas>
+    <button type="button" class="btn btn-small btn-secondary body-view-spin" data-spin aria-pressed="true" hidden>Spin</button>
     {%- if example.note %}<figcaption>{{ example.note }}.</figcaption>{% endif %}
   </figure>
 </section>

@@ -73,6 +73,20 @@ export function pictureAxisOf(look) {
   return [Math.sin(tilt), Math.cos(tilt), 0];
 }
 
+// Where on a body a point of its flat picture lies: `(x, up, z)` is the unit vector from the sphere's middle to the point
+// (x to the right, up, z toward the viewer), the body's axis leaning over by its axial tilt (`pictureAxisOf`). Returns
+// `[longitude, latitude]` in radians in the body's own frame, longitude 0 facing the viewer when the body has not turned
+// (`angleAt` = 0) and growing eastward, the way a prograde body turns, so after the body has turned `angle` the picture
+// shows its longitude `longitude - angle` there.
+export function bodyPoint(look, x, up, z) {
+  const tilt = look && Number.isFinite(look.tiltDeg) ? (look.tiltDeg * Math.PI) / 180 : 0;
+  const c = Math.cos(tilt);
+  const s = Math.sin(tilt);
+  const bodyX = x * c - up * s;
+  const bodyUp = x * s + up * c;
+  return [Math.atan2(bodyX, z), Math.asin(Math.max(-1, Math.min(1, bodyUp)))];
+}
+
 // --- Whether bodies turn ----------------------------------------------------
 
 const memory = { on: true };

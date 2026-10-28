@@ -5302,6 +5302,7 @@ p.hint a {
   height: auto;
   aspect-ratio: 1;
 }
+.body-view-spin[hidden] { display: none; }
 .body-view figcaption {
   color: var(--text-muted);
   font-size: 0.875rem;
