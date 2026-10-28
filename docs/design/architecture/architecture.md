@@ -940,7 +940,8 @@ sector. The pieces:
   `db/nodes.py` (MAP.260).
 - **Named regions.** A region is a 9-block of the ladder that holds a generated sector (`galaxy/named_regions.py`: name, anchor,
   framing sphere, extent); `region_stats` (`db/region_stats.py`, DB.107) stores its sector count, capacity (so the share
-  charted) and extent, kept by the same hooks as `galaxy_block_stats`.
+  charted), extent and summed mass, kept by the same hooks as `galaxy_block_stats`. The mass of a sector (`sector_stats.total_mass_kg`, `db/sector_mass.py`,
+  DB.108) is the sum of its bodies; a block and a region add up the sectors'.
 - **The block ladder.** The drill-down's stages (`/galaxy/stage`) and data
   windows (`/galaxy/window`, MAP.151) are blocks of 243, 81, 27, 9 and 3
   shells (`galaxy/drill.py`, `galaxy/window.py`, `docs/design/galaxy/spherical-block-ladder.md`).

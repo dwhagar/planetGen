@@ -50,3 +50,4 @@ Commit each file came from:
 - v164: 57b3b362 (GEN.764 scatter and species epochs, before MAP.305 system interests)
 - v165: a03f5260 (MAP.305 system interests, before MAP.321 uninhabitable worlds and asteroid fields)
 - v166: c0e55d8b (MAP.321 uninhabitable worlds and asteroid fields, before the inhabited reason)
+- v167: 766381158 (MAP.321 inhabited worlds, before DB.108 sector mass)

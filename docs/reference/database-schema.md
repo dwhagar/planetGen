@@ -1914,6 +1914,7 @@ row per sector address a backfill reached or a fill generated. See
 | `mean_age_gy` | DOUBLE | nullable | The mean age (Gy) of its stars; NULL with no stars (v55, DB.14). The Galaxy Map's hue comes from it. |
 | `total_luminosity_sol` | DOUBLE | nullable | The summed luminosity (L_sun) of its stars; NULL with no stars (v55, DB.14). The Galaxy Map's brightness comes from it. No color is stored: the page works it out (MAP.128). |
 | `habitable_worlds` | INT | nullable | The planets and moons in its systems that are potentially habitable (overall PHI-6 Blue or Green); NULL before a fill (v135, MAP.143). The Galaxy Map's Habitable worlds color comes from it. |
+| `total_mass_kg` | DOUBLE | nullable | The summed mass (kg) of the bodies in it (v162, DB.108); 0 for a generated sector with none, NULL before a fill or when a body has no stored mass. See "v168 (DB.108)". |
 | `filled_at` | TIMESTAMP(3) | nullable | When the fill saved it. |
 | `updated_at` | TIMESTAMP | NOT NULL | |
 
@@ -2218,6 +2219,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v168 (DB.108): the mass of each sector, block and region
+
+Migration 0168 adds `sector_stats.total_mass_kg` (DOUBLE, nullable, kg: the summed mass of the sector's stars, planets, moons, asteroid belts and comets, reached through `star_systems.sector_id`, and of its black holes, neutron stars, quasars (their black hole), rogue planets, interstellar comets and asteroid fields; a black hole's, neutron star's and quasar's black hole's mass is stored in solar masses and multiplied by `constants.SOLAR_MASS_TO_KG`; nebulae and supernova remnants are diffuse gas, counted by volume under their own label slice, and are left out; a generated sector with no body holds 0; NULL before the fill or when a body of it has no stored mass), and `galaxy_block_stats.mass_sum_kg` and `region_stats.mass_sum_kg` (DOUBLE, NOT NULL, default 0, kg: the sum of the generated sectors of the block or region; a sector with a NULL mass counts as 0). The sector's sum is made exactly (the masses are added as decimals and rounded once to a double), the region's by `math.fsum`, so the same bodies give the same bits whatever order they were saved in. `db/sector_mass.py` makes the sector figures: `store.record_sector_stats` writes it with the rest of the sector's stats, `block_stats.refresh_chain` and `refresh_sectors` put it right before the blocks above add it up, and `block_stats.rebuild` (migration 0162, `planetgen fill-block-totals`) makes every sector's again and lists the sectors it could not sum (`on_skipped`). The three columns have unit entries in `db/column_units.py`. No generated value changes (the three tables are left out of the fingerprints), so no epoch.
 
 ### v167 (MAP.321): the inhabited reason
 

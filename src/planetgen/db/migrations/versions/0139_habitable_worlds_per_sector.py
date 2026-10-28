@@ -65,11 +65,13 @@ def _rebuild_blocks(connection):
             block_stats.accumulate(cells, (r[0], r[1], r[2]), *r[3:])
         alembic_runner.report_progress("Block totals", done, len(shells))
     connection.execute(sa.text("DELETE FROM galaxy_block_stats"))
+    columns = [column for column in block_stats.COLUMNS if column != "mass_sum_kg"]    # the column is added by 0162
     insert = sa.text(
-        "INSERT INTO galaxy_block_stats (" + ", ".join(block_stats.COLUMNS) + ") VALUES ("
-        + ", ".join(":" + column for column in block_stats.COLUMNS) + ")")
+        "INSERT INTO galaxy_block_stats (" + ", ".join(columns) + ") VALUES ("
+        + ", ".join(":" + column for column in columns) + ")")
     # `m` is SMALLINT UNSIGNED here; the levels above 243 of the ladder as it is now (MAP.258) do not fit, and
     # migration 0146 widens the column and fills the table again, with every level.
-    rows = [dict(zip(block_stats.COLUMNS, row)) for row in block_stats.cell_rows(cells) if row[0] <= 65535]
+    rows = [{column: value for column, value in zip(block_stats.COLUMNS, row) if column in columns}
+            for row in block_stats.cell_rows(cells) if row[0] <= 65535]
     for start in range(0, len(rows), BATCH):
         connection.execute(insert, rows[start:start + BATCH])

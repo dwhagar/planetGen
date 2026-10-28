@@ -1441,6 +1441,7 @@
 --   `ring_optical_depth`, a mean; `ring_ice_fraction`). NULL for a body with no ring, a moon, and a row made before v160, which gets its rings when the galaxy is regenerated.
 -- v162 (DB.96): `planets` and `moons` keep the colour of the body's air as one integer (`atmosphere_colour`, sRGB as red*65536 + green*256 + blue; NULL for a body with no air, no star
 --   temperature or no mixture, and a row made before v162, which gets it when the galaxy is regenerated). The cloud cover it was worked out with is `cloud_cover` (v138).
+-- v168 (DB.108): the mass of each generated sector and of the blocks and regions above it: `sector_stats.total_mass_kg`, `galaxy_block_stats.mass_sum_kg` and `region_stats.mass_sum_kg`, kilograms. See `db/sector_mass.py`.
 --
 -- v136 (GEN.655, DB.93): the survival equipment line replaces `planets.equipment_tier` and `moons.equipment_tier`: `eq_body`, `eq_body_kind`, `eq_body_rec`, `eq_body_rec_kind`, `eq_rad_suit`,
 --   `eq_rad_suit_rec`, `eq_mobility`, `eq_dust`, `eq_gas_filter`, `eq_co2_scrub`, `eq_supply`, `eq_supply_rec`, `eq_shelter` and `eq_shelter_rec` (TINYINT, the levels of
@@ -1826,6 +1827,7 @@ CREATE TABLE IF NOT EXISTS galaxy_block_stats (
     age_sum           DOUBLE NOT NULL,
     luminosity_sol    DOUBLE NOT NULL,
     habitable_worlds  BIGINT UNSIGNED NOT NULL DEFAULT 0,   -- v139 (MAP.143)
+    mass_sum_kg       DOUBLE NOT NULL DEFAULT 0,   -- v168 (DB.108): the summed `sector_stats.total_mass_kg` of its generated sectors
     PRIMARY KEY (m, shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1876,6 +1878,7 @@ CREATE TABLE IF NOT EXISTS region_stats (
     extent_y_pc       DOUBLE NOT NULL,
     extent_z_pc       DOUBLE NOT NULL,
     extent_radius_pc  DOUBLE NOT NULL,
+    mass_sum_kg       DOUBLE NOT NULL DEFAULT 0,   -- v168 (DB.108): the summed `sector_stats.total_mass_kg` of its generated sectors
     PRIMARY KEY (shell_index, band_index, wedge_index)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -3967,6 +3970,7 @@ CREATE TABLE IF NOT EXISTS sector_stats (
     mean_age_gy            DOUBLE,
     total_luminosity_sol   DOUBLE,
     habitable_worlds       INT,   -- v139 (MAP.143): planets and moons in the sector's systems that are Blue or Green overall (PHI-6)
+    total_mass_kg          DOUBLE,   -- v168 (DB.108): the mass of the sector's stars, planets, moons, belts, comets and phenomena (not nebulae), NULL when a body has no stored mass
     filled_at              TIMESTAMP(3) NULL,
     updated_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
