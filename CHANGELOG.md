@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2399] - 2026-10-28
+
+**Headline:** The compact-object orbit tests draw a companion again.
+
+### Changed
+- **Compact-orbit tests repaired (GEN.832).** Four tests of the black hole and neutron star orbit laws forced a single star (GEN.719 made that mean no companion at all, so they drew no pairs); they now let the pair be drawn. No generation changes.
+
 ## [8.0.2398] - 2026-10-28
 
 **Headline:** The Galaxy Map now names the charted regions as you zoom: the family far out, each region closer in.
