@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2450] - 2026-10-28
+
+**Headline:** The planet prevalence checks draw their sample once and share it, and the draw itself is faster.
+
+### Changed
+- **The checks of `test_prevalence.py` share one drawn sample, and drawing a system is faster (TEST.392).** Each check drew its own 2,000 systems; they now draw each seed's sample once and share it, with the same sample size and the same limits. Under the draw, the band insolation is worked out for every latitude at once (it differs from the loop's by at most 9e-16, the last bit, far inside the nine digits the golden fingerprints keep; the golden battery digests still match), and a suit's shield answers repeated limits from a table.
+
+TODO items resolved: TEST.392. Added: none.
+
 ## [8.0.2449] - 2026-10-28
 
 **Headline:** The update's final health check no longer calls a good site broken when Apache answers the bare address 127.0.0.1 with another virtual host's 403.
