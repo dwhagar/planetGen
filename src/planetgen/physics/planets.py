@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, metallicity, moon_composition, rings
-from planetgen.physics import aerosols, atmosphere, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition
+from planetgen.physics import aerosols, atmosphere, body_colour, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -822,6 +822,8 @@ def generate_spin(planet, primary_mass_kg):
     magnetism.generate_field(planet)
     # GEN.87: the surface dose, from the air, water and field above.
     radiation.generate_dose(planet)
+    # DB.96: the atmosphere colour, from the air, the ozone and the aerosols above.
+    body_colour.generate(planet)
     # GEN.89: the habitability score, from all of the above.
     habitability_world.generate(planet, internal_heat_flux_w_m2(planet))
 

@@ -68,6 +68,7 @@ LOCAL_UNITS = {
     "ratio": LocalUnit("ratio"), "unit-vector": LocalUnit("ratio"), "count": LocalUnit("count"),
     "index": LocalUnit("index"), "flag": LocalUnit("flag"), "id": LocalUnit("id"), "key": LocalUnit("id"),
     "seed": LocalUnit("seed"), "row-defined": LocalUnit("row-defined"),
+    "rgb24": LocalUnit("colour"),
 }
 """dict: Unit key -> `LocalUnit`, for what `unit_registry.UNITS` does not hold. A unit that the registry gains moves
 there, and its entry here goes."""
@@ -373,6 +374,7 @@ TABLES = {
             "albedo_basis",
             "life_microbial", "life_flora", "life_fauna", "life_sentient",
         ),
+        "rgb24": ("atmosphere_colour",),
         "km": ("ring_inner_km", "ring_outer_km",
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
             "habitable_zone_inner_km", "habitable_zone_outer_km", "position_x_km", "position_y_km", "position_z_km",
@@ -601,6 +603,7 @@ TABLES = {
             "albedo_basis",
             "life_microbial", "life_flora", "life_fauna", "life_sentient",
         ),
+        "rgb24": ("atmosphere_colour",),
         "km": ("ring_inner_km", "ring_outer_km",
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
             "habitable_zone_inner_km", "habitable_zone_outer_km", "position_x_km", "position_y_km", "position_z_km",
