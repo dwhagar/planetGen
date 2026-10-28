@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.234 |
-| MAP | MAP.329 |
+| MAP | MAP.330 |
 | NAV | NAV.65 |
 | GEN | GEN.845 |
 | PERF | PERF.201 |
@@ -1721,7 +1721,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | done, PR #457 |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus | none | open |
-| MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | none | open |
+| MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | none | done, PR #3430 |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | open |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | done, PR #753 |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | done, PR #696 |
@@ -1921,6 +1921,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.326 | Zooming in from the Galaxy Map does not carry smoothly into the star system map: on no system could Boss zoom from the galaxy into the system view as one continuous move (bug) | none | done, PR #3345 |
 | MAP.327 | Galactic view draws a locked wireframe round the current region with no dimming (the sector part, dimming and wall icons, is done in #3422) | none | open |
 | MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) | none | open |
+| MAP.329 | System Map stepping reaches systems across a sector's edge | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
