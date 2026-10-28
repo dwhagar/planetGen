@@ -2216,6 +2216,8 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
     its phenomenon page."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
     page.wait_for_timeout(1000)
+    _poi_layers(page)    # a crowd's mark of the points of interest would take the click meant for the pulsar
+    page.locator("#galaxymap3d-menu > summary").click()
     # One step in, so the glow of the bright stars around them (every star of
     # a node comes in together, MAP.152) leaves the dark blue neutron star clear.
     # The wheel zooms toward what is under the pointer (MAP.225): Shift-click the
