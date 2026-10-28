@@ -1357,9 +1357,16 @@ export function createStageView(host) {
   }
 
   // MAP.121: the window one cell over, at the level the window is at, or null where there is nothing to step to (the
-  // whole galaxy, an opened sector or system, past a pole or the core, or where nothing of the galaxy lies).
+  // whole galaxy, an opened system, past a pole or the core, or where nothing of the galaxy lies). With a sector opened
+  // in place the step is to the sector beside it, `{ sector }` (the helper that finds it is the walls' icons', MAP.327).
   function stepTarget(direction) {
-    if (pinned || entered || enteredSystem || !stage.win) return null;
+    if (pinned || enteredSystem) return null;
+    if (entered) {
+      const here = entered.sector;
+      const to = P.neighbourBlock({ m: 1, shell: here.shell, band: here.band, wedge: here.wedge }, direction, edgePc);
+      return to && S.sectorStage(to.shell, to.band, to.wedge) ? { sector: { shell: to.shell, band: to.band, wedge: to.wedge } } : null;
+    }
+    if (!stage.win) return null;
     const to = P.neighbourBlock(stage.win.centre, direction, edgePc);
     if (!to) return null;
     const next = { win: { centre: S.stripBlock(to), g: stage.win.g } };
@@ -1367,11 +1374,13 @@ export function createStageView(host) {
   }
 
   // Steps the window to the neighbouring cell in `direction` (north, south, east, west, out, in): one camera move to
-  // its frame, the address carrying the camera and the breadcrumb following the new centre.
+  // its frame, the address carrying the camera and the breadcrumb following the new centre. With a sector opened in
+  // place it opens the sector beside it the same way (MAP.327's icon on the wall).
   function stepToNeighbour(direction) {
     if (animation) return false;
     const next = stepTarget(direction);
     if (!next) return false;
+    if (next.sector) return openSector(next.sector);
     go(next);
     return true;
   }

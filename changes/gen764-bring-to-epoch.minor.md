@@ -1,9 +1,0 @@
-**Headline:** `planetgen bring-to-epoch` brings a stored galaxy to the running generator epoch without a full regeneration: it generates again only the sectors an epoch change altered and leaves edited sectors alone.
-
-### Changed
-- **`planetgen bring-to-epoch [--dry-run]` (GEN.764, step 3).** Reads the epoch each stage of the stored galaxy was made under and the stages the epochs since changed (`affects`). It generates again, in address order, every galaxy-placed sector whose fill is behind (the sector is deleted and made again from its address and the galaxy's seed, then the paths around it are settled), makes the species of an older population epoch again (a species edited by hand is kept) and runs the population pass. It says each sector and species step; `--dry-run` lists them and changes nothing; a sector that fails is reported and the others go on; running it again resumes an interrupted run, since each sector records its epoch when it is saved.
-- **Edited sectors are skipped and listed.** The admin audit log is the record of edits (a sector, system, star, planet, moon, belt, comet, facility or phenomenon edit in it): the sector is left alone with the actions named. An edit of an object since deleted cannot be traced to its sector, and a sector edited before the audit log existed looks unedited.
-- **Refusals say why.** A plan made under an epoch that changed the galaxy's shape needs a full regeneration (the epochs are named); a scatter made under an older epoch has to be drawn again first (`planetgen clear-scatter`, then `planetgen scatter`), because the sectors are filled from it. Neither changes anything.
-- `util.generator_epoch.epochs_changing(stage, recorded)` names the epochs after a recorded one that altered a stage; `galaxy.epoch_record.needs` is its public stale test. The page button and the queue run are the next step.
-
-TODO items resolved: none (GEN.764 continues). Added: none.
