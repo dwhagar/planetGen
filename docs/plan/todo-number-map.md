@@ -22,7 +22,7 @@ release is stamped.
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.424 |
+| TEST | TEST.425 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -1518,11 +1518,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.766 | Generated life text states what is detected, in the present tense: no "speculative", "could", "would" or "boasts" (bug) | none | done, PR #3203 |
 | GEN.767 | Day and night time shares for every object that has a day or night, with the extra night when the parent planet blocks the sun | none | open |
 | GEN.768 | Hours a person can be outside in a day: daylight hours limited by heat, cold, pressure, air supply and radiation dose, computed and stored per planet and moon | none | open |
-| GEN.769 | Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug) | none | open |
-| GEN.770 | Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug) | none | open |
-| GEN.771 | Property sheet: the 40 ratio and 7 index rows state a unit or a scale (shares in percent or ppm, scores as "n of 9", ratios by what they divide) (bug) | none | open |
-| GEN.772 | Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug) | none | open |
-| GEN.773 | A temperature difference is never converted as a temperature: the day and night swing of 9.07 K shows as 9.07 K (or 9.07 C degrees), not -264 C (bug) | none | open |
+| GEN.769 | Small lengths read in a sensible unit: an ice shell of 0.00109 km shows as 1.09 m, not in km (bug) | none | done, PR #3478 |
+| GEN.770 | Water rows state their unit: share of the mass, surface under ocean, surface above sea level, water activity, ocean pH (bug) | none | done, PR #3478 |
+| GEN.771 | Property sheet: the 40 ratio and 7 index rows state a unit or a scale (shares in percent or ppm, scores as "n of 9", ratios by what they divide) (bug) | none | done, PR #3478 |
+| GEN.772 | Number-display guard: every displayed quantity goes through the unit registry formatter, and a test fails on a bare number in a page, an API document or a command output (bug) | none | done, PR #3478 |
+| GEN.773 | A temperature difference is never converted as a temperature: the day and night swing of 9.07 K shows as 9.07 K (or 9.07 C degrees), not -264 C (bug) | none | done, PR #3478 |
 | GEN.774 | Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows | none | open |
 | GEN.775 | Replace the planet-minus-star Fe/Mg scatter and super-Mercury tail (registry row BC8) with a larger sample of rocky planets with precise masses and stellar Fe/Mg | none | open |
 | GEN.776 | Replace the rogue-planet volatile loss at ejection (registry row BC11) with a measured atmosphere or free-floating-planet volatile survey | none | open |
@@ -1580,7 +1580,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.828 | Giant planet occurrence falls with host mass and rises with metallicity, and hot Jupiters are rare: giants per M dwarf are about 0.48 today against 0.03 to 0.06 observed, hot Jupiters 0.117 per M dwarf and 0.026 per FGK star against under 0.002 and 0.005 to 0.01 | none | open |
 | GEN.829 | A 2 to 20 Earth-mass population exists: sub-Neptunes with a hydrogen envelope, 0.5 to 1 planets per FGK star inside 1 AU against 0.195 today, and the mass function falls steadily above about 10 Earth masses | none | open |
 | GEN.830 | A class O (ocean) planet in zone e reaches a surface pressure of 9.05e9 Pa (about 90,000 bar) with the solved air: unphysical for an air above a liquid ocean (bug) | none | open |
-| GEN.831 | The Wolf-Rayet class W has no kind in stellar_composition, so a W star has no composition record (bug) | none | open |
+| GEN.831 | The Wolf-Rayet class W has no kind in stellar_composition, so a W star has no composition record (bug) | none | done, PR #3479 |
 | GEN.832 | tests/test_gen_compact_orbit_laws.py fails 4 tests on main: a compact object with a star yields no periods (bug) | none | done, PR #3433 |
 | GEN.833 | Cold icy moons get sparse ice cover because the hydrosphere's toy ocean_fraction feeds the ground draw (bug) | none | open |
 | GEN.834 | Non-water ice species (CO2, CH4, N2 and others) are drawn into the ground but not stored per species | none | open |
@@ -3142,6 +3142,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.421 | test_migration_habitable_worlds: the filled-sector test finds no system with a Blue or Green world in 120 seeds, its _fill_one_sector helper no longer draws one (bug) | none | done, PR #3467 |
 | TEST.422 | test_generation_size_estimate (3 tests error in setup) and test_phenomenon_scatter (scatter_lists_each_shells_phenomena_by_kind, a_fill_builds_its_rows_at_their_stored_points) are red on clean main (bug) | none | open |
 | TEST.423 | test_admin_edits::test_recommended_class_change_saves_and_validates fails on clean main: the stand-in body has no eccentricity since migration 0163 (bug) | none | open |
+| TEST.424 | test_property_sheet::test_every_column_is_on_the_sheet_or_says_why_it_is_not[moon|planet] fails on main: the new ground_* columns have no sheet row or NOT_SHOWN excuse (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
