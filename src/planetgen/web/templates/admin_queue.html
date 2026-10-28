@@ -11,9 +11,9 @@
 <section class="panel" id="queue-status" aria-labelledby="queue-status-heading">
   <h2 id="queue-status-heading">Right now</h2>
   <div class="stat-tiles">
-    <div class="stat-tile"><span class="stat-value">{{ queue.workers_active }}</span><span class="stat-label">Workers active</span></div>
+    <div class="stat-tile"><span class="stat-value">{{ queue.workers_active }} {{ 'worker' if queue.workers_active == 1 else 'workers' }}</span><span class="stat-label">Workers active</span></div>
     <div class="stat-tile"><span class="stat-value">{{ queue.load }}</span><span class="stat-label">{{ queue.load_label }}</span></div>
-    <div class="stat-tile"><span class="stat-value">{{ queue.runs_active }}</span><span class="stat-label">Runs live</span></div>
+    <div class="stat-tile"><span class="stat-value">{{ queue.runs_active }} {{ 'run' if queue.runs_active == 1 else 'runs' }}</span><span class="stat-label">Runs live</span></div>
   </div>
   {%- if workers %}
   <h3>Workers</h3>

@@ -583,6 +583,14 @@ def format_count(value):
     return "unknown" if value is None else format_number(value)
 
 
+def noun_count(value, singular, plural=None):
+    """A count with what it counts, for a tile whose whole text would otherwise be a bare number (UX.212): "1 sector",
+    "18 jobs"; "unknown" for `None`."""
+    if value is None:
+        return "unknown"
+    return f"{format_number(value)} {singular if value == 1 else (plural or singular + 's')}"
+
+
 def tile_cache_info():
     """
     Where the galaxy node cache lives, how much it holds against its
@@ -994,11 +1002,11 @@ def admin_stats():
         systems_stamp = stamps.get("star_systems", {})
         context.update(
             db_tiles=[
-                ("Sectors", format_count(counts.get("sectors"))),
-                ("Star systems", format_count(counts.get("star_systems"))),
+                ("Sectors", noun_count(counts.get("sectors"), "sector")),
+                ("Star systems", noun_count(counts.get("star_systems"), "system")),
                 ("Size on disk", format_bytes(database["size_bytes"])),
                 ("Free on its drive", _disk_tile(database.get("disk"))),
-                ("Names made unique", format_count(collisions.get("distinct_base_names"))),
+                ("Names made unique", noun_count(collisions.get("distinct_base_names"), "name")),
             ],
             db_rows=[
                 ("Schema", _schema_text(database)),
@@ -1010,9 +1018,9 @@ def admin_stats():
                 ("Sector density", density_text(database)),
             ],
             name_tiles=[
-                ("Names made unique", format_count(collisions.get("distinct_base_names"))),
-                ("Sector collisions", format_count(collisions.get("sector"))),
-                ("System collisions", format_count(collisions.get("system"))),
+                ("Names made unique", noun_count(collisions.get("distinct_base_names"), "name")),
+                ("Sector collisions", noun_count(collisions.get("sector"), "sector name")),
+                ("System collisions", noun_count(collisions.get("system"), "system name")),
             ],
             names=_names_panel(),
             tables=[{
