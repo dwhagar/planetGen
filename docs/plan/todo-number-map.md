@@ -22,7 +22,7 @@ release is stamped.
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.427 |
+| TEST | TEST.428 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -3147,6 +3147,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.424 | test_property_sheet::test_every_column_is_on_the_sheet_or_says_why_it_is_not[moon|planet] fails on main: the new ground_* columns have no sheet row or NOT_SHOWN excuse (bug) | none | done, PR #3499 |
 | TEST.425 | test_wolf_rayet and test_field_units[RoguePlanet] are red on main (unit g/cm2 unknown) (bug) | none | open |
 | TEST.426 | test_galaxy_map_window_follows_the_browser_window_when_it_is_resized fails in long full-file runs and passes alone (bug) | none | open |
+| TEST.427 | Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

@@ -19297,6 +19297,19 @@ clears each one.
   TEST.425.
   Prerequisites: none. Related: TEST.425.
 
+- [ ] **TEST.427 Three column registry tests are red on main: aerosol_draw has no unit, tidal_flux_w_m2 is written but listed as NULL, host_eccentricity is not serializable (bug)**
+  Found by Lane K (Aux 7) at 5:40 PM EDT 2026-10-28 as the lane
+  reported, all red on clean main: tests/test_column_units
+  (planets.aerosol_draw has no unit in db/column_units.py),
+  tests/test_db_column_round_trip (planets.tidal_flux_w_m2 is now
+  written, so drop it from NULL_IN_THIS_GALAXY), and
+  test_bughunt_serialization_fuzz (host_eccentricity is not in
+  SERIALIZABLE_FIELDS). Fix each in the code or registry it names, never
+  loosen or skip a test. Owner: Aux 7 (Lane K), inside its GEN.462 +
+  DB.70 lock turn PR, since it already edits db/column_units.py; if it
+  retires first, Bug 1.
+  Prerequisites: none. Related: TEST.402, TEST.425.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
