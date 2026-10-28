@@ -13,8 +13,14 @@ import pytest
 
 from planetgen.api.config import Config
 from planetgen.api.limiter import PAGE_LIMITS_OFF
+from planetgen import tuning
+from planetgen.db import dataversion, store
+from planetgen.galaxy.sector import SpaceSector
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.system import StarSystem
 from planetgen.queue import pagejobs, redisclient, workers
 from planetgen.web.app import create_app
+from planetgen.web import searchpage
 from planetgen.web.lib import apiclient, slowpages, slowroute
 from tests.test_api import seeded_sector  # noqa: F401 -- the fixture galaxy needs
 from tests.test_cache_warmup import galaxy  # noqa: F401 -- the fixture
@@ -173,6 +179,96 @@ def test_the_warm_up_builds_a_slow_page_in_its_own_request_and_never_gets_the_lo
     visitor = warmup._Visitor(warmup.build_app(config), config.database)
     assert visitor.visit("/search").status_code == 200 and visitor.visit("/phenomena").status_code == 200
     assert visitor.failed == []
+
+
+def _add_an_m_class_planet(config):
+    """A sector with a planet of class M in the fixture galaxy (which has no planets); returns its name."""
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.MOONS = False
+    cfg.BINARY_SYSTEM = False
+    for _ in range(60):
+        system = StarSystem(system_config=cfg)
+        if any(planet.body_type != "a" for planet in system.planets):
+            break
+    sector = SpaceSector("Mclass Field", edge_ly=10.0)
+    sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
+    store.save_sector(sector, config=config)
+    conn = store.get_connection(config)
+    try:
+        planet_id = conn.execute("SELECT MIN(id) AS id FROM planets WHERE body_type <> 'a'").fetchone()["id"]
+        conn.execute("UPDATE planets SET planet_class = 'M', name = 'Emmaline Prime' WHERE id = ?", (planet_id,))
+        conn.commit()
+    finally:
+        conn.close()
+    return "Emmaline Prime"
+
+
+def _every_build_is_slow(monkeypatch, slow):
+    """The cost rule calls every request slow whatever it measured, and the tests' worker runs a job as it is queued."""
+    monkeypatch.setattr(tuning, "SLOW_PAGE_SECONDS", -1)
+    monkeypatch.setattr(workers, "ensure_workers", slow.run_jobs)
+    real_ensure = pagejobs.ensure
+    monkeypatch.setattr(pagejobs, "ensure", lambda db, target, rows=None, expected=None, config=None, retry=False:
+                        real_ensure(db, target, rows, expected, slow.config, retry))
+
+
+def _until_it_answers(client, address, most=12):
+    """The status of each request for `address` until one is not the loading page (at most `most`), and the last page."""
+    codes = []
+    for _ in range(most):
+        response = client.get(address)
+        codes.append(response.status_code)
+        if response.status_code != 202:
+            break
+    return codes, response.get_data(as_text=True)
+
+
+def test_a_search_for_m_class_planets_asks_for_all_its_answers_before_it_waits(slow):  # noqa: F811
+    """UX.234: the search page's eight answers (the facets and each result panel) are queued together, so the wait is
+    the slowest build and not the eight in turn, which each went stale before the last was done."""
+    _add_an_m_class_planet(slow.config)
+    client = _site(slow.config).test_client()
+    assert client.get("/search?class=M").status_code == 202
+    assert len(_queued_ids(slow.config.database)) == 1 + len(searchpage.PANEL_NAMES)
+
+
+def test_a_search_for_m_class_planets_ends_with_rows_even_while_the_data_keeps_changing(slow, monkeypatch):  # noqa: F811
+    """UX.234: the data changes under every build (a fill is running), so the page cache refuses each finished answer;
+    the page that waited is still answered with its rows instead of being sent to queue the same jobs again."""
+    name = _add_an_m_class_planet(slow.config)
+    _every_build_is_slow(monkeypatch, slow)
+    real_send = apiclient._send
+
+    def send(*args, **kwargs):
+        answer = real_send(*args, **kwargs)
+        if args[0] == "GET" and "/search" in args[1]:
+            dataversion.bump(slow.config.database, dataversion.TAG_SECTOR_DATA)
+        return answer
+    monkeypatch.setattr(apiclient, "_send", send)
+    codes, html = _until_it_answers(_site(slow.config).test_client(), "/search?class=M")
+    assert codes[-1] == 200 and len(codes) <= 3, codes
+    assert name in html and "data-slow-load" not in html
+
+
+def test_a_search_for_m_class_planets_ends_with_rows_when_redis_has_no_room_for_the_cache(slow, monkeypatch):  # noqa: F811
+    """UX.234: the page cache stops adding answers once Redis is nearly full; the finished jobs hand theirs over."""
+    from planetgen.web.lib import pagecache
+    name = _add_an_m_class_planet(slow.config)
+    _every_build_is_slow(monkeypatch, slow)
+    monkeypatch.setattr(pagecache.ResponseCache, "_redis_has_room", lambda self: False)
+    codes, html = _until_it_answers(_site(slow.config).test_client(), "/search?class=M")
+    assert codes[-1] == 200 and len(codes) <= 3, codes
+    assert name in html
+
+
+def test_a_job_that_the_cache_took_hands_nothing_over(slow, monkeypatch):  # noqa: F811
+    """The answer is kept for the visitors only when the page cache would not take it."""
+    _every_build_is_slow(monkeypatch, slow)
+    client = _site(slow.config).test_client()
+    _until_it_answers(client, "/phenomena")
+    connection = redisclient.client(decode_responses=True)
+    assert list(connection.scan_iter(f"planetgen:slowanswer:{slow.config.database}:*")) == []
 
 
 def _queued_ids(db):

@@ -37,6 +37,11 @@ The expected time of a request nothing has timed is its rows over `SLOW_PAGE_ROW
 | `planetgen:slowjob:<db>:<digest>` | the id of the job building that request | 1 h (30 s once failed or cancelled) |
 | `planetgen:slowmeta:<id>` | the request, estimated rows and seconds, created, started, finished, cancel flag, queue job id | 1 h |
 | `planetgen:slowtime:<db>:<digest>` | how long the last build took, seconds | 7 days |
+| `planetgen:slowanswer:<db>:<digest>` | the answer itself, written by a finished job only when the page cache would not take it | 5 min |
+
+**A finished job always ends the wait (UX.234).** The page cache refuses an answer fetched while data changed (`put` compares the data counter it saw at `begin`) and stops adding to Redis once Redis is 70 % full, and a job runs in a worker process whose own copy no web process sees. A job whose answer the cache refused used to leave the cache empty: the visitor's next ask missed, the cost rule still said slow, and a new job was queued for the same request, for ever (Boss, an M class planet search while a fill ran). `ResponseCache.put` now says whether the answer reached Redis; when it did not, `apiclient` keeps the body under `planetgen:slowanswer:` for `tuning.SLOW_PAGE_DELIVER_SECONDS`, and a page that opted in reads it on a miss, before it asks the cost rule. It is read only while the cache has no copy, so an answer the cache took is served from the cache as before; a kept answer can be as old as the data change that made the cache refuse it, for five minutes at most.
+
+**A page asks for all its slow answers before it waits (UX.234).** The Search page needs eight answers (the facets and each result panel), each its own request and job. It asks for all eight, collects the `Pending` of each that is slow, and raises the first only after the last is asked, so the eight jobs run side by side and the wait is the slowest, not the sum; waiting for one at a time let the first answers go stale before the last was built.
 
 ## The loading state (UX.118)
 

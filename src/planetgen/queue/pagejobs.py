@@ -22,6 +22,11 @@ Everything a job needs lives in Redis (PERF.86, Option A), all under `planetgen:
   `tuning.SLOW_PAGE_PATH_SECONDS`, which the cost rule uses for a request not timed itself (a search for a new
   name), before it falls back on the row estimate.
 
+- `planetgen:slowanswer:<db>:<digest>` -> the answer itself, kept `tuning.SLOW_PAGE_DELIVER_SECONDS`, written by the job
+  only when the page cache did not take it (`deliver`; data changed during the build, or Redis had no room for the
+  cache). The page that waited for the job reads it (`delivered`) when the cache has no copy, so a finished job always
+  ends the visitor's wait; without it the page would find the cache empty, queue the same job again and wait for ever.
+
 A job's progress is an estimate, not a count: the answer is one query, so there is no step to count. While the
 job runs, `done` of `total` rows is the elapsed share of the expected time (never past 95 %), `eta_seconds` the
 time left (`None` once the expected time has passed), and the status says so (`estimated`). It reaches `done ==
@@ -106,6 +111,28 @@ def record_duration(db, target, seconds):
             connection.set(path_key(db, path), f"{seconds:.3f}", ex=tuning.SLOW_PAGE_PATH_SECONDS)
     except (redis.RedisError, OSError, ValueError):
         pass
+
+
+def answer_key(db, target):
+    """The Redis key holding the answer a finished job could not put in the page cache."""
+    return f"planetgen:slowanswer:{_digest(db, target)}"
+
+
+def deliver(db, target, body):
+    """Keeps `body`, the answer to `target` in `db`, `SLOW_PAGE_DELIVER_SECONDS` for the page that waits for it. Never
+    raises: without it the page asks again."""
+    try:
+        _redis().set(answer_key(db, target), body, ex=tuning.SLOW_PAGE_DELIVER_SECONDS)
+    except (redis.RedisError, OSError) as exc:
+        log.normal(f"Slow page: the answer to {target[:150]} could not be kept for its visitors ({exc}).")
+
+
+def delivered(db, target):
+    """The answer a job kept for `target` in `db` (`deliver`), or `None`."""
+    try:
+        return _redis().get(answer_key(db, target))
+    except (redis.RedisError, OSError):
+        return None
 
 
 def _duration(key):
