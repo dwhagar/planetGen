@@ -1339,21 +1339,6 @@ with `clamp()`.
   8.1.
   Prerequisites: none. Related: MAP.320, MAP.305.
 
-- [ ] **UX.234 Searching for all M class planets with the search button says it is preparing the results, loops and never shows data (bug)**
-  Boss, 5:18 PM EDT 2026-10-28 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAi9Rp8H5ZEotUm7aMwtf58f1,
-  relayed by the coordinator), live observation, so a bug, serious:
-  "when I try to search for all m class planets via the search button,
-  it says it is preparing it, and loops over and over again never
-  providing data." Find why the search never returns (the prepare step
-  restarts itself, a job never finishes, or the result is empty and
-  treated as not ready) and make it return the planets, or a clear
-  message when there are none. Add a test that runs the same search on
-  the fixture galaxy and gets rows. Owner: Bug 1 (first in its queue,
-  ahead of TEST.424); it may involve the search-filters merge lane work
-  UX.214/UX.232.
-  Prerequisites: none. Related: UX.214, UX.232.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -5523,7 +5508,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.728, GEN.729, GEN.730, GEN.733, GEN.735, GEN.736, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.728, GEN.729, GEN.730, GEN.733, GEN.735, GEN.736, GEN.740, GEN.741, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -7431,71 +7416,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.684 and DB.70). The 'returned to the pool' line above is
   superseded for this item. (TODO, 2026-10-24 5:27 PM EDT, from the
   physics fix plan thread's reconcile ask.)
-
-- [ ] **GEN.464 The disk solids law reads the star's metal mass fraction Z over Z0, not 10 to the power of [Fe/H], which is off by 1.7 to 3 times in metal-poor alpha-enhanced stars**
-  Finding of the Body composition research lane (GEN.432 and GEN.433;
-  2026-10-17, about 1:10 AM EDT as the lane reported; merged as
-  docs/design/composition/body-composition-research.md, parts in
-  docs/design/composition/body-composition-parts/), filed by the TODO thread.
-  Finding F6 and part A sections 2.5 and 3.6: `solids_factor(fe_h)` in
-  `physics/metallicity.py` scales the disk's solids as 10^[Fe/H], which
-  underestimates the metal mass of metal-poor, alpha-rich stars by 1.7
-  to 3 times (oxygen is +0.6 dex there; 2.0 with the generic alpha
-  model, 3.0 with the NLTE oxygen trend and neon following oxygen; the
-  Ne and O choice is the lane-decidable point A-R2, whose default in the
-  lane's recommendation is Ne following O). Do: once the star's Z is
-  derived (GEN.440), read Z / Z0 in the disk surface density in place of
-  10^[Fe/H], keep both numbers in the design note that decides the Ne
-  and O treatment, and update the 'recalled' comments in `tuning.py`
-  with their sources; the disc metallicity gradient constant (0.06
-  dex/kpc in `METALLICITY_DISC_FALL_DEX_PER_KPC`, 0.053 from Hayden 2015
-  Table 1) belongs to GEN.405 (metallicity by position), which derives
-  it from the galaxy's laws instead. Changes stored values (the
-  planet-forming solids), so it ships with a generator epoch bump and
-  joins the one rescatter. Done: a test checks Z / Z0 against the lane's
-  table at [Fe/H] of 0, -0.5, -1 and -2 for the thin disc and the
-  high-alpha branch, and determinism. Owner: Core 4 (proposed, with the
-  composition chain).
-  Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
-  docs/design/composition/composition-model.md; format and loader GEN.472, the sum
-  test TEST.214): no table: the solids law reads the star's Z over Z0
-  and gives the weight functions of GEN.428 their argument.
-  Checked by the Body composition research lane against Boss's second
-  note (2:43 AM EDT as the lane reported; section 15 and parts G1 to G4
-  of docs/design/composition/body-composition-research.md; the earlier 'awaiting
-  verification' note on this item is superseded for the body-related
-  claims): the note's metal-poor stars have higher [Th/Fe] and [U/Fe]:
-  Th/Fe rises as [Fe/H] falls only inside +/- 0.1 dex of solar (slope
-  -0.338 +/- 0.049) and U is not measured in disc stars (part G2), so
-  the solids law does not take a Th or U trend from the note.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 2, "Epoch bump
-  plus refill": fill-level 8.4 items (stars, systems, planets, moons,
-  belts, comets, rogue planets, free brown dwarfs) take the epoch bump
-  and the GEN.564 refill, not a rescatter; the one wiped rescatter stays
-  in 8.1, and only scatter-level changes (nebula radius, remnants above
-  the mass cut) need a rescatter. Where this item says it "joins the one
-  rescatter of 8.4", this wins.
-  Prerequisites: none. Related: GEN.405, GEN.435, GEN.439, GEN.440.
-  Pipeline report 6:33 PM EDT 2026-10-23
-  (planet-generation-pipeline-2026-10-23.md, conflict G): the item has
-  no clear owner and disk_surface_density_scale still uses 10^[Fe/H], so
-  the planet count and the disc mass disagree with the composition the
-  planets get until this merges; Z/Z0 differs by 1.7 to 3 times in
-  metal-poor high-alpha stars. It wires to the [Fe/H] item GEN.651.
-  Owner: none (pool); the class cut-over needs it.
-  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
-  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
-  the new Math lane (physics route 'derivable now',
-  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
-  TODO thread; Core 4 was proposed but has not started it; Core 4 must
-  release it first).
 
 - [ ] **GEN.471 Clathrate hydrates and eutectic brines for icy crusts and ocean moons: the dissociation pressures and the liquid range below 273 K**
   Part F of the Body composition research lane
@@ -11846,6 +11766,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the ground and air composition (GEN.412, GEN.462, GEN.414);
   delete the two class ranges. Done: no class range for albedo or
   greenhouse is left. Owner: Composition K and L.
+  Research (2026-10-09): Released to the pool (Lane K / Aux 7, 5:34 PM
+  EDT 2026-10-28 as the lane reported): not small enough for its lock
+  turn. Today the Bond albedo is drawn from the class range before the
+  surface exists (planets.py) while the surface mix needs the
+  temperature that albedo makes, so it needs the class cut-over order
+  (GEN.646) or a fixed-point loop; the greenhouse half needs the
+  finished air from GEN.414/GEN.422. Merged helpers the next owner
+  reads: body_colour.ground_albedo (in the GEN.462 PR) and
+  ground_albedo.weather with draw_weathering. Owner: a fresh lane after
+  GEN.646 merges.
   Prerequisites: GEN.462.
 
 - [ ] **GEN.685 Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class]**
@@ -12148,19 +12078,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   take one-off 8.1 items. Owner: Math 2 takes it when free.
   Prerequisites: none. Related: GEN.509, GEN.510.
 
-- [ ] **GEN.723 Refresh the hot-Jupiter recipe rows h1 to h3: their edge points were computed with the deleted gas-equilibrium module and sit up to 16 K (0.6 percent) above the surviving solver**
-  Found by Lane L in GEN.672 (relayed 2:47 PM EDT 2026-10-24 as the lane
-  reported; filed by the TODO thread). Kind: accuracy, value-changing,
-  optional (the difference is inside the rows' 100 K softness). Do:
-  recompute the edge points of recipe rows h1 to h3 with the surviving
-  solver and update the table and its tests; this changes drawn values,
-  so it needs an epoch. Done: the rows agree with the solver to the
-  table's rounding. Owner: pool (Lane L is retiring; first free
-  atmosphere lane takes it). Prerequisites: none.
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Math 1 takes it when free.
-  Prerequisites: none. Related: GEN.672, GEN.674.
-
 - [ ] **GEN.724 Register the GEN.272 stand-ins in the gap plan registry and correct the registry row millisecond-pulsar-companion (5 percent) to the 0.2 percent the code keeps**
   Found by Core 4 in GEN.272 (relayed 3:37 PM EDT 2026-10-24 as the lane
   reported; report reports/core4-gen272-report-2026-10-24.md; filed by
@@ -12421,32 +12338,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to go forward without correcting the physics"); it is a prerequisite
   of the headline GEN.301.
   Prerequisites: none. Related: GEN.652, GEN.553.
-
-- [ ] **GEN.742 White dwarf cooling sequences by mass and atmosphere, including crystallisation and spectral type against temperature**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  S3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T5. Today:
-  White dwarf luminosity is a power law of cooling age, clamped to a
-  range; the cooling-sequence download (Bedard 2020) is used for radius
-  and layers, not for cooling. The spectral type is BC19 in the gap
-  plan. Real physics: cooling sequences by mass and atmosphere
-  (including crystallisation and spectral type against temperature). Do:
-  use the downloaded cooling sequences for luminosity against age;
-  GEN.553 may absorb it. Done: white dwarf luminosity comes from the
-  sequences, with a test on a cooling-age sweep. Each stand-in it
-  touches records its source tier and tweak level in the gap plan
-  registry (GEN.725). Owner: pool (first free lane; moved into 8.1 by Boss, 5:31 PM EDT 2026-10-24: the core lanes stay on their own queues).
-  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
-  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
-  the new Math lane (physics route 'derivable now',
-  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
-  TODO thread; nobody has started it; check with Lane A first, because
-  GEN.553 may absorb the cooling law).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Prerequisites: none. Related: GEN.553, GEN.652.
 
 - [ ] **GEN.743 Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
@@ -19325,18 +19216,6 @@ clears each one.
   never skip or quarantine a test; scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.411, UX.126.
 
-- [ ] **TEST.413 test_property_sheet fails on main: the GEN.441 ground_*_fraction columns are not on the property sheet (bug)**
-  Found by Aux 12 (as the lane reported 9:49 AM EDT 2026-10-28) while
-  merging DB.96 (#3393); red on main before that change. Do: add the
-  GEN.441 ground fraction columns to the property sheet
-  (describe/sheet.py) with their units and display rule, or, if they are
-  deliberately hidden, record that in the test's exclusion list with the
-  reason; pick by the rule that absent or zero values are hidden unless
-  absence matters. Done: test_property_sheet passes. Owner: Bug 1 after
-  DB.108/GEN.826, or Aux 11 (object pages). Rules: never skip or
-  quarantine a test; scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.412.
-
 - [ ] **TEST.414 test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug)**
   Found by Aux 10 (as the lane reported 9:56 AM EDT 2026-10-28) while
   merging MAP.317 (#3395); not that change's. Do: run the file alone on
@@ -19432,19 +19311,17 @@ clears each one.
   lock holder; say so in the PR instead of fixing it there.
   Prerequisites: none.
 
-- [ ] **TEST.424 test_property_sheet::test_every_column_is_on_the_sheet_or_says_why_it_is_not[moon|planet] fails on main: the new ground_* columns have no sheet row or NOT_SHOWN excuse (bug)**
-  Found by the Units lane at 3:52 PM EDT 2026-10-28 as the lane
-  reported, on main itself after GEN.769 to GEN.773 (#3478): the
-  ground-composition columns ground_type, ground_grain and
-  ground_*_fraction (GEN.441) have neither a property sheet row nor a
-  NOT_SHOWN excuse, so the guard test fails for moons and planets. Fix:
-  add the sheet rows (with a unit or scale, db/column_units.py declares
-  it) or list them in NOT_SHOWN with the reason. Any new ratio or index
-  column must also be declared in db/column_units.py in a unit that says
-  what it is (frac, score1, score9, tau, orbit-e, ...) or the sheet
-  refuses it. Owner: Bug 1 (Core 4 wrote the ground chain and can
-  advise). Related: TEST.413.
-  Prerequisites: none.
+- [ ] **TEST.425 test_wolf_rayet and test_field_units[RoguePlanet] are red on main (unit g/cm2 unknown) (bug)**
+  Found by Math 1 after epoch 114 (#3493, 5:33 PM EDT 2026-10-28 as the
+  lane reported): on main, tests/test_wolf_rayet fails and
+  test_field_units[RoguePlanet] fails with the unit "g/cm2" unknown.
+  Neither is from Math 1's change. Find the commit that broke each, fix
+  the code or register the unit in db/column_units.py (the unit registry
+  GEN.568), never loosen or skip the test. The same red-on-main run also
+  showed the test_phenomenon_scatter ValueError (int("2032 phenomena"),
+  TEST.422) and the test_object_rows None vs (None,) failure (TEST.332),
+  which keep their own items. Owner: Bug 1, after UX.234 and TEST.424.
+  Prerequisites: none. Related: TEST.422, TEST.332, TEST.424.
 
 ## USR: User accounts
 
