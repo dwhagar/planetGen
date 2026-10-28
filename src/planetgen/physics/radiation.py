@@ -23,11 +23,10 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    presses the star's heliosphere to 1 AU or less (`heliosphere_compression`).
    Open space at generation; `store.refresh_containment` updates it when
    the system is found inside a nebula or remnant.
-3. **Stellar particles (`dose_sep_msv_yr`).** A free-space `20 mSv/yr
-   sqrt(N33 / N33_sun) / d_AU^2`, times `exp(-p_cut(X) / 0.2 GV)` (the
-   rigidity of the proton whose range is X, from NIST PSTAR, `proton_range`) and the
-   polar-cap share `1 - sqrt(1 - sqrt(R_eff / Rc0))` with `R_eff = max(0.5
-   p_cut, 0.2 GV)` (1 without a field).
+3. **Stellar particles (`dose_sep_msv_yr`, GEN.747).** A free-space `FREE_MSV_YR sqrt(N33 / N33_sun) / d_AU^2`, `FREE_MSV_YR` (about 265 mSv/yr) the
+   dose to the organs of the protons of the 47 measured solar events of 1997 to 2015 summed over their 18 years (`solar_particles`), times
+   the share of that dose that gets past the column's proton cutoff (`proton_range`: NIST PSTAR) and the dipole's `Rc0 cos^4(latitude)`, averaged
+   over the latitudes (`solar_particles.dose_share`; 1 without air or field).
 4. **Ground (`dose_ground_msv_yr`).** The gamma dose in air at 1 m over the surface rock and the radon of its uranium, from the
    body's own stored potassium, thorium and uranium (`radiogenic`, GEN.459), at its star's age: the same concentrations its interior
    heat reads, so there is no independent dose draw (`a_rad` is gone). The surface rock is the area-weighted rock of the body's stored
@@ -57,7 +56,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_colour, body_radiation, constants, magnetism, mixture, ozone, proton_range, radiogenic, surface_composition
+from planetgen.physics import body_colour, body_radiation, constants, magnetism, mixture, ozone, proton_range, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -120,10 +119,9 @@ EARTH_DIPOLE_A_M2 = 7.768e22
 HELIO_MAX_EXTRA = 1.5
 HELIO_FADE_G_CM2 = 100.0
 
-SEP_FREE_MSV_YR = 20.0
-SEP_R0_GV = 0.2
-SEP_MIN_RIGIDITY_GV = 0.2
 N33_SUN_PER_YR = 10 ** -2.5
+"""float: The Sun's rate of 1e33 erg flares (one in 316 years), the unit of a star's `flare_n33_per_yr`: the dose of another star's particles
+scales with the square root of its rate over this (`free_sep_msv_yr`, a design default pending GEN.493)."""
 
 EARTH_AGE_GY = 4.5
 """float: The age a star without one is given (the Sun's, rounded)."""
@@ -324,19 +322,17 @@ def proton_cutoff_gv(column_g_cm2, material="air"):
 
 
 def sep_dose_msv_yr(free_msv_yr, column_g_cm2, cutoff_gv):
-    """Rule 3's stellar-particle dose under `column_g_cm2` for a free-space
-    dose and a dipole's `cutoff_gv`."""
-    p_cut = proton_cutoff_gv(column_g_cm2)
-    r_eff = max(0.5 * p_cut, SEP_MIN_RIGIDITY_GV)
-    polar = 1.0 if cutoff_gv <= r_eff else 1.0 - math.sqrt(1.0 - math.sqrt(r_eff / cutoff_gv))
-    return free_msv_yr * math.exp(-p_cut / SEP_R0_GV) * polar
+    """Rule 3's stellar-particle dose under `column_g_cm2` for a free-space dose and a dipole's equatorial `cutoff_gv`: the share of the protons
+    of the measured events (`solar_particles.dose_share`) that gets past the column's proton cutoff and the field's, latitude-averaged."""
+    return free_msv_yr * solar_particles.dose_share(proton_cutoff_gv(column_g_cm2), cutoff_gv)
 
 
 def free_sep_msv_yr(flare_n33_per_yr, distance_au):
-    """Rule 3's free-space dose at `distance_au`."""
+    """Rule 3's free-space dose at `distance_au`: the Sun's mean yearly dose at 1 AU from its measured events (`solar_particles.FREE_MSV_YR`)
+    scaled by the square root of the star's rate of 1e33 erg flares over the Sun's and the inverse square of the distance."""
     if not flare_n33_per_yr or not distance_au:
         return 0.0
-    return SEP_FREE_MSV_YR * math.sqrt(flare_n33_per_yr / N33_SUN_PER_YR) / distance_au ** 2
+    return solar_particles.FREE_MSV_YR * math.sqrt(flare_n33_per_yr / N33_SUN_PER_YR) / distance_au ** 2
 
 
 def gas_density_g_cm3(pressure_pa, molar_mass_kg_mol, temperature_k):
