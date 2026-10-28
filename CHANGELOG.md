@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2395] - 2026-10-28
+
+**Headline:** With a sector opened on the Galaxy Map, the step buttons and keys take you to the sector beside it.
+
+### Added
+- **Stepping from an opened sector (MAP.121).** The Menu's six step buttons (North, South, West, East, Toward core, Away
+  from core) and their keys (Alt+Shift+arrows, `[` and `]`) were off while a sector was opened in place. They now open the
+  sector across the wall in that direction, in one camera move with the address naming it, by the same step the wall icons
+  use. A button is still off where the wall faces nothing.
+
 ## [8.0.2394] - 2026-10-28
 
 **Headline:** A galaxy now records which epoch each scatter, each sector's contents and each species was made under, so a later run can tell which parts are behind the code.
