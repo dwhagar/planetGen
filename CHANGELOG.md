@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2401] - 2026-10-28
+
+**Headline:** A world whose air lets no visible light down no longer stops generation; it gets a defined colour.
+
+### Fixed
+- **A dense steam world no longer crashes its sector (GEN.844).** The atmosphere colour of a body whose air is so thick or absorbing that no visible light reaches the ground raised "the spectrum has no light between 380 and 780 nm" and stopped the whole sector build (about 1 in 20 sample sectors). Such a body now takes the colour of the light its air sends back out, and black on the star's chromaticity if it returns none. Every other body's colour is unchanged. The fallback is a modelling choice for the physics lane to confirm.
+
 ## [8.0.2400] - 2026-10-28
 
 **Headline:** The Generate page has a task that brings a stored galaxy to the running generator epoch, showing what it would redo before anything runs.
