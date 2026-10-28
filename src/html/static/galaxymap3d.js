@@ -64,7 +64,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, formatDistanceKm, formatLuminositySol, formatMassSolar } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
 const {
-  BLACK_HOLE_KIND, INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, selectMarkers,
+  BLACK_HOLE_KIND, INTEREST_KINDS, interestLines, MARKER_PX, createMarkerKinds, legendOf: markerLegendOf, mergeMarks, selectMarkers,
 } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 const { createMarkerLayer } = await import(`./galaxymarkerlayer.js${VERSION_QUERY}`);
 const { bodyMarkers, createHandoff } = await import(`./bodymarkers.js${VERSION_QUERY}`);
@@ -3733,7 +3733,42 @@ function initGalaxyMap3d(canvasEl, data) {
   };
   canvasEl.__mapInfo = infoPanel();    // the browser tests put long cards in it (MAP.295)
   // A marker picked (clicked, or its button in the hidden list activated): ring it and show what it is.
+  // MAP.305: the card of a crowd's mark: how many systems it stands for, each one a button that shows that system (and flies to it), and one
+  // that zooms in on the crowd so it splits.
+  function showCrowdInfo(crowd) {
+    var list = document.createElement("ul");
+    list.className = "map-info-crowd";
+    crowd.members.forEach(function (system) {
+      var line = document.createElement("li");
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "map-info-crowd-system";
+      button.textContent = (system.name || "Star system") + ": " + interestLines(system).map(function (reason) { return reason.text; }).join("; ");
+      button.addEventListener("click", function () {
+        highlightPosition(system.x, system.y, system.z);
+        showInterestSystemInfo(system);
+        stageView.flyToEntry(system);
+      });
+      line.appendChild(button);
+      list.appendChild(line);
+    });
+    var reach = 0;
+    crowd.members.forEach(function (system) {
+      reach = Math.max(reach, Math.hypot(system.x - crowd.x, system.y - crowd.y, system.z - crowd.z));
+    });
+    showInfo({
+      title: crowd.count + " points of interest",
+      fields: [["Distance from core", formatDistancePc(Math.hypot(crowd.x, crowd.y, crowd.z))]],
+      after: [list],
+      buttons: [{ label: "Zoom in on them", onClick: function () { stageView.flyToEntry({ x: crowd.x, y: crowd.y, z: crowd.z, r: Math.max(reach * 1.5, 0.5) }); } }],
+    });
+  }
   function chooseMarker(entry) {
+    if (entry.item.merged) {
+      highlightPosition(entry.item.x, entry.item.y, entry.item.z);
+      showCrowdInfo(entry.item);
+      return;
+    }
     if (entry.item.regionKey) {
       var region = regionByKey.get(entry.item.regionKey);    // a region's inhabited token picks the region (MAP.321 c)
       if (region) {
@@ -3868,6 +3903,13 @@ function initGalaxyMap3d(canvasEl, data) {
           });
         }));
     }
+    // MAP.305: marks too close on the screen to tell apart are one mark with a count.
+    var viewW = canvasEl.clientWidth || 1;
+    var viewH = canvasEl.clientHeight || 1;
+    chosen = mergeMarks(chosen, function (item) {
+      markerPoint.set(item.x, item.y, item.z).project(camera);
+      return { x: (markerPoint.x + 1) / 2 * viewW, y: (1 - markerPoint.y) / 2 * viewH };
+    });
     markerLayer.set(chosen);
   }
   // MAP.321: the open system while the camera is close enough for the bodies to carry the symbols (bodymarkers.createHandoff's

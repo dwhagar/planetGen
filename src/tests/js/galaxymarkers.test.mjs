@@ -168,3 +168,49 @@ test("the infobox lines of a system name every reason it has, in the registry's 
   assert.deepEqual(M.interestLines(null), []);
 });
 
+
+const sys = (id, name, x, tier, n) => ({ key: String(id), id, name, x, y: 0, z: 0, n: n || 1, interest: "x", tier });
+const mark = (kindId, item) => ({ kind: M.INTEREST_KINDS.find((k) => k.id === kindId), item: Object.assign({}, item, { interest: kindId.slice(7) }) });
+const atX = (item) => ({ x: item.x * 10, y: 0 });
+
+test("a crowd of marks becomes one mark with the best reason's symbol, a count and every system", () => {
+  const chosen = [
+    mark("marker-gas-giant", sys(1, "Jove", 0, undefined, 3)),
+    mark("marker-habitable", sys(2, "Eden", 1, 1, 2)),
+    mark("marker-inhabited", sys(3, "Rest", 2, 2, 1)),
+    mark("marker-habitable", sys(4, "Far", 50, 0, 1)),
+  ];
+  const merged = M.mergeMarks(chosen, atX, 22);
+  assert.equal(merged.length, 2);
+  const crowd = merged.find((e) => e.item.merged);
+  assert.equal(crowd.kind.id, "marker-inhabited");
+  assert.equal(crowd.item.count, 3);
+  assert.equal(crowd.item.tier, 2);
+  assert.deepEqual(crowd.item.members.map((m) => m.name).sort(), ["Eden", "Jove", "Rest"]);
+  assert.deepEqual([crowd.item.x, crowd.item.n], [1, 6]);
+  assert.equal(crowd.kind.describe(crowd.item), "3 points of interest");
+  assert.equal(merged.find((e) => !e.item.merged).item.name, "Far", "a lone mark stays as it was");
+});
+
+test("zooming in spreads the marks and the crowd splits again, in the same order each time", () => {
+  const chosen = [mark("marker-habitable", sys(1, "A", 0, 1)), mark("marker-habitable", sys(2, "B", 1, 1))];
+  assert.equal(M.mergeMarks(chosen, atX, 22).length, 1);
+  const spread = M.mergeMarks(chosen, (item) => ({ x: item.x * 100, y: 0 }), 22);
+  assert.deepEqual(spread.map((e) => e.item.name), ["A", "B"]);
+  assert.deepEqual(M.mergeMarks(chosen.slice().reverse(), atX, 22)[0].item.key, M.mergeMarks(chosen, atX, 22)[0].item.key);
+});
+
+test("black holes, a body's symbol and a region's token never merge", () => {
+  const bh = { kind: M.BLACK_HOLE_KIND, item: { key: "b", x: 0, y: 0, z: 0 } };
+  const body = mark("marker-habitable", Object.assign(sys(5, "Planet", 0, 1), { bodyRef: "planet:1" }));
+  const token = mark("marker-inhabited", Object.assign(sys(6, "Region", 0, 1), { regionKey: "9.0.0.0" }));
+  const star = mark("marker-habitable", sys(7, "Star", 0, 1));
+  const merged = M.mergeMarks([bh, body, token, star], atX, 22);
+  assert.equal(merged.length, 4);
+  assert.ok(!merged.some((e) => e.item.merged));
+});
+
+test("an item with no place on the screen is left as it is", () => {
+  const chosen = [mark("marker-habitable", sys(1, "A", 0, 1)), mark("marker-habitable", sys(2, "B", 0, 1))];
+  assert.equal(M.mergeMarks(chosen, () => null, 22).length, 2);
+});

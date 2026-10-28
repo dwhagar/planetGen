@@ -13,6 +13,10 @@ const { shapesOf } = await import(`./poiicons.js${VERSION_QUERY}`);
 
 const TEXTURE_PX = 64;
 
+// A crowd's mark (MAP.305) is drawn this much larger than a lone one, with its count in a badge at the corner.
+const CROWD_SCALE = 1.4;
+const COUNT_CAP = 99;
+
 // A glyph's texture, drawn once per shape and color.
 function makeGlyphTexture(glyph, color, outline) {
   const canvas = document.createElement("canvas");
@@ -42,7 +46,7 @@ function shapesOfIcon(id) {
 
 // The texture of a symbol in `color` with the dark or light edge `outline` (the paint order of the pages' symbols, edge
 // under the fill). It is blank until the file has been read; the map draws every frame, so it shows from the next one.
-function makeIconTexture(icon, color, outline) {
+function makeIconTexture(icon, color, outline, count) {
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = TEXTURE_PX;
   const texture = new THREE.CanvasTexture(canvas);
@@ -58,9 +62,30 @@ function makeIconTexture(icon, color, outline) {
       ctx.stroke(shape.path);
       ctx.fill(shape.path, shape.evenodd ? "evenodd" : "nonzero");
     });
+    if (count > 1) drawCount(ctx, shapes.size, count, color, outline);
     texture.needsUpdate = true;
   }).catch(function (error) { console.error(error); });
   return texture;
+}
+
+// The count of a crowd in a round badge at the symbol's top right corner, in a canvas whose drawing is `size` units square.
+function drawCount(ctx, size, count, color, outline) {
+  const r = size * 0.27;
+  const x = size - r;
+  const y = r;
+  ctx.beginPath();
+  ctx.arc(x, y, r, 0, Math.PI * 2);
+  ctx.fillStyle = outline;
+  ctx.fill();
+  ctx.lineWidth = size * 0.04;
+  ctx.strokeStyle = color;
+  ctx.stroke();
+  ctx.fillStyle = color;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const text = count > COUNT_CAP ? COUNT_CAP + "+" : String(count);
+  ctx.font = "bold " + Math.round(r * (text.length > 2 ? 0.95 : 1.25)) + "px sans-serif";
+  ctx.fillText(text, x, y + r * 0.06);
 }
 
 // The color a CSS custom property of the page has now (style.css's tokens; they differ by theme).
@@ -90,8 +115,9 @@ export function createMarkerLayer(scene, camera, canvasEl, outline, options) {
   function textureOf(kind, item) {
     if (kind.icon) {
       const color = tokenColor(tokenOfItem(kind, item));
-      const iconKey = kind.icon + "|" + color + "|" + outline;
-      if (!textures.has(iconKey)) textures.set(iconKey, makeIconTexture(kind.icon, color, outline));
+      const count = item && item.count > 1 ? item.count : 0;
+      const iconKey = kind.icon + "|" + color + "|" + outline + "|" + count;
+      if (!textures.has(iconKey)) textures.set(iconKey, makeIconTexture(kind.icon, color, outline, count));
       return textures.get(iconKey);
     }
     const key = kind.glyph + "|" + kind.color + "|" + outline;
@@ -153,7 +179,10 @@ export function createMarkerLayer(scene, camera, canvasEl, outline, options) {
     }
     const heightPx = canvasEl.clientHeight || 1;
     const scale = (MARKER_PX / heightPx) * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
-    for (let index = 0; index < drawn.length; index++) sprites[index].scale.set(scale, scale, 1);
+    for (let index = 0; index < drawn.length; index++) {
+      const size = drawn[index].item.merged ? scale * CROWD_SCALE : scale;
+      sprites[index].scale.set(size, size, 1);
+    }
   }
 
   return {

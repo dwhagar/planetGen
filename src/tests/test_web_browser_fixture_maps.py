@@ -26,7 +26,7 @@ Image = pytest.importorskip("PIL.Image")
 from planetgen.galaxy.spherical import provisional_sector_designation  # noqa: E402
 from tests.map_site_support import (  # noqa: E402,F401 -- fixtures
     DENSE_CENTER_PC, DENSE_POINTS, DENSE_STARS, DENSE_WORLDS, HALO_CENTER_PC, HALO_POINTS, HALO_STARS, PHENOMENA, POINT_FIELD,
-    GIANT_FIELD, SECTOR_ID, SECTORS, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
+    GIANT_FIELD, SECTOR_ID, SECTORS, STAR_FIELD_CENTER_PC, SYSTEMS, UNCHARTED_CELL, WORLD_FIELD, _sector_center_pc,
     dense_region_query, dense_site,
     halo_site,
     map_site,
@@ -475,6 +475,15 @@ def _open_window(page, base, m, shell, band, wedge, g=9):
     _open_galaxy(page, base)
     page.evaluate("([cell, g]) => document.querySelector('#galaxymap3d-canvas').galaxyOpenWindow(cell, g)",
                   [{"m": m, "shell": shell, "band": band, "wedge": wedge}, g])
+    _settle(page)
+
+
+def _open_star_field(page, base):
+    """The window round the fixture's star field, then close in on the field, as far in as its systems stand apart on the screen (marks
+    closer than `MERGE_PX` are drawn as one, MAP.305)."""
+    _open_window(page, base, 27, 27, 0, 0, g=3)
+    page.evaluate("([c, r]) => document.querySelector('#galaxymap3d-canvas').galaxyFlyToFit({center: c, radius: r})",
+                  [list(STAR_FIELD_CENTER_PC), 7])
     _settle(page)
 
 
@@ -2240,7 +2249,7 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
 
 MARKERS = """() => {
     const layer = document.getElementById("galaxymap3d-canvas").__mapMarkers;
-    return layer ? layer.entries().map((e) => ({kind: e.kind.id, name: e.item.name, regionKey: e.item.regionKey || null, x: e.x, y: e.y, z: e.z})) : null;
+    return layer ? layer.entries().map((e) => ({kind: e.kind.id, name: e.item.name, regionKey: e.item.regionKey || null, count: e.item.count || null, members: (e.item.members || []).map((m) => m.name), x: e.x, y: e.y, z: e.z})) : null;
 }"""
 
 
@@ -2542,7 +2551,7 @@ def test_galaxy_map_opens_with_the_glow_off_when_the_address_says_so(page, map_s
 def test_galaxy_map_habitable_world_markers_are_opt_in_and_name_the_system(page, map_site):
     """MAP.220: systems with a habitable world get a marker of their own kind, off until the Menu turns it on (and
     `show=` in the address says so), a legend line while on, and a click on one shows how many worlds it holds."""
-    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    _open_star_field(page, map_site)
     page.wait_for_timeout(1000)
     assert {e["kind"] for e in page.evaluate(MARKERS)} == {"marker-black-hole"}
     systems = {s["name"]: s for s in WORLD_FIELD}
@@ -2575,7 +2584,7 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
     """MAP.305: a gas giant is a reason for a mark of its own, off until the Menu turns it on; a system with a gas giant and a
     habitable world is drawn once however many reasons are on, a system with neither has no mark, and the infobox of a mark lists
     every reason its system has."""
-    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    _open_star_field(page, map_site)
     page.wait_for_timeout(1000)
     giants = {s["name"] for s in GIANT_FIELD}
     worlds = {s["name"] for s in WORLD_FIELD}
@@ -2609,7 +2618,7 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
 def test_galaxy_map_marks_each_system_with_its_best_worlds_symbol(page, map_site):
     """MAP.321: with every world reason on a system has one mark, the symbol of its best world (an inhabited world before a habitable world before a barren
     one before a gas giant before a belt), and each reason has a button of its own, off until asked for."""
-    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    _open_star_field(page, map_site)
     page.wait_for_timeout(1000)
     ids = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
     _open_menu(page)
@@ -2636,7 +2645,7 @@ def test_a_name_is_only_offered_for_a_habitable_world_marker_that_is_drawn_and_a
     """MAP.317: the habitable-world markers are the inhabited slice of the label budget: a sparse view names every one it
     draws that has room (the fixture's two lie close, so the one with more worlds keeps its name), and none while the marker
     layer is off or the World names switch is."""
-    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    _open_star_field(page, map_site)
     page.wait_for_timeout(1000)
     systems = {"Fixture Eden"}
     page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
@@ -2657,22 +2666,68 @@ def test_a_name_is_only_offered_for_a_habitable_world_marker_that_is_drawn_and_a
     page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
 
 
-def test_an_inhabited_world_marker_is_named_before_a_habitable_one_that_lies_close(page, map_site):
-    """MAP.321 d: an inhabited token is always a candidate for a name and goes before a habitable world's: with both layers on, the
-    fixture's two close worlds (Rest inhabited, Eden habitable) are drawn and Rest keeps the room, where with only the habitable layer on
-    Eden did; with the inhabited layer off again Eden has it back, and no name is offered for a token that is not drawn."""
+def test_crowded_marks_merge_into_one_with_a_count_whose_card_lists_every_system_and_zooming_in_splits_it(page, map_site):
+    """MAP.305: from far out the fixture's five points of interest lie too close to tell apart, so they are drawn as fewer marks, a
+    crowd showing its count; a click on a crowd opens a card that lists every system in it with its reasons, and zooming in on it
+    spreads the marks until each system has its own."""
     _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(1000)
+    ids = ("marker-inhabited", "marker-habitable", "marker-uninhabitable", "marker-gas-giant", "marker-asteroid-field")
+    systems = {"Fixture Eden", "Fixture Rest", "Fixture Rock", "Fixture Jove", "Fixture Belt"}
+    _open_menu(page)
+    for layer in ids:
+        page.locator(f'#galaxymap3d-kinds button[data-layer="{layer}"]').click()
+
+    def marks(found):
+        return [e for e in found if e["kind"] in ids]
+
+    def represented(found):
+        return sorted(name for e in marks(found) for name in (e["members"] if e["count"] else [e["name"]]))
+
+    found = _markers_until(page, lambda entries: len(represented(entries)) == 5)
+    assert represented(found) == sorted(systems), found
+    crowds = [e for e in marks(found) if e["count"]]
+    assert crowds and len(marks(found)) < 5, "the close systems are drawn as fewer marks"
+    crowd = max(crowds, key=lambda e: e["count"])
+    page.locator("#galaxymap3d-menu > summary").click()
+    page.wait_for_timeout(300)
+    page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    spot = _screen_of(page, (crowd["x"], crowd["y"], crowd["z"]))
+    assert spot
+    page.mouse.move(*spot)
+    page.mouse.move(spot[0] + 1, spot[1])
+    page.wait_for_timeout(200)
+    assert f"{crowd['count']} points of interest" in page.locator("#galaxymap3d-tooltip").inner_text()
+    page.mouse.click(*spot)
+    assert page.locator("#galaxymap3d-info h3").inner_text() == f"{crowd['count']} points of interest"
+    info = page.locator("#galaxymap3d-info").inner_text()
+    assert all(name in info for name in crowd["members"]), info
+    page.locator("#galaxymap3d-info button", has_text="Zoom in on them").click()
+    page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
+    _settle(page)
+    after = _markers_until(page, lambda entries: not any(e["count"] and e["count"] >= crowd["count"] and e["members"] == crowd["members"] for e in entries))
+    assert represented(after) == sorted(systems)
+    assert not any(e["members"] == crowd["members"] for e in marks(after)), "zooming in splits the crowd"
+
+
+def test_an_inhabited_world_marker_is_offered_a_name_for_as_long_as_it_is_drawn(page, map_site):
+    """MAP.321 d: an inhabited token is a candidate for a name of the inhabited slice (the budget's order of the two is the unit test's):
+    with only the inhabited layer on the fixture's inhabited world is named and the habitable one that lies close is not, with both on
+    both are, and with both off no world name is offered for a token that is not drawn."""
+    _open_star_field(page, map_site)
     page.wait_for_timeout(1000)
     worlds = f"() => ({LABELS})().filter((l) => l.kind === 'world').map((l) => l.text).sort()"
     _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
+    _markers_until(page, lambda found: any(e["kind"] == "marker-inhabited" for e in found))
+    page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Rest')", timeout=20000)
+    assert page.evaluate(worlds) == ["Fixture Rest"]
+    page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
+    page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Eden')", timeout=20000)
+    assert page.evaluate(worlds) == ["Fixture Eden", "Fixture Rest"]
     page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
     page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
-    _markers_until(page, lambda found: {e["kind"] for e in found} >= {"marker-habitable", "marker-inhabited"})
-    page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Rest')", timeout=20000)
-    assert "Fixture Eden" not in page.evaluate(worlds), page.evaluate(worlds)
-    page.locator('#galaxymap3d-kinds button[data-layer="marker-inhabited"]').click()
-    page.wait_for_function(f"() => ({LABELS})().some((l) => l.kind === 'world' && l.text === 'Fixture Eden')", timeout=20000)
-    assert "Fixture Rest" not in page.evaluate(worlds)
+    page.wait_for_function(f"() => !({LABELS})().some((l) => l.kind === 'world')", timeout=20000)
 
 
 SECTOR_FRAME = "() => { const f = document.querySelector('#galaxymap3d-canvas').__mapSectorFrame; return f && f.state(); }"
@@ -3962,7 +4017,7 @@ def test_galaxy_map_info_popup_scrolls_with_the_wheel_and_hands_the_rest_to_the_
 def _open_habitable_card(page, base, name, width=1280, height=900):
     """The Galaxy Map's card for one fixture system with a habitable world, opened from the marker's button."""
     page.set_viewport_size({"width": width, "height": height})
-    _open_window(page, base, 27, 27, 0, 0, g=3)
+    _open_star_field(page, base)
     page.wait_for_timeout(500)
     _open_menu(page)
     page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]').click()
@@ -4062,3 +4117,5 @@ def test_galaxy_map_system_nearest_route_answers_json(page, map_site):
     names = [n["name"] for n in body["nearest"]]
     assert names[0] == "Fixture Rest" and len(names) <= 3 and body["nearest"][0]["url"] == "/system/9002", names
     assert page.request.get(map_site + "/galaxy/system/424242/nearest").status == 404
+
+
