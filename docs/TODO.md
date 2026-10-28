@@ -19184,18 +19184,6 @@ clears each one.
   lock holder; say so in the PR instead of fixing it there.
   Prerequisites: none.
 
-- [ ] **TEST.425 test_wolf_rayet and test_field_units[RoguePlanet] are red on main (unit g/cm2 unknown) (bug)**
-  Found by Math 1 after epoch 114 (#3493, 5:33 PM EDT 2026-10-28 as the
-  lane reported): on main, tests/test_wolf_rayet fails and
-  test_field_units[RoguePlanet] fails with the unit "g/cm2" unknown.
-  Neither is from Math 1's change. Find the commit that broke each, fix
-  the code or register the unit in db/column_units.py (the unit registry
-  GEN.568), never loosen or skip the test. The same red-on-main run also
-  showed the test_phenomenon_scatter ValueError (int("2032 phenomena"),
-  TEST.422) and the test_object_rows None vs (None,) failure (TEST.332),
-  which keep their own items. Owner: Bug 1, after UX.234 and TEST.424.
-  Prerequisites: none. Related: TEST.422, TEST.332, TEST.424.
-
 - [ ] **TEST.426 test_galaxy_map_window_follows_the_browser_window_when_it_is_resized fails in long full-file runs and passes alone (bug)**
   Found by Core 2 with MAP.306 (#3501, 5:40 PM EDT 2026-10-28 as the
   lane reported): the browser test failed twice in long full-file runs
@@ -19993,22 +19981,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `tests.golden_update --reason ... --affects <stage>` and the next
   epoch; tests are `scripts/test.py changed --resume`.
   Prerequisites: none. Related: OPS.72.
-
-- [ ] **OPS.77 update.sh ends with the site closed because its final /api/health check gets a 403 (a reemergence of OPS.75) (bug)**
-  Boss, 6:51 PM EDT 2026-10-28 (relayed by the coordinator), live
-  observation, so a bug, top priority: when an update finishes, the
-  final check of /api/health gets a 403, so update.sh believes the site
-  is broken. The earlier version of this was OPS.75 (#3363), a wrong
-  failure reason after the Apache reload. First get the real facts from
-  update.sh and the Apache logs: which URL and header the check sends,
-  which rule answers 403 (an access rule, the API key or role guard from
-  USR.26 / SEC work, a rate limit or a firewall rule on the local
-  address), and why only at the end of an update. Fix the cause (the
-  health route must answer without credentials from the machine itself,
-  or the check must send what the route needs), keep the check honest,
-  and add a test that runs the same check against the web app with the
-  route guards on. Owner: Bug 1, top of its queue.
-  Prerequisites: none. Related: OPS.75, OPS.29.
 
 ## DOC: Documentation
 
