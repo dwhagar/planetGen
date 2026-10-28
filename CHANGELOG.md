@@ -2,6 +2,24 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2385] - 2026-10-28
+
+**Headline:** A magnetised world now has radiation belts, with a dose for any orbit inside them.
+
+### Added
+- **Trapped radiation belts (GEN.749).** A body with a dipole field holds an inner proton belt and an outer electron belt. Their edges come from its dipole moment, the star's wind (which sets the magnetopause) and its spin: a slow rotator is bounded by the wind, a fast one such as Jupiter by its spin. A body with air starts its belts above the air. The dose rate behind 100 mil of aluminium at any orbit follows from Earth's belts scaled by the field, and is checked against Earth (LEO, navigation orbit, geostationary, the slot between the belts) and Jupiter (the doses at Io, Europa and Ganymede, and the belts ending inside Callisto's orbit). Nothing is stored or drawn, so generated worlds are unchanged.
+- **Stand-in rows RB1 to RB8** in the registry (gap-filling plan 6.15 and the list of every stand-in), each with its source tier and tweak level; the belt intensity and profile are fitted to Earth and Jupiter (tweak level 3) until AP-9, AE-9 and the Juno and Galileo dose records replace them.
+
+### Changed
+- The radiation model's R18 now describes the built belts instead of the omission.
+
+## [8.0.2384] - 2026-10-28
+
+**Headline:** The rendered example on every star, planet and moon page now turns slowly on its axis.
+
+### Added
+- **The object pages' rendered example spins (MAP.328).** On a star, planet or moon page the picture turns about its own axis at the rate the shared spin law gives its stored rotation period (`static/spin.js`, the same law as the System Map and the 3D system view: no faster than one turn in 20 s, no slower than one in 10 minutes, a longer day never faster), the axis leaned by its stored axial tilt so a body tilted past 90 degrees turns backwards, and the light stays where it is so the day and night edge holds still while the surface turns. A body with no stored period stays still and shows no Spin button (nothing is made up). A **Spin** button under the picture (the System Map Menu's standing preference, kept in the browser) holds it still, and a reader's reduced-motion setting does too. The picture is worked out once per page and each frame is one pass of lookups, drawn about 30 times a second and only while the picture is on screen. Belts and comets have no picture yet (no look record), so they have nothing to turn; the black-hole, neutron-star and nebula views are separate renderers and not part of this change. Tests: `tests/js/spin.test.mjs` (the point-on-body geometry), `tests/test_web_browser_bodyview.py` (rate, direction both ways, still body, star, switch, reduced motion).
+
 ## [8.0.2383] - 2026-10-28
 
 **Headline:** Flying to a named region on the Galaxy Map frames the whole charted region in the window.

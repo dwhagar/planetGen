@@ -3580,6 +3580,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   6.9 and the generated stand-in list. Still open: stars in the sector
   view (Aux 10) and the object details pages (Aux 11), both on the
   shared function.
+  Progress (2026-10-09): Part done by Core 2 (#3408, 10:41 AM EDT
+  2026-10-28 as the lane reported; object pages were Aux 11's in the
+  text above, Core 2 took them): the rendered example on every star,
+  planet and moon page turns slowly on its axis, same law as the System
+  Map (retrograde backwards, light fixed, no stored period means the
+  body stays still), with a Spin button and reduced motion honoured.
+  Open: stars in the Sector Map view (Aux 10); belts and comets have no
+  picture to turn (no look record); the black-hole, neutron-star and
+  nebula views are separate renderers.
 
 ## NAV: Navigation and courses
 
@@ -6116,7 +6125,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.728, GEN.729, GEN.730, GEN.733, GEN.735, GEN.736, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.749, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
+  Prerequisites: SEC.33, TEST.261, MAP.220, GEN.728, GEN.729, GEN.730, GEN.733, GEN.735, GEN.736, GEN.740, GEN.741, GEN.742, GEN.743, GEN.744, GEN.745, GEN.746, GEN.747, GEN.748, GEN.750, GEN.752, GEN.753, GEN.755, GEN.754.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -13423,27 +13432,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   five items; takes it only if nobody has started it.
   Prerequisites: none. Related: GEN.745, GEN.444.
 
-- [ ] **GEN.749 Trapped radiation belts and the magnetosphere's shielding beyond a dipole size**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  R6; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: n/a (left
-  out). Today: Trapped radiation belts and shielding beyond a dipole
-  size are not modelled. Real physics: a belt model. Do: add a belt
-  model that reads the dynamo field (GEN.736) and the stellar wind, for
-  the radiation dose at orbit. Done: belts exist for planets with a
-  field, with tests on Earth and Jupiter. Each stand-in it touches
-  records its source tier and tweak level in the gap plan registry
-  (GEN.725). Owner: pool (first free lane; 8.1 core lanes do not take it
-  before 8.1 closes).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Research (2026-10-09, Owner): Owner split (TODO, 2026-10-24 5:33 PM
-  EDT, Math lane 2 started): proposed owner Math lane 2, after its first
-  five items; takes it only if nobody has started it.
-  Prerequisites: none. Related: GEN.736, GEN.444.
-
 - [ ] **GEN.750 Evolutionary timeline: a model of the time to each life stage from conditions (Boss ruled: model it from physics)**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   L1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -14960,6 +14948,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after GEN.746 to GEN.749. Rules: any new stand-in adds its registry
   row with tier and tweak level.
   Prerequisites: none. Related: GEN.727, GEN.731, GEN.737, GEN.725.
+
+- [ ] **GEN.843 The stored magnetopause_rp is in Earth radii but is labelled planet radii: wrong for Jupiter and every non-Earth-sized world (bug)**
+  Found by Math 2 (as the lane reported 10:55 AM EDT 2026-10-28) while
+  building the belts (GEN.749, #3410). The stored magnetopause standoff
+  magnetopause_rp holds a value in Earth radii, but the column unit, the
+  property sheet label and the unit registry (GEN.568,
+  db/column_units.py) say planet radii, so Jupiter and any body not
+  Earth-sized reads wrong by the ratio of radii. Do: either store it in
+  planet radii (convert by the body radius at the point of writing, an
+  epoch with --affects fill, take the lock) or relabel the column and
+  the sheet as Earth radii; pick the first if any reader divides by the
+  planet radius, and record which in the unit registry. Done: the unit,
+  label and value agree for Earth, Jupiter and Mars in a test that reads
+  the stored value back. Owner: Math 2 after GEN.746 to GEN.748, or Aux
+  4 (radiation docs). Rules: no backward-compat shims; any new numeric
+  column goes in db/column_units.py.
+  Prerequisites: none. Related: GEN.749, GEN.568.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
