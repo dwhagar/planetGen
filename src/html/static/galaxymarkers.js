@@ -287,3 +287,74 @@ export function legendOf(kind) {
 export function tokenOfItem(kind, item) {
   return kind.icon ? tokenOf(kind.icon, item && item.tier != null ? item.tier : null) : null;
 }
+
+// Marks closer together on the screen than this, in CSS pixels between their centres, are drawn as one (MAP.305): the symbols are
+// MARKER_PX across, so these would lie over each other.
+export const MERGE_PX = 22;
+
+// Merges the crowded star-level interest marks of `chosen` (`selectMarkers`' `[{kind, item}]`, with any other entries after them) into one
+// mark each. `screenOf(item)` is the item's place on the screen in CSS pixels, `{x, y}`, or null for one that has none. Only a system's
+// own interest mark merges (a kind with `interest`, no `bodyRef` or `regionKey`); a black hole, a body's symbol or a region's token stays
+// as it is. The marks are taken in the registry's order of reasons, most bodies first, each one gathering the unmerged marks within
+// `radiusPx` of it, so the same crowd always merges the same way and a mark's symbol is its crowd's best reason (an inhabited world
+// before a habitable one before the rest). A crowd of two or more becomes one entry whose item is
+//   `{key, id, x, y, z (the middle of its systems), n (their bodies), count (their number), tier (the best), members (their items),
+//     merged: true, interest}`
+// and whose kind is the best member's with the hover text of a crowd. Zooming in spreads the marks and the crowd splits.
+export function mergeMarks(chosen, screenOf, radiusPx) {
+  const radius = radiusPx === undefined ? MERGE_PX : radiusPx;
+  const order = INTEREST_REASONS.map(function (reason) { return reason.id; });
+  const placed = [];
+  const rest = [];
+  chosen.forEach(function (entry) {
+    const item = entry.item;
+    const spot = entry.kind.interest && !item.bodyRef && !item.regionKey && !item.follow ? screenOf(item) : null;
+    if (spot) placed.push({ entry: entry, spot: spot });
+    else rest.push(entry);
+  });
+  placed.sort(function (p, q) {
+    return order.indexOf(p.entry.kind.interest) - order.indexOf(q.entry.kind.interest) || (q.entry.item.n || 0) - (p.entry.item.n || 0)
+      || (p.entry.item.key < q.entry.item.key ? -1 : p.entry.item.key > q.entry.item.key ? 1 : 0);
+  });
+  const taken = new Set();
+  const out = [];
+  placed.forEach(function (seed) {
+    if (taken.has(seed)) return;
+    taken.add(seed);
+    const crowd = [seed];
+    placed.forEach(function (other) {
+      if (taken.has(other)) return;
+      if (Math.hypot(other.spot.x - seed.spot.x, other.spot.y - seed.spot.y) <= radius) {
+        taken.add(other);
+        crowd.push(other);
+      }
+    });
+    out.push(crowd.length === 1 ? seed.entry : mergedEntry(crowd.map(function (member) { return member.entry; })));
+  });
+  return out.concat(rest);
+}
+
+// The one entry a crowd of marks is drawn as; `entries` are in the order of preference, the first one the best.
+function mergedEntry(entries) {
+  const best = entries[0];
+  const total = function (key) { return entries.reduce(function (sum, entry) { return sum + (entry.item[key] || 0); }, 0); };
+  const item = {
+    key: "merge:" + best.item.key, id: "merge:" + best.item.id, name: null,
+    x: total("x") / entries.length, y: total("y") / entries.length, z: total("z") / entries.length,
+    n: total("n"), count: entries.length, interest: best.kind.interest, merged: true,
+    members: entries.map(function (entry) { return entry.item; }),
+  };
+  if (best.item.tier != null) item.tier = best.item.tier;
+  return { kind: crowdKind(best.kind), item: item };
+}
+
+// The kind of a crowd's mark: its best reason's kind with the hover text of a crowd ("12 points of interest").
+const crowdKinds = new Map();
+function crowdKind(kind) {
+  if (!crowdKinds.has(kind.id)) {
+    crowdKinds.set(kind.id, Object.assign({}, kind, {
+      describe: function (item) { return item.count + " points of interest"; },
+    }));
+  }
+  return crowdKinds.get(kind.id);
+}
