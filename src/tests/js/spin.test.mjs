@@ -113,3 +113,16 @@ test("reduced motion stops the bodies whatever the switch says", () => {
   delete globalThis.matchMedia;
   assert.equal(S.active(), true);
 });
+
+test("a point of a body's picture is found in the body's own frame, its axis leaning by its tilt", () => {
+  // Upright: the middle of the picture is longitude 0, latitude 0; the right-hand edge is 90 degrees east; the top is the pole.
+  const [lon, lat] = S.bodyPoint({}, 0, 0, 1);
+  near(lon, 0); near(lat, 0);
+  near(S.bodyPoint({}, 1, 0, 0)[0], Math.PI / 2);
+  near(S.bodyPoint({}, 0, 1, 0)[1], Math.PI / 2);
+  // Tilted 90 degrees the axis lies along the picture's right-hand side: that edge is the pole, the top is on the equator.
+  near(S.bodyPoint({ tiltDeg: 90 }, 1, 0, 0)[1], Math.PI / 2);
+  near(S.bodyPoint({ tiltDeg: 90 }, 0, 1, 0)[1], 0);
+  // Past 90 degrees the picture shows the south pole at the top: a body that turns the other way.
+  near(S.bodyPoint({ tiltDeg: 180 }, 0, 1, 0)[1], -Math.PI / 2);
+});
