@@ -13,7 +13,7 @@ const star = (id) => ({ type: "neutron_star", id, x: 1, y: 1, z: 1 });
 function kinds() {
   const registry = M.createMarkerKinds();
   registry.register(M.BLACK_HOLE_KIND);
-  registry.register({ id: "marker-test", label: "Test", glyph: "habitable", color: "#0f0", maxBlock: 9,
+  registry.register({ id: "marker-test", label: "Test", glyph: "black-hole", color: "#0f0", maxBlock: 9,
     source: (node) => (node.test || []).map((t) => ({ key: t.id, ...t })), rank: (item) => item.rank || 0 });
   return registry;
 }
@@ -21,9 +21,9 @@ function kinds() {
 test("a kind needs an id, a label and a known glyph, and is registered once", () => {
   const registry = M.createMarkerKinds();
   assert.throws(() => registry.register({ id: "x", label: "X", glyph: "nope" }));
-  assert.throws(() => registry.register({ label: "X", glyph: "habitable" }));
-  registry.register({ id: "x", label: "X", glyph: "habitable" });
-  assert.throws(() => registry.register({ id: "x", label: "X", glyph: "habitable" }));
+  assert.throws(() => registry.register({ label: "X", glyph: "black-hole" }));
+  registry.register({ id: "x", label: "X", glyph: "black-hole" });
+  assert.throws(() => registry.register({ id: "x", label: "X", glyph: "black-hole" }));
   assert.equal(registry.get("x").defaultOn, true);
   assert.equal(registry.get("y"), null);
 });
@@ -75,7 +75,7 @@ test("kinds share the budget evenly and a kind with less hands the rest on", () 
 
 test("an item with its own size is hidden while it is under two pixels", () => {
   const registry = M.createMarkerKinds();
-  registry.register({ id: "marker-cloud", label: "Clouds", glyph: "habitable", extentPc: (item) => item.radius,
+  registry.register({ id: "marker-cloud", label: "Clouds", glyph: "black-hole", extentPc: (item) => item.radius,
     source: (node) => node.clouds.map((c) => ({ key: c.id, ...c })) });
   const nodes = [{ key: "243.0.0.0", node: { clouds: [{ id: "big", radius: 10, x: 0, y: 0, z: 0 }, { id: "small", radius: 1, x: 0, y: 0, z: 0 }] } }];
   const chosen = M.selectMarkers({ kinds: registry.kinds(), isOn: () => true, nodes, pxOf: (item) => item.radius * 0.5 });

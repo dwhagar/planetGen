@@ -8,8 +8,11 @@
 // A kind is
 //   id          the layer id in the map's layer registry (maplayers.js), also what the URL lists ("marker-black-hole");
 //   label       the Menu button's text and the legend line;
-//   glyph       the shape drawn (a key of GLYPHS);
-//   color       the glyph's color (CSS), also the legend swatch;
+//   glyph       the shape drawn (a key of GLYPHS), or
+//   icon        the point-of-interest symbol drawn (an id of poiicons.js, MAP.320, its file under static/poi/), a kind has
+//               one of the two; the symbol takes the colour of its token (`item.tier`, the habitability score's tier,
+//               picks one for the habitable and the inhabited world);
+//   color       the glyph's color (CSS), also the legend swatch; an icon kind has none, its token colours it;
 //   maxBlock    the largest block size (shells) whose node lists this kind completely (a node of a bigger block does not
 //               list it, so the kind is not drawn from it; default: every node does);
 //   defaultOn   shown until the visitor says otherwise (default true);
@@ -23,6 +26,9 @@
 // What shows is chosen by `selectMarkers`: only kinds that are on, only items in view, and no more than the
 // budget (MARKER_BUDGET) in all, the kinds sharing it evenly and handing on what one cannot use.
 
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { poiIcon, tokenOf } = await import(`./poiicons.js${VERSION_QUERY}`);
+
 // The most markers drawn at once (MAP.116's rule for the stars: a crowded view must stay readable). Each kind gets
 // an even share of it; a kind that has less hands the rest on.
 export const MARKER_BUDGET = 240;
@@ -34,7 +40,8 @@ export const MIN_EXTENT_PX = 2;
 export const MARKER_PX = 18;
 
 // The shapes a kind draws, each a function `(ctx, size, color, outline)` that draws into a canvas context `size`
-// pixels square: the one place a shape is defined, so a symbol library (UX.101) can replace it by name.
+// pixels square. The black hole is the one drawn here; the other kinds are point-of-interest symbols (`icon`, MAP.320),
+// vector files, not code.
 export const GLYPHS = {
   // A black hole: a dark disc in a ring.
   "black-hole": function (ctx, size, color, outline) {
@@ -55,43 +62,6 @@ export const GLYPHS = {
     ctx.lineWidth = size * 0.06;
     ctx.strokeStyle = color;
     ctx.stroke();
-  },
-  // Overall habitability (UX.101): a solid circle inside an upright triangle inside a ring.
-  "habitable": function (ctx, size, color, outline) {
-    const c = size / 2;
-    const ring = c * 0.88;
-    ctx.lineJoin = "round";
-    const triangle = function () {
-      ctx.beginPath();
-      for (let i = 0; i < 3; i++) {
-        const angle = -Math.PI / 2 + (i * 2 * Math.PI) / 3;
-        const x = c + ring * 0.78 * Math.cos(angle);
-        const y = c + ring * 0.78 * Math.sin(angle) + size * 0.04;
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      }
-      ctx.closePath();
-    };
-    [[outline, 0.2], [color, 0.09]].forEach(function (pass) {
-      ctx.strokeStyle = pass[0];
-      ctx.lineWidth = size * pass[1];
-      ctx.beginPath();
-      ctx.arc(c, c, ring, 0, Math.PI * 2);
-      ctx.stroke();
-      triangle();
-      ctx.stroke();
-    });
-    ctx.beginPath();
-    ctx.arc(c, c + size * 0.08, size * 0.15, 0, Math.PI * 2);
-    ctx.fillStyle = outline;
-    ctx.fill();
-    ctx.lineWidth = size * 0.04;
-    ctx.strokeStyle = outline;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(c, c + size * 0.08, size * 0.11, 0, Math.PI * 2);
-    ctx.fillStyle = color;
-    ctx.fill();
   },
 };
 
@@ -118,8 +88,7 @@ export const BLACK_HOLE_KIND = {
 export const HABITABLE_KIND = {
   id: "marker-habitable",
   label: "Habitable worlds",
-  glyph: "habitable",
-  color: "#4fd18b",
+  icon: "habitable-world",
   maxBlock: 81,
   defaultOn: false,
   source: function (node) {
@@ -142,7 +111,9 @@ export function createMarkerKinds() {
   const kinds = [];
 
   function register(kind) {
-    if (!kind || !kind.id || !kind.label || !GLYPHS[kind.glyph]) throw new Error("a marker kind needs an id, a label and a known glyph");
+    if (!kind || !kind.id || !kind.label || !(GLYPHS[kind.glyph] || (!kind.glyph && poiIcon(kind.icon)))) {
+      throw new Error("a marker kind needs an id, a label and a known glyph or icon");
+    }
     if (kinds.some(function (known) { return known.id === kind.id; })) throw new Error("marker kind " + kind.id + " is already registered");
     kinds.push(Object.assign({ maxBlock: Infinity, defaultOn: true, extentPc: null, rank: function () { return 0; },
       describe: function (item) { return item.name || kind.label; } }, kind));
@@ -206,7 +177,15 @@ export function selectMarkers(options) {
   return chosen;
 }
 
-// The legend line of a kind for the layer registry (maplayers.js): its swatch is the glyph's color.
+// The legend line of a kind for the layer registry (maplayers.js): the kind's symbol where it has one (`icon`, drawn
+// by the registry in the colour of `token`), else a swatch of the glyph's color.
 export function legendOf(kind) {
+  if (kind.icon) return { text: kind.label, icon: kind.icon, token: tokenOf(kind.icon, null) };
   return { text: kind.label, swatch: kind.color, swatchClass: "map-marker-swatch" };
+}
+
+// The CSS custom property that colours `item` of `kind`: the symbol's own token, or the habitability tier's for a
+// symbol the score colours. `null` for a glyph kind (its `color` is a color, not a token).
+export function tokenOfItem(kind, item) {
+  return kind.icon ? tokenOf(kind.icon, item && item.tier != null ? item.tier : null) : null;
 }

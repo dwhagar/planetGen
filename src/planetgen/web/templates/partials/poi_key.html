@@ -1,0 +1,13 @@
+{#- The key to the point-of-interest symbols (MAP.320). Import it `with context` (it reads the `poi_icon` and `poi_icons` globals). `poi_key()` is a description list with a row per symbol of
+    `poi_icons` (web/lib/poi_icons.py): its name, its shape (the sign that does not depend on colour) and what it marks.
+    A symbol the habitability score colours is drawn in all four colours, Blue to Red. -#}
+{% macro poi_key(heading_id=None) %}
+<dl class="poi-key" id="poi-key"{% if heading_id %} aria-labelledby="{{ heading_id }}"{% endif %}>
+  {%- for icon in poi_icons %}
+  <dt id="poi-key-{{ icon.id }}">
+    {%- if icon.scored %}{% for tier in range(4) %}{{ poi_icon(icon.id, tier) }}{% endfor %}{% else %}{{ poi_icon(icon.id) }}{% endif %}
+    <span>{{ icon.label }}</span></dt>
+  <dd>{{ icon.meaning }} Drawn as {{ icon.shape }}.</dd>
+  {%- endfor %}
+</dl>
+{% endmacro %}
