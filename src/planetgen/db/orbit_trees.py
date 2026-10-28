@@ -17,6 +17,7 @@ in the tree (`parent_node_id`, offset from the system's centre). `nodes_from_mem
 
 from collections import namedtuple
 
+from planetgen.db import storage_checksum
 from planetgen.generation import multistar
 from planetgen.physics import constants, system_tree
 from planetgen.physics.system_tree import OrbitNode
@@ -98,6 +99,7 @@ def write_nodes(conn, star_system_id, nodes, replace=True):
     """Stores `nodes` as the system's tree, replacing any it had (`replace=False` for a system just inserted, which has
     none: the rows then go through `Connection.batched` with the rest of the sector)."""
     if replace:
+        storage_checksum.mark_system(conn, star_system_id)
         conn.execute("DELETE FROM orbit_nodes WHERE star_system_id = ?", (star_system_id,))
     sql = f"INSERT INTO orbit_nodes (star_system_id, {', '.join(COLUMNS)}) VALUES (?, {', '.join('?' * len(COLUMNS))})"
     for node in nodes:

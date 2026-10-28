@@ -15,7 +15,7 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import kind_tables, object_rows, store
+from planetgen.db import kind_tables, object_rows, storage_checksum, store
 from planetgen.physics import insolation, unit_registry as units
 
 _au_to_km = units.converter("au", "km")
@@ -152,6 +152,7 @@ def save_star(conn, star):
         " WHERE id = ?",
         (*_star_values(star), star.db_id),
     )
+    storage_checksum.mark_star(conn, star.db_id)
     conn.execute("UPDATE star_systems ss JOIN stars s ON s.star_system_id = ss.id SET ss.next_update_due = NULL,"
                  " ss.modified_at = ss.modified_at WHERE s.id = ?", (star.db_id,))
 
@@ -296,6 +297,7 @@ def replace_phenomenon_content(conn, phenomenon_type, phenomenon_id, phenomenon)
     conn.execute("DELETE FROM system_name_registry WHERE first_object_table = ? AND first_object_id = ?",
                  (table, temp_id))
     conn.execute(f"UPDATE {table} SET modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?", (phenomenon_id,))
+    storage_checksum.mark_sector(conn, row.get("sector_id"))
 
 
 def delete_phenomenon(conn, phenomenon_type, phenomenon_id):

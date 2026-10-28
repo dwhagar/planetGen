@@ -9,6 +9,7 @@ that type's fields, an affiliation and five ratings.
 `FacilityTypeError` (its `status` is the HTTP status) for anything refused.
 """
 
+from planetgen.db import storage_checksum
 from planetgen.population import facility_ratings as ratings
 from planetgen.population.facility_types import FacilityTypeError, definition_fields, get_type, parse_value, value_column
 
@@ -146,6 +147,7 @@ def resolve(conn, kind, attrs, current=None):
 
 def write(conn, facility_id, plan):
     """Stores a `resolve` plan for one facility: the columns, then the field values cleared and set."""
+    storage_checksum.mark_rows(conn, "facilities", [facility_id])
     columns = dict(plan["columns"])
     set_now = columns.pop("ratings_set_at", None) == "NOW"
     clauses = [f"`{name}` = ?" for name in columns] + (["ratings_set_at = CURRENT_TIMESTAMP"] if set_now else [])
