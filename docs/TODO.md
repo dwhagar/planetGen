@@ -3406,7 +3406,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn at galactic scale. Owner: Aux 10. Rules: no backward-compat
   shims; every number has a unit or scale (GEN.772); tests are
   scripts/test.py changed --resume.
-  Prerequisites: DB.107, GEN.827, API.35. Related: GEN.825, DB.107,
+  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107,
   GEN.827, API.35, MAP.314.
 
 - [ ] **MAP.317 Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c)**
@@ -3493,7 +3493,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   box is drawn after the flight. Owner: Core 2. Rules: no
   backward-compat shims; every number has a unit or scale (GEN.772);
   tests are scripts/test.py changed --resume.
-  Prerequisites: GEN.827, API.35. Related: GEN.827, MAP.316, MAP.295,
+  Prerequisites: API.35. Related: GEN.827, MAP.316, MAP.295,
   MAP.296, MAP.152.
   Progress (2026-10-09): Part merged as #3312 (Core 2, 2:07 AM EDT
   2026-10-25 as the lane reported): static/flytofit.js (fitDistance,
@@ -14912,38 +14912,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch.
   Prerequisites: none. Related: GEN.814, GEN.823.
 
-- [ ] **GEN.825 Region names: region_name() for the codec kind region, the anchor and sphere geometry of every 9-block, and a measurement of the squeezed blocks (regions chain, step 1)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
-  9-block cell (about 780 sectors) with at least one generated sector,
-  named from the block path by a new codec kind region (Word Region; the
-  27 Regions of one 81-block share the family word) and drawn as the
-  bounding sphere of its generated sectors, never smaller than the 12 pc
-  standard-fill sphere (about 109 sectors) about the cell's anchor; it
-  exists, and shows on the galactic map, as soon as any sector in the
-  cell is generated (anything above 0 percent), ranked by share charted
-  (generated sectors over the sectors its outline can hold, a standard
-  fill is about 14 percent); ungenerated space gets no region and no
-  sector line may join two unrelated places. Boss, 1:13 AM EDT
-  2026-10-25: the chain is in 8.1, regions are what the galactic-level
-  map shows so a user can always drill down to inhabited space. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
-  from the gated phoneme codec only, never from Milky Way or Solar
-  System lists. Build the pure function region_name(block, key): family
-  word from the 81-block, local word from the ordinal among its 27
-  9-blocks, a collision salt against the 26 neighbouring blocks, kind
-  region added to naming_key.KINDS with no CODEC_VERSION bump;
-  REGION_RADIUS_PC (default the standard fill radius); the anchor
-  (centre of the 9-block bounds); minimum framing radius min(12 pc,
-  inscribed radius) for squeezed blocks (every cell with a generated
-  sector is a region, so none is dropped). Measure how many blocks the
-  grid squeezes near the core and poles. Done: golden names, sibling and
-  neighbour uniqueness and determinism tests, no database read, the
-  measurement written into the design draft. Owner: Core 3. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
-  Prerequisites: none.
-
 - [ ] **GEN.826 Random-start and Generate "around a place" fill one anchor sphere, so a normal fill charts a whole region (regions chain, step 1c)**
   Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
   9-block cell (about 780 sectors) with at least one generated sector,
@@ -14969,29 +14937,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-25: Bug 1 takes it when DB.107 lands, after its current item),
   moved from Core 3. Rules: no backward-compat shims; every number has a
   unit or scale (GEN.772); tests are scripts/test.py changed --resume.
-  Prerequisites: GEN.825, DB.107. Related: GEN.825, DB.107.
-
-- [ ] **GEN.827 Region extent: the bounding sphere of a cell's generated sectors (never under the 12 pc fill sphere) and the measurement of two far-apart clumps (regions chain, step 1d)**
-  Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
-  what the galactic-level map shows so a user can always drill down to
-  inhabited space; a region is a 9-block cell with at least one
-  generated sector, drawn as the bounding sphere of its generated
-  sectors (never smaller than the 12 pc fill sphere), ranked by share
-  charted. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2. Compute the extent (centre and radius in pc) of every
-  region from its generated sectors, minimum the 12 pc fill sphere about
-  the anchor (minimum framing radius min(12 pc, inscribed radius) in a
-  squeezed cell); a chain of sectors across cells makes one thin region
-  per cell, each its own small sphere. Measure how often the generated
-  sectors of one cell form two far-apart clumps so the bounding sphere
-  covers the gap; if it matters, the extent becomes the sphere of the
-  largest face-connected clump (the rest still count toward the share).
-  Done: extent function and tests, the measurement written into the
-  design draft, DB.107 stores the extent. Owner: Core 3. Rules: no
-  backward-compat shims; every number has a unit or scale (GEN.772);
-  tests are scripts/test.py changed --resume.
-  Prerequisites: GEN.825. Related: GEN.825, DB.107.
+  Prerequisites: DB.107. Related: GEN.825, DB.107.
 
 - [ ] **GEN.828 Giant planet occurrence falls with host mass and rises with metallicity, and hot Jupiters are rare: giants per M dwarf are about 0.48 today against 0.03 to 0.06 observed, hot Jupiters 0.117 per M dwarf and 0.026 per FGK star against under 0.002 and 0.005 to 0.01**
   Found by Aux 16 (report
@@ -16930,7 +16876,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   region. Owner: Core 3. Rules: no backward-compat shims; every number
   has a unit or scale (GEN.772); tests are scripts/test.py changed
   --resume.
-  Prerequisites: GEN.825, GEN.827. Related: GEN.825, GEN.827.
+  Research (2026-10-09, Core 3 report 2026-10-28): GEN.825 and GEN.827
+  merged (#3375, Core 3, 7:54 AM EDT 10-28 as the lane reported): region
+  names (kind region), anchors, framing spheres and extents live in
+  galaxy/named_regions.py. Design corrections: an 81-block holds about
+  729 9-blocks (not 27); REGION_RADIUS_PC lives in named_regions, not
+  tuning; the local ordinal is 3 hex digits. This item takes migration
+  0161 and schema 161 (0160 is GEN.732); it rewrites no golden file so
+  it is exempt from the lock; any lane holding 0161 renumbers at its
+  merge.
+  Prerequisites: GEN.827. Related: GEN.825, GEN.827.
 
 - [ ] **DB.108 Total mass per sector and per region: mass_sum on the sector block stats row and on region_stats, kept by the same save and delete hook, with a backfill command (regions chain, step 1e)**
   Design section 0.4 of
@@ -22443,7 +22398,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   check exists. Owner: Core 3. Rules: no backward-compat shims; every
   number has a unit or scale (GEN.772); tests are scripts/test.py
   changed --resume.
-  Prerequisites: GEN.825, DB.107, API.35. Related: GEN.825, DB.107,
+  Prerequisites: DB.107, API.35. Related: GEN.825, DB.107,
   GEN.826, API.35, MAP.314, MAP.315, UX.231, API.36.
 
 ## VIEW: The view from a planet
