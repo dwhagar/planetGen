@@ -494,6 +494,8 @@ As built (GEN.548, the shared step; the datasets themselves follow in the same i
 | SC2 | D | T1 | L0 | DATA (Bédard et al. 2020 sequences, downloaded) | the D13 radius law and a fixed layer split | the sequence download (`white_dwarf_models.py`) | Bédard et al. 2020 | open, cited |
 | SC3 | D | T1 | L0 | DATA (Zenodo tables, downloaded) | the nickel-to-krypton crust table and the D13 radius floor | the equation-of-state and crust download (`neutron_star_matter.py`) | Malik et al. 2024; Servais and Chamel 2026 | CC BY 4.0 |
 | AD9 | D | T1 | L0 | DATA (MPI-Mainz atlas snapshot, Brion-team ozone cross sections 195 to 830 nm at 218, 243 and 295 K, downloaded) | the 35 band means of the gas table for ozone (20 nm bins; the UV index they give is off by a large factor in the UV-B) | the ozone download (`ozone_uv.py`, read by `physics/uv_cross_sections.py`, GEN.443) | Keller-Rudek et al. 2013 (ESSD 5, 365); Daumont et al. 1992; Malicet et al. 1995; Brion et al. 1998 | CC BY 4.0 (Zenodo 10.5281/zenodo.6951) |
+| AD10 | D | T1 | L0 | DATA (ExoMolOP R1000 correlated-k tables of H2O, CO2, CH4, downloaded, 1.26 GB, reduced at setup to 129 bands by 10 g points) | the plateau-and-wing band stand-ins of `infrared_opacity` for the three gases (GEN.703) | the table download (`ir_ktables.py`, read by `physics/infrared_opacity.py`, GEN.715) | Chubb et al. 2021 (A&A 646, A21); Polyansky et al. 2018; Yurchenko et al. 2020; Yurchenko et al. 2014 | see DATA-LICENSE.md |
+| AD11 | D | T1 | L0 | DATA (HITRAN CIA files for 11 gas pairs, downloaded, 0.2 GB, reduced at setup to band means) | the collision-induced pairs of GEN.703 (one table value per pair) | the CIA download (`hitran_cia.py`, read by `physics/infrared_opacity.py`, GEN.715) | Karman et al. 2019 (Icarus 328, 160) | see DATA-LICENSE.md |
 
 Each is "stand-in" in the loader report until the files are in the cache folder and "partly verified" after (the files are the sources' own; the readers interpolate them). The follow-up that wires the readers into the stellar-composition modules moves each fill's `replaced_by` from a plan to code.
 
@@ -512,6 +514,23 @@ Source tiers and tweak levels as Boss ruled them on 10-24 (GEN.725): tier T1 ver
 | WD3 | P | T6 | L0 | a white dwarf above 1.30 solar masses (an oxygen-neon core) reads the 1.30 carbon-oxygen sequence | oxygen-neon sequences (GEN.743) |
 | WD4 | P | T3 | L0 | 0.80 of white dwarfs have a hydrogen atmosphere (`tuning.STELLAR_WD_DA_SHARE`), whatever the temperature | BC19, the share against effective temperature |
 | WD5 | T | T5 | L0 | the Mestel power law (`tuning.WD_COOLING_*`), taken only when the run disregards missing data | none: the sequence download is required |
+
+### 6.6b Stand-ins of the infrared opacity and the radiative-convective column (GEN.715, GEN.717, GEN.718)
+
+Tiers T1 to T9 and tweak levels L0 to L4 as in 6.6a (GEN.725). The line data is AD10 and AD11 above, read as downloaded. Design note: `docs/design/composition/line-opacity.md`.
+
+| fill_id | kind | tier | tweak | what stands in (constant) | replaced_by |
+|---|---|---|---|---|---|
+| IR1 | P | T7 | L0 to L1 | the plateau of a band of a gas with no k-table: `STANDIN_KAPPA0_M2_KG` 1e3 m2/kg (`"ir"` gases), `STANDIN_WEAK_KAPPA0_M2_KG` 10, `STANDIN_GENERIC_BAND_CM1` 600 to 1500 cm-1 for a gas with no listed band; wings `STANDIN_WING_E_FOLD_CM1` 10 cm-1 (T6, L1: from the logarithm of the CO2 forcing law, Byrne and Goldblatt 2014); hot bands x1e-6 and Fermi dyads x1e-5 (T7, L1) | a k-table for each further gas (ExoMol has NH3, SO2, H2S, CO, HCN, and more) |
+| IR2 | P | T5 and T7 | L0 | the far wing of a gas with no table: `STANDIN_FAR_WING_M2_KG` (CO 1e-5 m2/kg, T5, read from Koll 2019's statement that CO is thin at 1 bar), `STANDIN_GENERIC_WING_M2_KG` 1e-4 and `STANDIN_WEAK_WING_M2_KG` 1e-5 (T7), reach `STANDIN_WING_REACH_CM1` 600 cm-1 at 1 bar growing with the pressure (T7) | the same k-tables |
+| IR3 | T | T5 | L0 | the far wing of carbon dioxide the tables' 25 cm-1 line cutoff leaves out: `CO2_FAR_WING_M2_KG` 3e-4 m2/kg at 1 bar (Koll 2019: a pure CO2 air is of order unity thick at 1 bar). Matters above about 10 bar (Venus); not tuned to Earth or Venus | a far-wing line shape (sub-Lorentzian chi factor) or a full line-by-line table of the dense CO2 air |
+| IR4 | D | T2 | L0 | the water vapour continuum: eight nodes of MT_CKD 4.3 (`WATER_CONTINUUM`, computed in part 03 section 3.2 from the AER file at 296 K), interpolated in ln sigma between 200 and 3600 cm-1, zero outside | the MT_CKD file at full resolution |
+| IR5 | P | T6 | L1 | the 0 to 200 cm-1 band takes the first band's distribution (the tables start at 50 micron) | a far-infrared table |
+| IR6 | T | T3 | L0 | a CIA band covered by under half of its width in a file is zero, and values beyond the measured temperatures are held at the nearest one; pairs with no file (CH4-CH4, most noble-gas pairs, every pair with water) are zero | further HITRAN pairs; the water pair continuum |
+| IR7 | T | T1 on Earth, T6 elsewhere | L0 | the water vapour profile: Manabe and Wetherald's (1967) relative humidity (`HUMIDITY_TOP` 0.02) with the surface humidity the mixture's own, no vapour above the cold trap, at most half the layer (`MAX_WATER_FRACTION`, T7) | a computed humidity (moist convection with a mixing parameterisation) |
+| IR8 | P | T7 | L0 | the sunlight a haze takes aloft: a Gaussian of width `SUNLIGHT_WIDTH_LN_P` 1.0 in ln P. The share and the pressure are inputs of the caller (Titan: 60 percent at 30 mbar in the check, McKay et al. 1991); the aerosol model does not supply them yet | the aerosol optical depths (`aerosols.tau_haze`) wired to the share and pressure (a follow-up) |
+
+Not stand-ins: the 40 layers, the model top at 1e-4 of the surface pressure, the g grid of 10 points, the diffusivity 1.66 (Elsasser), and the numerical tolerances of the solver.
 
 ### 6.7 Stand-ins of the atmosphere mixture draw (GEN.675)
 
@@ -597,7 +616,7 @@ Every bracket, width and ratio the mixture draw (`physics/mixture_*.py`, GEN.451
 | AM79 | B | T1 | L0 | READ (Manabe and Wetherald 1967: fixed relative humidity 0.77, the Earth's mean) | surface_air.RELATIVE_HUMIDITY | 0.77, fixed | rocky bodies with an ocean or ice | test_surface_air::test_water_over_an_ocean_stands_at_the_relative_humidity_of_its_saturation_pressure | a convective-radiative humidity model |
 <!-- atmosphere-standins:end -->
 
-The opacities of the greenhouse module (`atmosphere_state`, GEN.423) are not here: GEN.703 (lane E) moved them to `physics/infrared_opacity.py`, where its own stand-ins are stated. Not stand-ins and so not listed: `LAMBDA_KEPT` (theory: escape speed six times the rms speed, 6^2 x 3/2), `REFERENCE_AGE_GY` (the age the threshold is stated for), `UNLISTED_LIMIT` and the numerical floors.
+The opacities of the greenhouse module (`atmosphere_state`, GEN.423) are not here: GEN.703 (lane E) moved them to `physics/infrared_opacity.py` (the line-data model `physics/line_opacity.py`, 6.6b, replaces them once it is wired), where its own stand-ins are stated. Not stand-ins and so not listed: `LAMBDA_KEPT` (theory: escape speed six times the rms speed, 6^2 x 3/2), `REFERENCE_AGE_GY` (the age the threshold is stated for), `UNLISTED_LIMIT` and the numerical floors.
 
 ### 6.8 Stand-ins of the hours outside in a day (GEN.768)
 
