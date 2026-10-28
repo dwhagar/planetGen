@@ -2907,19 +2907,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxyprisms.neighbourBlock.
   Prerequisites: none. Related: MAP.121, MAP.141.
 
-- [ ] **MAP.331 The purple wireframe cube on the Galaxy Map has no legend entry or label, so nothing says it outlines the charted region (bug)**
-  Found by Core 2 from Boss's screenshots at 5:50 PM EDT 2026-10-28 (as
-  the lane reported), live observation, so a bug: the purple wireframe
-  cube is the charted-region frame of MAP.327 (the 9-sector block the
-  camera looks at, drawn only where it holds a generated sector) and
-  nothing on screen says what it is. Add a legend entry for it and a
-  small name or label on the frame itself, so he can tell what it
-  outlines. Region names are by design not drawn at sector scale (only
-  at the far and mid zooms with a naming key); the card region line is
-  where they show at that scale, no change needed. Owner: Core 2 (quick,
-  after MAP.322 and UX.235).
-  Prerequisites: none. Related: MAP.327, MAP.322, UX.235.
-
 - [ ] **MAP.333 Zoom redesign Z0: fly-tos are no longer clamped to the zone and do not snap back after a region flight; the slider shows absolute log distance over one global range and works in flights; plus, minus, slider and pinch cross levels like the wheel; the wheel never dead-ends (bug)**
   Quick client-side fixes first (size S to M). Boss answered the
   research cards at 6:19 PM EDT 2026-10-28 (1.1 quick fixes then the
@@ -18775,42 +18762,6 @@ clears each one.
   the machine difference. Done: web.system passes on every lane machine
   or the difference is documented. Owner: Bug Hunt.
   Prerequisites: none. Related: TEST.329.
-
-- [ ] **TEST.368 A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug)**
-  Boss, 7:31 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiJaRzue6PziJfwaVKFFgdJZ, relayed by the
-  coordinator), live observation, so a bug: "UX issues. infobox does not
-  scale to the size of the map window. Still difficult to zoom into a
-  region of filled space, I can see it on the map (I skipped the scatter
-  to make it easy) and I can zoom in to a point, but clicking does got
-  to a sector block, which we need to get rid of, this should be about
-  locations, we're putting names of items so the names should be
-  clickable to fly to that location. So get rid of the sector boxes
-  entirely, all visible items we can fit names for get names, if it is
-  too dense each name must not overlap with an adjacent one and must
-  have a buffer to the nearby names, so when names need to be cut, it's
-  on mass / brightness of the object. Need to be able to zoom in far
-  enough to be able to single out even a dense cluster. Also zoom should
-  assume you're headed for the most populated layer currently in front
-  of the zoom direction to avoid going past, as one gets to a
-  sector-level zoom all items should appear from comets, rogue planets,
-  etc etc. Stars that have habitable worlds (Yellow and above) should
-  also be labeled with icons on the map. To help fix the infobox, have
-  the nearest under the location on the system infobox on the map, and
-  each system name of nearest systems should be a link." Boss skipped
-  the scatter to make the filled space easy to see, and the map tests
-  have no dense region to fly into. Build a small fixture galaxy
-  (seeded, a few thousand stars packed in one region with comets, rogue
-  planets, a cluster, systems with and without habitable worlds, no
-  scatter) that the browser tests load, and use it for the tests of
-  MAP.295 to MAP.303. Done: one fixture, one helper that loads it, and a
-  browser test that zooms into its densest region and finds an item
-  there. Part of one chain filed from that message: TEST.368 (fixture
-  galaxy), MAP.295 and MAP.296 (infobox, Core 2), MAP.297 to MAP.303
-  (clicking, labels, zoom, icons; Aux 10). Owner: Aux 10 (Map nodes),
-  first in the chain; Core 2 uses it for MAP.295 and MAP.296.
-  Prerequisites: none. Related: TEST.344, MAP.295, MAP.297, MAP.298,
-  MAP.299, MAP.300, MAP.301.
 
 - [ ] **TEST.380 First live test pass of species, civilizations, polities and territories on a generated galaxy, before the 8.1 stamp**
   Boss, 9:21 PM EDT 2026-10-24 (relayed by the coordinator): "When are

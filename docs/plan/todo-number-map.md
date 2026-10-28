@@ -1935,7 +1935,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.328 | Rendered objects slowly rotate on their axis in every view, and every star does the same wherever stars can be seen (not in the galactic views) | none | open |
 | MAP.329 | System Map stepping reaches systems across a sector's edge | none | open |
 | MAP.330 | Star glow halos grow huge when stars are blurred and cover most of the screen: fade the glow out strongly with halo size and cut it to zero long before that (bug) | none | done, PR #3454 |
-| MAP.331 | The purple wireframe cube on the Galaxy Map has no legend entry or label, so nothing says it outlines the charted region (bug) | none | open |
+| MAP.331 | The purple wireframe cube on the Galaxy Map has no legend entry or label, so nothing says it outlines the charted region (bug) | none | done, PR #3535 |
 | MAP.332 | The Galaxy Map info card (Block 10 1 63 and similar) is cut off at the bottom, so its region line and buttons are hidden below the More row (bug) | none | done, PR #3533 |
 | MAP.333 | Zoom redesign Z0: fly-tos are no longer clamped to the zone and do not snap back after a region flight; the slider shows absolute log distance over one global range and works in flights; plus, minus, slider and pinch cross levels like the wheel; the wheel never dead-ends (bug) | none | open |
 | MAP.334 | Zoom redesign Z1: one global zoom policy, with pace and clearance taken from the distance to the nearest thing; zoom floor 1e-10 pc (1e-12 pc after Z5) | none | open |
@@ -3110,7 +3110,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.365 | Six phenomenon-page tests in test_class_pages.py fail on clean main (bug) | none | done, PR #3142 |
 | TEST.366 | test_memwatch::test_a_step_that_holds_far_more_memory_than_its_budget_fails_the_smoke_run fails on clean main: it counts the host MySQL and returns three rows instead of one (bug) | none | dropped (passes 9 of 9 on main since #3125 changed the memory budgets, Bug 1, 7:20 PM EDT 2026-10-24 as the lane reported) |
 | TEST.367 | Four admin-page tests fail on origin/main: two system-page edit tests and two admin-page redirect tests (bug) | none | done, PR #3291 |
-| TEST.368 | A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug) | none | open |
+| TEST.368 | A fixture galaxy with a dense filled region for the map browser tests: zoom, labels, picking and the system infobox (bug) | none | done, PR #3171 |
 | TEST.369 | test_age_needs (two tests) and test_eta_estimator fail on clean main (bug) | none | done, PR #3155 |
 | TEST.370 | test_web_pages in_process_transport fails: DatabaseLoginError, there is no planetgen database account on the lane machine (bug) | none | done, PR #3293 |
 | TEST.371 | test_workers::a_worker_that_is_killed fails under load and passes alone (bug) | none | done, PR #3291 |
