@@ -34,6 +34,7 @@ const { relativeAt } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
+const Spin = await import(`./spin.js${VERSION_QUERY}`);
 
 const KM_PER_PC = convert(1, "pc", "km");
 const AU_KM = convert(1, "au", "km");
@@ -310,6 +311,8 @@ export function createSystemStage(host) {
     if (!open) return;
     open.clock.tick(nowMs);
     open.built.update(open.clock.years());
+    // MAP.328: the stars and bodies of the system in the sector turn on their axes, by the one law of spin.js.
+    open.built.spin(Spin.tick(nowMs));
     open.built.paintTick();
     syncWorld(open);
     [[selectionRing, open.selected], [hoverRing, open.hovered]].forEach(function (pair) {
@@ -324,6 +327,16 @@ export function createSystemStage(host) {
     close: close,
     update: update,
     setMode: setMode,
+    // MAP.328: the Spin switch's standing preference (spin.js) the map's Menu shows and sets.
+    spinSwitch: { on: Spin.switchedOn, set: Spin.setSwitch },
+    // For the browser tests: each body of the open system as it turns (spin.js's angle, rate and axis, the mesh's rotation).
+    spins: function () {
+      return open ? open.built.entries.map(function (e) {
+        return { ref: e.ref, name: e.name, spinH: e.body.look ? e.body.look.spinH || 0 : 0, angle: Spin.angleAt(e.body.look, Spin.seconds()),
+          rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(),
+          quaternion: open.built.objects[e.ref].quaternion.toArray() };
+      }) : [];
+    },
     deselect: deselect,
     isOpen: function () { return live(); },
     // MAP.152: the system whose scene is up for the camera coming near it, and how much of it shows.
