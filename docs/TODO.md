@@ -13478,22 +13478,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects.
   Prerequisites: none. Related: GEN.441, GEN.778, .
 
-- [ ] **GEN.836 Moon ring hooks and rogue planets use the ring fields: has_ring for moon origin in moon_composition, and rogue planets draw rings**
-  Follow-up from Aux 14 (GEN.732 merged as #3348, as the lane reported
-  4:52 AM EDT 2026-10-25): moons do not use the new ring fields yet
-  (has_ring for a moon's origin in moon_composition is not read) and
-  rogue planets do not draw rings. Do: moon_composition reads the ring
-  fields so a ringed moon is possible where the physics allows it
-  (inside its parent's Roche zone for a captured or disrupted satellite,
-  as the ring law in GEN.732 states), rogue planets draw rings with the
-  same law and no host, each with the inner and outer edge, mass,
-  optical depth and ice share on the property sheet. Done: tests
-  generate moons and rogues across the mass range and check every ring
-  obeys the law; one migration and epoch at merge (--affects fill).
-  Owner: Aux 14 or a free lane. Rules: no backward-compat shims; the
-  generation-merge lock applies.
-  Prerequisites: none. Related: GEN.732, MAP.275, GEN.557.
-
 - [ ] **GEN.838 A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling**
   Split from GEN.735 by Aux 5 (as the lane reported 7:28 AM EDT
   2026-10-28): GEN.735 ships one mantle temperature and zero heat flux
