@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.233 |
+| UX | UX.234 |
 | MAP | MAP.329 |
 | NAV | NAV.65 |
 | GEN | GEN.844 |
@@ -22,7 +22,7 @@ release is stamped.
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.418 |
+| TEST | TEST.419 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -603,7 +603,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.42 | Repair the galaxy from an archive: `repair-db --from-archive` uses the parity part of a backup when the live parity file is missing or damaged | none | open |
 | DB.43 | Reed-Solomon codec in the standard library: planetgen/util/rscodec.py | none | done, PR #2423 |
 | DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | done, PR #2420 |
-| DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | open |
+| DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | done, PR #3414 |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | open |
 | DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | none | open |
 | DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | none | open |
@@ -1911,7 +1911,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.317 | Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c) | none | done, PR #3395 |
 | MAP.318 | Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d) | none | open |
 | MAP.319 | flyToFit: flying to a region, star system, planet system of moons or nebula places the camera so the target fills the window, with no sector boxes drawn (regions chain, step 3b) | none | done, PR #3406 |
-| MAP.320 | Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region | none | open |
+| MAP.320 | Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region | none | done, PR #3415 |
 | MAP.321 | Point-of-interest markers by level: a star carries its best world marker in the star views, the planet or moon carries its own marker at the system level, and regions show inhabited tokens | none | open |
 | MAP.322 | Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e) | none | open |
 | MAP.323 | The legend on the Galaxy Map covers the scale text: stack them so the legend sits above the scale and they never overlap (bug) | none | done, PR #3331 |
@@ -2604,6 +2604,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.230 | The Generate system page options have a valid listbox parent so axe aria-required-parent passes (bug) | none | done, PR #3280 |
 | UX.231 | Sector and object pages say "in Vang Zarh Region" in the at-a-glance block, hidden when the position is in no charted region (regions chain, step 5) | none | open |
 | UX.232 | Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug) | none | open |
+| UX.233 | The Map symbols key on the object pages | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -3127,6 +3128,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.415 | test_cache_warmup::test_a_big_unit_stops_part_way fails on unmodified main (bug) | none | open |
 | TEST.416 | test_habitability_explain fails ten tests on main: the tests still call the surface_content API as it was before GEN.441 (bug) | none | open |
 | TEST.417 | Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug) | none | open |
+| TEST.418 | Seven map browser tests are red on clean main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

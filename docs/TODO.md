@@ -1337,6 +1337,19 @@ with `clamp()`.
   changed --resume.
   Prerequisites: none. Related: UX.150, UX.214, UX.225.
 
+- [ ] **UX.233 The Map symbols key on the object pages**
+  The point-of-interest symbols exist since MAP.320 (Core 4, #3415) with
+  a key partial, templates/partials/poi_key.html (include it with
+  context). Do: show the key on the object pages where a marker is
+  shown, collapsed by default (the page rule: collapsible sections start
+  collapsed) and hidden on a page that shows no marker, using the same
+  seven symbols and score colours as the Galaxy Map key. Done: a page
+  test finds the key on a star system page that carries a
+  habitable-world marker and not on a page without markers, and the key
+  lines match the Galaxy Map key. Owner: Aux 11 (object pages). Version:
+  8.1.
+  Prerequisites: none. Related: MAP.320, MAP.305.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2989,6 +3002,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vector icons per kind (MAP.320) and markers by level (MAP.321); the
   registry, merging of crowded marks and the click that lists the
   reasons stay as written here.
+  Handoff (2026-10-09): Core 4 (MAP.320, #3415, 11:19 AM EDT 2026-10-28
+  as the lane reported): the symbol set exists.
+  src/html/static/poi/*.svg (seven: habitable world, uninhabitable world
+  in brown never red, inhabited world, gas giant, asteroid field,
+  sector, region), static/poiicons.js, web/lib/poi_icons.py; marker
+  kinds take icon instead of glyph (galaxymarkerlayer.js, maplayers.js).
+  What is left for this item is which system or body gets which symbol:
+  the registry, the best-world tier and score on the node worlds payload
+  (needs a habitable_systems column and a migration, which Core 4 did
+  not take), and the menu rows (MAP.306).
 
 - [ ] **MAP.306 The map menu filters points of interest by kind, so habitable worlds, gas giants and other kinds can be pulled forward (bug)**
   Boss, 7:37 PM EDT 2026-10-24 (message
@@ -3302,55 +3325,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: MAP.316. Related: MAP.317, MAP.316, POP.30,
   POP.19.
 
-- [ ] **MAP.320 Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region**
-  Boss, 1:19 AM EDT 2026-10-25 (relayed by the coordinator): "show them
-  with inhabited tokens for POI that is the habitability color, and
-  let's actually make some different POI icons, habitable planets get a
-  vector svg symbol, uninhabitable worlds get a different symbol in
-  brown or grey, doesn't have to be red. Inhabited worlds get their own
-  icon and are colored by the habitability score. Gas giants have their
-  own symbol, asteroid fields should have a POI symbol too, and by
-  habitable worlds and such I'm saying a star with a world like that in
-  the star views but in the star system level, it would be the planet or
-  moon POI that would be on the map." This replaces the earlier rule of
-  one generic mark with no icon per kind (MAP.303, MAP.305, 7:35 PM EDT
-  2026-10-24). Boss, 1:31 AM EDT 2026-10-25: "a sector has its own icon
-  too as do regions have their own icon as well", so seven symbols in
-  all. Do: one small SVG symbol set (a sprite, drawn as vectors,
-  readable at map size in both themes and for colour-blind viewers by
-  shape, with an accessible name per kind): a habitable world (PHI-6
-  Blue, Green, and Yellow where the star already counts), an
-  uninhabitable world in brown or grey (not red), an inhabited world
-  with its own symbol coloured by the habitability score and colour (the
-  same palette as the object pages), a gas giant, an asteroid belt or
-  field (a belt includes the asteroid fields; Boss, 1:32 AM EDT
-  2026-10-25), a sector, and a region (the last two are the icons for
-  those map nodes and their list rows and menu rows, so a region's token
-  in the charted-regions list of MAP.316 and a sector's on the Sector
-  Map read as what they are). The point-of-interest registry of MAP.305
-  keeps merging crowded marks into one with a count; the merged mark
-  shows the strongest kind's symbol. The menu rows of MAP.306 carry the
-  same symbols. Done: a browser test per kind (seven) finds its symbol,
-  the inhabited one in the habitability colour, the uninhabitable one in
-  brown or grey and never red, in light and dark, and the accessible
-  names exist. Files: one SVG each in static/poi/ (static/poi/*.svg),
-  drawn at a fixed pixel size with the colour set by a CSS variable; the
-  colours come from the one habitability palette the object pages
-  already use (describe/), with new brown and grey tokens added there
-  and a colour-blind-safe check (the habitability colours differ in
-  lightness from brown and grey); a legend that names every token, in
-  the map menu and on the object pages; the existing tokens (black hole,
-  neutron star, quasar, nebula) are unchanged. The best world's token
-  and habitability score ride the existing node worlds payload
-  (MAP.220), no new endpoint (design section 0.3). Owner: Core 4 (Boss,
-  1:45 AM EDT 2026-10-25: Core 4 takes the icons once its current item
-  is done), moved from Aux 10 (the legend on the object pages with Aux
-  11). Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); tests are scripts/test.py changed --resume; no fixed
-  content from the Milky Way or the Solar System.
-  Prerequisites: MAP.305. Related: MAP.303, MAP.305, MAP.306, MAP.311,
-  MAP.312, MAP.316.
-
 - [ ] **MAP.321 Point-of-interest markers by level: a star carries its best world marker in the star views, the planet or moon carries its own marker at the system level, and regions show inhabited tokens**
   Boss, 1:19 AM EDT 2026-10-25 (relayed by the coordinator): "show them
   with inhabited tokens for POI that is the habitability color, and
@@ -3389,8 +3363,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2. Rules: no backward-compat shims; every number has a unit or scale
   (GEN.772); tests are scripts/test.py changed --resume; no fixed
   content from the Milky Way or the Solar System.
-  Prerequisites: MAP.320, MAP.316. Related: MAP.320, MAP.305, MAP.311,
+  Prerequisites: MAP.316. Related: MAP.320, MAP.305, MAP.311,
   MAP.312, MAP.316, MAP.317.
+  Handoff (2026-10-09): Unblocked on MAP.320 (Core 4, #3415, 11:19 AM
+  EDT 2026-10-28 as the lane reported): the symbols to use are in
+  static/poiicons.js and web/lib/poi_icons.py; MAP.316 (Aux 10) and
+  MAP.305 (registry) are the remaining waits.
 
 - [ ] **MAP.322 Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e)**
   Boss, 1:20 AM EDT 2026-10-25 (relayed by the coordinator): "inside the
@@ -15788,7 +15766,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.45, DB.46, DB.47, DB.48.
+  Prerequisites: DB.46, DB.47, DB.48.
   Design: [docs/design/generation/reproducible-galaxies.md](design/generation/reproducible-galaxies.md)
 
 - [ ] **DB.17 Repair by regenerating a damaged sector from its seed when parity cannot rebuild it**
@@ -15935,30 +15913,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   damage a healthy sector.
   Prerequisites: DB.41, DB.9, DB.17. Related: DB.9, DB.17, ADM.91.
 
-- [ ] **DB.45 Storage checksum and the dirty flag: the export, the checksum and every writer**
-  Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). Compute the sector's storage checksum
-  as SHA-256 over a lossless, id-preserving dump of its stored rows,
-  read back after the write, leaving out the columns the daily orbit
-  update rewrites (phases, positions, velocities, reflex offsets, binary
-  positions, comet anomalies, a placed object's `sector_id`; list in
-  design section 5.2). Every writer of exported columns sets
-  `parity_dirty` in its own transaction: the direct UPDATEs in
-  `db/store.py` (names, positions, velocity), `api/edits.py` and
-  `db/edits.py`; finding every writer is part of this item. DB.8's check
-  reads the checksum and reports a dirty sector as "unprotected", not
-  damaged. Why: the parity file can only be correct if a changed row is
-  always noticed. Done: the export and checksum, every writer marked,
-  and tests: each writer sets the flag; an orbit update does not change
-  the checksum; a flipped stored value is reported as damage and a dirty
-  sector as unprotected.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Research (2026-10-09, 10-24 lane 4): Lane 4 takes this next (12:21 PM
-  EDT 2026-10-24 as the lane asked; nobody had reported starting it).
-  Prerequisites: none. Related: DB.9.
-
 - [ ] **DB.46 The parity file: groups, records, a delta update on every save and the stale-record rule**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). A parity file kept outside the
@@ -15981,7 +15935,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Prerequisites: DB.45. Related: DB.9.
+  Prerequisites: none. Related: DB.9, DB.45.
 
 - [ ] **DB.47 planetgen repair-db: rebuild damaged sectors from the parity file**
   Split from DB.9 (2026-10-16, Boss 1:07 PM EDT: look at each item for
@@ -20615,6 +20569,31 @@ clears each one.
   Owner: Bug 1 after DB.108/GEN.826. Rules: never skip or loosen a test
   to get green; keep the property each test checks. Related: TEST.408.
   Prerequisites: none. Related: TEST.408, TEST.410.
+
+- [ ] **TEST.418 Seven map browser tests are red on clean main (bug)**
+  Found by Core 4 (as the lane reported 11:19 AM EDT 2026-10-28, report
+  core4-map320-report-2026-10-28.md) in a clean worktree at origin/main.
+  In test_web_browser_fixture_maps.py:
+  test_sector_page_map_keeps_to_its_sector,
+  test_wheel_zoom_turns_about_the_centre_and_a_shift_click_chooses_it,
+  test_a_click_in_the_dense_region_selects_a_star_and_never_a_sector_box,
+  test_galaxy_map_black_hole_markers_have_a_toggle_a_legend_line_and_can_be_picked,
+  test_sector_map_click_on_the_selected_nebula_clears_it,
+  test_one_wheel_scroll_runs_from_the_galaxy_to_a_sector_with_no_stop_and_no_swoop;
+  and
+  test_web_browser_maps.py::test_system_map_selection_drill_and_measure
+  (the Nav button and the info panel intercept the click). Do: find
+  which change broke each (the nav pad, MAP.297 or the info panel are
+  the likely ones), fix the code or the test's click target so each
+  still checks its property, and also look at
+  test_web_a11y.py::test_page_is_accessible_and_fits[web.object_page-*],
+  which failed once in a long run with link-in-text-block on the planet
+  page and passes alone (order-dependent). Done: the seven tests pass on
+  main and the a11y test passes in a combined run. Owner: Bug 1 after
+  DB.108/GEN.826, or Core 2 for the ones in the Galaxy Map click paths.
+  Rules: never skip or loosen a test to get green; keep the property
+  each test checks.
+  Prerequisites: none. Related: MAP.209, MAP.210, TEST.414.
 
 ## USR: User accounts
 
