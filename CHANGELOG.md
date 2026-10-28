@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2372] - 2026-10-28
+
+**Headline:** The map browser tests that failed on main (TEST.394, TEST.383) now fit the map as it is: a window that holds the header and the canvas, names kept off the spot a test points at, and the open Menu closed before a click on the map.
+
+### Fixed
+- **Browser tests of the fixture maps and the sector reach failed on main (TEST.394, TEST.383).** The page header grew, so the canvas sat partly below the 600 px window; the window is now 1000 by 800. Since MAP.298 a click or hover on a name label picks the label's item before the star or marker under it, so the tests that point at a star or a marker and are not about names carry the new `names_hidden` marker (registered in `pytest.ini`) and open their maps with `hide=label-system,label-star,label-object`; the sector-reach tests do the same in their address. The black hole test and the kinds test close the Menu before they click, and the dense-region test picks a spot to click on nothing where `elementFromPoint` is the canvas, as the open Menu and the selection's panel cover part of the map. The wheel anchor test measures the focus plane from the field of view instead of a fixed bound, so a wide canvas does not move it. The three fixture sites (`map_site`, `halo_site`, `dense_site`) patched the same API client functions for the whole module, so the site made last answered every later test's pages (a dense region's worlds in a plain test, a halo in a nebula test, which made the module depend on test order); each test now routes the client to its own site and puts it back (`map_site_support._Served.routed`), and the sites run for the whole session. No assertion was loosened.
+TODO items resolved: TEST.394, TEST.383 (TODO closes them after reading this). Added: none.
+
 ## [8.0.2371] - 2026-10-28
 
 **Headline:** The numbers behind young star groups now each say where they came from and how far they were bent.
