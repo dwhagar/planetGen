@@ -216,6 +216,18 @@ class RS:
 
 The codec needs equal-length blocks; callers zero-pad to P first. Parity row j of a group maps to index k + j in `decode`.
 
+### 5.10 Built (DB.46)
+
+The parity file is `planetgen/db/parity_file.py` (the log of records), `planetgen/db/parity.py` (the groups, the updates, the decision table) and `planetgen/db/sector_export.py` (a sector as bytes, and back); the settings are `parity.*` (`enabled`, `dir`, `group_size`, `parity_blocks`), and `planetgen refresh-parity` makes a database current. As built, and where it differs from the sketch above:
+
+- **Records** are as in 5.6, with the full 32-byte storage checksum per member (the checksum DB.45 stores, so the table compares like with like) and a CRC32 (`zlib`) in place of CRC32C, since the CRC only tells a torn write from a whole one and the standard library has no CRC32C. The header scan reads each record's header and member slots and skips its parity bytes; the CRC of the last record only is checked on a scan, and every record read to be used is checked.
+- **Many writers.** Every operation holds an `flock` on the file and first scans what other processes appended, so generation workers saving at once append one record at a time and agree on the groups.
+- **Update order.** The writers mark a sector (DB.45) and commit; after the commit the connection (`Connection.after_commit`, `parity_touch`) calls `protect_sector` for the sectors the transaction marked, which locks the sector's row, exports it, appends the record and seals the sector (stores the checksum, clears the flag). This is the crash order of 5.6 (database first, record second) with the record written after the commit rather than inside the transaction: a transaction that rolls back never leaves a record for rows that do not exist. A crash before the record leaves the flag set; a crash after it leaves the flag set over a current record (`protect_sector` then only clears the flag).
+- **Delta or recompute.** A sector joining a group has no before-image and reads no other sector. A member that changes is updated by delta only when the caller brings a before-image whose checksum is the one in the record; the hooks do not (the database has already overwritten it), so an edit or a deletion makes the group's parity again from the current rows of its members (`G - 1` reads), refusing to do it over a member whose rows fail their stored checksum (that is damage: `MemberUnreadable`, the sector stays marked). A member whose sector is gone is dropped from the group by the same recompute.
+- **Groups** follow 5.6: size class `ceil(log(size / 2000) / log 1.25)`, no member of the group within `W` ids (`W = 256`, `members / 100` for a small galaxy, found through a per-class index of ids in buckets of 256), the fullest qualifying open group first, a new group otherwise; a freed slot is taken by the next sector that qualifies. A group's parity block is cut to its longest member.
+- **The decision table** of 5.6 is `parity.classify` and `parity.member_state`; a sector that is merely marked is `NOT_PROTECTED` or `RECORD_STALE`, never damage.
+- **Not built here:** the rebuild (DB.47: `planetgen repair-db`), the table rebuild (DB.48), and a before-image on the edit paths, which would turn the recompute of an edit into a delta.
+
 ## 6. The check (DB.8)
 
 `planetgen check-db` and the Admin dashboard button (run as a job) report one pass or fail line per check and exit non-zero on damage. The exit code should tell "damaged" from "could not check". `--sector` and `--region` limit the scope; a quick and a `--deep` mode exist because full-table work is slow.

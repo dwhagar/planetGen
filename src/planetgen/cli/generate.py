@@ -51,7 +51,7 @@ from planetgen.cli import benchmark
 from planetgen.cli import checkdb as checkdb_cli, queue as queue_cli, warm as warm_cli
 
 from planetgen.queue import commands as queueCommands, work as workQueue
-from planetgen.db import fingerprint, store
+from planetgen.db import fingerprint, parity, store
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
@@ -1368,6 +1368,39 @@ def run_bring_to_epoch(args):
         sys.exit(1)
 
 
+def add_refresh_parity_arguments(parser):
+    """
+    Adds the `refresh-parity` subcommand's options: `--compact`, `--limit`, and the MySQL connection and logging args.
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    parser.add_argument('--compact', action='store_true',
+                        help="Afterwards rewrite the parity file with only the latest record of each group.")
+    parser.add_argument('--limit', type=int, default=None, metavar='N',
+                        help="Make at most N sectors current (the rest at the next run).")
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
+def run_refresh_parity(args):
+    """`planetgen refresh-parity` (DB.46): makes the parity file of the sector storage current for the whole database
+    (`planetgen.db.parity.refresh`), and with `--compact` rewrites it without its dead space. Exits 1 when a sector could
+    not be protected (a damaged member of its group)."""
+    config = store.mysql_config_from_args(args)
+    conn = store.get_connection(config)
+    try:
+        counts = parity.refresh(conn, limit=args.limit)
+    finally:
+        conn.close()
+    log.normal("Parity: " + (", ".join(f"{count:,} {result}" for result, count in sorted(counts.items())) or "nothing to do") + ".")
+    if args.compact:
+        kept, dropped = parity.compact()
+        log.normal(f"Parity: compacted to {kept:,} group record(s)" + (f", {dropped:,} unreadable dropped." if dropped else "."))
+    if counts.get(parity.UNPROTECTABLE) or counts.get("failed"):
+        sys.exit(1)
+
+
 def build_parser():
     """
     Builds the top-level parser and every subcommand's own subparser.
@@ -1573,6 +1606,15 @@ def build_parser():
                     "the reason. An interrupted run is resumed by running it again.",
         help="Bring a stored galaxy to the running generator epoch.")
     add_bring_to_epoch_arguments(bring_to_epoch_parser)
+    refresh_parity_parser = subparsers.add_parser(
+        'refresh-parity',
+        description="Makes the parity file that can rebuild a damaged sector (settings: parity) current for the whole "
+                    "database: every sector that was marked or never sealed, every sealed sector the file does not hold, "
+                    "and every member of the file whose sector is gone. Saves, edits and deletions keep it current "
+                    "themselves once parity.enabled is on; this builds it for a galaxy that was made before, or catches "
+                    "up after a crash.",
+        help="Make the sector parity file current.")
+    add_refresh_parity_arguments(refresh_parity_parser)
 
     benchmark_parser = subparsers.add_parser(
         'benchmark',
@@ -1645,6 +1687,7 @@ def build_parser():
         'population': population_parser,
         'territories': territories_parser,
         'bring-to-epoch': bring_to_epoch_parser,
+        'refresh-parity': refresh_parity_parser,
         'check-math': check_math_parser,
         'versions': versions_parser,
         'fingerprint': fingerprint_parser,
@@ -1758,7 +1801,8 @@ def run_command_unit(args):
     log.normal(json.dumps(result, sort_keys=True))
 
 
-READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark", "commands", "command-run", "warm", "queue")
+READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark", "commands", "command-run", "warm", "queue",
+                      "refresh-parity")
 """tuple: Subcommands that write nothing generated (`warm` only builds caches), so they aren't logged as runs
 (no activity log lines, job tree node or run history)."""
 
@@ -1805,6 +1849,7 @@ _COMMAND_HANDLERS = {
     'population': run_population.run_population,
     'territories': run_population.run_territories,
     'bring-to-epoch': run_bring_to_epoch,
+    'refresh-parity': run_refresh_parity,
 }
 
 
@@ -1813,7 +1858,7 @@ DATA_CHANGES = {"plan": ("everything",), "scatter": ("everything",), "clear-scat
                 "rescore-habitability": ("everything",), "fill-nebula-blocks": ("everything",), "fill-block-totals": ("everything",),
                 "clean-nebula-field": ("everything",),
                 "population": ("population",), "territories": ("population",),
-                "bring-to-epoch": ("generated", "population")}
+                "bring-to-epoch": ("generated", "population"), "refresh-parity": ()}
 """dict: The kinds of data change (`planetgen.db.dataversion.CHANGES`) a command makes when it is not just
 generation; any other writing command is `generated`."""
 

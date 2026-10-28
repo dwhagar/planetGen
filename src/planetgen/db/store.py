@@ -69,7 +69,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, point_columns, scatter_systems, storage_checksum
+from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
@@ -957,6 +957,11 @@ class Connection:
         current `batched()` scope (a read flushes the held-back INSERTs, so each is read once)."""
         self.orbit_epoch_unix = None
         """int or None: the orbit epoch a binary's tree is stored at, read once inside a `batched()` scope (GEN.311)."""
+        self._after_commit = []
+        """list: Callables run once the transaction has committed (`after_commit`); dropped by a rollback."""
+        self._parity_touched = set()
+        """set: The sector ids this transaction marked `parity_dirty`, for the parity file to catch up after the commit
+        (`parity_touch`); empty when `parity.enabled` is off."""
         self._flagged = set()
         """set: The `(kind, id)` of sectors and systems this transaction has already marked `parity_dirty` for an INSERT
         (DB.45), and the systems it inserted itself (their sector was marked by the INSERT); cleared at commit and rollback."""
@@ -1046,6 +1051,8 @@ class Connection:
                     continue
                 self._flagged.add(key)
                 self._run(storage_checksum.MARK_SECTOR_SQL if kind == "sector" else storage_checksum.MARK_SYSTEM_SQL, (key[1],))
+                self.parity_touch("id = ?" if kind == "sector" else "id = (SELECT sector_id FROM star_systems WHERE id = ?)",
+                                  (key[1],))
 
     def batched(self):
         """
@@ -1226,6 +1233,27 @@ class Connection:
             except pymysql.err.MySQLError:  # a lost session has no setting left to restore
                 pass
 
+    def after_commit(self, callback):
+        """Runs `callback()` once this transaction has committed (never when it rolls back). A callback that raises is
+        logged and the others still run: the transaction is already durable."""
+        self._after_commit.append(callback)
+
+    def parity_touch(self, where, params=()):
+        """
+        Notes the sectors `WHERE where` (with `params`) selects as changed by this transaction, so that once it commits the
+        parity file is brought up to date for them (`parity.protect_sectors`). Does nothing unless `parity.enabled` is on.
+        """
+        if not parity.enabled():
+            return
+        found = {row["id"] for row in self._run(f"SELECT id FROM sectors WHERE {where}", tuple(params)).fetchall()}
+        if found and not self._parity_touched:
+            self._after_commit.append(self._protect_touched)
+        self._parity_touched |= found
+
+    def _protect_touched(self):
+        touched, self._parity_touched = self._parity_touched, set()
+        parity.protect_sectors(self._config, touched)
+
     def commit(self):
         self.flush()
         self._conn.commit()
@@ -1233,6 +1261,12 @@ class Connection:
         self._release_txn_locks()
         if log.debug_log_active():
             log.trace("SQL commit", area="sql")
+        callbacks, self._after_commit = self._after_commit, []
+        for callback in callbacks:
+            try:
+                callback()
+            except Exception as exc:  # noqa: BLE001 -- the transaction is durable; what follows it must not undo that
+                log.error(f"After-commit step failed: {type(exc).__name__}: {exc}")
 
     def rollback(self):
         if log.debug_log_active():
@@ -1241,6 +1275,8 @@ class Connection:
         if self._batch:
             self._batch = {}
         self._flagged.clear()
+        self._after_commit = []
+        self._parity_touched = set()
         try:
             self._conn.rollback()
         finally:
@@ -7117,6 +7153,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
     if address is not None and None not in address:
         record_sector_stats(conn, sector_id, address, (galaxy_position["center_x_pc"], galaxy_position["center_y_pc"],
                                                        galaxy_position["center_z_pc"]))
+    conn.parity_touch("id = ?", (sector_id,))
     return sector_id
 
 

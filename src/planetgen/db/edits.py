@@ -347,6 +347,7 @@ def delete_sector_with_contents(conn, sector_id):
                        " FROM sectors WHERE id = ?", (sector_id,)).fetchone()
     if row is None:
         return None
+    conn.parity_touch("id = ?", (sector_id,))        # DB.46: once this commits, the parity file lets the sector go
     systems = conn.execute("DELETE FROM star_systems WHERE sector_id = ?", (sector_id,)).rowcount
     phenomena = 0
     for table in PHENOMENON_TABLES.values():
