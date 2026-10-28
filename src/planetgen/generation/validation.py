@@ -28,7 +28,7 @@ import math
 from collections import namedtuple
 
 from planetgen.generation import life as planetLife
-from planetgen.physics import constants, orbit_elements, planets as planetPhysics
+from planetgen.physics import constants, orbit_elements, planets as planetPhysics, rings
 from planetgen import tuning
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
 from planetgen.physics import unit_registry as units
@@ -298,6 +298,7 @@ def reconcile_moved_planet(planet, keep_class=False):
         # A new class brings a new radius and mass, and so a new range
         # of stable moon orbits.
         planetPhysics.drop_unstable_moons(planet)
+        rings.apply(planet)  # GEN.732: a new class, a new ring
 
     any_moon_reclassified = False
     for moon in planet.moons:

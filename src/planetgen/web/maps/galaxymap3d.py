@@ -313,6 +313,8 @@ GALAXY_MAP_HELP = """<h3>Moving</h3>
     Esc) goes one step out, Whole galaxy (or Home) starts over, and Re-center puts the camera back to the
     current step's own view.</li>
     <li>Enter flies to the selected object. The keys 1 to 9 open a bookmark while the map has focus.</li>
+    <li>Click a block to zoom in on it; Up zooms out again. A card shows the few facts you navigate by; More under
+    them has the rest.</li>
   </ul>
   <h3>Reading the map</h3>
   <ul>
@@ -712,9 +714,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
      one; Escape or Backspace goes one step back out
      and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view about the center marked in the middle of the map, and the wheel zooms toward what is under the pointer; Shift-click or right-click makes the point you click the new center, Alt and the arrow keys move it, and C centers the view on what is selected."></canvas>
 <div class="starmap-centre" id="galaxymap3d-centre" aria-hidden="true" title="The center the view turns and zooms about"></div>
-<div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 {where_block}{legend_block}
+<div class="map-corner-stack" id="galaxymap3d-corner-stack">
 <div class="map-layer-legend" id="galaxymap3d-layer-legend" hidden></div>
+<div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
+</div>
 <div class="map-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
 <aside class="starmap-info" id="galaxymap3d-info" data-overlay aria-label="Selection">

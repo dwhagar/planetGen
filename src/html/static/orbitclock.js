@@ -16,7 +16,7 @@ const DAY_YEARS = convert(1, "d", "yr");
 
 // Years of scene time per real second at each speed step; the first is real time.
 export const RATES = [
-  { label: "1×", yearsPerSecond: 1 / SECONDS_PER_YEAR },
+  { label: "real time (1×)", yearsPerSecond: 1 / SECONDS_PER_YEAR },
   { label: "1 day/s", yearsPerSecond: DAY_YEARS },
   { label: "1 month/s", yearsPerSecond: 30.44 * DAY_YEARS },
   { label: "1 year/s", yearsPerSecond: 1 },

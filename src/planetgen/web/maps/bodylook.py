@@ -35,6 +35,10 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     lumSolar    a star's luminosity in solar units
     spec        a star's `star_type`
     yerkes      a star's Yerkes luminosity class (V dwarf, III giant, VII white dwarf, ...)
+    spinH       rotation period, hours (MAP.328); left out when none is stored, and the body is drawn still
+    axis        the unit spin axis [x, y, z] in the system's frame, right-handed (a retrograde body's points against its
+                orbit's normal)
+    tiltDeg     axial tilt, 0 to 180 degrees (past 90 the body turns backwards)
 
 The colour tables are stand-ins for hue only (the gap plan registry lists them): the colours are picked to read as
 the thing they are, and they are deliberately not photographs of any one world.
@@ -137,6 +141,22 @@ def _rounded(value, digits):
     return None if value is None else round(float(value), digits)
 
 
+def _put_spin(look, row):
+    """The spin the row stores, for `static/spin.js` (MAP.328): `spinH` (rotation period, hours), `axis` (the unit spin
+    axis, right-handed, in the system's frame) and `tiltDeg` (axial tilt, 0 to 180; past 90 the body turns backwards).
+    A key is left out when the row stores nothing for it; a body with no `spinH` is drawn still, never with a made-up
+    period."""
+    period = row.get("rotation_period_hours")
+    if period is not None and math.isfinite(period) and period > 0:
+        look["spinH"] = float(f"{period:.4g}")
+    axis = [row.get(f"spin_axis_{name}") for name in "xyz"]
+    if all(v is not None and math.isfinite(v) for v in axis):
+        length = math.sqrt(sum(v * v for v in axis))
+        if length > 0:
+            look["axis"] = [round(v / length, 4) for v in axis]
+    _put(look, "tiltDeg", _rounded(row.get("axial_tilt_deg"), 2))
+
+
 def planet_look(planet, kind="planet"):
     """The look record of a planet or moon row."""
     atmosphere = planet.get("atmosphere")
@@ -150,6 +170,7 @@ def planet_look(planet, kind="planet"):
         "quality": "estimate",
     }
     _put(look, "cls", (planet.get("planet_class") or "").upper() or None)
+    _put_spin(look, planet)
     if has_atmosphere:
         look["atm"] = True
         colour = air_colour(planet)
@@ -192,6 +213,7 @@ def star_look(star):
     _put(look, "lumSolar", None if luminosity_w is None else float(f"{luminosity_w / _SOLAR_LUMINOSITY_W:.4g}"))
     _put(look, "radiusKm", _rounded(star.get("radius_km"), 1))
     _put(look, "spec", star.get("star_type"))
+    _put_spin(look, star)
     return look
 
 

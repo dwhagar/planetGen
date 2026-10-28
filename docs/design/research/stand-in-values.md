@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 174 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 183 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 34 | 0 | 3 | 0 | 0 | 37 |
 | T2 | 39 | 0 | 0 | 0 | 0 | 39 |
-| T3 | 35 | 0 | 0 | 5 | 0 | 40 |
-| T4 | 6 | 0 | 0 | 0 | 0 | 6 |
-| T5 | 8 | 3 | 0 | 0 | 0 | 11 |
-| T6 | 19 | 6 | 1 | 2 | 0 | 28 |
+| T3 | 37 | 0 | 1 | 5 | 0 | 43 |
+| T4 | 6 | 0 | 0 | 2 | 0 | 8 |
+| T5 | 9 | 3 | 1 | 0 | 0 | 13 |
+| T6 | 20 | 6 | 1 | 2 | 0 | 29 |
 | T7 | 10 | 2 | 0 | 1 | 0 | 13 |
 | T8 | 0 | 0 | 0 | 0 | 0 | 0 |
-| T9 | 0 | 0 | 0 | 0 | 0 | 0 |
-| All | 151 | 11 | 4 | 8 | 0 | 174 |
+| T9 | 0 | 0 | 0 | 0 | 1 | 1 |
+| All | 155 | 11 | 6 | 10 | 1 | 183 |
 
 ## How the labels were given
 
@@ -103,6 +103,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BC17 | T | T6 | L0 | Al-26 and Fe-60 from supernova and Wolf-Rayet yields with the odds of a nearby massive star from the embedded cluster mass function. | enrichment ratios in a second system fall outside | measured ratios replace the odds |
 | BC18 | T | T7 | L1 | Core light elements from partitioning theory with the mantle redox of 4.8: total mass fraction of the core lognormal, median 0.08, 0.2 dex, clipped 0.02 to 0.20 (Earth's outer core is 5 to 10 percent lighter than iron-nickel; today's code draws 0.03 to 0.12 uniform, physics/bulk_draw.py RANGES, from Hirose et al. 2021); split by Dirichlet(8) over S, Si, O, H with means O = 0.05 + 0.45 s, Si = 0.60 - 0.40 s, S = 0.25, H = 0.05, renormalised, where s = 1 / (1 + exp(-(dIW_core + 2))): more oxidised, more oxygen in metal. | seismic or density deficits for a second body contradict | any measured second body (GEN.777) |
 | BC19 | B | T2 | L0 | DA fraction against effective temperature from the large catalogues reachable through VizieR (DATA job; Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card answers relayed in words by the coordinator): downloaded at build time, tests offline, 6.5). | a larger catalogue changes the fraction outside its errors | the catalogue replaces the bracket |
+| BC20 | T | T6 (kinds), T7 (chance, origin weights) | L0 | A giant's ring is `dusty`, `narrow` or `broad` in the ratio 1 : 2 : 1 (Jupiter; Uranus and Neptune; Saturn; n = 4). A terrestrial or dwarf planet has a ring with probability 0.01 (dusty, narrow). The origin is moon erosion for dust, a disrupted moon for narrow rings, and for a broad ring a disrupted moon or a captured body with equal weight (Canup 2010; Dones 1991; no source weighs them). | a ring census of exoplanets or a second broad ring changes the weights | the census replaces (GEN.732 draws it) |
+| BC21 | T | T5 (limit), T6 (fractions) | L2 | The fluid Roche limit 2.456 R (rho_planet / rho_ring)^(1/3) with the ring's mixture density (ice 917, rock 2500 kg/m3, volume additive); the outer edge is U(0.75, 1.1) of it (Saturn 1.05, Jupiter 0.93, Neptune 0.88, Uranus 0.76: the range just holds the four), held inside 0.95 of the innermost moon; the inner edge U(1.1, 1.7) planet radii (Saturn's D ring 1.11, Uranus's 6 ring 1.64, Neptune's Galle ring 1.7) and below the outer one. | a ring beyond its Roche limit by more than 10 percent, or inside 1.1 radii | a larger ring sample replaces |
+| BC22 | T | T3 (masses), T6 (ranges) | L0 | Log-uniform mass per kind: dusty 1e7 to 1e11 kg (Jupiter's dust 1e7 to 1e9), narrow 1e13 to 1e17 kg (Uranus about 1e16), broad 1e18 to 1e21 kg (Saturn 1.5e19, Iess et al. 2019, recalled), capped at 1e-4 of the planet's mass. The mean optical depth is an output, 3 M / (4 rho r A f), for particles of radius 1 m (10 micrometres for dust) covering a share f of the annulus (1e-3 to 1e-2 for narrow rings). | a measured ring mass outside its kind's range | any measured exoring replaces |
+| BC23 | T | T3 | L0 | A broad ring beyond the snow line is 90 to 99 percent water ice (Saturn, Cuzzi et al. 2018, recalled), a narrow ring 0 to 30 percent (Uranus's and Neptune's are dark, no ice seen); dust and any ring inside the snow line are rock (0). | an icy ring is seen inside the snow line, or a dark ring around a cold giant is ice-rich | spectra of exorings replace |
 
 ## 5.3 Atmosphere
 
@@ -251,7 +255,22 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OH9 | P | T6 | L0 | protection_limits.GARMENTS cooling_w, heating_w | half to double | Body Protection levels 1 to 5 | test_the_hotter_the_afternoon_the_fewer_the_hours_in_the_same_suit | the equipment items of the sheet (UX.199) | design (cooling 100 to 600 W of a cooling vest, a liquid cooling garment and a suit's thermal control, recalled from NASA's EMU at about 586 W; heating 200 to 300 W of a heated suit) |
 | OH10 | P | T6 | L0 | protection_limits.shift_hours, SUPPLY_SHIFT_SHARE | half to double | Air Supply levels 1 to 4 | test_the_supply_hours_follow_the_shift_and_ambient_air_has_none | per-item supply durations in the equipment items (UX.199) | design (a work shift of 8 hours; one charge of the breathing gas lasts a share of it: mask 1, own gas 0.5, mixed gas 0.75, isolated air 1) |
 
-## 6.9 Stand-ins of the orbit elements
+## 6.9 Stand-ins of how a rendered body is drawn
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SP1 | P | T9 | L4 | spin.js FASTEST_SECONDS_PER_TURN 20, SLOWEST_SECONDS_PER_TURN 600, FASTEST_PERIOD_HOURS 2, SLOWEST_PERIOD_HOURS 1000 (seconds per turn on screen = 20 x 30^t, t the log position of the period from 2 h to 1000 h, clamped) | none (a display choice) | every body drawn as a sphere in the system views and on object pages; the galactic views turn nothing | the spin.test.mjs tests of the cap, the floor and the order of speeds | a reader-set speed, if one is ever asked for | design (Boss, 2:48 AM EDT 2026-10-25: rendered objects turn slowly on their axes; the range is fitted so the fastest still shows a turn and the slowest is not stuck) |
+
+## 6.10 Stand-ins of the radius valley
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| RV1 | P | T3 | L2 | radius_valley loss: energy-limited XUV loss with the energy proportional to the bolometric flux (`XUV_ENERGY_J_M2 * F`), no stellar-mass dependence of its own; the mechanism (photoevaporation or core-powered mass loss) is not chosen | `f_env0` 0.035 to 0.08 with `eta` = 10 `f_env0` (the ridge) | hosts of 0.5 to 1.4 solar masses | a measured stellar-mass slope of the valley outside beta -0.17 to 0.00, or a period slope outside -0.10 to -0.14 | a mechanism chosen by a sample of about 5000 planets (Rogers and Owen 2021) | READ (abstracts: Berger et al. 2023 alpha 0.069 +0.019 -0.023, beta -0.046 +0.125 -0.117; Petigura et al. 2022 period slope -0.10 +- 0.03; the 2025 re-analysis arXiv:2503.08347, period slope -0.142 toward core-powered, flux slope 0.136 toward photoevaporation); the sources disagree by axis, so the widest range is kept |
+| RV2 | P | T4 | L3 | radius_valley.CORE_MASS_SIGMA 0.4 (log-normal width of the core mass, in ln units) | 0.3 to 0.5 | the survey of hosts 0.5 to 1.4 solar masses | any width in the band moves a slope by more than 1 sigma; (0.5 with an envelope width of 0.4) puts the period slope 2.1 sigma off | a published width of the core-mass distribution | design (no published width read; swept against the three slopes, test_radius_valley::test_the_widths_leave_the_slopes_within_their_errors) |
+| RV3 | P | T4 | L3 | radius_valley.ENVELOPE_SIGMA 0.6 (log-normal width of the starting envelope fraction, in ln units) | 0.4 to 0.8 | the survey of hosts 0.5 to 1.4 solar masses | as RV2 | a published width of the starting envelopes | design (no published width read; the same sweep as RV2) |
+| RV4 | D | T5 | L0 | radius_valley.mass_slopes_of: the stellar-mass slope beta read off the surveyed valley (0.00 +- 0.02 from the loss as written) | none | hosts of 0.5 to 1.4 solar masses | a stellar-mass dependent XUV energy added to the loss (a real photoevaporation) | a survey that wires it in | COMPUTED (survey of 12000 planets over 18 cells of flux and host mass; core-powered theory predicts beta 0.00, photoevaporation -0.17, Berger et al. 2023) |
+
+## 6.11 Stand-ins of the orbit elements
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|

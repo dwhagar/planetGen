@@ -65,6 +65,32 @@ test("a blob is brighter nearer, never past the cap, and faint far away", () => 
   assert.ok(Math.abs(near.radiusPx - Math.min(G.GLOW_RADIUS_PX[1], 500 * focal / 5000)) < 1e-9);
 });
 
+test("a glow fades as the stars it stands for resolve and is gone when its block fills the screen (MAP.324)", () => {
+  const blob = { x: 0, y: 0, z: 0, luminosity: 1e8, radiusPc: 100, temperatureK: 5000 };
+  const focal = 900;
+  // The camera at a distance that puts the block's radius at the given pixels.
+  const at = (px) => G.glowLook(blob, [0, 0, (blob.radiusPc * focal) / px], focal);
+  const [start, end] = G.GLOW_RESOLVE_PX;
+  const small = at(start * 0.5);
+  assert.ok(small.alpha > 0.9 * G.GLOW_ALPHA_MAX, "an unresolved far glow keeps its strength");
+  const middle = at((start + end) / 2);
+  assert.ok(middle.alpha < small.alpha && middle.alpha > 0, "it fades in between");
+  assert.equal(at(end).alpha, 0);
+  assert.equal(at(end * 4).alpha, 0, "and stays gone at the zooms where the haze flooded the map");
+  let last = Infinity;
+  for (let px = start * 0.5; px <= end * 1.2; px += 20) {
+    const alpha = at(px).alpha;
+    assert.ok(alpha <= last + 1e-12, "never stronger as the block grows");
+    last = alpha;
+  }
+});
+
+test("a glow is never stronger than the cap, and the cap leaves a star's core above it (MAP.324)", () => {
+  assert.ok(G.GLOW_ALPHA_MAX <= 0.4);
+  const blob = { x: 0, y: 0, z: 0, luminosity: 1e12, radiusPc: 10, temperatureK: 5000 };
+  assert.ok(G.glowLook(blob, [0, 0, 100], 900).alpha <= G.GLOW_ALPHA_MAX + 1e-12);
+});
+
 test("a hand-over keeps the light: a parent's share and its children's add up to one", () => {
   const blob = { luminosity: 1000 };
   for (const share of [0, 0.25, 0.5, 1]) {

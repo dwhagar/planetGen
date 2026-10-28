@@ -2,6 +2,122 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2362] - 2026-10-25
+
+**Headline:** The Galaxy Map's unresolved star glow no longer floods the view: it fades out as the stars resolve and never builds up to white.
+
+### Changed
+- **The glow fades as stars resolve (MAP.324).** The soft haze that stands for the light of stars too faint to draw now fades out as its block grows on the screen, and is gone by the time the camera is among that block's own stars (block and sector zoom), so it no longer hides stars, black holes and the selection. From the whole galaxy it looks as before, slightly softer (its strongest is 0.4, was 0.55). The glow switch in the Menu is unchanged.
+- **Overlapping glows no longer add up.** Where glows overlap the stronger one shows, so a crowd of them can never wash the map to white.
+
+## [8.0.2361] - 2026-10-25
+
+**Headline:** `python -m tests.golden_update` now raises the epoch before it writes the golden files, so one run leaves a tree that `test_golden_seed` accepts; a generation merge no longer needs a second run.
+
+### Fixed
+- **`golden_update` wrote the golden files under the old epoch (TEST.404).** A sector's structure carries the epoch it was made under, and the tool ran the rewrite and then raised the epoch, so the first run after a bump left the sector section of `galaxy.json` one epoch behind and `test_golden_seed::test_the_pinned_galaxy_is_made_at_one_worker_and_at_four` failed until a second run. The epoch goes up first (`open_epoch`), the files are written after it, and when no golden file differs from main afterwards the epoch file is put back as it was. `--no-write` now means the files were written after the epoch went up. Three tests run the tool once on a fixture tree: every file carries the new epoch, a run that changes nothing leaves the epochs alone, a second run keeps the epoch and rewrites the files. The golden files are not touched here: the generation-merge lock holder rewrites them with the fixed tool, and one worker and four make the same galaxy (the one-against-four comparison passes; only the comparison with the stale golden failed).
+- **`test_habitability_fill::test_the_command_re_scores_every_system_and_a_second_run_changes_nothing` failed with no `command` on the namespace (TEST.400).** PERF.124 made `validate_fill_args` read `args.command`, which the sub-command parser sets and the test's bare parser did not; the test sets it the way the sub-command parser does.
+TODO items resolved: TEST.400, TEST.404; TEST.399 is cleared when the next generation merge rewrites the golden files with this tool (TODO closes it then). Added: none.
+
+## [8.0.2360] - 2026-10-25
+
+**Headline:** The tuning surveys read the Sun's radius from the one shared constant instead of four typed copies.
+
+### Changed
+- **Four copies of the solar radius are gone (GEN.587, a further file group).** The Kepler recovery, radius valley, mass-radius
+  sample and JWST selection modules now take `SOLAR_RADIUS_M` from `physics/constants.py`. The values are bit-identical, so no
+  generated output changes and no epoch is taken. The map script keeps its own literal on purpose (it runs without the package).
+
+## [8.0.2359] - 2026-10-25
+
+**Headline:** Planets have rings: a giant always has a ring system, with its edges, mass, optical depth and ice drawn from the Roche limit, its moons and the snow line.
+
+### Changed
+- **Rings exist as data (GEN.732, schema v160).** `planets` and `moons` keep `ring_kind` (`dusty`, `narrow` or `broad`), `ring_origin`, `ring_inner_km`, `ring_outer_km`, `ring_mass_kg`, `ring_optical_depth` and `ring_ice_fraction`; a body with no ring, every moon and a row made before the migration hold NULL. `planetgen.physics.rings` draws the system after the moons and the snow line are final: the outer edge is a share of the fluid Roche limit of the ring's own material (the four giants of the Solar System fit the range) and stays inside the innermost moon, the inner edge is 1.1 to 1.7 planet radii, the mass is log-uniform per kind, the optical depth follows from the mass, the area and the particle size, and a broad ring beyond the snow line keeps its ice. A giant always has some ring; a terrestrial or dwarf planet has one with probability 0.01. A planet regenerated as another class draws its ring again. The property sheet shows the new rows.
+- **Every number is a labelled stand-in.** The gap plan registry has rows BC20 to BC23 (kind weights, extent, mass, ice share) with their source tier, tweak level and what replaces them; `docs/design/composition/planetary-rings.md` describes the model.
+
+generation-output: changed
+
+## [8.0.2358] - 2026-10-25
+
+**Headline:** A comet's eccentricity and the 3D system view's time speed now say what the number is.
+
+### Changed
+- **Map numbers carry their meaning (UX.210).** A scan of every map infobox, label, legend, tooltip and scale bar found two numbers shown bare. A comet's orbit infobox printed Eccentricity as just 0.0167; it now reads "0.0167 (a ratio: 0 is a circle, 1 is a parabola)". The 3D system view's time-speed readout showed only "1×"; it now reads "Time: real time (1×)" (and "Time: 1 day/s" and so on for the faster rates). Every other map surface already gave its numbers a unit, a noun or a range (positions in pc, distances in AU or km, densities as "× local average", [Fe/H] in dex, counts under their noun).
+
+TODO items resolved: UX.210. Added: none.
+
+## [8.0.2357] - 2026-10-25
+
+**Headline:** Scrolling in on the Galaxy Map now carries all the way from the whole galaxy into a star's system.
+
+### Changed
+- **The wheel no longer stops short of the star (MAP.326).** Scrolling in from the whole galaxy handed over from stage to stage and opened the sector, then stopped about half a parsec from the star and would not go closer, so the star's system never opened (from a sector you had centred on the star it already worked). How near the camera may come was judged from the middle of the view, which can be a sector's width from the star you are pointing at; it is now judged from the point under the pointer, and the star the last wheel tick opens is the one under the pointer. The wheel carries from the galaxy to a single star's system, a pair's and a planet with moons as one scroll with no page load, and back out the same way.
+
+TODO items resolved: MAP.326. Added: none.
+
+## [8.0.2356] - 2026-10-25
+
+**Headline:** The radius valley is now checked against how it shifts with the star's mass and brightness, and its open choices are recorded.
+
+### Changed
+- **The radius-valley survey fits the valley against flux and host mass (GEN.722).** Hosts of 0.5 to 1.4 solar masses are surveyed
+  and the valley fitted as `log R = c + alpha log F + beta log M*`, the form Berger et al. 2023 measured (alpha 0.069, beta -0.046
+  +- 0.12). The loss as written gives alpha 0.07 and beta 0.00, so it needed no change; two new tuning targets pin both numbers.
+- **The mechanism is left open, on purpose.** The sources split by axis (the period slope leans core-powered mass loss, the flux slope
+  leans photoevaporation), so both predictions are recorded and the loss stays a labelled stand-in. The core-mass width (0.4) and
+  the starting-envelope width (0.6) are swept and kept, with the band in which the three slopes hold. Four rows (RV1 to RV4) are in
+  the stand-in registry with their source tier and tweak level.
+
+## [8.0.2355] - 2026-10-25
+
+**Headline:** Every rocky planet and moon now has a stored ground: the minerals, ices and ocean that cover its surface.
+
+### Added
+- **The surface composition is drawn and stored (GEN.441, second slice).** After the hydrosphere, `surface_composition.generate_surface` gives each rocky planet and moon `ground_type`, `ground_grain` and the areal share of each ground type (ocean, ice, ultramafic, anorthositic, basaltic, felsic, clay, oxidised, metal, carbon, evaporite, sulfur), which add up to 1 (schema 159, migration 0159; NULL for a giant and for rows saved before). It reads the bulk fractions of GEN.428, the hydrosphere's cover, the surface temperature and the air: ices stand only where the temperature and the air let them, clay only where liquid water stood, oxidised ground only under free oxygen, felsic ground only with plate tectonics.
+
+### Changed
+- **The ground dose reads the stored ground.** The gamma and radon dose used a basaltic crust with a drawn felsic share (`RADIOGENIC_FELSIC_FRACTION_MAX`, `radiogenic.SURFACE_RESERVOIRS`, both gone); it now reads the area-weighted K, Th and U of the body's own ground (`surface_composition.land_rock_ppm`), so an ultramafic world has a lower ground dose than a basaltic one and a granitoid one a higher.
+This changes the generated output (generator epoch 108): the ground dose and the stream after the hydrosphere move for every rocky body.
+
+generation-output: changed
+
+## [8.0.2354] - 2026-10-25
+
+**Headline:** Planets, moons and stars in the system views now turn slowly on their own axes, each at a rate that follows its real day.
+
+### Changed
+- **Bodies turn on their axes (MAP.328).** On the System Map (the spheres drawn under the diagram) and in the 3D system view, every planet, moon and star that has a stored rotation period turns about its own axis: the axis is the stored one in the 3D view and the stored axial tilt in the flat picture, and a body whose tilt is past 90 degrees turns the other way. The speed follows the real day through one rule for every body: the fastest day shows one turn in 20 seconds and nothing is faster, the slowest shows one in 10 minutes and nothing is slower, and a longer day is never faster than a shorter one. Before, every sphere turned at the same fixed rate. A body with no stored period stays still. A new **Spin** button in the System Map's Menu (kept for next time) and the browser's reduced-motion setting hold every body still. The galactic views turn nothing. The turning function is one shared module, `spin.js`, which the Sector Map's stars and the object pages will use too.
+
+TODO items resolved: none (MAP.328 stays open for the Sector Map stars and the object pages). Added: none.
+
+## [8.0.2353] - 2026-10-25
+
+**Headline:** The Galaxy Map's info card is set at a reading size with its details under a More fold, and the layer legend no longer covers the scale.
+
+### Changed
+- **The legend sits above the scale (MAP.323).** On the Galaxy and Sector Maps the layer legend and the scale line are now one stack in the lower left corner, the legend above the scale, so the legend can no longer hide the scale text however many legend lines there are or however narrow the window.
+- **The info card reads at a normal size and says less up front (MAP.325).** The card's text is back to a reading size (it shrinks only a little, never below 90 percent, before it scrolls), on a darker see-through background. Each card now shows the few facts you navigate by (a block: its sectors, how many are charted, its distance from the core; a system: its type and where it is) and puts the rest (a block's shells, row, wedge, centre and depth; a star's less used figures) under a **More** line that starts closed. The card keeps clear of the zoom controls in the lower right corner, and a short line in the Menu help tells how to zoom into a block.
+
+TODO items resolved: MAP.323, MAP.325. Added: none.
+
+## [8.0.2352] - 2026-10-25
+
+**Headline:** The route fuzz test no longer expects a redirect from the queue run's log download, which has answered 403 to a signed-out visitor since SEC.36.
+
+### Fixed
+- **`test_fuzz_web_routes.py::test_admin_pages_bounce_anonymous_visitors` failed on `/admin/queue/<run>/log` (TEST.396).** SEC.36 made that route answer 403 to a signed-out visitor, as the other admin JSON routes do, because it is a download and not a page (a redirect to the login page would be saved as the log file); `test_api_auth_sweep` holds that, and the fuzz test's list of such routes (`ADMIN_JSON_ENDPOINTS`) was not updated with it. I ran the sweep and not the fuzz test with SEC.36. The route is added to the list.
+TODO items resolved: TEST.396 (TODO closes it after reading this). Added: none.
+
+## [8.0.2351] - 2026-10-25
+
+**Headline:** A planet with moons has its own moon system map: ellipses, the planet at the scale of the orbits, and a True scale switch.
+
+### Changed
+- **The moon system map is drawn to scale (MAP.308).** Clicking a planet that has moons (or the new "moon system map" link on the planet's page) opens a map of its moons on one linear scale: each moon sits at its stored position on its own orbit's ellipse (worked out from its stored position and speed, so an eccentric moon's orbit looks eccentric), not on a circle squeezed onto a log scale. The planet is drawn from its look record as before, with its air glow. Bodies are small against their orbits, so the map draws the planet and every moon larger than true by one factor (the planet 14 to 40 pixels across and never closer than 40 percent of the way to the nearest moon) and says "Orbits to scale; the planet and moons are drawn N times their true size"; a **True scale** button under the map draws everything at its true size and distance, and **Enlarge bodies** goes back. A planet already large against its moons' orbits gets the one map, at true size. The scene is in the address (`?scene=planet-...`), so the map has a link of its own. A planet without moons has no such map and its page does not offer one.
+
+TODO items resolved: MAP.308. Added: none.
+
 ## [8.0.2350] - 2026-10-25
 
 **Headline:** The version code stored with a galaxy seed now carries the API version, the database schema and the generator epoch.

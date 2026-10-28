@@ -141,6 +141,21 @@ test("the info panel shows the rows it has a value for, then the actions", () =>
   assert.equal(panelEl.querySelector("p.hint").textContent, "Click another star.");
 });
 
+test("the rows under More start collapsed and only the ones with a value are there (MAP.325)", () => {
+  installDom("http://localhost/");
+  const panelEl = h("aside", {});
+  document.body.append(panelEl, h("span", { "data-bookmark-db": "test" }));
+  const panel = MP.infoPanelOf(panelEl);
+  panel.show({ title: "Block", fields: [["Sectors", "12"]], more: [["Shells", "3 to 4"], ["Row", null], ["Wedge", ""], ["Depth", 0]] });
+  const fold = panelEl.querySelector("details.map-info-more");
+  assert.ok(fold, "a More fold");
+  assert.equal(fold.querySelector("summary").textContent, "More");
+  assert.equal(fold.hasAttribute("open"), false, "collapsed to start");
+  assert.deepEqual(fold.querySelectorAll("dt").map((dt) => dt.textContent), ["Shells", "Depth"]);
+  panel.show({ title: "Plain", fields: [["Sectors", "1"]], more: [["Row", null]] });
+  assert.equal(panelEl.querySelector("details.map-info-more"), null, "no fold when nothing is under it");
+});
+
 test("while a NAV end is picked the panel offers only the pick button", () => {
   installDom("http://localhost/");
   const panelEl = h("aside", {});

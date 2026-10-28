@@ -24,6 +24,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { makeBandTexture, makeGlowMaterial, paintedTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const Spin = await import(`./spin.js${VERSION_QUERY}`);
 const { makeCache, makeQueue, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
 const { paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
@@ -329,6 +330,16 @@ export function buildSystemScene(scene, layout, options) {
 
   update(opts.years || 0);
 
+  // MAP.328: every body that has a stored rotation period turns about its stored axis, to where `spinSeconds` of spin time
+  // (spin.js `tick`) has taken it; one without a period is left where it was. Called by the 3D system view each frame,
+  // not by the Galaxy Map, which draws a system as a point of light.
+  function spin(spinSeconds) {
+    entries.forEach((entry) => {
+      const look = entry.body.look;
+      if (look && look.spinH > 0 && !entry.hidden) Spin.turn(THREE, objects[entry.ref], look, spinSeconds);
+    });
+  }
+
   function trailReach(ref) {
     if (!trails[ref]) return 0;
     const attribute = trails[ref].geometry.attributes.position;
@@ -367,7 +378,7 @@ export function buildSystemScene(scene, layout, options) {
     return far;
   }
 
-  return { group: group, entries: entries, byRef: byRef, objects: objects, update: update, highlight: highlight, paintTick: paintTick,
+  return { group: group, entries: entries, byRef: byRef, objects: objects, update: update, highlight: highlight, paintTick: paintTick, spin: spin,
     moonSystemReach: moonSystemReach, systemReach: systemReach,
     // The look-record texture a body shows now (null: still its flat colour), for tests.
     textureKey: (ref) => objects[ref].userData.textureKey || null,
@@ -650,6 +661,7 @@ export function createSystemView(options) {
     frame = requestAnimationFrame(render);
     if (options.clock) years = options.clock.tick(Date.now());
     built.update(years);
+    built.spin(Spin.tick(now));
     built.paintTick(diameterPx);
     stepFlight(now);
     if (follow.ref && built.byRef[follow.ref] && !flight) {
@@ -694,6 +706,9 @@ export function createSystemView(options) {
     // shows now (null: still its flat colour).
     bodies: () => built.entries.map((e) => ({ ref: e.ref, family: e.body.look ? e.body.look.body : null,
       seed: e.body.look ? e.body.look.seed : null, texture: built.textureKey(e.ref) })),
+    // MAP.328, for the browser tests: how far each body has turned, its rate (radians a second) and its axis.
+    spins: () => built.entries.map((e) => ({ ref: e.ref, angle: Spin.angleAt(e.body.look, Spin.seconds()),
+      rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(), quaternion: built.objects[e.ref].quaternion.toArray() })),
     // The bodies by name, for the screen-reader list.
     list: () => built.entries.map((e) => ({ ref: e.ref, name: e.name, kind: e.kind })),
     camera: camera,

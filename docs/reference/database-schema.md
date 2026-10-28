@@ -1448,6 +1448,8 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `core_mass_earth`, `dilute_core_mass_earth` | DOUBLE | nullable | Added in v154. The compact core's (an ice giant's rock core's) mass and the dilute core's mass, in Earth masses; 0 with none. |
 | `metallization_pressure_gpa`, `helium_depletion` | DOUBLE | nullable | Added in v154. The drawn pressure where hydrogen turns metallic, in GPa, and the molecular envelope's helium share against the natal share (1 with no helium rain). |
 | `has_helium_shell` | BOOLEAN | nullable | Added in v154. Whether a helium-rich shell sits above the metallic envelope. Read with the layers through `planetgen.physics.giant_interior.interior_of`. |
+| `ground_type`, `ground_grain` | VARCHAR(16), VARCHAR(8) | nullable | Added in v159 (GEN.441). The ground type with the largest areal share (`ocean`, `ice` or a rock type: `ultramafic`, `anorthositic`, `basaltic`, `felsic`, `clay`, `oxidised`, `metal`, `carbon`, `evaporite`, `sulfur`) and the grain state (`slab`, `crushed`, `powder`). NULL for a giant and on a row saved before v152. |
+| `ground_ocean_fraction`, `ground_ice_fraction`, `ground_ultramafic_fraction`, `ground_anorthositic_fraction`, `ground_basaltic_fraction`, `ground_felsic_fraction`, `ground_clay_fraction`, `ground_oxidised_fraction`, `ground_metal_fraction`, `ground_carbon_fraction`, `ground_evaporite_fraction`, `ground_sulfur_fraction` | DOUBLE | nullable | Added in v152. The areal share of the surface that is each ground type; the twelve add up to 1. The minerals, ices and ocean they stand for are rows of the materials table ([surface-composition.md](../design/composition/surface-composition.md)). |
 
 | `bond_albedo`, `greenhouse_factor` | DOUBLE | nullable | Added in v142 (GEN.412). The two draws the surface temperature is made of: the Bond albedo A and the greenhouse quantity G, with T_e = ((1 - A) S / (4 sigma))^(1/4) and T_s = T_e (1 + G)^(1/4) (S the starlight at the orbit; a moon's is its planet's; never below 2.725 K). G is 0 for a body with no air. |
 | `albedo_basis` | TINYINT UNSIGNED | nullable | Added in v142 (GEN.412). Where the two came from: 0 recorded at generation, 1 the exact inverse of a row saved without them (from its stored scale height), 2 a seeded draw from the class range where the inverse had no solution. NULL for a row with no temperature or no starlight to work from. |
@@ -2210,6 +2212,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v160 (GEN.732): the ring system of a planet
+
+Migration 0160 adds `ring_kind` (`dusty`, `narrow` or `broad`), `ring_origin` (`moon_erosion`, `disrupted_moon` or `captured_body`), `ring_inner_km`, `ring_outer_km`, `ring_mass_kg`, `ring_optical_depth` (a mean over the area the ring covers) and `ring_ice_fraction` (DOUBLE, nullable) to `planets` and `moons`, after `has_helium_shell`. One summed ring system per body (`planetgen.physics.rings`, `docs/design/composition/planetary-rings.md`); NULL for a body with no ring, for every moon, and for a row made before v157, which gets its rings when the galaxy is regenerated.
+
 ### v158 (GEN.701): the habitability score of a rogue planet
 
 Migration 0158 adds 37 score columns (`phi4` and its six domains, the six tiers, the four life scores, `l_solv`, `l_chem`, `l_ener`, `l_rad`, the fourteen `eq_*` levels with `shelter_column_g_cm2`, and `energy_flux_w_m2`) to `rogue_planets`, at the end of the table (no regional temperatures or hours outside: a rogue planet has no star), and fills them for every terrestrial row from the surface it already holds, by `physics/rogue_habitability.py`, in pages of ids (a row with `phi4` set is done). Nothing is drawn. A gas giant or brown dwarf keeps NULL.
@@ -2237,6 +2243,10 @@ Migration 0153 adds `mantle_eta0_pa_s`, `mantle_activation_kj_mol` and `internal
 ### v152 (GEN.700): the tide heat flow of an icy moon
 
 Migration 0152 adds `tidal_flux_w_m2` (DOUBLE, nullable) to `planets` and `moons`, at the end of each table (a planet has no tide and keeps NULL). The generator drew the tide before and discarded it after thickening or thinning the ice lid; it is now kept and added to the heat flow the chemical energy of the ocean's life reads (`energy_flux_w_m2`, [habitability-index.md](../design/habitability/habitability-index.md) section 8). The forced eccentricity behind a tide is not stored, so a moon saved earlier keeps NULL and its stored energy flux; only a moon generated now has it. One ALTER for each table with no `ALGORITHM=INSTANT` (both have a FULLTEXT index); a column already there is left alone. The version is detected from `planets.tidal_flux_w_m2`.
+### v159 (GEN.441): the surface composition of every planet and moon
+
+Migration 0160 adds to `planets` and `moons`: `ground_type` (VARCHAR(16)), `ground_grain` (VARCHAR(8)) and twelve DOUBLE columns, `ground_<type>_fraction` for `ocean`, `ice`, `ultramafic`, `anorthositic`, `basaltic`, `felsic`, `clay`, `oxidised`, `metal`, `carbon`, `evaporite` and `sulfur`, all nullable, each at the end of the table. Nothing is backfilled: a ground needs the draws of the generator epoch, so a row made before the revision keeps NULL and the regenerated galaxy replaces it. A stopped run can be started again (a column already there is skipped).
+
 ### v151 (GEN.461): the pressure under the water layer
 
 Migration 0151 adds `water_base_pressure_pa` (DOUBLE, nullable) at the end of `planets` and `moons`: the pressure at the bottom of the water over the covered area, Pa. A row made before v151 has NULL there and keeps its water-equivalent `ocean_depth_km`, `ice_shell_km` and `hp_ice_km`; from v151 those are the real, compressed kilometres (746 km, not 1047 km, for a tenth of an Earth mass of water on an Earth mass). The generator epoch marks the old rows. Nothing is backfilled.

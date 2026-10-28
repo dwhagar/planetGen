@@ -39,6 +39,7 @@ import statistics
 from dataclasses import dataclass
 
 from planetgen.generation import tuning_harness
+from planetgen.physics import constants as physical_constants
 from planetgen.physics import elements
 from planetgen.physics.elements import DataError
 from planetgen.util import draw
@@ -50,7 +51,7 @@ MODEL_ID = "mass-radius-sample"
 """str: The id of the selection model in `tuning_harness.SELECTION_MODEL_ITEMS`."""
 
 R_EARTH_KM = 6371.0
-R_SUN_KM = 695700.0
+R_SUN_KM = physical_constants.SOLAR_RADIUS_M / 1000
 R_EARTH_CM = 6.371e8
 M_EARTH_G = 5.972e27
 

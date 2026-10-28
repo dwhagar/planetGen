@@ -233,9 +233,9 @@ function showPlacedInfo(entry) {
       ["Systems", entry.system_count != null ? entry.system_count : 0],
       ["Density", relativeDensity != null ? relativeDensity.toFixed(2) + "× local average" : null],
       ["Distance from core", entry.galactic_radius_pc != null ? Math.round(entry.galactic_radius_pc) + " pc" : null],
-      ["Address", entry.shell_index != null ? formatAddress(entry.shell_index, entry.band_index, entry.wedge_index) : null],
       ["Designation", entry.designation],
     ],
+    more: [["Address", entry.shell_index != null ? formatAddress(entry.shell_index, entry.band_index, entry.wedge_index) : null]],
     bookmark: sectorBookmark(entry),
     view: sceneData.sectorUrl && entry.id != null ? { href: sectorUrl(entry.id), label: "View sector →" } : null,
     links: entry.id != null ? navPick.nearbyLinks("sector:" + entry.id) : [],
@@ -260,11 +260,14 @@ function longitudeDeg(rad) {
 // The fields every cell's panel gives for its place: where its middle is, how far from the core, and the
 // ranges its edges span (radii, latitudes north of the plane, longitudes).
 function placeFields(b) {
-  var coords = cellCoordinates(b);
-  var c = coords.cartesian;
+  return [["Distance from core", formatDistancePc(cellCoordinates(b).spherical[0])]];
+}
+
+// The rest of a cell's place, behind the card's More (MAP.325): the middle, the depth and the edges' ranges.
+function placeMoreFields(b) {
+  var c = cellCoordinates(b).cartesian;
   var fields = [];
   fields.push(["Center x, y, z", c.map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]);
-  fields.push(["Distance from core", formatDistancePc(coords.spherical[0])]);
   fields.push(["Shell depth", formatDistancePc(b.r1 - b.r0)]);
   fields.push(["Latitude", (90 - (b.c1 * 180) / Math.PI).toFixed(2) + "° to " + (90 - (b.c0 * 180) / Math.PI).toFixed(2) + "°"]);
   fields.push(["Longitude", isFullTurn(b) ? "all the way round"
@@ -280,7 +283,6 @@ function showCellInfo(cell) {
   var b = cell.bounds;
   var a = cell.address;
   var fields = [];
-  fields.push(["Address", formatAddress(a.shell, a.band, a.wedge)]);
   fields.push(["Designation", sectorDesignation(a.shell, a.band, a.wedge)]);
   if (cell.filled != null) {
     fields.push(["Charted", cell.filled > 0 ? "Yes" : "Not yet"]);
@@ -295,6 +297,7 @@ function showCellInfo(cell) {
     fields.push(["Predicted density", cell.density.toFixed(2) + "× local average"]);
   }
   fields = fields.concat(placeFields(b));
+  var more = [["Address", formatAddress(a.shell, a.band, a.wedge)]].concat(placeMoreFields(b));
 
   var corners = document.createElement("details");
   var summary = document.createElement("summary");
@@ -317,24 +320,25 @@ function showCellInfo(cell) {
     : null;
   showInfo({
     title: cell.uncharted ? "Uncharted sector" : "Sector cell",
-    fields: fields, after: isFullTurn(b) ? [] : [corners], generate: generate,
+    fields: fields, more: more, after: isFullTurn(b) ? [] : [corners], generate: generate,
     // NAV.45: the cell's middle, so a sector nothing is generated in can still be asked about.
     links: navPick.nearbyLinks(cellCoordinates(b).cartesian),
   });
 }
 
-// A drill-down block's info (galaxystageview.js): the shells it spans, its
-// row of the shell and its wedge in that row, how many sectors it can hold
-// and how many are generated, where it is, and (`enter`) a button that
-// flies into it. `info.hint` goes under it.
+// A drill-down block's info (galaxystageview.js): its sectors, how many are
+// charted and its distance from the core up front; its shells, row, wedge
+// and where it is under More; and (`enter`) a button that flies into it.
 function showBlockInfo(info, edgePc) {
   var block = info.block;
   var b = drillBlockBounds(block, edgePc);
   var first = block.shell * block.m;
-  var fields = [["Shells", first + "–" + (first + block.m - 1)]];
+  var fields = [];
+  // MAP.325: the card says how big it is, how much is charted and how far it is; where it sits in the shells is behind More.
+  var more = [["Shells", first + "–" + (first + block.m - 1)]];
   var rows = drillBandCount(block.m, block.shell);
-  fields.push(["Row", block.band + " of " + rows + " in its shell (north +)"]);
-  fields.push(["Wedge", block.wedge + " of " + drillWedgeCount(block.m, block.shell, block.band) + " in its row"]);
+  more.push(["Row", block.band + " of " + rows + " in its shell (north +)"]);
+  more.push(["Wedge", block.wedge + " of " + drillWedgeCount(block.m, block.shell, block.band) + " in its row"]);
   if (info.total != null) {
     fields.push(["Sectors", formatNumber(info.total)]);
   }
@@ -343,11 +347,12 @@ function showBlockInfo(info, edgePc) {
       + (info.generated > 0 && info.total > 0 ? " (" + formatShare(info.generated / info.total) + ")" : "")]);
   }
   fields = fields.concat(placeFields(b));
+  more = more.concat(placeMoreFields(b));
   showInfo({
     title: "Block " + block.shell + "·" + block.band + "·" + block.wedge + " (" + block.m + " sectors a side)",
     fields: fields,
+    more: more,
     buttons: info.enter ? [{ label: "Fly into this block →", onClick: info.enter }] : [],
-    hint: info.hint,
   });
 }
 
@@ -423,9 +428,9 @@ function showCloudInfo(cloud) {
       ["Type", cloudTypeLabel(cloud)],
       ["Class", cloud.class],
       ["Radius", formatDistancePc(cloud.radius_pc)],
-      ["Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(cloud.x, cloud.y, cloud.z))],
     ],
+    more: [["Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   }, phenomenonActions(cloud)));
 }
 
@@ -463,9 +468,9 @@ function showPointInfo(point) {
       ["Type", pointTypeLabel(point)],
       ["Luminosity", formatLuminositySol(point.luminosity_sol)],
     ].concat(point.mass_solar != null ? [["Mass", formatMassSolar(point.mass_solar)]] : [], [
-      ["Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
     ]),
+    more: [["Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   }, phenomenonActions(point)));
 }
 
@@ -531,9 +536,9 @@ function showHabitableSystemInfo(system) {
     title: system.name || "Star system",
     fields: [
       ["Habitable worlds", String(system.worlds)],
-      ["Position x, y, z", [system.x, system.y, system.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(system.x, system.y, system.z))],
     ],
+    more: [["Position x, y, z", [system.x, system.y, system.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   };
   var nearest = nearestSystemsNode(system.id);
   if (nearest) {
@@ -555,9 +560,9 @@ function showStarInfo(star) {
       ["Luminosity", formatLuminositySol(star.luminosity_sol)],
       ["Temperature", star.temperature_k != null ? formatNumber(star.temperature_k) + " K" : null],
       ["Class", star.star_type || null],
-      ["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z))],
     ],
+    more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   };
   if (star.system_id != null && sceneData.systemUrl) {
     spec.view = { href: String(sceneData.systemUrl).replace("{id}", encodeURIComponent(star.system_id)), label: "View system →" };
@@ -572,9 +577,9 @@ function showHaloStarInfo(star) {
       ["Luminosity", formatLuminositySol(star.luminosity_sol)],
       ["Temperature", star.temperature_k != null ? formatNumber(star.temperature_k) + " K" : null],
       ["Class", star.star_type || null],
-      ["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(star.x, star.y, star.z))],
     ],
+    more: [["Position x, y, z", [star.x, star.y, star.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]],
   });
 }
 
