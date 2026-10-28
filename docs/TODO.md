@@ -11843,20 +11843,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (pool). Not needed for 8.1: Boss may pull it forward.
   Prerequisites: none. Related: GEN.403, GEN.387, GEN.531, GEN.297.
 
-- [ ] **GEN.637 Re-run the GEN.625 1,000-seed all-Auto sweep on main after GEN.624 and GEN.403 (#2638)**
-  Recorded by the TODO thread from Bugfix 2's handoff (7:56 AM EDT
-  2026-10-23 as the lane reported) and the coordinator's relay. GEN.625
-  (#2627, epoch 55) was measured over 1,000 seeds: the grid warning rate
-  went from 17.5 percent to 0, mean mass 4.3e9, mean disc scale length
-  1,224 pc. Its note says the sweep is re-run after GEN.624 and GEN.403,
-  which merged in #2638 (epoch 57); that re-run has not been done by any
-  lane. Do: run the same 1,000-seed all-Auto sweep on main and report
-  the warning rate, mean mass and mean scale length against the numbers
-  above. Done: the rate is still 0 and the means are within the earlier
-  spread, or what moved is filed as an item. Owner: Core 1 (ran the
-  GEN.625 measurement; proposed by the TODO thread).
-  Prerequisites: none. Related: GEN.625, GEN.624, GEN.403.
-
 - [ ] **GEN.640 GEN.316 part (c): delete BinaryStarProxy, WideBinaryPair and the writers of the binary_* columns, once circumbinary and S-type planets come from the tree**
   Split from GEN.631 (Core 3's re-cut, relayed 2:20 PM EDT 2026-10-23 as
   the lane reported; TODO thread agreed). BinaryStarProxy and
