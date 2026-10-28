@@ -873,7 +873,7 @@ def get_object_children(db, ref, limit=None, after=None):
     return _request(f"/objects/{ref}/children", {"db": db, "limit": limit, "after": after})
 
 
-def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
+def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `db.query.search`'s docstring for the full shape.
@@ -896,6 +896,8 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
             `<panel>_offset`, one page per result panel.
         panels (iterable, optional): Run just these result panels; an empty one runs none, which still answers
             the facets and the name suggestions.
+        sorts (dict, optional): `{"planet", "moon"} -> sort key` (`-` in front for the best first), sent as
+            `planet_sort`/`moon_sort` (UX.214).
     """
     _require_db(db)
     pairs = [("db", db)]
@@ -914,6 +916,9 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
         pairs.append(("limit", limit))
     for panel, offset in (offsets or {}).items():
         pairs.append((f"{panel}_offset", offset))
+    for entity, sort in (sorts or {}).items():
+        if sort:
+            pairs.append((f"{entity}_sort", sort))
     if panels is not None:
         pairs.append(("panels", ",".join(panels) or "none"))
     return _request("/search", pairs)
