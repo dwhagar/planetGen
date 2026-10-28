@@ -112,7 +112,13 @@ everywhere, which was half the real halo at the Sun and 200 to 340,000 times too
 0.19% of the local density at the Sun and 3e-9 at 262 kpc, and no cell beyond 8.7 kpc from the center expects more than
 about 0.01 systems from it. The alternative normalisation to the local density (Juric et al. 2008, 0.5%, about 2.7 times
 higher) is `tuning.HALO_LOCAL_DENSITY_FRACTION`; `density.halo_local_density_scale` gives the factor. The outline
-(`galaxy/skeleton.py`) reads the disk and bulge only, so the halo adds no cell to it.
+(`galaxy/skeleton.py`) reads the disk, the bulge and the components (the clusters and satellites of `galaxy_components`,
+added to the bound by `ComponentField.bound`, GEN.160 and GEN.237) but not the halo, so the halo adds no cell to it. The
+halo still fills every cell of the reach: a cell outside the outline is generated from its own density, halo term
+included, and its sector profile says `halo` (`galaxy/profile.py`, GEN.235; see
+[intergalactic-and-halo-contents.md](intergalactic-and-halo-contents.md) section 5.3). The halo is the `halo` entry of the
+profile's `mix`, with the age window of the halo population (`tuning.STELLAR_POPULATION_AGE_RANGES_GY["halo"]`) and its [Fe/H]
+(`metallicity.halo_mean_fe_h`, `tuning.METALLICITY_HALO`).
 
 ## 2. The shape (`planetgen plan`)
 
