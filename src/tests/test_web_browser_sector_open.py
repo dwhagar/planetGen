@@ -13,6 +13,8 @@ Runs against `test_web_a11y.py`'s small generated database like
 `test_web_browser_maps.py`; skipped without Playwright, Chromium or MySQL.
 """
 
+from urllib.parse import parse_qs, urlparse
+
 import pytest
 
 sync_api = pytest.importorskip("playwright.sync_api")
@@ -201,7 +203,10 @@ def _picks_a_star(page, points):
 def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page, base_url, sample_params, site_app):
     """MAP.209: the wheel run in on a charted sector (the flight playing) opens it in place: the document is the same one
     (no reload), the address changes once to `?sector=...&open=1` and stays, the panel never goes empty and ends
-    describing the opened sector."""
+    describing the opened sector. The sector that opens is the nearest charted one the camera comes up to (MAP.152): the
+    sample database charts sectors side by side at the core, and on a run where the view eases a little off the aimed
+    centre the camera comes up to a neighbour, so the test holds the panel and the address to the sector that opened
+    (TEST.419), not to the one aimed at."""
     page = moving_page
     sector_id = sample_params["sector_id"]
     detail = _sector(site_app, sector_id)
@@ -225,11 +230,13 @@ def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page
         raise AssertionError(f"{WHEEL_TRIES} wheel ticks at the sector's centre did not open it: {page.url}")
     _settled(page, point)
     assert page.evaluate("window.__sameDocument") is True, "the page reloaded while the sector opened"
-    assert page.url.endswith(f"?sector={code}&open=1"), page.url
+    opened = parse_qs(urlparse(page.url).query).get("sector", [None])[0]
+    assert opened and page.url.endswith(f"?sector={opened}&open=1"), page.url
+    opened_detail = detail if opened == code else _sector(site_app, opened)
     panel = page.evaluate("window.__panel")
     assert all(text for _query, text in panel if text is not None), f"the panel went empty: {panel}"
     heading = page.locator(f"{INFO} h3").inner_text()
-    assert heading == detail["name"], heading
+    assert heading == opened_detail["name"], (heading, opened, code)
     assert page.locator(INFO).inner_text().strip(), "the panel is empty"
     assert any(page.eval_on_selector_all(f"{INFO} a", "els => els.map(e => e.textContent)")), "the panel offers no link"
 
