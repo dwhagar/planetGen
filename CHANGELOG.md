@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2415] - 2026-10-28
+
+**Headline:** Seventeen tests that failed on main (TEST.416, TEST.421, GEN.847) now fit the ground dose and the habitable-world scores as they are; the generator itself was right.
+
+### Fixed
+- **Ground dose tests failed on main (GEN.847, TEST.416).** `radiation.ground_dose_msv_yr` has taken the `(K, Th, U)` ppm of the ground's rock since GEN.441, and the generator passes it exactly that (`radiation._ground_dose`, `rogue_habitability.values`); `tests/test_habitability_explain.py` still passed the old felsic fraction, 0.3, so ten tests (and one in `test_habitability_world`) failed with "float object is not iterable". The tests now pass the upper continental crust's `(K, Th, U)`. A new test in `test_radiation.py` runs a real generated world through `generate_dose` on felsic and on ultramafic ground and checks that the dose is finite and larger on the felsic rock. No generated value changes.
+- **Habitable-count tests could not find a Green world (TEST.421).** `test_migration_habitable_worlds._fill_one_sector` searched 120 seeds for a drawn world that scores Green, which the generator no longer produces in that search; it now stores the scores itself (one planet Green, the rest Red), so the counts, the blocks above and the v135 migration are tested whatever the generator draws. No assertion was loosened.
+TODO items resolved: GEN.847, TEST.416, TEST.421 (TODO closes them after reading this). Added: none.
+
 ## [8.0.2414] - 2026-10-28
 
 **Headline:** The map now keeps the total mass of every generated sector, block and named region, so a region can be told apart by how much matter it holds.
