@@ -7984,52 +7984,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wired in (that rides lane I's GEN.411, which takes the epoch), so no
   generated value moves. Opacities are labelled stand-ins until GEN.703
   (lane E). The item stays open for the wiring step.
-- [ ] **GEN.430 The planet and moon descriptions state the composition from the stored fractions**
-  Boss (2026-10-16, 11:49 PM EDT): "did we get results on if the system
-  stores the composition of a body and that composition drives the mass
-  calculations and density calculations for gravity and such?" Answer
-  (read-only trace,
-  /mnt/project-files/reports/composition-density-link-2026-10-17.md,
-  main at 8.0.1635): no. `planet.composition` is one fixed text string
-  per class (`physics/planets.py` 481) and no rock, ice, metal or gas
-  fractions exist; the bulk density is a uniform draw per class (500:
-  3.93 to 5.51 g/cm3 for the rocky classes, class D "frozen hydrocarbons
-  and ice" 3.93 to 5.37, class S 6.38 to 9.45), the mass follows from
-  radius and density (528) and the gravity from those; giants take mass
-  and radius from a mass-radius relation (534-557). The chain below
-  makes the composition the cause. The description layer writes the
-  composition sentence from the stored fractions and the materials table
-  (for example the metal, rock, water and gas shares) instead of the
-  class text, and never names a material the body does not hold. Done: a
-  test generates bodies of every class and checks that every material
-  named in the text is in the stored fractions above a stated share and
-  that the shares quoted equal the stored ones.
-  Owner: Core 4 (proposed by the TODO thread, the same planet generation code as the atmosphere items Boss gave it; to be confirmed).
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 4
-  held it before; this replaces any earlier owner line).
-  Prerequisites: none. Related: GEN.415, GEN.218,
-  GEN.208.
-  Section 14.6 of the Body composition research lane's note
-  (docs/design/composition/body-composition-research.md; 2026-10-17, 1:48 AM EDT as
-  the lane reported), on Boss's shared-vocabulary point of 1:47 AM EDT,
-  filed by the TODO thread: the descriptions of a belt and of a planet's
-  crust are produced from the stored fractions by fixed thresholds with
-  one text writer for any body, so this item and GEN.446 use the same
-  code; the planet classes' fixed composition strings are replaced by
-  the drawn mixture and the class label becomes a summary derived from
-  it.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 1, "One bump for
-  the chain": the whole 8.4 stored-value chain takes ONE generator epoch
-  bump, carried by GEN.428 to GEN.430 plus DB.69 (GEN.427's rule); where
-  this item says it "ships with a generator epoch bump" it rides that
-  one bump and does not take an epoch of its own.
-  Research (2026-10-09, Owner): Owner reconciled: Lane J (in its queue
-  after DB.89). The 'returned to the pool' line above is superseded.
-  (TODO, 2026-10-24 5:27 PM EDT, from the physics fix plan thread's
-  reconcile ask.)
-
 - [ ] **GEN.444 Surface radiation: the ground-level dose from the air's shielding and the ground's own radiogenic content**
   Boss (2026-10-16, 11:58 PM EDT, composition joins the 9.0 headline):
   "atmosphere composition and planet/moon/star/everything composition is
@@ -19191,7 +19145,7 @@ clears each one.
   with the fractions after the migration; the text names only stored
   materials. Done: it passes on a generated galaxy and fails when any
   one rule is broken (a test that breaks each rule in turn).
-  Prerequisites: GEN.430, GEN.441,
+  Prerequisites: GEN.441,
   DB.70, GEN.458, GEN.459, GEN.460, GEN.461, GEN.462, GEN.466.
   Related: TEST.209.
   Consolidation sweep (Boss, 2026-10-16, 11:58 PM EDT; applied
