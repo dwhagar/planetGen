@@ -446,3 +446,15 @@ def test_stop_everything_works_when_redis_is_not_answering(web_app, admin_client
         assert "Everything is stopped" in page and "Redis isn't answering" in page
     finally:
         stopall.resume_all()
+
+
+def test_no_queue_tile_is_a_bare_number(admin_client, conn):
+    """UX.212: a tile's value names what it counts."""
+    import re
+
+    _run(conn, queued=False)
+    html = admin_client.get("/admin/queue").get_data(as_text=True)
+    values = re.findall(r'<span class="stat-value">([^<]*)</span>', html)
+    assert len(values) == 3
+    assert [v for v in values if re.fullmatch(r"[\d.,\s/]*", v.strip()) and "/" not in v] == []
+    assert any(v.endswith(("worker", "workers")) for v in values) and any(v.endswith(("run", "runs")) for v in values)
