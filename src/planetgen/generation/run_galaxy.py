@@ -25,9 +25,9 @@ import time
 import pymysql
 
 from planetgen.datasets import catalogue as datasetCatalogue, fetch
-from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, scatter_systems, sector_paths, store
+from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
-from planetgen.galaxy import density, drill, resolution as galaxyResolution, seed as galaxySeed, version_check
+from planetgen.galaxy import density, drill, named_regions, resolution as galaxyResolution, seed as galaxySeed, version_check
 from planetgen.queue import commands, redisqueue, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -2209,8 +2209,10 @@ def _touches_filled_space(args, position_pc, radius_pc, edge_pc, batch_density):
 
 def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, drawn=None, run_seed=None, index=0):
     """
-    One random start for random-start mode: an unoccupied address drawn
-    inside the outline by volume (`GalaxyBounds.random_address`), retried up
+    One random start for random-start mode: the anchor sector of an uncharted region (GEN.826: a 9-block with no generated
+    sector), the region found by drawing an address
+    inside the outline by volume (`GalaxyBounds.random_address`); where the anchor is outside the outline's reach, or beyond
+    `--max-shell`, the drawn address itself starts the fill. An address is retried up
     to `RANDOM_START_MAX_PLACEMENT_ATTEMPTS` times until its density expects at least one system (the outline is a
     superset of the sectors that do, GEN.627, and a start in an empty sector is no start; skipped when the density is given
     explicitly), until it meets `--min-start-density`, and, for `--neighborhoods` (GEN.97), until its
@@ -2237,6 +2239,12 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, dra
     gamma = args.neighborhood_gamma
     for _ in range(program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS):
         address = batch_density.bounds.random_address(draw, max_shell=args.max_shell)
+        region = named_regions.region_of(address)
+        if region_stats.region_row(conn, region) is not None:
+            continue                # GEN.826: a start is in a region nothing is generated in yet ...
+        anchor = named_regions.anchor_address(region, edge_pc)
+        if batch_density.bounds.contains(anchor[0], anchor[1]) and (args.max_shell is None or anchor[0] <= args.max_shell):
+            address = anchor        # ... at its anchor, so the fill of the start's sphere charts the whole region
         if store.get_sector_id_at(conn, *address) is not None:
             continue
         position_pc = sector_position_pc(*address, edge_pc)
@@ -2735,6 +2743,40 @@ def _generate_sectors(args, edge_pc):
             log.reset_console()
 
 
+def _snap_to_region(args, edge_pc):
+    """
+    `--region` (GEN.826): moves the center of a single-address or local-neighborhood run to the anchor sector of the region
+    (9-block) that holds it and sets the radius to the standard fill sphere (`named_regions.REGION_RADIUS_PC`), so the run is the
+    fill of one anchor sphere and charts the whole region. `--center-sector` becomes the anchor's `--shell --band --wedge`
+    (generated first when it is empty, as that mode does), so both ways run the same.
+
+    Raises:
+        SystemExit: The sector of `--center-sector` does not exist or has never been placed in a galaxy.
+    """
+    if not getattr(args, "region", False):
+        return
+    if args.center_sector is not None:
+        conn = store.get_connection(store.mysql_config_from_args(args))
+        try:
+            row = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?",
+                               (args.center_sector,)).fetchone()
+        finally:
+            conn.close()
+        if row is None or row["shell_index"] is None:
+            log.error(f"sector_id={args.center_sector} " + ("does not exist." if row is None else
+                      "has never been placed in a galaxy -- --region needs a sector with a grid address."))
+            raise SystemExit(1)
+        address = (row["shell_index"], row["band_index"], row["wedge_index"])
+    else:
+        address = (args.shell, args.band, args.wedge)
+    anchor = named_regions.snap_to_anchor(address, edge_pc)
+    args.center_sector = None
+    args.shell, args.band, args.wedge = anchor
+    args.radius_pc = named_regions.REGION_RADIUS_PC
+    log.normal(f"The region of {_format_address(address)} is filled about its anchor sector {_format_address(anchor)}, "
+               f"{args.radius_pc:g} pc around it.")
+
+
 def run_sectors(args):
     """
     `planetgen sectors` (PERF.123): generates sectors in the mode the arguments ask for (span, course, single address,
@@ -2746,6 +2788,7 @@ def run_sectors(args):
     """
     edge_pc = run_common._edge_pc()
     _check_plan(args, edge_pc)
+    _snap_to_region(args, edge_pc)
     estimate_only = getattr(args, "estimate_only", False)
     if not estimate_only:
         stages.begin(stages.sectors_stages(args), args, "sectors")
@@ -2777,6 +2820,7 @@ def run_galaxy(args):
     """
     edge_pc = run_common._edge_pc()
     _check_plan(args, edge_pc)
+    _snap_to_region(args, edge_pc)
 
     estimate_only = getattr(args, "estimate_only", False)
     if not estimate_only:

@@ -94,7 +94,8 @@
       </div>
       {%- endfor %}
       <div class="search-fields" data-place-shared="sector address position">
-        {{ field("center_radius_pc", "Radius around it (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of the sector or position named above. Not used for a random spot, which has its own radius.") }}
+        {{ ui_checkbox("center_region", "This region: fill the standard 12 pc sphere about the anchor of the region it is in, so the whole region is charted and named (the radius below is not used)", checked=(form and form.get("center_region"))) }}
+        {{ field("center_radius_pc", "Radius around it (pc)", min=0.1, max=max_radius_pc, hint="Every sector within this distance of the sector or position named above. Not used for a random spot, which has its own radius, nor with This region.") }}
       </div>
     </fieldset>
     <fieldset class="generate-mode" data-what-panel="grid">

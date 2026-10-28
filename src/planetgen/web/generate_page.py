@@ -460,7 +460,9 @@ def center_argv(form, edge_pc=None):
     --radius-pc`, which generates that sector first when it's empty) for
     an address or a galaxy-frame position, the position turned into the
     address of the cell holding it with the plan's sector edge
-    (`edge_pc`, the standard 4 pc when there is no plan).
+    (`edge_pc`, the standard 4 pc when there is no plan). With "This
+    region" ticked (`center_region`, GEN.826) the radius is dropped and
+    `--region` snaps the run to the anchor of the region holding the place.
 
     Returns:
         tuple: `(argv, description)`.
@@ -493,6 +495,9 @@ def center_argv(form, edge_pc=None):
         argv = ["--shell", str(shell), "--band", str(band), "--wedge", str(wedge)]
     else:
         raise FormError("Choose how to name the center sector.")
+    if form.get("center_region"):
+        # GEN.826: the whole region the place is in, as the fill of its anchor's standard sphere; the radius is not used
+        return argv + ["--region"], description.replace("around ", "in the region of ", 1)
     radius = _number(form, "center_radius_pc", "Radius (pc)", float, required=True, minimum=0.1,
                      maximum=MAX_GENERATE_RADIUS_PC)
     return argv + ["--radius-pc", str(radius)], description

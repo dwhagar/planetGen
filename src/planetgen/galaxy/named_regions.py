@@ -112,6 +112,32 @@ def anchor_pc(block, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
     return (plane * math.cos(longitude), plane * math.sin(longitude), radius * math.cos(colatitude))
 
 
+def region_of(address):
+    """The region (9-block) that holds the sector `(shell, band, wedge)`."""
+    shell, band, wedge = (int(value) for value in address)
+    return drill.drill_chain_of(shell, band, wedge)[drill.DRILL_LEVELS.index(REGION_LEVEL)]
+
+
+def anchor_address(block, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
+    """
+    The sector `(shell, band, wedge)` that holds the anchor of the 9-block `block`: where the standard fill of the cell (the
+    sphere of `REGION_RADIUS_PC` about the anchor) is centred (GEN.826). The anchor is the middle of the cell's bounds, so the
+    sector there is in the cell; where the grid's rounding puts it in a neighbour, the sector of the cell nearest the anchor.
+    """
+    block = _check_region(block)
+    anchor = anchor_pc(block, edge_pc)
+    address = spherical.sector_address_at(anchor, edge_pc)
+    if region_of(address) == block:
+        return tuple(address)
+    return min(drill.block_addresses(block),
+               key=lambda found: (math.dist(spherical.sector_position_pc(*found, edge_pc), anchor), found))
+
+
+def snap_to_anchor(address, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
+    """The sector the standard fill of the region holding `address` is centred on (`anchor_address` of `region_of`)."""
+    return anchor_address(region_of(address), edge_pc)
+
+
 def inscribed_radius_pc(block, edge_pc=tuning.DEFAULT_SECTOR_EDGE_PC):
     """
     How far the anchor of the 9-block `block` is from the nearest face of the cell, parsecs: the smaller of half the shell

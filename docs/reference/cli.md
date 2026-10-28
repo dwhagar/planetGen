@@ -178,6 +178,7 @@ planetgen galaxy --shell I [--band J [--wedge K [--radius-pc R]]] [--limit N | -
 planetgen galaxy [--shells A:B] [--bands C:D] [--wedges E:F] [--limit N | --yes] [options]
 planetgen galaxy --block M.SHELL.BAND.WEDGE [--limit N | --yes] [options]
 planetgen galaxy --center-sector ID --radius-pc R [options]
+planetgen galaxy (--center-sector ID | --shell I --band J --wedge K) --region [options]
 planetgen galaxy --course FROM TO [--course-border] [--yes] [options]
 planetgen galaxy [--radius-pc R] [--max-shell I] [--neighborhoods N] [options]   # random start
 ```
@@ -245,6 +246,11 @@ same order. A ball cannot always be walked step by step between neighbouring
 sectors, so the run says how many of its steps are not (a step of more than two
 and a half sector edges), with their mean and longest length: about 97% of
 them are between neighbours in a 50 pc ball.
+`--region` (GEN.826) with `--center-sector` or `--shell --band --wedge` fills one whole region: the center moves to the anchor
+sector of the region (the 9-block of the map's block ladder, about 780 sectors) that holds it, and the standard 12 pc sphere about
+that anchor (about 109 sectors) is generated, so the finished run charts the region and the map names it. It takes the place of
+`--radius-pc`, which it refuses; a `--center-sector` run with it generates the anchor sector first when it is empty, as the
+single-address mode does. The Generate page's "This region" box asks for it.
 `--course FROM TO` (NAV.48) generates the uncharted sectors that block the NAV
 course between two objects (a system's object ID, or `<kind>:<ID>` for a body
 or phenomenon): the cells of the route's hops through unknown space, inside the
@@ -254,8 +260,9 @@ the uncharted cells that share a face with them. Past 5,000 sectors it needs
 (`/nav/chart`, admins) starts it as a Generate page job.
 
 Run with none of `--shell`, `--shells`, `--bands`, `--block`, `--course` and
-`--center-sector` (random-start mode, no arguments at all), `planetgen galaxy` picks a uniformly random (by volume),
-not-yet-occupied sector address inside the galaxy's planned outline,
+`--center-sector` (random-start mode, no arguments at all), `planetgen galaxy` picks a uniformly random (by volume)
+sector address inside the galaxy's planned outline in a region with no generated sector yet (GEN.826), starts at the anchor
+sector of that region (at the drawn address where the anchor is outside the outline's reach or beyond `--max-shell`),
 generates it, and then generates every not-yet-generated sector within
 12 pc (about 39 ly) of it too, in every direction — a whole small starmap
 around a fresh, randomly chosen starting point in one run. Every sector
