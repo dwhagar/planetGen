@@ -44,7 +44,7 @@ def _flat(values, decades, tolerance):
 @pytest.mark.parametrize("placed", [multistar.Placed("black-hole", 10.0, 45.0), multistar.Placed("neutron-star", 1.4, 10.0)])
 def test_a_compact_object_with_a_star_draws_its_period_log_uniformly_from_0_3_to_1e4_days(monkeypatch, placed):
     _force(monkeypatch, "star")
-    nodes = [node for _tree, node in _pairs(placed, OLD, 2500, n_stars=1)]
+    nodes = [node for _tree, node in _pairs(placed, OLD, 2500)]
     # an accreting X-ray binary (GEN.272) is the one pair drawn on its own period range, hours to a day
     periods = [node.period_years * 365.25 for node in nodes if node.interaction != "accreting"]
     assert len(periods) > 1000
@@ -56,7 +56,7 @@ def test_a_compact_object_with_a_star_draws_its_period_log_uniformly_from_0_3_to
 
 def test_a_compact_object_with_a_star_is_circular_under_seven_days_and_eccentric_above(monkeypatch):
     _force(monkeypatch, "star")
-    nodes = [node for _tree, node in _pairs(multistar.Placed("black-hole", 10.0, 45.0), OLD, 2000, n_stars=1)]
+    nodes = [node for _tree, node in _pairs(multistar.Placed("black-hole", 10.0, 45.0), OLD, 2000)]
     short = [n for n in nodes if n.period_years * 365.25 < multistar.CIRCULAR_BELOW_DAYS]
     long = [n for n in nodes if n.period_years * 365.25 >= multistar.CIRCULAR_BELOW_DAYS]
     assert short and long
@@ -69,7 +69,7 @@ def test_a_compact_object_with_a_star_is_circular_under_seven_days_and_eccentric
 def test_a_compact_object_with_a_star_is_marked_interacted_and_keeps_clear_of_the_stars_roche_lobe(monkeypatch):
     _force(monkeypatch, "star")
     checked = 0
-    for tree, node in _pairs(multistar.Placed("black-hole", 10.0, 45.0), OLD, 800, n_stars=1):
+    for tree, node in _pairs(multistar.Placed("black-hole", 10.0, 45.0), OLD, 800):
         assert node.kind == "compact" and node.flags & multistar.NODE_INTERACTED
         star = next(m for m in tree.members if m.kind != "black-hole")
         hole = next(m for m in tree.members if m.kind == "black-hole")
