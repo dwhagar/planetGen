@@ -33,8 +33,8 @@ no star, so no flux variation)."""
 
 ROGUE_UNITS = {
     **{name: "index" for name in ROGUE_FIELDS if name.startswith(("tier_", "life_", "eq_"))},
-    **{name: "ratio" for name in ROGUE_FIELDS if name.startswith("phi4") or name in ("l_solv", "l_chem", "l_ener")},
-    "l_rad": "rad", "energy_flux_w_m2": "W_m2", "shelter_column_g_cm2": "g/cm2",
+    **{name: "ratio" for name in ROGUE_FIELDS if name.startswith("phi4") or name in ("l_solv", "l_chem", "l_ener", "l_rad")},
+    "energy_flux_w_m2": "W_m2", "shelter_column_g_cm2": "g_cm2",
 }
 """dict: Each field of `ROGUE_FIELDS` and its native unit (GEN.570), as `RoguePlanet.FIELD_UNITS` carries it."""
 

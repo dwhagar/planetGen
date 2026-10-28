@@ -39,7 +39,7 @@ the day hemisphere alone (`f = 2/3` against the `f = 1/4` of the whole surface),
 Derived; the generator has no redistribution model yet, so every body gets the hot end."""
 
 FILE_HOST_TYPES = {"F": "F", "G": "G", "K": "K", "M": "M"}
-"""dict: The spectral letters of the recipe tables' hosts. A hotter star (O, B, A) takes the F rows and a brown dwarf (L, T, Y) the M rows,
+"""dict: The spectral letters of the recipe tables' hosts. A hotter star (O, B, A, or a Wolf-Rayet W) takes the F rows and a brown dwarf (L, T, Y) the M rows,
 the nearest the tables have; a white dwarf is `WD`, a pulsar or a black hole `PSR`."""
 
 
@@ -61,7 +61,7 @@ def host_type_of(star):
         return "WD"
     if letter in FILE_HOST_TYPES:
         return FILE_HOST_TYPES[letter]
-    if letter in "OBA":
+    if letter in "OBAW":
         return "F"
     if letter in "LTY":
         return "M"
