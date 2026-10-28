@@ -49,6 +49,7 @@ from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
 from planetgen.physics import equipment, habitability, habitability_world, life_scores
 from planetgen import tuning
 from planetgen.population import facility_ratings, facility_types
+from planetgen.generation import cloud as cloudContext
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
@@ -1830,7 +1831,8 @@ def containing_cloud(conn, row):
             "name", "class", "descriptor", "density_cm3", "temperature_k"}`,
             or `None` in open space.
     """
-    return surrounding_cloud(conn, row)
+    cloud = surrounding_cloud(conn, row)
+    return None if cloud is None else {key: cloud[key] for key in cloudContext.LISTED_KEYS}
 
 
 def sector_detail(conn, sector_id):

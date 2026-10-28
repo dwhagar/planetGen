@@ -3051,6 +3051,52 @@ NEBULA_CLUSTER_HALF_MASS_PC = {"D": 1.0, "E": 2.0}
 """dict: The half-mass radius, parsecs, of the Plummer sphere the ionizing members of a class D or E region are placed in
 (GEN.321; a small O and B cluster, a young massive one; the design note's 1 and 2 pc), clipped to the nebula's radius."""
 
+HABING_FLUX_ERG_CM2_S = 1.6e-3
+"""float: One Habing unit (G0), the far-ultraviolet flux that is the yardstick of external photoevaporation
+(nebula-and-asteroid-field-classes.md, "Photoevaporation and G0"; arXiv 1909.04093)."""
+
+CLOUD_FUV_FRACTION_BY_TEFF_K = {12000.0: 0.16, 20000.0: 0.46, 30000.0: 0.54, 40000.0: 0.45}
+"""dict: Teff, kelvin, to f_FUV, the share of a hot star's light in the 6 to 13.6 eV band, linear between the rows and
+held at the end rows beyond them (the design note's four values, [C]); the FUV flux of a host is `f_FUV L / (4 pi d^2)`."""
+
+CLOUD_G0_TIER_EDGES = (1.0e2, 1.0e3, 1.0e4)
+"""tuple: The G0 at which the radiation tier rises by one (design note, "Rule table": under 1e2 adds nothing; 1e3 is
+where mass loss is significant and 1e4 is where outer discs are destroyed in about 1 Myr [R, Johnstone 1998; Haworth 2018])."""
+
+CLOUD_HOST_MIN_DISTANCE_PC = 0.01
+"""float: A host star is never taken closer than this to a system, parsecs, so the sum over a cluster placed at the
+cloud's centre stays finite for a system near it. A stand-in: the hosts of a seeded cloud have no stored positions yet."""
+
+CLOUD_CLASS_RADIATION_TIER = {
+    "C": 1, "G": 1,
+    "H": 3, "J": 2, "K": 2, "L": 2,
+    "R": 3, "S": 2, "T": 3, "U": 2, "V": 1, "W": 1,
+}
+"""dict: The radiation tier a cloud of the class adds before any host's G0 (design note, "Rule table"): the planetary
+nebulae's ultraviolet and the young remnants' cosmic rays and X-rays. A class not listed adds 0; D, E and X rise by their
+hosts' G0 alone and M, N and F by the heliopause tier, which is the habitability index's. The tier a system gets is
+the larger of this and the G0 tier. Design values [R, design]."""
+
+CLOUD_ENRICHMENT_CLASSES = ("D", "E", "R", "S", "T", "U", "V", "W")
+"""tuple: The classes whose systems draw an 26Al enrichment `k` (design note, "Rule table": a system inside D or E, or in
+a remnant)."""
+
+CLOUD_ENRICHMENT_FIELD_MEDIAN = 0.1
+"""float: The median of `k`, the 26Al/27Al ratio in units of `CLOUD_ENRICHMENT_REFERENCE_RATIO`, for a system without a
+recent nearby source: the galactic mean 6e-6 against the Solar System's 5.25e-5 [C, design note]."""
+
+CLOUD_ENRICHMENT_RICH_MEDIAN = 1.0
+"""float: The median of `k` for a system a massive star or supernova enriched."""
+
+CLOUD_ENRICHMENT_SIGMA_DEX = 0.5
+"""float: The spread of `k`, dex, log-normal (design values)."""
+
+CLOUD_ENRICHMENT_RICH_CHANCE = {"D": 0.15, "E": 0.3, "R": 0.5, "S": 0.5, "U": 0.5}
+"""dict: The chance a system in a cloud of the class has the rich median rather than the field one (design values)."""
+
+CLOUD_ENRICHMENT_REFERENCE_RATIO = 5.0e-5
+"""float: The 26Al/27Al ratio `k = 1` stands for (the solar ratio at CAI formation, 5.25e-5, rounded; design note)."""
+
 PLANETARY_NEBULA_CENTRAL_STAR_TYPES = ("O3VII", "O5VII", "O7VII", "O9VII", "B0VII")
 """tuple: The central star a planetary nebula is generated around (GEN.10):
 the exposed hot core of a dying 0.8-8 Msun star, 30,000 K and

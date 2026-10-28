@@ -28,7 +28,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import (
-    life as planetLife, multistar, place_terms, prevalence, stored_trees, validation,
+    cloud as cloudContext, life as planetLife, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import constants, habitability, insolation, magnetism, mass_loss, metallicity, pre_main_sequence, rings, wolf_rayet
@@ -321,9 +321,10 @@ class StarSystem:
         self.secondary_planets = [] # Only populated for an S-type (wide) binary's secondary star
         self.binary_type = None # None | "close" (P-type/circumbinary) | "wide" (S-type)
         self.wide_binary = None # A WideBinaryPair, only when binary_type == "wide"
-        # The nebula or supernova remnant around the system, set only by
-        # `store.load_star_system` (containment is worked out after saving).
+        # The nebula or supernova remnant around the system (the dict of `generation.cloud`): set by
+        # `store.load_star_system`, and by `apply_cloud` when generation placed the system inside one (GEN.357).
         self.surrounding_cloud = None
+        self.cloud_effects = None  # the `cloud.CloudEffects` of that cloud, set by `apply_cloud`; derived, not stored
         self.stars = [self.primary_star] # Keep track of individual stars
 
         self.tree_built = member_tree is not None and member_tree.complete
@@ -586,6 +587,26 @@ class StarSystem:
         """list: Every planet and belt of the system: the primary's (or a close pair's), the wide secondary's, then each
         member star's."""
         return [*self.planets, *self.secondary_planets, *(body for bodies in self.member_planets for body in bodies)]
+
+    def apply_cloud(self, cloud, point_pc, rng=draw):
+        """
+        Puts the system inside `cloud` (GEN.357): the cloud becomes `surrounding_cloud` and its effects at `point_pc`, the
+        system's position in the galaxy frame (parsecs), become `cloud_effects` (`cloud.effects_of`: the G0 of the cloud's
+        hosts, the radiation tier and the 26Al enrichment). Called once the position is chosen, by `cloud.apply_in_sector`
+        while a sector is generated and by GEN.99's regenerate in place. It leaves the planets as drawn: the rules that
+        change them are GEN.358's, and nothing here is stored.
+
+        Args:
+            cloud (dict): As `generation.cloud` describes it.
+            point_pc (tuple): The system's `(x, y, z)` in the galaxy frame, parsecs.
+            rng: Where the enrichment is drawn from (`cloud.apply_in_sector` gives it a stream of its own).
+
+        Returns:
+            cloud.CloudEffects: The effects, also on `cloud_effects`.
+        """
+        self.surrounding_cloud = cloud
+        self.cloud_effects = cloudContext.effects_of(cloud, point_pc, rng)
+        return self.cloud_effects
 
     def member_hosts(self):
         """`[(star, planets)]` for each of `member_stars`."""

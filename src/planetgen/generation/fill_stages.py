@@ -22,6 +22,8 @@ G     below-cut       the neutron stars and black holes below the scatter's mass
 H     flags           runaway and hypervelocity flags, then the galactic nucleus (stream `flags:nucleus`)
 J     ejecta          the neutron stars and black holes the galaxy ejected (GEN.238), one stream per kind; it
                       runs after G, and as the last stage added it moves no other stage's draws
+K     clouds          what the cloud a placed system sits in does to it (`generation.cloud`, GEN.357), one
+                      stream per placement, so a system outside every cloud draws nothing and moves nothing
 ====  ==============  ================================================================================
 
 Stage I is not a stream: `count` keeps the objects each stage made by kind in `sector.stage_counts`, which the
@@ -47,9 +49,11 @@ NEBULAE = "nebulae"
 BELOW_CUT = "below-cut"
 FLAGS = "flags"
 EJECTA = "ejecta"
+CLOUDS = "clouds"
 
-STAGES = (PRE_PLACED, SCATTERED, SYSTEM_PASS, SYSTEMS, PER_STAR_KINDS, NEBULAE, BELOW_CUT, EJECTA, FLAGS)
-"""tuple: The stage names in the order a fill runs them (A to H, J between G and H)."""
+STAGES = (PRE_PLACED, SCATTERED, SYSTEM_PASS, SYSTEMS, PER_STAR_KINDS, NEBULAE, BELOW_CUT, EJECTA, FLAGS, CLOUDS)
+"""tuple: The stage names in the order a fill runs them (A to H, J between G and H; K, the clouds, runs inside the
+stages that place a system)."""
 
 BASE_BITS = 64
 """int: Bits of the number a fill's stage streams are seeded from."""
