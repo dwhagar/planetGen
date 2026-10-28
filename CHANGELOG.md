@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2414] - 2026-10-28
+
+**Headline:** The map now keeps the total mass of every generated sector, block and named region, so a region can be told apart by how much matter it holds.
+
+### Changed
+- **Stored sector mass (DB.108).** Every generated sector now stores the summed mass of its stars, planets, moons, asteroid belts, comets, black holes, neutron stars, quasars, rogue planets, interstellar comets and asteroid fields, in kilograms (`sector_stats.total_mass_kg`; nebulae and supernova remnants are diffuse gas and are not counted). Each block of the map's block grid and each region stores the sum of its sectors (`galaxy_block_stats.mass_sum_kg`, `region_stats.mass_sum_kg`). The figures are kept up to date whenever a sector is saved or deleted, in any order and to the same bits, by the code that keeps the block totals, and `planetgen fill-block-totals` makes them again. A sector that holds a body with no stored mass (a comet or asteroid body saved before its mass was recorded) is left empty and listed in the log, never guessed, and counts as nothing in the sums above it. Migration 0168 fills every figure for the sectors a database already holds. Nothing shows it yet, and no generated value changes.
+
 ## [8.0.2413] - 2026-10-28
 
 **Headline:** The Galaxy Map can mark systems with inhabited worlds, in the colour of their habitability, ahead of every other kind of world.
