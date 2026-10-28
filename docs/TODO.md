@@ -3064,6 +3064,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bump); also fixes test_api.py::test_galaxy_nodes_carry_no_comets,
   which #3453 had broken. Remaining: (c) inhabited tokens on the MAP.316
   region nodes, (d) label budget wiring.
+  Research (2026-10-09): Progress (2026-10-28, 3:55 PM EDT as the lane
+  reported): part (c) merged as #3480. From far out on the Galaxy Map a
+  charted region with an inhabited world carries the inhabited symbol at
+  the middle of its sphere, coloured by its best world's habitability
+  tier (Menu: Inhabited worlds on, Charted regions showing). Hover reads
+  'N inhabited worlds in M systems, best Blue', a click opens the region
+  card with a new Inhabited line, and the token gives way to the
+  systems' own marks as the stars resolve. The charted-regions API
+  entries gain an inhabited summary. No migration and no epoch (read
+  from system_interests when asked). Only (d), the label budget wiring,
+  remains.
 
 - [ ] **MAP.322 Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e)**
   Boss, 1:20 AM EDT 2026-10-25 (relayed by the coordinator): "inside the
