@@ -696,6 +696,11 @@ def add_sectors_arguments(parser):
                                  "within --radius-pc of the given, already galaxy-placed sector's own "
                                  "stored center.")
 
+    parser.add_argument('--region', action='store_true',
+                        help="With --center-sector or --shell --band --wedge (GEN.826): move the center to the anchor sector of "
+                             "the region (9-block) that holds it and fill the standard sphere of that anchor "
+                             f"({program_constants.DEFAULT_GENERATE_RADIUS_PC:g} pc, about 109 sectors), so the finished fill charts and names the whole "
+                             "region. Replaces --radius-pc.")
     parser.add_argument('--band', type=int, metavar='J',
                         help="With --shell: only this band of the shell (signed; 0 is the equatorial band, "
                              "positive is north, and the two end bands are the polar caps).")
@@ -872,8 +877,13 @@ def validate_sectors_args(args, parser):
                      "mode) -- ensure_sector_generated always uses this address's own real predicted "
                      "density, the same as when the galaxy map's own live view found it.")
 
-    if args.center_sector is not None and args.radius_pc is None:
-        parser.error("--center-sector requires --radius-pc.")
+    if args.region and args.center_sector is None and args.wedge is None:
+        parser.error("--region requires --center-sector or --shell --band --wedge.")
+    if args.region and args.radius_pc is not None:
+        parser.error(f"--region fills the standard {program_constants.DEFAULT_GENERATE_RADIUS_PC:g} pc sphere of the anchor; it can't be combined with "
+                     "--radius-pc.")
+    if args.center_sector is not None and args.radius_pc is None and not args.region:
+        parser.error("--center-sector requires --radius-pc (or --region).")
     if args.radius_pc is not None and args.shell is not None and args.wedge is None:
         parser.error("--radius-pc only applies to --center-sector, --shell --band --wedge, or random-start mode "
                      "(neither --shell nor --center-sector), not --shell alone.")
@@ -932,6 +942,7 @@ def _validate_course(args, parser):
         ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge),
         ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
         ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
+        ("--region", args.region or None),
         ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges), ("--limit", args.limit),
     ) if value is not None]
     if others:
@@ -946,6 +957,7 @@ def _validate_block(args, parser):
         ("--band", args.band), ("--wedge", args.wedge), ("--radius-pc", args.radius_pc),
         ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
         ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges),
+        ("--region", args.region or None),
     ) if value is not None]
     if others:
         parser.error(f"--block can't be combined with {', '.join(others)}.")
@@ -966,6 +978,7 @@ def _validate_span(args, parser):
         ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge),
         ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
         ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density),
+        ("--region", args.region or None),
     ) if value is not None]
     if others:
         parser.error(f"--shells/--bands/--wedges can't be combined with {', '.join(others)}.")

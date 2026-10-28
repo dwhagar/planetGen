@@ -91,7 +91,13 @@ GALAXY_ERRORS = [
     (["--shell", "1", "--band", "0", "--wedge", "0", "--density", "2"],
      "--density/--num-systems can't be combined with --shell --band --wedge (single-address mode)"),
     # --center-sector / --radius-pc
-    (["--center-sector", "5"], "--center-sector requires --radius-pc."),
+    (["--center-sector", "5"], "--center-sector requires --radius-pc (or --region)."),
+    # --region (GEN.826)
+    (["--region"], "--region requires --center-sector or --shell --band --wedge."),
+    (["--shell", "3", "--region"], "--region requires --center-sector or --shell --band --wedge."),
+    (["--center-sector", "5", "--region", "--radius-pc", "5"], "--region fills the standard 12 pc sphere of the anchor"),
+    (["--block", "3.2.0.0", "--region"], "--block can't be combined with --region."),
+    (["--shells", "1", "--region"], "--shells/--bands/--wedges can't be combined with --region."),
     (["--shell", "1", "--radius-pc", "5"], "--radius-pc only applies to --center-sector, --shell --band --wedge, or random-start"),
     (["--radius-pc", "0"], "--radius-pc must be a positive number."),
     (["--center-sector", "5", "--radius-pc", "-1"], "--radius-pc must be a positive number."),
