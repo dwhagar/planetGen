@@ -284,3 +284,5 @@ Numbers and ratios of fact were read from the sources below; nothing else was ta
 ## Atmospheric escape: a thermosphere model (`docs/design/composition/atmospheric-escape-model.md`, `src/planetgen/physics/thermosphere.py`, GEN.738)
 
 Constants and published test values were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All three carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Johnstone et al. 2018 (1806.06897), Kubyshkina et al. 2018 (1810.06920) and Zhang 2024 (2410.04595). The exobase temperatures and altitudes of Johnstone et al. were read from their figures (values only).
+
+The envelope-escape wiring (`docs/design/composition/envelope-escape-wiring.md`, GEN.822) uses the same Kubyshkina et al. 2018 rate and the Petigura et al. 2022 valley numbers already listed under GEN.509; Alexander et al. 2014 (Protostars and Planets VI) is cited from memory for the disc lifetime and nothing was copied from it.

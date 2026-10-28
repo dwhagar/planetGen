@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 226 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 230 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 36 | 0 | 3 | 0 | 0 | 39 |
 | T2 | 48 | 0 | 0 | 0 | 0 | 48 |
-| T3 | 45 | 3 | 2 | 6 | 0 | 56 |
-| T4 | 13 | 0 | 0 | 2 | 0 | 15 |
-| T5 | 10 | 3 | 1 | 0 | 0 | 14 |
+| T3 | 46 | 3 | 2 | 6 | 0 | 57 |
+| T4 | 13 | 0 | 0 | 1 | 0 | 14 |
+| T5 | 11 | 3 | 1 | 0 | 0 | 15 |
 | T6 | 27 | 6 | 1 | 4 | 0 | 38 |
-| T7 | 11 | 2 | 0 | 1 | 0 | 14 |
+| T7 | 12 | 2 | 0 | 1 | 0 | 15 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
-| T9 | 0 | 0 | 0 | 0 | 1 | 1 |
-| All | 190 | 14 | 7 | 13 | 2 | 226 |
+| T9 | 0 | 0 | 0 | 2 | 1 | 3 |
+| All | 193 | 14 | 7 | 14 | 2 | 230 |
 
 ## How the labels were given
 
@@ -241,6 +241,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM77 | P | T7 | L0 | thermosphere.MAX_EXOBASE_RADII | 10 body radii, fixed | hot, light airs | none: no measurement; a bound that keeps the integral finite | a hydrodynamic outflow model | design (a numerical bound for a hot light air over a small body) |
 | AM78 | B | T7 | L0 | surface_air.LONG_LIVED_FLUX_FRACTION | 0.5 of the Earth twin's heat flow, fixed | rocky bodies with a stored interior | test_surface_air::test_a_body_with_less_than_half_the_earth_heat_flow_has_no_long_lived_geology | a stagnant-lid and mobile-lid transition model (Foley and Smye 2018) | design (the share of the Earth twin's heat flow below which a mantle is taken to have stopped moving) |
 | AM79 | B | T1 | L0 | surface_air.RELATIVE_HUMIDITY | 0.77, fixed | rocky bodies with an ocean or ice | test_surface_air::test_water_over_an_ocean_stands_at_the_relative_humidity_of_its_saturation_pressure | a convective-radiative humidity model | READ (Manabe and Wetherald 1967: fixed relative humidity 0.77, the Earth's mean) |
+| AM81 | D | T9 | L3 | envelope_escape.ONSET_GY | 1.0 Gyr, fixed | close-in planets of 1 to 30 Earth masses | test_radius_valley::test_a_weaker_or_stronger_loss_moves_the_valley_out_of_the_published_range | a core-powered mass loss or boil-off model for the first Gyr (GEN.722) | TUNED (the integration of the hydro-based rate of Kubyshkina et al. 2018 starts at this age; from the 10 Myr of disc dispersal every core under 15 Earth masses strips inside 30 days and no valley comes out, so the start that puts the radius valley at 1.84 Earth radii and its slope at -0.11 is taken; the loss before it is folded into the starting envelope); source tier 9, tweak level 3 |
+| AM82 | P | T7 | L0 | envelope_escape.BARE_BELOW | 0.002 of the planet's mass, fixed | the rows e1 and e2 | test_envelope_escape::test_a_planet_under_strong_irradiation_is_stripped_to_its_bare_core | a numerical cutoff stays | design (an envelope under 0.2 percent of the planet's mass counts as gone: a numerical cutoff of the integration) |
+| AM83 | B | T3 | L0 | envelope_escape.MAX_ENVELOPE | 0.5 of the planet's mass, fixed | the starting envelope | test_envelope_escape::test_the_starting_envelope_is_held_to_the_range_of_the_radius_law | the mass-radius law of a giant | READ from memory, not re-checked (the radius law of Lopez and Fortney 2014 covers envelopes of a few percent to tens of percent of the mass) |
+| AM84 | D | T5 | L0 | envelope_escape.TEQ_OVER_INSOLATION_FOURTH | 255 K, fixed | the survey of the valley (the rows pass the stored equilibrium temperature) | test_envelope_escape::test_the_equilibrium_temperature_is_255_kelvin_at_one_earth_insolation | the stored albedo | COMPUTED (the equilibrium temperature of a body of Bond albedo 0.3 at one Earth insolation is 255 K) |
 
 ## 6.8 Stand-ins of the hours outside in a day
 
@@ -267,10 +271,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
-| RV1 | P | T3 | L2 | radius_valley loss: energy-limited XUV loss with the energy proportional to the bolometric flux (`XUV_ENERGY_J_M2 * F`), no stellar-mass dependence of its own; the mechanism (photoevaporation or core-powered mass loss) is not chosen | `f_env0` 0.035 to 0.08 with `eta` = 10 `f_env0` (the ridge) | hosts of 0.5 to 1.4 solar masses | a measured stellar-mass slope of the valley outside beta -0.17 to 0.00, or a period slope outside -0.10 to -0.14 | a mechanism chosen by a sample of about 5000 planets (Rogers and Owen 2021) | READ (abstracts: Berger et al. 2023 alpha 0.069 +0.019 -0.023, beta -0.046 +0.125 -0.117; Petigura et al. 2022 period slope -0.10 +- 0.03; the 2025 re-analysis arXiv:2503.08347, period slope -0.142 toward core-powered, flux slope 0.136 toward photoevaporation); the sources disagree by axis, so the widest range is kept |
-| RV2 | P | T4 | L3 | radius_valley.CORE_MASS_SIGMA 0.4 (log-normal width of the core mass, in ln units) | 0.3 to 0.5 | the survey of hosts 0.5 to 1.4 solar masses | any width in the band moves a slope by more than 1 sigma; (0.5 with an envelope width of 0.4) puts the period slope 2.1 sigma off | a published width of the core-mass distribution | design (no published width read; swept against the three slopes, test_radius_valley::test_the_widths_leave_the_slopes_within_their_errors) |
-| RV3 | P | T4 | L3 | radius_valley.ENVELOPE_SIGMA 0.6 (log-normal width of the starting envelope fraction, in ln units) | 0.4 to 0.8 | the survey of hosts 0.5 to 1.4 solar masses | as RV2 | a published width of the starting envelopes | design (no published width read; the same sweep as RV2) |
-| RV4 | D | T5 | L0 | radius_valley.mass_slopes_of: the stellar-mass slope beta read off the surveyed valley (0.00 +- 0.02 from the loss as written) | none | hosts of 0.5 to 1.4 solar masses | a stellar-mass dependent XUV energy added to the loss (a real photoevaporation) | a survey that wires it in | COMPUTED (survey of 12000 planets over 18 cells of flux and host mass; core-powered theory predicts beta 0.00, photoevaporation -0.17, Berger et al. 2023) |
+| RV1 | P | T3 | L2 | radius_valley loss (GEN.822): the hydro-based mass-loss rate of Kubyshkina et al. 2018 integrated over the star's XUV history from `envelope_escape.ONSET_GY` (AM81), with no stellar-mass dependence beyond the star's XUV history; the mechanism (photoevaporation or core-powered mass loss) is not chosen | `f_env0` 0.05 to 0.2 (the ridge with `eta` of the energy-limited loss is gone) | hosts of 0.5 to 1.4 solar masses | a measured stellar-mass slope of the valley outside beta -0.17 to 0.00, or a period slope outside -0.10 to -0.14 | a mechanism chosen by a sample of about 5000 planets (Rogers and Owen 2021) | READ (abstracts: Berger et al. 2023 alpha 0.069 +0.019 -0.023, beta -0.046 +0.125 -0.117; Petigura et al. 2022 period slope -0.10 +- 0.03; the 2025 re-analysis arXiv:2503.08347, period slope -0.142 toward core-powered, flux slope 0.136 toward photoevaporation); the sources disagree by axis, so the widest range is kept |
+| RV2 | P | T9 | L3 | radius_valley.CORE_MASS_SIGMA 0.25 (log-normal width of the core mass, in ln units; narrowed from 0.4 with the onset age of AM81 so that both valley numbers come out, GEN.822) | fixed (0.4 puts the period slope at -0.16 and the radius at 10 d at 1.9 with the 1 Gyr onset) | the survey of hosts 0.5 to 1.4 solar masses | a width of 0.4 with the same onset leaves the period slope outside its error | a published width of the core-mass distribution | TUNED (no published width read; swept with the onset age, test_radius_valley::test_the_valley_slope_and_location_follow_the_published_values_across_the_recipe_bracket) |
+| RV3 | P | T4 | L3 | radius_valley.ENVELOPE_SIGMA 0.6 (log-normal width of the starting envelope fraction, in ln units) | 0.4 to 0.8 | the survey of hosts 0.5 to 1.4 solar masses | as RV2 (the sweep of the widths was made for the energy-limited loss of GEN.509 and is not repeated for the hydro-based one) | a published width of the starting envelopes | design (no published width read; the same sweep as RV2 (the sweep of the widths was made for the energy-limited loss of GEN.509 and is not repeated for the hydro-based one)) |
+| RV4 | D | T5 | L0 | radius_valley.mass_slopes_of: the stellar-mass slope beta read off the surveyed valley (0.00 +- 0.02 from the energy-limited loss of GEN.722; the hydro-based loss of GEN.822 is inside the error of Berger et al. 2023, test_radius_valley) | none | hosts of 0.5 to 1.4 solar masses | a stellar-mass dependent XUV energy added to the loss (a real photoevaporation) | a survey that wires it in | COMPUTED (survey of 12000 planets over 18 cells of flux and host mass; core-powered theory predicts beta 0.00, photoevaporation -0.17, Berger et al. 2023) |
 
 ## 6.11 Stand-ins of the young-group draw
 
