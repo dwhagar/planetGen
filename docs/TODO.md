@@ -15246,6 +15246,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects fill.
   Prerequisites: none. Related: GEN.813, GEN.815, GEN.812.
 
+- [ ] **GEN.838 A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling**
+  Split from GEN.735 by Aux 5 (as the lane reported 7:28 AM EDT
+  2026-10-28): GEN.735 ships one mantle temperature and zero heat flux
+  for a non-convecting mantle; the core needs its own temperature and
+  the core-mantle boundary heat flow. Do: add a core temperature to the
+  interior heat model (core heat capacity, latent heat of inner-core
+  growth, the core-mantle boundary heat flow set by the mantle boundary
+  layer) so the dynamo and the magnetic field read the core, not the
+  mantle. Source: Thiriet et al. 2019 was not readable (use second-hand,
+  reports/secondhand-citations-2026-10-24.md, and label the result a
+  stand-in with its tier and tweak level). Done: the core cools on its
+  own curve, the stored urey_ratio and heat flow do not change for
+  planets without a core split, stand-ins registered in
+  docs/design/stand-in-values.md. Owner: Aux 5 after its stack. Changes
+  stored values, so it needs a lock turn (epoch, --affects fill).
+  Prerequisites: GEN.735. Related: GEN.735, GEN.763.
+
+- [ ] **GEN.839 The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug)**
+  Found by Aux 5 (as the lane reported 7:28 AM EDT 2026-10-28) while
+  fixing GEN.763: a body stores its heat flow and Urey ratio when it is
+  made at the star's provisional age, and Star.adjust_age_for_planets
+  raises the age afterwards; GEN.763 reruns interior_heat.update_heat at
+  the final age in the life pass (no draws), but the hydrosphere's ice
+  shell thickness and the surface composition's volcanism gate draw
+  random numbers and read the provisional-age heat, and cannot be rerun
+  without moving the stream. Do: move those two reads to the final-age
+  heat without changing the draw order (compute them after the final age
+  with the same draws kept, or use an epoch to reorder the draws), then
+  rescore. Done: ice shell and volcanism gate follow the stored
+  final-age heat. Owner: Aux 5 after GEN.763; changes generated output
+  so it needs an epoch (--affects fill) and a lock turn, ideally the
+  same one as the rest of Aux 5's stack if it is not yet merged.
+  Prerequisites: GEN.763. Related: GEN.763, GEN.735.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
