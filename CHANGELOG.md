@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2398] - 2026-10-28
+
+**Headline:** The Galaxy Map now names the charted regions as you zoom: the family far out, each region closer in.
+
+### Changed
+- **Region names on the Galaxy Map (MAP.314).** Far out, where the map is cut into big blocks, each charted family is named once with its Reach ("Fardoo Reach"), at the middle of the regions charted in it rather than the middle of the block; closer in, each charted region is named ("Fardoo Beez Region"); closer still, in the small blocks, no region is named and the info card of a pick says which region it is in. Space nothing has been charted in has no name, and the names are the same ones the info card shows. A click on a name flies the camera to its block, and a new "Region names" switch in the Menu's Labels group takes them away (the address keeps it).
+- **The map's data carries what the names need.** A 27-, 81- or 243-block node lists the charted regions inside it (name, family, centre, size, sectors charted), and a region's node says how much of it is charted; the tile format is now 7.
+
 ## [8.0.2397] - 2026-10-28
 
 **Headline:** With a system opened on the Galaxy Map, the step buttons and keys take you to the nearest system that lies the way you point.
