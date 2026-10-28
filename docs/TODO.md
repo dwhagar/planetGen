@@ -1382,99 +1382,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galactic view." Done: the admin menu on a block, slab or wedge runs
   the bright-star backfill for it as a job.
 
-- [ ] **MAP.121 Every map shows and steps to its neighbouring regions, on one map engine**
-  Boss (2026-10-03 05:38Z): "In the sector level map, we should show
-  adjacent sectors dimmed around it, showing all surrounding sector
-  interiors dimmed and minus comets and rogue planets for anything but
-  the sector in question.  Implement so that the sectors between the
-  camera eye and the sector we are viewing become invisible when they
-  would block the view in a fade, the more they obstruct the view the
-  more invisible they become." Boss (2026-10-07 16:26Z), on the Galaxy
-  Map: "you cannot see what is in adjacent blocks or slabs nor can you
-  move to adjacent regions without zooming back and forth, which is
-  combersome." and (16:27Z): "edit MAP.121 to include the new item as
-  we want to have 1 mapping engine for sectors, galaxy, and systems
-  eventually". Folds MAP.127. The goal is one map engine shared by the
-  Galaxy, Sector and System Maps. Done: on every map and at every
-  Galaxy Map drill-down stage, the neighbouring regions (sectors,
-  blocks, and the slabs above and below) are drawn dimmed around the
-  current one, without comets or rogue planets and within MAP.116's
-  budget; regions between the camera and the one in view fade the
-  more they block it; arrow buttons and keys step to a neighbour at the
-  same level without zooming out, as a camera move to the neighbour's
-  frame (the URL carries the camera, MAP.228, and the breadcrumb is
-  derived from the position, MAP.227);
-  the code for this is one shared engine piece, not one per map; and
-  a browser test steps sideways and up and back on each map.
-  Research (2026-10-09, course-avoidance.md): draw the course on a layer
-  that is not faded with the sectors in front of the camera.
-  Folded (2026-10-09, fly-through-view-distance.md): the blocker fade
-  and the faint context around the focus are folded into MAP.149 (the
-  near field), which is built as part of the fly-through (MAP.146).
-  Built in part (2026-10-09): The blocker fade rule is built as part of
-  MAP.149 (PR #1141, static/nearfield.js). Nothing draws or steps to
-  neighbouring regions yet, so this item stays open for the drawing, the
-  arrow buttons and keys, and the browser test. Lane 2 builds it with
-  MAP.150, MAP.148 and MAP.155.
-  Scope after the review (2026-10-16 review): stepping to a neighbouring
-  region at the same level (URL, breadcrumb, keys; re-read what
-  MAP.200's nav pad already covers) and the Sector and System Maps
-  adopting the shared drawing; MAP.141 draws the faint context regions
-  once.
-  Owner: Core 2 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  MAP.228 merged (#2032): the address holds the camera, so region
-  stepping reads and writes the camera address, not the old window
-  address.
-  Split (2026-10-09): Boss, 2:38 AM EDT 2026-10-25, sector level:
-  MAP.327 (dim everything outside the sector bounds; a labelled icon at
-  the centre of each visible wall moves to the neighbour) is the
-  sector-level slice of this item and is built by Aux 10; this item
-  keeps the block and system levels, the slabs above and below, and the
-  arrow keys. Core 2 and Aux 10 agree who draws the dimmed neighbours
-  first.
-  Research (2026-10-09, Core 2 report 2026-10-28): First part merged (PR
-  #3391, Core 2, as the lane reported 9:24 AM EDT 2026-10-28): on the
-  Galaxy Map, in a window of blocks, the Menu has six step buttons
-  (North, South, West, East, Toward core, Away from core) and keys
-  (Alt+Shift+arrows, [ and ]) that move the camera to the neighbouring
-  region at the same level in one move; a button is off where nothing
-  exists to step to. Helper for others: galaxyprisms.neighbourBlock.
-  Still open here: the sector-level steps and dimming (Aux 10 MAP.327
-  calls the same step function), dimmed neighbouring blocks, and the
-  System Map neighbours.
-  Scope (2026-10-09): Scope settled by TODO for Core 2 (10:36 AM EDT
-  2026-10-28, provisional, Boss may correct): (1) dimming is Boss's
-  Sector Map request: the sectors around the one in view are drawn
-  dimmed with their stars and systems but no comets or rogue planets,
-  and MAP.327's dimming outside the sector bounds is the first half of
-  it; the Galaxy Map already draws its cells around the centre, so it
-  needs stepping only, not new dimming. (2) Stepping: arrow buttons and
-  keys move the camera to the neighbouring sector, block or slab at the
-  same level (MAP.200's nav pad is the base). (3) System Map: a
-  neighbour is the nearest systems in 3D (within the sector and across
-  its edge), drawn faint as context (MAP.141), and a step goes to the
-  nearest system in the direction of the arrow; the System Map has no
-  grid to step through. Build (1) and (2) first; (3) can be a later PR.
-  Progress (2026-10-09): MAP.327 merged (Aux 10, #3422, 11:48 AM EDT
-  2026-10-28 as the lane reported): the Sector Map part of (1) and part
-  of (2) are built: stars outside the opened sector at 30% with no glow,
-  names or phenomena, a locked wireframe round the sector cell, and a
-  labelled arrow icon on each wall that faces a neighbour that flies to
-  it via stageView.openSector. The six step buttons and keys for a
-  window of blocks were already built in #3391, and the sector wall
-  icons are the sector-level step. Left for this item: dimming of the
-  neighbouring blocks at the block level and the System Map part.
-  Progress (2026-10-09): Core 2 (#3427, 12:07 PM EDT 2026-10-28 as the
-  lane reported): the six step buttons and keys now also work inside an
-  opened sector (they open the sector across the wall in that direction
-  in one camera move, using stageView.openSector and
-  galaxyprisms.neighbourBlock; a button stays off where the wall faces
-  nothing), and the Galaxy Map needs no new dimming. Left: the System
-  Map neighbours only (provisional rule in the scope note).
-  Prerequisites: none.
-
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
   Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
   a star / star system or other object that is normally blocked from
@@ -3318,6 +3225,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Open: stars in the Sector Map view (Aux 10); belts and comets have no
   picture to turn (no look record); the black-hole, neutron-star and
   nebula views are separate renderers.
+
+- [ ] **MAP.329 System Map stepping reaches systems across a sector's edge**
+  Follow-up from MAP.121 (Core 2, #3430, 12:13 PM EDT 2026-10-28 as the
+  lane reported): with a system opened, the six step buttons and keys
+  open the nearest system of the open sector inside a 60 degree cone
+  about north, south, east, west, out or in; systems across the sector's
+  edge are not reached because the sector scene holds only its own
+  systems. Do: read the neighbouring sectors' nodes or scenes so a step
+  can cross the edge, and draw the neighbouring systems faint as context
+  (MAP.141's context rule), keeping the scale. Optional until Boss asks.
+  The 60 degree cone is a display tweak with no source (L4 on the tweak
+  scale, noted in the code and docs/reference/html-interface.md); change
+  it only if Boss wants another. Done: from a system at a sector edge a
+  step in the direction of the edge opens the nearest system across it,
+  with a browser test. Owner: Core 2 when free. Rules: no
+  backward-compat shims; reuse stageView.openSector and
+  galaxyprisms.neighbourBlock.
+  Prerequisites: none. Related: MAP.121, MAP.141.
 
 ## NAV: Navigation and courses
 
