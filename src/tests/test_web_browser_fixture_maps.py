@@ -2308,6 +2308,31 @@ def test_galaxy_map_habitable_world_markers_are_opt_in_and_name_the_system(page,
     assert "2" in page.locator("#galaxymap3d-info").inner_text()
 
 
+def test_a_name_is_only_offered_for_a_habitable_world_marker_that_is_drawn_and_a_sparse_view_names_them_all(page, map_site):
+    """MAP.317: the habitable-world markers are the inhabited slice of the label budget: a sparse view names every one it
+    draws that has room (the fixture's two lie close, so the one with more worlds keeps its name), and none while the marker
+    layer is off or the World names switch is."""
+    _open_window(page, map_site, 27, 27, 0, 0, g=3)
+    page.wait_for_timeout(1000)
+    systems = {"Fixture Eden"}
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
+    button = page.locator('#galaxymap3d-kinds button[data-layer="marker-habitable"]')
+    _open_menu(page)
+    button.click()
+    _markers_until(page, lambda found: any(e["kind"] == "marker-habitable" for e in found))
+    page.wait_for_function(f"([names]) => {{ const got = new Set(({LABELS})().filter((l) => l.kind === 'world').map((l) => l.text)); return names.every((n) => got.has(n)); }}",
+                           arg=[sorted(systems)], timeout=20000)
+    # The switch for the names takes them away while the markers stay.
+    page.locator('#galaxymap3d-kinds [data-label="world"]').click()
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
+    assert any(e["kind"] == "marker-habitable" for e in page.evaluate(MARKERS))
+    page.locator('#galaxymap3d-kinds [data-label="world"]').click()
+    page.wait_for_function(f"() => ({LABELS})().some((label) => label.kind === 'world')")
+    # No marker drawn, no name offered.
+    button.click()
+    page.wait_for_function(f"() => !({LABELS})().some((label) => label.kind === 'world')")
+
+
 def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
     """MAP.65: a black hole, neutron star or quasar shows a tooltip with its
     name under the pointer, and its panel offers Start Here, End Here
