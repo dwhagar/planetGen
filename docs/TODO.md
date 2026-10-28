@@ -3053,6 +3053,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (b) the planet and moon symbols at system level with the MAP.152
   hand-off; (c) inhabited tokens on the MAP.316 region nodes; (d) the
   label budget.
+  Research (2026-10-09): Progress (2026-10-28, 3:12 PM EDT as the lane
+  reported): parts (a) and (b) merged. (a) #3463: inhabited interest
+  reason (technological civilization or colony, coloured by
+  habitability), migration 0167; colony add, change and remove keep the
+  rows right. (b) #3468: inside an open system the planets, moons and
+  belt carry their own symbols by the same Menu layers, the star stops
+  repeating its own, symbols ride the bodies, the hand-off has a 6 in /
+  10 out radii gap; scene JSON gains body_type, phi4 and tier (no API
+  bump); also fixes test_api.py::test_galaxy_nodes_carry_no_comets,
+  which #3453 had broken. Remaining: (c) inhabited tokens on the MAP.316
+  region nodes, (d) label budget wiring.
 
 - [ ] **MAP.322 Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e)**
   Boss, 1:20 AM EDT 2026-10-25 (relayed by the coordinator): "inside the
