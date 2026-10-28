@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2382] - 2026-10-28
+
+**Headline:** The search for a planet's exobase can no longer run for ever on a bad input, the escape calculation is a little faster with the same results, and the class P versus class M temperature test no longer times out.
+
+### Changed
+- **The exobase search is bounded (GEN.841).** `thermosphere.exobase` stepped upward until the air thinned out or the height reached ten radii, with no other end: a NaN temperature made every comparison false and the loop never stopped. It now stops after 200,000 steps (the longest real search over the bodies swept takes about 15,000), and a NaN, infinite or non-positive input is an error with the inputs in its message. The diffusion parameters and molar masses are cached and the diffusion limit takes the mean mass its caller already has. The shares kept of 120 random airs are identical to the last bit, so no generated value changes.
+- **The class P versus class M temperature test fits its time (TEST.410).** Each rocky planet is a solve of its air (about 2 s), so 300 of each class took over 900 s and timed out. It now compares 40 of each (medians 300 K and 238 K over the first 40 of a sample of 60; 312 K and 245 K over all 60) and takes about 2.5 minutes. No generated value changes.
+
 ## [8.0.2381] - 2026-10-28
 
 **Headline:** The Galaxy Map's info card says which named region a pick lies in, and its names fly you there.
