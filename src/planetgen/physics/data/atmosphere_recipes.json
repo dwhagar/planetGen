@@ -2214,7 +2214,7 @@
    ],
    "group": "h",
    "lets": {
-    "edge": "loglog(photosphere_bar, 0.001, 725, 0.01, 829, 0.1, 966, 1, 1156, 10, 1437)"
+    "edge": "loglog(photosphere_bar, 0.001, 726, 0.01, 830, 0.1, 966, 1, 1157, 10, 1439)"
    },
    "weight": "window(tday_k, None, edge, 100)"
   },
@@ -2249,8 +2249,8 @@
    ],
    "group": "h",
    "lets": {
-    "low_edge": "loglog(photosphere_bar, 0.001, 725, 0.01, 829, 0.1, 966, 1, 1156, 10, 1437)",
-    "high_edge": "loglog(photosphere_bar, 0.001, 2340, 0.01, 2553, 0.1, 2806, 1, 3111, 10, 3490)"
+    "low_edge": "loglog(photosphere_bar, 0.001, 726, 0.01, 830, 0.1, 966, 1, 1157, 10, 1439)",
+    "high_edge": "loglog(photosphere_bar, 0.001, 2331, 0.01, 2542, 0.1, 2793, 1, 3096, 10, 3471)"
    },
    "weight": "window(tday_k, low_edge, high_edge, 100)"
   },
@@ -2288,7 +2288,7 @@
    ],
    "group": "h",
    "lets": {
-    "edge": "loglog(photosphere_bar, 0.001, 2340, 0.01, 2553, 0.1, 2806, 1, 3111, 10, 3490)"
+    "edge": "loglog(photosphere_bar, 0.001, 2331, 0.01, 2542, 0.1, 2793, 1, 3096, 10, 3471)"
    },
    "weight": "window(tday_k, edge, None, 100)"
   },

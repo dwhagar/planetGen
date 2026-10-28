@@ -7,7 +7,7 @@ import argparse
 
 import numpy as np
 
-from planetgen.physics import constants, planet_mass
+from planetgen.physics import bulk_draw, constants, planet_mass
 from planetgen.util import draw
 from tests import class_shadow_cli
 
@@ -24,7 +24,8 @@ def sweep(systems, seed):
         if is_moon:
             continue
         star = body.star
-        law = planet_mass.planet_mass(body.distance, star.mass, star.snow_line_au, star.metallicity_fe_h or 0.0, stream)
+        law = planet_mass.planet_mass(body.distance, star.mass, star.snow_line_au, star.metallicity_fe_h or 0.0,
+                                      bulk_draw.metal_ratio_to_solar(star), stream)
         rows.append((body.distance / star.snow_line_au, law.mass_kg / constants.EARTH_MASS_TO_KG, law.runaway,
                      body.mass / constants.EARTH_MASS_TO_KG))
     return np.array(rows, dtype=float)

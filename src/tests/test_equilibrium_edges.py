@@ -14,9 +14,9 @@ from planetgen.physics import gas_equilibrium, species_thermo
 from planetgen.physics.atmosphere_recipes import RECIPES
 
 SOLAR = edges.reference_budget(1.0, 0.55)
-TABLE_SLACK = 0.07
-# The points of the recipe tables (rows h1 to h3) were computed with the first GEN.518 module; the one solver gives the independent
-# record's values, up to 16 K (0.6 percent) lower for the water edge, which moves the probability at the edge by up to 0.06 of the 100 K window.
+TABLE_SLACK = 0.01
+# The points of the recipe tables (rows h1 to h3) are the solver's own edges rounded to a kelvin (GEN.723): at a table pressure the soft window
+# is half at the edge to within the rounding, a hundredth of the 100 K window.
 
 
 def test_water_forms_from_its_elements_with_the_known_formation_free_energy():
@@ -65,7 +65,7 @@ def test_the_water_and_hydrogen_dissociation_temperatures_match_the_independent_
 def test_the_hot_jupiter_regime_edges_of_the_recipes_are_the_computed_ones():
     # the soft window is half at its edge: row h1 has 0.5 at the methane line, row h3 has 0.5 at the 10 percent water line
     h1 = RECIPES.entry("h1")
-    for bar in (0.01, 0.1, 1.0):
+    for bar in (0.001, 0.01, 0.1, 1.0, 10.0):
         edge = edges.ch4_co_temperature(bar, SOLAR)
         probability = dict(RECIPES.probabilities("h", Subject("J", {"zone": "h", "tday_k": edge, "photosphere_bar": bar})))
         assert probability["h1"] == pytest.approx(0.5, abs=TABLE_SLACK), (bar, edge)

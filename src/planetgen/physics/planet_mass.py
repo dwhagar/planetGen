@@ -32,7 +32,7 @@ _EARTH_KG = constants.EARTH_MASS_TO_KG
 _BROWN_DWARF_LIMIT_KG = 13.0 * constants.JUPITER_MASS_TO_KG
 
 
-def assembled_core_kg(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stream=None):
+def assembled_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio=1.0, stream=None):
     """
     The mass of the planet the disc's solids build at `distance_au` before any gas runaway: the isolation mass times the
     assembly factor times a log-normal scatter, never above `PLANET_MAX_STAR_MASS_RATIO` of the star.
@@ -41,14 +41,14 @@ def assembled_core_kg(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stream=
         distance_au (float): The formation distance from the star, in AU.
         star_mass_kg (float): The star's mass, in kilograms.
         snow_line_au (float): The star's own snow line, in AU.
-        fe_h (float): The star's [Fe/H] in dex.
+        metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`, GEN.464).
         stream (draw.Stream or None): The body's own stream; `None` draws from the stream bound now.
 
     Returns:
         float: The assembled solid mass, in kilograms.
     """
     source = stream or draw
-    scale = formation.disk_surface_density_scale(star_mass_kg, fe_h) * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
+    scale = formation.disk_surface_density_scale(star_mass_kg, metal_ratio) * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
     density = formation.mmsn_surface_density_gcm2(distance_au, snow_line_au, scale)
     isolation = formation.isolation_mass_kg(distance_au, density, star_mass_kg)
     scatter = 10.0 ** (tuning.PLANET_ASSEMBLY_SCATTER_DEX * source.gauss(0.0, 1.0))
@@ -68,7 +68,7 @@ def runaway_mass_kg(star_mass_kg, stream=None):
     return (low_power - source.random() * (low_power - high_power)) ** (-1.0 / slope)
 
 
-def planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stream=None):
+def planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, metal_ratio=1.0, stream=None):
     """
     A planet's mass at its formation distance from a star (module docstring). Draws, in this order, the assembly
     scatter, then (only for a core past the critical mass beyond the snow line) the gas-survival draw and the runaway
@@ -78,14 +78,15 @@ def planet_mass(distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stream=None):
         distance_au (float): The formation distance from the star, in AU.
         star_mass_kg (float): The star's mass, in kilograms.
         snow_line_au (float): The star's own snow line, in AU.
-        fe_h (float): The star's [Fe/H] in dex.
+        fe_h (float): The star's [Fe/H] in dex: the giant-planet occurrence law (Fischer and Valenti) is stated in it.
+        metal_ratio (float): The star's Z / Z0 (`bulk_draw.metal_ratio_to_solar`, GEN.464): the disc's solids law is stated in it.
         stream (draw.Stream or None): The body's own stream; `None` draws from the stream bound now.
 
     Returns:
         PlanetMass: The mass, the core it grew from and whether it ran away.
     """
     source = stream or draw
-    core = assembled_core_kg(distance_au, star_mass_kg, snow_line_au, fe_h, source)
+    core = assembled_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, source)
     critical = tuning.GIANT_CORE_CRITICAL_MASS_EARTH * _EARTH_KG
     if distance_au >= snow_line_au and core >= critical:
         share = tuning.GIANT_GAS_SURVIVAL_SHARE * metallicity.giant_occurrence_factor(fe_h)
