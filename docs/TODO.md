@@ -21799,42 +21799,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   epoch; tests are `scripts/test.py changed --resume`.
   Prerequisites: none. Related: OPS.72.
 
-- [ ] **OPS.75 update.sh ends with "the update failed at step 9/9, checking that the web app imports" when the import check passed and the real failure is the health check after the Apache reload; the site stays closed with a wrong reason (bug)**
-  Boss, 2026-10-24 11:53 PM EDT (live run on his server, PlanetGen
-  8.0.2324): steps 1 to 8 passed; step 9/9 printed 'The web app and the
-  generator import cleanly', then 'Apache was reloaded but
-  http://127.0.0.1/api/health does not answer', then 'error: the update
-  failed at step 9/9, checking that the web app imports. The site stays
-  closed (maintenance mode) because the database may be half migrated.'
-  The message is wrong twice: the import check passed (the failing check
-  is the health check after the reload) and the database was not half
-  migrated (step 5 said schema v157 current). The health check most
-  likely runs while the site is still closed in maintenance mode, which
-  answers 503, so it can never pass; verify that. Do: (1) report the
-  check that failed, by name; (2) retry the health check for a bounded
-  time after the reload; (3) run it against a path that answers while
-  closed, or open the site first when the migration finished cleanly,
-  then check; (4) say whether the site is in maintenance mode and why (a
-  failed migration, or only a failed health check), and when only the
-  health check failed leave the site open or say how to open it in one
-  command. Also: the cache warm-up (warm-map) that the update cancelled
-  at the start was restarted at the end; confirm that is wanted and say
-  so in the output. Done: a run where the health check needs a moment
-  passes, a run where it truly fails names it and the maintenance state
-  correctly, tests pin the messages. Owner: Aux 12 (ops).
-  Prerequisites: none. Related: OPS.29, OPS.63.
-
-- [ ] **OPS.76 update.sh warns "uncommitted local changes in /var/lib/planetGen -- these will be overwritten: ?? state/" on every update although state/ is expected (bug)**
-  Boss, 2026-10-24 11:53 PM EDT, same run: step 1 warns that the
-  untracked state/ directory will be overwritten. state/ holds the
-  maintenance switch and backups, is expected to be untracked and is
-  never overwritten by the pull. Do: ignore state/ in the
-  uncommitted-changes check (and list any other expected runtime paths),
-  warn only about tracked changes that the pull would really overwrite.
-  Done: a clean install prints no warning and a modified tracked file
-  still does; a test pins both. Owner: Aux 12 (ops).
-  Prerequisites: none. Related: OPS.29.
-
 ## DOC: Documentation
 
 - [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
