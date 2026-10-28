@@ -1610,3 +1610,9 @@ Baseline: PR #1817.
 | GEN.826 | 8.1 | Fly-through map |
 | MAP.305 | 8.1 | Fly-through map |
 | MAP.303 | 8.1 | Fly-through map |
+| GEN.464 | 8.1 | Star composition |
+| GEN.723 | 8.1 | Mixture and stored values |
+| GEN.742 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.234 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.413 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.424 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
