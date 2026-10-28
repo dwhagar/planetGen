@@ -2952,36 +2952,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing in 8.1.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
 
-- [ ] **MAP.314 Galaxy Map labels the charted regions by zoom: the family word with Reach at 81 and 243, the Region name at 27 and 9, the corner or infobox below that (regions chain, step 3)**
-  Named galaxy regions (Boss, 1:04 AM EDT 2026-10-25): a region is a
-  9-block cell (about 780 sectors) with at least one generated sector,
-  named from the block path by a new codec kind region (Word Region; the
-  27 Regions of one 81-block share the family word) and drawn as the
-  bounding sphere of its generated sectors, never smaller than the 12 pc
-  standard-fill sphere (about 109 sectors) about the cell's anchor; it
-  exists, and shows on the galactic map, as soon as any sector in the
-  cell is generated (anything above 0 percent), ranked by share charted
-  (generated sectors over the sectors its outline can hold, a standard
-  fill is about 14 percent); ungenerated space gets no region and no
-  sector line may join two unrelated places. Boss, 1:13 AM EDT
-  2026-10-25: the chain is in 8.1, regions are what the galactic-level
-  map shows so a user can always drill down to inhabited space. Design:
-  /mnt/project-files/design-drafts/region-names-from-id-prefix-2026-10-25.md
-  section 0.2 (current design), then 0.1, sections 2.2 and 3. Names come
-  from the gated phoneme codec only, never from Milky Way or Solar
-  System lists. Label priority bigger block first, one label per node,
-  culling by the sector-name collision rules; the label sits on the
-  centroid of the charted spheres, not the block centre; an unfilled
-  galaxy shows nothing. The suffix words Region and Reach are
-  placeholders for Boss. Done: label tests at each zoom, no label for
-  uncharted space. Owner: Core 4 (Boss, 1:45 AM EDT 2026-10-25: Core 4
-  takes labels by zoom with the icons once its current item is done),
-  moved from Aux 10. Rules: no backward-compat shims; every number has a
-  unit or scale (GEN.772); tests are scripts/test.py changed --resume.
-  The galactic-level map draws the regions themselves (MAP.317), so
-  these labels are what a user reads there.
-  Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826, API.35.
-
 - [ ] **MAP.316 Regions are the nodes of the galactic-level map: a soft sphere with its name, coloured by share charted, replacing the sector boxes there, and a sortable charted-regions list (regions chain, step 3a)**
   Named galaxy regions, 8.1 (Boss, 1:13 AM EDT 2026-10-25): regions are
   what the galactic-level map shows so a user can always drill down to
@@ -3098,6 +3068,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   EDT 2026-10-28 as the lane reported): the symbols to use are in
   static/poiicons.js and web/lib/poi_icons.py; MAP.316 (Aux 10) and
   MAP.305 (registry) are the remaining waits.
+  Handoff (2026-10-09): MAP.314 merged (Core 4, #3432, 12:27 PM EDT
+  2026-10-28 as the lane reported, tile format 7, no epoch): charted
+  regions are named by zoom (far out each family once with its Reach,
+  closer in each charted region, none in small blocks or uncharted
+  space); the server lists charted regions on the 27, 81 and 243 nodes;
+  Menu Labels has a Region names switch. MAP.316 builds on the same
+  list.
 
 - [ ] **MAP.322 Inside the lowest-level region, the sectors shown and labelled are the most densely filled ones by total mass (regions chain, step 3e)**
   Boss, 1:20 AM EDT 2026-10-25 (relayed by the coordinator): "inside the
@@ -14413,18 +14390,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the epoch carries --affects.
   Prerequisites: none. Related: GEN.553, GEN.243, GEN.725.
 
-- [ ] **GEN.832 tests/test_gen_compact_orbit_laws.py fails 4 tests on main: a compact object with a star yields no periods (bug)**
-  Found by Math 1 (as the lane reported 3:49 AM EDT 2026-10-25), not
-  that lane's change: four tests in tests/test_gen_compact_orbit_laws.py
-  fail on main, all with a compact object that has a star yielding no
-  orbital periods. The file belongs to GEN.272 (accreting compact
-  binaries in the member tree). Do: reproduce on clean main, find the
-  commit that broke it (a recent member-tree, epoch or draw change), and
-  fix the generator or the test, whichever moved; say which in the PR.
-  Done: the file passes in full. Owner: Core 4 (wrote GEN.272) or an
-  idle one-off lane. Rules: no backward-compat shims; never skip a test.
-  Prerequisites: none. Related: GEN.272, GEN.630, GEN.631.
-
 - [ ] **GEN.833 Cold icy moons get sparse ice cover because the hydrosphere's toy ocean_fraction feeds the ground draw (bug)**
   Found by Blocker 4 while merging GEN.441 (PR 3335, as the lane
   reported 3:57 AM EDT 2026-10-25): the ground draw reads the
@@ -20171,19 +20136,6 @@ clears each one.
   Prerequisites: GEN.689, GEN.828, GEN.829, GEN.728. Related: GEN.646,
   GEN.689, GEN.27, GEN.350.
 
-- [ ] **TEST.397 test_api_auth_sweep is red on main (bug)**
-  Found by Math 1 (as the lane reported 3:49 AM EDT 2026-10-25):
-  tests/test_api_auth_sweep fails on current main and is not that lane's
-  change. Do: run it on a clean main, name the route and the code it got
-  against the code it expected, and decide which side moved (a new route
-  missing from the sweep list, an access rule changed by SEC.36 or the
-  recent admin and API work, or a stale expectation); fix that side, do
-  not loosen the sweep. Done: test_api_auth_sweep and
-  test_fuzz_web_routes both pass on main under scripts/test.py changed
-  --resume. Owner: Bug 1 (it fixed TEST.396 in the same area). Rules:
-  never skip or quarantine the test.
-  Prerequisites: none. Related: TEST.396, SEC.36.
-
 - [ ] **TEST.398 The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug)**
   Math 1 finding (3:49 AM EDT 2026-10-25): stale planetgen.cli.worker
   processes left on a test machine pick up units of later test runs and
@@ -20353,16 +20305,6 @@ clears each one.
   or a free lane. Rules: never skip or quarantine a test;
   scripts/test.py changed --resume.
   Prerequisites: none. Related: TEST.409, TEST.412.
-
-- [ ] **TEST.415 test_cache_warmup::test_a_big_unit_stops_part_way fails on unmodified main (bug)**
-  Found by Aux 12 (as the lane reported 9:56 AM EDT 2026-10-28) while
-  merging API.35 (#3396); not that change's. Do: run it on clean main,
-  find what moved (TILE_FORMAT, region_stats hooks, a unit-size
-  constant, the 8.2 tile cache), fix the code or the expectation with
-  the reason in the PR. Done: the test passes on main. Owner: Bug 1
-  after DB.108/GEN.826, or a free lane. Rules: never skip or quarantine
-  a test; scripts/test.py changed --resume.
-  Prerequisites: none. Related: TEST.414.
 
 - [ ] **TEST.416 test_habitability_explain fails ten tests on main: the tests still call the surface_content API as it was before GEN.441 (bug)**
   Found by Math 2 (as the lane reported 10:18 AM EDT 2026-10-28) while
