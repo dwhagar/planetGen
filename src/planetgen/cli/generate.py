@@ -40,6 +40,7 @@ import argparse
 import getpass
 import json
 import math
+import os
 import secrets
 import signal
 import sys
@@ -51,7 +52,7 @@ from planetgen.cli import benchmark
 from planetgen.cli import checkdb as checkdb_cli, queue as queue_cli, warm as warm_cli
 
 from planetgen.queue import commands as queueCommands, work as workQueue
-from planetgen.db import check as dbCheck, fingerprint, parity, repair as dbRepair, store
+from planetgen.db import check as dbCheck, fingerprint, parity, repair as dbRepair, store, table_rebuild
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
@@ -1415,20 +1416,51 @@ def add_repair_db_arguments(parser):
                         help="Look only at the sector at this address (repeatable).")
     parser.add_argument('--dry-run', action='store_true',
                         help="Say which damaged sectors the parity file could rebuild and write nothing.")
+    parser.add_argument('--salvage', metavar='TABLE', default=None,
+                        help="Step 1 of rebuilding a table whose clustered index has an unreadable page (run with the server "
+                             "started with innodb_force_recovery = 1 and the website and generation stopped): dump its readable "
+                             "rows to --dump-dir, then drop the table and make it again empty.")
+    parser.add_argument('--reload', metavar='TABLE', default=None,
+                        help="Step 2 (after a normal restart): insert the dumped rows of TABLE back, then repair the sectors "
+                             "that lost rows from the parity file.")
+    parser.add_argument('--restore-sectors', action='store_true',
+                        help="With --reload sectors: also put back the sector rows the parity file holds and the table lacks.")
+    parser.add_argument('--dump-dir', metavar='DIR', default=None,
+                        help="Where --salvage writes and --reload reads the dump (default: a 'salvage' folder in the parity folder).")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
 
 def run_repair_db(args):
-    """`planetgen repair-db` (DB.47): rebuilds the sectors that no longer hash to their stored checksum from the parity file
+    """`planetgen repair-db` (DB.47, DB.48): rebuilds the sectors that no longer hash to their stored checksum from the parity file
     (`planetgen.db.repair`), and makes the parity file again from the database if it is the damaged part. Exits 1 when a damaged
-    sector is left (or, with `--dry-run`, when there is any damage) and 2 when there is no parity file."""
+    sector is left (or, with `--dry-run`, when there is any damage) and 2 when there is no parity file. `--salvage TABLE` and
+    `--reload TABLE` are the two steps of rebuilding a table with an unreadable clustered-index page
+    (`planetgen.db.table_rebuild`); a reload ends with the repair above."""
+    if args.salvage and args.reload:
+        _fatal("--salvage and --reload are two steps with a restart between them; give one")
     config = store.mysql_config_from_args(args)
     scope = dbCheck.Scope(tuple(args.shell or ()), tuple(tuple(a) for a in args.sector or ()))
+    directory = args.dump_dir or os.path.join(os.path.dirname(parity.parity_path()), "salvage")
     conn = store.get_connection(config)
     try:
         try:
+            if args.salvage:
+                table_rebuild.salvage(conn, args.salvage, directory)
+                return
+            if args.reload:
+                table_rebuild.reload(conn, args.reload, directory)
+                if args.restore_sectors and args.reload == "sectors":
+                    table_rebuild.restore_sectors(conn)
             report = dbRepair.repair(conn, scope, dry_run=args.dry_run)
+            if any(result.outcome == dbRepair.UNREADABLE for result in report.results):
+                tables = table_rebuild.probe_unreadable(conn)
+                log.normal("Repair: unreadable table(s): " + (", ".join(tables) or "none found now") + ". To rebuild one, stop the "
+                           "website and generation, restart the server with innodb_force_recovery = 1, run `planetgen repair-db "
+                           "--salvage TABLE`, restart it normally, then `planetgen repair-db --reload TABLE`.")
+        except table_rebuild.RebuildRefused as exc:
+            log.error(str(exc))
+            sys.exit(1)
         except FileNotFoundError as exc:
             log.error(str(exc))
             sys.exit(2)
