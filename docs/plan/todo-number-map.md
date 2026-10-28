@@ -605,7 +605,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.44 | Migration only: the sector storage checksum and the parity dirty flag | none | done, PR #2420 |
 | DB.45 | Storage checksum and the dirty flag: the export, the checksum and every writer | none | done, PR #3414 |
 | DB.46 | The parity file: groups, records, a delta update on every save and the stale-record rule | none | done, PR #3451 |
-| DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | none | open |
+| DB.47 | planetgen repair-db: rebuild damaged sectors from the parity file | none | done, PR #3456 |
 | DB.48 | repair-db: rebuild the table when a clustered-index page is unreadable | none | open |
 | DB.49 | Migration only: the leaf digest column and the shell-band tree table | none | done, PR #2521 |
 | DB.50 | Migration only: structure columns for life and flavour | none | done, PR #2206 |
