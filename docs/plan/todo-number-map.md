@@ -22,7 +22,7 @@ release is stamped.
 | API | API.37 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.414 |
+| TEST | TEST.415 |
 | USR | USR.32 |
 | OPS | OPS.77 |
 | DOC | DOC.83 |
@@ -1906,7 +1906,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.314 | Galaxy Map labels the charted regions by zoom: the family word with Reach at 81 and 243, the Region name at 27 and 9, the corner or infobox below that (regions chain, step 3) | none | open |
 | MAP.315 | The map infobox shows the region and its parent: "Region: Vang Zarh (in Vang Reach)", each a link that flies the camera to the block (regions chain, step 4) | none | open |
 | MAP.316 | Regions are the nodes of the galactic-level map: a soft sphere with its name, coloured by share charted, replacing the sector boxes there, and a sortable charted-regions list (regions chain, step 3a) | none | open |
-| MAP.317 | Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c) | none | open |
+| MAP.317 | Domain-sliced label budget: a share for inhabited places, uninhabited bodies, stars, nebulae and regions, and only drawn markers are labelled (regions chain, step 3c) | none | done, PR #3395 |
 | MAP.318 | Population is a metric slot: the inhabited slice and the charted-regions list read a body's population once it is stored, and rank habitable worlds by habitability score until then (regions chain, step 3d) | none | open |
 | MAP.319 | flyToFit: flying to a region, star system, planet system of moons or nebula places the camera so the target fills the window, with no sector boxes drawn (regions chain, step 3b) | none | open |
 | MAP.320 | Distinct vector point-of-interest icons: habitable world, uninhabitable world (brown or grey, not red), inhabited world (coloured by habitability score), gas giant, asteroid field, sector and region | none | open |
@@ -3121,6 +3121,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.411 | Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug) | none | open |
 | TEST.412 | src/tests/test_web_ui_fields.py hangs on a lane machine at test_a_bad_distance_is_shown_on_the_distance_field_not_above_the_form, on the nearby page, after 6 passes (bug) | none | open |
 | TEST.413 | test_property_sheet fails on main: the GEN.441 ground_*_fraction columns are not on the property sheet (bug) | none | open |
+| TEST.414 | test_habitability_end_to_end_browser errors: the database fixture times out at 900 s before any page loads (8 errors) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
