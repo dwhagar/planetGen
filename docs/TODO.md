@@ -973,30 +973,6 @@ with `clamp()`.
   browser test pins it. Version 8.1. Owner: Core 5.
   Prerequisites: none. Related: UX.208, GEN.772.
 
-- [ ] **UX.214 Search, object lists, Nearby and the API filter and sort by Suitability, the four life scores (Flora, Fauna, Sentient, food) and PHI-6: today they only draw the PHI-6 symbol column**
-  Boss, 10:11 PM EDT 2026-10-24 (relayed by the coordinator): "alright,
-  are there any other places where are habitability / life scores aren't
-  used and should be?" Found by the TODO thread's code audit of
-  src/planetgen (searchpage.py, object_lists.py, nearby_page.py, maps,
-  population/facility_suggest.py, admin/edits.py, population/model.py).
-  The search page and the planet and moon lists show a Habitability
-  symbol column (sortable=False) and filter by nothing about it; Nearby
-  has no habitability or life field at all; the API takes
-  +habitable_world as a request only. Add: filters and sort for the
-  overall PHI-6 colour, each domain, Suitability, Flora, Fauna, Sentient
-  and the food rung, 'has life' and 'has a civilization' filters, on the
-  search page, the lists, Nearby and the API query parameters, with the
-  filter chips that active_filters already shows. Done: a browser test
-  filters and sorts a sample galaxy by each, and the API documents the
-  parameters. Version 8.1. Owner: Aux 11 (pages), with UX.150 which
-  covers the class and PHI-6 colour only. Rules: a unit or scale on
-  every number (GEN.772); tests are `scripts/test.py changed --resume`;
-  no fixed content from the Milky Way or the Solar System.
-  Research (2026-10-09, Progress): Owner assigned, Boss 10:16 PM EDT
-  2026-10-24 (fix each): Aux 11 (Lane 3, pages), API parameters with Aux
-  12.
-  Prerequisites: none. Related: UX.150, UX.100, GEN.653.
-
 - [ ] **UX.215 Object pages: the table of contents is a menu on the left side, one entry for each section heading, and the location links sit in a Location row of the at-a-glance table**
   Boss, 10:26 PM EDT 2026-10-24 (relayed by the coordinator), planet
   page redesign: "on page TOC should be a menu on the left side and
@@ -1235,7 +1211,7 @@ with `clamp()`.
   `tests.golden_update --reason ... --affects <stage>` and the next
   epoch; tests are `scripts/test.py changed --resume`; stand-ins get
   GEN.725 registry rows.
-  Prerequisites: UX.214, UX.226, UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
+  Prerequisites: UX.226, UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
 
 - [ ] **UX.226 Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1)**
   Unused stored values audit chain
@@ -1253,7 +1229,7 @@ with `clamp()`.
   a unit or scale (GEN.772); a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
   epoch; tests are `scripts/test.py changed --resume`.
-  Prerequisites: UX.214. Related: UX.225, UX.214, GEN.568.
+  Prerequisites: none. Related: UX.225, UX.214, GEN.568.
 
 - [ ] **UX.227 The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2)**
   Unused stored values audit chain
@@ -1306,25 +1282,6 @@ with `clamp()`.
   tests are scripts/test.py changed --resume.
   Prerequisites: DB.107. Related: GEN.825, DB.107, GEN.826, API.35,
   MAP.314, MAP.315.
-
-- [ ] **UX.232 Search results: the planet link in a result row goes to a bad link while the star system link in the same row works (bug)**
-  Boss, 2:45 AM EDT 2026-10-25, live observation: searching planets for
-  Class M, clicking the planet link in a result row led to a bad link;
-  the star system link in the same row worked. Repro: open the search
-  page, search planets with class M, click the planet name in any row.
-  Do: find the href the search row builds for a planet (object id form,
-  address or slug), compare it with the one the planet page route
-  accepts and with the star link, fix the builder in one place so every
-  list (search, Nearby, object lists, the API's links) builds object
-  links the same way, and look at the other object kinds in the same
-  rows (moons, belts, fields) for the same fault. Done: a test fetches
-  the planet links of the first rows of a class search (planets, moons,
-  belts) and every link answers 200 with the right object; a
-  link-builder test pins one function for all lists. Owner: Aux 11
-  (object pages and lists), Aux 12 if the fault is in the API's link
-  field. Rules: no backward-compat shims; tests are scripts/test.py
-  changed --resume.
-  Prerequisites: none. Related: UX.150, UX.214, UX.225.
 
 - [ ] **UX.233 The Map symbols key on the object pages**
   The point-of-interest symbols exist since MAP.320 (Core 4, #3415) with
@@ -19249,6 +19206,20 @@ clears each one.
   change. Find the breaking commit for each and fix the code or the
   fixture, never loosen or skip a test. Owner: Bug 1, after TEST.425.
   Prerequisites: none. Related: TEST.425, TEST.426.
+
+- [ ] **TEST.429 Four test groups are red on clean main: three test_api_job_runs tests, and test_web_seo for web.galaxy_system_nearest (bug)**
+  Found by the search-filters merge lane after #3518 (6:38 PM EDT
+  2026-10-28 as the lane reported), all on clean main and not from its
+  change: (1) tests/test_api_job_runs: regenerating a sector, the
+  neighborhood job and the settle job fail; (2)
+  tests/test_web_seo::test_every_web_page_is_classified_on_purpose:
+  web.galaxy_system_nearest is missing from the indexing matrix in
+  web/seo.py (classify it on purpose: indexed or not, with the reason).
+  The test_db_column_round_trip::test_every_column_is_written red it
+  also saw is TEST.427 (Aux 7 fixes it inside its lock turn). Find each
+  breaking commit and fix the code or the matrix, never loosen or skip a
+  test. Owner: Bug 1, after TEST.425.
+  Prerequisites: none. Related: TEST.425, TEST.427, TEST.428.
 
 ## USR: User accounts
 
