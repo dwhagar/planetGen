@@ -18990,6 +18990,8 @@ clears each one.
   --resume; the full run belongs to the end-of-version bug hunt only.
   Prerequisites: GEN.689, GEN.828, GEN.829, GEN.728. Related: GEN.646,
   GEN.689, GEN.27, GEN.350.
+  Research (2026-10-09): Folded into the class census (TEST.430, Boss
+  7:21 PM EDT 2026-10-28): retire with it.
 
 - [ ] **TEST.398 The test preflight kills stale planetgen.cli.worker processes, which pick up the units of later runs (bug)**
   Math 1 finding (3:49 AM EDT 2026-10-25): stale planetgen.cli.worker
@@ -19261,6 +19263,35 @@ clears each one.
   breaking commit and fix the code or the matrix, never loosen or skip a
   test. Owner: Bug 1, after TEST.425.
   Prerequisites: none. Related: TEST.425, TEST.427, TEST.428.
+
+- [ ] **TEST.430 Class census: a standing seeded report of every planet and moon class share and overall colour per star type and zone, with stored expected ranges and anomaly flags**
+  Boss, 7:21 PM EDT 2026-10-28: "Can we make a prevalence tests to debug
+  consistently all the class likelihoods so we can always check for
+  anomalies?" (Naming: the repo's test_prevalence.py is the GEN.52
+  feature knob, a different thing.) Proposal by Aux 9, approved through
+  the coordinator at 7:22 PM EDT. Build a standing report, fixed seeds,
+  per star type (M2V, K5V, G2V, F5V, A0V and a giant) by zone (hot,
+  ecosphere, cold) by planet or moon: the share of each class and of
+  each overall habitability colour, plus the habitable fraction per
+  class and the life ceiling. An expectations file holds a min and a max
+  per cell, each marked observed rate or design stand-in (tier and tweak
+  level per GEN.725). Flags: a share outside its range, a class missing
+  where expected (class T today), a class present where it is barred,
+  and a Blue or Green share outside its range. Seeded and fast: bare
+  planet draws per cell plus about 300 full systems, roughly 10 minutes,
+  run only on changes carrying --affects for generation (TEST gate
+  rule); the report is written to reports/ as a latest-run file. Ranges
+  start wide around today's figures and tighten as the classes settle.
+  Built on TEST.210 and TEST.315 (class shares and ranges as outputs);
+  covers the overlapping parts of TEST.209, TEST.214 and TEST.301, and
+  folds in TEST.395 (planet distribution against observed-rate bands,
+  after the class cut-over). Would have caught the 4c oxygen loss
+  (GEN.855) as a collapse of the Blue and Green share. Done: the report
+  runs from one command, a seeded run is repeatable, and a deliberately
+  broken input trips each of the four flags in a test. Owner: Bug 1,
+  after its current red-test items.
+  Prerequisites: none. Related: TEST.210, TEST.315, TEST.209, TEST.214,
+  TEST.301, TEST.395, GEN.855, GEN.725.
 
 ## USR: User accounts
 
