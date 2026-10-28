@@ -59,14 +59,42 @@ def test_oxygen_level_follows_the_column_of_oxygen():
 
 
 def test_an_earth_world_draws_within_the_sampled_models_including_the_measured_columns():
-    low = ozone.median_column_du(5772.0, 1.0) * ozone.STRUCTURE_RANGE[0]
-    high = ozone.median_column_du(5772.0, 1.0) * ozone.STRUCTURE_RANGE[1]
-    assert low < 279.0 and 300.0 < high < 330.0
+    """GEN.748: at the present oxygen the spread is the models' own, 279 DU (Cooke) to 327 DU (Grenfell), and holds the record's 300 DU; the
+    earlier 163 DU that no model gives is out."""
+    median = ozone.median_column_du(5772.0, 1.0)
+    low, high = (median * f for f in ozone.structure_range(1.0))
+    assert low == pytest.approx(279.0, abs=3.0) and high == pytest.approx(327.0, abs=3.0) and low < 300.0 < high
     with draw.bound(draw.Stream("ozone-earth")):
         values = [ozone.draw_column_du(5772.0, 21200.0, 1.0) for _ in range(400)]
     assert low - 1e-9 <= min(values) and max(values) <= high + 1e-9
-    assert any(279.0 <= v <= 300.0 for v in values)
-    assert min(values) < 190.0 < max(values)
+    assert any(279.0 <= v <= 300.0 for v in values) and any(300.0 <= v <= 327.0 for v in values)
+    assert min(values) > 190.0
+
+
+def test_the_spread_is_the_widest_where_no_model_narrows_it_and_the_models_ends_between():
+    assert ozone.structure_range(1.0) == (1.45, 1.70) == ozone.structure_range(1.5)
+    assert ozone.structure_range(0.1) == (0.85, 1.34)
+    assert ozone.structure_range(0.01) == (0.85, 1.71) == ozone.structure_range(0.0002)
+    previous = None
+    for pal in (0.01, 0.02, 0.05, 0.1, 0.2, 0.5, 1.0):
+        low, high = ozone.structure_range(pal)
+        assert 0.85 <= low <= high <= 1.71
+        if previous:
+            assert low >= previous[0] - 1e-12     # the lowest ratio never falls as the oxygen rises
+        previous = (low, high)
+    # nothing is wider than the earlier range at any level, and the whole range is only where the models stop
+    assert all(ozone.structure_range(pal)[1] - ozone.structure_range(pal)[0] <= 1.71 - 0.85 + 1e-12 for pal in (0.01, 0.1, 0.5, 1.0))
+
+
+def test_the_columns_across_the_five_hosts_follow_the_paper_at_every_temperature_of_the_sweep():
+    """The median across the host temperatures of the fit (Kozakis Table 1: 3000, 4500, 5000, 5800, 6000 K) at the present oxygen, and the draw
+    stays inside the models' range around each."""
+    for teff, du in ((3000.0, 162.0), (4500.0, 179.0), (5000.0, 160.0), (5800.0, 192.0), (6000.0, 263.0)):
+        median = ozone.median_column_du(teff, 1.0)
+        assert median == pytest.approx(du, abs=1.0)
+        with draw.bound(draw.Stream("sweep-%d" % teff)):
+            values = [ozone.draw_column_du(teff, 21200.0, 1.0) for _ in range(60)]
+        assert all(1.45 * median - 1e-9 <= v <= 1.70 * median + 1e-9 for v in values)
 
 
 def test_no_oxygen_has_no_ozone_and_draws_nothing():

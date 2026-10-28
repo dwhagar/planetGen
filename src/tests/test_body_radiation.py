@@ -5,6 +5,8 @@ body with no air, no star or no distance has no spectrum.
 
 import types
 
+import numpy as np
+
 import pytest
 
 from planetgen.physics import air_column, atmosphere, atmospheric_radiation, body_radiation, constants, stellar_spectrum
@@ -28,11 +30,35 @@ def _earth(**fields):
 def test_an_earth_like_body_at_one_au_gets_the_kernels_spectrum_for_its_record():
     body = _earth()
     column = air_column.column_of(body)
+    flux = stellar_spectrum.bolometric_flux_w_m2(constants.SOLAR_LUMINOSITY, 1.0)
     kernel = atmospheric_radiation.surface_radiation(
-        column, temperature_k=5772.0, flux_w_m2=stellar_spectrum.bolometric_flux_w_m2(constants.SOLAR_LUMINOSITY, 1.0), ozone_du=300.0)
+        column, temperature_k=5772.0, flux_w_m2=flux, ozone_du=300.0, ozone_temperature_k=atmospheric_radiation.ozone_layer_temperature_k(flux))
     assert body_radiation.uv_index(body) == pytest.approx(kernel.uv_index())
     assert body_radiation.dna_dose_w_m2(body) == pytest.approx(kernel.dna_dose_w_m2())
     assert body_radiation.uv_index(body) == pytest.approx(13.9, rel=0.5)      # the research's crude global estimate at 300 DU
+
+
+def test_the_ozone_layer_takes_the_skin_temperature_of_the_body_and_a_colder_one_is_a_slightly_weaker_absorber_in_the_blue():
+    """GEN.748: Earth's is 214 K (the measured layer sits at 210 to 230 K); a body of twice the flux is 2^(1/4) warmer; the albedo cools it."""
+    flux = stellar_spectrum.bolometric_flux_w_m2(constants.SOLAR_LUMINOSITY, 1.0)
+    earth = atmospheric_radiation.ozone_layer_temperature_k(flux, 0.306)
+    assert earth == pytest.approx(214.0, abs=2.0)
+    assert atmospheric_radiation.ozone_layer_temperature_k(2.0 * flux, 0.306) == pytest.approx(earth * 2.0 ** 0.25)
+    assert atmospheric_radiation.ozone_layer_temperature_k(flux, 0.6) < earth < atmospheric_radiation.ozone_layer_temperature_k(flux, 0.0)
+    assert atmospheric_radiation.ozone_layer_temperature_k(flux) == atmospheric_radiation.ozone_layer_temperature_k(flux, 0.3)
+    # the reference Earth of the DNA index has the same law, so an Earth-like body keeps an index of 1 at its own record
+    assert body_radiation.dna_dose_index(_earth(bond_albedo=body_radiation.EARTH_BOND_ALBEDO)) == pytest.approx(1.0, abs=0.01)
+
+
+def test_a_hotter_world_has_a_warmer_ozone_layer_and_the_uv_index_follows_across_the_sweep():
+    """The UV index at the ground across a sweep of the flux of an Earth-like body (the ozone layer from 150 to 270 K): finite and rising with the
+    flux, with the ozone-layer temperature moving the cross sections as the tables say."""
+    indexes = []
+    for factor in (0.3, 0.6, 1.0, 1.6, 2.5):
+        body = _earth(distance=1.0 / factor ** 0.5)
+        indexes.append(body_radiation.uv_index(body))
+    assert all(np.isfinite(i) and i > 0.0 for i in indexes)
+    assert indexes == sorted(indexes)
 
 
 def test_the_ozone_column_shields_the_dna_dose():
