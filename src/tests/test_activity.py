@@ -11,7 +11,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
-from planetgen.physics import activity, constants, magnetism
+from planetgen.physics import activity, constants, magnetism, orbit_elements
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -231,8 +231,9 @@ def test_generated_bodies_store_their_field_and_exposure():
                 assert (body.magnetopause_rp is None) == (body.magnetic_moment_a_m2 == 0.0)
                 assert body.xuv_flux_earth > 0.0 and body.xuv_exposure_index > 0.0
                 assert body.flare_irradiation_index >= 0.0
+            # GEN.727: the light a planet gets is that of the mean flux of its ellipse, the distance of `flux_distance_au`
             assert planet.xuv_flux_earth == pytest.approx(
-                activity.xuv_flux_earth(planet.star, planet.distance))
+                activity.xuv_flux_earth(planet.star, orbit_elements.flux_distance_au(planet.distance, planet.eccentricity)))
     assert {"none", "strong"} <= seen
 
 
